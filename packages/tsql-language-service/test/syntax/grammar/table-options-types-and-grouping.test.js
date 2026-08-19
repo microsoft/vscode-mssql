@@ -42,6 +42,9 @@ suite("T-SQL table options, qualified types, and grouping elements", () => {
             "CREATE TABLE [dbo].[t7] ([col2] INT NOT NULL, CONSTRAINT [u1] UNIQUE ([col2] ASC) NOT ENFORCED);",
         );
         assertValid(
+            "CREATE TABLE [dbo].[t9] ([col1] INT NOT NULL, CONSTRAINT [fk1] FOREIGN KEY ([col1]) REFERENCES [dbo].[t4] ([col1]) NOT ENFORCED);",
+        );
+        assertValid(
             "CREATE TABLE [dbo].[t8] ([col1] INT NOT NULL, CONSTRAINT [pk2] PRIMARY KEY ([col1]));",
         );
     });
@@ -70,6 +73,73 @@ suite("T-SQL table options, qualified types, and grouping elements", () => {
         );
         assertValid("SELECT c1 FROM t1 GROUP BY c1, c2");
         assertValid("SELECT c1 FROM t1 GROUP BY GROUPING SETS (ROLLUP(c1))");
+    });
+
+    // SQL 100 keeps the legacy WITH CUBE/ROLLUP tail after a grand-total grouping element.
+    test("parses legacy grouping tails after an empty grouping set", () => {
+        const snapshot = parse(`
+SELECT c1 FROM t1 GROUP BY () WITH CUBE;
+SELECT c1 FROM t1 GROUP BY () WITH ROLLUP;
+`);
+
+        assertValid(snapshot);
+        assert.equal((snapshot.tree.toString().match(/GroupByOption\(/g) ?? []).length, 2);
+    });
+
+    // SQL 130 permits UNIQUE before HASH/NONCLUSTERED on inline memory-optimized indexes.
+    test("parses unique inline hash and nonclustered indexes", () => {
+        const snapshot = parse(`
+CREATE TABLE T (
+    i int NOT NULL,
+    k int NOT NULL,
+    INDEX ix_t UNIQUE HASH (i, k) WITH (BUCKET_COUNT = 10000)
+);
+ALTER TABLE T ADD INDEX ix_a UNIQUE NONCLUSTERED HASH (i) WITH (BUCKET_COUNT = 256);
+`);
+
+        assertValid(snapshot);
+        const tree = snapshot.tree.toString();
+        assert.equal((tree.match(/ColumnInlineIndexDefinition\(/g) ?? []).length, 0);
+        assert.equal((tree.match(/InlineIndexDefinition\(/g) ?? []).length, 2);
+    });
+
+    // Temporal tables use a dedicated DROP PERIOD FOR SYSTEM_TIME ALTER TABLE action.
+    test("parses dropping a system-time period", () => {
+        const snapshot = parse("ALTER TABLE dbo.T DROP PERIOD FOR SYSTEM_TIME;");
+
+        assertValid(snapshot);
+        assert.match(snapshot.tree.toString(), /AlterTableAction\(Drop,Period,For,SystemTime\)/);
+    });
+
+    // Column-level inline indexes own their filegroup and FILESTREAM_ON tails.
+    test("parses column inline index storage tails", () => {
+        const snapshot = parse(`
+CREATE TABLE dbo.T (
+    c int INDEX ix_c WITH (BUCKET_COUNT = 1000) ON fg FILESTREAM_ON fs_fg
+);
+`);
+
+        assertValid(snapshot);
+        assert.equal(
+            (snapshot.tree.toString().match(/CreateTableStorageClause\(/g) ?? []).length,
+            2,
+        );
+    });
+
+    // Table-level inline indexes use the same storage tail as column-level indexes.
+    test("parses table inline index storage tails", () => {
+        const snapshot = parse(`
+CREATE TABLE dbo.T (
+    c int,
+    INDEX ix_c (c) WITH (DATA_COMPRESSION = ROW) ON fg FILESTREAM_ON fs_fg
+);
+`);
+
+        assertValid(snapshot);
+        assert.equal(
+            (snapshot.tree.toString().match(/CreateTableStorageClause\(/g) ?? []).length,
+            2,
+        );
     });
 
     // A damaged partition option must not leak past its GO batch.

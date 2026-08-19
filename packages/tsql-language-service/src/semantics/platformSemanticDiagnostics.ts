@@ -7,6 +7,7 @@ import { engineCapabilitySet, engineProfileDisplayName } from "../common/index.j
 import type { MetadataView } from "../metadata/index.js";
 import type { SyntaxNode, SyntaxSnapshot } from "../syntax/index.js";
 import type { SemanticDiagnostic } from "./contracts.js";
+import { rowsetNameNode, rowsetNameOwnerKinds } from "./model/nameNodes.js";
 
 /**
  * Platform restrictions that need a metadata fact as well as a structured node.
@@ -31,8 +32,11 @@ export function platformSemanticDiagnostics(
     const diagnostics: SemanticDiagnostic[] = [];
     const profileName = engineProfileDisplayName(syntax.profile.engineProfile);
     visit(root, (node) => {
-        if (node.kind !== "TableSourceName") return;
-        const identifier = firstChild(node, "MultipartIdentifier");
+        if (!rowsetNameOwnerKinds.includes(node.kind)) return;
+        // A `FROM` source is reached through its own wrapper as well as its enclosing owner; only
+        // the wrapper reports it, so one written name never produces two diagnostics.
+        if (node.kind !== "TableSourceName" && firstChild(node, "TableSourceName")) return;
+        const identifier = rowsetNameNode(node);
         if (!identifier) return;
         const parts = [...identifier.children()].filter((child) => child.kind === "IdentifierName");
         // A three-part name is `database.schema.object`; a four-part name adds a linked server,

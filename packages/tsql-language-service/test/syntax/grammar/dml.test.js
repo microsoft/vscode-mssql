@@ -46,6 +46,46 @@ INSERT dbo.Target (Id) SELECT Id FROM dbo.Source WHERE Id > 1;
         assert.match(tree, /NamedExecuteArgument\(/);
     });
 
+    // INSERT target columns accept the omitted multipart names used by the ScriptDOM corpus.
+    //
+    // A named target keeps its parentheses as a callable argument list, so its columns arrive as
+    // column references; a variable or OPENROWSET target has no callable form, so its columns
+    // arrive as InsertColumn. Both paths reach the same omitted-component names.
+    test("parses omitted and triple-dot INSERT column names", () => {
+        const snapshot = parse(`
+INSERT ..t1 (c1, a.b.c.d, a...d, .c.d) SELECT * FROM t2;
+INSERT @v1 (..a1) DEFAULT VALUES;
+INSERT OPENROWSET(something, @var1) (..a1, b.c) DEFAULT VALUES;
+`);
+
+        assert.deepEqual(snapshot.diagnostics, []);
+        const tree = snapshot.tree.toString();
+        assert.equal((tree.match(/TripleOmittedName\(/g) ?? []).length, 1);
+        assert.equal((tree.match(/ColumnReference\(OmittedTableSourceName/g) ?? []).length, 1);
+        assert.equal((tree.match(/InsertColumn\(OmittedTableSourceName/g) ?? []).length, 2);
+    });
+
+    // `a...d` is a column reference wherever one is read, not only inside an INSERT.
+    test("parses a two-omitted-component column name", () => {
+        const snapshot = parse("SELECT a...d FROM t1 WHERE x...y = 1;");
+
+        assert.deepEqual(snapshot.diagnostics, []);
+        assert.equal((snapshot.tree.toString().match(/TripleOmittedName\(/g) ?? []).length, 2);
+    });
+
+    // ScriptDOM permits a parenthesized query as an INSERT source, including a grouped UNION.
+    test("parses parenthesized INSERT query sources", () => {
+        const snapshot = parse(`
+INSERT table1 (c2, c3) (SELECT * FROM t1);
+INSERT @v1 (..a1) ((SELECT * FROM t1) UNION SELECT * FROM t2);
+`);
+
+        assert.deepEqual(snapshot.diagnostics, []);
+        const tree = snapshot.tree.toString();
+        assert.equal((tree.match(/InsertQueryExpression\(/g) ?? []).length, 2);
+        assert.equal((tree.match(/ParenthesizedQuery\(/g) ?? []).length, 3);
+    });
+
     // Verifies INSERT cannot end after its target column list without an explicit source.
     test("reports a missing INSERT source", () => {
         const snapshot = parse("INSERT dbo.t (a);");

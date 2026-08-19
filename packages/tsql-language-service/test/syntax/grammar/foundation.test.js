@@ -22,7 +22,7 @@ const {
     assertIncrementalEquivalent,
     createSyntaxHarness,
 } = require("../../support/syntaxHarness.js");
-const { parse } = createSyntaxHarness("foundation.sql");
+const { assertValid, parse } = createSyntaxHarness("foundation.sql");
 
 suite("T-SQL lexical and query grammar foundation", () => {
     // Verifies the checked-in vocabulary includes global, contextual, and SQL 2025 words.
@@ -101,6 +101,19 @@ suite("T-SQL lexical and query grammar foundation", () => {
         assert.ok(tokens.some((token) => token.kind === "TempIdentifier" && token.text === "#t"));
         assert.ok(tokens.some((token) => token.kind === "BinaryLiteral"));
         assert.ok(tokens.some((token) => token.kind === "FloatLiteral"));
+    });
+
+    // SQL Server treats the non-ASCII whitespace set as trivia, not as part of an identifier.
+    test("separates Unicode whitespace from identifiers", () => {
+        const unicodeWhitespace = "\u0085\u00a0\u1680\u2000\u2001\u2028\u2029\u202f\u205f\u3000";
+        const snapshot = parse(
+            `SELECT${unicodeWhitespace}1 c1\nSELECT * FROM t1${unicodeWhitespace}t2`,
+        );
+        assertValid(snapshot);
+        const identifiers = [...snapshot.tokens()]
+            .filter((token) => token.kind === "Identifier")
+            .map((token) => token.text);
+        assert.deepEqual(identifiers, ["c1", "t1", "t2"]);
     });
 
     // Verifies the query slice covers CTEs, JSON rowsets, APPLY, grouping, windows, and pagination.

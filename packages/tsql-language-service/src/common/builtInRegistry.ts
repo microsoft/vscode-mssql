@@ -95,6 +95,45 @@ export function isBuiltInAvailable(entry: BuiltInAvailability, profile?: BuiltIn
     );
 }
 
+/** How many arguments a routine accepts, derived from the signatures the registry publishes. */
+export interface BuiltInArity {
+    readonly minimum: number;
+    /** `Infinity` for a variadic routine, which absorbs every argument after its last named one. */
+    readonly maximum: number;
+}
+
+/**
+ * The argument count a built-in accepts.
+ *
+ * Derived from the signatures rather than listed separately: a routine's parameter list already
+ * says which arguments are required, optional, and repeatable, and a second hand-maintained list
+ * of counts is a list that can disagree with the help text shown beside it.
+ *
+ * Returns nothing when the registry does not describe the routine, which is not the same as a
+ * routine that takes no arguments.
+ */
+export function builtInArity(name: string): BuiltInArity | undefined {
+    const entry = lookupBuiltIn(name, "routine");
+    if (!entry?.signatures || entry.signatures.length === 0) return undefined;
+    let minimum = Number.POSITIVE_INFINITY;
+    let maximum = 0;
+    for (const signature of entry.signatures) {
+        let required = 0;
+        let accepted = 0;
+        let variadic = false;
+        for (const parameter of signature.parameters) {
+            if (parameter.variadic) variadic = true;
+            else {
+                accepted++;
+                if (!parameter.optional) required++;
+            }
+        }
+        minimum = Math.min(minimum, required);
+        maximum = variadic ? Number.POSITIVE_INFINITY : Math.max(maximum, accepted);
+    }
+    return Number.isFinite(minimum) ? { minimum, maximum } : undefined;
+}
+
 /** The written form of a signature, as it reads in source. */
 export function formatSignature(name: string, signature: BuiltInSignature): string {
     const parameters = signature.parameters.map(formatParameter);
@@ -205,11 +244,13 @@ const documentedRoutines: readonly BuiltInEntry[] = [
         separator: " ",
     }),
     routine("COALESCE", {
-        parameters: ["expression", "...expression"],
+        // Two values before the repeat: SQL Server rejects a single-argument COALESCE.
+        parameters: ["expression", "expression", "...expression"],
         documentation: "Returns the first expression that is not NULL.",
     }),
     routine("CONCAT", {
-        parameters: ["string_value", "...string_value"],
+        // "two or more" is the contract, so two named values precede the repeat.
+        parameters: ["string_value", "string_value", "...string_value"],
         documentation: "Concatenates two or more values as text.",
         returnType: "nvarchar or varchar",
     }),

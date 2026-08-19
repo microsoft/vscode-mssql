@@ -8,12 +8,38 @@ import type { EngineFacts } from "../common/engineProfile.js";
 import type { LanguageServiceStatsProvider } from "../observability/index.js";
 import type { SemanticSnapshot } from "../semantics/index.js";
 import type { SyntaxSnapshot } from "../syntax/index.js";
-import type { TextChange, TextSnapshot } from "../text/index.js";
+import type { SqlCmdDocumentSnapshot, SqlCmdSourceRange } from "../sqlcmd/index.js";
+import type { TextChange, TextRange, TextSnapshot } from "../text/index.js";
 
 export interface DocumentAnalysisSnapshot {
+    /** The document as the host holds it, in the coordinates a host edit and a host range use. */
     readonly text: TextSnapshot;
+    /**
+     * The SQLCMD reading of {@link text}: directives, variables, includes, connection regions, and
+     * the map from projected SQL back to whichever file each character came from.
+     *
+     * It is present for every document. A file that uses no SQLCMD syntax projects its own text
+     * unchanged and carries one identity mapping, so an ordinary `.sql` file pays nothing for it,
+     * and no feature has to invent its own handling for `:setvar`, `$(var)`, or `:r`.
+     */
+    readonly projection: SqlCmdDocumentSnapshot;
+    /**
+     * The text the parser and binder actually analysed.
+     *
+     * Identical to {@link text} — the same object — whenever the projection is the identity one.
+     * Syntax and semantic offsets are in these coordinates; {@link sourceRangeOf} converts them
+     * back to the host's.
+     */
+    readonly projectedText: TextSnapshot;
     readonly syntax: SyntaxSnapshot;
     readonly semantics: SemanticSnapshot;
+    /**
+     * The source spans a projected range came from, or several when it crosses an included file.
+     *
+     * A range inside a substitution maps to the whole `$(name)` reference rather than to a
+     * character position that does not exist in the source.
+     */
+    sourceRangeOf(range: TextRange): readonly SqlCmdSourceRange[];
 }
 
 export interface LanguageServiceRuntime extends LanguageServiceStatsProvider {

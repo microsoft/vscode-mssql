@@ -73,11 +73,15 @@ DROP EXTERNAL TABLE IF EXISTS ext.Sales;
         const snapshot = parse(`
 CREATE PARTITION FUNCTION pfDate(date) AS RANGE RIGHT
 FOR VALUES ('2025-01-01', '2026-01-01');
+CREATE PARTITION FUNCTION pfText(char(10) COLLATE Estonian_CS_AS)
+AS RANGE RIGHT FOR VALUES ('a');
 CREATE PARTITION SCHEME psDate AS PARTITION pfDate
 TO ([PRIMARY], [Archive], [Archive]);
 ALTER PARTITION SCHEME psDate NEXT USED [Archive];
 ALTER PARTITION FUNCTION pfDate() SPLIT RANGE ('2027-01-01');
 ALTER PARTITION FUNCTION pfDate() MERGE RANGE ('2025-01-01');
+ALTER PARTITION FUNCTION pfDate() SPLIT;
+ALTER PARTITION FUNCTION pfDate() MERGE;
 DROP PARTITION SCHEME psDate;
 DROP PARTITION FUNCTION pfDate;
 `);
@@ -85,10 +89,28 @@ DROP PARTITION FUNCTION pfDate;
         assertValid(snapshot);
         const tree = snapshot.tree.toString();
         assert.match(tree, /CreatePartitionFunctionStatement\(/);
+        assert.match(tree, /CollateClause\(/);
         assert.match(tree, /CreatePartitionSchemeStatement\(/);
-        assert.equal((tree.match(/AlterPartitionFunctionStatement\(/g) ?? []).length, 2);
+        assert.equal((tree.match(/AlterPartitionFunctionStatement\(/g) ?? []).length, 4);
         assert.match(tree, /AlterPartitionSchemeStatement\(/);
         assert.match(tree, /DropPartitionFunctionStatement\(/);
+    });
+
+    // REMOTE_DATA_ARCHIVE has one contextual state whose value also owns a nested settings list.
+    test("parses OFF_WITHOUT_DATA_RECOVERY migration states", () => {
+        const snapshot = parse(`
+ALTER TABLE T1 SET (
+    REMOTE_DATA_ARCHIVE = OFF_WITHOUT_DATA_RECOVERY (MIGRATION_STATE = PAUSED)
+);
+ALTER TABLE T1 SET (
+    REMOTE_DATA_ARCHIVE = OFF_WITHOUT_DATA_RECOVERY (MIGRATION_STATE = OUTBOUND)
+);
+`);
+
+        assertValid(snapshot);
+        const tree = snapshot.tree.toString();
+        assert.equal((tree.match(/OffWithoutDataRecovery/g) ?? []).length, 2);
+        assert.equal((tree.match(/GenericOptionList\(/g) ?? []).length, 4);
     });
 
     // Verifies a missing option value remains an exact visible parser error.

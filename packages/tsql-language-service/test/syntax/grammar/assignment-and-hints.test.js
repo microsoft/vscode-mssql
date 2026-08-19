@@ -68,6 +68,9 @@ SELECT @a ^= 1;
         assertValid("SELECT * FROM t1 OPTION (KEEP UNION, ROBUST PLAN);");
         assertValid("SELECT * FROM t1 OPTION (MERGE UNION, HASH JOIN);");
         assertValid("DELETE t1 OPTION (ORDER GROUP);");
+        assertValid(
+            "SELECT * FROM t1 OPTION (CHECKCONSTRAINTS PLAN, OPTIMIZE CORRELATED UNION ALL);",
+        );
     });
 
     // USE HINT takes a string list and USE PLAN takes one plan literal.

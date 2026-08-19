@@ -61,6 +61,49 @@ CREATE TABLE dbo.ConstraintSample (
         assert.equal((tree.match(/ColumnConstraint\(/g) ?? []).length >= 4, true);
     });
 
+    // ScriptDOM accepts a column-level FOREIGN KEY with an explicit local column list.
+    test("parses column-level foreign key column lists", () => {
+        const snapshot = parse(`
+CREATE TABLE dbo.History (
+    parent_tracer_id int NOT NULL,
+    agent_id int NOT NULL,
+    subscriber_commit datetime NULL
+        CONSTRAINT fk_tokens FOREIGN KEY (parent_tracer_id)
+        REFERENCES dbo.MStracer_tokens (tracer_id)
+);
+`);
+
+        assertValid(snapshot);
+        assert.match(
+            snapshot.tree.toString(),
+            /ColumnConstraint\(Constraint,IdentifierName\(Identifier\),Foreign,Key,ColumnNameList/,
+        );
+    });
+
+    // ScriptDOM treats SET @cursor = CURSOR ... FOR SELECT as a cursor definition assignment.
+    test("parses cursor definition assignment", () => {
+        const snapshot = parse(`
+SET @CursorVar = CURSOR SCROLL DYNAMIC
+FOR SELECT LastName FROM Northwind.dbo.Employees;
+`);
+
+        assertValid(snapshot);
+        assert.match(snapshot.tree.toString(), /SetCursorAssignment\(/);
+    });
+
+    // Application-role option names are identifier-shaped, including the contextual LOGIN name.
+    test("parses application-role LOGIN options", () => {
+        const snapshot = parse(`
+CREATE APPLICATION ROLE weekly_receipts
+    WITH PASSWORD = '987', DEFAULT_SCHEMA = Sales;
+ALTER APPLICATION ROLE receipts_ledger
+    WITH NAME = weekly_ledger, PASSWORD = '897', DEFAULT_SCHEMA = Production, LOGIN = l1;
+`);
+
+        assertValid(snapshot);
+        assert.equal((snapshot.tree.toString().match(/ApplicationRoleOption\(/g) ?? []).length, 6);
+    });
+
     // Security statements accept multiword permission names containing reserved keywords.
     test("parses multiword server and external permissions", () => {
         const snapshot = parse(`

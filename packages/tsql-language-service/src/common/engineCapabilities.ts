@@ -11,22 +11,31 @@ import {
     resolveEngineProfile,
 } from "./engineProfile.js";
 
-/** Boxed SQL Server major versions the language service models. */
-export type SqlServerMajorVersion = 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17;
+/**
+ * Boxed SQL Server major versions the language service models.
+ *
+ * `18` is the ScriptDOM `TSql180` preview level. It is intentionally part of the model so a host
+ * can report it without losing the fact, but it is not the latest released/default level.
+ */
+export type SqlServerMajorVersion = 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18;
 
-/** Database compatibility levels the language service models. */
-export type SqlCompatibilityLevel = 80 | 90 | 100 | 110 | 120 | 130 | 140 | 150 | 160 | 170;
+/** Database compatibility levels the language service models, including preview level 180. */
+export type SqlCompatibilityLevel = 80 | 90 | 100 | 110 | 120 | 130 | 140 | 150 | 160 | 170 | 180;
 
 const serverMajorVersions: readonly number[] = Object.freeze([
-    8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
+    8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
 ]);
 const compatibilityLevels: readonly number[] = Object.freeze([
-    80, 90, 100, 110, 120, 130, 140, 150, 160, 170,
+    80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180,
 ]);
 
-/** The newest language level this package knows how to gate against. */
+/** The newest released language level this package uses for defaults and offline analysis. */
 export const latestServerMajorVersion: SqlServerMajorVersion = 17;
 export const latestCompatibilityLevel: SqlCompatibilityLevel = 170;
+
+/** The current ScriptDOM preview language level, displayed as `vNext` in user-facing text. */
+export const vNextServerMajorVersion: SqlServerMajorVersion = 18;
+export const vNextCompatibilityLevel: SqlCompatibilityLevel = 180;
 
 /**
  * Whether a construct may be used.
@@ -315,6 +324,7 @@ const sqlServerProductNames: Readonly<Record<number, string>> = Object.freeze({
     15: "2019",
     16: "2022",
     17: "2025",
+    18: "vNext",
 });
 
 export function sqlServerProductName(major: number): string {

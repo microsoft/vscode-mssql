@@ -14,7 +14,11 @@ import {
     type BuiltInSignature,
 } from "../common/builtInRegistry.js";
 import type { TsqlFeatureProfile } from "../common/engineCapabilities.js";
-import { multipartIdentifierParts } from "../semantics/index.js";
+import {
+    activeArgument,
+    multipartIdentifierParts,
+    type SignatureModel,
+} from "../semantics/index.js";
 import type { SyntaxNode } from "../syntax/index.js";
 import {
     ancestorOfKind as ancestor,
@@ -30,6 +34,14 @@ export interface RoutineSignatureContext {
     readonly target: readonly string[];
     readonly activeParameter: number;
     readonly namedParameter?: string;
+    /**
+     * Signatures the semantic model already resolved for this call.
+     *
+     * Present for constructs the model describes directly - keyword operators such as `TOP`, the
+     * conversion expressions, and built-in routines - so signature help renders the same call the
+     * diagnostics and coloring layers see instead of re-deriving one.
+     */
+    readonly signatures?: readonly SignatureModel[];
 }
 
 export interface InsertSignatureContext {
@@ -43,83 +55,20 @@ export interface InsertSignatureContext {
 
 export type SignatureContext = RoutineSignatureContext | InsertSignatureContext;
 
-/**
- * Expressions the grammar models in their own right rather than as calls. Each still reads as a
- * routine to anyone typing one, so signature help answers for them the same way.
- */
-const specialExpressionRoutines: ReadonlyMap<string, string> = new Map([
-    ["JsonValueExpression", "JSON_VALUE"],
-    ["JsonQueryExpression", "JSON_QUERY"],
-    ["JsonConstructorExpression", "JSON_OBJECT"],
-    ["JsonAggregateExpression", "JSON_OBJECTAGG"],
-    ["CastExpression", "CAST"],
-    ["TryCastExpression", "TRY_CAST"],
-    ["ConvertExpression", "CONVERT"],
-    ["ParseExpression", "PARSE"],
-    ["TrimExpression", "TRIM"],
-    ["AiGenerateEmbeddingsExpression", "AI_GENERATE_EMBEDDINGS"],
-    // Statements that read as calls. Their arguments have fixed meanings, which is why the grammar
-    // gives them their own shape, but anyone typing one expects the same help a call gives.
-    ["RaiserrorStatement", "RAISERROR"],
-    ["ThrowStatement", "THROW"],
-    ["WaitForStatement", "WAITFOR"],
-]);
-
-/** CONVERT and PARSE share a node with their TRY_ form, so the written spelling decides. */
-function conversionSpelling(
-    snapshot: DocumentAnalysisSnapshot,
-    node: SyntaxNode,
-    fallback: string,
-): string {
-    const written = /^[A-Za-z_]+/u.exec(snapshot.text.text.slice(node.start, node.end))?.[0];
-    return written ? written.toLocaleUpperCase() : fallback;
-}
-
-/**
- * CAST separates its two arguments with AS rather than a comma, so the keyword advances the active
- * parameter the way a comma does elsewhere.
- */
-function conversionActiveParameter(node: SyntaxNode, offset: number): number {
-    let active = activeParameterIn(node, offset);
-    for (const child of node.children()) {
-        // AS and USING separate arguments here the way a comma does in an ordinary call.
-        if ((child.kind === "As" || child.kind === "Using") && child.start < offset) active++;
-    }
-    return active;
-}
-
 export function signatureContext(
     snapshot: DocumentAnalysisSnapshot,
     offset: number,
 ): SignatureContext | undefined {
-    const specialized = cursorAncestor(snapshot, offset, [...specialExpressionRoutines.keys()]);
-    if (specialized) {
-        const routine = specialExpressionRoutines.get(specialized.kind)!;
+    // Every parenthesized, conversion, and keyword-operator call comes from the one bound call
+    // model, so what signature help answers for is what diagnostics and coloring saw.
+    const bound = boundCallAt(snapshot, offset);
+    if (bound && !bound.rowsetOnlyName) {
         return {
             kind: "function",
-            target: [conversionSpelling(snapshot, specialized, routine)],
-            activeParameter: conversionActiveParameter(specialized, offset),
+            target: bound.target,
+            activeParameter: bound.activeArgument,
+            ...(bound.signatures.length > 0 ? { signatures: bound.signatures } : {}),
         };
-    }
-
-    const call = cursorAncestor(snapshot, offset, [
-        "FunctionCall",
-        "FunctionTableSource",
-        "GlobalFunctionTableSource",
-    ]);
-    if (call) {
-        const name =
-            firstDescendant(call, "MultipartIdentifier") ?? firstDescendant(call, "IdentifierName");
-        if (name) {
-            const argumentsNode =
-                firstDescendant(call, "ArgumentList") ??
-                firstDescendant(call, "TableFunctionArgumentList");
-            return {
-                kind: "function",
-                target: multipartIdentifierParts(snapshot.text.text.slice(name.start, name.end)),
-                activeParameter: argumentsNode ? activeParameterIn(argumentsNode, offset) : 0,
-            };
-        }
     }
 
     // The target column list of an INSERT sits inside the target itself, which the grammar also
@@ -433,9 +382,9 @@ export function builtInSignatureHelp(
 ): SignatureHelp | undefined {
     const name = context.target.at(-1);
     const entry = name ? lookupBuiltIn(name, "routine") : undefined;
-    if (!entry || !isBuiltInAvailable(entry, builtInProfile(profile))) return undefined;
+    if (entry && !isBuiltInAvailable(entry, builtInProfile(profile))) return undefined;
     const signatures = entry?.signatures;
-    if (!name || !signatures || signatures.length === 0) return undefined;
+    if (!name || !signatures || signatures.length === 0) return modelSignatureHelp(context);
     return {
         signatures: signatures.map((signature) => ({
             label: formatSignature(name, signature),
@@ -448,6 +397,78 @@ export function builtInSignatureHelp(
         })),
         activeSignature: 0,
         activeParameter: activeParameterWithin(signatures[0]!, context.activeParameter),
+    };
+}
+
+/**
+ * Renders the signatures the semantic model resolved.
+ *
+ * This is the path a keyword operator such as `TOP` takes: it is not a routine, so no registry
+ * lookup describes it, but it has one argument shape the call model already knows.
+ */
+function modelSignatureHelp(context: RoutineSignatureContext): SignatureHelp | undefined {
+    const signatures = context.signatures;
+    if (!signatures || signatures.length === 0) return undefined;
+    return {
+        signatures: signatures.map((signature) => ({
+            label: signature.label,
+            ...(signature.documentation ? { documentation: signature.documentation } : {}),
+            parameters: signature.parameters.map((parameter) => ({
+                label: parameter.label,
+                ...(parameter.documentation ? { documentation: parameter.documentation } : {}),
+            })),
+        })),
+        activeSignature: 0,
+        activeParameter: Math.min(
+            context.activeParameter,
+            Math.max(0, signatures[0]!.parameters.length - 1),
+        ),
+    };
+}
+
+/**
+ * The bound call under the cursor, expressed the way signature help needs it.
+ *
+ * A table-valued source is also a rowset name; with the cursor on the name rather than inside the
+ * argument list the caller wants the rowset paths below, so that case is reported separately
+ * rather than answered here.
+ */
+function boundCallAt(
+    snapshot: DocumentAnalysisSnapshot,
+    offset: number,
+):
+    | {
+          readonly target: readonly string[];
+          readonly activeArgument: number;
+          readonly signatures: readonly SignatureModel[];
+          readonly rowsetOnlyName: boolean;
+      }
+    | undefined {
+    const model = snapshot.semantics.model;
+    const call = model.callAt(offset) ?? (offset > 0 ? model.callAt(offset - 1) : undefined);
+    if (!call) return undefined;
+    if (call.target.kind === "operator") {
+        return {
+            target: [call.target.name],
+            activeArgument: activeArgument(call, offset),
+            signatures: call.signatures,
+            rowsetOnlyName: false,
+        };
+    }
+    // EXEC keeps its own context below: it resolves named arguments and procedure metadata.
+    if (call.shape === "bare") return undefined;
+    const written = call.name
+        ? call.name.parts.map((part) => part.normalized)
+        : call.target.kind === "builtin"
+          ? [call.target.name]
+          : [];
+    if (written.length === 0) return undefined;
+    return {
+        target: written,
+        activeArgument: activeArgument(call, offset),
+        signatures: call.signatures,
+        rowsetOnlyName:
+            call.rowset && call.argumentRange !== undefined && offset < call.argumentRange.start,
     };
 }
 

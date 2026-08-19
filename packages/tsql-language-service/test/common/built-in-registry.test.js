@@ -58,8 +58,13 @@ suite("built-in registry", () => {
             formatSignature("convert", convert),
             "CONVERT(data_type, expression, [style])",
         );
+        // COALESCE needs two values before the repeat: SQL Server rejects a single-argument call,
+        // and the same signature is what the arity diagnostic is derived from.
         const coalesce = lookupBuiltIn("COALESCE").signatures[0];
-        assert.equal(formatSignature("coalesce", coalesce), "COALESCE(expression, ...expression)");
+        assert.equal(
+            formatSignature("coalesce", coalesce),
+            "COALESCE(expression, expression, ...expression)",
+        );
     });
 
     test("a keyword-separated signature is not written with commas", () => {

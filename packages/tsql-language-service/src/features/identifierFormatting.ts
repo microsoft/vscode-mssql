@@ -3,18 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-export function preserveIdentifierQuotes(original: string, replacement: string): string {
-    if (original.startsWith("[") && original.endsWith("]")) return quoteIdentifier(replacement);
-    if (original.startsWith('"') && original.endsWith('"')) {
-        return `"${replacement.replaceAll('"', '""')}"`;
-    }
-    return replacement;
-}
-
-export function quoteIdentifier(value: string): string {
-    return "[" + value.replaceAll("]", "]]") + "]";
-}
-
-export function quoteIdentifierIfNeeded(value: string): string {
-    return /^[\p{L}_#][\p{L}\p{N}_$#@]*$/u.test(value) ? value : quoteIdentifier(value);
-}
+// Identifier quoting and insertion are owned by the semantic identifier module so that the name a
+// feature writes is the name binding looks up. This file stays as the feature-facing entry point.
+export {
+    formatMultipartName,
+    preserveIdentifierQuotes,
+    quoteIdentifier,
+    quoteIdentifierIfNeeded,
+} from "../semantics/identifiers.js";

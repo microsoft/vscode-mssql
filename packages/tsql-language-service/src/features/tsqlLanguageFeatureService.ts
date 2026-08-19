@@ -26,8 +26,13 @@ import {
     platformOnlyKeywords,
 } from "../common/platformFeatureRegistry.js";
 import {
+    buildCursorContext,
+    localColumnsForName as modelLocalColumns,
     multipartIdentifierParts,
     normalizeIdentifier,
+    type BoundRelation,
+    type CursorContext,
+    type ExpressionType,
     type SemanticSymbol,
 } from "../semantics/index.js";
 import {
@@ -40,11 +45,7 @@ import {
 import {
     ancestorOfKind as ancestor,
     descendantsOfKind as descendants,
-    directChildOfKind as directChild,
     firstDescendantOfKind as firstDescendant,
-    hasDescendantOfKind as hasDescendant,
-    lastDescendantOfKind as lastDescendant,
-    visitSyntaxTree as visit,
 } from "../syntax/treeUtilities.js";
 import { collectFoldingRanges, type FoldingRangeOptions } from "./foldingRanges.js";
 import {
@@ -101,16 +102,11 @@ export class TsqlLanguageFeatureService implements LanguageFeatureService {
         if (insert.item) items.push(insert.item);
         incomplete ||= insert.incomplete;
 
-        const prefix = completionPrefix(snapshot, offset);
-        const principalContext = principalCompletionContext(
-            snapshot.text.text,
-            prefix.contextStart,
-        );
-        const objectContext = catalogCompletionContext(snapshot.text.text, prefix.contextStart);
-        const dataTypeContext = isDataTypeCompletionContext(
-            snapshot.text.text,
-            prefix.contextStart,
-        );
+        // One cursor product, built once: the semantic model answers what the caret names and how
+        // damaged the surrounding syntax is, and the prefix answers what text an edit replaces.
+        // Completion reads that object rather than re-deriving context per branch.
+        const context = completionContextAt(snapshot, offset);
+        const { prefix, principalContext, objectContext, dataTypeContext } = context;
         const source = sourceForQualifier(snapshot, view, offset, prefix.qualifiers);
         if (dataTypeContext) {
             if (prefix.qualifiers.length === 0) {
@@ -159,16 +155,20 @@ export class TsqlLanguageFeatureService implements LanguageFeatureService {
             items.push(...insertColumns.items);
             incomplete ||= insertColumns.incomplete;
             items.push(...localSymbolCompletions(snapshot, prefix));
-            if (isExpressionCompletionContext(snapshot.text.text, prefix.range.start)) {
+            if (context.expression) {
                 items.push(...builtInFunctionCompletions(prefix, snapshot.syntax.profile));
                 items.push(...scalarFunctionCompletions(view, prefix));
             }
             items.push(...keywordCompletions(prefix, snapshot.syntax.profile));
         }
 
-        if (isVectorParameterContext(snapshot, offset)) {
+        if (context.vectorParameter) {
             items.push(...vectorParameterCompletions(prefix));
         }
+
+        // Members come from the receiver's bound type, which is the same type hover shows and
+        // argument validation compares against.
+        items.push(...memberCompletions(snapshot, view, prefix));
 
         return { items: deduplicate(items), incomplete };
     }
@@ -189,7 +189,8 @@ export class TsqlLanguageFeatureService implements LanguageFeatureService {
         if (!symbol) {
             return (
                 this.catalogHover(snapshot, view, offset) ??
-                syntacticHover(snapshot.syntax, offset, describeBuiltInRoutine)
+                syntacticHover(snapshot.syntax, offset, describeBuiltInRoutine) ??
+                expressionHover(snapshot, offset)
             );
         }
         const object = symbol.object && view.object(symbol.object);
@@ -918,129 +919,24 @@ function sourceForQualifier(
         : undefined;
 }
 
+/**
+ * The rowsets a query exposes, read from the published semantic model.
+ *
+ * Aliases, CTEs, derived tables, table-valued functions, `OPENJSON`, table variables, and vector
+ * searches are bound once by the model; this projects that result into the shape the feature code
+ * renders. Nothing here rediscovers a source, so completion sees exactly what diagnostics saw.
+ */
 function collectSources(
     snapshot: DocumentAnalysisSnapshot,
     view: MetadataView,
     root: SyntaxNode,
 ): readonly BoundSource[] {
-    const result: BoundSource[] = [];
-    const queryRoot =
-        root.kind === "QuerySpecification" ? root : firstDescendant(root, "QuerySpecification");
-    visit(root, (node) => {
-        const containingQuery = ancestor(node, ["QuerySpecification"]);
-        if (
-            queryRoot &&
-            (!containingQuery ||
-                containingQuery.start !== queryRoot.start ||
-                containingQuery.end !== queryRoot.end)
-        )
-            return;
-        if (node.kind === "NamedTableSource") {
-            const name = firstDescendant(node, "MultipartIdentifier");
-            if (!name) return;
-            const parts = multipartIdentifierParts(snapshot.text.text.slice(name.start, name.end));
-            const resolution = view.resolveObject(parts);
-            const alias = firstDescendant(node, "TableAlias");
-            const aliasName = alias && lastDescendant(alias, "IdentifierName");
-            const qualifier = aliasName
-                ? normalizeIdentifier(snapshot.text.text.slice(aliasName.start, aliasName.end))
-                : parts.at(-1);
-            if (!qualifier) return;
-            if (resolution.kind === "resolved") {
-                result.push({ object: resolution.object, qualifier });
-                return;
-            }
-            const columns = localColumnsForName(snapshot, parts, node.start);
-            if (columns) result.push({ qualifier, columns });
-        } else if (node.kind === "VariableTableSource") {
-            const variable = firstDescendant(node, "Variable");
-            if (!variable) return;
-            const name = snapshot.text.text.slice(variable.start, variable.end);
-            const alias = firstDescendant(node, "TableAlias");
-            const aliasName = alias && lastDescendant(alias, "IdentifierName");
-            const columns = localColumnsForName(snapshot, [name], node.start);
-            if (columns) {
-                result.push({
-                    qualifier: aliasName
-                        ? normalizeIdentifier(
-                              snapshot.text.text.slice(aliasName.start, aliasName.end),
-                          )
-                        : name,
-                    columns,
-                });
-            }
-        } else if (node.kind === "FunctionTableSource") {
-            const name = firstDescendant(node, "MultipartIdentifier");
-            if (!name) return;
-            const parts = multipartIdentifierParts(snapshot.text.text.slice(name.start, name.end));
-            const functionName = parts.at(-1)?.toLocaleLowerCase();
-            const alias = firstDescendant(node, "TableAlias");
-            const aliasName = alias && lastDescendant(alias, "IdentifierName");
-            const qualifier = aliasName
-                ? normalizeIdentifier(snapshot.text.text.slice(aliasName.start, aliasName.end))
-                : parts.at(-1);
-            if (!qualifier) return;
-            if (functionName === "openjson") {
-                const schema = firstDescendant(node, "WithColumnSchema");
-                const columns = schema
-                    ? descendants(schema, "ColumnSchemaElement").map((column) =>
-                          columnMetadata(snapshot, column),
-                      )
-                    : [
-                          { name: "key", typeDisplay: "nvarchar(4000)", nullable: false },
-                          { name: "value", typeDisplay: "nvarchar(max)", nullable: true },
-                          { name: "type", typeDisplay: "int", nullable: false },
-                      ];
-                result.push({ qualifier, columns });
-                return;
-            }
-            const explicit = firstDescendant(node, "ColumnNameList");
-            if (explicit) {
-                result.push({
-                    qualifier,
-                    columns: descendants(explicit, "IdentifierName").map((column) => ({
-                        name: normalizeIdentifier(
-                            snapshot.text.text.slice(column.start, column.end),
-                        ),
-                    })),
-                });
-                return;
-            }
-            const resolution = view.resolveObject(parts);
-            if (resolution.kind === "resolved") {
-                result.push({ qualifier, object: resolution.object });
-            }
-        } else if (node.kind === "VectorSearchTableSource") {
-            const alias = firstDescendant(node, "TableAlias");
-            const aliasName = alias && lastDescendant(alias, "IdentifierName");
-            if (!aliasName) return;
-            result.push({
-                qualifier: normalizeIdentifier(
-                    snapshot.text.text.slice(aliasName.start, aliasName.end),
-                ),
-                columns: [{ name: "distance", typeDisplay: "float", nullable: false }],
-            });
-        } else if (node.kind === "DerivedTable") {
-            const alias = firstDescendant(node, "TableAlias");
-            const aliasName = alias && lastDescendant(alias, "IdentifierName");
-            if (!aliasName) return;
-            const explicit = descendants(node, "ColumnNameList").find(
-                (list) => list.start >= alias.end,
-            );
-            const columns = explicit
-                ? descendants(explicit, "IdentifierName").map((name) => ({
-                      name: normalizeIdentifier(snapshot.text.text.slice(name.start, name.end)),
-                  }))
-                : projectedColumns(snapshot, firstDescendant(node, "SelectList"));
-            result.push({
-                qualifier: normalizeIdentifier(
-                    snapshot.text.text.slice(aliasName.start, aliasName.end),
-                ),
-                columns,
-            });
-        }
-    });
-    return result;
+    return boundSources(
+        view,
+        snapshot.semantics.model.relations.filter(
+            (relation) => relation.range.start >= root.start && relation.range.end <= root.end,
+        ),
+    );
 }
 
 function collectVisibleSources(
@@ -1048,25 +944,36 @@ function collectVisibleSources(
     view: MetadataView,
     query: SyntaxNode,
 ): readonly BoundSource[] {
-    const result = [...collectSources(snapshot, view, query)];
-    let outer = correlatableOuterQuery(query);
-    while (outer) {
-        result.push(...collectSources(snapshot, view, outer));
-        outer = correlatableOuterQuery(outer);
-    }
-    return result;
+    return boundSources(view, snapshot.semantics.model.visibleRelations(query.start + 1));
 }
 
-function correlatableOuterQuery(query: SyntaxNode): SyntaxNode | undefined {
-    for (let current = query.parent(); current; current = current.parent()) {
-        // A CTE or ordinary derived table owns an independent query scope. APPLY-specific lateral
-        // visibility can be added separately without leaking outer aliases into every subquery.
-        if (current.kind === "CommonTableExpression" || current.kind === "DerivedTable") {
-            return undefined;
+function boundSources(
+    view: MetadataView,
+    relations: readonly BoundRelation[],
+): readonly BoundSource[] {
+    const result: BoundSource[] = [];
+    for (const relation of relations) {
+        const resolution = relation.name?.resolution;
+        const object = resolution?.kind === "catalog" ? view.object(resolution.object) : undefined;
+        if (object) {
+            result.push({ qualifier: relation.exposedName, object });
+            continue;
         }
-        if (current.kind === "QuerySpecification") return current;
+        // A relation whose shape is not known yet contributes no columns rather than an empty
+        // list: "still loading" and "has no columns" are different answers.
+        if (relation.columns === "unknown") continue;
+        result.push({
+            qualifier: relation.exposedName,
+            columns: relation.columns.map((column) => ({
+                name: column.name,
+                ...(column.type && column.type.confidence !== "unknown"
+                    ? { typeDisplay: column.type.displayName }
+                    : {}),
+                ...(column.type ? { nullable: column.type.nullable } : {}),
+            })),
+        });
     }
-    return undefined;
+    return result;
 }
 
 function columnCompletion(
@@ -1095,9 +1002,23 @@ const generalKeywords: ReadonlySet<string> = new Set(
         keyword.toLocaleUpperCase(),
     ),
 );
+/**
+ * Words a platform feature contributes that are really routine names.
+ *
+ * `JSON_ARRAY` is both a gated feature keyword and a registry routine. Offered from both lists it
+ * appears twice, and the bare keyword carries none of the documentation or signature the registry
+ * entry has, so the routine lists own these names and the keyword list drops them.
+ */
+const routineFeatureKeywords: ReadonlySet<string> = new Set(
+    platformFeatureKeywords
+        .filter((keyword) => lookupBuiltIn(keyword, "routine") !== undefined)
+        .map((keyword) => keyword.toLocaleUpperCase()),
+);
+
 const completionKeywords = Object.freeze(
     [...new Set([...generalKeywords, ...platformFeatureKeywords])]
         .map((keyword) => keyword.toLocaleUpperCase())
+        .filter((keyword) => !routineFeatureKeywords.has(keyword))
         .sort(),
 );
 
@@ -1198,6 +1119,28 @@ function builtInFunctionCompletions(
  * The syntax snapshot already carries the structured detail, so hover reads the published
  * diagnostic rather than re-deriving the decision and risking a different answer.
  */
+/**
+ * The bound type of the expression under the cursor.
+ *
+ * Read from the semantic model rather than inferred here, so the type a tooltip shows is the type
+ * argument validation and member completion compare against. An `unknown` confidence produces no
+ * hover at all: showing "unknown" would state a fact the service does not have.
+ */
+function expressionHover(
+    snapshot: DocumentAnalysisSnapshot,
+    offset: number,
+): HoverResult | undefined {
+    // A literal states its own type, so describing it is noise rather than information.
+    if (ancestor(snapshot.syntax.nodeAt(offset), ["Literal"])) return undefined;
+    const type = snapshot.semantics.model.typeAt(offset);
+    if (!type || type.confidence === "unknown") return undefined;
+    const nullability = type.nullable ? "NULL" : "NOT NULL";
+    const category = type.category === "scalar" ? "" : ` (${type.category})`;
+    return {
+        markdown: `**expression**\n\nType: \`${type.displayName} ${nullability}\`${category}`,
+    };
+}
+
 function availabilityHover(syntax: SyntaxSnapshot, offset: number): HoverResult | undefined {
     const diagnostic = syntax.diagnostics.find(
         (candidate) =>
@@ -1397,123 +1340,117 @@ function isExpressionCompletionContext(text: string, prefixStart: number): boole
     );
 }
 
+/** The shape of a document-local rowset at an offset, from the model's one implementation. */
 function localColumnsForName(
     snapshot: DocumentAnalysisSnapshot,
     parts: readonly string[],
     useOffset: number,
 ): readonly ColumnMetadata[] | undefined {
-    const wanted = normalizeIdentifier(parts.at(-1) ?? "").toLocaleLowerCase();
-    if (!wanted) return undefined;
-    const useBatch = ancestor(snapshot.syntax.nodeAt(useOffset), ["Batch"]);
-    const isSameBatch = (node: SyntaxNode): boolean => {
-        const batch = ancestor(node, ["Batch"]);
-        return (
-            !useBatch || (!!batch && batch.start === useBatch.start && batch.end === useBatch.end)
-        );
-    };
-    let result: readonly ColumnMetadata[] | undefined;
-    visit(snapshot.syntax.root(), (node) => {
-        if (node.start >= useOffset || node.end > useOffset) return;
-        if (node.kind === "CreateTableStatement") {
-            const name = firstDescendant(node, "MultipartIdentifier");
-            if (!name) return;
-            const declared = multipartIdentifierParts(
-                snapshot.text.text.slice(name.start, name.end),
-            );
-            if (normalizeIdentifier(declared.at(-1) ?? "").toLocaleLowerCase() !== wanted) return;
-            const definition = firstDescendant(node, "TableDefinition");
-            if (definition) result = tableDefinitionColumns(snapshot, definition);
-        } else if (node.kind === "VariableDeclaration") {
-            if (!isSameBatch(node)) return;
-            const variable = firstDescendant(node, "Variable");
-            const definition = firstDescendant(node, "TableDefinition");
-            if (!variable || !definition) return;
-            const declared = snapshot.text.text
-                .slice(variable.start, variable.end)
-                .toLocaleLowerCase();
-            if (declared === wanted) result = tableDefinitionColumns(snapshot, definition);
-        } else if (node.kind === "CommonTableExpression") {
-            if (!isSameBatch(node)) return;
-            const name = firstDescendant(node, "IdentifierName");
-            if (!name) return;
-            const declared = normalizeIdentifier(
-                snapshot.text.text.slice(name.start, name.end),
-            ).toLocaleLowerCase();
-            if (declared === wanted) result = cteColumns(snapshot, node);
-        } else if (node.kind === "SelectStatement") {
-            const into = firstDescendant(node, "IntoClause");
-            const name = into && firstDescendant(into, "MultipartIdentifier");
-            if (!name) return;
-            const declared = multipartIdentifierParts(
-                snapshot.text.text.slice(name.start, name.end),
-            );
-            if (normalizeIdentifier(declared.at(-1) ?? "").toLocaleLowerCase() !== wanted) return;
-            result = projectedColumns(snapshot, firstDescendant(node, "SelectList"));
-        } else if (node.kind === "DropTableStatement") {
-            for (const name of descendants(node, "MultipartIdentifier")) {
-                const dropped = multipartIdentifierParts(
-                    snapshot.text.text.slice(name.start, name.end),
-                );
-                if (normalizeIdentifier(dropped.at(-1) ?? "").toLocaleLowerCase() === wanted) {
-                    result = undefined;
-                }
-            }
-        }
-    });
-    return result;
+    return modelLocalColumns({ syntax: snapshot.syntax }, parts, useOffset);
 }
 
-function tableDefinitionColumns(
+/**
+ * Everything completion needs to know about one caret position.
+ *
+ * The semantic half — what the caret names, which scope it is in, and whether the parser had to
+ * recover — comes from the published {@link CursorContext}; the textual half is the delimiter-aware
+ * prefix an edit replaces. Building both here means completion never rebuilds either, and a caller
+ * that needs to know the syntax was damaged can ask instead of guessing.
+ */
+interface CompletionContext {
+    readonly cursor: CursorContext;
+    readonly prefix: PrefixContext;
+    readonly principalContext: PrincipalCompletionContext | undefined;
+    readonly objectContext: CatalogCompletionContext | undefined;
+    readonly dataTypeContext: boolean;
+    readonly expression: boolean;
+    readonly vectorParameter: boolean;
+}
+
+function completionContextAt(
     snapshot: DocumentAnalysisSnapshot,
-    definition: SyntaxNode,
-): readonly ColumnMetadata[] {
-    return descendants(definition, "ColumnDefinition").map((column) =>
-        columnMetadata(snapshot, column),
-    );
-}
-
-function columnMetadata(snapshot: DocumentAnalysisSnapshot, node: SyntaxNode): ColumnMetadata {
-    const name = firstDescendant(node, "IdentifierName");
-    const type = firstDescendant(node, "DataType");
-    const source = snapshot.text.text.slice(node.start, node.end);
+    offset: number,
+): CompletionContext {
+    const prefix = completionPrefix(snapshot, offset);
+    const cursor = buildCursorContext(snapshot.syntax, snapshot.semantics.model, offset);
     return {
-        name: name ? normalizeIdentifier(snapshot.text.text.slice(name.start, name.end)) : source,
-        ...(type ? { typeDisplay: snapshot.text.text.slice(type.start, type.end) } : {}),
-        nullable: !/\bNOT\s+NULL\b/iu.test(source),
+        cursor,
+        prefix,
+        principalContext: principalCompletionContext(snapshot.text.text, prefix.contextStart),
+        objectContext: catalogCompletionContext(snapshot.text.text, prefix.contextStart),
+        // The bound cursor decides a data-type position when it can; the written form decides the
+        // shapes it does not model yet, such as a partially typed DECLARE.
+        dataTypeContext:
+            cursor.expected === "datatype" ||
+            isDataTypeCompletionContext(snapshot.text.text, prefix.contextStart),
+        expression: isExpressionCompletionContext(snapshot.text.text, prefix.range.start),
+        vectorParameter: isVectorParameterContext(snapshot, offset),
     };
 }
 
-function cteColumns(
+/** The XML data type's methods, which the language defines rather than the catalog. */
+const xmlMethods: readonly { readonly name: string; readonly detail: string }[] = Object.freeze([
+    { name: "value", detail: "value(xquery, sqlType) — one typed scalar" },
+    { name: "query", detail: "query(xquery) — an XML result" },
+    { name: "exist", detail: "exist(xquery) — 1, 0, or NULL" },
+    { name: "nodes", detail: "nodes(xquery) — a rowset of fragments" },
+    { name: "modify", detail: "modify(xmlDml) — changes the value in place" },
+]);
+
+/**
+ * Members offered after a `.` on a typed receiver.
+ *
+ * The receiver's type comes from the semantic model, so a value hover describes as `xml` offers
+ * XML methods, and a CLR type offers the members its metadata reports. A receiver whose type the
+ * binder could not determine offers nothing rather than guessing.
+ */
+function memberCompletions(
     snapshot: DocumentAnalysisSnapshot,
-    cte: SyntaxNode,
-): readonly ColumnMetadata[] {
-    const explicit = directChild(cte, "ColumnNameList");
-    if (explicit) {
-        return descendants(explicit, "IdentifierName").map((name) => ({
-            name: normalizeIdentifier(snapshot.text.text.slice(name.start, name.end)),
-        }));
+    view: MetadataView,
+    prefix: PrefixContext,
+): readonly CompletionItem[] {
+    // A member position is written `receiver.` — the qualifier is the receiver, not a schema.
+    if (prefix.qualifiers.length === 0) return [];
+    const receiver = receiverTypeAt(snapshot, prefix);
+    if (!receiver || receiver.confidence === "unknown") return [];
+
+    if (receiver.category === "xml") {
+        return xmlMethods
+            .filter((method) => startsWith(method.name, prefix.prefix, view))
+            .map((method) => ({
+                label: method.name,
+                kind: "method",
+                detail: method.detail,
+                sortText: `05-${method.name}`,
+                edit: { ...prefix.range, newText: method.name },
+            }));
     }
-    const list = firstDescendant(cte, "SelectList");
-    return projectedColumns(snapshot, list);
+    if (receiver.category !== "clr") return [];
+    const resolution = view.resolveObject(multipartIdentifierParts(receiver.displayName));
+    if (resolution.kind !== "resolved") return [];
+    const state = view.clrTypeState(resolution.object.ref);
+    if (state.kind !== "loaded") return [];
+    return state.value.members
+        .filter((member) => !member.static && startsWith(member.name, prefix.prefix, view))
+        .map((member) => ({
+            label: member.name,
+            kind: member.kind === "method" ? "method" : "property",
+            detail: `${member.kind}${member.typeDisplay ? `: ${member.typeDisplay}` : ""}`,
+            sortText: `05-${member.name}`,
+            edit: { ...prefix.range, newText: member.name },
+        }));
 }
 
-function projectedColumns(
+/** The bound type of the receiver a member position is qualified by. */
+function receiverTypeAt(
     snapshot: DocumentAnalysisSnapshot,
-    list: SyntaxNode | undefined,
-): readonly ColumnMetadata[] {
-    if (!list) return [];
-    const columns: ColumnMetadata[] = [];
-    for (const element of descendants(list, "SelectElement")) {
-        if (hasDescendant(element, "Star")) continue;
-        const names = descendants(element, "IdentifierName");
-        const name = names.at(-1);
-        if (name) {
-            columns.push({
-                name: normalizeIdentifier(snapshot.text.text.slice(name.start, name.end)),
-            });
-        }
-    }
-    return columns;
+    prefix: PrefixContext,
+): ExpressionType | undefined {
+    // The receiver ends where the qualifier's trailing dot begins, so the character before the
+    // written prefix is inside it.
+    const receiverEnd = prefix.contextStart - 1;
+    if (receiverEnd <= 0) return undefined;
+    return snapshot.semantics.model.typeAt(receiverEnd - 1);
 }
 
 interface CatalogCompletionContext {

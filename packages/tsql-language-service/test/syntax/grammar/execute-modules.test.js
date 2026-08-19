@@ -9,6 +9,14 @@ const { createSyntaxHarness } = require("../../support/syntaxHarness.js");
 const { parse } = createSyntaxHarness("execute-modules.sql", profile("sql-server"));
 
 suite("T-SQL advanced EXECUTE and module grammar", () => {
+    // SQL Server permits a procedure call without EXEC only at the beginning of a batch.
+    test("parses a batch-leading implicit procedure execution", () => {
+        const snapshot = parse("sp_grantdbaccess 'redmond\\eftqa1';\nSELECT 1;");
+        assert.deepEqual(snapshot.diagnostics, []);
+        assert.equal(snapshot.statistics.rawErrorNodeCount, 0);
+        assert.match(snapshot.tree.toString(), /ImplicitExecuteStatement\(/);
+        assert.match(snapshot.tree.toString(), /SelectStatement\(/);
+    });
     // Verifies procedure numbers, named arguments, output values, and execution options.
     test("parses advanced procedure execution", () => {
         const snapshot = parse(`

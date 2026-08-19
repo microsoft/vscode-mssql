@@ -93,9 +93,21 @@ suite("T-SQL schema transfers, queues, certificates, and principal options", () 
             "create user u1 with name = null",
             "CREATE FUNCTION dbo.f(@p int) RETURNS TABLE (c1 int) ORDER(c1 ASC) WITH EXECUTE AS 'U' AS EXTERNAL NAME a.b.c",
             "create queue q1 with activation(execute as caller)",
-            "alter queue dbo.q1 with activation(drop)",
         ]) {
             assert.ok(parse(sql).statistics.rawErrorNodeCount > 0, sql);
+        }
+    });
+
+    // ACTIVATION(DROP) turns a queue's activation off by naming DROP as the option, with no value
+    // after it. ScriptDOM's TSql170Parser accepts it and the conformance corpus contains it, so it
+    // was previously listed as a neighbour to reject on an assumption the oracle does not support.
+    test("accepts a queue activation turned off by DROP", () => {
+        for (const sql of [
+            "alter queue dbo.q1 with activation(drop)",
+            "alter queue dbo.q1 with status = on, activation(drop)",
+            "alter queue dbo.q1 with poison_message_handling(status = off), activation(drop)",
+        ]) {
+            assert.equal(parse(sql).statistics.rawErrorNodeCount, 0, sql);
         }
     });
 

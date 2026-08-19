@@ -139,6 +139,7 @@ function readBlock(input: InputStream, stack: Stack): boolean {
         return false;
     }
     if (
+        nonBlockBeginFollowers.has(firstWord ?? "") ||
         firstWord === "atomic" ||
         firstWord === "try" ||
         firstWord === "catch" ||

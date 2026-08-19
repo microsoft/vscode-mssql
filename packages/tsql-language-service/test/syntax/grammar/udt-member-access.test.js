@@ -51,6 +51,32 @@ SELECT dbo.Point::Origin.Distance(1);
         assert.equal((tree.match(/FunctionMemberCall\(/g) ?? []).length, 1);
     });
 
+    // A function result may expose fields before a later method call, as in f().g.h.k(...).l.
+    test("parses data-member tails after a function call", () => {
+        const tree = assertValid("SELECT a.b.c.d.f().g.h.k(1, 2, DEFAULT).l;").tree.toString();
+        assert.equal((tree.match(/FunctionMemberCall\(/g) ?? []).length, 1);
+        assert.equal((tree.match(/UdtDataMemberCall\(/g) ?? []).length, 3);
+    });
+
+    // ScriptDOM accepts a collation between two CLR/UDT property accesses, including a final
+    // collation on the resulting property.
+    test("parses collated CLR member chains", () => {
+        const tree = assertValid(
+            "SELECT c1.f1().SomeProperty COLLATE Albanian_BIN .AnotherProperty COLLATE Albanian_BIN;",
+        ).tree.toString();
+        assert.equal((tree.match(/CollateClause\(/g) ?? []).length, 2);
+        assert.equal((tree.match(/UdtDataMemberCall\(/g) ?? []).length, 2);
+    });
+
+    // Omitted server/schema components and the reserved ROWGUIDCOL pseudo-column remain valid in
+    // SELECT projections when their bounded projection forms are used.
+    test("parses omitted qualified stars and ROWGUIDCOL projections", () => {
+        const tree = assertValid("SELECT ..t1.*, master..t1.Rowguidcol;").tree.toString();
+        assert.match(tree, /OmittedTableSourceName\(/);
+        assert.match(tree, /Dot,Star/);
+        assert.match(tree, /RowguidReference\(/);
+    });
+
     // An ordinary multipart column reference is untouched by the new member forms.
     test("leaves ordinary column references unchanged", () => {
         const tree = assertValid(`

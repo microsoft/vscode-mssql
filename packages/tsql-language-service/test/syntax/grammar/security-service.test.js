@@ -146,6 +146,15 @@ DROP QUEUE .dbo.q1;
         assert.deepEqual([...incremental.tokens()], [...fresh.tokens()]);
     });
 
+    // BEGIN DIALOG and BEGIN CONVERSATION TIMER are statement forms, not procedural BEGIN blocks.
+    test("parses Service Broker conversation-start statements", () => {
+        assertValid(`
+BEGIN DIALOG CONVERSATION @dh FROM SERVICE s1 TO SERVICE @s2;
+BEGIN DIALOG @dh FROM SERVICE s1 TO SERVICE @s2 WITH ENCRYPTION = OFF;
+BEGIN CONVERSATION TIMER (@ch) TIMEOUT = 10;
+`);
+    });
+
     // Verifies endpoint transport and payload sections remain distinct bounded containers.
     test("parses endpoints", () => {
         const snapshot = parse(`

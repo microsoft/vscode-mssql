@@ -153,6 +153,192 @@ suite("T-SQL routine invocation diagnostics", () => {
             ],
         );
     });
+
+    // Table-valued calls use TableFunctionArgumentList rather than ArgumentList. Both shapes must
+    // count the supplied values, and the variable on the left side of a named argument is a label,
+    // not an undeclared scalar variable.
+    test("validates catalog table-valued function arguments", async () => {
+        const tableFunction = {
+            ref: { id: "split-function", database: "db" },
+            database: "db",
+            schema: "dbo",
+            name: "SplitRows",
+            kind: "tableFunction",
+        };
+        const provider = metadata({
+            objects: [tableFunction],
+            parameters: new Map([
+                [
+                    "split-function",
+                    [
+                        { ordinal: 1, name: "@csv", typeDisplay: "nvarchar(max)" },
+                        {
+                            ordinal: 2,
+                            name: "@separator",
+                            typeDisplay: "nchar(1)",
+                            hasDefault: true,
+                        },
+                    ],
+                ],
+            ]),
+        });
+
+        assert.deepEqual(
+            messages(await analyze("SELECT * FROM dbo.SplitRows(N'a');", provider)),
+            [],
+        );
+        assert.deepEqual(messages(await analyze("SELECT * FROM dbo.SplitRows();", provider)), [
+            "An insufficient number of arguments were supplied for the procedure or function dbo.SplitRows.",
+        ]);
+        assert.deepEqual(
+            messages(await analyze("SELECT * FROM dbo.SplitRows(N'a', N',', N'extra');", provider)),
+            ["Procedure or function 'dbo.SplitRows' has too many arguments specified."],
+        );
+        assert.deepEqual(
+            messages(await analyze("SELECT * FROM dbo.SplitRows(@csv = N'a');", provider)),
+            [],
+        );
+    });
+
+    // A function declared earlier in the same document has the same argument contract as a
+    // catalog function. This also locks the CREATE ... GO ... SELECT timeline behavior.
+    test("validates arguments for a document-local table-valued function", async () => {
+        const sql = [
+            "CREATE FUNCTION dbo.LocalRows(@required int, @optional int = 1)",
+            "RETURNS TABLE AS RETURN (SELECT @required AS id);",
+            "GO",
+            "SELECT * FROM dbo.LocalRows(1);",
+            "SELECT * FROM dbo.LocalRows();",
+            "SELECT * FROM dbo.LocalRows(1, 2, 3);",
+            "SELECT * FROM dbo.LocalRows(@required = 1);",
+        ].join("\n");
+        const diagnostics = await analyze(sql, metadata());
+        assert.deepEqual(
+            diagnostics.map(({ code, message }) => ({ code, message })),
+            [
+                {
+                    code: "InsufficientArguments",
+                    message:
+                        "An insufficient number of arguments were supplied for the procedure or function dbo.LocalRows.",
+                },
+                {
+                    code: "TooManyArguments",
+                    message:
+                        "Procedure or function 'dbo.LocalRows' has too many arguments specified.",
+                },
+            ],
+        );
+    });
+    // A table-valued call reaches the same binding through every rowset shape it can be written
+    // in. Before the shared call model each of these produced a false arity diagnostic.
+    test("binds a table-valued call identically through alias and APPLY forms", async () => {
+        const provider = metadata({
+            objects: [
+                {
+                    ref: { id: "rows", database: "db" },
+                    database: "db",
+                    schema: "dbo",
+                    name: "Rows",
+                    kind: "tableFunction",
+                },
+                table("anchor", "dbo", "Anchor"),
+            ],
+            parameters: new Map([
+                ["rows", [{ ordinal: 1, name: "@id", typeDisplay: "int", hasDefault: false }]],
+            ]),
+        });
+
+        for (const sql of [
+            "SELECT * FROM dbo.Rows(1);",
+            "SELECT * FROM dbo.Rows(1) AS r;",
+            "SELECT * FROM dbo.Rows(1) r;",
+            "SELECT * FROM dbo.Anchor CROSS APPLY dbo.Rows(1) AS r;",
+            "SELECT * FROM dbo.Anchor OUTER APPLY dbo.Rows(1) AS r;",
+            "SELECT * FROM [dbo].[Rows](1);",
+            "SELECT * FROM db.dbo.Rows(1);",
+        ]) {
+            assert.deepEqual(messages(await analyze(sql, provider)), [], sql);
+        }
+    });
+
+    // `*` belongs to a built-in's own contract, as in COUNT(*). Counting it as a supplied argument
+    // would report a routine that was given nothing as correctly called.
+    test("does not accept a bare star as a routine argument", async () => {
+        const provider = metadata({
+            objects: [
+                {
+                    ref: { id: "rows", database: "db" },
+                    database: "db",
+                    schema: "dbo",
+                    name: "Rows",
+                    kind: "tableFunction",
+                },
+            ],
+            parameters: new Map([
+                ["rows", [{ ordinal: 1, name: "@id", typeDisplay: "int", hasDefault: false }]],
+            ]),
+        });
+
+        assert.deepEqual(messages(await analyze("SELECT * FROM dbo.Rows(*);", provider)), [
+            "An insufficient number of arguments were supplied for the procedure or function dbo.Rows.",
+        ]);
+    });
+
+    // A document-local table-valued function obeys the same call-shape rules as a catalog one:
+    // naming it without parentheses is the same mistake either way.
+    test("applies the catalog call-shape rules to a document-local function", async () => {
+        const provider = metadata({
+            objects: [
+                {
+                    ref: { id: "rows", database: "db" },
+                    database: "db",
+                    schema: "dbo",
+                    name: "CatalogRows",
+                    kind: "tableFunction",
+                },
+            ],
+            parameters: new Map([["rows", []]]),
+        });
+        const sql = [
+            "CREATE FUNCTION dbo.LocalRows(@id int) RETURNS TABLE AS RETURN (SELECT @id AS id);",
+            "GO",
+            "SELECT * FROM dbo.LocalRows;",
+            "SELECT * FROM dbo.CatalogRows;",
+        ].join("\n");
+
+        assert.deepEqual(
+            (await analyze(sql, provider)).map(({ code, message }) => ({ code, message })),
+            [
+                {
+                    code: "ParametersNotSuppliedForFunction",
+                    message: "Parameters were not supplied for the function 'dbo.LocalRows'.",
+                },
+                {
+                    code: "ParametersNotSuppliedForFunction",
+                    message: "Parameters were not supplied for the function 'dbo.CatalogRows'.",
+                },
+            ],
+        );
+    });
+
+    // Parameter metadata that has not arrived is not proof that a routine takes no arguments.
+    test("reports no arity diagnostic while parameter metadata is loading", async () => {
+        const provider = metadata({
+            objects: [
+                {
+                    ref: { id: "rows", database: "db" },
+                    database: "db",
+                    schema: "dbo",
+                    name: "Rows",
+                    kind: "tableFunction",
+                },
+            ],
+            parameterStates: new Map([["rows", { kind: "loading" }]]),
+        });
+
+        assert.deepEqual(messages(await analyze("SELECT * FROM dbo.Rows();", provider)), []);
+    });
+
     // Procedure metadata drives exact named-argument and arity diagnostics without a query round trip.
     test("validates procedure arguments from the pinned metadata view", async () => {
         const procedure = {

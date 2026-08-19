@@ -7,6 +7,7 @@ import type { AnalysisProfile } from "../common/analysisProfile.js";
 import type { MetadataView, ObjectRef } from "../metadata/index.js";
 import type { SyntaxSnapshot } from "../syntax/index.js";
 import type { TextRange } from "../text/index.js";
+import type { SemanticModel } from "./model/contracts.js";
 
 export type SymbolId = string;
 
@@ -59,6 +60,14 @@ export interface SemanticSnapshot {
     readonly profileGeneration: string;
     readonly units: readonly BoundUnit[];
     readonly diagnostics: readonly SemanticDiagnostic[];
+    /**
+     * The document's shared semantic model: names, scopes, relations, calls, the local DDL
+     * timeline, and availability decisions.
+     *
+     * Every feature reads its answers from here rather than walking syntax again, which is what
+     * keeps a diagnostic, a tooltip, a colour, and a completion talking about the same object.
+     */
+    readonly model: SemanticModel;
     readonly statistics: {
         readonly unitsExamined: number;
         readonly unitsReused: number;

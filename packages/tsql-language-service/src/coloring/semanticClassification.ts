@@ -82,6 +82,34 @@ export function collectSemanticClassification(
             if (symbol) apply(reference, symbol, reference.write ? ["write"] : []);
         }
     }
+    // A construct written as a keyword but resolved as a call — CAST, CONVERT, TOP — keeps its
+    // keyword colour and gains the library modifier, so coloring and signature help describe the
+    // same construct instead of disagreeing about whether it is a keyword or a routine.
+    for (const call of semantics.model.calls) {
+        if (!call.keywordRange || !intersects(call.keywordRange, range)) continue;
+        if (call.target.kind !== "builtin" && call.target.kind !== "operator") continue;
+        const key = rangeKey(call.keywordRange);
+        const existing = result.get(key);
+        result.set(
+            key,
+            classification(existing?.type ?? "keyword", [
+                ...(existing?.modifiers ?? []),
+                "defaultLibrary",
+            ]),
+        );
+    }
+    // A construct the connected engine cannot run is marked, so the editor can show it as
+    // unusable rather than leaving the author to discover it from a squiggle alone. The decision
+    // is the published one — coloring does not reapply an engine rule of its own.
+    for (const decision of semantics.model.availability) {
+        if (decision.status !== "unavailable") continue;
+        if (!intersects(decision.range, range)) continue;
+        const target = resolveTarget(decision.range, syntactic) ?? decision.range;
+        const key = rangeKey(target);
+        const existing = result.get(key) ?? syntactic.roles.get(key);
+        if (!existing) continue;
+        result.set(key, classification(existing.type, [...existing.modifiers, "deprecated"]));
+    }
     return result;
 }
 

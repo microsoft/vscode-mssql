@@ -11,6 +11,7 @@ import type {
     SemanticSymbol,
     SymbolId,
 } from "./contracts.js";
+import { emptySemanticModel } from "./model/semanticModel.js";
 
 /** Empty binder used to exercise document, worker, metadata, and stale-result plumbing. */
 export class ScaffoldSemanticBinder implements SemanticBinder {
@@ -30,6 +31,7 @@ export class ScaffoldSemanticBinder implements SemanticBinder {
 class EmptySemanticSnapshot implements SemanticSnapshot {
     public readonly units = [];
     public readonly diagnostics = [];
+    public readonly model = emptySemanticModel;
     public readonly statistics = Object.freeze({
         unitsExamined: 0,
         unitsReused: 0,

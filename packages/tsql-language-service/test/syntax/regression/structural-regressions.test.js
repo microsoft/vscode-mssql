@@ -95,6 +95,31 @@ SELECT * FROM ::LegacyRows(1, NULL, DEFAULT) AS r;
         assert.match(tree, /GlobalFunctionTableSource/);
     });
 
+    // SQL 80 permits table hints directly after a table name, without WITH or an alias.
+    test("parses legacy table hints without WITH", () => {
+        const snapshot = parse(`
+SELECT * FROM t (TABLOCK, INDEX(myindex));
+SELECT c1 FROM t1 (HOLDLOCK, READPAST, INDEX = 0);
+SELECT c1 FROM t1 HOLDLOCK, t2 HOLDLOCK (0);
+SELECT c1 FROM t1 AS a WITH (ROWLOCK SERIALIZABLE TABLOCK NOWAIT);
+`);
+
+        assertValid(snapshot);
+        const tree = snapshot.tree.toString();
+        assert.equal((tree.match(/LegacyIndexTableHintClause\(/g) ?? []).length, 2);
+        assert.equal((tree.match(/LegacyIndexHint\(/g) ?? []).length, 2);
+        assert.equal((tree.match(/LegacyBareTableHint\(/g) ?? []).length, 2);
+        assert.match(tree, /LegacyOldForceIndex\(/);
+    });
+
+    // SQL 80 accepted a colon between FROM and the legacy system-table name.
+    test("parses the SQL 80 colon FROM form", () => {
+        const snapshot = parse("SELECT * FROM: sysobjects;");
+
+        assertValid(snapshot);
+        assert.match(snapshot.tree.toString(), /FromClause\(From,Colon,/);
+    });
+
     // Synapse-compatible CTAS options remain structured so flavor gates can report them precisely.
     test("parses structured CTAS table options", () => {
         const snapshot = parse(

@@ -7,3 +7,5 @@ export * from "./contracts.js";
 export * from "./foldingRanges.js";
 export * from "./objectDefinitions.js";
 export * from "./tsqlLanguageFeatureService.js";
+export * from "./sourceMappedColorization.js";
+export * from "./sourceMappedFeatureService.js";

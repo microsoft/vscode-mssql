@@ -57,6 +57,20 @@ suite("T-SQL change tracking arguments, routes, and bulk sources", () => {
         );
     });
 
+    // SQL 160 OPENROWSET metadata supports one-based ordinals and trailing commas in path lists.
+    test("parses OPENROWSET ordinals and trailing path commas", () => {
+        const snapshot = parse(`
+SELECT * FROM OPENROWSET(
+  BULK ('https://x/2000/*.parquet', 'https://x/2010/*.parquet',), FORMAT = 'PARQUET'
+) WITH ([country_code] VARCHAR(5) COLLATE Latin1_General_BIN2 1, [population] BIGINT 4) AS r;
+`);
+
+        assertValid(snapshot);
+        const tree = snapshot.tree.toString();
+        assert.equal((tree.match(/OpenRowsetColumnSchemaElement\(/g) ?? []).length, 2);
+        assert.match(tree, /OpenRowsetColumnSchema\(/);
+    });
+
     // The single-path bulk form and the provider form keep working.
     test("keeps existing OPENROWSET forms intact", () => {
         assertValid("SELECT * FROM OPENROWSET(BULK 'data/items.csv', FORMAT = 'CSV') AS rows;");

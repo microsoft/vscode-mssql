@@ -5,6 +5,7 @@
 
 import type { AnalysisProfile } from "../common/analysisProfile.js";
 import { defaultAnalysisProfile } from "../common/analysisProfile.js";
+import { builtInArity, lookupBuiltIn } from "../common/builtInRegistry.js";
 import type {
     ClrTypeMetadata,
     ColumnMetadata,
@@ -18,6 +19,20 @@ import type {
 import type { SyntaxNode, SyntaxSnapshot, SyntaxToken } from "../syntax/index.js";
 import type { TextRange } from "../text/index.js";
 import type { SemanticDiagnostic } from "./contracts.js";
+import type { BoundExpression, CatalogTimeline, CatalogTimelineEvent } from "./model/contracts.js";
+import {
+    DocumentCatalogTimeline,
+    procedureEventKinds,
+    relationEventKinds,
+    typeEventKinds,
+} from "./model/catalogTimeline.js";
+import { rowsetNameNode, rowsetNameOwnerKinds } from "./model/nameNodes.js";
+import {
+    compactMultipartName,
+    multipartIdentifierParts,
+    normalizeIdentifier,
+} from "./identifiers.js";
+import { isNamedRoutineArgumentLabel, routineCallArguments } from "./routineCall.js";
 
 /**
  * SQL Server-compatible catalog, scope, type, and cross-statement validations.
@@ -63,6 +78,14 @@ export function collectTsqlSemanticDiagnosticsWithState(
     validationRoots?: readonly SyntaxNode[],
     previousState?: TsqlSemanticDiagnosticState,
     profile: AnalysisProfile = defaultAnalysisProfile,
+    /**
+     * The bound expression types, supplied by the caller that will also publish them.
+     *
+     * Validation needs types while it validates, and features need the same types afterwards.
+     * Taking them as an input means both read one table rather than each inferring its own, which
+     * is what stops a squiggle and a tooltip from disagreeing about what an expression is.
+     */
+    expressionsFor?: (state: TsqlSemanticDiagnosticState) => readonly BoundExpression[],
 ): TsqlSemanticDiagnosticResult {
     const reusableState =
         validationRoots &&
@@ -91,6 +114,7 @@ export function collectTsqlSemanticDiagnosticsWithState(
         validationRanges,
         state,
         profile,
+        expressionsFor?.(state),
     );
     context.validateBuildMode();
     context.validateIdentifierNames();
@@ -140,10 +164,15 @@ class ValidationContext {
     private readonly _text: string;
     private readonly _diagnostics: SemanticDiagnostic[] = [];
     private readonly _seen = new Set<string>();
-    private readonly _localRelations: ReadonlyMap<string, readonly LocalRelationEvent[]>;
-    private readonly _localProcedures: ReadonlyMap<string, readonly LocalProcedureEvent[]>;
+    /**
+     * The document's local DDL, read through the same timeline every feature reads.
+     *
+     * The per-namespace maps behind it are still what the collectors produce, but resolution goes
+     * through one object so a squiggle and a completion cannot answer "does this exist here?"
+     * differently.
+     */
+    private readonly _timeline: CatalogTimeline;
     private readonly _localLogins: ReadonlyMap<string, readonly LocalLoginEvent[]>;
-    private readonly _localTypes: ReadonlyMap<string, readonly LocalTypeEvent[]>;
     private readonly _variableDeclarations: readonly VariableDeclaration[];
 
     public constructor(
@@ -153,20 +182,26 @@ class ValidationContext {
         private readonly _validationRanges?: readonly TextRange[],
         environment?: CachedTsqlSemanticDiagnosticState,
         private readonly _profile: AnalysisProfile = defaultAnalysisProfile,
+        private readonly _expressions: readonly BoundExpression[] = [],
     ) {
         this._text = _syntax.document.text;
-        this._localRelations =
-            environment?.localRelations ??
-            indexObjectEvents(collectLocalRelationEvents(_syntax, _index), _metadata);
-        this._localProcedures =
-            environment?.localProcedures ??
-            indexObjectEvents(collectLocalProcedureEvents(_syntax, _index), _metadata);
-        this._localLogins =
-            environment?.localLogins ??
-            indexLoginEvents(collectLocalLoginEvents(_syntax, _index), _metadata);
-        this._localTypes =
-            environment?.localTypes ??
-            indexObjectEvents(collectLocalTypeEvents(_syntax, _index), _metadata);
+        const state =
+            environment ??
+            new CachedTsqlSemanticDiagnosticState(
+                _syntax.document.length,
+                _metadata.generation,
+                indexObjectEvents(collectLocalRelationEvents(_syntax, _index), _metadata),
+                indexObjectEvents(collectLocalProcedureEvents(_syntax, _index), _metadata),
+                indexLoginEvents(collectLocalLoginEvents(_syntax, _index), _metadata),
+                indexObjectEvents(collectLocalTypeEvents(_syntax, _index), _metadata),
+            );
+        this._timeline = new DocumentCatalogTimeline(
+            collectCatalogTimelineEvents(_syntax, _index, state),
+            _metadata,
+        );
+        // A login is not a catalog object: it is server-scoped and named by one word, so it keeps
+        // its own index rather than sharing the object timeline's multipart keys.
+        this._localLogins = state.localLogins;
         this._variableDeclarations = collectVariableDeclarations(_syntax, _index);
     }
 
@@ -1011,6 +1046,10 @@ class ValidationContext {
             const parts = multipartIdentifierParts(displayName);
             if (parts.length !== 1) continue;
             const name = parts[0]!.toLocaleLowerCase();
+            // The shared registry is the list completion, hover, and signature help read. A name it
+            // describes is a built-in here too, or the editor would offer a routine that the
+            // validator then reported as unknown.
+            if (lookupBuiltIn(name, "routine")) continue;
             if (builtInScalarFunctionNames.has(name)) continue;
             // Aggregates and window functions are separate function categories with their own
             // catalogs; a call carrying OVER or WITHIN GROUP is one of them by construction.
@@ -1365,6 +1404,7 @@ class ValidationContext {
             ) {
                 continue;
             }
+            if (isNamedRoutineArgumentLabel(variable)) continue;
             if (!this.variableAt(name, variable.start, false)) {
                 this.add(
                     "ScalarVariableRequired",
@@ -3362,7 +3402,23 @@ class ValidationContext {
             const parts = multipartIdentifierParts(this.source(nameNode));
             if (parts.length !== 1) continue;
             const name = parts[0]!.toLocaleUpperCase();
-            const arity = builtInFunctionArities.get(name);
+            // The registry is asked first: it publishes the parameter list users see in signature
+            // help, so a count derived from it cannot disagree with the help beside it. The local
+            // table covers the routines the registry does not describe yet.
+            //
+            // Two shapes are excluded because a signature does not describe them. An aggregate
+            // accepts `*` and `DISTINCT`, neither of which is an argument in the list; and a PIVOT
+            // aggregate is validated by the pivot rule below, which words its message in terms of
+            // the aggregates PIVOT accepts. Counting either here would report a correct call as
+            // wrong, or one mistake as two.
+            const aggregate =
+                aggregateFunctionNames.has(name) ||
+                directChildren(call, "Star").length > 0 ||
+                directChildren(call, "Distinct").length > 0;
+            const arity =
+                ancestor(call, "PivotJoin") || aggregate
+                    ? builtInFunctionArities.get(name)
+                    : (builtInArity(name) ?? builtInFunctionArities.get(name));
             const argumentList = firstDescendant(call, "ArgumentList");
             const arguments_ = argumentList ? directChildren(argumentList, "Expression") : [];
             if (arity && (arguments_.length < arity.minimum || arguments_.length > arity.maximum)) {
@@ -3405,6 +3461,11 @@ class ValidationContext {
             const nameNode = firstDescendant(call, "MultipartIdentifier");
             if (!nameNode) continue;
             const parts = multipartIdentifierParts(this.source(nameNode));
+            const local = this.localRelationEventAt(parts, nameNode.start);
+            if (local?.create && local.kind === "tableFunction" && local.parameters) {
+                this.validateRoutineArity(call, nameNode, local.parameters);
+                continue;
+            }
             const resolution = this._metadata.resolveObject(parts);
             if (
                 resolution.kind !== "resolved" ||
@@ -3415,29 +3476,36 @@ class ValidationContext {
             }
             const state = this._metadata.parameterState(resolution.object.ref);
             if (state.kind !== "loaded") continue;
-            const argumentList = firstDescendant(call, "ArgumentList");
-            const actual = argumentList
-                ? directChildren(argumentList, "Expression").length
-                : firstDescendant(call, "Star")
-                  ? 1
-                  : 0;
-            const required = state.value.filter(
-                (parameter) => parameter.hasDefault !== true,
-            ).length;
-            const displayName = compactMultipartName(this.source(nameNode));
-            if (actual < required) {
-                this.add(
-                    "InsufficientArguments",
-                    `An insufficient number of arguments were supplied for the procedure or function ${displayName}.`,
-                    nameNode,
-                );
-            } else if (actual > state.value.length) {
-                this.add(
-                    "TooManyArguments",
-                    `Procedure or function '${displayName}' has too many arguments specified.`,
-                    nameNode,
-                );
-            }
+            this.validateRoutineArity(call, nameNode, state.value);
+        }
+    }
+
+    private validateRoutineArity(
+        call: SyntaxNode,
+        nameNode: SyntaxNode,
+        parameters: readonly ParameterMetadata[],
+    ): void {
+        const supplied = routineCallArguments(call);
+        // `*` stands for a built-in's own contract, as in COUNT(*). It is not an argument to a
+        // catalog or document-local routine, so counting it would hide a missing argument.
+        const actual = supplied.items.length;
+        // Ordinal zero is the routine's return value, which `sys.parameters` reports alongside the
+        // real parameters. Counting it would demand one argument more than the routine takes.
+        const declared = parameters.filter((parameter) => parameter.ordinal !== 0);
+        const required = declared.filter((parameter) => parameter.hasDefault !== true).length;
+        const displayName = compactMultipartName(this.source(nameNode));
+        if (actual < required) {
+            this.add(
+                "InsufficientArguments",
+                `An insufficient number of arguments were supplied for the procedure or function ${displayName}.`,
+                nameNode,
+            );
+        } else if (actual > declared.length) {
+            this.add(
+                "TooManyArguments",
+                `Procedure or function '${displayName}' has too many arguments specified.`,
+                nameNode,
+            );
         }
     }
 
@@ -3706,9 +3774,14 @@ class ValidationContext {
         // A column reference or a scalar call may name more than four parts, but a rowset or module
         // name is capped at four. The shared name rule carries both, so the cap is checked here and
         // reported on the first part beyond it, exactly as the product does.
-        for (const owner of [...this.nodes("TableSourceName"), ...this.nodes("ExecutableEntity")]) {
-            const nameNode = directChildren(owner, "MultipartIdentifier")[0];
+        const overLongReported = new Set<string>();
+        for (const owner of rowsetNameOwnerKinds.flatMap((kind) => [...this.nodes(kind)])) {
+            const nameNode = rowsetNameNode(owner);
             if (!nameNode || containsErrorNode(nameNode)) continue;
+            // A `FROM` source and its enclosing target can both own the same name node.
+            const key = `${nameNode.start}:${nameNode.end}`;
+            if (overLongReported.has(key)) continue;
+            overLongReported.add(key);
             const spelling = this.source(nameNode);
             const parts = multipartIdentifierParts(spelling);
             if (parts.length <= 4) continue;
@@ -3990,7 +4063,26 @@ class ValidationContext {
             return;
         }
         if (node.kind === "FunctionTableSource" && this.isInstanceTableMethod(node, parts)) return;
-        if (localEvent?.create || this.isCteReference(nameNode, parts)) {
+        if (localEvent?.create) {
+            // A document-local object obeys the same call-shape rules as a catalog one: naming a
+            // table-valued function without parentheses is the same mistake either way, and
+            // parenthesising something that is not a function is too.
+            if (node.kind === "NamedTableSource" && localEvent.kind === "tableFunction") {
+                this.add(
+                    "ParametersNotSuppliedForFunction",
+                    `Parameters were not supplied for the function '${source}'.`,
+                    nameNode,
+                );
+            } else if (node.kind === "FunctionTableSource" && localEvent.kind !== "tableFunction") {
+                this.add(
+                    "ParametersSuppliedForNonFunction",
+                    `Parameters supplied for object '${source}' which is not a function. If the parameters are intended as a table hint, a WITH keyword is required.`,
+                    nameNode,
+                );
+            }
+            return;
+        }
+        if (this.isCteReference(nameNode, parts)) {
             return;
         }
         // A DROP in the current document is newer than the pinned catalog generation. Do not
@@ -4265,8 +4357,13 @@ class ValidationContext {
         const variables = descendants(argument, "Variable");
         const variable = named ? variables.at(-1) : variables[0];
         if (!variable || (named && variables.length < 2)) return;
+        // The bound type first, so any expression the binder could type participates; the declared
+        // variable is the fallback for the shapes the type table does not cover yet.
+        const bound = this.boundTypeAt(variable.start);
         const declaration = this.variableAt(this.source(variable), variable.start, false);
-        const argumentType = declaration && this.declaredTypeName(declaration.typeDisplay);
+        const argumentType =
+            (bound && this.declaredTypeName(bound)) ??
+            (declaration && this.declaredTypeName(declaration.typeDisplay));
         if (!argumentType || this.equal(argumentType, parameterType)) return;
         this.add(
             "OperandTypeClash",
@@ -4637,18 +4734,47 @@ class ValidationContext {
         parts: readonly string[],
         offset: number,
     ): LocalRelationEvent | undefined {
-        return lastEventAt(this._localRelations.get(objectNameKey(parts, this._metadata)), offset);
+        const state = this._timeline.resolve(parts, offset, relationEventKinds);
+        if (!state?.event) return undefined;
+        return {
+            offset: state.event.offset,
+            create: state.exists,
+            parts: state.event.parts,
+            kind: state.event.kind as LocalRelationEvent["kind"],
+            ...(state.parameters ? { parameters: state.parameters } : {}),
+            ...(state.columns ? { columns: state.columns } : {}),
+        };
     }
 
     private localProcedureAt(
         parts: readonly string[],
         offset: number,
     ): LocalProcedureEvent | undefined {
-        const event = lastEventAt(
-            this._localProcedures.get(objectNameKey(parts, this._metadata)),
-            offset,
-        );
-        return event?.create ? event : undefined;
+        const state = this._timeline.resolve(parts, offset, procedureEventKinds);
+        if (!state?.exists || !state.event) return undefined;
+        return {
+            offset: state.event.offset,
+            create: true,
+            parts: state.event.parts,
+            parameters: state.parameters ?? [],
+        };
+    }
+
+    /**
+     * The bound type of the expression at an offset, when only a known one should be believed.
+     *
+     * An inferred or unknown type is not evidence: a rule that reports a mismatch has to be sure
+     * of both sides, and this side is the one the service inferred.
+     */
+    private boundTypeAt(offset: number): string | undefined {
+        let best: BoundExpression | undefined;
+        for (const entry of this._expressions) {
+            if (entry.range.start > offset || offset > entry.range.end) continue;
+            if (!best || entry.range.end - entry.range.start < best.range.end - best.range.start) {
+                best = entry;
+            }
+        }
+        return best?.type.confidence === "known" ? best.type.displayName : undefined;
     }
 
     private userTypeAt(parts: readonly string[], offset: number): UserTypeResolution {
@@ -4664,14 +4790,12 @@ class ValidationContext {
         } else {
             state = { kind: "unknown" };
         }
-        const event = lastEventAt(
-            this._localTypes.get(objectNameKey(parts, this._metadata)),
-            offset,
-        );
-        if (event) {
-            state = event.create
-                ? { kind: "resolved", typeCategory: event.typeCategory }
-                : { kind: "notFound" };
+        const local = this._timeline.resolve(parts, offset, typeEventKinds);
+        if (local) {
+            state =
+                local.exists && local.typeCategory
+                    ? { kind: "resolved", typeCategory: local.typeCategory }
+                    : { kind: "notFound" };
         }
         return state;
     }
@@ -4824,11 +4948,92 @@ interface NamedNode {
     readonly node: SyntaxNode;
 }
 
+/**
+ * The document's local DDL as one ordered event list.
+ *
+ * The collectors below are the only implementation of same-document `CREATE`/`ALTER`/`DROP`
+ * visibility. Publishing their result as a timeline is what lets completion, hover, definition,
+ * and signature help agree with diagnostics instead of each rediscovering local DDL.
+ */
+export function collectCatalogTimelineEvents(
+    syntax: SyntaxSnapshot,
+    index?: ReadonlyMap<string, readonly SyntaxNode[]>,
+    published?: TsqlSemanticDiagnosticState,
+): readonly CatalogTimelineEvent[] {
+    // Reuse the validator's own indexes when the caller holds them. Collecting a second time would
+    // walk the whole document again to produce the same answer, and two collections are two things
+    // that can drift.
+    if (published instanceof CachedTsqlSemanticDiagnosticState) {
+        return timelineEventsFromState(published);
+    }
+    const structural = index ?? syntax.structuralIndex?.() ?? indexSyntax([syntax.root()]);
+    const events: CatalogTimelineEvent[] = [];
+    for (const event of collectLocalRelationEvents(syntax, structural)) {
+        events.push(relationTimelineEvent(event));
+    }
+    for (const event of collectLocalProcedureEvents(syntax, structural)) {
+        events.push(procedureTimelineEvent(event));
+    }
+    for (const event of collectLocalTypeEvents(syntax, structural)) {
+        events.push(typeTimelineEvent(event));
+    }
+    return Object.freeze(events.sort((left, right) => left.offset - right.offset));
+}
+
+function timelineEventsFromState(
+    state: CachedTsqlSemanticDiagnosticState,
+): readonly CatalogTimelineEvent[] {
+    const events: CatalogTimelineEvent[] = [];
+    for (const timeline of state.localRelations.values()) {
+        for (const event of timeline) events.push(relationTimelineEvent(event));
+    }
+    for (const timeline of state.localProcedures.values()) {
+        for (const event of timeline) events.push(procedureTimelineEvent(event));
+    }
+    for (const timeline of state.localTypes.values()) {
+        for (const event of timeline) events.push(typeTimelineEvent(event));
+    }
+    return Object.freeze(events.sort((left, right) => left.offset - right.offset));
+}
+
+function relationTimelineEvent(event: LocalRelationEvent): CatalogTimelineEvent {
+    return {
+        offset: event.offset,
+        action: event.create ? "create" : "drop",
+        parts: event.parts,
+        kind: event.kind,
+        ...(event.columns ? { columns: event.columns } : {}),
+        ...(event.parameters ? { parameters: event.parameters } : {}),
+    };
+}
+
+function procedureTimelineEvent(event: LocalProcedureEvent): CatalogTimelineEvent {
+    return {
+        offset: event.offset,
+        action: event.create ? "create" : "drop",
+        parts: event.parts,
+        kind: "procedure",
+        parameters: event.parameters,
+    };
+}
+
+function typeTimelineEvent(event: LocalTypeEvent): CatalogTimelineEvent {
+    return {
+        offset: event.offset,
+        action: event.create ? "create" : "drop",
+        parts: event.parts,
+        kind: "type",
+        typeCategory: event.typeCategory,
+    };
+}
+
 interface LocalRelationEvent {
     readonly offset: number;
     readonly create: boolean;
     readonly parts: readonly string[];
     readonly kind: "table" | "view" | "tableFunction" | "synonym";
+    /** Parameters declared by a document-local table-valued function. */
+    readonly parameters?: readonly ParameterMetadata[];
     /** Undefined means the object is known to exist but its projected shape is not authoritative. */
     readonly columns?: readonly ColumnMetadata[];
 }
@@ -4982,6 +5187,7 @@ function collectLocalRelationEvents(
                 create: true,
                 kind: "tableFunction",
                 parts: multipartIdentifierParts(syntax.document.text.slice(name.start, name.end)),
+                parameters: collectRoutineParameters(syntax, node),
                 ...(definition
                     ? { columns: definitionColumns(syntax, definition) }
                     : projected && projected.length > 0
@@ -5078,29 +5284,7 @@ function collectLocalProcedureEvents(
                 offset: node.end,
                 create: true,
                 parts: multipartIdentifierParts(syntax.document.text.slice(name.start, name.end)),
-                parameters: descendantsOwnedBy(node, "ProcedureParameter", node).map(
-                    (parameter, index) => {
-                        const variable = firstDescendant(parameter, "Variable");
-                        const dataType = firstDescendant(parameter, "DataType");
-                        const source = syntax.document.text.slice(parameter.start, parameter.end);
-                        return {
-                            ordinal: index + 1,
-                            name: variable
-                                ? syntax.document.text.slice(variable.start, variable.end)
-                                : `@parameter${index + 1}`,
-                            ...(dataType
-                                ? {
-                                      typeDisplay: syntax.document.text.slice(
-                                          dataType.start,
-                                          dataType.end,
-                                      ),
-                                  }
-                                : {}),
-                            output: /\b(?:OUT|OUTPUT)\s*$/iu.test(source),
-                            hasDefault: /=/u.test(source),
-                        };
-                    },
-                ),
+                parameters: collectRoutineParameters(syntax, node),
             });
         }
     }
@@ -5115,6 +5299,28 @@ function collectLocalProcedureEvents(
         });
     }
     return Object.freeze(events.sort((left, right) => left.offset - right.offset));
+}
+
+function collectRoutineParameters(
+    syntax: SyntaxSnapshot,
+    node: SyntaxNode,
+): readonly ParameterMetadata[] {
+    return descendantsOwnedBy(node, "ProcedureParameter", node).map((parameter, index) => {
+        const variable = firstDescendant(parameter, "Variable");
+        const dataType = firstDescendant(parameter, "DataType");
+        const source = syntax.document.text.slice(parameter.start, parameter.end);
+        return {
+            ordinal: index + 1,
+            name: variable
+                ? syntax.document.text.slice(variable.start, variable.end)
+                : `@parameter${index + 1}`,
+            ...(dataType
+                ? { typeDisplay: syntax.document.text.slice(dataType.start, dataType.end) }
+                : {}),
+            output: /\b(?:OUT|OUTPUT)\s*$/iu.test(source),
+            hasDefault: /=/u.test(source),
+        };
+    });
 }
 
 function collectLocalLoginEvents(
@@ -5581,10 +5787,6 @@ function visit(node: SyntaxNode, callback: (node: SyntaxNode) => void): void {
     for (const child of node.children()) visit(child, callback);
 }
 
-function compactMultipartName(value: string): string {
-    return value.replace(/\s*\.\s*/gu, ".").trim();
-}
-
 /** Canonical display name for one module option, matching how SQL Server names it in messages. */
 function moduleOptionDisplayName(source: string): string {
     const value = source.trim();
@@ -5788,23 +5990,6 @@ function arityMessage(name: string, arity: FunctionArity): string {
             : `Function '${name}' requires at least ${arity.minimum} arguments.`;
     }
     return `The ${name} function requires ${arity.minimum} to ${arity.maximum} arguments.`;
-}
-
-function multipartIdentifierParts(text: string): readonly string[] {
-    const parts: string[] = [];
-    const matcher = /\[(?:[^\]]|\]\])*\]|"(?:[^"]|"")*"|[^.\s]+/gu;
-    for (const match of text.matchAll(matcher)) parts.push(normalizeIdentifier(match[0]));
-    return parts;
-}
-
-function normalizeIdentifier(value: string): string {
-    if (value.startsWith("[") && value.endsWith("]")) {
-        return value.slice(1, -1).replaceAll("]]", "]");
-    }
-    if (value.startsWith('"') && value.endsWith('"')) {
-        return value.slice(1, -1).replaceAll('""', '"');
-    }
-    return value;
 }
 
 function countMatches(value: string, pattern: RegExp): number {
@@ -6782,6 +6967,12 @@ const dateParts = new Set([
     "YYYY",
 ]);
 
+/**
+ * Argument counts for built-ins the shared registry does not describe.
+ *
+ * A routine that gains a registry signature should lose its entry here; the two are asserted to
+ * agree wherever both know a name, so a stale row fails rather than drifts.
+ */
 const builtInFunctionArities = new Map<string, FunctionArity>([
     ...[
         "ABS",

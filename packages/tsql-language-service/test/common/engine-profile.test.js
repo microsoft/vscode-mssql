@@ -8,11 +8,14 @@ const { suite, test } = require("node:test");
 const {
     capabilityGeneration,
     createEngineCapabilities,
+    defaultTsqlFeatureProfile,
     engineEditions,
     parseServerMajorVersion,
     resolveEngineProfile,
     resolveTsqlFeatureProfile,
     sqlEngineProfiles,
+    vNextCompatibilityLevel,
+    vNextServerMajorVersion,
 } = require("../../dist/index.js");
 
 // Every documented DatabaseEngineEdition value, so a new engine cannot be silently absorbed into
@@ -175,6 +178,23 @@ suite("engine capabilities", () => {
         assert.equal(capabilities.serverMajorVersion, 16);
         assert.equal(capabilities.generation, "sql-server/16/160/ga");
         assert.equal(capabilities.displayName, "SQL Server 2022 (compatibility level 160)");
+    });
+
+    // v180 is a preview identity, not a renamed released version. It must survive host facts and
+    // be shown as vNext while the default/offline level remains v170.
+    test("labels the v180 preview level as vNext", () => {
+        const capabilities = createEngineCapabilities({
+            engineEdition: 3,
+            serverVersion: "18.0.1000.1",
+            compatibilityLevel: vNextCompatibilityLevel,
+            previewFeatures: true,
+        });
+        assert.equal(capabilities.serverMajorVersion, vNextServerMajorVersion);
+        assert.equal(capabilities.compatibilityLevel, vNextCompatibilityLevel);
+        assert.equal(capabilities.generation, "sql-server/18/180/preview");
+        assert.equal(capabilities.displayName, "SQL Server vNext (compatibility level 180)");
+        assert.equal(defaultTsqlFeatureProfile.serverMajorVersion, 17);
+        assert.equal(defaultTsqlFeatureProfile.compatibilityLevel, 170);
     });
 
     // Verifies an unidentified engine carries no level at all rather than a guessed one.

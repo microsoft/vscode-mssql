@@ -41,6 +41,15 @@ CREATE SELECTIVE XML INDEX sxi1 ON t1(c1) FOR (
         assert.match(snapshot.tree.toString(), /MaxLengthClause\(/);
     });
 
+    // SQL 100 ScriptDOM accepts an unusually long omitted-component run in filtered index
+    // predicates; preserve it as one bounded omitted name instead of seven recovery nodes.
+    test("parses extended omitted names in filtered index predicates", () => {
+        const snapshot = parse("CREATE INDEX ind1 ON t1(c1) WHERE ((..........c1 > 5));");
+
+        assertValid(snapshot);
+        assert.match(snapshot.tree.toString(), /ColumnReference\(OmittedTableSourceName/);
+    });
+
     // Verifies spatial tessellation and nested bounding-box/grid options remain structured.
     test("parses spatial indexes", () => {
         const snapshot = parse(`

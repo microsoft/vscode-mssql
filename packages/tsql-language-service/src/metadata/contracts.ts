@@ -83,6 +83,13 @@ export interface ObjectMetadata {
      * help cannot describe one, so callers present it differently from a Transact-SQL procedure.
      */
     readonly extendedProcedure?: boolean;
+    /**
+     * The type a scalar function returns, as written in its definition.
+     *
+     * Undefined means the backend did not report one, which is not the same as a function with no
+     * result: an absent value leaves the call's type unknown rather than making it look untyped.
+     */
+    readonly returnType?: string;
 }
 
 /** One DML trigger owned by a table or view, described by the actions that fire it. */
@@ -102,6 +109,13 @@ export interface ClrMemberMetadata {
     readonly kind: "method" | "property" | "field";
     /** True for a member reached through the type; false or undefined for an instance member. */
     readonly static?: boolean;
+    /**
+     * The SQL type the member yields, as written.
+     *
+     * Undefined means the backend did not report one. A member that exists but has no reported
+     * type leaves the expression untyped rather than making it look like an unknown member.
+     */
+    readonly typeDisplay?: string;
 }
 
 /**

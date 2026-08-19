@@ -23,7 +23,14 @@ import type { LanguageServiceStats } from "../observability/index.js";
 import { LanguageServiceStatsStore } from "../observability/index.js";
 import { CatalogSemanticBinder, type SemanticBinder } from "../semantics/index.js";
 import { LezerSyntaxService, type SyntaxService } from "../syntax/index.js";
-import { applyTextChanges, ImmutableTextSnapshot, type TextChange } from "../text/index.js";
+import { SqlCmdDocumentService, type SqlCmdDocumentSnapshot } from "../sqlcmd/index.js";
+import {
+    applyTextChanges,
+    ImmutableTextSnapshot,
+    type TextChange,
+    type TextRange,
+    type TextSnapshot,
+} from "../text/index.js";
 import type { DocumentAnalysisSnapshot, LanguageServiceRuntime } from "./contracts.js";
 
 /** Placeholder the stats store replaces with the document's rolling window. */
@@ -46,6 +53,7 @@ const bindBudget = Object.freeze({
 export class InProcessLanguageServiceRuntime implements LanguageServiceRuntime {
     public readonly mode = "in-process" as const;
     private readonly _documents = new Map<string, DocumentAnalysisSnapshot>();
+    private readonly _sqlCmd = new SqlCmdDocumentService();
     private readonly _stats = new LanguageServiceStatsStore();
     private _capabilities: EngineCapabilities;
 
@@ -108,7 +116,13 @@ export class InProcessLanguageServiceRuntime implements LanguageServiceRuntime {
                     profile: this.profile,
                 });
                 replacements.set(uri, {
-                    snapshot: Object.freeze({ text: previous.text, syntax, semantics }),
+                    snapshot: analysisSnapshot(
+                        previous.text,
+                        previous.projection,
+                        previous.projectedText,
+                        syntax,
+                        semantics,
+                    ),
                     bindMs: performance.now() - bindStarted,
                 });
             }
@@ -133,14 +147,16 @@ export class InProcessLanguageServiceRuntime implements LanguageServiceRuntime {
         text: string,
     ): Promise<DocumentAnalysisSnapshot> {
         const document = new ImmutableTextSnapshot(uri, version, text);
+        const projection = this._sqlCmd.parse(uri, version, text);
+        const projected = projectedSnapshot(document, projection);
         const parseStarted = performance.now();
-        const syntax = this._syntax.parse(document);
+        const syntax = this._syntax.parse(projected);
         const parseElapsed = performance.now() - parseStarted;
         const bindStarted = performance.now();
         const view = this._metadata.pin();
         const semantics = this._binder.bind({ syntax, metadata: view, profile: this.profile });
         const bindElapsed = performance.now() - bindStarted;
-        const snapshot = Object.freeze({ text: document, syntax, semantics });
+        const snapshot = analysisSnapshot(document, projection, projected, syntax, semantics);
         this._documents.set(uri, snapshot);
         this.publishStats(snapshot, parseElapsed, bindElapsed);
         return snapshot;
@@ -154,8 +170,21 @@ export class InProcessLanguageServiceRuntime implements LanguageServiceRuntime {
     ): Promise<DocumentAnalysisSnapshot> {
         const previous = this.snapshot(uri, expectedVersion);
         const document = applyTextChanges(previous.text, version, changes);
+        const projection = this._sqlCmd.update(
+            previous.projection,
+            version,
+            document.text,
+            changes,
+        );
+        const projected = projectedSnapshot(document, projection);
         const parseStarted = performance.now();
-        const syntax = this._syntax.update(previous.syntax, document, changes);
+        // Incremental reuse needs the edit offsets to mean the same thing in both snapshots. That
+        // holds while the projection stays the identity one; once a substitution rewrites the text,
+        // the edit no longer describes the projected document and the parse starts again.
+        const reusable = projected === document && previous.projectedText === previous.text;
+        const syntax = reusable
+            ? this._syntax.update(previous.syntax, projected, changes)
+            : this._syntax.parse(projected);
         const parseElapsed = performance.now() - parseStarted;
         const bindStarted = performance.now();
         const semantics = this._binder.update(previous.semantics, {
@@ -166,7 +195,7 @@ export class InProcessLanguageServiceRuntime implements LanguageServiceRuntime {
             profile: this.profile,
         });
         const bindElapsed = performance.now() - bindStarted;
-        const snapshot = Object.freeze({ text: document, syntax, semantics });
+        const snapshot = analysisSnapshot(document, projection, projected, syntax, semantics);
         this._documents.set(uri, snapshot);
         this.publishStats(snapshot, parseElapsed, bindElapsed);
         return snapshot;
@@ -188,11 +217,13 @@ export class InProcessLanguageServiceRuntime implements LanguageServiceRuntime {
             profile: this.profile,
         });
         const bindElapsed = performance.now() - bindStarted;
-        const snapshot = Object.freeze({
-            text: previous.text,
-            syntax: previous.syntax,
+        const snapshot = analysisSnapshot(
+            previous.text,
+            previous.projection,
+            previous.projectedText,
+            previous.syntax,
             semantics,
-        });
+        );
         this._documents.set(uri, snapshot);
         this.publishStats(snapshot, 0, bindElapsed);
         return snapshot;
@@ -311,6 +342,39 @@ export class InProcessLanguageServiceRuntime implements LanguageServiceRuntime {
             },
         });
     }
+}
+
+/**
+ * The text the parser sees.
+ *
+ * When SQLCMD projects the document unchanged the source snapshot is returned as-is, so the
+ * identity case allocates nothing and a caller can compare by reference to learn that projected
+ * and source coordinates are the same.
+ */
+function projectedSnapshot(
+    document: TextSnapshot,
+    projection: SqlCmdDocumentSnapshot,
+): TextSnapshot {
+    return projection.projectedSql === document.text
+        ? document
+        : new ImmutableTextSnapshot(document.uri, document.version, projection.projectedSql);
+}
+
+function analysisSnapshot(
+    text: TextSnapshot,
+    projection: SqlCmdDocumentSnapshot,
+    projectedText: TextSnapshot,
+    syntax: DocumentAnalysisSnapshot["syntax"],
+    semantics: DocumentAnalysisSnapshot["semantics"],
+): DocumentAnalysisSnapshot {
+    return Object.freeze({
+        text,
+        projection,
+        projectedText,
+        syntax,
+        semantics,
+        sourceRangeOf: (range: TextRange) => projection.toSourceRanges(range),
+    });
 }
 
 /** Only a syntax service that can adopt a profile participates in reprofiling. */

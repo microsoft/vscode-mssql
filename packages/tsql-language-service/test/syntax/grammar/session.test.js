@@ -47,6 +47,29 @@ SET STATISTICS IO ON;
         assert.equal((snapshot.tree.toString().match(/StatisticsOption\(/g) ?? []).length, 3);
     });
 
+    // FIPS_FLAGGER is a repeated SET command: every comma-separated item carries its own level,
+    // unlike NOCOUNT/ANSI_NULLS where one trailing ON/OFF applies to the complete name list.
+    test("parses repeated FIPS_FLAGGER SET commands", () => {
+        const snapshot = parse(
+            "SET FIPS_FLAGGER OFF, FIPS_FLAGGER 'ENTRY', FIPS_FLAGGER 'INTERMEDIATE';",
+        );
+        assert.deepEqual(snapshot.diagnostics, []);
+        assert.equal(snapshot.statistics.rawErrorNodeCount, 0);
+        assert.equal((snapshot.tree.toString().match(/FipsFlaggerSetCommand\(/g) ?? []).length, 3);
+    });
+
+    // ScriptDOM preserves the lexer boundary case of a bare @ in both a procedure parameter and
+    // a DECLARE variable. Keep both declarations structured so the following AS/body is not lost.
+    test("keeps bare variable markers structured in declarations", () => {
+        const snapshot = parse(
+            "CREATE PROCEDURE p1 @ AS INT AS BEGIN RETURN 0; END\nDECLARE @ AS INT;\nSELECT @3 + 1;",
+        );
+        assert.deepEqual(snapshot.diagnostics, []);
+        assert.equal(snapshot.statistics.rawErrorNodeCount, 0);
+        assert.match(snapshot.tree.toString(), /ProcedureParameter\(/);
+        assert.match(snapshot.tree.toString(), /VariableDeclaration\(/);
+    });
+
     // SET ERRLVL accepts a signed integer error level; whether the literal is actually an
     // integer is a validation rule, not a parse rule.
     test("parses SET ERRLVL values", () => {

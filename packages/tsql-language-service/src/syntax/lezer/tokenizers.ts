@@ -18,6 +18,7 @@ import {
     Match,
     MoneyLiteral,
     UpdatePredicateKeyword,
+    TripleDot,
     ViewCheckWith,
     lineContentStart,
     horizontalWhitespace,
@@ -77,6 +78,19 @@ export const leadingDotToken = new ExternalTokenizer((input, stack) => {
     if (stack.canShift(Dot)) return;
     input.advance();
     input.acceptToken(LeadingDot);
+});
+
+/**
+ * The SQL Server omitted-middle-component spelling `a...d`.
+ *
+ * It is emitted only in parser states that explicitly request it, so ordinary multipart names
+ * continue to use three separate Dot tokens everywhere else.
+ */
+export const tripleDotToken = new ExternalTokenizer((input, stack) => {
+    if (input.next !== period || input.peek(1) !== period || input.peek(2) !== period) return;
+    if (!stack.canShift(TripleDot)) return;
+    input.advance(3);
+    input.acceptToken(TripleDot);
 });
 
 export const sqlServerTokens = new ExternalTokenizer((input, stack) => {

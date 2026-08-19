@@ -15,6 +15,11 @@ import {
     visitSyntaxTree as visit,
 } from "../syntax/treeUtilities.js";
 import type { TextRange } from "../text/index.js";
+import {
+    multipartIdentifierParts,
+    normalizeIdentifier,
+    parseMultipartName,
+} from "./identifiers.js";
 import type {
     BindInput,
     BoundReference,
@@ -25,7 +30,22 @@ import type {
     SemanticSymbol,
     SymbolId,
 } from "./contracts.js";
+import type {
+    BoundExpression,
+    CatalogTimeline,
+    QueryScope,
+    SemanticModel,
+} from "./model/contracts.js";
+import { buildExpressionTypes } from "./model/expressionTypes.js";
 import {
+    buildSemanticModel,
+    emptySemanticModel,
+    type SemanticModelInput,
+} from "./model/semanticModel.js";
+import { DocumentCatalogTimeline } from "./model/catalogTimeline.js";
+import { buildScopes, type ScopeModel } from "./model/scopeModel.js";
+import {
+    collectCatalogTimelineEvents,
     collectTsqlSemanticDiagnosticsWithState,
     type TsqlSemanticDiagnosticState,
 } from "./tsqlSemanticDiagnostics.js";
@@ -64,6 +84,34 @@ export class CatalogSemanticBinder implements SemanticBinder {
             priorSnapshot && semanticEnvironmentIsPositionStable(batches, reusePlan, priorSnapshot)
                 ? priorSnapshot.diagnosticState
                 : undefined;
+        // Built once and shared: validation reads these types while it validates, and the published
+        // model exposes the same table afterwards.
+        let sharedScopes: ScopeModel | undefined;
+        let sharedTimeline: CatalogTimeline | undefined;
+        let sharedExpressions: readonly BoundExpression[] | undefined;
+        let sharedIndex: ReadonlyMap<string, readonly SyntaxNode[]> | undefined;
+        const expressionsFor = (state: TsqlSemanticDiagnosticState): readonly BoundExpression[] => {
+            sharedIndex = input.syntax.structuralIndex?.() ?? indexSyntaxNodes(input.syntax.root());
+            sharedTimeline = new DocumentCatalogTimeline(
+                collectCatalogTimelineEvents(input.syntax, sharedIndex, state),
+                input.metadata,
+            );
+            sharedScopes = buildScopes({
+                syntax: input.syntax,
+                metadata: input.metadata,
+                timeline: sharedTimeline,
+                index: sharedIndex,
+            });
+            const expressions = buildExpressionTypes({
+                syntax: input.syntax,
+                metadata: input.metadata,
+                index: sharedIndex,
+                relations: sharedScopes.relations,
+                calls: [],
+            });
+            sharedExpressions = expressions;
+            return expressions;
+        };
         const diagnosticResult =
             reboundRanges.length === 0
                 ? { diagnostics: [], state: priorSnapshot?.diagnosticState }
@@ -76,8 +124,46 @@ export class CatalogSemanticBinder implements SemanticBinder {
                           : undefined,
                       reusableDiagnosticState,
                       resolveAnalysisProfile(input.profile),
+                      expressionsFor,
                   );
         const tsqlDiagnostics = diagnosticResult.diagnostics;
+        // One scope model, built before binding and published afterwards. The binder used to
+        // discover query boundaries and outer-reference visibility for itself, next to a model that
+        // discovered them again; keying its symbol bindings on the model's scopes leaves one
+        // definition of "which query is this, and what does it see".
+        //
+        // Only the scopes are built now, because only the scopes are needed to bind. Calls, types,
+        // and availability are built when a feature first asks, which keeps the bind budget for
+        // binding.
+        // Validation already built these; reuse them rather than walking the document again.
+        const structuralIndex =
+            sharedIndex ??
+            input.syntax.structuralIndex?.() ??
+            indexSyntaxNodes(input.syntax.root());
+        const timeline =
+            sharedTimeline ??
+            new DocumentCatalogTimeline(
+                collectCatalogTimelineEvents(input.syntax, structuralIndex, diagnosticResult.state),
+                input.metadata,
+            );
+        const scopeModel =
+            sharedScopes ??
+            buildScopes({
+                syntax: input.syntax,
+                metadata: input.metadata,
+                timeline,
+                index: structuralIndex,
+            });
+        const scopeById = new Map(scopeModel.scopes.map((scope) => [scope.id, scope]));
+        const scopeOf = (node: SyntaxNode): QueryScope | undefined => {
+            const query = ancestorNode(node, "QuerySpecification") ?? trailingClauseQuery(node);
+            if (!query) return undefined;
+            // Scope ids are the exact root ranges produced by buildScopes. Looking them up by
+            // range keeps binding linear for documents containing many sibling queries; scanning
+            // every scope for every source/reference made a large repeated SELECT document
+            // quadratic in its number of statements.
+            return scopeById.get(rangeKey(query));
+        };
         let unitsReused = 0;
 
         const appendReusedUnit = (unit: BoundUnit): void => {
@@ -147,34 +233,39 @@ export class CatalogSemanticBinder implements SemanticBinder {
                 source: SymbolId,
                 qualifierSymbol = source,
             ): void => {
-                const query = ancestorNode(node, "QuerySpecification");
-                if (!query) return;
-                const key = rangeKey(query);
-                const bindings = sourcesByQuery.get(key) ?? new Map<string, QuerySourceBinding>();
+                const scope = ancestorNode(node, "QuerySpecification") && scopeOf(node);
+                if (!scope) return;
+                const bindings =
+                    sourcesByQuery.get(scope.id) ?? new Map<string, QuerySourceBinding>();
                 bindings.set(fold(qualifier), { source, qualifierSymbol });
-                sourcesByQuery.set(key, bindings);
+                sourcesByQuery.set(scope.id, bindings);
+            };
+            /** Walks the model's scope chain, so outer visibility has one definition. */
+            const enclosingScopes = (node: SyntaxNode): readonly QueryScope[] => {
+                const chain: QueryScope[] = [];
+                const seen = new Set<string>();
+                let scope = scopeOf(node);
+                while (scope && !seen.has(scope.id)) {
+                    seen.add(scope.id);
+                    chain.push(scope);
+                    scope = scope.parent ? scopeById.get(scope.parent) : undefined;
+                }
+                return chain;
             };
             const visibleSource = (
                 node: SyntaxNode,
                 qualifier: string,
             ): QuerySourceBinding | undefined => {
-                let query = ancestorNode(node, "QuerySpecification") ?? trailingClauseQuery(node);
-                while (query) {
-                    const binding = sourcesByQuery.get(rangeKey(query))?.get(fold(qualifier));
+                for (const scope of enclosingScopes(node)) {
+                    const binding = sourcesByQuery.get(scope.id)?.get(fold(qualifier));
                     if (binding) return binding;
-                    query = correlatableOuterQuery(query);
                 }
                 return undefined;
             };
-            const visibleSourceScopes = (node: SyntaxNode): readonly QuerySourceBinding[][] => {
-                const result: QuerySourceBinding[][] = [];
-                let query = ancestorNode(node, "QuerySpecification") ?? trailingClauseQuery(node);
-                while (query) {
-                    result.push([...new Set(sourcesByQuery.get(rangeKey(query))?.values() ?? [])]);
-                    query = correlatableOuterQuery(query);
-                }
-                return result;
-            };
+            const visibleSourceScopes = (node: SyntaxNode): readonly QuerySourceBinding[][] =>
+                enclosingScopes(node).map((scope) => [
+                    ...new Set(sourcesByQuery.get(scope.id)?.values() ?? []),
+                ]);
             /** The column of the object a DML statement writes, when the name is one of them. */
             const dmlTargetColumn = (
                 node: SyntaxNode,
@@ -725,6 +816,15 @@ export class CatalogSemanticBinder implements SemanticBinder {
             performance.now() - started,
             unitsReused,
             diagnosticResult.state,
+            {
+                syntax: input.syntax,
+                metadata: input.metadata,
+                timelineEvents: timeline.events,
+                index: structuralIndex,
+                scopes: scopeModel,
+                timeline,
+                ...(sharedExpressions ? { expressions: sharedExpressions } : {}),
+            },
         );
     }
 
@@ -735,6 +835,7 @@ export class CatalogSemanticBinder implements SemanticBinder {
 
 class CatalogSemanticSnapshot implements SemanticSnapshot {
     public readonly statistics;
+    private _model: SemanticModel | undefined;
 
     public constructor(
         public readonly documentVersion: number,
@@ -755,6 +856,7 @@ class CatalogSemanticSnapshot implements SemanticSnapshot {
         elapsedMs: number,
         unitsReused = 0,
         public readonly diagnosticState?: TsqlSemanticDiagnosticState,
+        private readonly _modelInput?: SemanticModelInput,
     ) {
         this.statistics = Object.freeze({
             unitsExamined: units.length,
@@ -762,6 +864,23 @@ class CatalogSemanticSnapshot implements SemanticSnapshot {
             unitsRebound: units.length - unitsReused,
             elapsedMs,
         });
+    }
+
+    /**
+     * Completed on first read.
+     *
+     * Its scopes were already built during binding and are handed straight through; calls,
+     * expression types, and availability decisions are built here, once, the first time a feature
+     * asks for any of them. Binding runs on every keystroke and features do not, so this keeps the
+     * bind budget without giving up one shared model.
+     */
+    public get model(): SemanticModel {
+        if (!this._model) {
+            this._model = this._modelInput
+                ? buildSemanticModel(this._modelInput)
+                : emptySemanticModel;
+        }
+        return this._model;
     }
 
     public symbolAt(offset: number): SemanticSymbol | undefined {
@@ -934,14 +1053,15 @@ function ancestorNode(node: SyntaxNode, kind: string): SyntaxNode | undefined {
     return undefined;
 }
 
-function correlatableOuterQuery(query: SyntaxNode): SyntaxNode | undefined {
-    for (let current = query.parent(); current; current = current.parent()) {
-        if (current.kind === "CommonTableExpression" || current.kind === "DerivedTable") {
-            return undefined;
-        }
-        if (current.kind === "QuerySpecification") return current;
-    }
-    return undefined;
+/** A structural index for a syntax service that does not publish one. */
+function indexSyntaxNodes(root: SyntaxNode): ReadonlyMap<string, readonly SyntaxNode[]> {
+    const index = new Map<string, SyntaxNode[]>();
+    visit(root, (node) => {
+        const bucket = index.get(node.kind);
+        if (bucket) bucket.push(node);
+        else index.set(node.kind, [node]);
+    });
+    return index;
 }
 
 function catalogSymbol(object: ObjectMetadata): SemanticSymbol {
@@ -954,33 +1074,7 @@ function catalogSymbol(object: ObjectMetadata): SemanticSymbol {
 }
 
 function identifierPartRanges(node: SyntaxNode, text: string): readonly TextRange[] {
-    const result: TextRange[] = [];
-    const matcher = /\[(?:[^\]]|\]\])*\]|"(?:[^"]|"")*"|[^.\s]+/gu;
-    for (const match of text.matchAll(matcher)) {
-        if (match.index === undefined) continue;
-        result.push({
-            start: node.start + match.index,
-            end: node.start + match.index + match[0].length,
-        });
-    }
-    return result;
-}
-
-export function multipartIdentifierParts(text: string): readonly string[] {
-    const parts: string[] = [];
-    const matcher = /\[(?:[^\]]|\]\])*\]|"(?:[^"]|"")*"|[^.\s]+/gu;
-    for (const match of text.matchAll(matcher)) parts.push(normalizeIdentifier(match[0]));
-    return parts;
-}
-
-export function normalizeIdentifier(value: string): string {
-    if (value.startsWith("[") && value.endsWith("]")) {
-        return value.slice(1, -1).replaceAll("]]", "]");
-    }
-    if (value.startsWith('"') && value.endsWith('"')) {
-        return value.slice(1, -1).replaceAll('""', '"');
-    }
-    return value;
+    return parseMultipartName(text, node.start).parts.map((part) => part.range);
 }
 
 function rangeKey(range: TextRange): string {

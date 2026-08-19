@@ -25,11 +25,11 @@ const parserLocalContextWords = new Set(
      language lastnode level local locktimeout loop login low masked matched materialized maxvalue minvalue name next no nocount noexec node normal
      maxdop nobrowsetable numericroundabort notification off offset oj only optimistic out output parameters parseonly partition partitions pause
      period persisted preceding profile querygovernorcostlimit quotedidentifier range readonly rebuild
-     receive remote remoteproctransactions reorganize repeatable restart result resume rollup roundrobin route row rows scroll scrolllocks
+     receive remote remoteproctransactions reorganize repeatable restart result resume rollup roundrobin route row rows scroll scrolllocks offwithoutdatarecovery readpast tablock timer
      send sequence sequencenumber serializable sets shortestpath showplanall showplantext showplanxml snapshot source sparse start
      searchtype semantic static statistics stream switch synonym systemtime target textimageon throw ties time timeout transactionid try parse tryparse readwritefilegroups
-     trycast type typewarning unbounded uncommitted using value vector vectorindex version window within xactabort xml xmldata xmlschema
-     cache cycle absent active after absolute affinity aggregate algorithm any array assembly asymmetric atomic attested audit authentication auto availability base64 before begindialog binding binary block broker priority conversation prioritylevel contractname remoteservicename localservicename buffer bulklogged called catalog classification counter signature sensitivity checkexpiration checkpolicy clear clone close cluster collection configuration connect contained contains content context cpu diagnostics filter predicate
+     trycast type typewarning unbounded uncommitted using value vector vectorindex version window within xactabort xml xmldata xmlschema fipsflagger
+     cache cycle absent active after absolute affinity aggregate algorithm any array assembly asymmetric atomic attested audit authentication auto availability base64 before begindialog binding binary block broker priority conversation prioritylevel contractname remoteservicename localservicename buffer bulklogged called catalog classification counter signature sensitivity checkexpiration checkpolicy clear clone close cluster collection configuration connect contained contains content context cpu diagnostics filter predicate correlated
      containment contract control credential cryptographic data document datasource deallocate decryption defaultdatabase defaultlanguage dependents disk elements empty environmentvariables event explicit
      classifier predict rewindonly some
      endpoint executable extract extension fn connection definition

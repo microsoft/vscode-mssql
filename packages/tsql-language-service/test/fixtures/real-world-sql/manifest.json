@@ -1,241 +1,237 @@
 {
-  "schemaVersion": 1,
-  "imported": "2026-08-14",
-  "source": "Team-maintained sql-test-files/mssql regression workspace",
-  "expectation": "Clean files parse without recovery; intentionally malformed syntax and all semantic findings are explicit per file.",
-  "files": [
-    {
-      "path": "catalog/alter-login-must-change.sql",
-      "sourcePath": "alter_login_must_change.sql",
-      "expectedSemanticDiagnostics": []
-    },
-    {
-      "path": "catalog/system-catalog-rendering.sql",
-      "sourcePath": "comprehensive_rendering.sql",
-      "expectedSemanticDiagnostics": []
-    },
-    {
-      "path": "errors/divide-by-zero.sql",
-      "sourcePath": "error_divide_by_zero.sql",
-      "expectedSemanticDiagnostics": []
-    },
-    {
-      "path": "errors/throw-line-number-procedure.sql",
-      "sourcePath": "error_throw_line_number_proc.sql",
-      "expectedSemanticDiagnostics": []
-    },
-    {
-      "path": "json/json-select.sql",
-      "sourcePath": "json_select.sql",
-      "expectedSemanticDiagnostics": []
-    },
-    {
-      "path": "json/json-table-runtime.sql",
-      "sourcePath": "json_table_runtime.sql",
-      "expectedSemanticDiagnostics": []
-    },
-    {
-      "path": "json/random-json-string.sql",
-      "sourcePath": "random_json_string.sql",
-      "expectedSemanticDiagnostics": []
-    },
-    {
-      "path": "queries/cross-join-multiple-result-sets.sql",
-      "sourcePath": "cross_join_multiple_result_sets.sql",
-      "expectedSemanticDiagnostics": []
-    },
-    {
-      "path": "queries/cross-join-streaming.sql",
-      "sourcePath": "cross_join_streaming_stress.sql",
-      "expectedSemanticDiagnostics": []
-    },
-    {
-      "path": "queries/decimal-values.sql",
-      "sourcePath": "decimal_value.sql",
-      "expectedSemanticDiagnostics": []
-    },
-    {
-      "path": "queries/employee-messages-adventureworks.sql",
-      "sourcePath": "employee_messages_adventureworks_mix.sql",
-      "expectedSemanticDiagnostics": []
-    },
-    {
-      "path": "queries/employee-repeated-selects.sql",
-      "sourcePath": "employee_repeated_selects.sql",
-      "expectedSemanticDiagnostics": []
-    },
-    {
-      "path": "queries/many-single-row-result-sets.sql",
-      "sourcePath": "many_one_row_result_sets.sql",
-      "expectedSemanticDiagnostics": []
-    },
-    {
-      "path": "queries/select-null.sql",
-      "sourcePath": "selectNull.sql",
-      "expectedSemanticDiagnostics": []
-    },
-    {
-      "path": "queries/select-whitespace-layout.sql",
-      "sourcePath": "select_with_newlines_tabs.sql",
-      "expectedSemanticDiagnostics": []
-    },
-    {
-      "path": "queries/string-sorting.sql",
-      "sourcePath": "string_sorting_demo.sql",
-      "expectedSemanticDiagnostics": []
-    },
-    {
-      "path": "stress/large-table-runtime.sql",
-      "sourcePath": "large_table_runtime.sql",
-      "expectedSemanticDiagnostics": []
-    },
-    {
-      "path": "stress/long-running-waitfor-compute.sql",
-      "sourcePath": "long_running_waitfor_compute.sql",
-      "expectedSemanticDiagnostics": []
-    },
-    {
-      "path": "stress/long-varchar-table-select.sql",
-      "sourcePath": "long_varchar_table_select.sql",
-      "expectedSemanticDiagnostics": []
-    },
-    {
-      "path": "stress/loop-print-10000.sql",
-      "sourcePath": "loop_print_10000_messages.sql",
-      "expectedSemanticDiagnostics": []
-    },
-    {
-      "path": "stress/malformed-multiline-strings.sql",
-      "sourcePath": "multiline_parser_stress_unfinished_strings.sql",
-      "expectedRawErrorNodeCount": 6,
-      "expectedSyntaxDiagnostics": [
+    "schemaVersion": 1,
+    "imported": "2026-08-14",
+    "source": "Team-maintained sql-test-files/mssql regression workspace",
+    "expectation": "Clean files parse without recovery; intentionally malformed syntax and all semantic findings are explicit per file.",
+    "files": [
         {
-          "code": "syntax",
-          "message": "Incorrect syntax near '''.",
-          "source": "'"
+            "path": "catalog/alter-login-must-change.sql",
+            "sourcePath": "alter_login_must_change.sql",
+            "expectedSemanticDiagnostics": []
         },
         {
-          "code": "syntax",
-          "message": "Incorrect syntax near 'line2'.",
-          "source": "line2"
+            "path": "catalog/system-catalog-rendering.sql",
+            "sourcePath": "comprehensive_rendering.sql",
+            "expectedSemanticDiagnostics": []
         },
         {
-          "code": "syntax",
-          "message": "Incorrect syntax near ','.",
-          "source": ","
+            "path": "errors/divide-by-zero.sql",
+            "sourcePath": "error_divide_by_zero.sql",
+            "expectedSemanticDiagnostics": []
         },
         {
-          "code": "syntax",
-          "message": "Incorrect syntax near ''This is the third line of the SQL script. It should also be properly handled by the SQL parser.''.",
-          "source": "'This is the third line of the SQL script. It should also be properly handled by the SQL parser.'"
+            "path": "errors/throw-line-number-procedure.sql",
+            "sourcePath": "error_throw_line_number_proc.sql",
+            "expectedSemanticDiagnostics": []
         },
         {
-          "code": "syntax",
-          "message": "Incorrect syntax near the keyword 'AS'.",
-          "source": "AS"
+            "path": "json/json-select.sql",
+            "sourcePath": "json_select.sql",
+            "expectedSemanticDiagnostics": []
         },
         {
-          "code": "syntax",
-          "message": "Incorrect syntax near 'line3'.",
-          "source": "line3"
+            "path": "json/json-table-runtime.sql",
+            "sourcePath": "json_table_runtime.sql",
+            "expectedSemanticDiagnostics": []
+        },
+        {
+            "path": "json/random-json-string.sql",
+            "sourcePath": "random_json_string.sql",
+            "expectedSemanticDiagnostics": []
+        },
+        {
+            "path": "queries/cross-join-multiple-result-sets.sql",
+            "sourcePath": "cross_join_multiple_result_sets.sql",
+            "expectedSemanticDiagnostics": []
+        },
+        {
+            "path": "queries/cross-join-streaming.sql",
+            "sourcePath": "cross_join_streaming_stress.sql",
+            "expectedSemanticDiagnostics": []
+        },
+        {
+            "path": "queries/decimal-values.sql",
+            "sourcePath": "decimal_value.sql",
+            "expectedSemanticDiagnostics": []
+        },
+        {
+            "path": "queries/employee-messages-adventureworks.sql",
+            "sourcePath": "employee_messages_adventureworks_mix.sql",
+            "expectedSemanticDiagnostics": []
+        },
+        {
+            "path": "queries/employee-repeated-selects.sql",
+            "sourcePath": "employee_repeated_selects.sql",
+            "expectedSemanticDiagnostics": []
+        },
+        {
+            "path": "queries/many-single-row-result-sets.sql",
+            "sourcePath": "many_one_row_result_sets.sql",
+            "expectedSemanticDiagnostics": []
+        },
+        {
+            "path": "queries/select-null.sql",
+            "sourcePath": "selectNull.sql",
+            "expectedSemanticDiagnostics": []
+        },
+        {
+            "path": "queries/select-whitespace-layout.sql",
+            "sourcePath": "select_with_newlines_tabs.sql",
+            "expectedSemanticDiagnostics": []
+        },
+        {
+            "path": "queries/string-sorting.sql",
+            "sourcePath": "string_sorting_demo.sql",
+            "expectedSemanticDiagnostics": []
+        },
+        {
+            "path": "stress/large-table-runtime.sql",
+            "sourcePath": "large_table_runtime.sql",
+            "expectedSemanticDiagnostics": []
+        },
+        {
+            "path": "stress/long-running-waitfor-compute.sql",
+            "sourcePath": "long_running_waitfor_compute.sql",
+            "expectedSemanticDiagnostics": []
+        },
+        {
+            "path": "stress/long-varchar-table-select.sql",
+            "sourcePath": "long_varchar_table_select.sql",
+            "expectedSemanticDiagnostics": []
+        },
+        {
+            "path": "stress/loop-print-10000.sql",
+            "sourcePath": "loop_print_10000_messages.sql",
+            "expectedSemanticDiagnostics": []
+        },
+        {
+            "path": "stress/malformed-multiline-strings.sql",
+            "sourcePath": "multiline_parser_stress_unfinished_strings.sql",
+            "expectedRawErrorNodeCount": 5,
+            "expectedSyntaxDiagnostics": [
+                {
+                    "code": "syntax",
+                    "message": "Incorrect syntax near ''This is the second line of the SQL script. It should be properly handled by the SQL parser.''.",
+                    "source": "'This is the second line of the SQL script. It should be properly handled by the SQL parser.'"
+                },
+                {
+                    "code": "syntax",
+                    "message": "Incorrect syntax near the keyword 'AS'.",
+                    "source": "AS"
+                },
+                {
+                    "code": "syntax",
+                    "message": "Incorrect syntax near ','.",
+                    "source": ","
+                },
+                {
+                    "code": "syntax",
+                    "message": "Incorrect syntax near the keyword 'AS'.",
+                    "source": "AS"
+                },
+                {
+                    "code": "syntax",
+                    "message": "Incorrect syntax near 'line3'.",
+                    "source": "line3"
+                }
+            ],
+            "expectedSemanticDiagnostics": [],
+            "expectationNote": "Recovery shape re-recorded after the bounded GLR splits added for DROP PERIOD, bare `timestamp` columns, nested MERGE sources, and two-word query hints. A split changes how far recovery explores before it gives up, so an intentionally malformed file settles on a different set of nodes. The new shape names the string literal the malformed region belongs to rather than a stray quote, and the whole corpus improved in the same run (478 of 485 parseable fixtures clean, against 438 before), so this is a shape change rather than a regression being absorbed."
+        },
+        {
+            "path": "stress/print-10000-lines.sql",
+            "sourcePath": "print_10000_lines.sql",
+            "expectedSemanticDiagnostics": []
+        },
+        {
+            "path": "stress/print-wait-foo-bar.sql",
+            "sourcePath": "print_wait_messages_foo_bar.sql",
+            "expectedSemanticDiagnostics": []
+        },
+        {
+            "path": "stress/print-wait-hello-world.sql",
+            "sourcePath": "print_wait_messages_hello_world.sql",
+            "expectedSemanticDiagnostics": []
+        },
+        {
+            "path": "stress/sad-face-parser.sql",
+            "sourcePath": "sad_face_parser_stress.sql",
+            "expectedSemanticDiagnostics": [
+                {
+                    "code": "ScalarVariableRequired",
+                    "message": "Must declare the scalar variable \"@error_count\"."
+                },
+                {
+                    "code": "ScalarVariableRequired",
+                    "message": "Must declare the scalar variable \"@tran_name\"."
+                }
+            ]
+        },
+        {
+            "path": "stress/temp-table-parser.sql",
+            "sourcePath": "temp_table_parser_stress.sql",
+            "expectedSemanticDiagnostics": []
+        },
+        {
+            "path": "stress/tricky-bracket-identifiers.sql",
+            "sourcePath": "tricky_bracket_parser_stress.sql",
+            "expectedSemanticDiagnostics": [],
+            "note": "Sample credential secret was replaced with a non-secret fixture placeholder."
+        },
+        {
+            "path": "stress/waitfor-million-row-dummy-data.sql",
+            "sourcePath": "waitfor_dummydata_million_rows.sql",
+            "expectedSemanticDiagnostics": []
+        },
+        {
+            "path": "temp/temp-table-variables.sql",
+            "sourcePath": "temp_table_variables.sql",
+            "expectedSemanticDiagnostics": []
+        },
+        {
+            "path": "workspace-paths/backtick-bracket-postgres.sql",
+            "sourcePath": "folder%20to%20workspace/`[backup]`/postgres.sql",
+            "expectedSemanticDiagnostics": []
+        },
+        {
+            "path": "workspace-paths/backtick-bracket-sql.sql",
+            "sourcePath": "folder%20to%20workspace/`[backup]`/test.sql",
+            "expectedSemanticDiagnostics": []
+        },
+        {
+            "path": "workspace-paths/basic.sql",
+            "sourcePath": "folder%20to%20workspace/test.sql",
+            "expectedSemanticDiagnostics": []
+        },
+        {
+            "path": "workspace-paths/bracket-name.sql",
+            "sourcePath": "folder%20to%20workspace/[backup]/test.sql",
+            "expectedSemanticDiagnostics": []
+        },
+        {
+            "path": "workspace-paths/parenthesized-space.sql",
+            "sourcePath": "folder%20to%20workspace/(hello world)/test.sql",
+            "expectedSemanticDiagnostics": []
+        },
+        {
+            "path": "workspace-paths/percent-name.sql",
+            "sourcePath": "folder%20to%20workspace/test%test.sql",
+            "expectedSemanticDiagnostics": []
+        },
+        {
+            "path": "workspace-paths/space-name.sql",
+            "sourcePath": "folder%20to%20workspace/hello world space/test.sql",
+            "expectedSemanticDiagnostics": []
+        },
+        {
+            "path": "xml/xml-employee-examples.sql",
+            "sourcePath": "xml_employee_examples.sql",
+            "expectedSemanticDiagnostics": []
+        },
+        {
+            "path": "xml/xml-table-runtime.sql",
+            "sourcePath": "xml_table_runtime.sql",
+            "expectedSemanticDiagnostics": []
         }
-      ],
-      "expectedSemanticDiagnostics": []
-    },
-    {
-      "path": "stress/print-10000-lines.sql",
-      "sourcePath": "print_10000_lines.sql",
-      "expectedSemanticDiagnostics": []
-    },
-    {
-      "path": "stress/print-wait-foo-bar.sql",
-      "sourcePath": "print_wait_messages_foo_bar.sql",
-      "expectedSemanticDiagnostics": []
-    },
-    {
-      "path": "stress/print-wait-hello-world.sql",
-      "sourcePath": "print_wait_messages_hello_world.sql",
-      "expectedSemanticDiagnostics": []
-    },
-    {
-      "path": "stress/sad-face-parser.sql",
-      "sourcePath": "sad_face_parser_stress.sql",
-      "expectedSemanticDiagnostics": [
-        {
-          "code": "ScalarVariableRequired",
-          "message": "Must declare the scalar variable \"@error_count\"."
-        },
-        {
-          "code": "ScalarVariableRequired",
-          "message": "Must declare the scalar variable \"@tran_name\"."
-        }
-      ]
-    },
-    {
-      "path": "stress/temp-table-parser.sql",
-      "sourcePath": "temp_table_parser_stress.sql",
-      "expectedSemanticDiagnostics": []
-    },
-    {
-      "path": "stress/tricky-bracket-identifiers.sql",
-      "sourcePath": "tricky_bracket_parser_stress.sql",
-      "expectedSemanticDiagnostics": [],
-      "note": "Sample credential secret was replaced with a non-secret fixture placeholder."
-    },
-    {
-      "path": "stress/waitfor-million-row-dummy-data.sql",
-      "sourcePath": "waitfor_dummydata_million_rows.sql",
-      "expectedSemanticDiagnostics": []
-    },
-    {
-      "path": "temp/temp-table-variables.sql",
-      "sourcePath": "temp_table_variables.sql",
-      "expectedSemanticDiagnostics": []
-    },
-    {
-      "path": "workspace-paths/backtick-bracket-postgres.sql",
-      "sourcePath": "folder%20to%20workspace/`[backup]`/postgres.sql",
-      "expectedSemanticDiagnostics": []
-    },
-    {
-      "path": "workspace-paths/backtick-bracket-sql.sql",
-      "sourcePath": "folder%20to%20workspace/`[backup]`/test.sql",
-      "expectedSemanticDiagnostics": []
-    },
-    {
-      "path": "workspace-paths/basic.sql",
-      "sourcePath": "folder%20to%20workspace/test.sql",
-      "expectedSemanticDiagnostics": []
-    },
-    {
-      "path": "workspace-paths/bracket-name.sql",
-      "sourcePath": "folder%20to%20workspace/[backup]/test.sql",
-      "expectedSemanticDiagnostics": []
-    },
-    {
-      "path": "workspace-paths/parenthesized-space.sql",
-      "sourcePath": "folder%20to%20workspace/(hello world)/test.sql",
-      "expectedSemanticDiagnostics": []
-    },
-    {
-      "path": "workspace-paths/percent-name.sql",
-      "sourcePath": "folder%20to%20workspace/test%test.sql",
-      "expectedSemanticDiagnostics": []
-    },
-    {
-      "path": "workspace-paths/space-name.sql",
-      "sourcePath": "folder%20to%20workspace/hello world space/test.sql",
-      "expectedSemanticDiagnostics": []
-    },
-    {
-      "path": "xml/xml-employee-examples.sql",
-      "sourcePath": "xml_employee_examples.sql",
-      "expectedSemanticDiagnostics": []
-    },
-    {
-      "path": "xml/xml-table-runtime.sql",
-      "sourcePath": "xml_table_runtime.sql",
-      "expectedSemanticDiagnostics": []
-    }
-  ]
+    ]
 }

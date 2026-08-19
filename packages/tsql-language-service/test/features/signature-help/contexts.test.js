@@ -77,6 +77,20 @@ suite("signature help contexts", () => {
         assert.match(help.signatures[0].label, /^OPENJSON\(json_expression, \[path\]\)$/u);
     });
 
+    // TOP is an operator, not a function: it is written `TOP (n) PERCENT WITH TIES`, so its label
+    // shows that form rather than borrowing a call's parentheses. It still shares argument shape
+    // and cursor tracking with calls, which is what lets signature help answer for it at all.
+    test("answers for a parenthesized TOP expression", async () => {
+        const help = await helpAt("SELECT TOP (^1) * FROM dbo.Customers;");
+        assert.equal(help.signatures[0].label, "TOP (expression) [PERCENT] [WITH TIES]");
+        assert.equal(help.activeParameter, 0);
+
+        // PERCENT advances the argument the way a comma does in a call, so the caret past it
+        // highlights the modifier rather than the row count.
+        const percent = await helpAt("SELECT TOP (1) PERCENT^ * FROM dbo.Customers;");
+        assert.equal(percent.activeParameter, 1);
+    });
+
     test("answers while the target columns of an INSERT are being named", async () => {
         const first = await helpAt("INSERT INTO dbo.Customers (^) VALUES (1, 'a');");
         assert.equal(
