@@ -16,7 +16,7 @@ import {
 } from "../../syntax/treeUtilities.js";
 import type { TextRange } from "../../text/index.js";
 import { multipartIdentifierParts, normalizeIdentifier } from "../identifiers.js";
-import { rangeIndexFor } from "./lookups.js";
+import { itemsWithinRanges, rangeIndexFor } from "./lookups.js";
 import { boundNameFrom } from "./boundName.js";
 import { declaredType } from "./expressionTypes.js";
 import type {
@@ -49,6 +49,17 @@ export interface ScopeModelInput extends LocalRowsetInput {
     readonly metadata: MetadataView;
     readonly timeline: CatalogTimeline;
     readonly index: ReadonlyMap<string, readonly SyntaxNode[]>;
+    /**
+     * The parts of the document to build scopes for, when the caller only needs those.
+     *
+     * Binding a keystroke needs the scopes of the batches it is rebinding and no others, and
+     * rebuilding every scope in the script for each of them was the largest single cost in a bind.
+     * A scope never spans a batch, so narrowing to whole batches keeps each scope's nesting intact.
+     *
+     * Omitting it builds the document's scopes, which is what a feature reading the published model
+     * needs; a model built from a narrowed set would be missing most of the document's queries.
+     */
+    readonly ranges?: readonly TextRange[];
 }
 
 /** The default projection of `OPENJSON` when no `WITH` schema narrows it. */
@@ -66,7 +77,7 @@ export interface ScopeModel {
 export function buildScopes(input: ScopeModelInput): ScopeModel {
     const scopes: QueryScope[] = [];
     const relations: BoundRelation[] = [];
-    const roots = [...(input.index.get("QuerySpecification") ?? []), ...statementScopeRoots(input)];
+    const roots = [...scopeRootsOfKind(input, "QuerySpecification"), ...statementScopeRoots(input)];
     for (const root of roots) {
         const id = rangeKey(root);
         const parent = enclosingScope(root);
@@ -118,10 +129,16 @@ function classifyCteReferences(
  * `UPDATE t SET ...` and `DELETE FROM t` name a target that later clauses refer to by alias, so
  * they are query boundaries even though nothing projects a select list.
  */
+/** The nodes of one kind this build covers, narrowed when the caller asked for part of the document. */
+function scopeRootsOfKind(input: ScopeModelInput, kind: string): readonly SyntaxNode[] {
+    const bucket = input.index.get(kind) ?? [];
+    return input.ranges ? itemsWithinRanges(bucket, input.ranges, (node) => node) : bucket;
+}
+
 function statementScopeRoots(input: ScopeModelInput): readonly SyntaxNode[] {
     const roots: SyntaxNode[] = [];
     for (const kind of ["UpdateStatement", "DeleteStatement", "MergeStatement"]) {
-        for (const node of input.index.get(kind) ?? []) {
+        for (const node of scopeRootsOfKind(input, kind)) {
             if (!firstDescendant(node, "QuerySpecification")) roots.push(node);
         }
     }

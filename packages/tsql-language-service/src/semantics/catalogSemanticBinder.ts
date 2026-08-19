@@ -80,6 +80,13 @@ export class CatalogSemanticBinder implements SemanticBinder {
         const reboundRanges = batches
             .filter((_batch, index) => !reusePlan.units[index])
             .map((batch) => ({ start: batch.start, end: batch.end }));
+        // The parts of the document this bind is responsible for, or undefined when that is all of
+        // it. Validation, scope building, and expression typing all narrow by the same value, so
+        // there is one answer to "what changed" rather than three that can disagree.
+        const validationRanges =
+            reboundRanges.length === 0 || reboundRanges.length === batches.length
+                ? undefined
+                : reboundRanges;
         const priorSnapshot = previous instanceof CatalogSemanticSnapshot ? previous : undefined;
         const reusableDiagnosticState =
             priorSnapshot && semanticEnvironmentIsPositionStable(batches, reusePlan, priorSnapshot)
@@ -102,6 +109,7 @@ export class CatalogSemanticBinder implements SemanticBinder {
                 metadata: input.metadata,
                 timeline: sharedTimeline,
                 index: sharedIndex,
+                ...(validationRanges ? { ranges: validationRanges } : {}),
             });
             const expressions = buildExpressionTypes({
                 syntax: input.syntax,
@@ -109,6 +117,7 @@ export class CatalogSemanticBinder implements SemanticBinder {
                 index: sharedIndex,
                 relations: sharedScopes.relations,
                 calls: [],
+                ...(validationRanges ? { ranges: validationRanges } : {}),
             });
             sharedExpressions = expressions;
             return expressions;
@@ -119,7 +128,7 @@ export class CatalogSemanticBinder implements SemanticBinder {
                 : collectTsqlSemanticDiagnosticsWithState(
                       input.syntax,
                       input.metadata,
-                      reboundRanges.length === batches.length ? undefined : reboundRanges,
+                      validationRanges,
                       reusableDiagnosticState
                           ? batches.filter((_batch, index) => !reusePlan.units[index])
                           : undefined,
@@ -156,6 +165,11 @@ export class CatalogSemanticBinder implements SemanticBinder {
                 timeline,
                 index: structuralIndex,
             });
+        // True when the tables above cover only the rebound batches. Binding wants exactly that, and
+        // a feature reading the model wants the whole document, so the narrowed ones stay here and
+        // the model builds its own the first time a feature asks. Publishing these instead would
+        // leave every query outside the edit with no scope and no types.
+        const buildsAreNarrowed = validationRanges !== undefined && sharedScopes !== undefined;
         const scopeById = new Map(scopeModel.scopes.map((scope) => [scope.id, scope]));
         const scopeOf = (node: SyntaxNode): QueryScope | undefined => {
             const query = ancestorNode(node, "QuerySpecification") ?? trailingClauseQuery(node);
@@ -822,9 +836,11 @@ export class CatalogSemanticBinder implements SemanticBinder {
                 metadata: input.metadata,
                 timelineEvents: timeline.events,
                 index: structuralIndex,
-                scopes: scopeModel,
+                ...(buildsAreNarrowed ? {} : { scopes: scopeModel }),
                 timeline,
-                ...(sharedExpressions ? { expressions: sharedExpressions } : {}),
+                ...(sharedExpressions && !buildsAreNarrowed
+                    ? { expressions: sharedExpressions }
+                    : {}),
             },
         );
     }

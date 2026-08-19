@@ -406,29 +406,8 @@ class LezerSyntaxSnapshot implements SyntaxSnapshot {
     }
 
     public structuralIndex(): ReadonlyMap<string, readonly SyntaxNode[]> {
-        if (this._structuralIndex) return this._structuralIndex;
-        const mutable = new Map<string, SyntaxNode[]>();
-        for (const chunk of this.chunks) {
-            chunk.tree.iterate({
-                enter: (node) => {
-                    if (!node.node.parent || (!node.node.firstChild && node.name !== "Variable")) {
-                        return;
-                    }
-                    const nodes = mutable.get(node.name) ?? [];
-                    nodes.push(
-                        new OffsetLezerSyntaxNode(
-                            node.node,
-                            chunk.start,
-                            chunk.tree.topNode,
-                            this._root,
-                        ),
-                    );
-                    mutable.set(node.name, nodes);
-                },
-            });
-        }
-        this._structuralIndex = mutable;
-        return mutable;
+        this._structuralIndex ??= new LazyStructuralIndex(this.chunks, this._root);
+        return this._structuralIndex;
     }
 
     public nodeAt(offset: number): SyntaxNode {
@@ -559,6 +538,122 @@ class DocumentSyntaxNode implements SyntaxNode {
                 yield new OffsetLezerSyntaxNode(child, chunk.start, chunk.tree.topNode, this);
             }
         }
+    }
+}
+
+/**
+ * The nodes of a chunk's tree, bucketed by kind, kept against the tree itself.
+ *
+ * The walk is the expensive half of building a structural index, and an edit reparses one chunk out
+ * of however many the document has. Keying on the tree means every chunk the incremental parse
+ * reused keeps its buckets and only the reparsed one is walked again -- a keystroke in a megabyte
+ * script walked all of it before this.
+ *
+ * The nodes here are chunk-relative and carry no document position, which is what lets them outlive
+ * the snapshot that first asked for them: the chunk's offset and the document root both change when
+ * text is inserted ahead of it, and both belong to the wrapper rather than to the tree.
+ */
+const chunkNodesByKind = new WeakMap<Tree, ReadonlyMap<string, readonly LezerNode[]>>();
+
+function chunkIndex(tree: Tree): ReadonlyMap<string, readonly LezerNode[]> {
+    const cached = chunkNodesByKind.get(tree);
+    if (cached) return cached;
+    const buckets = new Map<string, LezerNode[]>();
+    tree.iterate({
+        enter: (node) => {
+            if (!node.node.parent || (!node.node.firstChild && node.name !== "Variable")) return;
+            const bucket = buckets.get(node.name);
+            if (bucket) bucket.push(node.node);
+            else buckets.set(node.name, [node.node]);
+        },
+    });
+    chunkNodesByKind.set(tree, buckets);
+    return buckets;
+}
+
+/**
+ * The document's nodes by kind, wrapped when a kind is first asked for.
+ *
+ * A bind asks for a fraction of the kinds a document contains -- 85 of them in a script holding
+ * over five hundred thousand indexable nodes -- so wrapping every node to answer a few dozen
+ * questions spent most of its time, and most of the garbage collector's, on nodes nobody read.
+ *
+ * Order is the document's: chunks are visited in order and each chunk's buckets are in the order the
+ * pre-order walk found them. Callers depend on that -- the semantic layer binary-searches these
+ * arrays by start offset -- so it is part of the contract rather than an accident.
+ */
+class LazyStructuralIndex implements ReadonlyMap<string, readonly SyntaxNode[]> {
+    private readonly _wrapped = new Map<string, readonly SyntaxNode[]>();
+    private _kinds: ReadonlySet<string> | undefined;
+
+    public constructor(
+        private readonly _chunks: readonly ParsedChunk[],
+        private readonly _root: DocumentSyntaxNode,
+    ) {}
+
+    public get(kind: string): readonly SyntaxNode[] | undefined {
+        const cached = this._wrapped.get(kind);
+        if (cached) return cached.length > 0 ? cached : undefined;
+        const nodes: SyntaxNode[] = [];
+        for (const chunk of this._chunks) {
+            const bucket = chunkIndex(chunk.tree).get(kind);
+            if (!bucket) continue;
+            for (const node of bucket) {
+                nodes.push(
+                    new OffsetLezerSyntaxNode(node, chunk.start, chunk.tree.topNode, this._root),
+                );
+            }
+        }
+        const frozen = Object.freeze(nodes);
+        this._wrapped.set(kind, frozen);
+        return frozen.length > 0 ? frozen : undefined;
+    }
+
+    /** Every kind the document holds, which the buckets answer without wrapping anything. */
+    private get kinds(): ReadonlySet<string> {
+        if (!this._kinds) {
+            const kinds = new Set<string>();
+            for (const chunk of this._chunks) {
+                for (const kind of chunkIndex(chunk.tree).keys()) kinds.add(kind);
+            }
+            this._kinds = kinds;
+        }
+        return this._kinds;
+    }
+
+    public get size(): number {
+        return this.kinds.size;
+    }
+
+    public has(kind: string): boolean {
+        return this.kinds.has(kind);
+    }
+
+    public *keys(): MapIterator<string> {
+        yield* this.kinds;
+    }
+
+    public *values(): MapIterator<readonly SyntaxNode[]> {
+        for (const kind of this.kinds) yield this.get(kind) ?? [];
+    }
+
+    public *entries(): MapIterator<[string, readonly SyntaxNode[]]> {
+        for (const kind of this.kinds) yield [kind, this.get(kind) ?? []];
+    }
+
+    public forEach(
+        callback: (
+            value: readonly SyntaxNode[],
+            key: string,
+            map: ReadonlyMap<string, readonly SyntaxNode[]>,
+        ) => void,
+        thisArg?: unknown,
+    ): void {
+        for (const [kind, nodes] of this.entries()) callback.call(thisArg, nodes, kind, this);
+    }
+
+    public [Symbol.iterator](): MapIterator<[string, readonly SyntaxNode[]]> {
+        return this.entries();
     }
 }
 

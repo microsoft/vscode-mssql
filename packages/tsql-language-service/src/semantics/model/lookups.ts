@@ -185,3 +185,58 @@ export function columnIndexFor(relations: readonly BoundRelation[]): ColumnIndex
     columnIndexes.set(relations, indexed);
     return indexed;
 }
+
+/**
+ * The items of an already document-ordered array that lie inside one of `ranges`.
+ *
+ * Deliberately not a {@link RangeIndex}. The arrays this answers for are the structural index's
+ * per-kind buckets, which a pre-order tree walk already leaves sorted by start offset, and which are
+ * rebuilt for every syntax snapshot. Building an index over them would sort what is already sorted
+ * and would do it once per keystroke, costing more than the scan it set out to replace; a binary
+ * search over the existing order costs nothing to prepare.
+ *
+ * The alternative it does replace is filtering the whole bucket per call, which made validating one
+ * edited batch walk every node of that kind in the document.
+ *
+ * `ranges` may be in any order and the result is returned in the array's original order, because
+ * callers report diagnostics in the order they visit nodes.
+ */
+export function itemsWithinRanges<T>(
+    items: readonly T[],
+    ranges: readonly TextRange[],
+    rangeOf: (item: T) => TextRange,
+): readonly T[] {
+    if (ranges.length === 0) return [];
+    const picked: number[] = [];
+    for (const range of ranges) {
+        for (
+            let index = firstStartingAtOrAfter(items, range.start, rangeOf);
+            index < items.length;
+            index++
+        ) {
+            const item = rangeOf(items[index]!);
+            if (item.start > range.end) break;
+            if (item.end <= range.end) picked.push(index);
+        }
+    }
+    if (ranges.length === 1) return picked.map((index) => items[index]!);
+    // Ranges are normally disjoint and ascending, which would make the concatenation ordered
+    // already. Sorting rather than assuming it keeps the contract true for any caller.
+    return [...new Set(picked)].sort((left, right) => left - right).map((index) => items[index]!);
+}
+
+/** The first index whose item starts at or after `start`, in an array ordered by start offset. */
+function firstStartingAtOrAfter<T>(
+    items: readonly T[],
+    start: number,
+    rangeOf: (item: T) => TextRange,
+): number {
+    let low = 0;
+    let high = items.length;
+    while (low < high) {
+        const middle = (low + high) >> 1;
+        if (rangeOf(items[middle]!).start < start) low = middle + 1;
+        else high = middle;
+    }
+    return low;
+}

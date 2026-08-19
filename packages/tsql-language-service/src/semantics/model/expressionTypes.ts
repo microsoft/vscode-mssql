@@ -13,7 +13,7 @@ import {
 } from "../../syntax/treeUtilities.js";
 import type { TextRange } from "../../text/index.js";
 import { multipartIdentifierParts, normalizeIdentifier } from "../identifiers.js";
-import { columnIndexFor, type ColumnBinding } from "./lookups.js";
+import { columnIndexFor, itemsWithinRanges, type ColumnBinding } from "./lookups.js";
 import type { BoundExpression, BoundRelation, ExpressionType, ResolvedCall } from "./contracts.js";
 
 /**
@@ -32,6 +32,14 @@ export interface ExpressionTypeInput {
     readonly index: ReadonlyMap<string, readonly SyntaxNode[]>;
     readonly relations: readonly BoundRelation[];
     readonly calls: readonly ResolvedCall[];
+    /**
+     * The parts of the document to type, when the caller only needs those.
+     *
+     * Validation asks for the batches it is about to re-check, which is what keeps a keystroke from
+     * costing the whole script. Omitting it types everything, which is what the published model
+     * needs, so a partial table must never be published as the document's.
+     */
+    readonly ranges?: readonly TextRange[];
 }
 
 /**
@@ -113,7 +121,14 @@ const nonScalarCategories: readonly (readonly [RegExp, ExpressionType["category"
     ]);
 
 export function buildExpressionTypes(input: ExpressionTypeInput): readonly BoundExpression[] {
+    // Deliberately over the whole document even when `ranges` narrows the rest: a variable declared
+    // in one batch types a reference in another, so restricting the declarations would silently
+    // turn an inferred type into an unknown one.
     const variables = collectVariableTypes(input);
+    const nodesOf = (kind: string): readonly SyntaxNode[] => {
+        const bucket = input.index.get(kind) ?? [];
+        return input.ranges ? itemsWithinRanges(bucket, input.ranges, (node) => node) : bucket;
+    };
     const callsByStart = new Map(input.calls.map((call) => [call.range.start, call]));
     const bound: BoundExpression[] = [];
 
@@ -122,13 +137,13 @@ export function buildExpressionTypes(input: ExpressionTypeInput): readonly Bound
         bound.push(Object.freeze({ range: { start: node.start, end: node.end }, type }));
     };
 
-    for (const node of input.index.get("Literal") ?? []) {
+    for (const node of nodesOf("Literal")) {
         record(node, literalType(input, node));
     }
-    for (const node of input.index.get("Variable") ?? []) {
+    for (const node of nodesOf("Variable")) {
         record(node, variables.get(normalizeIdentifier(source(input, node)).toLocaleLowerCase()));
     }
-    for (const node of input.index.get("ColumnReference") ?? []) {
+    for (const node of nodesOf("ColumnReference")) {
         record(node, columnType(input, node));
     }
     for (const kind of [
@@ -137,7 +152,7 @@ export function buildExpressionTypes(input: ExpressionTypeInput): readonly Bound
         "ConvertExpression",
         "ParseExpression",
     ]) {
-        for (const node of input.index.get(kind) ?? []) {
+        for (const node of nodesOf(kind)) {
             // A conversion's type is the type it names, and a TRY_ form can always return NULL.
             const target = directChild(node, "DataType");
             const declared = target && declaredType(source(input, target), kind.startsWith("Try"));
@@ -145,13 +160,13 @@ export function buildExpressionTypes(input: ExpressionTypeInput): readonly Bound
         }
     }
     for (const kind of ["FunctionCall", "KeywordFunctionCall"]) {
-        for (const node of input.index.get(kind) ?? []) {
+        for (const node of nodesOf(kind)) {
             record(node, callType(input, callsByStart.get(node.start)));
         }
     }
     // A qualified method on an XML column reads as an ordinary call, so it is recognised by its
     // receiver's type rather than by its shape.
-    for (const node of input.index.get("FunctionCall") ?? []) {
+    for (const node of nodesOf("FunctionCall")) {
         const nameNode = directChild(node, "MultipartIdentifier");
         if (!nameNode) continue;
         const parts = multipartIdentifierParts(source(input, nameNode));
@@ -172,21 +187,21 @@ export function buildExpressionTypes(input: ExpressionTypeInput): readonly Bound
     };
 
     // A member expression is typed after its receiver, whose type may itself have just been bound.
-    for (const node of innermostFirst(input.index.get("VariableMemberExpression") ?? [])) {
+    for (const node of innermostFirst(nodesOf("VariableMemberExpression"))) {
         const variable = directChild(node, "Variable");
         const receiver =
             variable &&
             variables.get(normalizeIdentifier(source(input, variable)).toLocaleLowerCase());
         remember(node, memberExpressionType(input, node, receiver));
     }
-    for (const node of innermostFirst(input.index.get("CaseExpression") ?? [])) {
+    for (const node of innermostFirst(nodesOf("CaseExpression"))) {
         remember(node, caseType(node, typeOf));
     }
-    for (const node of innermostFirst(input.index.get("ParenthesizedQuery") ?? [])) {
+    for (const node of innermostFirst(nodesOf("ParenthesizedQuery"))) {
         remember(node, subqueryType(input, node, typeOf));
     }
     // An `Expression` is either a wrapper around one typed child or an operator applied to several.
-    for (const node of innermostFirst(input.index.get("Expression") ?? [])) {
+    for (const node of innermostFirst(nodesOf("Expression"))) {
         const children = [...node.children()];
         if (children.length === 1) {
             remember(node, typeOf(children[0]!));

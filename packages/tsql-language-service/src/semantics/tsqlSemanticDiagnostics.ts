@@ -26,6 +26,7 @@ import {
     relationEventKinds,
     typeEventKinds,
 } from "./model/catalogTimeline.js";
+import { itemsWithinRanges } from "./model/lookups.js";
 import { rowsetNameNode, rowsetNameOwnerKinds } from "./model/nameNodes.js";
 import {
     compactMultipartName,
@@ -174,6 +175,8 @@ class ValidationContext {
     private readonly _timeline: CatalogTimeline;
     private readonly _localLogins: ReadonlyMap<string, readonly LocalLoginEvent[]>;
     private readonly _variableDeclarations: readonly VariableDeclaration[];
+    /** Nodes of a kind already narrowed to the validation ranges. See {@link nodes}. */
+    private readonly _nodesInRange = new Map<string, readonly SyntaxNode[]>();
 
     public constructor(
         private readonly _syntax: SyntaxSnapshot,
@@ -4841,10 +4844,25 @@ class ValidationContext {
         return this._text.slice(node.start, node.end);
     }
 
+    /**
+     * Every node of `kind` the current pass is allowed to look at.
+     *
+     * Narrowed by binary search rather than by filtering the bucket. Validating one edited batch
+     * used to walk every node of that kind in the document, once for each of the rules that asked,
+     * which is what made a keystroke in a large script cost time proportional to the whole script
+     * instead of to the part that changed.
+     *
+     * Cached per kind because several rules ask for the same one, and neither the index nor the
+     * ranges change for the lifetime of this validator.
+     */
     private nodes(kind: string): readonly SyntaxNode[] {
         const nodes = this._index.get(kind) ?? [];
         if (!this._validationRanges) return nodes;
-        return nodes.filter((node) => this.inValidationRange(node));
+        const cached = this._nodesInRange.get(kind);
+        if (cached) return cached;
+        const selected = itemsWithinRanges(nodes, this._validationRanges, (node) => node);
+        this._nodesInRange.set(kind, selected);
+        return selected;
     }
 
     private fold(value: string): string {
