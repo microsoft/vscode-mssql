@@ -122,19 +122,35 @@ export default class ResultsSerializer {
 
     private getConfigForExcel(): Contracts.SaveResultsAsExcelRequestParams {
         // get save results config from vscode config
-        // Note: we are currently using the configSaveAsCsv setting since it has the option mssql.saveAsCsv.includeHeaders
-        // and we want to have just 1 setting that lists this.
         let config = vscode.workspace.getConfiguration(
             Constants.extensionConfigSectionName,
             vscode.Uri.parse(this._uri),
         );
-        let saveConfig = config.get<{ includeHeaders?: boolean }>(Constants.configSaveAsCsv);
+        let saveConfig = config.get<{
+            includeHeaders?: boolean;
+            freezeHeaderRow?: boolean;
+            boldHeaderRow?: boolean;
+            autoFilterHeaderRow?: boolean;
+            autoSizeColumns?: boolean;
+        }>(Constants.configSaveAsExcel);
         let saveResultsParams = new Contracts.SaveResultsAsExcelRequestParams();
 
         // if user entered config, set options
         if (saveConfig) {
             if (saveConfig.includeHeaders !== undefined) {
                 saveResultsParams.includeHeaders = saveConfig.includeHeaders;
+            }
+            if (saveConfig.freezeHeaderRow !== undefined) {
+                saveResultsParams.freezeHeaderRow = saveConfig.freezeHeaderRow;
+            }
+            if (saveConfig.boldHeaderRow !== undefined) {
+                saveResultsParams.boldHeaderRow = saveConfig.boldHeaderRow;
+            }
+            if (saveConfig.autoFilterHeaderRow !== undefined) {
+                saveResultsParams.autoFilterHeaderRow = saveConfig.autoFilterHeaderRow;
+            }
+            if (saveConfig.autoSizeColumns !== undefined) {
+                saveResultsParams.autoSizeColumns = saveConfig.autoSizeColumns;
             }
         }
         return saveResultsParams;
