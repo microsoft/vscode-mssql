@@ -30,6 +30,12 @@ export class Common {
     public static privateString = l10n.t("Private");
     public static remove = l10n.t("Remove");
     public static invalidPort = l10n.t("Port must be a number between 1 and 65535");
+    public static provisioningTarget = (target: string) =>
+        l10n.t({
+            message: "Provisioning {0}",
+            args: [target],
+            comment: ["{0} is the server, container, or database target being provisioned"],
+        });
 }
 
 export class SqlToolsMcp {
@@ -1581,6 +1587,18 @@ export class AzureSqlDatabase {
     );
     public static maxVcores = l10n.t("Max vCores");
     public static selectMaxVcores = l10n.t("Select Max vCores");
+    public static provisioningTaskSucceeded = (databaseName: string) =>
+        l10n.t({
+            message: "Azure SQL database '{0}' was provisioned successfully.",
+            args: [databaseName],
+            comment: ["{0} is the database name"],
+        });
+    public static provisioningTaskFailed = (databaseName: string, error: string) =>
+        l10n.t({
+            message: "Failed to provision Azure SQL database '{0}': {1}",
+            args: [databaseName, error],
+            comment: ["{0} is the database name", "{1} is the error message"],
+        });
 }
 
 export class FabricProvisioning {
@@ -1595,6 +1613,18 @@ export class FabricProvisioning {
     public static databaseNameError = l10n.t(
         "This database name is already in use. Please choose a different name.",
     );
+    public static provisioningTaskSucceeded = (databaseName: string) =>
+        l10n.t({
+            message: "Fabric SQL database '{0}' was provisioned successfully.",
+            args: [databaseName],
+            comment: ["{0} is the database name"],
+        });
+    public static provisioningTaskFailed = (databaseName: string, error: string) =>
+        l10n.t({
+            message: "Failed to provision Fabric SQL database '{0}': {1}",
+            args: [databaseName, error],
+            comment: ["{0} is the database name", "{1} is the error message"],
+        });
 }
 
 export class QueryResult {
@@ -1828,6 +1858,18 @@ export class LocalContainers {
     public static connectingToContainerBody = l10n.t(
         "Connecting to your SQL Server Docker container",
     );
+    public static provisioningTaskSucceeded = (containerName: string) =>
+        l10n.t({
+            message: "SQL Server container '{0}' was provisioned successfully.",
+            args: [containerName],
+            comment: ["{0} is the container name"],
+        });
+    public static provisioningTaskFailed = (containerName: string, error: string) =>
+        l10n.t({
+            message: "Failed to provision SQL Server container '{0}': {1}",
+            args: [containerName, error],
+            comment: ["{0} is the container name", "{1} is the error message"],
+        });
     public static passwordLengthError = l10n.t("Please make your password 8-128 characters long.");
     public static passwordComplexityError = l10n.t(
         "Your password must contain characters from at least three of the following categories: uppercase letters, lowercase letters, numbers (0-9), and special characters (!, $, #, %, etc.).",

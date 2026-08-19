@@ -24,6 +24,12 @@ import { ApiStatus } from "../../src/sharedInterfaces/webview";
 import { DeploymentWebviewController } from "../../src/deployment/deploymentWebviewController";
 import { registerAzureSqlDatabaseReducers } from "../../src/deployment/azureSqlDatabaseHelpers";
 import { stubTelemetry } from "./utils";
+import MainController from "../../src/controllers/mainController";
+import {
+    BackgroundTaskHandle,
+    BackgroundTaskState,
+    BackgroundTasksService,
+} from "../../src/backgroundTasks/backgroundTasksService";
 
 chai.use(sinonChai);
 
@@ -37,6 +43,8 @@ suite("Azure SQL Database reducers", () => {
         (state: DeploymentWebviewState, payload: any) => Promise<DeploymentWebviewState>
     >;
     let subscription: AzureSubscription;
+    let backgroundTasksService: sinon.SinonStubbedInstance<BackgroundTasksService>;
+    let completeTaskStub: sinon.SinonStub;
 
     setup(() => {
         sandbox = sinon.createSandbox();
@@ -74,6 +82,18 @@ suite("Azure SQL Database reducers", () => {
         reducers = new Map();
         controller = sandbox.createStubInstance(DeploymentWebviewController);
         sandbox.stub(controller, "state").value(controllerState);
+        completeTaskStub = sandbox.stub();
+        const taskHandle: BackgroundTaskHandle = {
+            id: "azure-provisioning-task",
+            update: sandbox.stub(),
+            complete: completeTaskStub,
+            remove: sandbox.stub(),
+        };
+        backgroundTasksService = sandbox.createStubInstance(BackgroundTasksService);
+        backgroundTasksService.registerTask.returns(taskHandle);
+        const mainController = sandbox.createStubInstance(MainController);
+        mainController.backgroundTasksService = backgroundTasksService;
+        controller.mainController = mainController;
         controller.registerReducer.callsFake((name, reducer) => {
             reducers.set(
                 name as keyof AzureSqlDatabaseReducers,
@@ -129,6 +149,26 @@ suite("Azure SQL Database reducers", () => {
         expect(azureSqlState.formErrors).to.deep.equal(["databaseName"]);
         expect(azureSqlState.formValidationLoadState).to.equal(ApiStatus.NotStarted);
         expect(azureSqlState.provisionLoadState).to.equal(ApiStatus.NotStarted);
+    });
+
+    test("startAzureSqlDatabaseDeployment completes the background task on failure", async () => {
+        controller.validateDeploymentForm.resolves([]);
+        sandbox
+            .stub(VsCodeAzureHelper, "createAzureSqlDatabase")
+            .rejects(new Error("Provisioning failed"));
+
+        await getReducer("startAzureSqlDatabaseDeployment")(controllerState, { tags: {} });
+
+        expect(backgroundTasksService.registerTask).to.have.been.calledWithMatch({
+            displayText: "Provisioning server-name/database-name",
+            target: "server-name/database-name",
+            state: BackgroundTaskState.InProgress,
+        });
+        expect(completeTaskStub).to.have.been.calledWith(
+            BackgroundTaskState.Failed,
+            sinon.match({ message: sinon.match("Provisioning failed") }),
+        );
+        expect(azureSqlState.provisionLoadState).to.equal(ApiStatus.Error);
     });
 
     test("openFirewallRuleDialog surfaces the firewall dialog", async () => {

@@ -5,7 +5,7 @@
 
 import { getDefaultTenantId, VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
 import { getGroupIdFormItem } from "../connectionconfig/formComponentHelpers";
-import { ConnectionDialog, Fabric, FabricProvisioning } from "../constants/locConstants";
+import { Common, ConnectionDialog, Fabric, FabricProvisioning } from "../constants/locConstants";
 import { FabricHelper } from "../fabric/fabricHelper";
 import { ILogger } from "../sharedInterfaces/logger";
 import {
@@ -32,6 +32,9 @@ import { IConnectionProfile } from "../models/interfaces";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { UserSurvey } from "../nps/userSurvey";
+import { BackgroundTaskState } from "../backgroundTasks/backgroundTasksService";
+import { DeploymentType } from "../sharedInterfaces/deployment";
+import { completeProvisioningTask, startProvisioningTask } from "./deploymentBackgroundTasks";
 
 export const WORKSPACE_ROLE_REQUEST_LIMIT = 20;
 
@@ -651,6 +654,14 @@ export async function provisionDatabase(
     const startTime = Date.now();
     state.provisionLoadState = ApiStatus.Loading;
     updateFabricProvisioningState(deploymentController, state);
+    const databaseName = state.formState.databaseName;
+    const provisioningTarget = `${state.workspaceName}/${databaseName}`;
+    startProvisioningTask(
+        deploymentController,
+        DeploymentType.FabricProvisioning,
+        Common.provisioningTarget(provisioningTarget),
+        provisioningTarget,
+    );
 
     try {
         state.database = await FabricHelper.createFabricSqlDatabase(
@@ -662,6 +673,12 @@ export async function provisionDatabase(
 
         state.provisionLoadState = ApiStatus.Loaded;
         updateFabricProvisioningState(deploymentController, state);
+        completeProvisioningTask(
+            deploymentController,
+            DeploymentType.FabricProvisioning,
+            BackgroundTaskState.Succeeded,
+            FabricProvisioning.provisioningTaskSucceeded(databaseName),
+        );
         sendActionEvent(
             TelemetryViews.FabricProvisioning,
             TelemetryActions.ProvisionFabricDatabase,
@@ -673,6 +690,12 @@ export async function provisionDatabase(
         void connectToDatabase(deploymentController);
     } catch (err) {
         state.errorMessage = getErrorMessage(err);
+        completeProvisioningTask(
+            deploymentController,
+            DeploymentType.FabricProvisioning,
+            BackgroundTaskState.Failed,
+            FabricProvisioning.provisioningTaskFailed(databaseName, state.errorMessage),
+        );
         state.provisionLoadState = ApiStatus.Error;
         updateFabricProvisioningState(deploymentController, state);
         sendErrorEvent(
@@ -784,7 +807,6 @@ export function handleCreateDatabase(
     deploymentController: DeploymentWebviewController,
     state: fp.FabricProvisioningState,
 ): fp.FabricProvisioningState {
-    void provisionDatabase(deploymentController);
     state.deploymentStartTime = new Date().toUTCString();
 
     // Set tenant and workspace names to display later
@@ -794,5 +816,6 @@ export function handleCreateDatabase(
     state.workspaceName = state.formComponents.workspace.options.find(
         (option) => option.value === state.formState.workspace,
     )?.displayName;
+    void provisionDatabase(deploymentController);
     return state;
 }

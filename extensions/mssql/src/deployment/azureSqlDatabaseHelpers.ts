@@ -12,7 +12,7 @@ import {
 } from "@azure/arm-sql";
 import { getDefaultTenantId, VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
 import { getGroupIdFormItem } from "../connectionconfig/formComponentHelpers";
-import { AzureSqlDatabase, ConnectionDialog } from "../constants/locConstants";
+import { AzureSqlDatabase, Common, ConnectionDialog } from "../constants/locConstants";
 import { ILogger } from "../sharedInterfaces/logger";
 import * as asd from "../sharedInterfaces/azureSqlDatabase";
 import {
@@ -43,6 +43,9 @@ import { getErrorMessage } from "../utils/utils";
 import { AddFirewallRuleState } from "../sharedInterfaces/addFirewallRule";
 import { populateAzureAccountInfo } from "../controllers/addFirewallRuleWebviewController";
 import { Deferred } from "../protocol";
+import { BackgroundTaskState } from "../backgroundTasks/backgroundTasksService";
+import { DeploymentType } from "../sharedInterfaces/deployment";
+import { completeProvisioningTask, startProvisioningTask } from "./deploymentBackgroundTasks";
 
 // Cached logger reference for use in helper functions that don't have
 // direct access to the controller's protected logger.
@@ -345,6 +348,15 @@ export function registerAzureSqlDatabaseReducers(
 
             updateAzureSqlDatabaseState(deploymentController, azureSqlState);
 
+            const databaseName = azureSqlState.formState.databaseName;
+            const provisioningTarget = `${azureSqlState.formState.serverName}/${databaseName}`;
+            startProvisioningTask(
+                deploymentController,
+                DeploymentType.AzureSqlDatabase,
+                Common.provisioningTarget(provisioningTarget),
+                provisioningTarget,
+            );
+
             try {
                 const startTime = Date.now();
                 const subscription = getCachedSubscription(
@@ -380,6 +392,12 @@ export function registerAzureSqlDatabaseReducers(
 
                 azureSqlState.provisionLoadState = ApiStatus.Loaded;
                 updateAzureSqlDatabaseState(deploymentController, azureSqlState);
+                completeProvisioningTask(
+                    deploymentController,
+                    DeploymentType.AzureSqlDatabase,
+                    BackgroundTaskState.Succeeded,
+                    AzureSqlDatabase.provisioningTaskSucceeded(databaseName),
+                );
 
                 sendActionEvent(
                     TelemetryViews.AzureSqlDatabase,
@@ -394,6 +412,15 @@ export function registerAzureSqlDatabaseReducers(
             } catch (error) {
                 azureSqlState.provisionLoadState = ApiStatus.Error;
                 azureSqlState.errorMessage = getErrorMessage(error);
+                completeProvisioningTask(
+                    deploymentController,
+                    DeploymentType.AzureSqlDatabase,
+                    BackgroundTaskState.Failed,
+                    AzureSqlDatabase.provisioningTaskFailed(
+                        databaseName,
+                        azureSqlState.errorMessage,
+                    ),
+                );
                 cachedLogger?.error(
                     `Azure SQL Database provisioning failed: ${azureSqlState.errorMessage}`,
                 );

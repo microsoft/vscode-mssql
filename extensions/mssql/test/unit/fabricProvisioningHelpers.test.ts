@@ -16,6 +16,12 @@ import { FormItemOptions, FormItemType } from "../../src/sharedInterfaces/form";
 import * as fp from "../../src/sharedInterfaces/fabricProvisioning";
 import { Fabric } from "../../src/constants/locConstants";
 import { ILogger } from "../../src/sharedInterfaces/logger";
+import { FabricHelper } from "../../src/fabric/fabricHelper";
+import {
+    BackgroundTaskHandle,
+    BackgroundTaskState,
+    BackgroundTasksService,
+} from "../../src/backgroundTasks/backgroundTasksService";
 
 chai.use(sinonChai);
 
@@ -28,6 +34,8 @@ suite("Fabric Provisioning logic", () => {
     let tenantOptions = [{ displayName: "tenant1", tenantId: "tenant1" }];
     let groupOptions: FormItemOptions[] = [{ displayName: "Default Group", value: "default" }];
     let updateStateStub: sinon.SinonStub;
+    let backgroundTasksService: sinon.SinonStubbedInstance<BackgroundTasksService>;
+    let completeTaskStub: sinon.SinonStub;
 
     setup(() => {
         sandbox = sinon.createSandbox();
@@ -37,9 +45,19 @@ suite("Fabric Provisioning logic", () => {
         updateStateStub = sandbox.stub();
 
         ({ sendActionEvent } = stubTelemetry(sandbox));
+        completeTaskStub = sandbox.stub();
+        const taskHandle: BackgroundTaskHandle = {
+            id: "fabric-provisioning-task",
+            update: sandbox.stub(),
+            complete: completeTaskStub,
+            remove: sandbox.stub(),
+        };
+        backgroundTasksService = sandbox.createStubInstance(BackgroundTasksService);
+        backgroundTasksService.registerTask.returns(taskHandle);
 
         deploymentController = {
             mainController: {
+                backgroundTasksService,
                 azureAccountService: {
                     getAccounts: sandbox.stub().resolves([{ displayInfo: { userId: "account1" } }]),
                     getAccountSecurityToken: sandbox.stub(),
@@ -211,6 +229,38 @@ suite("Fabric Provisioning logic", () => {
             "workspace1",
         );
         expect(result.isValid).to.equal(false);
+    });
+
+    test("provisionDatabase completes the background task on failure", async () => {
+        const state = new fp.FabricProvisioningState({
+            formState: {
+                accountId: "account1",
+                tenantId: "tenant1",
+                workspace: "workspace1",
+                databaseName: "database1",
+                databaseDescription: "description",
+                profileName: "profile",
+                groupId: "default",
+            },
+            workspaceName: "Workspace 1",
+        });
+        deploymentController.state.deploymentTypeState = state;
+        sandbox
+            .stub(FabricHelper, "createFabricSqlDatabase")
+            .rejects(new Error("Provisioning failed"));
+
+        await fabricHelpers.provisionDatabase(deploymentController);
+
+        expect(backgroundTasksService.registerTask).to.have.been.calledWithMatch({
+            displayText: "Provisioning Workspace 1/database1",
+            target: "Workspace 1/database1",
+            state: BackgroundTaskState.InProgress,
+        });
+        expect(completeTaskStub).to.have.been.calledWith(
+            BackgroundTaskState.Failed,
+            sinon.match({ message: sinon.match("Provisioning failed") }),
+        );
+        expect(state.provisionLoadState).to.equal(ApiStatus.Error);
     });
 
     test("loadComponentsAfterSignIn updates tenants, action buttons, and reloads components", async () => {

@@ -17,6 +17,11 @@ import { DeploymentWebviewController } from "../../src/deployment/deploymentWebv
 import MainController from "../../src/controllers/mainController";
 import { stubTelemetry } from "./utils";
 import { uuid } from "../e2e/baseFixtures";
+import {
+    BackgroundTaskHandle,
+    BackgroundTaskState,
+    BackgroundTasksService,
+} from "../../src/backgroundTasks/backgroundTasksService";
 
 chai.use(sinonChai);
 
@@ -26,14 +31,28 @@ suite("localContainers logic", () => {
     let sendErrorEvent: sinon.SinonStub;
     let deploymentController: DeploymentWebviewController;
     let updateStateStub: sinon.SinonStub;
+    let backgroundTasksService: sinon.SinonStubbedInstance<BackgroundTasksService>;
+    let updateTaskStub: sinon.SinonStub;
+    let completeTaskStub: sinon.SinonStub;
 
     setup(() => {
         sandbox = sinon.createSandbox();
         ({ sendActionEvent, sendErrorEvent } = stubTelemetry(sandbox));
         updateStateStub = sandbox.stub();
+        updateTaskStub = sandbox.stub();
+        completeTaskStub = sandbox.stub();
+        const taskHandle: BackgroundTaskHandle = {
+            id: "provisioning-task",
+            update: updateTaskStub,
+            complete: completeTaskStub,
+            remove: sandbox.stub(),
+        };
+        backgroundTasksService = sandbox.createStubInstance(BackgroundTasksService);
+        backgroundTasksService.registerTask.returns(taskHandle);
 
         deploymentController = {
             state: {},
+            mainController: { backgroundTasksService },
             updateState: updateStateStub,
             registerReducer: sandbox.stub().callsFake((name, fn) => {
                 (deploymentController as any)[name] = fn;
@@ -164,49 +183,112 @@ suite("localContainers logic", () => {
         expect(invalidResult.formErrors).to.include("port");
     });
 
-    test("completeDockerStep updates state on successful step", async () => {
+    test("completeDockerStep does not start a provisioning task for prerequisite steps", async () => {
+        const state: any = {
+            deploymentTypeState: {
+                currentDockerStep: lc.DockerStepOrder.dockerInstallation,
+                dockerSteps: [
+                    {
+                        loadState: ApiStatus.NotStarted,
+                        argNames: [],
+                        headerText: "Checking Docker",
+                        stepAction: sandbox.stub().resolves({ success: true }),
+                    },
+                ],
+                formState: { version: "1.0", containerName: "" },
+            },
+        };
+
+        localContainersHelpers.registerLocalContainersReducers(deploymentController);
+        await (deploymentController as any).completeDockerStep(state, {
+            dockerStep: lc.DockerStepOrder.dockerInstallation,
+        });
+
+        expect(backgroundTasksService.registerTask).not.to.have.been.called;
+    });
+
+    test("completeDockerStep updates state and completes the task on success", async () => {
         const stepActionStub = sandbox.stub().resolves({ success: true });
         const state: any = {
             deploymentTypeState: {
-                currentDockerStep: 0,
+                currentDockerStep: lc.DockerStepOrder.pullImage,
                 dockerSteps: [
-                    { loadState: ApiStatus.NotStarted, argNames: [], stepAction: stepActionStub },
+                    { loadState: ApiStatus.Loaded },
+                    { loadState: ApiStatus.Loaded },
+                    { loadState: ApiStatus.Loaded },
+                    {
+                        loadState: ApiStatus.NotStarted,
+                        argNames: [],
+                        headerText: "Creating container",
+                        stepAction: stepActionStub,
+                    },
                 ],
-                formState: { version: "1.0" },
+                formState: { version: "1.0", containerName: "test-container" },
             },
         };
 
         localContainersHelpers.registerLocalContainersReducers(deploymentController);
         const newState = await (deploymentController as any).completeDockerStep(state, {
-            dockerStep: 0,
+            dockerStep: lc.DockerStepOrder.pullImage,
         });
 
-        expect(newState.deploymentTypeState.dockerSteps[0].loadState).to.equal(ApiStatus.Loaded);
-        expect(newState.deploymentTypeState.currentDockerStep).to.equal(1);
+        expect(
+            newState.deploymentTypeState.dockerSteps[lc.DockerStepOrder.pullImage].loadState,
+        ).to.equal(ApiStatus.Loaded);
+        expect(newState.deploymentTypeState.currentDockerStep).to.equal(4);
+        expect(backgroundTasksService.registerTask).to.have.been.calledWithMatch({
+            displayText: "Provisioning test-container",
+            target: "test-container",
+            state: BackgroundTaskState.InProgress,
+        });
+        expect(updateTaskStub).to.have.been.calledWithMatch({ message: "Creating container" });
+        expect(completeTaskStub).to.have.been.calledWith(
+            BackgroundTaskState.Succeeded,
+            sinon.match({ message: sinon.match.string }),
+        );
         expect(sendActionEvent).to.have.been.called;
     });
 
-    test("completeDockerStep updates state on failed step", async () => {
+    test("completeDockerStep updates state and completes the task on failure", async () => {
         const stepActionStub = sandbox
             .stub()
             .resolves({ success: false, error: "fail", fullErrorText: "full fail" });
         const state: any = {
             deploymentTypeState: {
-                currentDockerStep: 0,
+                currentDockerStep: lc.DockerStepOrder.pullImage,
                 dockerSteps: [
-                    { loadState: ApiStatus.NotStarted, argNames: [], stepAction: stepActionStub },
+                    { loadState: ApiStatus.Loaded },
+                    { loadState: ApiStatus.Loaded },
+                    { loadState: ApiStatus.Loaded },
+                    {
+                        loadState: ApiStatus.NotStarted,
+                        argNames: [],
+                        headerText: "Creating container",
+                        stepAction: stepActionStub,
+                    },
                 ],
-                formState: { version: "1.0" },
+                formState: { version: "1.0", containerName: "failed-container" },
             },
         };
 
         localContainersHelpers.registerLocalContainersReducers(deploymentController);
         const newState = await (deploymentController as any).completeDockerStep(state, {
-            dockerStep: 0,
+            dockerStep: lc.DockerStepOrder.pullImage,
         });
 
-        expect(newState.deploymentTypeState.dockerSteps[0].loadState).to.equal(ApiStatus.Error);
-        expect(newState.deploymentTypeState.currentDockerStep).to.equal(0);
+        expect(
+            newState.deploymentTypeState.dockerSteps[lc.DockerStepOrder.pullImage].loadState,
+        ).to.equal(ApiStatus.Error);
+        expect(newState.deploymentTypeState.currentDockerStep).to.equal(
+            lc.DockerStepOrder.pullImage,
+        );
+        expect(backgroundTasksService.registerTask).to.have.been.calledWithMatch({
+            target: "failed-container",
+        });
+        expect(completeTaskStub).to.have.been.calledWith(
+            BackgroundTaskState.Failed,
+            sinon.match({ message: sinon.match("fail") }),
+        );
         expect(sendErrorEvent).to.have.been.called;
     });
 

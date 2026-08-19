@@ -666,6 +666,10 @@
     <trans-unit id="++CODE++2827add936f31415e16e0670d8686084ec2e21fed7686c0aa91fffdfa09e4e38">
       <source xml:lang="en">Azure SQL Server</source>
     </trans-unit>
+    <trans-unit id="++CODE++588333f4d266b89935941194e4f8e0f1d8aab434615c493680d7d0859b6b7081">
+      <source xml:lang="en">Azure SQL database &apos;{0}&apos; was provisioned successfully.</source>
+      <note>{0} is the database name</note>
+    </trans-unit>
     <trans-unit id="++CODE++d58bf1f323a38f50b921c7d963ad40d4323ebb5085fc456c8afbcc6542b0eb7a">
       <source xml:lang="en">Azure SQL databases provisioning</source>
     </trans-unit>
@@ -3190,6 +3194,10 @@
     <trans-unit id="++CODE++7a77e8a8f80ab358ff1261e8047b81ffa298288509fc45ae56d2760997839dda">
       <source xml:lang="en">Fabric Databases</source>
     </trans-unit>
+    <trans-unit id="++CODE++1c7cb4f75443e75ebc87e93e015e29bdf680a2f851b09a1bb5c761639ed092fa">
+      <source xml:lang="en">Fabric SQL database &apos;{0}&apos; was provisioned successfully.</source>
+      <note>{0} is the database name</note>
+    </trans-unit>
     <trans-unit id="++CODE++3070527056fcbd2ba823f6ed6ec72a556b5d82695b4490bc28c86d210c696bad">
       <source xml:lang="en">Fabric Workspaces</source>
     </trans-unit>
@@ -3435,6 +3443,21 @@
     <trans-unit id="++CODE++57720273abceaae68869abb1dfe214c44dc30b747692c3b7e2ef694e13363dd9">
       <source xml:lang="en">Failed to open text in editor: {0}</source>
       <note>{0} is the error message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++7ba26df4d0fbbd2bee13f3a586513471356439c4aa47b18bd9640be75254373e">
+      <source xml:lang="en">Failed to provision Azure SQL database &apos;{0}&apos;: {1}</source>
+      <note>{0} is the database name
+{1} is the error message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++da269800efda38160dafb6420431f8bde2988bcf33504e4e13ff5af7fae7eb46">
+      <source xml:lang="en">Failed to provision Fabric SQL database &apos;{0}&apos;: {1}</source>
+      <note>{0} is the database name
+{1} is the error message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++14887cba6de543fd263763a0c2952d8800157cd1ff9bc9378bc8c4f0d8200bf9">
+      <source xml:lang="en">Failed to provision SQL Server container &apos;{0}&apos;: {1}</source>
+      <note>{0} is the container name
+{1} is the error message</note>
     </trans-unit>
     <trans-unit id="++CODE++07ada7fc091c333284ba42452a6d0ef44eae8f3105e07704463afe34a9d0c92d">
       <source xml:lang="en">Failed to pull DAB container image. Please check your network connection.</source>
@@ -5849,6 +5872,10 @@
     <trans-unit id="++CODE++c2b1b8e2e03928e24b07be3e3cbc597577096c8303d9aa621a147ca2456bdad7">
       <source xml:lang="en">Provisioning</source>
     </trans-unit>
+    <trans-unit id="++CODE++b8fddb7a2a0858e5c78adda3e0f311031aa9e175bf7dd618546382f69c68de5b">
+      <source xml:lang="en">Provisioning {0}</source>
+      <note>{0} is the server, container, or database target being provisioned</note>
+    </trans-unit>
     <trans-unit id="++CODE++591935b15b1c88e2d5f6be0a054604fcf36f0585a6f51098fa3803826fff278c">
       <source xml:lang="en">Public</source>
     </trans-unit>
@@ -6424,6 +6451,10 @@
     </trans-unit>
     <trans-unit id="++CODE++8fb9e52bba9bdebaf10c130eca428ca15b770d0ba41c5f854c47db14a380f8ae">
       <source xml:lang="en">SQL Server admin password</source>
+    </trans-unit>
+    <trans-unit id="++CODE++82a5a935a9143edc89ac046512a9ba03026e4774cde53feb82c959225904e638">
+      <source xml:lang="en">SQL Server container &apos;{0}&apos; was provisioned successfully.</source>
+      <note>{0} is the container name</note>
     </trans-unit>
     <trans-unit id="++CODE++49946129c776c67af592a7bd5399b229d9e11260362f8dd0ee8a96778dbc3bee">
       <source xml:lang="en">SQL Server does not support Windows containers. Please switch to Linux containers in Docker Desktop settings.</source>
