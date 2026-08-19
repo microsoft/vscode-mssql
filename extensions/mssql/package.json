@@ -2392,9 +2392,9 @@
                     "default": false,
                     "scope": "resource"
                 },
-                "mssql.showBatchMessages": {
+                "mssql.results.showBatchMessages": {
                     "type": "boolean",
-                    "description": "%mssql.showBatchMessages%",
+                    "description": "%mssql.results.showBatchMessages%",
                     "default": true,
                     "scope": "resource"
                 },

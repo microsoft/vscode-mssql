@@ -638,7 +638,7 @@ export default class QueryRunner {
         message.time = new Date(message.time).toLocaleTimeString();
         message.rowsAffected = getRowsAffectedFromMessage(message.message);
 
-        if (message.isError || Utils.shouldShowBatchMessages(this.uri)) {
+        if (message.isError || Utils.shouldShowBatchMessages()) {
             // save the message into the batch summary so it can be restored on view refresh
             if (message.batchId >= 0 && this._batchSetMessages[message.batchId] !== undefined) {
                 this._batchSetMessages[message.batchId].push(message);

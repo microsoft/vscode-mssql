@@ -456,7 +456,7 @@ suite("Query Runner tests", () => {
 
     test("Notification - Message does not cache non-error messages when disabled", () => {
         const config = stubs.createWorkspaceConfiguration({
-            [Constants.configShowBatchMessages]: false,
+            [Constants.configResultsShowBatchMessages]: false,
         });
         getConfigurationStub.returns(config);
         const message: QueryExecuteContracts.QueryExecuteMessageParams = {
@@ -489,7 +489,7 @@ suite("Query Runner tests", () => {
 
     test("Notification - Message preserves errors when batch messages are disabled", () => {
         const config = stubs.createWorkspaceConfiguration({
-            [Constants.configShowBatchMessages]: false,
+            [Constants.configResultsShowBatchMessages]: false,
         });
         getConfigurationStub.returns(config);
         const message: QueryExecuteContracts.QueryExecuteMessageParams = {

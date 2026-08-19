@@ -522,7 +522,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
         const uri = "test_uri";
         getConfigurationStub.returns(
             stubs.createWorkspaceConfiguration({
-                [Constants.configShowBatchMessages]: false,
+                [Constants.configResultsShowBatchMessages]: false,
             }),
         );
         sandbox.stub(QueryRunner.prototype, "runQuery").resolves();
@@ -555,7 +555,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
         const uri = "test_uri";
         getConfigurationStub.returns(
             stubs.createWorkspaceConfiguration({
-                [Constants.configShowBatchMessages]: false,
+                [Constants.configResultsShowBatchMessages]: false,
             }),
         );
         sandbox.stub(QueryRunner.prototype, "runQuery").resolves();
@@ -581,7 +581,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
         const uri = "test_uri";
         getConfigurationStub.returns(
             stubs.createWorkspaceConfiguration({
-                [Constants.configShowBatchMessages]: false,
+                [Constants.configResultsShowBatchMessages]: false,
             }),
         );
         sandbox.stub(QueryRunner.prototype, "runQuery").resolves();
@@ -616,7 +616,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
         const errorMessage = "Incorrect syntax near 'FROM'.";
         getConfigurationStub.returns(
             stubs.createWorkspaceConfiguration({
-                [Constants.configShowBatchMessages]: false,
+                [Constants.configResultsShowBatchMessages]: false,
             }),
         );
         sandbox.stub(QueryRunner.prototype, "runQuery").resolves();
