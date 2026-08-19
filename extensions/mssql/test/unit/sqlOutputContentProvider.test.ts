@@ -614,6 +614,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
     test("Error messages remain visible when batch messages are disabled", async () => {
         const uri = "test_uri";
         const errorMessage = "Incorrect syntax near 'FROM'.";
+        const errorTime = new Date().toISOString();
         getConfigurationStub.returns(
             stubs.createWorkspaceConfiguration({
                 [Constants.configResultsShowBatchMessages]: false,
@@ -628,7 +629,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
             message: {
                 message: errorMessage,
                 isError: true,
-                time: new Date().toISOString(),
+                time: errorTime,
                 batchId: -1,
             },
         });
@@ -638,7 +639,8 @@ suite("SqlOutputProvider Tests using mocks", () => {
         expect(state.messages[0]).to.deep.include({
             message: errorMessage,
             isError: true,
-            batchId: -1,
+            time: new Date(errorTime).toLocaleTimeString(),
+            batchId: undefined,
             rowsAffected: undefined,
         });
     });

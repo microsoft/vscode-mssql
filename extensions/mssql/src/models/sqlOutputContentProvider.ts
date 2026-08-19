@@ -630,7 +630,7 @@ export class SqlOutputContentProvider {
             );
 
             const batchStartListener = queryRunner.onBatchStart(async (batch) => {
-                if (!Utils.shouldShowBatchMessages(queryRunner.uri)) {
+                if (!Utils.shouldShowBatchMessages()) {
                     return;
                 }
 
@@ -669,8 +669,11 @@ export class SqlOutputContentProvider {
                     queryRunner.uri,
                 );
 
-                if (message.isError || Utils.shouldShowBatchMessages(queryRunner.uri)) {
-                    resultWebviewState.messages.push(message);
+                const showBatchMessages = Utils.shouldShowBatchMessages();
+                if (message.isError || showBatchMessages) {
+                    resultWebviewState.messages.push(
+                        showBatchMessages ? message : { ...message, batchId: undefined },
+                    );
                 }
                 if (typeof message.rowsAffected === "number") {
                     resultWebviewState.rowsAffected = message.rowsAffected;
@@ -696,7 +699,7 @@ export class SqlOutputContentProvider {
                 resultWebviewState.isExecuting = false;
                 resultWebviewState.executionStartTime = undefined;
                 resultWebviewState.executionElapsedMilliseconds = totalElapsedMilliseconds;
-                if (Utils.shouldShowBatchMessages(queryRunner.uri)) {
+                if (Utils.shouldShowBatchMessages()) {
                     resultWebviewState.messages.push({
                         message: LocalizedConstants.elapsedTimeLabel(totalMilliseconds),
                         isError: false, // Elapsed time messages are never displayed as errors
