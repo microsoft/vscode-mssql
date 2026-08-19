@@ -247,30 +247,6 @@ suite("ConnectionManager Tests", () => {
         });
     });
 
-    suite("Connect Tests", () => {
-        test("reports connection initialization errors to the caller", async () => {
-            connectionManager = createConnectionManager();
-            await connectionManager.initialized;
-            const credentials = {
-                server: "test-server",
-                authenticationType: "SqlLogin",
-                user: "test-user",
-                password: "test-password",
-            } as IConnectionInfo;
-            sandbox.stub(connectionManager, "prepareConnectionInfo").resolves(credentials);
-            mockServiceClient.sendRequest.rejects(new Error("Connection initialization failed"));
-            const onError = sandbox.stub();
-
-            const connected = await connectionManager.connect("test-uri", credentials, {
-                shouldHandleErrors: false,
-                onError,
-            });
-
-            expect(connected).to.be.false;
-            expect(onError).to.have.been.calledOnceWithExactly("Connection initialization failed");
-        });
-    });
-
     suite("Functionality tests", () => {
         setup(() => {
             connectionManager = createConnectionManager();

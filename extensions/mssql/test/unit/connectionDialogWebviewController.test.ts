@@ -37,7 +37,6 @@ import { ConnectionUI } from "../../src/views/connectionUI";
 import {
     CredentialsQuickPickItemType,
     IConnectionGroup,
-    IConnectionProfile,
     IConnectionProfileWithSource,
 } from "../../src/models/interfaces";
 import { AzureAccountService } from "../../src/services/azureAccountService";
@@ -93,7 +92,6 @@ suite("ConnectionDialogWebviewController Tests", () => {
     let azureAccountService: sinon.SinonStubbedInstance<AzureAccountService>;
     let serviceClientMock: sinon.SinonStubbedInstance<SqlToolsServerClient>;
     let loadVscodeEntraDataAsyncStub: sinon.SinonStub;
-    const connectionDialogRequestId = "schema-compare-request";
 
     const testMruConnection = {
         profileSource: CredentialsQuickPickItemType.Mru,
@@ -189,9 +187,6 @@ suite("ConnectionDialogWebviewController Tests", () => {
             mainController,
             mockObjectExplorerProvider,
             undefined /* connection to edit */,
-            undefined /* initial connection group */,
-            undefined /* open as new draft */,
-            connectionDialogRequestId,
         );
 
         observeWebviewReady(controller);
@@ -1211,7 +1206,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                     undefined,
                     undefined,
                     "Database",
-                    "testSessionId",
+                    undefined,
                     undefined,
                     undefined,
                     undefined,
@@ -1231,7 +1226,6 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 mockObjectExplorerProvider.createSession.resolves({
                     sessionId: "testSessionId",
                     rootNode: mockConnectionNode,
-                    connectionNode: mockConnectionNode,
                     success: true,
                 } as CreateSessionResponse);
 
@@ -1251,17 +1245,6 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 expect(connectionManager.connect.calledOnce).to.be.true;
                 expect(connectionStore.saveProfile.calledOnce).to.be.true;
                 expect(mockObjectExplorerProvider.createSession.calledOnce).to.be.true;
-                expect(mockObjectExplorerProvider.createSession).to.have.been.calledWith(
-                    sinon.match.any,
-                    connectionDialogRequestId,
-                );
-                expect(
-                    connectionManager.notifyConnectionDialogCompleted,
-                ).to.have.been.calledOnceWithExactly({
-                    connected: true,
-                    connectionRequestId: connectionDialogRequestId,
-                    connectionUri: "testSessionId",
-                });
             });
 
             test("testConnection only validates connectivity without saving or creating session", async () => {
@@ -1271,9 +1254,6 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 await controller["_reducerHandlers"].get("testConnection")(controller.state, {});
 
                 expect(connectionManager.connect.calledOnce).to.be.true;
-                expect(connectionManager.connect.firstCall.args[2]).to.include({
-                    connectionRequestId: connectionDialogRequestId,
-                });
                 expect(connectionStore.saveProfile.notCalled).to.be.true;
                 expect(mockObjectExplorerProvider.createSession.notCalled).to.be.true;
                 expect(controller.state.connectionStatus).to.equal(ApiStatus.Loaded);
@@ -1292,284 +1272,6 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 expect(connectionStore.saveProfile.calledOnce).to.be.true;
                 expect(mockObjectExplorerProvider.createSession.notCalled).to.be.true;
                 expect(controller.state.testConnectionSucceeded).to.be.false;
-                expect(
-                    connectionManager.notifyConnectionDialogCompleted,
-                ).to.have.been.calledOnceWithExactly({
-                    connected: false,
-                    connectionRequestId: connectionDialogRequestId,
-                });
-            });
-
-            test("editing a profile to disable password saving deletes its credential", async () => {
-                const originalConnection = {
-                    ...testFormState,
-                    id: "saved-profile-id",
-                    password: "saved-password",
-                    savePassword: true,
-                    configSource: undefined,
-                } as IConnectionProfile;
-                const editedConnection = {
-                    ...originalConnection,
-                    password: "",
-                    savePassword: false,
-                };
-                controller["_connectionBeingEdited"] = originalConnection;
-                controller.state.connectionProfile = editedConnection;
-                controller.state.formState = editedConnection;
-
-                await controller["_reducerHandlers"].get("saveWithoutConnecting")(
-                    controller.state,
-                    {},
-                );
-
-                expect(connectionStore.saveProfile).to.have.been.calledWithExactly(
-                    editedConnection,
-                );
-                expect(connectionStore.deleteCredential).to.have.been.calledWithExactly(
-                    editedConnection,
-                );
-            });
-
-            test("closing the dialog signals completion without a connection", () => {
-                controller.dispose();
-
-                expect(
-                    connectionManager.notifyConnectionDialogCompleted,
-                ).to.have.been.calledOnceWithExactly({
-                    connected: false,
-                    connectionRequestId: connectionDialogRequestId,
-                });
-            });
-
-            test("disposing while saving prevents the persistent connection", async () => {
-                let resolveSaveProfile!: (profile: IConnectionProfile) => void;
-                connectionManager.connect.resolves(true);
-                connectionStore.saveProfile.returns(
-                    new Promise<IConnectionProfile>((resolve) => {
-                        resolveSaveProfile = resolve;
-                    }),
-                );
-                controller.state.formState = testFormState;
-
-                const submission = controller["_reducerHandlers"].get("connect")(
-                    controller.state,
-                    {},
-                );
-                await new Promise<void>((resolve) => setImmediate(resolve));
-                expect(connectionStore.saveProfile).to.have.been.calledOnce;
-
-                controller.dispose();
-                resolveSaveProfile(testFormState as IConnectionProfile);
-                await submission;
-
-                expect(mockObjectExplorerProvider.createSession).not.to.have.been.called;
-                expect(
-                    connectionManager.notifyConnectionDialogCompleted,
-                ).to.have.been.calledOnceWithExactly({
-                    connected: false,
-                    connectionRequestId: connectionDialogRequestId,
-                });
-            });
-
-            test("disposing while creating a session removes the new Object Explorer connection", async () => {
-                const createdNode = new TreeNodeInfo(
-                    "testNode",
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    "Database",
-                    "testSessionId",
-                    testFormState as IConnectionProfile,
-                    undefined,
-                    undefined,
-                    undefined,
-                );
-                let resolveCreateSession!: (response: CreateSessionResponse) => void;
-                mockObjectExplorerProvider.createSession.returns(
-                    new Promise<CreateSessionResponse>((resolve) => {
-                        resolveCreateSession = resolve;
-                    }),
-                );
-                connectionManager.connect.resolves(true);
-                controller.state.formState = testFormState;
-
-                const submission = controller["_reducerHandlers"].get("connect")(
-                    controller.state,
-                    {},
-                );
-                await new Promise<void>((resolve) => setImmediate(resolve));
-                expect(mockObjectExplorerProvider.createSession).to.have.been.called;
-
-                controller.dispose();
-                resolveCreateSession({
-                    sessionId: "testSessionId",
-                    rootNode: createdNode,
-                    connectionNode: createdNode,
-                    success: true,
-                } as CreateSessionResponse);
-                await submission;
-
-                expect(mockObjectExplorerProvider.removeConnectionNodes).to.have.been.calledWith(
-                    [testFormState],
-                    false,
-                );
-                expect(
-                    connectionManager.notifyConnectionDialogCompleted,
-                ).to.have.been.calledOnceWithExactly({
-                    connected: false,
-                    connectionRequestId: connectionDialogRequestId,
-                });
-            });
-
-            test("disposing while saving an edited profile restores unsaved credential state", async () => {
-                const originalConnection = {
-                    id: "saved-profile-id",
-                    profileName: "Original profile",
-                    server: "original-server",
-                    authenticationType: AuthenticationType.SqlLogin,
-                    user: "original-user",
-                    password: "",
-                    savePassword: false,
-                    groupId: ConnectionConfig.ROOT_GROUP_ID,
-                    configSource: vscode.ConfigurationTarget.Global,
-                } as IConnectionProfile;
-                let resolveReplacementSave!: (profile: IConnectionProfile) => void;
-                connectionStore.saveProfile.onFirstCall().returns(
-                    new Promise<IConnectionProfile>((resolve) => {
-                        resolveReplacementSave = resolve;
-                    }),
-                );
-                connectionStore.saveProfile.onSecondCall().resolves(originalConnection);
-                controller["_connectionBeingEdited"] = originalConnection;
-                controller.state.connectionProfile = {
-                    ...originalConnection,
-                    profileName: "Replacement profile",
-                    server: "replacement-server",
-                    password: "replacement-password",
-                    savePassword: false,
-                };
-                controller.state.formState = controller.state.connectionProfile;
-
-                const submission = controller["_reducerHandlers"].get("saveWithoutConnecting")(
-                    controller.state,
-                    {},
-                );
-                await new Promise<void>((resolve) => setImmediate(resolve));
-                expect(connectionStore.saveProfile).to.have.been.calledOnce;
-
-                controller.dispose();
-                resolveReplacementSave(controller.state.connectionProfile as IConnectionProfile);
-                await submission;
-
-                expect(connectionStore.saveProfile).to.have.been.calledWithExactly(
-                    originalConnection,
-                );
-                expect(connectionStore.deleteCredential).to.have.been.calledWithExactly(
-                    originalConnection,
-                );
-                expect(connectionStore.deleteSessionPassword).to.have.been.calledWithExactly(
-                    originalConnection,
-                );
-                expect(mockObjectExplorerProvider.removeConnectionNodes).not.to.have.been.called;
-                expect(mockObjectExplorerProvider.createSession).not.to.have.been.called;
-            });
-
-            test("disposing after removing an edited node restores it in Object Explorer", async () => {
-                const originalConnection = {
-                    id: "saved-profile-id",
-                    profileName: "Original profile",
-                    server: "original-server",
-                    authenticationType: AuthenticationType.SqlLogin,
-                    groupId: ConnectionConfig.ROOT_GROUP_ID,
-                    configSource: vscode.ConfigurationTarget.Global,
-                } as IConnectionProfile;
-                let resolveRemoveConnectionNodes!: () => void;
-                connectionStore.saveProfile.callsFake(
-                    async (profile: IConnectionProfile) => profile,
-                );
-                mockObjectExplorerProvider.removeConnectionNodes.returns(
-                    new Promise<void>((resolve) => {
-                        resolveRemoveConnectionNodes = resolve;
-                    }),
-                );
-                void mockObjectExplorerProvider.removeConnectionNodes([originalConnection], false);
-                mockObjectExplorerProvider.removeConnectionNodes.resetHistory();
-                connectionStore.saveProfile.resetHistory();
-                connectionStore.saveProfile.callsFake(
-                    async (profile: IConnectionProfile) => profile,
-                );
-                controller["_connectionBeingEdited"] = originalConnection;
-                controller.state.connectionProfile = {
-                    ...originalConnection,
-                    profileName: "Replacement profile",
-                    server: "replacement-server",
-                };
-                controller.state.formState = controller.state.connectionProfile;
-
-                const submission = controller["saveProfileStep"](
-                    controller.state.connectionProfile,
-                    controller.state,
-                    controller["_submissionGeneration"],
-                );
-                await new Promise<void>((resolve) => setImmediate(resolve));
-                expect(mockObjectExplorerProvider.removeConnectionNodes).to.have.been.calledWith(
-                    [originalConnection],
-                    false,
-                );
-
-                controller.dispose();
-                resolveRemoveConnectionNodes();
-                await submission;
-
-                expect(connectionStore.saveProfile).to.have.been.calledWithExactly(
-                    originalConnection,
-                );
-                expect(
-                    mockObjectExplorerProvider.addDisconnectedNode,
-                ).to.have.been.calledWithExactly(originalConnection);
-                expect(mockObjectExplorerProvider.createSession).not.to.have.been.called;
-            });
-
-            test("failed edited-node removal does not restore a node that was never removed", async () => {
-                const originalConnection = {
-                    id: "saved-profile-id",
-                    profileName: "Original profile",
-                    server: "original-server",
-                    authenticationType: AuthenticationType.SqlLogin,
-                    password: "original-password",
-                    savePassword: true,
-                    groupId: ConnectionConfig.ROOT_GROUP_ID,
-                    configSource: vscode.ConfigurationTarget.Global,
-                } as IConnectionProfile;
-                connectionStore.saveProfile.callsFake(
-                    async (profile: IConnectionProfile) => profile,
-                );
-                mockObjectExplorerProvider.removeConnectionNodes.rejects(
-                    new Error("Removal failed"),
-                );
-                controller["_connectionBeingEdited"] = originalConnection;
-                controller.state.connectionProfile = {
-                    ...originalConnection,
-                    server: "replacement-server",
-                };
-
-                let error: Error | undefined;
-                try {
-                    await controller["saveProfileStep"](
-                        controller.state.connectionProfile,
-                        controller.state,
-                        controller["_submissionGeneration"],
-                    );
-                } catch (err) {
-                    error = err as Error;
-                }
-
-                expect(error?.message).to.equal("Removal failed");
-                expect(connectionStore.saveProfile).to.have.been.calledWithExactly(
-                    originalConnection,
-                );
-                expect(mockObjectExplorerProvider.addDisconnectedNode).not.to.have.been.called;
             });
 
             test("retryLastSubmitAction replays test connection action for trust cert flow", async () => {

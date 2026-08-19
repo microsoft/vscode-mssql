@@ -466,4 +466,3 @@ export const operationIdDeployDacpac = "DeployOperation";
 
 // Code Analysis Constants
 export const codeAnalysisViewId = "codeAnalysis";
-export const connectionDialogViewId = "connectionDialog";

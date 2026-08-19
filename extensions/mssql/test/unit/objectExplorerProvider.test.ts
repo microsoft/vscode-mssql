@@ -401,18 +401,6 @@ suite("Object Explorer Provider Tests", function () {
         );
     });
 
-    test("Test removeConnectionNodes function without removing profiles", async () => {
-        objectExplorerServiceStub.removeConnectionNodes.resolves();
-        const connections = [{ server: "test_server" } as IConnectionInfo];
-
-        await objectExplorerProvider.removeConnectionNodes(connections, false);
-
-        expect(objectExplorerServiceStub.removeConnectionNodes).to.have.been.calledOnceWithExactly(
-            connections,
-            false,
-        );
-    });
-
     test("Test addDisconnectedNode function", () => {
         const profile = { server: "test_server" } as IConnectionProfile;
         objectExplorerProvider.addDisconnectedNode(profile);

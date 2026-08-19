@@ -51,7 +51,6 @@ export interface IConnectionStore {
         isConnectionString?: boolean,
     ): Promise<string>;
     storeSessionPassword(connectionCredentials: IConnectionInfo, password: string): void;
-    deleteSessionPassword(connectionCredentials: IConnectionInfo): void;
     shouldLookupSavedPassword(connectionCreds: IConnectionProfile): boolean;
     saveProfile(
         profile: IConnectionProfile,
@@ -376,11 +375,6 @@ export class ConnectionStore implements IConnectionStore {
             const sessionKey = ConnectionStore.formatCredentialIdForCred(connectionCredentials);
             this._sessionPasswords.set(sessionKey, password);
         }
-    }
-
-    public deleteSessionPassword(connectionCredentials: IConnectionInfo): void {
-        const sessionKey = ConnectionStore.formatCredentialIdForCred(connectionCredentials);
-        this._sessionPasswords.delete(sessionKey);
     }
 
     /**

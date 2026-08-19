@@ -131,14 +131,6 @@ export interface IReconnectAction {
 export interface ConnectionSuccessfulEvent {
     connection: ConnectionInfo;
     fileUri: string;
-    connectionSource?: string;
-    connectionRequestId?: string;
-}
-
-export interface ConnectionDialogCompletedEvent {
-    connected: boolean;
-    connectionRequestId?: string;
-    connectionUri?: string;
 }
 
 // ConnectionManager class is the main controller for connection management
@@ -165,15 +157,6 @@ export default class ConnectionManager {
         new vscode.EventEmitter<ConnectionSuccessfulEvent>();
     public readonly onSuccessfulConnection: vscode.Event<ConnectionSuccessfulEvent> =
         this._onSuccessfulConnectionEmitter.event;
-
-    private _onConnectionDialogCompletedEmitter: vscode.EventEmitter<ConnectionDialogCompletedEvent> =
-        new vscode.EventEmitter<ConnectionDialogCompletedEvent>();
-    public readonly onConnectionDialogCompleted: vscode.Event<ConnectionDialogCompletedEvent> =
-        this._onConnectionDialogCompletedEmitter.event;
-
-    public notifyConnectionDialogCompleted(event: ConnectionDialogCompletedEvent): void {
-        this._onConnectionDialogCompletedEmitter.fire(event);
-    }
 
     public initialized: Deferred<void> = new Deferred<void>();
 
@@ -1449,9 +1432,7 @@ export default class ConnectionManager {
         options: {
             shouldHandleErrors?: boolean;
             connectionSource?: string;
-            connectionRequestId?: string;
             serverlessWakeFailedAttempts?: number;
-            onError?: (errorMessage: string) => void;
         } = {},
     ): Promise<boolean> {
         this.normalizeServerName(credentials);
@@ -1459,9 +1440,7 @@ export default class ConnectionManager {
         const {
             shouldHandleErrors = true,
             connectionSource = "",
-            connectionRequestId,
             serverlessWakeFailedAttempts = 0,
-            onError,
         } = options;
 
         const connectionActivity = startActivity(
@@ -1556,7 +1535,6 @@ export default class ConnectionManager {
                 error,
                 false, // includeErrorMessage
             );
-            onError?.(getErrorMessage(error));
             return false;
         }
 
@@ -1576,7 +1554,6 @@ export default class ConnectionManager {
                 initialConnectionError,
                 true, // include error message
             );
-            onError?.(initialConnectionError.message);
             return false;
         }
 
@@ -1596,13 +1573,7 @@ export default class ConnectionManager {
              * Connection was successful
              */
 
-            await this.handleConnectionSuccess(
-                fileUri,
-                connectionInfo,
-                result,
-                connectionSource,
-                connectionRequestId,
-            );
+            await this.handleConnectionSuccess(fileUri, connectionInfo, result);
             connectionActivity.end(
                 ActivityStatus.Succeeded,
                 undefined,
@@ -1630,9 +1601,7 @@ export default class ConnectionManager {
                     return await this.connect(fileUri, connectionInfo.credentials, {
                         shouldHandleErrors,
                         connectionSource,
-                        connectionRequestId,
                         serverlessWakeFailedAttempts: failedAttempts,
-                        onError,
                     });
                 }
             }
@@ -1651,8 +1620,6 @@ export default class ConnectionManager {
                     connectionActivity.end(ActivityStatus.Retrying);
                     return await this.connect(fileUri, errorHandlingResult.updatedCredentials, {
                         connectionSource: connectionSource,
-                        connectionRequestId,
-                        onError,
                     });
                 }
             }
@@ -1684,7 +1651,6 @@ export default class ConnectionManager {
                 connectionInfo.credentials,
                 result.serverInfo,
             );
-            onError?.(result.errorMessage || result.messages);
             return false;
         }
     }
@@ -1845,16 +1811,12 @@ export default class ConnectionManager {
      * @param fileUri uri of the file the connection is for
      * @param connectionInfo the connection info object to update
      * @param result the result of the connection
-     * @param connectionSource source of the connection request
-     * @param connectionRequestId identifier used to correlate the connection request
      * @returns A promise that resolves when all steps are complete
      */
     private async handleConnectionSuccess(
         fileUri: string,
         connectionInfo: ConnectionInfo,
         result: ConnectionContracts.ConnectionCompleteParams,
-        connectionSource?: string,
-        connectionRequestId?: string,
     ): Promise<void> {
         /**
          * Connection was successful
@@ -1898,8 +1860,6 @@ export default class ConnectionManager {
         this._onSuccessfulConnectionEmitter.fire({
             connection: connectionInfo,
             fileUri: fileUri,
-            connectionSource,
-            connectionRequestId,
         });
 
         this._logger.info(

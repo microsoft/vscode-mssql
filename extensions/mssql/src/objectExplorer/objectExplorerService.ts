@@ -794,7 +794,6 @@ export class ObjectExplorerService {
      */
     public async createSession(
         connectionInfo?: IConnectionInfo,
-        connectionRequestId?: string,
     ): Promise<CreateSessionResult | undefined> {
         await this.initialized;
         if (!this._rootTreeNodeArray) {
@@ -885,7 +884,6 @@ export class ObjectExplorerService {
                 const successResponse = await this.handleSessionCreationSuccess(
                     sessionCreationResult,
                     connectionProfile,
-                    connectionRequestId,
                 );
                 createSessionActivity.end(ActivityStatus.Succeeded, {
                     connectionType: connectionProfile.authenticationType,
@@ -1052,13 +1050,11 @@ export class ObjectExplorerService {
      * Handles the success of session creation.
      * @param successResponse The response from the session creation request.
      * @param connectionProfile The connection profile used to create the session.
-     * @param connectionRequestId identifier used to correlate the connection request
      * @returns The session ID and corresponding connection node. If undefined, the session was not created.
      */
     private async handleSessionCreationSuccess(
         successResponse: SessionCreatedParameters,
         connectionProfile: IConnectionProfile,
-        connectionRequestId?: string,
     ) {
         if (!successResponse.success) {
             return;
@@ -1088,9 +1084,7 @@ export class ObjectExplorerService {
             !this._connectionManager.isConnected(nodeUri) &&
             !this._connectionManager.isConnecting(nodeUri)
         ) {
-            await this._connectionManager.connect(nodeUri, connectionNode.connectionProfile, {
-                connectionRequestId,
-            });
+            await this._connectionManager.connect(nodeUri, connectionNode.connectionProfile);
         }
         const dockerConnectionContainerName =
             await this._connectionManager.checkForDockerConnection(connectionProfile);
@@ -1165,12 +1159,10 @@ export class ObjectExplorerService {
      * Removes a node from the OE tree. It will also disconnect the node from the server before removing it.
      * @param node The connection node to remove.
      * @param showUserConfirmationPrompt Whether to show a confirmation prompt to the user before removing the node.
-     * @param removeProfile Whether to remove the saved connection profile.
      */
     public async removeNode(
         node: ConnectionNode,
         showUserConfirmationPrompt: boolean = true,
-        removeProfile: boolean = true,
     ): Promise<void> {
         if (showUserConfirmationPrompt) {
             const response = await vscode.window.showInformationMessage(
@@ -1197,12 +1189,7 @@ export class ObjectExplorerService {
         }
 
         this._refreshCallback(undefined); // Refresh tree root.
-        if (removeProfile) {
-            await this._connectionManager.connectionStore.removeProfile(
-                node.connectionProfile,
-                false,
-            );
-        }
+        await this._connectionManager.connectionStore.removeProfile(node.connectionProfile, false);
     }
 
     /**
@@ -1221,19 +1208,15 @@ export class ObjectExplorerService {
     /**
      * Remove multiple connection nodes from the OE tree.
      * @param connections Connection info of the nodes to remove.
-     * @param removeProfiles Whether to remove the saved connection profiles.
      * @returns True if ALL provided connections were removed successfully, false otherwise.
      */
-    public async removeConnectionNodes(
-        connections: IConnectionInfo[],
-        removeProfiles: boolean = true,
-    ): Promise<boolean> {
+    public async removeConnectionNodes(connections: IConnectionInfo[]): Promise<boolean> {
         const notFound: string[] = [];
 
         for (let conn of connections) {
             const node = this.getConnectionNodeFromProfile(conn as IConnectionProfile);
             if (node) {
-                await this.removeNode(node as ConnectionNode, false, removeProfiles);
+                await this.removeNode(node as ConnectionNode, false);
             } else {
                 notFound.push((conn as IConnectionProfile).id);
             }

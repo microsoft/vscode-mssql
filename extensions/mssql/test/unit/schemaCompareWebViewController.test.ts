@@ -611,22 +611,15 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         const compareStub = sandbox.stub(scUtils, "compare").resolves(expectedCompareResultMock);
 
+        const databaseTargetEndpoint = {
+            ...targetEndpointInfo,
+            connectionDetails: undefined,
+        };
         const payload = {
             deploymentOptions,
             sourceEndpointInfo,
-            targetEndpointInfo,
+            targetEndpointInfo: databaseTargetEndpoint,
         };
-        const targetConnection = new ConnectionInfo();
-        targetConnection.credentials = {
-            id: "target-connection-id",
-            server: targetEndpointInfo.serverName,
-            database: targetEndpointInfo.databaseName,
-            user: "sa",
-            connectionString: undefined,
-        } as IConnectionProfile;
-        connectionManagerStub.getConnectionInfo
-            .withArgs(targetEndpointInfo.ownerUri)
-            .returns(targetConnection);
 
         const result = await controller["_reducerHandlers"].get("compare")(
             mockInitialState,
@@ -635,19 +628,11 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         expect(
             compareStub,
-            "compare should hydrate database endpoint connection details",
+            "compare should use the active connection owner URI without connection details",
         ).to.have.been.calledWith(
             operationId,
             TaskExecutionMode.execute,
-            sinon.match((actualPayload) => {
-                const options = actualPayload.targetEndpointInfo.connectionDetails.options;
-                return (
-                    options.id === "target-connection-id" &&
-                    options.server === targetEndpointInfo.serverName &&
-                    options.database === targetEndpointInfo.databaseName &&
-                    !JSON.stringify(options).includes('"connectionString"')
-                );
-            }),
+            payload,
             schemaCompareService,
         );
 
@@ -1291,9 +1276,11 @@ suite("SchemaCompareWebViewController Tests", () => {
         };
         connectionManagerStub.isConnected.withArgs("server-a-uri").returns(true);
         connectionManagerStub.isConnected.withArgs("server-b-uri").returns(true);
-        connectionManagerStub.listDatabases
-            .withArgs("server-a-uri")
+        const serverAListDatabases = connectionManagerStub.listDatabases.withArgs("server-a-uri");
+        serverAListDatabases
+            .onFirstCall()
             .resolves(["tempdb", "z-database", "master", "a-database"]);
+        serverAListDatabases.onSecondCall().rejects(new Error("Database cache was not used"));
         connectionManagerStub.listDatabases.withArgs("server-b-uri").resolves(["b-database"]);
         const state = structuredClone(mockInitialState);
         const listDatabases = controller["_reducerHandlers"].get("listDatabasesForActiveServer");
@@ -1302,10 +1289,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         await listDatabases(state, { connectionUri: "server-b-uri" });
         const cachedResult = await listDatabases(state, { connectionUri: "server-a-uri" });
 
-        expect(connectionManagerStub.listDatabases.withArgs("server-a-uri")).to.have.been
-            .calledOnce;
-        expect(connectionManagerStub.listDatabases.withArgs("server-b-uri")).to.have.been
-            .calledOnce;
+        expect(connectionManagerStub.listDatabases).to.have.been.calledWith("server-b-uri");
         expect(cachedResult.databases).to.deep.equal([
             {
                 displayName: "a-database",
@@ -1341,12 +1325,14 @@ suite("SchemaCompareWebViewController Tests", () => {
             profileSource: CredentialsQuickPickItemType.Profile,
         } as IConnectionProfileWithSource;
         connectionStoreStub.readAllConnections.resolves([savedConnection]);
-        connectionManagerStub.connect.callsFake(async (_fileUri, _credentials, options) => {
+        let failedConnectionUri = "";
+        connectionManagerStub.connect.callsFake(async (fileUri) => {
+            failedConnectionUri = fileUri;
             const failedConnection = new ConnectionInfo();
             failedConnection.credentials = savedConnection;
             failedConnection.errorMessage = "Login failed";
-            activeConnections["failed-connection-uri"] = failedConnection;
-            options?.onError?.("Login failed");
+            activeConnections[fileUri] = failedConnection;
+            connectionManagerStub.getConnectionInfo.withArgs(fileUri).returns(failedConnection);
             return false;
         });
         const state = structuredClone(mockInitialState);
@@ -1368,6 +1354,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         ]);
         expect(result.isDatabaseListLoading).to.be.false;
         expect(result.databaseListError).to.equal("Login failed");
+        expect(activeConnections).not.to.have.property(failedConnectionUri);
     });
 
     test("listDatabasesForActiveServer reducer - stale request cannot overwrite newer databases", async () => {
@@ -1469,6 +1456,7 @@ suite("SchemaCompareWebViewController Tests", () => {
             "db1",
             "db2",
         ]);
+        controller["connectionUris"].clear();
         const confirmedResult = await controller["_reducerHandlers"].get("confirmSelectedDatabase")(
             actualResult,
             {
@@ -1481,23 +1469,29 @@ suite("SchemaCompareWebViewController Tests", () => {
         expect(confirmedResult.sourceEndpointInfo.ownerUri).to.equal(capturedUri);
         expect(confirmedResult.sourceEndpointInfo.connectionId).to.equal("saved-connection-id");
         expect(confirmedResult.sourceEndpointInfo.databaseName).to.equal("db1");
-        expect(confirmedResult.sourceEndpointInfo.connectionDetails).to.deep.equal({
-            options: {
-                database: "db1",
-            },
-        });
+        expect(confirmedResult.sourceEndpointInfo.connectionDetails).to.be.undefined;
+    });
 
-        const preparedEndpoint = controller["prepareEndpointForComparison"](
-            confirmedResult.sourceEndpointInfo,
+    test("confirmSelectedDatabase reducer - reports a missing saved connection", async () => {
+        const showErrorMessage = sandbox
+            .stub(vscode.window, "showErrorMessage")
+            .resolves(undefined);
+
+        const result = await controller["_reducerHandlers"].get("confirmSelectedDatabase")(
+            structuredClone(mockInitialState),
+            {
+                endpointType: "source",
+                serverConnectionUri: "missing-connection-id",
+                databaseName: "db1",
+            },
         );
-        expect(preparedEndpoint.connectionDetails.options).to.include({
-            id: "saved-connection-id",
-            server: "saved-server",
-            database: "db1",
-        });
-        expect(JSON.stringify(preparedEndpoint.connectionDetails.options)).not.to.include(
-            '"connectionString"',
+
+        expect(showErrorMessage).to.have.been.calledWith(
+            locConstants.SchemaCompare.connectionFailed(
+                locConstants.SchemaCompare.savedConnectionNotFound("missing-connection-id"),
+            ),
         );
+        expect(result.sourceEndpointInfo).to.deep.equal(mockInitialState.sourceEndpointInfo);
     });
 
     test("listDatabasesForActiveServer reducer - reconnects an edited saved connection", async () => {

@@ -49,7 +49,6 @@ import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
 import { UserSurvey } from "../nps/userSurvey";
 import { getConnectionDisplayName } from "../models/connectionInfo";
 import { buildDatabaseOptions } from "../utils/databaseUtils";
-import { ConnectionCredentials } from "../models/connectionCredentials";
 
 const SCHEMA_COMPARE_VIEW_ID = "schemaCompare";
 
@@ -291,11 +290,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             ownerUri: ownerUri,
             connectionId: connectionProfile.id || ownerUri,
             packageFilePath: "",
-            connectionDetails: {
-                options: {
-                    database: databaseName,
-                },
-            },
+            connectionDetails: undefined,
             connectionName: connectionProfile.profileName ? connectionProfile.profileName : "",
             projectFilePath: "",
             targetScripts: [],
@@ -719,10 +714,15 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 `Confirming selected database for ${payload.endpointType} endpoint: ${payload.databaseName} - OperationId: ${this.operationId}`,
             );
 
-            const connectionUri = this.connectionUris.get(payload.serverConnectionUri);
-            if (!connectionUri) {
+            let connectionUri: string;
+            try {
+                connectionUri = await this.connectToServer(payload.serverConnectionUri);
+            } catch (error) {
                 this.logger.error(
-                    `Saved connection not found: ${payload.serverConnectionUri} - OperationId: ${this.operationId}`,
+                    `Failed to resolve saved connection ${payload.serverConnectionUri}: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+                );
+                await vscode.window.showErrorMessage(
+                    locConstants.SchemaCompare.connectionFailed(getErrorMessage(error)),
                 );
                 return state;
             }
@@ -736,6 +736,11 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 this.logger.error(
                     `Connection not found: ${connectionUri} - OperationId: ${this.operationId}`,
                 );
+                await vscode.window.showErrorMessage(
+                    locConstants.SchemaCompare.connectionFailed(
+                        locConstants.msgConnectionNotFound(connectionUri),
+                    ),
+                );
                 return state;
             }
 
@@ -746,6 +751,13 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             if (!connectionProfile || score === utils.MatchScore.NotMatch) {
                 this.logger.error(
                     `Saved connection profile not found for: ${payload.serverConnectionUri} - OperationId: ${this.operationId}`,
+                );
+                await vscode.window.showErrorMessage(
+                    locConstants.SchemaCompare.connectionFailed(
+                        locConstants.SchemaCompare.savedConnectionNotFound(
+                            payload.serverConnectionUri,
+                        ),
+                    ),
                 );
                 return state;
             }
@@ -766,11 +778,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 ownerUri: connectionUri,
                 connectionId: connectionProfile.id || payload.serverConnectionUri,
                 packageFilePath: "",
-                connectionDetails: {
-                    options: {
-                        database: payload.databaseName,
-                    },
-                },
+                connectionDetails: undefined,
                 connectionName: connectionProfile.profileName ? connectionProfile.profileName : "",
                 projectFilePath: "",
                 targetScripts: [],
@@ -2327,41 +2335,6 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         });
     }
 
-    private createDatabaseConnectionDetails(
-        credentials: mssql.IConnectionInfo,
-        databaseName: string,
-    ): mssql.SchemaCompareConnectionInfo {
-        return ConnectionCredentials.createConnectionDetails({
-            ...credentials,
-            database: databaseName,
-            connectionString: credentials.connectionString ?? undefined,
-        });
-    }
-
-    private prepareEndpointForComparison(
-        endpoint: mssql.SchemaCompareEndpointInfo,
-    ): mssql.SchemaCompareEndpointInfo {
-        if (endpoint.endpointType !== SchemaCompareEndpointType.Database) {
-            return endpoint;
-        }
-
-        const connection = this.connectionMgr.getConnectionInfo(endpoint.ownerUri);
-        if (!connection) {
-            this.logger.warn(
-                `Connection not found while preparing Schema Compare endpoint: ${endpoint.ownerUri} - OperationId: ${this.operationId}`,
-            );
-            return endpoint;
-        }
-
-        return {
-            ...endpoint,
-            connectionDetails: this.createDatabaseConnectionDetails(
-                connection.credentials,
-                endpoint.databaseName,
-            ),
-        };
-    }
-
     private async connectToServer(connectionId: string): Promise<string> {
         const savedConnections = await this.connectionMgr.connectionStore.readAllConnections();
         const profile = savedConnections.find((connection) => {
@@ -2383,15 +2356,20 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         this.connectionUris.delete(connectionId);
 
         const connectionUri = utils.generateQueryUri().toString();
-        let connectionError = "";
-        if (
-            !(await this.connectionMgr.connect(connectionUri, profile, {
+        let isConnected: boolean;
+        try {
+            isConnected = await this.connectionMgr.connect(connectionUri, profile, {
                 shouldHandleErrors: false,
-                onError: (errorMessage) => {
-                    connectionError = errorMessage;
-                },
-            }))
-        ) {
+            });
+        } catch (error) {
+            delete this.connectionMgr.activeConnections[connectionUri];
+            throw error;
+        }
+
+        if (!isConnected) {
+            const connectionError =
+                this.connectionMgr.getConnectionInfo(connectionUri)?.errorMessage;
+            delete this.connectionMgr.activeConnections[connectionUri];
             throw new Error(connectionError || locConstants.SchemaCompare.failedToConnectToServer);
         }
 
@@ -2501,15 +2479,10 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         });
 
         this.logger.info(`Executing schema comparison with operation ID: ${this.operationId}`);
-        const comparisonPayload = {
-            ...payload,
-            sourceEndpointInfo: this.prepareEndpointForComparison(payload.sourceEndpointInfo),
-            targetEndpointInfo: this.prepareEndpointForComparison(payload.targetEndpointInfo),
-        };
         const result = await compare(
             this.operationId,
             TaskExecutionMode.execute,
-            comparisonPayload,
+            payload,
             this.schemaCompareService,
         );
 
@@ -2681,11 +2654,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                     ownerUri: ownerUri,
                     connectionId: connectionProfile.id || ownerUri,
                     packageFilePath: "",
-                    connectionDetails: {
-                        options: {
-                            database: connInfo.database,
-                        },
-                    },
+                    connectionDetails: undefined,
                     connectionName: connectionProfile.profileName
                         ? connectionProfile.profileName
                         : "",

@@ -72,12 +72,8 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
 
     public async createSession(
         connectionCredentials?: IConnectionInfo,
-        connectionRequestId?: string,
     ): Promise<CreateSessionResult> {
-        return this._objectExplorerService.createSession(
-            connectionCredentials,
-            connectionRequestId,
-        );
+        return this._objectExplorerService.createSession(connectionCredentials);
     }
 
     public async expandNode(
@@ -109,19 +105,12 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
         this._onDidChangeTreeData.fire(node);
     }
 
-    public async removeConnectionNodes(
-        connections: IConnectionInfo[],
-        removeProfiles?: boolean,
-    ): Promise<void> {
+    public async removeConnectionNodes(connections: IConnectionInfo[]): Promise<void> {
         if (connections.length === 0) {
             return;
         }
 
-        if (removeProfiles === undefined) {
-            await this._objectExplorerService.removeConnectionNodes(connections);
-        } else {
-            await this._objectExplorerService.removeConnectionNodes(connections, removeProfiles);
-        }
+        await this._objectExplorerService.removeConnectionNodes(connections);
         this.refresh(undefined);
     }
 
