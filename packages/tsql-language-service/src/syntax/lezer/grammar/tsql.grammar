@@ -1665,8 +1665,13 @@ ReturnedQuery {
 // CREATE TRIGGER models DML triggers with timing, events, options, and a mounted SQL body.
 CreateTriggerStatement {
   Create (Or Alter)? Trigger MultipartIdentifier On TriggerTarget TriggerWithClause?
-  (For | After | Instead Of) TriggerEventList TriggerReplicationClause? As ModuleBody
+  (For | After | Instead Of) TriggerEventList TriggerAppendClause? TriggerReplicationClause?
+  As ModuleBody
 }
+// `FOR INSERT WITH APPEND` is the pre-110 spelling. The option is a contextual word rather than a
+// keyword, matching how SQL Server reads it: the parser accepts any name here and the semantic pass
+// decides whether it is one this engine still supports.
+TriggerAppendClause { With IdentifierName }
 
 // ALTER TRIGGER replaces a DML trigger while preserving its object identity.
 AlterTriggerStatement {
@@ -1854,10 +1859,18 @@ PrintStatement { Print Expression }
 ThrowStatement { Throw ((IntegerLiteral | Variable) Comma Expression Comma Expression)? }
 
 // RAISERROR raises a formatted error with severity, state, arguments, and options.
+//
+// The unparenthesized form is the pre-110 spelling, `RAISERROR 50001 'message'`. SQL Server still
+// accepts it and legacy scripts are full of it, so it parses here and the availability layer is
+// what reports it as deprecated. The two forms cannot be confused: one continues with a bracket and
+// the other with a number or a variable.
 RaiserrorStatement {
   Raiserror OpenParen Expression Comma Expression Comma Expression
   (Comma Expression)* CloseParen optionalDdlTail<RaiserrorOptions>
+  | Raiserror LegacyRaiserrorSeverity LegacyRaiserrorMessage
 }
+LegacyRaiserrorSeverity { Minus? IntegerLiteral | Variable }
+LegacyRaiserrorMessage { StringLiteral | Variable }
 
 // RAISERROR options follow WITH and are comma-separated names.
 RaiserrorOptions { With IdentifierName (Comma IdentifierName)* }
@@ -3234,6 +3247,11 @@ LegacyIndexTableHintClause {
   | OpenParen LegacyTableHintNoIndex (Comma LegacyTableHintNoIndex)* Comma LegacyIndexHint
     (Comma LegacyTableHintNoIndex)* CloseParen
 }
+// The hints named here are the ones that can be told from a table-valued call's arguments. A bare
+// name cannot: `t (FASTFIRSTROW)` and `t (@value)` have the same shape, and only knowing that `t` is
+// a table rather than a function separates them, which the parser does not know at this point.
+// SQL Server resolves it with parser modes; that retired spelling is left unparsed rather than
+// bought at the price of making every table-valued call ambiguous.
 LegacyTableHintNoIndex {
   (Holdlock | Readpast | Tablock) (OpenParen TableHintArgument (Comma TableHintArgument)* CloseParen | Equal Expression)?
 }
