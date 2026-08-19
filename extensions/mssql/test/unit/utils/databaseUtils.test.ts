@@ -6,7 +6,7 @@
 import { expect } from "chai";
 import * as chai from "chai";
 import sinonChai from "sinon-chai";
-import { isSystemDatabase } from "../../../src/utils/databaseUtils";
+import { groupDatabases, isSystemDatabase } from "../../../src/utils/databaseUtils";
 import { systemDatabases } from "../../../src/constants/constants";
 
 chai.use(sinonChai);
@@ -43,6 +43,15 @@ suite("databaseUtils", () => {
         test("should return false for user databases", () => {
             expect(isSystemDatabase("MyAppDb")).to.be.false;
             expect(isSystemDatabase("AdventureWorks")).to.be.false;
+        });
+    });
+
+    suite("groupDatabases", () => {
+        test("should sort user databases before separately sorted system databases", () => {
+            const result = groupDatabases(["tempdb", "zebra", "master", "AdventureWorks", "model"]);
+
+            expect(result.userDatabases).to.deep.equal(["AdventureWorks", "zebra"]);
+            expect(result.systemDatabases).to.deep.equal(["master", "model", "tempdb"]);
         });
     });
 });

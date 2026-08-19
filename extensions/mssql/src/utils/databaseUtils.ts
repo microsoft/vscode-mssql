@@ -18,3 +18,21 @@ export function isSystemDatabase(databaseName: string | undefined): boolean {
     }
     return systemDatabases.includes(databaseName.toLowerCase());
 }
+
+export interface DatabaseGroups {
+    userDatabases: string[];
+    systemDatabases: string[];
+}
+
+export function groupDatabases(databases: string[]): DatabaseGroups {
+    const collator = new Intl.Collator(undefined, { sensitivity: "base" });
+
+    return {
+        userDatabases: databases
+            .filter((database) => !isSystemDatabase(database))
+            .sort((left, right) => collator.compare(left, right)),
+        systemDatabases: databases
+            .filter((database) => isSystemDatabase(database))
+            .sort((left, right) => collator.compare(left, right)),
+    };
+}

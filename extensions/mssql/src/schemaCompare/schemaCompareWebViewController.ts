@@ -56,6 +56,7 @@ import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
 import { UserSurvey } from "../nps/userSurvey";
 import { getConnectionDisplayName } from "../models/connectionInfo";
 import { ConnectionCredentials } from "../models/connectionCredentials";
+import { groupDatabases } from "../utils/databaseUtils";
 
 const SCHEMA_COMPARE_VIEW_ID = "schemaCompare";
 
@@ -2390,7 +2391,10 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 throw new Error("Failed to connect to server");
             }
 
-            const databases = await this.connectionMgr.listDatabases(activeConnectionUri);
+            const databaseGroups = groupDatabases(
+                await this.connectionMgr.listDatabases(activeConnectionUri),
+            );
+            const databases = [...databaseGroups.userDatabases, ...databaseGroups.systemDatabases];
             if (
                 !this.isPendingConnectionRequest(connectionRequestId) ||
                 databaseListRequestGeneration !== this.databaseListRequestGeneration

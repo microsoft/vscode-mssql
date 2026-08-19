@@ -56,7 +56,6 @@ import {
     cmdOpenAzureDataStudioMigration,
     connectionDialogViewId,
     defaultDatabase,
-    systemDatabases,
 } from "../constants/constants";
 import * as AzureConstants from "../azure/constants";
 import { AddFirewallRuleState } from "../sharedInterfaces/addFirewallRule";
@@ -92,6 +91,7 @@ import {
     BrowseProviderHost,
     FabricBrowseProvider,
 } from "./browseProvider";
+import { groupDatabases } from "../utils/databaseUtils";
 
 export const CLEAR_TOKEN_CACHE = "clearTokenCache";
 export const SIGN_IN_TO_AZURE = "signInToAzure";
@@ -1655,20 +1655,15 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     }
 
     private buildDatabaseOptions(dbs: string[]): FormItemOptions[] {
-        const collator = new Intl.Collator(undefined, { sensitivity: "base" });
-        const userDbs = dbs
-            .filter((db) => !systemDatabases.includes(db.toLowerCase()))
-            .sort((a, b) => collator.compare(a, b));
-        const sysDbs = dbs
-            .filter((db) => systemDatabases.includes(db.toLowerCase()))
-            .sort((a, b) => collator.compare(a, b));
+        const { userDatabases, systemDatabases } = groupDatabases(dbs);
+
         return [
-            ...userDbs.map((db) => ({
+            ...userDatabases.map((db) => ({
                 displayName: db,
                 value: db,
                 groupName: LocalizedConstants.ConnectionDialog.userDatabasesGroup,
             })),
-            ...sysDbs.map((db) => ({
+            ...systemDatabases.map((db) => ({
                 displayName: db,
                 value: db,
                 groupName: LocalizedConstants.ConnectionDialog.systemDatabasesGroup,

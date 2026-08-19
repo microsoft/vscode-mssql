@@ -1752,7 +1752,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         );
         connectionManagerStub.listDatabases
             .withArgs("new-connection-uri")
-            .resolves(["new-database"]);
+            .resolves(["tempdb", "z-database", "master", "a-database"]);
         controller.state = structuredClone(mockInitialState);
         await controller["_reducerHandlers"].get("listActiveServers")(controller.state, {});
 
@@ -1780,14 +1780,24 @@ suite("SchemaCompareWebViewController Tests", () => {
         });
         await new Promise<void>((resolve) => setImmediate(resolve));
 
-        expect(controller.state.databases).to.deep.equal(["new-database"]);
-        expect(controller.state.sourceEndpointInfo.databaseName).to.equal("new-database");
+        expect(controller.state.databases).to.deep.equal([
+            "a-database",
+            "z-database",
+            "master",
+            "tempdb",
+        ]);
+        expect(controller.state.sourceEndpointInfo.databaseName).to.equal("a-database");
 
         resolveSavedDatabases(["saved-database"]);
         await savedDatabaseLoad;
 
-        expect(controller.state.databases).to.deep.equal(["new-database"]);
-        expect(controller.state.sourceEndpointInfo.databaseName).to.equal("new-database");
+        expect(controller.state.databases).to.deep.equal([
+            "a-database",
+            "z-database",
+            "master",
+            "tempdb",
+        ]);
+        expect(controller.state.sourceEndpointInfo.databaseName).to.equal("a-database");
     });
 
     test("listDatabasesForActiveServer reducer - connects an inactive saved connection", async () => {

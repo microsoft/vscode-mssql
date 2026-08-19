@@ -2240,6 +2240,8 @@ export class LocConstants {
             ),
             server: l10n.t("Server"),
             database: l10n.t("Database"),
+            userDatabases: l10n.t("User databases"),
+            systemDatabases: l10n.t("System databases"),
             defaultUserName: l10n.t("default"),
             folderStructure: l10n.t("Folder Structure"),
             file: l10n.t("File"),

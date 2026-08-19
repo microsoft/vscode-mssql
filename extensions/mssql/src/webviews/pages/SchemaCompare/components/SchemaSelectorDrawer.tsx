@@ -21,6 +21,7 @@ import {
     RadioGroup,
     useId,
     Option,
+    OptionGroup,
     SelectionEvents,
     OptionOnSelectData,
     Spinner,
@@ -35,6 +36,7 @@ import {
     SchemaCompareEndpointType,
     ExtractTarget,
 } from "../../../../sharedInterfaces/schemaCompare";
+import { groupDatabases } from "../../../../utils/databaseUtils";
 
 const useStyles = makeStyles({
     drawerWidth: {
@@ -156,6 +158,8 @@ const SchemaSelectorDrawer = (props: Props) => {
     const showDatabaseSpinner =
         Boolean(serverConnectionUri) && (!databaseStateMatchesSelection || isDatabaseListLoading);
     const displayedDatabaseError = databaseStateMatchesSelection ? databaseListError : "";
+    const { userDatabases, systemDatabases } = groupDatabases(displayedDatabases);
+    const firstDisplayedDatabase = userDatabases[0] ?? systemDatabases[0];
 
     const fileId = useId("file");
     const folderStructureId: string = useId("folderStructure");
@@ -190,6 +194,26 @@ const SchemaSelectorDrawer = (props: Props) => {
         databaseName,
         showDatabaseSpinner,
         displayedDatabaseError,
+    ]);
+
+    useEffect(() => {
+        if (
+            schemaType === "database" &&
+            databaseStateMatchesSelection &&
+            !isDatabaseListLoading &&
+            !databaseListError &&
+            !databaseName &&
+            firstDisplayedDatabase
+        ) {
+            setDatabaseName(firstDisplayedDatabase);
+        }
+    }, [
+        schemaType,
+        databaseStateMatchesSelection,
+        isDatabaseListLoading,
+        databaseListError,
+        databaseName,
+        firstDisplayedDatabase,
     ]);
 
     // Handle auto-selection of newly created connections
@@ -366,13 +390,24 @@ const SchemaSelectorDrawer = (props: Props) => {
                                 onOptionSelect={(event, data) =>
                                     handleDatabaseSelected(event, data)
                                 }>
-                                {displayedDatabases.map((db) => {
-                                    return (
-                                        <Option key={db} value={db}>
-                                            {db}
-                                        </Option>
-                                    );
-                                })}
+                                {userDatabases.length > 0 && (
+                                    <OptionGroup label={loc.schemaCompare.userDatabases}>
+                                        {userDatabases.map((db) => (
+                                            <Option key={db} value={db}>
+                                                {db}
+                                            </Option>
+                                        ))}
+                                    </OptionGroup>
+                                )}
+                                {systemDatabases.length > 0 && (
+                                    <OptionGroup label={loc.schemaCompare.systemDatabases}>
+                                        {systemDatabases.map((db) => (
+                                            <Option key={db} value={db}>
+                                                {db}
+                                            </Option>
+                                        ))}
+                                    </OptionGroup>
+                                )}
                             </Dropdown>
                             {showDatabaseSpinner && (
                                 <Spinner
