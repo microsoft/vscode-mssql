@@ -616,6 +616,17 @@ suite("SchemaCompareWebViewController Tests", () => {
             sourceEndpointInfo,
             targetEndpointInfo,
         };
+        const targetConnection = new ConnectionInfo();
+        targetConnection.credentials = {
+            id: "target-connection-id",
+            server: targetEndpointInfo.serverName,
+            database: targetEndpointInfo.databaseName,
+            user: "sa",
+            connectionString: undefined,
+        } as IConnectionProfile;
+        connectionManagerStub.getConnectionInfo
+            .withArgs(targetEndpointInfo.ownerUri)
+            .returns(targetConnection);
 
         const result = await controller["_reducerHandlers"].get("compare")(
             mockInitialState,
@@ -623,11 +634,22 @@ suite("SchemaCompareWebViewController Tests", () => {
         );
 
         expect(
-            compareStub.firstCall.args,
-            "compare should be called with correct arguments",
-        ).to.deep.equal([operationId, TaskExecutionMode.execute, payload, schemaCompareService]);
-
-        expect(compareStub, "compare should be called once").to.have.been.calledOnce;
+            compareStub,
+            "compare should hydrate database endpoint connection details",
+        ).to.have.been.calledWith(
+            operationId,
+            TaskExecutionMode.execute,
+            sinon.match((actualPayload) => {
+                const options = actualPayload.targetEndpointInfo.connectionDetails.options;
+                return (
+                    options.id === "target-connection-id" &&
+                    options.server === targetEndpointInfo.serverName &&
+                    options.database === targetEndpointInfo.databaseName &&
+                    !JSON.stringify(options).includes('"connectionString"')
+                );
+            }),
+            schemaCompareService,
+        );
 
         expect(result.schemaCompareResult, "compare should return expected result").to.deep.equal(
             expectedCompareResultMock,
@@ -1459,6 +1481,23 @@ suite("SchemaCompareWebViewController Tests", () => {
         expect(confirmedResult.sourceEndpointInfo.ownerUri).to.equal(capturedUri);
         expect(confirmedResult.sourceEndpointInfo.connectionId).to.equal("saved-connection-id");
         expect(confirmedResult.sourceEndpointInfo.databaseName).to.equal("db1");
+        expect(confirmedResult.sourceEndpointInfo.connectionDetails).to.deep.equal({
+            options: {
+                database: "db1",
+            },
+        });
+
+        const preparedEndpoint = controller["prepareEndpointForComparison"](
+            confirmedResult.sourceEndpointInfo,
+        );
+        expect(preparedEndpoint.connectionDetails.options).to.include({
+            id: "saved-connection-id",
+            server: "saved-server",
+            database: "db1",
+        });
+        expect(JSON.stringify(preparedEndpoint.connectionDetails.options)).not.to.include(
+            '"connectionString"',
+        );
     });
 
     test("listDatabasesForActiveServer reducer - reconnects an edited saved connection", async () => {

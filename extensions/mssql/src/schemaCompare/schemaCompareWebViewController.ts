@@ -49,6 +49,7 @@ import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
 import { UserSurvey } from "../nps/userSurvey";
 import { getConnectionDisplayName } from "../models/connectionInfo";
 import { buildDatabaseOptions } from "../utils/databaseUtils";
+import { ConnectionCredentials } from "../models/connectionCredentials";
 
 const SCHEMA_COMPARE_VIEW_ID = "schemaCompare";
 
@@ -276,6 +277,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         sourceContext: any,
     ): Promise<mssql.SchemaCompareEndpointInfo> {
         let ownerUri = await this.connectionMgr.getUriForConnection(connectionProfile);
+        const databaseName = ObjectExplorerUtils.getDatabaseName(sourceContext);
         let user = connectionProfile.user;
         if (!user) {
             user = locConstants.SchemaCompare.defaultUserName;
@@ -285,13 +287,13 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             endpointType: SchemaCompareEndpointType.Database,
             serverDisplayName: `${connectionProfile.server} (${user})`,
             serverName: connectionProfile.server,
-            databaseName: ObjectExplorerUtils.getDatabaseName(sourceContext),
+            databaseName: databaseName,
             ownerUri: ownerUri,
             connectionId: connectionProfile.id || ownerUri,
             packageFilePath: "",
             connectionDetails: {
                 options: {
-                    database: connectionProfile.database,
+                    database: databaseName,
                 },
             },
             connectionName: connectionProfile.profileName ? connectionProfile.profileName : "",
@@ -766,7 +768,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 packageFilePath: "",
                 connectionDetails: {
                     options: {
-                        database: connectionProfile.database,
+                        database: payload.databaseName,
                     },
                 },
                 connectionName: connectionProfile.profileName ? connectionProfile.profileName : "",
@@ -2325,6 +2327,41 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         });
     }
 
+    private createDatabaseConnectionDetails(
+        credentials: mssql.IConnectionInfo,
+        databaseName: string,
+    ): mssql.SchemaCompareConnectionInfo {
+        return ConnectionCredentials.createConnectionDetails({
+            ...credentials,
+            database: databaseName,
+            connectionString: credentials.connectionString ?? undefined,
+        });
+    }
+
+    private prepareEndpointForComparison(
+        endpoint: mssql.SchemaCompareEndpointInfo,
+    ): mssql.SchemaCompareEndpointInfo {
+        if (endpoint.endpointType !== SchemaCompareEndpointType.Database) {
+            return endpoint;
+        }
+
+        const connection = this.connectionMgr.getConnectionInfo(endpoint.ownerUri);
+        if (!connection) {
+            this.logger.warn(
+                `Connection not found while preparing Schema Compare endpoint: ${endpoint.ownerUri} - OperationId: ${this.operationId}`,
+            );
+            return endpoint;
+        }
+
+        return {
+            ...endpoint,
+            connectionDetails: this.createDatabaseConnectionDetails(
+                connection.credentials,
+                endpoint.databaseName,
+            ),
+        };
+    }
+
     private async connectToServer(connectionId: string): Promise<string> {
         const savedConnections = await this.connectionMgr.connectionStore.readAllConnections();
         const profile = savedConnections.find((connection) => {
@@ -2464,10 +2501,15 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         });
 
         this.logger.info(`Executing schema comparison with operation ID: ${this.operationId}`);
+        const comparisonPayload = {
+            ...payload,
+            sourceEndpointInfo: this.prepareEndpointForComparison(payload.sourceEndpointInfo),
+            targetEndpointInfo: this.prepareEndpointForComparison(payload.targetEndpointInfo),
+        };
         const result = await compare(
             this.operationId,
             TaskExecutionMode.execute,
-            payload,
+            comparisonPayload,
             this.schemaCompareService,
         );
 
@@ -2641,7 +2683,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                     packageFilePath: "",
                     connectionDetails: {
                         options: {
-                            database: connectionProfile.database,
+                            database: connInfo.database,
                         },
                     },
                     connectionName: connectionProfile.profileName
