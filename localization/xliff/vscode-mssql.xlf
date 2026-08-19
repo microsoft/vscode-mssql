@@ -6578,6 +6578,10 @@
     <trans-unit id="++CODE++5a2df8a2745d54fa2197753e1c2c22a8dea9676916677120da5c44550647180d">
       <source xml:lang="en">Saved Connections</source>
     </trans-unit>
+    <trans-unit id="++CODE++f7fdd5b0b1aa6beecb02dab9409db0a6853b395f5bf95a4d3098a057f1284209">
+      <source xml:lang="en">Saved connection &apos;{0}&apos; not found.</source>
+      <note>{0} is the saved connection ID</note>
+    </trans-unit>
     <trans-unit id="++CODE++214bf67326266805ed0887a2154efa6a38e78d684c4f4c69c33cbecdb16feb13">
       <source xml:lang="en">Saved results to {0}</source>
       <note>{0} is the saved file path</note>

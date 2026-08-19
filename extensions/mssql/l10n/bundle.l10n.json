@@ -1184,6 +1184,10 @@
     "Schema Compare": "Schema Compare",
     "Save": "Save",
     "default": "default",
+    "Saved connection '{0}' not found./{0} is the saved connection ID": {
+        "message": "Saved connection '{0}' not found.",
+        "comment": ["{0} is the saved connection ID"]
+    },
     "Options have changed. Recompare to see the comparison?": "Options have changed. Recompare to see the comparison?",
     "Failed to generate script: '{0}'/{0} is the error message returned from the generate script operation": {
         "message": "Failed to generate script: '{0}'",

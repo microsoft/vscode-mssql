@@ -9,16 +9,13 @@ import { expect } from "chai";
 import * as chai from "chai";
 import * as vscode from "vscode";
 import * as mssql from "vscode-mssql";
+import * as utils from "../../src/models/utils";
 
 chai.use(sinonChai);
 
 import { SchemaCompareWebViewController } from "../../src/schemaCompare/schemaCompareWebViewController";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
-import ConnectionManager, {
-    ConnectionDialogCompletedEvent,
-    ConnectionInfo,
-    ConnectionSuccessfulEvent,
-} from "../../src/controllers/connectionManager";
+import ConnectionManager, { ConnectionInfo } from "../../src/controllers/connectionManager";
 import {
     ExtractTarget,
     SchemaDifferenceType,
@@ -37,7 +34,6 @@ import {
 import { AzureAuthType } from "../../src/models/contracts/azure";
 import { SchemaCompareService } from "../../src/services/schemaCompareService";
 import { ConnectionStore } from "../../src/models/connectionStore";
-import { connectionDialogViewId } from "../../src/constants/constants";
 
 suite("SchemaCompareWebViewController Tests", () => {
     let controller: SchemaCompareWebViewController;
@@ -52,8 +48,6 @@ suite("SchemaCompareWebViewController Tests", () => {
     let connectionManagerStub: sinon.SinonStubbedInstance<ConnectionManager>;
     let connectionStoreStub: sinon.SinonStubbedInstance<ConnectionStore>;
     let connectionChangedEmitter: vscode.EventEmitter<void>;
-    let successfulConnectionEmitter: vscode.EventEmitter<ConnectionSuccessfulEvent>;
-    let connectionDialogCompletedEmitter: vscode.EventEmitter<ConnectionDialogCompletedEvent>;
     const schemaCompareWebViewTitle = "Schema Compare";
     const operationId = "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE";
     let generateOperationIdStub: sinon.SinonStub<[], string>;
@@ -232,8 +226,6 @@ suite("SchemaCompareWebViewController Tests", () => {
             schemaCompareOpenScmpResult: undefined,
             saveScmpResultStatus: undefined,
             cancelResultStatus: undefined,
-            waitingForNewConnection: false,
-            pendingConnectionEndpointType: null,
         };
 
         mockContext = {
@@ -331,16 +323,24 @@ suite("SchemaCompareWebViewController Tests", () => {
         Object.defineProperty(connectionManagerStub, "onConnectionsChanged", {
             value: connectionChangedEmitter.event,
         });
-        successfulConnectionEmitter = new vscode.EventEmitter<ConnectionSuccessfulEvent>();
-        Object.defineProperty(connectionManagerStub, "onSuccessfulConnection", {
-            value: successfulConnectionEmitter.event,
+        // Reflect activeConnections in getUriForConnection lookups rather than returning a constant.
+        // Match requires both the profile ID and the server to match so that editing a saved
+        // connection's server does not accidentally reuse a stale URI.
+        connectionManagerStub.getUriForConnection.callsFake((profile: IConnectionProfile) => {
+            const profileId = (profile as IConnectionProfile).id;
+            return Object.keys(activeConnections).find((uri) => {
+                const creds = activeConnections[uri].credentials as IConnectionProfile;
+                if (profileId && creds.id === profileId) {
+                    return creds.server === profile.server;
+                }
+                return !profileId && creds.server === profile.server;
+            });
         });
-        connectionDialogCompletedEmitter =
-            new vscode.EventEmitter<ConnectionDialogCompletedEvent>();
-        Object.defineProperty(connectionManagerStub, "onConnectionDialogCompleted", {
-            value: connectionDialogCompletedEmitter.event,
+        // Default: no saved profile matched; individual tests override this where a specific profile matters
+        connectionManagerStub.findMatchingProfile.resolves({
+            profile: undefined,
+            score: utils.MatchScore.NotMatch,
         });
-        connectionManagerStub.getUriForConnection.returns("localhost,1433_undefined_sa_undefined");
 
         mockServerConnInfo = {
             server: "server1",
@@ -377,8 +377,6 @@ suite("SchemaCompareWebViewController Tests", () => {
         generateOperationIdStub?.restore();
 
         connectionChangedEmitter?.dispose();
-        successfulConnectionEmitter?.dispose();
-        connectionDialogCompletedEmitter?.dispose();
         sandbox.restore();
     });
 
@@ -879,7 +877,7 @@ suite("SchemaCompareWebViewController Tests", () => {
     });
 
     test("openScmp reducer - with Azure MFA connection without accountId - populates accountId from saved profile", async () => {
-        // Setup Azure MFA endpoint info without accountId
+        // Setup Azure MFA endpoint info without accountId in connectionDetails
         const azureMfaTargetEndpointInfo = {
             endpointType: 0,
             packageFilePath: "",
@@ -892,7 +890,7 @@ suite("SchemaCompareWebViewController Tests", () => {
                     server: "azure-server.database.windows.net",
                     database: "testdb",
                     authenticationType: "AzureMFA",
-                    accountId: undefined, // Missing accountId - this is what we're testing
+                    accountId: undefined, // Missing accountId — findMatchingProfile supplies it
                     user: "user@domain.com",
                     email: "user@domain.com",
                 },
@@ -925,18 +923,26 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         const openScmpStub = sandbox.stub(scUtils, "openScmp").resolves(expectedResultMock);
 
-        // Stub connectionManager methods
-        connectionManagerStub.getUriForScmpConnection.returns(undefined); // No existing connection
-        connectionManagerStub.connect.resolves(true);
+        // The saved profile for this Azure MFA connection already has accountId resolved
+        const azureSavedProfile: IConnectionProfile = {
+            server: "azure-server.database.windows.net",
+            database: "testdb",
+            authenticationType: "AzureMFA",
+            user: "user@domain.com",
+            accountId: "test-account-id-12345",
+            id: "azure-profile-id",
+            profileName: "Azure MFA Profile",
+        } as unknown as IConnectionProfile;
 
-        // Configure the ensureAccountIdForAzureMfa stub to populate accountId
-        const ensureAccountIdStub =
-            connectionManagerStub.ensureAccountIdForAzureMfa as sinon.SinonStub;
-        ensureAccountIdStub.callsFake(async (connInfo) => {
-            // Simulate what the real method does - populate accountId from saved profile
-            connInfo.accountId = "test-account-id-12345";
-            return true;
+        // Override findMatchingProfile to return the saved profile with accountId
+        connectionManagerStub.findMatchingProfile.resolves({
+            profile: azureSavedProfile,
+            score: utils.MatchScore.Id,
         });
+
+        // No existing SCMP connection — constructEndpointInfo will open a new one
+        connectionManagerStub.getUriForScmpConnection.returns(undefined);
+        connectionManagerStub.connect.resolves(true);
 
         const payload = {};
 
@@ -948,17 +954,18 @@ suite("SchemaCompareWebViewController Tests", () => {
         expect(showOpenDialogForScmpStub).to.have.been.calledOnce;
         expect(openScmpStub).to.have.been.calledOnce;
 
-        // Verify the helper was called to populate missing accountId
-        expect(ensureAccountIdStub).to.have.been.calledOnce;
+        // Verify findMatchingProfile was called to resolve the saved profile (and its accountId)
+        expect(connectionManagerStub.findMatchingProfile).to.have.been.called;
 
-        // Verify connect was called with accountId populated
-        const connectCallArgs = connectionManagerStub.connect.firstCall.args;
-        expect(connectCallArgs[1].accountId).to.equal("test-account-id-12345");
+        // Verify connect was called with credentials that include the accountId from the saved profile
+        expect(connectionManagerStub.connect).to.have.been.calledWithMatch(
+            sinon.match.string,
+            sinon.match({ accountId: "test-account-id-12345" }),
+        );
 
         expect(actualResult.schemaCompareOpenScmpResult).to.deep.equal(expectedResultMock);
 
         openScmpStub.restore();
-        ensureAccountIdStub.restore();
     });
 
     test("saveScmp reducer - when called - completes successfully", async () => {
@@ -1060,27 +1067,6 @@ suite("SchemaCompareWebViewController Tests", () => {
         );
     });
 
-    test("listActiveServers reducer - when called - returns: {conn_uri: {profileName: 'profile1', server: 'server1'}}", async () => {
-        const payload = {};
-
-        const actualResult = await controller["_reducerHandlers"].get("listActiveServers")(
-            mockInitialState,
-            payload,
-        );
-
-        const expectedResult = {
-            conn_uri: {
-                profileName: "profile1",
-                server: "server1",
-            },
-        };
-
-        expect(
-            actualResult.activeServers,
-            "listActiveServers should return: {conn_uri: {profileName: 'profile1', server: 'server1'}}",
-        ).to.deep.equal(expectedResult);
-    });
-
     test("listActiveServers reducer - includes inactive saved connections", async () => {
         const savedConnection = {
             id: "saved-connection-id",
@@ -1104,20 +1090,17 @@ suite("SchemaCompareWebViewController Tests", () => {
         });
     });
 
-    test("connection events - save-only profile refreshes picker without later auto-selection", async () => {
-        const executeCommandStub = sandbox.stub(vscode.commands, "executeCommand").resolves();
-        const connectionChangedSpy = sandbox.spy();
-        connectionManagerStub.onConnectionsChanged(connectionChangedSpy);
-        connectionManagerStub.isConnected.callsFake(
-            (connectionUri) => connectionUri in activeConnections,
+    test("listActiveServers reducer - excludes active but unsaved connections", async () => {
+        const actualResult = await controller["_reducerHandlers"].get("listActiveServers")(
+            mockInitialState,
+            {},
         );
-        controller.state = structuredClone(mockInitialState);
-        await controller["_reducerHandlers"].get("listActiveServers")(controller.state, {});
-        await controller["_reducerHandlers"].get("openAddNewConnectionDialog")(controller.state, {
-            endpointType: "source",
-        });
-        const connectionRequestId = executeCommandStub.firstCall.args[1].connectionDialogRequestId;
 
+        expect(actualResult.activeServers).not.to.have.property("conn_uri");
+        expect(actualResult.activeServers).to.deep.equal({});
+    });
+
+    test("listActiveServers reducer - lists a saved profile exactly once regardless of active-connection count", async () => {
         const savedConnection = {
             id: "saved-connection-id",
             profileName: "Saved connection",
@@ -1125,393 +1108,6 @@ suite("SchemaCompareWebViewController Tests", () => {
             profileSource: CredentialsQuickPickItemType.Profile,
         } as IConnectionProfileWithSource;
         connectionStoreStub.readAllConnections.resolves([savedConnection]);
-        connectionDialogCompletedEmitter.fire({
-            connected: false,
-            connectionRequestId,
-        });
-        await new Promise<void>((resolve) => setImmediate(resolve));
-
-        expect(connectionChangedSpy).not.to.have.been.called;
-        expect(controller.state.activeServers["saved-connection-id"]).to.deep.equal({
-            profileName: "Saved connection",
-            server: "saved-server",
-        });
-        expect(controller.state.waitingForNewConnection).to.be.false;
-        expect(controller.state.pendingConnectionEndpointType).to.be.null;
-
-        const unrelatedConnection = new ConnectionInfo();
-        unrelatedConnection.credentials = {
-            id: "",
-            profileName: "Unrelated connection",
-            server: "unrelated-server",
-        } as IConnectionProfile;
-        activeConnections["unrelated-uri"] = unrelatedConnection;
-        const sourceEndpointBeforeUnrelatedConnection = structuredClone(
-            controller.state.sourceEndpointInfo,
-        );
-        successfulConnectionEmitter.fire({
-            connection: unrelatedConnection,
-            fileUri: "unrelated-uri",
-        });
-        await new Promise<void>((resolve) => setImmediate(resolve));
-
-        expect(connectionManagerStub.connect).not.to.have.been.called;
-        expect(controller.state.sourceEndpointInfo).to.deep.equal(
-            sourceEndpointBeforeUnrelatedConnection,
-        );
-    });
-
-    test("connection events - transient validation URI is ignored before persistent connection", async () => {
-        const executeCommandStub = sandbox.stub(vscode.commands, "executeCommand").resolves();
-        let transientConnectionIsConnected = false;
-        let persistentConnectionIsConnected = false;
-        connectionManagerStub.isConnected.callsFake(
-            (connectionUri) =>
-                connectionUri === "conn_uri" ||
-                (connectionUri === "transient-connection-uri" && transientConnectionIsConnected) ||
-                (connectionUri === "persistent-connection-uri" && persistentConnectionIsConnected),
-        );
-        connectionManagerStub.isConnecting.callsFake(
-            (connectionUri) =>
-                (connectionUri === "transient-connection-uri" && !transientConnectionIsConnected) ||
-                (connectionUri === "persistent-connection-uri" && !persistentConnectionIsConnected),
-        );
-        controller.state = structuredClone(mockInitialState);
-        await controller["_reducerHandlers"].get("listActiveServers")(controller.state, {});
-        await controller["_reducerHandlers"].get("openAddNewConnectionDialog")(controller.state, {
-            endpointType: "source",
-        });
-        const connectionRequestId = executeCommandStub.firstCall.args[1].connectionDialogRequestId;
-
-        const newConnectionCredentials = {
-            id: "",
-            profileName: "New connection",
-            server: "new-server",
-            user: "new-user",
-        } as IConnectionProfile;
-        const transientConnection = new ConnectionInfo();
-        transientConnection.credentials = newConnectionCredentials;
-        activeConnections["transient-connection-uri"] = transientConnection;
-        connectionChangedEmitter.fire();
-        await new Promise<void>((resolve) => setImmediate(resolve));
-
-        expect(controller.state.waitingForNewConnection).to.be.true;
-
-        transientConnectionIsConnected = true;
-        successfulConnectionEmitter.fire({
-            connection: transientConnection,
-            fileUri: "transient-connection-uri",
-            connectionSource: connectionDialogViewId,
-            connectionRequestId,
-        });
-        await new Promise<void>((resolve) => setImmediate(resolve));
-
-        expect(controller.state.waitingForNewConnection).to.be.true;
-        expect(connectionManagerStub.listDatabases).not.to.have.been.calledWith(
-            "transient-connection-uri",
-        );
-
-        delete activeConnections["transient-connection-uri"];
-        transientConnectionIsConnected = false;
-        connectionChangedEmitter.fire();
-        await new Promise<void>((resolve) => setImmediate(resolve));
-
-        expect(controller.state.waitingForNewConnection).to.be.true;
-
-        const persistentConnection = new ConnectionInfo();
-        persistentConnection.credentials = newConnectionCredentials;
-        activeConnections["persistent-connection-uri"] = persistentConnection;
-        connectionChangedEmitter.fire();
-        await new Promise<void>((resolve) => setImmediate(resolve));
-
-        persistentConnectionIsConnected = true;
-        successfulConnectionEmitter.fire({
-            connection: persistentConnection,
-            fileUri: "persistent-connection-uri",
-            connectionRequestId,
-        });
-        await new Promise<void>((resolve) => setImmediate(resolve));
-
-        expect(controller.state.waitingForNewConnection).to.be.false;
-        expect(controller.state.sourceEndpointInfo.ownerUri).to.equal("persistent-connection-uri");
-        expect(connectionManagerStub.listDatabases).to.have.been.calledWith(
-            "persistent-connection-uri",
-        );
-    });
-
-    test("connection events - stale dialog completion does not cancel a newer request", async () => {
-        const executeCommandStub = sandbox
-            .stub(vscode.commands, "executeCommand")
-            .resolves(undefined);
-        controller.state = structuredClone(mockInitialState);
-
-        await controller["_reducerHandlers"].get("openAddNewConnectionDialog")(controller.state, {
-            endpointType: "source",
-        });
-        const firstRequestId = executeCommandStub.firstCall.args[1].connectionDialogRequestId;
-
-        await controller["_reducerHandlers"].get("openAddNewConnectionDialog")(controller.state, {
-            endpointType: "target",
-        });
-        const secondRequestId = executeCommandStub.secondCall.args[1].connectionDialogRequestId;
-
-        expect(firstRequestId).not.to.equal(secondRequestId);
-
-        connectionDialogCompletedEmitter.fire({
-            connected: false,
-            connectionRequestId: firstRequestId,
-        });
-        await new Promise<void>((resolve) => setImmediate(resolve));
-
-        expect(controller.state.waitingForNewConnection).to.be.true;
-        expect(controller.state.pendingConnectionEndpointType).to.equal("target");
-
-        connectionDialogCompletedEmitter.fire({
-            connected: false,
-            connectionRequestId: secondRequestId,
-        });
-        await new Promise<void>((resolve) => setImmediate(resolve));
-
-        expect(controller.state.waitingForNewConnection).to.be.false;
-        expect(controller.state.pendingConnectionEndpointType).to.be.null;
-    });
-
-    test("connection events - concurrent controllers only select their own request", async () => {
-        const executeCommandStub = sandbox
-            .stub(vscode.commands, "executeCommand")
-            .resolves(undefined);
-        const secondController = new SchemaCompareWebViewController(
-            mockContext,
-            treeNode,
-            undefined,
-            false,
-            schemaCompareService,
-            connectionManagerStub,
-            deploymentOptionsResultMock,
-            schemaCompareWebViewTitle,
-        );
-        controller.state = structuredClone(mockInitialState);
-        secondController.state = structuredClone(mockInitialState);
-
-        await controller["_reducerHandlers"].get("openAddNewConnectionDialog")(controller.state, {
-            endpointType: "source",
-        });
-        const firstRequestId = executeCommandStub.firstCall.args[1].connectionDialogRequestId;
-
-        await secondController["_reducerHandlers"].get("openAddNewConnectionDialog")(
-            secondController.state,
-            { endpointType: "target" },
-        );
-        const secondRequestId = executeCommandStub.secondCall.args[1].connectionDialogRequestId;
-
-        const firstConnection = new ConnectionInfo();
-        firstConnection.credentials = {
-            id: "",
-            profileName: "First dialog connection",
-            server: "first-server",
-        } as IConnectionProfile;
-        activeConnections["first-persistent-uri"] = firstConnection;
-        connectionManagerStub.isConnected.withArgs("first-persistent-uri").returns(true);
-
-        successfulConnectionEmitter.fire({
-            connection: firstConnection,
-            fileUri: "first-persistent-uri",
-            connectionRequestId: firstRequestId,
-        });
-        await new Promise<void>((resolve) => setImmediate(resolve));
-
-        expect(controller.state.waitingForNewConnection).to.be.false;
-        expect(controller.state.sourceEndpointInfo.ownerUri).to.equal("first-persistent-uri");
-        expect(secondController.state.waitingForNewConnection).to.be.true;
-        expect(secondController.state.targetEndpointInfo).to.be.undefined;
-
-        connectionDialogCompletedEmitter.fire({
-            connected: false,
-            connectionRequestId: secondRequestId,
-        });
-        await new Promise<void>((resolve) => setImmediate(resolve));
-
-        expect(secondController.state.waitingForNewConnection).to.be.false;
-        expect(controller.state.sourceEndpointInfo.ownerUri).to.equal("first-persistent-uri");
-    });
-
-    test("connection events - connected completion selects a reused URI without a success event", async () => {
-        const executeCommandStub = sandbox
-            .stub(vscode.commands, "executeCommand")
-            .resolves(undefined);
-        controller.state = structuredClone(mockInitialState);
-        await controller["_reducerHandlers"].get("openAddNewConnectionDialog")(controller.state, {
-            endpointType: "target",
-        });
-        const connectionRequestId = executeCommandStub.firstCall.args[1].connectionDialogRequestId;
-
-        const reusedConnection = new ConnectionInfo();
-        reusedConnection.credentials = {
-            id: "",
-            profileName: "Reused connection",
-            server: "reused-server",
-        } as IConnectionProfile;
-        activeConnections["reused-connection-uri"] = reusedConnection;
-        connectionManagerStub.isConnected.withArgs("reused-connection-uri").returns(true);
-
-        connectionDialogCompletedEmitter.fire({
-            connected: true,
-            connectionRequestId,
-            connectionUri: "reused-connection-uri",
-        });
-        await new Promise<void>((resolve) => setImmediate(resolve));
-
-        expect(controller.state.waitingForNewConnection).to.be.false;
-        expect(controller.state.targetEndpointInfo.ownerUri).to.equal("reused-connection-uri");
-        expect(connectionManagerStub.listDatabases).to.have.been.calledWith(
-            "reused-connection-uri",
-        );
-    });
-
-    test("connection events - stale refresh cannot select or clear a newer request", async () => {
-        const executeCommandStub = sandbox
-            .stub(vscode.commands, "executeCommand")
-            .resolves(undefined);
-        let resolveSavedConnections!: (connections: IConnectionProfileWithSource[]) => void;
-        connectionStoreStub.readAllConnections.returns(
-            new Promise<IConnectionProfileWithSource[]>((resolve) => {
-                resolveSavedConnections = resolve;
-            }),
-        );
-        controller.state = structuredClone(mockInitialState);
-        await controller["_reducerHandlers"].get("openAddNewConnectionDialog")(controller.state, {
-            endpointType: "source",
-        });
-        const firstRequestId = executeCommandStub.firstCall.args[1].connectionDialogRequestId;
-
-        const staleConnection = new ConnectionInfo();
-        staleConnection.credentials = {
-            id: "",
-            profileName: "Stale connection",
-            server: "stale-server",
-        } as IConnectionProfile;
-        activeConnections["stale-connection-uri"] = staleConnection;
-        connectionManagerStub.isConnected.withArgs("stale-connection-uri").returns(true);
-
-        successfulConnectionEmitter.fire({
-            connection: staleConnection,
-            fileUri: "stale-connection-uri",
-            connectionRequestId: firstRequestId,
-        });
-        await new Promise<void>((resolve) => setImmediate(resolve));
-
-        await controller["_reducerHandlers"].get("openAddNewConnectionDialog")(controller.state, {
-            endpointType: "target",
-        });
-        const secondRequestId = executeCommandStub.secondCall.args[1].connectionDialogRequestId;
-
-        resolveSavedConnections([]);
-        await new Promise<void>((resolve) => setImmediate(resolve));
-
-        expect(controller.state.waitingForNewConnection).to.be.true;
-        expect(controller.state.pendingConnectionEndpointType).to.equal("target");
-        expect(controller.state.sourceEndpointInfo.ownerUri).to.equal(
-            mockInitialState.sourceEndpointInfo.ownerUri,
-        );
-        expect(connectionManagerStub.listDatabases).not.to.have.been.calledWith(
-            "stale-connection-uri",
-        );
-
-        connectionDialogCompletedEmitter.fire({
-            connected: false,
-            connectionRequestId: secondRequestId,
-        });
-        await new Promise<void>((resolve) => setImmediate(resolve));
-    });
-
-    test("connection events - cancellation invalidates an already claimed success", async () => {
-        const executeCommandStub = sandbox
-            .stub(vscode.commands, "executeCommand")
-            .resolves(undefined);
-        let resolveSavedConnections!: (connections: IConnectionProfileWithSource[]) => void;
-        connectionStoreStub.readAllConnections.returns(
-            new Promise<IConnectionProfileWithSource[]>((resolve) => {
-                resolveSavedConnections = resolve;
-            }),
-        );
-        controller.state = structuredClone(mockInitialState);
-        await controller["_reducerHandlers"].get("openAddNewConnectionDialog")(controller.state, {
-            endpointType: "source",
-        });
-        const connectionRequestId = executeCommandStub.firstCall.args[1].connectionDialogRequestId;
-
-        const canceledConnection = new ConnectionInfo();
-        canceledConnection.credentials = {
-            id: "",
-            profileName: "Canceled connection",
-            server: "canceled-server",
-        } as IConnectionProfile;
-        activeConnections["canceled-connection-uri"] = canceledConnection;
-        connectionManagerStub.isConnected.withArgs("canceled-connection-uri").returns(true);
-
-        successfulConnectionEmitter.fire({
-            connection: canceledConnection,
-            fileUri: "canceled-connection-uri",
-            connectionRequestId,
-        });
-        await new Promise<void>((resolve) => setImmediate(resolve));
-
-        connectionDialogCompletedEmitter.fire({
-            connected: false,
-            connectionRequestId,
-        });
-
-        expect(controller.state.waitingForNewConnection).to.be.false;
-        expect(controller.state.pendingConnectionEndpointType).to.be.null;
-
-        resolveSavedConnections([]);
-        await new Promise<void>((resolve) => setImmediate(resolve));
-
-        expect(controller.state.sourceEndpointInfo.ownerUri).to.equal(
-            mockInitialState.sourceEndpointInfo.ownerUri,
-        );
-        expect(connectionManagerStub.listDatabases).not.to.have.been.calledWith(
-            "canceled-connection-uri",
-        );
-    });
-
-    test("listActiveServers reducer - deduplicates multiple active URIs for a saved profile", async () => {
-        const savedConnection = {
-            id: "saved-connection-id",
-            profileName: "Saved connection",
-            server: "saved-server",
-            profileSource: CredentialsQuickPickItemType.Profile,
-        } as IConnectionProfileWithSource;
-        const savedCredentials = {
-            id: savedConnection.id,
-            profileName: savedConnection.profileName,
-            server: savedConnection.server,
-        } as IConnectionProfile;
-        const unsavedCredentials = {
-            id: "",
-            profileName: "Unsaved connection",
-            server: "unsaved-server",
-        } as IConnectionProfile;
-        const savedConnectionOne = new ConnectionInfo();
-        savedConnectionOne.credentials = savedCredentials;
-        const savedConnectionTwo = new ConnectionInfo();
-        savedConnectionTwo.credentials = { ...savedCredentials };
-        const unsavedConnection = new ConnectionInfo();
-        unsavedConnection.credentials = unsavedCredentials;
-        connectionStoreStub.readAllConnections.resolves([savedConnection]);
-        activeConnections = {
-            "saved-uri-1": savedConnectionOne,
-            "saved-uri-2": savedConnectionTwo,
-            "unsaved-uri": unsavedConnection,
-        };
-        connectionManagerStub.isConnected.callsFake(
-            (connectionUri) => connectionUri in activeConnections,
-        );
-        connectionManagerStub.getUriForConnection.callsFake((connection) =>
-            (connection as IConnectionProfile).id === savedConnection.id
-                ? "saved-uri-1"
-                : undefined,
-        );
 
         const actualResult = await controller["_reducerHandlers"].get("listActiveServers")(
             mockInitialState,
@@ -1523,14 +1119,10 @@ suite("SchemaCompareWebViewController Tests", () => {
                 profileName: "Saved connection",
                 server: "saved-server",
             },
-            "unsaved-uri": {
-                profileName: "Unsaved connection",
-                server: "unsaved-server",
-            },
         });
     });
 
-    test("listActiveServers reducer - does not share a URI between saved profile IDs", async () => {
+    test("listActiveServers reducer - multiple saved profiles each appear in activeServers under their own ID", async () => {
         const firstSavedConnection = {
             id: "first-saved-id",
             profileName: "First saved connection",
@@ -1544,28 +1136,27 @@ suite("SchemaCompareWebViewController Tests", () => {
             id: "second-saved-id",
             profileName: "Second saved connection",
         };
-        const activeConnection = new ConnectionInfo();
-        activeConnection.credentials = { ...firstSavedConnection };
-        activeConnections = {
-            "first-saved-uri": activeConnection,
-        };
         connectionStoreStub.readAllConnections.resolves([
             firstSavedConnection,
             secondSavedConnection,
         ]);
-        connectionManagerStub.isConnected.callsFake(
-            (connectionUri) => connectionUri in activeConnections,
+
+        const actualResult = await controller["_reducerHandlers"].get("listActiveServers")(
+            mockInitialState,
+            {},
         );
 
-        await controller["_reducerHandlers"].get("listActiveServers")(mockInitialState, {});
-
-        expect(controller["connectionUris"].get(firstSavedConnection.id)).to.equal(
-            "first-saved-uri",
+        expect(actualResult.activeServers).to.have.property("first-saved-id");
+        expect(actualResult.activeServers).to.have.property("second-saved-id");
+        expect(actualResult.activeServers["first-saved-id"].profileName).to.equal(
+            "First saved connection",
         );
-        expect(controller["connectionUris"].has(secondSavedConnection.id)).to.be.false;
+        expect(actualResult.activeServers["second-saved-id"].profileName).to.equal(
+            "Second saved connection",
+        );
     });
 
-    test("listActiveServers reducer - compares connection options when IDs are unavailable", async () => {
+    test("listActiveServers reducer - saved connection without ID uses server_database as its activeServers key", async () => {
         const savedConnection = {
             id: "",
             profileName: "Saved connection",
@@ -1576,41 +1167,44 @@ suite("SchemaCompareWebViewController Tests", () => {
             trustServerCertificate: false,
             profileSource: CredentialsQuickPickItemType.Profile,
         } as IConnectionProfileWithSource;
-        const activeConnection = new ConnectionInfo();
-        activeConnection.credentials = {
-            ...savedConnection,
-            trustServerCertificate: true,
-        };
-        activeConnections = {
-            "active-uri": activeConnection,
-        };
         connectionStoreStub.readAllConnections.resolves([savedConnection]);
-        connectionManagerStub.isConnected.callsFake(
-            (connectionUri) => connectionUri in activeConnections,
+
+        const actualResult = await controller["_reducerHandlers"].get("listActiveServers")(
+            mockInitialState,
+            {},
         );
 
-        await controller["_reducerHandlers"].get("listActiveServers")(mockInitialState, {});
-
-        expect(controller["connectionUris"].has("shared-server_saved-database")).to.be.false;
-        expect(controller["connectionUris"].get("active-uri")).to.equal("active-uri");
+        // Profile with no ID appears under server_database composite key
+        expect(actualResult.activeServers).to.have.property("shared-server_saved-database");
+        expect(actualResult.activeServers["shared-server_saved-database"]).to.deep.equal({
+            profileName: "Saved connection",
+            server: "shared-server",
+            database: "saved-database",
+        });
     });
 
-    test("listDatabasesForActiveServer reducer - when called - returns: ['db1', 'db2']", async () => {
+    test("listDatabasesForActiveServer reducer - rejects an unsaved active connection", async () => {
         const payload = { connectionUri: "conn_uri" };
 
         const actualResult = await controller["_reducerHandlers"].get(
             "listDatabasesForActiveServer",
         )(mockInitialState, payload);
 
-        const expectedResult = ["db1", "db2"];
-
-        expect(
-            actualResult.databases,
-            "listActiveServers should return ['db1', 'db2']",
-        ).to.deep.equal(expectedResult);
+        expect(actualResult.databases).to.deep.equal([]);
+        expect(actualResult.isDatabaseListLoading).to.be.false;
+        expect(actualResult.databaseListError).to.contain("conn_uri");
+        expect(connectionManagerStub.listDatabases).not.to.have.been.called;
     });
 
     test("listDatabasesForActiveServer reducer - immediately replaces old databases with the configured database while loading", async () => {
+        const savedConnection = {
+            id: "conn_uri",
+            profileName: "Saved connection",
+            server: "server1",
+            profileSource: CredentialsQuickPickItemType.Profile,
+        } as IConnectionProfileWithSource;
+        connectionStoreStub.readAllConnections.resolves([savedConnection]);
+        mockConnectionInfo.credentials = savedConnection;
         let resolveDatabases!: (databases: string[]) => void;
         connectionManagerStub.listDatabases.returns(
             new Promise<string[]>((resolve) => {
@@ -1640,6 +1234,27 @@ suite("SchemaCompareWebViewController Tests", () => {
     });
 
     test("listDatabasesForActiveServer reducer - caches database lists per connection", async () => {
+        const serverA = {
+            id: "server-a-uri",
+            profileName: "Server A",
+            server: "server-a",
+            profileSource: CredentialsQuickPickItemType.Profile,
+        } as IConnectionProfileWithSource;
+        const serverB = {
+            id: "server-b-uri",
+            profileName: "Server B",
+            server: "server-b",
+            profileSource: CredentialsQuickPickItemType.Profile,
+        } as IConnectionProfileWithSource;
+        const serverAConnection = new ConnectionInfo();
+        serverAConnection.credentials = serverA;
+        const serverBConnection = new ConnectionInfo();
+        serverBConnection.credentials = serverB;
+        connectionStoreStub.readAllConnections.resolves([serverA, serverB]);
+        activeConnections = {
+            "server-a-uri": serverAConnection,
+            "server-b-uri": serverBConnection,
+        };
         connectionManagerStub.isConnected.withArgs("server-a-uri").returns(true);
         connectionManagerStub.isConnected.withArgs("server-b-uri").returns(true);
         connectionManagerStub.listDatabases.withArgs("server-a-uri").resolves(["a-database"]);
@@ -1698,6 +1313,27 @@ suite("SchemaCompareWebViewController Tests", () => {
 
     test("listDatabasesForActiveServer reducer - stale request cannot overwrite newer databases", async () => {
         let resolveFirstDatabases!: (databases: string[]) => void;
+        const serverA = {
+            id: "server-a-uri",
+            profileName: "Server A",
+            server: "server-a",
+            profileSource: CredentialsQuickPickItemType.Profile,
+        } as IConnectionProfileWithSource;
+        const serverB = {
+            id: "server-b-uri",
+            profileName: "Server B",
+            server: "server-b",
+            profileSource: CredentialsQuickPickItemType.Profile,
+        } as IConnectionProfileWithSource;
+        const serverAConnection = new ConnectionInfo();
+        serverAConnection.credentials = serverA;
+        const serverBConnection = new ConnectionInfo();
+        serverBConnection.credentials = serverB;
+        connectionStoreStub.readAllConnections.resolves([serverA, serverB]);
+        activeConnections = {
+            "server-a-uri": serverAConnection,
+            "server-b-uri": serverBConnection,
+        };
         connectionManagerStub.isConnected.withArgs("server-a-uri").returns(true);
         connectionManagerStub.isConnected.withArgs("server-b-uri").returns(true);
         connectionManagerStub.listDatabases.withArgs("server-a-uri").returns(
@@ -1724,82 +1360,6 @@ suite("SchemaCompareWebViewController Tests", () => {
         expect(controller["databaseListCache"].has("server-a-uri")).to.be.false;
     });
 
-    test("connection events - auto-selection invalidates an older saved-profile database load", async () => {
-        const executeCommandStub = sandbox
-            .stub(vscode.commands, "executeCommand")
-            .resolves(undefined);
-        const savedConnection = {
-            id: "saved-connection-id",
-            profileName: "Saved connection",
-            server: "saved-server",
-            profileSource: CredentialsQuickPickItemType.Profile,
-        } as IConnectionProfileWithSource;
-        const savedConnectionInfo = new ConnectionInfo();
-        savedConnectionInfo.credentials = savedConnection;
-        let resolveSavedDatabases!: (databases: string[]) => void;
-        connectionStoreStub.readAllConnections.resolves([savedConnection]);
-        connectionManagerStub.connect.callsFake(async () => {
-            activeConnections["saved-connection-uri"] = savedConnectionInfo;
-            return true;
-        });
-        connectionManagerStub.isConnected.callsFake(
-            (connectionUri) => connectionUri === "conn_uri" || connectionUri in activeConnections,
-        );
-        connectionManagerStub.listDatabases.withArgs("saved-connection-uri").returns(
-            new Promise<string[]>((resolve) => {
-                resolveSavedDatabases = resolve;
-            }),
-        );
-        connectionManagerStub.listDatabases
-            .withArgs("new-connection-uri")
-            .resolves(["tempdb", "z-database", "master", "a-database"]);
-        controller.state = structuredClone(mockInitialState);
-        await controller["_reducerHandlers"].get("listActiveServers")(controller.state, {});
-
-        const savedDatabaseLoad = controller["_reducerHandlers"].get(
-            "listDatabasesForActiveServer",
-        )(controller.state, { connectionUri: savedConnection.id });
-        await new Promise<void>((resolve) => setImmediate(resolve));
-
-        await controller["_reducerHandlers"].get("openAddNewConnectionDialog")(controller.state, {
-            endpointType: "source",
-        });
-        const connectionRequestId = executeCommandStub.firstCall.args[1].connectionDialogRequestId;
-        const newConnection = new ConnectionInfo();
-        newConnection.credentials = {
-            id: "",
-            profileName: "New connection",
-            server: "new-server",
-        } as IConnectionProfile;
-        activeConnections["new-connection-uri"] = newConnection;
-
-        successfulConnectionEmitter.fire({
-            connection: newConnection,
-            fileUri: "new-connection-uri",
-            connectionRequestId,
-        });
-        await new Promise<void>((resolve) => setImmediate(resolve));
-
-        expect(controller.state.databases).to.deep.equal([
-            "a-database",
-            "z-database",
-            "master",
-            "tempdb",
-        ]);
-        expect(controller.state.sourceEndpointInfo.databaseName).to.equal("a-database");
-
-        resolveSavedDatabases(["saved-database"]);
-        await savedDatabaseLoad;
-
-        expect(controller.state.databases).to.deep.equal([
-            "a-database",
-            "z-database",
-            "master",
-            "tempdb",
-        ]);
-        expect(controller.state.sourceEndpointInfo.databaseName).to.equal("a-database");
-    });
-
     test("listDatabasesForActiveServer reducer - connects an inactive saved connection", async () => {
         const savedConnection = {
             id: "saved-connection-id",
@@ -1810,14 +1370,22 @@ suite("SchemaCompareWebViewController Tests", () => {
         connectionStoreStub.readAllConnections.resolves([savedConnection]);
         const savedConnectionInfo = new ConnectionInfo();
         savedConnectionInfo.credentials = savedConnection;
-        connectionManagerStub.connect.callsFake(async () => {
-            activeConnections["saved-connection-uri"] = savedConnectionInfo;
+        // Capture the generated URI that connectToServer passes to connect
+        let capturedUri: string;
+        connectionManagerStub.connect.callsFake(async (uri: string) => {
+            capturedUri = uri;
+            activeConnections[uri] = savedConnectionInfo;
             return true;
         });
         connectionManagerStub.isConnected.callsFake(
-            (connectionUri) =>
-                connectionUri === "conn_uri" || connectionUri === "saved-connection-uri",
+            (connectionUri) => connectionUri === "conn_uri" || connectionUri in activeConnections,
         );
+        // confirmSelectedDatabase calls getConnectionInfo then findMatchingProfile
+        connectionManagerStub.getConnectionInfo.returns(savedConnectionInfo);
+        connectionManagerStub.findMatchingProfile.resolves({
+            profile: savedConnection as unknown as IConnectionProfile,
+            score: utils.MatchScore.Id,
+        });
         const state = structuredClone(mockInitialState);
         state.activeServers = {
             "saved-connection-id": {
@@ -1830,8 +1398,12 @@ suite("SchemaCompareWebViewController Tests", () => {
             "listDatabasesForActiveServer",
         )(state, { connectionUri: "saved-connection-id" });
 
-        expect(connectionManagerStub.connect).to.have.been.calledWith("", savedConnection);
-        expect(connectionManagerStub.listDatabases).to.have.been.calledWith("saved-connection-uri");
+        // connect is called with the generated adhoc URI and the saved profile
+        expect(connectionManagerStub.connect).to.have.been.calledWithMatch(
+            sinon.match.string,
+            sinon.match({ id: savedConnection.id }),
+        );
+        expect(connectionManagerStub.listDatabases).to.have.been.calledWith(capturedUri);
         expect(actualResult.databases).to.deep.equal(["db1", "db2"]);
         const confirmedResult = await controller["_reducerHandlers"].get("confirmSelectedDatabase")(
             actualResult,
@@ -1842,7 +1414,7 @@ suite("SchemaCompareWebViewController Tests", () => {
             },
         );
 
-        expect(confirmedResult.sourceEndpointInfo.ownerUri).to.equal("saved-connection-uri");
+        expect(confirmedResult.sourceEndpointInfo.ownerUri).to.equal(capturedUri);
         expect(confirmedResult.sourceEndpointInfo.connectionId).to.equal("saved-connection-id");
         expect(confirmedResult.sourceEndpointInfo.databaseName).to.equal("db1");
     });
@@ -1871,10 +1443,13 @@ suite("SchemaCompareWebViewController Tests", () => {
         connectionManagerStub.isConnected.callsFake(
             (connectionUri) => connectionUri in activeConnections,
         );
-        connectionManagerStub.connect.callsFake(async () => {
+        // Capture the generated URI for the new connection
+        let capturedUri: string;
+        connectionManagerStub.connect.callsFake(async (uri: string) => {
+            capturedUri = uri;
             const editedConnectionInfo = new ConnectionInfo();
             editedConnectionInfo.credentials = editedConnection;
-            activeConnections["new-connection-uri"] = editedConnectionInfo;
+            activeConnections[uri] = editedConnectionInfo;
             return true;
         });
         const state = structuredClone(mockInitialState);
@@ -1884,8 +1459,12 @@ suite("SchemaCompareWebViewController Tests", () => {
             "listDatabasesForActiveServer",
         )(state, { connectionUri: "saved-connection-id" });
 
-        expect(connectionManagerStub.connect).to.have.been.calledWith("", editedConnection);
-        expect(connectionManagerStub.listDatabases).to.have.been.calledWith("new-connection-uri");
+        // connect is called with a generated URI and the edited profile
+        expect(connectionManagerStub.connect).to.have.been.calledWithMatch(
+            sinon.match.string,
+            sinon.match({ server: editedConnection.server, user: editedConnection.user }),
+        );
+        expect(connectionManagerStub.listDatabases).to.have.been.calledWith(capturedUri);
         expect(connectionManagerStub.listDatabases).not.to.have.been.calledWith(
             "old-connection-uri",
         );
@@ -1901,15 +1480,23 @@ suite("SchemaCompareWebViewController Tests", () => {
         } as IConnectionProfileWithSource;
         const savedConnectionInfo = new ConnectionInfo();
         savedConnectionInfo.credentials = savedConnection;
-        let nextConnectionUri = "first-connection-uri";
+        // Capture each URI that connectToServer generates for its connect call
+        const capturedUris: string[] = [];
         connectionStoreStub.readAllConnections.resolves([savedConnection]);
-        connectionManagerStub.connect.callsFake(async () => {
-            activeConnections[nextConnectionUri] = savedConnectionInfo;
+        connectionManagerStub.connect.callsFake(async (uri: string) => {
+            capturedUris.push(uri);
+            activeConnections[uri] = savedConnectionInfo;
             return true;
         });
         connectionManagerStub.isConnected.callsFake(
             (connectionUri) => connectionUri in activeConnections,
         );
+        // confirmSelectedDatabase needs getConnectionInfo and findMatchingProfile
+        connectionManagerStub.getConnectionInfo.returns(savedConnectionInfo);
+        connectionManagerStub.findMatchingProfile.resolves({
+            profile: savedConnection as unknown as IConnectionProfile,
+            score: utils.MatchScore.Id,
+        });
         const state = structuredClone(mockInitialState);
         controller.state = state;
         await controller["_reducerHandlers"].get("listActiveServers")(state, {});
@@ -1926,13 +1513,13 @@ suite("SchemaCompareWebViewController Tests", () => {
             },
         );
 
-        expect(confirmedResult.sourceEndpointInfo.ownerUri).to.equal("first-connection-uri");
+        const firstUri = capturedUris[0];
+        expect(confirmedResult.sourceEndpointInfo.ownerUri).to.equal(firstUri);
         expect(confirmedResult.sourceEndpointInfo.connectionId).to.equal(savedConnection.id);
 
-        delete activeConnections["first-connection-uri"];
+        delete activeConnections[firstUri];
         connectionChangedEmitter.fire();
         await new Promise<void>((resolve) => setImmediate(resolve));
-        nextConnectionUri = "second-connection-uri";
 
         const reopenedResult = await controller["_reducerHandlers"].get(
             "listDatabasesForActiveServer",
@@ -1940,10 +1527,12 @@ suite("SchemaCompareWebViewController Tests", () => {
             connectionUri: confirmedResult.sourceEndpointInfo.connectionId,
         });
 
-        expect(connectionManagerStub.connect).to.have.been.calledWith("", savedConnection);
-        expect(connectionManagerStub.listDatabases).to.have.been.calledWith(
-            "second-connection-uri",
+        const secondUri = capturedUris[1];
+        expect(connectionManagerStub.connect).to.have.been.calledWithMatch(
+            sinon.match.string,
+            sinon.match({ id: savedConnection.id }),
         );
+        expect(connectionManagerStub.listDatabases).to.have.been.calledWith(secondUri);
         expect(reopenedResult.databases).to.deep.equal(["db1", "db2"]);
     });
 
@@ -1961,14 +1550,20 @@ suite("SchemaCompareWebViewController Tests", () => {
             "failed-connection-uri": failedConnection,
         };
         connectionStoreStub.readAllConnections.resolves([savedConnection]);
+        // getUriForConnection returns the stale failed URI; isConnected returns false for it
         connectionManagerStub.getUriForConnection.returns("failed-connection-uri");
         connectionManagerStub.isConnected.callsFake(
-            (connectionUri) => connectionUri === "successful-connection-uri",
+            (connectionUri) =>
+                connectionUri in activeConnections &&
+                !activeConnections[connectionUri].errorMessage,
         );
-        connectionManagerStub.connect.callsFake(async () => {
+        // Capture the generated URI that connectToServer uses for the new connection
+        let capturedUri: string;
+        connectionManagerStub.connect.callsFake(async (uri: string) => {
+            capturedUri = uri;
             const successfulConnection = new ConnectionInfo();
             successfulConnection.credentials = { ...savedConnection };
-            activeConnections["successful-connection-uri"] = successfulConnection;
+            activeConnections[uri] = successfulConnection;
             return true;
         });
         const state = structuredClone(mockInitialState);
@@ -1983,9 +1578,8 @@ suite("SchemaCompareWebViewController Tests", () => {
             "listDatabasesForActiveServer",
         )(state, { connectionUri: "saved-connection-id" });
 
-        expect(connectionManagerStub.listDatabases).to.have.been.calledWith(
-            "successful-connection-uri",
-        );
+        // listDatabases is called with the new generated URI, not the stale failed one
+        expect(connectionManagerStub.listDatabases).to.have.been.calledWith(capturedUri);
         expect(connectionManagerStub.listDatabases).not.to.have.been.calledWith(
             "failed-connection-uri",
         );

@@ -64,7 +64,6 @@ export enum TelemetryActions {
     PublishProjectChanges = "PublishProjectChanges",
     PublishDatabaseChanges = "PublishDatabaseChanges",
     BuildProject = "BuildProject",
-    AddNewConnectionDialogOpened = "AddNewConnectionDialogOpened",
     ListingActiveServers = "ListingActiveServers",
     SqlProjectInstalledVerification = "SqlProjectInstalledVerification",
     Compare = "Compare",
