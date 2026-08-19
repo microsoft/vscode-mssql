@@ -638,12 +638,14 @@ export default class QueryRunner {
         message.time = new Date(message.time).toLocaleTimeString();
         message.rowsAffected = getRowsAffectedFromMessage(message.message);
 
-        // save the message into the batch summary so it can be restored on view refresh
-        if (message.batchId >= 0 && this._batchSetMessages[message.batchId] !== undefined) {
-            this._batchSetMessages[message.batchId].push(message);
+        if (message.isError || Utils.shouldShowBatchMessages(this.uri)) {
+            // save the message into the batch summary so it can be restored on view refresh
+            if (message.batchId >= 0 && this._batchSetMessages[message.batchId] !== undefined) {
+                this._batchSetMessages[message.batchId].push(message);
+            }
         }
 
-        // Send the message to the results pane
+        // Send the message so non-display state, such as rows affected, remains current
         this._messageEmitter.fire(message);
 
         // Set row count on status bar if there are no errors
