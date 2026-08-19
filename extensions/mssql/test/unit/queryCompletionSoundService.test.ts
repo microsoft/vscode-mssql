@@ -27,7 +27,7 @@ suite("QueryCompletionSoundService", () => {
     let spawnProcessStub: sinon.SinonStub;
     let statFileStub: sinon.SinonStub;
     let platformStub: sinon.SinonStub;
-    let sendErrorEventStub: sinon.SinonStub;
+    let sendErrorEvent: sinon.SinonStub;
     let loggerWarnStub: sinon.SinonStub;
     let loggerErrorStub: sinon.SinonStub;
 
@@ -45,7 +45,7 @@ suite("QueryCompletionSoundService", () => {
         sandbox.stub(os, "type").returns("test-os");
         sandbox.stub(os, "release").returns("test-release");
         sandbox.stub(os, "version").returns("test-version");
-        ({ sendErrorEvent: sendErrorEventStub } = stubTelemetry(sandbox));
+        ({ sendErrorEvent } = stubTelemetry(sandbox));
         sandbox.stub(logger, "withPrefix").returns(logger);
         loggerWarnStub = sandbox.stub(logger, "warn");
         loggerErrorStub = sandbox.stub(logger, "error");
@@ -244,7 +244,7 @@ suite("QueryCompletionSoundService", () => {
 
         await createService(Constants.Platform.Linux).play();
 
-        expect(sendErrorEventStub).to.have.been.calledWith(
+        expect(sendErrorEvent).to.have.been.calledWith(
             TelemetryViews.QueryEditor,
             TelemetryActions.QueryCompletionSoundPlayback,
             sinon.match({
@@ -281,7 +281,7 @@ suite("QueryCompletionSoundService", () => {
         expect(spawnProcessStub).to.have.been.calledWith("/usr/bin/afplay", [
             "/extension/media/query-complete.wav",
         ]);
-        expect(sendErrorEventStub).not.to.have.been.called;
+        expect(sendErrorEvent).not.to.have.been.called;
         expect(loggerWarnStub).to.have.been.calledWith(
             'Unable to play the custom query completion sound "/sounds/complete.wav". Using default sound instead.',
         );
