@@ -48,6 +48,7 @@ import { getErrorMessage } from "../utils/utils";
 import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
 import { UserSurvey } from "../nps/userSurvey";
 import { getConnectionDisplayName } from "../models/connectionInfo";
+import { buildDatabaseOptions } from "../utils/databaseUtils";
 
 const SCHEMA_COMPARE_VIEW_ID = "schemaCompare";
 
@@ -544,10 +545,11 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
 
             const cachedDatabases = this.databaseListCache.get(databaseCacheKey);
             if (cachedDatabases) {
-                state.databases = this.includeConnectionDatabase(
+                const databaseNames = this.includeConnectionDatabase(
                     cachedDatabases,
                     connectionDatabaseName,
                 );
+                state.databases = this.buildDatabaseOptions(databaseNames);
                 state.isDatabaseListLoading = false;
                 this.updateState(state);
                 endActivity.end(ActivityStatus.Succeeded, {
@@ -558,7 +560,9 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 return state;
             }
 
-            state.databases = connectionDatabaseName ? [connectionDatabaseName] : [];
+            state.databases = this.buildDatabaseOptions(
+                connectionDatabaseName ? [connectionDatabaseName] : [],
+            );
             state.isDatabaseListLoading = true;
             this.updateState(state);
 
@@ -587,7 +591,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                     databaseCount: databases.length.toString(),
                 });
 
-                state.databases = databases;
+                state.databases = this.buildDatabaseOptions(databases);
                 state.isDatabaseListLoading = false;
                 state.databaseListError = "";
             } catch (error) {
@@ -2312,6 +2316,13 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             result.unshift(connectionDatabaseName);
         }
         return result;
+    }
+
+    private buildDatabaseOptions(databases: string[]) {
+        return buildDatabaseOptions(databases, {
+            userDatabases: locConstants.ConnectionDialog.userDatabasesGroup,
+            systemDatabases: locConstants.ConnectionDialog.systemDatabasesGroup,
+        });
     }
 
     private async connectToServer(connectionId: string): Promise<string> {

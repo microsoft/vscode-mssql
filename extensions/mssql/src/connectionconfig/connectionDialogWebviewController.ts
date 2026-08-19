@@ -91,7 +91,7 @@ import {
     BrowseProviderHost,
     FabricBrowseProvider,
 } from "./browseProvider";
-import { groupDatabases } from "../utils/databaseUtils";
+import { buildDatabaseOptions } from "../utils/databaseUtils";
 
 export const CLEAR_TOKEN_CACHE = "clearTokenCache";
 export const SIGN_IN_TO_AZURE = "signInToAzure";
@@ -1655,20 +1655,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     }
 
     private buildDatabaseOptions(dbs: string[]): FormItemOptions[] {
-        const { userDatabases, systemDatabases } = groupDatabases(dbs);
-
-        return [
-            ...userDatabases.map((db) => ({
-                displayName: db,
-                value: db,
-                groupName: LocalizedConstants.ConnectionDialog.userDatabasesGroup,
-            })),
-            ...systemDatabases.map((db) => ({
-                displayName: db,
-                value: db,
-                groupName: LocalizedConstants.ConnectionDialog.systemDatabasesGroup,
-            })),
-        ];
+        return buildDatabaseOptions(dbs, {
+            userDatabases: LocalizedConstants.ConnectionDialog.userDatabasesGroup,
+            systemDatabases: LocalizedConstants.ConnectionDialog.systemDatabasesGroup,
+        });
     }
 
     private buildDatabaseFetchKey(): string {

@@ -34,6 +34,7 @@ import {
 import { AzureAuthType } from "../../src/models/contracts/azure";
 import { SchemaCompareService } from "../../src/services/schemaCompareService";
 import { ConnectionStore } from "../../src/models/connectionStore";
+import * as locConstants from "../../src/constants/locConstants";
 
 suite("SchemaCompareWebViewController Tests", () => {
     let controller: SchemaCompareWebViewController;
@@ -1212,7 +1213,13 @@ suite("SchemaCompareWebViewController Tests", () => {
             }),
         );
         const state = structuredClone(mockInitialState);
-        state.databases = ["old-database"];
+        state.databases = [
+            {
+                displayName: "old-database",
+                value: "old-database",
+                groupName: locConstants.ConnectionDialog.userDatabasesGroup,
+            },
+        ];
         state.databaseListConnectionId = "old-connection";
 
         const request = controller["_reducerHandlers"].get("listDatabasesForActiveServer")(state, {
@@ -1222,18 +1229,23 @@ suite("SchemaCompareWebViewController Tests", () => {
         await new Promise<void>((resolve) => setImmediate(resolve));
 
         expect(state.databaseListConnectionId).to.equal("conn_uri");
-        expect(state.databases).to.deep.equal(["configured-database"]);
+        expect(state.databases.map((database) => database.value)).to.deep.equal([
+            "configured-database",
+        ]);
         expect(state.isDatabaseListLoading).to.be.true;
         expect(state.databaseListError).to.equal("");
 
         resolveDatabases(["db1"]);
         await request;
 
-        expect(state.databases).to.deep.equal(["configured-database", "db1"]);
+        expect(state.databases.map((database) => database.value)).to.deep.equal([
+            "configured-database",
+            "db1",
+        ]);
         expect(state.isDatabaseListLoading).to.be.false;
     });
 
-    test("listDatabasesForActiveServer reducer - caches database lists per connection", async () => {
+    test("listDatabasesForActiveServer reducer - groups, sorts, and caches database options per connection", async () => {
         const serverA = {
             id: "server-a-uri",
             profileName: "Server A",
@@ -1257,7 +1269,9 @@ suite("SchemaCompareWebViewController Tests", () => {
         };
         connectionManagerStub.isConnected.withArgs("server-a-uri").returns(true);
         connectionManagerStub.isConnected.withArgs("server-b-uri").returns(true);
-        connectionManagerStub.listDatabases.withArgs("server-a-uri").resolves(["a-database"]);
+        connectionManagerStub.listDatabases
+            .withArgs("server-a-uri")
+            .resolves(["tempdb", "z-database", "master", "a-database"]);
         connectionManagerStub.listDatabases.withArgs("server-b-uri").resolves(["b-database"]);
         const state = structuredClone(mockInitialState);
         const listDatabases = controller["_reducerHandlers"].get("listDatabasesForActiveServer");
@@ -1270,7 +1284,28 @@ suite("SchemaCompareWebViewController Tests", () => {
             .calledOnce;
         expect(connectionManagerStub.listDatabases.withArgs("server-b-uri")).to.have.been
             .calledOnce;
-        expect(cachedResult.databases).to.deep.equal(["a-database"]);
+        expect(cachedResult.databases).to.deep.equal([
+            {
+                displayName: "a-database",
+                value: "a-database",
+                groupName: locConstants.ConnectionDialog.userDatabasesGroup,
+            },
+            {
+                displayName: "z-database",
+                value: "z-database",
+                groupName: locConstants.ConnectionDialog.userDatabasesGroup,
+            },
+            {
+                displayName: "master",
+                value: "master",
+                groupName: locConstants.ConnectionDialog.systemDatabasesGroup,
+            },
+            {
+                displayName: "tempdb",
+                value: "tempdb",
+                groupName: locConstants.ConnectionDialog.systemDatabasesGroup,
+            },
+        ]);
         expect(cachedResult.databaseListConnectionId).to.equal("server-a-uri");
         expect(cachedResult.isDatabaseListLoading).to.be.false;
     });
@@ -1306,7 +1341,9 @@ suite("SchemaCompareWebViewController Tests", () => {
             { connectionUri: savedConnection.id },
         );
 
-        expect(result.databases).to.deep.equal(["configured-database"]);
+        expect(result.databases.map((database) => database.value)).to.deep.equal([
+            "configured-database",
+        ]);
         expect(result.isDatabaseListLoading).to.be.false;
         expect(result.databaseListError).to.equal("Login failed");
     });
@@ -1351,12 +1388,14 @@ suite("SchemaCompareWebViewController Tests", () => {
         const secondResult = await listDatabases(state, {
             connectionUri: "server-b-uri",
         });
-        expect(secondResult.databases).to.deep.equal(["b-database"]);
+        expect(secondResult.databases.map((database) => database.value)).to.deep.equal([
+            "b-database",
+        ]);
 
         resolveFirstDatabases(["a-database"]);
         await firstRequest;
 
-        expect(state.databases).to.deep.equal(["b-database"]);
+        expect(state.databases.map((database) => database.value)).to.deep.equal(["b-database"]);
         expect(controller["databaseListCache"].has("server-a-uri")).to.be.false;
     });
 
@@ -1404,7 +1443,10 @@ suite("SchemaCompareWebViewController Tests", () => {
             sinon.match({ id: savedConnection.id }),
         );
         expect(connectionManagerStub.listDatabases).to.have.been.calledWith(capturedUri);
-        expect(actualResult.databases).to.deep.equal(["db1", "db2"]);
+        expect(actualResult.databases.map((database) => database.value)).to.deep.equal([
+            "db1",
+            "db2",
+        ]);
         const confirmedResult = await controller["_reducerHandlers"].get("confirmSelectedDatabase")(
             actualResult,
             {
@@ -1468,7 +1510,10 @@ suite("SchemaCompareWebViewController Tests", () => {
         expect(connectionManagerStub.listDatabases).not.to.have.been.calledWith(
             "old-connection-uri",
         );
-        expect(actualResult.databases).to.deep.equal(["db1", "db2"]);
+        expect(actualResult.databases.map((database) => database.value)).to.deep.equal([
+            "db1",
+            "db2",
+        ]);
     });
 
     test("listDatabasesForActiveServer reducer - reconnects saved endpoint after URI refresh", async () => {
@@ -1533,7 +1578,10 @@ suite("SchemaCompareWebViewController Tests", () => {
             sinon.match({ id: savedConnection.id }),
         );
         expect(connectionManagerStub.listDatabases).to.have.been.calledWith(secondUri);
-        expect(reopenedResult.databases).to.deep.equal(["db1", "db2"]);
+        expect(reopenedResult.databases.map((database) => database.value)).to.deep.equal([
+            "db1",
+            "db2",
+        ]);
     });
 
     test("listDatabasesForActiveServer reducer - retry uses new connected URI instead of stale failed URI", async () => {
@@ -1583,7 +1631,10 @@ suite("SchemaCompareWebViewController Tests", () => {
         expect(connectionManagerStub.listDatabases).not.to.have.been.calledWith(
             "failed-connection-uri",
         );
-        expect(actualResult.databases).to.deep.equal(["db1", "db2"]);
+        expect(actualResult.databases.map((database) => database.value)).to.deep.equal([
+            "db1",
+            "db2",
+        ]);
     });
 
     test("selectFile reducer - when called - returns correct auxiliary endpoint info", async () => {

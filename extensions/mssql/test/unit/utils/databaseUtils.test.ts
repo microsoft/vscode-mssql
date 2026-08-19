@@ -6,7 +6,11 @@
 import { expect } from "chai";
 import * as chai from "chai";
 import sinonChai from "sinon-chai";
-import { groupDatabases, isSystemDatabase } from "../../../src/utils/databaseUtils";
+import {
+    buildDatabaseOptions,
+    groupDatabases,
+    isSystemDatabase,
+} from "../../../src/utils/databaseUtils";
 import { systemDatabases } from "../../../src/constants/constants";
 
 chai.use(sinonChai);
@@ -52,6 +56,38 @@ suite("databaseUtils", () => {
 
             expect(result.userDatabases).to.deep.equal(["AdventureWorks", "zebra"]);
             expect(result.systemDatabases).to.deep.equal(["master", "model", "tempdb"]);
+        });
+    });
+
+    suite("buildDatabaseOptions", () => {
+        test("should assign localized group names to sorted database options", () => {
+            const result = buildDatabaseOptions(["tempdb", "zebra", "master", "AdventureWorks"], {
+                userDatabases: "User databases",
+                systemDatabases: "System databases",
+            });
+
+            expect(result).to.deep.equal([
+                {
+                    displayName: "AdventureWorks",
+                    value: "AdventureWorks",
+                    groupName: "User databases",
+                },
+                {
+                    displayName: "zebra",
+                    value: "zebra",
+                    groupName: "User databases",
+                },
+                {
+                    displayName: "master",
+                    value: "master",
+                    groupName: "System databases",
+                },
+                {
+                    displayName: "tempdb",
+                    value: "tempdb",
+                    groupName: "System databases",
+                },
+            ]);
         });
     });
 });

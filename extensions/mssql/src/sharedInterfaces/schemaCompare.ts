@@ -23,6 +23,7 @@ import {
     SchemaUpdateAction,
     TaskExecutionMode,
 } from "../enums";
+import { FormItemOptions } from "./form";
 
 export {
     ExtractTarget,
@@ -46,7 +47,7 @@ export interface SchemaCompareWebViewState {
     applyFailed: boolean;
     isIncludeExcludeAllOperationInProgress: boolean;
     activeServers: { [connectionId: string]: SchemaCompareServer };
-    databases: string[];
+    databases: FormItemOptions[];
     databaseListConnectionId: string;
     isDatabaseListLoading: boolean;
     databaseListError: string;
