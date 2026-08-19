@@ -14,7 +14,9 @@ import {
     lastDescendantOfKind as lastDescendant,
     visitSyntaxTree as visit,
 } from "../../syntax/treeUtilities.js";
+import type { TextRange } from "../../text/index.js";
 import { multipartIdentifierParts, normalizeIdentifier } from "../identifiers.js";
+import { rangeIndexFor } from "./lookups.js";
 import { boundNameFrom } from "./boundName.js";
 import { declaredType } from "./expressionTypes.js";
 import type {
@@ -495,10 +497,144 @@ function toBoundColumns(columns: readonly ColumnMetadata[]): readonly BoundColum
 }
 
 /**
+ * One document-local rowset declaration, as the index records it.
+ *
+ * `batch` is present only for the kinds SQL Server scopes to a batch -- table variables and common
+ * table expressions -- because those stop being visible after the `GO` that ends the batch which
+ * declared them, while a temporary table and a `SELECT INTO` target do not.
+ */
+interface LocalRowsetDeclaration {
+    readonly kind: "table" | "variable" | "cte" | "into" | "drop";
+    readonly node: SyntaxNode;
+    readonly start: number;
+    readonly end: number;
+    readonly batch?: { readonly start: number; readonly end: number };
+}
+
+/**
+ * Every local rowset declaration in a document, grouped by the name it declares.
+ *
+ * Built once per syntax snapshot and cached against it. The index exists because the alternative --
+ * scanning the document for each name that fails to resolve against the catalog -- is quadratic: a
+ * document with a thousand table references walked the whole tree a thousand times. An editor with
+ * no connected catalog resolves nothing, so every reference took that path.
+ *
+ * Keyed on the snapshot rather than threaded through the call chain because the index depends on
+ * nothing else: two callers holding the same snapshot are describing the same document.
+ */
+const localRowsetIndexes = new WeakMap<
+    SyntaxSnapshot,
+    ReadonlyMap<string, readonly LocalRowsetDeclaration[]>
+>();
+
+function localRowsetIndex(
+    input: LocalRowsetInput,
+): ReadonlyMap<string, readonly LocalRowsetDeclaration[]> {
+    const cached = localRowsetIndexes.get(input.syntax);
+    if (cached) return cached;
+    const built = buildLocalRowsetIndex(input);
+    localRowsetIndexes.set(input.syntax, built);
+    return built;
+}
+
+/** The declaring nodes, by kind, preferring the snapshot's own index over walking the tree. */
+function declarationNodesByKind(
+    input: LocalRowsetInput,
+    kinds: readonly string[],
+): ReadonlyMap<string, readonly SyntaxNode[]> {
+    const index = input.syntax.structuralIndex?.();
+    if (index) {
+        const selected = new Map<string, readonly SyntaxNode[]>();
+        for (const kind of kinds) selected.set(kind, index.get(kind) ?? []);
+        return selected;
+    }
+    const wanted = new Set(kinds);
+    const collected = new Map<string, SyntaxNode[]>();
+    visit(input.syntax.root(), (node) => {
+        if (!wanted.has(node.kind)) return;
+        const nodes = collected.get(node.kind) ?? [];
+        nodes.push(node);
+        collected.set(node.kind, nodes);
+    });
+    return collected;
+}
+
+function buildLocalRowsetIndex(
+    input: LocalRowsetInput,
+): ReadonlyMap<string, readonly LocalRowsetDeclaration[]> {
+    const byName = new Map<string, LocalRowsetDeclaration[]>();
+    const record = (
+        name: string | undefined,
+        kind: LocalRowsetDeclaration["kind"],
+        node: SyntaxNode,
+        batchScoped: boolean,
+    ): void => {
+        if (!name) return;
+        const batch = batchScoped ? ancestor(node, ["Batch"]) : undefined;
+        const declarations = byName.get(name) ?? [];
+        declarations.push({
+            kind,
+            node,
+            start: node.start,
+            end: node.end,
+            ...(batch ? { batch: { start: batch.start, end: batch.end } } : {}),
+        });
+        byName.set(name, declarations);
+    };
+    const lastPart = (node: SyntaxNode): string | undefined => {
+        const last = multipartIdentifierParts(source(input, node)).at(-1);
+        return last ? normalizeIdentifier(last).toLocaleLowerCase() : undefined;
+    };
+
+    const nodes = declarationNodesByKind(input, [
+        "CreateTableStatement",
+        "VariableDeclaration",
+        "CommonTableExpression",
+        "SelectStatement",
+        "DropTableStatement",
+    ]);
+
+    for (const node of nodes.get("CreateTableStatement") ?? []) {
+        const name = firstDescendant(node, "MultipartIdentifier");
+        // A statement with no table definition contributes nothing. The scan this replaced left the
+        // previous answer standing in that case rather than clearing it, so it is not a declaration.
+        if (!name || !firstDescendant(node, "TableDefinition")) continue;
+        record(lastPart(name), "table", node, false);
+    }
+    for (const node of nodes.get("VariableDeclaration") ?? []) {
+        const variable = firstDescendant(node, "Variable");
+        if (!variable || !firstDescendant(node, "TableDefinition")) continue;
+        record(source(input, variable).toLocaleLowerCase(), "variable", node, true);
+    }
+    for (const node of nodes.get("CommonTableExpression") ?? []) {
+        const name = firstDescendant(node, "IdentifierName");
+        if (!name) continue;
+        record(normalizeIdentifier(source(input, name)).toLocaleLowerCase(), "cte", node, true);
+    }
+    for (const node of nodes.get("SelectStatement") ?? []) {
+        const into = firstDescendant(node, "IntoClause");
+        const name = into && firstDescendant(into, "MultipartIdentifier");
+        if (!name) continue;
+        record(lastPart(name), "into", node, false);
+    }
+    for (const node of nodes.get("DropTableStatement") ?? []) {
+        for (const name of descendants(node, "MultipartIdentifier")) {
+            record(lastPart(name), "drop", node, false);
+        }
+    }
+
+    return byName;
+}
+
+/**
  * The shape of a document-local rowset at one offset.
  *
- * Kept as a walk rather than a timeline lookup because a table variable, a CTE, and a `SELECT
- * INTO` target are all local rowsets that the DDL timeline does not model as catalog objects.
+ * Kept out of the DDL timeline because a table variable, a CTE, and a `SELECT INTO` target are all
+ * local rowsets that the timeline does not model as catalog objects.
+ *
+ * The answer is the most recent declaration of the name completed before this offset, which is why
+ * `DROP TABLE` takes part: dropping the name is the most recent thing the document says about it,
+ * and it leaves nothing visible.
  */
 export function localColumnsForName(
     input: LocalRowsetInput,
@@ -507,55 +643,48 @@ export function localColumnsForName(
 ): readonly ColumnMetadata[] | undefined {
     const wanted = normalizeIdentifier(parts.at(-1) ?? "").toLocaleLowerCase();
     if (!wanted) return undefined;
+    const declarations = localRowsetIndex(input).get(wanted);
+    if (!declarations || declarations.length === 0) return undefined;
+
     const useBatch = ancestor(input.syntax.nodeAt(useOffset), ["Batch"]);
-    const isSameBatch = (node: SyntaxNode): boolean => {
-        const batch = ancestor(node, ["Batch"]);
-        return (
-            !useBatch || (!!batch && batch.start === useBatch.start && batch.end === useBatch.end)
-        );
+    const visible = (declaration: LocalRowsetDeclaration): boolean => {
+        if (declaration.start >= useOffset) return false;
+        if (!declaration.batch || !useBatch) return true;
+        return declaration.batch.start === useBatch.start && declaration.batch.end === useBatch.end;
     };
-    let result: readonly ColumnMetadata[] | undefined;
-    visit(input.syntax.root(), (node) => {
-        if (node.start >= useOffset || node.end > useOffset) return;
-        if (node.kind === "CreateTableStatement") {
-            const name = firstDescendant(node, "MultipartIdentifier");
-            if (!name) return;
-            const declared = multipartIdentifierParts(source(input, name));
-            if (normalizeIdentifier(declared.at(-1) ?? "").toLocaleLowerCase() !== wanted) return;
-            const definition = firstDescendant(node, "TableDefinition");
-            if (definition) result = tableDefinitionColumns(input, definition);
-        } else if (node.kind === "VariableDeclaration") {
-            if (!isSameBatch(node)) return;
-            const variable = firstDescendant(node, "Variable");
-            const definition = firstDescendant(node, "TableDefinition");
-            if (!variable || !definition) return;
-            if (source(input, variable).toLocaleLowerCase() === wanted) {
-                result = tableDefinitionColumns(input, definition);
-            }
-        } else if (node.kind === "CommonTableExpression") {
-            if (!isSameBatch(node)) return;
-            const name = firstDescendant(node, "IdentifierName");
-            if (!name) return;
-            if (normalizeIdentifier(source(input, name)).toLocaleLowerCase() === wanted) {
-                result = cteColumns(input, node);
-            }
-        } else if (node.kind === "SelectStatement") {
-            const into = firstDescendant(node, "IntoClause");
-            const name = into && firstDescendant(into, "MultipartIdentifier");
-            if (!name) return;
-            const declared = multipartIdentifierParts(source(input, name));
-            if (normalizeIdentifier(declared.at(-1) ?? "").toLocaleLowerCase() !== wanted) return;
-            result = projectedColumns(input, firstDescendant(node, "SelectList"));
-        } else if (node.kind === "DropTableStatement") {
-            for (const name of descendants(node, "MultipartIdentifier")) {
-                const dropped = multipartIdentifierParts(source(input, name));
-                if (normalizeIdentifier(dropped.at(-1) ?? "").toLocaleLowerCase() === wanted) {
-                    result = undefined;
-                }
-            }
+
+    // Most recent first, so the first visible declaration is the one in force here.
+    for (const declaration of rangeIndexFor(declarations, declarationRange).endingBefore(
+        useOffset,
+    )) {
+        if (visible(declaration)) return columnsForDeclaration(input, declaration);
+    }
+    return undefined;
+}
+
+const declarationRange = (declaration: LocalRowsetDeclaration): TextRange => ({
+    start: declaration.start,
+    end: declaration.end,
+});
+
+/** Reads the columns a declaration exposes. Deferred until one declaration has won. */
+function columnsForDeclaration(
+    input: LocalRowsetInput,
+    declaration: LocalRowsetDeclaration,
+): readonly ColumnMetadata[] | undefined {
+    switch (declaration.kind) {
+        case "drop":
+            return undefined;
+        case "cte":
+            return cteColumns(input, declaration.node);
+        case "into":
+            return projectedColumns(input, firstDescendant(declaration.node, "SelectList"));
+        case "table":
+        case "variable": {
+            const definition = firstDescendant(declaration.node, "TableDefinition");
+            return definition ? tableDefinitionColumns(input, definition) : undefined;
         }
-    });
-    return result;
+    }
 }
 
 function tableDefinitionColumns(

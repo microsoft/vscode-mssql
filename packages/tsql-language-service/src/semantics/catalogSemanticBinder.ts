@@ -37,6 +37,7 @@ import type {
     SemanticModel,
 } from "./model/contracts.js";
 import { buildExpressionTypes } from "./model/expressionTypes.js";
+import { rangeIndexFor } from "./model/lookups.js";
 import {
     buildSemanticModel,
     emptySemanticModel,
@@ -127,6 +128,7 @@ export class CatalogSemanticBinder implements SemanticBinder {
                       expressionsFor,
                   );
         const tsqlDiagnostics = diagnosticResult.diagnostics;
+        const diagnosticsByRange = rangeIndexFor(tsqlDiagnostics, (diagnostic) => diagnostic.range);
         // One scope model, built before binding and published afterwards. The binder used to
         // discover query boundaries and outer-reference visibility for itself, next to a model that
         // discovered them again; keying its symbol bindings on the model's scopes leaves one
@@ -205,10 +207,9 @@ export class CatalogSemanticBinder implements SemanticBinder {
             const unitDiagnostics = [
                 ...vectorSemanticDiagnostics(input.syntax, batch),
                 ...platformSemanticDiagnostics(input.syntax, batch, input.metadata),
-                ...tsqlDiagnostics.filter(
-                    (diagnostic) =>
-                        batch.start <= diagnostic.range.start && diagnostic.range.end <= batch.end,
-                ),
+                // By range rather than by filtering the whole list per batch: a document with many
+                // diagnostics would otherwise pay the length of that list once for every unit.
+                ...diagnosticsByRange.within(batch),
             ];
             diagnostics.push(...unitDiagnostics);
             const registerSymbol = (symbol: SemanticSymbol): void => {

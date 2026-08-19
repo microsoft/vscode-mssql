@@ -13,6 +13,7 @@ import {
 } from "../../syntax/treeUtilities.js";
 import type { TextRange } from "../../text/index.js";
 import { multipartIdentifierParts, normalizeIdentifier } from "../identifiers.js";
+import { columnIndexFor, type ColumnBinding } from "./lookups.js";
 import type { BoundExpression, BoundRelation, ExpressionType, ResolvedCall } from "./contracts.js";
 
 /**
@@ -253,25 +254,40 @@ function literalType(input: ExpressionTypeInput, node: SyntaxNode): ExpressionTy
  */
 function columnType(input: ExpressionTypeInput, node: SyntaxNode): ExpressionType | undefined {
     const parts = multipartIdentifierParts(source(input, node));
+    const binding = resolveColumn(input, parts, node);
+    if (!binding?.column.type) return undefined;
+    return Object.freeze({ ...binding.column.type, sourceRelation: binding.relation.id });
+}
+
+/**
+ * The column a name refers to at one node.
+ *
+ * Keyed on the name rather than found by searching the relations in view: a document with thousands
+ * of relations has thousands of relations regardless of how many of them expose the column being
+ * asked about, and searching them all made naming a column cost the size of the document.
+ *
+ * Narrowing happens after the name lookup, on the handful of columns that share it -- to the query
+ * containing the reference, then to the qualifier when one is written.
+ */
+function resolveColumn(
+    input: ExpressionTypeInput,
+    parts: readonly string[],
+    node: SyntaxNode,
+): ColumnBinding | undefined {
     const name = parts.at(-1);
     if (!name) return undefined;
+    const bindings = columnIndexFor(input.relations).get(name.toLocaleLowerCase());
+    if (!bindings) return undefined;
     const qualifier = parts.at(-2)?.toLocaleLowerCase();
     const query = ancestor(node, ["QuerySpecification"]);
-    const candidates = input.relations.filter(
-        (relation) =>
-            relation.columns !== "unknown" &&
-            (!query || (relation.range.start >= query.start && relation.range.end <= query.end)) &&
-            (qualifier === undefined || relation.exposedName.toLocaleLowerCase() === qualifier),
-    );
-    const folded = name.toLocaleLowerCase();
-    for (const relation of candidates) {
-        if (relation.columns === "unknown") continue;
-        const column = relation.columns.find(
-            (candidate) => candidate.name.toLocaleLowerCase() === folded,
-        );
-        if (column?.type) {
-            return Object.freeze({ ...column.type, sourceRelation: relation.id });
+    for (const binding of query ? bindings.within(query) : bindings.all) {
+        if (
+            qualifier !== undefined &&
+            binding.relation.exposedName.toLocaleLowerCase() !== qualifier
+        ) {
+            continue;
         }
+        if (binding.column.type) return binding;
     }
     return undefined;
 }
@@ -348,25 +364,7 @@ function columnTypeNamed(
     parts: readonly string[],
     node: SyntaxNode,
 ): ExpressionType | undefined {
-    const name = parts.at(-1);
-    if (!name) return undefined;
-    const qualifier = parts.at(-2)?.toLocaleLowerCase();
-    const query = ancestor(node, ["QuerySpecification"]);
-    const folded = name.toLocaleLowerCase();
-    for (const relation of input.relations) {
-        if (relation.columns === "unknown") continue;
-        if (query && (relation.range.start < query.start || relation.range.end > query.end)) {
-            continue;
-        }
-        if (qualifier !== undefined && relation.exposedName.toLocaleLowerCase() !== qualifier) {
-            continue;
-        }
-        const column = relation.columns.find(
-            (candidate) => candidate.name.toLocaleLowerCase() === folded,
-        );
-        if (column?.type) return column.type;
-    }
-    return undefined;
+    return resolveColumn(input, parts, node)?.column.type;
 }
 
 function callType(
