@@ -23,7 +23,7 @@ export class IconPathHelper {
     }
 
     private static makeIcon(name: string, sameIcon: boolean = false) {
-        const folder = "images";
+        const folder = "images/dataWorkspace";
 
         if (sameIcon) {
             return {

@@ -205,6 +205,11 @@
                     "id": "objectExplorer",
                     "title": "SQL Server",
                     "icon": "media/server_page_dark.svg"
+                },
+                {
+                    "id": "dataworkspace",
+                    "title": "%data-workspace-view-container-name%",
+                    "icon": "images/dataWorkspace/data-workspace.svg"
                 }
             ],
             "panel": [
@@ -241,6 +246,14 @@
                     "id": "backgroundTasks",
                     "name": "%extension.backgroundTasks%",
                     "icon": "media/objectTypes/Queue.svg"
+                }
+            ],
+            "dataworkspace": [
+                {
+                    "id": "dataworkspace.views.main",
+                    "name": "%main-view-name%",
+                    "contextualTitle": "%data-workspace-view-container-name%",
+                    "icon": "images/data-workspace.svg"
                 }
             ]
         },
@@ -577,6 +590,26 @@
                     "command": "mssql.shortcutsConfiguration.open",
                     "when": "view == objectExplorer",
                     "title": "%mssql.shortcutsConfiguration.open%",
+                    "group": "navigation"
+                },
+                {
+                    "command": "dataworkspace.refresh",
+                    "when": "view == dataworkspace.views.main",
+                    "group": "navigation"
+                },
+                {
+                    "command": "dataworkspace.close",
+                    "when": "view == dataworkspace.views.main && workbenchState == workspace",
+                    "group": "1_commands"
+                },
+                {
+                    "command": "projects.new",
+                    "when": "view == dataworkspace.views.main",
+                    "group": "navigation"
+                },
+                {
+                    "command": "projects.openExisting",
+                    "when": "view == dataworkspace.views.main",
                     "group": "navigation"
                 }
             ],
@@ -927,6 +960,11 @@
                     "command": "mssql.cancelBackgroundTask",
                     "when": "view == backgroundTasks && viewItem =~ /\\bcancelable=true\\b/",
                     "group": "inline@3"
+                },
+                {
+                    "command": "projects.removeProject",
+                    "when": "view == dataworkspace.views.main && viewItem =~ /^(databaseProject.itemType.project|databaseProject.itemType.legacyProject)$/",
+                    "group": "9_dbProjectsLast@9"
                 }
             ],
             "commandPalette": [
@@ -1109,6 +1147,24 @@
                 {
                     "command": "mssql.openInMssqlExtensionFromAzureResources",
                     "when": "false"
+                },
+                {
+                    "command": "projects.new"
+                },
+                {
+                    "command": "dataworkspace.refresh",
+                    "when": "false"
+                },
+                {
+                    "command": "dataworkspace.close",
+                    "when": "false"
+                },
+                {
+                    "command": "projects.removeProject",
+                    "when": "false"
+                },
+                {
+                    "command": "projects.openExisting"
                 }
             ],
             "webview/context": [
@@ -1119,6 +1175,34 @@
             ]
         },
         "commands": [
+            {
+                "command": "projects.new",
+                "title": "%new-command%",
+                "category": "%data-workspace-view-container-name%",
+                "icon": "$(add)"
+            },
+            {
+                "command": "projects.openExisting",
+                "title": "%open-existing-command%",
+                "category": "%data-workspace-view-container-name%",
+                "icon": "$(folder-opened)"
+            },
+            {
+                "command": "dataworkspace.refresh",
+                "title": "%refresh-workspace-command%",
+                "category": "%data-workspace-view-container-name%",
+                "icon": "$(refresh)"
+            },
+            {
+                "command": "dataworkspace.close",
+                "title": "%close-workspace-command%",
+                "category": "",
+                "icon": "$(close)"
+            },
+            {
+                "command": "projects.removeProject",
+                "title": "%remove-project-command%"
+            },
             {
                 "command": "mssql.runQuery",
                 "title": "%mssql.runQuery%",
@@ -3103,6 +3187,20 @@
                 "mssql.showChangelogOnUpdate": {
                     "type": "boolean",
                     "description": "%mssql.showChangelogOnUpdate%",
+                    "default": true
+                },
+                "dataworkspace.excludedProjects": {
+                    "type": "array",
+                    "default": [],
+                    "description": "%projects.excludedProjectsDescription%"
+                },
+                "projects.defaultProjectSaveLocation": {
+                    "type": "string",
+                    "description": "%projects.defaultProjectSaveLocation%"
+                },
+                "projects.showNotAddedProjectsInWorkspacePrompt": {
+                    "type": "boolean",
+                    "description": "%projects.showNotAddedProjectsInWorkspacePrompt%",
                     "default": true
                 }
             }
@@ -5184,6 +5282,18 @@
                     "light": "editor.foreground",
                     "dark": "editor.foreground"
                 }
+            }
+        ],
+        "viewsWelcome": [
+            {
+                "view": "dataworkspace.views.main",
+                "contents": "%projects-view-no-workspace-content%",
+                "when": "workbenchState != workspace"
+            },
+            {
+                "view": "dataworkspace.views.main",
+                "contents": "%projects-view-no-project-content%",
+                "when": "workbenchState == workspace && isProjectsViewEmpty"
             }
         ]
     }

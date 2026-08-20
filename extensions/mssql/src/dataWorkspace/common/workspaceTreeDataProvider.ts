@@ -6,16 +6,12 @@
 import * as vscode from "vscode";
 import * as path from "path";
 import { IWorkspaceService } from "./interfaces";
-import {
-    dragAndDropNotSupported,
-    onlyMovingOneFileIsSupported,
-    projectFailedToLoad,
-    UnknownProjectsError,
-} from "./constants";
+
 import { WorkspaceTreeItem } from "dataworkspace";
 import { TelemetryReporter } from "./telemetry";
 import { getErrorMessage } from "./utils";
 import Logger from "./logger";
+import { DataWorkspace as locConstants } from "../../constants/locConstants";
 
 /**
  * Tree data provider for the workspace main view
@@ -118,7 +114,7 @@ export class WorkspaceTreeDataProvider
             if (errorMessages.length > 0) {
                 for (let error of errorMessages) {
                     void vscode.window.showErrorMessage(
-                        projectFailedToLoad(
+                        locConstants.projectFailedToLoad(
                             path.basename(error.project.fsPath),
                             error.errorMessage + (error.errorMessage.endsWith(".") ? "" : "."),
                         ),
@@ -136,7 +132,9 @@ export class WorkspaceTreeDataProvider
             );
 
             if (unknownProjects.length > 0) {
-                void vscode.window.showErrorMessage(UnknownProjectsError(unknownProjects));
+                void vscode.window.showErrorMessage(
+                    locConstants.UnknownProjectsError(unknownProjects),
+                );
             }
 
             return treeItems;
@@ -187,7 +185,7 @@ export class WorkspaceTreeDataProvider
         // Only support moving one file at a time
         // canSelectMany is set to false for the WorkspaceTreeDataProvider, so this condition should never be true
         if (transferItem?.value.length > 1) {
-            void vscode.window.showErrorMessage(onlyMovingOneFileIsSupported);
+            void vscode.window.showErrorMessage(locConstants.onlyMovingOneFileIsSupported);
             return;
         }
 
@@ -202,7 +200,7 @@ export class WorkspaceTreeDataProvider
         }
 
         if (!projectProvider?.supportsDragAndDrop || !projectProvider.moveFile) {
-            void vscode.window.showErrorMessage(dragAndDropNotSupported);
+            void vscode.window.showErrorMessage(locConstants.dragAndDropNotSupported);
             return;
         }
 

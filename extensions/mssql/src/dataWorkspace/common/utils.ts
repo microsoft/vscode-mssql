@@ -5,7 +5,7 @@
 
 import * as fs from "fs";
 import * as vscode from "vscode";
-import * as constants from "./constants";
+import { DataWorkspace as locConstants } from "../../constants/locConstants";
 
 export async function directoryExist(directoryPath: string): Promise<boolean> {
     const stats = await getFileStatus(directoryPath);
@@ -30,31 +30,6 @@ async function getFileStatus(path: string): Promise<fs.Stats | undefined> {
     }
 }
 
-export interface IPackageInfo {
-    name: string;
-    version: string;
-    aiKey: string;
-}
-
-export function getPackageInfo(packageJson: any): IPackageInfo | undefined {
-    const vscodePackageJson = require("../../../package.vscode.json");
-
-    if (!packageJson || !vscodePackageJson) {
-        return undefined;
-    }
-
-    // When the extension is compiled and packaged, the content of package.json get copied here in the extension.js. This happens before the
-    // package.vscode.json values replace the corresponding values in the package.json for the data-workspace-vscode extension
-    // so we need to read these values directly from the package.vscode.json to get the correct extension and publisher names
-    const extensionName = vscodePackageJson.name;
-
-    return {
-        name: extensionName,
-        version: packageJson.version,
-        aiKey: packageJson.aiKey,
-    };
-}
-
 /**
  * Shows a message with a "Learn More" button
  * @param message Info message
@@ -64,8 +39,8 @@ export async function showInfoMessageWithLearnMoreLink(
     message: string,
     link: string,
 ): Promise<void> {
-    const result = await vscode.window.showInformationMessage(message, constants.LearnMore);
-    if (result === constants.LearnMore) {
+    const result = await vscode.window.showInformationMessage(message, locConstants.LearnMore);
+    if (result === locConstants.LearnMore) {
         void vscode.env.openExternal(vscode.Uri.parse(link));
     }
 }
