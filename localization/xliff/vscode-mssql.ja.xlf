@@ -630,7 +630,7 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++0963a1833c56c3195b7b5963499b990b2c0147db68fb3374bc7d1f1767868636">
         <source xml:lang="en">Apply changes to {0}</source>
         <note>{0} is the target connection name, optionally followed by a colon and the selected database name</note>
-        <target state="new">Apply changes to {0}</target>
+        <target state="translated">{0} に変更を適用する</target>
       </trans-unit>
       <trans-unit id="++CODE++c4a87b18e24f113de61cbf89c652cf2ecc1d73abd2d01baf409c174c8242ef7d">
         <source xml:lang="en">Apply contextual suggestions for SQL syntax, relationships, and constraints</source>
@@ -1269,7 +1269,7 @@ This will remove both the container and its connection from VS Code.</target>
       <trans-unit id="++CODE++9b854acdaffe1ccfbbe1f3cd5a96568aabc4aabd00a7c4f46e21df4209ea6f6c">
         <source xml:lang="en">Change ({0})</source>
         <note>{0} is the total number of objects that will be changed</note>
-        <target state="new">Change ({0})</target>
+        <target state="translated">({0}) 件の変更</target>
       </trans-unit>
       <trans-unit id="++CODE++f07538573cf58e02922ee656434ca50a18ffecd2668d86edf8360309745f7e74">
         <source xml:lang="en">Change Connection</source>
@@ -2547,7 +2547,7 @@ This will remove both the container and its connection from VS Code.</target>
       <trans-unit id="++CODE++67c81fd9f64486ea6821165b00081accf1585e73f1e56216f4fccbef8347cf50">
         <source xml:lang="en">Create ({0})</source>
         <note>{0} is the total number of objects that will be created</note>
-        <target state="new">Create ({0})</target>
+        <target state="translated">({0}) 件の作成</target>
       </trans-unit>
       <trans-unit id="++CODE++48d1f93834dfc421237288d07022d5dc4c61f90e5cc91494cee4960abc481d1d">
         <source xml:lang="en">Create Connection Group</source>
@@ -3305,7 +3305,7 @@ This will remove both the container and its connection from VS Code.</target>
       <trans-unit id="++CODE++f8015b4fbcb2d117cf37878c082deba94ddcb0494be0d317ac829a86118dfd18">
         <source xml:lang="en">Drop ({0})</source>
         <note>{0} is the total number of objects that will be dropped</note>
-        <target state="new">Drop ({0})</target>
+        <target state="translated">({0}) 件の切断</target>
       </trans-unit>
       <trans-unit id="++CODE++090015e97e08461a02b0915ed446e955928a4686cdc839c66bd9f7781b81d8fb">
         <source xml:lang="en">Drop Database</source>
@@ -11556,7 +11556,7 @@ Are you sure you want to continue?</target>
         <source xml:lang="en">{0}: {1}</source>
         <note>{0} is a schema object type, such as Table or View
 {1} is the number of objects of that type</note>
-        <target state="new">{0}: {1}</target>
+        <target state="translated">{0}: {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++0873f7c5661e8c2fe6846216acefe354d9d8358b51c94dba0dea19b699b5b6d3">
         <source xml:lang="en">{0}: {1}</source>
