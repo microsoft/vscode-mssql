@@ -141,6 +141,8 @@ export interface CatalogScope {
      * rendering the view in place can map the handle back through its own connection state.
      */
     readonly handle: string;
+    /** The database's name, redacted alongside the other identifying fields on export. */
+    readonly databaseName?: string;
     readonly isCurrent: boolean;
     /** Why this scope exists: an active connection, a three-part name, a USE. */
     readonly reason: string;
@@ -182,6 +184,28 @@ export interface CatalogFetch {
     readonly rowCount?: number;
     readonly source: "server" | "resident";
     readonly outcome: "loaded" | "empty" | "denied" | "failed" | "cancelled";
+    /**
+     * The identifying detail, which is the point of the log and also the customer's data.
+     *
+     * These three are the fields a developer opens this view to read: which database, which object,
+     * and what SQL ran. They are kept apart from the rest so one call to {@link redactCatalogFetch}
+     * removes exactly them, which is what lets the same record serve an in-place view and a copied
+     * bug report without maintaining two logs that can disagree.
+     */
+    readonly databaseName?: string;
+    readonly objectName?: string;
+    readonly query?: string;
+    /**
+     * Why the fetch failed, when it did.
+     *
+     * Recorded because a preview feature that silently returns nothing is the hardest kind of bug
+     * to report: the catalog layer marks the section failed and the message is otherwise discarded,
+     * so without this a user can see that something did not load but never why.
+     */
+    readonly error?: {
+        readonly message: string;
+        readonly code?: string | number;
+    };
 }
 
 /** Why a metadata generation was dropped, and what rebuilding it cost. */
@@ -197,6 +221,20 @@ export interface CatalogInvalidation {
         | "profileChanged";
     readonly rebuildMs: number;
     readonly note: string;
+}
+
+/**
+ * What a metadata provider has observed, for a runtime to publish.
+ *
+ * Declared here rather than beside the observer so a provider can report statistics without
+ * depending on the implementation that happens to collect them.
+ */
+export interface CatalogStatsSnapshot {
+    readonly fetches: readonly CatalogFetch[];
+    readonly scopes: readonly CatalogScope[];
+    readonly observedFetches: number;
+    readonly invalidations: readonly CatalogInvalidation[];
+    readonly inFlight: number;
 }
 
 export interface MetadataStats {
@@ -295,4 +333,17 @@ export interface LanguageServiceStats {
 export interface LanguageServiceStatsProvider {
     getStats(uri: string): LanguageServiceStats | undefined;
     onDidChangeStats(listener: (uri: string) => void): Disposable;
+}
+
+/**
+ * One document's statistics, prepared for copying into a bug report.
+ *
+ * Redaction is a transform over the published record rather than a second collection path, so the
+ * view and the report cannot describe different sessions. `includeIdentifiers` exists because the
+ * person exporting is often the person who owns the data, and forcing them to reproduce a problem
+ * twice to get a readable log helps nobody -- but it is opt-in, so the default copy is safe.
+ */
+export interface StatsExportOptions {
+    /** Keeps database names, object names, and SQL text. Off by default. */
+    readonly includeIdentifiers?: boolean;
 }

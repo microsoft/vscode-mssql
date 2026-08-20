@@ -3,7 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import type {
+import {
+    resolveEngineProfile,
     ColumnMetadata,
     MetadataHydrationRequest,
     ObjectMetadata,
@@ -45,16 +46,23 @@ export class ExtensionSimpleQueryExecutor implements SimpleQueryExecutor {
 
 /** Set-based fallback loader used while the dev/query metadata repository is unavailable. */
 export class VscodeMssqlSimpleQueryMetadataLoader implements SimpleQueryMetadataLoader {
+    private _useNoLock = true;
+
     public async refresh(
         executor: SimpleQueryExecutor,
         publisher: SimpleQueryMetadataPublisher,
         signal?: AbortSignal,
     ): Promise<void> {
-        const environmentRows = rows(await executor.execute(environmentQuery, signal));
+        const environmentRows = rows(
+            await executor.execute(withoutNoLock(environmentQuery), signal),
+        );
         const environment = environmentRows[0] ?? new Map<string, string | undefined>();
         const currentDatabase = environment.get("current_database");
 
         const mappedEnvironment = mapEnvironment(environment);
+        const profile = resolveEngineProfile(mappedEnvironment);
+        this._useNoLock = profile.profile !== "fabric-warehouse" && profile.source !== "outOfScope";
+        const catalogExecutor = this.catalogExecutor(executor);
         publisher.merge({
             environment: mappedEnvironment,
             completeness: {
@@ -75,7 +83,7 @@ export class VscodeMssqlSimpleQueryMetadataLoader implements SimpleQueryMetadata
                 : {}),
         });
 
-        const databaseRows = rows(await executor.execute(databasesQuery, signal));
+        const databaseRows = rows(await catalogExecutor.execute(databasesQuery, signal));
         const databases = databaseRows.flatMap((row) => {
             const name = row.get("database_name");
             return name ? [{ name }] : [];
@@ -85,7 +93,7 @@ export class VscodeMssqlSimpleQueryMetadataLoader implements SimpleQueryMetadata
             databases,
         });
 
-        const identityRows = rows(await executor.execute(schemasAndPrincipalsQuery, signal));
+        const identityRows = rows(await catalogExecutor.execute(schemasAndPrincipalsQuery, signal));
         const schemaRows = identityRows.filter((row) => row.get("entry_kind") === "schema");
         const schemas = schemaRows.flatMap((row) => {
             const name = row.get("schema_name");
@@ -107,14 +115,16 @@ export class VscodeMssqlSimpleQueryMetadataLoader implements SimpleQueryMetadata
                 : {}),
         });
 
-        const typeRows = rows(await executor.execute(userTypesQuery(), signal));
+        const typeRows = rows(await catalogExecutor.execute(userTypesQuery(), signal));
         const objects: ObjectMetadata[] = [...mapUserTypes(typeRows, currentDatabase)];
         let publishedFirstObjectPage = false;
         // SQL Server assigns negative IDs to many system catalog objects. Start below the
         // SQL `int` range so system and user objects share the same stable keyset pagination.
         let lastObjectId = -2_147_483_649;
         while (true) {
-            const objectRows = rows(await executor.execute(objectsQuery(lastObjectId), signal));
+            const objectRows = rows(
+                await catalogExecutor.execute(objectsQuery(lastObjectId), signal),
+            );
             objects.push(...mapObjects(objectRows, currentDatabase));
             const complete = objectRows.length < objectPageSize;
             if (complete) {
@@ -175,8 +185,11 @@ export class VscodeMssqlSimpleQueryMetadataLoader implements SimpleQueryMetadata
         publisher: SimpleQueryMetadataPublisher,
         signal?: AbortSignal,
     ): Promise<void> {
+        const catalogExecutor = this.catalogExecutor(executor);
         if (request.section === "principals") {
-            const identityRows = rows(await executor.execute(schemasAndPrincipalsQuery, signal));
+            const identityRows = rows(
+                await catalogExecutor.execute(schemasAndPrincipalsQuery, signal),
+            );
             const principals = mapPrincipals(
                 identityRows.filter((row) => row.get("entry_kind") === "principal"),
             );
@@ -190,7 +203,7 @@ export class VscodeMssqlSimpleQueryMetadataLoader implements SimpleQueryMetadata
         }
         if (request.database && request.section === "schemas") {
             const schemaRows = rows(
-                await executor.execute(databaseSchemasQuery(request.database), signal),
+                await catalogExecutor.execute(databaseSchemasQuery(request.database), signal),
             );
             const schemas = schemaRows.flatMap((row) => {
                 const name = row.get("schema_name");
@@ -204,12 +217,14 @@ export class VscodeMssqlSimpleQueryMetadataLoader implements SimpleQueryMetadata
         }
         if (request.database && request.section === "objects") {
             let lastObjectId = -2_147_483_649;
-            const typeRows = rows(await executor.execute(userTypesQuery(request.database), signal));
+            const typeRows = rows(
+                await catalogExecutor.execute(userTypesQuery(request.database), signal),
+            );
             const objects: ObjectMetadata[] = [...mapUserTypes(typeRows, request.database)];
             let publishedFirstObjectPage = false;
             while (true) {
                 const objectRows = rows(
-                    await executor.execute(
+                    await catalogExecutor.execute(
                         databaseObjectsQuery(request.database, lastObjectId),
                         signal,
                     ),
@@ -238,7 +253,10 @@ export class VscodeMssqlSimpleQueryMetadataLoader implements SimpleQueryMetadata
         const objectId = numericObjectId(request.object.id);
         if (request.section === "columns") {
             const columnRows = rows(
-                await executor.execute(columnsQuery(objectId, request.object.database), signal),
+                await catalogExecutor.execute(
+                    columnsQuery(objectId, request.object.database),
+                    signal,
+                ),
             );
             const columns = mapColumns(columnRows);
             publisher.merge({
@@ -249,7 +267,10 @@ export class VscodeMssqlSimpleQueryMetadataLoader implements SimpleQueryMetadata
         }
         if (request.section === "parameters") {
             const parameterRows = rows(
-                await executor.execute(parametersQuery(objectId, request.object.database), signal),
+                await catalogExecutor.execute(
+                    parametersQuery(objectId, request.object.database),
+                    signal,
+                ),
             );
             const parameters = mapParameters(parameterRows);
             publisher.merge({
@@ -259,6 +280,13 @@ export class VscodeMssqlSimpleQueryMetadataLoader implements SimpleQueryMetadata
                 ]),
             });
         }
+    }
+
+    private catalogExecutor(executor: SimpleQueryExecutor): SimpleQueryExecutor {
+        if (this._useNoLock) return executor;
+        return {
+            execute: (query, signal) => executor.execute(withoutNoLock(query), signal),
+        };
     }
 }
 
@@ -467,6 +495,10 @@ function throwIfAborted(signal: AbortSignal | undefined): void {
     if (signal?.aborted) {
         throw signal.reason ?? new DOMException("The operation was aborted", "AbortError");
     }
+}
+
+function withoutNoLock(query: string): string {
+    return query.replaceAll(" WITH (NOLOCK)", "");
 }
 
 const environmentQuery = `

@@ -14,6 +14,7 @@ import {
     TsqlLanguageFeatureService,
     unknownEngineCapabilities,
     type CompletionItem as ServiceCompletionItem,
+    type CompletionResult,
     type DocumentAnalysisSnapshot,
     type EngineFacts,
     type FullColorizationResult,
@@ -23,8 +24,11 @@ import {
     type MetadataSection,
     type ObjectDefinitionDescriptor,
     type TextChange,
+    CatalogObserver,
 } from "@vscode-mssql/tsql-language-service";
 import * as vscode from "vscode";
+import { basename } from "path";
+import { LanguageServiceStatsWebviewController } from "../../controllers/languageServiceStatsWebviewController";
 import type { IServerInfo } from "vscode-mssql";
 import { PreviewLanguageService as PreviewLoc } from "../../constants/locConstants";
 import type MainController from "../../controllers/mainController";
@@ -112,10 +116,14 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
     private _statsCodeLensEnabled = false;
     private _disposed = false;
 
+    private readonly _statsPanels = new Map<string, LanguageServiceStatsWebviewController>();
+    private readonly _documentChanged = new vscode.EventEmitter<string>();
+
     public constructor(
-        context: vscode.ExtensionContext,
+        private readonly _context: vscode.ExtensionContext,
         private readonly _controller: MainController,
     ) {
+        const context = _context;
         // Objects are scripted through the same service "Script as Create" uses, so a definition
         // reads identically wherever the extension shows one. It runs quietly here, because
         // answering a keystroke must not raise a progress notification.
@@ -171,6 +179,7 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
             this._semanticTokensChanged,
             this._definitionsChanged,
             this._statsChanged,
+            this._documentChanged,
             vscode.languages.registerCodeLensProvider({ language: "sql" }, codeLensProvider),
             vscode.languages.registerCompletionItemProvider(
                 { language: "sql" },
@@ -410,9 +419,13 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
         if (!this._controller.connectionManager.isConnected(connectionUri)) {
             return new NullMetadataProvider();
         }
+        // The observer is what turns the statistics view's metadata section from a set of declared
+        // zeros into a record of what this document actually loaded, so it is supplied here rather
+        // than left to a caller to remember.
         return new SimpleQueryMetadataAdapter(
             new ExtensionSimpleQueryExecutor(connectionUri),
             new VscodeMssqlSimpleQueryMetadataLoader(),
+            new CatalogObserver(),
         );
     }
 
@@ -715,21 +728,26 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
             return;
         }
         const source = document.uri.toString();
-        let statsUri = this._statsUris.get(source);
-        if (!statsUri) {
-            statsUri = vscode.Uri.from({
-                scheme: statsScheme,
-                path: "/language-service-stats.json",
-                query: encodeURIComponent(source),
-            });
-            this._statsUris.set(source, statsUri);
+        const existing = this._statsPanels.get(source);
+        if (existing) {
+            existing.revealToForeground();
+            return;
         }
-        const statsDocument = await vscode.workspace.openTextDocument(statsUri);
-        await vscode.languages.setTextDocumentLanguage(statsDocument, "json");
-        await vscode.window.showTextDocument(statsDocument, {
-            preview: true,
-            preserveFocus: false,
-        });
+        const panel = new LanguageServiceStatsWebviewController(
+            this._context,
+            source,
+            basename(document.uri.fsPath),
+            {
+                stats: (documentUri) =>
+                    this._documents.get(documentUri)?.runtime.getStats(documentUri),
+                databaseName: (documentUri) =>
+                    this._documents.get(documentUri)?.metadata.pin().environment.currentDatabase,
+                enabled: this._enabled,
+                onDidChange: (listener) => this._documentChanged.event(listener),
+            },
+        );
+        this._statsPanels.set(source, panel);
+        panel.onDisposed(() => this._statsPanels.delete(source));
     }
 
     private resolveSqlDocument(uri: vscode.Uri | undefined): vscode.TextDocument | undefined {
@@ -794,6 +812,7 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
         this._codeLensChanged.fire();
         const statsUri = this._statsUris.get(state.connectionUri);
         if (statsUri) this._statsChanged.fire(statsUri);
+        this._documentChanged.fire(state.connectionUri);
     }
 }
 
@@ -826,7 +845,11 @@ class PreviewCompletionProvider implements vscode.CompletionItemProvider {
                 document.offsetAt(position),
             );
             if (result.incomplete && state.metadata.waitForHydration) {
-                await waitForInteractiveHydration(state.metadata, token, 1_000);
+                await waitForInteractiveHydration(
+                    state.metadata,
+                    token,
+                    completionHydrationTimeoutMs(result),
+                );
                 if (
                     token.isCancellationRequested ||
                     state.disposed ||
@@ -848,6 +871,10 @@ class PreviewCompletionProvider implements vscode.CompletionItemProvider {
             return undefined;
         }
     }
+}
+
+export function completionHydrationTimeoutMs(result: Pick<CompletionResult, "items">): number {
+    return result.items.length === 0 ? 5_000 : 1_000;
 }
 
 async function waitForInteractiveHydration(

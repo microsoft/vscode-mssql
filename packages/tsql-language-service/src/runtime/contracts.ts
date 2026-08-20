@@ -5,7 +5,10 @@
 
 import type { EngineCapabilities } from "../common/engineCapabilities.js";
 import type { EngineFacts } from "../common/engineProfile.js";
-import type { LanguageServiceStatsProvider } from "../observability/index.js";
+import type {
+    LanguageServiceStatsProvider,
+    RequestLatencyRecorder,
+} from "../observability/index.js";
 import type { SemanticSnapshot } from "../semantics/index.js";
 import type { SyntaxSnapshot } from "../syntax/index.js";
 import type { SqlCmdDocumentSnapshot, SqlCmdSourceRange } from "../sqlcmd/index.js";
@@ -44,6 +47,13 @@ export interface DocumentAnalysisSnapshot {
 
 export interface LanguageServiceRuntime extends LanguageServiceStatsProvider {
     readonly mode: "in-process" | "node-worker" | "web-worker";
+    /**
+     * Where feature latency is recorded, when this runtime reports it.
+     *
+     * Exposed on the runtime rather than owned by the feature service because the statistics store
+     * is here: a recorder the publisher could not reach would collect numbers nothing reports.
+     */
+    readonly requests?: RequestLatencyRecorder;
     /**
      * The engine profile every document currently open in this runtime is analysed under.
      *

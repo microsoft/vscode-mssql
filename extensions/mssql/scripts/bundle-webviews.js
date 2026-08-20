@@ -16,6 +16,7 @@ void run(
                 restoreDatabaseDialog:
                     "src/webviews/pages/ObjectManagement/RestoreDatabase/restoreDatabaseIndex.tsx",
                 connectionDialog: "src/webviews/pages/ConnectionDialog/index.tsx",
+                languageServiceStats: "src/webviews/pages/LanguageServiceStats/index.tsx",
                 connectionGroup: "src/webviews/pages/ConnectionGroup/index.tsx",
                 DacpacDialog: "src/webviews/pages/DacpacDialog/index.tsx",
                 deployment: "src/webviews/pages/Deployment/index.tsx",

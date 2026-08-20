@@ -163,8 +163,15 @@ function collectCtes(
     scopeId: string,
 ): readonly BoundRelation[] {
     const statement = ancestor(root, ["Statement"]) ?? root;
+    const declarations = descendants(statement, "CommonTableExpression");
+    const enclosing = ancestor(root, ["CommonTableExpression"]);
+    const lastVisible = enclosing
+        ? declarations.findIndex(
+              (candidate) => candidate.start === enclosing.start && candidate.end === enclosing.end,
+          )
+        : declarations.length - 1;
     const result: BoundRelation[] = [];
-    for (const cte of descendants(statement, "CommonTableExpression")) {
+    for (const cte of declarations.slice(0, lastVisible + 1)) {
         const name = firstDescendant(cte, "IdentifierName");
         if (!name) continue;
         result.push(
@@ -526,6 +533,7 @@ interface LocalRowsetDeclaration {
     readonly start: number;
     readonly end: number;
     readonly batch?: { readonly start: number; readonly end: number };
+    readonly statement?: { readonly start: number; readonly end: number };
 }
 
 /**
@@ -588,6 +596,7 @@ function buildLocalRowsetIndex(
     ): void => {
         if (!name) return;
         const batch = batchScoped ? ancestor(node, ["Batch"]) : undefined;
+        const statement = kind === "cte" ? ancestor(node, ["Statement"]) : undefined;
         const declarations = byName.get(name) ?? [];
         declarations.push({
             kind,
@@ -595,6 +604,7 @@ function buildLocalRowsetIndex(
             start: node.start,
             end: node.end,
             ...(batch ? { batch: { start: batch.start, end: batch.end } } : {}),
+            ...(statement ? { statement: { start: statement.start, end: statement.end } } : {}),
         });
         byName.set(name, declarations);
     };
@@ -664,10 +674,20 @@ export function localColumnsForName(
     if (!declarations || declarations.length === 0) return undefined;
 
     const useBatch = ancestor(input.syntax.nodeAt(useOffset), ["Batch"]);
+    const useStatement = ancestor(input.syntax.nodeAt(useOffset), ["Statement"]);
     const visible = (declaration: LocalRowsetDeclaration): boolean => {
         if (declaration.start >= useOffset) return false;
         if (!declaration.batch || !useBatch) return true;
-        return declaration.batch.start === useBatch.start && declaration.batch.end === useBatch.end;
+        if (declaration.batch.start !== useBatch.start || declaration.batch.end !== useBatch.end) {
+            return false;
+        }
+        if (declaration.kind !== "cte") return true;
+        return Boolean(
+            declaration.statement &&
+                useStatement &&
+                declaration.statement.start === useStatement.start &&
+                declaration.statement.end === useStatement.end,
+        );
     };
 
     // Most recent first, so the first visible declaration is the one in force here.

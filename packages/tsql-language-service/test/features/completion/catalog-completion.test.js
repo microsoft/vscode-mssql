@@ -146,6 +146,33 @@ suite("catalog completion", () => {
             ["Id", "Display Name"],
         );
     });
+    // Catalog hydration must not turn symbols from sibling statements into expression candidates.
+    test("keeps hydrated catalog symbols within their query", async () => {
+        const { runtime, features } = createServices();
+        const sql = "SELECT 1 FROM dbo.Users AS priorAlias; SELECT pri;";
+        await runtime.open("file:///scoped-catalog-symbols.sql", 1, sql);
+        const items = features.completion(
+            "file:///scoped-catalog-symbols.sql",
+            1,
+            sql.indexOf("pri;") + 3,
+        ).items;
+        assert.ok(!items.some((item) => item.label === "priorAlias"));
+        assert.ok(!items.some((item) => item.label === "Id"));
+        assert.ok(!items.some((item) => item.label === "Display Name"));
+        assert.ok(!items.some((item) => item.label === "dbo.Users"));
+
+        const valid = "SELECT curr FROM dbo.Users AS currentAlias;";
+        await runtime.open("file:///scoped-catalog-alias.sql", 1, valid);
+        assert.ok(
+            features
+                .completion(
+                    "file:///scoped-catalog-alias.sql",
+                    1,
+                    valid.indexOf("curr FROM") + "curr".length,
+                )
+                .items.some((item) => item.kind === "alias" && item.label === "currentAlias"),
+        );
+    });
     // Verifies database, schema, and object qualification all use the same indexed catalog path.
     test("completes tables and views across databases without eager column loading", async () => {
         const { runtime, features } = createServices();

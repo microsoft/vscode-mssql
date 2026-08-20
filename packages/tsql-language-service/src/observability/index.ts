@@ -5,3 +5,6 @@
 
 export * from "./contracts.js";
 export * from "./statsStore.js";
+export * from "./catalogObserver.js";
+export * from "./requestRecorder.js";
+export * from "./statsExport.js";

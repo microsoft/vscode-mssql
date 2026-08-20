@@ -33,6 +33,7 @@ import type {
 import type {
     BoundExpression,
     CatalogTimeline,
+    CatalogTimelineEvent,
     QueryScope,
     SemanticModel,
 } from "./model/contracts.js";
@@ -403,6 +404,50 @@ export class CatalogSemanticBinder implements SemanticBinder {
                     registerSyntheticColumn(owner, "type", "int");
                 }
             };
+            const localRelationSymbol = (
+                event: CatalogTimelineEvent,
+            ): SemanticSymbol | undefined => {
+                if (!event.declaration) return undefined;
+                const id = `local-relation:${rangeKey(event.declaration)}`;
+                const name = normalizeIdentifier(event.parts.at(-1) ?? "");
+                if (!name) return undefined;
+                let symbol = symbols.get(id);
+                if (!symbol) {
+                    symbol = {
+                        id,
+                        name,
+                        kind:
+                            event.kind === "table"
+                                ? name.startsWith("#")
+                                    ? "tempTable"
+                                    : "localTable"
+                                : event.kind,
+                        declaration: event.declaration,
+                    };
+                    symbols.set(id, symbol);
+                    declarationSymbols.push({ range: event.declaration, symbol: id });
+                }
+                if (event.columns && !columnsBySource.has(id)) {
+                    const members = new Map<string, SymbolId>();
+                    for (const column of event.columns) {
+                        const columnId = `${id}:column:${column.name.toLocaleLowerCase()}`;
+                        if (!symbols.has(columnId)) {
+                            symbols.set(columnId, {
+                                id: columnId,
+                                name: column.name,
+                                kind: "column",
+                                type: {
+                                    displayName: column.typeDisplay ?? "column",
+                                    nullable: column.nullable ?? true,
+                                },
+                            });
+                        }
+                        members.set(column.name.toLocaleLowerCase(), columnId);
+                    }
+                    columnsBySource.set(id, members);
+                }
+                return symbol;
+            };
 
             // Local declarations are indexed before references so aliases, variables, CTEs, and
             // temporary tables remain available even when the cursor precedes their textual use.
@@ -432,7 +477,7 @@ export class CatalogSemanticBinder implements SemanticBinder {
                         input.syntax.document.text.slice(nameNode.start, nameNode.end),
                     );
                     const symbol: SemanticSymbol = {
-                        id: `cte:${batch.start}:${name.toLocaleLowerCase()}`,
+                        id: `cte:${rangeKey(node)}`,
                         name,
                         kind: "cte",
                         declaration: { start: nameNode.start, end: nameNode.end },
@@ -448,7 +493,7 @@ export class CatalogSemanticBinder implements SemanticBinder {
                     const name = parts.at(-1);
                     if (!name) return;
                     const symbol: SemanticSymbol = {
-                        id: `local-table:${batch.start}:${name.toLocaleLowerCase()}`,
+                        id: `local-relation:${rangeKey(nameNode)}`,
                         name,
                         kind: name.startsWith("#") ? "tempTable" : "localTable",
                         declaration: { start: nameNode.start, end: nameNode.end },
@@ -456,6 +501,24 @@ export class CatalogSemanticBinder implements SemanticBinder {
                     registerSymbol(symbol);
                     const definition = firstDescendant(node, "TableDefinition");
                     if (definition) registerColumns(symbol, definition);
+                } else if (node.kind === "SelectStatement") {
+                    const into = firstDescendant(node, "IntoClause");
+                    if (!into || ancestorNode(into, "SelectStatement") !== node) return;
+                    const nameNode = firstDescendant(into, "MultipartIdentifier");
+                    if (!nameNode) return;
+                    const parts = multipartIdentifierParts(
+                        input.syntax.document.text.slice(nameNode.start, nameNode.end),
+                    );
+                    const name = parts.at(-1);
+                    if (!name) return;
+                    const symbol: SemanticSymbol = {
+                        id: `local-relation:${rangeKey(nameNode)}`,
+                        name,
+                        kind: name.startsWith("#") ? "tempTable" : "localTable",
+                        declaration: { start: nameNode.start, end: nameNode.end },
+                    };
+                    registerSymbol(symbol);
+                    registerProjectedColumns(symbol, node);
                 }
             });
 
@@ -468,15 +531,30 @@ export class CatalogSemanticBinder implements SemanticBinder {
                 );
                 if (parts.length === 0) return;
                 const resolution = input.metadata.resolveObject(parts);
-                const local = [...unitSymbols.values()].find(
-                    (symbol) =>
-                        (symbol.kind === "cte" ||
-                            symbol.kind === "tempTable" ||
-                            symbol.kind === "localTable") &&
-                        normalizeIdentifier(symbol.name).toLocaleLowerCase() ===
-                            normalizeIdentifier(parts.at(-1)!).toLocaleLowerCase(),
-                );
-                if (resolution.kind !== "resolved" && !local) {
+                const visibleCte =
+                    parts.length === 1
+                        ? scopeOf(node)?.ctes.find(
+                              (candidate) => fold(candidate.exposedName) === fold(parts.at(-1)!),
+                          )
+                        : undefined;
+                const localCte = visibleCte && unitSymbols.get(visibleCte.id);
+                const localState = timeline.resolve(parts, name.start, [
+                    "table",
+                    "view",
+                    "tableFunction",
+                    "synonym",
+                ]);
+                const localTable =
+                    localState?.exists && localState.event
+                        ? localRelationSymbol(localState.event)
+                        : undefined;
+                const local = localCte ?? localTable;
+                const catalog =
+                    !local && !localState && resolution.kind === "resolved"
+                        ? catalogSymbol(resolution.object)
+                        : undefined;
+                const symbol = local ?? catalog;
+                if (!symbol) {
                     registerReference({
                         start: name.start,
                         end: name.end,
@@ -485,32 +563,13 @@ export class CatalogSemanticBinder implements SemanticBinder {
                     });
                     return;
                 }
-                const symbol =
-                    resolution.kind === "resolved" ? catalogSymbol(resolution.object) : local!;
-                if (resolution.kind === "resolved") {
-                    symbols.set(symbol.id, symbol);
-                    unitSymbols.set(symbol.id, symbol);
+                if (catalog && resolution.kind === "resolved") {
+                    symbols.set(catalog.id, catalog);
+                    unitSymbols.set(catalog.id, catalog);
                     dependencies.add(resolution.object.ref.id);
-                }
-                if (resolution.kind === "resolved") {
                     const columnState = input.metadata.columnState(resolution.object.ref);
                     if (columnState.kind === "loaded") {
-                        const members = new Map<string, SymbolId>();
-                        for (const column of columnState.value) {
-                            const columnSymbol: SemanticSymbol = {
-                                id: `${symbol.id}:column:${column.name.toLocaleLowerCase()}`,
-                                name: column.name,
-                                kind: "column",
-                                object: resolution.object.ref,
-                                type: {
-                                    displayName: column.typeDisplay ?? "column",
-                                    nullable: column.nullable ?? true,
-                                },
-                            };
-                            registerSymbol(columnSymbol);
-                            members.set(column.name.toLocaleLowerCase(), columnSymbol.id);
-                        }
-                        columnsBySource.set(symbol.id, members);
+                        registerMetadataColumns(catalog, resolution.object, columnState.value);
                     }
                 }
                 const reference: BoundReference = {

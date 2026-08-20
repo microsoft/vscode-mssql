@@ -12,6 +12,7 @@ import {
 } from "@vscode-mssql/tsql-language-service";
 import { VscodeMssqlSimpleQueryMetadataLoader } from "../../src/languageservice/preview/simpleQueryMetadata";
 import {
+    completionHydrationTimeoutMs,
     computeSingleTextChange,
     isPreviewStatsCodeLensEnabled,
     metadataSectionsInvalidatedByExecutedSql,
@@ -48,6 +49,7 @@ suite("Preview language service integration", () => {
         expect(view.schemas()).to.deep.equal([{ database: "LargeDb", name: "dbo" }]);
         expect(view.searchPrincipals({ kinds: ["login"] })).to.deep.include({
             id: "server-principal:11",
+            database: undefined,
             name: "AppLogin",
             kind: "login",
             system: undefined,
@@ -89,6 +91,7 @@ suite("Preview language service integration", () => {
         });
         expect(generations).to.have.length(4);
         expect(queries).to.have.length(5);
+        expect(queries[0]).not.to.include("WITH (NOLOCK)");
 
         await loader.hydrate(
             executor,
@@ -150,7 +153,7 @@ suite("Preview language service integration", () => {
         expect(archive.object.kind).to.equal("view");
         expect(view.resolveObject(["dbo", "Customers"]).kind).to.equal("resolved");
 
-        for (const query of queries) {
+        for (const query of queries.slice(1)) {
             for (const line of query.split(/\r?\n/)) {
                 if (/\b(?:FROM|JOIN)\s+(?:\[[^\]]+\]\.)?sys\./i.test(line)) {
                     expect(line, `catalog read must use NOLOCK: ${line}`).to.match(
@@ -159,6 +162,68 @@ suite("Preview language service integration", () => {
                 }
             }
         }
+    });
+
+    test("omits unsupported catalog hints for a Fabric warehouse", async () => {
+        const queries: string[] = [];
+        const executor: SimpleQueryExecutor = {
+            execute: async (query) => {
+                queries.push(query);
+                if (query.includes("SERVERPROPERTY")) {
+                    return table(
+                        [
+                            "current_database",
+                            "default_schema",
+                            "case_sensitive",
+                            "engine_edition",
+                            "server_version",
+                            "server_name",
+                            "compatibility_level",
+                        ],
+                        [
+                            [
+                                "LargeDb",
+                                "custom",
+                                "0",
+                                "11",
+                                "16.0",
+                                "workspace.datawarehouse.fabric.microsoft.com",
+                                "160",
+                            ],
+                        ],
+                    );
+                }
+                return resultFor(query);
+            },
+        };
+        const store = new InMemoryMetadataProvider();
+        const publisher: SimpleQueryMetadataPublisher = {
+            replace: (input) => store.replace(input),
+            merge: (input) => store.merge(input),
+            replaceSection: (section, input) => store.replaceSection(section, input),
+        };
+        const loader = new VscodeMssqlSimpleQueryMetadataLoader();
+
+        await loader.refresh(executor, publisher);
+        const resolution = store.pin().resolveObject(["dbo", "Customers"]);
+        expect(resolution.kind).to.equal("resolved");
+        if (resolution.kind !== "resolved") throw new Error("Expected resolved object");
+        await loader.hydrate(
+            executor,
+            { section: "columns", object: resolution.object.ref, priority: "interactive" },
+            publisher,
+        );
+
+        expect(queries).not.to.be.empty;
+        expect(queries.every((query) => !query.includes("WITH (NOLOCK)"))).to.equal(true);
+        expect(store.pin().columnState(resolution.object.ref).kind).to.equal("loaded");
+    });
+
+    test("allows extra hydration time only for an empty completion result", () => {
+        expect(completionHydrationTimeoutMs({ items: [] })).to.equal(5_000);
+        expect(
+            completionHydrationTimeoutMs({ items: [{ label: "SELECT", kind: "keyword" }] }),
+        ).to.equal(1_000);
     });
 
     test("replaces principal metadata without reloading the object catalog", async () => {
@@ -196,12 +261,8 @@ suite("Preview language service integration", () => {
         };
         const store = new InMemoryMetadataProvider({
             completeness: { principals: "ready", objects: "ready" },
-            principals: [
-                { id: "server-principal:11", name: "AppLogin", kind: "login" },
-            ],
-            objects: [
-                { ref: { id: "42" }, schema: "dbo", name: "Customers", kind: "table" },
-            ],
+            principals: [{ id: "server-principal:11", name: "AppLogin", kind: "login" }],
+            objects: [{ ref: { id: "42" }, schema: "dbo", name: "Customers", kind: "table" }],
         });
         const publisher: SimpleQueryMetadataPublisher = {
             replace: (input) => store.replace(input),
@@ -216,9 +277,12 @@ suite("Preview language service integration", () => {
             publisher,
         );
 
-        expect(store.pin().searchPrincipals({ prefix: "" }).map((item) => item.name)).to.deep.equal([
-            "NewLogin",
-        ]);
+        expect(
+            store
+                .pin()
+                .searchPrincipals({ prefix: "" })
+                .map((item) => item.name),
+        ).to.deep.equal(["NewLogin"]);
         expect(store.pin().resolveObject(["dbo", "Customers"]).kind).to.equal("resolved");
         expect(queries).to.have.length(1);
         expect(queries[0]).to.include("sys.server_principals WITH (NOLOCK)");
@@ -244,8 +308,9 @@ suite("Preview language service integration", () => {
     });
 
     test("invalidates only principal metadata for successful principal DDL text", () => {
-        expect(metadataSectionsInvalidatedByExecutedSql("CREATE LOGIN tempChange WITH PASSWORD='x';"))
-            .to.deep.equal(["principals"]);
+        expect(
+            metadataSectionsInvalidatedByExecutedSql("CREATE LOGIN tempChange WITH PASSWORD='x';"),
+        ).to.deep.equal(["principals"]);
         expect(
             metadataSectionsInvalidatedByExecutedSql(
                 "USE master;\nGO\nALTER SERVER ROLE [sysadmin] ADD MEMBER [tempChange];",
@@ -310,11 +375,12 @@ suite("Preview language service integration", () => {
                 "SELECT [create], [login] FROM dbo.PrincipalWords;",
             ),
         ).to.deep.equal([]);
-        expect(metadataSectionsInvalidatedByExecutedSql("INSERT dbo.T(id) VALUES (1);"))
-            .to.deep.equal([]);
-        expect(metadataSectionsInvalidatedByExecutedSql("SELECT 1 INTO #local_temp;")).to.deep.equal(
-            [],
-        );
+        expect(
+            metadataSectionsInvalidatedByExecutedSql("INSERT dbo.T(id) VALUES (1);"),
+        ).to.deep.equal([]);
+        expect(
+            metadataSectionsInvalidatedByExecutedSql("SELECT 1 INTO #local_temp;"),
+        ).to.deep.equal([]);
     });
 });
 
@@ -360,7 +426,7 @@ function resultFor(query: string): SimpleQueryResult {
             ],
         );
     }
-    if (query.includes("[ArchiveDb].sys.schemas")) {
+    if (query.includes("FROM [ArchiveDb].sys.schemas")) {
         return table(["schema_name"], [["history"]]);
     }
     if (query.includes("[ArchiveDb].sys.types")) {

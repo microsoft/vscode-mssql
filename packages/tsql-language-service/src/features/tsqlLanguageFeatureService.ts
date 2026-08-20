@@ -11,6 +11,7 @@ import type {
     ParameterMetadata,
     PrincipalMetadata,
     SqlPrincipalKind,
+    MetadataHydrationRequest,
 } from "../metadata/index.js";
 import type { DocumentAnalysisSnapshot, LanguageServiceRuntime } from "../runtime/index.js";
 import {
@@ -80,12 +81,82 @@ const tableKinds = ["table", "view", "tableFunction", "synonym"] as const;
 const emptyDefinitionTarget: DefinitionTarget = Object.freeze({ locations: Object.freeze([]) });
 const maximumCatalogItems = 1_000;
 
+/**
+ * The entry points whose latency is reported.
+ *
+ * Listed rather than discovered so what a statistics view shows is decided here and visible here.
+ * `resolveCompletion` is deliberately absent: it takes no document, so a measurement of it could
+ * not be attributed to one.
+ */
+const measuredMethods = [
+    "completion",
+    "hover",
+    "signatureHelp",
+    "definition",
+    "definitionTarget",
+    "references",
+    "documentSymbols",
+    "foldingRanges",
+    "selectionRanges",
+] as const;
+
 /** Host-neutral editor features backed by one versioned runtime snapshot and pinned metadata view. */
 export class TsqlLanguageFeatureService implements LanguageFeatureService {
     public constructor(
         private readonly _runtime: LanguageServiceRuntime,
         private readonly _metadata: MetadataProvider,
-    ) {}
+    ) {
+        // Wrapped once here rather than inside each method: the timing is identical for all of
+        // them, and threading it through nine bodies would put nine chances to forget it where one
+        // will do. The list above keeps that from being invisible.
+        const recorder = _runtime.requests;
+        if (!recorder) return;
+        for (const method of measuredMethods) {
+            const original = this[method] as (...args: never[]) => unknown;
+            Object.defineProperty(this, method, {
+                configurable: true,
+                writable: true,
+                value: (...args: never[]) =>
+                    recorder.measure(method, () => {
+                        // Synchronous, so this cannot interleave: the reason a hydration is
+                        // requested is always the feature currently on the stack.
+                        const outer = this._currentFeature;
+                        this._currentFeature = method;
+                        try {
+                            return original.apply(this, args);
+                        } finally {
+                            this._currentFeature = outer;
+                        }
+                    }),
+            });
+        }
+    }
+
+    /** The measured method currently executing, used to say why a hydration was requested. */
+    private _currentFeature: string | undefined;
+
+    /**
+     * Reports that a section was already resident, so this feature asked for nothing.
+     *
+     * Recorded here rather than in the provider because this is where the decision is made: the
+     * branches below return the moment they find what they need, so a provider watching only its
+     * own hydration requests would never see a cache hit and would report every request as a round
+     * trip to the server.
+     */
+    private noteResident(request: Omit<MetadataHydrationRequest, "reason">): void {
+        this._metadata.noteResidentUse?.({
+            ...request,
+            ...(this._currentFeature === undefined ? {} : { reason: this._currentFeature }),
+        });
+    }
+
+    /** Requests hydration, attributing it to the feature that needed it. */
+    private hydrate(request: Omit<MetadataHydrationRequest, "reason">): void {
+        this._metadata.requestHydration({
+            ...request,
+            ...(this._currentFeature === undefined ? {} : { reason: this._currentFeature }),
+        });
+    }
 
     public completion(uri: string, version: number, offset: number): CompletionResult {
         const snapshot = this._runtime.snapshot(uri, version);
@@ -95,6 +166,11 @@ export class TsqlLanguageFeatureService implements LanguageFeatureService {
         let incomplete = false;
 
         const star = this.starExpansion(snapshot, view, offset);
+        const adjacentStar =
+            snapshot.text.text[offset - 1] === "*" || snapshot.text.text[offset] === "*";
+        if (adjacentStar && (star.item || star.incomplete)) {
+            return { items: star.item ? [star.item] : [], incomplete: star.incomplete };
+        }
         if (star.item) items.push(star.item);
         incomplete ||= star.incomplete;
 
@@ -137,7 +213,7 @@ export class TsqlLanguageFeatureService implements LanguageFeatureService {
             const catalog = catalogCompletions(this._metadata, view, prefix, objectContext);
             items.push(...catalog.items);
             incomplete ||= catalog.incomplete;
-            items.push(...localObjectCompletions(snapshot, prefix));
+            items.push(...localObjectCompletions(snapshot, view, offset, prefix));
         } else if (isCatalogQualifier(view, prefix.qualifiers)) {
             const catalog = catalogCompletions(this._metadata, view, prefix, {
                 kinds: ["scalarFunction", "tableFunction"],
@@ -154,6 +230,7 @@ export class TsqlLanguageFeatureService implements LanguageFeatureService {
             const insertColumns = this.insertColumnCompletions(snapshot, view, offset, prefix);
             items.push(...insertColumns.items);
             incomplete ||= insertColumns.incomplete;
+            items.push(...relationQualifierCompletions(snapshot, view, offset, prefix));
             items.push(...localSymbolCompletions(snapshot, prefix));
             if (context.expression) {
                 items.push(...builtInFunctionCompletions(prefix, snapshot.syntax.profile));
@@ -370,8 +447,14 @@ export class TsqlLanguageFeatureService implements LanguageFeatureService {
             context.kind === "execute" ? ["procedure"] : ["scalarFunction", "tableFunction"];
         if (resolution.kind === "resolved" && expectedKind.includes(resolution.object.kind)) {
             const state = view.parameterState(resolution.object.ref);
-            if (state.kind !== "loaded") {
-                this._metadata.requestHydration({
+            if (state.kind === "loaded") {
+                this.noteResident({
+                    section: "parameters",
+                    object: resolution.object.ref,
+                    priority: "interactive",
+                });
+            } else {
+                this.hydrate({
                     section: "parameters",
                     object: resolution.object.ref,
                     priority: "interactive",
@@ -399,11 +482,16 @@ export class TsqlLanguageFeatureService implements LanguageFeatureService {
         object: ObjectMetadata,
     ): { readonly value?: readonly ColumnMetadata[]; readonly incomplete: boolean } {
         const state = view.columnState(object.ref);
-        if (state.kind === "loaded") return { value: state.value, incomplete: false };
+        if (state.kind === "loaded") {
+            this.noteResident({ section: "columns", object: object.ref, priority: "interactive" });
+            return { value: state.value, incomplete: false };
+        }
         if (state.kind === "failed" && state.previous) {
+            // Deliberately not a resident hit. These columns are being reused because the fetch
+            // failed, which is the opposite of the cache working.
             return { value: state.previous, incomplete: true };
         }
-        this._metadata.requestHydration({
+        this.hydrate({
             section: "columns",
             object: object.ref,
             priority: "interactive",
@@ -437,7 +525,7 @@ export class TsqlLanguageFeatureService implements LanguageFeatureService {
                     );
                 }
             } else {
-                this._metadata.requestHydration({
+                this.hydrate({
                     section: "columns",
                     object: object.ref,
                     priority: "interactive",
@@ -458,7 +546,7 @@ export class TsqlLanguageFeatureService implements LanguageFeatureService {
                         .join(", ")})\``,
                 );
             } else if (parameters.kind !== "loaded") {
-                this._metadata.requestHydration({
+                this.hydrate({
                     section: "parameters",
                     object: object.ref,
                     priority: "interactive",
@@ -566,19 +654,16 @@ export class TsqlLanguageFeatureService implements LanguageFeatureService {
         offset: number,
         prefix: PrefixContext,
     ): { readonly items: readonly CompletionItem[]; readonly incomplete: boolean } {
-        const statement = ancestor(snapshot.syntax.nodeAt(offset), ["InsertStatement"]);
-        if (!statement || !firstDescendant(statement, "InsertColumnList")) {
+        const context = signatureContext(snapshot, offset);
+        if (context?.kind !== "insert" || !context.namingColumns) {
             return { items: [], incomplete: false };
         }
-        const target = firstDescendant(statement, "DmlTarget");
-        const name = target && firstDescendant(target, "MultipartIdentifier");
-        if (!name) return { items: [], incomplete: false };
-        const parts = multipartIdentifierParts(snapshot.text.text.slice(name.start, name.end));
+        const parts = context.target;
         const resolution = view.resolveObject(parts);
         const columns =
             resolution.kind === "resolved"
                 ? this.columns(view, resolution.object)
-                : { value: localColumnsForName(snapshot, parts, name.start), incomplete: false };
+                : { value: localColumnsForName(snapshot, parts, offset), incomplete: false };
         return {
             incomplete: columns.incomplete,
             items: (columns.value ?? [])
@@ -606,7 +691,7 @@ export class TsqlLanguageFeatureService implements LanguageFeatureService {
         }
         const state = view.parameterState(resolution.object.ref);
         if (state.kind !== "loaded") {
-            this._metadata.requestHydration({
+            this.hydrate({
                 section: "parameters",
                 object: resolution.object.ref,
                 priority: "interactive",
@@ -673,6 +758,8 @@ export class TsqlLanguageFeatureService implements LanguageFeatureService {
                     )
                     .join(", ")}`,
                 sortText: "0000-expand-select-star",
+                filterText: "*",
+                preselect: true,
                 edit: {
                     start: star.start,
                     end: star.end,
@@ -848,7 +935,13 @@ function principalCompletions(
     context: PrincipalCompletionContext,
 ): { readonly items: readonly CompletionItem[]; readonly incomplete: boolean } {
     const incomplete = view.completeness.principals !== "ready";
-    if (incomplete) provider.requestHydration({ section: "principals", priority: "interactive" });
+    if (incomplete) {
+        provider.requestHydration({
+            section: "principals",
+            priority: "interactive",
+            reason: "completion",
+        });
+    }
     const principals = view.searchPrincipals({
         database: view.environment.currentDatabase,
         prefix: prefix.prefix,
@@ -1213,6 +1306,7 @@ function localSymbolCompletions(
     const folded = prefix.prefix.toLocaleLowerCase();
     return snapshot.semantics
         .visibleSymbols(prefix.range.end)
+        .filter((symbol) => symbol.kind === "variable")
         .filter((symbol) => symbol.name.toLocaleLowerCase().startsWith(folded))
         .map((symbol) => ({
             label: symbol.name,
@@ -1226,25 +1320,87 @@ function localSymbolCompletions(
         }));
 }
 
-function localObjectCompletions(
+function relationQualifierCompletions(
     snapshot: DocumentAnalysisSnapshot,
+    view: MetadataView,
+    offset: number,
     prefix: PrefixContext,
 ): readonly CompletionItem[] {
-    const folded = prefix.prefix.toLocaleLowerCase();
-    return snapshot.semantics
-        .visibleSymbols(prefix.range.end)
-        .filter((symbol) => ["cte", "tempTable", "localTable"].includes(symbol.kind))
-        .filter((symbol) => symbol.name.toLocaleLowerCase().startsWith(folded))
-        .map((symbol) => ({
-            label: symbol.name,
-            kind: symbol.kind,
-            detail: "document-local object",
-            sortText: `00-${symbol.name.toLocaleLowerCase()}`,
-            edit: {
-                ...prefix.range,
-                newText: completionIdentifierInsertion(prefix, symbol.name),
-            },
-        }));
+    return snapshot.semantics.model
+        .visibleRelations(offset)
+        .filter((relation) => startsWith(relation.exposedName, prefix.prefix, view))
+        .map((relation) => {
+            const sourceName = relation.name?.object;
+            const kind =
+                sourceName && equal(sourceName, relation.exposedName, view)
+                    ? relation.kind
+                    : relation.kind === "cte" && !relation.name
+                      ? "cte"
+                      : relation.kind === "variable" && relation.exposedName.startsWith("@")
+                        ? "variable"
+                        : "alias";
+            return {
+                label: relation.exposedName,
+                kind,
+                detail: `${relation.kind} source`,
+                sortText: `04-${relation.exposedName.toLocaleLowerCase()}`,
+                edit: {
+                    ...prefix.range,
+                    newText: completionIdentifierInsertion(
+                        prefix,
+                        relation.exposedName,
+                        kind !== "variable",
+                    ),
+                },
+            };
+        });
+}
+
+function localObjectCompletions(
+    snapshot: DocumentAnalysisSnapshot,
+    view: MetadataView,
+    offset: number,
+    prefix: PrefixContext,
+): readonly CompletionItem[] {
+    const candidates = new Map<string, { readonly name: string; readonly kind: string }>();
+    const add = (name: string, kind: string): void => {
+        if (!startsWith(name, prefix.prefix, view)) return;
+        const key = view.environment.caseSensitive ? name : name.toLocaleLowerCase();
+        candidates.set(key, { name, kind });
+    };
+
+    for (const relation of snapshot.semantics.model.visibleRelations(offset)) {
+        if (relation.kind === "cte" && !relation.name) add(relation.exposedName, "cte");
+    }
+
+    for (const event of snapshot.semantics.model.timeline.events) {
+        if (event.offset > offset || event.kind !== "table" || event.action === "drop") continue;
+        const state = snapshot.semantics.model.timeline.resolve(event.parts, offset, ["table"]);
+        if (!state?.exists || state.event?.offset !== event.offset) continue;
+        const name = normalizeIdentifier(event.parts.at(-1) ?? "");
+        if (name) add(name, name.startsWith("#") ? "tempTable" : "localTable");
+    }
+
+    for (const symbol of snapshot.semantics.visibleSymbols(offset)) {
+        if (symbol.kind !== "variable" || !symbol.declaration) continue;
+        const declaration = ancestor(snapshot.syntax.nodeAt(symbol.declaration.start + 1), [
+            "VariableDeclaration",
+        ]);
+        if (declaration && firstDescendant(declaration, "TableDefinition")) {
+            add(symbol.name, "variable");
+        }
+    }
+
+    return [...candidates.values()].map(({ name, kind }) => ({
+        label: name,
+        kind,
+        detail: "document-local object",
+        sortText: `00-${name.toLocaleLowerCase()}`,
+        edit: {
+            ...prefix.range,
+            newText: completionIdentifierInsertion(prefix, name, kind !== "variable"),
+        },
+    }));
 }
 
 function vectorParameterCompletions(prefix: PrefixContext): readonly CompletionItem[] {
@@ -1550,7 +1706,12 @@ function requestDatabaseSection(
 ): boolean {
     const state = view.databaseCatalogCompleteness(database)[section];
     if (state !== "ready") {
-        provider.requestHydration({ section, database, priority: "interactive" });
+        provider.requestHydration({
+            section,
+            database,
+            priority: "interactive",
+            reason: "completion",
+        });
     }
     return state !== "ready";
 }

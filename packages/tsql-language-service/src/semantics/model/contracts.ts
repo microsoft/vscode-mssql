@@ -216,6 +216,8 @@ export interface CatalogTimelineEvent {
     readonly action: "create" | "alter" | "drop";
     readonly parts: readonly string[];
     readonly kind: string;
+    /** The declared object's exact name range, when this event introduces an identity. */
+    readonly declaration?: TextRange;
     readonly columns?: readonly ColumnMetadata[];
     readonly parameters?: readonly ParameterMetadata[];
     /** Which kind of user-defined type a `type` event declared. */

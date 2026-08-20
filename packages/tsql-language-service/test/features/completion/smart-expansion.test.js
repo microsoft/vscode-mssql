@@ -19,6 +19,12 @@ suite("smart SQL completion expansion", () => {
         const result = features.completion("file:///star.sql", 1, sql.indexOf("*") + 1);
         const expansion = result.items.find((item) => item.label === "Expand SELECT *");
 
+        assert.deepEqual(
+            result.items.map((item) => item.label),
+            ["Expand SELECT *"],
+        );
+        assert.equal(expansion.filterText, "*");
+        assert.equal(expansion.preselect, true);
         assert.deepEqual(expansion.edit, {
             start: sql.indexOf("*"),
             end: sql.indexOf("*") + 1,

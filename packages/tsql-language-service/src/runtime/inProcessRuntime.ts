@@ -20,7 +20,7 @@ import type { Disposable } from "../common/disposable.js";
 import type { MetadataProvider } from "../metadata/index.js";
 import { NullMetadataProvider } from "../metadata/index.js";
 import type { LanguageServiceStats } from "../observability/index.js";
-import { LanguageServiceStatsStore } from "../observability/index.js";
+import { LanguageServiceStatsStore, RequestLatencyRecorder } from "../observability/index.js";
 import { CatalogSemanticBinder, type SemanticBinder } from "../semantics/index.js";
 import { LezerSyntaxService, type SyntaxService } from "../syntax/index.js";
 import { SqlCmdDocumentService, type SqlCmdDocumentSnapshot } from "../sqlcmd/index.js";
@@ -55,6 +55,13 @@ export class InProcessLanguageServiceRuntime implements LanguageServiceRuntime {
     private readonly _documents = new Map<string, DocumentAnalysisSnapshot>();
     private readonly _sqlCmd = new SqlCmdDocumentService();
     private readonly _stats = new LanguageServiceStatsStore();
+    /**
+     * Latency for the feature calls this runtime's snapshots answer.
+     *
+     * Held here rather than in the feature service because the statistics store is here, and a
+     * recorder the publisher cannot reach would collect numbers nothing reports.
+     */
+    public readonly requests = new RequestLatencyRecorder();
     private _capabilities: EngineCapabilities;
 
     /** Frozen for the runtime's lifetime so every snapshot it publishes carries one profile. */
@@ -254,6 +261,7 @@ export class InProcessLanguageServiceRuntime implements LanguageServiceRuntime {
         bindElapsedMs: number,
     ): void {
         const view = this._metadata.pin();
+        const catalog = this._metadata.catalogStats?.();
         const availability = snapshot.syntax.diagnostics.filter(
             (diagnostic) => diagnostic.code === featureAvailabilityDiagnosticCode,
         ).length;
@@ -307,20 +315,24 @@ export class InProcessLanguageServiceRuntime implements LanguageServiceRuntime {
                 generation: view.generation,
                 completeness: view.completeness,
                 ageMs: Math.max(0, Date.now() - view.publishedAt),
-                refreshInProgress: false,
-                inFlight: 0,
-                // The in-process runtime does not instrument the provider, so residency and the
-                // fetch log are left unreported rather than reported as zero. A view must render
-                // these as "not measured"; a hit rate computed from an unwired counter would be
-                // a confident lie.
-                scopes: [],
-                fetches: [],
-                observedFetches: 0,
-                invalidations: [],
+                refreshInProgress: (catalog?.inFlight ?? 0) > 0,
+                inFlight: catalog?.inFlight ?? 0,
+                // Reported from the provider's own observations when it keeps them, and left empty
+                // when it does not. An empty log means "this provider records nothing", never "this
+                // session fetched nothing" -- the two are different and a view must not merge them.
+                scopes: catalog?.scopes ?? [],
+                fetches: catalog?.fetches ?? [],
+                observedFetches: catalog?.observedFetches ?? 0,
+                invalidations: catalog?.invalidations ?? [],
                 history: emptyHistory,
             },
             runtime: { mode: this.mode, state: "ready", queueDepth: 0 },
-            requests: { latency: {}, cancelled: 0, staleResultsDiscarded: 0 },
+            requests: {
+                latency: this.requests.summary(),
+                // Cancellation is the editor abandoning a request, which only the host can see.
+                cancelled: 0,
+                staleResultsDiscarded: this.requests.staleDiscarded,
+            },
             engine: {
                 profile: this._capabilities.engineProfile,
                 generation: this._capabilities.generation,

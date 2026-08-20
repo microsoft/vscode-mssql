@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type { Disposable } from "../common/disposable.js";
+import type { CatalogStatsSnapshot } from "../observability/contracts.js";
 
 export type MetadataSection =
     | "databases"
@@ -309,6 +310,14 @@ export interface MetadataHydrationRequest {
     /** Requests a lazily loaded catalog section for a database already advertised by databases(). */
     readonly database?: string;
     readonly priority: "interactive" | "background";
+    /**
+     * The interaction that needs this section -- "completion", "hover", "bind".
+     *
+     * Carried so the fetch log can say why a query ran, which is the difference between a list of
+     * queries and an explanation. Optional because a provider must work without it, and absent
+     * rather than guessed when a caller does not know.
+     */
+    readonly reason?: string;
 }
 
 export interface MetadataRefreshResult {
@@ -335,6 +344,25 @@ export interface MetadataProvider {
     ): Promise<MetadataRefreshResult>;
     refresh(signal?: AbortSignal): Promise<MetadataRefreshResult>;
     onDidChange(listener: () => void): Disposable;
+    /**
+     * Reports that a caller used a section it found already resident, so no fetch was needed.
+     *
+     * Separate from {@link requestHydration} because the two are different events and only one of
+     * them is a request: a feature that finds its columns in memory returns without asking for
+     * anything, which is exactly why a fetch log alone shows every request going to the server and
+     * makes the cache look absent.
+     *
+     * Optional, and ignored by providers that record nothing.
+     */
+    noteResidentUse?(request: MetadataHydrationRequest): void;
+    /**
+     * What this provider's catalog layer has observed, when it records it.
+     *
+     * Optional, and `undefined` even when implemented, because a provider may be constructed
+     * without an observer. A runtime publishes an empty metadata section rather than a fabricated
+     * one in either case: nothing here is reported as a measured zero unless it was measured.
+     */
+    catalogStats?(): CatalogStatsSnapshot | undefined;
 }
 
 export interface InMemoryMetadataInput {

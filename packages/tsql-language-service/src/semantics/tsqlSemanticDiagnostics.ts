@@ -4722,9 +4722,7 @@ class ValidationContext {
         const local = this.localRelationEventAt(parts, source.start);
         if (local) return local.create ? local.columns : undefined;
         if (this.isCteReference(source, parts)) {
-            const statement = ancestor(source, "Statement");
-            const cte =
-                statement && findCte(this._syntax, statement, parts.at(-1)!, this._metadata);
+            const cte = findCte(this._syntax, source, parts.at(-1)!, this._metadata);
             return cte ? projectedColumns(this._syntax, cte) : undefined;
         }
         const resolution = this._metadata.resolveObject(parts);
@@ -4836,8 +4834,7 @@ class ValidationContext {
 
     private isCteReference(node: SyntaxNode, parts: readonly string[]): boolean {
         if (parts.length !== 1) return false;
-        const statement = ancestor(node, "Statement");
-        return Boolean(statement && findCte(this._syntax, statement, parts[0]!, this._metadata));
+        return Boolean(findCte(this._syntax, node, parts[0]!, this._metadata));
     }
 
     private source(node: TextRange): string {
@@ -5020,6 +5017,7 @@ function relationTimelineEvent(event: LocalRelationEvent): CatalogTimelineEvent 
         action: event.create ? "create" : "drop",
         parts: event.parts,
         kind: event.kind,
+        ...(event.declaration ? { declaration: event.declaration } : {}),
         ...(event.columns ? { columns: event.columns } : {}),
         ...(event.parameters ? { parameters: event.parameters } : {}),
     };
@@ -5050,6 +5048,7 @@ interface LocalRelationEvent {
     readonly create: boolean;
     readonly parts: readonly string[];
     readonly kind: "table" | "view" | "tableFunction" | "synonym";
+    readonly declaration?: TextRange;
     /** Parameters declared by a document-local table-valued function. */
     readonly parameters?: readonly ParameterMetadata[];
     /** Undefined means the object is known to exist but its projected shape is not authoritative. */
@@ -5172,6 +5171,7 @@ function collectLocalRelationEvents(
             create: true,
             kind: "table",
             parts: multipartIdentifierParts(syntax.document.text.slice(name.start, name.end)),
+            declaration: { start: name.start, end: name.end },
             ...(definition
                 ? { columns: definitionColumns(syntax, definition) }
                 : projected && projected.length > 0
@@ -5189,6 +5189,7 @@ function collectLocalRelationEvents(
                 create: true,
                 kind: "view",
                 parts: multipartIdentifierParts(syntax.document.text.slice(name.start, name.end)),
+                declaration: { start: name.start, end: name.end },
                 ...(columns.length > 0 ? { columns } : {}),
             });
         }
@@ -5205,6 +5206,7 @@ function collectLocalRelationEvents(
                 create: true,
                 kind: "tableFunction",
                 parts: multipartIdentifierParts(syntax.document.text.slice(name.start, name.end)),
+                declaration: { start: name.start, end: name.end },
                 parameters: collectRoutineParameters(syntax, node),
                 ...(definition
                     ? { columns: definitionColumns(syntax, definition) }
@@ -5224,6 +5226,7 @@ function collectLocalRelationEvents(
             create: true,
             kind: "table",
             parts: multipartIdentifierParts(syntax.document.text.slice(name.start, name.end)),
+            declaration: { start: name.start, end: name.end },
             ...(definition
                 ? { columns: definitionColumns(syntax, definition) }
                 : projected && projected.length > 0
@@ -5239,6 +5242,7 @@ function collectLocalRelationEvents(
             create: true,
             kind: "synonym",
             parts: multipartIdentifierParts(syntax.document.text.slice(name.start, name.end)),
+            declaration: { start: name.start, end: name.end },
         });
     }
     for (const into of index.get("IntoClause") ?? []) {
@@ -5251,6 +5255,7 @@ function collectLocalRelationEvents(
             create: true,
             kind: "table",
             parts: multipartIdentifierParts(syntax.document.text.slice(name.start, name.end)),
+            declaration: { start: name.start, end: name.end },
             ...(columns.length > 0 ? { columns } : {}),
         });
     }
@@ -5648,11 +5653,20 @@ function deepestContaining(node: SyntaxNode, offset: number): SyntaxNode {
 
 function findCte(
     syntax: SyntaxSnapshot,
-    statement: SyntaxNode,
+    node: SyntaxNode,
     name: string,
     metadata: MetadataView,
 ): SyntaxNode | undefined {
-    return descendants(statement, "CommonTableExpression").find((cte) => {
+    const statement = ancestor(node, "Statement");
+    if (!statement) return undefined;
+    const declarations = descendants(statement, "CommonTableExpression");
+    const enclosing = ancestor(node, "CommonTableExpression");
+    const lastVisible = enclosing
+        ? declarations.findIndex(
+              (candidate) => candidate.start === enclosing.start && candidate.end === enclosing.end,
+          )
+        : declarations.length - 1;
+    return declarations.slice(0, lastVisible + 1).find((cte) => {
         const nameNode = firstDescendant(cte, "IdentifierName");
         if (!nameNode) return false;
         const candidate = normalizeIdentifier(

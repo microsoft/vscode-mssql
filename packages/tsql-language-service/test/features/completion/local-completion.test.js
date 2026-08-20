@@ -30,6 +30,29 @@ suite("local and grammar completion", () => {
         );
     });
 
+    test("keeps unqualified symbols within their query scope", async () => {
+        const prior = "SELECT 1 FROM (SELECT 1 AS Id) AS priorAlias; SELECT prior;";
+        const priorItems = await complete(prior, prior.indexOf("prior;", 30) + "prior".length);
+        assert.ok(!priorItems.some((item) => item.label === "priorAlias"));
+
+        const future = "SELECT future; SELECT 1 FROM (SELECT 1 AS Id) AS futureAlias;";
+        const futureItems = await complete(future, future.indexOf("future;") + "future".length);
+        assert.ok(!futureItems.some((item) => item.label === "futureAlias"));
+
+        const nested =
+            "SELECT (SELECT 1 FROM (SELECT 1 AS Id) AS scopeLeft), (SELECT scope FROM (SELECT 1 AS Id) AS scopeRight);";
+        const nestedItems = await complete(nested, nested.indexOf("scope FROM") + "scope".length);
+        assert.ok(!nestedItems.some((item) => item.label === "scopeLeft"));
+        assert.ok(nestedItems.some((item) => item.kind === "alias" && item.label === "scopeRight"));
+
+        const variable = "DECLARE @batchValue int; SELECT @batch";
+        assert.ok(
+            (await complete(variable)).some(
+                (item) => item.kind === "variable" && item.label === "@batchValue",
+            ),
+        );
+    });
+
     // Verifies expression and declaration contexts expose built-ins and modern SQL Server types.
     test("completes built-in functions and data types", async () => {
         const functions = await complete("SELECT JSON_");
@@ -104,6 +127,67 @@ suite("local and grammar completion", () => {
         const sql = "WITH CurrentCustomers AS (SELECT 1 AS Id) SELECT * FROM Current";
         const items = await complete(sql);
         assert.ok(items.some((item) => item.label === "CurrentCustomers" && item.kind === "cte"));
+    });
+
+    test("completes only local rowsets that are alive at the cursor", async () => {
+        const expired = "WITH expired AS (SELECT 1 AS Id) SELECT * FROM expired; SELECT * FROM exp";
+        assert.ok(!(await complete(expired)).some((item) => item.label === "expired"));
+
+        const future =
+            "SELECT * FROM fut; WITH futureCte AS (SELECT 1 AS Id) SELECT * FROM futureCte;";
+        assert.ok(
+            !(await complete(future, future.indexOf("fut;") + 3)).some(
+                (item) => item.label === "futureCte",
+            ),
+        );
+
+        const forward =
+            "WITH firstCte AS (SELECT * FROM lat), laterCte AS (SELECT 1 AS Id) SELECT * FROM firstCte;";
+        assert.ok(
+            !(await complete(forward, forward.indexOf("lat)") + 3)).some(
+                (item) => item.label === "laterCte",
+            ),
+        );
+
+        const beforeCreate = "SELECT * FROM #lat; CREATE TABLE #later (Id int);";
+        assert.ok(
+            !(await complete(beforeCreate, beforeCreate.indexOf("#lat;") + 4)).some(
+                (item) => item.label === "#later",
+            ),
+        );
+
+        const afterDrop = "CREATE TABLE #gone (Id int); DROP TABLE #gone; SELECT * FROM #go";
+        assert.ok(!(await complete(afterDrop)).some((item) => item.label === "#gone"));
+
+        const acrossBatch = "CREATE TABLE #persisted (Id int);\nGO\nSELECT * FROM #per";
+        assert.ok(
+            (await complete(acrossBatch)).some(
+                (item) => item.label === "#persisted" && item.kind === "tempTable",
+            ),
+        );
+
+        const selectInto = "SELECT CustomerId INTO #active FROM dbo.Customers; SELECT * FROM #act";
+        assert.ok(
+            (await complete(selectInto)).some(
+                (item) => item.label === "#active" && item.kind === "tempTable",
+            ),
+        );
+
+        const tableVariable = "DECLARE @items TABLE (Id int); SELECT * FROM @it";
+        assert.ok(
+            (await complete(tableVariable)).some(
+                (item) => item.label === "@items" && item.kind === "variable",
+            ),
+        );
+    });
+
+    test("does not expose columns from an expired CTE", async () => {
+        const sql =
+            "WITH expired AS (SELECT 1 AS ExpiredColumn) SELECT * FROM expired; SELECT expired. FROM expired;";
+        assert.deepEqual(
+            columnLabels(await complete(sql, sql.indexOf("expired. FROM") + "expired.".length)),
+            [],
+        );
     });
 
     // Verifies OPENJSON WITH and default OPENJSON shapes provide rowset member completion.
@@ -216,6 +300,155 @@ FROM (SELECT DISTINCT Department FROM dbo.EmployeeData) AS dept;`;
         ]);
     });
 
+    test("keeps repeated and forward CTE identities separate", async () => {
+        const repeated =
+            "WITH c AS (SELECT 1 AS A) SELECT * FROM c; WITH c AS (SELECT 2 AS B) SELECT * FROM c;";
+        const { features: repeatedFeatures } = await services(repeated);
+        const firstDeclaration = repeated.indexOf("c AS");
+        const secondDeclaration = repeated.indexOf("c AS", firstDeclaration + 1);
+        const firstReference = repeated.indexOf("FROM c") + "FROM ".length;
+        const secondReference = repeated.indexOf("FROM c", firstReference + 1) + "FROM ".length;
+        assert.deepEqual(
+            repeatedFeatures.definition("file:///local-completion.sql", 1, firstReference),
+            [
+                {
+                    uri: "file:///local-completion.sql",
+                    range: { start: firstDeclaration, end: firstDeclaration + 1 },
+                },
+            ],
+        );
+        assert.deepEqual(
+            repeatedFeatures.definition("file:///local-completion.sql", 1, secondReference),
+            [
+                {
+                    uri: "file:///local-completion.sql",
+                    range: { start: secondDeclaration, end: secondDeclaration + 1 },
+                },
+            ],
+        );
+
+        const forward =
+            "WITH firstCte AS (SELECT * FROM laterCte), laterCte AS (SELECT 1 AS Id) SELECT * FROM firstCte;";
+        const { features: forwardFeatures, snapshot } = await services(forward);
+        const forwardReference = forward.indexOf("laterCte");
+        assert.deepEqual(
+            forwardFeatures.definition("file:///local-completion.sql", 1, forwardReference),
+            [],
+        );
+        assert.ok(
+            snapshot.semantics.diagnostics.some(
+                (diagnostic) =>
+                    diagnostic.code === "MSSQL208" &&
+                    forward.slice(diagnostic.range.start, diagnostic.range.end) === "laterCte",
+            ),
+        );
+    });
+
+    test("navigates temp-table and SELECT INTO declarations", async () => {
+        const acrossBatch =
+            "CREATE TABLE #persisted (Id int);\nGO\nSELECT p.Id FROM #persisted AS p;";
+        const { features: acrossBatchFeatures } = await services(acrossBatch);
+        const tableDeclaration = acrossBatch.indexOf("#persisted");
+        const tableReference = acrossBatch.lastIndexOf("#persisted");
+        assert.deepEqual(
+            acrossBatchFeatures.definition("file:///local-completion.sql", 1, tableReference + 1),
+            [
+                {
+                    uri: "file:///local-completion.sql",
+                    range: {
+                        start: tableDeclaration,
+                        end: tableDeclaration + "#persisted".length,
+                    },
+                },
+            ],
+        );
+        const columnDeclaration = acrossBatch.indexOf("Id int");
+        const columnReference = acrossBatch.indexOf("p.Id") + 2;
+        assert.deepEqual(
+            acrossBatchFeatures.definition("file:///local-completion.sql", 1, columnReference),
+            [
+                {
+                    uri: "file:///local-completion.sql",
+                    range: { start: columnDeclaration, end: columnDeclaration + 2 },
+                },
+            ],
+        );
+
+        const selectInto = "SELECT Id INTO #active FROM dbo.Users; SELECT a.Id FROM #active AS a;";
+        const { features: selectIntoFeatures } = await services(selectInto);
+        const intoDeclaration = selectInto.indexOf("#active");
+        const intoReference = selectInto.lastIndexOf("#active");
+        assert.deepEqual(
+            selectIntoFeatures.definition("file:///local-completion.sql", 1, intoReference + 1),
+            [
+                {
+                    uri: "file:///local-completion.sql",
+                    range: {
+                        start: intoDeclaration,
+                        end: intoDeclaration + "#active".length,
+                    },
+                },
+            ],
+        );
+    });
+
+    test("binds each local-table reference to the live declaration", async () => {
+        const recreated =
+            "CREATE TABLE #work (FirstColumn int); SELECT * FROM #work; DROP TABLE #work; CREATE TABLE #work (SecondColumn int); SELECT * FROM #work;";
+        const { features } = await services(recreated);
+        const firstDeclaration = recreated.indexOf("#work");
+        const firstReference = recreated.indexOf("#work", firstDeclaration + 1);
+        const secondDeclaration = recreated.indexOf("#work", firstReference + 1);
+        const recreatedDeclaration = recreated.indexOf("#work", secondDeclaration + 1);
+        const secondReference = recreated.indexOf("#work", recreatedDeclaration + 1);
+        assert.deepEqual(
+            features.definition("file:///local-completion.sql", 1, firstReference + 1),
+            [
+                {
+                    uri: "file:///local-completion.sql",
+                    range: {
+                        start: firstDeclaration,
+                        end: firstDeclaration + "#work".length,
+                    },
+                },
+            ],
+        );
+        assert.deepEqual(
+            features.definition("file:///local-completion.sql", 1, secondReference + 1),
+            [
+                {
+                    uri: "file:///local-completion.sql",
+                    range: {
+                        start: recreatedDeclaration,
+                        end: recreatedDeclaration + "#work".length,
+                    },
+                },
+            ],
+        );
+
+        const beforeCreate = "SELECT * FROM #later; CREATE TABLE #later (Id int);";
+        const { features: beforeFeatures } = await services(beforeCreate);
+        assert.deepEqual(
+            beforeFeatures.definition(
+                "file:///local-completion.sql",
+                1,
+                beforeCreate.indexOf("#later") + 1,
+            ),
+            [],
+        );
+
+        const afterDrop = "CREATE TABLE #gone (Id int); DROP TABLE #gone; SELECT * FROM #gone;";
+        const { features: afterFeatures } = await services(afterDrop);
+        assert.deepEqual(
+            afterFeatures.definition(
+                "file:///local-completion.sql",
+                1,
+                afterDrop.lastIndexOf("#gone") + 1,
+            ),
+            [],
+        );
+    });
+
     // Verifies catalog-free column binding carries declaration and SQL type information into hover.
     test("hovers and defines local columns", async () => {
         const sql = "CREATE TABLE #work (Id int NOT NULL); SELECT w.Id FROM #work w;";
@@ -243,8 +476,8 @@ async function services(sql) {
         metadata,
     );
     const features = new TsqlLanguageFeatureService(runtime, metadata);
-    await runtime.open("file:///local-completion.sql", 1, sql);
-    return { features, runtime };
+    const snapshot = await runtime.open("file:///local-completion.sql", 1, sql);
+    return { features, runtime, snapshot };
 }
 
 function columnLabels(items) {

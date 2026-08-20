@@ -4,6 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type { Disposable } from "../common/disposable.js";
+import type {
+    CatalogFetchContext,
+    CatalogObserver,
+    CatalogStatsSnapshot,
+} from "../observability/catalogObserver.js";
 import {
     InMemoryMetadataProvider,
     type ClrTypeMetadata,
@@ -99,10 +104,94 @@ export class SimpleQueryMetadataAdapter implements MetadataProvider {
         replaceSection: (section, input) => this._store.replaceSection(section, input),
     };
 
+    private readonly _databaseHandles = new Map<string, string>();
+
     public constructor(
         private readonly _executor: SimpleQueryExecutor,
         private readonly _loader: SimpleQueryMetadataLoader,
+        /**
+         * Records what the catalog layer did. Absent by default: a provider must work without an
+         * observer, and a caller that does not want a log should not pay for one.
+         */
+        private readonly _observer?: CatalogObserver,
     ) {}
+
+    public catalogStats(): CatalogStatsSnapshot | undefined {
+        return this._observer?.snapshot();
+    }
+
+    public noteResidentUse(request: MetadataHydrationRequest): void {
+        this._observer?.recordResident(this.contextFor(request, "resident section"));
+    }
+
+    /**
+     * The executor the loader is handed for one operation.
+     *
+     * Bound per operation rather than shared, because hydrations run concurrently and a single
+     * mutable "current fetch" would attribute one request's query to another's context. The loader
+     * may issue several queries for one request; each becomes its own record under the same context,
+     * which is what the log should show.
+     */
+    private recordingExecutor(context: CatalogFetchContext): SimpleQueryExecutor {
+        const observer = this._observer;
+        if (!observer) return this._executor;
+        const inner = this._executor;
+        return {
+            execute: async (query, signal) => {
+                const span = observer.beginFetch(context);
+                try {
+                    const result = await inner.execute(query, signal);
+                    const failure = result.messages?.find((message) => message.error);
+                    span.settle(
+                        failure ? "failed" : result.rows.length === 0 ? "empty" : "loaded",
+                        {
+                            rowCount: result.rows.length,
+                            query,
+                            ...(failure ? { error: { message: failure.message } } : {}),
+                        },
+                    );
+                    return result;
+                } catch (error) {
+                    span.settle(isAbort(error, signal) ? "cancelled" : "failed", {
+                        query,
+                        error: describeError(error),
+                    });
+                    throw error;
+                }
+            },
+        };
+    }
+
+    /** A stable per-session identifier for a database, so the handle never carries its name. */
+    private handleFor(database: string | undefined): string {
+        const key = (database ?? "").toLocaleLowerCase();
+        const existing = this._databaseHandles.get(key);
+        if (existing) return existing;
+        const created =
+            database === undefined ? "db:unknown" : `db:${this._databaseHandles.size + 1}`;
+        this._databaseHandles.set(key, created);
+        return created;
+    }
+
+    /** What a request identifies, resolved against the current view for display. */
+    private contextFor(request: MetadataHydrationRequest, reason: string): CatalogFetchContext {
+        const view = this.pin();
+        const database = request.database ?? view.environment.currentDatabase;
+        const object = request.object ? view.object(request.object) : undefined;
+        return {
+            section: request.section,
+            databaseHandle: this.handleFor(database),
+            ...(database === undefined ? {} : { databaseName: database }),
+            ...(object === undefined ? {} : { objectName: `${object.schema}.${object.name}` }),
+            trigger: request.reason ?? request.priority,
+            reason,
+            isCurrent: equalName(
+                database,
+                view.environment.currentDatabase,
+                view.environment.caseSensitive,
+            ),
+        };
+    }
 
     public pin(): MetadataView {
         return this._store.pin();
@@ -125,11 +214,20 @@ export class SimpleQueryMetadataAdapter implements MetadataProvider {
         const key = `${request.section}:${request.object.id}`;
         if (this._hydrations.has(key)) return;
         const previous = loadState(this.pin(), request);
-        if (previous.kind === "loaded") return;
+        if (previous.kind === "loaded") {
+            // Answered without a query. Logged because a view that only saw server traffic would
+            // report the cache as absent and every request as a round trip.
+            this._observer?.recordResident(this.contextFor(request, "resident section"));
+            return;
+        }
         const previousValue = previous.kind === "failed" ? previous.previous : undefined;
         this._store.merge(loadStatePatch(request, { kind: "loading" }));
         const hydration = this._loader
-            .hydrate(this._executor, request, this._publisher)
+            .hydrate(
+                this.recordingExecutor(this.contextFor(request, "object detail")),
+                request,
+                this._publisher,
+            )
             .catch((error: unknown) => {
                 this._store.merge(
                     loadStatePatch(request, {
@@ -171,13 +269,22 @@ export class SimpleQueryMetadataAdapter implements MetadataProvider {
         }
         const state =
             view.databaseCatalogCompleteness(database)[request.section as "schemas" | "objects"];
-        if (state === "ready") return;
+        if (state === "ready") {
+            this._observer?.recordResident(
+                this.contextFor({ ...request, database }, "database in scope"),
+            );
+            return;
+        }
         const normalizedRequest = { ...request, database };
         const key = `${request.section}:database:${database.toLocaleLowerCase()}`;
         if (this._hydrations.has(key)) return;
         this._store.merge(databaseLoadStatePatch(database, request.section, "loading"));
         const hydration = this._loader
-            .hydrate(this._executor, normalizedRequest, this._publisher)
+            .hydrate(
+                this.recordingExecutor(this.contextFor(normalizedRequest, "database in scope")),
+                normalizedRequest,
+                this._publisher,
+            )
             .catch((error: unknown) => {
                 this._store.merge(databaseLoadStatePatch(database, request.section, "failed"));
                 throw error;
@@ -229,8 +336,19 @@ export class SimpleQueryMetadataAdapter implements MetadataProvider {
     private async loadAndPublish(): Promise<MetadataRefreshResult> {
         const started = performance.now();
         const hadPublishedIdentity = this._hasPublishedIdentity;
+        // A first load is the connection opening; a later one is that connection's catalog being
+        // dropped and rebuilt, which is the case worth reporting as a reload.
+        const cause = hadPublishedIdentity ? "connectionChanged" : undefined;
         try {
-            await this._loader.refresh(this._executor, this._publisher);
+            await this._loader.refresh(
+                this.recordingExecutor(
+                    this.contextFor(
+                        { section: "objects", priority: "background", reason: "connection opened" },
+                        "active connection",
+                    ),
+                ),
+                this._publisher,
+            );
         } catch (error) {
             const state = hadPublishedIdentity ? "stale" : "failed";
             this._store.merge({
@@ -243,10 +361,19 @@ export class SimpleQueryMetadataAdapter implements MetadataProvider {
             });
             throw error;
         }
+        const elapsedMs = performance.now() - started;
+        if (cause) {
+            this._observer?.recordInvalidation({
+                at: Date.now(),
+                cause,
+                rebuildMs: elapsedMs,
+                note: "The connection's catalog was reloaded from the server.",
+            });
+        }
         return {
             generation: this._store.pin().generation,
             published: true,
-            elapsedMs: performance.now() - started,
+            elapsedMs,
         };
     }
 
@@ -265,9 +392,14 @@ export class SimpleQueryMetadataAdapter implements MetadataProvider {
         });
         try {
             for (const section of sections) {
+                const request: MetadataHydrationRequest = {
+                    section,
+                    priority: "background",
+                    reason: "DDL executed in editor",
+                };
                 await this._loader.hydrate(
-                    this._executor,
-                    { section, priority: "background" },
+                    this.recordingExecutor(this.contextFor(request, "section reload")),
+                    request,
                     this._publisher,
                 );
             }
@@ -282,12 +414,34 @@ export class SimpleQueryMetadataAdapter implements MetadataProvider {
             });
             throw error;
         }
+        const elapsedMs = performance.now() - started;
+        this._observer?.recordInvalidation({
+            at: Date.now(),
+            cause: "ddlExecuted",
+            rebuildMs: elapsedMs,
+            note: `Reloaded after DDL: ${sections.join(", ")}.`,
+        });
         return {
             generation: this.pin().generation,
             published: true,
-            elapsedMs: performance.now() - started,
+            elapsedMs,
         };
     }
+}
+
+/** An abort is the caller moving on, which is not a failure and must not be logged as one. */
+function isAbort(error: unknown, signal?: AbortSignal): boolean {
+    if (signal?.aborted) return true;
+    return error instanceof Error && error.name === "AbortError";
+}
+
+function describeError(error: unknown): {
+    readonly message: string;
+    readonly code?: string | number;
+} {
+    if (!(error instanceof Error)) return { message: String(error) };
+    const code = (error as { code?: string | number }).code;
+    return { message: error.message, ...(code === undefined ? {} : { code }) };
 }
 
 function usableSectionState(state: MetadataView["completeness"][MetadataSection]): boolean {
