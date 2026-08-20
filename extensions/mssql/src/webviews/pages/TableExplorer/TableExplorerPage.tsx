@@ -33,6 +33,11 @@ import {
     TableExplorerReducers,
 } from "../../../sharedInterfaces/tableExplorer";
 import { VscodeEditor } from "../../common/vscodeMonaco";
+import {
+    getTableExplorerFilterColumns,
+    runSessionReplacementAndUpdate,
+    TableExplorerFilterColumn,
+} from "./tableDataGridUtils";
 
 const useStyles = makeStyles({
     root: {
@@ -132,6 +137,7 @@ export const TableExplorerPage: React.FC = () => {
     const tableQuery = useTableExplorerSelector((s) => s.tableQuery);
     const schemaName = useTableExplorerSelector((s) => s.schemaName);
     const tableName = useTableExplorerSelector((s) => s.tableName);
+    const ownerUri = useTableExplorerSelector((s) => s.ownerUri);
 
     const isLoading = loadStatus === ApiStatus.Loading;
 
@@ -227,42 +233,60 @@ export const TableExplorerPage: React.FC = () => {
     }, [tableQuery, activeFilters.length]);
 
     const handleApplyFilters = useCallback(
-        (filters: AppliedFilter[]) => {
+        async (filters: AppliedFilter[]) => {
             const base = baseQueryRef.current ?? tableQuery;
             if (!base) {
                 return;
             }
-            setActiveFilters(filters);
             const composed = composeFilteredQuery(base, filters);
             // Pass only operator names (never column names or values) for telemetry.
-            context.runTableQuery(
-                composeSortedQuery(composed, sortColumns),
-                undefined,
-                filters.map((f) => f.operator),
-            );
+            const runQuery = () =>
+                context.runTableQuery(
+                    composeSortedQuery(composed, sortColumns),
+                    undefined,
+                    filters.map((f) => f.operator),
+                );
+            try {
+                await runSessionReplacementAndUpdate(
+                    filters,
+                    setActiveFilters,
+                    () => gridRef.current?.runBeforeSessionReplacement(runQuery) ?? runQuery(),
+                );
+            } finally {
+                baseQueryRef.current = base;
+            }
         },
         [tableQuery, context, sortColumns],
     );
 
-    const handleClearFilters = useCallback(() => {
+    const handleClearFilters = useCallback(async () => {
         if (activeFilters.length === 0) {
             return;
         }
         const base = baseQueryRef.current;
-        setActiveFilters([]);
-        if (base) {
-            context.runTableQuery(composeSortedQuery(base, sortColumns), undefined, []);
+        const runQuery = async () =>
+            base
+                ? context.runTableQuery(composeSortedQuery(base, sortColumns), undefined, [])
+                : true;
+        try {
+            await runSessionReplacementAndUpdate(
+                [],
+                setActiveFilters,
+                () => gridRef.current?.runBeforeSessionReplacement(runQuery) ?? runQuery(),
+            );
+        } finally {
+            if (base) {
+                baseQueryRef.current = base;
+            }
         }
     }, [activeFilters.length, context, sortColumns]);
 
-    const filterColumns = React.useMemo(
-        () =>
-            (resultSet?.columnInfo ?? []).map((c, i) => ({
-                id: `col${i}`,
-                name: c.name,
-            })),
-        [resultSet],
-    );
+    const [filterColumns, setFilterColumns] = useState<TableExplorerFilterColumn[]>([]);
+    useEffect(() => {
+        setFilterColumns((previousColumns) =>
+            getTableExplorerFilterColumns(resultSet?.columnInfo, previousColumns),
+        );
+    }, [resultSet?.columnInfo]);
 
     const handleExport = useCallback((format: "csv" | "excel" | "json") => {
         gridRef.current?.exportData(format);
@@ -283,6 +307,8 @@ export const TableExplorerPage: React.FC = () => {
         }
     }, [selectedRowIds]);
 
+    const handleAddRow = useCallback(() => gridRef.current?.createRow() ?? Promise.resolve(), []);
+
     const handleShowSql = useCallback(() => {
         const sql = gridRef.current?.getSqlForCurrentView();
         if (sql) {
@@ -296,28 +322,37 @@ export const TableExplorerPage: React.FC = () => {
     // `SELECT TOP N <cols> FROM [schema].[table]`, so we can regenerate it
     // from state instead of trying to surgically rewrite the TOP operand.
     const handleLoadSubset = useCallback(
-        (rowCount: number) => {
+        async (rowCount: number) => {
             const columnNames = resultSet?.columnInfo?.map((c) => c.name) ?? [];
             if (!tableName || columnNames.length === 0) {
-                context.loadSubset(rowCount);
-                return;
+                const loadSubset = async () => {
+                    await context.loadSubset(rowCount);
+                    return true;
+                };
+                return gridRef.current?.runBeforeSessionReplacement(loadSubset) ?? loadSubset();
             }
             const newQuery = buildDefaultSelectQuery(schemaName, tableName, columnNames, rowCount);
-            let queryToRun = composeSortedQuery(newQuery, sortColumns);
-
-            // Update baseQueryRef with the new unfiltered query before applying filters
-            baseQueryRef.current = queryToRun;
+            const newBaseQuery = composeSortedQuery(newQuery, sortColumns);
+            let queryToRun = newBaseQuery;
 
             // Reapply active filters to the new query
             if (activeFilters.length > 0) {
                 queryToRun = composeFilteredQuery(queryToRun, activeFilters);
             }
 
-            context.runTableQuery(
-                queryToRun,
-                rowCount,
-                activeFilters.map((f) => f.operator),
-            );
+            const runQuery = () =>
+                context.runTableQuery(
+                    queryToRun,
+                    rowCount,
+                    activeFilters.map((f) => f.operator),
+                );
+            const succeeded =
+                (await gridRef.current?.runBeforeSessionReplacement(runQuery)) ??
+                (await runQuery());
+            if (succeeded) {
+                baseQueryRef.current = newBaseQuery;
+            }
+            return succeeded;
         },
         [resultSet, schemaName, tableName, context, sortColumns, activeFilters],
     );
@@ -331,9 +366,14 @@ export const TableExplorerPage: React.FC = () => {
         setSortColumns([]);
     }, [tableQuery]);
 
-    const handleSaveComplete = () => {
-        // Clear the change tracking in the grid after successful save
-        gridRef.current?.clearAllChangeTracking();
+    const handleSave = async () => {
+        const grid = gridRef.current;
+        const saved = grid
+            ? await grid.runAfterPendingMutations(() => context.commitChanges())
+            : (await context.commitChanges(), true);
+        if (saved) {
+            grid?.clearAllChangeTracking();
+        }
     };
 
     const handleCellChangeCountChanged = (count: number) => {
@@ -350,7 +390,8 @@ export const TableExplorerPage: React.FC = () => {
                 <Panel defaultSize={75}>
                     <div className={classes.contentArea}>
                         <TableExplorerToolbar
-                            onSaveComplete={handleSaveComplete}
+                            onSave={handleSave}
+                            onAddRow={handleAddRow}
                             cellChangeCount={cellChangeCount}
                             deletionCount={deletionCount}
                             currentRowCount={currentRowCount}
@@ -400,6 +441,8 @@ export const TableExplorerPage: React.FC = () => {
                                     deletedRows={deletedRows}
                                     newRowIds={newRows?.map((r) => r.id)}
                                     tableQuery={tableQuery}
+                                    sessionKey={ownerUri}
+                                    onCreateRow={context?.createRow}
                                     onDeleteRow={context?.deleteRow}
                                     onUpdateCell={context?.updateCell}
                                     onRevertCell={context?.revertCell}
