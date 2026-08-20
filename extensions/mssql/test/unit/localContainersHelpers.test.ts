@@ -15,7 +15,7 @@ import * as localContainersHelpers from "../../src/deployment/localContainersHel
 import * as lc from "../../src/sharedInterfaces/localContainers";
 import { DeploymentWebviewController } from "../../src/deployment/deploymentWebviewController";
 import MainController from "../../src/controllers/mainController";
-import { stubTelemetry } from "./utils";
+import { stubTelemetry, stubUserSurvey } from "./utils";
 import { uuid } from "../e2e/baseFixtures";
 import {
     BackgroundTaskHandle,
@@ -38,6 +38,7 @@ suite("localContainers logic", () => {
     setup(() => {
         sandbox = sinon.createSandbox();
         ({ sendActionEvent, sendErrorEvent } = stubTelemetry(sandbox));
+        stubUserSurvey(sandbox);
         updateStateStub = sandbox.stub();
         updateTaskStub = sandbox.stub();
         completeTaskStub = sandbox.stub();
@@ -52,7 +53,18 @@ suite("localContainers logic", () => {
 
         deploymentController = {
             state: {},
-            mainController: { backgroundTasksService },
+            isDisposed: false,
+            mainController: {
+                backgroundTasksService,
+                connectionManager: {
+                    connect: sandbox.stub().resolves(true),
+                    disconnect: sandbox.stub().resolves(),
+                    connectionUI: {
+                        saveProfile: sandbox.stub().resolves({}),
+                    },
+                },
+                createObjectExplorerSession: sandbox.stub().resolves({}),
+            },
             updateState: updateStateStub,
             registerReducer: sandbox.stub().callsFake((name, fn) => {
                 (deploymentController as any)[name] = fn;
@@ -207,8 +219,15 @@ suite("localContainers logic", () => {
         expect(backgroundTasksService.registerTask).not.to.have.been.called;
     });
 
-    test("completeDockerStep updates state and completes the task on success", async () => {
-        const stepActionStub = sandbox.stub().resolves({ success: true });
+    test("completeDockerStep completes the task after controller disposal", async () => {
+        const pullImageStub = sandbox.stub().resolves({ success: true });
+        const startContainerStub = sandbox.stub().resolves({ success: true });
+        const checkContainerStub = sandbox.stub().resolves({ success: true });
+        const deploymentCompleted = new Promise<void>((resolve) => {
+            completeTaskStub.callsFake(() => resolve());
+        });
+        (deploymentController as any).isDisposed = true;
+        updateStateStub.throws(new Error("Cannot send notification on disposed controller"));
         const state: any = {
             deploymentTypeState: {
                 currentDockerStep: lc.DockerStepOrder.pullImage,
@@ -219,11 +238,35 @@ suite("localContainers logic", () => {
                     {
                         loadState: ApiStatus.NotStarted,
                         argNames: [],
-                        headerText: "Creating container",
-                        stepAction: stepActionStub,
+                        headerText: "Pulling image",
+                        stepAction: pullImageStub,
+                    },
+                    {
+                        loadState: ApiStatus.NotStarted,
+                        argNames: [],
+                        headerText: "Starting container",
+                        stepAction: startContainerStub,
+                    },
+                    {
+                        loadState: ApiStatus.NotStarted,
+                        argNames: [],
+                        headerText: "Checking container",
+                        stepAction: checkContainerStub,
+                    },
+                    {
+                        loadState: ApiStatus.NotStarted,
+                        argNames: [],
+                        headerText: "Connecting to container",
+                        stepAction: sandbox.stub(),
                     },
                 ],
-                formState: { version: "1.0", containerName: "test-container" },
+                formState: {
+                    version: "1.0",
+                    containerName: "test-container",
+                    port: 1433,
+                    profileName: "",
+                    savePassword: false,
+                },
             },
         };
 
@@ -231,21 +274,35 @@ suite("localContainers logic", () => {
         const newState = await (deploymentController as any).completeDockerStep(state, {
             dockerStep: lc.DockerStepOrder.pullImage,
         });
+        await deploymentCompleted;
 
         expect(
             newState.deploymentTypeState.dockerSteps[lc.DockerStepOrder.pullImage].loadState,
         ).to.equal(ApiStatus.Loaded);
-        expect(newState.deploymentTypeState.currentDockerStep).to.equal(4);
+        expect(
+            newState.deploymentTypeState.dockerSteps[lc.DockerStepOrder.connectToContainer]
+                .loadState,
+        ).to.equal(ApiStatus.Loaded);
+        expect(newState.deploymentTypeState.currentDockerStep).to.equal(7);
         expect(backgroundTasksService.registerTask).to.have.been.calledWithMatch({
             displayText: "Provisioning test-container",
             target: "test-container",
             state: BackgroundTaskState.InProgress,
         });
-        expect(updateTaskStub).to.have.been.calledWithMatch({ message: "Creating container" });
+        expect(updateTaskStub).to.have.been.calledWithMatch({ message: "Pulling image" });
+        expect(updateTaskStub).to.have.been.calledWithMatch({ message: "Starting container" });
+        expect(updateTaskStub).to.have.been.calledWithMatch({ message: "Checking container" });
+        expect(updateTaskStub).to.have.been.calledWithMatch({
+            message: "Connecting to container",
+        });
         expect(completeTaskStub).to.have.been.calledWith(
             BackgroundTaskState.Succeeded,
             sinon.match({ message: sinon.match.string }),
         );
+        expect(pullImageStub).to.have.been.called;
+        expect(startContainerStub).to.have.been.called;
+        expect(checkContainerStub).to.have.been.called;
+        expect(updateStateStub).not.to.have.been.called;
         expect(sendActionEvent).to.have.been.called;
     });
 
@@ -253,6 +310,9 @@ suite("localContainers logic", () => {
         const stepActionStub = sandbox
             .stub()
             .resolves({ success: false, error: "fail", fullErrorText: "full fail" });
+        const deploymentCompleted = new Promise<void>((resolve) => {
+            completeTaskStub.callsFake(() => resolve());
+        });
         const state: any = {
             deploymentTypeState: {
                 currentDockerStep: lc.DockerStepOrder.pullImage,
@@ -275,6 +335,7 @@ suite("localContainers logic", () => {
         const newState = await (deploymentController as any).completeDockerStep(state, {
             dockerStep: lc.DockerStepOrder.pullImage,
         });
+        await deploymentCompleted;
 
         expect(
             newState.deploymentTypeState.dockerSteps[lc.DockerStepOrder.pullImage].loadState,
@@ -377,10 +438,14 @@ suite("localContainers logic", () => {
         } as any;
 
         const saveProfileStub = sandbox.stub().resolves({});
-        const createSessionStub = sandbox.stub().resolves();
+        const createSessionStub = sandbox.stub().resolves({});
+        const connectStub = sandbox.stub().resolves(true);
+        const disconnectStub = sandbox.stub().resolves();
 
         const mainController = {
             connectionManager: {
+                connect: connectStub,
+                disconnect: disconnectStub,
                 connectionUI: { saveProfile: saveProfileStub },
             },
             createObjectExplorerSession: createSessionStub,
@@ -391,6 +456,48 @@ suite("localContainers logic", () => {
             mainController,
         );
         expect(result).to.be.true;
+        expect(connectStub).to.have.been.calledWithMatch(sinon.match.string, sinon.match.object, {
+            shouldHandleErrors: false,
+        });
+        expect(disconnectStub).to.have.been.called;
+        expect(saveProfileStub).to.have.been.calledOnce;
+        expect(createSessionStub).to.have.been.calledOnce;
+    });
+
+    test("addContainerConnection retries while container authentication initializes", async () => {
+        const clock = sandbox.useFakeTimers();
+        const dockerProfile = {
+            containerName: "c",
+            port: 1433,
+            profileName: "p",
+            savePassword: true,
+        } as any;
+
+        const saveProfileStub = sandbox.stub().resolves({});
+        const createSessionStub = sandbox.stub().resolves({});
+        const connectStub = sandbox.stub();
+        connectStub.onFirstCall().resolves(false);
+        connectStub.onSecondCall().resolves(true);
+        const disconnectStub = sandbox.stub().resolves();
+
+        const mainController = {
+            connectionManager: {
+                connect: connectStub,
+                disconnect: disconnectStub,
+                connectionUI: { saveProfile: saveProfileStub },
+            },
+            createObjectExplorerSession: createSessionStub,
+        } as unknown as MainController;
+
+        const resultPromise = localContainersHelpers.addContainerConnection(
+            dockerProfile,
+            mainController,
+        );
+        await clock.tickAsync(3000);
+
+        expect(await resultPromise).to.be.true;
+        expect(connectStub).to.have.been.calledTwice;
+        expect(disconnectStub).to.have.been.called;
         expect(saveProfileStub).to.have.been.calledOnce;
         expect(createSessionStub).to.have.been.calledOnce;
     });

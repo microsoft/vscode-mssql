@@ -56,6 +56,7 @@ suite("Fabric Provisioning logic", () => {
         backgroundTasksService.registerTask.returns(taskHandle);
 
         deploymentController = {
+            isDisposed: false,
             mainController: {
                 backgroundTasksService,
                 azureAccountService: {
@@ -229,6 +230,45 @@ suite("Fabric Provisioning logic", () => {
             "workspace1",
         );
         expect(result.isValid).to.equal(false);
+    });
+
+    test("updateFabricProvisioningState skips notifications after controller disposal", () => {
+        const state = new fp.FabricProvisioningState();
+        deploymentController.isDisposed = true;
+        updateStateStub.throws(new Error("Cannot send notification on disposed controller"));
+
+        fabricHelpers.updateFabricProvisioningState(deploymentController, state);
+
+        expect(deploymentController.state.deploymentTypeState).to.equal(state);
+        expect(updateStateStub).not.to.have.been.called;
+    });
+
+    test("provisionDatabase completes the task after controller disposal", async () => {
+        const state = new fp.FabricProvisioningState({
+            formState: {
+                accountId: "account1",
+                tenantId: "tenant1",
+                workspace: "workspace1",
+                databaseName: "database1",
+                databaseDescription: "description",
+                profileName: "profile",
+                groupId: "default",
+            },
+            workspaceName: "Workspace 1",
+        });
+        deploymentController.state.deploymentTypeState = state;
+        deploymentController.isDisposed = true;
+        updateStateStub.throws(new Error("Cannot send notification on disposed controller"));
+        sandbox.stub(FabricHelper, "createFabricSqlDatabase").resolves();
+
+        await fabricHelpers.provisionDatabase(deploymentController);
+
+        expect(completeTaskStub).to.have.been.calledWith(
+            BackgroundTaskState.Succeeded,
+            sinon.match({ message: sinon.match.string }),
+        );
+        expect(updateStateStub).not.to.have.been.called;
+        expect(state.provisionLoadState).to.equal(ApiStatus.Loaded);
     });
 
     test("provisionDatabase completes the background task on failure", async () => {

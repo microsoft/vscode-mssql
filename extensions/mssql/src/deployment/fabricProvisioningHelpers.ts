@@ -800,7 +800,9 @@ export function updateFabricProvisioningState(
     newState: fp.FabricProvisioningState,
 ) {
     deploymentController.state.deploymentTypeState = newState;
-    deploymentController.updateState(deploymentController.state);
+    if (!deploymentController.isDisposed) {
+        deploymentController.updateState(deploymentController.state);
+    }
 }
 
 export function handleCreateDatabase(

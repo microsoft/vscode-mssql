@@ -151,6 +151,22 @@ suite("Azure SQL Database reducers", () => {
         expect(azureSqlState.provisionLoadState).to.equal(ApiStatus.NotStarted);
     });
 
+    test("startAzureSqlDatabaseDeployment completes the task after controller disposal", async () => {
+        sandbox.stub(controller, "isDisposed").get(() => true);
+        controller.updateState.throws(new Error("Cannot send notification on disposed controller"));
+        controller.validateDeploymentForm.resolves([]);
+        sandbox.stub(VsCodeAzureHelper, "createAzureSqlDatabase").resolves();
+
+        await getReducer("startAzureSqlDatabaseDeployment")(controllerState, { tags: {} });
+
+        expect(completeTaskStub).to.have.been.calledWith(
+            BackgroundTaskState.Succeeded,
+            sinon.match({ message: sinon.match.string }),
+        );
+        expect(controller.updateState).not.to.have.been.called;
+        expect(azureSqlState.provisionLoadState).to.equal(ApiStatus.Loaded);
+    });
+
     test("startAzureSqlDatabaseDeployment completes the background task on failure", async () => {
         controller.validateDeploymentForm.resolves([]);
         sandbox

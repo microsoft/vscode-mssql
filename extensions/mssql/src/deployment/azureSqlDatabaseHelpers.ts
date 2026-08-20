@@ -1396,7 +1396,9 @@ function updateAzureSqlDatabaseState(
     newState: asd.AzureSqlDatabaseState,
 ) {
     deploymentController.state.deploymentTypeState = newState;
-    deploymentController.updateState(deploymentController.state);
+    if (!deploymentController.isDisposed) {
+        deploymentController.updateState(deploymentController.state);
+    }
 }
 
 async function getAzureActionButton(
