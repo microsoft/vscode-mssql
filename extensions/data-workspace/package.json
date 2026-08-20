@@ -47,6 +47,141 @@
             "supported": true
         }
     },
+    "contributes": {
+        "configuration": [
+            {
+                "title": "Projects",
+                "properties": {
+                    "dataworkspace.excludedProjects": {
+                        "type": "array",
+                        "default": [],
+                        "description": "%projects.excludedProjectsDescription%"
+                    },
+                    "projects.defaultProjectSaveLocation": {
+                        "type": "string",
+                        "description": "%projects.defaultProjectSaveLocation%"
+                    },
+                    "projects.showNotAddedProjectsInWorkspacePrompt": {
+                        "type": "boolean",
+                        "description": "%projects.showNotAddedProjectsInWorkspacePrompt%",
+                        "default": true
+                    }
+                }
+            }
+        ],
+        "commands": [
+            {
+                "command": "projects.new",
+                "title": "%new-command%",
+                "category": "%data-workspace-view-container-name%",
+                "icon": "$(add)"
+            },
+            {
+                "command": "projects.openExisting",
+                "title": "%open-existing-command%",
+                "category": "%data-workspace-view-container-name%",
+                "icon": "$(folder-opened)"
+            },
+            {
+                "command": "dataworkspace.refresh",
+                "title": "%refresh-workspace-command%",
+                "category": "%data-workspace-view-container-name%",
+                "icon": "$(refresh)"
+            },
+            {
+                "command": "dataworkspace.close",
+                "title": "%close-workspace-command%",
+                "category": "",
+                "icon": "$(close)"
+            },
+            {
+                "command": "projects.removeProject",
+                "title": "%remove-project-command%"
+            }
+        ],
+        "menus": {
+            "view/title": [
+                {
+                    "command": "dataworkspace.refresh",
+                    "when": "view == dataworkspace.views.main",
+                    "group": "navigation"
+                },
+                {
+                    "command": "dataworkspace.close",
+                    "when": "view == dataworkspace.views.main && workbenchState == workspace",
+                    "group": "1_commands"
+                },
+                {
+                    "command": "projects.new",
+                    "when": "view == dataworkspace.views.main",
+                    "group": "navigation"
+                },
+                {
+                    "command": "projects.openExisting",
+                    "when": "view == dataworkspace.views.main",
+                    "group": "navigation"
+                }
+            ],
+            "commandPalette": [
+                {
+                    "command": "projects.new"
+                },
+                {
+                    "command": "dataworkspace.refresh",
+                    "when": "false"
+                },
+                {
+                    "command": "dataworkspace.close",
+                    "when": "false"
+                },
+                {
+                    "command": "projects.removeProject",
+                    "when": "false"
+                },
+                {
+                    "command": "projects.openExisting"
+                }
+            ],
+            "view/item/context": [
+                {
+                    "command": "projects.removeProject",
+                    "when": "view == dataworkspace.views.main && viewItem =~ /^(databaseProject.itemType.project|databaseProject.itemType.legacyProject)$/",
+                    "group": "9_dbProjectsLast@9"
+                }
+            ]
+        },
+        "viewsContainers": {
+            "activitybar": [
+                {
+                    "id": "dataworkspace",
+                    "title": "%data-workspace-view-container-name%",
+                    "icon": "images/data-workspace.svg"
+                }
+            ]
+        },
+        "views": {
+            "dataworkspace": [
+                {
+                    "id": "dataworkspace.views.main",
+                    "name": "%main-view-name%",
+                    "contextualTitle": "%data-workspace-view-container-name%",
+                    "icon": "images/data-workspace.svg"
+                }
+            ]
+        },
+        "viewsWelcome": [
+            {
+                "view": "dataworkspace.views.main",
+                "contents": "%projects-view-no-workspace-content%",
+                "when": "workbenchState != workspace"
+            },
+            {
+                "view": "dataworkspace.views.main",
+                "contents": "%projects-view-no-project-content%",
+                "when": "workbenchState == workspace && isProjectsViewEmpty"
+            }
+        ]
+    },
     "dependencies": {},
     "devDependencies": {
         "@types/node": "^22.13.14",

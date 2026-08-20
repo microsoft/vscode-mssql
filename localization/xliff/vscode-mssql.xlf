@@ -9184,9 +9184,6 @@
     <trans-unit id="mssql.newEditorConnectionBehavior.defaultConnection.description">
       <source xml:lang="en">Always connect new editors and opened SQL files to the connection specified by `mssql.defaultConnectionId`.</source>
     </trans-unit>
-    <trans-unit id="projects.showNotAddedProjectsInWorkspacePrompt">
-      <source xml:lang="en">Always show information message when the current workspace folders contain projects that have not been added to the workspace&apos;s projects.</source>
-    </trans-unit>
     <trans-unit id="mssql.query.executionTimeout">
       <source xml:lang="en">An execution time-out of 0 indicates an unlimited wait (no time-out)</source>
     </trans-unit>
@@ -9265,9 +9262,6 @@
     <trans-unit id="mssql.clearPooledConnections">
       <source xml:lang="en">Clear Pooled Connections</source>
     </trans-unit>
-    <trans-unit id="close-workspace-command">
-      <source xml:lang="en">Close Workspace</source>
-    </trans-unit>
     <trans-unit id="mssql.objectExplorer.Tooltip.commandTimeoutLabel">
       <source xml:lang="en">Command Timeout</source>
     </trans-unit>
@@ -9328,17 +9322,8 @@
     <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.description">
       <source xml:lang="en">Create a new table in your database, or edit existing tables with the table designer.&#10;Once you&apos;re done making your changes, click the &apos;Publish&apos; button to send the changes to your database.</source>
     </trans-unit>
-    <trans-unit id="projects-view-no-workspace-content">
-      <source xml:lang="en">Create new or open existing to get started.&#10;[Create new](command:projects.new)&#10;[Open existing](command:projects.openExisting)&#10;To learn more about projects [read our docs](https://aka.ms/azuredatastudio-projects).</source>
-    </trans-unit>
     <trans-unit id="mssql.dacpacDialog.launch">
       <source xml:lang="en">DACPAC/BACPAC Operations...</source>
-    </trans-unit>
-    <trans-unit id="main-view-name">
-      <source xml:lang="en">Database Projects</source>
-    </trans-unit>
-    <trans-unit id="data-workspace-view-container-name">
-      <source xml:lang="en">Database Projects</source>
     </trans-unit>
     <trans-unit id="mssql.defaultQueryResultsViewMode.description">
       <source xml:lang="en">Default view mode for query results display.</source>
@@ -9523,9 +9508,6 @@
     <trans-unit id="mssql.walkthroughs.nextSteps.objectExplorerFilters.title">
       <source xml:lang="en">Filter your Object Explorer Tree</source>
     </trans-unit>
-    <trans-unit id="projects.defaultProjectSaveLocation">
-      <source xml:lang="en">Full path to folder where new projects are saved by default.</source>
-    </trans-unit>
     <trans-unit id="mssql.sqlScriptsSubmenu">
       <source xml:lang="en">Generate Script</source>
     </trans-unit>
@@ -9546,9 +9528,6 @@
     </trans-unit>
     <trans-unit id="mssql.profiler.launchFromObjectExplorer">
       <source xml:lang="en">Launch Query Profiler...</source>
-    </trans-unit>
-    <trans-unit id="projects.excludedProjectsDescription">
-      <source xml:lang="en">List of projects in the workspace to exclude from the projects viewlet</source>
     </trans-unit>
     <trans-unit id="mssql.Configuration">
       <source xml:lang="en">MSSQL</source>
@@ -9589,9 +9568,6 @@
     <trans-unit id="mssql.editTable">
       <source xml:lang="en">Modify Table Structure...</source>
     </trans-unit>
-    <trans-unit id="new-command">
-      <source xml:lang="en">New</source>
-    </trans-unit>
     <trans-unit id="mssql.createDatabase">
       <source xml:lang="en">New Database...</source>
     </trans-unit>
@@ -9612,9 +9588,6 @@
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.nextSteps.title">
       <source xml:lang="en">Next Steps with MSSQL for Visual Studio Code</source>
-    </trans-unit>
-    <trans-unit id="projects-view-no-project-content">
-      <source xml:lang="en">No projects open in current workspace.&#10;[Create new](command:projects.new)&#10;[Open existing](command:projects.openExisting)&#10;To learn more about projects [read our docs](https://aka.ms/azuredatastudio-projects).&#10;</source>
     </trans-unit>
     <trans-unit id="mssql.logRetentionMinutes">
       <source xml:lang="en">Number of minutes to retain log files for backend services. Default is 1 week.</source>
@@ -9652,9 +9625,6 @@
     <trans-unit id="mssql.openBackgroundTask">
       <source xml:lang="en">Open Task Result</source>
     </trans-unit>
-    <trans-unit id="open-existing-command">
-      <source xml:lang="en">Open existing</source>
-    </trans-unit>
     <trans-unit id="mssql.objectExplorerChatWithDatabaseInAgentMode">
       <source xml:lang="en">Open in GitHub Copilot Agent</source>
     </trans-unit>
@@ -9685,9 +9655,6 @@
     <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.altText">
       <source xml:lang="en">Query plan visualization</source>
     </trans-unit>
-    <trans-unit id="refresh-workspace-command">
-      <source xml:lang="en">Refresh</source>
-    </trans-unit>
     <trans-unit id="mssql.refreshObjectExplorerNode">
       <source xml:lang="en">Refresh</source>
     </trans-unit>
@@ -9699,9 +9666,6 @@
     </trans-unit>
     <trans-unit id="mssql.removeAadAccount">
       <source xml:lang="en">Remove Microsoft Entra Account</source>
-    </trans-unit>
-    <trans-unit id="remove-project-command">
-      <source xml:lang="en">Remove Project</source>
     </trans-unit>
     <trans-unit id="mssql.renameDatabase">
       <source xml:lang="en">Rename Database...</source>

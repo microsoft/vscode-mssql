@@ -13,11 +13,23 @@ import { createNewProjectWithQuickpick } from "./dialogs/newProjectQuickpick";
 import { WorkspaceService } from "./services/workspaceService";
 import { DataWorkspace as locConstants } from "../constants/locConstants";
 
+/** Extension whose manifest contributes the Projects view, commands and settings. */
+const dataWorkspaceExtensionId = "ms-mssql.data-workspace-vscode";
+
 /**
  * Registers the Projects view, its commands and the project provider registry, and returns the
  * API that project-providing extensions use to interact with them.
+ *
+ * The view, commands and settings are contributed by the data-workspace extension's manifest, so
+ * there is nothing to back when that extension is absent.
  */
-export function registerDataWorkspace(context: vscode.ExtensionContext): IDataWorkspaceExtension {
+export function registerDataWorkspace(
+    context: vscode.ExtensionContext,
+): IDataWorkspaceExtension | undefined {
+    if (!vscode.extensions.getExtension(dataWorkspaceExtensionId)) {
+        return undefined;
+    }
+
     const workspaceService = new WorkspaceService();
     const workspaceTreeDataProvider = new WorkspaceTreeDataProvider(workspaceService);
 

@@ -45,7 +45,7 @@ import { IConnectionStore, ConnectionStore } from "./models/connectionStore";
 import { IAccountStore, AccountStore } from "./azure/accountStore";
 
 /** The mssql extension API, including the Projects workspace API used by project extensions. */
-export type MssqlExtensionApi = IExtension & { dataWorkspace: IDataWorkspaceExtension };
+export type MssqlExtensionApi = IExtension & { dataWorkspace?: IDataWorkspaceExtension };
 
 /** exported for testing purposes only */
 export let controller: MainController = undefined;

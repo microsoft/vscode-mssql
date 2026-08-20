@@ -25,7 +25,8 @@
         "url": "https://github.com/Microsoft/vscode-mssql/issues"
     },
     "extensionDependencies": [
-        "ms-mssql.mssql"
+        "ms-mssql.mssql",
+        "ms-mssql.data-workspace-vscode"
     ],
     "scripts": {
         "build:runtime-localization": "node ../../scripts/localization-generate.js sql-database-projects .",
