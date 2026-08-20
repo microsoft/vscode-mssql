@@ -6,7 +6,6 @@
 import * as vscode from "vscode";
 import { WorkspaceTreeItem, IExtension as IDataWorkspaceExtension } from "dataworkspace";
 import { DataWorkspaceExtension } from "./common/dataWorkspaceExtension";
-import { IconPathHelper } from "./common/iconHelper";
 
 import { WorkspaceTreeDataProvider } from "./common/workspaceTreeDataProvider";
 import { browseForProject } from "./dialogs/browseForProject";
@@ -19,8 +18,6 @@ import { DataWorkspace as locConstants } from "../constants/locConstants";
  * API that project-providing extensions use to interact with them.
  */
 export function registerDataWorkspace(context: vscode.ExtensionContext): IDataWorkspaceExtension {
-    IconPathHelper.setExtensionContext(context);
-
     const workspaceService = new WorkspaceService();
     const workspaceTreeDataProvider = new WorkspaceTreeDataProvider(workspaceService);
 
