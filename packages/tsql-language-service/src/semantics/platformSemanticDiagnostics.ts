@@ -6,6 +6,7 @@
 import { engineCapabilitySet, engineProfileDisplayName } from "../common/index.js";
 import type { MetadataView } from "../metadata/index.js";
 import type { SyntaxNode, SyntaxSnapshot } from "../syntax/index.js";
+import { directChildOfKind, visitSyntaxTree } from "../syntax/treeUtilities.js";
 import type { SemanticDiagnostic } from "./contracts.js";
 import { rowsetNameNode, rowsetNameOwnerKinds } from "./model/nameNodes.js";
 
@@ -31,11 +32,11 @@ export function platformSemanticDiagnostics(
 
     const diagnostics: SemanticDiagnostic[] = [];
     const profileName = engineProfileDisplayName(syntax.profile.engineProfile);
-    visit(root, (node) => {
+    visitSyntaxTree(root, (node) => {
         if (!rowsetNameOwnerKinds.includes(node.kind)) return;
         // A `FROM` source is reached through its own wrapper as well as its enclosing owner; only
         // the wrapper reports it, so one written name never produces two diagnostics.
-        if (node.kind !== "TableSourceName" && firstChild(node, "TableSourceName")) return;
+        if (node.kind !== "TableSourceName" && directChildOfKind(node, "TableSourceName")) return;
         const identifier = rowsetNameNode(node);
         if (!identifier) return;
         const parts = [...identifier.children()].filter((child) => child.kind === "IdentifierName");
@@ -57,7 +58,7 @@ export function platformSemanticDiagnostics(
 }
 
 function equalsIdentifier(left: string, right: string, caseSensitive: boolean): boolean {
-    return caseSensitive ? left === right : left.toLocaleLowerCase() === right.toLocaleLowerCase();
+    return caseSensitive ? left === right : left.toLowerCase() === right.toLowerCase();
 }
 
 function undelimit(value: string): string {
@@ -65,16 +66,4 @@ function undelimit(value: string): string {
     if (trimmed.startsWith("[") && trimmed.endsWith("]")) return trimmed.slice(1, -1);
     if (trimmed.startsWith('"') && trimmed.endsWith('"')) return trimmed.slice(1, -1);
     return trimmed;
-}
-
-function firstChild(node: SyntaxNode, kind: string): SyntaxNode | undefined {
-    for (const child of node.children()) {
-        if (child.kind === kind) return child;
-    }
-    return undefined;
-}
-
-function visit(node: SyntaxNode, callback: (node: SyntaxNode) => void): void {
-    callback(node);
-    for (const child of node.children()) visit(child, callback);
 }

@@ -7,7 +7,7 @@ import type { FeatureAvailabilityDetail } from "../../common/platformFeatureRegi
 import type { ColumnMetadata, ObjectRef, ParameterMetadata } from "../../metadata/index.js";
 import type { TextRange } from "../../text/index.js";
 import type { IdentifierPart } from "../identifiers.js";
-import type { SymbolId } from "../contracts.js";
+import type { SymbolId } from "../symbolId.js";
 
 /**
  * The shared semantic intermediate representation.

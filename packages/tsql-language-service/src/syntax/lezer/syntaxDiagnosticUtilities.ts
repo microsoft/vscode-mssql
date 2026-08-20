@@ -180,12 +180,12 @@ export function requiresIntegerLiteral(node: LezerNode, text: string): boolean {
         const option = /^\s*SET\s+([\p{L}_][\p{L}\p{N}_$#@]*)/iu.exec(
             text.slice(setStatement.from, setStatement.to),
         )?.[1];
-        if (option && integerSetOptionNames.has(option.toLocaleUpperCase())) return true;
+        if (option && integerSetOptionNames.has(option.toUpperCase())) return true;
     }
     const option = ancestorNamed(node, "GenericOption");
     if (!option) return false;
     const name = /^\s*([\p{L}_][\p{L}\p{N}_$#@]*)/iu.exec(text.slice(option.from, option.to))?.[1];
-    return Boolean(name && integerOptionNames.has(name.toLocaleUpperCase()));
+    return Boolean(name && integerOptionNames.has(name.toUpperCase()));
 }
 
 const integerSetOptionNames = new Set([

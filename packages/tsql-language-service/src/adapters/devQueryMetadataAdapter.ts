@@ -108,6 +108,10 @@ class DevQueryPinnedView implements MetadataView {
         return this._inner.publishedAt;
     }
 
+    public get nameComparison() {
+        return this._inner.nameComparison;
+    }
+
     public resolveObject(parts: readonly string[]): ObjectResolution {
         return this._inner.resolveObject(parts);
     }

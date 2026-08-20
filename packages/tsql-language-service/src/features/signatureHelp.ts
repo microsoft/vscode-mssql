@@ -17,12 +17,14 @@ import type { TsqlFeatureProfile } from "../common/engineCapabilities.js";
 import {
     activeArgument,
     multipartIdentifierParts,
+    tsqlIdentifierPattern,
     type SignatureModel,
 } from "../semantics/index.js";
-import type { SyntaxNode } from "../syntax/index.js";
+import type { SyntaxKind, SyntaxNode } from "../syntax/index.js";
 import {
     ancestorOfKind as ancestor,
     descendantsOfKind as descendants,
+    directChildOfKind,
     firstDescendantOfKind as firstDescendant,
     visitSyntaxTree as visit,
 } from "../syntax/treeUtilities.js";
@@ -75,8 +77,8 @@ export function signatureContext(
     // uses for the parenthesised form of a rowset target, so the parentheses are found there.
     const dmlTarget = cursorAncestor(snapshot, offset, ["DmlTarget"]);
     if (dmlTarget && ancestor(dmlTarget, ["InsertStatement"])) {
-        const open = childOfKind(dmlTarget, "OpenParen");
-        const close = childOfKind(dmlTarget, "CloseParen");
+        const open = directChildOfKind(dmlTarget, "OpenParen");
+        const close = directChildOfKind(dmlTarget, "CloseParen");
         const name = firstDescendant(dmlTarget, "MultipartIdentifier");
         if (name && open && offset > open.start && (!close || offset <= close.start)) {
             const list =
@@ -146,17 +148,10 @@ export function signatureContext(
 function cursorAncestor(
     snapshot: DocumentAnalysisSnapshot,
     offset: number,
-    kinds: readonly string[],
+    kinds: readonly SyntaxKind[],
 ): SyntaxNode | undefined {
     const exact = ancestor(snapshot.syntax.nodeAt(offset), kinds);
     return exact ?? (offset > 0 ? ancestor(snapshot.syntax.nodeAt(offset - 1), kinds) : undefined);
-}
-
-function childOfKind(node: SyntaxNode, kind: string): SyntaxNode | undefined {
-    for (const child of node.children()) {
-        if (child.kind === kind) return child;
-    }
-    return undefined;
 }
 
 function activeParameterIn(node: SyntaxNode, offset: number): number {
@@ -176,7 +171,9 @@ function activeNamedParameter(
     for (const child of argumentsNode.children()) {
         if (child.kind === "Comma" && child.start < offset) start = child.end;
     }
-    return /(@[\p{L}_][\p{L}\p{N}_$#@]*)\s*=/iu.exec(text.slice(start, offset))?.[1];
+    return new RegExp(`(${tsqlIdentifierPattern.namedVariable})\\s*=`, "iu").exec(
+        text.slice(start, offset),
+    )?.[1];
 }
 
 export function routineSignatureHelp(
@@ -188,9 +185,7 @@ export function routineSignatureHelp(
     const labels = parameters.map(parameterLabel);
     const namedIndex = context.namedParameter
         ? parameters.findIndex(
-              (parameter) =>
-                  parameter.name.toLocaleLowerCase() ===
-                  context.namedParameter!.toLocaleLowerCase(),
+              (parameter) => parameter.name.toLowerCase() === context.namedParameter!.toLowerCase(),
           )
         : -1;
     const activeParameter =
@@ -488,7 +483,7 @@ function signatureDocumentation(signature: BuiltInSignature): string {
 function namesEqual(left: string, right: string, view: MetadataView): boolean {
     return view.environment.caseSensitive
         ? left === right
-        : left.toLocaleLowerCase() === right.toLocaleLowerCase();
+        : left.toLowerCase() === right.toLowerCase();
 }
 
 function builtInProfile(profile: TsqlFeatureProfile): BuiltInProfile {

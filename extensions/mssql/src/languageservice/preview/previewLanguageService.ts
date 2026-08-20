@@ -13,18 +13,19 @@ import {
     TsqlColorizationService,
     TsqlLanguageFeatureService,
     unknownEngineCapabilities,
-    type CompletionItem as ServiceCompletionItem,
-    type CompletionResult,
     type DocumentAnalysisSnapshot,
     type EngineFacts,
-    type FullColorizationResult,
     type LanguageServiceRuntime,
-    type LanguageServiceStats,
     type MetadataProvider,
-    type MetadataSection,
     type ObjectDefinitionDescriptor,
     type TextChange,
     CatalogObserver,
+    resolveMetadataRuntimeOptions,
+    SourceMappedColorizationService,
+    SourceMappedFeatureService,
+    type ColorizationService,
+    type LanguageFeatureService,
+    type MetadataRuntimeOptions,
 } from "@vscode-mssql/tsql-language-service";
 import * as vscode from "vscode";
 import { basename } from "path";
@@ -37,61 +38,77 @@ import {
     VscodeMssqlSimpleQueryMetadataLoader,
 } from "./simpleQueryMetadata";
 import {
+    PreviewMetadataSessionPool,
+    previewMetadataSessionKey,
+    type PreviewMetadataSessionLease,
+} from "./previewMetadataSessionPool";
+import {
     previewLanguageServiceSetting,
     previewLanguageServiceStatsCodeLensSetting,
 } from "./productionLanguageServiceIsolation";
-import { toVscodeFoldingRanges } from "./previewFoldingRanges";
 import { ScriptingObjectDefinitionProvider } from "./previewScriptedDefinitions";
-import {
-    applyColorizationEdits,
-    documentLineSource,
-    encodeSemanticTokens,
-    encodeSemanticTokensEdits,
-    previewSemanticTokensLegend,
-} from "./previewSemanticTokens";
+import { previewSemanticTokensLegend } from "./previewSemanticTokens";
 import SqlToolsServiceClient from "../serviceclient";
-import type { QueryExecutionCatalogEvent } from "../../models/sqlOutputContentProvider";
+import {
+    definitionScheme,
+    diagnosticSource,
+    refreshMetadataCommand,
+    showStatsCommand,
+    statsScheme,
+} from "./previewLanguageServiceConstants";
+import type { PreviewDocumentState, ResolvedDefinitionTarget } from "./previewLanguageServiceState";
+import {
+    PreviewCompletionProvider,
+    PreviewDefinitionDocumentProvider,
+    PreviewDefinitionProvider,
+    PreviewFoldingRangeProvider,
+    PreviewHoverProvider,
+    PreviewSemanticTokensProvider,
+    PreviewSignatureHelpProvider,
+    definitionUri,
+    positionOfOffset,
+    toVscodeDiagnostic,
+} from "./previewVscodeFeatureProviders";
+import {
+    PreviewStatsDocumentProvider,
+    PreviewStatusCodeLensProvider,
+    isPreviewStatsCodeLensEnabled,
+} from "./previewLanguageServiceStatus";
+import { PreviewMetadataRefreshCoordinator } from "./previewMetadataRefreshCoordinator";
 
-const showStatsCommand = "mssql.preview.showLanguageServiceStats";
-const refreshMetadataCommand = "mssql.preview.refreshLanguageServiceMetadata";
-const statsScheme = "mssql-language-service-stats";
-const definitionScheme = "mssql-definition";
-/** Generated documents kept before the least recently published one is dropped. */
-const maximumDefinitionDocuments = 32;
-const diagnosticSource = "vscode-mssql-preview";
+export {
+    completionHydrationTimeoutMs,
+    definitionUri,
+    positionOfOffset,
+} from "./previewVscodeFeatureProviders";
+export { isPreviewStatsCodeLensEnabled, statusTitle } from "./previewLanguageServiceStatus";
+export { metadataSectionsInvalidatedByExecutedSql } from "./previewMetadataRefreshCoordinator";
 
-/** The last full colorization published for one document, kept so deltas have a baseline. */
-interface PreviewSemanticTokenCache {
-    readonly result: FullColorizationResult;
-    readonly data: Uint32Array;
-}
-
-interface ResolvedDefinitionTarget {
-    readonly uri: vscode.Uri;
-    readonly targetRange: vscode.Range;
-    readonly targetSelectionRange: vscode.Range;
-}
-
-interface PreviewDocumentState {
-    readonly documentUri: vscode.Uri;
-    readonly connectionUri: string;
-    readonly metadata: MetadataProvider;
+/** The host-neutral analysis pair used by every preview VS Code provider for one document. */
+export interface PreviewAnalysisServices {
     readonly runtime: LanguageServiceRuntime;
-    readonly features: TsqlLanguageFeatureService;
-    readonly disposables: vscode.Disposable[];
-    queue: Promise<void>;
-    syncedVersion: number;
-    syncedText: string;
-    refreshing: boolean;
-    lastRefreshMs?: number;
-    lastRefreshError?: string;
-    rebindQueued: boolean;
-    lastDefinitionMs?: number;
-    lastDefinitionError?: string;
-    /** The engine identity the runtime last adopted, so an unchanged connection reprofiles once. */
-    profileGeneration: string;
-    semanticTokens?: PreviewSemanticTokenCache;
-    disposed: boolean;
+    readonly features: LanguageFeatureService;
+}
+
+/**
+ * Creates the exact source-mapped services used by the preview extension route.
+ *
+ * Keeping this composition in one exported seam makes the extension route independently
+ * testable and prevents a future provider from accidentally bypassing SQLCMD source mapping.
+ */
+export function createPreviewAnalysisServices(metadata: MetadataProvider): PreviewAnalysisServices {
+    const runtime = new InProcessLanguageServiceRuntime(
+        new LezerSyntaxService(undefined, unknownEngineCapabilities),
+        new CatalogSemanticBinder(),
+        metadata,
+    );
+    return {
+        runtime,
+        features: new SourceMappedFeatureService(
+            new TsqlLanguageFeatureService(runtime, metadata),
+            runtime,
+        ),
+    };
 }
 
 /**
@@ -106,8 +123,13 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
     private readonly _diagnostics = vscode.languages.createDiagnosticCollection(diagnosticSource);
     private readonly _codeLensChanged = new vscode.EventEmitter<void>();
     private readonly _semanticTokensChanged = new vscode.EventEmitter<void>();
-    private readonly _coloring = new TsqlColorizationService();
+    private readonly _coloring: ColorizationService = new SourceMappedColorizationService(
+        new TsqlColorizationService(),
+    );
     private readonly _definitions: CachedObjectDefinitionProvider;
+    private readonly _metadataOptions: MetadataRuntimeOptions;
+    private readonly _metadataSessions: PreviewMetadataSessionPool;
+    private readonly _metadataRefresh: PreviewMetadataRefreshCoordinator;
     private readonly _definitionDocuments = new Map<string, string>();
     private readonly _definitionsChanged = new vscode.EventEmitter<vscode.Uri>();
     private readonly _statsChanged = new vscode.EventEmitter<vscode.Uri>();
@@ -122,8 +144,27 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
     public constructor(
         private readonly _context: vscode.ExtensionContext,
         private readonly _controller: MainController,
+        metadataOptions: Partial<MetadataRuntimeOptions> = {},
     ) {
         const context = _context;
+        this._metadataOptions = resolveMetadataRuntimeOptions(metadataOptions);
+        this._metadataSessions = new PreviewMetadataSessionPool(
+            (executor) =>
+                new SimpleQueryMetadataAdapter(
+                    executor,
+                    new VscodeMssqlSimpleQueryMetadataLoader(this._metadataOptions),
+                    new CatalogObserver(),
+                ),
+            (connectionUri, query, signal) =>
+                new ExtensionSimpleQueryExecutor(connectionUri).execute(query, signal),
+            this._metadataOptions.catalogSessionCacheSize,
+        );
+        this._metadataRefresh = new PreviewMetadataRefreshCoordinator({
+            isEnabled: () => this._enabled,
+            resolveSqlDocument: (uri) => this.resolveSqlDocument(uri),
+            stateForUri: (uri) => this._documents.get(uri),
+            statusChanged: (state) => this.fireStatusChanged(state),
+        });
         // Objects are scripted through the same service "Script as Create" uses, so a definition
         // reads identically wherever the extension shows one. It runs quietly here, because
         // answering a keystroke must not raise a progress notification.
@@ -144,6 +185,7 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
         const completionProvider = new PreviewCompletionProvider(
             () => this._enabled,
             (uri) => this._documents.get(uri.toString()),
+            this._metadataOptions,
         );
         const hoverProvider = new PreviewHoverProvider(
             () => this._enabled,
@@ -220,7 +262,7 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
                 this.showStats(uri),
             ),
             vscode.commands.registerCommand(refreshMetadataCommand, (uri?: vscode.Uri) =>
-                this.refreshMetadata(uri, true),
+                this._metadataRefresh.refreshMetadata(uri, true),
             ),
             vscode.workspace.onDidOpenTextDocument((document) => this.openDocument(document)),
             vscode.workspace.onDidChangeTextDocument((event) =>
@@ -239,7 +281,7 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
                 this.rebuildConnectedDocuments(),
             ),
             this._controller.outputContentProvider.onQueryExecutionCatalogChanged((event) =>
-                this.handleQueryExecutionCatalogChanged(event),
+                this._metadataRefresh.handleQueryExecutionCatalogChanged(event),
             ),
         );
         context.subscriptions.push(this);
@@ -287,6 +329,7 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
 
     private stop(): void {
         for (const uri of [...this._documents.keys()]) this.disposeState(uri);
+        this._metadataSessions.clear();
         this._diagnostics.clear();
         this._statsUris.clear();
         this._definitions.invalidate();
@@ -298,20 +341,18 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
         const key = document.uri.toString();
         if (this._documents.has(key)) return;
 
-        const metadata = this.createMetadataProvider(key);
+        const metadataBinding = this.createMetadataBinding(key);
+        const metadata = metadataBinding.provider;
         // The engine is unidentified until the connection reports one. Nothing here constructs a
         // SQL Server profile by default, so an unconnected or still-connecting document never
         // receives a platform restriction the server never asked for.
-        const runtime = new InProcessLanguageServiceRuntime(
-            new LezerSyntaxService(undefined, unknownEngineCapabilities),
-            new CatalogSemanticBinder(),
-            metadata,
-        );
-        const features = new TsqlLanguageFeatureService(runtime, metadata);
+        const { runtime, features } = createPreviewAnalysisServices(metadata);
         const state: PreviewDocumentState = {
             documentUri: document.uri,
             connectionUri: key,
             metadata,
+            metadataSessionKey: metadataBinding.key,
+            metadataLease: metadataBinding.lease,
             runtime,
             features,
             disposables: [],
@@ -347,7 +388,7 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
 
         if (this._controller.connectionManager.isConnected(key)) {
             this.scheduleReprofile(state);
-            void this.refreshState(state, false);
+            void this._metadataRefresh.refreshState(state, false);
         }
         this.fireStatusChanged(state);
     }
@@ -394,6 +435,7 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
         this._documents.delete(key);
         state.disposed = true;
         for (const disposable of state.disposables) disposable.dispose();
+        state.metadataLease?.dispose();
         this._definitions.invalidate(key);
         void state.runtime.close(key);
         this._diagnostics.delete(state.documentUri);
@@ -405,28 +447,53 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
         for (const document of vscode.workspace.textDocuments.filter(isSqlDocument)) {
             const key = document.uri.toString();
             const state = this._documents.get(key);
-            const expectedProvider = this._controller.connectionManager.isConnected(key)
-                ? "simple-query"
-                : "null";
-            if (!state || state.metadata.id !== expectedProvider) {
+            const connected = this._controller.connectionManager.isConnected(key);
+            const expectedProvider = connected ? "simple-query" : "null";
+            const expectedSessionKey = connected ? this.metadataSessionKey(key) : undefined;
+            if (
+                !state ||
+                state.metadata.id !== expectedProvider ||
+                state.metadataSessionKey !== expectedSessionKey
+            ) {
                 this.disposeState(key);
                 this.openDocument(document);
             }
         }
     }
 
-    private createMetadataProvider(connectionUri: string): MetadataProvider {
+    private createMetadataBinding(connectionUri: string): {
+        readonly provider: MetadataProvider;
+        readonly key?: string;
+        readonly lease?: PreviewMetadataSessionLease;
+    } {
         if (!this._controller.connectionManager.isConnected(connectionUri)) {
-            return new NullMetadataProvider();
+            return { provider: new NullMetadataProvider() };
         }
-        // The observer is what turns the statistics view's metadata section from a set of declared
-        // zeros into a record of what this document actually loaded, so it is supplied here rather
-        // than left to a caller to remember.
-        return new SimpleQueryMetadataAdapter(
-            new ExtensionSimpleQueryExecutor(connectionUri),
-            new VscodeMssqlSimpleQueryMetadataLoader(),
-            new CatalogObserver(),
-        );
+        const key = this.metadataSessionKey(connectionUri);
+        const lease = this._metadataSessions.acquire(key, connectionUri);
+        return { provider: lease.provider, key, lease };
+    }
+
+    private metadataSessionKey(connectionUri: string): string {
+        const credentials =
+            this._controller.connectionManager.getConnectionInfoFromUri(connectionUri);
+        if (!credentials) return `document:${connectionUri}`;
+        const info = this.serverInfo(connectionUri);
+        const engineProfile = [
+            info?.engineEditionId ?? "unknown",
+            info?.serverMajorVersion ?? "unknown",
+            info?.serverMinorVersion ?? "unknown",
+        ].join(":");
+        return previewMetadataSessionKey({
+            server: credentials.server,
+            port: credentials.port,
+            database: credentials.database,
+            user: credentials.user,
+            authenticationType: credentials.authenticationType,
+            accountId: credentials.accountId,
+            tenantId: credentials.tenantId,
+            engineProfile,
+        });
     }
 
     private enqueue(state: PreviewDocumentState, operation: () => Promise<void>): void {
@@ -547,88 +614,6 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
         this._diagnostics.set(document.uri, diagnostics);
     }
 
-    private async refreshMetadata(uri: vscode.Uri | undefined, notify: boolean): Promise<void> {
-        if (!this._enabled) {
-            if (notify) {
-                void vscode.window.showInformationMessage(PreviewLoc.enableSettingFirst);
-            }
-            return;
-        }
-        const document = this.resolveSqlDocument(uri);
-        if (!document) {
-            if (notify) {
-                void vscode.window.showInformationMessage(PreviewLoc.openEditorToRefresh);
-            }
-            return;
-        }
-        const state = this._documents.get(document.uri.toString());
-        if (!state || state.metadata.id === "null") {
-            if (notify) {
-                void vscode.window.showInformationMessage(PreviewLoc.connectBeforeRefresh);
-            }
-            return;
-        }
-        await this.refreshState(state, notify);
-    }
-
-    private async refreshState(state: PreviewDocumentState, notify: boolean): Promise<void> {
-        if (state.refreshing) return;
-        state.refreshing = true;
-        state.lastRefreshError = undefined;
-        this.fireStatusChanged(state);
-        try {
-            const result = await state.metadata.refresh();
-            state.lastRefreshMs = result.elapsedMs;
-            if (notify) {
-                void vscode.window.showInformationMessage(
-                    PreviewLoc.metadataRefreshed(result.elapsedMs.toFixed(1)),
-                );
-            }
-        } catch (error) {
-            state.lastRefreshError = errorMessage(error);
-            if (notify) {
-                void vscode.window.showErrorMessage(
-                    PreviewLoc.metadataRefreshFailed(state.lastRefreshError),
-                );
-            }
-        } finally {
-            state.refreshing = false;
-            this.fireStatusChanged(state);
-        }
-    }
-
-    private handleQueryExecutionCatalogChanged(event: QueryExecutionCatalogEvent): void {
-        if (!this._enabled || event.hasError || event.isRefresh || !event.query) return;
-        const sections = metadataSectionsInvalidatedByExecutedSql(event.query);
-        if (sections.length === 0) return;
-        const state = this._documents.get(event.uri);
-        if (!state || state.disposed || !state.metadata.refreshSections) return;
-        void this.refreshSectionsAfterExecution(state, sections);
-    }
-
-    private async refreshSectionsAfterExecution(
-        state: PreviewDocumentState,
-        sections: readonly MetadataSection[],
-    ): Promise<void> {
-        const ownsRefreshIndicator = !state.refreshing;
-        if (ownsRefreshIndicator) {
-            state.refreshing = true;
-            state.lastRefreshError = undefined;
-            this.fireStatusChanged(state);
-        }
-        try {
-            const result = await state.metadata.refreshSections!(sections);
-            if (!state.disposed) state.lastRefreshMs = result.elapsedMs;
-        } catch (error) {
-            if (!state.disposed) state.lastRefreshError = errorMessage(error);
-        } finally {
-            if (ownsRefreshIndicator && !state.disposed) {
-                state.refreshing = false;
-                this.fireStatusChanged(state);
-            }
-        }
-    }
-
     /**
      * Fetches an object definition and publishes it as a read-only document. The text is generated,
      * so it lives behind a scheme of its own rather than a temporary file that would outlive the
@@ -693,7 +678,7 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
         this._definitionDocuments.set(key, definition.text);
         // Keep only what a session is likely to revisit, so generated text cannot grow without
         // bound over a long session.
-        while (this._definitionDocuments.size > maximumDefinitionDocuments) {
+        while (this._definitionDocuments.size > this._metadataOptions.definitionCacheSize) {
             const open = new Set(
                 vscode.workspace.textDocuments.map((document) => document.uri.toString()),
             );
@@ -816,559 +801,6 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
     }
 }
 
-class PreviewCompletionProvider implements vscode.CompletionItemProvider {
-    public constructor(
-        private readonly _enabled: () => boolean,
-        private readonly _state: (uri: vscode.Uri) => PreviewDocumentState | undefined,
-    ) {}
-
-    public async provideCompletionItems(
-        document: vscode.TextDocument,
-        position: vscode.Position,
-        token: vscode.CancellationToken,
-    ): Promise<vscode.CompletionList | undefined> {
-        if (!this._enabled()) return undefined;
-        const state = this._state(document.uri);
-        if (!state) return undefined;
-        await state.queue;
-        if (
-            token.isCancellationRequested ||
-            state.disposed ||
-            document.version !== state.syncedVersion
-        ) {
-            return undefined;
-        }
-        try {
-            let result = state.features.completion(
-                state.connectionUri,
-                document.version,
-                document.offsetAt(position),
-            );
-            if (result.incomplete && state.metadata.waitForHydration) {
-                await waitForInteractiveHydration(
-                    state.metadata,
-                    token,
-                    completionHydrationTimeoutMs(result),
-                );
-                if (
-                    token.isCancellationRequested ||
-                    state.disposed ||
-                    document.version !== state.syncedVersion
-                ) {
-                    return undefined;
-                }
-                result = state.features.completion(
-                    state.connectionUri,
-                    document.version,
-                    document.offsetAt(position),
-                );
-            }
-            return new vscode.CompletionList(
-                result.items.map((item) => toVscodeCompletionItem(document, item)),
-                result.incomplete,
-            );
-        } catch {
-            return undefined;
-        }
-    }
-}
-
-export function completionHydrationTimeoutMs(result: Pick<CompletionResult, "items">): number {
-    return result.items.length === 0 ? 5_000 : 1_000;
-}
-
-async function waitForInteractiveHydration(
-    metadata: MetadataProvider,
-    token: vscode.CancellationToken,
-    timeoutMs: number,
-): Promise<void> {
-    const controller = new AbortController();
-    const cancellation = token.onCancellationRequested(() => controller.abort());
-    let timer: NodeJS.Timeout | undefined;
-    try {
-        await Promise.race([
-            metadata.waitForHydration!(controller.signal).catch(() => undefined),
-            new Promise<void>((resolve) => {
-                timer = setTimeout(resolve, timeoutMs);
-            }),
-        ]);
-    } finally {
-        if (timer) clearTimeout(timer);
-        cancellation.dispose();
-        controller.abort();
-    }
-}
-
-class PreviewHoverProvider implements vscode.HoverProvider {
-    public constructor(
-        private readonly _enabled: () => boolean,
-        private readonly _state: (uri: vscode.Uri) => PreviewDocumentState | undefined,
-    ) {}
-
-    public async provideHover(
-        document: vscode.TextDocument,
-        position: vscode.Position,
-        token: vscode.CancellationToken,
-    ): Promise<vscode.Hover | undefined> {
-        if (!this._enabled()) return undefined;
-        const state = this._state(document.uri);
-        if (!state) return undefined;
-        await state.queue;
-        if (
-            token.isCancellationRequested ||
-            state.disposed ||
-            document.version !== state.syncedVersion
-        ) {
-            return undefined;
-        }
-        try {
-            const result = state.features.hover(
-                state.connectionUri,
-                document.version,
-                document.offsetAt(position),
-            );
-            return result
-                ? new vscode.Hover(
-                      new vscode.MarkdownString(result.markdown),
-                      result.range &&
-                          new vscode.Range(
-                              document.positionAt(result.range.start),
-                              document.positionAt(result.range.end),
-                          ),
-                  )
-                : undefined;
-        } catch {
-            return undefined;
-        }
-    }
-}
-
-class PreviewSignatureHelpProvider implements vscode.SignatureHelpProvider {
-    public constructor(
-        private readonly _enabled: () => boolean,
-        private readonly _state: (uri: vscode.Uri) => PreviewDocumentState | undefined,
-    ) {}
-
-    public async provideSignatureHelp(
-        document: vscode.TextDocument,
-        position: vscode.Position,
-        token: vscode.CancellationToken,
-    ): Promise<vscode.SignatureHelp | undefined> {
-        if (!this._enabled()) return undefined;
-        const state = this._state(document.uri);
-        if (!state) return undefined;
-        await state.queue;
-        const requestedVersion = document.version;
-        if (
-            token.isCancellationRequested ||
-            state.disposed ||
-            requestedVersion !== state.syncedVersion
-        ) {
-            return undefined;
-        }
-        try {
-            const offset = document.offsetAt(position);
-            let result = state.features.signatureHelp(
-                state.connectionUri,
-                requestedVersion,
-                offset,
-            );
-            if (!result && state.metadata.waitForHydration) {
-                await waitForInteractiveHydration(state.metadata, token, 1_000);
-                if (
-                    token.isCancellationRequested ||
-                    state.disposed ||
-                    document.version !== requestedVersion ||
-                    state.syncedVersion !== requestedVersion
-                ) {
-                    return undefined;
-                }
-                result = state.features.signatureHelp(
-                    state.connectionUri,
-                    requestedVersion,
-                    offset,
-                );
-            }
-            if (!result) return undefined;
-            const help = new vscode.SignatureHelp();
-            help.signatures = result.signatures.map((candidate) => {
-                const information = new vscode.SignatureInformation(
-                    candidate.label,
-                    candidate.documentation
-                        ? new vscode.MarkdownString(candidate.documentation)
-                        : undefined,
-                );
-                information.parameters = candidate.parameters.map(
-                    (parameter) =>
-                        new vscode.ParameterInformation(
-                            parameter.label,
-                            parameter.documentation
-                                ? new vscode.MarkdownString(parameter.documentation)
-                                : undefined,
-                        ),
-                );
-                return information;
-            });
-            help.activeSignature = result.activeSignature;
-            help.activeParameter = result.activeParameter;
-            return help;
-        } catch {
-            return undefined;
-        }
-    }
-}
-
-/**
- * Publishes the collapsible regions the language service derives from the parse tree. Registering a
- * folding provider replaces the editor indentation fallback, so this also carries the `#region`
- * markers the SQL language configuration declares.
- */
-class PreviewFoldingRangeProvider implements vscode.FoldingRangeProvider {
-    public constructor(
-        private readonly _enabled: () => boolean,
-        private readonly _state: (uri: vscode.Uri) => PreviewDocumentState | undefined,
-    ) {}
-
-    public async provideFoldingRanges(
-        document: vscode.TextDocument,
-        _context: vscode.FoldingContext,
-        token: vscode.CancellationToken,
-    ): Promise<vscode.FoldingRange[] | undefined> {
-        if (!this._enabled()) return undefined;
-        const state = this._state(document.uri);
-        if (!state) return undefined;
-        await state.queue;
-        if (
-            token.isCancellationRequested ||
-            state.disposed ||
-            document.version !== state.syncedVersion
-        ) {
-            return undefined;
-        }
-        try {
-            return toVscodeFoldingRanges(
-                state.features.foldingRanges(state.connectionUri, document.version, {
-                    limit: foldingRangeLimit(document),
-                }),
-                documentLineSource(document),
-            );
-        } catch {
-            return undefined;
-        }
-    }
-}
-
-/**
- * The editor stops folding once a document exceeds this many regions and drops the excess in
- * document order, which would leave the end of a long script unfoldable. Passing the limit to the
- * language service lets it spend the budget on the widest regions instead.
- */
-function foldingRangeLimit(document: vscode.TextDocument): number {
-    const configured = vscode.workspace
-        .getConfiguration("editor", document)
-        .get<number>("foldingMaximumRegions");
-    return typeof configured === "number" && configured > 0 ? configured : 5000;
-}
-
-/**
- * Publishes the language service classifications as VS Code semantic tokens. Every request reads
- * the snapshot the runtime already produced, so coloring never parses and never waits on metadata.
- */
-class PreviewSemanticTokensProvider
-    implements vscode.DocumentSemanticTokensProvider, vscode.DocumentRangeSemanticTokensProvider
-{
-    public constructor(
-        private readonly _enabled: () => boolean,
-        private readonly _state: (uri: vscode.Uri) => PreviewDocumentState | undefined,
-        private readonly _coloring: TsqlColorizationService,
-        public readonly onDidChangeSemanticTokens: vscode.Event<void>,
-    ) {}
-
-    public async provideDocumentSemanticTokens(
-        document: vscode.TextDocument,
-        token: vscode.CancellationToken,
-    ): Promise<vscode.SemanticTokens | undefined> {
-        const state = await this.readySnapshot(document, token);
-        if (!state) return undefined;
-        try {
-            const result = this._coloring.provideDocumentColors(
-                state.runtime.snapshot(state.connectionUri, document.version),
-            );
-            return this.publish(state, document, result);
-        } catch {
-            return undefined;
-        }
-    }
-
-    public async provideDocumentSemanticTokensEdits(
-        document: vscode.TextDocument,
-        previousResultId: string,
-        token: vscode.CancellationToken,
-    ): Promise<vscode.SemanticTokens | vscode.SemanticTokensEdits | undefined> {
-        const state = await this.readySnapshot(document, token);
-        if (!state) return undefined;
-        const cached = state.semanticTokens;
-        if (!cached || cached.result.resultId !== previousResultId) {
-            return this.provideDocumentSemanticTokens(document, token);
-        }
-        try {
-            const snapshot = state.runtime.snapshot(state.connectionUri, document.version);
-            const delta = this._coloring.provideColorEdits(cached.result, snapshot, []);
-            if (delta.kind !== "delta") return this.publish(state, document, delta);
-            if (delta.edits.length === 0) {
-                state.semanticTokens = {
-                    result: { ...cached.result, resultId: delta.resultId },
-                    data: cached.data,
-                };
-                return new vscode.SemanticTokensEdits([], delta.resultId);
-            }
-            const tokens = applyColorizationEdits(cached.result.tokens, delta.edits);
-            const data = encodeSemanticTokens(tokens, documentLineSource(document));
-            state.semanticTokens = {
-                result: {
-                    kind: "full",
-                    resultId: delta.resultId,
-                    documentVersion: delta.documentVersion,
-                    metadataGeneration: delta.metadataGeneration,
-                    tokens,
-                },
-                data,
-            };
-            return new vscode.SemanticTokensEdits(
-                encodeSemanticTokensEdits(cached.data, data),
-                delta.resultId,
-            );
-        } catch {
-            return undefined;
-        }
-    }
-
-    public async provideDocumentRangeSemanticTokens(
-        document: vscode.TextDocument,
-        range: vscode.Range,
-        token: vscode.CancellationToken,
-    ): Promise<vscode.SemanticTokens | undefined> {
-        const state = await this.readySnapshot(document, token);
-        if (!state) return undefined;
-        try {
-            const snapshot = state.runtime.snapshot(state.connectionUri, document.version);
-            const result = this._coloring.provideRangeColors({
-                ...snapshot,
-                range: {
-                    start: document.offsetAt(range.start),
-                    end: document.offsetAt(range.end),
-                },
-            });
-            // A range result is a viewport view, never the baseline a later delta is built from.
-            return new vscode.SemanticTokens(
-                encodeSemanticTokens(result.tokens, documentLineSource(document)),
-            );
-        } catch {
-            return undefined;
-        }
-    }
-
-    private publish(
-        state: PreviewDocumentState,
-        document: vscode.TextDocument,
-        result: FullColorizationResult,
-    ): vscode.SemanticTokens {
-        const data = encodeSemanticTokens(result.tokens, documentLineSource(document));
-        state.semanticTokens = { result, data };
-        return new vscode.SemanticTokens(data, result.resultId);
-    }
-
-    private async readySnapshot(
-        document: vscode.TextDocument,
-        token: vscode.CancellationToken,
-    ): Promise<PreviewDocumentState | undefined> {
-        if (!this._enabled()) return undefined;
-        const state = this._state(document.uri);
-        if (!state) return undefined;
-        await state.queue;
-        if (
-            token.isCancellationRequested ||
-            state.disposed ||
-            document.version !== state.syncedVersion
-        ) {
-            return undefined;
-        }
-        return state;
-    }
-}
-
-/**
- * Navigates to a name. A declaration in the same document resolves from the published snapshot; a
- * catalog object is fetched by the host, because reading a definition is I/O the language service
- * never performs.
- */
-class PreviewDefinitionProvider implements vscode.DefinitionProvider {
-    public constructor(
-        private readonly _enabled: () => boolean,
-        private readonly _state: (uri: vscode.Uri) => PreviewDocumentState | undefined,
-        private readonly _resolve: (
-            descriptor: ObjectDefinitionDescriptor,
-            state: PreviewDocumentState,
-            signal: AbortSignal,
-        ) => Promise<ResolvedDefinitionTarget | undefined>,
-    ) {}
-
-    public async provideDefinition(
-        document: vscode.TextDocument,
-        position: vscode.Position,
-        token: vscode.CancellationToken,
-    ): Promise<vscode.LocationLink[] | undefined> {
-        if (!this._enabled()) return undefined;
-        const state = this._state(document.uri);
-        if (!state) return undefined;
-        await state.queue;
-        if (
-            token.isCancellationRequested ||
-            state.disposed ||
-            document.version !== state.syncedVersion
-        ) {
-            return undefined;
-        }
-
-        let target;
-        try {
-            target = state.features.definitionTarget(
-                state.connectionUri,
-                document.version,
-                document.offsetAt(position),
-            );
-        } catch {
-            return undefined;
-        }
-        const origin =
-            target.originRange &&
-            new vscode.Range(
-                document.positionAt(target.originRange.start),
-                document.positionAt(target.originRange.end),
-            );
-        if (target.locations.length > 0) {
-            // A link reports the name that was navigated from and selects the declared name at the
-            // other end, so the editor highlights both rather than a whole line.
-            return target.locations.map((location) => {
-                const range = new vscode.Range(
-                    document.positionAt(location.range.start),
-                    document.positionAt(location.range.end),
-                );
-                return {
-                    originSelectionRange: origin,
-                    targetUri: document.uri,
-                    targetRange: range,
-                    targetSelectionRange: range,
-                };
-            });
-        }
-        if (!target.object) return undefined;
-
-        const requestedVersion = document.version;
-        const controller = new AbortController();
-        const cancellation = token.onCancellationRequested(() => controller.abort());
-        try {
-            const resolved = await this._resolve(target.object, state, controller.signal);
-            if (
-                !resolved ||
-                token.isCancellationRequested ||
-                state.disposed ||
-                document.version !== requestedVersion ||
-                state.syncedVersion !== requestedVersion
-            ) {
-                return undefined;
-            }
-            return [
-                {
-                    originSelectionRange: origin,
-                    targetUri: resolved.uri,
-                    targetRange: resolved.targetRange,
-                    targetSelectionRange: resolved.targetSelectionRange,
-                },
-            ];
-        } catch {
-            // A dropped object, a denied permission, or a dead connection is not an error the
-            // editor should report; navigation simply finds nothing.
-            return undefined;
-        } finally {
-            cancellation.dispose();
-            controller.abort();
-        }
-    }
-}
-
-class PreviewDefinitionDocumentProvider implements vscode.TextDocumentContentProvider {
-    public constructor(
-        private readonly _content: (uri: vscode.Uri) => string | undefined,
-        public readonly onDidChange: vscode.Event<vscode.Uri>,
-    ) {}
-
-    public provideTextDocumentContent(uri: vscode.Uri): string {
-        return this._content(uri) ?? "";
-    }
-}
-
-/** A URI per catalog generation and object, ending in `.sql` so the editor colors what it opens. */
-export function definitionUri(
-    connectionUri: string,
-    descriptor: ObjectDefinitionDescriptor,
-    metadataGeneration?: number,
-): vscode.Uri {
-    const name = [descriptor.schema, descriptor.name].join(".").replaceAll(/[\\/?#]/gu, "_");
-    return vscode.Uri.from({
-        scheme: definitionScheme,
-        path: `/${descriptor.database ?? "current"}/${descriptor.kind}/${name}.sql`,
-        query: new URLSearchParams({
-            connection: connectionUri,
-            ...(metadataGeneration === undefined
-                ? {}
-                : { generation: metadataGeneration.toString() }),
-        }).toString(),
-    });
-}
-
-export function positionOfOffset(text: string, offset: number): vscode.Position {
-    const safeOffset = Math.max(0, Math.min(offset, text.length));
-    const before = text.slice(0, safeOffset);
-    const line = before.split("\n").length - 1;
-    const lineStart = before.lastIndexOf("\n") + 1;
-    return new vscode.Position(line, safeOffset - lineStart);
-}
-
-class PreviewStatusCodeLensProvider implements vscode.CodeLensProvider {
-    public constructor(
-        private readonly _enabled: () => boolean,
-        private readonly _state: (uri: vscode.Uri) => PreviewDocumentState | undefined,
-        public readonly onDidChangeCodeLenses: vscode.Event<void>,
-    ) {}
-
-    public provideCodeLenses(document: vscode.TextDocument): vscode.CodeLens[] {
-        if (!this._enabled()) return [];
-        const state = this._state(document.uri);
-        const stats = state?.runtime.getStats(document.uri.toString());
-        return [
-            new vscode.CodeLens(new vscode.Range(0, 0, 0, 0), {
-                title: statusIcon(state, stats),
-                tooltip: statusTooltip(state, stats),
-                command: showStatsCommand,
-                arguments: [document.uri],
-            }),
-        ];
-    }
-}
-
-class PreviewStatsDocumentProvider implements vscode.TextDocumentContentProvider {
-    public constructor(
-        private readonly _content: (uri: vscode.Uri) => string,
-        public readonly onDidChange: vscode.Event<vscode.Uri>,
-    ) {}
-
-    public provideTextDocumentContent(uri: vscode.Uri): string {
-        return this._content(uri);
-    }
-}
-
-/** Collapse a VS Code document update into one equivalent UTF-16 edit for incremental parsing. */
 export function computeSingleTextChange(previous: string, next: string): TextChange | undefined {
     if (previous === next) return undefined;
     let start = 0;
@@ -1386,304 +818,6 @@ export function computeSingleTextChange(previous: string, next: string): TextCha
         nextEnd--;
     }
     return { start, end: previousEnd, text: next.slice(start, nextEnd) };
-}
-
-export function isPreviewStatsCodeLensEnabled(
-    languageServiceEnabled: boolean,
-    statsCodeLensEnabled: boolean,
-): boolean {
-    return languageServiceEnabled && statsCodeLensEnabled;
-}
-
-function toVscodeDiagnostic(
-    document: vscode.TextDocument,
-    diagnostic: {
-        readonly code: string;
-        readonly message: string;
-        readonly severity: "error" | "warning" | "information" | "hint";
-        readonly range: { readonly start: number; readonly end: number };
-    },
-    source: string,
-): vscode.Diagnostic {
-    const result = new vscode.Diagnostic(
-        new vscode.Range(
-            document.positionAt(diagnostic.range.start),
-            document.positionAt(diagnostic.range.end),
-        ),
-        diagnostic.message,
-        severity(diagnostic.severity),
-    );
-    result.code = diagnostic.code;
-    result.source = source;
-    return result;
-}
-
-function severity(value: "error" | "warning" | "information" | "hint"): vscode.DiagnosticSeverity {
-    switch (value) {
-        case "error":
-            return vscode.DiagnosticSeverity.Error;
-        case "warning":
-            return vscode.DiagnosticSeverity.Warning;
-        case "information":
-            return vscode.DiagnosticSeverity.Information;
-        case "hint":
-            return vscode.DiagnosticSeverity.Hint;
-    }
-}
-
-function toVscodeCompletionItem(
-    document: vscode.TextDocument,
-    item: ServiceCompletionItem,
-): vscode.CompletionItem {
-    const result = new vscode.CompletionItem(item.label, completionKind(item.kind));
-    result.detail = item.detail;
-    result.documentation = item.documentation
-        ? new vscode.MarkdownString(item.documentation)
-        : undefined;
-    result.sortText = item.sortText;
-    result.filterText = item.filterText;
-    result.insertText = item.edit
-        ? item.insertTextFormat === "snippet"
-            ? new vscode.SnippetString(item.edit.newText)
-            : item.edit.newText
-        : item.label;
-    result.preselect = item.preselect;
-    result.command = item.command;
-    if (item.edit) {
-        result.range = new vscode.Range(
-            document.positionAt(item.edit.start),
-            document.positionAt(item.edit.end),
-        );
-    }
-    return result;
-}
-
-function completionKind(kind: string): vscode.CompletionItemKind {
-    switch (kind) {
-        case "database":
-            return vscode.CompletionItemKind.Folder;
-        case "schema":
-            return vscode.CompletionItemKind.Module;
-        case "table":
-            return vscode.CompletionItemKind.Class;
-        case "view":
-            return vscode.CompletionItemKind.Interface;
-        case "synonym":
-            return vscode.CompletionItemKind.Reference;
-        case "column":
-            return vscode.CompletionItemKind.Field;
-        case "procedure":
-            return vscode.CompletionItemKind.Method;
-        case "function":
-        case "scalarFunction":
-        case "tableFunction":
-            return vscode.CompletionItemKind.Function;
-        case "type":
-            return vscode.CompletionItemKind.TypeParameter;
-        case "parameter":
-            return vscode.CompletionItemKind.Variable;
-        case "login":
-        case "user":
-            return vscode.CompletionItemKind.User;
-        case "databaseRole":
-        case "serverRole":
-        case "applicationRole":
-            return vscode.CompletionItemKind.Class;
-        case "snippet":
-            return vscode.CompletionItemKind.Snippet;
-        default:
-            return vscode.CompletionItemKind.Text;
-    }
-}
-
-/**
- * The lens sits above line 1 of every SQL file, so it is one glyph rather than a sentence: the
- * timings it used to print were never read at a glance and cost a full line of editor width.
- * The glyph answers only "is the language service healthy"; the numbers move to the tooltip,
- * which costs nothing until a reader hovers.
- */
-function statusIcon(
-    state: PreviewDocumentState | undefined,
-    stats: LanguageServiceStats | undefined,
-): string {
-    switch (statusHealth(state, stats)) {
-        case "healthy":
-            return "$(check)";
-        case "broken":
-            return "$(error)";
-        default:
-            return "$(loading~spin)";
-    }
-}
-
-/**
- * Codicon markup only resolves in a lens title, so the same strings render as a literal
- * `$(pulse)` in a tooltip and have to be stripped.
- */
-function statusTooltip(
-    state: PreviewDocumentState | undefined,
-    stats: LanguageServiceStats | undefined,
-): string {
-    return `${withoutCodicons(statusTitle(state, stats))}
-${PreviewLoc.openDetailedStatus}`;
-}
-
-function withoutCodicons(text: string): string {
-    return text.replace(/\$\([^)]*\)/g, "").trim();
-}
-
-/**
- * A section that reports `failed` is a real breakage, not a slow load. Reading only `objects`
- * missed that distinction and rendered a failed catalog as merely pending.
- */
-function statusHealth(
-    state: PreviewDocumentState | undefined,
-    stats: LanguageServiceStats | undefined,
-): "healthy" | "working" | "broken" {
-    if (!state || !stats) return "working";
-    if (state.lastRefreshError || state.metadata.id === "null") return "broken";
-    const completeness = stats.metadata.completeness;
-    if (Object.values(completeness).some((section) => section === "failed")) return "broken";
-    if (state.refreshing) return "working";
-    return completeness.objects === "ready" ? "healthy" : "working";
-}
-
-export function statusTitle(
-    state: PreviewDocumentState | undefined,
-    stats: LanguageServiceStats | undefined,
-): string {
-    if (!state || !stats) return PreviewLoc.initializing;
-    const metadata = state.lastRefreshError
-        ? PreviewLoc.metadataFailed
-        : state.refreshing
-          ? PreviewLoc.metadataLoading
-          : state.metadata.id === "null"
-            ? PreviewLoc.metadataOffline
-            : Object.values(stats.metadata.completeness).some((section) => section === "failed")
-              ? PreviewLoc.metadataFailed
-              : stats.metadata.completeness.objects === "ready"
-                ? PreviewLoc.metadataReady
-                : PreviewLoc.metadataPending;
-    return PreviewLoc.status(
-        stats.syntax.elapsedMs.toFixed(1),
-        stats.semantics.elapsedMs.toFixed(1),
-        metadata,
-    );
-}
-
-/**
- * Classifies successful submitted SQL for cheap catalog invalidation. Strings, quoted identifiers,
- * and comments are masked so examples or dynamic SQL do not trigger an authoritative reload.
- */
-export function metadataSectionsInvalidatedByExecutedSql(sql: string): readonly MetadataSection[] {
-    const code = maskSqlNonCode(sql);
-    const principalDdl =
-        /(?:^|[;\r\n])\s*(?:CREATE|ALTER|DROP)\s+(?:(?:SERVER|APPLICATION|DATABASE)\s+)?(?:LOGIN|USER|ROLE)\b/im;
-    const catalogDdl =
-        /\b(?:CREATE(?:\s+OR\s+ALTER)?|ALTER|DROP|TRUNCATE)\s+(?:(?:UNIQUE|CLUSTERED|NONCLUSTERED|COLUMNSTORE|XML|SPATIAL|FULLTEXT|PRIMARY)\s+)*[A-Z_][A-Z0-9_]*\b/im;
-    const permissionDdl = /\b(?:GRANT|DENY|REVOKE)\b/im;
-    const triggerStateDdl = /\b(?:ENABLE|DISABLE)\s+TRIGGER\b/im;
-    const selectIntoDdl = /\bSELECT\b[\s\S]*?\bINTO\s+(?!#)/im;
-    const catalogProcedure =
-        /\bEXEC(?:UTE)?\s+(?:[A-Z_][A-Z0-9_$#@]*\s*=\s*)?(?:SYS\.)?SP_(?:RENAME|ADDTYPE|DROPTYPE|ADDEXTENDEDPROPERTY|UPDATEEXTENDEDPROPERTY|DROPEXTENDEDPROPERTY|ADDROLE|DROPROLE|ADDROLEMEMBER|DROPROLEMEMBER)\b/im;
-
-    if (
-        !(
-            catalogDdl.test(code) ||
-            permissionDdl.test(code) ||
-            triggerStateDdl.test(code) ||
-            selectIntoDdl.test(code) ||
-            catalogProcedure.test(code)
-        )
-    ) {
-        return [];
-    }
-
-    // Principal DDL has an isolated authoritative query. Every other catalog mutation takes the
-    // conservative path because one statement can affect several related identity/detail indexes.
-    if (principalDdl.test(code) && !containsNonPrincipalCatalogMutation(code, principalDdl)) {
-        return ["principals"];
-    }
-    return [
-        "databases",
-        "schemas",
-        "objects",
-        "columns",
-        "parameters",
-        "principals",
-        "definitions",
-    ];
-}
-
-function containsNonPrincipalCatalogMutation(sql: string, principalPattern: RegExp): boolean {
-    const withoutPrincipalDdl = sql.replace(new RegExp(principalPattern.source, "gim"), " ");
-    return (
-        /\b(?:CREATE(?:\s+OR\s+ALTER)?|ALTER|DROP|TRUNCATE)\s+(?:(?:UNIQUE|CLUSTERED|NONCLUSTERED|COLUMNSTORE|XML|SPATIAL|FULLTEXT|PRIMARY)\s+)*[A-Z_][A-Z0-9_]*\b/im.test(
-            withoutPrincipalDdl,
-        ) ||
-        /\b(?:GRANT|DENY|REVOKE)\b/im.test(withoutPrincipalDdl) ||
-        /\b(?:ENABLE|DISABLE)\s+TRIGGER\b/im.test(withoutPrincipalDdl) ||
-        /\bSELECT\b[\s\S]*?\bINTO\s+(?!#)/im.test(withoutPrincipalDdl) ||
-        /\bEXEC(?:UTE)?\s+(?:[A-Z_][A-Z0-9_$#@]*\s*=\s*)?(?:SYS\.)?SP_(?:RENAME|ADDTYPE|DROPTYPE|ADDEXTENDEDPROPERTY|UPDATEEXTENDEDPROPERTY|DROPEXTENDEDPROPERTY|ADDROLE|DROPROLE|ADDROLEMEMBER|DROPROLEMEMBER)\b/im.test(
-            withoutPrincipalDdl,
-        )
-    );
-}
-
-function maskSqlNonCode(sql: string): string {
-    const result = [...sql];
-    let state: "code" | "string" | "quoted" | "bracket" | "lineComment" | "blockComment" = "code";
-    let blockDepth = 0;
-    for (let index = 0; index < sql.length; index++) {
-        const current = sql[index]!;
-        const next = sql[index + 1];
-        if (state === "code") {
-            if (current === "'" || current === '"' || current === "[") {
-                state = current === "'" ? "string" : current === '"' ? "quoted" : "bracket";
-                result[index] = " ";
-            } else if (current === "-" && next === "-") {
-                state = "lineComment";
-                result[index] = result[index + 1] = " ";
-                index++;
-            } else if (current === "/" && next === "*") {
-                state = "blockComment";
-                blockDepth = 1;
-                result[index] = result[index + 1] = " ";
-                index++;
-            }
-            continue;
-        }
-        if (state === "lineComment") {
-            if (current === "\r" || current === "\n") state = "code";
-            else result[index] = " ";
-            continue;
-        }
-        if (state === "blockComment") {
-            if (current === "/" && next === "*") {
-                blockDepth++;
-                result[index] = result[index + 1] = " ";
-                index++;
-            } else if (current === "*" && next === "/") {
-                blockDepth--;
-                result[index] = result[index + 1] = " ";
-                index++;
-                if (blockDepth === 0) state = "code";
-            } else if (current !== "\r" && current !== "\n") {
-                result[index] = " ";
-            }
-            continue;
-        }
-        result[index] = current === "\r" || current === "\n" ? current : " ";
-        const terminator = state === "string" ? "'" : state === "quoted" ? '"' : "]";
-        if (current !== terminator) continue;
-        if (next === terminator) {
-            result[index + 1] = " ";
-            index++;
-        } else {
-            state = "code";
-        }
-    }
-    return result.join("");
 }
 
 function isSqlDocument(document: vscode.TextDocument): boolean {

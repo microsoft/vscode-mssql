@@ -26,7 +26,7 @@
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
-import { dirname, join } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
@@ -40,7 +40,10 @@ const { ImmutableTextSnapshot, LezerSyntaxService } = require(
 
 const SCRIPTDOM_DLL =
     process.env.SCRIPTDOM_DLL ??
-    "C:\\Users\\aaskhan\\src\\vscode-mssql-parser\\ScriptDOM\\out\\Release\\net8.0\\Microsoft.SqlServer.TransactSql.ScriptDom.dll";
+    resolve(
+        packageRoot,
+        "../../../ScriptDOM/out/Release/net8.0/Microsoft.SqlServer.TransactSql.ScriptDom.dll",
+    );
 
 // ScriptDOM exposes one parser class per compatibility level; a fixture is checked at its own.
 const PARSER_FOR_VERSION = new Map([

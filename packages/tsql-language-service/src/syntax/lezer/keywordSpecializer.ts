@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type { Stack } from "@lezer/lr";
-import { contextualKeywordNames, reservedKeywordNames } from "../keywords.generated.js";
+import { contextualKeywordNames, reservedKeywordNames } from "../keywords.js";
 import * as terms from "./generated/tsqlParser.terms.js";
 
 const keywordTerms = new Map<string, number>();
@@ -12,8 +12,8 @@ for (const [termName, term] of Object.entries(terms as Readonly<Record<string, n
     if (typeof term === "number") keywordTerms.set(normalize(termName), term);
 }
 
-// SqlParser's context catalog intentionally omits several parser-local option words. They remain
-// non-reserved identifiers outside a grammar position that requests their specialized terminal.
+// Some grammar-only option words are intentionally absent from the general contextual registry.
+// They remain identifiers outside a grammar position that requests their specialized terminal.
 const parserLocalContextWords = new Set(
     `abort action aigenerateembeddings always ansidefaults ansinulldfltoff ansinulldflton ansinulls ansipadding application cast
      ansiwarnings apply arithabort arithignore at caller catch changes changetable columnstore

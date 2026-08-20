@@ -14,8 +14,8 @@ import type { CatalogFetch, LanguageServiceStats, StatsExportOptions } from "./c
  *
  * What is removed is exactly the three fields the contract names as identifying: the database name,
  * the object name, and the SQL text. Everything else -- timings, row counts, outcomes, sections, and
- * the failure messages -- survives, because those are what make a report actionable and none of them
- * name a customer's schema.
+ * a non-identifying failure code -- survives. Server error messages are free-form and commonly
+ * echo object names or SQL fragments, so a default export replaces them with a fixed summary.
  *
  * The document URI is replaced rather than dropped: a report needs to distinguish two documents,
  * and a file path is as identifying as a table name.
@@ -47,14 +47,20 @@ export function redactStats(
 /**
  * Strips a fetch of the three fields that identify a customer's catalog.
  *
- * `error.message` is deliberately kept. A server error can quote an object name, which is a real
- * leak, but a failure with no reason is the bug report this feature exists to prevent -- so the
- * message stays and the caller is told, rather than being silently given a log that cannot explain
- * its own failures.
+ * The error code survives because it is actionable and non-identifying. The free-form message does
+ * not: SQL Server frequently includes an object name or query fragment in it.
  */
 export function redactCatalogFetch(fetch: CatalogFetch): CatalogFetch {
     const { databaseName: _database, objectName: _object, query: _query, ...rest } = fetch;
-    return rest;
+    return fetch.error
+        ? {
+              ...rest,
+              error: {
+                  message: "Server metadata request failed.",
+                  ...(fetch.error.code === undefined ? {} : { code: fetch.error.code }),
+              },
+          }
+        : rest;
 }
 
 /** Keeps the extension, which is diagnostic, and drops the path, which is not. */

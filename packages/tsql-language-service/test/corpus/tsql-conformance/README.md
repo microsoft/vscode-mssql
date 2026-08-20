@@ -1,11 +1,11 @@
 # T-SQL conformance corpus
 
 This package-owned corpus makes the language-service conformance suite self-contained. Its initial
-fixture set is vendored from ScriptDOM's `Test/SqlDom/TestScripts` directory. The files are copied
+fixture set is vendored from the public SqlScriptDOM `Test/SqlDom/TestScripts` directory. The files are copied
 byte-for-byte; tests must decode each file according to the encoding recorded in `manifest.json`.
 
 - Source: Microsoft SQL Script DOM
-- Source repository: `https://msdata.visualstudio.com/SQLToolsAndLibraries/_git/ScriptDOM`
+- Source repository: `https://github.com/microsoft/SqlScriptDOM`
 - Source commit: `9aec6298a36d6e27ca0f2ad574bb3fd80aea30f5`
 - Source path: `Test/SqlDom/TestScripts`
 - Imported: 2026-08-13

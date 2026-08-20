@@ -4,34 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type { CompletionItem, CompletionResult } from "../features/contracts.js";
+import { compareOrdinal } from "../common/ordinal.js";
 import type { SqlCmdDocumentSnapshot } from "./contracts.js";
-import { sqlCmdDirectiveNames } from "./sqlCmdScanner.js";
-
-/** Documentation shown beside each directive name. */
-const directiveDocumentation: Readonly<Record<string, string>> = Object.freeze({
-    ":connect": "Opens a new connection. Statements after it run against the named server.",
-    ":ed": "Opens the last batch in an editor.",
-    ":error": "Redirects error output.",
-    ":exit": "Ends the script, optionally running a final query first.",
-    ":help": "Lists the SQLCMD commands.",
-    ":list": "Prints the contents of the statement cache.",
-    ":listvar": "Prints the SQLCMD variables currently set.",
-    ":on error": "Chooses whether a batch error exits or is ignored.",
-    ":out": "Redirects query results to a file.",
-    ":perftrace": "Redirects performance trace output.",
-    ":quit": "Ends the script immediately.",
-    ":r": "Includes another script file at this point.",
-    ":reset": "Clears the statement cache.",
-    ":serverlist": "Lists the servers found on the local network.",
-    ":setvar": "Defines or removes a SQLCMD variable.",
-    ":xml": "Switches XML output on or off.",
-});
-
-/** Argument values a directive accepts, where the set is closed. */
-const directiveArguments: Readonly<Record<string, readonly string[]>> = Object.freeze({
-    ":on error": ["exit", "ignore"],
-    ":xml": ["on", "off"],
-});
+import { sqlCmdDirectiveDescriptor, sqlCmdDirectiveNames } from "./sqlCmdScanner.js";
 
 /**
  * Completion for the SQLCMD layer.
@@ -87,7 +62,7 @@ export function sqlCmdCompletion(
             offset <= candidate.range.end,
     );
     const keyword = directive ? `:${directive.keyword.toLowerCase()}` : undefined;
-    const values = keyword ? directiveArguments[keyword] : undefined;
+    const values = keyword ? sqlCmdDirectiveDescriptor(keyword)?.arguments : undefined;
     if (!values) return { items: Object.freeze([]), incomplete: false };
     const argumentStart = argumentWordStart(text, offset, line.start);
     return {
@@ -118,7 +93,7 @@ function directiveCompletions(
             label: name,
             kind: "keyword",
             detail: "SQLCMD command",
-            documentation: directiveDocumentation[name] ?? "",
+            documentation: sqlCmdDirectiveDescriptor(name)?.documentation ?? "",
             sortText: `00-${name}`,
             edit: { ...range, newText: name },
         }));
@@ -138,7 +113,7 @@ function variableCompletions(
     }
     return [...names.values()]
         .filter((name) => name.toUpperCase().startsWith(folded))
-        .sort((left, right) => left.localeCompare(right))
+        .sort(compareOrdinal)
         .map((name) => ({
             label: name,
             kind: "variable",

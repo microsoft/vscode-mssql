@@ -5,8 +5,7 @@
 
 import type { SyntaxNode, SyntaxSnapshot } from "../../syntax/index.js";
 import { ancestorOfKind as ancestor } from "../../syntax/treeUtilities.js";
-import type { TextRange } from "../../text/index.js";
-import { parseMultipartName } from "../identifiers.js";
+import { multipartIdentifierRangeAt, parseMultipartName } from "../identifiers.js";
 import type { CursorContext, CursorExpectation, ResolvedCall, SemanticModel } from "./contracts.js";
 
 /**
@@ -27,7 +26,7 @@ export function buildCursorContext(
 ): CursorContext {
     const node = syntax.nodeAt(offset);
     const call = model.callAt(offset);
-    const replacementRange = identifierRangeAt(syntax.document.text, offset);
+    const replacementRange = multipartIdentifierRangeAt(syntax.document.text, offset);
     const written = syntax.document.text.slice(replacementRange.start, replacementRange.end);
     const partial = parseMultipartName(written, replacementRange.start);
     return Object.freeze({
@@ -75,9 +74,7 @@ function expectationAt(
     call: ResolvedCall | undefined,
     offset: number,
 ): CursorExpectation {
-    if (ancestor(node, ["DataType", "CastExpression", "TryCastExpression"])) {
-        if (ancestor(node, ["DataType"])) return "datatype";
-    }
+    if (expectsDataType(syntax, node, offset)) return "datatype";
     if (ancestor(node, ["FromClause", "TableSource", "DmlTarget", "IntoClause"])) return "relation";
     if (call && call.argumentRange && offset > call.argumentRange.start) return "parameter";
     if (
@@ -92,8 +89,104 @@ function expectationAt(
         return "column";
     }
     if (ancestor(node, ["FunctionCall", "FunctionTableSource"])) return "function";
-    void syntax;
     return "unknown";
+}
+
+/**
+ * Recognizes complete and normally incomplete type positions from recovered tree ownership.
+ * Keyword checks are constrained to one structural owner; this never scans backward across a
+ * statement and therefore cannot turn text in a literal or a previous declaration into context.
+ */
+function expectsDataType(syntax: SyntaxSnapshot, node: SyntaxNode, offset: number): boolean {
+    if (ancestor(node, ["DataType"])) return true;
+
+    const declaration = ancestor(node, [
+        "VariableDeclaration",
+        "ColumnDefinition",
+        "ProcedureParameter",
+    ]);
+    if (declaration && !containsKind(declaration, "DataType")) return true;
+
+    const cast = ancestor(node, ["CastExpression", "TryCastExpression"]);
+    if (
+        (cast && typeOwnerWords(syntax, cast, node, offset, 1)[0] === "AS") ||
+        incompleteConversionBefore(syntax, offset)
+    ) {
+        return true;
+    }
+
+    const functionDefinition = ancestor(node, ["FunctionDefinition"]);
+    if (
+        functionDefinition &&
+        typeOwnerWords(syntax, functionDefinition, node, offset, 1)[0] === "RETURNS"
+    ) {
+        return true;
+    }
+
+    const createType = ancestor(node, ["CreateTypeStatement"]);
+    if (createType && typeOwnerWords(syntax, createType, node, offset, 1)[0] === "FROM") {
+        return true;
+    }
+
+    const alter = ancestor(node, ["AlterTableAction"]);
+    const alterTail = alter ? typeOwnerWords(syntax, alter, node, offset, 2) : [];
+    return Boolean(alter && alterTail[0] === "COLUMN" && alterTail.length === 2);
+}
+
+function incompleteConversionBefore(syntax: SyntaxSnapshot, offset: number): boolean {
+    const current = lastSignificantToken(syntax, syntax.root(), offset);
+    if (!current || current.end !== offset) return false;
+    for (const kind of ["CastExpression", "TryCastExpression"] as const) {
+        for (const candidate of syntax.structuralIndex?.().get(kind) ?? []) {
+            if (candidate.end !== current.start || containsKind(candidate, "DataType")) continue;
+            if (lastWords(syntax, candidate, candidate.end, 1)[0] === "AS") return true;
+        }
+    }
+    return false;
+}
+
+function containsKind(node: SyntaxNode, kind: string): boolean {
+    if (node.kind === kind) return true;
+    for (const child of node.children()) {
+        if (containsKind(child, kind)) return true;
+    }
+    return false;
+}
+
+function lastWords(
+    syntax: SyntaxSnapshot,
+    owner: SyntaxNode,
+    offset: number,
+    count: number,
+): readonly string[] {
+    const words: string[] = [];
+    for (const token of syntax.tokens({ start: owner.start, end: Math.min(owner.end, offset) })) {
+        if (token.trivia || token.end > offset) continue;
+        words.push(token.text.toUpperCase());
+    }
+    return words.slice(-count);
+}
+
+function typeOwnerWords(
+    syntax: SyntaxSnapshot,
+    owner: SyntaxNode,
+    node: SyntaxNode,
+    offset: number,
+    count: number,
+): readonly string[] {
+    const tokens = significantTokens(syntax, owner, offset);
+    if (recoveryAt(node) !== "complete" && tokens.at(-1)?.end === offset) tokens.pop();
+    return tokens.slice(-count).map((token) => token.text.toUpperCase());
+}
+
+function lastSignificantToken(syntax: SyntaxSnapshot, owner: SyntaxNode, offset: number) {
+    return significantTokens(syntax, owner, offset).at(-1);
+}
+
+function significantTokens(syntax: SyntaxSnapshot, owner: SyntaxNode, offset: number) {
+    return [...syntax.tokens({ start: owner.start, end: Math.min(owner.end, offset) })].filter(
+        (token) => !token.trivia && token.end <= offset,
+    );
 }
 
 function recoveryAt(node: SyntaxNode): CursorContext["recovery"] {
@@ -101,17 +194,4 @@ function recoveryAt(node: SyntaxNode): CursorContext["recovery"] {
         if (recoveryKinds.has(current.kind) || current.error) return "recovered";
     }
     return "complete";
-}
-
-/** The span a completion edit replaces: the identifier the caret is inside or adjacent to. */
-export function identifierRangeAt(text: string, offset: number): TextRange {
-    let start = offset;
-    while (start > 0 && isNameCharacter(text[start - 1]!)) start--;
-    let end = offset;
-    while (end < text.length && isNameCharacter(text[end]!)) end++;
-    return { start, end };
-}
-
-function isNameCharacter(character: string): boolean {
-    return /[\p{L}\p{N}_$#@.]/u.test(character);
 }

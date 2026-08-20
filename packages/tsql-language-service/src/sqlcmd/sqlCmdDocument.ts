@@ -6,18 +6,14 @@
 import type { TextChange, TextRange } from "../text/index.js";
 import type {
     SqlCmdArgument,
-    SqlCmdConnectionRegion,
     SqlCmdDiagnostic,
     SqlCmdDirective,
     SqlCmdDocumentSnapshot,
     SqlCmdHost,
-    SqlCmdIncludeDependency,
     SqlCmdIncludeState,
-    SqlCmdMapping,
-    SqlCmdVariableDefinition,
-    SqlCmdVariableReference,
 } from "./contracts.js";
 import { defaultSqlCmdPolicy } from "./contracts.js";
+import type { FoldCheckpoint, FoldState } from "./foldState.js";
 import { ImmutableSqlCmdSnapshot } from "./sqlCmdSnapshot.js";
 import {
     isValidVariableName,
@@ -34,46 +30,6 @@ import {
  * immutable value, so resuming a fold is a truncation plus an assignment. That is what makes an
  * incremental update produce output identical to a full one.
  */
-export interface FoldCheckpoint {
-    readonly projectedLength: number;
-    readonly partCount: number;
-    readonly mappingCount: number;
-    readonly directiveCount: number;
-    readonly definitionCount: number;
-    readonly referenceCount: number;
-    readonly includeCount: number;
-    readonly diagnosticCount: number;
-    readonly regionCount: number;
-    readonly includeCharacters: number;
-    readonly regionStart: number;
-    readonly variables: ReadonlyMap<string, string>;
-    readonly pendingRegion: PendingRegion;
-}
-
-export interface PendingRegion {
-    readonly index: number;
-    readonly server?: string;
-    readonly connectionId?: string;
-    readonly displayName?: string;
-    readonly directive?: SqlCmdDirective;
-}
-
-export interface FoldState {
-    variables: ReadonlyMap<string, string>;
-    readonly parts: string[];
-    projectedLength: number;
-    readonly mappings: SqlCmdMapping[];
-    readonly directives: SqlCmdDirective[];
-    readonly definitions: SqlCmdVariableDefinition[];
-    readonly references: SqlCmdVariableReference[];
-    readonly includes: SqlCmdIncludeDependency[];
-    readonly diagnostics: SqlCmdDiagnostic[];
-    readonly regions: SqlCmdConnectionRegion[];
-    regionStart: number;
-    pendingRegion: PendingRegion;
-    includeCharacters: number;
-}
-
 /**
  * Builds immutable SQLCMD document snapshots.
  *

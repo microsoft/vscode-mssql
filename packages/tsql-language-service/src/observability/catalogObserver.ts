@@ -6,6 +6,8 @@
 import type { MetadataSection } from "../metadata/index.js";
 import type {
     CatalogFetch,
+    CatalogDataQualityEvent,
+    CatalogDataQualityObservation,
     CatalogInvalidation,
     CatalogScope,
     CatalogStatsSnapshot,
@@ -101,6 +103,7 @@ export class CatalogObserver {
     private readonly _fetches: CatalogFetch[] = [];
     private readonly _invalidations: CatalogInvalidation[] = [];
     private readonly _scopes = new Map<string, ScopeAccumulator>();
+    private readonly _dataQuality = new Map<string, CatalogDataQualityObservation>();
     private _observed = 0;
     private _inFlight = 0;
 
@@ -180,6 +183,15 @@ export class CatalogObserver {
         if (this._invalidations.length > this._invalidationCapacity) this._invalidations.pop();
     }
 
+    public recordDataQuality(event: CatalogDataQualityEvent): void {
+        const key =
+            event.kind === "unknownValue"
+                ? `${event.kind}:${event.field}`
+                : `${event.kind}:${event.section}:${event.limit}`;
+        const prior = this._dataQuality.get(key);
+        this._dataQuality.set(key, { ...event, count: (prior?.count ?? 0) + 1 });
+    }
+
     public snapshot(): CatalogStatsSnapshot {
         return {
             fetches: Object.freeze([...this._fetches]),
@@ -187,6 +199,7 @@ export class CatalogObserver {
             observedFetches: this._observed,
             invalidations: Object.freeze([...this._invalidations]),
             inFlight: this._inFlight,
+            dataQuality: Object.freeze([...this._dataQuality.values()]),
         };
     }
 

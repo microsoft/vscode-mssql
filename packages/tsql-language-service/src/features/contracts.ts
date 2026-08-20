@@ -5,7 +5,6 @@
 
 import type { SemanticDiagnostic } from "../semantics/index.js";
 import type { SyntaxDiagnostic } from "../syntax/index.js";
-import type { FoldingRangeOptions } from "./foldingRanges.js";
 import type { ObjectDefinitionDescriptor } from "./objectDefinitions.js";
 import type { TextRange } from "../text/index.js";
 
@@ -73,6 +72,12 @@ export interface DocumentSymbol {
  * absent kind means an ordinary code region.
  */
 export type FoldingRangeKind = "comment" | "region";
+
+/** Host limits applied while selecting document folding ranges. */
+export interface FoldingRangeOptions {
+    /** Largest number of ranges to publish; widest regions receive priority. */
+    readonly limit?: number;
+}
 
 /**
  * A collapsible region in UTF-16 offsets. The service guarantees that each range covers more than

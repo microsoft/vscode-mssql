@@ -8,7 +8,7 @@ import type { SqlEngineProfile } from "./engineProfile.js";
 /**
  * Shared editor-facing descriptions of SQL Server routines, system variables, and built-in data
  * types that no catalog lookup returns. Completion, hover, signature help, and coloring read this
- * registry. Semantic diagnostics still own broader validation catalogs until those are migrated.
+ * registry. Semantic diagnostics own usage constraints, but not a second inventory of names.
  *
  * Availability is expressed as data rather than in code. A caller that knows the profile it is
  * analysing filters with `isBuiltInAvailable`; a caller that does not sees every entry.
@@ -137,7 +137,7 @@ export function builtInArity(name: string): BuiltInArity | undefined {
 /** The written form of a signature, as it reads in source. */
 export function formatSignature(name: string, signature: BuiltInSignature): string {
     const parameters = signature.parameters.map(formatParameter);
-    return `${name.toLocaleUpperCase()}(${parameters.join(signature.separator ?? ", ")})`;
+    return `${name.toUpperCase()}(${parameters.join(signature.separator ?? ", ")})`;
 }
 
 export function formatParameter(parameter: BuiltInParameter): string {
@@ -145,11 +145,26 @@ export function formatParameter(parameter: BuiltInParameter): string {
     return parameter.optional ? `[${parameter.name}]` : parameter.name;
 }
 
+/**
+ * Canonical system type for a T-SQL type spelling, including documented multiword synonyms.
+ * Whitespace is folded because type synonyms are lexical spellings, not catalog identifiers.
+ */
+export function normalizeSystemDataTypeName(name: string): string | undefined {
+    const normalized = name.trim().replaceAll(/\s+/gu, " ").toLowerCase();
+    const canonical = systemDataTypeSynonyms.get(normalized) ?? normalized;
+    return registry.has(registryKey(canonical, "dataType")) ? canonical : undefined;
+}
+
+/** True when a spelling is a built-in SQL Server data type rather than a catalog-defined type. */
+export function isSystemDataTypeName(name: string): boolean {
+    return normalizeSystemDataTypeName(name) !== undefined;
+}
+
 function normalize(name: string): string {
     const trimmed = name.trim();
     const undelimited =
         trimmed.startsWith("[") && trimmed.endsWith("]") ? trimmed.slice(1, -1) : trimmed;
-    return undelimited.toLocaleLowerCase();
+    return undelimited.toLowerCase();
 }
 
 /** Builds the parameter list of a routine from its written form. */
@@ -542,6 +557,180 @@ const documentedRoutines: readonly BuiltInEntry[] = [
 
 /** Routines recognized by name, so coloring and hover name them even without a documented call. */
 const recognizedRoutineNames: readonly string[] = [
+    // Names without curated signatures are still shared here so completion, coloring, hover, and
+    // semantic validation agree that they are shipped routines. Add documentation to the
+    // corresponding `routine(...)` entry when richer help becomes available.
+    "APPLOCK_MODE",
+    "APPLOCK_TEST",
+    "ASSEMBLYPROPERTY",
+    "ASYMKEY_ID",
+    "ASYMKEYPROPERTY",
+    "BASE64_DECODE",
+    "BASE64_ENCODE",
+    "BCPCOLLATIONNAME",
+    "BINARY_CHECKSUM",
+    "BIT_COUNT",
+    "BRICK_ID",
+    "CERT_ID",
+    "CERTENCODED",
+    "CERTPRIVATEKEY",
+    "CERTPROPERTY",
+    "CHANGE_TRACKING_CURRENT_VERSION",
+    "CHANGE_TRACKING_IS_COLUMN_IN_MASK",
+    "CHANGE_TRACKING_MIN_VALID_VERSION",
+    "CLOUD_DATABASEPROPERTYEX",
+    "COLLATIONNAME",
+    "COLLATIONPROPERTY",
+    "COLLATIONPROPERTYFROMID",
+    "COLUMNPROPERTY",
+    "COLUMNPROPERTYEX",
+    "COLUMNS_UPDATED",
+    "COMPARECOMPRESSEDSCALARS",
+    "COMPAREVARDECIMAL",
+    "COMPRESS",
+    "COMPRESSNUMERIC",
+    "COMPRESSSCALAR",
+    "CONNECTIONPROPERTY",
+    "CONTEXT_INFO",
+    "CONVERTRESVTOSTRING",
+    "CRYPT_GEN_RANDOM",
+    "CURRENT_DATE",
+    "CURRENT_REQUEST_ID",
+    "CURRENT_TIMEZONE",
+    "CURRENT_TIMEZONE_ID",
+    "CURRENT_TRANSACTION_ID",
+    "CURSOR_STATUS",
+    "DATABASE_PRINCIPAL_ID",
+    "DATABASEPROPERTY",
+    "DATABASEPROPERTYEX",
+    "DATE_BUCKET",
+    "DATETIME2FROMPARTS",
+    "DATETIMEFROMPARTS",
+    "DATETIMEOFFSETFROMPARTS",
+    "DECOMPRESS",
+    "DECOMPRESSNUMERIC",
+    "DECOMPRESSSCALAR",
+    "DECRYPTBYASYMKEY",
+    "DECRYPTBYCERT",
+    "DECRYPTBYKEY",
+    "DECRYPTBYKEYAUTOASYMKEY",
+    "DECRYPTBYKEYAUTOCERT",
+    "DECRYPTBYPASSPHRASE",
+    "DEFAULT_DOMAIN",
+    "EDIT_DISTANCE",
+    "EDIT_DISTANCE_SIMILARITY",
+    "ENCRYPTBYASYMKEY",
+    "ENCRYPTBYCERT",
+    "ENCRYPTBYKEY",
+    "ENCRYPTBYPASSPHRASE",
+    "EVENTDATA",
+    "FAZUREADMINSESSION",
+    "FEDERATION_FILTERING_VALUE",
+    "FILE_ID",
+    "FILE_IDEX",
+    "FILE_NAME",
+    "FILEGROUP_ID",
+    "FILEGROUP_NAME",
+    "FILEGROUPPROPERTY",
+    "FILEPROPERTY",
+    "FILETABLEROOTPATH",
+    "FULLTEXTCATALOGPROPERTY",
+    "FULLTEXTSERVICEPROPERTY",
+    "GEN_NORM_TABLES",
+    "GENDBNAMEFROMPATH",
+    "GET_BIT",
+    "GET_CLOUD_PARTITION_MAX_SIZE",
+    "GET_FILESTREAM_TRANSACTION_CONTEXT",
+    "GET_NEW_ROWVERSION",
+    "GET_TRANSMISSION_STATUS",
+    "GETANSINULL",
+    "GETBINARYSPARSEVECTOR",
+    "GETCHECKSUM",
+    "GETDEFAULT",
+    "GETPATHLOCATOR",
+    "HAS_DBACCESS",
+    "HASHBYTES",
+    "HOST_ID",
+    "IDENT_INCR",
+    "IDENT_SEED",
+    "IDENTITYPROPERTY",
+    "INDEXKEY_PROPERTY",
+    "INDEXPROPERTY",
+    "IS_CALLERSIGNED",
+    "IS_MEMBER",
+    "IS_OBJECTSIGNED",
+    "IS_ROLEMEMBER",
+    "IS_SRVROLEMEMBER",
+    "JARO_WINKLER_DISTANCE",
+    "JARO_WINKLER_SIMILARITY",
+    "JSON_CONTAINS",
+    "KEY_GUID",
+    "KEY_ID",
+    "KEY_NAME",
+    "LEFT",
+    "LEFT_SHIFT",
+    "LOGINPROPERTY",
+    "MIN_ACTIVE_ROWVERSION",
+    "NEWFILESTREAMVALUE",
+    "NORMALIZE",
+    "NORMALIZE_DENORMALIZE",
+    "NT_CLIENT",
+    "OBJECTPROPERTY",
+    "OBJECTPROPERTYEX",
+    "OBJIDUPDATE",
+    "ODBCPREC",
+    "ODBCSCALE",
+    "ORIGINAL_DB_NAME",
+    "ORIGINAL_LOGIN",
+    "PARTITION_FRAGMENT_ID",
+    "PERMISSIONS",
+    "PLATFORM",
+    "PROGRAM_NAME",
+    "PUBLISHINGSERVERNAME",
+    "PWDCOMPARE",
+    "PWDENCRYPT",
+    "REGEXP_COUNT",
+    "REGEXP_INSTR",
+    "REGEXP_LIKE",
+    "REGEXP_REPLACE",
+    "REGEXP_SUBSTR",
+    "RETRIEVEDBREPLICASTATE",
+    "RIGHT",
+    "RIGHT_SHIFT",
+    "ROWCOUNT_BIG",
+    "SESSION_CONTEXT",
+    "SESSION_ID",
+    "SESSIONPROPERTY",
+    "SET_BIT",
+    "SID_BINARY",
+    "SIGNBYASYMKEY",
+    "SIGNBYCERT",
+    "SMALLDATETIMEFROMPARTS",
+    "SQL_CONNECTION_MODE",
+    "SQL_VARIANT_PROPERTY",
+    "STATS_DATE",
+    "SUSER_ID",
+    "SUSER_SID",
+    "SYMKEYPROPERTY",
+    "TERTIARY_WEIGHTS",
+    "TEXTPTR",
+    "TEXTVALID",
+    "TIMEFROMPARTS",
+    "TRANSLATE",
+    "TRIGGER_NESTLEVEL",
+    "TYPEPROPERTY",
+    "UNCOMPRESS",
+    "UNISTR",
+    "UPDATE",
+    "USER_SID",
+    "VECTOR_NORM",
+    "VECTOR_NORMALIZE",
+    "VERIFYSIGNEDBYASYMKEY",
+    "VERIFYSIGNEDBYCERT",
+    "VERSION",
+    "XACT_STATE",
+    "XML_SCHEMA_NAMESPACE",
+    "XTYPETOTDS",
     "ACOS",
     "APP_NAME",
     "ASCII",
@@ -716,6 +905,7 @@ const dataTypes: readonly BuiltInEntry[] = [
     named("hierarchyid", "dataType", "Position in a hierarchy."),
     named("geography", "dataType", "Ellipsoidal spatial data."),
     named("geometry", "dataType", "Planar spatial data."),
+    named("sysname", "dataType", "System-supplied alias for nvarchar(128)."),
     named(
         "rowversion",
         "dataType",
@@ -743,6 +933,21 @@ const dataTypes: readonly BuiltInEntry[] = [
 ];
 
 const builtInKinds: readonly BuiltInKind[] = ["routine", "systemVariable", "dataType"];
+
+/** Documented T-SQL type synonyms, stored once for parser-independent semantic consumers. */
+const systemDataTypeSynonyms: ReadonlyMap<string, string> = new Map([
+    ["binary varying", "varbinary"],
+    ["char varying", "varchar"],
+    ["character", "char"],
+    ["character varying", "varchar"],
+    ["dec", "decimal"],
+    ["double precision", "float"],
+    ["integer", "int"],
+    ["national char", "nchar"],
+    ["national char varying", "nvarchar"],
+    ["national character", "nchar"],
+    ["national character varying", "nvarchar"],
+]);
 
 const registry: ReadonlyMap<string, BuiltInEntry> = new Map(
     [

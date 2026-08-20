@@ -4,7 +4,17 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type { SyntaxNode, SyntaxSnapshot } from "../syntax/index.js";
+import {
+    ancestorOfKind,
+    descendantsOfKind as descendants,
+    directChildrenOfKind as directDescendants,
+    firstDescendantOfKind as firstDescendant,
+    hasDescendantOfKind as hasDescendant,
+    syntaxSource,
+    visitSyntaxTree as visit,
+} from "../syntax/treeUtilities.js";
 import type { SemanticDiagnostic } from "./contracts.js";
+import { multipartIdentifierParts, tsqlIdentifierPattern } from "./identifiers.js";
 
 const requiredVectorSearchParameters = ["TABLE", "COLUMN", "SIMILAR_TO", "METRIC"] as const;
 const allowedVectorSearchParameters = new Set([
@@ -217,7 +227,7 @@ function validateVectorSearch(
 
 function isTableArgument(value: string): boolean {
     const withoutAlias = value.replace(
-        /\s+(?:AS\s+)?(?:\[[^\]]+\]|"[^"]+"|[\p{L}_#][\p{L}\p{N}_$#@]*)\s*$/iu,
+        new RegExp(String.raw`\s+(?:AS\s+)?${tsqlIdentifierPattern.component}\s*$`, "iu"),
         "",
     );
     const candidate = withoutAlias === value ? value : withoutAlias;
@@ -225,13 +235,14 @@ function isTableArgument(value: string): boolean {
 }
 
 function isMultipartIdentifier(value: string): boolean {
-    const identifier = String.raw`(?:\[(?:[^\]]|\]\])*\]|"(?:[^"]|"")*"|[\p{L}_#][\p{L}\p{N}_$#@]*)`;
+    const identifier = tsqlIdentifierPattern.component;
     return new RegExp(`^${identifier}(?:\\.${identifier}){0,3}$`, "iu").test(value);
 }
 
 function isIntegerVariableOrColumn(value: string, allowZero: boolean): boolean {
     if ((allowZero ? /^[+]?[0-9]+$/u : /^[+]?[1-9][0-9]*$/u).test(value.trim())) return true;
-    if (/^@[\p{L}_][\p{L}\p{N}_$#@]*$/iu.test(value.trim())) return true;
+    if (new RegExp(`^${tsqlIdentifierPattern.namedVariable}$`, "iu").test(value.trim()))
+        return true;
     return isMultipartIdentifier(value.trim());
 }
 
@@ -241,7 +252,9 @@ function validateVectorFunction(
     diagnostics: SemanticDiagnostic[],
 ): void {
     const text = sourceText(syntax, node);
-    const name = /^\s*([\p{L}_][\p{L}\p{N}_$#@]*)/u.exec(text)?.[1]?.toUpperCase();
+    const name = new RegExp(String.raw`^\s*(${tsqlIdentifierPattern.ordinary})`, "u")
+        .exec(text)?.[1]
+        ?.toUpperCase();
     const expected = name && vectorFunctionArities[name];
     if (!name || !expected) return;
     const open = text.indexOf("(");
@@ -276,7 +289,8 @@ function validateApproximateQuery(
     if (approximate.length === 0) return;
     const marker = approximate[0]!;
     const fetch =
-        ancestor(marker, "ApproximateFetchClause") ?? ancestor(marker, "OffsetFetchClause");
+        ancestorOfKind(marker.parent(), ["ApproximateFetchClause"]) ??
+        ancestorOfKind(marker.parent(), ["OffsetFetchClause"]);
     const label = fetch ? "FETCH APPROX" : "TOP WITH APPROX";
     const vectorSources = descendants(node, "VectorSearchTableSource");
     if (vectorSources.length === 0) {
@@ -295,7 +309,7 @@ function validateApproximateQuery(
             error("VEC003", "FETCH APPROX cannot be combined with OFFSET.", fetch.start, fetch.end),
         );
     }
-    const top = ancestor(marker, "TopClause");
+    const top = ancestorOfKind(marker.parent(), ["TopClause"]);
     if (top && hasDescendant(top, "Percent")) {
         diagnostics.push(
             error("VEC003", "TOP WITH APPROX cannot be combined with PERCENT.", top.start, top.end),
@@ -394,7 +408,7 @@ function error(code: string, message: string, start: number, end: number): Seman
 }
 
 function sourceText(syntax: SyntaxSnapshot, node: SyntaxNode): string {
-    return syntax.document.text.slice(node.start, node.end);
+    return syntaxSource(syntax, node);
 }
 
 function valueStart(node: SyntaxNode, syntax: SyntaxSnapshot): number {
@@ -414,43 +428,6 @@ function duplicateNames(names: readonly string[]): readonly string[] {
         seen.add(name);
     }
     return [...duplicates];
-}
-
-function visit(node: SyntaxNode, callback: (node: SyntaxNode) => void): void {
-    callback(node);
-    for (const child of node.children()) visit(child, callback);
-}
-
-function descendants(node: SyntaxNode, kind: string): SyntaxNode[] {
-    const result: SyntaxNode[] = [];
-    visit(node, (candidate) => {
-        if (candidate !== node && candidate.kind === kind) result.push(candidate);
-    });
-    return result;
-}
-
-function directDescendants(node: SyntaxNode, kind: string): SyntaxNode[] {
-    return [...node.children()].filter((child) => child.kind === kind);
-}
-
-function firstDescendant(node: SyntaxNode, kind: string): SyntaxNode | undefined {
-    for (const child of node.children()) {
-        if (child.kind === kind) return child;
-        const nested = firstDescendant(child, kind);
-        if (nested) return nested;
-    }
-    return undefined;
-}
-
-function hasDescendant(node: SyntaxNode, kind: string): boolean {
-    return firstDescendant(node, kind) !== undefined;
-}
-
-function ancestor(node: SyntaxNode, kind: string): SyntaxNode | undefined {
-    for (let current = node.parent(); current; current = current.parent()) {
-        if (current.kind === kind) return current;
-    }
-    return undefined;
 }
 
 function matchingCloseParen(text: string, open: number): number {
@@ -482,20 +459,4 @@ function countTopLevelArguments(text: string): number {
         else if (!quote && depth === 0 && character === ",") count++;
     }
     return count;
-}
-
-function multipartIdentifierParts(text: string): readonly string[] {
-    const parts: string[] = [];
-    const matcher = /\[(?:[^\]]|\]\])*\]|"(?:[^"]|"")*"|[^.\s]+/gu;
-    for (const match of text.matchAll(matcher)) {
-        const value = match[0];
-        parts.push(
-            value.startsWith("[") && value.endsWith("]")
-                ? value.slice(1, -1).replaceAll("]]", "]")
-                : value.startsWith('"') && value.endsWith('"')
-                  ? value.slice(1, -1).replaceAll('""', '"')
-                  : value,
-        );
-    }
-    return parts;
 }

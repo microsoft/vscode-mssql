@@ -5,3 +5,4 @@
 
 export * from "./contracts.js";
 export * from "./textSnapshot.js";
+export * from "./rangeUtilities.js";

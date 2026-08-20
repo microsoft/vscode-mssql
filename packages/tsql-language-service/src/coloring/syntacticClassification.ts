@@ -237,7 +237,7 @@ class SyntacticCollector {
         this.recordName(name, last);
         const qualifiers = parts.slice(0, -1);
         const system = qualifiers.some(
-            (part) => normalizeIdentifier(this.textOf(part)).toLocaleLowerCase() === "sys",
+            (part) => normalizeIdentifier(this.textOf(part)).toLowerCase() === "sys",
         );
         const resolved =
             type === "table" && this.textOf(last).startsWith("#") ? "temporaryTable" : type;
@@ -252,7 +252,7 @@ class SyntacticCollector {
         if (!last) return;
         const builtIn =
             parts.length === 1 &&
-            builtInRoutineNames.has(normalizeIdentifier(this.textOf(last)).toLocaleLowerCase());
+            builtInRoutineNames.has(normalizeIdentifier(this.textOf(last)).toLowerCase());
         this.assignObject(name, "function", builtIn ? ["defaultLibrary"] : []);
     }
 
@@ -323,7 +323,7 @@ function securableType(node: SyntaxNode, text: string): SqlColorTokenType {
         if (child.kind !== "SecurableClass") continue;
         const declared = normalizeIdentifier(text.slice(child.start, child.end))
             .trim()
-            .toLocaleLowerCase();
+            .toLowerCase();
         if (declared === "schema") return "schema";
         if (declared === "database") return "database";
         if (declared === "type") return "type";

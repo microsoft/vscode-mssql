@@ -150,6 +150,9 @@ suite("SQL Server end-to-end integration", { skip: !connectionString }, () => {
         let starResult = features.completion(uri, 4, starSql.length);
         if (starResult.incomplete) {
             await metadata.waitForHydration();
+            // Feature requests intentionally read one pinned catalog generation. A host rebinds
+            // after metadata publication; this direct-runtime test performs the same lifecycle.
+            await runtime.rebind(uri, 4);
             starResult = features.completion(uri, 4, starSql.length);
         }
         assert.ok(starResult.items.some((item) => item.label === "Expand SELECT *"));
@@ -190,6 +193,7 @@ suite("SQL Server end-to-end integration", { skip: !connectionString }, () => {
         let insertResult = features.completion(uri, 7, insertOffset);
         if (insertResult.incomplete) {
             await metadata.waitForHydration();
+            await runtime.rebind(uri, 7);
             insertResult = features.completion(uri, 7, insertOffset);
         }
         const insertExpansion = insertResult.items.find(
@@ -381,6 +385,7 @@ suite("SQL Server end-to-end integration", { skip: !connectionString }, () => {
                     metadata.pin().databaseCatalogCompleteness("AdventureWorks2022").schemas ===
                     "ready",
             );
+            await runtime.rebind("file:///cross-database-schema.sql", 1);
             schemas = features.completion("file:///cross-database-schema.sql", 1, schemaSql.length);
             assert.ok(schemas.items.some((item) => item.label === "Person"));
 
@@ -397,6 +402,7 @@ suite("SQL Server end-to-end integration", { skip: !connectionString }, () => {
                     metadata.pin().databaseCatalogCompleteness("AdventureWorks2022").objects ===
                     "ready",
             );
+            await runtime.rebind("file:///cross-database-object.sql", 1);
             objects = features.completion("file:///cross-database-object.sql", 1, objectSql.length);
             assert.ok(
                 objects.items.some((item) => item.kind === "table" && item.label === "Person"),

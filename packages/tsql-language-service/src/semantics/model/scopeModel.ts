@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type { ColumnMetadata, MetadataView } from "../../metadata/index.js";
-import type { SyntaxNode, SyntaxSnapshot } from "../../syntax/index.js";
+import type { SyntaxKind, SyntaxNode, SyntaxSnapshot } from "../../syntax/index.js";
 import {
     ancestorOfKind as ancestor,
     descendantsOfKind as descendants,
@@ -12,13 +12,16 @@ import {
     firstDescendantOfKind as firstDescendant,
     hasDescendantOfKind as hasDescendant,
     lastDescendantOfKind as lastDescendant,
+    syntaxSource,
     visitSyntaxTree as visit,
 } from "../../syntax/treeUtilities.js";
 import type { TextRange } from "../../text/index.js";
+import { textRangeKey as rangeKey } from "../../text/index.js";
 import { multipartIdentifierParts, normalizeIdentifier } from "../identifiers.js";
 import { itemsWithinRanges, rangeIndexFor } from "./lookups.js";
 import { boundNameFrom } from "./boundName.js";
 import { declaredType } from "./expressionTypes.js";
+import { columnAllowsNull } from "./declarationFacts.js";
 import type {
     BoundColumn,
     BoundRelation,
@@ -113,12 +116,12 @@ function classifyCteReferences(
     ctes: readonly BoundRelation[],
 ): readonly BoundRelation[] {
     if (ctes.length === 0) return relations;
-    const names = new Set(ctes.map((cte) => cte.exposedName.toLocaleLowerCase()));
+    const names = new Set(ctes.map((cte) => cte.exposedName.toLowerCase()));
     return relations.map((relation) => {
         if (relation.kind !== "unknown" && relation.kind !== "table") return relation;
         const written = relation.name?.parts;
         if (!written || written.length !== 1) return relation;
-        if (!names.has(written[0]!.normalized.toLocaleLowerCase())) return relation;
+        if (!names.has(written[0]!.normalized.toLowerCase())) return relation;
         return Object.freeze({ ...relation, kind: "cte" as BoundRelationKind });
     });
 }
@@ -130,14 +133,14 @@ function classifyCteReferences(
  * they are query boundaries even though nothing projects a select list.
  */
 /** The nodes of one kind this build covers, narrowed when the caller asked for part of the document. */
-function scopeRootsOfKind(input: ScopeModelInput, kind: string): readonly SyntaxNode[] {
+function scopeRootsOfKind(input: ScopeModelInput, kind: SyntaxKind): readonly SyntaxNode[] {
     const bucket = input.index.get(kind) ?? [];
     return input.ranges ? itemsWithinRanges(bucket, input.ranges, (node) => node) : bucket;
 }
 
 function statementScopeRoots(input: ScopeModelInput): readonly SyntaxNode[] {
     const roots: SyntaxNode[] = [];
-    for (const kind of ["UpdateStatement", "DeleteStatement", "MergeStatement"]) {
+    for (const kind of ["UpdateStatement", "DeleteStatement", "MergeStatement"] as const) {
         for (const node of scopeRootsOfKind(input, kind)) {
             if (!firstDescendant(node, "QuerySpecification")) roots.push(node);
         }
@@ -358,7 +361,7 @@ function functionRelation(
     // `Doc.nodes('/path')` shreds an XML column into a rowset of XML fragments. It is written like
     // a table-valued call but is a method on a column, and its one column is always XML, so it is
     // recognised here rather than being reported as an unresolvable routine.
-    if (parts.length >= 2 && parts.at(-1)?.toLocaleLowerCase() === "nodes") {
+    if (parts.length >= 2 && parts.at(-1)?.toLowerCase() === "nodes") {
         const explicitColumns = firstDescendant(node, "ColumnNameList");
         const columns = explicitColumns
             ? descendants(explicitColumns, "IdentifierName").map((column) => ({
@@ -374,7 +377,7 @@ function functionRelation(
             columns: columns.length > 0 ? toBoundColumns(columns) : "unknown",
         });
     }
-    if (parts.at(-1)?.toLocaleLowerCase() === "openjson") {
+    if (parts.at(-1)?.toLowerCase() === "openjson") {
         const schema = firstDescendant(node, "WithColumnSchema");
         const columns = schema
             ? descendants(schema, "ColumnSchemaElement").map((column) =>
@@ -565,7 +568,7 @@ function localRowsetIndex(
 /** The declaring nodes, by kind, preferring the snapshot's own index over walking the tree. */
 function declarationNodesByKind(
     input: LocalRowsetInput,
-    kinds: readonly string[],
+    kinds: readonly SyntaxKind[],
 ): ReadonlyMap<string, readonly SyntaxNode[]> {
     const index = input.syntax.structuralIndex?.();
     if (index) {
@@ -610,7 +613,7 @@ function buildLocalRowsetIndex(
     };
     const lastPart = (node: SyntaxNode): string | undefined => {
         const last = multipartIdentifierParts(source(input, node)).at(-1);
-        return last ? normalizeIdentifier(last).toLocaleLowerCase() : undefined;
+        return last ? normalizeIdentifier(last).toLowerCase() : undefined;
     };
 
     const nodes = declarationNodesByKind(input, [
@@ -631,12 +634,12 @@ function buildLocalRowsetIndex(
     for (const node of nodes.get("VariableDeclaration") ?? []) {
         const variable = firstDescendant(node, "Variable");
         if (!variable || !firstDescendant(node, "TableDefinition")) continue;
-        record(source(input, variable).toLocaleLowerCase(), "variable", node, true);
+        record(source(input, variable).toLowerCase(), "variable", node, true);
     }
     for (const node of nodes.get("CommonTableExpression") ?? []) {
         const name = firstDescendant(node, "IdentifierName");
         if (!name) continue;
-        record(normalizeIdentifier(source(input, name)).toLocaleLowerCase(), "cte", node, true);
+        record(normalizeIdentifier(source(input, name)).toLowerCase(), "cte", node, true);
     }
     for (const node of nodes.get("SelectStatement") ?? []) {
         const into = firstDescendant(node, "IntoClause");
@@ -668,7 +671,7 @@ export function localColumnsForName(
     parts: readonly string[],
     useOffset: number,
 ): readonly ColumnMetadata[] | undefined {
-    const wanted = normalizeIdentifier(parts.at(-1) ?? "").toLocaleLowerCase();
+    const wanted = normalizeIdentifier(parts.at(-1) ?? "").toLowerCase();
     if (!wanted) return undefined;
     const declarations = localRowsetIndex(input).get(wanted);
     if (!declarations || declarations.length === 0) return undefined;
@@ -740,7 +743,7 @@ function columnMetadata(input: LocalRowsetInput, node: SyntaxNode): ColumnMetada
     return {
         name: name ? normalizeIdentifier(source(input, name)) : written,
         ...(type ? { typeDisplay: source(input, type) } : {}),
-        nullable: !/\bNOT\s+NULL\b/iu.test(written),
+        nullable: columnAllowsNull(node),
     };
 }
 
@@ -770,9 +773,5 @@ function projectedColumns(
 }
 
 function source(input: LocalRowsetInput, node: SyntaxNode): string {
-    return input.syntax.document.text.slice(node.start, node.end);
-}
-
-function rangeKey(node: SyntaxNode): string {
-    return `${node.start}:${node.end}`;
+    return syntaxSource(input.syntax, node);
 }

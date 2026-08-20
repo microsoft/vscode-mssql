@@ -4,5 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 export * from "./contracts.js";
-export * from "./keywords.generated.js";
+export * from "./keywords.js";
 export * from "./lezer/lezerSyntaxService.js";
+export * from "./treeUtilities.js";

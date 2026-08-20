@@ -10,8 +10,10 @@ const {
     builtInsOfKind,
     formatParameter,
     formatSignature,
+    isSystemDataTypeName,
     isBuiltInAvailable,
     lookupBuiltIn,
+    normalizeSystemDataTypeName,
 } = require("../../dist/index.js");
 const { colorize } = require("../support/coloringHarness.js");
 
@@ -28,6 +30,25 @@ suite("built-in registry", () => {
         assert.equal(lookupBuiltIn("int", "routine"), undefined);
         assert.equal(lookupBuiltIn("@@ROWCOUNT", "systemVariable")?.kind, "systemVariable");
         assert.equal(lookupBuiltIn("GETDATE", "routine")?.kind, "routine");
+    });
+
+    // One canonical catalog prevents completion/hover and semantic validation from disagreeing
+    // about system types or their multiword T-SQL synonyms.
+    test("owns system data types and their canonical synonyms", () => {
+        for (const spelling of [
+            "int",
+            "SYSNAME",
+            "cursor",
+            "table",
+            "national   character varying",
+            "DOUBLE PRECISION",
+        ]) {
+            assert.equal(isSystemDataTypeName(spelling), true, spelling);
+        }
+        assert.equal(normalizeSystemDataTypeName("national char varying"), "nvarchar");
+        assert.equal(normalizeSystemDataTypeName("integer"), "int");
+        assert.equal(normalizeSystemDataTypeName("dbo.CustomType"), undefined);
+        assert.equal(isSystemDataTypeName("CustomType"), false);
     });
 
     test("every kind has entries and no name is duplicated within a kind", () => {

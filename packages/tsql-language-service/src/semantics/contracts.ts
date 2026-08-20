@@ -8,8 +8,9 @@ import type { MetadataView, ObjectRef } from "../metadata/index.js";
 import type { SyntaxSnapshot } from "../syntax/index.js";
 import type { TextRange } from "../text/index.js";
 import type { SemanticModel } from "./model/contracts.js";
+import type { SymbolId } from "./symbolId.js";
 
-export type SymbolId = string;
+export type { SymbolId } from "./symbolId.js";
 
 export interface SemanticDiagnostic {
     readonly code: string;

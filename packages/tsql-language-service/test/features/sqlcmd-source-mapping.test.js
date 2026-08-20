@@ -10,8 +10,11 @@ const {
     InMemoryMetadataProvider,
     InProcessLanguageServiceRuntime,
     LezerSyntaxService,
+    SourceMappedColorizationService,
     SourceMappedFeatureService,
+    TsqlColorizationService,
     TsqlLanguageFeatureService,
+    sqlCmdDirectiveDescriptors,
 } = require("../../dist/index.js");
 
 const uri = "file:///mapped.sql";
@@ -51,10 +54,92 @@ async function open(sql) {
     );
     const snapshot = await runtime.open(uri, 1, sql);
     const inner = new TsqlLanguageFeatureService(runtime, provider);
-    return { snapshot, inner, mapped: new SourceMappedFeatureService(inner, runtime), sql };
+    return {
+        snapshot,
+        runtime,
+        inner,
+        mapped: new SourceMappedFeatureService(inner, runtime),
+        sql,
+    };
 }
 
 suite("SQLCMD source mapping for feature results", () => {
+    // Every supported directive is removed from the SQL projection through the same map. This
+    // exhaustive matrix prevents a newly registered command from accidentally making positional
+    // features address unrelated SQL at the directive's now-shorter numeric offset.
+    test("keeps every feature neutral inside every supported directive", async () => {
+        const directives = [
+            ...sqlCmdDirectiveDescriptors.map((descriptor) => directiveExample(descriptor.name)),
+            "!! echo never-executed",
+        ];
+
+        for (const directive of directives) {
+            const sql = `${directive}\nDECLARE @value int;\nSELECT COUNT(Id)\nFROM dbo.Customers\nWHERE Id = @value;\nSELECT * FROM dbo.;\n`;
+            const { inner, mapped, snapshot } = await open(sql);
+            const offset = Math.min(directive.length - 1, Math.max(1, directive.indexOf(":") + 1));
+
+            assert.deepEqual(mapped.completion(uri, 1, offset), { items: [], incomplete: false });
+            assert.equal(mapped.hover(uri, 1, offset), undefined);
+            assert.deepEqual(mapped.definition(uri, 1, offset), []);
+            assert.deepEqual(mapped.definitionTarget(uri, 1, offset), { locations: [] });
+            assert.deepEqual(mapped.references(uri, 1, offset), []);
+            assert.equal(mapped.prepareRename(uri, 1, offset), undefined);
+            assert.deepEqual(mapped.rename(uri, 1, offset, "replacement"), []);
+            assert.deepEqual(mapped.selectionRanges(uri, 1, [offset]), []);
+            assert.equal(mapped.signatureHelp(uri, 1, offset), undefined);
+
+            const colors = new SourceMappedColorizationService(new TsqlColorizationService());
+            const inside = colors.provideRangeColors({
+                ...snapshot,
+                range: { start: 0, end: directive.length },
+            });
+            assert.deepEqual(inside.tokens, [], directive);
+
+            // The SQL immediately after the removed line remains reachable for positional and
+            // structural features, proving that neutral handling is limited to the directive.
+            const tableOffset = sql.indexOf("Customers") + 1;
+            const variableOffset = sql.lastIndexOf("@value") + 1;
+            const completionOffset = sql.lastIndexOf("dbo.") + "dbo.".length;
+            assert.match(
+                mapped.hover(uri, 1, tableOffset)?.markdown ?? "",
+                /Customers/u,
+                directive,
+            );
+            assert.ok(mapped.selectionRanges(uri, 1, [tableOffset]).length > 0, directive);
+            const projectedCompletionOffset = snapshot.projection.toProjected(
+                uri,
+                completionOffset,
+            );
+            assert.notEqual(projectedCompletionOffset, undefined, directive);
+            assert.deepEqual(
+                mapped.completion(uri, 1, completionOffset).items.map((item) => item.label),
+                inner.completion(uri, 1, projectedCompletionOffset).items.map((item) => item.label),
+                directive,
+            );
+            assert.ok(mapped.definition(uri, 1, variableOffset).length > 0, directive);
+            assert.ok(
+                mapped.definitionTarget(uri, 1, variableOffset).locations.length > 0,
+                directive,
+            );
+            assert.ok(mapped.references(uri, 1, variableOffset).length > 0, directive);
+            assert.ok(mapped.prepareRename(uri, 1, variableOffset), directive);
+            assert.ok(mapped.rename(uri, 1, variableOffset, "@renamed").length > 0, directive);
+            assert.ok(mapped.signatureHelp(uri, 1, sql.indexOf("COUNT(") + 6), directive);
+            for (const range of mapped.foldingRanges(uri, 1)) {
+                assert.ok(
+                    range.start >= directive.length,
+                    `${directive}: ${JSON.stringify(range)}`,
+                );
+            }
+            for (const token of colors.provideDocumentColors(snapshot).tokens) {
+                assert.ok(
+                    token.start >= directive.length,
+                    `${directive}: ${JSON.stringify(token)}`,
+                );
+            }
+        }
+    });
+
     // A document with no SQLCMD syntax projects itself, so the wrapper must be transparent: the
     // identity case is detected by reference and returns the inner result untouched.
     test("passes an ordinary document straight through", async () => {
@@ -123,4 +208,81 @@ suite("SQLCMD source mapping for feature results", () => {
             assert.ok(range.start >= 0 && range.end <= sql.length, JSON.stringify(range));
         }
     });
+
+    // Directive text has no projected position. Falling back to the same numeric offset would
+    // address unrelated SQL in the shorter projected document, so position-based features must
+    // return their neutral response without invoking analysis at an invented position.
+    test("returns neutral feature results inside removed directive text", async () => {
+        const sql = ":setvar unused 1\nSELECT Id FROM dbo.Customers;\n";
+        const { mapped } = await open(sql);
+        const offset = sql.indexOf("unused");
+
+        assert.deepEqual(mapped.completion(uri, 1, offset), { items: [], incomplete: false });
+        assert.equal(mapped.hover(uri, 1, offset), undefined);
+        assert.deepEqual(mapped.definition(uri, 1, offset), []);
+        assert.deepEqual(mapped.definitionTarget(uri, 1, offset), { locations: [] });
+        assert.deepEqual(mapped.references(uri, 1, offset), []);
+        assert.equal(mapped.prepareRename(uri, 1, offset), undefined);
+        assert.deepEqual(mapped.rename(uri, 1, offset, "replacement"), []);
+        assert.deepEqual(mapped.selectionRanges(uri, 1, [offset]), []);
+        assert.equal(mapped.signatureHelp(uri, 1, offset), undefined);
+    });
+
+    // A mapped full result cannot be passed back to a projected-coordinate token diff: includes
+    // may drop tokens and substitutions may coalesce them. Until projected baselines carry their
+    // own opaque identity, a SQLCMD edit is safely represented by a complete mapped result.
+    test("returns a full mapped color result for SQLCMD edits", async () => {
+        const sql = ":setvar schema dbo\nSELECT Id FROM $(schema).Customers;\n";
+        const { snapshot, runtime } = await open(sql);
+        const colors = new SourceMappedColorizationService(new TsqlColorizationService());
+        const previous = colors.provideDocumentColors(snapshot);
+        assert.match(previous.resultId, /^source:/u);
+        const start = sql.indexOf("Id");
+        const edited = await runtime.change(uri, 1, 2, [{ start, end: start + 2, text: "Name" }]);
+
+        const update = colors.provideColorEdits(previous, edited, [
+            { start, end: start + 2, text: "Name" },
+        ]);
+        assert.equal(update.kind, "full");
+        assert.deepEqual(update, colors.provideDocumentColors(edited));
+    });
+
+    // A viewport entirely inside a directive has no projected range and therefore no colors.
+    test("does not project a color range inside directive text", async () => {
+        const sql = ":setvar unused 1\nSELECT Id FROM dbo.Customers;\n";
+        const { snapshot } = await open(sql);
+        const colors = new SourceMappedColorizationService(new TsqlColorizationService());
+        const start = sql.indexOf("unused");
+        const result = colors.provideRangeColors({
+            ...snapshot,
+            range: { start, end: start + "unused".length },
+        });
+
+        assert.equal(result.kind, "full");
+        assert.deepEqual(result.tokens, []);
+    });
 });
+
+function directiveExample(name) {
+    switch (name) {
+        case ":connect":
+            return ":connect localhost";
+        case ":error":
+            return ":error stderr";
+        case ":exit":
+            return ":exit";
+        case ":on error":
+            return ":on error ignore";
+        case ":out":
+        case ":perftrace":
+            return `${name} output.txt`;
+        case ":r":
+            return ":r missing.sql";
+        case ":setvar":
+            return ":setvar schema dbo";
+        case ":xml":
+            return ":xml on";
+        default:
+            return name;
+    }
+}

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import type { SyntaxNode } from "../../syntax/index.js";
+import type { SyntaxKind, SyntaxNode } from "../../syntax/index.js";
 import { directChildOfKind as directChild } from "../../syntax/treeUtilities.js";
 
 /**
@@ -16,7 +16,7 @@ import { directChildOfKind as directChild } from "../../syntax/treeUtilities.js"
  */
 
 /** Node kinds that own a rowset or module name. */
-export const rowsetNameOwnerKinds: readonly string[] = Object.freeze([
+export const rowsetNameOwnerKinds: readonly SyntaxKind[] = Object.freeze([
     "TableSourceName",
     "DmlTarget",
     "ExecutableEntity",

@@ -6,8 +6,13 @@
 import { featureAvailabilityDiagnosticCode } from "../common/platformFeatureRegistry.js";
 import { createEngineCapabilities, type EngineCapabilities } from "../common/engineCapabilities.js";
 import type { EngineFacts } from "../common/engineProfile.js";
-import { TsqlColorizationService } from "../coloring/index.js";
-import { TsqlLanguageFeatureService } from "../features/index.js";
+import { TsqlColorizationService, type ColorizationService } from "../coloring/index.js";
+import {
+    SourceMappedColorizationService,
+    SourceMappedFeatureService,
+    TsqlLanguageFeatureService,
+    type LanguageFeatureService,
+} from "../features/index.js";
 import { NullMetadataProvider } from "../metadata/index.js";
 import { InProcessLanguageServiceRuntime } from "../runtime/index.js";
 import {
@@ -252,8 +257,8 @@ export class WorkerRequestHandler {
 
 interface WorkerDocumentSession {
     readonly runtime: InProcessLanguageServiceRuntime;
-    readonly features: TsqlLanguageFeatureService;
-    readonly coloring: TsqlColorizationService;
+    readonly features: LanguageFeatureService;
+    readonly coloring: ColorizationService;
 }
 
 function createSession(): WorkerDocumentSession {
@@ -261,8 +266,11 @@ function createSession(): WorkerDocumentSession {
     const runtime = new InProcessLanguageServiceRuntime(undefined, undefined, metadata);
     return {
         runtime,
-        features: new TsqlLanguageFeatureService(runtime, metadata),
-        coloring: new TsqlColorizationService(),
+        features: new SourceMappedFeatureService(
+            new TsqlLanguageFeatureService(runtime, metadata),
+            runtime,
+        ),
+        coloring: new SourceMappedColorizationService(new TsqlColorizationService()),
     };
 }
 

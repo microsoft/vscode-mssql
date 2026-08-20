@@ -10,6 +10,7 @@ const {
     MemorySqlCmdIncludeStore,
     SqlCmdDocumentService,
     sqlCmdCompletion,
+    sqlCmdDirectiveDescriptors,
 } = require("../../dist/index.js");
 
 const root = "file:///c:/scripts/root.sql";
@@ -36,16 +37,13 @@ suite("SQLCMD directives", () => {
     // Verifies every directive is recognized, case-insensitively, with its own span.
     test("recognizes every documented directive", () => {
         const sql = [
-            ":setvar db AdventureWorks",
-            ":SETVAR other 'a value'",
-            ":r other.sql",
-            ":connect srv1",
-            ":On Error ignore",
-            ":out results.txt",
-            ":error errors.txt",
-            ":list",
-            ":listvar",
-            ":reset",
+            ...sqlCmdDirectiveDescriptors.map((descriptor) =>
+                descriptor.name === ":on error"
+                    ? ":On Error ignore"
+                    : descriptor.name === ":setvar"
+                      ? ":SETVAR name value"
+                      : descriptor.name,
+            ),
             "!! dir",
             "GO",
             "GO 5",
@@ -55,16 +53,7 @@ suite("SQLCMD directives", () => {
         assert.deepEqual(
             snapshot.directives.map((directive) => directive.kind),
             [
-                "setvar",
-                "setvar",
-                "include",
-                "connect",
-                "onError",
-                "out",
-                "error",
-                "list",
-                "listVar",
-                "reset",
+                ...sqlCmdDirectiveDescriptors.map((descriptor) => descriptor.kind),
                 "shell",
                 "go",
                 "go",

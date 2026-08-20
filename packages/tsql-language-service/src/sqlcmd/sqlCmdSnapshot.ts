@@ -17,7 +17,7 @@ import type {
     SqlCmdVariableDefinition,
     SqlCmdVariableReference,
 } from "./contracts.js";
-import type { FoldCheckpoint, FoldState } from "./sqlCmdDocument.js";
+import type { FoldCheckpoint, FoldState } from "./foldState.js";
 import type { ScannedLine } from "./sqlCmdScanner.js";
 
 export class ImmutableSqlCmdSnapshot implements SqlCmdDocumentSnapshot {
@@ -144,6 +144,19 @@ export class ImmutableSqlCmdSnapshot implements SqlCmdDocumentSnapshot {
     }
 
     public toProjected(documentUri: string, offset: number): number | undefined {
+        // Directive source is intentionally absent from executable SQL. Its preservation mapping
+        // only represents the projected newline and is not a valid caret destination: routing a
+        // request there would answer about the first unrelated SQL token after the directive.
+        if (
+            this.directives.some(
+                (directive) =>
+                    directive.documentUri === documentUri &&
+                    directive.range.start <= offset &&
+                    offset < directive.range.end,
+            )
+        ) {
+            return undefined;
+        }
         this._byDocument ??= groupByDocument(this.mappings);
         const mappings = this._byDocument.get(documentUri) ?? [];
         for (const mapping of mappings) {

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import type { TextRange } from "../text/index.js";
+export { textRangeKey as rangeKey } from "../text/index.js";
 import {
     sqlColorTokenModifiers,
     type SqlColorTokenModifier,
@@ -18,10 +18,6 @@ export interface Classification {
 
 const noModifiers: readonly SqlColorTokenModifier[] = Object.freeze([]);
 const modifierOrder = new Map(sqlColorTokenModifiers.map((modifier, index) => [modifier, index]));
-
-export function rangeKey(range: TextRange): string {
-    return `${range.start}:${range.end}`;
-}
 
 export function classification(
     type: SqlColorTokenType,

@@ -6,11 +6,55 @@
 const assert = require("node:assert/strict");
 const { suite, test } = require("node:test");
 const {
+    CatalogSemanticBinder,
+    InMemoryMetadataProvider,
+    InProcessLanguageServiceRuntime,
+    LezerSyntaxService,
+    TsqlLanguageFeatureService,
+} = require("../../../dist/index.js");
+const {
     applyCompletion,
     createCatalogFeatureServices: createServices,
+    object,
 } = require("../../support/catalogFeatureHarness.js");
 
 suite("catalog completion", () => {
+    // Feature requests must read the immutable catalog generation used for binding. A provider may
+    // publish a new generation between an edit and rebind; mixing it into the old semantic model
+    // would make completion, hover, and diagnostics disagree for the same document version.
+    test("keeps feature metadata pinned until the document is rebound", async () => {
+        const metadata = new InMemoryMetadataProvider({
+            environment: { currentDatabase: "db", defaultSchema: "dbo" },
+            databases: [{ name: "db" }],
+            schemas: [{ database: "db", name: "dbo" }],
+            objects: [object("old", "dbo", "OldTable", "table", "db")],
+        });
+        const runtime = new InProcessLanguageServiceRuntime(
+            new LezerSyntaxService(),
+            new CatalogSemanticBinder(),
+            metadata,
+        );
+        const features = new TsqlLanguageFeatureService(runtime, metadata);
+        const uri = "file:///pinned-feature-metadata.sql";
+        const sql = "SELECT * FROM dbo.";
+        await runtime.open(uri, 1, sql);
+
+        metadata.replace({
+            environment: { currentDatabase: "db", defaultSchema: "dbo" },
+            databases: [{ name: "db" }],
+            schemas: [{ database: "db", name: "dbo" }],
+            objects: [object("new", "dbo", "NewTable", "table", "db")],
+        });
+        let labels = features.completion(uri, 1, sql.length).items.map((item) => item.label);
+        assert.ok(labels.includes("OldTable"));
+        assert.ok(!labels.includes("NewTable"));
+
+        await runtime.rebind(uri, 1);
+        labels = features.completion(uri, 1, sql.length).items.map((item) => item.label);
+        assert.ok(!labels.includes("OldTable"));
+        assert.ok(labels.includes("NewTable"));
+    });
+
     // Verifies user catalog entries sort alphabetically before all system catalog entries.
     test("ranks user schemas and objects before system catalog entries", async () => {
         const { runtime, features } = createServices();
@@ -105,6 +149,40 @@ suite("catalog completion", () => {
                 .completion(uri, 1, offset)
                 .items.find((candidate) => candidate.label === label);
 
+            assert.ok(item, `${label} in ${sql}`);
+            assert.equal(applyCompletion(sql, item), expected);
+        }
+    });
+    // Hostile catalog spellings exercise the same recovery scanner for an incomplete schema,
+    // object, and empty bracket pair; edits preserve delimiters and quote reserved object names.
+    test("completes hostile quoted and reserved catalog identifiers", async () => {
+        const { runtime, features } = createServices();
+        const cases = [
+            [
+                "SELECT * FROM [My Schema].",
+                "Order-Items",
+                "SELECT * FROM [My Schema].[Order-Items]",
+            ],
+            [
+                "SELECT * FROM [My Schema].[Ord",
+                "Order-Items",
+                "SELECT * FROM [My Schema].[Order-Items]",
+            ],
+            [
+                "SELECT * FROM [My Schema].[]",
+                "Order-Items",
+                "SELECT * FROM [My Schema].[Order-Items]",
+            ],
+            ["SELECT * FROM [My Schema].s", "select", "SELECT * FROM [My Schema].[select]"],
+        ];
+
+        for (const [sql, label, expected] of cases) {
+            const uri = `file:///hostile-${sql.length}-${label}.sql`;
+            const offset = sql.endsWith("]") ? sql.length - 1 : sql.length;
+            await runtime.open(uri, 1, sql);
+            const item = features
+                .completion(uri, 1, offset)
+                .items.find((entry) => entry.label === label);
             assert.ok(item, `${label} in ${sql}`);
             assert.equal(applyCompletion(sql, item), expected);
         }
@@ -232,6 +310,33 @@ suite("catalog completion", () => {
         const members = features.completion("file:///role.sql", 1, memberSql.length).items;
         assert.ok(members.some((item) => item.kind === "user" && item.label === "Alice"));
         assert.ok(!members.some((item) => item.kind === "login"));
+
+        for (const [sql, kind, label] of [
+            ["ALTER SERVER ROLE sy", "serverRole", "sysadmin"],
+            ["CREATE USER new_user FOR LOGIN = App", "login", "AppLogin"],
+            ["EXECUTE AS LOGIN = App", "login", "AppLogin"],
+            ["EXECUTE AS USER = Al", "user", "Alice"],
+            ["GRANT SELECT TO Al", "user", "Alice"],
+        ]) {
+            const uri = `file:///principal-${kind}-${sql.length}.sql`;
+            await runtime.open(uri, 1, sql);
+            assert.ok(
+                features
+                    .completion(uri, 1, sql.length)
+                    .items.some((item) => item.kind === kind && item.label === label),
+                sql,
+            );
+        }
+
+        // SQL-looking text in another statement, comment, or literal is not a principal context.
+        const unrelated = "SELECT 'ALTER LOGIN ' AS text_value; -- ALTER USER\nSELECT App";
+        const unrelatedUri = "file:///not-a-principal-context.sql";
+        await runtime.open(unrelatedUri, 1, unrelated);
+        assert.ok(
+            !features
+                .completion(unrelatedUri, 1, unrelated.length)
+                .items.some((item) => item.kind === "login" || item.kind === "user"),
+        );
     });
     // User-defined alias, CLR, and table types use the same indexed catalog path as objects and
     // preserve the qualification required to produce executable declarations.

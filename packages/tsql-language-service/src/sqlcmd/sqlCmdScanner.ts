@@ -58,44 +58,77 @@ export interface ScannedLine {
  * completed by the scanner. Everything here is recognized only as the first non-blank text on a
  * line, which is what makes a `:` inside SQL harmless.
  */
-const directiveKinds: ReadonlyMap<string, SqlCmdDirectiveKind> = new Map([
-    ["setvar", "setvar"],
-    ["r", "include"],
-    ["connect", "connect"],
-    ["on", "onError"],
-    ["out", "out"],
-    ["error", "error"],
-    ["list", "list"],
-    ["listvar", "listVar"],
-    ["reset", "reset"],
-    ["quit", "quit"],
-    ["exit", "exit"],
-    ["ed", "editor"],
-    ["help", "help"],
-    ["serverlist", "serverList"],
-    ["perftrace", "perfTrace"],
-    ["xml", "xmlMode"],
+export interface SqlCmdDirectiveDescriptor {
+    readonly name: string;
+    readonly kind: SqlCmdDirectiveKind;
+    readonly documentation: string;
+    readonly arguments?: readonly string[];
+}
+
+/** The single inventory used by scanning, completion, documentation, and exhaustive tests. */
+export const sqlCmdDirectiveDescriptors: readonly SqlCmdDirectiveDescriptor[] = Object.freeze([
+    {
+        name: ":connect",
+        kind: "connect",
+        documentation: "Opens a new connection. Statements after it run against the named server.",
+    },
+    { name: ":ed", kind: "editor", documentation: "Opens the last batch in an editor." },
+    { name: ":error", kind: "error", documentation: "Redirects error output." },
+    {
+        name: ":exit",
+        kind: "exit",
+        documentation: "Ends the script, optionally running a final query first.",
+    },
+    { name: ":help", kind: "help", documentation: "Lists the SQLCMD commands." },
+    { name: ":list", kind: "list", documentation: "Prints the contents of the statement cache." },
+    {
+        name: ":listvar",
+        kind: "listVar",
+        documentation: "Prints the SQLCMD variables currently set.",
+    },
+    {
+        name: ":on error",
+        kind: "onError",
+        documentation: "Chooses whether a batch error exits or is ignored.",
+        arguments: ["exit", "ignore"],
+    },
+    { name: ":out", kind: "out", documentation: "Redirects query results to a file." },
+    { name: ":perftrace", kind: "perfTrace", documentation: "Redirects performance trace output." },
+    { name: ":quit", kind: "quit", documentation: "Ends the script immediately." },
+    { name: ":r", kind: "include", documentation: "Includes another script file at this point." },
+    { name: ":reset", kind: "reset", documentation: "Clears the statement cache." },
+    {
+        name: ":serverlist",
+        kind: "serverList",
+        documentation: "Lists the servers found on the local network.",
+    },
+    { name: ":setvar", kind: "setvar", documentation: "Defines or removes a SQLCMD variable." },
+    {
+        name: ":xml",
+        kind: "xmlMode",
+        documentation: "Switches XML output on or off.",
+        arguments: ["on", "off"],
+    },
 ]);
+
+const descriptorsByName = new Map(
+    sqlCmdDirectiveDescriptors.map((descriptor) => [descriptor.name, descriptor]),
+);
+const directiveKinds: ReadonlyMap<string, SqlCmdDirectiveKind> = new Map(
+    sqlCmdDirectiveDescriptors.map((descriptor) => [
+        descriptor.name.slice(1).split(" ", 1)[0]!,
+        descriptor.kind,
+    ]),
+);
 
 /** Every directive name a host may complete, in the spelling SQLCMD documents them with. */
 export const sqlCmdDirectiveNames: readonly string[] = Object.freeze([
-    ":connect",
-    ":ed",
-    ":error",
-    ":exit",
-    ":help",
-    ":list",
-    ":listvar",
-    ":on error",
-    ":out",
-    ":perftrace",
-    ":quit",
-    ":r",
-    ":reset",
-    ":serverlist",
-    ":setvar",
-    ":xml",
+    ...sqlCmdDirectiveDescriptors.map((descriptor) => descriptor.name),
 ]);
+
+export function sqlCmdDirectiveDescriptor(name: string): SqlCmdDirectiveDescriptor | undefined {
+    return descriptorsByName.get(name.toLowerCase());
+}
 
 /** Switches whose value is a credential. Their text never leaves the source document. */
 const secretSwitches = new Set(["-p", "/p"]);

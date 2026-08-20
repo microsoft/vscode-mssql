@@ -7,12 +7,14 @@ import { Tree, TreeFragment, parseMixed, type SyntaxNode as LezerNode } from "@l
 import type { LRParser } from "@lezer/lr";
 import type { TextChange, TextRange, TextSnapshot } from "../../text/index.js";
 import type {
+    ProfileAwareSyntaxService,
     SyntaxContext,
     SyntaxDiagnostic,
+    SyntaxKind,
     SyntaxNode,
-    SyntaxService,
     SyntaxSnapshot,
     SyntaxToken,
+    SyntaxTokenKind,
     TsqlFeatureProfile,
 } from "../contracts.js";
 import { capabilityGeneration, defaultTsqlFeatureProfile } from "../contracts.js";
@@ -22,9 +24,10 @@ import {
     featureAvailabilityMessage,
     platformFeatureForNode,
 } from "../../common/platformFeatureRegistry.js";
-import { keywordMetadata } from "../keywords.generated.js";
+import { keywordMetadata } from "../keywords.js";
 import { partitionSqlBatches } from "./batchChunking.js";
 import { parser as generatedParser } from "./generated/tsqlParser.js";
+import * as generatedTerms from "./generated/tsqlParser.terms.js";
 import {
     ancestorNamed,
     availabilityRange,
@@ -37,6 +40,14 @@ import {
     unterminatedBlockCommentRange,
     unterminatedStringRange,
 } from "./syntaxDiagnosticUtilities.js";
+
+const generatedSyntaxKinds: ReadonlySet<string> = new Set(Object.keys(generatedTerms));
+
+/** Validates the parser boundary once instead of casting node names throughout the product. */
+function syntaxKind(name: string): SyntaxKind {
+    if (name === "⚠" || generatedSyntaxKinds.has(name)) return name as SyntaxKind;
+    throw new Error(`Generated parser emitted unknown syntax kind '${name}'.`);
+}
 
 interface ParsedChunk extends TextRange {
     readonly tree: Tree;
@@ -56,7 +67,7 @@ interface ChunkCandidate {
     readonly localChanges: TextChange[];
 }
 
-export class LezerSyntaxService implements SyntaxService {
+export class LezerSyntaxService implements ProfileAwareSyntaxService {
     private readonly _plainParser: LRParser;
     private readonly _mixedParser: LRParser;
     private readonly _expressionParser: LRParser;
@@ -357,7 +368,7 @@ class LezerSyntaxSnapshot implements SyntaxSnapshot {
     public readonly profile: TsqlFeatureProfile;
     public readonly profileGeneration: string;
     private _materializedTree: Tree | undefined;
-    private _structuralIndex: ReadonlyMap<string, readonly SyntaxNode[]> | undefined;
+    private _structuralIndex: ReadonlyMap<SyntaxKind, readonly SyntaxNode[]> | undefined;
     private readonly _root: DocumentSyntaxNode;
 
     public constructor(
@@ -405,7 +416,7 @@ class LezerSyntaxSnapshot implements SyntaxSnapshot {
         return this._root;
     }
 
-    public structuralIndex(): ReadonlyMap<string, readonly SyntaxNode[]> {
+    public structuralIndex(): ReadonlyMap<SyntaxKind, readonly SyntaxNode[]> {
         this._structuralIndex ??= new LazyStructuralIndex(this.chunks, this._root);
         return this._structuralIndex;
     }
@@ -422,7 +433,7 @@ class LezerSyntaxSnapshot implements SyntaxSnapshot {
 
     public contextAt(offset: number): SyntaxContext {
         const node = this.nodeAt(offset);
-        const ancestors: string[] = [];
+        const ancestors: SyntaxKind[] = [];
         let parent = node.parent();
         while (parent) {
             ancestors.push(parent.kind);
@@ -463,7 +474,7 @@ class LezerSyntaxSnapshot implements SyntaxSnapshot {
                 const metadata =
                     keywordMetadata(text) ?? parserLocalKeywordMetadata(node.name, text);
                 yield {
-                    kind: metadata ? "Keyword" : node.name,
+                    kind: metadata ? "Keyword" : syntaxKind(node.name),
                     start,
                     end,
                     text,
@@ -582,16 +593,16 @@ function chunkIndex(tree: Tree): ReadonlyMap<string, readonly LezerNode[]> {
  * pre-order walk found them. Callers depend on that -- the semantic layer binary-searches these
  * arrays by start offset -- so it is part of the contract rather than an accident.
  */
-class LazyStructuralIndex implements ReadonlyMap<string, readonly SyntaxNode[]> {
-    private readonly _wrapped = new Map<string, readonly SyntaxNode[]>();
-    private _kinds: ReadonlySet<string> | undefined;
+class LazyStructuralIndex implements ReadonlyMap<SyntaxKind, readonly SyntaxNode[]> {
+    private readonly _wrapped = new Map<SyntaxKind, readonly SyntaxNode[]>();
+    private _kinds: ReadonlySet<SyntaxKind> | undefined;
 
     public constructor(
         private readonly _chunks: readonly ParsedChunk[],
         private readonly _root: DocumentSyntaxNode,
     ) {}
 
-    public get(kind: string): readonly SyntaxNode[] | undefined {
+    public get(kind: SyntaxKind): readonly SyntaxNode[] | undefined {
         const cached = this._wrapped.get(kind);
         if (cached) return cached.length > 0 ? cached : undefined;
         const nodes: SyntaxNode[] = [];
@@ -610,11 +621,11 @@ class LazyStructuralIndex implements ReadonlyMap<string, readonly SyntaxNode[]> 
     }
 
     /** Every kind the document holds, which the buckets answer without wrapping anything. */
-    private get kinds(): ReadonlySet<string> {
+    private get kinds(): ReadonlySet<SyntaxKind> {
         if (!this._kinds) {
-            const kinds = new Set<string>();
+            const kinds = new Set<SyntaxKind>();
             for (const chunk of this._chunks) {
-                for (const kind of chunkIndex(chunk.tree).keys()) kinds.add(kind);
+                for (const kind of chunkIndex(chunk.tree).keys()) kinds.add(syntaxKind(kind));
             }
             this._kinds = kinds;
         }
@@ -625,11 +636,11 @@ class LazyStructuralIndex implements ReadonlyMap<string, readonly SyntaxNode[]> 
         return this.kinds.size;
     }
 
-    public has(kind: string): boolean {
+    public has(kind: SyntaxKind): boolean {
         return this.kinds.has(kind);
     }
 
-    public *keys(): MapIterator<string> {
+    public *keys(): MapIterator<SyntaxKind> {
         yield* this.kinds;
     }
 
@@ -637,22 +648,22 @@ class LazyStructuralIndex implements ReadonlyMap<string, readonly SyntaxNode[]> 
         for (const kind of this.kinds) yield this.get(kind) ?? [];
     }
 
-    public *entries(): MapIterator<[string, readonly SyntaxNode[]]> {
+    public *entries(): MapIterator<[SyntaxKind, readonly SyntaxNode[]]> {
         for (const kind of this.kinds) yield [kind, this.get(kind) ?? []];
     }
 
     public forEach(
         callback: (
             value: readonly SyntaxNode[],
-            key: string,
-            map: ReadonlyMap<string, readonly SyntaxNode[]>,
+            key: SyntaxKind,
+            map: ReadonlyMap<SyntaxKind, readonly SyntaxNode[]>,
         ) => void,
         thisArg?: unknown,
     ): void {
         for (const [kind, nodes] of this.entries()) callback.call(thisArg, nodes, kind, this);
     }
 
-    public [Symbol.iterator](): MapIterator<[string, readonly SyntaxNode[]]> {
+    public [Symbol.iterator](): MapIterator<[SyntaxKind, readonly SyntaxNode[]]> {
         return this.entries();
     }
 }
@@ -665,8 +676,8 @@ class OffsetLezerSyntaxNode implements SyntaxNode {
         private readonly _documentRoot: DocumentSyntaxNode,
     ) {}
 
-    public get kind(): string {
-        return this._node.name;
+    public get kind(): SyntaxKind {
+        return syntaxKind(this._node.name);
     }
 
     public get start(): number {
@@ -837,7 +848,7 @@ function* triviaTokens(text: string, start: number, end: number): Iterable<Synta
         const lineComment = text.startsWith("--", offset);
         const blockComment = text.startsWith("/*", offset);
         let tokenEnd = offset;
-        let kind = "Whitespace";
+        let kind: SyntaxTokenKind = "Whitespace";
         if (lineComment) {
             kind = "LineComment";
             tokenEnd = text.indexOf("\n", offset + 2);
@@ -1212,7 +1223,7 @@ function invalidLoginOptionValue(node: LezerNode, text: string): SyntaxDiagnosti
     const start = option.from + match.index + match[0].lastIndexOf(match[2]!);
     return {
         code: "IncorrectOptionValue",
-        message: `'${value}' in not a correct value for option '${match[1]!.toLocaleUpperCase()}'.`,
+        message: `'${value}' in not a correct value for option '${match[1]!.toUpperCase()}'.`,
         severity: "error",
         range: { start, end: start + value.length },
     };
@@ -1228,8 +1239,8 @@ function forClauseDiagnostics(tree: Tree, text: string): readonly SyntaxDiagnost
             const source = text.slice(node.from, sourceEnd);
             const mode = /^\s*FOR\s+(XML|JSON)\s+([\p{L}_][\p{L}\p{N}_$#@]*)/iu.exec(source);
             if (!mode) return;
-            const kind = mode[1]!.toLocaleUpperCase();
-            const format = mode[2]!.toLocaleUpperCase();
+            const kind = mode[1]!.toUpperCase();
+            const format = mode[2]!.toUpperCase();
             const add = (code: string, message: string, pattern: RegExp): void => {
                 const match = pattern.exec(source);
                 if (!match) return;

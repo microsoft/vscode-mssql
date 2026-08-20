@@ -10,6 +10,7 @@ import type {
     RequestLatencyRecorder,
 } from "../observability/index.js";
 import type { SemanticSnapshot } from "../semantics/index.js";
+import type { MetadataView } from "../metadata/index.js";
 import type { SyntaxSnapshot } from "../syntax/index.js";
 import type { SqlCmdDocumentSnapshot, SqlCmdSourceRange } from "../sqlcmd/index.js";
 import type { TextChange, TextRange, TextSnapshot } from "../text/index.js";
@@ -36,6 +37,8 @@ export interface DocumentAnalysisSnapshot {
     readonly projectedText: TextSnapshot;
     readonly syntax: SyntaxSnapshot;
     readonly semantics: SemanticSnapshot;
+    /** The immutable pinned catalog view used to produce {@link semantics}. */
+    readonly metadata: MetadataView;
     /**
      * The source spans a projected range came from, or several when it crosses an included file.
      *

@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type { Disposable } from "../common/disposable.js";
+import { compareOrdinal } from "../common/ordinal.js";
 import type {
     ClrTypeMetadata,
     ColumnMetadata,
@@ -11,10 +12,12 @@ import type {
     DatabaseMetadata,
     ForeignKeyMetadata,
     IndexMetadata,
+    InMemoryMetadataCheckpoint,
     InMemoryMetadataInput,
     MetadataCompleteness,
     MetadataHydrationRequest,
     MetadataLoadState,
+    MetadataNameComparison,
     MetadataProvider,
     MetadataRefreshResult,
     MetadataSection,
@@ -32,6 +35,7 @@ import type {
     SqlEnvironment,
     TriggerMetadata,
 } from "./contracts.js";
+import { createMetadataNameComparison } from "./nameComparison.js";
 
 const ready: MetadataCompleteness = Object.freeze({
     databases: "ready",
@@ -85,6 +89,17 @@ export class InMemoryMetadataProvider implements MetadataProvider {
         this.publish();
     }
 
+    /** Captures an immutable rollback point before a publisher exposes partial refresh stages. */
+    public checkpoint(): InMemoryMetadataCheckpoint {
+        return Object.freeze({ input: cloneInput(this._input) });
+    }
+
+    /** Restores a prior coherent catalog after a refresh fails or is cancelled. */
+    public restore(checkpoint: InMemoryMetadataCheckpoint): void {
+        this._input = cloneInput(checkpoint.input);
+        this.publish();
+    }
+
     private publish(): void {
         this._view = createView(this.id, ++this._generation, this._input);
         for (const listener of this._listeners) listener();
@@ -116,6 +131,7 @@ function createView(id: string, generation: number, input: InMemoryMetadataInput
 }
 
 class MemoryView implements MetadataView {
+    public readonly nameComparison;
     private readonly _objectsById: ReadonlyMap<string, ObjectMetadata>;
     private readonly _objectsByQualifiedName: ReadonlyMap<string, readonly ObjectMetadata[]>;
     private readonly _objects: readonly ObjectMetadata[];
@@ -160,17 +176,18 @@ class MemoryView implements MetadataView {
         public readonly completeness: MetadataCompleteness,
         input: InMemoryMetadataInput,
     ) {
+        this.nameComparison = createMetadataNameComparison(environment.caseSensitive);
         this._objects = Object.freeze(
             [...(input.objects ?? [])].sort((left, right) =>
-                compareObjects(left, right, environment),
+                compareObjects(left, right, environment, this.nameComparison),
             ),
         );
         this._objectsById = new Map(this._objects.map((object) => [object.ref.id, object]));
         this._objectsByQualifiedName = indexObjectsByQualifiedName(
             this._objects,
-            environment.caseSensitive,
+            this.nameComparison,
         );
-        this._objectsByScope = indexObjectsByScope(this._objects, environment.caseSensitive);
+        this._objectsByScope = indexObjectsByScope(this._objects, this.nameComparison);
         this._columns = input.columns ?? new Map();
         this._parameters = input.parameters ?? new Map();
         this._columnStates = input.columnStates ?? new Map();
@@ -187,8 +204,9 @@ class MemoryView implements MetadataView {
         this._databases = Object.freeze([...(input.databases ?? [])]);
         this._principals = Object.freeze(
             [...(input.principals ?? [])].sort((left, right) =>
-                normalizedName(left.name, environment.caseSensitive).localeCompare(
-                    normalizedName(right.name, environment.caseSensitive),
+                compareOrdinal(
+                    this.nameComparison.key(left.name),
+                    this.nameComparison.key(right.name),
                 ),
             ),
         );
@@ -196,7 +214,7 @@ class MemoryView implements MetadataView {
         this._collations = input.collations && Object.freeze([...input.collations]);
         this._databaseCatalogCompleteness = new Map(
             [...(input.databaseCatalogCompleteness ?? [])].map(([database, state]) => [
-                normalizedName(database, environment.caseSensitive),
+                this.nameComparison.key(database),
                 Object.freeze({
                     schemas: state.schemas ?? "unknown",
                     objects: state.objects ?? "unknown",
@@ -213,16 +231,16 @@ class MemoryView implements MetadataView {
         const matches = database
             ? uniqueObjects([
                   ...(this._objectsByQualifiedName.get(
-                      qualifiedNameKey(database, schema!, name, this.environment.caseSensitive),
+                      qualifiedNameKey(database, schema!, name, this.nameComparison),
                   ) ?? []),
                   ...(this._objectsByQualifiedName.get(
-                      qualifiedNameKey(undefined, schema!, name, this.environment.caseSensitive),
+                      qualifiedNameKey(undefined, schema!, name, this.nameComparison),
                   ) ?? []),
               ])
             : this._objects.filter(
                   (object) =>
-                      equal(object.name, name, this.environment.caseSensitive) &&
-                      equal(object.schema, schema, this.environment.caseSensitive),
+                      this.nameComparison.equals(object.name, name) &&
+                      this.nameComparison.equals(object.schema, schema),
               );
         if (matches.length === 1) return { kind: "resolved", object: matches[0]! };
         if (matches.length > 1) return { kind: "ambiguous", candidates: matches };
@@ -290,32 +308,29 @@ class MemoryView implements MetadataView {
         const limit = query.limit ?? 100;
         const scoped = query.schema
             ? (this._objectsByScope.get(
-                  scopeKey(query.database, query.schema, this.environment.caseSensitive),
+                  scopeKey(query.database, query.schema, this.nameComparison),
               ) ?? [])
             : this._objects;
         const matches = (object: ObjectMetadata) =>
             (!query.database ||
-                equal(object.database, query.database, this.environment.caseSensitive)) &&
-            (!query.schema || equal(object.schema, query.schema, this.environment.caseSensitive)) &&
+                this.nameComparison.equals(object.database ?? "", query.database)) &&
+            (!query.schema || this.nameComparison.equals(object.schema, query.schema)) &&
             (!query.kinds || query.kinds.includes(object.kind));
         return query.schema
-            ? prefixSearch(scoped, prefix, this.environment.caseSensitive, matches, limit)
+            ? prefixSearch(scoped, prefix, this.nameComparison, matches, limit)
             : scoped
                   .filter(
                       (object) =>
-                          matches(object) &&
-                          startsWith(object.name, prefix, this.environment.caseSensitive),
+                          matches(object) && this.nameComparison.startsWith(object.name, prefix),
                   )
                   .slice(0, limit);
     }
 
     public databaseCatalogCompleteness(database: string): DatabaseCatalogCompleteness {
-        const explicit = this._databaseCatalogCompleteness.get(
-            normalizedName(database, this.environment.caseSensitive),
-        );
+        const explicit = this._databaseCatalogCompleteness.get(this.nameComparison.key(database));
         if (explicit) return explicit;
         if (
-            equal(database, this.environment.currentDatabase, this.environment.caseSensitive) ||
+            this.nameComparison.equals(database, this.environment.currentDatabase) ||
             this._databaseCatalogCompleteness.size === 0
         ) {
             return {
@@ -334,13 +349,9 @@ class MemoryView implements MetadataView {
                 (principal) =>
                     (!query.database ||
                         !principal.database ||
-                        equal(
-                            principal.database,
-                            query.database,
-                            this.environment.caseSensitive,
-                        )) &&
+                        this.nameComparison.equals(principal.database, query.database)) &&
                     (!query.kinds || query.kinds.includes(principal.kind)) &&
-                    startsWith(principal.name, prefix, this.environment.caseSensitive),
+                    this.nameComparison.startsWith(principal.name, prefix),
             )
             .slice(0, limit);
     }
@@ -350,9 +361,9 @@ class MemoryView implements MetadataView {
         return this._securables
             .filter(
                 (securable) =>
-                    equal(securable.database, query.database, this.environment.caseSensitive) &&
+                    this.nameComparison.equals(securable.database, query.database) &&
                     (!query.kinds || query.kinds.includes(securable.kind)) &&
-                    startsWith(securable.name, prefix, this.environment.caseSensitive),
+                    this.nameComparison.startsWith(securable.name, prefix),
             )
             .slice(0, query.limit ?? 100);
     }
@@ -374,7 +385,10 @@ class MemoryView implements MetadataView {
             return undefined;
         }
         return database
-            ? this._schemas.filter((schema) => !schema.database || schema.database === database)
+            ? this._schemas.filter(
+                  (schema) =>
+                      !schema.database || this.nameComparison.equals(schema.database, database),
+              )
             : this._schemas;
     }
 
@@ -411,10 +425,10 @@ function mergeInput(
         completeness: { ...previous.completeness, ...next.completeness },
         objects: mergeArray(previous.objects, next.objects, (object) => object.ref.id),
         schemas: mergeArray(previous.schemas, next.schemas, (schema) =>
-            `${schema.database ?? ""}\u0000${schema.name}`.toLocaleLowerCase(),
+            `${schema.database ?? ""}\u0000${schema.name}`.toLowerCase(),
         ),
         databases: mergeArray(previous.databases, next.databases, (database) =>
-            database.name.toLocaleLowerCase(),
+            database.name.toLowerCase(),
         ),
         databaseCatalogCompleteness: mergeNestedMap(
             previous.databaseCatalogCompleteness,
@@ -541,28 +555,13 @@ function mergeMap<K, V>(
     return new Map([...(previous ?? []), ...(next ?? [])]);
 }
 
-function equal(
-    left: string | undefined,
-    right: string | undefined,
-    caseSensitive: boolean,
-): boolean {
-    if (left === undefined || right === undefined) return left === right;
-    return caseSensitive ? left === right : left.toLocaleLowerCase() === right.toLocaleLowerCase();
-}
-
-function startsWith(value: string, prefix: string, caseSensitive: boolean): boolean {
-    return caseSensitive
-        ? value.startsWith(prefix)
-        : value.toLocaleLowerCase().startsWith(prefix.toLocaleLowerCase());
-}
-
 function indexObjectsByScope(
     objects: readonly ObjectMetadata[],
-    caseSensitive: boolean,
+    comparison: MetadataNameComparison,
 ): ReadonlyMap<string, readonly ObjectMetadata[]> {
     const mutable = new Map<string, ObjectMetadata[]>();
     for (const object of objects) {
-        const key = scopeKey(object.database, object.schema, caseSensitive);
+        const key = scopeKey(object.database, object.schema, comparison);
         const values = mutable.get(key) ?? [];
         values.push(object);
         mutable.set(key, values);
@@ -572,9 +571,7 @@ function indexObjectsByScope(
             key,
             Object.freeze(
                 values.sort((left, right) =>
-                    normalizedName(left.name, caseSensitive).localeCompare(
-                        normalizedName(right.name, caseSensitive),
-                    ),
+                    compareOrdinal(comparison.key(left.name), comparison.key(right.name)),
                 ),
             ),
         ]),
@@ -583,11 +580,11 @@ function indexObjectsByScope(
 
 function indexObjectsByQualifiedName(
     objects: readonly ObjectMetadata[],
-    caseSensitive: boolean,
+    comparison: MetadataNameComparison,
 ): ReadonlyMap<string, readonly ObjectMetadata[]> {
     const mutable = new Map<string, ObjectMetadata[]>();
     for (const object of objects) {
-        const key = qualifiedNameKey(object.database, object.schema, object.name, caseSensitive);
+        const key = qualifiedNameKey(object.database, object.schema, object.name, comparison);
         const values = mutable.get(key) ?? [];
         values.push(object);
         mutable.set(key, values);
@@ -599,9 +596,9 @@ function qualifiedNameKey(
     database: string | undefined,
     schema: string,
     name: string,
-    caseSensitive: boolean,
+    comparison: MetadataNameComparison,
 ): string {
-    return normalizedName(`${database ?? ""}\u0000${schema}\u0000${name}`, caseSensitive);
+    return comparison.key(`${database ?? ""}\u0000${schema}\u0000${name}`);
 }
 
 function uniqueObjects(objects: readonly ObjectMetadata[]): readonly ObjectMetadata[] {
@@ -611,53 +608,57 @@ function uniqueObjects(objects: readonly ObjectMetadata[]): readonly ObjectMetad
 function prefixSearch(
     objects: readonly ObjectMetadata[],
     prefix: string,
-    caseSensitive: boolean,
+    comparison: MetadataNameComparison,
     matches: (object: ObjectMetadata) => boolean,
     limit: number,
 ): readonly ObjectMetadata[] {
-    const normalizedPrefix = normalizedName(prefix, caseSensitive);
+    const normalizedPrefix = comparison.key(prefix);
     let low = 0;
     let high = objects.length;
     while (low < high) {
         const middle = (low + high) >>> 1;
-        if (normalizedName(objects[middle]!.name, caseSensitive) < normalizedPrefix)
-            low = middle + 1;
+        if (comparison.key(objects[middle]!.name) < normalizedPrefix) low = middle + 1;
         else high = middle;
     }
     const result: ObjectMetadata[] = [];
     for (let index = low; index < objects.length && result.length < limit; index++) {
         const object = objects[index]!;
-        if (!normalizedName(object.name, caseSensitive).startsWith(normalizedPrefix)) break;
+        if (!comparison.key(object.name).startsWith(normalizedPrefix)) break;
         if (matches(object)) result.push(object);
     }
     return result;
 }
 
-function normalizedName(value: string, caseSensitive: boolean): string {
-    return caseSensitive ? value : value.toLocaleLowerCase();
-}
-
-function scopeKey(database: string | undefined, schema: string, caseSensitive: boolean): string {
+function scopeKey(
+    database: string | undefined,
+    schema: string,
+    comparison: MetadataNameComparison,
+): string {
     const value = `${database ?? ""}\u0000${schema}`;
-    return caseSensitive ? value : value.toLocaleLowerCase();
+    return comparison.key(value);
 }
 
 function compareObjects(
     left: ObjectMetadata,
     right: ObjectMetadata,
     environment: SqlEnvironment,
+    comparison: MetadataNameComparison,
 ): number {
     return (
-        objectRank(left, environment) - objectRank(right, environment) ||
-        left.schema.localeCompare(right.schema) ||
-        left.name.localeCompare(right.name)
+        objectRank(left, environment, comparison) - objectRank(right, environment, comparison) ||
+        compareOrdinal(comparison.key(left.schema), comparison.key(right.schema)) ||
+        compareOrdinal(comparison.key(left.name), comparison.key(right.name))
     );
 }
 
-function objectRank(object: ObjectMetadata, environment: SqlEnvironment): number {
+function objectRank(
+    object: ObjectMetadata,
+    environment: SqlEnvironment,
+    comparison: MetadataNameComparison,
+): number {
     if (object.system) return 3;
-    if (equal(object.schema, environment.defaultSchema, environment.caseSensitive)) return 0;
-    if (equal(object.schema, "dbo", environment.caseSensitive)) return 1;
+    if (comparison.equals(object.schema, environment.defaultSchema)) return 0;
+    if (comparison.equals(object.schema, "dbo")) return 1;
     return 2;
 }
 

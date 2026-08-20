@@ -4,7 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type { FeatureAvailabilityDetail } from "../common/platformFeatureRegistry.js";
+import type { TsqlFeatureProfile } from "../common/engineCapabilities.js";
 import type { TextChange, TextRange, TextSnapshot } from "../text/index.js";
+
+/** Every named node emitted by the generated grammar, plus Lezer's recovery node. */
+export type SyntaxKind = keyof typeof import("./lezer/generated/tsqlParser.terms.js") | "⚠";
+
+/** Node kinds plus the two normalized token categories synthesized by the syntax adapter. */
+export type SyntaxTokenKind = SyntaxKind | "Keyword" | "Whitespace";
 
 export interface SyntaxDiagnostic {
     readonly code: string;
@@ -19,7 +26,7 @@ export interface SyntaxDiagnostic {
 }
 
 export interface SyntaxToken extends TextRange {
-    readonly kind: string;
+    readonly kind: SyntaxTokenKind;
     readonly text: string;
     readonly trivia: boolean;
     readonly lineStart: boolean;
@@ -43,7 +50,7 @@ export {
 } from "../common/engineCapabilities.js";
 
 export interface SyntaxNode extends TextRange {
-    readonly kind: string;
+    readonly kind: SyntaxKind;
     readonly error: boolean;
     parent(): SyntaxNode | undefined;
     children(): Iterable<SyntaxNode>;
@@ -52,7 +59,7 @@ export interface SyntaxNode extends TextRange {
 export interface SyntaxContext {
     readonly offset: number;
     readonly node: SyntaxNode;
-    readonly ancestors: readonly string[];
+    readonly ancestors: readonly SyntaxKind[];
     readonly batch?: TextRange;
     readonly statement?: TextRange;
 }
@@ -88,7 +95,7 @@ export interface SyntaxSnapshot {
 
     root(): SyntaxNode;
     /** Optional allocation-conscious structural index supplied by syntax implementations. */
-    structuralIndex?(): ReadonlyMap<string, readonly SyntaxNode[]>;
+    structuralIndex?(): ReadonlyMap<SyntaxKind, readonly SyntaxNode[]>;
     nodeAt(offset: number): SyntaxNode;
     contextAt(offset: number): SyntaxContext;
     tokens(range?: TextRange): Iterable<SyntaxToken>;
@@ -101,4 +108,11 @@ export interface SyntaxService {
         document: TextSnapshot,
         changes: readonly TextChange[],
     ): SyntaxSnapshot;
+}
+
+/** A syntax service that can adopt engine facts without rebuilding its structural tree. */
+export interface ProfileAwareSyntaxService extends SyntaxService {
+    readonly profile: TsqlFeatureProfile;
+    setProfile(profile: TsqlFeatureProfile): void;
+    reprofile(previous: SyntaxSnapshot): SyntaxSnapshot;
 }

@@ -195,7 +195,10 @@ suite("catalog fetch redaction", () => {
         databaseName: "AdventureWorks",
         objectName: "Sales.SalesOrderHeader",
         query: "SELECT c.name FROM sys.columns c WHERE c.object_id = @objectId",
-        error: { message: "permission denied" },
+        error: {
+            message: "Invalid object name 'Secret.Customer'. Query: SELECT * FROM Secret.Customer",
+            code: 208,
+        },
     });
 
     test("removes exactly the identifying fields", () => {
@@ -210,11 +213,11 @@ suite("catalog fetch redaction", () => {
         assert.equal(redacted.elapsedMs, 18.4);
         assert.equal(redacted.rowCount, 26);
         assert.equal(redacted.outcome, "failed");
-        assert.equal(
-            redacted.error.message,
-            "permission denied",
-            "a failure with no reason is the report this feature exists to prevent",
-        );
+        assert.deepEqual(redacted.error, {
+            message: "Server metadata request failed.",
+            code: 208,
+        });
+        assert.doesNotMatch(JSON.stringify(redacted), /Secret|Customer|SELECT/u);
     });
 
     test("redacts the document path but keeps its extension", () => {

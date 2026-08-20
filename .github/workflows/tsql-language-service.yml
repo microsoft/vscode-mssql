@@ -1,0 +1,61 @@
+name: T-SQL Language Service
+
+on:
+  pull_request:
+    paths:
+      - "packages/tsql-language-service/**"
+      - "extensions/mssql/src/languageservice/preview/**"
+      - "extensions/mssql/test/unit/preview*.test.ts"
+      - ".github/workflows/tsql-language-service.yml"
+  push:
+    branches: [main]
+    paths:
+      - "packages/tsql-language-service/**"
+      - "extensions/mssql/src/languageservice/preview/**"
+      - "extensions/mssql/test/unit/preview*.test.ts"
+      - ".github/workflows/tsql-language-service.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: packages/tsql-language-service
+
+jobs:
+  offline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: packages/tsql-language-service/package-lock.json
+      - run: npm ci
+      - name: Verify committed parser output
+        run: npm run check:grammar
+      - run: npm run lint
+      - run: npm run test:types
+      - run: npm run test:offline
+
+  focused-contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: packages/tsql-language-service/package-lock.json
+      - run: npm ci
+      - run: npm run check:grammar
+      - run: npm run test:shuffled
+      - run: npm run test:sqlcmd
+      - run: npm run test:identifiers
+      - run: npm run test:workers
+      - run: npm run test:browser-worker
+      - run: npm run test:cancellation
+      - run: npm run test:metadata-concurrency
+      - run: npm run test:large-catalog

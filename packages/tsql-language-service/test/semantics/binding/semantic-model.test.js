@@ -13,8 +13,10 @@ const {
     TsqlLanguageFeatureService,
     catalogKey,
     formatMultipartName,
+    identifierRole,
     parseMultipartName,
     quoteIdentifierIfNeeded,
+    tsqlIdentifierPattern,
     unknownEngineCapabilities,
 } = require("../../../dist/index.js");
 
@@ -491,7 +493,26 @@ suite("identifier handling", () => {
         assert.equal(formatMultipartName(["dbo", "Order Details"]), "dbo.[Order Details]");
         assert.equal(quoteIdentifierIfNeeded("plain"), "plain");
         assert.equal(quoteIdentifierIfNeeded("has space"), "[has space]");
+        assert.equal(quoteIdentifierIfNeeded("select"), "[select]");
+        assert.deepEqual(
+            parseMultipartName("dbo.Users;").parts.map(({ normalized }) => normalized),
+            ["dbo", "Users"],
+        );
         assert.equal(catalogKey(["DBO", "t"]), "DBO.T");
+        const component = new RegExp(`^${tsqlIdentifierPattern.component}$`, "u");
+        assert.equal(component.test("[Order]]Items]"), true);
+        assert.equal(component.test('"Order""Items"'), true);
+        assert.equal(component.test("金額$"), true);
+        assert.equal(component.test("Order-Items"), false);
+        assert.equal(
+            new RegExp(`^${tsqlIdentifierPattern.namedVariable}$`, "u").test("@välue"),
+            true,
+        );
+        assert.equal(identifierRole("dbo"), "regular");
+        assert.equal(identifierRole("[#permanent-looking]"), "regular");
+        assert.equal(identifierRole("#temporary"), "temporaryObject");
+        assert.equal(identifierRole("@local"), "localVariable");
+        assert.equal(identifierRole("@@global"), "globalVariable");
     });
 
     // Part ranges are absolute when the caller supplies the name's own start, so a diagnostic can

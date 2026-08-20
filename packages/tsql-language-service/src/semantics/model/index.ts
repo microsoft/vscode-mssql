@@ -9,6 +9,7 @@ export * from "./boundName.js";
 export * from "./callModel.js";
 export * from "./catalogTimeline.js";
 export * from "./cursorContext.js";
+export * from "./declarationFacts.js";
 export * from "./expressionTypes.js";
 export * from "./nameNodes.js";
 export * from "./scopeModel.js";

@@ -67,6 +67,29 @@ suite("local and grammar completion", () => {
         assert.ok(vector.some((item) => item.kind === "type" && item.label === "VECTOR"));
     });
 
+    // Every incomplete type owner is recognized from its recovered grammar node. A keyword in a
+    // previous statement or literal cannot leak into these decisions through backward text scans.
+    test("completes data types from recovered structural owners", async () => {
+        for (const sql of [
+            "DECLARE @v IN",
+            "CREATE TABLE dbo.T (c IN",
+            "SELECT CAST(1 AS IN",
+            "CREATE PROCEDURE dbo.p @v IN",
+            "CREATE FUNCTION dbo.f() RETURNS IN",
+            "ALTER TABLE dbo.T ALTER COLUMN c IN",
+            "CREATE TYPE dbo.alias FROM IN",
+        ]) {
+            const items = await complete(sql);
+            assert.ok(
+                items.some((item) => item.kind === "type" && item.label === "INT"),
+                sql,
+            );
+        }
+
+        const expression = await complete("RETURN JSON_");
+        assert.ok(expression.some((item) => item.label === "JSON_VALUE"));
+    });
+
     // Verifies CREATE TABLE temp shapes remain available to later alias-qualified projections.
     test("completes temporary-table columns through aliases", async () => {
         const sql =

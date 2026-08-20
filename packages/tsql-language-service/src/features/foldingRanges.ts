@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type { SyntaxNode, SyntaxSnapshot, SyntaxToken } from "../syntax/index.js";
-import type { FoldingRange, FoldingRangeKind } from "./contracts.js";
+import type { FoldingRange, FoldingRangeKind, FoldingRangeOptions } from "./contracts.js";
 
 /**
  * Wrappers that repeat the range of the construct they hold, plus the batch and script nodes the
@@ -64,15 +64,6 @@ interface Candidate {
     readonly start: number;
     readonly end: number;
     readonly kind?: FoldingRangeKind;
-}
-
-export interface FoldingRangeOptions {
-    /**
-     * Largest number of ranges to publish. Editors cap what they will fold and drop the excess in
-     * document order, which leaves the tail of a long script with nothing. Supplying the host limit
-     * here spends the budget on the widest regions instead, so structure survives everywhere.
-     */
-    readonly limit?: number;
 }
 
 /**

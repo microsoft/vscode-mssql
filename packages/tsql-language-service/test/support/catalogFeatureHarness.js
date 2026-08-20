@@ -15,6 +15,8 @@ function createCatalogFeatureServices() {
     const objects = [
         object("users", "dbo", "Users", "table"),
         object("orders", "sales", "Orders", "table"),
+        object("odd-orders", "My Schema", "Order-Items", "table"),
+        object("reserved-object", "My Schema", "select", "table"),
         object("rebuild", "sales", "RebuildOrder", "procedure"),
         { ...object("sysobjects", "dbo", "sysobjects", "view"), system: true },
         object("archive-orders", "history", "Orders2024", "table", "ArchiveDb"),
@@ -38,6 +40,7 @@ function createCatalogFeatureServices() {
             { database: "CustomerDb", name: "dbo" },
             { database: "CustomerDb", name: "db_accessadmin" },
             { database: "CustomerDb", name: "sales" },
+            { database: "CustomerDb", name: "My Schema" },
             { database: "ArchiveDb", name: "history" },
         ],
         databases: [{ name: "CustomerDb" }, { name: "ArchiveDb" }, { name: "master" }],

@@ -17,7 +17,7 @@ import type { FeatureAvailabilityDecision, ResolvedCall } from "./contracts.js";
 /** Built-in routine names the registry gates, folded once for lookup. */
 const featuresByBuiltIn: ReadonlyMap<string, PlatformFeature> = new Map(
     platformFeatures.flatMap((feature) =>
-        (feature.builtIns ?? []).map((name) => [name.toLocaleUpperCase(), feature] as const),
+        (feature.builtIns ?? []).map((name) => [name.toUpperCase(), feature] as const),
     ),
 );
 
@@ -80,7 +80,7 @@ export function buildAvailabilityDecisions(
     // The resolved call names the routine either way.
     for (const call of calls) {
         if (call.target.kind !== "builtin") continue;
-        const feature = featuresByBuiltIn.get(call.target.name.toLocaleUpperCase());
+        const feature = featuresByBuiltIn.get(call.target.name.toUpperCase());
         if (!feature) continue;
         const range = call.keywordRange ?? call.name?.range ?? call.range;
         add(feature, range.start, range.end);

@@ -26,4 +26,29 @@ suite("Node worker runtime", () => {
             await client.dispose();
         }
     });
+
+    // Worker feature and color routes use the same source-map wrappers as the in-process route,
+    // so a caret or viewport inside removed directive text cannot address unrelated projected SQL.
+    test("preserves SQLCMD source coordinates in worker feature routes", async () => {
+        const client = createNodeWorkerClient();
+        const uri = "file:///worker-sqlcmd.sql";
+        const sql = ":setvar unused 1\nSELECT 1;";
+        const start = sql.indexOf("unused");
+        try {
+            await client.open(uri, 1, sql);
+            assert.deepEqual(await client.completion(uri, start), {
+                items: [],
+                incomplete: false,
+            });
+            assert.equal(await client.hover(uri, start), undefined);
+            assert.deepEqual(await client.definition(uri, start), { locations: [] });
+            assert.deepEqual(await client.selectionRanges(uri, [start]), []);
+            assert.deepEqual(
+                (await client.coloring(uri, { start, end: start + "unused".length })).tokens,
+                [],
+            );
+        } finally {
+            await client.dispose();
+        }
+    });
 });

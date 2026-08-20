@@ -12,6 +12,7 @@ const {
     NullMetadataProvider,
     SimpleQueryMetadataAdapter,
 } = require("../../dist/index.js");
+const { deferred, flushAsyncWork } = require("../support/deferred.js");
 
 function assertProviderContract(provider) {
     const first = provider.pin();
@@ -606,7 +607,7 @@ suite("metadata provider contracts", () => {
         };
         adapter.requestHydration(request);
         adapter.requestHydration(request);
-        await new Promise((resolve) => setImmediate(resolve));
+        await flushAsyncWork();
 
         assert.equal(hydrateCalls, 1);
         assert.deepEqual(
@@ -645,6 +646,136 @@ suite("metadata provider contracts", () => {
         assert.equal(view.resolveObject(["dbo", "Missing"]).kind, "unknown");
     });
 
+    // Promise.all rejects as soon as one catalog query fails, while its sibling continues. A
+    // closed refresh publisher must ignore that sibling and restore the prior coherent catalog.
+    test("rejects late sibling publication after a failed refresh", async () => {
+        const late = deferred();
+        let first = true;
+        const adapter = new SimpleQueryMetadataAdapter(
+            { execute: async () => ({ columns: [], rows: [] }) },
+            {
+                refresh: async (_executor, publisher) => {
+                    if (first) {
+                        first = false;
+                        publisher.replace({
+                            completeness: { objects: "ready" },
+                            objects: [
+                                {
+                                    ref: { id: "old" },
+                                    schema: "dbo",
+                                    name: "Stable",
+                                    kind: "table",
+                                },
+                            ],
+                        });
+                        return;
+                    }
+                    publisher.merge({
+                        completeness: { objects: "loading" },
+                        objects: [
+                            {
+                                ref: { id: "partial" },
+                                schema: "dbo",
+                                name: "Partial",
+                                kind: "table",
+                            },
+                        ],
+                    });
+                    const sibling = late.promise.then(() =>
+                        publisher.merge({
+                            objects: [
+                                {
+                                    ref: { id: "late" },
+                                    schema: "dbo",
+                                    name: "Late",
+                                    kind: "table",
+                                },
+                            ],
+                        }),
+                    );
+                    await Promise.all([Promise.reject(new Error("catalog query failed")), sibling]);
+                },
+                hydrate: async () => undefined,
+            },
+        );
+
+        await adapter.refresh();
+        await assert.rejects(adapter.refresh(), /catalog query failed/);
+        late.resolve();
+        await flushAsyncWork();
+
+        const view = adapter.pin();
+        assert.equal(view.resolveObject(["dbo", "Stable"]).kind, "resolved");
+        assert.equal(view.resolveObject(["dbo", "Partial"]).kind, "unknown");
+        assert.equal(view.resolveObject(["dbo", "Late"]).kind, "unknown");
+        assert.equal(view.completeness.objects, "stale");
+    });
+
+    // When every interested caller cancels, the shared refresh signal is aborted immediately,
+    // partial publication is rolled back, and a loader that ignores cancellation cannot publish
+    // a late result after it eventually finishes.
+    test("cancels refresh work and suppresses publication after abort", async () => {
+        const late = deferred();
+        let first = true;
+        let observedSignal;
+        const adapter = new SimpleQueryMetadataAdapter(
+            { execute: async () => ({ columns: [], rows: [] }) },
+            {
+                refresh: async (_executor, publisher, signal) => {
+                    if (first) {
+                        first = false;
+                        publisher.replace({
+                            completeness: { objects: "ready" },
+                            objects: [
+                                {
+                                    ref: { id: "old" },
+                                    schema: "dbo",
+                                    name: "Stable",
+                                    kind: "table",
+                                },
+                            ],
+                        });
+                        return;
+                    }
+                    observedSignal = signal;
+                    publisher.merge({
+                        completeness: { objects: "loading" },
+                        objects: [
+                            {
+                                ref: { id: "partial" },
+                                schema: "dbo",
+                                name: "Partial",
+                                kind: "table",
+                            },
+                        ],
+                    });
+                    await late.promise;
+                    publisher.replace({
+                        completeness: { objects: "ready" },
+                        objects: [
+                            { ref: { id: "late" }, schema: "dbo", name: "Late", kind: "table" },
+                        ],
+                    });
+                },
+                hydrate: async () => undefined,
+            },
+        );
+
+        await adapter.refresh();
+        const controller = new AbortController();
+        const refresh = adapter.refresh(controller.signal);
+        await flushAsyncWork();
+        controller.abort();
+        await assert.rejects(refresh, (error) => error?.name === "AbortError");
+        assert.equal(observedSignal.aborted, true);
+        assert.equal(adapter.pin().resolveObject(["dbo", "Stable"]).kind, "resolved");
+        assert.equal(adapter.pin().resolveObject(["dbo", "Partial"]).kind, "notFound");
+
+        late.resolve();
+        await flushAsyncWork();
+        assert.equal(adapter.pin().resolveObject(["dbo", "Late"]).kind, "notFound");
+    });
+
     test("forces and coalesces an authoritative principal-only refresh", async () => {
         let hydrateCalls = 0;
         let release;
@@ -675,7 +806,7 @@ suite("metadata provider contracts", () => {
 
         const first = adapter.refreshSections(["principals"]);
         const second = adapter.refreshSections(["principals"]);
-        await new Promise((resolve) => setImmediate(resolve));
+        await flushAsyncWork();
         assert.equal(adapter.pin().completeness.principals, "loading");
         release();
         const [firstResult, secondResult] = await Promise.all([first, second]);

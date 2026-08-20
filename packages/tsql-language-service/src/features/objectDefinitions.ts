@@ -201,11 +201,11 @@ function cancellationError(): Error {
 /** Identity of an object, independent of the connection it was requested through. */
 export function objectDefinitionKey(descriptor: ObjectDefinitionDescriptor): string {
     return [
-        encode(descriptor.database?.toLocaleLowerCase() ?? ""),
-        encode(descriptor.schema.toLocaleLowerCase()),
-        encode(descriptor.name.toLocaleLowerCase()),
-        encode(descriptor.kind.toLocaleLowerCase()),
-        encode(descriptor.typeCategory?.toLocaleLowerCase() ?? ""),
+        encode(descriptor.database?.toLowerCase() ?? ""),
+        encode(descriptor.schema.toLowerCase()),
+        encode(descriptor.name.toLowerCase()),
+        encode(descriptor.kind.toLowerCase()),
+        encode(descriptor.typeCategory?.toLowerCase() ?? ""),
     ].join(separator);
 }
 

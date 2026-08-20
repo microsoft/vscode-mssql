@@ -81,15 +81,16 @@ function runtimeFor(provider) {
     );
 }
 
-/** The fastest of several attempts, which is the least noisy statistic on a shared machine. */
-async function best(attempts, action) {
-    let fastest = Number.POSITIVE_INFINITY;
+/** Median of repeated attempts; a lucky best-of sample must never make a regression look green. */
+async function median(attempts, action) {
+    const values = [];
     for (let attempt = 0; attempt < attempts; attempt++) {
         const started = performance.now();
         await action(attempt);
-        fastest = Math.min(fastest, performance.now() - started);
+        values.push(performance.now() - started);
     }
-    return fastest;
+    values.sort((left, right) => left - right);
+    return values[Math.floor(values.length / 2)];
 }
 
 suite("analysis budgets", () => {
@@ -97,7 +98,7 @@ suite("analysis budgets", () => {
     test("opens a large document within the interactive budget", async () => {
         const provider = metadata();
         const text = document(400);
-        const elapsed = await best(3, async (attempt) => {
+        const elapsed = await median(3, async (attempt) => {
             await runtimeFor(provider).open(`${uri}#${attempt}`, 1, text);
         });
         assert.ok(
@@ -114,12 +115,12 @@ suite("analysis budgets", () => {
         const service = runtimeFor(provider);
         await service.open(uri, 1, text);
 
-        const openElapsed = await best(3, async (attempt) => {
+        const openElapsed = await median(3, async (attempt) => {
             await runtimeFor(provider).open(`${uri}#open${attempt}`, 1, text);
         });
 
         let version = 1;
-        const editElapsed = await best(5, async () => {
+        const editElapsed = await median(5, async () => {
             const at = text.length - 1;
             version++;
             await service.change(uri, version - 1, version, [
@@ -141,9 +142,9 @@ suite("analysis budgets", () => {
         const snapshot = await runtimeFor(provider).open(uri, 1, text);
         const coloring = new TsqlColorizationService();
 
-        const fullElapsed = await best(3, () => coloring.provideDocumentColors(snapshot));
+        const fullElapsed = await median(3, () => coloring.provideDocumentColors(snapshot));
         const viewport = { start: 0, end: Math.min(text.length, statement.length * 10) };
-        const rangeElapsed = await best(5, () =>
+        const rangeElapsed = await median(5, () =>
             coloring.provideRangeColors({ ...snapshot, range: viewport }),
         );
 
@@ -168,8 +169,7 @@ suite("analysis budgets", () => {
         assert.notEqual(rebound.semantics, opened.semantics);
     });
 
-    // The semantic model is built when a feature first asks and cached after that, so a document
-    // nobody queries pays nothing and one queried repeatedly pays once.
+    // The semantic model is published with the snapshot and reused by every feature request.
     test("builds the semantic model once per snapshot", async () => {
         const provider = metadata();
         const snapshot = await runtimeFor(provider).open(uri, 1, document(200));
@@ -178,7 +178,7 @@ suite("analysis budgets", () => {
         const second = snapshot.semantics.model;
         assert.equal(first, second, "the model is cached rather than rebuilt per reader");
 
-        const repeated = await best(5, () => snapshot.semantics.model.scopes.length);
+        const repeated = await median(5, () => snapshot.semantics.model.scopes.length);
         assert.ok(repeated < 5, `a cached model read took ${repeated.toFixed(2)} ms`);
     });
 
@@ -191,8 +191,12 @@ suite("analysis budgets", () => {
         await service.open(uri, 1, text);
         const features = new TsqlLanguageFeatureService(service, provider);
 
-        const elapsed = await best(5, () => features.completion(uri, 1, text.length - 2));
-        assert.ok(elapsed < 500, `completion took ${elapsed.toFixed(1)} ms`);
+        const started = performance.now();
+        features.completion(uri, 1, text.length - 2);
+        const first = performance.now() - started;
+        const warm = await median(5, () => features.completion(uri, 1, text.length - 2));
+        assert.ok(first < 1_000, `first completion took ${first.toFixed(1)} ms`);
+        assert.ok(warm < 500, `warm completion took ${warm.toFixed(1)} ms`);
     });
 
     // An allocation gate, expressed as retained heap rather than as a count: analysing a document

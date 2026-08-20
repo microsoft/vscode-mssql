@@ -37,6 +37,9 @@ suite("runtime engine profile", () => {
             previewFeatures: false,
         });
         const countingSyntax = {
+            get profile() {
+                return inner.profile;
+            },
             parse(document) {
                 parserCalls++;
                 return inner.parse(document);
@@ -71,6 +74,28 @@ suite("runtime engine profile", () => {
             republished.syntax.diagnostics.map((diagnostic) => diagnostic.availability.featureId),
             ["statement.backup"],
         );
+    });
+
+    // A syntax implementation without the explicit profile capability cannot claim new runtime
+    // capabilities while continuing to parse under its old rules.
+    test("rejects profile changes for a profile-unaware syntax service", async () => {
+        const inner = new LezerSyntaxService(undefined, {
+            engineProfile: "unknown",
+            previewFeatures: false,
+        });
+        const syntax = {
+            parse: (document) => inner.parse(document),
+            update: (previous, document, changes) => inner.update(previous, document, changes),
+        };
+        const runtime = new InProcessLanguageServiceRuntime(syntax);
+        await runtime.open(uri, 1, sql);
+
+        await assert.rejects(
+            runtime.setEngineFacts({ engineEdition: 5, compatibilityLevel: 170 }),
+            /cannot adopt a different engine profile/u,
+        );
+        assert.equal(runtime.capabilities.engineProfile, "unknown");
+        assert.equal(runtime.snapshot(uri, 1).syntax.profileGeneration, "unknown/?/?/ga");
     });
 
     // Verifies moving the same text to another engine changes only the availability answer.

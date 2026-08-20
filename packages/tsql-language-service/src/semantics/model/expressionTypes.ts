@@ -5,15 +5,18 @@
 
 import { lookupBuiltIn } from "../../common/builtInRegistry.js";
 import type { MetadataView } from "../../metadata/index.js";
+import { xmlDataTypeMember } from "../../common/typeMemberRegistry.js";
 import type { SyntaxNode, SyntaxSnapshot } from "../../syntax/index.js";
 import {
     ancestorOfKind as ancestor,
     directChildOfKind as directChild,
     firstDescendantOfKind as firstDescendant,
+    syntaxSource,
 } from "../../syntax/treeUtilities.js";
 import type { TextRange } from "../../text/index.js";
+import { textRangeKey as rangeKey } from "../../text/index.js";
 import { multipartIdentifierParts, normalizeIdentifier } from "../identifiers.js";
-import { columnIndexFor, itemsWithinRanges, type ColumnBinding } from "./lookups.js";
+import { columnIndexFor, itemsWithinRanges, rangeIndexFor, type ColumnBinding } from "./lookups.js";
 import type { BoundExpression, BoundRelation, ExpressionType, ResolvedCall } from "./contracts.js";
 
 /**
@@ -79,18 +82,6 @@ const arithmeticOperators: ReadonlySet<string> = new Set([
 /** Operators that compare or concatenate rather than compute. */
 const concatenationOperators: ReadonlySet<string> = new Set(["Plus", "DoublePipe"]);
 
-/**
- * The XML data type's methods and what each yields.
- *
- * `value` is the interesting one: it names its own result type in its second argument, so the
- * expression's type is written in the source rather than inferred. `nodes` is a rowset method and
- * is bound as a relation, not as a scalar, so it is absent here.
- */
-const xmlMethodTypes: ReadonlyMap<string, string> = new Map([
-    ["query", "xml"],
-    ["exist", "bit"],
-]);
-
 /** Literal node kinds and the type SQL Server gives each one. */
 const literalTypes: ReadonlyMap<
     string,
@@ -141,7 +132,7 @@ export function buildExpressionTypes(input: ExpressionTypeInput): readonly Bound
         record(node, literalType(input, node));
     }
     for (const node of nodesOf("Variable")) {
-        record(node, variables.get(normalizeIdentifier(source(input, node)).toLocaleLowerCase()));
+        record(node, variables.get(normalizeIdentifier(source(input, node)).toLowerCase()));
     }
     for (const node of nodesOf("ColumnReference")) {
         record(node, columnType(input, node));
@@ -190,8 +181,7 @@ export function buildExpressionTypes(input: ExpressionTypeInput): readonly Bound
     for (const node of innermostFirst(nodesOf("VariableMemberExpression"))) {
         const variable = directChild(node, "Variable");
         const receiver =
-            variable &&
-            variables.get(normalizeIdentifier(source(input, variable)).toLocaleLowerCase());
+            variable && variables.get(normalizeIdentifier(source(input, variable)).toLowerCase());
         remember(node, memberExpressionType(input, node, receiver));
     }
     for (const node of innermostFirst(nodesOf("CaseExpression"))) {
@@ -218,14 +208,7 @@ export function expressionTypeAt(
     expressions: readonly BoundExpression[],
     offset: number,
 ): ExpressionType | undefined {
-    let best: BoundExpression | undefined;
-    for (const entry of expressions) {
-        if (entry.range.start > offset || offset > entry.range.end) continue;
-        if (!best || entry.range.end - entry.range.start < best.range.end - best.range.start) {
-            best = entry;
-        }
-    }
-    return best?.type;
+    return rangeIndexFor(expressions, (entry) => entry.range).containing(offset)?.type;
 }
 
 /** The type a `DECLARE` or routine parameter gives each variable name, folded for lookup. */
@@ -237,7 +220,7 @@ function collectVariableTypes(input: ExpressionTypeInput): ReadonlyMap<string, E
             const dataType = directChild(node, "DataType") ?? firstDescendant(node, "DataType");
             if (!variable || !dataType) continue;
             result.set(
-                source(input, variable).toLocaleLowerCase(),
+                source(input, variable).toLowerCase(),
                 declaredType(source(input, dataType), true),
             );
         }
@@ -291,15 +274,12 @@ function resolveColumn(
 ): ColumnBinding | undefined {
     const name = parts.at(-1);
     if (!name) return undefined;
-    const bindings = columnIndexFor(input.relations).get(name.toLocaleLowerCase());
+    const bindings = columnIndexFor(input.relations).get(name.toLowerCase());
     if (!bindings) return undefined;
-    const qualifier = parts.at(-2)?.toLocaleLowerCase();
+    const qualifier = parts.at(-2)?.toLowerCase();
     const query = ancestor(node, ["QuerySpecification"]);
     for (const binding of query ? bindings.within(query) : bindings.all) {
-        if (
-            qualifier !== undefined &&
-            binding.relation.exposedName.toLocaleLowerCase() !== qualifier
-        ) {
+        if (qualifier !== undefined && binding.relation.exposedName.toLowerCase() !== qualifier) {
             continue;
         }
         if (binding.column.type) return binding;
@@ -341,8 +321,8 @@ function xmlMemberType(
     call: SyntaxNode,
 ): ExpressionType | undefined {
     if (receiver?.category !== "xml") return undefined;
-    const folded = member.toLocaleLowerCase();
-    const fixed = xmlMethodTypes.get(folded);
+    const folded = member.toLowerCase();
+    const fixed = xmlDataTypeMember(folded)?.returnType;
     if (fixed) return declaredType(fixed, true);
     if (folded !== "value") return undefined;
     // `value('path', 'sql type')` names its own result type in its second argument.
@@ -366,9 +346,9 @@ function clrMemberType(
     if (resolution.kind !== "resolved") return undefined;
     const state = input.metadata.clrTypeState(resolution.object.ref);
     if (state.kind !== "loaded") return undefined;
-    const folded = member.toLocaleLowerCase();
+    const folded = member.toLowerCase();
     const declared = state.value.members.find(
-        (candidate) => candidate.name.toLocaleLowerCase() === folded,
+        (candidate) => candidate.name.toLowerCase() === folded,
     );
     return declared?.typeDisplay ? declaredType(declared.typeDisplay, true) : undefined;
 }
@@ -520,7 +500,7 @@ function operatorType(
 function convertedType(types: readonly ExpressionType[]): ExpressionType | undefined {
     let best: { readonly type: ExpressionType; readonly rank: number } | undefined;
     for (const type of types) {
-        const bare = type.displayName.replace(/\(.*$/su, "").trim().toLocaleLowerCase();
+        const bare = type.displayName.replace(/\(.*$/su, "").trim().toLowerCase();
         const rank = typePrecedence.indexOf(bare);
         if (rank < 0) return undefined;
         if (!best || rank > best.rank) best = { type, rank };
@@ -576,9 +556,5 @@ function isSystemTypeName(written: string): boolean {
 }
 
 function source(input: ExpressionTypeInput, node: SyntaxNode): string {
-    return input.syntax.document.text.slice(node.start, node.end);
-}
-
-function rangeKey(range: TextRange): string {
-    return `${range.start}:${range.end}`;
+    return syntaxSource(input.syntax, node);
 }

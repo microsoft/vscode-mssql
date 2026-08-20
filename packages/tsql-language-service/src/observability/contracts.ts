@@ -6,7 +6,7 @@
 import type { Disposable } from "../common/disposable.js";
 import type { EngineCapabilitySet } from "../common/engineCapabilities.js";
 import type { EngineProfileSource, SqlEngineProfile } from "../common/engineProfile.js";
-import type { MetadataCompleteness, MetadataSection } from "../metadata/index.js";
+import type { MetadataCompleteness, MetadataSection } from "../metadata/sections.js";
 
 /**
  * The statistics surface a support view reads.
@@ -224,6 +224,27 @@ export interface CatalogInvalidation {
 }
 
 /**
+ * A catalog boundary value that could not be represented, or a configured limit that was reached.
+ * Raw backend values and catalog names are deliberately absent so this remains safe to export.
+ */
+export type CatalogDataQualityObservation =
+    | {
+          readonly kind: "unknownValue";
+          readonly field: "object_type" | "type_category" | "principal_kind" | "bit" | "sql_int";
+          readonly count: number;
+      }
+    | {
+          readonly kind: "truncated";
+          readonly section: MetadataSection;
+          readonly limit: number;
+          readonly count: number;
+      };
+
+export type CatalogDataQualityEvent =
+    | Omit<Extract<CatalogDataQualityObservation, { kind: "unknownValue" }>, "count">
+    | Omit<Extract<CatalogDataQualityObservation, { kind: "truncated" }>, "count">;
+
+/**
  * What a metadata provider has observed, for a runtime to publish.
  *
  * Declared here rather than beside the observer so a provider can report statistics without
@@ -235,6 +256,7 @@ export interface CatalogStatsSnapshot {
     readonly observedFetches: number;
     readonly invalidations: readonly CatalogInvalidation[];
     readonly inFlight: number;
+    readonly dataQuality: readonly CatalogDataQualityObservation[];
 }
 
 export interface MetadataStats {
@@ -243,6 +265,12 @@ export interface MetadataStats {
     readonly completeness: MetadataCompleteness;
     readonly ageMs: number;
     readonly refreshInProgress: boolean;
+    /**
+     * Whether catalog-operation counters are real observations. `unavailable` means there is no
+     * catalog provider; `notCollected` means a provider exists without an observer; only
+     * `collected` makes an empty stream a measured zero.
+     */
+    readonly observationState: "collected" | "unavailable" | "notCollected";
     readonly lastRefreshMs?: number;
     /**
      * Fetches a request is currently blocked on. Residency is not a separate counter here: every
@@ -260,6 +288,7 @@ export interface MetadataStats {
     /** How many fetches the stream has observed in total, against which `fetches` is a window. */
     readonly observedFetches: number;
     readonly invalidations: readonly CatalogInvalidation[];
+    readonly dataQuality: readonly CatalogDataQualityObservation[];
     readonly history: StatsHistory;
 }
 

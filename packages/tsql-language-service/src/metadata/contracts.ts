@@ -5,25 +5,9 @@
 
 import type { Disposable } from "../common/disposable.js";
 import type { CatalogStatsSnapshot } from "../observability/contracts.js";
+import type { MetadataCompleteness, MetadataSection, MetadataSectionState } from "./sections.js";
 
-export type MetadataSection =
-    | "databases"
-    | "schemas"
-    | "objects"
-    | "columns"
-    | "parameters"
-    | "indexes"
-    | "triggers"
-    | "constraints"
-    | "clrTypes"
-    | "securables"
-    | "collations"
-    | "principals"
-    | "definitions";
-
-export type MetadataSectionState = "unknown" | "loading" | "ready" | "partial" | "stale" | "failed";
-
-export type MetadataCompleteness = Readonly<Record<MetadataSection, MetadataSectionState>>;
+export type { MetadataCompleteness, MetadataSection, MetadataSectionState } from "./sections.js";
 
 /** Per-database identity readiness used by lazy cross-database catalog loading. */
 export interface DatabaseCatalogCompleteness {
@@ -260,6 +244,8 @@ export interface MetadataView {
     readonly environment: SqlEnvironment;
     readonly completeness: MetadataCompleteness;
     readonly publishedAt: number;
+    /** Catalog-owned comparison policy; independent from process/browser locale. */
+    readonly nameComparison: MetadataNameComparison;
 
     resolveObject(parts: readonly string[]): ObjectResolution;
     object(ref: ObjectRef): ObjectMetadata | undefined;
@@ -302,6 +288,13 @@ export interface MetadataView {
     databaseCatalogCompleteness(database: string): DatabaseCatalogCompleteness;
     schemas(database?: string): readonly SchemaMetadata[] | undefined;
     databases(): readonly DatabaseMetadata[] | undefined;
+}
+
+export interface MetadataNameComparison {
+    readonly caseSensitive: boolean;
+    key(value: string): string;
+    equals(left: string | undefined, right: string | undefined): boolean;
+    startsWith(value: string, prefix: string): boolean;
 }
 
 export interface MetadataHydrationRequest {
@@ -393,4 +386,9 @@ export interface InMemoryMetadataInput {
     readonly clrTypeStates?: ReadonlyMap<string, MetadataLoadState<ClrTypeMetadata>>;
     readonly schemas?: readonly SchemaMetadata[];
     readonly databases?: readonly DatabaseMetadata[];
+}
+
+/** Opaque rollback state used while a mutable in-memory catalog is being refreshed. */
+export interface InMemoryMetadataCheckpoint {
+    readonly input: InMemoryMetadataInput;
 }

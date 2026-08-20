@@ -4,5 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 export * from "./contracts.js";
+export * from "./sections.js";
+export * from "./catalogBoundaries.js";
+export * from "./nameComparison.js";
+export * from "./runtimeOptions.js";
 export * from "./memoryMetadataProvider.js";
 export * from "./nullMetadataProvider.js";

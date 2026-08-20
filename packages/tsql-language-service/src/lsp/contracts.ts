@@ -6,7 +6,6 @@
 // The object definition contracts live beside the feature that consumes them, in `features`.
 import type { ColorizationService } from "../coloring/index.js";
 import type { LanguageFeatureService } from "../features/index.js";
-import type { FormattingService } from "../formatting/index.js";
 import type { MetadataProvider } from "../metadata/index.js";
 import type { LanguageServiceStatsProvider } from "../observability/index.js";
 import type { LanguageServiceRuntime } from "../runtime/index.js";
@@ -16,7 +15,6 @@ export interface TsqlLanguageService {
     readonly runtime: LanguageServiceRuntime;
     readonly coloring: ColorizationService;
     readonly features: LanguageFeatureService;
-    readonly formatting: FormattingService;
     readonly metadata: MetadataProvider;
     readonly stats: LanguageServiceStatsProvider;
 }

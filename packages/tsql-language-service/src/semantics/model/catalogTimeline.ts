@@ -95,7 +95,7 @@ export function objectNameKey(parts: readonly string[], metadata: MetadataView):
 
 function foldName(value: string, metadata: MetadataView): string {
     const normalized = normalizeIdentifier(value);
-    return metadata.environment.caseSensitive ? normalized : normalized.toLocaleLowerCase();
+    return metadata.environment.caseSensitive ? normalized : normalized.toLowerCase();
 }
 
 function lastEventAt(

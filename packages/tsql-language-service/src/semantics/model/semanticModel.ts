@@ -24,6 +24,7 @@ import type {
     SemanticModel,
 } from "./contracts.js";
 import { buildScopes, type ScopeModel } from "./scopeModel.js";
+import { rangeIndexFor, type RangeIndex } from "./lookups.js";
 
 /**
  * The document's bound semantic model.
@@ -137,6 +138,11 @@ export const emptySemanticModel: SemanticModel = new (class implements SemanticM
 
 class DocumentSemanticModel implements SemanticModel {
     private readonly _scopesById: ReadonlyMap<string, QueryScope>;
+    private readonly _scopeIndex: RangeIndex<QueryScope>;
+    private readonly _nameIndex: RangeIndex<BoundName>;
+    private readonly _callIndex: RangeIndex<ResolvedCall>;
+    private readonly _availabilityIndex: RangeIndex<FeatureAvailabilityDecision>;
+    private readonly _callsByRange: ReadonlyMap<string, ResolvedCall>;
 
     public constructor(
         public readonly scopes: readonly QueryScope[],
@@ -148,19 +154,17 @@ class DocumentSemanticModel implements SemanticModel {
         public readonly availability: readonly FeatureAvailabilityDecision[],
     ) {
         this._scopesById = new Map(scopes.map((scope) => [scope.id, scope]));
+        this._scopeIndex = rangeIndexFor(scopes, (scope) => scope.range);
+        this._nameIndex = rangeIndexFor(names, (name) => name.range);
+        this._callIndex = rangeIndexFor(calls, (call) => call.range);
+        this._availabilityIndex = rangeIndexFor(availability, (decision) => decision.range);
+        this._callsByRange = new Map(
+            calls.map((call) => [`${call.range.start}:${call.range.end}`, call]),
+        );
     }
 
     public scopeAt(offset: number): QueryScope | undefined {
-        let best: QueryScope | undefined;
-        for (const scope of this.scopes) {
-            if (scope.range.start > offset) break;
-            if (offset > scope.range.end) continue;
-            // The innermost enclosing scope wins, which for equal starts is the shorter range.
-            if (!best || scope.range.end - scope.range.start <= best.range.end - best.range.start) {
-                best = scope;
-            }
-        }
-        return best;
+        return this._scopeIndex.containing(offset);
     }
 
     public visibleRelations(offset: number): readonly BoundRelation[] {
@@ -176,39 +180,22 @@ class DocumentSemanticModel implements SemanticModel {
     }
 
     public relationFor(exposedName: string, offset: number): BoundRelation | undefined {
-        const folded = exposedName.toLocaleLowerCase();
+        const folded = exposedName.toLowerCase();
         return this.visibleRelations(offset).find(
-            (relation) => relation.exposedName.toLocaleLowerCase() === folded,
+            (relation) => relation.exposedName.toLowerCase() === folded,
         );
     }
 
     public nameAt(offset: number): BoundName | undefined {
-        let best: BoundName | undefined;
-        for (const name of this.names) {
-            if (name.range.start > offset) continue;
-            if (offset > name.range.end) continue;
-            if (!best || name.range.end - name.range.start < best.range.end - best.range.start) {
-                best = name;
-            }
-        }
-        return best;
+        return this._nameIndex.containing(offset);
     }
 
     public callAt(offset: number): ResolvedCall | undefined {
-        let best: ResolvedCall | undefined;
-        for (const call of this.calls) {
-            if (call.range.start > offset || offset > call.range.end) continue;
-            if (!best || call.range.end - call.range.start < best.range.end - best.range.start) {
-                best = call;
-            }
-        }
-        return best;
+        return this._callIndex.containing(offset);
     }
 
     public callForRange(range: TextRange): ResolvedCall | undefined {
-        return this.calls.find(
-            (call) => call.range.start === range.start && call.range.end === range.end,
-        );
+        return this._callsByRange.get(`${range.start}:${range.end}`);
     }
 
     public typeAt(offset: number): ExpressionType | undefined {
@@ -216,17 +203,7 @@ class DocumentSemanticModel implements SemanticModel {
     }
 
     public availabilityAt(offset: number): FeatureAvailabilityDecision | undefined {
-        let best: FeatureAvailabilityDecision | undefined;
-        for (const decision of this.availability) {
-            if (decision.range.start > offset || offset > decision.range.end) continue;
-            if (
-                !best ||
-                decision.range.end - decision.range.start < best.range.end - best.range.start
-            ) {
-                best = decision;
-            }
-        }
-        return best;
+        return this._availabilityIndex.containing(offset);
     }
 }
 

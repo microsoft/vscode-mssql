@@ -3,82 +3,18 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import type {
-    FeatureAvailability,
-    SqlCompatibilityLevel,
-    SqlServerMajorVersion,
-    TsqlFeatureProfile,
-} from "./engineCapabilities.js";
+import type { FeatureAvailability, TsqlFeatureProfile } from "./engineCapabilities.js";
 import { describeProfile, sqlServerProductName } from "./engineCapabilities.js";
 import type { SqlEngineProfile } from "./engineProfile.js";
 import { engineProfileDisplayName } from "./engineProfile.js";
 import { platformFeatures } from "./platformFeatureDefinitions.js";
+import type { PlatformFeature, StatementFamily } from "./platformFeatureDefinitions.js";
 
 /**
  * The statement families the dialect inventory groups scenarios by. The list is closed so a new
  * feature cannot invent a family the readiness report does not know how to total.
  */
-export type StatementFamily =
-    | "database"
-    | "table"
-    | "index"
-    | "view"
-    | "module"
-    | "security"
-    | "external"
-    | "workload"
-    | "query"
-    | "dml"
-    | "expression"
-    | "type"
-    | "server"
-    | "session"
-    | "backup";
-
-/**
- * One platform- or version-restricted construct.
- *
- * A feature is the unit every layer agrees on: the syntax service reports its availability, the
- * registry audit proves its grammar nodes exist, completion hides it where it cannot run, and
- * hover explains it where a document already contains it.
- */
-export interface PlatformFeature {
-    /** Stable identity. Never renamed once published, because scenarios and ledgers cite it. */
-    readonly id: string;
-    /** Canonical display name used in diagnostics, hover, and the readiness report. */
-    readonly displayName: string;
-    readonly family: StatementFamily;
-    /**
-     * The word an availability diagnostic underlines inside the matched node.
-     *
-     * Absent when the construct has no single word to point at; the diagnostic then underlines the
-     * node's first token. A keyword that is declared but absent from the source falls back the same
-     * way, so a gate can never be lost silently.
-     */
-    readonly keyword?: string;
-    /** Grammar node names that carry this feature. Audited against the generated parser. */
-    readonly nodes: readonly string[];
-    /**
-     * Selects between features that share a node. Matched against the node's source text, which is
-     * a spelling test — never a structural one; structure always comes from the node name.
-     */
-    readonly textPattern?: RegExp;
-    /** Profiles the feature exists on. Absent means every resolved profile. */
-    readonly profiles?: readonly SqlEngineProfile[];
-    readonly minimumServer?: SqlServerMajorVersion;
-    readonly minimumCompatibility?: SqlCompatibilityLevel;
-    /** Set for syntax the engine removed rather than added. */
-    readonly maximumCompatibility?: SqlCompatibilityLevel;
-    readonly requiresPreview?: boolean;
-    /** True when the whole statement is unavailable, so the message names the statement. */
-    readonly statementUnavailable?: boolean;
-    /** Documentation lookup key a host may map to its own help topics. */
-    readonly documentationKey?: string;
-    /** Where the restriction was verified. Required: the audit rejects an entry without it. */
-    readonly evidence: string;
-    /** Built-in registry names this feature governs, so completion and hover agree with syntax. */
-    readonly builtIns?: readonly string[];
-}
+export type { PlatformFeature, StatementFamily } from "./platformFeatureDefinitions.js";
 
 /** The dedicated diagnostic code every availability decision publishes. */
 export const featureAvailabilityDiagnosticCode = "FeatureNotAvailable";

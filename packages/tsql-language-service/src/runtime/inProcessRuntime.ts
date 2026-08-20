@@ -5,7 +5,7 @@
 
 import type { AnalysisProfile } from "../common/analysisProfile.js";
 import { resolveAnalysisProfile } from "../common/analysisProfile.js";
-import type { EngineCapabilities, TsqlFeatureProfile } from "../common/engineCapabilities.js";
+import type { EngineCapabilities } from "../common/engineCapabilities.js";
 import {
     capabilitiesFromProfile,
     createEngineCapabilities,
@@ -17,12 +17,16 @@ import {
     platformFeatures,
 } from "../common/platformFeatureRegistry.js";
 import type { Disposable } from "../common/disposable.js";
-import type { MetadataProvider } from "../metadata/index.js";
+import type { MetadataProvider, MetadataView } from "../metadata/index.js";
 import { NullMetadataProvider } from "../metadata/index.js";
 import type { LanguageServiceStats } from "../observability/index.js";
 import { LanguageServiceStatsStore, RequestLatencyRecorder } from "../observability/index.js";
 import { CatalogSemanticBinder, type SemanticBinder } from "../semantics/index.js";
-import { LezerSyntaxService, type SyntaxService } from "../syntax/index.js";
+import {
+    LezerSyntaxService,
+    type ProfileAwareSyntaxService,
+    type SyntaxService,
+} from "../syntax/index.js";
 import { SqlCmdDocumentService, type SqlCmdDocumentSnapshot } from "../sqlcmd/index.js";
 import {
     applyTextChanges,
@@ -86,9 +90,9 @@ export class InProcessLanguageServiceRuntime implements LanguageServiceRuntime {
         } else {
             // A syntax service supplied with its own profile stays in control, so an offline
             // harness analysing a named engine keeps analysing it.
-            const supplied = (this._syntax as Partial<LezerSyntaxService>).profile;
+            const supplied = supportsProfileChange(this._syntax) ? this._syntax.profile : undefined;
             this._capabilities = supplied
-                ? capabilitiesFromProfile(supplied as TsqlFeatureProfile)
+                ? capabilitiesFromProfile(supplied)
                 : unknownEngineCapabilities;
         }
     }
@@ -101,8 +105,9 @@ export class InProcessLanguageServiceRuntime implements LanguageServiceRuntime {
         const capabilities = createEngineCapabilities(facts);
         if (capabilities.generation === this._capabilities.generation) return this._capabilities;
         if (!supportsProfileChange(this._syntax)) {
-            this._capabilities = capabilities;
-            return capabilities;
+            throw new Error(
+                "The configured syntax service cannot adopt a different engine profile",
+            );
         }
 
         const previousCapabilities = this._capabilities;
@@ -115,9 +120,10 @@ export class InProcessLanguageServiceRuntime implements LanguageServiceRuntime {
             for (const [uri, previous] of this._documents) {
                 const syntax = this._syntax.reprofile(previous.syntax);
                 const bindStarted = performance.now();
+                const view = this._metadata.pin();
                 const semantics = this._binder.update(previous.semantics, {
                     syntax,
-                    metadata: this._metadata.pin(),
+                    metadata: view,
                     previous: previous.semantics,
                     changedRanges: [],
                     profile: this.profile,
@@ -129,6 +135,7 @@ export class InProcessLanguageServiceRuntime implements LanguageServiceRuntime {
                         previous.projectedText,
                         syntax,
                         semantics,
+                        view,
                     ),
                     bindMs: performance.now() - bindStarted,
                 });
@@ -163,7 +170,7 @@ export class InProcessLanguageServiceRuntime implements LanguageServiceRuntime {
         const view = this._metadata.pin();
         const semantics = this._binder.bind({ syntax, metadata: view, profile: this.profile });
         const bindElapsed = performance.now() - bindStarted;
-        const snapshot = analysisSnapshot(document, projection, projected, syntax, semantics);
+        const snapshot = analysisSnapshot(document, projection, projected, syntax, semantics, view);
         this._documents.set(uri, snapshot);
         this.publishStats(snapshot, parseElapsed, bindElapsed);
         return snapshot;
@@ -194,15 +201,16 @@ export class InProcessLanguageServiceRuntime implements LanguageServiceRuntime {
             : this._syntax.parse(projected);
         const parseElapsed = performance.now() - parseStarted;
         const bindStarted = performance.now();
+        const view = this._metadata.pin();
         const semantics = this._binder.update(previous.semantics, {
             syntax,
-            metadata: this._metadata.pin(),
+            metadata: view,
             previous: previous.semantics,
             changedRanges: syntax.changedRanges,
             profile: this.profile,
         });
         const bindElapsed = performance.now() - bindStarted;
-        const snapshot = analysisSnapshot(document, projection, projected, syntax, semantics);
+        const snapshot = analysisSnapshot(document, projection, projected, syntax, semantics, view);
         this._documents.set(uri, snapshot);
         this.publishStats(snapshot, parseElapsed, bindElapsed);
         return snapshot;
@@ -216,9 +224,10 @@ export class InProcessLanguageServiceRuntime implements LanguageServiceRuntime {
     public async rebind(uri: string, expectedVersion: number): Promise<DocumentAnalysisSnapshot> {
         const previous = this.snapshot(uri, expectedVersion);
         const bindStarted = performance.now();
+        const view = this._metadata.pin();
         const semantics = this._binder.update(previous.semantics, {
             syntax: previous.syntax,
-            metadata: this._metadata.pin(),
+            metadata: view,
             previous: previous.semantics,
             changedRanges: [],
             profile: this.profile,
@@ -230,6 +239,7 @@ export class InProcessLanguageServiceRuntime implements LanguageServiceRuntime {
             previous.projectedText,
             previous.syntax,
             semantics,
+            view,
         );
         this._documents.set(uri, snapshot);
         this.publishStats(snapshot, 0, bindElapsed);
@@ -260,7 +270,6 @@ export class InProcessLanguageServiceRuntime implements LanguageServiceRuntime {
         parseElapsedMs: number,
         bindElapsedMs: number,
     ): void {
-        const view = this._metadata.pin();
         const catalog = this._metadata.catalogStats?.();
         const availability = snapshot.syntax.diagnostics.filter(
             (diagnostic) => diagnostic.code === featureAvailabilityDiagnosticCode,
@@ -311,10 +320,15 @@ export class InProcessLanguageServiceRuntime implements LanguageServiceRuntime {
                 budget: bindBudget,
             },
             metadata: {
-                providerId: view.providerId,
-                generation: view.generation,
-                completeness: view.completeness,
-                ageMs: Math.max(0, Date.now() - view.publishedAt),
+                providerId: snapshot.metadata.providerId,
+                generation: snapshot.metadata.generation,
+                completeness: snapshot.metadata.completeness,
+                ageMs: Math.max(0, Date.now() - snapshot.metadata.publishedAt),
+                observationState: catalog
+                    ? "collected"
+                    : snapshot.metadata.providerId === "null"
+                      ? "unavailable"
+                      : "notCollected",
                 refreshInProgress: (catalog?.inFlight ?? 0) > 0,
                 inFlight: catalog?.inFlight ?? 0,
                 // Reported from the provider's own observations when it keeps them, and left empty
@@ -324,6 +338,7 @@ export class InProcessLanguageServiceRuntime implements LanguageServiceRuntime {
                 fetches: catalog?.fetches ?? [],
                 observedFetches: catalog?.observedFetches ?? 0,
                 invalidations: catalog?.invalidations ?? [],
+                dataQuality: catalog?.dataQuality ?? [],
                 history: emptyHistory,
             },
             runtime: { mode: this.mode, state: "ready", queueDepth: 0 },
@@ -378,22 +393,30 @@ function analysisSnapshot(
     projectedText: TextSnapshot,
     syntax: DocumentAnalysisSnapshot["syntax"],
     semantics: DocumentAnalysisSnapshot["semantics"],
+    metadata: MetadataView,
 ): DocumentAnalysisSnapshot {
+    if (semantics.metadataGeneration !== metadata.generation) {
+        throw new Error(
+            `Analysis metadata mismatch: semantics ${semantics.metadataGeneration}, catalog ${metadata.generation}`,
+        );
+    }
     return Object.freeze({
         text,
         projection,
         projectedText,
         syntax,
         semantics,
+        metadata,
         sourceRangeOf: (range: TextRange) => projection.toSourceRanges(range),
     });
 }
 
 /** Only a syntax service that can adopt a profile participates in reprofiling. */
-function supportsProfileChange(syntax: SyntaxService): syntax is SyntaxService & {
-    setProfile(profile: EngineCapabilities): void;
-    reprofile(previous: DocumentAnalysisSnapshot["syntax"]): DocumentAnalysisSnapshot["syntax"];
-} {
-    const candidate = syntax as Partial<LezerSyntaxService>;
-    return typeof candidate.setProfile === "function" && typeof candidate.reprofile === "function";
+function supportsProfileChange(syntax: SyntaxService): syntax is ProfileAwareSyntaxService {
+    const candidate = syntax as Partial<ProfileAwareSyntaxService>;
+    return (
+        candidate.profile !== undefined &&
+        typeof candidate.setProfile === "function" &&
+        typeof candidate.reprofile === "function"
+    );
 }

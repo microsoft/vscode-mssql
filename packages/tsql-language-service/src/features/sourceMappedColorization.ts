@@ -8,11 +8,10 @@ import type {
     ColorizationLegend,
     ColorizationResult,
     ColorizationService,
-    ColorizedToken,
     FullColorizationResult,
 } from "../coloring/index.js";
-import type { DocumentAnalysisSnapshot } from "../runtime/index.js";
 import type { TextChange, TextRange } from "../text/index.js";
+import { SourceCoordinateMap, type SourceCoordinateInput } from "./sourceCoordinateMap.js";
 
 /**
  * A colorization input that also carries the SQLCMD projection.
@@ -21,8 +20,7 @@ import type { TextChange, TextRange } from "../text/index.js";
  * already has. The projection is optional because the coloring layer itself must not depend on the
  * runtime, and a caller colouring a bare syntax/semantic pair still gets projected coordinates.
  */
-export type ProjectedColorizationInput = ColorizationInput &
-    Partial<Pick<DocumentAnalysisSnapshot, "projection" | "projectedText" | "sourceRangeOf">>;
+export type ProjectedColorizationInput = ColorizationInput & SourceCoordinateInput;
 
 /**
  * Converts colorization results from projected coordinates back to the host's.
@@ -39,7 +37,8 @@ export class SourceMappedColorizationService implements ColorizationService {
     }
 
     public provideDocumentColors(input: ProjectedColorizationInput): FullColorizationResult {
-        return mapFull(this._inner.provideDocumentColors(this.project(input)), input);
+        const map = coordinateMap(input);
+        return mapFull(this._inner.provideDocumentColors(this.project(input)), map);
     }
 
     public provideRangeColors(
@@ -47,10 +46,12 @@ export class SourceMappedColorizationService implements ColorizationService {
     ): FullColorizationResult {
         // The requested range arrives in host coordinates and has to be asked for in projected
         // ones, or a viewport request would colour the wrong region of a SQLCMD document.
-        const projectedRange = projectRange(input, input.range);
+        const map = coordinateMap(input);
+        const projectedRange = map.toProjectedRange(input.range);
+        if (!projectedRange) return emptyFull(input, input.range, map);
         return mapFull(
             this._inner.provideRangeColors({ ...this.project(input), range: projectedRange }),
-            input,
+            map,
         );
     }
 
@@ -59,15 +60,16 @@ export class SourceMappedColorizationService implements ColorizationService {
         input: ProjectedColorizationInput,
         changes: readonly TextChange[],
     ): ColorizationResult {
-        const result = this._inner.provideColorEdits(previous, this.project(input), changes);
-        if (isIdentity(input)) return result;
-        if (result.kind === "full") return mapFull(result, input);
-        return {
-            ...result,
-            edits: result.edits.map((edit) =>
-                edit.tokens ? { ...edit, tokens: mapTokens(edit.tokens, input) } : edit,
-            ),
-        };
+        const map = coordinateMap(input);
+        if (map.identity) {
+            return this._inner.provideColorEdits(previous, this.project(input), changes);
+        }
+
+        // `previous` is in source coordinates, while the inner service diffs projected tokens.
+        // Mapping may drop included-file tokens or coalesce substitutions, so it is not possible
+        // to reconstruct the projected baseline from the source result. Publish a complete mapped
+        // result until projected baselines have an explicit opaque identity of their own.
+        return mapFull(this._inner.provideDocumentColors(this.project(input)), map);
     }
 
     /** The input the inner service sees: unchanged, since analysis already ran on projected text. */
@@ -76,49 +78,30 @@ export class SourceMappedColorizationService implements ColorizationService {
     }
 }
 
-function isIdentity(input: ProjectedColorizationInput): boolean {
-    return (
-        input.projectedText === undefined ||
-        input.sourceRangeOf === undefined ||
-        input.projectedText === input.syntax.document
-    );
+function coordinateMap(input: ProjectedColorizationInput): SourceCoordinateMap {
+    return new SourceCoordinateMap(input, input.syntax.document.uri);
 }
 
-function projectRange(input: ProjectedColorizationInput, range: TextRange): TextRange {
-    if (isIdentity(input) || !input.projection) return range;
-    const uri = input.syntax.document.uri;
-    const start = input.projection.toProjected(uri, range.start);
-    const end = input.projection.toProjected(uri, range.end);
-    return { start: start ?? range.start, end: end ?? range.end };
-}
-
-function mapFull(
-    result: FullColorizationResult,
+function emptyFull(
     input: ProjectedColorizationInput,
+    range: TextRange,
+    map: SourceCoordinateMap,
 ): FullColorizationResult {
-    if (isIdentity(input)) return result;
-    return { ...result, tokens: mapTokens(result.tokens, input) };
+    const projectedId = `${input.syntax.document.version}:${input.semantics.metadataGeneration}:unmapped:${range.start}-${range.end}`;
+    return Object.freeze({
+        kind: "full",
+        resultId: map.sourceResultId(projectedId),
+        documentVersion: input.syntax.document.version,
+        metadataGeneration: input.semantics.metadataGeneration,
+        tokens: Object.freeze([]),
+    });
 }
 
-/**
- * Maps each token back to the source.
- *
- * A token whose text came from a substitution maps to the whole `$(name)` reference, and several
- * projected tokens can share it. Emitting the reference once keeps the result non-overlapping,
- * which is the contract a host's token encoder relies on.
- */
-function mapTokens(
-    tokens: readonly ColorizedToken[],
-    input: ProjectedColorizationInput,
-): readonly ColorizedToken[] {
-    const uri = input.syntax.document.uri;
-    const mapped: ColorizedToken[] = [];
-    for (const token of tokens) {
-        const [source] = input.sourceRangeOf!(token);
-        if (!source || source.documentUri !== uri) continue;
-        const previous = mapped.at(-1);
-        if (previous && previous.start === source.start && previous.end === source.end) continue;
-        mapped.push({ ...token, start: source.start, end: source.end });
-    }
-    return Object.freeze(mapped);
+function mapFull(result: FullColorizationResult, map: SourceCoordinateMap): FullColorizationResult {
+    if (map.identity) return result;
+    return {
+        ...result,
+        resultId: map.sourceResultId(result.resultId),
+        tokens: map.mapOrderedRanges(result.tokens),
+    };
 }

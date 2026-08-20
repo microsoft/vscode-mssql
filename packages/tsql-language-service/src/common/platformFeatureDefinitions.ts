@@ -3,7 +3,45 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import type { PlatformFeature } from "./platformFeatureRegistry.js";
+import type { SqlCompatibilityLevel, SqlServerMajorVersion } from "./engineCapabilities.js";
+import type { SqlEngineProfile } from "./engineProfile.js";
+
+/** Closed statement-family inventory used by readiness and availability reporting. */
+export type StatementFamily =
+    | "database"
+    | "table"
+    | "index"
+    | "view"
+    | "module"
+    | "security"
+    | "external"
+    | "workload"
+    | "query"
+    | "dml"
+    | "expression"
+    | "type"
+    | "server"
+    | "session"
+    | "backup";
+
+/** Declarative platform and version availability policy for one syntax feature. */
+export interface PlatformFeature {
+    readonly id: string;
+    readonly displayName: string;
+    readonly family: StatementFamily;
+    readonly keyword?: string;
+    readonly nodes: readonly string[];
+    readonly textPattern?: RegExp;
+    readonly profiles?: readonly SqlEngineProfile[];
+    readonly minimumServer?: SqlServerMajorVersion;
+    readonly minimumCompatibility?: SqlCompatibilityLevel;
+    readonly maximumCompatibility?: SqlCompatibilityLevel;
+    readonly requiresPreview?: boolean;
+    readonly statementUnavailable?: boolean;
+    readonly documentationKey?: string;
+    readonly evidence: string;
+    readonly builtIns?: readonly string[];
+}
 
 /** Declarative platform/version feature data, separated from availability evaluation. */
 export const platformFeatures: readonly PlatformFeature[] = Object.freeze([

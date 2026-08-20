@@ -9,6 +9,7 @@ import type {
     CatalogObserver,
     CatalogStatsSnapshot,
 } from "../observability/catalogObserver.js";
+import type { CatalogDataQualityEvent } from "../observability/contracts.js";
 import {
     InMemoryMetadataProvider,
     type ClrTypeMetadata,
@@ -67,6 +68,15 @@ export interface SimpleQueryMetadataPublisher {
     merge(input: InMemoryMetadataInput): void;
     /** Replaces one authoritative section while retaining every unrelated section. */
     replaceSection(section: MetadataSection, input: InMemoryMetadataInput): void;
+    /** Records a redaction-safe boundary or configured-limit observation. */
+    reportDataQuality(event: CatalogDataQualityEvent): void;
+}
+
+interface SharedRefresh {
+    readonly controller: AbortController;
+    readonly promise: Promise<MetadataRefreshResult>;
+    readonly consumers: Set<symbol>;
+    keepAlive: boolean;
 }
 
 export class SimpleQueryMetadataAdapter implements MetadataProvider {
@@ -91,7 +101,7 @@ export class SimpleQueryMetadataAdapter implements MetadataProvider {
         },
         this.id,
     );
-    private _inFlight: Promise<MetadataRefreshResult> | undefined;
+    private _inFlight: SharedRefresh | undefined;
     private readonly _hydrations = new Map<string, Promise<void>>();
     private readonly _sectionRefreshes = new Map<string, Promise<MetadataRefreshResult>>();
     private _hasPublishedIdentity = false;
@@ -102,6 +112,7 @@ export class SimpleQueryMetadataAdapter implements MetadataProvider {
         },
         merge: (input) => this._store.merge(input),
         replaceSection: (section, input) => this._store.replaceSection(section, input),
+        reportDataQuality: (event) => this._observer?.recordDataQuality(event),
     };
 
     private readonly _databaseHandles = new Map<string, string>();
@@ -164,7 +175,7 @@ export class SimpleQueryMetadataAdapter implements MetadataProvider {
 
     /** A stable per-session identifier for a database, so the handle never carries its name. */
     private handleFor(database: string | undefined): string {
-        const key = (database ?? "").toLocaleLowerCase();
+        const key = (database ?? "").toLowerCase();
         const existing = this._databaseHandles.get(key);
         if (existing) return existing;
         const created =
@@ -249,7 +260,7 @@ export class SimpleQueryMetadataAdapter implements MetadataProvider {
             ...this._hydrations.values(),
             ...this._sectionRefreshes.values(),
         ];
-        if (this._inFlight) operations.push(this._inFlight);
+        if (this._inFlight) operations.push(this._inFlight.promise);
         const pending = Promise.all(operations).then(() => undefined);
         return signal ? detachOnAbort(pending, signal) : pending;
     }
@@ -276,7 +287,7 @@ export class SimpleQueryMetadataAdapter implements MetadataProvider {
             return;
         }
         const normalizedRequest = { ...request, database };
-        const key = `${request.section}:database:${database.toLocaleLowerCase()}`;
+        const key = `${request.section}:database:${database.toLowerCase()}`;
         if (this._hydrations.has(key)) return;
         this._store.merge(databaseLoadStatePatch(database, request.section, "loading"));
         const hydration = this._loader
@@ -295,10 +306,28 @@ export class SimpleQueryMetadataAdapter implements MetadataProvider {
     }
 
     public refresh(signal?: AbortSignal): Promise<MetadataRefreshResult> {
-        this._inFlight ??= this.loadAndPublish().finally(() => {
-            this._inFlight = undefined;
-        });
-        return signal ? detachOnAbort(this._inFlight, signal) : this._inFlight;
+        if (signal?.aborted) return Promise.reject(abortReason(signal));
+        let operation = this._inFlight;
+        if (!operation) {
+            const controller = new AbortController();
+            let created!: SharedRefresh;
+            const promise = this.loadAndPublish(controller.signal).finally(() => {
+                if (this._inFlight === created) this._inFlight = undefined;
+            });
+            created = {
+                controller,
+                consumers: new Set(),
+                keepAlive: false,
+                promise,
+            };
+            operation = created;
+            this._inFlight = operation;
+        }
+        if (!signal) {
+            operation.keepAlive = true;
+            return operation.promise;
+        }
+        return attachRefreshConsumer(operation, signal);
     }
 
     public refreshSections(
@@ -333,9 +362,20 @@ export class SimpleQueryMetadataAdapter implements MetadataProvider {
         return this._store.onDidChange(listener);
     }
 
-    private async loadAndPublish(): Promise<MetadataRefreshResult> {
+    private async loadAndPublish(signal: AbortSignal): Promise<MetadataRefreshResult> {
         const started = performance.now();
         const hadPublishedIdentity = this._hasPublishedIdentity;
+        const checkpoint = this._store.checkpoint();
+        const publisher = new GenerationScopedPublisher(this._publisher);
+        let rolledBack = false;
+        const rollback = () => {
+            if (rolledBack) return;
+            rolledBack = true;
+            publisher.close();
+            this._hasPublishedIdentity = hadPublishedIdentity;
+            if (publisher.published) this._store.restore(checkpoint);
+        };
+        signal.addEventListener("abort", rollback, { once: true });
         // A first load is the connection opening; a later one is that connection's catalog being
         // dropped and rebuilt, which is the case worth reporting as a reload.
         const cause = hadPublishedIdentity ? "connectionChanged" : undefined;
@@ -347,9 +387,14 @@ export class SimpleQueryMetadataAdapter implements MetadataProvider {
                         "active connection",
                     ),
                 ),
-                this._publisher,
+                publisher,
+                signal,
             );
+            throwIfAborted(signal);
         } catch (error) {
+            rollback();
+            signal.removeEventListener("abort", rollback);
+            if (isAbort(error, signal)) throw error;
             const state = hadPublishedIdentity ? "stale" : "failed";
             this._store.merge({
                 completeness: {
@@ -361,6 +406,8 @@ export class SimpleQueryMetadataAdapter implements MetadataProvider {
             });
             throw error;
         }
+        publisher.close();
+        signal.removeEventListener("abort", rollback);
         const elapsedMs = performance.now() - started;
         if (cause) {
             this._observer?.recordInvalidation({
@@ -383,7 +430,7 @@ export class SimpleQueryMetadataAdapter implements MetadataProvider {
         const started = performance.now();
         // A refresh that began before the DDL completed cannot prove the post-DDL state. Let it
         // finish, then issue the small authoritative section query.
-        if (this._inFlight) await this._inFlight;
+        if (this._inFlight) await this._inFlight.promise;
         const prior = this.pin();
         this._store.merge({
             completeness: Object.fromEntries(
@@ -427,6 +474,85 @@ export class SimpleQueryMetadataAdapter implements MetadataProvider {
             elapsedMs,
         };
     }
+}
+
+/** Stops sibling query tasks from publishing after their refresh has already terminated. */
+class GenerationScopedPublisher implements SimpleQueryMetadataPublisher {
+    public published = false;
+    private _active = true;
+
+    public constructor(private readonly _inner: SimpleQueryMetadataPublisher) {}
+
+    public replace(input: InMemoryMetadataInput): void {
+        if (!this._active) return;
+        this.published = true;
+        this._inner.replace(input);
+    }
+
+    public merge(input: InMemoryMetadataInput): void {
+        if (!this._active) return;
+        this.published = true;
+        this._inner.merge(input);
+    }
+
+    public replaceSection(section: MetadataSection, input: InMemoryMetadataInput): void {
+        if (!this._active) return;
+        this.published = true;
+        this._inner.replaceSection(section, input);
+    }
+
+    public reportDataQuality(event: CatalogDataQualityEvent): void {
+        if (!this._active) return;
+        this._inner.reportDataQuality(event);
+    }
+
+    public close(): void {
+        this._active = false;
+    }
+}
+
+function attachRefreshConsumer(
+    operation: SharedRefresh,
+    signal: AbortSignal,
+): Promise<MetadataRefreshResult> {
+    const consumer = Symbol("metadata refresh consumer");
+    operation.consumers.add(consumer);
+    return new Promise<MetadataRefreshResult>((resolve, reject) => {
+        let settled = false;
+        const release = (cancelled: boolean) => {
+            if (settled) return;
+            settled = true;
+            signal.removeEventListener("abort", abort);
+            operation.consumers.delete(consumer);
+            if (
+                cancelled &&
+                operation.consumers.size === 0 &&
+                !operation.keepAlive &&
+                !operation.controller.signal.aborted
+            ) {
+                operation.controller.abort(abortReason(signal));
+            }
+        };
+        const abort = () => {
+            release(true);
+            reject(abortReason(signal));
+        };
+        signal.addEventListener("abort", abort, { once: true });
+        void operation.promise.then(
+            (result) => {
+                release(false);
+                resolve(result);
+            },
+            (error: unknown) => {
+                release(false);
+                reject(error);
+            },
+        );
+    });
+}
+
+function throwIfAborted(signal: AbortSignal): void {
+    if (signal.aborted) throw abortReason(signal);
 }
 
 /** An abort is the caller moving on, which is not a failure and must not be logged as one. */
@@ -527,7 +653,7 @@ function equalName(
     caseSensitive: boolean,
 ): boolean {
     if (left === undefined || right === undefined) return left === right;
-    return caseSensitive ? left === right : left.toLocaleLowerCase() === right.toLocaleLowerCase();
+    return caseSensitive ? left === right : left.toLowerCase() === right.toLowerCase();
 }
 
 function detachOnAbort<T>(shared: Promise<T>, signal: AbortSignal): Promise<T> {

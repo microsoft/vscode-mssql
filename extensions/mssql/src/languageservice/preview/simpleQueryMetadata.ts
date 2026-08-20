@@ -4,9 +4,17 @@
  *--------------------------------------------------------------------------------------------*/
 
 import {
+    decodeObjectTypeCategory,
+    decodePrincipalKind,
+    decodeSqlBit,
+    decodeSqlInt32,
+    decodeSqlObjectKind,
     resolveEngineProfile,
+    resolveMetadataRuntimeOptions,
+    sqlObjectTypeCodes,
     ColumnMetadata,
     MetadataHydrationRequest,
+    MetadataRuntimeOptions,
     ObjectMetadata,
     ParameterMetadata,
     PrincipalMetadata,
@@ -14,7 +22,6 @@ import {
     SimpleQueryMetadataLoader,
     SimpleQueryMetadataPublisher,
     SimpleQueryResult,
-    SqlObjectKind,
 } from "@vscode-mssql/tsql-language-service";
 import { sendSimpleQuery, type SimpleQuerySender } from "./previewSimpleQuery";
 
@@ -46,22 +53,34 @@ export class ExtensionSimpleQueryExecutor implements SimpleQueryExecutor {
 
 /** Set-based fallback loader used while the dev/query metadata repository is unavailable. */
 export class VscodeMssqlSimpleQueryMetadataLoader implements SimpleQueryMetadataLoader {
-    private _useNoLock = true;
+    private _queryVariant: CatalogQueryVariant = "readUncommitted";
+    private readonly _options: MetadataRuntimeOptions;
+
+    public constructor(options: Partial<MetadataRuntimeOptions> = {}) {
+        this._options = resolveMetadataRuntimeOptions(options);
+    }
 
     public async refresh(
         executor: SimpleQueryExecutor,
         publisher: SimpleQueryMetadataPublisher,
         signal?: AbortSignal,
     ): Promise<void> {
-        const environmentRows = rows(
-            await executor.execute(withoutNoLock(environmentQuery), signal),
-        );
+        // Engine discovery deliberately uses the portable query variant: the result decides
+        // whether the remaining catalog reads may use SQL Server's NOLOCK table hint.
+        const environmentRows = rows(await executor.execute(environmentQuery, signal));
         const environment = environmentRows[0] ?? new Map<string, string | undefined>();
         const currentDatabase = environment.get("current_database");
 
-        const mappedEnvironment = mapEnvironment(environment);
+        const mappedEnvironment = mapEnvironment(
+            environment,
+            publisher,
+            this._options.defaultSchema,
+        );
         const profile = resolveEngineProfile(mappedEnvironment);
-        this._useNoLock = profile.profile !== "fabric-warehouse" && profile.source !== "outOfScope";
+        this._queryVariant =
+            profile.profile !== "fabric-warehouse" && profile.source !== "outOfScope"
+                ? "readUncommitted"
+                : "portable";
         const catalogExecutor = this.catalogExecutor(executor);
         publisher.merge({
             environment: mappedEnvironment,
@@ -89,7 +108,9 @@ export class VscodeMssqlSimpleQueryMetadataLoader implements SimpleQueryMetadata
         // throttled server a single-row catalog read still pays a full connect, and the old code
         // paid that toll once per query, in series.
         const databasesTask = (async () => {
-            const databaseRows = rows(await catalogExecutor.execute(databasesQuery, signal));
+            const databaseRows = rows(
+                await catalogExecutor.execute(databasesQuery(this._queryVariant), signal),
+            );
             const databases = databaseRows.flatMap((row) => {
                 const name = row.get("database_name");
                 return name ? [{ name }] : [];
@@ -103,7 +124,10 @@ export class VscodeMssqlSimpleQueryMetadataLoader implements SimpleQueryMetadata
 
         const identityTask = (async () => {
             const identityRows = rows(
-                await catalogExecutor.execute(schemasAndPrincipalsQuery, signal),
+                await catalogExecutor.execute(
+                    schemasAndPrincipalsQuery(this._queryVariant),
+                    signal,
+                ),
             );
             const schemaRows = identityRows.filter((row) => row.get("entry_kind") === "schema");
             const schemas = schemaRows.flatMap((row) => {
@@ -112,6 +136,7 @@ export class VscodeMssqlSimpleQueryMetadataLoader implements SimpleQueryMetadata
             });
             const principals = mapPrincipals(
                 identityRows.filter((row) => row.get("entry_kind") === "principal"),
+                publisher,
             );
             publisher.merge({
                 completeness: { schemas: "ready", principals: "ready" },
@@ -129,8 +154,13 @@ export class VscodeMssqlSimpleQueryMetadataLoader implements SimpleQueryMetadata
         })();
 
         const userTypesTask = (async () => {
-            const typeRows = rows(await catalogExecutor.execute(userTypesQuery(), signal));
-            return mapUserTypes(typeRows, currentDatabase);
+            const typeRows = rows(
+                await catalogExecutor.execute(
+                    userTypesQuery(undefined, this._queryVariant),
+                    signal,
+                ),
+            );
+            return mapUserTypes(typeRows, currentDatabase, publisher);
         })();
 
         // A user's own objects are what completion needs first, and `sys.objects` is far cheaper
@@ -141,8 +171,14 @@ export class VscodeMssqlSimpleQueryMetadataLoader implements SimpleQueryMetadata
         const userObjectsTask = (async () => {
             const userObjects = await this.loadObjectPages(
                 catalogExecutor,
-                userObjectsQuery,
+                (lastObjectId) =>
+                    userObjectsQuery(
+                        lastObjectId,
+                        this._queryVariant,
+                        this._options.objectPageSize,
+                    ),
                 currentDatabase,
+                publisher,
                 signal,
             );
             publisher.merge({
@@ -160,8 +196,10 @@ export class VscodeMssqlSimpleQueryMetadataLoader implements SimpleQueryMetadata
 
         const allObjectsTask = this.loadObjectPages(
             catalogExecutor,
-            objectsQuery,
+            (lastObjectId) =>
+                objectsQuery(lastObjectId, this._queryVariant, this._options.objectPageSize),
             currentDatabase,
+            publisher,
             signal,
             (page) =>
                 publisher.merge({
@@ -223,6 +261,7 @@ export class VscodeMssqlSimpleQueryMetadataLoader implements SimpleQueryMetadata
         executor: SimpleQueryExecutor,
         query: (lastObjectId: number) => string,
         database: string | undefined,
+        publisher: SimpleQueryMetadataPublisher,
         signal: AbortSignal | undefined,
         onFirstPage?: (objects: readonly ObjectMetadata[]) => void,
     ): Promise<ObjectMetadata[]> {
@@ -233,13 +272,26 @@ export class VscodeMssqlSimpleQueryMetadataLoader implements SimpleQueryMetadata
         let announcedFirstPage = false;
         while (true) {
             const objectRows = rows(await executor.execute(query(lastObjectId), signal));
-            objects.push(...mapObjects(objectRows, database));
-            if (objectRows.length < objectPageSize) return objects;
+            objects.push(...mapObjects(objectRows, database, publisher));
+            const completePage = objectRows.length < this._options.objectPageSize;
+            if (
+                objects.length > this._options.objectResultLimit ||
+                (!completePage && objects.length === this._options.objectResultLimit)
+            ) {
+                objects.length = this._options.objectResultLimit;
+                publisher.reportDataQuality({
+                    kind: "truncated",
+                    section: "objects",
+                    limit: this._options.objectResultLimit,
+                });
+                return objects;
+            }
+            if (completePage) return objects;
             if (!announcedFirstPage) {
                 announcedFirstPage = true;
                 onFirstPage?.(objects);
             }
-            const nextObjectId = numberValue(objectRows.at(-1)?.get("object_id"));
+            const nextObjectId = decodeSqlInt32(objectRows.at(-1)?.get("object_id"));
             if (nextObjectId === undefined || nextObjectId <= lastObjectId) {
                 throw new Error("Object metadata page did not advance its object_id cursor");
             }
@@ -256,10 +308,14 @@ export class VscodeMssqlSimpleQueryMetadataLoader implements SimpleQueryMetadata
         const catalogExecutor = this.catalogExecutor(executor);
         if (request.section === "principals") {
             const identityRows = rows(
-                await catalogExecutor.execute(schemasAndPrincipalsQuery, signal),
+                await catalogExecutor.execute(
+                    schemasAndPrincipalsQuery(this._queryVariant),
+                    signal,
+                ),
             );
             const principals = mapPrincipals(
                 identityRows.filter((row) => row.get("entry_kind") === "principal"),
+                publisher,
             );
             // This is an authoritative replacement, not a merge: a successful DROP must remove
             // the deleted login/user/role from the pinned view.
@@ -271,7 +327,10 @@ export class VscodeMssqlSimpleQueryMetadataLoader implements SimpleQueryMetadata
         }
         if (request.database && request.section === "schemas") {
             const schemaRows = rows(
-                await catalogExecutor.execute(databaseSchemasQuery(request.database), signal),
+                await catalogExecutor.execute(
+                    databaseSchemasQuery(request.database, this._queryVariant),
+                    signal,
+                ),
             );
             const schemas = schemaRows.flatMap((row) => {
                 const name = row.get("schema_name");
@@ -290,13 +349,26 @@ export class VscodeMssqlSimpleQueryMetadataLoader implements SimpleQueryMetadata
             const [userTypes, objects] = await Promise.all([
                 (async () =>
                     mapUserTypes(
-                        rows(await catalogExecutor.execute(userTypesQuery(database), signal)),
+                        rows(
+                            await catalogExecutor.execute(
+                                userTypesQuery(database, this._queryVariant),
+                                signal,
+                            ),
+                        ),
                         database,
+                        publisher,
                     ))(),
                 this.loadObjectPages(
                     catalogExecutor,
-                    (lastObjectId) => databaseObjectsQuery(database, lastObjectId),
+                    (lastObjectId) =>
+                        databaseObjectsQuery(
+                            database,
+                            lastObjectId,
+                            this._queryVariant,
+                            this._options.objectPageSize,
+                        ),
                     database,
+                    publisher,
                     signal,
                     (page) =>
                         publisher.merge({
@@ -318,11 +390,24 @@ export class VscodeMssqlSimpleQueryMetadataLoader implements SimpleQueryMetadata
         if (request.section === "columns") {
             const columnRows = rows(
                 await catalogExecutor.execute(
-                    columnsQuery(objectId, request.object.database),
+                    columnsQuery(
+                        objectId,
+                        request.object.database,
+                        this._queryVariant,
+                        this._options.detailResultLimit + 1,
+                    ),
                     signal,
                 ),
             );
-            const columns = mapColumns(columnRows);
+            const columns = mapColumns(
+                limitedDetailRows(
+                    columnRows,
+                    "columns",
+                    this._options.detailResultLimit,
+                    publisher,
+                ),
+                publisher,
+            );
             publisher.merge({
                 columns: new Map([[request.object.id, columns]]),
                 columnStates: new Map([[request.object.id, { kind: "loaded", value: columns }]]),
@@ -332,11 +417,24 @@ export class VscodeMssqlSimpleQueryMetadataLoader implements SimpleQueryMetadata
         if (request.section === "parameters") {
             const parameterRows = rows(
                 await catalogExecutor.execute(
-                    parametersQuery(objectId, request.object.database),
+                    parametersQuery(
+                        objectId,
+                        request.object.database,
+                        this._queryVariant,
+                        this._options.detailResultLimit + 1,
+                    ),
                     signal,
                 ),
             );
-            const parameters = mapParameters(parameterRows);
+            const parameters = mapParameters(
+                limitedDetailRows(
+                    parameterRows,
+                    "parameters",
+                    this._options.detailResultLimit,
+                    publisher,
+                ),
+                publisher,
+            );
             publisher.merge({
                 parameters: new Map([[request.object.id, parameters]]),
                 parameterStates: new Map([
@@ -347,22 +445,21 @@ export class VscodeMssqlSimpleQueryMetadataLoader implements SimpleQueryMetadata
     }
 
     private catalogExecutor(executor: SimpleQueryExecutor): SimpleQueryExecutor {
-        if (this._useNoLock) return executor;
-        return {
-            execute: (query, signal) => executor.execute(withoutNoLock(query), signal),
-        };
+        return executor;
     }
 }
 
 function mapObjects(
     objectRows: readonly ReadonlyMap<string, string | undefined>[],
     currentDatabase: string | undefined,
+    publisher: SimpleQueryMetadataPublisher,
 ): readonly ObjectMetadata[] {
     return objectRows.flatMap((row) => {
         const objectId = row.get("object_id");
         const schema = row.get("schema_name");
         const name = row.get("object_name");
-        const kind = objectKind(row.get("object_type"));
+        const kind = decodeSqlObjectKind(row.get("object_type"));
+        reportUnknownValue(publisher, "object_type", row.get("object_type"), kind);
         if (!objectId || !schema || !name || !kind) return [];
         return [
             {
@@ -374,7 +471,7 @@ function mapObjects(
                 schema,
                 name,
                 kind,
-                system: booleanValue(row.get("is_ms_shipped")) || undefined,
+                system: decodeSqlBit(row.get("is_ms_shipped")) || undefined,
             },
         ];
     });
@@ -383,12 +480,14 @@ function mapObjects(
 function mapUserTypes(
     typeRows: readonly ReadonlyMap<string, string | undefined>[],
     currentDatabase: string | undefined,
+    publisher: SimpleQueryMetadataPublisher,
 ): readonly ObjectMetadata[] {
     return typeRows.flatMap((row) => {
         const userTypeId = row.get("user_type_id");
         const schema = row.get("schema_name");
         const name = row.get("type_name");
-        const typeCategory = row.get("type_category") as ObjectMetadata["typeCategory"];
+        const typeCategory = decodeObjectTypeCategory(row.get("type_category"));
+        reportUnknownValue(publisher, "type_category", row.get("type_category"), typeCategory);
         if (!userTypeId || !schema || !name || !typeCategory) return [];
         return [
             {
@@ -406,32 +505,56 @@ function mapUserTypes(
     });
 }
 
-function mapEnvironment(environment: ReadonlyMap<string, string | undefined>) {
+function mapEnvironment(
+    environment: ReadonlyMap<string, string | undefined>,
+    publisher: SimpleQueryMetadataPublisher,
+    defaultSchema: string,
+) {
+    const caseSensitive = decodeSqlBit(environment.get("case_sensitive"));
+    const engineEdition = decodeSqlInt32(environment.get("engine_edition"));
+    const compatibilityLevel = decodeSqlInt32(environment.get("compatibility_level"));
+    reportUnknownValue(publisher, "bit", environment.get("case_sensitive"), caseSensitive);
+    reportUnknownValue(publisher, "sql_int", environment.get("engine_edition"), engineEdition);
+    reportUnknownValue(
+        publisher,
+        "sql_int",
+        environment.get("compatibility_level"),
+        compatibilityLevel,
+    );
     return {
         currentDatabase: environment.get("current_database"),
-        defaultSchema: environment.get("default_schema") ?? "dbo",
-        caseSensitive: booleanValue(environment.get("case_sensitive")),
-        engineEdition: numberValue(environment.get("engine_edition")),
+        defaultSchema: environment.get("default_schema") ?? defaultSchema,
+        caseSensitive: caseSensitive ?? false,
+        engineEdition,
         serverVersion: environment.get("server_version"),
-        compatibilityLevel: numberValue(environment.get("compatibility_level")),
+        compatibilityLevel,
         serverName: environment.get("server_name"),
     };
 }
 
 function mapColumns(
     columnRows: readonly ReadonlyMap<string, string | undefined>[],
+    publisher: SimpleQueryMetadataPublisher,
 ): readonly ColumnMetadata[] {
     return columnRows.flatMap((row) => {
         const name = row.get("column_name");
         if (!name) return [];
+        const nullable = decodeSqlBit(row.get("is_nullable"));
+        const identity = decodeSqlBit(row.get("is_identity"));
+        const computed = decodeSqlBit(row.get("is_computed"));
+        const primaryKeyOrdinal = decodeSqlInt32(row.get("primary_key_ordinal"));
+        reportUnknownValue(publisher, "bit", row.get("is_nullable"), nullable);
+        reportUnknownValue(publisher, "bit", row.get("is_identity"), identity);
+        reportUnknownValue(publisher, "bit", row.get("is_computed"), computed);
+        reportUnknownValue(publisher, "sql_int", row.get("primary_key_ordinal"), primaryKeyOrdinal);
         return [
             {
                 name,
-                typeDisplay: displayType(row),
-                nullable: booleanValue(row.get("is_nullable")),
-                identity: booleanValue(row.get("is_identity")) || undefined,
-                computed: booleanValue(row.get("is_computed")) || undefined,
-                primaryKeyOrdinal: numberValue(row.get("primary_key_ordinal")),
+                typeDisplay: displayType(row, publisher),
+                nullable,
+                identity: identity || undefined,
+                computed: computed || undefined,
+                primaryKeyOrdinal,
             },
         ];
     });
@@ -439,16 +562,20 @@ function mapColumns(
 
 function mapParameters(
     parameterRows: readonly ReadonlyMap<string, string | undefined>[],
+    publisher: SimpleQueryMetadataPublisher,
 ): readonly ParameterMetadata[] {
     return parameterRows.flatMap((row) => {
-        const ordinal = numberValue(row.get("parameter_id"));
+        const ordinal = decodeSqlInt32(row.get("parameter_id"));
+        reportUnknownValue(publisher, "sql_int", row.get("parameter_id"), ordinal);
         if (ordinal === undefined) return [];
+        const output = decodeSqlBit(row.get("is_output"));
+        reportUnknownValue(publisher, "bit", row.get("is_output"), output);
         return [
             {
                 ordinal,
                 name: row.get("parameter_name") ?? "",
-                typeDisplay: displayType(row),
-                output: booleanValue(row.get("is_output")),
+                typeDisplay: displayType(row, publisher),
+                output,
             },
         ];
     });
@@ -456,11 +583,13 @@ function mapParameters(
 
 function mapPrincipals(
     principalRows: readonly ReadonlyMap<string, string | undefined>[],
+    publisher: SimpleQueryMetadataPublisher,
 ): readonly PrincipalMetadata[] {
     return principalRows.flatMap((row) => {
         const id = row.get("metadata_id");
         const name = row.get("principal_name");
-        const kind = row.get("principal_kind") as PrincipalMetadata["kind"] | undefined;
+        const kind = decodePrincipalKind(row.get("principal_kind"));
+        reportUnknownValue(publisher, "principal_kind", row.get("principal_kind"), kind);
         if (!id || !name || !kind) return [];
         return [
             {
@@ -468,7 +597,7 @@ function mapPrincipals(
                 database: row.get("database_name"),
                 name,
                 kind,
-                system: booleanValue(row.get("is_system")) || undefined,
+                system: decodeSqlBit(row.get("is_system")) || undefined,
             },
         ];
     });
@@ -476,10 +605,11 @@ function mapPrincipals(
 
 function numericObjectId(metadataId: string): number {
     const objectId = metadataId.slice(metadataId.lastIndexOf(":") + 1);
-    if (!/^-?\d+$/.test(objectId)) {
+    const decoded = decodeSqlInt32(objectId);
+    if (decoded === undefined) {
         throw new Error(`Invalid metadata object id: ${metadataId}`);
     }
-    return Number(objectId);
+    return decoded;
 }
 
 function rows(result: SimpleQueryResult): readonly ReadonlyMap<string, string | undefined>[] {
@@ -488,7 +618,7 @@ function rows(result: SimpleQueryResult): readonly ReadonlyMap<string, string | 
         for (let index = 0; index < result.columns.length; index++) {
             const value = values[index];
             row.set(
-                result.columns[index]!.name.toLocaleLowerCase(),
+                result.columns[index]!.name.toLowerCase(),
                 value === undefined ? undefined : String(value),
             );
         }
@@ -500,42 +630,25 @@ function metadataObjectId(database: string | undefined, objectId: string): strin
     return `${database ?? ""}:${objectId}`;
 }
 
-function objectKind(type: string | undefined): SqlObjectKind | undefined {
-    switch (type?.trim().toLocaleUpperCase()) {
-        case "U":
-            return "table";
-        case "V":
-            return "view";
-        case "P":
-        case "PC":
-            return "procedure";
-        case "FN":
-        case "FS":
-            return "scalarFunction";
-        case "IF":
-        case "TF":
-        case "FT":
-            return "tableFunction";
-        case "SN":
-            return "synonym";
-        default:
-            return undefined;
-    }
-}
-
-function displayType(row: ReadonlyMap<string, string | undefined>): string | undefined {
+function displayType(
+    row: ReadonlyMap<string, string | undefined>,
+    publisher: SimpleQueryMetadataPublisher,
+): string | undefined {
     const name = row.get("type_name");
     if (!name) return undefined;
-    const lower = name.toLocaleLowerCase();
-    const maxLength = numberValue(row.get("max_length"));
+    const lower = name.toLowerCase();
+    const maxLength = decodeSqlInt32(row.get("max_length"));
+    reportUnknownValue(publisher, "sql_int", row.get("max_length"), maxLength);
     if (["varchar", "char", "varbinary", "binary"].includes(lower) && maxLength !== undefined) {
         return `${name}(${maxLength === -1 ? "max" : maxLength})`;
     }
     if (["nvarchar", "nchar"].includes(lower) && maxLength !== undefined) {
         return `${name}(${maxLength === -1 ? "max" : maxLength / 2})`;
     }
-    const precision = numberValue(row.get("precision"));
-    const scale = numberValue(row.get("scale"));
+    const precision = decodeSqlInt32(row.get("precision"));
+    const scale = decodeSqlInt32(row.get("scale"));
+    reportUnknownValue(publisher, "sql_int", row.get("precision"), precision);
+    reportUnknownValue(publisher, "sql_int", row.get("scale"), scale);
     if (["decimal", "numeric"].includes(lower) && precision !== undefined && scale !== undefined) {
         return `${name}(${precision},${scale})`;
     }
@@ -545,14 +658,26 @@ function displayType(row: ReadonlyMap<string, string | undefined>): string | und
     return name;
 }
 
-function booleanValue(value: string | undefined): boolean {
-    return value === "1" || value?.toLocaleLowerCase() === "true";
+function reportUnknownValue(
+    publisher: SimpleQueryMetadataPublisher,
+    field: "object_type" | "type_category" | "principal_kind" | "bit" | "sql_int",
+    raw: string | undefined,
+    decoded: unknown,
+): void {
+    if (raw !== undefined && raw.trim().length > 0 && decoded === undefined) {
+        publisher.reportDataQuality({ kind: "unknownValue", field });
+    }
 }
 
-function numberValue(value: string | undefined): number | undefined {
-    if (value === undefined || value.length === 0) return undefined;
-    const number = Number(value);
-    return Number.isFinite(number) ? number : undefined;
+function limitedDetailRows(
+    input: readonly ReadonlyMap<string, string | undefined>[],
+    section: "columns" | "parameters",
+    limit: number,
+    publisher: SimpleQueryMetadataPublisher,
+): readonly ReadonlyMap<string, string | undefined>[] {
+    if (input.length <= limit) return input;
+    publisher.reportDataQuality({ kind: "truncated", section, limit });
+    return input.slice(0, limit);
 }
 
 function throwIfAborted(signal: AbortSignal | undefined): void {
@@ -561,15 +686,24 @@ function throwIfAborted(signal: AbortSignal | undefined): void {
     }
 }
 
-function withoutNoLock(query: string): string {
-    return query.replaceAll(" WITH (NOLOCK)", "");
+type CatalogQueryVariant = "readUncommitted" | "portable";
+
+/** SQL Server permits NOLOCK on catalog views; Fabric Warehouse does not. */
+function catalogReadHint(variant: CatalogQueryVariant): string {
+    return variant === "readUncommitted" ? " WITH (NOLOCK)" : "";
+}
+
+function objectTypeFilter(capability?: "columns" | "parameters"): string {
+    return sqlObjectTypeCodes(capability)
+        .map((code) => `'${code}'`)
+        .join(", ");
 }
 
 const environmentQuery = `
 SELECT
     DB_NAME() AS current_database,
     COALESCE(
-        (SELECT default_schema_name FROM sys.database_principals WITH (NOLOCK) WHERE name = USER_NAME()),
+        (SELECT default_schema_name FROM sys.database_principals WHERE name = USER_NAME()),
         N'dbo'
     ) AS default_schema,
     CASE WHEN CONVERT(nvarchar(128), DATABASEPROPERTYEX(DB_NAME(), 'Collation')) LIKE N'%[_]CS[_]%'
@@ -578,12 +712,12 @@ SELECT
     CONVERT(nvarchar(128), SERVERPROPERTY('ProductVersion')) AS server_version,
     CONVERT(nvarchar(256), SERVERPROPERTY('ServerName')) AS server_name,
     compatibility_level
-FROM sys.databases WITH (NOLOCK)
+FROM sys.databases
 WHERE name = DB_NAME();`;
 
-const databasesQuery = `
+const databasesQuery = (variant: CatalogQueryVariant) => `
 SELECT name AS database_name
-FROM sys.databases WITH (NOLOCK)
+FROM sys.databases${catalogReadHint(variant)}
 WHERE state = 0 AND HAS_DBACCESS(name) = 1
 ORDER BY name;`;
 
@@ -599,7 +733,7 @@ ORDER BY name;`;
  * the sort does not avoid it; the collation has to be stated. Boxed SQL Server and Azure SQL never
  * hit this, which is why it went unnoticed until a Fabric endpoint was used.
  */
-const schemasAndPrincipalsQuery = `
+const schemasAndPrincipalsQuery = (variant: CatalogQueryVariant) => `
 SELECT
     N'schema' COLLATE DATABASE_DEFAULT AS entry_kind,
     DB_NAME() AS database_name,
@@ -608,7 +742,7 @@ SELECT
     CAST(NULL AS nvarchar(128)) COLLATE DATABASE_DEFAULT AS principal_name,
     CAST(NULL AS nvarchar(32)) COLLATE DATABASE_DEFAULT AS principal_kind,
     CAST(0 AS bit) AS is_system
-FROM sys.schemas WITH (NOLOCK)
+FROM sys.schemas${catalogReadHint(variant)}
 WHERE principal_id <> 16384
 UNION ALL
 SELECT
@@ -619,7 +753,7 @@ SELECT
     name COLLATE DATABASE_DEFAULT,
     CASE WHEN type = 'R' THEN N'serverRole' ELSE N'login' END COLLATE DATABASE_DEFAULT,
     CASE WHEN is_fixed_role = 1 OR name LIKE N'##%' THEN 1 ELSE 0 END
-FROM sys.server_principals WITH (NOLOCK)
+FROM sys.server_principals${catalogReadHint(variant)}
 WHERE type IN ('S', 'U', 'G', 'E', 'X', 'R')
 UNION ALL
 SELECT
@@ -632,18 +766,18 @@ SELECT
          WHEN type = 'A' THEN N'applicationRole'
          ELSE N'user' END COLLATE DATABASE_DEFAULT,
     CASE WHEN is_fixed_role = 1 OR principal_id <= 4 THEN 1 ELSE 0 END
-FROM sys.database_principals WITH (NOLOCK)
+FROM sys.database_principals${catalogReadHint(variant)}
 WHERE type IN ('S', 'U', 'G', 'E', 'X', 'R', 'A')
   AND name NOT IN (N'public', N'guest')
 ORDER BY entry_kind, principal_name, schema_name;`;
 
-const databaseSchemasQuery = (database: string) => `
+const databaseSchemasQuery = (database: string, variant: CatalogQueryVariant) => `
 SELECT name AS schema_name
-FROM ${quoteIdentifier(database)}.sys.schemas WITH (NOLOCK)
+FROM ${quoteIdentifier(database)}.sys.schemas${catalogReadHint(variant)}
 WHERE principal_id <> 16384
 ORDER BY name;`;
 
-const userTypesQuery = (database?: string) => {
+const userTypesQuery = (database: string | undefined, variant: CatalogQueryVariant) => {
     const catalog = database ? `${quoteIdentifier(database)}.` : "";
     return `
 SELECT
@@ -653,67 +787,74 @@ SELECT
     CASE WHEN t.is_table_type = 1 THEN N'table'
          WHEN t.is_assembly_type = 1 THEN N'clr'
          ELSE N'alias' END AS type_category
-FROM ${catalog}sys.types AS t WITH (NOLOCK)
-JOIN ${catalog}sys.schemas AS s WITH (NOLOCK) ON s.schema_id = t.schema_id
+FROM ${catalog}sys.types AS t${catalogReadHint(variant)}
+JOIN ${catalog}sys.schemas AS s${catalogReadHint(variant)} ON s.schema_id = t.schema_id
 WHERE t.is_user_defined = 1 OR t.is_table_type = 1
 ORDER BY s.name, t.name;`;
 };
 
-// Large enough to avoid excessive SQL Tools Service round trips, while keeping each simple-query
-// response comfortably below the payload size of the reported 58k-object customer catalog.
-const objectPageSize = 20_000;
 /**
  * The user's own objects, without the resource database `sys.all_objects` unions in.
  *
  * Same shape and same keyset cursor as {@link objectsQuery}, so the two are interchangeable to
  * the pager and the full pass is a strict superset of this one.
  */
-const userObjectsQuery = (lastObjectId: number) => `
-SELECT TOP (${objectPageSize})
+const userObjectsQuery = (lastObjectId: number, variant: CatalogQueryVariant, pageSize: number) => `
+SELECT TOP (${pageSize})
     o.object_id,
     s.name AS schema_name,
     o.name AS object_name,
     o.type AS object_type,
     o.is_ms_shipped
-FROM sys.objects AS o WITH (NOLOCK)
-JOIN sys.schemas AS s WITH (NOLOCK) ON s.schema_id = o.schema_id
+FROM sys.objects AS o${catalogReadHint(variant)}
+JOIN sys.schemas AS s${catalogReadHint(variant)} ON s.schema_id = o.schema_id
 WHERE o.object_id > ${lastObjectId}
-  AND o.type IN ('U', 'V', 'P', 'PC', 'FN', 'FS', 'IF', 'TF', 'FT', 'SN')
+  AND o.type IN (${objectTypeFilter()})
 ORDER BY o.object_id;`;
 
-const objectsQuery = (lastObjectId: number) => `
-SELECT TOP (${objectPageSize})
+const objectsQuery = (lastObjectId: number, variant: CatalogQueryVariant, pageSize: number) => `
+SELECT TOP (${pageSize})
     o.object_id,
     s.name AS schema_name,
     o.name AS object_name,
     o.type AS object_type,
     o.is_ms_shipped
-FROM sys.all_objects AS o WITH (NOLOCK)
-JOIN sys.schemas AS s WITH (NOLOCK) ON s.schema_id = o.schema_id
+FROM sys.all_objects AS o${catalogReadHint(variant)}
+JOIN sys.schemas AS s${catalogReadHint(variant)} ON s.schema_id = o.schema_id
 WHERE o.object_id > ${lastObjectId}
-  AND o.type IN ('U', 'V', 'P', 'PC', 'FN', 'FS', 'IF', 'TF', 'FT', 'SN')
+  AND o.type IN (${objectTypeFilter()})
 ORDER BY o.object_id;`;
 
-const databaseObjectsQuery = (database: string, lastObjectId: number) => {
+const databaseObjectsQuery = (
+    database: string,
+    lastObjectId: number,
+    variant: CatalogQueryVariant,
+    pageSize: number,
+) => {
     const catalog = quoteIdentifier(database);
     return `
-SELECT TOP (${objectPageSize})
+SELECT TOP (${pageSize})
     o.object_id,
     s.name AS schema_name,
     o.name AS object_name,
     o.type AS object_type,
     o.is_ms_shipped
-FROM ${catalog}.sys.all_objects AS o WITH (NOLOCK)
-JOIN ${catalog}.sys.schemas AS s WITH (NOLOCK) ON s.schema_id = o.schema_id
+FROM ${catalog}.sys.all_objects AS o${catalogReadHint(variant)}
+JOIN ${catalog}.sys.schemas AS s${catalogReadHint(variant)} ON s.schema_id = o.schema_id
 WHERE o.object_id > ${lastObjectId}
-  AND o.type IN ('U', 'V', 'P', 'PC', 'FN', 'FS', 'IF', 'TF', 'FT', 'SN')
+  AND o.type IN (${objectTypeFilter()})
 ORDER BY o.object_id;`;
 };
 
-const columnsQuery = (objectId: number, database?: string) => {
+const columnsQuery = (
+    objectId: number,
+    database: string | undefined,
+    variant: CatalogQueryVariant,
+    resultLimit: number,
+) => {
     const catalog = database ? `${quoteIdentifier(database)}.` : "";
     return `
-SELECT
+SELECT TOP (${resultLimit})
     c.column_id,
     c.name AS column_name,
     ty.name AS type_name,
@@ -724,24 +865,29 @@ SELECT
     c.is_identity,
     c.is_computed,
     pkc.key_ordinal AS primary_key_ordinal
-FROM ${catalog}sys.all_columns AS c WITH (NOLOCK)
-JOIN ${catalog}sys.all_objects AS o WITH (NOLOCK) ON o.object_id = c.object_id
-JOIN ${catalog}sys.types AS ty WITH (NOLOCK) ON ty.user_type_id = c.user_type_id
-LEFT JOIN ${catalog}sys.indexes AS pki WITH (NOLOCK)
+FROM ${catalog}sys.all_columns AS c${catalogReadHint(variant)}
+JOIN ${catalog}sys.all_objects AS o${catalogReadHint(variant)} ON o.object_id = c.object_id
+JOIN ${catalog}sys.types AS ty${catalogReadHint(variant)} ON ty.user_type_id = c.user_type_id
+LEFT JOIN ${catalog}sys.indexes AS pki${catalogReadHint(variant)}
     ON pki.object_id = c.object_id AND pki.is_primary_key = 1
-LEFT JOIN ${catalog}sys.index_columns AS pkc WITH (NOLOCK)
+LEFT JOIN ${catalog}sys.index_columns AS pkc${catalogReadHint(variant)}
     ON pkc.object_id = pki.object_id
     AND pkc.index_id = pki.index_id
     AND pkc.column_id = c.column_id
-WHERE o.type IN ('U', 'V', 'IF', 'TF', 'FT')
+WHERE o.type IN (${objectTypeFilter("columns")})
   AND c.object_id = ${objectId}
 ORDER BY c.column_id;`;
 };
 
-const parametersQuery = (objectId: number, database?: string) => {
+const parametersQuery = (
+    objectId: number,
+    database: string | undefined,
+    variant: CatalogQueryVariant,
+    resultLimit: number,
+) => {
     const catalog = database ? `${quoteIdentifier(database)}.` : "";
     return `
-SELECT
+SELECT TOP (${resultLimit})
     p.parameter_id,
     p.name AS parameter_name,
     ty.name AS type_name,
@@ -749,10 +895,10 @@ SELECT
     p.precision,
     p.scale,
     p.is_output
-FROM ${catalog}sys.all_parameters AS p WITH (NOLOCK)
-JOIN ${catalog}sys.all_objects AS o WITH (NOLOCK) ON o.object_id = p.object_id
-JOIN ${catalog}sys.types AS ty WITH (NOLOCK) ON ty.user_type_id = p.user_type_id
-WHERE o.type IN ('P', 'PC', 'FN', 'FS', 'IF', 'TF', 'FT')
+FROM ${catalog}sys.all_parameters AS p${catalogReadHint(variant)}
+JOIN ${catalog}sys.all_objects AS o${catalogReadHint(variant)} ON o.object_id = p.object_id
+JOIN ${catalog}sys.types AS ty${catalogReadHint(variant)} ON ty.user_type_id = p.user_type_id
+WHERE o.type IN (${objectTypeFilter("parameters")})
   AND p.object_id = ${objectId}
 ORDER BY p.parameter_id;`;
 };

@@ -1,153 +1,115 @@
-# T-SQL language-service benchmarks
+# Benchmarks
 
-Benchmarks consume the built package and generate deterministic SQL and metadata in memory. Generated corpora and result artifacts are ignored.
+Benchmarks consume the built package and generate deterministic SQL and metadata in memory. They are
+separate from correctness tests, and generated JSON stays under ignored `benchmarks/generated/`.
 
-The parser runner validates incremental/fresh tree equivalence and measures cold full parse, warm
-full parse, full reparse, batch-incremental parse, and Node worker round trips. Edits are applied near
-the start, middle, and end. Results also include throughput, diagnostics, reused batch chunks, and the
-full-reparse/incremental speedup.
+## Parser lifecycle
 
-The runtime scans lossless SQL lexical states once and caches compact Lezer trees in approximately
-8 KiB groups of `GO` batches. Unchanged chunks and their diagnostics are reused by identity. A file
-without `GO` remains one chunk and is honestly reported as a full reparse until finer statement-level
-reuse is implemented.
+`run.mjs` measures first and warm full parse, full reparse, incremental start/middle/end edits,
+throughput, diagnostics, chunk reuse, Node worker round trips, and memory. Incremental trees are
+compared with fresh trees outside timed regions.
 
 ```powershell
 npm run benchmark:smoke
-npm run benchmark -- --sizes 5k,100k,1m,10m
+npm run benchmark -- --sizes 100k,1m,10m
 ```
 
-Catalog/editor-feature performance is measured separately from parser throughput. The generated
-catalog matches the reported customer shape (57,885 objects, including 36,119 `dbo` tables) and
-measures catalog indexing, parse-and-bind, schema/object/column completion, cross-schema lookup,
-`SELECT *` expansion, and smart `INSERT` expansion. Column details remain lazy, as they are in the
-Simple Query and dev/query metadata adapters.
-
-```powershell
-npm run benchmark:features
-```
-
-Semantic-diagnostic work has a direct binder lane. It parses each generated document and pins its
-in-memory catalog before timing, then measures only `SemanticBinder.bind()` wall time and the
-binder's internal elapsed time. Use the same arguments before and after each semantic batch.
-
-```powershell
-node benchmarks/semantic-diagnostics.mjs --statements 100 --warmups 10 --samples 40
-```
-
-The 100 MiB workload is an explicit manual soak lane:
+The 100 MiB workload is an explicit soak lane:
 
 ```powershell
 npm run benchmark -- --sizes 100m
 ```
 
-Correctness checks accompany timings: every start/middle/end incremental result must have the same
-normalized tree checksum as a fresh parse. The external ScriptDOM and SqlParser comparison lanes are
-kept separate because ScriptDOM is always labeled full reparse and SqlParser is the diagnostic oracle.
+## Full language-service lifecycle
 
-## Incremental runtime optimization checkpoint (2026-08-15)
+`language-service.mjs` measures:
 
-This isolated Windows/Node 24 run followed the incremental syntax and semantic snapshot work. It is
-a single engineering pass over deterministic exact-size SQL; no other benchmark ran concurrently.
-Every incremental tree matched a fresh parse and all lanes produced zero syntax diagnostics.
+- runtime open, edit, metadata refresh plus rebind, and metadata-only rebind;
+- first completion, hover, diagnostics, definition, signature, and coloring after each lifecycle
+  state;
+- warm feature requests separately;
+- source-coordinate mapping overhead;
+- in-process extension-host open, edit, and completion heartbeat delay;
+- Node worker open, edit, completion transfer time, and host heartbeat delay;
+- shared-catalog versus per-document-catalog retained heap;
+- one-large-batch, many-batch, malformed, Unicode, and realistic generated corpora.
 
-|    Size |    Cold full |    Warm full |        Full reparse start/middle/end | Incremental start/middle/end |    Speedup start/middle/end | Reused chunks |
-| ------: | -----------: | -----------: | -----------------------------------: | ---------------------------: | --------------------------: | ------------: |
-| 100 KiB |    178.89 ms |    125.50 ms |          124.07 / 132.74 / 126.95 ms |      14.30 / 10.58 / 6.95 ms |     8.67× / 12.54× / 18.27× |            12 |
-|   1 MiB |  1,292.19 ms |  1,260.20 ms |    1,238.17 / 1,223.23 / 1,237.13 ms |     10.49 / 10.51 / 13.69 ms |  118.00× / 116.33× / 90.36× |           127 |
-|  10 MiB | 12,413.90 ms | 12,381.24 ms | 12,421.13 / 12,386.88 / 12,277.65 ms |     13.59 / 16.83 / 48.16 ms | 914.25× / 736.02× / 254.94× |         1,276 |
-
-The 10 MiB middle worker update fell from 6,450.95 ms to 482.30 ms. Its internal parse fell from
-167.48 ms to 29.16 ms, and semantic binding fell from 6,244.38 ms to 452.23 ms while still reusing
-159,551 semantic units and rebinding exactly one. Initial worker analysis improved from 33,374.25 ms
-to 32,458.40 ms. Whole-file parsing remains essentially unchanged and is tracked separately from
-the large improvement to the normal editor update path.
-
-## Diagnostic milestone checkpoint (2026-08-15)
-
-This isolated Windows/Node 24 run followed the diagnostic and corpus-recovery work. It used three
-samples after one warmup, generated exact-size valid SQL with `GO` boundaries, and ran no other
-benchmark concurrently. Every incremental result matched a fresh tree checksum and produced zero
-diagnostics.
-
-|    Size |    Cold full |    Warm full |        Full reparse start/middle/end | Incremental start/middle/end | Speedup start/middle/end | Reused chunks |
-| ------: | -----------: | -----------: | -----------------------------------: | ---------------------------: | -----------------------: | ------------: |
-| 100 KiB |    178.85 ms |    130.82 ms |          125.00 / 137.11 / 132.52 ms |      17.41 / 11.90 / 8.54 ms |  7.18× / 11.53× / 15.52× |            12 |
-|   1 MiB |  1,261.08 ms |  1,217.96 ms |    1,228.61 / 1,231.07 / 1,226.79 ms |     23.78 / 30.35 / 27.00 ms | 51.68× / 40.56× / 45.44× |           127 |
-|  10 MiB | 12,762.21 ms | 12,383.24 ms | 12,496.37 / 12,472.30 / 12,221.99 ms |  161.97 / 162.98 / 160.09 ms | 77.15× / 76.53× / 76.35× |         1,276 |
-
-The same checkpoint measured direct semantic binding over 100-statement documents with ten warmups
-and forty samples:
-
-| Lane                       | Binder p50 | Binder p95 | Diagnostics |
-| -------------------------- | ---------: | ---------: | ----------: |
-| Local scalar statements    |    7.51 ms |    9.66 ms |           0 |
-| Resolved catalog selects   |   12.37 ms |   14.82 ms |           0 |
-| Missing-object diagnostics |   10.69 ms |   11.24 ms |         100 |
-
-The parser remains within the normal run-to-run range of the previous clean checkpoint. Incremental
-edits reparse one batch chunk and retain the large-file latency advantage without weakening the
-fresh-tree equivalence guard. The 10 MiB middle worker lane measured 33,374.25 ms initial wall time
-and 6,450.95 ms edit wall time; its internal update reused 159,551 semantic units and rebound one.
-
-## Grammar milestone baseline (2026-08-13)
-
-This local Windows/Node 24 run measures the accepted query, DML, table/index DDL, view, synonym,
-type, sequence, and session grammar. Each size uses a deterministic valid corpus with `GO` batch
-boundaries. Times are single-run engineering guardrails, not statistically stable release numbers.
-
-|    Size |   Cold full |   Warm full | Incremental start | Incremental middle | Incremental end | Reused chunks |
-| ------: | ----------: | ----------: | ----------------: | -----------------: | --------------: | ------------: |
-| 100 KiB |   127.77 ms |    81.20 ms |          32.96 ms |           18.51 ms |         5.83 ms |             6 |
-|   1 MiB |   789.79 ms |   730.05 ms |          58.27 ms |           30.60 ms |        30.23 ms |            63 |
-|  10 MiB | 7,182.11 ms | 7,679.31 ms |         186.33 ms |          168.26 ms |       173.82 ms |           638 |
-
-All nine incremental edit lanes matched a fresh tree checksum and produced zero diagnostics. The
-10 MiB middle worker lane measured 6,905.04 ms initial wall time and 219.04 ms edit wall time
-(6,774.34 ms and 218.62 ms inside the worker). The 100 MiB soak was deliberately not run.
-
-## Local SqlParser comparison
-
-`compare-sqlparser.mjs` runs the TypeScript Lezer parser and Microsoft's local `SqlParser` source
-over the same exact-size, deterministic, valid T-SQL files. Both engines report first-observed and
-warmed whole-file parsing plus fixed-width valid edits near the start, middle, and end. The
-TypeScript edit lane is labeled `go-batch-incremental`; SqlParser is measured both as
-`full-reparse` via `Parser.Parse` and as `native-incremental` via `Parser.IncrementalParse`.
-
-Build the sibling SqlParser assembly and the small benchmark host, then run the comparison:
+Lanes are interleaved in a deterministic shuffled order. Reports include warmups, samples, p50,
+p95, mean, standard deviation, min/max, commit, executable-source worktree fingerprint, runtime,
+machine, corpus, catalog, and seed. The fingerprint covers `src`, benchmark/build scripts, and build
+configuration; report documentation is excluded so recording a result cannot invalidate it. Feature
+and incremental/fresh correctness checks run after timing.
 
 ```powershell
-dotnet build ..\..\..\SqlParser\src\Microsoft\SqlServer\Management\SqlParser\Microsoft.SqlServer.Management.SqlParser.csproj -c Release -f net8.0
-dotnet build benchmarks\dotnet\LocalSqlParserBenchmark.csproj -c Release
-npm run benchmark:sqlparser -- --sizes 100k,1m,10m --samples 3 --warmups 1 `
-  --json benchmarks\generated\sqlparser-comparison.json
+npm run benchmark:language-service -- --samples 10 --warmups 3 `
+  --document-kb 64 --catalog-objects 57885 `
+  --corpora one-large-batch,many-batches,malformed,unicode,realistic `
+  --json benchmarks/generated/language-service.json
 ```
 
-Generated SQL and JSON stay under ignored `benchmarks/generated/`. Parser timings exclude file
-generation and file I/O. Process startup is also outside the internal timing, while peak/current
-working-set figures remain process-level observations rather than retained-tree sizes. Every
-TypeScript incremental edit is checksum-checked against a fresh parse; both parsers report
-diagnostic counts. The 100 MiB soak remains opt-in and is not part of the default comparison.
+Use `--skip-worker` or `--skip-memory` only for local diagnosis; a release report includes both.
+Retained-memory measurement requires `--expose-gc`, which the npm command supplies.
 
-### Grammar milestone comparison (2026-08-13)
+### Audit-remediation reference run
 
-This Windows run used Node 24 and local SqlParser assembly
-`18.0.0.0+740ec0cc0a5ea2281e2b5e36f24186cd68ee000c`. Each entry is a p50 from three
-samples after one warmup. The corpus is valid, exact-size ASCII T-SQL with many `GO` batches; both
-engines reported zero diagnostics. TypeScript incremental trees matched fresh tree checksums in
-every lane.
+The 2026-08-20 reference run used base commit
+`e6a95b967cdedfca564a16ab484b8830484936de`, dirty executable-source fingerprint
+`040b78eedeb1ad74f1f932df886729f735af2d05067d0b0b869be239a3fca890`, Node 24.15.0,
+Windows x64, an AMD EPYC 7763 allocation with 16 logical CPUs, 57,885 catalog objects, 8 KiB
+documents, five samples, two warmups, and seed `0x5eed2026`.
 
-|    Size | Engine           |  First full |   Warm full | Incremental start | Incremental middle | Incremental end |  Current RSS |
-| ------: | ---------------- | ----------: | ----------: | ----------------: | -----------------: | --------------: | -----------: |
-| 100 KiB | TypeScript Lezer |   126.98 ms |    71.55 ms |          14.28 ms |           11.17 ms |         3.15 ms |    95.93 MiB |
-| 100 KiB | SqlParser        |   293.34 ms |   125.77 ms |          38.10 ms |           28.95 ms |        23.97 ms |    72.45 MiB |
-|   1 MiB | TypeScript Lezer |   744.73 ms |   675.81 ms |          25.32 ms |           25.36 ms |        23.34 ms |   215.71 MiB |
-|   1 MiB | SqlParser        | 1,463.15 ms |   604.37 ms |         278.01 ms |          276.89 ms |       315.37 ms |   251.39 MiB |
-|  10 MiB | TypeScript Lezer | 6,804.49 ms | 6,847.33 ms |         164.28 ms |          162.80 ms |       162.99 ms |   425.91 MiB |
-|  10 MiB | SqlParser        | 7,230.89 ms | 5,646.79 ms |       3,486.24 ms |        3,363.92 ms |     3,715.75 ms | 2,429.08 MiB |
+Representative p50/p95 milliseconds:
 
-Interpret the lanes independently: SqlParser's warmed whole parse is about 12% faster at 1 MiB and
-21% faster at 10 MiB, while TypeScript's bounded GO-chunk updates are about 11–13 times faster at
-1 MiB and 21–23 times faster at 10 MiB. Current RSS is a process observation after each complete
-workload; peak RSS was 516.70 MiB for Node and 3,041.70 MiB for SqlParser at 10 MiB. It is not a
-retained-tree or allocation measurement. The 100 MiB lane was not run.
+| Lane                                  |     p50 |     p95 |
+| ------------------------------------- | ------: | ------: |
+| One large batch: open                 |  56.663 |  57.546 |
+| One large batch: edit                 |  55.424 |  65.873 |
+| One large batch: metadata-only rebind |   7.459 |   8.281 |
+| Many batches: open                    |  60.154 |  70.645 |
+| Many batches: edit                    |  24.065 |  24.122 |
+| Realistic: open                       |  62.619 |  70.724 |
+| Realistic: edit                       |  26.175 |  26.462 |
+| Realistic: first completion           |   5.935 |   5.987 |
+| Realistic: warm completion            |   3.462 |   5.364 |
+| Source-mapped completion wrapper      |  13.799 |  14.323 |
+| Worker open                           | 336.599 | 339.178 |
+| Worker edit                           |  38.427 |  39.097 |
+| Worker completion                     |  13.929 |  14.187 |
+
+The worker heartbeat p95 was 5.443 ms for open, 13.160 ms for edit, and 10.099 ms for completion.
+Four documents retained 38.904 MiB with one shared catalog versus 120.142 MiB with per-document
+catalogs, avoiding 81.238 MiB of duplication. All incremental/fresh checks matched.
+
+## Large-catalog features
+
+`catalog-features.mjs` uses a customer-scale shape with 57,885 objects and measures catalog indexing,
+parse/bind, schema/object/column completion, cross-schema lookup, SELECT-star expansion, and INSERT
+expansion. Detail rows remain lazy.
+
+```powershell
+npm run benchmark:features
+```
+
+## Semantic diagnostics
+
+`semantic-diagnostics.mjs` isolates binder time after parsing and metadata pinning. It reports local,
+resolved-catalog, and missing-object workloads.
+
+```powershell
+node benchmarks/semantic-diagnostics.mjs --statements 100 --warmups 10 --samples 40
+```
+
+## Dialect and optional external comparisons
+
+`dialect.mjs` measures profile-gated grammar workloads. Optional local comparison harnesses are
+engineering tools and are not part of the package's public build, test, or readiness claims.
+
+## Interpretation rules
+
+- Compare only reports with matching commit, runtime, CPU, corpus, sizes, catalog count, warmups,
+  samples, and seed.
+- A parser result does not stand in for binding or editor-feature latency.
+- A warm result does not stand in for first-hit latency.
+- Worker wall time and worker-internal analysis time are separate costs.
+- Process RSS is not retained-tree size; retained heap is reported only after forced GC.
+- Never weaken or move correctness checks into timed regions to improve a number.

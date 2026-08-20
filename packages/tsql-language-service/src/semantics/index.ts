@@ -4,10 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 export * from "./contracts.js";
+export * from "./diagnostics/index.js";
 export * from "./identifiers.js";
 export * from "./model/index.js";
 export * from "./catalogSemanticBinder.js";
 export * from "./platformSemanticDiagnostics.js";
 export * from "./routineCall.js";
 export * from "./vectorSemanticDiagnostics.js";
-export * from "./scaffoldBinder.js";

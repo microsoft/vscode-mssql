@@ -1,59 +1,41 @@
-# T-SQL grammar provenance and coverage
+# Grammar provenance and maintenance
 
-The language service implements an independently expressed Lezer grammar. It uses the following
-Microsoft sources as behavioral references; generated parsers or parser implementation code are not
-copied into the package.
+The T-SQL grammar, tokenizers, recovery policy, semantic model, and diagnostics in this package are
+maintained as an independent implementation under the repository MIT license. They are not generated
+from another parser and do not create a runtime dependency on one.
 
-## Authorities
+Rules are derived from public SQL Server, Azure SQL, Azure Synapse, and Fabric documentation plus
+independently maintained positive, negative, incomplete-input, dialect, and real-world fixtures in
+this repository. Public conformance tools may be used as differential evidence, but a differential
+result is reviewed rather than copied or treated as the implementation.
 
-| Concern                                | Primary reference                                           | How it is used                                                                                |
-| -------------------------------------- | ----------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| Syntax validity and versioned grammar  | ScriptDOM `TSql150.g`, `TSql160.g`, and `TSql170.g`         | Rule shape, legal alternatives, and SQL Server 2019/2022/2025 feature availability            |
-| Editor recovery and syntax diagnostics | SqlParser `sql.150.y`, `sql.160.y`, and `sql.170.y`         | Recovery boundaries and the message, severity, and UTF-16 span expected for malformed input   |
-| Reserved and contextual vocabulary     | SqlParser `Keywords/keywords.txt` and `ContextKeywords.txt` | The committed generated keyword catalog used by token classification and grammar specializers |
-| Lossless lexical behavior              | `dev/query` lexer                                           | Trivia, exact offsets, line-start state, batch separators, and incremental/full equivalence   |
+## Required change discipline
 
-The checked source inventories contain 480, 482, and 486 top-level ScriptDOM parser rules for
-versions 150, 160, and 170. The corresponding SqlParser grammars contain 1,663, 1,685, and 1,716
-productions. The keyword catalog contains 183 unique globally reserved spellings and 347 unique
-contextual spellings (524 unique spellings in the union at the time of import).
+Every grammar change includes:
 
-Run the explicit importer when SqlParser's keyword catalogs change:
+1. a short comment explaining the construct and any ambiguity or recovery choice;
+2. positive tests for supported complete forms;
+3. negative tests proving nearby invalid forms remain invalid;
+4. incomplete-typing and next-statement recovery tests where the construct is editor-facing;
+5. incremental-versus-fresh equivalence;
+6. per-fixture corpus deltas with no hidden regression;
+7. a same-machine benchmark when a hot or ambiguous rule changes.
+
+Generated files under `src/syntax/lezer/generated/` are committed and protected by an input/output
+hash. Run:
 
 ```powershell
-node scripts/import-sqlparser-keywords.mjs --sqlparser-root C:\path\to\SqlParser
+npm run build:grammar
+npm run check:grammar
 ```
 
-Normal builds consume the committed `src/syntax/keywords.generated.ts` file and do not depend on a
-local SqlParser checkout.
+The keyword registry is committed source. Updates must cite the public product documentation that
+introduced, changed, or removed the keyword and must keep token classification, completion, and
+profile availability in agreement.
 
-## Version policy
+## Diagnostic evidence
 
-The supported profiles are SQL Server 2019 (compatibility 150), SQL Server 2022 (160), and SQL
-Server 2025 (170). The parser accepts the structural superset needed by an editor. Feature-profile
-diagnostics report syntax that is unavailable for the selected engine or compatibility level.
-
-Keyword recognition is not restricted to keywords introduced in those three releases. The complete
-T-SQL vocabulary remains classified so that older, deprecated, administrative, and contextual
-constructs can be parsed and colored correctly. Contextual words remain valid identifiers outside
-the grammar contexts that give them keyword meaning.
-
-## Porting rules
-
-1. Every Lezer rule has a short comment stating its purpose.
-2. Every added rule has positive, negative, recovery, and incremental/full-equivalence tests where
-   those cases are meaningful.
-3. Syntax diagnostics are compared to SqlParser's message, severity, and exact UTF-16 span.
-4. Unsupported syntax remains visible as an error node; it is never hidden by a generic
-   "unknown statement" production.
-5. Grammar helper rules stay unnamed where possible so the retained tree contains semantic
-   structure rather than punctuation wrappers.
-6. Benchmarks run after coherent rule groups and track correctness separately from latency,
-   throughput, retained tree size, and incremental reuse.
-
-## Coverage order
-
-The port proceeds in reviewable vertical slices: lexical/script/batch foundations; expressions and
-queries; DML; table and programmable-object DDL; control flow; security and administration; then
-specialized SQL Server 2019/2022/2025 features such as JSON and vector indexes/search. Coverage is
-tracked against both grammar inventories rather than inferred from a handful of example files.
+Syntax and semantic diagnostics are asserted by stable code, severity, message, and exact UTF-16
+range. Message catalogs alone are not evidence that a diagnostic exists: each supported family has
+an executable positive and negative path, and unknown metadata never becomes an authoritative
+absence diagnostic.

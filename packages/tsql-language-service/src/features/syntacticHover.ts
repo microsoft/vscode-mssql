@@ -5,6 +5,7 @@
 
 import { lookupBuiltIn } from "../common/builtInRegistry.js";
 import type { SyntaxNode, SyntaxSnapshot } from "../syntax/index.js";
+import { ancestorOfKind } from "../syntax/treeUtilities.js";
 import type { HoverResult } from "./contracts.js";
 
 /**
@@ -39,12 +40,12 @@ export function syntacticHover(
         return { range: range(leaf), markdown: `**label** \`${declared}\`` };
     }
 
-    const name = ancestor(leaf, "IdentifierName");
+    const name = ancestorOfKind(leaf, ["IdentifierName"]);
     if (!name) return undefined;
     const parent = name.parent();
     if (!parent) return undefined;
 
-    const dataType = ancestor(leaf, "DataTypeName");
+    const dataType = ancestorOfKind(leaf, ["DataTypeName"]);
     if (dataType) {
         // A user-defined type resolves through the catalog; only built-in spellings land here.
         const spelling = text(dataType).replaceAll(/\s+/gu, " ").trim();
@@ -59,7 +60,10 @@ export function syntacticHover(
         }
     }
 
-    if (ancestor(leaf, "CursorDeclaration") || ancestor(leaf, "CursorLifecycleStatement")) {
+    if (
+        ancestorOfKind(leaf, ["CursorDeclaration"]) ||
+        ancestorOfKind(leaf, ["CursorLifecycleStatement"])
+    ) {
         return { range: range(name), markdown: `**cursor** \`${text(name)}\`` };
     }
     if (parent.kind === "GotoStatement") {
@@ -89,7 +93,7 @@ export function syntacticHover(
                     range: range(parts[0]!),
                     markdown: heading(
                         "built-in function",
-                        routine.toLocaleUpperCase(),
+                        routine.toUpperCase(),
                         describeRoutine(routine),
                     ),
                 };
@@ -109,7 +113,7 @@ export function isRoutineParameter(
     declaration: { readonly start: number; readonly end: number },
 ): boolean {
     const inside = Math.min(declaration.start + 1, declaration.end);
-    return ancestor(syntax.nodeAt(inside), "ProcedureParameter") !== undefined;
+    return ancestorOfKind(syntax.nodeAt(inside), ["ProcedureParameter"]) !== undefined;
 }
 
 const indexOwnerStatements = new Set([
@@ -120,13 +124,6 @@ const indexOwnerStatements = new Set([
     "AlterIndexStatement",
     "CreateStatisticsStatement",
 ]);
-
-function ancestor(node: SyntaxNode, kind: string): SyntaxNode | undefined {
-    for (let current: SyntaxNode | undefined = node; current; current = current.parent()) {
-        if (current.kind === kind) return current;
-    }
-    return undefined;
-}
 
 /** A heading naming what the token is, followed by its documentation when there is any. */
 function heading(kind: string, name: string, documentation?: string): string {

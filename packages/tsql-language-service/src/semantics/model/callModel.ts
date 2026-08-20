@@ -16,6 +16,7 @@ import type { SyntaxNode, SyntaxSnapshot, TsqlFeatureProfile } from "../../synta
 import {
     directChildOfKind as directChild,
     firstDescendantOfKind as firstDescendant,
+    syntaxSource,
 } from "../../syntax/treeUtilities.js";
 import type { TextRange } from "../../text/index.js";
 import { multipartIdentifierParts } from "../identifiers.js";
@@ -180,7 +181,7 @@ function keywordCallName(node: SyntaxNode): SyntaxNode | undefined {
 function specialCall(input: CallModelInput, node: SyntaxNode, routine: string): ResolvedCall {
     // CONVERT and PARSE share a node with their TRY_ form, so the written spelling decides.
     const written = /^[A-Za-z_]+/u.exec(source(input, node))?.[0];
-    const name = written ? written.toLocaleUpperCase() : routine;
+    const name = written ? written.toUpperCase() : routine;
     const target: CallTarget = { kind: "builtin", name };
     const items = [...node.children()].filter((child) => child.kind === "Expression");
     return freezeCall({
@@ -252,10 +253,7 @@ function boundArguments(
     const result = items.map((item, index) => {
         const label = namedArgumentLabel(input, item);
         const parameter = label
-            ? known?.find(
-                  (candidate) =>
-                      candidate.name.toLocaleUpperCase() === label.name.toLocaleUpperCase(),
-              )
+            ? known?.find((candidate) => candidate.name.toUpperCase() === label.name.toUpperCase())
             : known?.[index];
         return Object.freeze({
             range: { start: item.start, end: item.end },
@@ -309,7 +307,7 @@ function resolveTarget(
         // built-in: resolving it as something else is what let a gated construct escape its own
         // availability decision. Availability is applied where signatures are offered, below.
         const builtIn = lookupBuiltIn(written, "routine");
-        if (builtIn) return { kind: "builtin", name: builtIn.name.toLocaleUpperCase() };
+        if (builtIn) return { kind: "builtin", name: builtIn.name.toUpperCase() };
     }
     const local = input.timeline.resolve(parts, offset);
     if (local?.exists && local.kind) {
@@ -435,7 +433,7 @@ function separatorOffsets(node: SyntaxNode, kinds: readonly string[]): readonly 
 }
 
 function source(input: CallModelInput, node: SyntaxNode): string {
-    return input.syntax.document.text.slice(node.start, node.end);
+    return syntaxSource(input.syntax, node);
 }
 
 function freezeCall(call: ResolvedCall): ResolvedCall {

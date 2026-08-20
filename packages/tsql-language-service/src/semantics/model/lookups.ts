@@ -42,6 +42,9 @@ export interface RangeIndex<T> {
      */
     endingBefore(offset: number): Iterable<T>;
 
+    /** The shortest item containing `offset`, or undefined when none does. */
+    containing(offset: number): T | undefined;
+
     /** Every item, in the collection's original order, for a caller with no range to narrow by. */
     readonly all: readonly T[];
 }
@@ -57,6 +60,8 @@ class SortedRangeIndex<T> implements RangeIndex<T> {
     private readonly _byStart: readonly Positioned<T>[];
     /** Sorted by end offset, for the "what was complete here" question. */
     private readonly _byEnd: readonly Positioned<T>[];
+    /** Greatest end offset at or before each `_byStart` entry. */
+    private readonly _prefixMaxEnd: readonly number[];
     public readonly all: readonly T[];
 
     public constructor(items: readonly T[], rangeOf: (item: T) => TextRange) {
@@ -69,6 +74,11 @@ class SortedRangeIndex<T> implements RangeIndex<T> {
             (left, right) =>
                 left.range.end - right.range.end || left.range.start - right.range.start,
         );
+        let maximum = -1;
+        this._prefixMaxEnd = this._byStart.map((entry) => {
+            maximum = Math.max(maximum, entry.range.end);
+            return maximum;
+        });
     }
 
     public within(range: TextRange): readonly T[] {
@@ -90,6 +100,22 @@ class SortedRangeIndex<T> implements RangeIndex<T> {
         for (let index = lastEndingAtOrBefore(this._byEnd, offset); index >= 0; index--) {
             yield this._byEnd[index]!.item;
         }
+    }
+
+    public containing(offset: number): T | undefined {
+        let index = lastStartingAtOrBefore(this._byStart, offset);
+        let best: Positioned<T> | undefined;
+        while (index >= 0 && this._prefixMaxEnd[index]! >= offset) {
+            const entry = this._byStart[index]!;
+            if (
+                entry.range.end >= offset &&
+                (!best || entry.range.end - entry.range.start < best.range.end - best.range.start)
+            ) {
+                best = entry;
+            }
+            index--;
+        }
+        return best?.item;
     }
 }
 
@@ -113,6 +139,23 @@ function lastEndingAtOrBefore<T>(entries: readonly Positioned<T>[], offset: numb
     while (low <= high) {
         const middle = (low + high) >> 1;
         if (entries[middle]!.range.end <= offset) {
+            found = middle;
+            low = middle + 1;
+        } else {
+            high = middle - 1;
+        }
+    }
+    return found;
+}
+
+/** The last index whose item starts at or before `offset`, or -1 when none does. */
+function lastStartingAtOrBefore<T>(entries: readonly Positioned<T>[], offset: number): number {
+    let low = 0;
+    let high = entries.length - 1;
+    let found = -1;
+    while (low <= high) {
+        const middle = (low + high) >> 1;
+        if (entries[middle]!.range.start <= offset) {
             found = middle;
             low = middle + 1;
         } else {
@@ -172,7 +215,7 @@ export function columnIndexFor(relations: readonly BoundRelation[]): ColumnIndex
     relations.forEach((relation, order) => {
         if (relation.columns === "unknown") return;
         for (const column of relation.columns) {
-            const folded = column.name.toLocaleLowerCase();
+            const folded = column.name.toLowerCase();
             const bindings = byName.get(folded) ?? [];
             bindings.push({ relation, column, order });
             byName.set(folded, bindings);

@@ -6,7 +6,7 @@
 import { lookupBuiltIn } from "../common/builtInRegistry.js";
 import { resolveAnalysisProfile } from "../common/analysisProfile.js";
 import type { ColumnMetadata, ObjectMetadata, ObjectRef } from "../metadata/index.js";
-import type { SyntaxNode } from "../syntax/index.js";
+import type { SyntaxKind, SyntaxNode } from "../syntax/index.js";
 import {
     descendantsOfKind as descendants,
     directChildOfKind as directChild,
@@ -15,10 +15,11 @@ import {
     visitSyntaxTree as visit,
 } from "../syntax/treeUtilities.js";
 import type { TextRange } from "../text/index.js";
+import { textRangeKey as rangeKey } from "../text/index.js";
 import {
+    multipartIdentifierPartRanges,
     multipartIdentifierParts,
     normalizeIdentifier,
-    parseMultipartName,
 } from "./identifiers.js";
 import type {
     BindInput,
@@ -38,6 +39,7 @@ import type {
     SemanticModel,
 } from "./model/contracts.js";
 import { buildExpressionTypes } from "./model/expressionTypes.js";
+import { columnAllowsNull } from "./model/declarationFacts.js";
 import { rangeIndexFor } from "./model/lookups.js";
 import {
     buildSemanticModel,
@@ -218,7 +220,7 @@ export class CatalogSemanticBinder implements SemanticBinder {
             const fold = (value: string): string =>
                 input.metadata.environment.caseSensitive
                     ? normalizeIdentifier(value)
-                    : normalizeIdentifier(value).toLocaleLowerCase();
+                    : normalizeIdentifier(value).toLowerCase();
             const unitDiagnostics = [
                 ...vectorSemanticDiagnostics(input.syntax, batch),
                 ...platformSemanticDiagnostics(input.syntax, batch, input.metadata),
@@ -300,9 +302,8 @@ export class CatalogSemanticBinder implements SemanticBinder {
                         input.syntax.document.text.slice(nameNode.start, nameNode.end),
                     );
                     const typeNode = firstDescendant(column, "DataType");
-                    const source = input.syntax.document.text.slice(column.start, column.end);
                     const symbol: SemanticSymbol = {
-                        id: `${owner.id}:column:${name.toLocaleLowerCase()}`,
+                        id: `${owner.id}:column:${name.toLowerCase()}`,
                         name,
                         kind: "column",
                         declaration: { start: nameNode.start, end: nameNode.end },
@@ -313,13 +314,13 @@ export class CatalogSemanticBinder implements SemanticBinder {
                                           typeNode.start,
                                           typeNode.end,
                                       ),
-                                      nullable: !/\bNOT\s+NULL\b/iu.test(source),
+                                      nullable: columnAllowsNull(column),
                                   },
                               }
                             : {}),
                     };
                     registerSymbol(symbol);
-                    members.set(name.toLocaleLowerCase(), symbol.id);
+                    members.set(name.toLowerCase(), symbol.id);
                 }
                 columnsBySource.set(owner.id, members);
             };
@@ -340,13 +341,13 @@ export class CatalogSemanticBinder implements SemanticBinder {
                         input.syntax.document.text.slice(nameNode.start, nameNode.end),
                     );
                     const symbol: SemanticSymbol = {
-                        id: `${owner.id}:column:${name.toLocaleLowerCase()}`,
+                        id: `${owner.id}:column:${name.toLowerCase()}`,
                         name,
                         kind: "column",
                         declaration: { start: nameNode.start, end: nameNode.end },
                     };
                     registerSymbol(symbol);
-                    members.set(name.toLocaleLowerCase(), symbol.id);
+                    members.set(name.toLowerCase(), symbol.id);
                 }
                 columnsBySource.set(owner.id, members);
             };
@@ -398,7 +399,7 @@ export class CatalogSemanticBinder implements SemanticBinder {
                           input.syntax.document.text.slice(name.start, name.end),
                       )
                     : [];
-                if (parts.at(-1)?.toLocaleUpperCase() === "OPENJSON") {
+                if (parts.at(-1)?.toUpperCase() === "OPENJSON") {
                     registerSyntheticColumn(owner, "key", "nvarchar(4000)");
                     registerSyntheticColumn(owner, "value", "nvarchar(max)");
                     registerSyntheticColumn(owner, "type", "int");
@@ -430,7 +431,7 @@ export class CatalogSemanticBinder implements SemanticBinder {
                 if (event.columns && !columnsBySource.has(id)) {
                     const members = new Map<string, SymbolId>();
                     for (const column of event.columns) {
-                        const columnId = `${id}:column:${column.name.toLocaleLowerCase()}`;
+                        const columnId = `${id}:column:${column.name.toLowerCase()}`;
                         if (!symbols.has(columnId)) {
                             symbols.set(columnId, {
                                 id: columnId,
@@ -442,7 +443,7 @@ export class CatalogSemanticBinder implements SemanticBinder {
                                 },
                             });
                         }
-                        members.set(column.name.toLocaleLowerCase(), columnId);
+                        members.set(column.name.toLowerCase(), columnId);
                     }
                     columnsBySource.set(id, members);
                 }
@@ -461,7 +462,7 @@ export class CatalogSemanticBinder implements SemanticBinder {
                     const displayName =
                         typeNode && input.syntax.document.text.slice(typeNode.start, typeNode.end);
                     const symbol: SemanticSymbol = {
-                        id: `variable:${batch.start}:${normalizeIdentifier(name).toLocaleLowerCase()}`,
+                        id: `variable:${batch.start}:${normalizeIdentifier(name).toLowerCase()}`,
                         name,
                         kind: "variable",
                         declaration: { start: variable.start, end: variable.end },
@@ -759,7 +760,7 @@ export class CatalogSemanticBinder implements SemanticBinder {
                     const symbol = [...unitSymbols.values()].find(
                         (candidate) =>
                             candidate.kind === "variable" &&
-                            candidate.name.toLocaleLowerCase() === name.toLocaleLowerCase(),
+                            candidate.name.toLowerCase() === name.toLowerCase(),
                     );
                     if (symbol) {
                         registerReference({
@@ -775,7 +776,7 @@ export class CatalogSemanticBinder implements SemanticBinder {
                     const parts = multipartIdentifierParts(
                         input.syntax.document.text.slice(assigned.start, assigned.end),
                     );
-                    const columnName = parts.at(-1)?.toLocaleLowerCase();
+                    const columnName = parts.at(-1)?.toLowerCase();
                     const target = columnName && dmlTargetColumn(node, columnName);
                     if (target) {
                         registerReference({
@@ -789,7 +790,7 @@ export class CatalogSemanticBinder implements SemanticBinder {
                     if (ancestorNode(node, "DataType")) return;
                     const text = input.syntax.document.text.slice(node.start, node.end);
                     const parts = multipartIdentifierParts(text);
-                    const columnName = parts.at(-1)?.toLocaleLowerCase();
+                    const columnName = parts.at(-1)?.toLowerCase();
                     if (!columnName) return;
                     if (parts.length === 1) {
                         const targetColumn = dmlTargetColumn(node, columnName);
@@ -828,7 +829,9 @@ export class CatalogSemanticBinder implements SemanticBinder {
                     if (outputPseudoTables.has(fold(qualifier))) {
                         const target = dmlTargetColumn(node, columnName);
                         if (target) {
-                            const columnRange = identifierPartRanges(node, text).at(-1)!;
+                            const columnRange = multipartIdentifierPartRanges(text, node.start).at(
+                                -1,
+                            )!;
                             registerReference({
                                 start: columnRange.start,
                                 end: columnRange.end,
@@ -840,7 +843,7 @@ export class CatalogSemanticBinder implements SemanticBinder {
                     }
                     const binding = visibleSource(node, qualifier);
                     if (!binding) return;
-                    const ranges = identifierPartRanges(node, text);
+                    const ranges = multipartIdentifierPartRanges(text, node.start);
                     const qualifierRange = ranges.at(-2);
                     if (qualifierRange) {
                         registerReference({
@@ -996,7 +999,7 @@ function rowsetAliasSymbol(
     object?: ObjectRef,
 ): SemanticSymbol {
     return {
-        id: `alias:${aliasName.start}:${normalizeIdentifier(name).toLocaleLowerCase()}`,
+        id: `alias:${aliasName.start}:${normalizeIdentifier(name).toLowerCase()}`,
         name,
         kind: "alias",
         declaration: { start: aliasName.start, end: aliasName.end },
@@ -1016,7 +1019,10 @@ interface CatalogReferenceRule {
 const routineKinds = ["scalarFunction", "tableFunction"] as const;
 
 /** A rowset name reaches its parts through a wrapper the grammar shares across statements. */
-function rowsetName(node: SyntaxNode, wrapper = "TableSourceName"): SyntaxNode | undefined {
+function rowsetName(
+    node: SyntaxNode,
+    wrapper: SyntaxKind = "TableSourceName",
+): SyntaxNode | undefined {
     const held = directChild(node, wrapper);
     return held ? directChild(held, "MultipartIdentifier") : undefined;
 }
@@ -1147,14 +1153,6 @@ function catalogSymbol(object: ObjectMetadata): SemanticSymbol {
         kind: object.kind,
         object: object.ref,
     };
-}
-
-function identifierPartRanges(node: SyntaxNode, text: string): readonly TextRange[] {
-    return parseMultipartName(text, node.start).parts.map((part) => part.range);
-}
-
-function rangeKey(range: TextRange): string {
-    return `${range.start}:${range.end}`;
 }
 
 function uniqueSymbolIds(symbols: readonly SymbolId[]): readonly SymbolId[] {

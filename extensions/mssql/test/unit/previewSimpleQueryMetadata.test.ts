@@ -34,6 +34,7 @@ suite("Preview language service integration", () => {
             replace: (input) => store.replace(input),
             merge: (input) => store.merge(input),
             replaceSection: (section, input) => store.replaceSection(section, input),
+            reportDataQuality: () => undefined,
         };
         const loader = new VscodeMssqlSimpleQueryMetadataLoader();
         await loader.refresh(executor, publisher);
@@ -134,7 +135,8 @@ suite("Preview language service integration", () => {
             value: [{ ordinal: 1, name: "@id", typeDisplay: "int", output: false }],
         });
         expect(view.columnState(systemResolution.object.ref).kind).to.equal("loaded");
-        expect(queries).to.have.length(8);
+        // Six identity reads plus one query for each of the three explicit hydrations above.
+        expect(queries).to.have.length(9);
 
         await loader.hydrate(
             executor,
@@ -204,6 +206,7 @@ suite("Preview language service integration", () => {
             replace: (input) => store.replace(input),
             merge: (input) => store.merge(input),
             replaceSection: (section, input) => store.replaceSection(section, input),
+            reportDataQuality: () => undefined,
         };
         const loader = new VscodeMssqlSimpleQueryMetadataLoader();
 
@@ -220,6 +223,148 @@ suite("Preview language service integration", () => {
         expect(queries).not.to.be.empty;
         expect(queries.every((query) => !query.includes("WITH (NOLOCK)"))).to.equal(true);
         expect(store.pin().columnState(resolution.object.ref).kind).to.equal("loaded");
+    });
+
+    test("drops unknown backend discriminators and reports redaction-safe quality events", async () => {
+        const events: { kind: string; field?: string }[] = [];
+        const executor: SimpleQueryExecutor = {
+            execute: async (query) => {
+                if (query.includes("sys.server_principals")) {
+                    return table(
+                        [
+                            "entry_kind",
+                            "database_name",
+                            "metadata_id",
+                            "schema_name",
+                            "principal_name",
+                            "principal_kind",
+                            "is_system",
+                        ],
+                        [
+                            ["schema", "LargeDb", "schema:1:1", "dbo", undefined, undefined, "0"],
+                            [
+                                "principal",
+                                undefined,
+                                "server-principal:999",
+                                undefined,
+                                "ShouldNotEscape",
+                                "futurePrincipalKind",
+                                "0",
+                            ],
+                        ],
+                    );
+                }
+                if (query.includes("FROM sys.types")) {
+                    return table(
+                        ["user_type_id", "schema_name", "type_name", "type_category"],
+                        [["999", "dbo", "ShouldNotEscape", "futureTypeCategory"]],
+                    );
+                }
+                if (query.includes("FROM sys.objects") || query.includes("FROM sys.all_objects")) {
+                    return table(
+                        ["object_id", "schema_name", "object_name", "object_type", "is_ms_shipped"],
+                        [["999", "dbo", "ShouldNotEscape", "ZZ", "0"]],
+                    );
+                }
+                return resultFor(query);
+            },
+        };
+        const store = new InMemoryMetadataProvider();
+        const publisher: SimpleQueryMetadataPublisher = {
+            replace: (input) => store.replace(input),
+            merge: (input) => store.merge(input),
+            replaceSection: (section, input) => store.replaceSection(section, input),
+            reportDataQuality: (event) => events.push(event),
+        };
+
+        await new VscodeMssqlSimpleQueryMetadataLoader().refresh(executor, publisher);
+
+        const view = store.pin();
+        expect(view.resolveObject(["dbo", "ShouldNotEscape"]).kind).to.equal("notFound");
+        expect(view.searchPrincipals({ prefix: "Should" })).to.deep.equal([]);
+        expect(events.map((event) => event.field)).to.include.members([
+            "object_type",
+            "type_category",
+            "principal_kind",
+        ]);
+        expect(JSON.stringify(events)).not.to.include("ShouldNotEscape");
+        expect(JSON.stringify(events)).not.to.include("futurePrincipalKind");
+    });
+
+    test("applies configured identity and detail limits and reports truncation", async () => {
+        const events: { kind: string; section?: string; limit?: number }[] = [];
+        const executor: SimpleQueryExecutor = {
+            execute: async (query) => {
+                if (query.includes("sys.all_columns")) {
+                    return table(
+                        [
+                            "column_id",
+                            "column_name",
+                            "type_name",
+                            "max_length",
+                            "precision",
+                            "scale",
+                            "is_nullable",
+                            "is_identity",
+                            "is_computed",
+                            "primary_key_ordinal",
+                        ],
+                        [
+                            ["1", "First", "int", "4", "10", "0", "0", "0", "0", undefined],
+                            ["2", "Second", "int", "4", "10", "0", "0", "0", "0", undefined],
+                        ],
+                    );
+                }
+                if (query.includes("FROM sys.objects") || query.includes("FROM sys.all_objects")) {
+                    const cursor = Number(/o\.object_id > (-?\d+)/u.exec(query)?.[1] ?? -1);
+                    const id = cursor < 1 ? 1 : cursor + 1;
+                    return table(
+                        ["object_id", "schema_name", "object_name", "object_type", "is_ms_shipped"],
+                        [[String(id), "dbo", `Object${id}`, "U", "0"]],
+                    );
+                }
+                return resultFor(query);
+            },
+        };
+        const store = new InMemoryMetadataProvider();
+        const publisher: SimpleQueryMetadataPublisher = {
+            replace: (input) => store.replace(input),
+            merge: (input) => store.merge(input),
+            replaceSection: (section, input) => store.replaceSection(section, input),
+            reportDataQuality: (event) => events.push(event),
+        };
+        const loader = new VscodeMssqlSimpleQueryMetadataLoader({
+            objectPageSize: 1,
+            objectResultLimit: 2,
+            detailResultLimit: 1,
+        });
+
+        await loader.refresh(executor, publisher);
+        const resolution = store.pin().resolveObject(["dbo", "Object1"]);
+        expect(resolution.kind).to.equal("resolved");
+        if (resolution.kind !== "resolved") throw new Error("Expected object");
+        await loader.hydrate(
+            executor,
+            { section: "columns", object: resolution.object.ref, priority: "interactive" },
+            publisher,
+        );
+
+        expect(store.pin().searchObjects({ prefix: "Object" })).to.have.length(2);
+        expect(store.pin().columnState(resolution.object.ref)).to.deep.equal({
+            kind: "loaded",
+            value: [
+                {
+                    name: "First",
+                    typeDisplay: "int",
+                    nullable: false,
+                    identity: undefined,
+                    computed: undefined,
+                    primaryKeyOrdinal: undefined,
+                },
+            ],
+        });
+        expect(events).to.deep.include({ kind: "truncated", section: "objects", limit: 2 });
+        expect(events).to.deep.include({ kind: "truncated", section: "columns", limit: 1 });
     });
 
     test("allows extra hydration time only for an empty completion result", () => {
@@ -271,6 +416,7 @@ suite("Preview language service integration", () => {
             replace: (input) => store.replace(input),
             merge: (input) => store.merge(input),
             replaceSection: (section, input) => store.replaceSection(section, input),
+            reportDataQuality: () => undefined,
         };
 
         principalRefresh = true;
