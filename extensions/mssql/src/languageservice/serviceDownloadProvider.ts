@@ -37,7 +37,7 @@ export default class ServiceDownloadProvider {
     /**
      * Returns the download url for given platform
      */
-    private getRuntimeDownloadPackageFileName(platform: Runtime): string {
+    public getRuntimeDownloadPackageFileName(platform: Runtime): string {
         let fileNamesJson = this._config.getSqlToolsConfigValue("downloadFileNames") as Record<
             string,
             string | undefined
@@ -163,6 +163,41 @@ export default class ServiceDownloadProvider {
             this._logger.info(`[ERROR] ${err}`);
             throw err;
         }
+        return true;
+    }
+
+    /**
+     * Installs SQL Tools Service from a package that has already been downloaded.
+     */
+    public async installServiceFromPackage(
+        platform: Runtime,
+        packagePath: string,
+    ): Promise<boolean> {
+        const packageStats = await fs.stat(packagePath).catch(() => undefined);
+        if (!packageStats?.isFile()) {
+            throw new Error(`SQL Tools Service package not found: ${packagePath}`);
+        }
+
+        const installDirectory = await this.getOrCreateInstallDirectory(platform);
+        this._logger.info(`${Constants.serviceInstallingTo} ${installDirectory}.`);
+
+        const pkg: IPackage = {
+            installPath: installDirectory,
+            url: packagePath,
+            tmpFile: undefined,
+            isZipFile: path.extname(packagePath) === ".zip",
+        };
+        pkg.tmpFile = await this.createTempPackageFile(pkg);
+
+        try {
+            await fs.copyFile(packagePath, pkg.tmpFile.name);
+            this._logger.debug(`Copied package to ${pkg.tmpFile.name}...`);
+            await this.decompressAndInstallPackage(pkg);
+        } catch (err) {
+            this._logger.info(`[ERROR] ${err}`);
+            throw err;
+        }
+
         return true;
     }
 
