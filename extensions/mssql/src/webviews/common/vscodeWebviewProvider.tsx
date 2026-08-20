@@ -159,8 +159,6 @@ export function VscodeWebviewProvider<State, Reducers>({ children }: VscodeWebvi
                         await l10n.config({
                             contents: fileContents,
                         });
-                        // Brief delay to ensure l10n is properly initialized
-                        await new Promise((resolve) => setTimeout(resolve, 100));
                         LocConstants.createInstance();
                     }
                 } catch (error) {

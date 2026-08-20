@@ -300,7 +300,7 @@ export namespace ReducerRequest {
 export interface LoadStatsParams {
     loadCompleteTimeStamp: number;
     /**
-     * Elapsed milliseconds from webview JS start for each startup stage.
+     * Elapsed milliseconds from the start of the bootstrap sequence for each startup stage.
      */
     stages?: Record<string, number>;
 }
