@@ -268,6 +268,7 @@ suite("Status View Tests", () => {
         });
 
         test("executedQuery sets statusQuery text and hides when showQueryExecutionStatus is enabled", () => {
+            const clock = sandbox.useFakeTimers();
             sandbox.stub(vscode.workspace, "getConfiguration").returns({
                 get: sandbox.stub().callsFake((section: string, defaultValue: unknown) => {
                     if (section === "editor") {
@@ -283,6 +284,11 @@ suite("Status View Tests", () => {
             statusView.executedQuery(fileUri);
 
             expect(statusQuery.text).to.equal(LocalizedConstants.QueryExecutedLabel);
+            expect(statusQuery.hide).to.not.have.been.called;
+
+            clock.tick(200);
+
+            expect(statusQuery.hide).to.have.been.calledOnce;
             statusView.dispose();
         });
 
