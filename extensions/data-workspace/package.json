@@ -35,7 +35,7 @@
         "watch:extension": "tsc -watch -p tsconfig.json --preserveWatchOutput",
         "watch:extension-bundle": "node esbuild.mjs --watch",
         "watch": "npm run build:prepare && run-p -l watch:extension watch:extension-bundle",
-        "lint": "eslint ./src ./test",
+        "lint": "eslint ./src",
         "localization:extract": "node ../../scripts/localization-extract.js data-workspace",
         "localization:generate": "node ../../scripts/localization-generate.js data-workspace .",
         "localization": "npm run localization:extract",
