@@ -331,6 +331,9 @@
     <trans-unit id="++CODE++6ae05840acdd06389f12106699a3e0a576640acff674dba36b6f0c4720913361">
       <source xml:lang="en">All Files (*.*)</source>
     </trans-unit>
+    <trans-unit id="++CODE++80c43c38e97b1fd6b4b2eda6132cd4dd155dc65661361224c56dafe6ad3f7a4e">
+      <source xml:lang="en">All Project Types</source>
+    </trans-unit>
     <trans-unit id="++CODE++00cf214a7dfb7d94c1e2ff944723bb21250ac45fa4fbf9add906bd3532c56563">
       <source xml:lang="en">All Schemas</source>
     </trans-unit>
@@ -1211,6 +1214,12 @@
       <source xml:lang="en">Clear {0} filter</source>
       <note>{0} is a filter property name</note>
     </trans-unit>
+    <trans-unit id="++CODE++b2038796cc82692ba0c9cbbe3a19c54c677bff6216a35fb3345ca939957ced9a">
+      <source xml:lang="en">Click &quot;Learn More&quot; button for more information about SDK-style projects</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2e2838f3ed9e160a6a76e5e98377f1c3fd91c9a37587b2206cd6b41543ce0d21">
+      <source xml:lang="en">Click &quot;Learn more&quot; button for more information about local development experience to {0}</source>
+    </trans-unit>
     <trans-unit id="++CODE++4e0d71f8a0b3fdc5cdaba4028072ad8cf788bac47864232a1988ac9453453a36">
       <source xml:lang="en">Click to cancel loading summary</source>
     </trans-unit>
@@ -1234,6 +1243,9 @@
     </trans-unit>
     <trans-unit id="++CODE++b88d22f627afd019becae5972c1ad1c05cca30f1c24c21e6a1ebf5492207904b">
       <source xml:lang="en">Client secret is required.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1b766c528b25b99b2639efd01ddb11d6571480dc7adc8411b49c45c9167da4a3">
+      <source xml:lang="en">Cloning git repository &apos;{0}&apos;...</source>
     </trans-unit>
     <trans-unit id="++CODE++7d9eb7acb13e24625c404401d8e88b2350e32162455885f18276cf802f7701ed">
       <source xml:lang="en">Close</source>
@@ -2008,6 +2020,9 @@
       <source xml:lang="en">Create new connection copied from {0}</source>
       <note>{0} is the name of the connection profile</note>
     </trans-unit>
+    <trans-unit id="++CODE++b325e98228f146b279c4ce780a9e0cedbb59737395726a3a51ea2c5569b425a6">
+      <source xml:lang="en">Create new database project</source>
+    </trans-unit>
     <trans-unit id="++CODE++7ec04ea2bc2ba275e7471e9e6ec9ed4764f7c069d84e751a4652cb5bd3cba6b7">
       <source xml:lang="en">Create new firewall rule for {0}</source>
       <note>{0} is the server name that the firewall rule will be created for</note>
@@ -2375,6 +2390,9 @@
     <trans-unit id="++CODE++ba142112330ecabeb92c1588f850c838091bcfd621fa97b344e2d9e73a3b7314">
       <source xml:lang="en">Differential</source>
     </trans-unit>
+    <trans-unit id="++CODE++a5ae618cb3167a304d3c5c6c4ab64a1e6370431b7d8d18093ce828c7735f5300">
+      <source xml:lang="en">Directory &apos;{0}&apos; already exists in the selected location, please choose another</source>
+    </trans-unit>
     <trans-unit id="++CODE++33df1f7746d428f19493d14c875c60ddc71befd7377ba92d4fc578bc3529b993">
       <source xml:lang="en">Directory not found</source>
     </trans-unit>
@@ -2455,6 +2473,9 @@
     </trans-unit>
     <trans-unit id="++CODE++79520a5688933d6fc7b0f540292cbbfb2898a9edc2d85d0ee231b6ed63adaad1">
       <source xml:lang="en">Do you want to always display query results in a new tab instead of the query pane?</source>
+    </trans-unit>
+    <trans-unit id="++CODE++cb997dad2c497f2da09a062a52ab0e4a22bc9372cafb01a7bbfd2b3942628e63">
+      <source xml:lang="en">Do you want to configure SQL project build as the default build configuration for this folder?</source>
     </trans-unit>
     <trans-unit id="++CODE++3c96c6d1388e41b0724659fa022b1843dea4a84d175a1d571bf72382fc0c3581">
       <source xml:lang="en">Do you want to enable &apos;Trust server certificate&apos; on this connection and retry?</source>
@@ -2671,6 +2692,9 @@
     <trans-unit id="++CODE++9fe6b769c35efbcf43d8dcbfced2ae4a84372d540d787211cc31759ad50838f2">
       <source xml:lang="en">Enter Database Name</source>
     </trans-unit>
+    <trans-unit id="++CODE++a53f76514aa558f0840e1bf4ffdce6620cd71d4304fd0893f6568f82076077b0">
+      <source xml:lang="en">Enter Project Name</source>
+    </trans-unit>
     <trans-unit id="++CODE++a1afcfa3e45c63a614a4d0646298473382e20d077466ce245a0f991dbe7f0a22">
       <source xml:lang="en">Enter a date...</source>
     </trans-unit>
@@ -2733,6 +2757,12 @@
     </trans-unit>
     <trans-unit id="++CODE++0a6b9ae24f863f5d06e0151c62f16b9327fdac6783807dc163e953559aa8287f">
       <source xml:lang="en">Enter profile name</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d7caaddcb1559a9c6e14134143691acc8adabe992567bed4226ff812667142b2">
+      <source xml:lang="en">Enter project name</source>
+    </trans-unit>
+    <trans-unit id="++CODE++02d4e79350a06158de9d2f10a6c61ff555481526142dd96aec5aff940bba298d">
+      <source xml:lang="en">Enter remote git repository URL</source>
     </trans-unit>
     <trans-unit id="++CODE++aae46441eaafc59419fdc91d2a14f13e534b533fecd19a1b47833c18862731fe">
       <source xml:lang="en">Enter resource group name</source>
@@ -2808,6 +2838,9 @@
       <source xml:lang="en">Error creating firewall rule {0}.  Check your Azure account settings and try again.  Error: {1}</source>
       <note>{0} is the rule info in format &apos;name (startIp - endIp)&apos;
 {1} is the error message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++051c2e5dc459d609983ac6e5df61edbb18bbdaf94dcb3889f284ea09d0135ebb">
+      <source xml:lang="en">Error during git clone. View git output for more details</source>
     </trans-unit>
     <trans-unit id="++CODE++2cd189703476b72bd7cc6cd98d4bf8b31d5195cd52cfc039745f164e6691c5d2">
       <source xml:lang="en">Error fetching schemas for the selected database.</source>
@@ -3403,6 +3436,9 @@
     <trans-unit id="++CODE++3124ddbedded23af64f8d5506005863517b446c2767c1d81660d1074b969e089">
       <source xml:lang="en">Failed to load publish profile</source>
     </trans-unit>
+    <trans-unit id="++CODE++a68ab76025d92362fc73dc8c8b31f961e7dcfb30771d019e2242becce106b19f">
+      <source xml:lang="en">Failed to load the project provider extension &apos;{0}&apos;. Error message: {1}</source>
+    </trans-unit>
     <trans-unit id="++CODE++b93e0a97fce96dfc718e10b11f3d87cd992eaaf44707ea040271b2ca47843a9f">
       <source xml:lang="en">Failed to move file to the new schema folder: {0}</source>
     </trans-unit>
@@ -3578,6 +3614,9 @@
     <trans-unit id="++CODE++50009ce1da4d15e1c4a04024df691eed5f0d598e2c4c67092f205366d0adf99e">
       <source xml:lang="en">File</source>
     </trans-unit>
+    <trans-unit id="++CODE++9cdb4da34cf303d675f00bb4074b9a66c482e814bab96be22c6db5790bdb5f99">
+      <source xml:lang="en">File &apos;{0}&apos; doesn&apos;t exist</source>
+    </trans-unit>
     <trans-unit id="++CODE++31931e62a8801e325b804a8294c1fe6b3fbdc62f18681f8f026f141510e20b91">
       <source xml:lang="en">File (Read-Only)</source>
     </trans-unit>
@@ -3595,6 +3634,18 @@
     </trans-unit>
     <trans-unit id="++CODE++a3a4d0c022524969abf24005eb7836117737d6afe6a3a64cff6e900fb06a7aa6">
       <source xml:lang="en">File is required</source>
+    </trans-unit>
+    <trans-unit id="++CODE++743a2236d1a76d25d339b730eaf23e16075ac75d93f880b0a1f22811581f6dab">
+      <source xml:lang="en">File name cannot be over 255 characters</source>
+    </trans-unit>
+    <trans-unit id="++CODE++407d7103e0302f8d5a2db233c6acaeb9802af4fd4386d2b4640b66f8496519b2">
+      <source xml:lang="en">File name cannot be whitespace</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b4a674a796656b801a531abacedb26b51632121b4ee1954164593bb7868dddd0">
+      <source xml:lang="en">File name cannot end with a period</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7c06f736aa55b5fe2f16aca769fe9b7647f2b6797c4b7e7629c38be458c69dc2">
+      <source xml:lang="en">File name cannot start or end with whitespace</source>
     </trans-unit>
     <trans-unit id="++CODE++6f68fab010563e4334d34ad75407ae64b42cb41c2516e861be7100f3b0ef36a2">
       <source xml:lang="en">File name is required</source>
@@ -3941,6 +3992,9 @@
     <trans-unit id="++CODE++bccb449867268397632519e5695a6bb611a30529b735cac4f7d5ecbaee80e785">
       <source xml:lang="en">Getting definition ...</source>
     </trans-unit>
+    <trans-unit id="++CODE++8b4079e3f24ee61b62917b7334fe2278bdcfbc3f354e431a30e6940c7e702683">
+      <source xml:lang="en">Git repository URL</source>
+    </trans-unit>
     <trans-unit id="++CODE++4ca83197033d1e5e20827525979b5a9323123783e32732e26731412bc6d59ce7">
       <source xml:lang="en">GitHub Copilot - VS Code walkthrough</source>
     </trans-unit>
@@ -4218,6 +4272,9 @@
     <trans-unit id="++CODE++388f0e37447ebf20167d7d8b0d203a21e726eb2d60ec4b09c13480cdadff59ee">
       <source xml:lang="en">Invalid file</source>
     </trans-unit>
+    <trans-unit id="++CODE++fa8fe520cd81301517dfb9ce3b0863518554df947341899e49b88b2e3f077c7e">
+      <source xml:lang="en">Invalid file characters</source>
+    </trans-unit>
     <trans-unit id="++CODE++f23f5034c0f7290a53b9c27d9005cd69d60da06ac62b692fdf5f4d2877faee16">
       <source xml:lang="en">Invalid file extension. Expected .dacpac or .bacpac</source>
     </trans-unit>
@@ -4363,6 +4420,9 @@
       <source xml:lang="en">List functions for connection &apos;{0}&apos; (ID: {1})?</source>
       <note>{0} is the connection display name
 {1} is the connection ID</note>
+    </trans-unit>
+    <trans-unit id="++CODE++acede15b0f2842335d351129cc42de3c07c067fef8a6300a03b41943fcf75fbe">
+      <source xml:lang="en">List of opened projects should not be undefined after refresh from disk.</source>
     </trans-unit>
     <trans-unit id="++CODE++6369f67786ac3f6d5ed439f3eea6ab7cf1f8acfa25ba69c73b658225f5e7ce51">
       <source xml:lang="en">List schemas for connection &apos;{0}&apos; (ID: {1})?</source>
@@ -4576,11 +4636,17 @@
     <trans-unit id="++CODE++47d2a515ef2f05b87d688656286a61e4f743da4b878684c7654969db17711c40">
       <source xml:lang="en">Loading...</source>
     </trans-unit>
+    <trans-unit id="++CODE++8c31e6e7223097e2e4847773c47a4efab6aaf79deeecc92a7759891c74976dde">
+      <source xml:lang="en">Local</source>
+    </trans-unit>
     <trans-unit id="++CODE++67b84cd4159ae33eb03a5cc9398bc77383d9ab5e73a5faf7189b775384dc09a1">
       <source xml:lang="en">Local Container Deployment</source>
     </trans-unit>
     <trans-unit id="++CODE++2c91c2c68950d956381637d4e22e626dbf560a93aa4fc8126d755251a70230ea">
       <source xml:lang="en">Local SQL Server database container</source>
+    </trans-unit>
+    <trans-unit id="++CODE++44fe2df974d8b80786309f264819c59c4f54ef54e4c1ae57b1dd7983d08b6ba5">
+      <source xml:lang="en">Local clone path</source>
     </trans-unit>
     <trans-unit id="++CODE++b64b39db74a66e751069b0400f71efd0fb9a78f49fe418b7f73f9c96b173c105">
       <source xml:lang="en">Local container deployment is currently only supported with SQL Authentication connections.</source>
@@ -4925,6 +4991,9 @@
     <trans-unit id="++CODE++dcd1d5223f73b3a965c07e3ff5dbee3eedcfedb806686a05b9b3868a2c3d6d50">
       <source xml:lang="en">Name</source>
     </trans-unit>
+    <trans-unit id="++CODE++9615c8137b02c86108999710ddc924d44c2c40df671c8aa746e15448bde4a572">
+      <source xml:lang="en">Name cannot be empty</source>
+    </trans-unit>
     <trans-unit id="++CODE++b82c5cef7aaff3d8d682ade902e1ed86c30c2206d3291b70c464bca8b9632e1e">
       <source xml:lang="en">Name for the Docker container running DAB</source>
     </trans-unit>
@@ -5146,6 +5215,9 @@
     <trans-unit id="++CODE++b15c8fb94bc966c85617c43fecf9a75b8a24edc609b0b410743efbcea68da5a9">
       <source xml:lang="en">No database files found in the restore plan</source>
     </trans-unit>
+    <trans-unit id="++CODE++c12d4f1601e03c6b7157d7d282f575e2cea570a558f3e5fb4d56eb254d3e26c2">
+      <source xml:lang="en">No database project extensions are installed. Please install a database project extension to use this feature.</source>
+    </trans-unit>
     <trans-unit id="++CODE++979ea4dd600dbdf9f324b9fcc58626178a88362bea00d193ca63b85c5496599f">
       <source xml:lang="en">No database selected.</source>
     </trans-unit>
@@ -5217,6 +5289,12 @@
     </trans-unit>
     <trans-unit id="++CODE++75c1acf6c3d31028f8a7be377fdfe2ac75dee6d75450a900a103a3007a83b1ef">
       <source xml:lang="en">No property changes available.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3a874feeee6e2e2e7d08d96c53e2ed3f68e63a7a162ed6613d8934c32642ee1a">
+      <source xml:lang="en">No provider was found for project type with id: &apos;{0}&apos;</source>
+    </trans-unit>
+    <trans-unit id="++CODE++cf34d3ee7de6fe08d706a22899bdb22aacfb37a03185c2938b399c04d77ecd3a">
+      <source xml:lang="en">No provider was found for the following projects: {0}</source>
     </trans-unit>
     <trans-unit id="++CODE++07fa58bdd9de910a1e070b49104fd2eb37a4665f9cae70f35a28130d6fb1cf10">
       <source xml:lang="en">No query set</source>
@@ -5444,6 +5522,9 @@
     <trans-unit id="++CODE++5c96a0d717cf95bc5e8a44accd180436a5606ded18cb29001f3e9df57614ed31">
       <source xml:lang="en">One or more of your entities contain column types that are not currently supported by Data API builder. These entities cannot be selected for deployment.</source>
     </trans-unit>
+    <trans-unit id="++CODE++f44967525bfc9deeea7a8e027342c9e8a4aceea83e75ebec12cd41d09323b78b">
+      <source xml:lang="en">Only moving one file at a time is supported.</source>
+    </trans-unit>
     <trans-unit id="++CODE++ed077f3d8125d60dca1979c7133601bd187d47c73ed9975028f677e49e709942">
       <source xml:lang="en">Open</source>
     </trans-unit>
@@ -5452,6 +5533,9 @@
     </trans-unit>
     <trans-unit id="++CODE++2f51d650687c9201f9367014fa093415a3b9612e4ae2738e50210ef39ed0253e">
       <source xml:lang="en">Open Containing Folder</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e101ffec2eeb2888337e5337f00dcbd1abea9e525f9c8d4a0596e20c76f01f97">
+      <source xml:lang="en">Open Existing Project</source>
     </trans-unit>
     <trans-unit id="++CODE++1e8d18f62f2d2a2fcb2027969e109cad13bcf2a861737f80eabd6774406c8a10">
       <source xml:lang="en">Open File</source>
@@ -5792,6 +5876,9 @@
     <trans-unit id="++CODE++033fc28f70ea19380dbfa828984ba8b4a1e101c63a81ac785fc9b9fdfd908f3a">
       <source xml:lang="en">Primary key</source>
     </trans-unit>
+    <trans-unit id="++CODE++da5243d6f1aa8f123f458da43ca5ac9c77b12c129981777115e374593d024a60">
+      <source xml:lang="en">Prior {0} for the current project will appear here, please run to see the results.</source>
+    </trans-unit>
     <trans-unit id="++CODE++e4b88de23274e99ca98b822e9f304564c85d96333a5d35bb218b95654a03c7ab">
       <source xml:lang="en">Prisma</source>
     </trans-unit>
@@ -5848,6 +5935,21 @@
     <trans-unit id="++CODE++c4708835c8dc2ca58a9b14c478db0d1773a0506682e9fcff28622e7a06bbbe98">
       <source xml:lang="en">Profiler session &apos;{0}&apos; started successfully.</source>
       <note>{0} is the session name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++985959785319747668373cc6dee294b11db782b03cdd90a2851fbdc0637c6b7b">
+      <source xml:lang="en">Project</source>
+    </trans-unit>
+    <trans-unit id="++CODE++30b914c73723e762b49e4881afeb6d40c0b686ef8fafb04e37786e67eb9d5b25">
+      <source xml:lang="en">Project &apos;{0}&apos; failed to load: {1}  To view more details, [open the developer console](command:workbench.action.toggleDevTools).</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1c4e927c1250569dd8129c93e41fd1c39ede59048b2df1d88d2d4071d258c4d6">
+      <source xml:lang="en">Project &apos;{0}&apos; is already opened.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b62ade37fba9f194301c45be7fad8d96fb4c6ca233390a8f23d6bfa3a30d0dd6">
+      <source xml:lang="en">Project file</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5f602181909669feb4167d88e524dca92f44ff64cc3cd8f1594f9d7fb2e77949">
+      <source xml:lang="en">Project name is null</source>
     </trans-unit>
     <trans-unit id="++CODE++ae43692b2a310b8ed2443d2b7d2a3e4cf0b6d73115badd72831b3d22381f235f">
       <source xml:lang="en">Properties</source>
@@ -6096,6 +6198,9 @@
     <trans-unit id="++CODE++b69ef66763bd411348c2bf030ab4cd0881dc36c538ce1a05966e92b927d2675c">
       <source xml:lang="en">Remind Me Later</source>
     </trans-unit>
+    <trans-unit id="++CODE++2447e095bf309befc0891c8154c7e06eb8f02751bf746054d6a5f06837c534a8">
+      <source xml:lang="en">Remote git repository</source>
+    </trans-unit>
     <trans-unit id="++CODE++c3812fc4acb861d5182fc2b8155f327f736fbe5e5eb86a7bd7afcb6dc5497282">
       <source xml:lang="en">Remove</source>
     </trans-unit>
@@ -6176,6 +6281,9 @@
     </trans-unit>
     <trans-unit id="++CODE++7e069f05fe75d06f806f4772b8ab6ad6ab63626da27cd0d7f215913e529b1d43">
       <source xml:lang="en">Requires user authentication</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5565e8940ff05902b27ae49ba192e6e41f7bff254ddb7d8cb70a1b2b926b749b">
+      <source xml:lang="en">Reserved file name. Choose another name and try again</source>
     </trans-unit>
     <trans-unit id="++CODE++daee7606b339f3c339076fe2c9f372a3ff40c8ee896005d829c7481b64ca5303">
       <source xml:lang="en">Reset</source>
@@ -6398,6 +6506,9 @@
     <trans-unit id="++CODE++c650e15b69c35c39b6ff6743c908ed1db08e9d4840abb2ebfce8303e88b9507a">
       <source xml:lang="en">Running: {0}</source>
       <note>{0} is how long the query has been running</note>
+    </trans-unit>
+    <trans-unit id="++CODE++4870950395d377ccb78a99509d402224e9dde215522464fe53d7423a5e6ac8b2">
+      <source xml:lang="en">SDK-style project</source>
     </trans-unit>
     <trans-unit id="++CODE++a7056a455639d1c7deec82ee787db24a0c1878e2792b4597709f0facf7cc7b35">
       <source xml:lang="en">SQL</source>
@@ -6757,11 +6868,17 @@
     <trans-unit id="++CODE++8c077bff66494e2aeee6280e4f591761cba31b94a22b87e617c3a5d80656ac84">
       <source xml:lang="en">Select Database</source>
     </trans-unit>
+    <trans-unit id="++CODE++f26145b7cf23b6b4844b0c44ec7c3b39e14b66694d7950f4ea05d7910e3a5d0c">
+      <source xml:lang="en">Select Database Project Type</source>
+    </trans-unit>
     <trans-unit id="++CODE++79e5e71c56f13bb3c722fd134f6fb39e747de15dc979295882ecac8d67d45559">
       <source xml:lang="en">Select Max vCores</source>
     </trans-unit>
     <trans-unit id="++CODE++a1103f928cc721a44f7c8cdbc11bab66f8a7e44d66485112edccc40525787cfb">
       <source xml:lang="en">Select Profile</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7b5bc294b4fd6add2ea2171436746d04440369876e735560480e1a5988d6e589">
+      <source xml:lang="en">Select Project Location</source>
     </trans-unit>
     <trans-unit id="++CODE++498e179dee6c281c74c130a980b58ecfdf8c85a97cf907ed7d820ef06afd8b51">
       <source xml:lang="en">Select Source</source>
@@ -6771,6 +6888,9 @@
     </trans-unit>
     <trans-unit id="++CODE++bdd155896fd28608c15efbc9269fc433a1838ca35f20e4dc656f20ffe2aff773">
       <source xml:lang="en">Select Target</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2efee9ef97d1a92881c8abdf0997cddbd6cb0e8112a0e80bc426aa485e18a77d">
+      <source xml:lang="en">Select Target Platform</source>
     </trans-unit>
     <trans-unit id="++CODE++b6d420411ce8b91f28e7fc43e45c44a8550af2984463e5dc85541595a0ac37ba">
       <source xml:lang="en">Select Target Schema</source>
@@ -6904,6 +7024,12 @@
     <trans-unit id="++CODE++a8cde5c6159c971e8c8d7cbb13844a520f02109201678c5934c9ecc190000ebd">
       <source xml:lang="en">Select location</source>
     </trans-unit>
+    <trans-unit id="++CODE++bd9232839fa94544d3f5c54b315124fe19ab3cfc7231b534878e9141bad87b6a">
+      <source xml:lang="en">Select location to clone repository locally</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fd5457462a525b84645a21f9405208b152ef6428ed5a46e093bb9d66c12034b2">
+      <source xml:lang="en">Select location to create project</source>
+    </trans-unit>
     <trans-unit id="++CODE++154f133b3d7ef488e01090c00b0104ba7bf48bf4368e2ad71333fd3d863fb270">
       <source xml:lang="en">Select new permission for extension: &apos;{0}&apos;</source>
       <note>{0} is the extension name</note>
@@ -6922,6 +7048,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e286357ecd532997834edbf13478a2b3ca334a9dda1c8e895c0bd8b26f6097b5">
       <source xml:lang="en">Select profile to remove</source>
+    </trans-unit>
+    <trans-unit id="++CODE++04783dd07ecff6e5427ee1c5a910ac2a86339fb73039dd9dc63dbf1e780099b5">
+      <source xml:lang="en">Select project file</source>
     </trans-unit>
     <trans-unit id="++CODE++e87f968a3216e3d0da242045101a1687665b2a6190c87b7489484b33fac806fe">
       <source xml:lang="en">Select row</source>
@@ -6949,6 +7078,9 @@
     </trans-unit>
     <trans-unit id="++CODE++21f736a51b932eed3aed712f5cc2cd8ca7fd204ad2690df8c6d8d1f6cd926e1a">
       <source xml:lang="en">Select the target schema</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0a0a9fb70a52c005820d8d028ed61e2c9eef5a6094c76f39258543413765dc44">
+      <source xml:lang="en">Select workspace ({0}) file</source>
     </trans-unit>
     <trans-unit id="++CODE++57fd7a0cf33f2666eede69e44f8857159653f2f28e4fd7482a5e16d4af628d2a">
       <source xml:lang="en">Selected</source>
@@ -7579,6 +7711,9 @@
     <trans-unit id="++CODE++9ba1ac70c4386df695c803041aec395325f7f6cb8151ca597c9715b3f99262fb">
       <source xml:lang="en">Target Name</source>
     </trans-unit>
+    <trans-unit id="++CODE++a02c7e318355e7b0f54fa18f348b0da15dd4d5b5d37faaa01bb76e6d2c0726f5">
+      <source xml:lang="en">Target Platform</source>
+    </trans-unit>
     <trans-unit id="++CODE++feeb64acb5e0f4ebba723e99d26d741bd2621988c8d355449bfddeafc8ef59e2">
       <source xml:lang="en">Target Table</source>
     </trans-unit>
@@ -7750,6 +7885,9 @@
       <note>{0} is the operator for the filter
 {1} is the name of the filter</note>
     </trans-unit>
+    <trans-unit id="++CODE++dcc368e5cecae7f8a0551b1a10f920940276c11de668e2c7e38cd72bfc755563">
+      <source xml:lang="en">The selected clone path &apos;{0}&apos; does not exist or is not a directory.</source>
+    </trans-unit>
     <trans-unit id="++CODE++e0e95ce8d59c3985439194900fd3997b4d86e45ed92f82a44ac0c897018d7fb1">
       <source xml:lang="en">The selected file is not a valid XEL file.</source>
     </trans-unit>
@@ -7771,6 +7909,12 @@
       <source xml:lang="en">The selected profile authenticates using Entra ID &apos;{0}&apos;, but that account is not available through VS Code sign-in. Edit the connection or sign into VS Code with that account to connect.</source>
       <note>{0} is the account ID or label</note>
     </trans-unit>
+    <trans-unit id="++CODE++f5c77dbf7dd2b64ae0c90a6d971c1482713147f48a6e43c10f9f30fa63f51bdb">
+      <source xml:lang="en">The selected project location &apos;{0}&apos; does not exist or is not a directory.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++30dc10f2e5d6502d78b8e778df18e5f010e5ec3fa432d4e92c526d86a84375e0">
+      <source xml:lang="en">The selected {0} file &apos;{1}&apos; does not exist or is not a file.</source>
+    </trans-unit>
     <trans-unit id="++CODE++d7f9cfdbfc45384b7521ed4b8082d476a2d3cae5cbb8c57eec64003513cacbf2">
       <source xml:lang="en">The table which contains the primary or unique key column.</source>
     </trans-unit>
@@ -7782,6 +7926,9 @@
     <trans-unit id="++CODE++2500e74ebfdd53040c8458b3b5e89e97caf167df8686a8882b9e628ba5cb5447">
       <source xml:lang="en">The “{0}” extension uses a connection-sharing capability that the MSSQL extension is retiring. File a feature request for the capability you use so we can consider adding it natively.</source>
       <note>{0} is the extension name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++733d73b219fd9a1e4009ee7a3bc2e771e41099d295ccf8c230e04f68ba8606ee">
+      <source xml:lang="en">There is already a directory named &apos;{0}&apos; in the selected location: &apos;{1}&apos;.</source>
     </trans-unit>
     <trans-unit id="++CODE++1a7dce1f7d58b78f71a31ac2a4451b08304b7426c9609ec2b348c9002e866c68">
       <source xml:lang="en">There is no query text to execute. Enter a query or select non-empty query text.</source>
@@ -7798,11 +7945,17 @@
     <trans-unit id="++CODE++a616eb2bf2f817c4898b6d9709fa799bf564dc58ec7bdb879358e3f47795106e">
       <source xml:lang="en">This database name is already in use. Please choose a different name.</source>
     </trans-unit>
+    <trans-unit id="++CODE++cb4eade41a7e9bf4aecf7539c5167bf881e1dac0fd35c216a8fbf4b1b4d3fa84">
+      <source xml:lang="en">This file name is reserved for use by Windows. Choose another name and try again</source>
+    </trans-unit>
     <trans-unit id="++CODE++28e2aa59c50b2de24bda79539297a180c3ea379c3aa11b5af049a2cf66375999">
       <source xml:lang="en">This message couldn&apos;t be processed. If this issue persists, please check the logs and open an issue on GitHub.</source>
     </trans-unit>
     <trans-unit id="++CODE++461401ab1ef5eb94c409a7d6de3ad223b3733f4a8823944fc070fcfdf5ebed6b">
       <source xml:lang="en">This operation analyzed the input file structure to generate the preview below for up to the first 50 rows.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d2cd4222b87fe208131546fa04e7a1627d7270f2581fc96c91e88a4e870c9fc0">
+      <source xml:lang="en">This project type does not support drag and drop.</source>
     </trans-unit>
     <trans-unit id="++CODE++cbc6ae36d1aec69e8b4ab32b18eac65c87ac1ded2fe8e3c342df068fb83be36d">
       <source xml:lang="en">This server only supports Microsoft Entra ID authentication.</source>
@@ -7988,6 +8141,9 @@
     </trans-unit>
     <trans-unit id="++CODE++6be6bf4fae4897b542e648716d3e0fb9d67e3f4457c7b37afd4b217ca93e2914">
       <source xml:lang="en">Unavailable for backups to existing files</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f7a89265c06e331405917d08589e8be77b8bad0aae048048f4f23f66f20cccf3">
+      <source xml:lang="en">Undefined name</source>
     </trans-unit>
     <trans-unit id="++CODE++d7d09d502d5422aa5c2aaffacea9601c1011d9035e27986c8b243078a745b061">
       <source xml:lang="en">Understand and document business logic embedded in stored procedures, views, and functions</source>
@@ -8334,6 +8490,9 @@
     </trans-unit>
     <trans-unit id="++CODE++85a39ab345d672ff8ca9b9c6876f3adcacf45ee7c1e2dbd2408fd338bd55e07e">
       <source xml:lang="en">Yes</source>
+    </trans-unit>
+    <trans-unit id="++CODE++09fcc635009af0dd74b8ac70ac160e92cdd8bb5dc609c8be5f4e2a1f5ae82cdf">
+      <source xml:lang="en">Yes (Recommended)</source>
     </trans-unit>
     <trans-unit id="++CODE++4d58bf5bfe0aaf73306cc05df7a5ae7b1d136a347c493464f66e04cbf46c957d">
       <source xml:lang="en">You are about to deploy to an existing database. This operation will make permanent changes to the database schema and may result in data loss. Do you want to continue?</source>

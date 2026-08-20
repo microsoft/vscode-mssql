@@ -1580,9 +1580,13 @@ suite("ProjectsController", function (): void {
             const realMssqlExt = vscode.extensions.getExtension("ms-mssql.mssql");
             sandbox.stub(vscode.extensions, "getExtension").callsFake((extensionId: string) => {
                 if (extensionId === "ms-mssql.mssql") {
-                    return realMssqlExt;
+                    return <any>{
+                        ...realMssqlExt,
+                        exports: { ...realMssqlExt?.exports, dataWorkspace: dataWorkspaceMock },
+                        activate: realMssqlExt?.activate.bind(realMssqlExt),
+                    };
                 }
-                return <any>{ exports: dataWorkspaceMock };
+                return undefined;
             });
 
             // add project reference from project1 to project2
@@ -1637,9 +1641,13 @@ suite("ProjectsController", function (): void {
             const realMssqlExt = vscode.extensions.getExtension("ms-mssql.mssql");
             sandbox.stub(vscode.extensions, "getExtension").callsFake((extensionId: string) => {
                 if (extensionId === "ms-mssql.mssql") {
-                    return realMssqlExt;
+                    return <any>{
+                        ...realMssqlExt,
+                        exports: { ...realMssqlExt?.exports, dataWorkspace: dataWorkspaceMock },
+                        activate: realMssqlExt?.activate.bind(realMssqlExt),
+                    };
                 }
-                return <any>{ exports: dataWorkspaceMock };
+                return undefined;
             });
             // add dacpac reference to something in the same folder
             expect(project1.databaseReferences.length).to.equal(

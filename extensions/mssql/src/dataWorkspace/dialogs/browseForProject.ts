@@ -4,9 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import * as constants from "../common/constants";
 import { IWorkspaceService } from "../common/interfaces";
 import { defaultProjectSaveLocation } from "../common/projectLocationHelper";
+import { DataWorkspace as locConstants } from "../../constants/locConstants";
 
 /**
  * Opens a file dialog to browse for an existing project file.
@@ -18,7 +18,7 @@ export async function browseForProject(
 ): Promise<vscode.Uri | undefined> {
     const filters: { [name: string]: string[] } = {};
     const projectTypes = await workspaceService.getAllProjectTypes();
-    filters[constants.AllProjectTypes] = [
+    filters[locConstants.AllProjectTypes] = [
         ...new Set(projectTypes.map((type) => type.projectFileExtension)),
     ];
     projectTypes.forEach((type) => {
@@ -29,7 +29,7 @@ export async function browseForProject(
         canSelectFiles: true,
         canSelectFolders: false,
         canSelectMany: false,
-        openLabel: constants.SelectProjectFileActionName,
+        openLabel: locConstants.SelectProjectFileActionName,
         filters: filters,
         defaultUri: defaultProjectSaveLocation(),
     });
