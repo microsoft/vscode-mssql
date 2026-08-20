@@ -10,13 +10,15 @@ import {
     MessageBar,
     MessageBarBody,
     Text,
+    Tooltip,
     makeStyles,
     tokens,
 } from "@fluentui/react-components";
-import { ArrowDownload16Regular } from "@fluentui/react-icons";
+import { ArrowDownload16Regular, Copy16Regular } from "@fluentui/react-icons";
 import { useContext, useState } from "react";
 
 import {
+    CopyStatsRequest,
     ExportStatsRequest,
     LanguageServiceStatsWebviewState,
 } from "../../../sharedInterfaces/languageServiceStats";
@@ -38,7 +40,8 @@ import { StatTable } from "./statTable";
  *
  * The export controls sit outside the scrolling region rather than at the end of it, because they
  * are the panel's one action and a reader should not have to reach the bottom of a long fetch log
- * to find them.
+ * to find them. The footer stays one row: the reason the identifier toggle defaults to off is a
+ * tooltip rather than a third line, because it is read once and then never again.
  */
 const useStyles = makeStyles({
     root: {
@@ -297,14 +300,24 @@ const ExportFooter = () => {
                 }>
                 {loc.export}
             </Button>
-            <Checkbox
-                checked={includeIdentifiers}
-                onChange={(_, data) => setIncludeIdentifiers(Boolean(data.checked))}
-                label={loc.includeIdentifiers}
-            />
-            <Text size={200} className={styles.caption}>
-                {loc.includeIdentifiersHint}
-            </Text>
+            <Tooltip content={loc.copyTooltip} relationship="label" withArrow>
+                <Button
+                    icon={<Copy16Regular />}
+                    onClick={() =>
+                        void context?.extensionRpc.sendRequest(CopyStatsRequest.type, {
+                            includeIdentifiers,
+                        })
+                    }>
+                    {loc.copy}
+                </Button>
+            </Tooltip>
+            <Tooltip content={loc.includeIdentifiersHint} relationship="description" withArrow>
+                <Checkbox
+                    checked={includeIdentifiers}
+                    onChange={(_, data) => setIncludeIdentifiers(Boolean(data.checked))}
+                    label={loc.includeIdentifiers}
+                />
+            </Tooltip>
         </footer>
     );
 };

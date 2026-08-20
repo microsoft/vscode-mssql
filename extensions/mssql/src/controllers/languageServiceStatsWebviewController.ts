@@ -7,6 +7,7 @@ import * as vscode from "vscode";
 import { exportStats, type LanguageServiceStats } from "@vscode-mssql/tsql-language-service";
 import { LanguageServiceStats as StatsLoc } from "../constants/locConstants";
 import {
+    CopyStatsRequest,
     ExportStatsParams,
     ExportStatsRequest,
     LanguageServiceStatsWebviewState,
@@ -81,6 +82,9 @@ export class LanguageServiceStatsWebviewController extends WebviewPanelControlle
         this.onRequest(ExportStatsRequest.type, async (params: ExportStatsParams) => {
             await this.export(params);
         });
+        this.onRequest(CopyStatsRequest.type, async (params: ExportStatsParams) => {
+            await this.copy(params);
+        });
     }
 
     private publish(): void {
@@ -116,5 +120,23 @@ export class LanguageServiceStatsWebviewController extends WebviewPanelControlle
         await vscode.workspace.fs.writeFile(target, Buffer.from(content, "utf8"));
         this.state = { ...this.state, lastExportPath: target.fsPath };
         void vscode.window.showInformationMessage(StatsLoc.exported(target.fsPath));
+    }
+
+    /**
+     * Puts the same rendering the file export writes onto the clipboard.
+     *
+     * Most of these logs are pasted straight into a bug report or a chat, and routing that through
+     * a save dialog and a temporary file was the slow way to do it.
+     */
+    private async copy(params: ExportStatsParams): Promise<void> {
+        const stats = this._source.stats(this._documentUri);
+        if (!stats) {
+            void vscode.window.showInformationMessage(StatsLoc.nothingToExport);
+            return;
+        }
+        await vscode.env.clipboard.writeText(
+            exportStats(stats, { includeIdentifiers: params.includeIdentifiers }),
+        );
+        void vscode.window.showInformationMessage(StatsLoc.copied);
     }
 }

@@ -47,6 +47,16 @@ export namespace ExportStatsRequest {
     export const type = new RequestType<ExportStatsParams, void, void>("exportStats");
 }
 
+/**
+ * Copies the statistics to the clipboard.
+ *
+ * Shares {@link ExportStatsParams} with the file export because the redaction question is the same
+ * one either way -- a log pasted into a bug report names as much schema as a log attached to it.
+ */
+export namespace CopyStatsRequest {
+    export const type = new RequestType<ExportStatsParams, void, void>("copyStats");
+}
+
 export namespace RefreshStatsRequest {
     export const type = new RequestType<void, void, void>("refreshStats");
 }

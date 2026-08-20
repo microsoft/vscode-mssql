@@ -3371,9 +3371,11 @@ export class LocConstants {
                     comment: ["{0} and {1} are counts of catalog fetches"],
                 }),
             export: l10n.t("Export debug log"),
-            includeIdentifiers: l10n.t("Include database names, object names and SQL"),
+            copy: l10n.t("Copy"),
+            copyTooltip: l10n.t("Copy the debug log to the clipboard"),
+            includeIdentifiers: l10n.t("Include names and SQL"),
             includeIdentifiersHint: l10n.t(
-                "Off by default, because an exported log is usually attached to a bug report.",
+                "Database names, object names and SQL text. Off by default because exported logs are usually attached to bug reports.",
             ),
             queryHeading: l10n.t("Query"),
             milliseconds: (value: string) =>

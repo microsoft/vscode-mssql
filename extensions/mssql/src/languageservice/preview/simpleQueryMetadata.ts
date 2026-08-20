@@ -523,38 +523,50 @@ FROM sys.databases WITH (NOLOCK)
 WHERE state = 0 AND HAS_DBACCESS(name) = 1
 ORDER BY name;`;
 
+/**
+ * Every character column carries `COLLATE DATABASE_DEFAULT` because the branches disagree.
+ *
+ * `sys.database_principals` and `sys.schemas` are database-scoped and carry the database
+ * collation; `sys.server_principals` is server-scoped and carries the server's. On Fabric Data
+ * Warehouse those genuinely differ -- a warehouse is `Latin1_General_100_BIN2_UTF8` while the
+ * shared metadata layer stays `SQL_Latin1_General_CP1_CI_AS` -- so `principal_name` arrives at the
+ * UNION ALL with two collations and the statement fails with Msg 451, taking the whole catalog
+ * load down with it. Fabric rejects the union at the SELECT, not only at the ORDER BY, so dropping
+ * the sort does not avoid it; the collation has to be stated. Boxed SQL Server and Azure SQL never
+ * hit this, which is why it went unnoticed until a Fabric endpoint was used.
+ */
 const schemasAndPrincipalsQuery = `
 SELECT
-    N'schema' AS entry_kind,
+    N'schema' COLLATE DATABASE_DEFAULT AS entry_kind,
     DB_NAME() AS database_name,
     CONCAT(N'schema:', DB_ID(), N':', schema_id) AS metadata_id,
-    name AS schema_name,
-    CAST(NULL AS nvarchar(128)) AS principal_name,
-    CAST(NULL AS nvarchar(32)) AS principal_kind,
+    name COLLATE DATABASE_DEFAULT AS schema_name,
+    CAST(NULL AS nvarchar(128)) COLLATE DATABASE_DEFAULT AS principal_name,
+    CAST(NULL AS nvarchar(32)) COLLATE DATABASE_DEFAULT AS principal_kind,
     CAST(0 AS bit) AS is_system
 FROM sys.schemas WITH (NOLOCK)
 WHERE principal_id <> 16384
 UNION ALL
 SELECT
-    N'principal',
+    N'principal' COLLATE DATABASE_DEFAULT,
     NULL,
     CONCAT(N'server-principal:', principal_id),
     NULL,
-    name,
-    CASE WHEN type = 'R' THEN N'serverRole' ELSE N'login' END,
+    name COLLATE DATABASE_DEFAULT,
+    CASE WHEN type = 'R' THEN N'serverRole' ELSE N'login' END COLLATE DATABASE_DEFAULT,
     CASE WHEN is_fixed_role = 1 OR name LIKE N'##%' THEN 1 ELSE 0 END
 FROM sys.server_principals WITH (NOLOCK)
 WHERE type IN ('S', 'U', 'G', 'E', 'X', 'R')
 UNION ALL
 SELECT
-    N'principal',
+    N'principal' COLLATE DATABASE_DEFAULT,
     DB_NAME(),
     CONCAT(N'database-principal:', DB_ID(), N':', principal_id),
     NULL,
-    name,
+    name COLLATE DATABASE_DEFAULT,
     CASE WHEN type = 'R' THEN N'databaseRole'
          WHEN type = 'A' THEN N'applicationRole'
-         ELSE N'user' END,
+         ELSE N'user' END COLLATE DATABASE_DEFAULT,
     CASE WHEN is_fixed_role = 1 OR principal_id <= 4 THEN 1 ELSE 0 END
 FROM sys.database_principals WITH (NOLOCK)
 WHERE type IN ('S', 'U', 'G', 'E', 'X', 'R', 'A')

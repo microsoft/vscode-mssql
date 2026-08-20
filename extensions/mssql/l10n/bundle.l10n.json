@@ -1948,8 +1948,9 @@
         "comment": ["{0} and {1} are counts of catalog fetches"]
     },
     "Export debug log": "Export debug log",
-    "Include database names, object names and SQL": "Include database names, object names and SQL",
-    "Off by default, because an exported log is usually attached to a bug report.": "Off by default, because an exported log is usually attached to a bug report.",
+    "Include names and SQL": "Include names and SQL",
+    "Database names, object names and SQL text. Off by default because exported logs are usually attached to bug reports.": "Database names, object names and SQL text. Off by default because exported logs are usually attached to bug reports.",
+    "Language service statistics copied to the clipboard": "Language service statistics copied to the clipboard",
     "Export": "Export",
     "There are no statistics to export yet.": "There are no statistics to export yet.",
     "Language service statistics exported to {0}/{0} is a file path": {
@@ -4232,6 +4233,7 @@
         "message": "{0} still loading",
         "comment": ["{0} is a count of catalog fetches currently in flight"]
     },
+    "Copy the debug log to the clipboard": "Copy the debug log to the clipboard",
     "MSSQL: What's new": "MSSQL: What's new",
     "MSSQL extension icon": "MSSQL extension icon",
     "New to MSSQL extension? Check out our quick-start guide.": "New to MSSQL extension? Check out our quick-start guide.",

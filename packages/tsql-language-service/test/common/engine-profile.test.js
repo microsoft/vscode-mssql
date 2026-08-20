@@ -97,6 +97,27 @@ suite("engine profile resolution", () => {
         assert.equal(resolution.source, "hostSupplied");
     });
 
+    // Pre-production tenants prefix the endpoint label, which a plain suffix test misses.
+    test("recognizes a pre-production Fabric endpoint", () => {
+        const resolution = resolveEngineProfile({
+            engineEdition: 11,
+            serverName:
+                "x6eps4xrq2xudenlfv6naeo3i4-eysrwmp5slwedk3zxqjvq7c54a.msit-datawarehouse.fabric.microsoft.com",
+        });
+        assert.equal(resolution.profile, "fabric-warehouse");
+        assert.equal(resolution.source, "engineEditionAndServerName");
+    });
+
+    // The boundary check must not turn the suffix into a substring match.
+    test("rejects a look-alike host that merely ends with the Fabric domain", () => {
+        const resolution = resolveEngineProfile({
+            engineEdition: 11,
+            serverName: "notdatawarehouse.fabric.microsoft.com",
+        });
+        assert.equal(resolution.profile, "unknown");
+        assert.equal(resolution.source, "outOfScope");
+    });
+
     // Verifies a comma-suffixed server name, as a connection string writes it, still matches.
     test("recognizes a Fabric endpoint written with a port", () => {
         const resolution = resolveEngineProfile({

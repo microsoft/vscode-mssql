@@ -1904,6 +1904,9 @@
     <trans-unit id="++CODE++e1b145c1fedde6b3a445206c1a5cdce5a5545f2392793095b07c41a62a01c123">
       <source xml:lang="en">Copy text data to clipboard</source>
     </trans-unit>
+    <trans-unit id="++CODE++2cd1e53befd5c3fe227319eeb877f1629b75000c636923de2ba59051627e597c">
+      <source xml:lang="en">Copy the debug log to the clipboard</source>
+    </trans-unit>
     <trans-unit id="++CODE++3ae569f53ee1e765e3551a7f7881999f868289afbf0b1c6077d906c68cd10525">
       <source xml:lang="en">Copy with Headers</source>
     </trans-unit>
@@ -2223,6 +2226,9 @@
     </trans-unit>
     <trans-unit id="++CODE++402d00d25022d7d90590017acaa8ef375ab6ddd4f14be17bb58c7003175216ae">
       <source xml:lang="en">Database name must be 128 characters or fewer</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4d7969789d893e7c23bcd1020d60d510064b76e0370a94f6c00b94616341a429">
+      <source xml:lang="en">Database names, object names and SQL text. Off by default because exported logs are usually attached to bug reports.</source>
     </trans-unit>
     <trans-unit id="++CODE++0c44c1ef5c326d66d59992daca9150070537b80433d82792a6f4a8451bbba635">
       <source xml:lang="en">Database not found on the server</source>
@@ -4184,8 +4190,8 @@
     <trans-unit id="++CODE++ac665fafc5f9732c9d322749a1f726be51f8b31d2ec83ecde83a6e1d2b632eda">
       <source xml:lang="en">Include all object types</source>
     </trans-unit>
-    <trans-unit id="++CODE++f18d8117b46c758332604aa49ac9ad6197597b2c509fad583391ffedd94ee8b3">
-      <source xml:lang="en">Include database names, object names and SQL</source>
+    <trans-unit id="++CODE++0aaf61a270744c6f42c32db5bf18ab8d8a51cc297e0177f549220b9b5655d1da">
+      <source xml:lang="en">Include names and SQL</source>
     </trans-unit>
     <trans-unit id="++CODE++a19caa35e133f5a0e94975762741c4c73b09c8a830908934206474fea30817b0">
       <source xml:lang="en">Incomplete or orphaned connections</source>
@@ -4326,6 +4332,9 @@
     </trans-unit>
     <trans-unit id="++CODE++f89417d53ba776c805f239fe55d55177f66764a88a5ae08085341e904985b900">
       <source xml:lang="en">LRS backup (locally redundant)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++48a10a0f9343f94f3bda89f31b11367f312014b21ebc3c60a563f9840e831bb4">
+      <source xml:lang="en">Language service statistics copied to the clipboard</source>
     </trans-unit>
     <trans-unit id="++CODE++8fea506d72f0db42e4754655aa7fc000e2685425dde44063946bd17ad3c75bfa">
       <source xml:lang="en">Language service statistics exported to {0}</source>
@@ -5489,9 +5498,6 @@
     </trans-unit>
     <trans-unit id="++CODE++ca7981b46ecf2c1787b6d76d81d9fd7fa0ca95842e2fcc2a452869891a9334d1">
       <source xml:lang="en">Off</source>
-    </trans-unit>
-    <trans-unit id="++CODE++11cb83f27a3bd28de5765c54decba2388ca0e98617fa84da88827c9a2bba1d97">
-      <source xml:lang="en">Off by default, because an exported log is usually attached to a bug report.</source>
     </trans-unit>
     <trans-unit id="++CODE++3d371d39d42ed88021e2eb01088039bc934a712a3d74c7813debf543f8dba608">
       <source xml:lang="en">On Delete</source>

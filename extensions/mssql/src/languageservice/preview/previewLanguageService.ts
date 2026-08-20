@@ -1348,8 +1348,8 @@ class PreviewStatusCodeLensProvider implements vscode.CodeLensProvider {
         const stats = state?.runtime.getStats(document.uri.toString());
         return [
             new vscode.CodeLens(new vscode.Range(0, 0, 0, 0), {
-                title: statusTitle(state, stats),
-                tooltip: PreviewLoc.openDetailedStatus,
+                title: statusIcon(state, stats),
+                tooltip: statusTooltip(state, stats),
                 command: showStatsCommand,
                 arguments: [document.uri],
             }),
@@ -1496,7 +1496,59 @@ function completionKind(kind: string): vscode.CompletionItemKind {
     }
 }
 
-function statusTitle(
+/**
+ * The lens sits above line 1 of every SQL file, so it is one glyph rather than a sentence: the
+ * timings it used to print were never read at a glance and cost a full line of editor width.
+ * The glyph answers only "is the language service healthy"; the numbers move to the tooltip,
+ * which costs nothing until a reader hovers.
+ */
+function statusIcon(
+    state: PreviewDocumentState | undefined,
+    stats: LanguageServiceStats | undefined,
+): string {
+    switch (statusHealth(state, stats)) {
+        case "healthy":
+            return "$(check)";
+        case "broken":
+            return "$(error)";
+        default:
+            return "$(loading~spin)";
+    }
+}
+
+/**
+ * Codicon markup only resolves in a lens title, so the same strings render as a literal
+ * `$(pulse)` in a tooltip and have to be stripped.
+ */
+function statusTooltip(
+    state: PreviewDocumentState | undefined,
+    stats: LanguageServiceStats | undefined,
+): string {
+    return `${withoutCodicons(statusTitle(state, stats))}
+${PreviewLoc.openDetailedStatus}`;
+}
+
+function withoutCodicons(text: string): string {
+    return text.replace(/\$\([^)]*\)/g, "").trim();
+}
+
+/**
+ * A section that reports `failed` is a real breakage, not a slow load. Reading only `objects`
+ * missed that distinction and rendered a failed catalog as merely pending.
+ */
+function statusHealth(
+    state: PreviewDocumentState | undefined,
+    stats: LanguageServiceStats | undefined,
+): "healthy" | "working" | "broken" {
+    if (!state || !stats) return "working";
+    if (state.lastRefreshError || state.metadata.id === "null") return "broken";
+    const completeness = stats.metadata.completeness;
+    if (Object.values(completeness).some((section) => section === "failed")) return "broken";
+    if (state.refreshing) return "working";
+    return completeness.objects === "ready" ? "healthy" : "working";
+}
+
+export function statusTitle(
     state: PreviewDocumentState | undefined,
     stats: LanguageServiceStats | undefined,
 ): string {
@@ -1507,9 +1559,11 @@ function statusTitle(
           ? PreviewLoc.metadataLoading
           : state.metadata.id === "null"
             ? PreviewLoc.metadataOffline
-            : stats.metadata.completeness.objects === "ready"
-              ? PreviewLoc.metadataReady
-              : PreviewLoc.metadataPending;
+            : Object.values(stats.metadata.completeness).some((section) => section === "failed")
+              ? PreviewLoc.metadataFailed
+              : stats.metadata.completeness.objects === "ready"
+                ? PreviewLoc.metadataReady
+                : PreviewLoc.metadataPending;
     return PreviewLoc.status(
         stats.syntax.elapsedMs.toFixed(1),
         stats.semantics.elapsedMs.toFixed(1),

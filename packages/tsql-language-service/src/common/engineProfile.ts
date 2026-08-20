@@ -215,10 +215,23 @@ export function resolveEngineProfile(facts: EngineFacts | undefined): EngineProf
     }
 }
 
+/**
+ * Pre-production Fabric tenants prefix the endpoint label instead of adding a sub-domain, so a
+ * dogfood warehouse is `<workspace>.msit-datawarehouse.fabric.microsoft.com` rather than
+ * `<workspace>.datawarehouse.fabric.microsoft.com`. Matching the suffix at a `.` or `-` boundary
+ * accepts both; a plain `endsWith` silently classified every pre-production warehouse as a Synapse
+ * serverless pool and deferred all of its platform diagnostics. `models/connectionInfo.ts` in the
+ * extension makes the same allowance for the same reason.
+ */
 function isFabricHost(serverName: string | undefined): boolean {
     if (!serverName) return false;
     const host = (serverName.toLowerCase().split(",")[0] ?? "").trim();
-    return fabricHostSuffixes.some((suffix) => host.endsWith(suffix));
+    return fabricHostSuffixes.some((suffix) => {
+        const label = suffix.slice(1);
+        if (!host.endsWith(label)) return false;
+        const boundary = host[host.length - label.length - 1];
+        return boundary === "." || boundary === "-";
+    });
 }
 
 function normalizeFacts(facts: EngineFacts | undefined): EngineFacts {

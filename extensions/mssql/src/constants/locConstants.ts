@@ -3569,10 +3569,12 @@ export class LanguageServiceStats {
             comment: ["{0} and {1} are counts of catalog fetches"],
         });
     public static export = l10n.t("Export debug log");
-    public static includeIdentifiers = l10n.t("Include database names, object names and SQL");
+    public static includeIdentifiers = l10n.t("Include names and SQL");
     public static includeIdentifiersHint = l10n.t(
-        "Off by default, because an exported log is usually attached to a bug report.",
+        "Database names, object names and SQL text. Off by default because exported logs are usually attached to bug reports.",
     );
+    public static copy = l10n.t("Copy");
+    public static copied = l10n.t("Language service statistics copied to the clipboard");
     public static exportSaveLabel = l10n.t("Export");
     public static nothingToExport = l10n.t("There are no statistics to export yet.");
     public static exported = (path: string) =>
