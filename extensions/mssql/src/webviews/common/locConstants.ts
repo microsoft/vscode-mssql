@@ -1167,7 +1167,7 @@ export class LocConstants {
                     args: [resultSetIndex],
                     comment: ["{0} is the result set number (1-based index)"],
                 }),
-            copyAs: l10n.t("Copy As"),
+            copyAs: l10n.t("Copy as..."),
             copyAsCsv: l10n.t("Copy as CSV"),
             copyAsJson: l10n.t("Copy as JSON"),
             copyAsInClause: l10n.t("Copy as IN clause"),
