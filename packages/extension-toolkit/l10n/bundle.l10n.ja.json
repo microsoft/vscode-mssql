@@ -1,5 +1,5 @@
 {
-    "Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues. Error: {1}/{0} is the proxy URL{1} is the error message": "プロキシ設定が見つかりましたが、URL の解析中にエラーが発生しました: '{0}'。接続の問題が発生する場合があります。エラー: {1}",
-    "Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues./{0} is the proxy URL": "プロキシ設定が見つかりましたが、プロトコル (例: http://) がありません: '{0}'。接続の問題が発生する場合があります。",
-    "Unable to read proxy agent options.": "プロキシ エージェント オプションを読み取れませんでした。"
+    "Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues. Error: {1}/{0} is the proxy URL{1} is the error message": "Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues. Error: {1}",
+    "Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues./{0} is the proxy URL": "Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues.",
+    "Unable to read proxy agent options.": "Unable to read proxy agent options."
 }
