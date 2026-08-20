@@ -54,6 +54,8 @@ export enum TelemetryViews {
 }
 
 export enum TelemetryActions {
+    ConnectionSharingApiCalled = "ConnectionSharingApiCalled",
+    ConnectionSharingRetirementToast = "ConnectionSharingRetirementToast",
     GetDatabaseProjectScriptFiles = "GetDatabaseProjectScriptFiles",
     GetDatabaseProjectSchemaProvider = "GetDatabaseProjectSchemaProvider",
     ListingDatabasesForActiveServer = "ListingDatabasesForActiveServer",
@@ -292,6 +294,8 @@ export enum TelemetryActions {
     Stats = "Stats",
     // ------------------------------- < SQL Tools Service > ------------------------------------
     FormatCode = "FormatCode",
+    FormatterParseErrorSendFeedback = "FormatterParseErrorSendFeedback",
+    FormatterParseErrorDontShowAgain = "FormatterParseErrorDontShowAgain",
     PeekDefinitionRequested = "PeekDefinitionRequested",
     IntellisenseQuantile = "IntellisenseQuantile",
     // ------------------------------- </ SQL Tools Service > -----------------------------------

@@ -35,6 +35,8 @@ export class FabricProvisioningState
     database: ISqlDbArtifact | undefined = undefined;
     tenantName: string = "";
     workspaceName: string = "";
+    /** Connection string to the provisioned database (password excluded), populated once the connection succeeds. */
+    connectionString: string = "";
     /** Used to track the form validation state */
     formValidationLoadState: ApiStatus = ApiStatus.NotStarted;
     /** Used to track fabric database provision state */

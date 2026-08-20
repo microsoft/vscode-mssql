@@ -56,10 +56,11 @@ import * as LocalizedConstants from "../constants/locConstants";
 import { getErrorMessage, uuid } from "../utils/utils";
 import * as os from "os";
 import { Deferred } from "../protocol";
-import { sendActionEvent, startActivity } from "../telemetry/telemetry";
+import { sendActionEvent, startActivity } from "extension-toolkit/vscode";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { SelectionSummary } from "../sharedInterfaces/queryResult";
 import { bucketizeRowCount, getInMemoryGridDataProcessingThreshold } from "../queryResult/utils";
+import { buildSelectionSummaryStatusBarStrings } from "../queryResult/selectionSummaryFormatter";
 import { ILogger } from "../sharedInterfaces/logger";
 import { logger } from "../models/logger";
 
@@ -1206,36 +1207,7 @@ export default class QueryRunner {
 
             // Build a textual summary used by the editor status bar when the query results footer
             // preview is disabled. The footer ignores these fields and renders from `stats`.
-            let text: string;
-            let tooltip: string;
-            if (result.average !== undefined && result.average !== null) {
-                const average = result.average.toFixed(2);
-                text = LocalizedConstants.QueryResult.numericSelectionSummary(
-                    average,
-                    result.count,
-                    result.sum,
-                );
-                tooltip = LocalizedConstants.QueryResult.numericSelectionSummaryTooltip(
-                    average,
-                    result.count,
-                    result.distinctCount,
-                    result.max ?? 0,
-                    result.min ?? 0,
-                    result.nullCount,
-                    result.sum,
-                );
-            } else {
-                text = LocalizedConstants.QueryResult.nonNumericSelectionSummary(
-                    result.count,
-                    result.distinctCount,
-                    result.nullCount,
-                );
-                tooltip = LocalizedConstants.QueryResult.nonNumericSelectionSummaryTooltip(
-                    result.count,
-                    result.distinctCount,
-                    result.nullCount,
-                );
-            }
+            const { text, tooltip } = buildSelectionSummaryStatusBarStrings(stats);
 
             // Resolve the cancel confirmation to clean up
             if (!isCanceled) {

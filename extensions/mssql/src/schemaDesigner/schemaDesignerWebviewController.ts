@@ -11,7 +11,7 @@ import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import MainController from "../controllers/mainController";
 import { homedir } from "os";
 import { getErrorMessage, getUniqueFilePath, uuid } from "../utils/utils";
-import { sendActionEvent, startActivity } from "../telemetry/telemetry";
+import { sendActionEvent, startActivity } from "extension-toolkit/vscode";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { configSchemaDesignerEnableExpandCollapseButtons } from "../constants/constants";
 import { IConnectionInfo } from "vscode-mssql";
@@ -173,6 +173,10 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
     }
 
     private setupRequestHandlers() {
+        this.onRequest(CopilotChat.OpenFromUiRequest.type, async (payload) => {
+            await vscode.commands.executeCommand(CopilotChat.openFromUiCommand, payload);
+        });
+
         this.onRequest(SchemaDesigner.InitializeSchemaDesignerRequest.type, async () => {
             if (!this._initializeSchemaDesignerPromise) {
                 this._initializeSchemaDesignerPromise = this.initializeSchemaDesignerSession();

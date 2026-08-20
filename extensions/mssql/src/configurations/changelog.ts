@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ChangelogWebviewState } from "../sharedInterfaces/changelog";
+import { ChangelogActionId, ChangelogWebviewState } from "../sharedInterfaces/changelog";
 import * as vscode from "vscode";
 import * as constants from "../constants/constants";
 import * as locConstants from "../constants/locConstants";
@@ -13,14 +13,25 @@ export const changelogConfig: ChangelogWebviewState = {
         title: locConstants.Changelog.mainContentTitle,
         entries: [
             {
+                title: locConstants.Changelog.sqlFormatterTitle,
+                description: locConstants.Changelog.sqlFormatterDescription,
+                isPreview: true,
+                actions: [
+                    {
+                        label: locConstants.Changelog.learnMore,
+                        type: "link",
+                        value: "https://aka.ms/vscode-mssql-formatter",
+                    },
+                ],
+            },
+            {
                 title: locConstants.Changelog.shortcutsConfigurationTitle,
                 description: locConstants.Changelog.shortcutsConfigurationDescription,
-                isPreview: true,
                 actions: [
                     {
                         label: locConstants.Changelog.tryIt,
                         type: "command",
-                        value: constants.cmdOpenShortcutsConfiguration,
+                        value: ChangelogActionId.OpenShortcutsConfiguration,
                     },
                     {
                         label: locConstants.Changelog.learnMore,
@@ -32,39 +43,16 @@ export const changelogConfig: ChangelogWebviewState = {
             {
                 title: locConstants.Changelog.azureSqlProvisioningTitle,
                 description: locConstants.Changelog.azureSqlProvisioningDescription,
-                isPreview: true,
                 actions: [
                     {
                         label: locConstants.Changelog.tryIt,
                         type: "command",
-                        value: constants.cmdDeployNewDatabase,
+                        value: ChangelogActionId.DeployNewDatabase,
                     },
                     {
                         label: locConstants.Changelog.learnMore,
                         type: "link",
                         value: "https://aka.ms/vscode-mssql-azuresql-docs",
-                    },
-                ],
-            },
-            {
-                title: locConstants.Changelog.schemaDesignerCopilotTitle,
-                description: locConstants.Changelog.schemaDesignerCopilotDescription,
-                actions: [
-                    {
-                        label: locConstants.Changelog.learnMore,
-                        type: "link",
-                        value: "https://aka.ms/vscode-mssql-schema-designer-copilot-docs",
-                    },
-                ],
-            },
-            {
-                title: locConstants.Changelog.dabWithCopilotTitle,
-                description: locConstants.Changelog.dabWithCopilotDescription,
-                actions: [
-                    {
-                        label: locConstants.Changelog.learnMore,
-                        type: "link",
-                        value: "https://aka.ms/vscode-mssql-dab-docs",
                     },
                 ],
             },
@@ -75,7 +63,7 @@ export const changelogConfig: ChangelogWebviewState = {
                     {
                         label: locConstants.Changelog.tryIt,
                         type: "command",
-                        value: constants.cmdNotebooksCreate,
+                        value: ChangelogActionId.CreateNotebook,
                     },
                     {
                         label: locConstants.Changelog.learnMore,
@@ -92,7 +80,7 @@ export const changelogConfig: ChangelogWebviewState = {
                     {
                         label: locConstants.Changelog.tryIt,
                         type: "command",
-                        value: constants.cmdOpenAzureDataStudioMigration,
+                        value: ChangelogActionId.OpenAzureDataStudioMigration,
                     },
                     {
                         label: locConstants.Changelog.watchDemo,
@@ -113,14 +101,24 @@ export const changelogConfig: ChangelogWebviewState = {
         description: locConstants.Changelog.secondaryContentDescription,
         entries: [
             {
-                title: locConstants.Changelog.fabricQueryProfilerTitle,
-                description: locConstants.Changelog.fabricQueryProfilerDescription,
-                codeSnippets: ["TSQL_Azure"],
+                title: locConstants.Changelog.schemaDesignerCopilotTitle,
+                description: locConstants.Changelog.schemaDesignerCopilotDescription,
                 actions: [
                     {
                         label: locConstants.Changelog.learnMore,
                         type: "link",
-                        value: "https://aka.ms/vscode-mssql-query-profiler-docs#create-a-profiling-session",
+                        value: "https://aka.ms/vscode-mssql-schema-designer-copilot-docs",
+                    },
+                ],
+            },
+            {
+                title: locConstants.Changelog.dabWithCopilotTitle,
+                description: locConstants.Changelog.dabWithCopilotDescription,
+                actions: [
+                    {
+                        label: locConstants.Changelog.learnMore,
+                        type: "link",
+                        value: "https://aka.ms/vscode-mssql-dab-docs",
                     },
                 ],
             },
@@ -147,7 +145,7 @@ export const changelogConfig: ChangelogWebviewState = {
                     {
                         label: locConstants.Changelog.tryIt,
                         type: "command",
-                        value: constants.cmdDacpacDialog,
+                        value: ChangelogActionId.OpenDacpacDialog,
                     },
                     {
                         label: locConstants.Changelog.watchDemo,
@@ -158,22 +156,6 @@ export const changelogConfig: ChangelogWebviewState = {
                         label: locConstants.Changelog.learnMore,
                         type: "link",
                         value: "https://aka.ms/vscode-mssql-dacpac",
-                    },
-                ],
-            },
-            {
-                title: locConstants.Changelog.fabricIntegrationTitle,
-                description: locConstants.Changelog.fabricIntegrationDescription,
-                actions: [
-                    {
-                        label: locConstants.Changelog.watchDemo,
-                        type: "link",
-                        value: "https://aka.ms/vscode-mssql-fabric-db-demo",
-                    },
-                    {
-                        label: locConstants.Changelog.learnMore,
-                        type: "link",
-                        value: "https://aka.ms/vscode-mssql-fabric-docs",
                     },
                 ],
             },
@@ -251,12 +233,12 @@ export const changelogConfig: ChangelogWebviewState = {
                 {
                     type: "walkthrough",
                     label: locConstants.Changelog.mssqlWalkthrough,
-                    value: `${constants.extensionId}#mssql.getStarted`,
+                    value: ChangelogActionId.OpenMssqlWalkthrough,
                 },
                 {
                     type: "walkthrough",
                     label: locConstants.Changelog.copilotWalkthrough,
-                    value: `GitHub.copilot-chat#copilotWelcome`,
+                    value: ChangelogActionId.OpenCopilotWalkthrough,
                 },
                 {
                     type: "link",

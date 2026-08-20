@@ -15,8 +15,25 @@ import ConnectionManager from "../../../src/controllers/connectionManager";
 import { ConnectionStore } from "../../../src/models/connectionStore";
 import { ConnectionUI } from "../../../src/views/connectionUI";
 import { SessionState, SessionType } from "../../../src/profiler/profilerTypes";
+import { ProfilerWebviewController } from "../../../src/profiler/profilerWebviewController";
+import { observeWebviewReady } from "../utils";
 
 chai.use(sinonChai);
+
+/**
+ * Wraps {@link ProfilerWebviewController.dispose} so the controllers created internally by
+ * {@link ProfilerController} have their disposed-before-ready rejection observed, preventing
+ * unhandled promise rejection noise during these command-flow tests.
+ */
+function observeInternalWebviewReadiness(sandbox: sinon.SinonSandbox): void {
+    const originalDispose = ProfilerWebviewController.prototype.dispose;
+    sandbox.stub(ProfilerWebviewController.prototype, "dispose").callsFake(function (
+        this: ProfilerWebviewController,
+    ) {
+        observeWebviewReady(this);
+        return originalDispose.call(this);
+    });
+}
 
 /**
  * Creates a stubbed ProfilerService for testing.
@@ -76,6 +93,7 @@ suite("ProfilerController Tests", () => {
 
     setup(() => {
         sandbox = sinon.createSandbox();
+        observeInternalWebviewReadiness(sandbox);
         registeredCommands = new Map();
 
         mockWebview = {
@@ -467,6 +485,7 @@ suite("ProfilerController Integration Tests", () => {
 
     setup(() => {
         sandbox = sinon.createSandbox();
+        observeInternalWebviewReadiness(sandbox);
 
         mockWebview = {
             postMessage: sandbox.stub().resolves(true),
@@ -568,6 +587,7 @@ suite("ProfilerController Server Type Tests", () => {
 
     setup(() => {
         sandbox = sinon.createSandbox();
+        observeInternalWebviewReadiness(sandbox);
         registeredCommands = new Map();
 
         mockWebview = {

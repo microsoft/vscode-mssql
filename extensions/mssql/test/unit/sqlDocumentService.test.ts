@@ -8,6 +8,7 @@ import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
 import { expect } from "chai";
 import * as chai from "chai";
+import { ExtensionContextService } from "extension-toolkit/vscode";
 import * as Constants from "../../src/constants/constants";
 import * as LocalizedConstants from "../../src/constants/locConstants";
 import MainController from "../../src/controllers/mainController";
@@ -21,7 +22,12 @@ import { ConnectionStore } from "../../src/models/connectionStore";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
 import { CredentialStore } from "../../src/credentialstore/credentialstore";
 import { Deferred } from "../../src/protocol";
-import { createStubLogger, stubExtensionContext, stubTelemetry } from "./utils";
+import {
+    createStubLogger,
+    stubExtensionContext,
+    stubInstantiationService,
+    stubTelemetry,
+} from "./utils";
 
 chai.use(sinonChai);
 
@@ -60,7 +66,7 @@ suite("SqlDocumentService Tests", () => {
         ): vscode.Disposable => ({ dispose: () => {} });
 
         // Create main controller
-        mainController = new MainController(mockContext);
+        mainController = new MainController(mockContext, stubInstantiationService(sandbox));
         mainController.connectionManager = connectionManager;
         mainController.createObjectExplorerSession = sandbox.stub().resolves();
 
@@ -100,6 +106,7 @@ suite("SqlDocumentService Tests", () => {
     });
 
     teardown(() => {
+        sqlDocumentService.dispose();
         sandbox.restore();
     });
 
@@ -110,9 +117,10 @@ suite("SqlDocumentService Tests", () => {
         } as any;
 
         const newQueryStub = sandbox.stub(sqlDocumentService as any, "newQuery").resolves(editor);
-        (connectionManager as any).connectionStore = {
+        const connectionStoreStub = {
             removeRecentlyUsed: sandbox.stub().resolves(),
-        };
+        } as any;
+        sandbox.stub(connectionManager, "connectionStore").get(() => connectionStoreStub);
         connectionManager.getServerInfo.returns(undefined as any);
         connectionManager.handlePasswordBasedCredentials.resolves();
 
@@ -123,8 +131,7 @@ suite("SqlDocumentService Tests", () => {
         await sqlDocumentService.handleNewQueryCommand(node, undefined);
 
         expect(newQueryStub).to.have.been.calledOnce;
-        expect((connectionManager as any).connectionStore.removeRecentlyUsed).to.have.been
-            .calledOnce;
+        expect(connectionStoreStub.removeRecentlyUsed).to.have.been.calledOnce;
         expect(connectionManager.handlePasswordBasedCredentials).to.have.been.calledOnce;
     });
 
@@ -166,14 +173,15 @@ suite("SqlDocumentService Tests", () => {
         sqlDocumentService["_lastActiveConnectionInfo"] = { server: "localhost" } as any;
         // remove OE selection influence
         mainController.objectExplorerTree = { selection: [] } as any;
-        connectionManager.connectionStore = {
+        const connectionStoreStub = {
             removeRecentlyUsed: sandbox.stub().resolves(),
         } as any;
+        sandbox.stub(connectionManager, "connectionStore").get(() => connectionStoreStub);
 
         await sqlDocumentService.handleNewQueryCommand(undefined, "SELECT 1");
 
         expect(newQueryStub).to.have.been.calledOnce;
-        expect(connectionManager.connectionStore.removeRecentlyUsed).to.not.have.been.called;
+        expect(connectionStoreStub.removeRecentlyUsed).to.not.have.been.called;
         newQueryStub.restore();
     });
 
@@ -188,9 +196,10 @@ suite("SqlDocumentService Tests", () => {
 
         sqlDocumentService["_lastActiveConnectionInfo"] = undefined;
         mainController.objectExplorerTree = { selection: [] } as any;
-        connectionManager.connectionStore = {
+        const connectionStoreStub = {
             removeRecentlyUsed: sandbox.stub().resolves(),
         } as any;
+        sandbox.stub(connectionManager, "connectionStore").get(() => connectionStoreStub);
 
         const editor: vscode.TextEditor = { document: { uri: "t" } } as any;
         const newQueryStub = sandbox.stub(sqlDocumentService, "newQuery").callsFake((opts: any) => {
@@ -231,7 +240,7 @@ suite("SqlDocumentService Tests", () => {
 
         const connectionStoreStub = sandbox.createStubInstance(ConnectionStore);
 
-        connectionManager.connectionStore = connectionStoreStub;
+        sandbox.stub(connectionManager, "connectionStore").get(() => connectionStoreStub);
         connectionManager.getServerInfo.returns({} as IServerInfo);
         connectionManager.getConnectionInfo.returns({} as ConnectionInfo);
 
@@ -267,9 +276,10 @@ suite("SqlDocumentService Tests", () => {
         // clear last active and OE selection
         sqlDocumentService["_lastActiveConnectionInfo"] = undefined;
         mainController.objectExplorerTree = { selection: [] } as any;
-        connectionManager.connectionStore = {
+        const connectionStoreStub = {
             removeRecentlyUsed: sandbox.stub().resolves(),
         } as any;
+        sandbox.stub(connectionManager, "connectionStore").get(() => connectionStoreStub);
 
         const editor: vscode.TextEditor = { document: { uri: "x" } } as any;
         const newQueryStub = sandbox.stub(sqlDocumentService, "newQuery").callsFake((opts: any) => {
@@ -280,7 +290,7 @@ suite("SqlDocumentService Tests", () => {
 
         await sqlDocumentService.handleNewQueryCommand(undefined, undefined);
         expect(newQueryStub).to.have.been.calledOnce;
-        expect(connectionManager.connectionStore.removeRecentlyUsed).to.not.have.been.called;
+        expect(connectionStoreStub.removeRecentlyUsed).to.not.have.been.called;
         newQueryStub.restore();
     });
 
@@ -1061,10 +1071,10 @@ suite("SqlDocumentService Tests", () => {
             mockConnectionConfig.initialized = initializedDeferred;
 
             return new ConnectionStore(
-                stubExtensionContext(sandbox),
+                new ExtensionContextService(stubExtensionContext(sandbox)),
                 sandbox.createStubInstance(CredentialStore),
-                createStubLogger(sandbox),
                 mockConnectionConfig,
+                createStubLogger(sandbox),
             );
         }
 
@@ -1124,10 +1134,9 @@ suite("SqlDocumentService Tests", () => {
                 mockConnectionConfig.getConnectionById
                     .withArgs(defaultConnectionId)
                     .resolves(defaultProfile);
-                connectionManager.connectionStore = makeConnectionStore(
-                    sandbox,
-                    mockConnectionConfig,
-                );
+                sandbox
+                    .stub(connectionManager, "connectionStore")
+                    .get(() => makeConnectionStore(sandbox, mockConnectionConfig));
 
                 await sqlDocumentService.onDidOpenTextDocument(document);
 
@@ -1144,10 +1153,9 @@ suite("SqlDocumentService Tests", () => {
 
                 const mockConnectionConfig = sandbox.createStubInstance(ConnectionConfig);
                 mockConnectionConfig.getConnectionById.resolves(undefined);
-                connectionManager.connectionStore = makeConnectionStore(
-                    sandbox,
-                    mockConnectionConfig,
-                );
+                sandbox
+                    .stub(connectionManager, "connectionStore")
+                    .get(() => makeConnectionStore(sandbox, mockConnectionConfig));
 
                 await sqlDocumentService.onDidOpenTextDocument(document);
 
@@ -1164,10 +1172,9 @@ suite("SqlDocumentService Tests", () => {
 
                 const mockConnectionConfig = sandbox.createStubInstance(ConnectionConfig);
                 mockConnectionConfig.getConnectionById.resolves(undefined);
-                connectionManager.connectionStore = makeConnectionStore(
-                    sandbox,
-                    mockConnectionConfig,
-                );
+                sandbox
+                    .stub(connectionManager, "connectionStore")
+                    .get(() => makeConnectionStore(sandbox, mockConnectionConfig));
 
                 await sqlDocumentService.onDidOpenTextDocument(document);
 
@@ -1204,7 +1211,7 @@ suite("SqlDocumentService Tests", () => {
         suite("handleNewQueryCommand", () => {
             setup(() => {
                 const mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
-                connectionManager.connectionStore = mockConnectionStore;
+                sandbox.stub(connectionManager, "connectionStore").get(() => mockConnectionStore);
                 mainController.objectExplorerTree = { selection: [] } as any;
             });
 
@@ -1358,10 +1365,9 @@ suite("SqlDocumentService Tests", () => {
                 mockConnectionConfig.getConnectionById
                     .withArgs(defaultConnectionId)
                     .resolves(defaultProfile);
-                sqlDocumentService["_connectionMgr"].connectionStore = makeConnectionStore(
-                    sandbox,
-                    mockConnectionConfig,
-                );
+                sandbox
+                    .stub(sqlDocumentService["_connectionMgr"], "connectionStore")
+                    .get(() => makeConnectionStore(sandbox, mockConnectionConfig));
 
                 const result = await sqlDocumentService.newQuery({
                     connectionStrategy: ConnectionStrategy.UseDefaultConnection,
@@ -1381,10 +1387,9 @@ suite("SqlDocumentService Tests", () => {
 
                 const mockConnectionConfig = sandbox.createStubInstance(ConnectionConfig);
                 mockConnectionConfig.getConnectionById.resolves(undefined);
-                sqlDocumentService["_connectionMgr"].connectionStore = makeConnectionStore(
-                    sandbox,
-                    mockConnectionConfig,
-                );
+                sandbox
+                    .stub(sqlDocumentService["_connectionMgr"], "connectionStore")
+                    .get(() => makeConnectionStore(sandbox, mockConnectionConfig));
 
                 const result = await sqlDocumentService.newQuery({
                     connectionStrategy: ConnectionStrategy.UseDefaultConnection,
@@ -1404,10 +1409,9 @@ suite("SqlDocumentService Tests", () => {
 
                 const mockConnectionConfig = sandbox.createStubInstance(ConnectionConfig);
                 mockConnectionConfig.getConnectionById.resolves(undefined);
-                sqlDocumentService["_connectionMgr"].connectionStore = makeConnectionStore(
-                    sandbox,
-                    mockConnectionConfig,
-                );
+                sandbox
+                    .stub(sqlDocumentService["_connectionMgr"], "connectionStore")
+                    .get(() => makeConnectionStore(sandbox, mockConnectionConfig));
 
                 const result = await sqlDocumentService.newQuery({
                     connectionStrategy: ConnectionStrategy.UseDefaultConnection,

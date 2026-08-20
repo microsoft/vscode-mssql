@@ -29,10 +29,10 @@ import {
 } from "../providerSettings";
 import { Deferred } from "../../protocol";
 import { IPrompter } from "../../prompts/question";
-import { ICredentialStore } from "../../credentialstore/icredentialstore";
+import { ICredentialStore } from "../../credentialstore/credentialstore";
 import * as azureUtils from "../utils";
 import { ILogger } from "../../sharedInterfaces/logger";
-import { sendActionEvent } from "../../telemetry/telemetry";
+import { sendActionEvent } from "extension-toolkit/vscode";
 import { TelemetryActions, TelemetryViews } from "../../sharedInterfaces/telemetry";
 
 export class MsalAzureController extends AzureController {

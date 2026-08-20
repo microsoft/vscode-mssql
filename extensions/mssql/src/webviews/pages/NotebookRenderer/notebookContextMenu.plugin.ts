@@ -3,29 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-/**
- * Context menu plugin for the notebook renderer grid.
- *
- * This is intentionally separate from QueryResult's ContextMenu because
- * the two share very little implementation:
- *  - QueryResult renders its menu via React (queryResultContext.showGridContextMenu)
- *    and delegates copy/format to the extension host via RPC, since it requires
- *    live SQL Tools Service result set IDs for server-side formatting;
- *  - The notebook renderer builds the menu with raw DOM and formats data
- *    client-side using in-memory row data, then writes via the clipboard API.
- *    (A renderer↔extension-host messaging channel exists via RendererContext
- *    but offers no advantage here since the data is already in memory.)
- */
-
 import { locConstants } from "../../common/locConstants";
 import { IDisposableDataProvider } from "../QueryResult/table/dataProvider";
 import type { IDbColumn } from "../../../sharedInterfaces/queryResult";
+import type { NotebookCopyAsCsvOptions } from "../../../sharedInterfaces/notebookQueryResult";
 import { getEOL, isMac } from "../../common/utils";
 
-/** Get the modifier key label for keyboard shortcuts (lazy evaluation to support testing) */
 const getModKeyLabel = () => (isMac() ? "⌘" : "Ctrl+");
 
-/** Actions available in the notebook grid context menu. */
 enum NotebookContextMenuAction {
     SelectAll = "select-all",
     CopySelection = "copy-selection",
@@ -64,9 +49,13 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
         "money",
         "smallmoney",
     ]);
+    private static readonly JSON_NUMBER_PATTERN = /^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?$/;
+    private static readonly SQL_NUMBER_PATTERN = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/;
+    private static readonly INSERT_ROW_LIMIT = 1000;
 
     constructor(
         private readonly columnInfo: IDbColumn[] = [],
+        private readonly copyAsCsvOptions?: NotebookCopyAsCsvOptions,
         private readonly postMessage?: (message: unknown) => void,
     ) {}
 
@@ -92,8 +81,6 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
         this.dismiss();
     }
 
-    // ── Menu display ─────────────────────────────────────────────────
-
     private handleContextMenu(e: Event): void {
         e.preventDefault();
         e.stopPropagation();
@@ -101,10 +88,10 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
 
         const mouseEvent = e as MouseEvent;
         const { menu, showSubmenu } = this.buildMenu();
+        menu.setAttribute("role", "menu");
         document.body.appendChild(menu);
         this.menuElement = menu;
 
-        // Position with viewport awareness
         const margin = 8;
         const menuRect = menu.getBoundingClientRect();
         const maxX = Math.max(margin, window.innerWidth - menuRect.width - margin);
@@ -115,8 +102,6 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
         menu.style.left = `${x}px`;
         menu.style.top = `${y}px`;
 
-        // Keyboard navigation — focus the container; track active item via CSS class
-        // so individual items don't need tabIndex and the dismiss handler is unaffected.
         menu.tabIndex = -1;
         let focusedIdx = -1;
         const menuItems = Array.from(menu.querySelectorAll<HTMLElement>(".nb-context-menu-item"));
@@ -124,12 +109,7 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
             menuItems[focusedIdx]?.classList.remove("nb-context-menu-item--focused");
             focusedIdx = (next + menuItems.length) % menuItems.length;
             menuItems[focusedIdx]?.classList.add("nb-context-menu-item--focused");
-        };
-        const clearMainFocus = () => {
-            if (focusedIdx >= 0) {
-                menuItems[focusedIdx]?.classList.remove("nb-context-menu-item--focused");
-                focusedIdx = -1;
-            }
+            menuItems[focusedIdx]?.focus();
         };
 
         menu.addEventListener("keydown", (evt: KeyboardEvent) => {
@@ -155,24 +135,30 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
                 case " ":
                     evt.preventDefault();
                     evt.stopPropagation();
-                    if (focusedIdx >= 0) menuItems[focusedIdx]?.click();
+                    if (menuItems[focusedIdx]?.dataset.hasSubmenu) {
+                        showSubmenu();
+                    } else {
+                        menuItems[focusedIdx]?.click();
+                    }
                     break;
             }
         });
 
-        menu.addEventListener("mousemove", clearMainFocus);
-
-        // Dismiss on outside click (also allow clicks inside the submenu panel)
-        this.dismissHandler = (evt: MouseEvent) => {
+        const dismissHandler = (evt: MouseEvent) => {
             const target = evt.target as Node;
             if (!menu.contains(target) && !this.submenuElement?.contains(target)) {
                 this.dismiss();
             }
         };
-        // Use queueMicrotask so the current right-click event doesn't immediately dismiss the menu
+        this.dismissHandler = dismissHandler;
+
+        // Wait until the current context-menu event has finished before listening for dismissal.
         queueMicrotask(() => {
-            menu.focus();
-            document.addEventListener("mousedown", this.dismissHandler!);
+            if (this.dismissHandler !== dismissHandler) {
+                return;
+            }
+            setMenuFocus(0);
+            document.addEventListener("mousedown", dismissHandler);
         });
 
         this.escapeHandler = (evt: KeyboardEvent) => {
@@ -180,12 +166,12 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
         };
         document.addEventListener("keydown", this.escapeHandler);
 
-        // Dismiss on scroll
         this.scrollHandler = () => this.dismiss();
         this.grid.getCanvasNode().addEventListener("scroll", this.scrollHandler);
     }
 
     private dismiss(): void {
+        const shouldRestoreGridFocus = this.menuElement !== null;
         if (this.menuElement) {
             this.menuElement.remove();
             this.menuElement = null;
@@ -206,9 +192,10 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
             this.grid?.getCanvasNode()?.removeEventListener("scroll", this.scrollHandler);
             this.scrollHandler = null;
         }
+        if (shouldRestoreGridFocus) {
+            this.grid.focus();
+        }
     }
-
-    // ── Menu construction ────────────────────────────────────────────
 
     private buildMenu(): { menu: HTMLElement; showSubmenu: () => void } {
         const menu = document.createElement("div");
@@ -274,6 +261,10 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
         const item = document.createElement("div");
         item.className = "nb-context-menu-item";
         item.dataset.hasSubmenu = "true";
+        item.tabIndex = -1;
+        item.setAttribute("role", "menuitem");
+        item.setAttribute("aria-haspopup", "menu");
+        item.setAttribute("aria-expanded", "false");
 
         const labelSpan = document.createElement("span");
         labelSpan.className = "nb-context-menu-label";
@@ -282,6 +273,7 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
 
         const submenu = document.createElement("div");
         submenu.className = "nb-context-menu";
+        submenu.setAttribute("role", "menu");
         submenu.style.display = "none";
         submenu.style.flexDirection = "column";
         submenu.tabIndex = -1;
@@ -307,6 +299,7 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
             submenuItems[submenuFocusedIdx]?.classList.remove("nb-context-menu-item--focused");
             submenuFocusedIdx = (next + submenuItems.length) % submenuItems.length;
             submenuItems[submenuFocusedIdx]?.classList.add("nb-context-menu-item--focused");
+            submenuItems[submenuFocusedIdx]?.focus();
         };
 
         const positionSubmenu = () => {
@@ -321,12 +314,12 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
             submenu.style.left = `${left}px`;
             submenu.style.top = `${Math.max(8, Math.min(rect.top, window.innerHeight - submenuRect.height - 8))}px`;
             submenu.style.visibility = "";
+            item.setAttribute("aria-expanded", "true");
         };
 
         const show = () => {
             positionSubmenu();
             setSubmenuFocus(0);
-            submenu.focus();
         };
 
         const hideSubmenu = (e: MouseEvent) => {
@@ -335,11 +328,16 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
                 !item.contains(e.relatedTarget as Node)
             ) {
                 submenu.style.display = "none";
+                item.setAttribute("aria-expanded", "false");
                 clearFocus();
             }
         };
 
-        submenu.addEventListener("mousemove", clearFocus);
+        item.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            show();
+        });
         item.addEventListener("mouseenter", positionSubmenu);
         item.addEventListener("mouseleave", hideSubmenu);
         submenu.addEventListener("mouseleave", hideSubmenu);
@@ -363,8 +361,9 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
                     evt.preventDefault();
                     evt.stopPropagation();
                     submenu.style.display = "none";
+                    item.setAttribute("aria-expanded", "false");
                     clearFocus();
-                    parent.focus();
+                    item.focus();
                     break;
                 case "Enter":
                 case " ":
@@ -387,6 +386,8 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
     ): HTMLElement {
         const item = document.createElement("div");
         item.className = "nb-context-menu-item";
+        item.tabIndex = -1;
+        item.setAttribute("role", "menuitem");
 
         const labelSpan = document.createElement("span");
         labelSpan.className = "nb-context-menu-label";
@@ -414,10 +415,9 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
     private addSeparator(parent: HTMLElement): void {
         const sep = document.createElement("div");
         sep.className = "nb-context-menu-separator";
+        sep.setAttribute("role", "separator");
         parent.appendChild(sep);
     }
-
-    // ── Actions ──────────────────────────────────────────────────────
 
     private async handleAction(action: NotebookContextMenuAction): Promise<void> {
         const { ranges, columns, dataProvider } = this.getSelectionContext();
@@ -472,7 +472,6 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
         const selModel = this.grid.getSelectionModel();
         let ranges = selModel?.getSelectedRanges() ?? [];
 
-        // If no selection, select the entire grid
         if (ranges.length === 0) {
             const colCount = this.grid.getColumns().length;
             const rowCount = (this.grid.getData() as IDisposableDataProvider<T>).getLength();
@@ -486,7 +485,6 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
         };
     }
 
-    /** Get data columns (excluding rowNumber) within the given cell range. */
     private getDataColumnsInRange(
         columns: Slick.Column<T>[],
         fromCell: number,
@@ -502,11 +500,6 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
         return result;
     }
 
-    /**
-     * Indices of every data column touched by any range, in grid column order.
-     * A multi-range selection is flattened into one column set so the output has a
-     * single consistent shape, matching the standard query result grid.
-     */
     private getSelectedColumnIndices(ranges: Slick.Range[], columns: Slick.Column<T>[]): number[] {
         const selected = new Set<number>();
         for (const range of ranges) {
@@ -520,11 +513,6 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
         return [...selected].sort((a, b) => a - b);
     }
 
-    /**
-     * True when the cell lies inside any selected range. Ranges sharing rows merge
-     * into fully populated rows, while ranges on different rows stay isolated so
-     * their unselected columns are emitted as blanks.
-     */
     private isCellSelected(ranges: Slick.Range[], row: number, colIndex: number): boolean {
         return ranges.some(
             (rng) =>
@@ -557,7 +545,6 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
         try {
             await navigator.clipboard.writeText(text);
         } catch {
-            // Fallback: execCommand for environments where clipboard API is restricted
             const textarea = document.createElement("textarea");
             textarea.value = text;
             textarea.style.position = "fixed";
@@ -568,8 +555,6 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
             document.body.removeChild(textarea);
         }
     }
-
-    // ── Formatters ───────────────────────────────────────────────────
 
     private formatTabSeparated(
         ranges: Slick.Range[],
@@ -608,21 +593,41 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
         return headers.join(getEOL());
     }
 
-    private formatAsCsv(
+    public formatAsCsv(
         ranges: Slick.Range[],
         columns: Slick.Column<T>[],
         dataProvider: IDisposableDataProvider<T>,
     ): string {
+        const {
+            delimiter = ",",
+            includeHeaders = true,
+            lineSeparator = getEOL(),
+            textIdentifier = '"',
+        } = this.copyAsCsvOptions ?? {};
         const quote = (v: string): string => {
-            if (v.includes('"') || v.includes(",") || v.includes("\n") || v.includes("\r")) {
-                return '"' + v.replace(/"/g, '""') + '"';
+            if (
+                v.includes(textIdentifier) ||
+                v.includes(delimiter) ||
+                v.includes("\n") ||
+                v.includes("\r")
+            ) {
+                return (
+                    textIdentifier +
+                    v.replaceAll(textIdentifier, textIdentifier + textIdentifier) +
+                    textIdentifier
+                );
             }
             return v;
         };
-        // No header row: the standard query result grid emits values only, and headers
-        // are available through the separate "Copy with Headers"/"Copy Headers" actions.
         const colIndices = this.getSelectedColumnIndices(ranges, columns);
         const lines: string[] = [];
+        if (includeHeaders) {
+            lines.push(
+                colIndices
+                    .map((c) => quote(columns[c].toolTip ?? columns[c].name ?? ""))
+                    .join(delimiter),
+            );
+        }
         for (const range of ranges) {
             for (let r = range.fromRow; r <= range.toRow; r++) {
                 lines.push(
@@ -634,20 +639,18 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
                                   )
                                 : "",
                         )
-                        .join(","),
+                        .join(delimiter),
                 );
             }
         }
-        return lines.join(getEOL());
+        return lines.join(lineSeparator);
     }
 
-    private formatAsJson(
+    public formatAsJson(
         ranges: Slick.Range[],
         columns: Slick.Column<T>[],
         dataProvider: IDisposableDataProvider<T>,
     ): string {
-        // Every object shares the same key set, built from the union of selected
-        // columns; cells outside the selection are emitted as null.
         const colMeta = this.getSelectedColumnIndices(ranges, columns).map((c) => {
             const col = columns[c];
             const typeName = this.getColumnInfo(col)?.dataTypeName?.toLowerCase();
@@ -672,7 +675,10 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
                         val = "null";
                     } else {
                         const displayVal = cellVal?.displayValue ?? "";
-                        val = isJsonNumber ? displayVal : JSON.stringify(displayVal);
+                        val =
+                            isJsonNumber && NotebookContextMenu.JSON_NUMBER_PATTERN.test(displayVal)
+                                ? displayVal
+                                : JSON.stringify(displayVal);
                     }
                     pairs.push(`    ${key}: ${val}`);
                 }
@@ -682,8 +688,7 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
         return `[${eol}${rows.join(`,${eol}`)}${eol}]`;
     }
 
-    /** Returns null unless every range covers the same single data column (caller shows error). */
-    private formatAsInClause(
+    public formatAsInClause(
         ranges: Slick.Range[],
         columns: Slick.Column<T>[],
         dataProvider: IDisposableDataProvider<T>,
@@ -695,8 +700,6 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
         for (const range of ranges) {
             const rangeCols = this.getDataColumnsInRange(columns, range.fromCell, range.toCell);
             if (rangeCols.length !== 1) return null;
-            // Every range must reference the same column; ranges on different columns
-            // would produce an IN clause mixing unrelated values.
             if (col === undefined) {
                 col = rangeCols[0];
                 isNumeric = this.isNumericSqlType(this.getColumnInfo(col)?.dataTypeName);
@@ -710,7 +713,7 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
                 const rawVal = cellVal?.displayValue ?? "";
                 const val = cellVal?.isNull
                     ? "NULL"
-                    : isNumeric && !/[eE]/.test(rawVal)
+                    : isNumeric && NotebookContextMenu.SQL_NUMBER_PATTERN.test(rawVal)
                       ? rawVal
                       : this.sqlStr(rawVal);
                 valueLines.push(val);
@@ -727,13 +730,11 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
         }
     }
 
-    private formatAsInsertInto(
+    public formatAsInsertInto(
         ranges: Slick.Range[],
         columns: Slick.Column<T>[],
         dataProvider: IDisposableDataProvider<T>,
     ): string {
-        // Cells outside the selection are emitted as NULL so the INSERT keeps one
-        // consistent column list across every range.
         const colMeta = this.getSelectedColumnIndices(ranges, columns).map((c) => {
             const col = columns[c];
             return {
@@ -754,7 +755,9 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
                     const cellVal = item?.[col.field!];
                     if (cellVal?.isNull) return "NULL";
                     const val = cellVal?.displayValue ?? "";
-                    return isNumeric && !/[eE]/.test(val) ? val : this.sqlStr(val);
+                    return isNumeric && NotebookContextMenu.SQL_NUMBER_PATTERN.test(val)
+                        ? val
+                        : this.sqlStr(val);
                 });
                 valueRows.push(`    (${values.join(", ")})`);
             }
@@ -765,11 +768,21 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
         }
 
         const colNames = colMeta
-            .map(({ col }) => col.toolTip ?? col.name ?? col.field ?? "")
+            .map(({ col }) => this.escapeSqlIdentifier(col.toolTip ?? col.name ?? col.field ?? ""))
             .join(", ");
-        const rowLines = valueRows.map((row, i, a) => row + (i < a.length - 1 ? "," : ";"));
-
-        return [`INSERT INTO TableName (${colNames})`, "VALUES", ...rowLines].join(getEOL());
+        const statements: string[] = [];
+        for (
+            let start = 0;
+            start < valueRows.length;
+            start += NotebookContextMenu.INSERT_ROW_LIMIT
+        ) {
+            const batch = valueRows.slice(start, start + NotebookContextMenu.INSERT_ROW_LIMIT);
+            const rowLines = batch.map((row, i) => row + (i < batch.length - 1 ? "," : ";"));
+            statements.push(
+                [`INSERT INTO TableName (${colNames})`, "VALUES", ...rowLines].join(getEOL()),
+            );
+        }
+        return statements.join(getEOL() + getEOL());
     }
 
     private isNumericSqlType(dataTypeName: string | undefined): boolean {
@@ -780,5 +793,9 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
 
     private sqlStr(v: string): string {
         return "'" + v.replace(/'/g, "''") + "'";
+    }
+
+    private escapeSqlIdentifier(value: string): string {
+        return `[${value.replaceAll("]", "]]")}]`;
     }
 }

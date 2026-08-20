@@ -93,7 +93,7 @@ export function generatePublishFormComponents(
                 const isValid = str.length > 0 && !isNaN(port) && validateSqlServerPortNumber(port);
                 return {
                     isValid,
-                    validationMessage: isValid ? "" : Loc.InvalidPortMessage,
+                    validationMessage: isValid ? "" : Common.invalidPort,
                 };
             },
         },

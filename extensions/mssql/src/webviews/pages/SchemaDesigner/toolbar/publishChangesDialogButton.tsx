@@ -12,7 +12,7 @@ import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { useSchemaDesignerChangeContext } from "../definition/changes/schemaDesignerChangeContext";
 import { useSchemaDesignerSelector } from "../schemaDesignerSelector";
 import { CopilotChat } from "../../../../sharedInterfaces/copilotChat";
-import { ExecuteCommandRequest, LoadingLogEntry } from "../../../../sharedInterfaces/webview";
+import { LoadingLogEntry } from "../../../../sharedInterfaces/webview";
 import { GithubCopilot16Regular } from "../../../common/icons/fluentIcons";
 import {
     schemaDesignerPublishErrorDetailsLabel,
@@ -294,15 +294,10 @@ export function PublishChangesDialogButton() {
             isConfirmationChecked: false,
         });
 
-        await context.extensionRpc.sendRequest(ExecuteCommandRequest.type, {
-            command: CopilotChat.openFromUiCommand,
-            args: [
-                {
-                    scenario: "schemaDesigner",
-                    entryPoint: "schemaDesignerPublishDialogError",
-                    prompt,
-                },
-            ],
+        await context.extensionRpc.sendRequest(CopilotChat.OpenFromUiRequest.type, {
+            scenario: "schemaDesigner",
+            entryPoint: "schemaDesignerPublishDialogError",
+            prompt,
         });
     };
 

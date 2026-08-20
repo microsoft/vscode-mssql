@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+  <file original="bundle" source-language="en" datatype="plaintext" target-language="de">
+    <body>
+      <trans-unit id="++CODE++29cb43d35709b0f1254247869842039bbf9946fe14ac3ed5d2361149d327e4fb">
+        <source xml:lang="en">Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues. Error: {1}</source>
+        <note>{0} is the proxy URL
+{1} is the error message</note>
+        <target state="translated">Proxyeinstellungen gefunden, beim Analysieren der URL ist jedoch ein Fehler aufgetreten: „{0}“. Es kann zu Verbindungsproblemen kommen. Fehler: {1}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++846411cdb6da1b9a5bf9c0fbfff056eff05f531a8f63ec2c402d974c616aae31">
+        <source xml:lang="en">Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues.</source>
+        <note>{0} is the proxy URL</note>
+        <target state="translated">Proxyeinstellungen gefunden, jedoch ohne Protokoll (z. B. http://): „{0}“. Es kann zu Verbindungsproblemen kommen.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++96d229ad39923c7fdc914e4075785ffba3c0282697aa7f4f31a289baa4b83996">
+        <source xml:lang="en">Unable to read proxy agent options.</source>
+        <target state="translated">Proxy-Agent-Optionen können nicht gelesen werden.</target>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

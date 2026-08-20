@@ -4,35 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from "chai";
+import * as sinon from "sinon";
 import { NotebookContextMenu } from "../../../src/webviews/pages/NotebookRenderer/notebookContextMenu.plugin";
 import type { IDbColumn } from "vscode-mssql";
 import type { IDisposableDataProvider } from "../../../src/webviews/pages/QueryResult/table/dataProvider";
-
-// Mock navigator for isMac() and getEOL() in notebookContextMenu.plugin.
-// getEOL() derives the line separator from userAgent, so it is pinned to Windows
-// here (matching platform above) and the expected output below uses CRLF.
-// Use Object.defineProperty because navigator is read-only in Electron
-Object.defineProperty(global, "navigator", {
-    value: {
-        platform: "Win32",
-        userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-        clipboard: {
-            writeText: async () => {},
-        },
-    },
-    writable: true,
-    configurable: true,
-});
-
-// Slick.EventHandler is a class field — mock the global before any test instantiates NotebookContextMenu.
-(global as any).Slick = {
-    EventHandler: class {
-        subscribe() {}
-        unsubscribeAll() {}
-    },
-};
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
+import type { NotebookCopyAsCsvOptions } from "../../../src/sharedInterfaces/notebookQueryResult";
 
 function makeRange(fromRow: number, toRow: number, fromCell: number, toCell: number): Slick.Range {
     return { fromRow, toRow, fromCell, toCell } as unknown as Slick.Range;
@@ -63,11 +39,18 @@ function makeProvider(rows: CellRow[]): IDisposableDataProvider<Slick.SlickData>
     } as unknown as IDisposableDataProvider<Slick.SlickData>;
 }
 
-function makeMenu(columnInfo: IDbColumn[] = []): NotebookContextMenu<Slick.SlickData> {
-    return new NotebookContextMenu<Slick.SlickData>(columnInfo);
+function makeMenu(
+    columnInfo: IDbColumn[] = [],
+    copyAsCsvOptions: NotebookCopyAsCsvOptions = {
+        delimiter: ",",
+        includeHeaders: false,
+        lineSeparator: "\r\n",
+        textIdentifier: '"',
+    },
+): NotebookContextMenu<Slick.SlickData> {
+    return new NotebookContextMenu<Slick.SlickData>(columnInfo, copyAsCsvOptions);
 }
 
-// Accessors for private formatter methods
 const fmt = {
     csv(
         menu: NotebookContextMenu<Slick.SlickData>,
@@ -75,7 +58,7 @@ const fmt = {
         cols: Slick.Column<Slick.SlickData>[],
         provider: IDisposableDataProvider<Slick.SlickData>,
     ): string {
-        return (menu as any).formatAsCsv(ranges, cols, provider);
+        return menu.formatAsCsv(ranges, cols, provider);
     },
 
     json(
@@ -84,7 +67,7 @@ const fmt = {
         cols: Slick.Column<Slick.SlickData>[],
         provider: IDisposableDataProvider<Slick.SlickData>,
     ): string {
-        return (menu as any).formatAsJson(ranges, cols, provider);
+        return menu.formatAsJson(ranges, cols, provider);
     },
 
     inClause(
@@ -93,7 +76,7 @@ const fmt = {
         cols: Slick.Column<Slick.SlickData>[],
         provider: IDisposableDataProvider<Slick.SlickData>,
     ): string | null {
-        return (menu as any).formatAsInClause(ranges, cols, provider);
+        return menu.formatAsInClause(ranges, cols, provider);
     },
 
     insertInto(
@@ -102,13 +85,54 @@ const fmt = {
         cols: Slick.Column<Slick.SlickData>[],
         provider: IDisposableDataProvider<Slick.SlickData>,
     ): string {
-        return (menu as any).formatAsInsertInto(ranges, cols, provider);
+        return menu.formatAsInsertInto(ranges, cols, provider);
     },
 };
 
-// ── Tests ─────────────────────────────────────────────────────────────────────
-
 suite("NotebookContextMenu formatters", () => {
+    const sandbox = sinon.createSandbox();
+    let navigatorDescriptor: PropertyDescriptor | undefined;
+    let slickDescriptor: PropertyDescriptor | undefined;
+
+    suiteSetup(() => {
+        navigatorDescriptor = Object.getOwnPropertyDescriptor(globalThis, "navigator");
+        slickDescriptor = Object.getOwnPropertyDescriptor(globalThis, "Slick");
+
+        Object.defineProperty(globalThis, "navigator", {
+            value: {
+                platform: "Win32",
+                userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+                clipboard: {
+                    writeText: sandbox.stub().resolves(),
+                },
+            },
+            configurable: true,
+        });
+        Object.defineProperty(globalThis, "Slick", {
+            value: {
+                EventHandler: class {
+                    public subscribe = sandbox.stub();
+                    public unsubscribeAll = sandbox.stub();
+                },
+            },
+            configurable: true,
+        });
+    });
+
+    suiteTeardown(() => {
+        sandbox.restore();
+        restoreProperty("navigator", navigatorDescriptor);
+        restoreProperty("Slick", slickDescriptor);
+    });
+
+    function restoreProperty(name: string, descriptor: PropertyDescriptor | undefined): void {
+        if (descriptor) {
+            Object.defineProperty(globalThis, name, descriptor);
+        } else {
+            Reflect.deleteProperty(globalThis, name);
+        }
+    }
+
     suite("formatAsCsv", () => {
         test("emits data rows only, without a header row", () => {
             const menu = makeMenu();
@@ -116,6 +140,32 @@ suite("NotebookContextMenu formatters", () => {
             const rows: CellRow[] = [{ "0": makeCell("Alice"), "1": makeCell("30") }];
             const result = fmt.csv(menu, [makeRange(0, 0, 0, 1)], cols, makeProvider(rows));
             expect(result).to.equal("Alice,30");
+        });
+
+        test("uses configured headers and delimiters", () => {
+            const menu = makeMenu([], {
+                delimiter: ";",
+                includeHeaders: true,
+                lineSeparator: "\n",
+                textIdentifier: "'",
+            });
+            const cols = [makeCol(0, "Name"), makeCol(1, "Age")];
+            const rows: CellRow[] = [{ "0": makeCell("Alice"), "1": makeCell("30") }];
+            const result = fmt.csv(menu, [makeRange(0, 0, 0, 1)], cols, makeProvider(rows));
+            expect(result).to.equal("Name;Age\nAlice;30");
+        });
+
+        test("uses the configured text identifier", () => {
+            const menu = makeMenu([], {
+                delimiter: ",",
+                includeHeaders: false,
+                lineSeparator: "\n",
+                textIdentifier: "'",
+            });
+            const cols = [makeCol(0, "Name")];
+            const rows: CellRow[] = [{ "0": makeCell("O'Brien") }];
+            const result = fmt.csv(menu, [makeRange(0, 0, 0, 0)], cols, makeProvider(rows));
+            expect(result).to.equal("'O''Brien'");
         });
 
         test("quotes values that contain a comma", () => {
@@ -216,6 +266,22 @@ suite("NotebookContextMenu formatters", () => {
             const rows: CellRow[] = [{ "0": makeCell("", true) }];
             const result = fmt.json(menu, [makeRange(0, 0, 0, 0)], cols, makeProvider(rows));
             expect(JSON.parse(result)).to.deep.equal([{ Id: null }]);
+        });
+
+        test("quotes an empty numeric display value", () => {
+            const menu = makeMenu([makeDbCol("int")]);
+            const cols = [makeCol(0, "Id")];
+            const rows: CellRow[] = [{ "0": makeCell("") }];
+            const result = fmt.json(menu, [makeRange(0, 0, 0, 0)], cols, makeProvider(rows));
+            expect(JSON.parse(result)).to.deep.equal([{ Id: "" }]);
+        });
+
+        test("quotes a whitespace-only numeric display value", () => {
+            const menu = makeMenu([makeDbCol("decimal")]);
+            const cols = [makeCol(0, "Amount")];
+            const rows: CellRow[] = [{ "0": makeCell(" ") }];
+            const result = fmt.json(menu, [makeRange(0, 0, 0, 0)], cols, makeProvider(rows));
+            expect(JSON.parse(result)).to.deep.equal([{ Amount: " " }]);
         });
 
         test("preserves uppercase E in scientific notation from SQL Server", () => {
@@ -320,7 +386,7 @@ suite("NotebookContextMenu formatters", () => {
             const cols = [makeCol(0, "Name")];
             const rows: CellRow[] = [{ "0": makeCell("Alice") }];
             const result = fmt.insertInto(menu, [makeRange(0, 0, 0, 0)], cols, makeProvider(rows));
-            expect(result).to.equal("INSERT INTO TableName (Name)\r\nVALUES\r\n    ('Alice');");
+            expect(result).to.equal("INSERT INTO TableName ([Name])\r\nVALUES\r\n    ('Alice');");
         });
 
         test("leaves numeric column values unquoted", () => {
@@ -328,7 +394,7 @@ suite("NotebookContextMenu formatters", () => {
             const cols = [makeCol(0, "Id")];
             const rows: CellRow[] = [{ "0": makeCell("42") }];
             const result = fmt.insertInto(menu, [makeRange(0, 0, 0, 0)], cols, makeProvider(rows));
-            expect(result).to.equal("INSERT INTO TableName (Id)\r\nVALUES\r\n    (42);");
+            expect(result).to.equal("INSERT INTO TableName ([Id])\r\nVALUES\r\n    (42);");
         });
 
         test("emits NULL for null cells", () => {
@@ -336,7 +402,7 @@ suite("NotebookContextMenu formatters", () => {
             const cols = [makeCol(0, "Name")];
             const rows: CellRow[] = [{ "0": makeCell("", true) }];
             const result = fmt.insertInto(menu, [makeRange(0, 0, 0, 0)], cols, makeProvider(rows));
-            expect(result).to.equal("INSERT INTO TableName (Name)\r\nVALUES\r\n    (NULL);");
+            expect(result).to.equal("INSERT INTO TableName ([Name])\r\nVALUES\r\n    (NULL);");
         });
 
         test("single-quotes numeric values in E-notation", () => {
@@ -344,7 +410,7 @@ suite("NotebookContextMenu formatters", () => {
             const cols = [makeCol(0, "Val")];
             const rows: CellRow[] = [{ "0": makeCell("1.5E+10") }];
             const result = fmt.insertInto(menu, [makeRange(0, 0, 0, 0)], cols, makeProvider(rows));
-            expect(result).to.equal("INSERT INTO TableName (Val)\r\nVALUES\r\n    ('1.5E+10');");
+            expect(result).to.equal("INSERT INTO TableName ([Val])\r\nVALUES\r\n    ('1.5E+10');");
         });
 
         test("escapes single quotes inside string values", () => {
@@ -352,7 +418,9 @@ suite("NotebookContextMenu formatters", () => {
             const cols = [makeCol(0, "Name")];
             const rows: CellRow[] = [{ "0": makeCell("O'Brien") }];
             const result = fmt.insertInto(menu, [makeRange(0, 0, 0, 0)], cols, makeProvider(rows));
-            expect(result).to.equal("INSERT INTO TableName (Name)\r\nVALUES\r\n    ('O''Brien');");
+            expect(result).to.equal(
+                "INSERT INTO TableName ([Name])\r\nVALUES\r\n    ('O''Brien');",
+            );
         });
 
         test("comma after each row except the last which gets a semicolon", () => {
@@ -365,7 +433,7 @@ suite("NotebookContextMenu formatters", () => {
             ];
             const result = fmt.insertInto(menu, [makeRange(0, 2, 0, 0)], cols, makeProvider(rows));
             expect(result).to.equal(
-                "INSERT INTO TableName (Id)\r\nVALUES\r\n    (1),\r\n    (2),\r\n    (3);",
+                "INSERT INTO TableName ([Id])\r\nVALUES\r\n    (1),\r\n    (2),\r\n    (3);",
             );
         });
 
@@ -375,7 +443,7 @@ suite("NotebookContextMenu formatters", () => {
             const rows: CellRow[] = [{ "0": makeCell("1"), "1": makeCell("Alice") }];
             const result = fmt.insertInto(menu, [makeRange(0, 0, 0, 1)], cols, makeProvider(rows));
             expect(result).to.equal(
-                "INSERT INTO TableName (Id, Name)\r\nVALUES\r\n    (1, 'Alice');",
+                "INSERT INTO TableName ([Id], [Name])\r\nVALUES\r\n    (1, 'Alice');",
             );
         });
 
@@ -384,7 +452,32 @@ suite("NotebookContextMenu formatters", () => {
             const cols = [makeCol(0, "short", "full_col")];
             const rows: CellRow[] = [{ "0": makeCell("1") }];
             const result = fmt.insertInto(menu, [makeRange(0, 0, 0, 0)], cols, makeProvider(rows));
-            expect(result).to.include("(full_col)");
+            expect(result).to.include("([full_col])");
+        });
+
+        test("escapes closing brackets in column names", () => {
+            const menu = makeMenu([makeDbCol("int")]);
+            const cols = [makeCol(0, "Order] ID")];
+            const rows: CellRow[] = [{ "0": makeCell("1") }];
+            const result = fmt.insertInto(menu, [makeRange(0, 0, 0, 0)], cols, makeProvider(rows));
+            expect(result).to.include("([Order]] ID])");
+        });
+
+        test("splits more than 1000 rows into separate statements", () => {
+            const menu = makeMenu([makeDbCol("int")]);
+            const cols = [makeCol(0, "Id")];
+            const rows = Array.from({ length: 1001 }, (_, index) => ({
+                "0": makeCell(String(index)),
+            }));
+            const result = fmt.insertInto(
+                menu,
+                [makeRange(0, 1000, 0, 0)],
+                cols,
+                makeProvider(rows),
+            );
+            expect(result.match(/INSERT INTO TableName/g)).to.have.lengthOf(2);
+            expect(result).to.include("    (999);\r\n\r\nINSERT INTO TableName ([Id])");
+            expect(result.endsWith("    (1000);")).to.equal(true);
         });
 
         test("returns empty string when range contains no data columns", () => {
@@ -405,12 +498,7 @@ suite("NotebookContextMenu formatters", () => {
         });
     });
 
-    // Multi-range selections must match the standard query result grid: every
-    // formatter emits one consistent column set built from the union of all
-    // ranges. Ranges sharing rows merge into fully populated rows; ranges on
-    // different rows keep their columns isolated.
     suite("multi-range selections", () => {
-        // Columns 0/2/4 selected on the same rows, skipping columns 1 and 3.
         const sameRowRanges = () => [
             makeRange(0, 1, 0, 0),
             makeRange(0, 1, 2, 2),
@@ -445,7 +533,6 @@ suite("NotebookContextMenu formatters", () => {
             const result = fmt.csv(menu, sameRowRanges(), wideCols(), makeProvider(wideRows()));
             const row1 = "John,2003-11-09,john.smith@example.com";
             const row2 = "Mariah,2004-01-30,mariah.jones@example.com";
-            // Two rows per range, three ranges, and no header row.
             expect(result).to.equal([row1, row2, row1, row2, row1, row2].join("\r\n"));
         });
 
@@ -456,7 +543,6 @@ suite("NotebookContextMenu formatters", () => {
                 { "0": makeCell("a0"), "1": makeCell("b0") },
                 { "0": makeCell("a1"), "1": makeCell("b1") },
             ];
-            // Column 0 on row 0, column 1 on row 1.
             const ranges = [makeRange(0, 0, 0, 0), makeRange(1, 1, 1, 1)];
             const result = fmt.csv(menu, ranges, cols, makeProvider(rows));
             expect(result).to.equal("a0,\r\n,b1");
@@ -476,7 +562,9 @@ suite("NotebookContextMenu formatters", () => {
                 wideCols(),
                 makeProvider(wideRows()),
             );
-            expect(result).to.contain("INSERT INTO TableName (FirstName, DateOfBirth, Email)");
+            expect(result).to.contain(
+                "INSERT INTO TableName ([FirstName], [DateOfBirth], [Email])",
+            );
             expect(result).to.contain("('John', '2003-11-09', 'john.smith@example.com')");
             expect(result).to.contain("('Mariah', '2004-01-30', 'mariah.jones@example.com')");
         });
@@ -491,7 +579,7 @@ suite("NotebookContextMenu formatters", () => {
             const ranges = [makeRange(0, 0, 0, 0), makeRange(1, 1, 1, 1)];
             const result = fmt.insertInto(menu, ranges, cols, makeProvider(rows));
             expect(result).to.equal(
-                "INSERT INTO TableName (A, B)\r\nVALUES\r\n    ('a0', NULL),\r\n    (NULL, 'b1');",
+                "INSERT INTO TableName ([A], [B])\r\nVALUES\r\n    ('a0', NULL),\r\n    (NULL, 'b1');",
             );
         });
 
@@ -520,7 +608,6 @@ suite("NotebookContextMenu formatters", () => {
             const menu = makeMenu([makeDbCol("nvarchar"), makeDbCol("nvarchar")]);
             const cols = [makeCol(0, "A"), makeCol(1, "B")];
             const rows: CellRow[] = [{ "0": makeCell("a0"), "1": makeCell("b0") }];
-            // Each range is a single column, but they are not the same column.
             const ranges = [makeRange(0, 0, 0, 0), makeRange(0, 0, 1, 1)];
             expect(fmt.inClause(menu, ranges, cols, makeProvider(rows))).to.equal(null);
         });

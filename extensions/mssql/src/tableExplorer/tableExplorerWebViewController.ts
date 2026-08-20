@@ -22,7 +22,7 @@ import * as LocConstants from "../constants/locConstants";
 import { getErrorMessage, uuid } from "../utils/utils";
 import { bracketEscapeSqlIdentifier } from "../models/utils";
 import * as Constants from "../constants/constants";
-import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent, startActivity } from "extension-toolkit/vscode";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { ApiStatus } from "../sharedInterfaces/webview";
 

@@ -17,7 +17,7 @@ import { DeploymentCommonReducers } from "../sharedInterfaces/deployment";
 import * as lc from "../sharedInterfaces/localContainers";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { ApiStatus } from "../sharedInterfaces/webview";
-import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { DEPLOYMENT_VIEW_ID, DeploymentWebviewController } from "./deploymentWebviewController";
 import * as dockerUtils from "../docker/dockerUtils";
 import * as sqlServerContainer from "./sqlServerContainer";
@@ -25,6 +25,7 @@ import MainController from "../controllers/mainController";
 import { FormItemOptions, FormItemSpec, FormItemType } from "../sharedInterfaces/form";
 import { getGroupIdFormItem } from "../connectionconfig/formComponentHelpers";
 import { UserSurvey } from "../nps/userSurvey";
+import { getErrorMessage } from "../utils/utils";
 
 export async function initializeLocalContainersState(
     groupOptions: FormItemOptions[],
@@ -78,10 +79,13 @@ export function registerLocalContainersReducers(deploymentController: Deployment
                 localContainersState.formState,
                 deploymentController.mainController,
             );
-            stepSuccessful = connectionResult;
+            stepSuccessful = connectionResult.success;
 
-            if (!connectionResult) {
+            if (connectionResult.success) {
+                localContainersState.connectionString = connectionResult.connectionString ?? "";
+            } else {
                 currentStep.errorMessage = `${connectErrorTooltip} ${localContainersState.formState.profileName}`;
+                currentStep.fullErrorText = connectionResult.fullErrorText;
             }
 
             UserSurvey.getInstance().promptUserForNPSFeedback(
@@ -280,8 +284,8 @@ export function sendLocalContainersCloseEventTelemetry(state: lc.LocalContainers
 export async function addContainerConnection(
     dockerProfile: lc.DockerConnectionProfile,
     mainController: MainController,
-): Promise<boolean> {
-    let connection: unknown = {
+): Promise<lc.ContainerConnectionResult> {
+    const connection: unknown = {
         ...dockerProfile,
         server: `${localhost},${dockerProfile.port}`,
         profileName: dockerProfile.profileName || dockerProfile.containerName,
@@ -297,12 +301,17 @@ export async function addContainerConnection(
             connection as IConnectionProfile,
         );
 
+        const connectionString = await mainController.connectionManager.getConnectionString(
+            mainController.connectionManager.createConnectionDetails(profile),
+            false /* includePassword */,
+            false /* includeApplicationName */,
+        );
         await mainController.createObjectExplorerSession(profile);
-    } catch {
-        return false;
-    }
 
-    return true;
+        return { success: true, connectionString };
+    } catch (error) {
+        return { success: false, fullErrorText: getErrorMessage(error) };
+    }
 }
 
 export function setLocalContainersFormComponents(

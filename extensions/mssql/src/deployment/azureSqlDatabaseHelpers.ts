@@ -15,11 +15,20 @@ import { getGroupIdFormItem } from "../connectionconfig/formComponentHelpers";
 import { AzureSqlDatabase, ConnectionDialog } from "../constants/locConstants";
 import { ILogger } from "../sharedInterfaces/logger";
 import * as asd from "../sharedInterfaces/azureSqlDatabase";
-import { AuthenticationType, IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
-import { FormItemActionButton, FormItemOptions, FormItemType } from "../sharedInterfaces/form";
+import {
+    AddFirewallRuleDialogProps,
+    AuthenticationType,
+    IConnectionDialogProfile,
+} from "../sharedInterfaces/connectionDialog";
+import {
+    findFirstFavoriteOption,
+    FormItemActionButton,
+    FormItemOptions,
+    FormItemType,
+} from "../sharedInterfaces/form";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import { IConnectionProfile } from "../models/interfaces";
 import { DEPLOYMENT_VIEW_ID, DeploymentWebviewController } from "./deploymentWebviewController";
@@ -31,12 +40,16 @@ import {
     getCloudResourceEndpoint,
 } from "../azure/vscodeEntraMfaUtils";
 import { getErrorMessage } from "../utils/utils";
+import { AddFirewallRuleState } from "../sharedInterfaces/addFirewallRule";
+import { populateAzureAccountInfo } from "../controllers/addFirewallRuleWebviewController";
+import { Deferred } from "../protocol";
 
 // Cached logger reference for use in helper functions that don't have
 // direct access to the controller's protected logger.
 let cachedLogger: ILogger | undefined;
 
 const FIREWALL_ERROR_CODE = 40615;
+const pendingFirewallRulePrompts = new WeakMap<DeploymentWebviewController, Deferred<boolean>>();
 
 function clearCacheDownstream(state: asd.AzureSqlDatabaseState, fromComponent: string): void {
     const order = asd.AZURE_SQL_DB_COMPONENT_ORDER as readonly string[];
@@ -397,6 +410,98 @@ export function registerAzureSqlDatabaseReducers(
         },
     );
 
+    deploymentController.registerReducer("openFirewallRuleDialog", async (state) => {
+        const azureSqlState = state.deploymentTypeState as asd.AzureSqlDatabaseState;
+        const errorMessage = azureSqlState.firewallErrorMessage || azureSqlState.errorMessage || "";
+
+        void promptForFirewallRule(deploymentController, azureSqlState, errorMessage)
+            .then((ruleCreated) => {
+                if (ruleCreated) {
+                    void connectToAzureSqlDatabase(deploymentController, true);
+                }
+            })
+            .catch((error) => {
+                cachedLogger?.error(
+                    `Failed to open the firewall rule dialog: ${getErrorMessage(error)}`,
+                );
+                surfaceConnectionError(deploymentController, azureSqlState, errorMessage, true);
+            });
+
+        return state;
+    });
+
+    deploymentController.registerReducer("closeFirewallRuleDialog", async (state) => {
+        const azureSqlState = state.deploymentTypeState as asd.AzureSqlDatabaseState;
+        closeFirewallRuleDialog(deploymentController, azureSqlState, false);
+        state.dialog = undefined;
+        state.deploymentTypeState = azureSqlState;
+        return state;
+    });
+
+    deploymentController.registerReducer("addAzureSqlFirewallRule", async (state, payload) => {
+        const azureSqlState = state.deploymentTypeState as asd.AzureSqlDatabaseState;
+        const dialog = azureSqlState.dialog as AddFirewallRuleDialogProps;
+        dialog.props.addFirewallRuleStatus = ApiStatus.Loading;
+        updateAzureSqlDatabaseState(deploymentController, azureSqlState);
+
+        try {
+            const subscription = getCachedSubscription(
+                azureSqlState,
+                azureSqlState.formState.subscriptionId,
+            );
+            if (!subscription) {
+                throw new Error(AzureSqlDatabase.noSubscriptionsFound);
+            }
+
+            const [startIp, endIp] =
+                typeof payload.firewallRuleSpec.ip === "string"
+                    ? [payload.firewallRuleSpec.ip, payload.firewallRuleSpec.ip]
+                    : [payload.firewallRuleSpec.ip.startIp, payload.firewallRuleSpec.ip.endIp];
+
+            await VsCodeAzureHelper.createFirewallRule(
+                subscription,
+                azureSqlState.formState.resourceGroup,
+                azureSqlState.formState.serverName,
+                payload.firewallRuleSpec.name,
+                startIp,
+                endIp,
+            );
+            azureSqlState.canAddFirewallRule = false;
+            closeFirewallRuleDialog(deploymentController, azureSqlState, true);
+            state.dialog = undefined;
+            sendActionEvent(TelemetryViews.AzureSqlDatabase, TelemetryActions.AddFirewallRule);
+        } catch (error) {
+            dialog.props.message = getErrorMessage(error);
+            dialog.props.addFirewallRuleStatus = ApiStatus.Error;
+            sendErrorEvent(
+                TelemetryViews.AzureSqlDatabase,
+                TelemetryActions.AddFirewallRule,
+                error as Error,
+                false,
+            );
+        }
+
+        state.deploymentTypeState = azureSqlState;
+        return state;
+    });
+
+    deploymentController.registerReducer("signIntoAzureForFirewallRule", async (state) => {
+        const azureSqlState = state.deploymentTypeState as asd.AzureSqlDatabaseState;
+        if (azureSqlState.dialog?.type !== "addFirewallRule") {
+            return state;
+        }
+
+        const dialogState = (azureSqlState.dialog as AddFirewallRuleDialogProps).props;
+        dialogState.loadingAccounts = true;
+        updateAzureSqlDatabaseState(deploymentController, azureSqlState);
+        try {
+            await populateAzureAccountInfo(dialogState, true);
+        } finally {
+            dialogState.loadingAccounts = false;
+        }
+        return state;
+    });
+
     deploymentController.registerReducer(
         "setCreateResourceGroupDrawerState",
         async (state, payload) => {
@@ -696,12 +801,115 @@ export function sendAzureSqlDatabaseCloseEventTelemetry(state: asd.AzureSqlDatab
     );
 }
 
+async function promptForFirewallRule(
+    deploymentController: DeploymentWebviewController,
+    state: asd.AzureSqlDatabaseState,
+    errorMessage: string,
+): Promise<boolean> {
+    const pendingPrompt = pendingFirewallRulePrompts.get(deploymentController);
+    if (pendingPrompt) {
+        return pendingPrompt.promise;
+    }
+
+    const prompt = new Deferred<boolean>();
+    pendingFirewallRulePrompts.set(deploymentController, prompt);
+
+    try {
+        const handleResult =
+            await deploymentController.mainController.connectionManager.firewallService.handleFirewallRule(
+                FIREWALL_ERROR_CODE,
+                errorMessage,
+            );
+        if (!handleResult.result || !handleResult.ipAddress) {
+            sendErrorEvent(
+                TelemetryViews.AzureSqlDatabase,
+                TelemetryActions.AddFirewallRule,
+                new Error(errorMessage),
+                true,
+                undefined,
+                "parseIP",
+            );
+        }
+
+        const dialogState: AddFirewallRuleState = {
+            message: errorMessage,
+            clientIp:
+                handleResult.result && handleResult.ipAddress ? handleResult.ipAddress : "0.0.0.0",
+            accounts: [],
+            tenants: {},
+            isSignedIn: await VsCodeAzureHelper.isSignedIn(),
+            loadingAccounts: false,
+            serverName: state.formState.serverName,
+            addFirewallRuleStatus: ApiStatus.NotStarted,
+        };
+
+        if (dialogState.isSignedIn) {
+            await populateAzureAccountInfo(dialogState, false);
+        }
+
+        state.dialog = {
+            type: "addFirewallRule",
+            props: dialogState,
+        } as AddFirewallRuleDialogProps;
+        state.firewallErrorMessage = errorMessage;
+        deploymentController.state.dialog = state.dialog;
+        updateAzureSqlDatabaseState(deploymentController, state);
+    } catch (error) {
+        pendingFirewallRulePrompts.delete(deploymentController);
+        prompt.reject(error);
+    }
+
+    return prompt.promise;
+}
+
+function closeFirewallRuleDialog(
+    deploymentController: DeploymentWebviewController,
+    state: asd.AzureSqlDatabaseState,
+    ruleCreated: boolean,
+): void {
+    if (!ruleCreated && state.firewallErrorMessage) {
+        state.connectionLoadState = ApiStatus.Error;
+        state.errorMessage = state.firewallErrorMessage;
+        state.canAddFirewallRule = true;
+    }
+    state.dialog = undefined;
+    deploymentController.state.dialog = undefined;
+    const prompt = pendingFirewallRulePrompts.get(deploymentController);
+    if (prompt) {
+        pendingFirewallRulePrompts.delete(deploymentController);
+        prompt.resolve(ruleCreated);
+    }
+}
+
+function surfaceConnectionError(
+    deploymentController: DeploymentWebviewController,
+    state: asd.AzureSqlDatabaseState,
+    errorMessage: string,
+    canAddFirewallRule: boolean,
+): void {
+    state.connectionLoadState = ApiStatus.Error;
+    state.errorMessage = errorMessage;
+    state.canAddFirewallRule = canAddFirewallRule;
+    state.firewallErrorMessage = canAddFirewallRule ? errorMessage : "";
+    sendErrorEvent(
+        TelemetryViews.AzureSqlDatabase,
+        TelemetryActions.ConnectToAzureSqlDatabase,
+        new Error(AzureSqlDatabase.connectionFailed),
+        false,
+    );
+    updateAzureSqlDatabaseState(deploymentController, state);
+}
+
 export async function connectToAzureSqlDatabase(
     deploymentController: DeploymentWebviewController,
+    firewallRuleAlreadyCreated = false,
 ): Promise<void> {
     const state = deploymentController.state.deploymentTypeState as asd.AzureSqlDatabaseState;
     const startTime = Date.now();
     state.connectionLoadState = ApiStatus.Loading;
+    state.canAddFirewallRule = false;
+    state.firewallErrorMessage = "";
+    state.errorMessage = undefined;
     updateAzureSqlDatabaseState(deploymentController, state);
 
     try {
@@ -752,7 +960,7 @@ export async function connectToAzureSqlDatabase(
         const retryDelayMs = 30_000;
         const connManager = deploymentController.mainController.connectionManager;
         const tempUri = `${state.formState.serverName}/${state.formState.databaseName}`;
-        let firewallRuleCreated = false;
+        let firewallRuleCreated = firewallRuleAlreadyCreated;
 
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
             const success = await connManager.connect(
@@ -771,17 +979,35 @@ export async function connectToAzureSqlDatabase(
             const connInfo = connManager.getConnectionInfo(tempUri);
             const isFirewallError = connInfo?.errorNumber === FIREWALL_ERROR_CODE;
 
-            if (!isFirewallError || attempt === maxRetries) {
+            if (attempt === maxRetries && isFirewallError) {
+                const firewallErrorMessage =
+                    connInfo?.errorMessage || AzureSqlDatabase.connectionFailed;
+                surfaceConnectionError(deploymentController, state, firewallErrorMessage, true);
+                const ruleCreated = await promptForFirewallRule(
+                    deploymentController,
+                    state,
+                    firewallErrorMessage,
+                );
+
+                if (!ruleCreated) {
+                    return;
+                }
+
+                state.connectionLoadState = ApiStatus.Loading;
+                state.errorMessage = undefined;
+                state.canAddFirewallRule = false;
+                state.firewallErrorMessage = "";
+                updateAzureSqlDatabaseState(deploymentController, state);
+                attempt = 0;
+                firewallRuleCreated = true;
+            } else if (!isFirewallError) {
                 // Non-firewall error or exhausted retries — report failure
-                state.connectionLoadState = ApiStatus.Error;
-                state.errorMessage = connInfo?.errorMessage || AzureSqlDatabase.connectionFailed;
-                sendErrorEvent(
-                    TelemetryViews.AzureSqlDatabase,
-                    TelemetryActions.ConnectToAzureSqlDatabase,
-                    new Error(AzureSqlDatabase.connectionFailed),
+                surfaceConnectionError(
+                    deploymentController,
+                    state,
+                    connInfo?.errorMessage || AzureSqlDatabase.connectionFailed,
                     false,
                 );
-                updateAzureSqlDatabaseState(deploymentController, state);
                 return;
             }
 
@@ -859,6 +1085,20 @@ export async function connectToAzureSqlDatabase(
         await deploymentController.mainController.createObjectExplorerSession(profile);
         state.connectionLoadState = ApiStatus.Loaded;
 
+        // Capture the connection string (without the password) so the webview can
+        // surface it in the "Connect to Database" card.
+        try {
+            state.connectionString = await connManager.getConnectionString(
+                connManager.createConnectionDetails(connectionProfile),
+                false /* includePassword */,
+                false /* includeApplicationName */,
+            );
+        } catch (connectionStringError) {
+            cachedLogger?.error(
+                `Failed to build connection string: ${getErrorMessage(connectionStringError)}`,
+            );
+        }
+
         sendActionEvent(
             TelemetryViews.AzureSqlDatabase,
             TelemetryActions.ConnectToAzureSqlDatabase,
@@ -933,10 +1173,9 @@ async function loadTenantComponent(azureSqlState: asd.AzureSqlDatabaseState): Pr
             ? ConnectionDialog.selectATenant
             : AzureSqlDatabase.noTenantsFound;
 
-    azureSqlState.formState.tenantId = getDefaultTenantId(
-        azureSqlState.formState.accountId,
-        azureSqlState.tenants,
-    );
+    azureSqlState.formState.tenantId =
+        findFirstFavoriteOption(tenantComponent.options, tenantComponent.favoriteOptionIds)
+            ?.value ?? getDefaultTenantId(azureSqlState.formState.accountId, azureSqlState.tenants);
 }
 
 async function loadSubscriptionComponent(azureSqlState: asd.AzureSqlDatabaseState): Promise<void> {
@@ -962,6 +1201,7 @@ async function loadSubscriptionComponent(azureSqlState: asd.AzureSqlDatabaseStat
     subscriptionComponent.options = azureSqlState.subscriptions.map((sub) => ({
         displayName: `${sub.name} (${sub.subscriptionId})`,
         value: sub.subscriptionId,
+        favoriteId: sub.subscriptionId,
     }));
     subscriptionComponent.placeholder =
         azureSqlState.subscriptions.length > 0
@@ -969,7 +1209,12 @@ async function loadSubscriptionComponent(azureSqlState: asd.AzureSqlDatabaseStat
             : AzureSqlDatabase.noSubscriptionsFound;
 
     azureSqlState.formState.subscriptionId =
-        azureSqlState.subscriptions.length > 0 ? azureSqlState.subscriptions[0].subscriptionId : "";
+        findFirstFavoriteOption(
+            subscriptionComponent.options,
+            subscriptionComponent.favoriteOptionIds,
+        )?.value ??
+        azureSqlState.subscriptions[0]?.subscriptionId ??
+        "";
 
     // Load maintenance configurations for the selected subscription
     void loadMaintenanceConfigs(azureSqlState);
@@ -1037,6 +1282,7 @@ async function loadResourceGroupComponent(azureSqlState: asd.AzureSqlDatabaseSta
     resourceGroupComponent.options = azureSqlState.resourceGroups.map((name) => ({
         displayName: name,
         value: name,
+        favoriteId: `${azureSqlState.formState.subscriptionId}/${name}`,
     }));
     resourceGroupComponent.placeholder =
         azureSqlState.resourceGroups.length > 0
@@ -1049,7 +1295,12 @@ async function loadResourceGroupComponent(azureSqlState: asd.AzureSqlDatabaseSta
         azureSqlState.formState.resourceGroup = currentRg;
     } else {
         azureSqlState.formState.resourceGroup =
-            azureSqlState.resourceGroups.length > 0 ? azureSqlState.resourceGroups[0] : "";
+            findFirstFavoriteOption(
+                resourceGroupComponent.options,
+                resourceGroupComponent.favoriteOptionIds,
+            )?.value ??
+            azureSqlState.resourceGroups[0] ??
+            "";
     }
 }
 
@@ -1085,6 +1336,7 @@ async function loadServerComponent(azureSqlState: asd.AzureSqlDatabaseState): Pr
     serverComponent.options = azureSqlState.servers.map((s) => ({
         displayName: s.name ?? "",
         value: s.name ?? "",
+        favoriteId: `${azureSqlState.formState.subscriptionId}/${azureSqlState.formState.resourceGroup}/${s.name ?? ""}`,
     }));
     serverComponent.placeholder =
         azureSqlState.servers.length > 0
@@ -1100,7 +1352,10 @@ async function loadServerComponent(azureSqlState: asd.AzureSqlDatabaseState): Pr
         azureSqlState.formState.serverName = currentServer;
     } else {
         azureSqlState.formState.serverName =
-            azureSqlState.servers.length > 0 ? (azureSqlState.servers[0].name ?? "") : "";
+            findFirstFavoriteOption(serverComponent.options, serverComponent.favoriteOptionIds)
+                ?.value ??
+            azureSqlState.servers[0]?.name ??
+            "";
     }
 
     // Auto-detect auth type based on the selected server's properties
@@ -1196,6 +1451,7 @@ function setAzureSqlDatabaseFormComponents(
             required: true,
             type: FormItemType.Dropdown,
             options: tenantOptions,
+            favoriteOptionIds: [],
             placeholder: ConnectionDialog.selectATenant,
             validate: (_state: asd.AzureSqlDatabaseState, value: string) => ({
                 isValid: !!value,
@@ -1208,6 +1464,7 @@ function setAzureSqlDatabaseFormComponents(
             required: true,
             type: FormItemType.SearchableDropdown,
             options: subscriptionOptions,
+            favoriteOptionIds: [],
             placeholder: AzureSqlDatabase.selectASubscription,
             validate: (_state: asd.AzureSqlDatabaseState, value: string) => ({
                 isValid: !!value,
@@ -1220,6 +1477,7 @@ function setAzureSqlDatabaseFormComponents(
             required: true,
             type: FormItemType.SearchableDropdown,
             options: [],
+            favoriteOptionIds: [],
             placeholder: AzureSqlDatabase.selectAResourceGroup,
             validate: (_state: asd.AzureSqlDatabaseState, value: string) => ({
                 isValid: !!value,
@@ -1232,6 +1490,7 @@ function setAzureSqlDatabaseFormComponents(
             required: true,
             type: FormItemType.SearchableDropdown,
             options: [],
+            favoriteOptionIds: [],
             placeholder: AzureSqlDatabase.selectAServer,
             validate: (_state: asd.AzureSqlDatabaseState, value: string) => ({
                 isValid: !!value,

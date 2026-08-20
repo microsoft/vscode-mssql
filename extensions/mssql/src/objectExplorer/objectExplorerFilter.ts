@@ -14,12 +14,16 @@ import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry"
 import { WebviewPanelController } from "../controllers/webviewPanelController";
 import { TreeNodeInfo } from "./nodes/treeNodeInfo";
 import { randomUUID } from "crypto";
-import { sendActionEvent } from "../telemetry/telemetry";
+import { sendActionEvent } from "extension-toolkit/vscode";
+import { ObjectExplorerFilterStore } from "./objectExplorerFilterStore";
+import { getPreviewConfigKey, PreviewFeature } from "../previews/previewService";
 
 export class ObjectExplorerFilterWebviewController extends WebviewPanelController<
     ObjectExplorerFilterState,
     ObjectExplorerReducers
 > {
+    private readonly _filterStore: ObjectExplorerFilterStore;
+
     private _onSubmit: vscode.EventEmitter<vscodeMssql.NodeFilter[]> = new vscode.EventEmitter<
         vscodeMssql.NodeFilter[]
     >();
@@ -36,6 +40,9 @@ export class ObjectExplorerFilterWebviewController extends WebviewPanelControlle
             data ?? {
                 filterProperties: [],
                 existingFilters: [],
+                isPreviewEnabled: false,
+                filterScopeId: "",
+                filterPresets: [],
                 nodePath: "",
             },
             {
@@ -48,10 +55,46 @@ export class ObjectExplorerFilterWebviewController extends WebviewPanelControlle
             },
         );
 
-        this.registerReducer("submit", (state, payload) => {
+        this._filterStore = new ObjectExplorerFilterStore(context);
+
+        this.registerReducer("submit", async (state, payload) => {
+            try {
+                if (state.isPreviewEnabled) {
+                    await this._filterStore.recordUsage(
+                        state.filterScopeId,
+                        payload.filters,
+                        payload.saveName,
+                    );
+                }
+            } catch (error) {
+                // Applying a filter must not depend on the optional recent-filter cache.
+                this.logger.error("Failed to save the Object Explorer filter history", error);
+            }
             this._onSubmit.fire(payload.filters);
             this.panel.dispose();
             return state;
+        });
+
+        this.registerReducer("setPresetPinned", async (state, payload) => {
+            return this.updateFilterPresets(state, () =>
+                this._filterStore.setPinned(
+                    state.filterScopeId,
+                    payload.presetId,
+                    payload.isPinned,
+                ),
+            );
+        });
+
+        this.registerReducer("deletePreset", async (state, payload) => {
+            return this.updateFilterPresets(state, () =>
+                this._filterStore.deletePreset(state.filterScopeId, payload.presetId),
+            );
+        });
+
+        this.registerReducer("renamePreset", async (state, payload) => {
+            return this.updateFilterPresets(state, () =>
+                this._filterStore.renamePreset(state.filterScopeId, payload.presetId, payload.name),
+            );
         });
 
         this.registerReducer("cancel", (state) => {
@@ -61,8 +104,26 @@ export class ObjectExplorerFilterWebviewController extends WebviewPanelControlle
         });
     }
 
+    private async updateFilterPresets(
+        state: ObjectExplorerFilterState,
+        update: () => Promise<ObjectExplorerFilterState["filterPresets"]>,
+    ): Promise<ObjectExplorerFilterState> {
+        try {
+            const filterPresets = await update();
+            return { ...state, filterPresets };
+        } catch (error) {
+            this.logger.error("Failed to update the Object Explorer filter presets", error);
+            return state;
+        }
+    }
+
     public loadData(data: ObjectExplorerFilterState): void {
         this.state = data;
+    }
+
+    public override revealToForeground(viewColumn?: vscode.ViewColumn): void {
+        // This dialog is designed for immediate keyboard input, so revealing it must take focus.
+        this.panel.reveal(viewColumn, false);
     }
 }
 
@@ -83,18 +144,33 @@ export class ObjectExplorerFilter {
             nodeType: treeNode.nodeType,
             correlationId,
         });
+        const filterStore = new ObjectExplorerFilterStore(context);
+        const filterScopeId = ObjectExplorerFilterStore.getScopeId(
+            treeNode.nodeType,
+            treeNode.filterableProperties,
+        );
+        const isPreviewEnabled =
+            vscode.workspace
+                .getConfiguration()
+                .get<boolean>(
+                    getPreviewConfigKey(PreviewFeature.BetaObjectExplorerFilter),
+                    false,
+                ) ?? false;
+        const data: ObjectExplorerFilterState = {
+            filterProperties: treeNode.filterableProperties,
+            existingFilters: treeNode.filters,
+            isPreviewEnabled,
+            filterScopeId,
+            filterPresets: isPreviewEnabled ? await filterStore.getPresets(filterScopeId) : [],
+            nodePath: treeNode.nodePath,
+        };
         if (!this._filterWebviewController || this._filterWebviewController.isDisposed) {
-            this._filterWebviewController = new ObjectExplorerFilterWebviewController(context, {
-                filterProperties: treeNode.filterableProperties,
-                existingFilters: treeNode.filters,
-                nodePath: treeNode.nodePath,
-            });
+            this._filterWebviewController = new ObjectExplorerFilterWebviewController(
+                context,
+                data,
+            );
         } else {
-            this._filterWebviewController.loadData({
-                filterProperties: treeNode.filterableProperties,
-                existingFilters: treeNode.filters,
-                nodePath: treeNode.nodePath,
-            });
+            this._filterWebviewController.loadData(data);
         }
         await this._filterWebviewController.whenWebviewReady();
         this._filterWebviewController.revealToForeground();

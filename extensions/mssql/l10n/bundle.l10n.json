@@ -19,11 +19,12 @@
     "Public": "Public",
     "Private": "Private",
     "Remove": "Remove",
+    "Port must be a number between 1 and 65535": "Port must be a number between 1 and 65535",
     "SQL Tools (MSSQL)": "SQL Tools (MSSQL)",
     "Create Database": "Create Database",
     "Drop Database": "Drop Database",
     "Rename Database": "Rename Database",
-    "Shortcuts Configuration (Preview)": "Shortcuts Configuration (Preview)",
+    "Shortcuts Configuration": "Shortcuts Configuration",
     "Configuration saved.": "Configuration saved.",
     "Quick Query slot must be between 1 and {0}./{0} is the maximum Quick Query slot number": {
         "message": "Quick Query slot must be between 1 and {0}.",
@@ -467,6 +468,7 @@
     "The recent connections list has been cleared but there were errors while deleting some associated credentials. View the errors in the MSSQL output channel.": "The recent connections list has been cleared but there were errors while deleting some associated credentials. View the errors in the MSSQL output channel.",
     "Testing connection profile...": "Testing connection profile...",
     "Running query is not supported when the editor is in multiple selection mode.": "Running query is not supported when the editor is in multiple selection mode.",
+    "There is no query text to execute. Enter a query or select non-empty query text.": "There is no query text to execute. Enter a query or select non-empty query text.",
     "Please select a node from Object Explorer to script.": "Please select a node from Object Explorer to script.",
     "Please select only one node to script. Multiple node scripting is not supported.": "Please select only one node to script. Multiple node scripting is not supported.",
     "Could not find scripting metadata for {0} '{1}'./{0} is the node type{1} is the node label": {
@@ -518,8 +520,15 @@
     "Keep in query pane": "Keep in query pane",
     "Max row count for filtering/sorting has been exceeded. To update it, navigate to User Settings and change the setting: mssql.resultsGrid.inMemoryDataProcessingThreshold": "Max row count for filtering/sorting has been exceeded. To update it, navigate to User Settings and change the setting: mssql.resultsGrid.inMemoryDataProcessingThreshold",
     "New Deployment": "New Deployment",
+    "No workspace folder is open. Open a folder to add the deployment script.": "No workspace folder is open. Open a folder to add the deployment script.",
+    "A file named '{0}' already exists in the workspace root./{0} is the deployment script file name": {
+        "message": "A file named '{0}' already exists in the workspace root.",
+        "comment": ["{0} is the deployment script file name"]
+    },
+    "Overwrite": "Overwrite",
     "MSSQL: Click to change connection": "MSSQL: Click to change connection",
     "MSSQL: Click to change database": "MSSQL: Click to change database",
+    "MSSQL Notebook Selection Summary": "MSSQL Notebook Selection Summary",
     "Connection failed": "Connection failed",
     "Query execution failed": "Query execution failed",
     "No active notebook.": "No active notebook.",
@@ -735,6 +744,10 @@
             "{1} is the error message"
         ]
     },
+    "Unable to locate Azure SQL server '{0}' in the selected Azure account./{0} is the server name": {
+        "message": "Unable to locate Azure SQL server '{0}' in the selected Azure account.",
+        "comment": ["{0} is the server name"]
+    },
     "Failed to get tenant '{0}' for account '{1}'./{0} is the tenant id{1} is the account name": {
         "message": "Failed to get tenant '{0}' for account '{1}'.",
         "comment": ["{0} is the tenant id", "{1} is the account name"]
@@ -803,6 +816,7 @@
         "message": "Fabric long-running API error with error code '{0}': {1}",
         "comment": ["{0} is the error code", "{1} is the error message"]
     },
+    "Fabric long-running operation response did not include a location header.": "Fabric long-running operation response did not include a location header.",
     "Fabric Account": "Fabric Account",
     "Fabric Account is required": "Fabric Account is required",
     "Workspace": "Workspace",
@@ -1137,7 +1151,6 @@
     "Select Connection": "Select Connection",
     "Checking Docker prerequisites...": "Checking Docker prerequisites...",
     "Creating SQL Server container...": "Creating SQL Server container...",
-    "Port must be a number between 1 and 65535": "Port must be a number between 1 and 65535",
     "Port {0} is already in use. Please choose a different port./{0} is the port number": {
         "message": "Port {0} is already in use. Please choose a different port.",
         "comment": ["{0} is the port number"]
@@ -1176,7 +1189,6 @@
         "message": "Failed to generate script: '{0}'",
         "comment": ["{0} is the error message returned from the generate script operation"]
     },
-    "Are you sure you want to update the target?": "Are you sure you want to update the target?",
     "Failed to apply changes: '{0}'/{0} is the error message returned from the publish changes operation": {
         "message": "Failed to apply changes: '{0}'",
         "comment": ["{0} is the error message returned from the publish changes operation"]
@@ -1635,6 +1647,12 @@
         "message": "Failed disposing query: {0}",
         "comment": ["{0} is the error message"]
     },
+    "The “{0}” extension uses a connection-sharing capability that the MSSQL extension is retiring. File a feature request for the capability you use so we can consider adding it natively./{0} is the extension name": {
+        "message": "The “{0}” extension uses a connection-sharing capability that the MSSQL extension is retiring. File a feature request for the capability you use so we can consider adding it natively.",
+        "comment": ["{0} is the extension name"]
+    },
+    "File a feature request": "File a feature request",
+    "Don’t show again for this extension": "Don’t show again for this extension",
     "The extension '{0}' is requesting access to your SQL Server connections. This will allow it to execute queries and access your database./{0} is the extension name": {
         "message": "The extension '{0}' is requesting access to your SQL Server connections. This will allow it to execute queries and access your database.",
         "comment": ["{0} is the extension name"]
@@ -1849,7 +1867,6 @@
     "Highlights": "Highlights",
     "Schema Designer with GitHub Copilot": "Schema Designer with GitHub Copilot",
     "Use natural language to design database schemas directly within the visual Schema Designer. Create schemas from scratch, evolve existing designs, review changes through a diff view, and import external artifacts - all reflected live in the visual diagram and T-SQL script.": "Use natural language to design database schemas directly within the visual Schema Designer. Create schemas from scratch, evolve existing designs, review changes through a diff view, and import external artifacts - all reflected live in the visual diagram and T-SQL script.",
-    "Shortcuts Configuration": "Shortcuts Configuration",
     "Create and manage keyboard shortcuts for frequently used queries, as well as query editor and results grid actions, to discover available commands and execute them more efficiently.": "Create and manage keyboard shortcuts for frequently used queries, as well as query editor and results grid actions, to discover available commands and execute them more efficiently.",
     "Azure SQL databases provisioning": "Azure SQL databases provisioning",
     "Easily start with the Azure SQL database free tier to create and connect to a database directly from your editor at no cost.": "Easily start with the Azure SQL database free tier to create and connect to a database directly from your editor at no cost.",
@@ -1874,6 +1891,8 @@
     "Browse Fabric workspaces and provision SQL databases in Fabric without leaving VS Code.": "Browse Fabric workspaces and provision SQL databases in Fabric without leaving VS Code.",
     "SQL Database Projects — Code Analysis": "SQL Database Projects — Code Analysis",
     "Analyze static code with customizable rulesets in SQL Database Projects.": "Analyze static code with customizable rulesets in SQL Database Projects.",
+    "SQL Formatter": "SQL Formatter",
+    "Format T-SQL with expanded configuration options and greater control over query style and layout using the new SQL Formatter.": "Format T-SQL with expanded configuration options and greater control over query style and layout using the new SQL Formatter.",
     "Resources": "Resources",
     "Explore tutorials, docs, and what's coming next.": "Explore tutorials, docs, and what's coming next.",
     "Feedback": "Feedback",
@@ -1999,15 +2018,6 @@
     "Are you sure you want to close the current session? All captured events will be lost. You can export events to CSV from the toolbar before closing.": "Are you sure you want to close the current session? All captured events will be lost. You can export events to CSV from the toolbar before closing.",
     "Select a database for profiling (Azure SQL requires a specific database)": "Select a database for profiling (Azure SQL requires a specific database)",
     "No databases found on the server. Please check your connection.": "No databases found on the server. Please check your connection.",
-    "Unable to read proxy agent options.": "Unable to read proxy agent options.",
-    "Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues while using the MSSQL extension./{0} is the proxy URL": {
-        "message": "Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues while using the MSSQL extension.",
-        "comment": ["{0} is the proxy URL"]
-    },
-    "Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues while using the MSSQL extension.  Error: {1}/{0} is the proxy URL{1} is the error message": {
-        "message": "Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues while using the MSSQL extension.  Error: {1}",
-        "comment": ["{0} is the proxy URL", "{1} is the error message"]
-    },
     "Backup Database - {0}/{0} is the database name": {
         "message": "Backup Database - {0}",
         "comment": ["{0} is the database name"]
@@ -2150,6 +2160,8 @@
     },
     "View known issues": "View known issues",
     "Service installation failed.": "Service installation failed.",
+    "SQL formatting could not be completed because the T-SQL could not be fully parsed. If you believe the syntax is valid, please send feedback.": "SQL formatting could not be completed because the T-SQL could not be fully parsed. If you believe the syntax is valid, please send feedback.",
+    "Send Feedback": "Send Feedback",
     "Azure sign in failed.": "Azure sign in failed.",
     "Select subscriptions": "Select subscriptions",
     "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",
@@ -2238,7 +2250,9 @@
     "Move to Schema request failed: {0}": "Move to Schema request failed: {0}",
     "Failed to resolve the refactor log for this file: {0}": "Failed to resolve the refactor log for this file: {0}",
     "Move to schema '{0}'": "Move to schema '{0}'",
-    "Failed to apply the Move to Schema changes. Check that the files are writable and try again.": "Failed to apply the Move to Schema changes. Check that the files are writable and try again.",
+    "Failed to move file to the new schema folder: {0}": "Failed to move file to the new schema folder: {0}",
+    "The move was rejected or could not be completed.": "The move was rejected or could not be completed.",
+    "Failed to update the .sqlproj after moving the file: {0}": "Failed to update the .sqlproj after moving the file: {0}",
     "Close": "Close",
     "Apply": "Apply",
     "Next": "Next",
@@ -2277,6 +2291,74 @@
     "Move Down": "Move Down",
     "Filter Settings": "Filter Settings",
     "Clear All": "Clear All",
+    "Enter": "Enter",
+    "Escape": "Escape",
+    "Apply ({0})/{0} is the keyboard shortcut for applying the filter": {
+        "message": "Apply ({0})",
+        "comment": ["{0} is the keyboard shortcut for applying the filter"]
+    },
+    "Close ({0})/{0} is the keyboard shortcut for closing the filter dialog": {
+        "message": "Close ({0})",
+        "comment": ["{0} is the keyboard shortcut for closing the filter dialog"]
+    },
+    "Reusable Filters": "Reusable Filters",
+    "Saved": "Saved",
+    "Recent": "Recent",
+    "Applies across compatible folders": "Applies across compatible folders",
+    "Applied filters appear here so you can quickly reuse them.": "Applied filters appear here so you can quickly reuse them.",
+    "Save this filter for reuse": "Save this filter for reuse",
+    "Filter name": "Filter name",
+    "e.g. My tables": "e.g. My tables",
+    "Enter a name to save this filter.": "Enter a name to save this filter.",
+    "Add at least one filter value before saving this filter.": "Add at least one filter value before saving this filter.",
+    "Pin to Saved": "Pin to Saved",
+    "Move to Recent": "Move to Recent",
+    "Delete filter": "Delete filter",
+    "Rename filter": "Rename filter",
+    "Delete reusable filter?": "Delete reusable filter?",
+    "Are you sure you want to delete \"{0}\"? This action cannot be undone./{0} is the name or summary of a reusable filter": {
+        "message": "Are you sure you want to delete \"{0}\"? This action cannot be undone.",
+        "comment": ["{0} is the name or summary of a reusable filter"]
+    },
+    "A saved filter with this name already exists.": "A saved filter with this name already exists.",
+    "True": "True",
+    "False": "False",
+    "Use filter {0}/{0} is the name or summary of a reusable filter": {
+        "message": "Use filter {0}",
+        "comment": ["{0} is the name or summary of a reusable filter"]
+    },
+    "{0} filter value/{0} is a filter property name": {
+        "message": "{0} filter value",
+        "comment": ["{0} is a filter property name"]
+    },
+    "Filter by {0}…/{0} is a filter property name": {
+        "message": "Filter by {0}…",
+        "comment": ["{0} is a filter property name"]
+    },
+    "Second {0} filter value/{0} is a filter property name": {
+        "message": "Second {0} filter value",
+        "comment": ["{0} is a filter property name"]
+    },
+    "{0} filter operator/{0} is a filter property name": {
+        "message": "{0} filter operator",
+        "comment": ["{0} is a filter property name"]
+    },
+    "Clear {0} filter/{0} is a filter property name": {
+        "message": "Clear {0} filter",
+        "comment": ["{0} is a filter property name"]
+    },
+    "More actions for {0}/{0} is the name or summary of a reusable filter": {
+        "message": "More actions for {0}",
+        "comment": ["{0} is the name or summary of a reusable filter"]
+    },
+    "{0} {1} {2}/{0} is a filter property name{1} is a filter operator{2} is the filter value": {
+        "message": "{0} {1} {2}",
+        "comment": [
+            "{0} is a filter property name",
+            "{1} is a filter operator",
+            "{2} is the filter value"
+        ]
+    },
     "And": "And",
     "Contains": "Contains",
     "Not Contains": "Not Contains",
@@ -2516,7 +2598,6 @@
         "comment": ["{0} is the name of the command that already uses this shortcut"]
     },
     "Saving...": "Saving...",
-    "Saved": "Saved",
     "Navigation": "Navigation",
     "Switch between result panes and tabs": "Switch between result panes and tabs",
     "Control the results grid display": "Control the results grid display",
@@ -2750,6 +2831,7 @@
     "Highlight Expensive Operation": "Highlight Expensive Operation",
     "Toggle Tooltips": "Toggle Tooltips",
     "Properties": "Properties",
+    "Execution plan toolbar": "Execution plan toolbar",
     "Importance": "Importance",
     "Alphabetical": "Alphabetical",
     "Reverse Alphabetical": "Reverse Alphabetical",
@@ -2758,6 +2840,20 @@
     "Filter for any field...": "Filter for any field...",
     "Estimated Subtree Cost": "Estimated Subtree Cost",
     "Estimated Operator Cost": "Estimated Operator Cost",
+    "The React Flow execution plan preview could not render this plan.": "The React Flow execution plan preview could not render this plan.",
+    "Execution plan {0}, use arrow keys to navigate between nodes/{0} is the one-based execution plan number": {
+        "message": "Execution plan {0}, use arrow keys to navigate between nodes",
+        "comment": ["{0} is the one-based execution plan number"]
+    },
+    "Execution plan details": "Execution plan details",
+    "Expand {0}/{0} is the name of an execution plan operation": {
+        "message": "Expand {0}",
+        "comment": ["{0} is the name of an execution plan operation"]
+    },
+    "Collapse {0}/{0} is the name of an execution plan operation": {
+        "message": "Collapse {0}",
+        "comment": ["{0} is the name of an execution plan operation"]
+    },
     "Microsoft would like your feedback": "Microsoft would like your feedback",
     "Very Satisfied": "Very Satisfied",
     "Satisfied": "Satisfied",
@@ -2837,7 +2933,7 @@
         "message": "Export toolbar for result set {0}",
         "comment": ["{0} is the result set number (1-based index)"]
     },
-    "Copy As": "Copy As",
+    "Copy as...": "Copy as...",
     "Copy as INSERT INTO": "Copy as INSERT INTO",
     "Copying as an IN clause requires selecting exactly one column.": "Copying as an IN clause requires selecting exactly one column.",
     "NULL": "NULL",
@@ -3497,6 +3593,31 @@
     "Stop": "Stop",
     "Generate script to deploy changes to target": "Generate script to deploy changes to target",
     "Apply changes to target": "Apply changes to target",
+    "Apply changes to {0}/{0} is the target connection name, optionally followed by a colon and the selected database name": {
+        "message": "Apply changes to {0}",
+        "comment": [
+            "{0} is the target connection name, optionally followed by a colon and the selected database name"
+        ]
+    },
+    "Create ({0})/{0} is the total number of objects that will be created": {
+        "message": "Create ({0})",
+        "comment": ["{0} is the total number of objects that will be created"]
+    },
+    "Change ({0})/{0} is the total number of objects that will be changed": {
+        "message": "Change ({0})",
+        "comment": ["{0} is the total number of objects that will be changed"]
+    },
+    "Drop ({0})/{0} is the total number of objects that will be dropped": {
+        "message": "Drop ({0})",
+        "comment": ["{0} is the total number of objects that will be dropped"]
+    },
+    "{0}: {1}/{0} is a schema object type, such as Table or View{1} is the number of objects of that type": {
+        "message": "{0}: {1}",
+        "comment": [
+            "{0} is a schema object type, such as Table or View",
+            "{1} is the number of objects of that type"
+        ]
+    },
     "Options": "Options",
     "Switch Direction": "Switch Direction",
     "Switch Source and Target": "Switch Source and Target",
@@ -3515,6 +3636,25 @@
     "Database Project": "Database Project",
     "Target": "Target",
     "Comparison Details": "Comparison Details",
+    "Affected child objects": "Affected child objects",
+    "Constraints added: {0}/{0} is a comma-separated list of fully-qualified object names (e.g. '[dbo].[PK_Customers], [dbo].[UQ_Customers_Email]') that will be added under the selected parent object when the diff is applied.": {
+        "message": "Constraints added: {0}",
+        "comment": [
+            "{0} is a comma-separated list of fully-qualified object names (e.g. '[dbo].[PK_Customers], [dbo].[UQ_Customers_Email]') that will be added under the selected parent object when the diff is applied."
+        ]
+    },
+    "Constraints changed: {0}/{0} is a comma-separated list of fully-qualified object names that will be altered under the selected parent object when the diff is applied.": {
+        "message": "Constraints changed: {0}",
+        "comment": [
+            "{0} is a comma-separated list of fully-qualified object names that will be altered under the selected parent object when the diff is applied."
+        ]
+    },
+    "Constraints dropped: {0}/{0} is a comma-separated list of fully-qualified object names that will be dropped from under the selected parent object when the diff is applied.": {
+        "message": "Constraints dropped: {0}",
+        "comment": [
+            "{0} is a comma-separated list of fully-qualified object names that will be dropped from under the selected parent object when the diff is applied."
+        ]
+    },
     "There was an error updating the project": "There was an error updating the project",
     "Processing include or exclude all differences operation.": "Processing include or exclude all differences operation.",
     "Publish Project - {0}/{0} is the name of the project being published": {
@@ -3572,6 +3712,13 @@
     "Show full error message": "Show full error message",
     "Previous step failed. Please check the error message and try again.": "Previous step failed. Please check the error message and try again.",
     "+ Add Fabric Account": "+ Add Fabric Account",
+    "Export Infrastructure as Code": "Export Infrastructure as Code",
+    "Download deployment scripts": "Download deployment scripts",
+    "Save Infrastructure-as-Code templates to recreate this database later.": "Save Infrastructure-as-Code templates to recreate this database later.",
+    "Download": "Download",
+    "Bicep": "Bicep",
+    "ARM template": "ARM template",
+    "Terraform": "Terraform",
     "Loading Fabric provisioning...": "Loading Fabric provisioning...",
     "SQL database in Fabric": "SQL database in Fabric",
     "Loading workspaces": "Loading workspaces",
@@ -3592,7 +3739,7 @@
     "Smart performance": "Smart performance",
     "Automatic tuning features like automatic index creation enabled by default.": "Automatic tuning features like automatic index creation enabled by default.",
     "Loading Azure SQL Database...": "Loading Azure SQL Database...",
-    "Create an Azure SQL Database (Preview)": "Create an Azure SQL Database (Preview)",
+    "Create an Azure SQL Database": "Create an Azure SQL Database",
     "Try Azure SQL Database at no cost with our free tier offer! Provision a fully managed cloud database directly from VS Code.": "Try Azure SQL Database at no cost with our free tier offer! Provision a fully managed cloud database directly from VS Code.",
     "Developer-friendly transactional database using the Azure SQL Database Engine — at no cost for prototyping and learning.": "Developer-friendly transactional database using the Azure SQL Database Engine — at no cost for prototyping and learning.",
     "Free compute & storage": "Free compute & storage",
@@ -3670,10 +3817,27 @@
         "comment": ["{0} is the current IP address"]
     },
     "What's next?": "What's next?",
-    "Connect with SQL tools and run your first query": "Connect with SQL tools and run your first query",
-    "Seed sample data or import an existing schema": "Seed sample data or import an existing schema",
-    "Monitor usage and manage your free tier limits": "Monitor usage and manage your free tier limits",
-    "Browse Azure SQL Database tutorials and docs": "Browse Azure SQL Database tutorials and docs",
+    "Add tables and data, explore, and build with the MSSQL extension.": "Add tables and data, explore, and build with the MSSQL extension.",
+    "Design tables with Table Designer": "Design tables with Table Designer",
+    "Import from a flat file as a new table": "Import from a flat file as a new table",
+    "Visualize and design your database with Schema Designer": "Visualize and design your database with Schema Designer",
+    "Compare and deploy schema with Schema Compare": "Compare and deploy schema with Schema Compare",
+    "Run your first query": "Run your first query",
+    "Build with AI using GitHub Copilot": "Build with AI using GitHub Copilot",
+    "Collapse What's next": "Collapse What's next",
+    "Expand What's next": "Expand What's next",
+    "Your new database is empty. Point your app, ORM, or migration tool at it and run your migrations, or use the extension to deploy a local database or SQL project.": "Your new database is empty. Point your app, ORM, or migration tool at it and run your migrations, or use the extension to deploy a local database or SQL project.",
+    "Connection string": "Connection string",
+    "Run your migrations": "Run your migrations",
+    "Copied!": "Copied!",
+    "Copy connection string": "Copy connection string",
+    "Copy migration command": "Copy migration command",
+    "{0} docs/{0} is the name of a database migration tool": {
+        "message": "{0} docs",
+        "comment": ["{0} is the name of a database migration tool"]
+    },
+    "Collapse Connect to Database": "Collapse Connect to Database",
+    "Expand Connect to Database": "Expand Connect to Database",
     "Password must be changed to continue logging into '{0}'/{0} is the name of the server": {
         "message": "Password must be changed to continue logging into '{0}'",
         "comment": ["{0} is the name of the server"]
@@ -3725,6 +3889,7 @@
     "Select an operation": "Select an operation",
     "No connections available. Please create a connection first.": "No connections available. Please create a connection first.",
     "Connecting to server...": "Connecting to server...",
+    "Loading databases...": "Loading databases...",
     "Publish DACPAC": "Publish DACPAC",
     "Extract DACPAC": "Extract DACPAC",
     "Import BACPAC": "Import BACPAC",

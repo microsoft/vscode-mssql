@@ -50,7 +50,8 @@ export const ServerSelectionSection = ({
                 validationMessage={validationMessages.connection?.message}
                 validationState={
                     validationMessages.connection?.severity === "error" ? "error" : "none"
-                }>
+                }
+                orientation="horizontal">
                 {isConnecting ? (
                     <Spinner size="tiny" label={locConstants.dacpacDialog.connectingToServer} />
                 ) : (

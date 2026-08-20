@@ -22,6 +22,7 @@ import MainController from "../../src/controllers/mainController";
 import * as copilotUtils from "../../src/copilot/copilotUtils";
 import { DefaultSqlPortNumber } from "../../src/constants/constants";
 import {
+    observeWebviewReady,
     stubExtensionContext,
     stubUserSurvey,
     stubWebviewPanel,
@@ -159,6 +160,7 @@ suite("SchemaDesignerWebviewController tests", () => {
             treeNode,
             connectionUri,
         );
+        observeWebviewReady(ctrl);
         return ctrl;
     }
 
@@ -208,6 +210,7 @@ suite("SchemaDesignerWebviewController tests", () => {
         test("should register all request handlers", () => {
             createController();
 
+            expect(requestHandlers.has(CopilotChat.OpenFromUiRequest.type.method)).to.be.true;
             expect(requestHandlers.has(SchemaDesigner.InitializeSchemaDesignerRequest.type.method))
                 .to.be.true;
             expect(requestHandlers.has(SchemaDesigner.GetDefinitionRequest.type.method)).to.be.true;
@@ -215,6 +218,22 @@ suite("SchemaDesignerWebviewController tests", () => {
                 .true;
             expect(requestHandlers.has(SchemaDesigner.PublishSessionRequest.type.method)).to.be
                 .true;
+        });
+
+        test("should map the Copilot entry request to the fixed extension command", async () => {
+            const executeCommandStub = sandbox.stub(vscode.commands, "executeCommand").resolves();
+            createController();
+            const payload: CopilotChat.OpenFromUiArgs = {
+                scenario: "schemaDesigner",
+                entryPoint: "schemaDesignerToolbar",
+            };
+
+            await requestHandlers.get(CopilotChat.OpenFromUiRequest.type.method)!(payload);
+
+            expect(executeCommandStub).to.have.been.calledOnceWithExactly(
+                CopilotChat.openFromUiCommand,
+                payload,
+            );
         });
 
         test("should register all notification handlers", () => {

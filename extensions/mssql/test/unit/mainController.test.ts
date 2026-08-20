@@ -8,11 +8,26 @@ import sinonChai from "sinon-chai";
 import { expect } from "chai";
 import * as chai from "chai";
 import * as vscode from "vscode";
+import {
+    InstantiationServiceBuilder,
+    ServiceDescriptor,
+    IInstantiationService,
+} from "extension-toolkit/base";
+import {
+    ExtensionContextService,
+    IExtensionContextService,
+    VscodeHttpClient,
+} from "extension-toolkit/vscode";
 import MainController from "../../src/controllers/mainController";
 import ConnectionManager from "../../src/controllers/connectionManager";
-import { stubTelemetry, stubExtensionContext, stubMessageBoxes } from "./utils";
+import { AccountStore, IAccountStore } from "../../src/azure/accountStore";
+import {
+    stubTelemetry,
+    stubExtensionContext,
+    stubMessageBoxes,
+    stubInstantiationService,
+} from "./utils";
 import * as Constants from "../../src/constants/constants";
-import { HttpClient } from "../../src/http/httpClient";
 import * as LocalizedConstants from "../../src/constants/locConstants";
 import { SchemaDesignerWebviewManager } from "../../src/schemaDesigner/schemaDesignerWebviewManager";
 import { CopilotChat } from "../../src/sharedInterfaces/copilotChat";
@@ -48,6 +63,7 @@ suite("MainController Tests", function () {
     let connectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
     let messageBoxes: ReturnType<typeof stubMessageBoxes>;
     let context: vscode.ExtensionContext;
+    let instantiationService: sinon.SinonStubbedInstance<IInstantiationService>;
 
     function createMockTextEditor(
         uri: string,
@@ -86,7 +102,8 @@ suite("MainController Tests", function () {
         connectionManager = sandbox.createStubInstance(ConnectionManager);
         messageBoxes = stubMessageBoxes(sandbox);
         context = stubExtensionContext(sandbox);
-        mainController = new MainController(context, connectionManager);
+        instantiationService = stubInstantiationService(sandbox);
+        mainController = new MainController(context, instantiationService, connectionManager);
     });
 
     teardown(() => {
@@ -97,6 +114,7 @@ suite("MainController Tests", function () {
         sandbox.stub(Utils, "getActiveTextEditorUri").returns(undefined);
         const controller: MainController = new MainController(
             context,
+            instantiationService,
             undefined, // ConnectionManager
         );
         const controllerAccess = accessMainController(controller);
@@ -113,6 +131,7 @@ suite("MainController Tests", function () {
         sandbox.stub(Utils, "getActiveTextEditorUri").returns("test_uri");
         const controller: MainController = new MainController(
             context,
+            instantiationService,
             undefined, // ConnectionManager
         );
         const controllerAccess = accessMainController(controller);
@@ -128,7 +147,11 @@ suite("MainController Tests", function () {
     test("onManageProfiles should call the connection manager to manage profiles", async () => {
         connectionManager.onManageProfiles.resolves();
 
-        const controller: MainController = new MainController(context, connectionManager);
+        const controller: MainController = new MainController(
+            context,
+            instantiationService,
+            connectionManager,
+        );
 
         await controller.onManageProfiles();
 
@@ -265,7 +288,7 @@ suite("MainController Tests", function () {
             expect(runQueryStub).to.not.have.been.called;
         });
 
-        test("does not execute when the selection contains only whitespace", async () => {
+        test("shows information and does not execute when the selection contains only whitespace", async () => {
             const selection = new vscode.Selection(0, 0, 0, 4);
             sandbox
                 .stub(vscode.window, "activeTextEditor")
@@ -273,6 +296,9 @@ suite("MainController Tests", function () {
 
             await mainController.onRunCurrentStatement();
 
+            expect(messageBoxes.showInformationMessage).to.have.been.calledWith(
+                LocalizedConstants.msgNoQueryTextToExecute,
+            );
             expect(runQueryStub).to.not.have.been.called;
             expect(runCurrentStatementStub).to.not.have.been.called;
         });
@@ -298,7 +324,7 @@ suite("MainController Tests", function () {
             expect(runCurrentStatementStub).to.not.have.been.called;
         });
 
-        test("does not execute when the document is empty", async () => {
+        test("shows information and does not execute when the document is empty", async () => {
             const selection = new vscode.Selection(0, 0, 0, 0);
             sandbox
                 .stub(vscode.window, "activeTextEditor")
@@ -306,6 +332,9 @@ suite("MainController Tests", function () {
 
             await mainController.onRunCurrentStatement();
 
+            expect(messageBoxes.showInformationMessage).to.have.been.calledWith(
+                LocalizedConstants.msgNoQueryTextToExecute,
+            );
             expect(runQueryStub).to.not.have.been.called;
             expect(runCurrentStatementStub).to.not.have.been.called;
         });
@@ -370,12 +399,43 @@ suite("MainController Tests", function () {
                 undefined,
             );
         });
+
+        test("shows information and does not execute when the document is empty", async () => {
+            const selection = new vscode.Selection(0, 0, 0, 0);
+            sandbox
+                .stub(vscode.window, "activeTextEditor")
+                .get(() => createQueryTextEditor(selection, ""));
+
+            await mainController.onRunQuery();
+
+            expect(messageBoxes.showInformationMessage).to.have.been.calledWith(
+                LocalizedConstants.msgNoQueryTextToExecute,
+            );
+            expect(runQueryStub).to.not.have.been.called;
+        });
+
+        test("shows information and does not execute when the selection contains only whitespace", async () => {
+            const selection = new vscode.Selection(0, 0, 0, 4);
+            sandbox
+                .stub(vscode.window, "activeTextEditor")
+                .get(() => createQueryTextEditor(selection, "    select 'a';", "    "));
+
+            await mainController.onRunQuery();
+
+            expect(messageBoxes.showInformationMessage).to.have.been.calledWith(
+                LocalizedConstants.msgNoQueryTextToExecute,
+            );
+            expect(runQueryStub).to.not.have.been.called;
+        });
     });
 
     test("Proxy settings are checked on initialization", async () => {
-        const httpHelperWarnSpy = sandbox.spy(HttpClient.prototype, "warnOnInvalidProxySettings");
+        const httpHelperWarnSpy = sandbox.spy(
+            VscodeHttpClient.prototype,
+            "warnOnInvalidProxySettings",
+        );
 
-        new MainController(context, connectionManager);
+        new MainController(context, instantiationService, connectionManager);
 
         expect(
             httpHelperWarnSpy.calledOnce,
@@ -576,6 +636,7 @@ suite("MainController Tests", function () {
             const isolatedContext = stubExtensionContext(sandbox);
             const isolatedController = new MainController(
                 isolatedContext,
+                stubInstantiationService(sandbox),
                 isolatedConnectionManager,
             );
             return { isolatedController };
@@ -745,6 +806,7 @@ suite("MainController Tests", function () {
 
             const isolatedController = new MainController(
                 isolatedContext,
+                stubInstantiationService(sandbox),
                 isolatedConnectionManager,
             );
             const controllerAccess = accessMainController(isolatedController);
@@ -795,7 +857,7 @@ suite("MainController Tests", function () {
         let sendErrorEvent: sinon.SinonStub;
 
         setup(() => {
-            controller = new MainController(context, connectionManager);
+            controller = new MainController(context, instantiationService, connectionManager);
             controllerAccess = accessMainController(controller);
 
             ({ sendActionEvent, sendErrorEvent } = stubTelemetry(sandbox));
@@ -991,5 +1053,40 @@ suite("MainController Tests", function () {
             expect(configStub).to.have.been.calledWithExactly();
         });
         /* eslint-enable @typescript-eslint/no-deprecated */
+    });
+
+    suite("Dependency injection", () => {
+        test("createInstance resolves the container-owned IInstantiationService for MainController", () => {
+            const builder = new InstantiationServiceBuilder();
+            builder.define(IExtensionContextService, new ExtensionContextService(context));
+            const sealedInstantiationService = builder.seal();
+
+            const createdController = sealedInstantiationService.createInstance(
+                MainController,
+                context,
+            );
+
+            expect(createdController["_instantiationService"]).to.equal(sealedInstantiationService);
+
+            sealedInstantiationService.dispose();
+        });
+
+        test("Resolves a cached AccountStore instance backed by the registered extension context", () => {
+            const builder = new InstantiationServiceBuilder();
+            builder.define(IExtensionContextService, new ExtensionContextService(context));
+            builder.define(IAccountStore, new ServiceDescriptor(AccountStore));
+            const instantiationService = builder.seal();
+
+            const first = instantiationService.invokeFunction((accessor) =>
+                accessor.get(IAccountStore),
+            );
+            const second = instantiationService.invokeFunction((accessor) =>
+                accessor.get(IAccountStore),
+            );
+
+            expect(first).to.equal(second);
+
+            instantiationService.dispose();
+        });
     });
 });

@@ -12,6 +12,7 @@ import {
     Link,
     Text,
     makeStyles,
+    mergeClasses,
     shorthands,
     tokens,
 } from "@fluentui/react-components";
@@ -20,13 +21,12 @@ import React, { useCallback, useState } from "react";
 
 import {
     ChangelogAction,
-    ChangelogCommandRequest,
-    ChangelogCommandRequestParams,
     ChangelogDontShowAgainRequest,
     ChangelogEvent,
     ChangelogLinkRequest,
     CloseChangelogRequest,
     ContentEntry,
+    RunChangelogActionRequest,
 } from "../../../sharedInterfaces/changelog";
 import { getActionIcon } from "../../common/icons/iconUtils";
 import { locConstants } from "../../common/locConstants";
@@ -499,15 +499,8 @@ export const ChangelogPage = () => {
         await extensionRpc.sendRequest(ChangelogLinkRequest.type, { url });
     };
 
-    const handleAction = async (params: ChangelogCommandRequestParams) => {
-        await extensionRpc.sendRequest(ChangelogCommandRequest.type, params);
-    };
-
-    const openWalkthrough = async (walkthroughId: string, args: unknown[] = []) => {
-        await extensionRpc.sendRequest(ChangelogCommandRequest.type, {
-            commandId: "workbench.action.openWalkthrough",
-            args: [walkthroughId, ...args],
-        });
+    const runAction = async (action: Exclude<ChangelogAction, { type: "link" }>) => {
+        await extensionRpc.sendRequest(RunChangelogActionRequest.type, action.value);
     };
 
     const handleSecondaryToggle = (_event: unknown, data: { openItems: Iterable<unknown> }) => {
@@ -587,27 +580,8 @@ export const ChangelogPage = () => {
             );
         }
 
-        if (action.type === "walkthrough") {
-            return (
-                <Link
-                    key={key}
-                    className={className}
-                    onClick={() => openWalkthrough(action.value, action.args)}>
-                    {content}
-                </Link>
-            );
-        }
-
         return (
-            <Link
-                key={key}
-                className={className}
-                onClick={() =>
-                    handleAction({
-                        commandId: action.value,
-                        args: action.args,
-                    })
-                }>
+            <Link key={key} className={className} onClick={() => runAction(action)}>
                 {content}
             </Link>
         );
@@ -655,7 +629,10 @@ export const ChangelogPage = () => {
                 </div>
                 {changeIcon && (
                     <div
-                        className={`${classes.featureIconWrap} ${classes.featureIconWrapRight}`}
+                        className={mergeClasses(
+                            classes.featureIconWrap,
+                            classes.featureIconWrapRight,
+                        )}
                         style={{ width: `${iconSize}px`, height: `${iconSize}px` }}>
                         <img
                             className={classes.featureImage}

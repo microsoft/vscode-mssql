@@ -29,6 +29,8 @@ export class LocalContainersState
     formValidationLoadState: ApiStatus = ApiStatus.NotStarted;
     /** Used to track the current step in the Docker deployment process */
     currentDockerStep: DockerStepOrder = DockerStepOrder.dockerInstallation;
+    /** Connection string to the container (password excluded), populated once the connection succeeds. */
+    connectionString: string = "";
     constructor(params?: Partial<LocalContainersState>) {
         for (const key in params) {
             if (key in this) {
@@ -120,6 +122,10 @@ export type DockerCommandParams = {
     port?: number;
     fullErrorText?: string;
 };
+
+export interface ContainerConnectionResult extends DockerCommandParams {
+    connectionString?: string;
+}
 
 /**
  * Enumeration representing the order of Docker steps in the deployment process.

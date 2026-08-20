@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { makeStyles, shorthands } from "@fluentui/react-components";
-import { useEffect } from "react";
+import { type ComponentType, useEffect } from "react";
 import { QueryResultPane } from "./queryResultPane";
 import { KeyCode } from "../../common/keys";
 import { isMetaOrCtrlKeyPressed } from "../../common/utils";
@@ -89,7 +89,12 @@ const useStyles = makeStyles({
     },
 });
 
-export const QueryResult = () => {
+interface QueryResultProps {
+    GridView: ComponentType;
+    isBetaResultsGridEnabled: boolean;
+}
+
+export const QueryResult = ({ GridView, isBetaResultsGridEnabled }: QueryResultProps) => {
     const classes = useStyles();
 
     // This is needed to stop the browser from selecting all the raw text in the webview when ctrl+a is pressed
@@ -110,7 +115,10 @@ export const QueryResult = () => {
         <div className={classes.root}>
             {
                 <div className={classes.mainContent}>
-                    <QueryResultPane />
+                    <QueryResultPane
+                        GridView={GridView}
+                        isBetaResultsGridEnabled={isBetaResultsGridEnabled}
+                    />
                 </div>
             }
         </div>

@@ -14,14 +14,14 @@ import {
     Spinner,
     Toolbar,
 } from "@fluentui/react-components";
-import { useContext, useEffect, useState } from "react";
+import { type ComponentType, useContext, useEffect, useState } from "react";
 import { DatabaseSearch24Regular, ErrorCircle24Regular, OpenRegular } from "@fluentui/react-icons";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import { locConstants } from "../../common/locConstants";
 import { hasResultsOrMessages } from "./queryResultUtils";
 import { QueryResultCommandsContext } from "./queryResultStateProvider";
 import { useQueryResultSelector } from "./queryResultSelector";
-import { ExecuteCommandRequest, WebviewAction } from "../../../sharedInterfaces/webview";
+import { WebviewAction } from "../../../sharedInterfaces/webview";
 import { ExecutionPlanGraph } from "../../../sharedInterfaces/executionPlan";
 import { getGridCount } from "./table/utils";
 import { QueryMessageTab } from "./queryMessageTab";
@@ -116,7 +116,12 @@ const useStyles = makeStyles({
     },
 });
 
-export const QueryResultPane = () => {
+interface QueryResultPaneProps {
+    GridView: ComponentType;
+    isBetaResultsGridEnabled: boolean;
+}
+
+export const QueryResultPane = ({ GridView, isBetaResultsGridEnabled }: QueryResultPaneProps) => {
     const classes = useStyles();
     const context = useContext(QueryResultCommandsContext);
 
@@ -141,8 +146,6 @@ export const QueryResultPane = () => {
     const executionPlanGraphs = useQueryResultSelector<ExecutionPlanGraph[] | undefined>(
         (s) => s.executionPlanState?.executionPlanGraphs,
     );
-    const isBetaResultsGridEnabled = useQueryResultSelector((s) => s.isBetaResultsGridEnabled);
-
     const { keyBindings } = useVscodeWebview();
 
     useEffect(() => {
@@ -245,10 +248,7 @@ export const QueryResultPane = () => {
                                     className={classes.hidePanelLink}
                                     onClick={async () => {
                                         await context.extensionRpc.sendRequest(
-                                            ExecuteCommandRequest.type,
-                                            {
-                                                command: "workbench.action.closePanel",
-                                            },
+                                            qr.CloseResultsPanelRequest.type,
                                         );
                                     }}>
                                     {locConstants.queryResult.clickHereToHideThisPanel}
@@ -349,7 +349,7 @@ export const QueryResultPane = () => {
                                 : "hidden",
                     }}
                     aria-hidden={tabStates!.resultPaneTab !== qr.QueryResultPaneTabs.Results}>
-                    <QueryResultsTab />
+                    <QueryResultsTab GridView={GridView} />
                 </div>
 
                 <div
@@ -367,6 +367,10 @@ export const QueryResultPane = () => {
                 <div
                     className={classes.tabContent}
                     style={{
+                        display:
+                            tabStates!.resultPaneTab === qr.QueryResultPaneTabs.ExecutionPlan
+                                ? "block"
+                                : "none",
                         visibility:
                             tabStates!.resultPaneTab === qr.QueryResultPaneTabs.ExecutionPlan
                                 ? "visible"

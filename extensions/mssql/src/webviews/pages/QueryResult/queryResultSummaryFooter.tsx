@@ -3,9 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Tooltip, makeStyles } from "@fluentui/react-components";
+import { Tooltip, makeStyles, mergeClasses } from "@fluentui/react-components";
 import { Fragment, useContext, useEffect, useMemo, useState } from "react";
-import { ExecuteCommandRequest } from "../../../sharedInterfaces/webview";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import { locConstants } from "../../common/locConstants";
 import { getDisplayedRowsCount } from "./queryResultUtils";
@@ -330,7 +329,10 @@ function renderSelectionMetricsTooltip(
                 <div className={classes.selectionTooltipMetricRow} key={`${metric.label}-tooltip`}>
                     <span className={classes.selectionMetricLabel}>{metric.label}:</span>
                     <span
-                        className={`${classes.selectionMetricValue} ${classes.selectionTooltipMetricValue}`}>
+                        className={mergeClasses(
+                            classes.selectionMetricValue,
+                            classes.selectionTooltipMetricValue,
+                        )}>
                         {metric.value}
                     </span>
                 </div>
@@ -404,6 +406,7 @@ export const QueryResultSummaryFooter = ({
             : compactExecutionText;
     const selectionStats = selectionSummary?.stats;
     const selectionCommand = selectionSummary?.command;
+    const selectionActionUri = selectionCommand?.arguments[0];
     const selectionStatusText = selectionSummary?.displayText ?? selectionSummary?.text ?? "";
     const selectionDisplayContent = selectionStats
         ? renderSelectionMetricsInline(selectionStats, classes)
@@ -435,7 +438,7 @@ export const QueryResultSummaryFooter = ({
                             {locConstants.queryResult.rowsAffectedLabel}
                         </span>
                         <Tooltip withArrow relationship="description" content={rowsText}>
-                            <span className={`${classes.value} ${classes.rowsAccent}`}>
+                            <span className={mergeClasses(classes.value, classes.rowsAccent)}>
                                 {compactRowsText}
                             </span>
                         </Tooltip>
@@ -449,7 +452,7 @@ export const QueryResultSummaryFooter = ({
                             withArrow
                             relationship="description"
                             content={executionTooltipText}>
-                            <span className={`${classes.value} ${classes.timeAccent}`}>
+                            <span className={mergeClasses(classes.value, classes.timeAccent)}>
                                 {compactExecutionText}
                             </span>
                         </Tooltip>
@@ -466,17 +469,14 @@ export const QueryResultSummaryFooter = ({
                     relationship="description"
                     positioning={SELECTION_TOOLTIP_POSITIONING}
                     content={selectionTooltipContent}>
-                    {selectionCommand?.command ? (
+                    {typeof selectionActionUri === "string" ? (
                         <button
                             type="button"
                             className={classes.selectionValueButton}
                             onClick={async () => {
                                 await context?.extensionRpc.sendRequest(
-                                    ExecuteCommandRequest.type,
-                                    {
-                                        command: selectionCommand.command,
-                                        args: selectionCommand.arguments,
-                                    },
+                                    qr.HandleSelectionSummaryRequest.type,
+                                    selectionActionUri,
                                 );
                             }}>
                             {selectionDisplayContent}

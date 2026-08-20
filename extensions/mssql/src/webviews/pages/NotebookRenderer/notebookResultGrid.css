@@ -319,9 +319,11 @@
 }
 
 .nb-context-menu-item:hover,
-.nb-context-menu-item--focused {
+.nb-context-menu-item--focused,
+.nb-context-menu-item:focus {
     background-color: var(--vscode-menu-selectionBackground);
     color: var(--vscode-menu-selectionForeground);
+    outline: none;
 }
 
 .nb-context-menu-label {

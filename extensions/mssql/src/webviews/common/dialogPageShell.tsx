@@ -5,6 +5,7 @@
 
 import {
     makeStyles,
+    mergeClasses,
     MessageBar,
     MessageBarBody,
     Spinner,
@@ -68,6 +69,10 @@ const useStyles = makeStyles({
         gap: "16px",
         alignItems: "center",
     },
+    compactHeader: {
+        gap: "10px",
+        alignItems: "start",
+    },
     iconContainer: {
         display: "flex",
         alignItems: "center",
@@ -75,6 +80,9 @@ const useStyles = makeStyles({
         color: "var(--vscode-foreground)",
         overflow: "visible",
         flexShrink: 0,
+    },
+    compactIconContainer: {
+        marginTop: "2px",
     },
     headerText: {
         minWidth: 0,
@@ -87,6 +95,10 @@ const useStyles = makeStyles({
         lineHeight: tokens.lineHeightBase500,
         fontWeight: tokens.fontWeightSemibold,
         color: "var(--vscode-foreground)",
+    },
+    compactTitle: {
+        fontSize: tokens.fontSizeBase300,
+        lineHeight: tokens.lineHeightBase300,
     },
     subtitle: {
         fontSize: tokens.fontSizeBase200,
@@ -144,6 +156,7 @@ export interface DialogPageShellProps {
     loadingMessage?: string;
     maxContentWidth?: DialogPageShellContentWidth;
     iconSize?: number;
+    compactHeader?: boolean;
     footerStart?: ReactNode;
     footerEnd?: ReactNode;
     children?: ReactNode;
@@ -160,6 +173,7 @@ export const DialogPageShell = ({
     loadingMessage,
     maxContentWidth,
     iconSize = defaultHeaderIconSizePx,
+    compactHeader = false,
     footerStart,
     footerEnd,
     children,
@@ -207,7 +221,10 @@ export const DialogPageShell = ({
                                       }
                             }>
                             <div
-                                className={styles.header}
+                                className={mergeClasses(
+                                    styles.header,
+                                    compactHeader && styles.compactHeader,
+                                )}
                                 style={{
                                     ...contentWidthStyle,
                                     gridTemplateColumns:
@@ -221,7 +238,10 @@ export const DialogPageShell = ({
                                 }}>
                                 {hasHeaderIcon && (
                                     <div
-                                        className={styles.iconContainer}
+                                        className={mergeClasses(
+                                            styles.iconContainer,
+                                            compactHeader && styles.compactIconContainer,
+                                        )}
                                         style={{
                                             width: `${iconSize}px`,
                                             height: `${iconSize}px`,
@@ -230,7 +250,15 @@ export const DialogPageShell = ({
                                     </div>
                                 )}
                                 <div className={styles.headerText}>
-                                    {title && <div className={styles.title}>{title}</div>}
+                                    {title && (
+                                        <div
+                                            className={mergeClasses(
+                                                styles.title,
+                                                compactHeader && styles.compactTitle,
+                                            )}>
+                                            {title}
+                                        </div>
+                                    )}
                                     {subtitle && <div className={styles.subtitle}>{subtitle}</div>}
                                 </div>
                                 {headerEnd}

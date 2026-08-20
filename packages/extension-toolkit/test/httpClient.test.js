@@ -1,0 +1,612 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const { PassThrough, Writable } = require("node:stream");
+const { afterEach, beforeEach, mock, suite, test } = require("node:test");
+const { HttpClient, HttpDownloadError, ProxyMessages } = require("../dist/base/index.js");
+
+const proxyEnvironmentVariables = [
+    "HTTP_PROXY",
+    "http_proxy",
+    "HTTPS_PROXY",
+    "https_proxy",
+    "NO_PROXY",
+    "no_proxy",
+];
+
+suite("HttpClient", () => {
+    let environment;
+    let httpClient;
+    let logger;
+    let noProxyValue;
+    let parseUriScheme;
+    let proxyValue;
+
+    beforeEach(() => {
+        environment = Object.fromEntries(
+            proxyEnvironmentVariables.map((name) => [name, process.env[name]]),
+        );
+        for (const name of proxyEnvironmentVariables) {
+            delete process.env[name];
+        }
+
+        logger = createMockLogger();
+        noProxyValue = undefined;
+        parseUriScheme = (value) => new URL(value).protocol;
+        proxyValue = undefined;
+        httpClient = new HttpClient(logger, {
+            getProxyConfig: () => proxyValue,
+            getNoProxyConfig: () => noProxyValue,
+            parseUriScheme: (value) => parseUriScheme(value),
+        });
+    });
+
+    afterEach(() => {
+        mock.restoreAll();
+        for (const name of proxyEnvironmentVariables) {
+            const value = environment[name];
+            if (value === undefined) {
+                delete process.env[name];
+            } else {
+                process.env[name] = value;
+            }
+        }
+    });
+
+    suite("get", () => {
+        test("makes a successful GET request", async () => {
+            const requestUrl = "https://api.example.com/data";
+            const token = "test-token";
+            const mockResponse = {
+                data: { value: [{ id: 1, name: "test" }] },
+                status: 200,
+                statusText: "OK",
+                headers: { "x-request-id": "request-id", "retry-after": 5 },
+                config: { internal: true },
+            };
+            const send = mock.method(httpClient, "send", async () => mockResponse);
+
+            const result = await httpClient.get(requestUrl, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+
+            assert.equal(result.data, mockResponse.data);
+            assert.equal(result.status, 200);
+            assert.equal(result.statusText, "OK");
+            assert.equal(result.ok, true);
+            assert.equal(result.headers.get("X-Request-Id"), "request-id");
+            assert.equal(result.headers.get("retry-after"), "5");
+            assert.equal(send.mock.callCount(), 1);
+            assert.equal(send.mock.calls[0].arguments[0], "https://api.example.com:443/data");
+            assert.deepEqual(send.mock.calls[0].arguments[1].headers, {
+                Authorization: `Bearer ${token}`,
+            });
+        });
+    });
+
+    suite("postJson", () => {
+        test("makes a successful POST request", async () => {
+            const requestUrl = "https://api.example.com/data";
+            const token = "test-token";
+            const payload = { name: "new item" };
+            const mockResponse = {
+                data: { id: 2, name: "new item" },
+                status: 201,
+                statusText: "Created",
+                headers: {},
+            };
+            const send = mock.method(httpClient, "send", async () => mockResponse);
+
+            const result = await httpClient.postJson(requestUrl, payload, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+
+            assert.equal(result.data, mockResponse.data);
+            assert.equal(result.status, 201);
+            assert.equal(result.statusText, "Created");
+            assert.equal(result.ok, true);
+            assert.equal(send.mock.callCount(), 1);
+            assert.equal(send.mock.calls[0].arguments[0], "https://api.example.com:443/data");
+            assert.deepEqual(send.mock.calls[0].arguments[1].data, payload);
+            assert.deepEqual(send.mock.calls[0].arguments[1].headers, {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+                Accept: "application/json",
+            });
+        });
+    });
+
+    suite("downloads", () => {
+        test("downloads successfully and invokes callbacks", async () => {
+            const requestUrl = "https://download.example.com/file";
+            const normalizedUrl = "https://download.example.com:443/file";
+            const headers = { "content-length": "5" };
+            const responseStream = new PassThrough();
+            const receivedChunkLengths = [];
+            let releaseWriteStream;
+            const tmpFileStream = new Writable({
+                write(chunk, _encoding, callback) {
+                    receivedChunkLengths.push(chunk.length);
+                    callback();
+                },
+                final(callback) {
+                    releaseWriteStream = callback;
+                },
+            });
+            const setupRequest = mock.method(httpClient, "setupRequest", () => ({
+                requestUrl: normalizedUrl,
+                config: {},
+            }));
+            const createWriteStream = mock.method(fs, "createWriteStream", () => tmpFileStream);
+            const mockResponse = {
+                data: responseStream,
+                status: 200,
+                statusText: "OK",
+                headers,
+            };
+            const send = mock.method(httpClient, "send", async () => mockResponse);
+            const onProgress = mock.fn();
+            let downloadCompleted = false;
+
+            const downloadPromise = httpClient
+                .downloadToFileDescriptor(requestUrl, 123, { onProgress })
+                .then((result) => {
+                    downloadCompleted = true;
+                    return result;
+                });
+
+            responseStream.write(Buffer.from([1, 2, 3]));
+            responseStream.end(Buffer.from([4, 5]));
+            await new Promise((resolve) => setImmediate(resolve));
+
+            assert.equal(downloadCompleted, false);
+            assert.equal(typeof releaseWriteStream, "function");
+            releaseWriteStream();
+
+            const result = await downloadPromise;
+
+            assert.equal(result.status, 200);
+            assert.equal(result.ok, true);
+            assert.equal(result.headers.get("Content-Length"), "5");
+            assert.deepEqual(receivedChunkLengths, [3, 2]);
+            assert.deepEqual(
+                onProgress.mock.calls.map((call) => call.arguments[0]),
+                [
+                    { downloadedBytes: 0, totalBytes: 5, percentage: 0 },
+                    { downloadedBytes: 3, totalBytes: 5, percentage: 60 },
+                    { downloadedBytes: 5, totalBytes: 5, percentage: 100 },
+                ],
+            );
+            assert.equal(send.mock.calls[0].arguments[0], normalizedUrl);
+            assert.equal(setupRequest.mock.calls[0].arguments[1], "stream");
+            assert.deepEqual(createWriteStream.mock.calls[0].arguments, [
+                "",
+                { fd: 123, autoClose: false },
+            ]);
+        });
+
+        test("returns the error code and destroys the stream for an HTTP error", async () => {
+            const requestUrl = "https://download.example.com/file";
+            const normalizedUrl = "https://download.example.com:443/file";
+            const headers = { "content-length": "0" };
+            const responseStream = new PassThrough();
+            const destroy = mock.method(responseStream, "destroy", () => responseStream);
+            mock.method(httpClient, "setupRequest", () => ({
+                requestUrl: normalizedUrl,
+                config: {},
+            }));
+            mock.method(httpClient, "send", async () => ({
+                data: responseStream,
+                status: 404,
+                statusText: "Not Found",
+                headers,
+            }));
+            const onProgress = mock.fn();
+
+            const result = await httpClient.downloadToFileDescriptor(requestUrl, 123, {
+                onProgress,
+            });
+
+            assert.equal(result.status, 404);
+            assert.equal(result.ok, false);
+            assert.equal(result.headers.get("content-length"), "0");
+            assert.deepEqual(onProgress.mock.calls[0].arguments, [
+                { downloadedBytes: 0, totalBytes: undefined, percentage: undefined },
+            ]);
+            assert.equal(destroy.mock.callCount(), 1);
+        });
+
+        test("opens and closes path destinations", async () => {
+            const result = { status: 200, headers: {} };
+            const openSync = mock.method(fs, "openSync", () => 123);
+            const closeSync = mock.method(fs, "closeSync", () => undefined);
+            mock.method(httpClient, "downloadToFileDescriptor", async () => result);
+
+            const actual = await httpClient.downloadToPath(
+                "https://example.com/file",
+                "target.zip",
+            );
+
+            assert.equal(actual, result);
+            assert.deepEqual(openSync.mock.calls[0].arguments, ["target.zip", "w"]);
+            assert.deepEqual(closeSync.mock.calls[0].arguments, [123]);
+        });
+
+        test("wraps request errors in HttpDownloadError", async () => {
+            const requestUrl = "https://download.example.com/file";
+            mock.method(httpClient, "setupRequest", () => ({ requestUrl, config: {} }));
+            const requestError = Object.assign(new Error("network error"), {
+                code: "ECONNRESET",
+            });
+            mock.method(httpClient, "send", async () => {
+                throw requestError;
+            });
+
+            await assert.rejects(httpClient.downloadToFileDescriptor(requestUrl, 123), (error) => {
+                assert.ok(error instanceof HttpDownloadError);
+                assert.equal(error.phase, "request");
+                assert.equal(error.innerError, requestError);
+                return true;
+            });
+        });
+
+        test("wraps response stream errors in HttpDownloadError", async () => {
+            const requestUrl = "https://download.example.com/file";
+            const responseStream = new PassThrough();
+            const tmpFileStream = new PassThrough();
+            mock.method(httpClient, "setupRequest", () => ({ requestUrl, config: {} }));
+            mock.method(fs, "createWriteStream", () => tmpFileStream);
+            mock.method(httpClient, "send", async () => ({
+                data: responseStream,
+                status: 200,
+                statusText: "OK",
+                headers: {},
+            }));
+            const responseError = Object.assign(new Error("stream failed"), { code: "EPIPE" });
+
+            const downloadPromise = httpClient.downloadToFileDescriptor(requestUrl, 123);
+            await new Promise((resolve) => setImmediate(resolve));
+            responseStream.emit("error", responseError);
+
+            await assert.rejects(downloadPromise, (error) => {
+                assert.ok(error instanceof HttpDownloadError);
+                assert.equal(error.phase, "response");
+                assert.equal(error.innerError, responseError);
+                return true;
+            });
+        });
+    });
+
+    suite("proxy configuration", () => {
+        test("warns when the proxy lacks a protocol", () => {
+            proxyValue = "localhost:1234";
+            parseUriScheme = () => undefined;
+
+            const warning = httpClient.getInvalidProxySettingsWarning();
+
+            assert.equal(warning, ProxyMessages.missingProtocolWarning(proxyValue));
+            assert.equal(logger.warn.mock.callCount(), 1);
+        });
+
+        test("warns when proxy parsing throws", () => {
+            proxyValue = "env-proxy.example";
+            const uriError = new Error("invalid uri format");
+            parseUriScheme = () => {
+                throw uriError;
+            };
+
+            const warning = httpClient.getInvalidProxySettingsWarning();
+
+            assert.equal(warning, ProxyMessages.unparseableWarning(proxyValue, uriError.message));
+            assert.equal(logger.warn.mock.callCount(), 1);
+        });
+
+        test("redacts proxy credentials and query values from warnings", () => {
+            proxyValue = "http://user:super-secret@[invalid-host]?token=also-secret";
+            parseUriScheme = () => {
+                throw new Error(`Invalid URL: ${proxyValue}`);
+            };
+
+            const warning = httpClient.getInvalidProxySettingsWarning();
+            const loggedWarning = logger.warn.mock.calls[0].arguments[0];
+
+            for (const exposedValue of ["user", "super-secret", "token", "also-secret"]) {
+                assert.equal(warning.includes(exposedValue), false);
+                assert.equal(loggedWarning.includes(exposedValue), false);
+            }
+            assert.ok(warning.includes("<redacted>"));
+            assert.ok(loggedWarning.includes("<redacted>"));
+        });
+
+        test("does not warn when the proxy is valid", () => {
+            for (const validProxyValue of [
+                "http://valid-proxy.test:8080",
+                "https://valid-proxy.example",
+                "socks5://valid-proxy.subdomain.domain.com:1080",
+            ]) {
+                proxyValue = validProxyValue;
+                const warning = httpClient.getInvalidProxySettingsWarning();
+                assert.equal(warning, undefined);
+            }
+
+            assert.equal(logger.warn.mock.callCount(), 0);
+        });
+
+        test("does not warn when the proxy is undefined", () => {
+            const warning = httpClient.getInvalidProxySettingsWarning();
+
+            assert.equal(warning, undefined);
+            assert.equal(logger.warn.mock.callCount(), 0);
+        });
+
+        test("validates both protocol-specific environment proxies", () => {
+            process.env.HTTPS_PROXY = "https://valid-proxy.example";
+            process.env.HTTP_PROXY = "invalid-proxy";
+
+            const warning = httpClient.getInvalidProxySettingsWarning();
+
+            assert.equal(
+                warning,
+                ProxyMessages.unparseableWarning(process.env.HTTP_PROXY, "Invalid URL"),
+            );
+            assert.equal(logger.warn.mock.callCount(), 1);
+        });
+
+        test("prefers VS Code configuration over environment variables for requests", () => {
+            proxyValue = "config-proxy";
+            process.env.HTTP_PROXY = "env-proxy";
+            process.env.https_proxy = "env-proxy";
+
+            const proxy = httpClient.getProxyForRequest(new URL("https://api.example.com"));
+
+            assert.equal(proxy, proxyValue);
+        });
+
+        test("falls back to environment variables when request configuration is missing", () => {
+            process.env.HTTP_PROXY = "http://env-proxy";
+
+            const proxy = httpClient.getProxyForRequest(new URL("http://api.example.com"));
+
+            assert.equal(proxy, process.env.HTTP_PROXY);
+        });
+
+        test("selects the environment proxy for the request protocol", () => {
+            process.env.HTTP_PROXY = "http://http-proxy";
+            process.env.HTTPS_PROXY = "http://https-proxy";
+
+            assert.equal(
+                httpClient.getProxyForRequest(new URL("http://api.example.com")),
+                process.env.HTTP_PROXY,
+            );
+            assert.equal(
+                httpClient.getProxyForRequest(new URL("https://api.example.com")),
+                process.env.HTTPS_PROXY,
+            );
+        });
+
+        test("falls back to HTTP_PROXY for an HTTPS request", () => {
+            process.env.HTTP_PROXY = "http://http-proxy";
+
+            const proxy = httpClient.getProxyForRequest(new URL("https://api.example.com"));
+
+            assert.equal(proxy, process.env.HTTP_PROXY);
+        });
+
+        test("does not use HTTPS_PROXY for an HTTP request", () => {
+            process.env.HTTPS_PROXY = "http://https-proxy";
+
+            const proxy = httpClient.getProxyForRequest(new URL("http://api.example.com"));
+
+            assert.equal(proxy, undefined);
+        });
+
+        test("evaluates proxy bypass rules", () => {
+            proxyValue = "http://proxy.example.com:8080";
+            const cases = [
+                {
+                    name: "uppercase environment variable",
+                    environment: { NO_PROXY: ".internal.example.com" },
+                    requestUrl: "https://api.internal.example.com",
+                    bypassed: true,
+                },
+                {
+                    name: "lowercase environment variable",
+                    environment: { no_proxy: ".internal.example.com" },
+                    requestUrl: "https://api.internal.example.com",
+                    bypassed: true,
+                },
+                {
+                    name: "VS Code setting",
+                    configuredRules: ["*.internal.example.com"],
+                    requestUrl: "https://api.internal.example.com",
+                    bypassed: true,
+                },
+                {
+                    name: "VS Code setting takes precedence over environment variable",
+                    configuredRules: ["other.example.com"],
+                    environment: { NO_PROXY: "internal.example.com" },
+                    requestUrl: "https://api.internal.example.com",
+                    bypassed: false,
+                },
+                {
+                    name: "plain domain",
+                    configuredRules: ["internal.example.com"],
+                    requestUrl: "https://internal.example.com",
+                    bypassed: true,
+                },
+                {
+                    name: "plain domain subdomain",
+                    configuredRules: ["internal.example.com"],
+                    requestUrl: "https://api.internal.example.com",
+                    bypassed: true,
+                },
+                {
+                    name: "wildcard subdomain",
+                    configuredRules: ["*.internal.example.com"],
+                    requestUrl: "https://api.internal.example.com",
+                    bypassed: true,
+                },
+                {
+                    name: "wildcard bare domain",
+                    configuredRules: ["*.internal.example.com"],
+                    requestUrl: "https://internal.example.com",
+                    bypassed: false,
+                },
+                {
+                    name: "matching port",
+                    environment: { NO_PROXY: "api.example.com:8443" },
+                    requestUrl: "https://api.example.com:8443",
+                    bypassed: true,
+                },
+                {
+                    name: "mismatched port",
+                    environment: { NO_PROXY: "api.example.com:8443" },
+                    requestUrl: "https://api.example.com",
+                    bypassed: false,
+                },
+                {
+                    name: "matching bracketed IPv6 port",
+                    configuredRules: ["[::1]:8443"],
+                    requestUrl: "https://[::1]:8443",
+                    bypassed: true,
+                },
+                {
+                    name: "mismatched bracketed IPv6 port",
+                    configuredRules: ["[::1]:8443"],
+                    requestUrl: "https://[::1]:9443",
+                    bypassed: false,
+                },
+                {
+                    name: "global wildcard",
+                    environment: { NO_PROXY: "*" },
+                    requestUrl: "https://api.example.com",
+                    bypassed: true,
+                },
+            ];
+
+            for (const testCase of cases) {
+                noProxyValue = testCase.configuredRules;
+                delete process.env.NO_PROXY;
+                delete process.env.no_proxy;
+                Object.assign(process.env, testCase.environment);
+
+                const result = httpClient.setupConfigAndProxyForRequest(
+                    new URL(testCase.requestUrl),
+                    {},
+                );
+
+                assert.equal(result.httpsAgent === undefined, testCase.bypassed, testCase.name);
+                if (testCase.bypassed) {
+                    assert.equal(result.proxy, false, testCase.name);
+                    assert.equal(result.httpAgent, undefined, testCase.name);
+                }
+            }
+        });
+
+        test("logs the bypassed request endpoint without URL secrets", () => {
+            proxyValue = "http://proxy.example.com:8080";
+            noProxyValue = ["api.example.com"];
+
+            httpClient.setupConfigAndProxyForRequest(
+                new URL("https://user:password@api.example.com/path?token=secret#fragment"),
+                {},
+            );
+
+            assert.deepEqual(logger.debug.mock.calls.at(-1).arguments, [
+                "Request endpoint 'https://api.example.com' matched the proxy bypass list.",
+            ]);
+        });
+
+        test("sets up an HTTP request with a proxy", () => {
+            const fakeToken = "fake-token";
+            const fakeProxyUrl = new URL("http://fake-proxy.test:8080");
+            proxyValue = fakeProxyUrl.toString();
+
+            const result = httpClient.setupConfigAndProxyForRequest(new URL("http://fakeUrl.ms/"), {
+                Authorization: `Bearer ${fakeToken}`,
+            });
+
+            assert.ok(result.headers.Authorization.includes(fakeToken));
+            assert.equal(result.proxy, false);
+            assert.deepEqual(result.httpAgent.proxyOptions, {
+                host: fakeProxyUrl.hostname,
+                port: Number.parseInt(fakeProxyUrl.port),
+            });
+            assert.equal(result.httpsAgent, undefined);
+        });
+
+        test("applies proxyStrictSSL to an HTTPS proxy case-insensitively", () => {
+            for (const proxy of [
+                "https://proxy.example.com:8080",
+                "HTTPS://proxy.example.com:8080",
+            ]) {
+                proxyValue = proxy;
+                const client = new HttpClient(logger, {
+                    getProxyConfig: () => proxyValue,
+                    getProxyStrictSSL: () => false,
+                });
+
+                const result = client.setupConfigAndProxyForRequest(
+                    new URL("https://api.example.com"),
+                    {},
+                );
+
+                assert.equal(result.httpsAgent.proxyOptions.rejectUnauthorized, false);
+            }
+        });
+
+        test("sets up a request without a proxy", () => {
+            const requestUrl = new URL("https://api.example.com");
+            const headers = { Authorization: "Bearer test-token" };
+
+            const result = httpClient.setupConfigAndProxyForRequest(requestUrl, headers);
+
+            assert.deepEqual(result.headers, headers);
+            assert.equal(result.validateStatus(200), true);
+            assert.equal(result.proxy, undefined);
+            assert.equal(result.httpAgent, undefined);
+            assert.equal(result.httpsAgent, undefined);
+        });
+
+        for (const proxy of ["https://proxy.example.com:8080", "http://proxy.example.com:8080"]) {
+            test(`sets up an HTTPS request through ${new URL(proxy).protocol}`, () => {
+                const agent = {};
+                proxyValue = proxy;
+                mock.method(httpClient, "createProxyAgent", () => ({ agent }));
+
+                const result = httpClient.setupConfigAndProxyForRequest(
+                    new URL("https://api.example.com"),
+                    {},
+                );
+
+                assert.equal(result.proxy, false);
+                assert.equal(result.httpsAgent, agent);
+                assert.equal(result.httpAgent, undefined);
+            });
+        }
+
+        test("creates a proxy agent when a proxy is configured", () => {
+            proxyValue = "http://proxy.example.com:8080";
+            const createProxyAgent = mock.method(httpClient, "createProxyAgent", () => ({
+                agent: {},
+            }));
+
+            httpClient.setupConfigAndProxyForRequest(new URL("https://api.example.com"), {});
+
+            assert.equal(createProxyAgent.mock.callCount(), 1);
+        });
+    });
+});
+
+function createMockLogger() {
+    return {
+        debug: mock.fn(),
+        warn: mock.fn(),
+        error: mock.fn(),
+        piiSanitized: mock.fn(),
+    };
+}

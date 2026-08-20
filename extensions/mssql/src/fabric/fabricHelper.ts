@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import { IHttpResponse, VscodeHttpClient, withBearerToken } from "extension-toolkit/vscode";
 import {
     SqlDbInfo,
     IWorkspace,
@@ -16,8 +17,6 @@ import {
     IWarehouseArtifact,
     IWorkspaceRoleAssignment,
 } from "../sharedInterfaces/fabric";
-import { HttpClient } from "../http/httpClient";
-import { AxiosResponse } from "axios";
 import { getErrorMessage } from "../utils/utils";
 import { Fabric as Loc } from "../constants/locConstants";
 import { getCloudProviderSettings } from "../azure/providerSettings";
@@ -372,12 +371,17 @@ export class FabricHelper {
     ): Promise<TResponse> {
         const uri = vscode.Uri.joinPath(this.getFabricApiUriBase(), api);
         const fabricLogger = FabricHelper.getFabricLogger();
-        const httpHelper = new HttpClient(fabricLogger);
+        const httpHelper = new VscodeHttpClient({
+            logger: fabricLogger,
+        });
 
         const session = await this.createScopedFabricSession(tenantId, reason);
-        let token = session?.accessToken;
+        const token = session?.accessToken;
 
-        const response = await httpHelper.makeGetRequest<TResponse>(uri.toString(), token);
+        const response = await httpHelper.get<TResponse>(
+            uri.toString(),
+            token ? withBearerToken(token) : undefined,
+        );
         const result = response.data;
 
         if (isFabricError(result)) {
@@ -398,25 +402,34 @@ export class FabricHelper {
     ): Promise<TResponse> {
         const uri = vscode.Uri.joinPath(this.getFabricApiUriBase(), api);
         const fabricLogger = FabricHelper.getFabricLogger();
-        const httpHelper = new HttpClient(fabricLogger);
+        const httpHelper = new VscodeHttpClient({
+            logger: fabricLogger,
+        });
 
         const session = await this.createScopedFabricSession(tenantId, reason, scopes);
         const token = session?.accessToken;
+        const options = token ? withBearerToken(token) : undefined;
 
-        let response = await httpHelper.makePostRequest<TResponse, TPayload>(
+        let response = await httpHelper.postJson<TResponse, TPayload>(
             uri.toString(),
-            token,
             payload,
+            options,
         );
 
         if (response.status === this.longRunningOperationCode) {
             fabricLogger.debug(`Handling long-running Fabric operation for API: ${api}`);
+
+            const location = response.headers.get("location");
+            if (!location) {
+                throw new Error(Loc.fabricLongRunningApiMissingLocation);
+            }
+
             response = await this.handleLongRunningOperation(
-                response.headers["retry-after"] as string,
-                response.headers["location"],
+                response.headers.get("retry-after"),
+                location,
                 httpHelper,
                 fabricLogger,
-                token,
+                options?.headers,
             );
         }
 
@@ -434,16 +447,19 @@ export class FabricHelper {
      * Polls a long-running Fabric API operation until it completes, then fetches the final result.
      */
     private static async handleLongRunningOperation<TResponse>(
-        retryAfter: string,
+        retryAfter: string | undefined,
         location: string,
-        httpHelper: HttpClient,
+        httpHelper: VscodeHttpClient,
         fabricLogger: ILogger,
-        token?: string,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ): Promise<AxiosResponse<TResponse, any>> {
-        const retryAfterInMs = parseInt(retryAfter, 10) || this.defaultRetryInMs;
+        headers: Record<string, string> | undefined,
+    ): Promise<IHttpResponse<TResponse>> {
+        const parsedRetryAfter = retryAfter === undefined ? Number.NaN : parseInt(retryAfter, 10);
+        const retryAfterInMs =
+            Number.isFinite(parsedRetryAfter) && parsedRetryAfter > 0
+                ? parsedRetryAfter
+                : this.defaultRetryInMs;
 
-        let longRunningResponse: AxiosResponse<IOperationState> | undefined;
+        let longRunningResponse: IHttpResponse<IOperationState> | undefined;
         while (
             !longRunningResponse ||
             longRunningResponse.data.status === IOperationStatus.Running ||
@@ -453,7 +469,7 @@ export class FabricHelper {
                 `Long-running operation in progress. Waiting ${retryAfterInMs} seconds before next poll...`,
             );
             await new Promise((resolve) => setTimeout(resolve, retryAfterInMs * 1000));
-            longRunningResponse = await httpHelper.makeGetRequest<IOperationState>(location, token);
+            longRunningResponse = await httpHelper.get<IOperationState>(location, { headers });
         }
 
         if (longRunningResponse.data.status === IOperationStatus.Failed) {
@@ -470,10 +486,12 @@ export class FabricHelper {
             `Long-running operation completed successfully. Fetching final result...`,
         );
 
-        return await httpHelper.makeGetRequest<TResponse>(
-            longRunningResponse.headers["location"],
-            token,
-        );
+        const resultLocation = longRunningResponse.headers.get("location");
+        if (!resultLocation) {
+            throw new Error(Loc.fabricLongRunningApiMissingLocation);
+        }
+
+        return await httpHelper.get<TResponse>(resultLocation, { headers });
     }
 
     /**

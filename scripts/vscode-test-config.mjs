@@ -7,6 +7,7 @@ const defaultJunitFile = "test-reports/test-results-ext.xml";
 const sourceMapSupportHook = fileURLToPath(
     new URL("./source-map-support-register.js", import.meta.url),
 );
+const quietReporter = fileURLToPath(new URL("./quiet-mocha-reporter.cjs", import.meta.url));
 
 export const defaultCoverageConfig = {
     reporter: ["text-summary", "html", "lcov", "cobertura"],
@@ -44,7 +45,7 @@ export function createMochaConfig(base = {}, options = {}) {
         ...withSourceMaps,
         reporter: "mocha-multi-reporters",
         reporterOptions: {
-            reporterEnabled: "spec, mocha-junit-reporter",
+            reporterEnabled: `${quietReporter}, mocha-junit-reporter`,
             mochaJunitReporterReporterOptions: {
                 mochaFile: junitFile,
             },

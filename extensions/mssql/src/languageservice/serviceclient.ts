@@ -28,14 +28,14 @@ import DownloadHelper from "./downloadHelper";
 import ExtConfig from "../configurations/extConfig";
 import DotnetRuntimeProvider from "./dotnetRuntimeProvider";
 import { PlatformInformation, Runtime } from "../models/platform";
-import { ServiceClient } from "../constants/locConstants";
+import { Common, Formatter, ServiceClient } from "../constants/locConstants";
 import { ServerStatusView } from "./serverStatus";
 import StatusView from "../views/statusView";
 import * as LanguageServiceContracts from "../models/contracts/languageService";
 import { getErrorMessage } from "../utils/utils";
 import { getAppDataPath, getEnableConnectionPoolingConfig } from "../azure/utils";
 import { serviceName } from "../azure/constants";
-import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { PreviewFeature, previewService } from "../previews/previewService";
 import { getRuntimeConfigPath, ServiceExecutable } from "./serviceExecutablePaths";
@@ -137,6 +137,7 @@ export default class SqlToolsServiceClient {
     // VS Code Language Client
     private _client: LanguageClient = undefined;
     private _resourceClient: LanguageClient = undefined;
+    private _formattingFailurePromptOpen = false;
 
     // getter method for the Language Client
     private get client(): LanguageClient {
@@ -455,6 +456,10 @@ export default class SqlToolsServiceClient {
             LanguageServiceContracts.SqlToolsServiceTelemetryNotification.type,
             this.handleSqlToolsServiceTelemetryNotification(),
         );
+        client.onNotification(
+            LanguageServiceContracts.FormattingFailedNotification.type,
+            this.handleFormattingFailedNotification(),
+        );
 
         return client;
     }
@@ -506,6 +511,67 @@ export default class SqlToolsServiceClient {
                 event.params.measures ?? {},
             );
         };
+    }
+
+    /**
+     * Public for testing purposes only.
+     */
+    public handleFormattingFailedNotification(): NotificationHandler<LanguageServiceContracts.FormattingFailedParams> {
+        return (event: LanguageServiceContracts.FormattingFailedParams): void => {
+            void this.showFormattingFailedNotification(event).catch((error) => {
+                logger.error(
+                    "Failed to handle formatting failure notification.",
+                    getErrorMessage(error),
+                );
+            });
+        };
+    }
+
+    /**
+     * Public for testing purposes only.
+     */
+    public async showFormattingFailedNotification(
+        event: LanguageServiceContracts.FormattingFailedParams,
+    ): Promise<void> {
+        const configuration = vscode.workspace.getConfiguration(
+            Constants.extensionConfigSectionName,
+        );
+        if (
+            event.reason !== "ParseError" ||
+            this._formattingFailurePromptOpen ||
+            !configuration.get<boolean>("format.showParseErrorNotification", true)
+        ) {
+            return;
+        }
+
+        this._formattingFailurePromptOpen = true;
+        try {
+            const action = await vscode.window.showWarningMessage(
+                Formatter.parseError,
+                Formatter.sendFeedback,
+                Common.dontShowAgain,
+            );
+
+            if (action === Formatter.sendFeedback) {
+                sendActionEvent(
+                    TelemetryViews.QueryEditor,
+                    TelemetryActions.FormatterParseErrorSendFeedback,
+                );
+                await vscode.env.openExternal(vscode.Uri.parse(Constants.feedbackUrl));
+            } else if (action === Common.dontShowAgain) {
+                sendActionEvent(
+                    TelemetryViews.QueryEditor,
+                    TelemetryActions.FormatterParseErrorDontShowAgain,
+                );
+                await configuration.update(
+                    "format.showParseErrorNotification",
+                    false,
+                    vscode.ConfigurationTarget.Global,
+                );
+            }
+        } finally {
+            this._formattingFailurePromptOpen = false;
+        }
     }
 
     private sendServiceLaunchTelemetry(

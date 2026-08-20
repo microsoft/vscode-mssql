@@ -8,6 +8,7 @@ import {
     SortProperties,
     type ColumnFilterMap,
     type DbCellValue,
+    type IDbColumn,
 } from "../../src/sharedInterfaces/queryResult";
 import { FluentResultGridCommand } from "../../src/webviews/common/FluentResultGrid/types/fluentResultGridCommandIds";
 import type { FluentResultGridKeyBindingMap } from "../../src/webviews/common/FluentResultGrid/types/fluentResultGridCommands";
@@ -18,8 +19,10 @@ import {
 import {
     FLUENT_RESULT_GRID_DEFAULT_FROZEN_COLUMN_INDEX,
     normalizeFluentResultGridFrozenColumnIndex,
+    stabilizeFluentResultGridColumnInfo,
 } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridState";
 import { isFluentResultGridHostCommand } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridCommandUtils";
+import { shouldRevealFluentResultGridActiveCell } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridKeyboardController";
 import {
     getFluentResultGridKeyboardAction,
     type FluentResultGridKeyboardShortcutEvent,
@@ -30,6 +33,20 @@ function cell(value: string | null): DbCellValue {
     return {
         displayValue: value ?? "",
         isNull: value === null,
+    };
+}
+
+function column(columnName: string): IDbColumn {
+    return {
+        baseCatalogName: "database",
+        baseColumnName: columnName,
+        baseSchemaName: "dbo",
+        baseServerName: "server",
+        baseTableName: "table",
+        columnName,
+        dataType: "varchar",
+        dataTypeName: "varchar",
+        udtAssemblyQualifiedName: "",
     };
 }
 
@@ -48,6 +65,19 @@ function keyboardEvent(
 }
 
 suite("Fluent Result Grid", () => {
+    suite("columns", () => {
+        test("retains column definitions when a result update contains the same schema", () => {
+            const first = stabilizeFluentResultGridColumnInfo(undefined, [column("name")]);
+            const repeatedSchema = stabilizeFluentResultGridColumnInfo(first, [column("name")]);
+            const changedSchema = stabilizeFluentResultGridColumnInfo(first, [column("new_name")]);
+
+            expect(repeatedSchema).to.equal(first);
+            expect(repeatedSchema.value).to.equal(first.value);
+            expect(changedSchema).to.not.equal(first);
+            expect(changedSchema.value).to.not.equal(first.value);
+        });
+    });
+
     suite("transforms", () => {
         test("preserves row IDs while filtering and sorting source rows", () => {
             const rows: SourceRow[] = [
@@ -189,6 +219,12 @@ suite("Fluent Result Grid", () => {
                     {},
                 ),
             ).to.deep.equal({ kind: "moveFocus", forward: false });
+        });
+
+        test("only keyboard-visible container focus reveals the active cell", () => {
+            expect(shouldRevealFluentResultGridActiveCell(true, true)).to.equal(true);
+            expect(shouldRevealFluentResultGridActiveCell(true, false)).to.equal(false);
+            expect(shouldRevealFluentResultGridActiveCell(false, true)).to.equal(false);
         });
     });
 });

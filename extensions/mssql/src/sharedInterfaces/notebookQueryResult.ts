@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import type { DbCellValue, IDbColumn } from "./queryResult";
+import type { DbCellValue, IDbColumn, SelectionSummaryMetrics } from "./queryResult";
 
 export interface NotebookQueryResultGridBlock {
     type: "resultSet";
@@ -30,6 +30,14 @@ export type NotebookQueryResultBlock =
 export interface NotebookQueryResultOutputData {
     version: 1;
     blocks: NotebookQueryResultBlock[];
+    copyAsCsvOptions?: NotebookCopyAsCsvOptions;
+}
+
+export interface NotebookCopyAsCsvOptions {
+    delimiter: string;
+    includeHeaders: boolean;
+    lineSeparator: string;
+    textIdentifier: string;
 }
 
 // Older notebook executions stored each result set as its own custom output item.
@@ -56,7 +64,22 @@ export interface NotebookSaveAsMessage {
     resultSetIndex: number;
 }
 
+/**
+ * Sent by the notebook result renderer when the cell selection in a result grid
+ * changes. Carries the metrics computed from the current selection, or undefined
+ * when the selection is empty.
+ */
+export interface NotebookSelectionSummaryMessage {
+    type: "selectionSummary";
+    metrics: SelectionSummaryMetrics | undefined;
+}
+
 export interface NotebookShowErrorMessage {
     type: "showError";
     message: string;
 }
+
+export type NotebookRendererMessage =
+    | NotebookSaveAsMessage
+    | NotebookSelectionSummaryMessage
+    | NotebookShowErrorMessage;

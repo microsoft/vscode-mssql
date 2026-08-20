@@ -11,10 +11,9 @@ import * as vscode from "vscode";
 import Sinon, * as sinon from "sinon";
 
 import { WebviewBaseController } from "../../src/controllers/webviewBaseController";
-import { stubTelemetry } from "./utils";
+import { observeWebviewReady, stubTelemetry } from "./utils";
 import {
     ColorThemeChangeNotification,
-    ExecuteCommandRequest,
     GetKeyBindingsConfigRequest,
     GetLocalizationRequest,
     GetStateRequest,
@@ -78,6 +77,7 @@ suite("WebviewController Tests", () => {
         controller = new TestWebviewController(mockContext, "testSource", {
             count: 0,
         });
+        observeWebviewReady(controller);
         // Stubs for methods
         onRequestStub = sandbox.stub();
         onNotificationStub = sandbox.stub();
@@ -117,10 +117,6 @@ suite("WebviewController Tests", () => {
             onRequestStub,
             "GetLocalizationRequest handler is not registered",
         ).to.have.been.calledWith(GetLocalizationRequest.type, sinon.match.any);
-        expect(
-            onRequestStub,
-            "ExecuteCommandRequest handler is not registered",
-        ).to.have.been.calledWith(ExecuteCommandRequest.type, sinon.match.any);
         expect(
             onNotificationStub,
             "LoadStatsNotification handler is not registered",
