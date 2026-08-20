@@ -83,85 +83,90 @@ export class VscodeMssqlSimpleQueryMetadataLoader implements SimpleQueryMetadata
                 : {}),
         });
 
-        const databaseRows = rows(await catalogExecutor.execute(databasesQuery, signal));
-        const databases = databaseRows.flatMap((row) => {
-            const name = row.get("database_name");
-            return name ? [{ name }] : [];
-        });
-        publisher.merge({
-            completeness: { databases: "ready" },
-            databases,
-        });
+        // Nothing below depends on anything else below it, and the SQL Tools Service opens a
+        // dedicated connection for every `query/simpleexecute`, so these overlap for real rather
+        // than queueing on one session. That is what the sequential chain was costing: on a
+        // throttled server a single-row catalog read still pays a full connect, and the old code
+        // paid that toll once per query, in series.
+        const databasesTask = (async () => {
+            const databaseRows = rows(await catalogExecutor.execute(databasesQuery, signal));
+            const databases = databaseRows.flatMap((row) => {
+                const name = row.get("database_name");
+                return name ? [{ name }] : [];
+            });
+            publisher.merge({
+                completeness: { databases: "ready" },
+                databases,
+            });
+            return databases;
+        })();
 
-        const identityRows = rows(await catalogExecutor.execute(schemasAndPrincipalsQuery, signal));
-        const schemaRows = identityRows.filter((row) => row.get("entry_kind") === "schema");
-        const schemas = schemaRows.flatMap((row) => {
-            const name = row.get("schema_name");
-            return name ? [{ database: currentDatabase, name }] : [];
-        });
-        const principals = mapPrincipals(
-            identityRows.filter((row) => row.get("entry_kind") === "principal"),
-        );
-        publisher.merge({
-            completeness: { schemas: "ready", principals: "ready" },
-            schemas,
-            principals,
-            ...(currentDatabase
-                ? {
-                      databaseCatalogCompleteness: new Map([
-                          [currentDatabase, { schemas: "ready" }],
-                      ]),
-                  }
-                : {}),
-        });
-
-        const typeRows = rows(await catalogExecutor.execute(userTypesQuery(), signal));
-        const objects: ObjectMetadata[] = [...mapUserTypes(typeRows, currentDatabase)];
-        let publishedFirstObjectPage = false;
-        // SQL Server assigns negative IDs to many system catalog objects. Start below the
-        // SQL `int` range so system and user objects share the same stable keyset pagination.
-        let lastObjectId = -2_147_483_649;
-        while (true) {
-            const objectRows = rows(
-                await catalogExecutor.execute(objectsQuery(lastObjectId), signal),
+        const identityTask = (async () => {
+            const identityRows = rows(
+                await catalogExecutor.execute(schemasAndPrincipalsQuery, signal),
             );
-            objects.push(...mapObjects(objectRows, currentDatabase));
-            const complete = objectRows.length < objectPageSize;
-            if (complete) {
-                // Commit one coherent identity snapshot and invalidate details belonging to the
-                // prior generation. Consumers hydrate only the objects they subsequently need.
-                publisher.replace({
-                    environment: mappedEnvironment,
-                    completeness: {
-                        databases: "ready",
-                        schemas: "ready",
-                        objects: "ready",
-                        columns: "partial",
-                        parameters: "partial",
-                        principals: "ready",
-                        definitions: "unknown",
-                    },
-                    databases,
-                    schemas,
-                    objects,
-                    principals,
-                    ...(currentDatabase
-                        ? {
-                              databaseCatalogCompleteness: new Map([
-                                  [currentDatabase, { schemas: "ready", objects: "ready" }],
-                              ]),
-                          }
-                        : {}),
-                });
-                break;
-            }
-            // Publish the first page for early completion, then accumulate privately. Rebuilding
-            // immutable indexes for every page is quadratic on 50k-plus object catalogs.
-            if (!publishedFirstObjectPage) {
-                publishedFirstObjectPage = true;
+            const schemaRows = identityRows.filter((row) => row.get("entry_kind") === "schema");
+            const schemas = schemaRows.flatMap((row) => {
+                const name = row.get("schema_name");
+                return name ? [{ database: currentDatabase, name }] : [];
+            });
+            const principals = mapPrincipals(
+                identityRows.filter((row) => row.get("entry_kind") === "principal"),
+            );
+            publisher.merge({
+                completeness: { schemas: "ready", principals: "ready" },
+                schemas,
+                principals,
+                ...(currentDatabase
+                    ? {
+                          databaseCatalogCompleteness: new Map([
+                              [currentDatabase, { schemas: "ready" }],
+                          ]),
+                      }
+                    : {}),
+            });
+            return { schemas, principals };
+        })();
+
+        const userTypesTask = (async () => {
+            const typeRows = rows(await catalogExecutor.execute(userTypesQuery(), signal));
+            return mapUserTypes(typeRows, currentDatabase);
+        })();
+
+        // A user's own objects are what completion needs first, and `sys.objects` is far cheaper
+        // to read than `sys.all_objects`, which unions the resource database in -- on a throttled
+        // server that difference was several seconds. Publishing the cheap set as `partial` makes
+        // the editor usable while the system catalog is still arriving. The full pass is a
+        // superset and objects merge by id, so the early set is absorbed rather than duplicated.
+        const userObjectsTask = (async () => {
+            const userObjects = await this.loadObjectPages(
+                catalogExecutor,
+                userObjectsQuery,
+                currentDatabase,
+                signal,
+            );
+            publisher.merge({
+                completeness: { objects: "partial" },
+                objects: userObjects,
+                ...(currentDatabase
+                    ? {
+                          databaseCatalogCompleteness: new Map([
+                              [currentDatabase, { objects: "partial" }],
+                          ]),
+                      }
+                    : {}),
+            });
+        })();
+
+        const allObjectsTask = this.loadObjectPages(
+            catalogExecutor,
+            objectsQuery,
+            currentDatabase,
+            signal,
+            (page) =>
                 publisher.merge({
                     completeness: { objects: "partial" },
-                    objects,
+                    objects: page,
                     ...(currentDatabase
                         ? {
                               databaseCatalogCompleteness: new Map([
@@ -169,7 +174,70 @@ export class VscodeMssqlSimpleQueryMetadataLoader implements SimpleQueryMetadata
                               ]),
                           }
                         : {}),
-                });
+                }),
+        );
+
+        const [databases, identity, userTypes, , allObjects] = await Promise.all([
+            databasesTask,
+            identityTask,
+            userTypesTask,
+            userObjectsTask,
+            allObjectsTask,
+        ]);
+
+        // Commit one coherent identity snapshot and invalidate details belonging to the prior
+        // generation. Consumers hydrate only the objects they subsequently need.
+        publisher.replace({
+            environment: mappedEnvironment,
+            completeness: {
+                databases: "ready",
+                schemas: "ready",
+                objects: "ready",
+                columns: "partial",
+                parameters: "partial",
+                principals: "ready",
+                definitions: "unknown",
+            },
+            databases,
+            schemas: identity.schemas,
+            objects: [...userTypes, ...allObjects],
+            principals: identity.principals,
+            ...(currentDatabase
+                ? {
+                      databaseCatalogCompleteness: new Map([
+                          [currentDatabase, { schemas: "ready", objects: "ready" }],
+                      ]),
+                  }
+                : {}),
+        });
+    }
+
+    /**
+     * Reads one object catalog by keyset pagination.
+     *
+     * `onFirstPage` lets a large catalog show something before it has been read in full; later
+     * pages accumulate privately, because rebuilding the immutable indexes for every page is
+     * quadratic on 50k-plus object catalogs.
+     */
+    private async loadObjectPages(
+        executor: SimpleQueryExecutor,
+        query: (lastObjectId: number) => string,
+        database: string | undefined,
+        signal: AbortSignal | undefined,
+        onFirstPage?: (objects: readonly ObjectMetadata[]) => void,
+    ): Promise<ObjectMetadata[]> {
+        const objects: ObjectMetadata[] = [];
+        // SQL Server assigns negative IDs to many system catalog objects. Start below the
+        // SQL `int` range so system and user objects share the same stable keyset pagination.
+        let lastObjectId = -2_147_483_649;
+        let announcedFirstPage = false;
+        while (true) {
+            const objectRows = rows(await executor.execute(query(lastObjectId), signal));
+            objects.push(...mapObjects(objectRows, database));
+            if (objectRows.length < objectPageSize) return objects;
+            if (!announcedFirstPage) {
+                announcedFirstPage = true;
+                onFirstPage?.(objects);
             }
             const nextObjectId = numberValue(objectRows.at(-1)?.get("object_id"));
             if (nextObjectId === undefined || nextObjectId <= lastObjectId) {
@@ -216,37 +284,33 @@ export class VscodeMssqlSimpleQueryMetadataLoader implements SimpleQueryMetadata
             return;
         }
         if (request.database && request.section === "objects") {
-            let lastObjectId = -2_147_483_649;
-            const typeRows = rows(
-                await catalogExecutor.execute(userTypesQuery(request.database), signal),
-            );
-            const objects: ObjectMetadata[] = [...mapUserTypes(typeRows, request.database)];
-            let publishedFirstObjectPage = false;
-            while (true) {
-                const objectRows = rows(
-                    await catalogExecutor.execute(
-                        databaseObjectsQuery(request.database, lastObjectId),
-                        signal,
-                    ),
-                );
-                objects.push(...mapObjects(objectRows, request.database));
-                const complete = objectRows.length < objectPageSize;
-                if (complete || !publishedFirstObjectPage) {
-                    publishedFirstObjectPage = true;
-                    publisher.merge({
-                        objects,
-                        databaseCatalogCompleteness: new Map([
-                            [request.database, { objects: complete ? "ready" : "partial" }],
-                        ]),
-                    });
-                }
-                if (complete) break;
-                const nextObjectId = numberValue(objectRows.at(-1)?.get("object_id"));
-                if (nextObjectId === undefined || nextObjectId <= lastObjectId) {
-                    throw new Error("Object metadata page did not advance its object_id cursor");
-                }
-                lastObjectId = nextObjectId;
-            }
+            const database = request.database;
+            // The type list and the object pages are independent reads, and each simple execute
+            // gets its own connection, so overlapping them costs one connect instead of two.
+            const [userTypes, objects] = await Promise.all([
+                (async () =>
+                    mapUserTypes(
+                        rows(await catalogExecutor.execute(userTypesQuery(database), signal)),
+                        database,
+                    ))(),
+                this.loadObjectPages(
+                    catalogExecutor,
+                    (lastObjectId) => databaseObjectsQuery(database, lastObjectId),
+                    database,
+                    signal,
+                    (page) =>
+                        publisher.merge({
+                            objects: page,
+                            databaseCatalogCompleteness: new Map([
+                                [database, { objects: "partial" }],
+                            ]),
+                        }),
+                ),
+            ]);
+            publisher.merge({
+                objects: [...userTypes, ...objects],
+                databaseCatalogCompleteness: new Map([[database, { objects: "ready" }]]),
+            });
             return;
         }
         if (!request.object) return;
@@ -598,6 +662,25 @@ ORDER BY s.name, t.name;`;
 // Large enough to avoid excessive SQL Tools Service round trips, while keeping each simple-query
 // response comfortably below the payload size of the reported 58k-object customer catalog.
 const objectPageSize = 20_000;
+/**
+ * The user's own objects, without the resource database `sys.all_objects` unions in.
+ *
+ * Same shape and same keyset cursor as {@link objectsQuery}, so the two are interchangeable to
+ * the pager and the full pass is a strict superset of this one.
+ */
+const userObjectsQuery = (lastObjectId: number) => `
+SELECT TOP (${objectPageSize})
+    o.object_id,
+    s.name AS schema_name,
+    o.name AS object_name,
+    o.type AS object_type,
+    o.is_ms_shipped
+FROM sys.objects AS o WITH (NOLOCK)
+JOIN sys.schemas AS s WITH (NOLOCK) ON s.schema_id = o.schema_id
+WHERE o.object_id > ${lastObjectId}
+  AND o.type IN ('U', 'V', 'P', 'PC', 'FN', 'FS', 'IF', 'TF', 'FT', 'SN')
+ORDER BY o.object_id;`;
+
 const objectsQuery = (lastObjectId: number) => `
 SELECT TOP (${objectPageSize})
     o.object_id,

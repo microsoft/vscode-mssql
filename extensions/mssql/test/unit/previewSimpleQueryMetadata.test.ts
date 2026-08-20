@@ -89,8 +89,11 @@ suite("Preview language service integration", () => {
             principals: "ready",
             definitions: "unknown",
         });
-        expect(generations).to.have.length(4);
-        expect(queries).to.have.length(5);
+        // Six reads, not five: the cheap `sys.objects` pass now runs alongside the full catalog
+        // read so the editor has the user's own objects before `sys.all_objects` returns, and it
+        // publishes them, which is the fifth of five store generations.
+        expect(generations).to.have.length(5);
+        expect(queries).to.have.length(6);
         expect(queries[0]).not.to.include("WITH (NOLOCK)");
 
         await loader.hydrate(
@@ -481,6 +484,12 @@ function resultFor(query: string): SimpleQueryResult {
                 ["256", "dbo", "OrderNumber", "alias"],
                 ["257", "dbo", "OrderTable", "table"],
             ],
+        );
+    }
+    if (query.includes("FROM sys.objects")) {
+        return table(
+            ["object_id", "schema_name", "object_name", "object_type", "is_ms_shipped"],
+            [["42", "dbo", "Customers", "U ", "0"]],
         );
     }
     if (query.includes("FROM sys.all_objects")) {
