@@ -399,24 +399,19 @@ export class QueryResultWebviewController extends WebviewViewController<
         controller.revealToForeground();
         this._queryResultWebviewPanelControllerMap.set(uri, controller);
         this.showSplashScreen();
-        try {
-            await controller.whenWebviewReady();
-        } catch (e) {
-            // If the webview was disposed or timed out before it became ready, clean up the
-            // panel controller entry so callers are not blocked indefinitely.
+        // Do not block query execution on webview bootstrap, and do not dispose
+        // the panel if ready is delayed or never arrives.
+        void controller.whenWebviewReady().catch((e) => {
             sendErrorEvent(
                 TelemetryViews.QueryResult,
                 TelemetryActions.CreatePanelController,
                 e instanceof Error ? e : new Error(String(e)),
                 true, // includeErrorMessage
             );
-            this._queryResultWebviewPanelControllerMap.delete(uri);
-            controller.panel.dispose();
-            void vscode.window.showErrorMessage(
-                LocalizedConstants.QueryResult.queryResultPanelFailedToLoad,
-            );
-            throw e;
-        }
+            if (controller.isDisposed) {
+                this._queryResultWebviewPanelControllerMap.delete(uri);
+            }
+        });
     }
 
     public addQueryResultState(uri: string, title: string, isExecutionPlan?: boolean): void {
