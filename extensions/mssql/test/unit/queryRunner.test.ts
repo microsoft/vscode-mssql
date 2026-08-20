@@ -454,6 +454,64 @@ suite("Query Runner tests", () => {
         expect(queryRunner.batchSetMessages[message.message.batchId].length).to.equal(1);
     });
 
+    test("Notification - Message does not cache non-error messages when disabled", () => {
+        const config = stubs.createWorkspaceConfiguration({
+            [Constants.configResultsShowBatchMessages]: false,
+        });
+        getConfigurationStub.returns(config);
+        const message: QueryExecuteContracts.QueryExecuteMessageParams = {
+            message: {
+                batchId: 0,
+                isError: false,
+                message: "Commands completed successfully.",
+                time: new Date().toISOString(),
+            },
+            ownerUri: standardUri,
+        };
+        const queryRunner = createQueryRunner();
+        const messageListener = sandbox.spy();
+        queryRunner.onMessage(messageListener);
+        queryRunner.batchSetMessages[message.message.batchId] = [];
+
+        queryRunner.handleMessage(message);
+
+        expect(queryRunner.batchSetMessages[message.message.batchId]).to.be.empty;
+        expect(messageListener).to.have.been.calledWith(message.message);
+        expect(testStatusView.showRowCount).to.have.been.calledWith(
+            standardUri,
+            message.message.message,
+        );
+        expect(getConfigurationStub).to.have.been.calledWith(Constants.extensionConfigSectionName);
+    });
+
+    test("Notification - Message preserves errors when batch messages are disabled", () => {
+        const config = stubs.createWorkspaceConfiguration({
+            [Constants.configResultsShowBatchMessages]: false,
+        });
+        getConfigurationStub.returns(config);
+        const message: QueryExecuteContracts.QueryExecuteMessageParams = {
+            message: {
+                batchId: 0,
+                isError: true,
+                message: "Incorrect syntax near 'FROM'.",
+                time: new Date().toISOString(),
+            },
+            ownerUri: standardUri,
+        };
+        const queryRunner = createQueryRunner();
+        const messageListener = sandbox.spy();
+        queryRunner.onMessage(messageListener);
+        queryRunner.batchSetMessages[message.message.batchId] = [];
+
+        queryRunner.handleMessage(message);
+
+        expect(queryRunner.batchSetMessages[message.message.batchId]).to.deep.equal([
+            message.message,
+        ]);
+        expect(messageListener).to.have.been.calledWith(message.message);
+        expect(testStatusView.hideRowCount).to.have.been.calledWith(standardUri, true);
+    });
+
     test("Notification - Query complete", () => {
         // Setup:
 
