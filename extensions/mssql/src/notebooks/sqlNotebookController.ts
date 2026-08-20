@@ -22,6 +22,7 @@ import type {
     NotebookQueryResultBlock,
     NotebookQueryResultGridBlock,
     NotebookQueryResultOutputData,
+    NotebookCopyAsCsvOptions,
     NotebookRendererMessage,
     NotebookSaveAsMessage,
 } from "../sharedInterfaces/notebookQueryResult";
@@ -265,6 +266,9 @@ export class SqlNotebookController implements vscode.Disposable {
                         break;
                     case "selectionSummary":
                         this.updateSelectionSummary(message.metrics);
+                        break;
+                    case "showError":
+                        void vscode.window.showErrorMessage(message.message);
                         break;
                 }
             }),
@@ -1066,7 +1070,7 @@ export class SqlNotebookController implements vscode.Disposable {
                 `[executeCell] executeQueryString: done canceled=${result.canceled} ` +
                     `batches=${result.batches.length}`,
             );
-            const outputs = this.buildBatchOutputs(result.batches, !result.canceled);
+            const outputs = this.buildBatchOutputs(result.batches, !result.canceled, notebook.uri);
 
             if (result.canceled) {
                 outputs.push(
@@ -1115,10 +1119,11 @@ export class SqlNotebookController implements vscode.Disposable {
     private buildBatchOutputs(
         batches: HeadlessBatchResult[],
         includeExecutionTime = true,
+        resource?: vscode.Uri,
     ): vscode.NotebookCellOutput[] {
         const blocks = this.buildBatchOutputBlocks(batches, includeExecutionTime);
         if (this.hasResultSetBlock(blocks)) {
-            return [this.buildRichBatchOutput(blocks)];
+            return [this.buildRichBatchOutput(blocks, resource)];
         }
 
         return this.buildPlainBatchOutputs(
@@ -1204,7 +1209,10 @@ export class SqlNotebookController implements vscode.Disposable {
         return blocks;
     }
 
-    private buildRichBatchOutput(blocks: NotebookQueryResultBlock[]): vscode.NotebookCellOutput {
+    private buildRichBatchOutput(
+        blocks: NotebookQueryResultBlock[],
+        resource?: vscode.Uri,
+    ): vscode.NotebookCellOutput {
         const plain = blocks
             .map((block) =>
                 block.type === "resultSet"
@@ -1215,12 +1223,28 @@ export class SqlNotebookController implements vscode.Disposable {
         const data: NotebookQueryResultOutputData = {
             version: 1,
             blocks,
+            copyAsCsvOptions: this.getCopyAsCsvOptions(resource),
         };
 
         return new vscode.NotebookCellOutput([
             vscode.NotebookCellOutputItem.json(data, MIME_NOTEBOOK_QUERY_RESULT),
             vscode.NotebookCellOutputItem.text(plain, MIME_TEXT_PLAIN),
         ]);
+    }
+
+    private getCopyAsCsvOptions(resource?: vscode.Uri): NotebookCopyAsCsvOptions {
+        const config = vscode.workspace.getConfiguration(
+            Constants.extensionConfigSectionName,
+            resource,
+        );
+        const csvConfig =
+            config.get<Partial<NotebookCopyAsCsvOptions>>(Constants.configSaveAsCsv) ?? {};
+        return {
+            delimiter: csvConfig.delimiter || ",",
+            includeHeaders: csvConfig.includeHeaders ?? true,
+            lineSeparator: csvConfig.lineSeparator || os.EOL,
+            textIdentifier: csvConfig.textIdentifier || '"',
+        };
     }
 
     private buildPlainBatchOutputs(

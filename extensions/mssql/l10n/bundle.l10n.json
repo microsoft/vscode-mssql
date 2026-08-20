@@ -2937,8 +2937,9 @@
         "message": "Export toolbar for result set {0}",
         "comment": ["{0} is the result set number (1-based index)"]
     },
-    "Copy As": "Copy As",
+    "Copy as...": "Copy as...",
     "Copy as INSERT INTO": "Copy as INSERT INTO",
+    "Copying as an IN clause requires selecting exactly one column.": "Copying as an IN clause requires selecting exactly one column.",
     "NULL": "NULL",
     "Blanks": "Blanks",
     "Search...": "Search...",
