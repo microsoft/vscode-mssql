@@ -481,10 +481,7 @@ suite("Query Runner tests", () => {
             standardUri,
             message.message.message,
         );
-        expect(getConfigurationStub).to.have.been.calledWith(
-            Constants.extensionConfigSectionName,
-            vscode.Uri.parse(standardUri),
-        );
+        expect(getConfigurationStub).to.have.been.calledWith(Constants.extensionConfigSectionName);
     });
 
     test("Notification - Message preserves errors when batch messages are disabled", () => {
