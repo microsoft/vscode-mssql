@@ -1069,12 +1069,9 @@
         "message": "Are you sure you want to delete the container '{0}'?\n\nThis will remove both the container and its connection from VS Code.",
         "comment": ["{0} is the container name"]
     },
-    "The container '{0}' is also used by other saved connections:\n{1}\n\nDeleting it will remove both the container and this connection from VS Code, and the other connections will stop working.\n\nAre you sure you want to continue?/{0} is the container name{1} is the comma-separated list of connection display names": {
+    "The container '{0}' is also used by other saved connections:\n{1}\n\nDeleting it will remove both the container and this connection from VS Code, and the other connections will stop working.\n\nAre you sure you want to continue?/{0} is the container name{1} is the list of connection display names": {
         "message": "The container '{0}' is also used by other saved connections:\n{1}\n\nDeleting it will remove both the container and this connection from VS Code, and the other connections will stop working.\n\nAre you sure you want to continue?",
-        "comment": [
-            "{0} is the container name",
-            "{1} is the comma-separated list of connection display names"
-        ]
+        "comment": ["{0} is the container name", "{1} is the list of connection display names"]
     },
     "Configure Linux containers": "Configure Linux containers",
     "Configure Rosetta in Docker Desktop": "Configure Rosetta in Docker Desktop",

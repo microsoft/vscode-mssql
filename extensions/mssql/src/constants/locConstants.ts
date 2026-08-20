@@ -1891,10 +1891,7 @@ export class LocalContainers {
             message:
                 "The container '{0}' is also used by other saved connections:\n{1}\n\nDeleting it will remove both the container and this connection from VS Code, and the other connections will stop working.\n\nAre you sure you want to continue?",
             args: [containerName, connectionDisplayNames.map((n) => `· ${n}`).join(os.EOL)],
-            comment: [
-                "{0} is the container name",
-                "{1} is the comma-separated list of connection display names",
-            ],
+            comment: ["{0} is the container name", "{1} is the list of connection display names"],
         });
     };
     public static configureLinuxContainers = l10n.t("Configure Linux containers");
