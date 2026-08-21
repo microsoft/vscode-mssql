@@ -20,6 +20,7 @@ import {
     CancelCopy2Notification,
     CopyType,
     GridSelectionSummaryRequest,
+    CancelGridSelectionSummaryNotification,
 } from "../../src/models/contracts/queryExecute";
 import type { SelectionSummary } from "../../src/sharedInterfaces/queryResult";
 import StatusView from "../../src/views/statusView";
@@ -840,6 +841,44 @@ suite("Query Runner tests", () => {
             listener.dispose();
 
             expect(summaries.map((summary) => summary.status)).to.deep.equal(["loading", "idle"]);
+            expect(testSqlToolsServerClient.sendNotification).to.have.been.calledWith(
+                CancelGridSelectionSummaryNotification.type,
+                { ownerUri: standardUri },
+            );
+        });
+
+        test("invalidates an in-flight summary when the query runner is reset", async () => {
+            setupWorkspaceConfig({ [Constants.configInMemoryDataProcessingThreshold]: 5000 });
+            const queryRunner = createQueryRunner();
+            const summaries: SelectionSummary[] = [];
+            const listener = queryRunner.onSummaryChanged((summary) => summaries.push(summary));
+            let resolveSummary:
+                | ((value: QueryExecuteContracts.GridSelectionSummaryResponse) => void)
+                | undefined;
+            testSqlToolsServerClient.sendRequest
+                .withArgs(GridSelectionSummaryRequest.type, sinon.match.object)
+                .returns(
+                    new Promise<QueryExecuteContracts.GridSelectionSummaryResponse>((resolve) => {
+                        resolveSummary = resolve;
+                    }),
+                );
+
+            const summaryRequest = queryRunner.generateSelectionSummaryData(selection, 0, 0);
+            await queryRunner.resetQueryRunner();
+            resolveSummary?.({
+                count: 2,
+                distinctCount: 2,
+                nullCount: 0,
+                sum: 3,
+            });
+            await summaryRequest;
+            listener.dispose();
+
+            expect(summaries.map((summary) => summary.status)).to.deep.equal(["loading"]);
+            expect(testSqlToolsServerClient.sendNotification).to.have.been.calledWith(
+                CancelGridSelectionSummaryNotification.type,
+                { ownerUri: standardUri },
+            );
         });
     });
 

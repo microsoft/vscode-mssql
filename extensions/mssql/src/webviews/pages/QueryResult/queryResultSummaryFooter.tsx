@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Tooltip, makeStyles, mergeClasses } from "@fluentui/react-components";
+import { Spinner, Tooltip, makeStyles, mergeClasses } from "@fluentui/react-components";
 import { Fragment, useContext, useEffect, useMemo, useRef, useState } from "react";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import { locConstants } from "../../common/locConstants";
@@ -11,6 +11,7 @@ import {
     getDisplayedRowsCount,
     getSelectionSummaryResultKey,
     getSelectionSummaryWithStableMetrics,
+    isSelectionSummaryLoading,
 } from "./queryResultUtils";
 import { useQueryResultSelector } from "./queryResultSelector";
 import { QueryResultCommandsContext } from "./queryResultStateProvider";
@@ -128,6 +129,12 @@ const useStyles = makeStyles({
         cursor: "pointer",
         fontSize: "11px",
         fontWeight: 600,
+    },
+    loadingSelectionContent: {
+        minWidth: 0,
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "6px",
     },
     selectionTooltipText: {
         whiteSpace: "pre-line",
@@ -442,18 +449,32 @@ export const QueryResultSummaryFooter = ({
     const selectionActionUri = selectionCommand?.arguments[0];
     const selectionStatusText =
         displayedSelectionSummary?.displayText ?? displayedSelectionSummary?.text ?? "";
-    const selectionDisplayContent = selectionStats
-        ? renderSelectionMetricsInline(selectionStats, classes)
-        : (selectionStatusText ?? "") || locConstants.queryResult.noSelectionSummary;
-    const selectionTooltipContent = selectionStats ? (
-        renderSelectionMetricsTooltip(selectionStats, classes)
-    ) : (
-        <span className={classes.selectionTooltipText}>
-            {displayedSelectionSummary?.tooltip ||
-                selectionStatusText ||
-                locConstants.queryResult.noSelectionSummary}
+    const selectionIsLoading = isSelectionSummaryLoading(displayedSelectionSummary);
+    const selectionDisplayContent = selectionStats ? (
+        <span className={classes.loadingSelectionContent}>
+            {renderSelectionMetricsInline(selectionStats, classes)}
+            {selectionIsLoading && (
+                <Spinner
+                    size="extra-tiny"
+                    aria-label={
+                        displayedSelectionSummary?.tooltip || selectionStatusText || undefined
+                    }
+                />
+            )}
         </span>
+    ) : (
+        (selectionStatusText ?? "") || locConstants.queryResult.noSelectionSummary
     );
+    const selectionTooltipContent =
+        selectionStats && !selectionIsLoading ? (
+            renderSelectionMetricsTooltip(selectionStats, classes)
+        ) : (
+            <span className={classes.selectionTooltipText}>
+                {displayedSelectionSummary?.tooltip ||
+                    selectionStatusText ||
+                    locConstants.queryResult.noSelectionSummary}
+            </span>
+        );
     const compactRowsText = typeof rowsCount === "number" ? rowsCount.toLocaleString() : "0";
     const isTextResultsView =
         tabStates?.resultPaneTab === qr.QueryResultPaneTabs.Results &&
