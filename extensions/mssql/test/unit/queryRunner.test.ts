@@ -797,6 +797,7 @@ suite("Query Runner tests", () => {
             const listener = queryRunner.onSummaryChanged((summary) => summaries.push(summary));
 
             const firstRequest = queryRunner.generateSelectionSummaryData(selection, 0, 0);
+            await Promise.resolve();
             const secondRequest = queryRunner.generateSelectionSummaryData([], 1, 0);
             await Promise.all([firstRequest, secondRequest]);
             listener.dispose();
@@ -830,6 +831,7 @@ suite("Query Runner tests", () => {
                 .returns(serviceResponse);
 
             const firstRequest = queryRunner.generateSelectionSummaryData(selection, 0, 0);
+            await Promise.resolve();
             await queryRunner.generateSelectionSummaryData([], 0, 0);
             resolveSummary?.({
                 count: 2,
@@ -898,6 +900,76 @@ suite("Query Runner tests", () => {
             ]);
         });
 
+        test("waits for pending cancellation before starting the latest summary", async () => {
+            setupWorkspaceConfig({ [Constants.configInMemoryDataProcessingThreshold]: 5000 });
+            const queryRunner = createQueryRunner();
+            let resolveFirstSummary:
+                | ((value: QueryExecuteContracts.GridSelectionSummaryResponse) => void)
+                | undefined;
+            let resolveCancellation!: () => void;
+            const summaryRequestStub = testSqlToolsServerClient.sendRequest.withArgs(
+                GridSelectionSummaryRequest.type,
+                sinon.match.object,
+            );
+            summaryRequestStub.onFirstCall().returns(
+                new Promise<QueryExecuteContracts.GridSelectionSummaryResponse>((resolve) => {
+                    resolveFirstSummary = resolve;
+                }),
+            );
+            summaryRequestStub.onSecondCall().resolves({
+                count: 1,
+                distinctCount: 1,
+                nullCount: 0,
+                sum: 5,
+            });
+            testSqlToolsServerClient.sendNotification
+                .withArgs(CancelGridSelectionSummaryNotification.type, {
+                    ownerUri: standardUri,
+                })
+                .returns(
+                    new Promise<void>((resolve) => {
+                        resolveCancellation = resolve;
+                    }),
+                );
+            const intermediateSelection = [{ fromRow: 3, toRow: 3, fromCell: 0, toCell: 0 }];
+            const latestSelection = [{ fromRow: 5, toRow: 5, fromCell: 0, toCell: 0 }];
+            const latestServiceSelection = [{ fromRow: 5, toRow: 5, fromColumn: 0, toColumn: 0 }];
+
+            const firstRequest = queryRunner.generateSelectionSummaryData(selection, 0, 0);
+            await Promise.resolve();
+            const intermediateRequest = queryRunner.generateSelectionSummaryData(
+                intermediateSelection,
+                0,
+                0,
+            );
+            const latestRequest = queryRunner.generateSelectionSummaryData(latestSelection, 0, 0);
+
+            expect(testSqlToolsServerClient.sendRequest).to.not.have.been.calledWith(
+                GridSelectionSummaryRequest.type,
+                sinon.match({ selections: latestServiceSelection }),
+            );
+
+            resolveCancellation();
+            resolveFirstSummary?.({
+                count: 2,
+                distinctCount: 2,
+                nullCount: 0,
+                sum: 3,
+            });
+            await Promise.all([firstRequest, intermediateRequest, latestRequest]);
+
+            expect(testSqlToolsServerClient.sendRequest).to.have.been.calledWith(
+                GridSelectionSummaryRequest.type,
+                sinon.match({ selections: latestServiceSelection }),
+            );
+            expect(testSqlToolsServerClient.sendRequest).to.not.have.been.calledWith(
+                GridSelectionSummaryRequest.type,
+                sinon.match({
+                    selections: [{ fromRow: 3, toRow: 3, fromColumn: 0, toColumn: 0 }],
+                }),
+            );
+        });
+
         test("invalidates an in-flight summary when the query runner is reset", async () => {
             setupWorkspaceConfig({ [Constants.configInMemoryDataProcessingThreshold]: 5000 });
             const queryRunner = createQueryRunner();
@@ -915,6 +987,7 @@ suite("Query Runner tests", () => {
                 );
 
             const summaryRequest = queryRunner.generateSelectionSummaryData(selection, 0, 0);
+            await Promise.resolve();
             await queryRunner.resetQueryRunner();
             resolveSummary?.({
                 count: 2,
