@@ -3,13 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-const assert = require("node:assert/strict");
-const { suite, test } = require("node:test");
-const {
-    classificationOf,
-    colorize,
-    createColoringMetadata,
-} = require("../support/coloringHarness.js");
+import assert from "node:assert/strict";
+import { suite, test } from "node:test";
+
+import { classificationOf, colorize, createColoringMetadata } from "../support/coloringHarness.ts";
 
 suite("lexical coloring", () => {
     test("classifies comments, literals, keywords, and operators", async () => {
@@ -83,7 +80,7 @@ suite("lexical coloring", () => {
     });
 
     test("delimited names carry the quoted modifier and exact UTF-16 ranges", async () => {
-        const sql = "SELECT [Schéma].[Ta\u{1F600}ble].Id FROM [Schéma].[Ta\u{1F600}ble];";
+        const sql = "SELECT [Schéma].[Ta😀ble].Id FROM [Schéma].[Ta😀ble];";
         const { tokens } = await colorize(sql);
         for (const token of tokens) {
             assert.equal(
@@ -92,7 +89,7 @@ suite("lexical coloring", () => {
                 "ranges must be UTF-16 code-unit offsets",
             );
         }
-        assert.deepEqual(classificationOf(tokens, sql, "[Ta\u{1F600}ble]"), {
+        assert.deepEqual(classificationOf(tokens, sql, "[Ta😀ble]"), {
             type: "table",
             modifiers: ["quoted"],
         });

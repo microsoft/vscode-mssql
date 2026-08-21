@@ -3,19 +3,34 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-const assert = require("node:assert/strict");
-const { suite, test } = require("node:test");
-const {
+import assert from "node:assert/strict";
+import { suite, test } from "node:test";
+
+import {
     builtInRoutineNames,
     builtInsOfKind,
     formatParameter,
     formatSignature,
-    isSystemDataTypeName,
     isBuiltInAvailable,
+    isSystemDataTypeName,
     lookupBuiltIn,
     normalizeSystemDataTypeName,
-} = require("../../dist/index.js");
-const { colorize } = require("../support/coloringHarness.js");
+    type BuiltInEntry,
+    type BuiltInKind,
+    type BuiltInSignature,
+} from "../../../src/index.ts";
+
+function requiredBuiltIn(name: string, kind?: BuiltInKind): BuiltInEntry {
+    const entry = lookupBuiltIn(name, kind);
+    assert.ok(entry, `${name} must exist in the built-in registry`);
+    return entry;
+}
+
+function requiredSignature(name: string): BuiltInSignature {
+    const signature = requiredBuiltIn(name, "routine").signatures?.[0];
+    assert.ok(signature, `${name} must publish a signature`);
+    return signature;
+}
 
 suite("built-in registry", () => {
     test("looks a name up however it is written", () => {
@@ -52,9 +67,9 @@ suite("built-in registry", () => {
     });
 
     test("every kind has entries and no name is duplicated within a kind", () => {
-        const kinds = ["routine", "systemVariable", "dataType"];
+        const kinds: readonly BuiltInKind[] = ["routine", "systemVariable", "dataType"];
         for (const kind of kinds) {
-            const seen = new Set();
+            const seen = new Set<string>();
             const entries = builtInsOfKind(kind);
             assert.ok(entries.length > 0, kind);
             for (const entry of entries) {
@@ -73,45 +88,43 @@ suite("built-in registry", () => {
         assert.equal(formatParameter({ name: "style", optional: true }), "[style]");
         assert.equal(formatParameter({ name: "expression", variadic: true }), "...expression");
         assert.equal(formatParameter({ name: "date" }), "date");
-
-        const convert = lookupBuiltIn("CONVERT").signatures[0];
         assert.equal(
-            formatSignature("convert", convert),
+            formatSignature("convert", requiredSignature("CONVERT")),
             "CONVERT(data_type, expression, [style])",
         );
         // COALESCE needs two values before the repeat: SQL Server rejects a single-argument call,
         // and the same signature is what the arity diagnostic is derived from.
-        const coalesce = lookupBuiltIn("COALESCE").signatures[0];
         assert.equal(
-            formatSignature("coalesce", coalesce),
+            formatSignature("coalesce", requiredSignature("COALESCE")),
             "COALESCE(expression, expression, ...expression)",
         );
     });
 
     test("a keyword-separated signature is not written with commas", () => {
-        const cast = lookupBuiltIn("CAST").signatures[0];
-        assert.equal(formatSignature("cast", cast), "CAST(expression AS data_type)");
-        const parse = lookupBuiltIn("PARSE").signatures[0];
         assert.equal(
-            formatSignature("parse", parse),
+            formatSignature("cast", requiredSignature("CAST")),
+            "CAST(expression AS data_type)",
+        );
+        assert.equal(
+            formatSignature("parse", requiredSignature("PARSE")),
             "PARSE(string_value AS data_type [USING culture])",
         );
     });
 
     test("carries return types where they are known", () => {
-        assert.equal(lookupBuiltIn("GETDATE").returnType, "datetime");
-        assert.equal(lookupBuiltIn("COUNT").returnType, "int");
-        assert.equal(lookupBuiltIn("COUNT_BIG").returnType, "bigint");
+        assert.equal(requiredBuiltIn("GETDATE").returnType, "datetime");
+        assert.equal(requiredBuiltIn("COUNT").returnType, "int");
+        assert.equal(requiredBuiltIn("COUNT_BIG").returnType, "bigint");
     });
 
     test("availability answers per profile, and an unknown profile accepts everything", () => {
-        const modern = lookupBuiltIn("JSON_OBJECT");
+        const modern = requiredBuiltIn("JSON_OBJECT");
         assert.equal(modern.minimumCompatibility, 160);
         assert.equal(isBuiltInAvailable(modern), true);
         assert.equal(isBuiltInAvailable(modern, { compatibilityLevel: 170 }), true);
         assert.equal(isBuiltInAvailable(modern, { compatibilityLevel: 150 }), false);
 
-        const always = lookupBuiltIn("GETDATE");
+        const always = requiredBuiltIn("GETDATE");
         assert.equal(isBuiltInAvailable(always, { compatibilityLevel: 100 }), true);
         assert.equal(
             isBuiltInAvailable(
@@ -136,11 +149,5 @@ suite("built-in registry", () => {
         assert.deepEqual([...builtInRoutineNames].sort(), [...fromEntries].sort());
         assert.ok(builtInRoutineNames.has("getdate"));
         assert.ok(!builtInRoutineNames.has("int"));
-    });
-
-    test("coloring classifies a routine the registry documents", async () => {
-        const { described } = await colorize("SELECT GREATEST(1, 2), JSON_ARRAY(1);");
-        assert.ok(described.includes("GREATEST function defaultLibrary"), described.join(" | "));
-        assert.ok(described.includes("JSON_ARRAY function defaultLibrary"), described.join(" | "));
     });
 });

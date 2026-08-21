@@ -3,9 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-const assert = require("node:assert/strict");
-const { suite, test } = require("node:test");
-const {
+import assert from "node:assert/strict";
+import { suite, test } from "node:test";
+
+import {
     capabilityGeneration,
     createEngineCapabilities,
     defaultTsqlFeatureProfile,
@@ -16,11 +17,13 @@ const {
     sqlEngineProfiles,
     vNextCompatibilityLevel,
     vNextServerMajorVersion,
-} = require("../../dist/index.js");
+    type EngineProfileSource,
+    type SqlEngineProfile,
+} from "../../../src/index.ts";
 
 // Every documented DatabaseEngineEdition value, so a new engine cannot be silently absorbed into
 // an existing profile. Mirrors ConnectionEnums.cs in SQL Management Objects.
-const editionTable = [
+const editionTable: readonly (readonly [number, SqlEngineProfile, EngineProfileSource])[] = [
     [engineEditions.unknown, "unknown", "noFacts"],
     [engineEditions.personal, "sql-server", "engineEdition"],
     [engineEditions.standard, "sql-server", "engineEdition"],

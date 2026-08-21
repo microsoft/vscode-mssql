@@ -3,15 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-const assert = require("node:assert/strict");
-const { suite, test } = require("node:test");
-const {
+import assert from "node:assert/strict";
+import { suite, test } from "node:test";
+
+import {
     InProcessLanguageServiceRuntime,
     TsqlColorizationService,
     sqlColorTokenModifiers,
     sqlColorTokenTypes,
-} = require("../../dist/index.js");
-const { colorize } = require("../support/coloringHarness.js");
+} from "../../../src/index.ts";
+import { colorize } from "../support/coloringHarness.ts";
 
 suite("coloring contracts", () => {
     test("publishes one stable SQL coloring legend", () => {

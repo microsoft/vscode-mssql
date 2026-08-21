@@ -3,13 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-const assert = require("node:assert/strict");
-const { suite, test } = require("node:test");
-const {
+import assert from "node:assert/strict";
+import { suite, test } from "node:test";
+
+import {
     catalogOwnershipSortRank,
     isSystemDatabaseName,
     isSystemSchemaName,
-} = require("../../dist/index.js");
+} from "../../../src/index.ts";
 
 suite("catalog presentation policy", () => {
     // System catalog names rank after ordinary user schemas without classifying similar names.

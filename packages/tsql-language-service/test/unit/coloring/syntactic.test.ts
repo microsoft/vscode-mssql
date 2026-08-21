@@ -3,9 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-const assert = require("node:assert/strict");
-const { suite, test } = require("node:test");
-const { classificationOf, colorize } = require("../support/coloringHarness.js");
+import assert from "node:assert/strict";
+import { suite, test } from "node:test";
+
+import { classificationOf, colorize } from "../support/coloringHarness.ts";
 
 /** Roles that come from tree shape alone, with no catalog behind the document. */
 suite("syntactic coloring", () => {
@@ -146,6 +147,12 @@ suite("syntactic coloring", () => {
             type: "function",
             modifiers: [],
         });
+    });
+
+    test("classifies routines documented by the built-in registry", async () => {
+        const { described } = await colorize("SELECT GREATEST(1, 2), JSON_ARRAY(1);");
+        assert.ok(described.includes("GREATEST function defaultLibrary"), described.join(" | "));
+        assert.ok(described.includes("JSON_ARRAY function defaultLibrary"), described.join(" | "));
     });
 
     test("classifies executed modules as procedures", async () => {

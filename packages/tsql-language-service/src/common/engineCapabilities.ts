@@ -58,6 +58,14 @@ export interface TsqlFeatureProfile {
     readonly previewFeatures: boolean;
 }
 
+/** Raw profile values supplied by a host before supported levels are validated. */
+export interface TsqlFeatureProfileInput {
+    readonly engineProfile?: SqlEngineProfile;
+    readonly serverMajorVersion?: number;
+    readonly compatibilityLevel?: number;
+    readonly previewFeatures?: boolean;
+}
+
 /**
  * Coarse platform capabilities that binding, metadata, and completion consult.
  *
@@ -270,7 +278,7 @@ export function capabilitiesFromResolution(
  * dropped rather than rounded, so a malformed host value can never enable a stricter gate.
  */
 export function resolveTsqlFeatureProfile(
-    profile: Partial<TsqlFeatureProfile> | undefined,
+    profile: TsqlFeatureProfileInput | undefined,
 ): TsqlFeatureProfile {
     const engineProfile = profile?.engineProfile;
     const serverMajorVersion = coerceServerMajorVersion(profile?.serverMajorVersion);

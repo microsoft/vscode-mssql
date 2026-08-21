@@ -3,19 +3,34 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-const {
+import {
     CatalogSemanticBinder,
     InMemoryMetadataProvider,
     InProcessLanguageServiceRuntime,
     LezerSyntaxService,
     NullMetadataProvider,
     TsqlColorizationService,
-} = require("../../dist/index.js");
+    type ColorizationEdit,
+    type ColorizedToken,
+    type InMemoryMetadataInput,
+    type MetadataProvider,
+    type ObjectMetadata,
+    type SqlColorTokenModifier,
+    type SqlColorTokenType,
+    type SyntaxService,
+    type TextRange,
+} from "../../../src/index.ts";
 
-const uri = "file:///coloring.sql";
+export const uri = "file:///coloring.sql";
+
+interface ColorizationOptions {
+    readonly provider?: MetadataProvider;
+    readonly range?: TextRange;
+    readonly syntax?: SyntaxService;
+}
 
 /** Opens one document and colors it with the same snapshot the runtime published. */
-async function colorize(sql, options = {}) {
+export async function colorize(sql: string, options: ColorizationOptions = {}) {
     const session = await openColorizationSession(sql, options);
     return {
         ...session,
@@ -24,7 +39,7 @@ async function colorize(sql, options = {}) {
     };
 }
 
-async function openColorizationSession(sql, options = {}) {
+export async function openColorizationSession(sql: string, options: ColorizationOptions = {}) {
     const provider = options.provider ?? new NullMetadataProvider();
     const syntax = options.syntax ?? new LezerSyntaxService();
     const runtime = new InProcessLanguageServiceRuntime(
@@ -41,7 +56,7 @@ async function openColorizationSession(sql, options = {}) {
 }
 
 /** Renders tokens as `text type modifier...` strings so assertions read like the source. */
-function describeTokens(tokens, sql) {
+export function describeTokens(tokens: readonly ColorizedToken[], sql: string): string[] {
     return tokens.map(
         (token) =>
             `${sql.slice(token.start, token.end)} ${token.tokenType}${token.modifiers
@@ -50,15 +65,27 @@ function describeTokens(tokens, sql) {
     );
 }
 
+interface TokenClassification {
+    readonly type: SqlColorTokenType;
+    readonly modifiers: readonly SqlColorTokenModifier[];
+}
+
 /** The classification of the nth occurrence of `text`, or undefined when it is not classified. */
-function classificationOf(tokens, sql, text, occurrence = 0) {
+export function classificationOf(
+    tokens: readonly ColorizedToken[],
+    sql: string,
+    text: string,
+    occurrence = 0,
+): TokenClassification | undefined {
     const matches = tokens.filter((token) => sql.slice(token.start, token.end) === text);
     const token = matches[occurrence];
     return token && { type: token.tokenType, modifiers: [...token.modifiers] };
 }
 
 /** The standard catalog used by bound-coloring tests. */
-function createColoringMetadata(input = {}) {
+export function createColoringMetadata(
+    input: InMemoryMetadataInput = {},
+): InMemoryMetadataProvider {
     return new InMemoryMetadataProvider({
         environment: { currentDatabase: "db", defaultSchema: "dbo", caseSensitive: false },
         databases: [{ name: "db" }],
@@ -85,12 +112,21 @@ function createColoringMetadata(input = {}) {
     });
 }
 
-function catalogObject(id, schema, name, kind, database = "db") {
+export function catalogObject(
+    id: string,
+    schema: string,
+    name: string,
+    kind: ObjectMetadata["kind"],
+    database = "db",
+): ObjectMetadata {
     return { ref: { id, database }, database, schema, name, kind };
 }
 
 /** Applies a token-array delta the way a host does, so edits can be compared with a fresh result. */
-function applyColorEdits(previous, edits) {
+export function applyColorEdits(
+    previous: readonly ColorizedToken[],
+    edits: readonly ColorizationEdit[],
+): ColorizedToken[] {
     const tokens = [...previous];
     for (const edit of edits) {
         tokens.splice(edit.start, edit.deleteCount, ...(edit.tokens ?? []));
@@ -99,7 +135,10 @@ function applyColorEdits(previous, edits) {
 }
 
 /** Counts parses so coloring can be proven to consume the published snapshot only. */
-function countingSyntaxService() {
+export function countingSyntaxService(): {
+    readonly counts: { parse: number; update: number };
+    readonly service: SyntaxService;
+} {
     const inner = new LezerSyntaxService();
     const counts = { parse: 0, update: 0 };
     return {
@@ -116,15 +155,3 @@ function countingSyntaxService() {
         },
     };
 }
-
-module.exports = {
-    applyColorEdits,
-    catalogObject,
-    classificationOf,
-    colorize,
-    countingSyntaxService,
-    createColoringMetadata,
-    describeTokens,
-    openColorizationSession,
-    uri,
-};

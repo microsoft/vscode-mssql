@@ -3,9 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-const assert = require("node:assert/strict");
-const { suite, test } = require("node:test");
-const {
+import assert from "node:assert/strict";
+import { suite, test } from "node:test";
+
+import {
     CatalogSemanticBinder,
     InMemoryMetadataProvider,
     InProcessLanguageServiceRuntime,
@@ -15,9 +16,23 @@ const {
     builtInsOfKind,
     formatSignature,
     lookupBuiltIn,
-} = require("../../dist/index.js");
+    type BuiltInArity,
+    type BuiltInSignature,
+} from "../../../src/index.ts";
 
 const uri = "file:///registry.sql";
+
+function requiredArity(name: string): BuiltInArity {
+    const arity = builtInArity(name);
+    assert.ok(arity, `${name} must publish an arity`);
+    return arity;
+}
+
+function requiredSignature(name: string): BuiltInSignature {
+    const signature = lookupBuiltIn(name, "routine")?.signatures?.[0];
+    assert.ok(signature, `${name} must publish a signature`);
+    return signature;
+}
 
 suite("built-in registry consistency", () => {
     // The parameter list a user reads in signature help and the count a diagnostic enforces are
@@ -32,8 +47,7 @@ suite("built-in registry consistency", () => {
                 );
                 continue;
             }
-            const arity = builtInArity(entry.name);
-            assert.ok(arity, `${entry.name} publishes signatures but no count`);
+            const arity = requiredArity(entry.name);
             assert.ok(
                 arity.minimum <= arity.maximum,
                 `${entry.name} requires more arguments than it accepts`,
@@ -55,30 +69,23 @@ suite("built-in registry consistency", () => {
         }
     });
 
-    // A routine that repeats its last argument has no upper bound. Reporting one would reject a
-    // call the engine accepts.
     test("treats a repeated argument as unbounded", () => {
         for (const name of ["COALESCE", "CONCAT", "CONCAT_WS"]) {
-            const entry = lookupBuiltIn(name, "routine");
-            if (!entry?.signatures?.[0]) continue;
-            if (!entry.signatures[0].parameters.some((parameter) => parameter.variadic)) continue;
-            assert.equal(builtInArity(name).maximum, Number.POSITIVE_INFINITY, name);
+            const signature = lookupBuiltIn(name, "routine")?.signatures?.[0];
+            if (!signature?.parameters.some((parameter) => parameter.variadic)) continue;
+            assert.equal(requiredArity(name).maximum, Number.POSITIVE_INFINITY, name);
         }
     });
 
-    // `COALESCE(x)` and `CONCAT(x)` are errors in SQL Server: both need two values before the
-    // repeat. The registry has to say so, because both the diagnostic and the help read it.
     test("requires two values before a repeat where the engine does", () => {
-        assert.equal(builtInArity("COALESCE").minimum, 2);
-        assert.equal(builtInArity("CONCAT").minimum, 2);
+        assert.equal(requiredArity("COALESCE").minimum, 2);
+        assert.equal(requiredArity("CONCAT").minimum, 2);
         assert.match(
-            formatSignature("COALESCE", lookupBuiltIn("COALESCE", "routine").signatures[0]),
+            formatSignature("COALESCE", requiredSignature("COALESCE")),
             /expression, expression, \.\.\.expression/u,
         );
     });
 
-    // The registry drives what the editor says as well as what the validator enforces, so a name
-    // it describes has to reach signature help through the same lookup.
     test("answers signature help from the same entry a diagnostic reads", async () => {
         const provider = new InMemoryMetadataProvider({
             environment: { currentDatabase: "db", defaultSchema: "dbo" },
@@ -94,20 +101,17 @@ suite("built-in registry consistency", () => {
 
         const help = features.signatureHelp(uri, 1, sql.indexOf("1, 2"));
         assert.ok(help);
-        assert.equal(
-            help.signatures[0].label,
-            formatSignature("COALESCE", lookupBuiltIn("COALESCE", "routine").signatures[0]),
-        );
-        assert.equal(help.signatures[0].parameters.length, 3);
+        const signature = help.signatures[0];
+        assert.ok(signature);
+        assert.equal(signature.label, formatSignature("COALESCE", requiredSignature("COALESCE")));
+        assert.equal(signature.parameters.length, 3);
     });
 
-    // A one-argument COALESCE is reported, and a two-argument one is not: the count the registry
-    // derives is the count the validator enforces.
     test("enforces the derived count", async () => {
         const provider = new InMemoryMetadataProvider({
             environment: { currentDatabase: "db", defaultSchema: "dbo" },
         });
-        const analyze = async (sql) => {
+        const analyze = async (sql: string): Promise<string[]> => {
             const runtime = new InProcessLanguageServiceRuntime(
                 new LezerSyntaxService(),
                 new CatalogSemanticBinder(),

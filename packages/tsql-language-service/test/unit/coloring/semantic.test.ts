@@ -3,13 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-const assert = require("node:assert/strict");
-const { suite, test } = require("node:test");
-const {
-    classificationOf,
-    colorize,
-    createColoringMetadata,
-} = require("../support/coloringHarness.js");
+import assert from "node:assert/strict";
+import { suite, test } from "node:test";
+
+import { classificationOf, colorize, createColoringMetadata } from "../support/coloringHarness.ts";
 
 const provider = () => createColoringMetadata();
 

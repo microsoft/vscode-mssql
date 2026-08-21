@@ -3,21 +3,25 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-const assert = require("node:assert/strict");
-const { suite, test } = require("node:test");
-const {
+import assert from "node:assert/strict";
+import { suite, test } from "node:test";
+
+import {
     CatalogSemanticBinder,
     InProcessLanguageServiceRuntime,
     TsqlColorizationService,
-} = require("../../dist/index.js");
-const {
+    type ColorizationResult,
+    type DeltaColorizationResult,
+    type MetadataView,
+} from "../../../src/index.ts";
+import {
     applyColorEdits,
     colorize,
     countingSyntaxService,
     createColoringMetadata,
     openColorizationSession,
     uri,
-} = require("../support/coloringHarness.js");
+} from "../support/coloringHarness.ts";
 
 const document = [
     "-- customer report",
@@ -28,7 +32,7 @@ const document = [
     "WHERE c.Id > 1;",
 ].join("\n");
 
-async function openSession(sql) {
+async function openSession(sql: string) {
     const provider = createColoringMetadata();
     const runtime = new InProcessLanguageServiceRuntime(
         undefined,
@@ -37,6 +41,10 @@ async function openSession(sql) {
     );
     const snapshot = await runtime.open(uri, 1, sql);
     return { runtime, snapshot, service: new TsqlColorizationService() };
+}
+
+function assertDelta(result: ColorizationResult): asserts result is DeltaColorizationResult {
+    assert.equal(result.kind, "delta");
 }
 
 suite("incremental coloring", () => {
@@ -94,7 +102,7 @@ suite("incremental coloring", () => {
         const change = { start, end: start + 6, text: "c.Name AS customer" };
         const edited = await runtime.change(uri, 1, 2, [change]);
         const delta = service.provideColorEdits(full, edited, [change]);
-        assert.equal(delta.kind, "delta");
+        assertDelta(delta);
         assert.deepEqual(
             applyColorEdits(full.tokens, delta.edits),
             service.provideDocumentColors(edited).tokens,
@@ -108,10 +116,14 @@ suite("incremental coloring", () => {
         const change = { start, end: start + 1, text: "x" };
         const edited = await runtime.change(uri, 1, 2, [change]);
         const delta = service.provideColorEdits(full, edited, [change]);
+        assertDelta(delta);
         assert.equal(delta.edits.length, 1);
-        assert.equal(delta.edits[0].deleteCount, 1);
+        const edit = delta.edits[0];
+        assert.ok(edit);
+        assert.equal(edit.deleteCount, 1);
+        assert.ok(edit.tokens);
         assert.deepEqual(
-            delta.edits[0].tokens.map((token) => token.tokenType),
+            edit.tokens.map((token) => token.tokenType),
             ["column"],
         );
         assert.deepEqual(
@@ -126,13 +138,16 @@ suite("incremental coloring", () => {
         const start = document.lastIndexOf("1");
         const change = { start, end: start + 1, text: "2" };
         const edited = await runtime.change(uri, 1, 2, [change]);
-        assert.deepEqual(service.provideColorEdits(full, edited, [change]).edits, []);
+        const delta = service.provideColorEdits(full, edited, [change]);
+        assertDelta(delta);
+        assert.deepEqual(delta.edits, []);
     });
 
     test("an unchanged snapshot produces no edits", async () => {
         const { snapshot, service } = await openSession(document);
         const full = service.provideDocumentColors(snapshot);
         const delta = service.provideColorEdits(full, snapshot, []);
+        assertDelta(delta);
         assert.deepEqual(delta.edits, []);
         assert.equal(delta.previousResultId, full.resultId);
     });
@@ -155,7 +170,7 @@ suite("incremental coloring", () => {
         const session = await openColorizationSession(document, { provider });
         const view = provider.pin();
         let resolves = 0;
-        const counted = {
+        const counted: MetadataView = {
             ...view,
             resolveObject: (parts) => (resolves++, view.resolveObject(parts)),
         };

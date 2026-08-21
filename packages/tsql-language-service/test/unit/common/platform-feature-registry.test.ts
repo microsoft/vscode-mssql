@@ -3,11 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-const assert = require("node:assert/strict");
-const { readFileSync, readdirSync } = require("node:fs");
-const { join } = require("node:path");
-const { suite, test } = require("node:test");
-const {
+import assert from "node:assert/strict";
+import { readFileSync, readdirSync } from "node:fs";
+import { join } from "node:path";
+import { suite, test } from "node:test";
+
+import {
     featureAvailability,
     featureAvailabilityDetail,
     engineCapabilitySet,
@@ -16,10 +17,21 @@ const {
     platformFeatureForNode,
     platformFeatureNodes,
     platformFeatures,
+    resolveTsqlFeatureProfile,
     resolvedSqlEngineProfiles,
     sqlEngineProfiles,
-} = require("../../dist/index.js");
-const { parser } = require("../../dist/syntax/lezer/generated/tsqlParser.js");
+    type PlatformFeature,
+    type TsqlFeatureProfile,
+} from "../../../src/index.ts";
+import { parser } from "../../../src/syntax/lezer/generated/tsqlParser.js";
+
+const sourceRoot = join(__dirname, "..", "..", "..", "src");
+
+function requiredFeature(id: string): PlatformFeature {
+    const feature = platformFeatureById(id);
+    assert.ok(feature, `${id} must exist in the platform feature registry`);
+    return feature;
+}
 
 const grammarNodeNames = new Set(parser.nodeSet.types.map((type) => type.name));
 const statementFamilies = new Set([
@@ -77,10 +89,11 @@ suite("platform feature registry audit", () => {
 
     // Broad capability summaries and the fine-grained registry must never contradict each other.
     test("table distribution agrees with the coarse capability table", () => {
-        const feature = platformFeatureById("table.distribution");
-        assert.ok(feature);
+        const feature = requiredFeature("table.distribution");
         for (const profile of sqlEngineProfiles) {
-            const expected = feature.profiles?.includes(profile) ? "available" : "unavailable";
+            const expected: "available" | "unavailable" = feature.profiles?.includes(profile)
+                ? "available"
+                : "unavailable";
             const actual = engineCapabilitySet({
                 engineProfile: profile,
                 previewFeatures: false,
@@ -105,7 +118,7 @@ suite("platform feature registry audit", () => {
     // cannot be reintroduced as an ad hoc comparison next to the grammar.
     test("the syntax service holds no private platform table", () => {
         const source = readFileSync(
-            join(__dirname, "..", "..", "src", "syntax", "lezer", "lezerSyntaxService.ts"),
+            join(sourceRoot, "syntax", "lezer", "lezerSyntaxService.ts"),
             "utf8",
         );
         assert.ok(
@@ -121,7 +134,7 @@ suite("platform feature registry audit", () => {
     // Verifies no layer outside the resolver compares a raw engine-edition number.
     test("only the profile resolver compares engine editions", () => {
         const offenders = [];
-        for (const file of sourceFiles(join(__dirname, "..", "..", "src"))) {
+        for (const file of sourceFiles(sourceRoot)) {
             if (file.endsWith(join("common", "engineProfile.ts"))) continue;
             const source = readFileSync(file, "utf8");
             if (/engineEdition\s*(?:===|!==|<|>|<=|>=)/u.test(source)) offenders.push(file);
@@ -148,7 +161,7 @@ suite("platform feature registry audit", () => {
 
     // Verifies the shared availability range is drawn from the node when no keyword is declared.
     test("a feature without a keyword still reports a range", () => {
-        const feature = platformFeatureById("database.file-definition");
+        const feature = requiredFeature("database.file-definition");
         assert.equal(feature.keyword, undefined);
         const detail = featureAvailabilityDetail(feature, {
             engineProfile: "azure-sql-database",
@@ -156,6 +169,7 @@ suite("platform feature registry audit", () => {
             compatibilityLevel: 170,
             previewFeatures: false,
         });
+        assert.ok(detail);
         assert.equal(detail.kind, "profile");
     });
 
@@ -177,7 +191,10 @@ suite("platform feature availability", () => {
     // Verifies an unidentified engine never produces a restriction, on any registered feature.
     test("defers every profile decision while the engine is unknown", () => {
         for (const feature of platformFeatures) {
-            const profile = { engineProfile: "unknown", previewFeatures: false };
+            const profile: TsqlFeatureProfile = {
+                engineProfile: "unknown",
+                previewFeatures: false,
+            };
             const availability = featureAvailability(feature, profile);
             assert.notEqual(availability, "unavailable", feature.id);
             assert.equal(featureAvailabilityDetail(feature, profile), undefined, feature.id);
@@ -187,14 +204,18 @@ suite("platform feature availability", () => {
     // Verifies each profile-restricted feature is available exactly where it says it is.
     test("profile-restricted features agree with their own profile list", () => {
         for (const feature of platformFeatures.filter((entry) => entry.profiles !== undefined)) {
+            const governedProfiles = feature.profiles;
+            assert.ok(governedProfiles);
             for (const engineProfile of resolvedSqlEngineProfiles) {
-                const profile = {
+                const profile = resolveTsqlFeatureProfile({
                     engineProfile,
                     serverMajorVersion: 17,
                     compatibilityLevel: 170,
                     previewFeatures: false,
-                };
-                const expected = feature.profiles.includes(engineProfile)
+                });
+                const expected: "available" | "unavailable" = governedProfiles.includes(
+                    engineProfile,
+                )
                     ? "available"
                     : "unavailable";
                 assert.equal(
@@ -208,7 +229,7 @@ suite("platform feature availability", () => {
 
     // Verifies a missing level defers rather than restricting.
     test("defers a version gate when the level was never reported", () => {
-        const feature = platformFeatureById("clause.named-window");
+        const feature = requiredFeature("clause.named-window");
         assert.equal(
             featureAvailability(feature, { engineProfile: "sql-server", previewFeatures: false }),
             "deferred",
@@ -225,18 +246,19 @@ suite("platform feature availability", () => {
 
     // Verifies a removed construct is described as removed, not as requiring a newer engine.
     test("describes removed syntax separately from missing syntax", () => {
-        const removed = featureAvailabilityDetail(platformFeatureById("statement.dump"), {
+        const removed = featureAvailabilityDetail(requiredFeature("statement.dump"), {
             engineProfile: "sql-server",
             serverMajorVersion: 17,
             compatibilityLevel: 170,
             previewFeatures: false,
         });
+        assert.ok(removed);
         assert.equal(removed.kind, "removed");
         assert.match(removed.requirement, /removed after database compatibility level 90/u);
     });
 });
 
-function* sourceFiles(directory) {
+function* sourceFiles(directory: string): Generator<string> {
     for (const entry of readdirSync(directory, { withFileTypes: true })) {
         const path = join(directory, entry.name);
         if (entry.isDirectory()) {

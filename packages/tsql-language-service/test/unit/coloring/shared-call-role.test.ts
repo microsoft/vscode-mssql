@@ -3,10 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-const assert = require("node:assert/strict");
-const { suite, test } = require("node:test");
-const { TsqlLanguageFeatureService } = require("../../dist/index.js");
-const { classificationOf, openColorizationSession } = require("../support/coloringHarness.js");
+import assert from "node:assert/strict";
+import { suite, test } from "node:test";
+
+import { TsqlLanguageFeatureService } from "../../../src/index.ts";
+import { classificationOf, openColorizationSession } from "../support/coloringHarness.ts";
 
 /**
  * `CAST`, `CONVERT`, and `TOP` are keywords in source and routines in meaning.
@@ -16,7 +17,7 @@ const { classificationOf, openColorizationSession } = require("../support/colori
  * together. Both now read the one resolved call, and these are the assertions that keep them tied.
  */
 suite("shared conversion and operator roles", () => {
-    async function open(sql) {
+    async function open(sql: string) {
         const session = await openColorizationSession(sql);
         return {
             ...session,
@@ -41,20 +42,21 @@ suite("shared conversion and operator roles", () => {
         for (const [name, argument] of [
             ["CAST", "1 AS"],
             ["CONVERT", "int, '2'"],
-        ]) {
+        ] as const) {
             const call = snapshot.semantics.model.callAt(sql.indexOf(name));
+            assert.ok(call);
             assert.equal(call.target.kind, "builtin");
             assert.equal(call.target.name, name);
             assert.equal(call.shape, "keywordSeparated");
 
             const help = features.signatureHelp(uri, 1, sql.indexOf(argument));
             assert.ok(help, `${name} has signature help`);
-            assert.match(help.signatures[0].label, new RegExp(`^${name}\\(`, "u"));
+            const signature = help.signatures[0];
+            assert.ok(signature);
+            assert.match(signature.label, new RegExp(`^${name}\\(`, "u"));
         }
     });
 
-    // TOP is an operator, not a routine. It shares the argument shape so signature help can answer
-    // for it, and it keeps a keyword colour because that is what it is in source.
     test("colors TOP as a library keyword without making it a function", async () => {
         const sql = "SELECT TOP (1) 1;";
         const { snapshot, result } = await open(sql);
@@ -63,11 +65,11 @@ suite("shared conversion and operator roles", () => {
             type: "keyword",
             modifiers: ["defaultLibrary"],
         });
-        assert.equal(snapshot.semantics.model.callAt(sql.indexOf("TOP")).target.kind, "operator");
+        const call = snapshot.semantics.model.callAt(sql.indexOf("TOP"));
+        assert.ok(call);
+        assert.equal(call.target.kind, "operator");
     });
 
-    // An ordinary call keeps its function colour: the shared model did not turn every call into a
-    // keyword, only the constructs the grammar spells as one.
     test("leaves an ordinary call colored as a routine", async () => {
         const sql = "SELECT dbo.Total(1);";
         const { result } = await open(sql);

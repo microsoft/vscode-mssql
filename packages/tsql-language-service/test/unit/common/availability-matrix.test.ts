@@ -3,25 +3,30 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-const assert = require("node:assert/strict");
-const { readFileSync } = require("node:fs");
-const { join } = require("node:path");
-const { suite, test } = require("node:test");
-const {
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { suite, test } from "node:test";
+
+import {
     CatalogSemanticBinder,
+    ImmutableTextSnapshot,
     InMemoryMetadataProvider,
     InProcessLanguageServiceRuntime,
     LezerSyntaxService,
     TsqlColorizationService,
     TsqlLanguageFeatureService,
     featureAvailability,
+    isSqlEngineProfile,
     platformFeatures,
-} = require("../../dist/index.js");
+    resolveTsqlFeatureProfile,
+    type SqlEngineProfile,
+    type TsqlFeatureProfile,
+} from "../../../src/index.ts";
 
 /** Every level the package models. 180 is the preview level, which nothing defaults to. */
-const levels = [80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180];
+const levels = [80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180] as const;
 
-const profiles = [
+const profiles: readonly SqlEngineProfile[] = [
     "sql-server",
     "azure-sql-database",
     "azure-sql-managed-instance",
@@ -29,18 +34,85 @@ const profiles = [
     "fabric-warehouse",
 ];
 
-const manifest = JSON.parse(
-    readFileSync(join(__dirname, "..", "dialect", "manifest", "dialect-scenarios.json"), "utf8"),
+interface AvailabilityScenario {
+    readonly id: string;
+    readonly classification: string;
+    readonly profile: SqlEngineProfile;
+    readonly sql: string;
+    readonly serverMajorVersion?: number;
+    readonly compatibilityLevel?: number;
+    readonly expectFeatures?: readonly string[];
+    readonly expectNodes?: readonly string[];
+}
+
+interface AvailabilityManifest {
+    readonly scenarios: readonly AvailabilityScenario[];
+}
+
+const manifest = parseManifest(
+    readFileSync(`${__dirname}/../../dialect/manifest/dialect-scenarios.json`, "utf8"),
 );
 
-function profileOf(engineProfile, level) {
-    return {
+function profileOf(engineProfile: SqlEngineProfile, level?: number): TsqlFeatureProfile {
+    return resolveTsqlFeatureProfile({
         engineProfile,
         ...(level === undefined
             ? {}
             : { serverMajorVersion: Math.floor(level / 10), compatibilityLevel: level }),
         previewFeatures: true,
+    });
+}
+
+function parseManifest(source: string): AvailabilityManifest {
+    const value: unknown = JSON.parse(source);
+    assert.ok(isRecord(value));
+    assert.ok(Array.isArray(value.scenarios));
+    return { scenarios: value.scenarios.map(parseScenario) };
+}
+
+function parseScenario(value: unknown): AvailabilityScenario {
+    assert.ok(isRecord(value));
+    assertString(value.id);
+    assertString(value.classification);
+    assertString(value.sql);
+    assert.ok(isSqlEngineProfile(value.profile));
+    assertOptionalNumber(value.serverMajorVersion);
+    assertOptionalNumber(value.compatibilityLevel);
+    assertOptionalStringArray(value.expectFeatures);
+    assertOptionalStringArray(value.expectNodes);
+    return {
+        id: value.id,
+        classification: value.classification,
+        profile: value.profile,
+        sql: value.sql,
+        ...(value.serverMajorVersion === undefined
+            ? {}
+            : { serverMajorVersion: value.serverMajorVersion }),
+        ...(value.compatibilityLevel === undefined
+            ? {}
+            : { compatibilityLevel: value.compatibilityLevel }),
+        ...(value.expectFeatures === undefined ? {} : { expectFeatures: value.expectFeatures }),
+        ...(value.expectNodes === undefined ? {} : { expectNodes: value.expectNodes }),
     };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null;
+}
+
+function assertOptionalNumber(value: unknown): asserts value is number | undefined {
+    assert.ok(value === undefined || typeof value === "number");
+}
+
+function assertString(value: unknown): asserts value is string {
+    assert.equal(typeof value, "string");
+}
+
+function assertOptionalStringArray(value: unknown): asserts value is string[] | undefined {
+    assert.ok(
+        value === undefined ||
+            (Array.isArray(value) && value.every((entry) => typeof entry === "string")),
+    );
 }
 
 suite("availability matrix", () => {
@@ -128,17 +200,19 @@ suite("availability matrix", () => {
         );
         assert.ok(gated.length > 0);
         for (const scenario of gated) {
-            const service = new LezerSyntaxService(undefined, {
-                engineProfile: scenario.profile,
-                ...(scenario.serverMajorVersion === undefined
-                    ? {}
-                    : { serverMajorVersion: scenario.serverMajorVersion }),
-                ...(scenario.compatibilityLevel === undefined
-                    ? {}
-                    : { compatibilityLevel: scenario.compatibilityLevel }),
-                previewFeatures: true,
-            });
-            const { ImmutableTextSnapshot } = require("../../dist/index.js");
+            const service = new LezerSyntaxService(
+                undefined,
+                resolveTsqlFeatureProfile({
+                    engineProfile: scenario.profile,
+                    ...(scenario.serverMajorVersion === undefined
+                        ? {}
+                        : { serverMajorVersion: scenario.serverMajorVersion }),
+                    ...(scenario.compatibilityLevel === undefined
+                        ? {}
+                        : { compatibilityLevel: scenario.compatibilityLevel }),
+                    previewFeatures: true,
+                }),
+            );
             const snapshot = service.parse(
                 new ImmutableTextSnapshot("file:///gate.sql", 1, scenario.sql),
             );
@@ -150,19 +224,22 @@ suite("availability matrix", () => {
 suite("availability across feature projections", () => {
     const uri = "file:///projections.sql";
 
-    async function open(sql, level) {
+    async function open(sql: string, level: number) {
         const provider = new InMemoryMetadataProvider({
             environment: { currentDatabase: "db", defaultSchema: "dbo" },
             schemas: [{ database: "db", name: "dbo" }],
             databases: [{ name: "db" }],
         });
         const runtime = new InProcessLanguageServiceRuntime(
-            new LezerSyntaxService(undefined, {
-                engineProfile: "sql-server",
-                serverMajorVersion: Math.floor(level / 10),
-                compatibilityLevel: level,
-                previewFeatures: true,
-            }),
+            new LezerSyntaxService(
+                undefined,
+                resolveTsqlFeatureProfile({
+                    engineProfile: "sql-server",
+                    serverMajorVersion: Math.floor(level / 10),
+                    compatibilityLevel: level,
+                    previewFeatures: true,
+                }),
+            ),
             new CatalogSemanticBinder(),
             provider,
         );
@@ -279,17 +356,20 @@ suite("availability across feature projections", () => {
 });
 
 suite("availability decisions in the semantic model", () => {
-    async function decisionsFor(sql, level) {
+    async function decisionsFor(sql: string, level: number) {
         const provider = new InMemoryMetadataProvider({
             environment: { currentDatabase: "db", defaultSchema: "dbo" },
         });
         const runtime = new InProcessLanguageServiceRuntime(
-            new LezerSyntaxService(undefined, {
-                engineProfile: "sql-server",
-                serverMajorVersion: Math.floor(level / 10),
-                compatibilityLevel: level,
-                previewFeatures: true,
-            }),
+            new LezerSyntaxService(
+                undefined,
+                resolveTsqlFeatureProfile({
+                    engineProfile: "sql-server",
+                    serverMajorVersion: Math.floor(level / 10),
+                    compatibilityLevel: level,
+                    previewFeatures: true,
+                }),
+            ),
             new CatalogSemanticBinder(),
             provider,
         );
@@ -305,7 +385,7 @@ suite("availability decisions in the semantic model", () => {
             ["SELECT JSON_ARRAY(1, 2);", "expression.json-array"],
             ["SELECT JSON_OBJECT();", "expression.json-object"],
             ["SELECT JSON_ARRAYAGG(Name) FROM dbo.t;", "expression.json-arrayagg"],
-        ]) {
+        ] as const) {
             assert.deepEqual(
                 (await decisionsFor(sql, 150)).map(({ featureId, status }) => ({
                     featureId,
