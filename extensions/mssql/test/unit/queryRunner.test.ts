@@ -1105,7 +1105,7 @@ suite("Query Runner tests", () => {
 
             await queryRunner.copyResults(selection, 0, 0, false, true);
 
-            sinon.assert.calledOnce(vscode.window.withProgress as sinon.SinonStub);
+            expect(vscode.window.withProgress).to.have.been.called;
         });
 
         test("a new copy cancels an in-flight overlapping Beta Grid copy", async () => {
