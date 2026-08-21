@@ -3,16 +3,18 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-const assert = require("node:assert/strict");
-const { execFileSync } = require("node:child_process");
-const { mkdtemp, mkdir, rm, writeFile } = require("node:fs/promises");
-const os = require("node:os");
-const path = require("node:path");
-const { test } = require("node:test");
+import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
+import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+import { test } from "node:test";
+
+const packageDirectory = path.resolve(__dirname, "../..");
 
 test("benchmark reports identify the exact commit and package worktree state", async () => {
     const { repositoryIdentity } = await import("../../benchmarks/support/repository-identity.mjs");
-    const identity = await repositoryIdentity(path.resolve(__dirname, "../.."));
+    const identity = await repositoryIdentity(packageDirectory);
 
     assert.match(identity.commit, /^[0-9a-f]{40}$/u);
     assert.equal(typeof identity.dirty, "boolean");
@@ -22,13 +24,13 @@ test("benchmark reports identify the exact commit and package worktree state", a
 test("benchmark fingerprints executable inputs without becoming self-referential through reports", async () => {
     const { repositoryIdentity } = await import("../../benchmarks/support/repository-identity.mjs");
     const root = await mkdtemp(path.join(os.tmpdir(), "tsql-benchmark-identity-"));
-    const packageDirectory = path.join(root, "packages", "tsql-language-service");
+    const temporaryPackageDirectory = path.join(root, "packages", "tsql-language-service");
     try {
-        await mkdir(path.join(packageDirectory, "src"), { recursive: true });
-        await mkdir(path.join(packageDirectory, "docs"), { recursive: true });
-        await writeFile(path.join(packageDirectory, "src", "index.ts"), "export {};\n");
-        await writeFile(path.join(packageDirectory, "package.json"), "{}\n");
-        await writeFile(path.join(packageDirectory, "docs", "report.md"), "initial\n");
+        await mkdir(path.join(temporaryPackageDirectory, "src"), { recursive: true });
+        await mkdir(path.join(temporaryPackageDirectory, "docs"), { recursive: true });
+        await writeFile(path.join(temporaryPackageDirectory, "src", "index.ts"), "export {};\n");
+        await writeFile(path.join(temporaryPackageDirectory, "package.json"), "{}\n");
+        await writeFile(path.join(temporaryPackageDirectory, "docs", "report.md"), "initial\n");
         git(root, ["init", "--quiet"]);
         git(root, ["add", "."]);
         git(root, [
@@ -42,14 +44,17 @@ test("benchmark fingerprints executable inputs without becoming self-referential
             "initial",
         ]);
 
-        const baseline = await repositoryIdentity(packageDirectory);
-        await writeFile(path.join(packageDirectory, "docs", "report.md"), "updated\n");
-        const reportOnly = await repositoryIdentity(packageDirectory);
+        const baseline = await repositoryIdentity(temporaryPackageDirectory);
+        await writeFile(path.join(temporaryPackageDirectory, "docs", "report.md"), "updated\n");
+        const reportOnly = await repositoryIdentity(temporaryPackageDirectory);
         assert.equal(reportOnly.sourceFingerprint, baseline.sourceFingerprint);
         assert.equal(reportOnly.dirty, false);
 
-        await writeFile(path.join(packageDirectory, "src", "index.ts"), "export const x = 1;\n");
-        const sourceEdit = await repositoryIdentity(packageDirectory);
+        await writeFile(
+            path.join(temporaryPackageDirectory, "src", "index.ts"),
+            "export const value = 1;\n",
+        );
+        const sourceEdit = await repositoryIdentity(temporaryPackageDirectory);
         assert.notEqual(sourceEdit.sourceFingerprint, baseline.sourceFingerprint);
         assert.equal(sourceEdit.dirty, true);
     } finally {
@@ -57,6 +62,6 @@ test("benchmark fingerprints executable inputs without becoming self-referential
     }
 });
 
-function git(cwd, args) {
+function git(cwd: string, args: readonly string[]): void {
     execFileSync("git", args, { cwd, stdio: "ignore" });
 }

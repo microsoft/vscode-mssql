@@ -3,9 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-const { existsSync } = require("node:fs");
-const { resolve } = require("node:path");
-const { Connection, Request } = require("tedious");
+import { existsSync } from "node:fs";
+import { resolve } from "node:path";
+import { Connection, Request, type ConnectionConfiguration } from "tedious";
+import type { SimpleQueryCell, SimpleQueryExecutor, SimpleQueryResult } from "../../src/index.ts";
 
 const packageRoot = resolve(__dirname, "../..");
 const environmentPath = resolve(packageRoot, ".env");
@@ -13,24 +14,24 @@ if (!process.env.TSQL_INTEGRATION_CONNECTION_STRING && existsSync(environmentPat
     process.loadEnvFile(environmentPath);
 }
 
-const connectionString = process.env.TSQL_INTEGRATION_CONNECTION_STRING;
+export const connectionString = process.env.TSQL_INTEGRATION_CONNECTION_STRING;
 
-function connectionStringForDatabase(database) {
-    if (!connectionString) return undefined;
-    // A later connection-string key wins, so this works with or without an existing catalog.
+export function connectionStringForDatabase(database: string): string {
+    if (!connectionString) throw new Error("TSQL_INTEGRATION_CONNECTION_STRING is not configured.");
     return `${connectionString};Initial Catalog={${database}}`;
 }
 
-class TediousTestClient {
-    constructor(value) {
-        this.config = tediousConfig(value);
-        this.connection = new Connection(this.config);
-        this.pending = Promise.resolve();
+export class TediousTestClient implements SimpleQueryExecutor {
+    private readonly connection: Connection;
+    private pending: Promise<void> = Promise.resolve();
+
+    public constructor(value: string) {
+        this.connection = new Connection(tediousConfig(value));
     }
 
-    async connect() {
-        await new Promise((resolvePromise, reject) => {
-            const connected = (error) => {
+    public async connect(): Promise<void> {
+        await new Promise<void>((resolvePromise, reject) => {
+            const connected = (error?: Error): void => {
                 this.connection.removeListener("error", reject);
                 if (error) reject(error);
                 else resolvePromise();
@@ -41,7 +42,7 @@ class TediousTestClient {
         });
     }
 
-    execute(query, signal) {
+    public execute(query: string, signal?: AbortSignal): Promise<SimpleQueryResult> {
         const execution = this.pending.then(() => this.executeNow(query, signal));
         this.pending = execution.then(
             () => undefined,
@@ -50,36 +51,37 @@ class TediousTestClient {
         return execution;
     }
 
-    executeNow(query, signal) {
+    private executeNow(query: string, signal?: AbortSignal): Promise<SimpleQueryResult> {
         if (signal?.aborted) return Promise.reject(signal.reason);
-        return new Promise((resolvePromise, reject) => {
-            let columns = [];
-            const rows = [];
+        return new Promise<SimpleQueryResult>((resolvePromise, reject) => {
+            let columns: SimpleQueryResult["columns"] = [];
+            const rows: SimpleQueryCell[][] = [];
             const request = new Request(query, (error) => {
                 signal?.removeEventListener("abort", abort);
                 if (error) reject(error);
                 else resolvePromise({ columns, rows });
             });
-            const abort = () => request.cancel();
+            const abort = (): void => request.cancel();
             signal?.addEventListener("abort", abort, { once: true });
             request.on("columnMetadata", (metadata) => {
-                columns = metadata.map((column) => ({
+                const values = Array.isArray(metadata) ? metadata : Object.values(metadata);
+                columns = values.map((column) => ({
                     name: column.colName,
                     type: column.type?.name,
                 }));
             });
-            request.on("row", (cells) => rows.push(cells.map((cell) => cell.value)));
+            request.on("row", (cells: unknown) => rows.push(decodeRow(cells)));
             this.connection.execSql(request);
         });
     }
 
-    async close() {
+    public async close(): Promise<void> {
         await this.pending;
         this.connection.close();
     }
 }
 
-function tediousConfig(value) {
+function tediousConfig(value: string): ConnectionConfiguration {
     const options = parseConnectionString(value);
     const source = required(options, "data source", "server").replace(/^tcp:/iu, "");
     const separator = source.lastIndexOf(",");
@@ -111,10 +113,10 @@ function tediousConfig(value) {
     };
 }
 
-function parseConnectionString(value) {
-    const result = new Map();
+function parseConnectionString(value: string): ReadonlyMap<string, string> {
+    const result = new Map<string, string>();
     let start = 0;
-    let quote;
+    let quote: string | undefined;
     let braces = 0;
     for (let index = 0; index <= value.length; index++) {
         const character = value[index];
@@ -146,35 +148,70 @@ function parseConnectionString(value) {
     return result;
 }
 
-function first(options, ...names) {
+function first(
+    options: ReadonlyMap<string, string>,
+    ...names: readonly string[]
+): string | undefined {
     return names.map((name) => options.get(name)).find((value) => value !== undefined);
 }
 
-function required(options, ...names) {
+function required(options: ReadonlyMap<string, string>, ...names: readonly string[]): string {
     const value = first(options, ...names);
     if (!value) throw new Error(`Connection string is missing ${names[0]}.`);
     return value;
 }
 
-function booleanOption(options, fallback, ...names) {
+function booleanOption(
+    options: ReadonlyMap<string, string>,
+    fallback: boolean,
+    ...names: readonly string[]
+): boolean {
     const value = first(options, ...names);
     return value === undefined ? fallback : /^(?:true|yes|1)$/iu.test(value);
 }
 
-function secondsOption(options, fallback, ...names) {
+function secondsOption(
+    options: ReadonlyMap<string, string>,
+    fallback: number,
+    ...names: readonly string[]
+): number {
     const value = first(options, ...names);
     return value === undefined ? fallback : Number.parseInt(value, 10) * 1_000;
 }
 
-function rowsAsObjects(result) {
+function decodeRow(value: unknown): SimpleQueryCell[] {
+    if (!Array.isArray(value)) throw new TypeError("Tedious returned a non-array row.");
+    return value.map((cell) => {
+        if (!isRecord(cell) || !("value" in cell)) {
+            throw new TypeError("Tedious returned an invalid row cell.");
+        }
+        return decodeCell(cell.value);
+    });
+}
+
+function decodeCell(value: unknown): SimpleQueryCell {
+    if (value === null || value === undefined) return undefined;
+    if (
+        typeof value === "string" ||
+        typeof value === "number" ||
+        typeof value === "boolean" ||
+        typeof value === "bigint" ||
+        value instanceof Uint8Array ||
+        value instanceof Date
+    ) {
+        return value;
+    }
+    throw new TypeError(`Tedious returned an unsupported cell value: ${typeof value}`);
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null;
+}
+
+export function rowsAsObjects(
+    result: SimpleQueryResult,
+): ReadonlyArray<Readonly<Record<string, SimpleQueryCell>>> {
     return result.rows.map((row) =>
         Object.fromEntries(result.columns.map((column, index) => [column.name, row[index]])),
     );
 }
-
-module.exports = {
-    connectionString,
-    connectionStringForDatabase,
-    rowsAsObjects,
-    TediousTestClient,
-};

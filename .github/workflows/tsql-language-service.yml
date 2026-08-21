@@ -19,13 +19,19 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: tsql-language-service-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 defaults:
   run:
     working-directory: packages/tsql-language-service
 
 jobs:
-  offline:
+  quality:
+    name: Grammar, lint, types, and unit tests
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v5
@@ -35,14 +41,22 @@ jobs:
           cache-dependency-path: packages/tsql-language-service/package-lock.json
       - run: npm ci
       - name: Verify committed parser output
-        run: npm run check:grammar
-      - run: npm run lint
-      - run: npm run test:types
-      - run: npm run test:unit
-      - run: npm run test:offline
+        run: |
+          if ! npm run check:grammar; then
+            echo "::error::The generated parser is stale. Run 'npm run build:grammar' and push the grammar source, generated parser, terms, and build stamp together."
+            exit 1
+          fi
+      - name: Lint architecture and source
+        run: npm run lint
+      - name: Verify package declaration contracts
+        run: npm run test:types
+      - name: Run unit tests
+        run: npm run test:unit
 
-  focused-contracts:
+  performance:
+    name: Deterministic performance gates
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v5
@@ -51,10 +65,150 @@ jobs:
           cache: npm
           cache-dependency-path: packages/tsql-language-service/package-lock.json
       - run: npm ci
-      - run: npm run check:grammar
-      - run: npm run test:shuffled
-      - run: npm run test:sqlcmd
-      - run: npm run test:identifiers
-      - run: npm run test:cancellation
-      - run: npm run test:metadata-concurrency
-      - run: npm run test:large-catalog
+      - name: Run performance tests
+        run: npm run test:performance
+
+  integration:
+    name: SQL Server integration tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      MSSQL_SA_PASSWORD: TsqlService-CI-2026!
+      TSQL_INTEGRATION_CONNECTION_STRING: Data Source=localhost,1433;Initial Catalog=master;User ID=sa;Password=TsqlService-CI-2026!;Encrypt=True;Trust Server Certificate=True;Authentication=SqlPassword
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: packages/tsql-language-service/package-lock.json
+      - run: npm ci
+      - name: Start SQL Server
+        run: |
+          docker pull mcr.microsoft.com/mssql/server:2025-latest
+          docker run --detach --name tsql-language-service-sql --publish 1433:1433 \
+            --env ACCEPT_EULA=Y \
+            --env MSSQL_PID=Developer \
+            --env MSSQL_SA_PASSWORD="$MSSQL_SA_PASSWORD" \
+            mcr.microsoft.com/mssql/server:2025-latest
+          ready=false
+          for attempt in {1..60}; do
+            if docker logs tsql-language-service-sql 2>&1 | grep -q "SQL Server is now ready for client connections"; then
+              ready=true
+              break
+            fi
+            sleep 2
+          done
+          if [[ "$ready" != true ]]; then
+            docker logs tsql-language-service-sql
+            echo "::error::SQL Server did not become ready in time."
+            exit 1
+          fi
+      - name: Create integration fixtures
+        run: |
+          sqlcmd=(docker exec tsql-language-service-sql /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -C -b)
+          "${sqlcmd[@]}" -Q "CREATE DATABASE AdventureWorks2022"
+          "${sqlcmd[@]}" -Q "CREATE DATABASE Issue21930Repro_6d31c8a4"
+          "${sqlcmd[@]}" -Q "CREATE DATABASE WideWorldImporters"
+          "${sqlcmd[@]}" -d AdventureWorks2022 -Q "CREATE SCHEMA Person"
+          "${sqlcmd[@]}" -d AdventureWorks2022 -Q "CREATE TABLE Person.Person (BusinessEntityID int NOT NULL PRIMARY KEY)"
+      - name: Run integration tests
+        run: npm run test:integration
+      - name: Publish SQL Server logs
+        if: always()
+        run: docker logs tsql-language-service-sql 2>&1 | tail -200 || true
+      - name: Stop SQL Server
+        if: always()
+        run: docker rm --force tsql-language-service-sql >/dev/null 2>&1 || true
+
+  benchmark:
+    name: Benchmark against main
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: packages/tsql-language-service/package-lock.json
+      - name: Select baseline
+        id: baseline
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PUSH_BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          mkdir -p benchmarks/results
+          base_sha="$PR_BASE_SHA"
+          if [[ -z "$base_sha" && "$PUSH_BEFORE_SHA" != "0000000000000000000000000000000000000000" ]]; then
+            base_sha="$PUSH_BEFORE_SHA"
+          fi
+          if [[ -z "$base_sha" ]]; then
+            base_sha="$(git rev-parse origin/main)"
+          fi
+          echo "sha=$base_sha" >> "$GITHUB_OUTPUT"
+          if git cat-file -e "$base_sha:packages/tsql-language-service/package.json" 2>/dev/null; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "No package benchmark exists at $base_sha; this run will establish the initial main baseline." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Check out main benchmark baseline
+        if: steps.baseline.outputs.available == 'true'
+        run: git worktree add --detach "$RUNNER_TEMP/tsql-language-service-main" "${{ steps.baseline.outputs.sha }}"
+      - name: Install main dependencies
+        if: steps.baseline.outputs.available == 'true'
+        working-directory: ${{ runner.temp }}/tsql-language-service-main/packages/tsql-language-service
+        run: npm ci
+      - name: Run main benchmark
+        if: steps.baseline.outputs.available == 'true'
+        working-directory: ${{ runner.temp }}/tsql-language-service-main/packages/tsql-language-service
+        run: |
+          npm run benchmark:language-service -- \
+            --samples 10 \
+            --warmups 3 \
+            --seed 1592598566 \
+            --document-kb 64 \
+            --catalog-objects 30000 \
+            --memory-documents 6 \
+            --corpora realistic,many-batches \
+            --json "$GITHUB_WORKSPACE/packages/tsql-language-service/benchmarks/results/main.json"
+      - name: Install candidate dependencies
+        run: npm ci
+      - name: Run candidate benchmark
+        run: |
+          npm run benchmark:language-service -- \
+            --samples 10 \
+            --warmups 3 \
+            --seed 1592598566 \
+            --document-kb 64 \
+            --catalog-objects 30000 \
+            --memory-documents 6 \
+            --corpora realistic,many-batches \
+            --json benchmarks/results/candidate.json
+      - name: Compare benchmark reports
+        if: steps.baseline.outputs.available == 'true'
+        run: |
+          set +e
+          node benchmarks/support/compare-reports.mjs \
+            benchmarks/results/main.json \
+            benchmarks/results/candidate.json 2>&1 | tee benchmarks/results/comparison.txt
+          comparison_status=${PIPESTATUS[0]}
+          {
+            echo "## T-SQL language service benchmark"
+            echo
+            echo '```text'
+            cat benchmarks/results/comparison.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit "$comparison_status"
+      - name: Upload benchmark reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: tsql-language-service-benchmarks
+          path: packages/tsql-language-service/benchmarks/results/
+          if-no-files-found: error
+          retention-days: 30

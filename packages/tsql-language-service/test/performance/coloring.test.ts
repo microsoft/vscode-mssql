@@ -3,15 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-const assert = require("node:assert/strict");
-const { suite, test } = require("node:test");
-const { InProcessLanguageServiceRuntime, TsqlColorizationService } = require("../../dist/index.js");
+import assert from "node:assert/strict";
+import { performance } from "node:perf_hooks";
+import { suite, test } from "node:test";
+import { InProcessLanguageServiceRuntime, TsqlColorizationService } from "../../src/index.ts";
 
 const statement =
     "SELECT c.Id, c.Name, o.Total FROM dbo.Customers AS c" +
     " JOIN dbo.Orders AS o ON o.CustomerId = c.Id WHERE c.Id > 1;\n";
 
-function best(samples) {
+function best(samples: readonly number[]): number {
     return Math.min(...samples);
 }
 
@@ -30,8 +31,8 @@ suite("coloring performance regressions", () => {
         service.provideDocumentColors(snapshot);
         service.provideRangeColors({ ...snapshot, range });
 
-        const fullSamples = [];
-        const rangeSamples = [];
+        const fullSamples: number[] = [];
+        const rangeSamples: number[] = [];
         for (let attempt = 0; attempt < 3; attempt++) {
             let started = performance.now();
             const full = service.provideDocumentColors(snapshot);
@@ -44,8 +45,6 @@ suite("coloring performance regressions", () => {
             assert.ok(ranged.tokens.length > 0);
         }
 
-        // The margin is wide on purpose: this guards against a range request degrading into whole
-        // document work, not against a specific machine speed.
         assert.ok(
             best(rangeSamples) * 8 < best(fullSamples),
             `range ${best(rangeSamples).toFixed(1)}ms is not bounded against full ${best(

@@ -3,9 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-const assert = require("node:assert/strict");
-const { after, before, suite, test } = require("node:test");
-const {
+import assert from "node:assert/strict";
+import { performance } from "node:perf_hooks";
+import { after, before, suite, test } from "node:test";
+import {
     CatalogSemanticBinder,
     InProcessLanguageServiceRuntime,
     LezerSyntaxService,
@@ -13,14 +14,15 @@ const {
     TsqlLanguageFeatureService,
     createEngineCapabilities,
     unknownEngineCapabilities,
-} = require("../../dist/index.js");
-const { SqlServerCatalogLoader } = require("./sqlServerCatalogLoader.js");
-const {
+} from "../../src/index.ts";
+import { SqlServerCatalogLoader } from "./sqlServerCatalogLoader.ts";
+import {
     connectionString,
     connectionStringForDatabase,
     rowsAsObjects,
     TediousTestClient,
-} = require("./tediousTestClient.js");
+} from "./tediousTestClient.ts";
+
 const regressionDatabases = [
     "AdventureWorks2022",
     "Issue21930Repro_6d31c8a4",
@@ -28,32 +30,33 @@ const regressionDatabases = [
 ];
 
 suite("SQL Server end-to-end integration", { skip: !connectionString }, () => {
-    let client;
+    let client: TediousTestClient | undefined;
 
     before(async () => {
+        if (!connectionString)
+            throw new Error("TSQL_INTEGRATION_CONNECTION_STRING is not configured.");
         client = new TediousTestClient(connectionString);
         await client.connect();
     });
 
     after(async () => client?.close());
 
-    // Resolves the engine profile from the facts the live server actually reports, so the mapping
-    // is proved against a server rather than only against the offline table. Engines this
-    // repository cannot reach are covered by the deterministic dialect inventory instead.
     test("resolves the connected engine profile from live server facts", async () => {
         const rows = rowsAsObjects(
-            await client.execute(
+            await liveClient().execute(
                 "SELECT CONVERT(int, SERVERPROPERTY('EngineEdition')) AS engine_edition," +
                     " CONVERT(nvarchar(128), SERVERPROPERTY('ProductVersion')) AS server_version," +
                     " CONVERT(nvarchar(256), SERVERPROPERTY('ServerName')) AS server_name," +
                     " (SELECT compatibility_level FROM sys.databases WHERE name = DB_NAME()) AS compatibility_level;",
             ),
         );
+        const firstRow = rows[0];
+        if (!firstRow) throw new Error("The server did not return engine facts.");
         const facts = {
-            engineEdition: Number(rows[0].engine_edition),
-            serverVersion: String(rows[0].server_version),
-            serverName: String(rows[0].server_name),
-            compatibilityLevel: Number(rows[0].compatibility_level),
+            engineEdition: Number(firstRow.engine_edition),
+            serverVersion: String(firstRow.server_version),
+            serverName: String(firstRow.server_name),
+            compatibilityLevel: Number(firstRow.compatibility_level),
         };
         const capabilities = createEngineCapabilities(facts);
 
@@ -69,8 +72,6 @@ suite("SQL Server end-to-end integration", { skip: !connectionString }, () => {
             `${capabilities.engineProfile}/${capabilities.serverMajorVersion}/${capabilities.compatibilityLevel}/ga`,
         );
 
-        // A document opened against the live facts is analysed under that profile, and a construct
-        // the engine does not have is reported as unavailable rather than as a syntax error.
         const runtime = new InProcessLanguageServiceRuntime(
             new LezerSyntaxService(undefined, unknownEngineCapabilities),
         );
@@ -86,27 +87,26 @@ suite("SQL Server end-to-end integration", { skip: !connectionString }, () => {
         await runtime.close(uri);
     });
 
-    // Confirms the configured Docker SQL Server accepts an encrypted tedious connection.
     test("connects and executes a read-only query", async () => {
         const rows = rowsAsObjects(
-            await client.execute(
+            await liveClient().execute(
                 "SELECT DB_NAME() AS database_name, CONVERT(nvarchar(128), SERVERPROPERTY('ProductVersion')) AS server_version;",
             ),
         );
-        assert.equal(rows.length, 1);
-        assert.ok(rows[0].database_name);
-        assert.match(String(rows[0].server_version), /^\d+\./u);
+        const firstRow = rows[0];
+        assert.ok(firstRow);
+        assert.ok(firstRow.database_name);
+        assert.match(String(firstRow.server_version), /^\d+\./u);
     });
 
-    // Exercises real catalog refresh, lazy columns, binding, completion, and hover as one path.
     test("loads metadata and serves language features", async () => {
         const loader = new SqlServerCatalogLoader();
-        const metadata = new SimpleQueryMetadataAdapter(client, loader);
+        const metadata = new SimpleQueryMetadataAdapter(liveClient(), loader);
         const refresh = await metadata.refresh();
         assert.equal(refresh.published, true);
 
         const resolution = metadata.pin().resolveObject(["sys", "objects"]);
-        assert.equal(resolution.kind, "resolved");
+        if (resolution.kind !== "resolved") throw new Error("Expected sys.objects to resolve.");
         metadata.requestHydration({
             section: "columns",
             object: resolution.object.ref,
@@ -136,23 +136,20 @@ suite("SQL Server end-to-end integration", { skip: !connectionString }, () => {
 
         await runtime.open(uri, 3, sql);
         const hover = features.hover(uri, 3, sql.indexOf("objects") + 2);
+        assert.ok(hover);
         assert.match(hover.markdown, /\*\*(?:system )?(?:table|view)\*\*/u);
         assert.match(hover.markdown, /object_id/u);
 
-        // Manual completion at the end of a query waits for lazy columns without requiring an edit.
         const starSql = "SELECT * FROM INFORMATION_SCHEMA.TABLES";
         await runtime.open(uri, 4, starSql);
         let starResult = features.completion(uri, 4, starSql.length);
         if (starResult.incomplete) {
             await metadata.waitForHydration();
-            // Feature requests intentionally read one pinned catalog generation. A host rebinds
-            // after metadata publication; this direct-runtime test performs the same lifecycle.
             await runtime.rebind(uri, 4);
             starResult = features.completion(uri, 4, starSql.length);
         }
         assert.ok(starResult.items.some((item) => item.label === "Expand SELECT *"));
 
-        // Verifies real catalog completion replaces only the contents of bracketed identifiers.
         const bracketSql = "SELECT * FROM [sys].[]";
         const bracketOffset = bracketSql.lastIndexOf("[") + 1;
         await runtime.open(uri, 5, bracketSql);
@@ -165,8 +162,6 @@ suite("SQL Server end-to-end integration", { skip: !connectionString }, () => {
             newText: "all_columns",
         });
 
-        // An empty unqualified bracket is a schema-or-object context, not a document-word
-        // fallback. This is the exact editor shape produced by typing SELECT ... FROM [].
         const unqualifiedBracketSql = "SELECT * FROM []";
         const unqualifiedBracketOffset = unqualifiedBracketSql.indexOf("[") + 1;
         await runtime.open(uri, 6, unqualifiedBracketSql);
@@ -181,7 +176,6 @@ suite("SQL Server end-to-end integration", { skip: !connectionString }, () => {
             newText: "dbo",
         });
 
-        // Reproduces preview completion inside editor-inserted parentheses on a real system view.
         const insertSql = "INSERT INTO sys.all_columns ()";
         const insertOffset = insertSql.indexOf("(") + 1;
         await runtime.open(uri, 7, insertSql);
@@ -195,6 +189,7 @@ suite("SQL Server end-to-end integration", { skip: !connectionString }, () => {
             (item) => item.label === "Expand INSERT columns and VALUES",
         );
         assert.ok(insertExpansion);
+        assert.ok(insertExpansion.edit);
         assert.equal(insertExpansion.edit.start, insertOffset);
         assert.equal(insertExpansion.edit.end, insertSql.length);
         assert.equal(insertExpansion.insertTextFormat, "snippet");
@@ -208,7 +203,6 @@ suite("SQL Server end-to-end integration", { skip: !connectionString }, () => {
         }
     });
 
-    // Guards catalog-view binding and type-argument handling against three real, read-only catalogs.
     test("binds system catalog queries in representative databases", async () => {
         for (const database of regressionDatabases) {
             const databaseClient = new TediousTestClient(connectionStringForDatabase(database));
@@ -222,7 +216,9 @@ suite("SQL Server end-to-end integration", { skip: !connectionString }, () => {
                 const names = ["objects", "tables", "types", "schemas", "all_objects"];
                 for (const name of names) {
                     const resolution = metadata.pin().resolveObject(["sys", name]);
-                    assert.equal(resolution.kind, "resolved", `${database}.sys.${name}`);
+                    if (resolution.kind !== "resolved") {
+                        throw new Error(`Expected ${database}.sys.${name} to resolve.`);
+                    }
                     metadata.requestHydration({
                         section: "columns",
                         object: resolution.object.ref,
@@ -258,12 +254,9 @@ suite("SQL Server end-to-end integration", { skip: !connectionString }, () => {
                 );
 
                 const completionSql = "SELECT * FROM sys.obj";
-                await runtime.open(`file:///completion-${database}.sql`, 1, completionSql);
-                const completion = features.completion(
-                    `file:///completion-${database}.sql`,
-                    1,
-                    completionSql.length,
-                );
+                const completionUri = `file:///completion-${database}.sql`;
+                await runtime.open(completionUri, 1, completionSql);
+                const completion = features.completion(completionUri, 1, completionSql.length);
                 assert.ok(
                     completion.items.some(
                         (item) => item.kind === "view" && item.label === "objects",
@@ -276,7 +269,6 @@ suite("SQL Server end-to-end integration", { skip: !connectionString }, () => {
         }
     });
 
-    // Verifies lazy key metadata supports implicit foreign-key binding without executing DDL.
     test("binds foreign keys against live primary-key metadata", async () => {
         const databaseClient = new TediousTestClient(
             connectionStringForDatabase("AdventureWorks2022"),
@@ -287,7 +279,8 @@ suite("SQL Server end-to-end integration", { skip: !connectionString }, () => {
             const metadata = new SimpleQueryMetadataAdapter(databaseClient, loader);
             await metadata.refresh();
             const resolution = metadata.pin().resolveObject(["Person", "Person"]);
-            assert.equal(resolution.kind, "resolved");
+            if (resolution.kind !== "resolved")
+                throw new Error("Expected Person.Person to resolve.");
             metadata.requestHydration({
                 section: "columns",
                 object: resolution.object.ref,
@@ -295,7 +288,8 @@ suite("SQL Server end-to-end integration", { skip: !connectionString }, () => {
             });
             await metadata.waitForHydration();
             const columns = metadata.pin().columnState(resolution.object.ref);
-            assert.equal(columns.kind, "loaded");
+            if (columns.kind !== "loaded")
+                throw new Error("Expected Person.Person columns to load.");
             assert.equal(
                 columns.value.find(({ name }) => name === "BusinessEntityID")?.primaryKeyOrdinal,
                 1,
@@ -330,7 +324,6 @@ suite("SQL Server end-to-end integration", { skip: !connectionString }, () => {
         }
     });
 
-    // Exercises the actual lazy metadata path used by database.schema.object completion.
     test("hydrates cross-database schemas and objects for completion", async () => {
         const databaseClient = new TediousTestClient(
             connectionStringForDatabase("Issue21930Repro_6d31c8a4"),
@@ -394,6 +387,11 @@ suite("SQL Server end-to-end integration", { skip: !connectionString }, () => {
             await databaseClient.close();
         }
     });
+
+    function liveClient(): TediousTestClient {
+        if (!client) throw new Error("Integration client has not connected.");
+        return client;
+    }
 });
 
 const representativeCatalogSql = `
@@ -406,11 +404,12 @@ FROM sys.objects AS o
 JOIN sys.schemas AS s ON s.schema_id = o.schema_id
 ORDER BY o.object_id;`;
 
-async function waitFor(predicate) {
+async function waitFor(predicate: () => boolean): Promise<void> {
     const deadline = performance.now() + 10_000;
     while (!predicate()) {
-        if (performance.now() > deadline)
+        if (performance.now() > deadline) {
             throw new Error("Timed out waiting for metadata hydration.");
-        await new Promise((resolve) => setTimeout(resolve, 10));
+        }
+        await new Promise<void>((resolvePromise) => setTimeout(resolvePromise, 10));
     }
 }

@@ -3,14 +3,27 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-const { rowsAsObjects } = require("./tediousTestClient.js");
+import type {
+    MetadataHydrationRequest,
+    ObjectMetadata,
+    SimpleQueryCell,
+    SimpleQueryExecutor,
+    SimpleQueryMetadataLoader,
+    SimpleQueryMetadataPublisher,
+    SqlObjectKind,
+} from "../../src/index.ts";
+import { rowsAsObjects } from "./tediousTestClient.ts";
 
-class SqlServerCatalogLoader {
-    constructor() {
-        this.queries = [];
-    }
+type QueryRow = Readonly<Record<string, SimpleQueryCell>>;
 
-    async refresh(executor, publisher, signal) {
+export class SqlServerCatalogLoader implements SimpleQueryMetadataLoader {
+    public readonly queries: string[] = [];
+
+    public async refresh(
+        executor: SimpleQueryExecutor,
+        publisher: SimpleQueryMetadataPublisher,
+        signal?: AbortSignal,
+    ): Promise<void> {
         const environment = await this.query(
             executor,
             `SELECT
@@ -93,14 +106,19 @@ WHERE t.is_user_defined = 1 OR t.is_table_type = 1;`,
                     String(row.database_name),
                     String(row.database_name).toLocaleLowerCase() ===
                     currentDatabase.toLocaleLowerCase()
-                        ? { schemas: "ready", objects: "ready" }
-                        : { schemas: "unknown", objects: "unknown" },
+                        ? { schemas: "ready" as const, objects: "ready" as const }
+                        : { schemas: "unknown" as const, objects: "unknown" as const },
                 ]),
             ),
         });
     }
 
-    async hydrate(executor, request, publisher, signal) {
+    public async hydrate(
+        executor: SimpleQueryExecutor,
+        request: MetadataHydrationRequest,
+        publisher: SimpleQueryMetadataPublisher,
+        signal?: AbortSignal,
+    ): Promise<void> {
         if (request.database && request.section === "schemas") {
             const catalog = quoteIdentifier(request.database);
             const rows = await this.query(
@@ -194,7 +212,6 @@ ORDER BY c.column_id;`,
                                 identity: Boolean(row.is_identity),
                                 computed: Boolean(row.is_computed),
                                 primaryKeyOrdinal:
-                                    row.primary_key_ordinal === null ||
                                     row.primary_key_ordinal === undefined
                                         ? undefined
                                         : Number(row.primary_key_ordinal),
@@ -212,27 +229,31 @@ ORDER BY c.column_id;`,
         }
     }
 
-    async query(executor, sql, signal) {
+    private async query(
+        executor: SimpleQueryExecutor,
+        sql: string,
+        signal?: AbortSignal,
+    ): Promise<ReadonlyArray<QueryRow>> {
         this.queries.push(sql);
         return rowsAsObjects(await executor.execute(sql, signal));
     }
 }
 
-function quoteIdentifier(value) {
+function quoteIdentifier(value: string): string {
     return `[${value.replaceAll("]", "]]")}]`;
 }
 
-function sqlString(value) {
+function sqlString(value: string): string {
     return `N'${value.replaceAll("'", "''")}'`;
 }
 
-function numericObjectId(id) {
+function numericObjectId(id: string): number {
     const value = /:(-?\d+)$/u.exec(id)?.[1];
     if (!value) throw new Error(`Invalid integration-test object reference: ${id}`);
     return Number.parseInt(value, 10);
 }
 
-function objectKind(type) {
+function objectKind(type: string): SqlObjectKind | undefined {
     if (type === "U") return "table";
     if (type === "V") return "view";
     if (type === "P" || type === "PC") return "procedure";
@@ -242,7 +263,7 @@ function objectKind(type) {
     return undefined;
 }
 
-function mapObjects(rows) {
+function mapObjects(rows: ReadonlyArray<QueryRow>): ObjectMetadata[] {
     return rows.flatMap((row) => {
         const kind = objectKind(String(row.object_type).trim());
         if (!kind) return [];
@@ -260,7 +281,7 @@ function mapObjects(rows) {
     });
 }
 
-function mapTypes(rows) {
+function mapTypes(rows: ReadonlyArray<QueryRow>): ObjectMetadata[] {
     return rows.map((row) => {
         const database = String(row.database_name);
         return {
@@ -269,12 +290,17 @@ function mapTypes(rows) {
             schema: String(row.schema_name),
             name: String(row.type_name),
             kind: "type",
-            typeCategory: String(row.type_category),
+            typeCategory: typeCategory(row.type_category),
         };
     });
 }
 
-function formatType(row) {
+function typeCategory(value: SimpleQueryCell): "alias" | "clr" | "table" {
+    if (value === "alias" || value === "clr" || value === "table") return value;
+    throw new Error(`Unexpected SQL type category: ${String(value)}`);
+}
+
+function formatType(row: QueryRow): string {
     const name = String(row.type_name);
     const lower = name.toLocaleLowerCase();
     if (["varchar", "char", "varbinary", "binary"].includes(lower)) {
@@ -291,5 +317,3 @@ function formatType(row) {
     }
     return name;
 }
-
-module.exports = { SqlServerCatalogLoader };

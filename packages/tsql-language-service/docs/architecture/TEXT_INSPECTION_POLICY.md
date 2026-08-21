@@ -10,16 +10,16 @@ does not represent, or for an explicitly tested recovery/edit shape inside a str
 the tree. They must never scan across statements or batches to decide which SQL construct owns a
 caret or token.
 
-| Owner                                          | Narrow responsibility                                                                          | Direct evidence                                                    |
-| ---------------------------------------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| `semantics/identifiers.ts`                     | Complete and incomplete identifier spelling, quoting, escapes, and multipart components        | `test/features/hostile-identifiers.test.js`, identifier unit tests |
-| `features/completionExpansions.ts`             | Whitespace and empty-delimiter cleanup after the tree has selected an INSERT or star expansion | `test/features/completion/smart-expansion.test.js`                 |
-| `features/signatureHelp.ts`                    | Active named argument and output-modifier spelling inside a parser-owned argument node         | `test/features/signature-help/*.test.js`                           |
-| `features/foldingRanges.ts`                    | Comment-region markers and blank-line separation                                               | folding-range tests                                                |
-| `semantics/diagnostics/diagnosticTextFacts.ts` | Named, bounded compatibility/recovery facts absent from individual grammar nodes               | `test/unit/semantics/diagnostic-text-facts.test.ts`                |
-| `semantics/diagnostics/*Diagnostics.ts`        | Family-local lexical value validation after a typed structural node has been selected          | matching `test/unit/semantics/diagnostics/*.test.ts` suites        |
-| `semantics/vectorSemanticDiagnostics.ts`       | Vector option/value spelling within typed vector nodes                                         | `test/unit/semantics/diagnostics/vector.test.ts`                   |
-| `semantics/model/expressionTypes.ts`           | Literal and declared-type spelling after expression/type nodes are known                       | semantic-model and type-inference tests                            |
+| Owner                                          | Narrow responsibility                                                                          | Direct evidence                                                         |
+| ---------------------------------------------- | ---------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| `semantics/identifiers.ts`                     | Complete and incomplete identifier spelling, quoting, escapes, and multipart components        | `test/unit/features/hostile-identifiers.test.ts`, identifier unit tests |
+| `features/completionExpansions.ts`             | Whitespace and empty-delimiter cleanup after the tree has selected an INSERT or star expansion | `test/unit/features/completion/smart-expansion.test.ts`                 |
+| `features/signatureHelp.ts`                    | Active named argument and output-modifier spelling inside a parser-owned argument node         | `test/unit/features/signature-help/*.test.ts`                           |
+| `features/foldingRanges.ts`                    | Comment-region markers and blank-line separation                                               | folding-range tests                                                     |
+| `semantics/diagnostics/diagnosticTextFacts.ts` | Named, bounded compatibility/recovery facts absent from individual grammar nodes               | `test/unit/semantics/diagnostic-text-facts.test.ts`                     |
+| `semantics/diagnostics/*Diagnostics.ts`        | Family-local lexical value validation after a typed structural node has been selected          | matching `test/unit/semantics/diagnostics/*.test.ts` suites             |
+| `semantics/vectorSemanticDiagnostics.ts`       | Vector option/value spelling within typed vector nodes                                         | `test/unit/semantics/diagnostics/vector.test.ts`                        |
+| `semantics/model/expressionTypes.ts`           | Literal and declared-type spelling after expression/type nodes are known                       | semantic-model and type-inference tests                                 |
 
 Node-kind checks, catalog lookups, and indexed semantic-model queries are not secondary parsers.
 They consume the single published Lezer syntax tree and bound snapshot. New code that needs to know

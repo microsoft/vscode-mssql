@@ -3,21 +3,22 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-const assert = require("node:assert/strict");
-const { performance } = require("node:perf_hooks");
-const { suite, test } = require("node:test");
-const {
+import assert from "node:assert/strict";
+import { performance } from "node:perf_hooks";
+import { suite, test } from "node:test";
+import {
     CatalogSemanticBinder,
     InMemoryMetadataProvider,
     InProcessLanguageServiceRuntime,
     LezerSyntaxService,
     TsqlLanguageFeatureService,
-} = require("../../dist/index.js");
+    type ObjectMetadata,
+} from "../../src/index.ts";
 
 suite("catalog completion performance smoke", () => {
     // Verifies prefix lookup remains interactive for the reported 50k-plus object catalog shape.
     test("completes a 60k-object dbo catalog within an interactive budget", async () => {
-        const objects = Array.from({ length: 60_000 }, (_, index) => ({
+        const objects: ObjectMetadata[] = Array.from({ length: 60_000 }, (_, index) => ({
             ref: { id: `large:${index}` },
             database: "CustomerDb",
             schema: "dbo",

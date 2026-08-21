@@ -3,10 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-const assert = require("node:assert/strict");
-const { suite, test } = require("node:test");
-const { Stack } = require("@lezer/lr");
-const { ImmutableTextSnapshot, LezerSyntaxService } = require("../../dist/index.js");
+import assert from "node:assert/strict";
+import { suite, test } from "node:test";
+import { Stack } from "@lezer/lr";
+import { ImmutableTextSnapshot, LezerSyntaxService } from "../../src/index.ts";
 
 suite("T-SQL tokenizer performance regressions", () => {
     // Contextual tokens must inspect cheap lexical prefixes before consulting the LR state.
@@ -16,7 +16,7 @@ suite("T-SQL tokenizer performance regressions", () => {
         const sql = statement.repeat(250);
         const originalCanShift = Stack.prototype.canShift;
         let calls = 0;
-        Stack.prototype.canShift = function (term) {
+        Stack.prototype.canShift = function (term: number): boolean {
             calls++;
             return originalCanShift.call(this, term);
         };

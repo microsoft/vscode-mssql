@@ -3,27 +3,19 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-// Guards the shape of the semantic layer's cost, not its speed.
-//
-// The layer was quadratic: every name that failed to resolve against the catalog scanned the whole
-// document, and every column reference scanned every relation in it. A keystroke in a 200 KB script
-// took 48 seconds. Nothing caught it, because the unit tests use documents small enough that
-// quadratic and linear are indistinguishable, and an absolute-millisecond assertion in CI is flaky
-// enough to get muted.
-//
-// So this asserts the growth ratio instead. Quadratic growth fails it by a wide margin; a slow or
-// loaded machine does not, because both measurements move together.
+// Guards the shape of the semantic layer's cost, not its speed. Doubling the document must not
+// produce quadratic binding or edit growth, regardless of the machine's absolute speed.
 
-const assert = require("node:assert/strict");
-const { performance } = require("node:perf_hooks");
-const { suite, test } = require("node:test");
-const { InProcessLanguageServiceRuntime } = require("../../dist/index.js");
+import assert from "node:assert/strict";
+import { performance } from "node:perf_hooks";
+import { suite, test } from "node:test";
+import { InProcessLanguageServiceRuntime } from "../../src/index.ts";
 
 /** Doubling the document must not more than triple the work. Quadratic would quadruple it. */
 const growthCeiling = 3;
 
 /** One SQL batch, repeated to reach a size. Deliberately full of columns that share names. */
-function corpus(batches) {
+function corpus(batches: number): string {
     const unit = [
         "CREATE TABLE #staging (id INT, name NVARCHAR(100), created DATETIME2);",
         "DECLARE @rows TABLE (id INT, name NVARCHAR(100));",
@@ -38,29 +30,30 @@ function corpus(batches) {
 }
 
 /** Median of several runs, so one unlucky garbage collection cannot decide the result. */
-async function median(runs, body) {
-    const samples = [];
+async function median(runs: number, body: (run: number) => Promise<unknown>): Promise<number> {
+    const samples: number[] = [];
     for (let run = 0; run < runs; run++) {
         const started = performance.now();
         await body(run);
         samples.push(performance.now() - started);
     }
     samples.sort((left, right) => left - right);
-    return samples[samples.length >> 1];
+    const medianSample = samples[samples.length >> 1];
+    if (medianSample === undefined) throw new Error("Median requires at least one run.");
+    return medianSample;
 }
 
-async function openCost(batches, run) {
+async function openCost(batches: number, run: number): Promise<void> {
     const text = corpus(batches);
     const runtime = new InProcessLanguageServiceRuntime();
     await runtime.open(`file:///scaling-${batches}-${run}.sql`, 1, text);
 }
 
-async function editCost(batches, run) {
+async function editCost(batches: number, run: number): Promise<unknown> {
     const text = corpus(batches);
     const runtime = new InProcessLanguageServiceRuntime();
     const uri = `file:///scaling-edit-${batches}-${run}.sql`;
     await runtime.open(uri, 1, text);
-    // Edited near the top, so the same amount of work is invalidated at either size.
     const at = text.indexOf(";") + 1;
     return runtime.change(uri, 1, 2, [{ start: at, end: at, text: " " }]);
 }

@@ -98,11 +98,6 @@ Additional lanes:
 ```powershell
 npm run test:integration
 npm run test:performance
-npm run test:shuffled
-npm run test:identifiers
-npm run test:cancellation
-npm run test:metadata-concurrency
-npm run test:large-catalog
 ```
 
 `test:offline` includes every non-live suite, including corpus and performance gates. `test:all`
