@@ -32,6 +32,14 @@ body .fluent-result-grid {
         --vscode-scrollbarSlider-activeBackground,
         rgba(191, 191, 191, 0.4)
     );
+    --fluent-result-grid-list-active-selection-background: var(
+        --vscode-list-activeSelectionBackground,
+        #094771
+    );
+    --fluent-result-grid-list-active-selection-foreground: var(
+        --vscode-list-activeSelectionForeground,
+        #ffffff
+    );
     --fluent-result-grid-list-inactive-selection-background: var(
         --vscode-list-inactiveSelectionBackground,
         rgba(128, 128, 128, 0.2)
