@@ -2815,6 +2815,13 @@
         "message": "Query {0}:  Query cost (relative to the script):  {1}%",
         "comment": ["{0} is the query number", "{1} is the query cost"]
     },
+    "Missing index": "Missing index",
+    "Impact {0}%/{0} is the estimated percentage improvement from creating the index": {
+        "message": "Impact {0}%",
+        "comment": ["{0} is the estimated percentage improvement from creating the index"]
+    },
+    "Missing index recommendations": "Missing index recommendations",
+    "Open the recommended index script in a new query editor": "Open the recommended index script in a new query editor",
     "Actual Elapsed Time": "Actual Elapsed Time",
     "Actual Elapsed CPU Time": "Actual Elapsed CPU Time",
     "Cost": "Cost",
