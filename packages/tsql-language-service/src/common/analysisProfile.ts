@@ -23,20 +23,23 @@ export interface AnalysisProfile {
     readonly deploymentMode: DeploymentMode;
 }
 
+/** Untrusted profile values supplied by a host before normalization. */
+export interface AnalysisProfileInput {
+    readonly deploymentMode?: string;
+}
+
 /** The profile used when a host supplies none. Editing behaviour must never depend on build mode. */
 export const defaultAnalysisProfile: AnalysisProfile = Object.freeze({
     deploymentMode: "interactive",
 });
 
-const deploymentModes: readonly DeploymentMode[] = Object.freeze(["interactive", "build"]);
-
 /**
  * Normalizes a partial host profile into a frozen profile. An absent or unrecognized value falls
  * back to the interactive default rather than silently enabling build-only diagnostics.
  */
-export function resolveAnalysisProfile(profile?: Partial<AnalysisProfile>): AnalysisProfile {
+export function resolveAnalysisProfile(profile?: AnalysisProfileInput): AnalysisProfile {
     const deploymentMode = profile?.deploymentMode;
-    if (deploymentMode === undefined || !deploymentModes.includes(deploymentMode)) {
+    if (deploymentMode !== "interactive" && deploymentMode !== "build") {
         return defaultAnalysisProfile;
     }
     return Object.freeze({ deploymentMode });

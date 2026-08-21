@@ -88,6 +88,7 @@ npm ci
 npm run check:grammar
 npm run lint
 npm run typecheck
+npm run test:unit
 npm run test:offline
 npm run test:types
 ```
@@ -98,10 +99,7 @@ Additional lanes:
 npm run test:integration
 npm run test:performance
 npm run test:shuffled
-npm run test:sqlcmd
 npm run test:identifiers
-npm run test:workers
-npm run test:browser-worker
 npm run test:cancellation
 npm run test:metadata-concurrency
 npm run test:large-catalog

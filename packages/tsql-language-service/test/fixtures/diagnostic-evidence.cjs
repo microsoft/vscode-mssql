@@ -8,12 +8,12 @@
 // behavior suite owns the exact message, range, and false-positive assertions for each path.
 module.exports = [
     {
-        test: "semantics/diagnostics/build-mode-diagnostics.test.js",
+        test: "unit/semantics/diagnostics/build-mode-diagnostics.test.ts",
         suite: "T-SQL build-mode statement validation",
         diagnostics: ["InvalidBuildModeSqlNullStatement"],
     },
     {
-        test: "semantics/diagnostics/build-mode-diagnostics.test.js",
+        test: "unit/semantics/diagnostics/build-mode-diagnostics.test.ts",
         suite: "T-SQL build-mode option validation",
         diagnostics: [
             "InvalidBuildModeStatementCreateFunction",
@@ -30,7 +30,7 @@ module.exports = [
         ],
     },
     {
-        test: "semantics/diagnostics/build-mode-diagnostics.test.js",
+        test: "unit/semantics/diagnostics/build-mode-diagnostics.test.ts",
         suite: "T-SQL build-mode code object validation",
         diagnostics: [
             "InvalidBuildModeDataTypeUse",
@@ -38,27 +38,27 @@ module.exports = [
         ],
     },
     {
-        test: "semantics/diagnostics/built-in-function-names.test.js",
+        test: "unit/semantics/diagnostics/built-in-function-names.test.ts",
         suite: "T-SQL built-in function name validation",
         diagnostics: ["NotRecognizedFunctionName"],
     },
     {
-        test: "semantics/diagnostics/foreign-key-candidate-keys.test.js",
+        test: "unit/semantics/diagnostics/foreign-key-candidate-keys.test.ts",
         suite: "T-SQL foreign key candidate key validation",
         diagnostics: ["NoPrimaryKeysInReferencedTable"],
     },
     {
-        test: "semantics/diagnostics/computed-column-diagnostics.test.js",
+        test: "unit/semantics/diagnostics/computed-column-diagnostics.test.ts",
         suite: "T-SQL computed column constraint validation",
         diagnostics: ["ComputedColumnsConstraintCheckError"],
     },
     {
-        test: "semantics/diagnostics/constraint-option-diagnostics.test.js",
+        test: "unit/semantics/diagnostics/constraint-option-diagnostics.test.ts",
         suite: "T-SQL key constraint index option validation",
         diagnostics: ["UnrecognizedOption"],
     },
     {
-        test: "semantics/diagnostics/cursor-option-diagnostics.test.js",
+        test: "unit/semantics/diagnostics/cursor-option-diagnostics.test.ts",
         suite: "T-SQL cursor option validation",
         diagnostics: [
             "InvalidUsageOfCursorOption",
@@ -67,7 +67,7 @@ module.exports = [
         ],
     },
     {
-        test: "semantics/diagnostics/data-type-shape-diagnostics.test.js",
+        test: "unit/semantics/diagnostics/data-type-shape-diagnostics.test.ts",
         suite: "T-SQL data type shape validation",
         diagnostics: [
             "MaximumSizeError",
@@ -77,7 +77,7 @@ module.exports = [
         ],
     },
     {
-        test: "semantics/diagnostics/ddl-and-module.test.js",
+        test: "unit/semantics/diagnostics/ddl-and-module.test.ts",
         suite: "T-SQL DDL and programmable module diagnostics",
         diagnostics: [
             "Base64Error",
@@ -104,7 +104,7 @@ module.exports = [
         ],
     },
     {
-        test: "semantics/diagnostics/dml-output.test.js",
+        test: "unit/semantics/diagnostics/dml-output.test.ts",
         suite: "T-SQL DML and OUTPUT diagnostics",
         diagnostics: [
             "AggregateNotAllowedInOutput",
@@ -120,17 +120,17 @@ module.exports = [
         ],
     },
     {
-        test: "semantics/diagnostics/external-stream-parameters.test.js",
+        test: "unit/semantics/diagnostics/external-stream-parameters.test.ts",
         suite: "T-SQL external stream parameter validation",
         diagnostics: ["DuplicateParam", "RequiredParam"],
     },
     {
-        test: "semantics/diagnostics/function-body-diagnostics.test.js",
+        test: "unit/semantics/diagnostics/function-body-diagnostics.test.ts",
         suite: "T-SQL function body side-effect validation",
         diagnostics: ["InvalidUseOfSideEffectingOperatorWithinFunction"],
     },
     {
-        test: "semantics/diagnostics/index-catalog.test.js",
+        test: "unit/semantics/diagnostics/index-catalog.test.ts",
         suite: "T-SQL index catalog validation",
         diagnostics: [
             "CannotConvertClusteredIndexToNonclustered",
@@ -142,7 +142,7 @@ module.exports = [
         ],
     },
     {
-        test: "semantics/diagnostics/index-catalog.test.js",
+        test: "unit/semantics/diagnostics/index-catalog.test.ts",
         suite: "T-SQL indexed view validation",
         diagnostics: [
             "CannotCreateIndexOnViewContainsInvalidColumns",
@@ -152,12 +152,12 @@ module.exports = [
         ],
     },
     {
-        test: "semantics/diagnostics/index-catalog.test.js",
+        test: "unit/semantics/diagnostics/index-catalog.test.ts",
         suite: "T-SQL columnstore order column validation",
         diagnostics: ["ColumnIsInvalidForUseAsOrderColumnInIndex"],
     },
     {
-        test: "semantics/diagnostics/index-and-temporal.test.js",
+        test: "unit/semantics/diagnostics/index-and-temporal.test.ts",
         suite: "T-SQL index and temporal diagnostics",
         diagnostics: [
             "CannotCreateMoreThanOneTemporalSystemTimePeriodOnTable",
@@ -181,7 +181,7 @@ module.exports = [
         ],
     },
     {
-        test: "semantics/diagnostics/module-option-diagnostics.test.js",
+        test: "unit/semantics/diagnostics/module-option-diagnostics.test.ts",
         suite: "T-SQL module option validation",
         diagnostics: [
             "InvalidOptionInCreateProcedure",
@@ -191,17 +191,17 @@ module.exports = [
         ],
     },
     {
-        test: "semantics/diagnostics/nested-dml-and-output.test.js",
+        test: "unit/semantics/diagnostics/nested-dml-and-output.test.ts",
         suite: "T-SQL nested DML table source validation",
         diagnostics: ["NestedDmlMustHaveOutputClause"],
     },
     {
-        test: "semantics/diagnostics/nested-dml-and-output.test.js",
+        test: "unit/semantics/diagnostics/nested-dml-and-output.test.ts",
         suite: "T-SQL OUTPUT clause function validation",
         diagnostics: ["FunctionNotAllowedInOutput"],
     },
     {
-        test: "semantics/diagnostics/pivot-prefix-diagnostics.test.js",
+        test: "unit/semantics/diagnostics/pivot-prefix-diagnostics.test.ts",
         suite: "T-SQL pivot column prefix validation",
         diagnostics: [
             "ColumnNameConflictsInPivot",
@@ -211,7 +211,7 @@ module.exports = [
         ],
     },
     {
-        test: "semantics/diagnostics/query-binding.test.js",
+        test: "unit/semantics/diagnostics/query-binding.test.ts",
         suite: "T-SQL query binding diagnostics",
         diagnostics: [
             "AmbiguousColumnName",
@@ -250,17 +250,17 @@ module.exports = [
         ],
     },
     {
-        test: "semantics/diagnostics/query-shape-diagnostics.test.js",
+        test: "unit/semantics/diagnostics/query-shape-diagnostics.test.ts",
         suite: "T-SQL GROUP BY option validation",
         diagnostics: ["InvalidGroupByOption"],
     },
     {
-        test: "semantics/diagnostics/query-shape-diagnostics.test.js",
+        test: "unit/semantics/diagnostics/query-shape-diagnostics.test.ts",
         suite: "T-SQL set operator validation",
         diagnostics: ["OperatorNotSupported"],
     },
     {
-        test: "semantics/diagnostics/routine-invocation.test.js",
+        test: "unit/semantics/diagnostics/routine-invocation.test.ts",
         suite: "T-SQL routine invocation diagnostics",
         diagnostics: [
             "CannotFindStoredProcedure",
@@ -287,7 +287,7 @@ module.exports = [
         ],
     },
     {
-        test: "semantics/diagnostics/scope-security-and-xml.test.js",
+        test: "unit/semantics/diagnostics/scope-security-and-xml.test.ts",
         suite: "T-SQL scope, security, and XML diagnostics",
         diagnostics: [
             "BooleanConditionExpected",
@@ -319,7 +319,7 @@ module.exports = [
         ],
     },
     {
-        test: "semantics/diagnostics/security-and-collation.test.js",
+        test: "unit/semantics/diagnostics/security-and-collation.test.ts",
         suite: "T-SQL security object validation",
         diagnostics: [
             "CouldNotFindAsymmetricKey",
@@ -328,32 +328,32 @@ module.exports = [
         ],
     },
     {
-        test: "semantics/diagnostics/security-and-collation.test.js",
+        test: "unit/semantics/diagnostics/security-and-collation.test.ts",
         suite: "T-SQL collation validation",
         diagnostics: ["InvalidCollation"],
     },
     {
-        test: "semantics/diagnostics/statement-shape-diagnostics.test.js",
+        test: "unit/semantics/diagnostics/statement-shape-diagnostics.test.ts",
         suite: "T-SQL DROP scope validation",
         diagnostics: ["InvalidOnClause"],
     },
     {
-        test: "semantics/diagnostics/statement-shape-diagnostics.test.js",
+        test: "unit/semantics/diagnostics/statement-shape-diagnostics.test.ts",
         suite: "T-SQL CREATE SCHEMA header validation",
         diagnostics: ["NameOrAuthorizationKeywordRequired"],
     },
     {
-        test: "semantics/diagnostics/statement-shape-diagnostics.test.js",
+        test: "unit/semantics/diagnostics/statement-shape-diagnostics.test.ts",
         suite: "T-SQL EXECUTE argument option validation",
         diagnostics: ["ReadonlyCannotBeUsed"],
     },
     {
-        test: "semantics/diagnostics/trigger-catalog.test.js",
+        test: "unit/semantics/diagnostics/trigger-catalog.test.ts",
         suite: "T-SQL trigger schema and ownership validation",
         diagnostics: ["InvalidTriggerSchema", "TriggerDoesNotBelongToTarget"],
     },
     {
-        test: "semantics/diagnostics/trigger-catalog.test.js",
+        test: "unit/semantics/diagnostics/trigger-catalog.test.ts",
         suite: "T-SQL trigger target validation",
         diagnostics: [
             "CannotCreateInsteadOfTriggerOnTableWithCascade",
@@ -363,7 +363,7 @@ module.exports = [
         ],
     },
     {
-        test: "semantics/diagnostics/table-and-type-contracts.test.js",
+        test: "unit/semantics/diagnostics/table-and-type-contracts.test.ts",
         suite: "T-SQL table and type contract diagnostics",
         diagnostics: [
             "CannotCreateDefaultConstraintOnSparseColumn",
@@ -406,17 +406,17 @@ module.exports = [
         ],
     },
     {
-        test: "semantics/diagnostics/udt-members.test.js",
+        test: "unit/semantics/diagnostics/udt-members.test.ts",
         suite: "T-SQL UDT instance member validation",
         diagnostics: ["UdtMemberIsStatic", "UdtPropertyIsStatic"],
     },
     {
-        test: "semantics/diagnostics/udt-members.test.js",
+        test: "unit/semantics/diagnostics/udt-members.test.ts",
         suite: "T-SQL UDT static member validation",
         diagnostics: ["UdtMemberIsNotStatic", "UdtPropertyIsNotStatic"],
     },
     {
-        test: "semantics/diagnostics/udt-members.test.js",
+        test: "unit/semantics/diagnostics/udt-members.test.ts",
         suite: "T-SQL UDT member resolution",
         diagnostics: [
             "CannotCallMethodsOnType",
@@ -425,27 +425,27 @@ module.exports = [
         ],
     },
     {
-        test: "semantics/diagnostics/udt-members.test.js",
+        test: "unit/semantics/diagnostics/udt-members.test.ts",
         suite: "T-SQL XML member validation",
         diagnostics: ["IncorrectSyntaxToInvokeXmlMethod", "NotValidFunctionOrProperty"],
     },
     {
-        test: "semantics/diagnostics/statement-option-diagnostics.test.js",
+        test: "unit/semantics/diagnostics/statement-option-diagnostics.test.ts",
         suite: "T-SQL EXECUTE option validation",
         diagnostics: ["InvalidExecuteOption"],
     },
     {
-        test: "semantics/diagnostics/statement-option-diagnostics.test.js",
+        test: "unit/semantics/diagnostics/statement-option-diagnostics.test.ts",
         suite: "T-SQL legacy CREATE INDEX option validation",
         diagnostics: ["InvalidUsageOfIndexOption"],
     },
     {
-        test: "semantics/diagnostics/statement-option-diagnostics.test.js",
+        test: "unit/semantics/diagnostics/statement-option-diagnostics.test.ts",
         suite: "T-SQL database-scoped configuration validation",
         diagnostics: ["InvalidUsageOfScopedConfiguration"],
     },
     {
-        test: "semantics/diagnostics/vector.test.js",
+        test: "unit/semantics/diagnostics/vector.test.ts",
         suite: "SQL Server vector semantic validation",
         diagnostics: [
             "ApproxNotAllowedWithPercent",
@@ -458,7 +458,7 @@ module.exports = [
         ],
     },
     {
-        test: "syntax/diagnostics/scanner-parser.test.js",
+        test: "unit/syntax/diagnostics/scanner-parser.test.ts",
         suite: "T-SQL scanner and parser diagnostic coverage",
         diagnostics: [
             "IncorrectSyntaxNear",
@@ -470,7 +470,7 @@ module.exports = [
         ],
     },
     {
-        test: "syntax/diagnostics/trigger-actions.test.js",
+        test: "unit/syntax/diagnostics/trigger-actions.test.ts",
         suite: "T-SQL trigger action diagnostics",
         diagnostics: ["DuplicateTriggerActionType", "InvalidTriggerEventTypes"],
     },

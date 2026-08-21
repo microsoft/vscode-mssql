@@ -38,6 +38,7 @@ jobs:
         run: npm run check:grammar
       - run: npm run lint
       - run: npm run test:types
+      - run: npm run test:unit
       - run: npm run test:offline
 
   focused-contracts:
@@ -54,8 +55,6 @@ jobs:
       - run: npm run test:shuffled
       - run: npm run test:sqlcmd
       - run: npm run test:identifiers
-      - run: npm run test:workers
-      - run: npm run test:browser-worker
       - run: npm run test:cancellation
       - run: npm run test:metadata-concurrency
       - run: npm run test:large-catalog

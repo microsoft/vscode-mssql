@@ -16,9 +16,9 @@ caret or token.
 | `features/completionExpansions.ts`             | Whitespace and empty-delimiter cleanup after the tree has selected an INSERT or star expansion | `test/features/completion/smart-expansion.test.js`                 |
 | `features/signatureHelp.ts`                    | Active named argument and output-modifier spelling inside a parser-owned argument node         | `test/features/signature-help/*.test.js`                           |
 | `features/foldingRanges.ts`                    | Comment-region markers and blank-line separation                                               | folding-range tests                                                |
-| `semantics/diagnostics/diagnosticTextFacts.ts` | Named, bounded compatibility/recovery facts absent from individual grammar nodes               | `test/semantics/diagnostic-text-facts.test.js`                     |
-| `semantics/diagnostics/*Diagnostics.ts`        | Family-local lexical value validation after a typed structural node has been selected          | matching `test/semantics/diagnostics/*.test.js` suites             |
-| `semantics/vectorSemanticDiagnostics.ts`       | Vector option/value spelling within typed vector nodes                                         | `test/semantics/diagnostics/vector.test.js`                        |
+| `semantics/diagnostics/diagnosticTextFacts.ts` | Named, bounded compatibility/recovery facts absent from individual grammar nodes               | `test/unit/semantics/diagnostic-text-facts.test.ts`                |
+| `semantics/diagnostics/*Diagnostics.ts`        | Family-local lexical value validation after a typed structural node has been selected          | matching `test/unit/semantics/diagnostics/*.test.ts` suites        |
+| `semantics/vectorSemanticDiagnostics.ts`       | Vector option/value spelling within typed vector nodes                                         | `test/unit/semantics/diagnostics/vector.test.ts`                   |
 | `semantics/model/expressionTypes.ts`           | Literal and declared-type spelling after expression/type nodes are known                       | semantic-model and type-inference tests                            |
 
 Node-kind checks, catalog lookups, and indexed semantic-model queries are not secondary parsers.

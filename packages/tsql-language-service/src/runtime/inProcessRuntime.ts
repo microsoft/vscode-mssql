@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import type { AnalysisProfile } from "../common/analysisProfile.js";
+import type { AnalysisProfile, AnalysisProfileInput } from "../common/analysisProfile.js";
 import { resolveAnalysisProfile } from "../common/analysisProfile.js";
 import type { EngineCapabilities } from "../common/engineCapabilities.js";
 import {
@@ -80,7 +80,7 @@ export class InProcessLanguageServiceRuntime implements LanguageServiceRuntime {
         ),
         private readonly _binder: SemanticBinder = new CatalogSemanticBinder(),
         private readonly _metadata: MetadataProvider = new NullMetadataProvider(),
-        profile?: Partial<AnalysisProfile>,
+        profile?: AnalysisProfileInput,
         engineFacts?: EngineFacts,
     ) {
         this.profile = resolveAnalysisProfile(profile);

@@ -52,7 +52,10 @@
         "prewatch": "npm run build:grammar:cached",
         "watch": "tsc -watch -p tsconfig.json --preserveWatchOutput",
         "lint": "node scripts/check-boundaries.mjs",
-        "test": "npm run test:offline",
+        "test": "npm run test:unit && npm run test:offline",
+        "test:unit": "npm run test:unit:typecheck && tsx --test \"test/unit/**/*.test.ts\"",
+        "test:unit:typecheck": "tsc -p test/unit/tsconfig.json",
+        "test:coverage": "npm run test:unit:typecheck && c8 tsx --test \"test/unit/**/*.test.ts\"",
         "test:fast": "npm run build:typescript && node scripts/run-tests.mjs fast",
         "test:corpus-baseline": "npm run build:typescript && node scripts/run-tests.mjs corpus-baseline",
         "test:conformance": "npm run build:typescript && node scripts/run-tests.mjs conformance",
@@ -62,10 +65,8 @@
         "test:integration": "npm run build:typescript && node scripts/run-tests.mjs integration",
         "test:types": "npm run build:typescript && tsc -p test/types/tsconfig.json",
         "test:shuffled": "npm run build:typescript && node scripts/run-tests.mjs fast --shuffle=20260820",
-        "test:sqlcmd": "npm run build:typescript && node --test test/sqlcmd/sqlcmd-document.test.js test/runtime/sqlcmd-projection.test.js test/features/sqlcmd-source-mapping.test.js test/worker/node-worker.test.js",
+        "test:sqlcmd": "npm run test:unit:typecheck && tsx --test \"test/unit/sqlcmd/**/*.test.ts\" test/unit/runtime/sqlcmd-projection.test.ts test/unit/worker/node-worker.test.ts",
         "test:identifiers": "npm run build:typescript && node --test test/features/hostile-identifiers.test.js",
-        "test:workers": "npm run build && node --test test/worker/engine-profile-parity.test.js test/worker/node-worker.test.js",
-        "test:browser-worker": "npm run build && node --test test/worker/engine-profile-parity.test.js",
         "test:cancellation": "npm run build:typescript && node --test test/metadata/provider-contract.test.js",
         "test:metadata-concurrency": "npm run build:typescript && node --test test/metadata/provider-contract.test.js",
         "test:large-catalog": "npm run build:typescript && node --test --test-isolation=none test/performance/catalog-completion-smoke.test.js",
@@ -85,8 +86,24 @@
     "devDependencies": {
         "@lezer/generator": "^1.8.0",
         "@types/node": "^22.13.14",
+        "c8": "^11.0.0",
         "esbuild": "^0.25.8",
         "tedious": "^20.0.0",
+        "tsx": "^4.20.5",
         "typescript": "^5.8.3"
+    },
+    "c8": {
+        "include": [
+            "src/**/*.ts"
+        ],
+        "exclude": [
+            "src/syntax/generated/**"
+        ],
+        "reporter": [
+            "text",
+            "html",
+            "lcov"
+        ],
+        "reportsDirectory": "coverage"
     }
 }
