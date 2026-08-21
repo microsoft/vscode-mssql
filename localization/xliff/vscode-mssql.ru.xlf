@@ -12024,10 +12024,6 @@ Are you sure you want to continue?</target>
         <source xml:lang="en">Controls the max number of rows allowed to do filtering and sorting in memory. If the number is exceeded, sorting and filtering will be disabled. Warning: Increasing this may impact performance.</source>
         <target state="translated">Определяет максимальное количество строк, разрешенных для фильтрации и сортировки в памяти. Если число будет превышено, сортировка и фильтрация будут отключены. Предупреждение. Увеличение этого параметра может сказаться на производительности.</target>
       </trans-unit>
-      <trans-unit id="mssql.statusBar.showQueryExecutionStatus.description">
-        <source xml:lang="en">Controls whether the query execution status (executing, canceling, completed) is displayed in the status bar.</source>
-        <target state="new">Controls whether the query execution status (executing, canceling, completed) is displayed in the status bar.</target>
-      </trans-unit>
       <trans-unit id="mssql.copyAll">
         <source xml:lang="en">Copy All</source>
         <target state="translated">Копировать все</target>
