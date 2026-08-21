@@ -1053,7 +1053,9 @@ export default class QueryRunner {
                 if (usesCopy2) {
                     void this._client.sendNotification(CancelCopy2Notification.type);
                 }
-                void vscode.window.showInformationMessage("Copying results cancelled");
+                void vscode.window.showInformationMessage(
+                    LocalizedConstants.copyingResultsCanceled,
+                );
             });
             const cancellationPromise = new Promise<void>((resolve) => {
                 cancellation.token.onCancellationRequested(resolve);
@@ -1141,7 +1143,6 @@ export default class QueryRunner {
             vscode.window.showErrorMessage(
                 LocalizedConstants.QueryResult.copyError(getErrorMessage(error)),
             );
-            throw error;
         }
     }
 

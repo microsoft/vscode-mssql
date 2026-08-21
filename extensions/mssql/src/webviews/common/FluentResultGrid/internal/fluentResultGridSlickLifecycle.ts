@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useCallback, useEffect, useRef, type MutableRefObject } from "react";
+import { useCallback, useEffect, useMemo, useRef, type MutableRefObject } from "react";
 import debounce from "lodash/debounce";
 import {
     SlickEventData,
@@ -70,20 +70,22 @@ export function useFluentResultGridSlickLifecycle({
     onSelectionChangeRef.current = onSelectionChange;
     onSelectionSummaryChangeRef.current = onSelectionSummaryChange;
     shouldSuppressSelectionSummaryChangeRef.current = shouldSuppressSelectionSummaryChange;
-    const publishSelectionSummaryRef = useRef(
-        debounce(
-            (
-                selection: Parameters<
-                    NonNullable<FluentResultGridProps["onSelectionSummaryChange"]>
-                >[0],
-                displaySelection: Parameters<
-                    NonNullable<FluentResultGridProps["onSelectionSummaryChange"]>
-                >[1],
-            ) => {
-                void onSelectionSummaryChangeRef.current?.(selection, displaySelection);
-            },
-            FLUENT_RESULT_GRID_SELECTION_SUMMARY_DEBOUNCE_MS,
-        ),
+    const publishSelectionSummary = useMemo(
+        () =>
+            debounce(
+                (
+                    selection: Parameters<
+                        NonNullable<FluentResultGridProps["onSelectionSummaryChange"]>
+                    >[0],
+                    displaySelection: Parameters<
+                        NonNullable<FluentResultGridProps["onSelectionSummaryChange"]>
+                    >[1],
+                ) => {
+                    void onSelectionSummaryChangeRef.current?.(selection, displaySelection);
+                },
+                FLUENT_RESULT_GRID_SELECTION_SUMMARY_DEBOUNCE_MS,
+            ),
+        [],
     );
     const handleKeyDownRef = useRef<
         ((eventData: SlickEventData, args: { grid: SlickGrid }) => void) | undefined
@@ -99,11 +101,11 @@ export function useFluentResultGridSlickLifecycle({
             gridStateEventHandlerRef.current = undefined;
             keyboardEventHandlerRef.current?.unsubscribeAll();
             keyboardEventHandlerRef.current = undefined;
-            publishSelectionSummaryRef.current.cancel();
+            publishSelectionSummary.cancel();
             gridMenuObserverRef.current?.disconnect();
             gridMenuObserverRef.current = undefined;
         };
-    }, [dataView, detachFrozenPaneWheelHandler]);
+    }, [dataView, detachFrozenPaneWheelHandler, publishSelectionSummary]);
 
     const handleReactGridCreated = useCallback(
         (event: CustomEvent<SlickgridReactInstance>) => {
@@ -144,7 +146,7 @@ export function useFluentResultGridSlickLifecycle({
                                   (displayRow) => transformedRows[displayRow]?.rowId,
                               )
                             : displaySelection;
-                        publishSelectionSummaryRef.current.cancel();
+                        publishSelectionSummary.cancel();
                         if (!shouldSuppressSelectionSummaryChangeRef.current()) {
                             onSelectionChangeRef.current?.(displaySelection);
                             if (selection.length === 0) {
@@ -153,7 +155,7 @@ export function useFluentResultGridSlickLifecycle({
                                     displaySelection,
                                 );
                             } else {
-                                publishSelectionSummaryRef.current(selection, displaySelection);
+                                publishSelectionSummary(selection, displaySelection);
                             }
                         }
                         emitStateChange(grid);
@@ -189,6 +191,7 @@ export function useFluentResultGridSlickLifecycle({
             dataViewRef,
             emitStateChange,
             persistScrollPosition,
+            publishSelectionSummary,
             reactGridRef,
             restoreCurrentInitialState,
             transformedRowsRef,
