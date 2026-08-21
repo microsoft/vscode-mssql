@@ -2499,6 +2499,10 @@ This will remove both the container and its connection from VS Code.</target>
         <source xml:lang="en">Copy-only Backup</source>
         <target state="translated">仅复制备份</target>
       </trans-unit>
+      <trans-unit id="++CODE++76ed55852b66d19d1756277312208fcad6a988622d291a320d248cec88f8c3d9">
+        <source xml:lang="en">Copying results canceled</source>
+        <target state="new">Copying results canceled</target>
+      </trans-unit>
       <trans-unit id="++CODE++35c380196401c05c48fe5f5fffd349ba06d9988118b87a1c12e1164a28175997">
         <source xml:lang="en">Copying results...</source>
         <target state="translated">正在复制结果...</target>
