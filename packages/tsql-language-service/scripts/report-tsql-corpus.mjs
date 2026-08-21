@@ -13,7 +13,7 @@ import { performance } from "node:perf_hooks";
 const require = createRequire(import.meta.url);
 const { ImmutableTextSnapshot, LezerSyntaxService } = require("../dist/index.js");
 const packageRoot = dirname(dirname(fileURLToPath(import.meta.url)));
-const corpusRoot = join(packageRoot, "test", "corpus", "tsql-conformance");
+const corpusRoot = join(packageRoot, "test", "resources", "corpus");
 const manifest = JSON.parse(await readFile(join(corpusRoot, "manifest.json"), "utf8"));
 const service = new LezerSyntaxService();
 const results = [];
@@ -59,8 +59,6 @@ const byFixtureClass = Object.fromEntries(
 );
 
 const report = {
-    source: manifest.source,
-    inventory: manifest.inventory,
     parseable: summarize(parseable),
     recovery: summarize(recovery),
     byFixtureClass,
@@ -93,7 +91,6 @@ const report = {
 if (process.argv.includes("--write-baseline")) {
     const baseline = {
         schemaVersion: 1,
-        sourceCommit: manifest.source.commit,
         parseableFiles: parseable.length,
         rawErrors: report.parseable.rawErrors,
         files: Object.fromEntries(parseable.map((result) => [result.path, result.rawErrors])),

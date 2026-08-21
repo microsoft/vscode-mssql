@@ -4,11 +4,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { createHash } from "node:crypto";
 import { readdir, readFile, writeFile } from "node:fs/promises";
 
-const corpusDirectory = new URL("../test/corpus/tsql-conformance/TestScripts/", import.meta.url);
-const manifestUrl = new URL("../test/corpus/tsql-conformance/manifest.json", import.meta.url);
+const corpusDirectory = new URL("../test/resources/corpus/", import.meta.url);
+const manifestUrl = new URL("../test/resources/corpus/manifest.json", import.meta.url);
 const intentionalRecoveryFiles = new Set([
     "BeginEndStatementErrorTests.sql",
     "CreateSchemaStatementErrorTests.sql",
@@ -18,15 +17,12 @@ const intentionalRecoveryFiles = new Set([
 
 const names = (await readdir(corpusDirectory)).filter((name) => name.endsWith(".sql")).sort();
 const files = [];
-let totalBytes = 0;
 
 for (const name of names) {
     const bytes = await readFile(new URL(name, corpusDirectory));
-    totalBytes += bytes.byteLength;
     files.push({
-        path: `TestScripts/${name}`,
+        path: name,
         bytes: bytes.byteLength,
-        sha256: createHash("sha256").update(bytes).digest("hex"),
         encoding: detectEncoding(bytes),
         flavorHint: inferFlavor(name),
         versionHint: inferVersion(name),
@@ -34,24 +30,8 @@ for (const name of names) {
     });
 }
 
-const inventoryHash = createHash("sha256")
-    .update(files.map((file) => `${file.path}\0${file.sha256}\n`).join(""))
-    .digest("hex");
-
 const manifest = {
     schemaVersion: 1,
-    source: {
-        name: "Microsoft SQL Script DOM",
-        repository: "https://msdata.visualstudio.com/SQLToolsAndLibraries/_git/ScriptDOM",
-        commit: "9aec6298a36d6e27ca0f2ad574bb3fd80aea30f5",
-        path: "Test/SqlDom/TestScripts",
-        license: "MIT",
-    },
-    inventory: {
-        files: files.length,
-        bytes: totalBytes,
-        sha256: inventoryHash,
-    },
     files,
 };
 

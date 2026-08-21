@@ -18,7 +18,7 @@ const {
 } = require("../../dist/index.js");
 
 const uri = "file:///node-matrix.sql";
-const corpusRoot = join(__dirname, "..", "corpus", "tsql-conformance");
+const corpusRoot = join(__dirname, "..", "resources", "corpus");
 
 /**
  * A cross-feature sweep over the grammar.

@@ -57,7 +57,6 @@
         "test:unit:typecheck": "tsc -p test/unit/tsconfig.json",
         "test:coverage": "npm run test:unit:typecheck && c8 tsx --test \"test/unit/**/*.test.ts\"",
         "test:fast": "npm run build:typescript && node scripts/run-tests.mjs fast",
-        "test:corpus-baseline": "npm run build:typescript && node scripts/run-tests.mjs corpus-baseline",
         "test:conformance": "npm run build:typescript && node scripts/run-tests.mjs conformance",
         "test:performance": "npm run build:typescript && node scripts/run-tests.mjs performance",
         "test:offline": "npm run build && node scripts/run-tests.mjs offline",

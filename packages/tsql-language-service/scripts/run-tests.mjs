@@ -9,15 +9,7 @@ import { readdir } from "node:fs/promises";
 import { relative, resolve } from "node:path";
 
 const lane = process.argv[2] ?? "fast";
-const validLanes = new Set([
-    "all",
-    "offline",
-    "corpus-baseline",
-    "conformance",
-    "fast",
-    "integration",
-    "performance",
-]);
+const validLanes = new Set(["all", "offline", "conformance", "fast", "integration", "performance"]);
 if (!validLanes.has(lane)) {
     console.error(`Unknown test lane '${lane}'. Expected one of: ${[...validLanes].join(", ")}.`);
     process.exit(2);
@@ -56,13 +48,11 @@ process.exit(result.status ?? 1);
 
 function belongsToLane(path, selectedLane) {
     const integration = path.includes("/integration/");
-    const corpus = path.includes("/regression/corpus/");
     const performance = path.includes("/performance/");
     if (selectedLane === "integration") return integration;
-    if (selectedLane === "corpus-baseline") return corpus;
     if (selectedLane === "conformance") return path.includes("/dialect/");
     if (selectedLane === "performance") return performance;
-    if (selectedLane === "fast") return !integration && !corpus && !performance;
+    if (selectedLane === "fast") return !integration && !performance;
     if (selectedLane === "offline") return !integration;
     return true;
 }
