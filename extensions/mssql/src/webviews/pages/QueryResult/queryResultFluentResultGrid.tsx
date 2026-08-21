@@ -653,14 +653,17 @@ const QueryResultFluentResultGrid = forwardRef<ResultGridHandle, ResultGridProps
     );
 
     const handleSelectionSummaryChange = useCallback(
-        (selection: readonly qr.ISlickRange[]) => {
+        (
+            selection: readonly qr.ISlickRange[],
+            displaySelection: readonly qr.ISlickRange[] = selection,
+        ) => {
             if (!context || !uri || !resultSetSummary) {
                 return;
             }
 
             void context.extensionRpc.sendNotification(qr.SetSelectionSummaryRequest.type, {
                 selection: [...selection],
-                displaySelection: [...selection],
+                displaySelection: [...displaySelection],
                 uri,
                 gridId: props.gridId,
                 batchId: resultSetSummary.batchId,
@@ -668,6 +671,13 @@ const QueryResultFluentResultGrid = forwardRef<ResultGridHandle, ResultGridProps
             });
         },
         [context, props.gridId, resultSetSummary, uri],
+    );
+
+    const handleSelectionChange = useCallback(
+        (selection: readonly qr.ISlickRange[]) => {
+            props.onSelectionChange?.(selection.length > 0);
+        },
+        [props.onSelectionChange],
     );
 
     const handleCommand = useCallback(
@@ -685,6 +695,7 @@ const QueryResultFluentResultGrid = forwardRef<ResultGridHandle, ResultGridProps
                         resultId: event.resultId,
                         selection,
                         includeHeaders: false,
+                        preserveSelectionLayout: true,
                     });
                     context.showCopyIndicator();
                     break;
@@ -695,6 +706,7 @@ const QueryResultFluentResultGrid = forwardRef<ResultGridHandle, ResultGridProps
                         resultId: event.resultId,
                         selection,
                         includeHeaders: true,
+                        preserveSelectionLayout: true,
                     });
                     context.showCopyIndicator();
                     break;
@@ -842,6 +854,7 @@ const QueryResultFluentResultGrid = forwardRef<ResultGridHandle, ResultGridProps
             initialStateReady={isInitialStateLoaded}
             onCommand={handleCommand}
             onStateChange={handleStateChange}
+            onSelectionChange={handleSelectionChange}
             onSelectionSummaryChange={handleSelectionSummaryChange}
             onInMemoryDataProcessingThresholdExceeded={handleThresholdExceeded}
         />

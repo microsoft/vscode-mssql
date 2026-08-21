@@ -6,7 +6,7 @@
 import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
 import * as chai from "chai";
-import QueryRunner from "../../src/controllers/queryRunner";
+import QueryRunner, { editorEol } from "../../src/controllers/queryRunner";
 import { QueryNotificationHandler } from "../../src/controllers/queryNotificationHandler";
 import * as Utils from "../../src/models/utils";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
@@ -869,6 +869,133 @@ suite("Query Runner tests", () => {
                 { fromRow: 4, toRow: 4, fromCell: 0, toCell: 0 },
                 { fromRow: 6, toRow: 6, fromCell: 0, toCell: 0 },
             ]);
+        });
+
+        test("copyResults writes overlapping Beta Grid selections as unique rows", async () => {
+            const queryRunner = createQueryRunner();
+            const selection = [
+                { fromRow: 0, toRow: 2, fromCell: 0, toCell: 0 },
+                { fromRow: 1, toRow: 2, fromCell: 2, toCell: 2 },
+            ];
+            const rows = [
+                [
+                    { isNull: false, displayValue: "r0c0" },
+                    { isNull: false, displayValue: "r0c1" },
+                    { isNull: false, displayValue: "r0c2" },
+                ],
+                [
+                    { isNull: false, displayValue: "r1c0" },
+                    { isNull: false, displayValue: "r1c1" },
+                    { isNull: false, displayValue: "r1c2" },
+                ],
+                [
+                    { isNull: false, displayValue: "r2c0" },
+                    { isNull: false, displayValue: "r2c1" },
+                    { isNull: false, displayValue: "r2c2" },
+                ],
+            ];
+            sandbox.stub(queryRunner, "getRows").resolves({
+                resultSubset: {
+                    rowCount: rows.length,
+                    rows,
+                },
+            });
+
+            await queryRunner.copyResults(selection, 0, 0, false, true);
+
+            expect(clipboardWriteTextStub).to.have.been.calledOnceWith(
+                ["r0c0\t", "r1c0\tr1c2", "r2c0\tr2c2"].join(editorEol),
+            );
+            expect(testSqlToolsServerClient.sendRequest).to.not.have.been.calledWith(
+                CopyResults2Request.type,
+            );
+        });
+
+        test("copyResults shows progress for large overlapping Beta Grid selections", async () => {
+            const queryRunner = createQueryRunner();
+            const selection = [
+                { fromRow: 0, toRow: 2, fromCell: 0, toCell: 0 },
+                { fromRow: 1, toRow: 2, fromCell: 2, toCell: 2 },
+            ];
+            getConfigurationStub.returns(
+                stubs.createWorkspaceConfiguration({
+                    [Constants.configInMemoryDataProcessingThreshold]: 1,
+                }),
+            );
+            sandbox.stub(queryRunner, "getRows").resolves({
+                resultSubset: {
+                    rowCount: 3,
+                    rows: [
+                        [{ isNull: false, displayValue: "r0c0" }],
+                        [{ isNull: false, displayValue: "r1c0" }],
+                        [{ isNull: false, displayValue: "r2c0" }],
+                    ],
+                },
+            });
+
+            await queryRunner.copyResults(selection, 0, 0, false, true);
+
+            expect(vscode.window.withProgress).to.have.been.called;
+        });
+
+        test("a new copy cancels an in-flight overlapping Beta Grid copy", async () => {
+            const queryRunner = createQueryRunner();
+            const sparseSelection = [
+                { fromRow: 0, toRow: 2, fromCell: 0, toCell: 0 },
+                { fromRow: 1, toRow: 2, fromCell: 2, toCell: 2 },
+            ];
+            let resolveRows!: (value: QueryExecuteSubsetResult) => void;
+            const pendingRows = new Promise<QueryExecuteSubsetResult>((resolve) => {
+                resolveRows = resolve;
+            });
+            sandbox.stub(queryRunner, "getRows").returns(pendingRows);
+            testSqlToolsServerClient.sendRequest
+                .withArgs(CopyResults2Request.type, sinon.match.object)
+                .resolves({ content: "new copy" });
+
+            const firstCopy = queryRunner.copyResults(sparseSelection, 0, 0, false, true);
+            const secondCopy = queryRunner.copyResults(
+                [{ fromRow: 4, toRow: 4, fromCell: 0, toCell: 0 }],
+                0,
+                0,
+                false,
+            );
+            resolveRows({
+                resultSubset: {
+                    rowCount: 3,
+                    rows: [
+                        [{ isNull: false, displayValue: "old0" }],
+                        [{ isNull: false, displayValue: "old1" }],
+                        [{ isNull: false, displayValue: "old2" }],
+                    ],
+                },
+            });
+
+            await Promise.all([firstCopy, secondCopy]);
+
+            expect(clipboardWriteTextStub).to.have.been.calledOnceWith("new copy");
+            expect(testSqlToolsServerClient.sendNotification).to.not.have.been.calledWith(
+                CancelCopy2Notification.type,
+            );
+        });
+
+        test("copyResults keeps legacy overlapping selections on the backend copy path", async () => {
+            const queryRunner = createQueryRunner();
+            const selection = [
+                { fromRow: 0, toRow: 2, fromCell: 0, toCell: 0 },
+                { fromRow: 1, toRow: 2, fromCell: 2, toCell: 2 },
+            ];
+
+            testSqlToolsServerClient.sendRequest
+                .withArgs(CopyResults2Request.type, sinon.match.object)
+                .resolves({ content: "legacy copy" });
+
+            await queryRunner.copyResults(selection, 0, 0, false);
+
+            expect(testSqlToolsServerClient.sendRequest).to.have.been.calledWith(
+                CopyResults2Request.type,
+                sinon.match.object,
+            );
         });
 
         test("copyResultsAsCsv calls copyResults2 with CSV CopyType", async () => {
