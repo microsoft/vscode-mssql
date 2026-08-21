@@ -11,7 +11,7 @@ import sinonChai from "sinon-chai";
 import { SearchDatabaseWebViewController } from "../../src/searchDatabase/searchDatabaseWebViewController";
 
 chai.use(sinonChai);
-import ConnectionManager from "../../src/controllers/connectionManager";
+import ConnectionManager, { ConnectionInfo } from "../../src/controllers/connectionManager";
 import { IMetadataService } from "../../src/services/metadataService";
 import { MetadataType, ObjectMetadata } from "../../src/sharedInterfaces/metadata";
 import { SearchResultItem } from "../../src/sharedInterfaces/searchDatabase";
@@ -19,13 +19,15 @@ import { ApiStatus } from "../../src/sharedInterfaces/webview";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { stubTelemetry } from "./utils";
 import { ScriptingService } from "../../src/scripting/scriptingService";
+import * as Utils from "../../src/models/utils";
+import type { IConnectionInfo } from "vscode-mssql";
 
 suite("SearchDatabaseWebViewController", () => {
     let sandbox: sinon.SinonSandbox;
     let mockContext: vscode.ExtensionContext;
     let mockMetadataService: sinon.SinonStubbedInstance<IMetadataService>;
     let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
-    let mockTargetNode: TreeNodeInfo;
+    let mockTargetNode: TreeNodeInfo | undefined;
     let mockScriptingService: sinon.SinonStubbedInstance<ScriptingService>;
     let controller: SearchDatabaseWebViewController;
     let mockWebview: vscode.Webview;
@@ -129,7 +131,7 @@ suite("SearchDatabaseWebViewController", () => {
             isConnecting: sandbox.stub().returns(false),
             connect: sandbox.stub().resolves(true),
             disconnect: sandbox.stub().resolves(),
-            getConnectionInfo: sandbox.stub().resolves({
+            getConnectionInfo: sandbox.stub().returns({
                 credentials: { database: "TestDB" },
             }),
             getServerInfo: sandbox.stub().returns({ serverVersion: "15.0" }),
@@ -172,6 +174,120 @@ suite("SearchDatabaseWebViewController", () => {
         // Wait for the initialization chain (ensureConnection, loadDatabases, loadMetadata) to complete
         await controller.initialized;
     }
+
+    suite("Connection Context", () => {
+        setup(() => {
+            const activeEditorUri = "file:///test/query.sql";
+            const activeConnection = new ConnectionInfo();
+            activeConnection.credentials = {
+                server: "active-server",
+                database: "ActiveDB",
+            } as IConnectionInfo;
+            sandbox.stub(Utils, "getActiveTextEditorUri").returns(activeEditorUri);
+            mockConnectionManager.getConnectionInfo
+                .withArgs(activeEditorUri)
+                .returns(activeConnection);
+            mockTargetNode = undefined;
+        });
+
+        test("uses the active editor connection when invoked without an Object Explorer node", async () => {
+            createController();
+            await waitForInitialization();
+
+            expect(controller.state.serverName).to.equal("active-server");
+            expect(controller.state.selectedDatabase).to.equal("ActiveDB");
+            expect(mockConnectionManager.connect).to.have.been.calledWithMatch(
+                sinon.match.string,
+                sinon.match({
+                    server: "active-server",
+                    database: "ActiveDB",
+                }),
+            );
+        });
+
+        test("uses the active editor connection when scripting an object", async () => {
+            createController();
+            await waitForInitialization();
+            openTextDocumentStub.resolves({
+                uri: vscode.Uri.file("/tmp/script.sql"),
+            } as unknown as vscode.TextDocument);
+
+            const scriptReducer = controller["_reducerHandlers"].get("scriptObject");
+            await scriptReducer!(controller.state, {
+                object: {
+                    name: "Users",
+                    schema: "dbo",
+                    type: MetadataType.Table,
+                    typeName: "Table",
+                    metadataTypeName: "Table",
+                    fullName: "dbo.Users",
+                },
+                scriptType: "SELECT",
+            });
+
+            expect(mockConnectionManager.getServerInfo).to.have.been.calledWithMatch({
+                server: "active-server",
+                database: "ActiveDB",
+            });
+            expect(mockScriptingService.script).to.have.been.called;
+        });
+
+        test("uses the active editor connection when opening Edit Data", async () => {
+            createController();
+            await waitForInitialization();
+            const executeCommandStub = sandbox.stub(vscode.commands, "executeCommand").resolves();
+
+            const editDataReducer = controller["_reducerHandlers"].get("editData");
+            await editDataReducer!(controller.state, {
+                object: {
+                    name: "Users",
+                    schema: "dbo",
+                    type: MetadataType.Table,
+                    typeName: "Table",
+                    metadataTypeName: "Table",
+                    fullName: "dbo.Users",
+                },
+            });
+
+            expect(executeCommandStub).to.have.been.calledWith(
+                "mssql.tableExplorer",
+                sinon.match({
+                    connectionProfile: sinon.match({
+                        server: "active-server",
+                        database: "ActiveDB",
+                    }),
+                }),
+            );
+        });
+
+        test("uses the active editor connection when opening Modify Table", async () => {
+            createController();
+            await waitForInitialization();
+            const executeCommandStub = sandbox.stub(vscode.commands, "executeCommand").resolves();
+
+            const modifyTableReducer = controller["_reducerHandlers"].get("modifyTable");
+            await modifyTableReducer!(controller.state, {
+                object: {
+                    name: "Users",
+                    schema: "dbo",
+                    type: MetadataType.Table,
+                    typeName: "Table",
+                    metadataTypeName: "Table",
+                    fullName: "dbo.Users",
+                },
+            });
+
+            expect(executeCommandStub).to.have.been.calledWith(
+                "mssql.editTable",
+                sinon.match({
+                    connectionProfile: sinon.match({
+                        server: "active-server",
+                        database: "ActiveDB",
+                    }),
+                }),
+            );
+        });
+    });
 
     suite("Search Reducers", () => {
         test("search reducer sets searchTerm and filters results", async () => {
