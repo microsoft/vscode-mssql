@@ -124,6 +124,16 @@ suite("QueryResultWebviewController", () => {
         expect(resolve).to.not.have.been.called;
     });
 
+    test("keeps freeze-first-column disabled by default and reads an explicit opt-in", () => {
+        expect(controller.getGridSettingsConfig().freezeFirstColumnByDefault).to.be.false;
+
+        configuration.get
+            .withArgs(Constants.configResultsGridFreezeFirstColumnByDefault)
+            .returns(true);
+
+        expect(controller.getGridSettingsConfig().freezeFirstColumnByDefault).to.be.true;
+    });
+
     test("moves current result to a tab when the setting is enabled through configuration change", async () => {
         openResultsInTabByDefault = true;
         const createPanelControllerStub = sandbox
