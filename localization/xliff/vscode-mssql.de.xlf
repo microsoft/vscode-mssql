@@ -5512,7 +5512,7 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++0c2f118ad5933157d00e2025f7cc3d3c3da84db32e18ffbb4f1032471cc643ef">
         <source xml:lang="en">Invalid SQL Server password for {0}. Password must be 8–128 characters long and meet the complexity requirements.  For more information see https://docs.microsoft.com/sql/relational-databases/security/password-policy</source>
-        <target state="translated">Ungültiges SQL Server-Kennwort für {0}. Das Kennwort muss 8 bis 128 Zeichen lang sein und die Komplexitätsanforderungen erfüllen.  Weitere Informationen finden Sie unter https://docs.microsoft.com/sql/relational-databases/security/password-policy</target>
+        <target state="translated">Ungültiges SQL Server-Kennwort für {0}. Das Kennwort muss 8 bis 128 Zeichen lang sein und die Komplexitätsanforderungen erfüllen. Weitere Informationen siehe https://docs.microsoft.com/sql/relational-databases/security/password-policy</target>
       </trans-unit>
       <trans-unit id="++CODE++604cd45c57feb58b304a4d821fbb1df3611dabd706ece140be1c19abc4c8150a">
         <source xml:lang="en">Invalid column reference. Use either id OR name.</source>
@@ -12023,6 +12023,10 @@ Are you sure you want to continue?</target>
       <trans-unit id="mssql.resultsGrid.inMemoryDataProcessingThreshold">
         <source xml:lang="en">Controls the max number of rows allowed to do filtering and sorting in memory. If the number is exceeded, sorting and filtering will be disabled. Warning: Increasing this may impact performance.</source>
         <target state="translated">Steuert die maximale Anzahl von Zeilen, die im Arbeitsspeicher gefiltert und sortiert werden dürfen. Wenn die Zahl überschritten wird, werden die Sortier- und Filterfunktionen deaktiviert. Warnung: die Erhöhung dieser Anzahl kann sich auf die Leistung auswirken.</target>
+      </trans-unit>
+      <trans-unit id="mssql.statusBar.showQueryExecutionStatus.description">
+        <source xml:lang="en">Controls whether the query execution status (executing, canceling, completed) is displayed in the status bar.</source>
+        <target state="new">Controls whether the query execution status (executing, canceling, completed) is displayed in the status bar.</target>
       </trans-unit>
       <trans-unit id="mssql.copyAll">
         <source xml:lang="en">Copy All</source>
