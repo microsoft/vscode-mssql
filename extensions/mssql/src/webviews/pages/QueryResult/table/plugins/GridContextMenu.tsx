@@ -15,6 +15,7 @@ export interface GridContextMenuProps {
     x: number;
     y: number;
     open: boolean;
+    showCopyAsInClause: boolean;
     onAction: (action: GridContextMenuAction) => void;
     onClose: () => void;
 }
@@ -30,6 +31,7 @@ export const GridContextMenu: React.FC<GridContextMenuProps> = ({
     x,
     y,
     open,
+    showCopyAsInClause,
     onAction,
     onClose,
 }) => {
@@ -128,17 +130,19 @@ export const GridContextMenu: React.FC<GridContextMenuProps> = ({
                                         }>
                                         {locConstants.queryResult.copyAsInsertInto}
                                     </MenuItem>
-                                    <MenuItem
-                                        className={styles.menuItem}
-                                        secondaryContent={
-                                            keyBindings[WebviewAction.ResultGridCopyAsInClause]
-                                                ?.label
-                                        }
-                                        onClick={() =>
-                                            onAction(GridContextMenuAction.CopyAsInClause)
-                                        }>
-                                        {locConstants.queryResult.copyAsInClause}
-                                    </MenuItem>
+                                    {showCopyAsInClause && (
+                                        <MenuItem
+                                            className={styles.menuItem}
+                                            secondaryContent={
+                                                keyBindings[WebviewAction.ResultGridCopyAsInClause]
+                                                    ?.label
+                                            }
+                                            onClick={() =>
+                                                onAction(GridContextMenuAction.CopyAsInClause)
+                                            }>
+                                            {locConstants.queryResult.copyAsInClause}
+                                        </MenuItem>
+                                    )}
                                 </MenuList>
                             </MenuPopover>
                         </Menu>

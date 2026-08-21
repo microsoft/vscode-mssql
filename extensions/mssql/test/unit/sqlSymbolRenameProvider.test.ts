@@ -705,6 +705,24 @@ suite("SqlMoveToSchemaProvider Tests", () => {
             );
         });
 
+        test("excludes the current schema from the target schema picker", async () => {
+            findFilesStub.resolves([vscode.Uri.file(defaultProjFile)]);
+            sendRequestStub
+                .withArgs(ListProjectSchemasRequest.type)
+                .resolves({ schemas: ["dbo", "HR"] });
+            showQuickPickStub.resolves(undefined);
+            const doc = makeMoveDocument(sandbox, {
+                lineText: "CREATE TABLE [dbo].[MyTable]",
+            });
+
+            await provider.runMoveToSchema(doc, new vscode.Position(0, 25));
+
+            expect(showQuickPickStub).to.have.been.calledWith(
+                [{ label: "HR" }],
+                sinon.match({ placeHolder: moveLoc.selectTargetSchemaPlaceholder("dbo") }),
+            );
+        });
+
         suite("applyMove", () => {
             let openTextDocumentStub: sinon.SinonStub;
             let applyEditStub: sinon.SinonStub;

@@ -18,6 +18,7 @@ import { HybridDataProvider } from "../hybridDataProvider";
 import {
     convertDisplayedSelectionToActual,
     selectEntireGrid,
+    isSingleColumnSelection,
     tryCombineSelectionsForResults,
 } from "../utils";
 
@@ -61,6 +62,12 @@ export class ContextMenu<T extends Slick.SlickData> {
         const maxY = Math.max(margin, window.innerHeight - estimatedHeight - margin);
         const adjustedX = Math.min(Math.max(mouseEvent.pageX, margin), maxX);
         const adjustedY = Math.min(Math.max(mouseEvent.pageY, margin), maxY);
+        let selection = tryCombineSelectionsForResults(
+            this.grid.getSelectionModel().getSelectedRanges(),
+        );
+        if (selection.length === 0) {
+            selection = selectEntireGrid(this.grid);
+        }
 
         // Ask outer React app to show menu at coordinates
         this.queryResultContext.showGridContextMenu(
@@ -70,6 +77,7 @@ export class ContextMenu<T extends Slick.SlickData> {
                 await this.handleMenuAction(action);
                 this.queryResultContext.hideGridContextMenu();
             },
+            { showCopyAsInClause: isSingleColumnSelection(selection) },
         );
     }
 

@@ -419,6 +419,11 @@
     outline-offset: -1px;
 }
 
+/* Query results are read-only, so the SlickGrid drag-replace affordance is not actionable. */
+.fluent-result-grid .slick-drag-replace-handle {
+    display: none;
+}
+
 .fluent-result-grid.focused .slick-cell.active {
     background-color: var(--fluent-result-grid-list-focus-background);
     color: var(--fluent-result-grid-list-focus-foreground);

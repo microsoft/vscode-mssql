@@ -6,6 +6,7 @@
 import { expect } from "chai";
 import {
     convertDisplayedSelectionToActual,
+    isSingleColumnSelection,
     tryCombineSelections,
     tryCombineSelectionsForResults,
     SLICKGRID_ROW_ID_PROP,
@@ -283,6 +284,27 @@ suite("Grid Selection Utils", () => {
             expect(result[0].toCell).to.equal(2);
             expect(result[1].fromCell).to.equal(0);
             expect(result[1].toCell).to.equal(2);
+        });
+    });
+
+    suite("isSingleColumnSelection", () => {
+        test("returns true when all selected ranges contain one column", () => {
+            expect(
+                isSingleColumnSelection([
+                    { fromRow: 0, toRow: 2, fromCell: 1, toCell: 1 },
+                    { fromRow: 4, toRow: 5, fromCell: 1, toCell: 1 },
+                ]),
+            ).to.equal(true);
+        });
+
+        test("returns false when a selected range contains multiple columns", () => {
+            expect(
+                isSingleColumnSelection([{ fromRow: 0, toRow: 2, fromCell: 1, toCell: 2 }]),
+            ).to.equal(false);
+        });
+
+        test("returns false when there is no selection", () => {
+            expect(isSingleColumnSelection([])).to.equal(false);
         });
     });
 });

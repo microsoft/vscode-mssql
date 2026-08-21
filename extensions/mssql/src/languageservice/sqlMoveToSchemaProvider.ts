@@ -175,8 +175,17 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
             return;
         }
 
+        // Do not offer the schema the object already belongs to as a move target.
+        const targetSchemas = currentSchema
+            ? schemas.filter((schema) => schema.toLowerCase() !== currentSchema.toLowerCase())
+            : schemas;
+        if (targetSchemas.length === 0) {
+            void vscode.window.showInformationMessage(loc.noSchemasFound);
+            return;
+        }
+
         // Show QuickPick with schema dropdown
-        const items = schemas.map((s) => ({ label: s }));
+        const items = targetSchemas.map((s) => ({ label: s }));
         const selected = await vscode.window.showQuickPick(items, {
             placeHolder: loc.selectTargetSchemaPlaceholder(currentSchema),
             canPickMany: false,

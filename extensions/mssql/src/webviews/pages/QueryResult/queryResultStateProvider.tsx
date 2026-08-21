@@ -59,6 +59,7 @@ export interface QueryResultReactProvider
         x: number,
         y: number,
         onAction: (action: GridContextMenuAction) => void | Promise<void>,
+        options?: { showCopyAsInClause: boolean },
     ) => void;
     hideGridContextMenu: () => void;
     showColumnFilterPopup: (options: ColumnFilterPopupOptions) => void;
@@ -109,8 +110,9 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
         open: boolean;
         x: number;
         y: number;
+        showCopyAsInClause: boolean;
         onAction?: (action: GridContextMenuAction) => void | Promise<void>;
-    }>({ open: false, x: 0, y: 0 });
+    }>({ open: false, x: 0, y: 0, showCopyAsInClause: false });
 
     const [filterPopupState, setFilterPopupState] = useState<ColumnFilterPopupOptions | undefined>(
         undefined,
@@ -176,9 +178,15 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
             },
 
             // Grid context menu API
-            showGridContextMenu: (x: number, y: number, onAction) => {
+            showGridContextMenu: (x: number, y: number, onAction, options) => {
                 hideFilterPopup();
-                setMenuState({ open: true, x, y, onAction });
+                setMenuState({
+                    open: true,
+                    x,
+                    y,
+                    onAction,
+                    showCopyAsInClause: options?.showCopyAsInClause ?? false,
+                });
             },
             hideGridContextMenu: () => {
                 setMenuState((s) => ({ ...s, open: false }));
@@ -294,6 +302,7 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
                     x={menuState.x}
                     y={menuState.y}
                     open={menuState.open}
+                    showCopyAsInClause={menuState.showCopyAsInClause}
                     onAction={async (action) => {
                         await menuState.onAction?.(action);
                         setMenuState((s) => ({ ...s, open: false }));

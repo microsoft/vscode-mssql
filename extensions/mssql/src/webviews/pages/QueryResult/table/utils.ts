@@ -133,6 +133,10 @@ export function tryCombineSelectionsForResults(selections: ISlickRange[]): ISlic
     });
 }
 
+export function isSingleColumnSelection(selection: ISlickRange[]): boolean {
+    return selection.length > 0 && selection.every((range) => range.fromCell === range.toCell);
+}
+
 export function selectionToRange(selection: ISlickRange): RowRange {
     let range: RowRange = {
         start: selection.fromRow,
