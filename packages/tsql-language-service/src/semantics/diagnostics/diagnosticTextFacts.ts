@@ -272,11 +272,22 @@ export function dataTypeNameText(source: string): string {
 
 /** Normalizes a system data-type spelling for registry lookup. */
 export function normalizedSystemDataTypeText(source: string): string {
-    return source
-        .replace(/\([^)]*\)/gu, "")
-        .trim()
-        .replace(/\s+/gu, " ")
-        .toLowerCase();
+    return removeParenthesizedSegments(source).trim().replace(/\s+/gu, " ").toLowerCase();
+}
+
+function removeParenthesizedSegments(source: string): string {
+    const retained: string[] = [];
+    let cursor = 0;
+    while (cursor < source.length) {
+        const opening = source.indexOf("(", cursor);
+        if (opening < 0) break;
+        const closing = source.indexOf(")", opening + 1);
+        if (closing < 0) break;
+        retained.push(source.slice(cursor, opening));
+        cursor = closing + 1;
+    }
+    retained.push(source.slice(cursor));
+    return retained.join("");
 }
 
 /** Reads a declaration in an opaque recovery node without scanning outside that node. */

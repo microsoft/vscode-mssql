@@ -109,6 +109,8 @@ suite("owned diagnostic text facts", () => {
             arguments: [1],
         });
         assert.equal(normalizedSystemDataTypeText(" NATIONAL   CHAR (10) "), "national char");
+        const incompleteType = `vector ${"(".repeat(50_000)}`;
+        assert.equal(normalizedSystemDataTypeText(incompleteType), incompleteType);
         assert.deepEqual(
             recoveredVariableDeclarations("noise DECLARE @变量 int; DECLARED @wrong", 50),
             [{ name: "@变量", start: 64, end: 67 }],
