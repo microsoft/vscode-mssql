@@ -47,6 +47,7 @@ import {
     type SemanticModelInput,
 } from "./model/semanticModel.js";
 import { DocumentCatalogTimeline } from "./model/catalogTimeline.js";
+import { catalogPartsAt } from "./model/boundName.js";
 import { buildScopes, type ScopeModel } from "./model/scopeModel.js";
 import {
     collectCatalogTimelineEvents,
@@ -531,7 +532,15 @@ export class CatalogSemanticBinder implements SemanticBinder {
                     input.syntax.document.text.slice(name.start, name.end),
                 );
                 if (parts.length === 0) return;
-                const resolution = input.metadata.resolveObject(parts);
+                const resolution = input.metadata.resolveObject(
+                    catalogPartsAt(
+                        input.metadata,
+                        input.syntax,
+                        structuralIndex.get("UseStatement") ?? [],
+                        parts,
+                        name.start,
+                    ),
+                );
                 const visibleCte =
                     parts.length === 1
                         ? scopeOf(node)?.ctes.find(

@@ -54,6 +54,21 @@ export class HoverFeatureProvider {
                     symbol.kind === "alias" ? `**alias** \`${symbol.name}\`\n\n${base}` : base,
             };
         }
+        if (object && symbol.kind === "column") {
+            const columns = view.columnState(object.ref);
+            const column =
+                columns.kind === "loaded"
+                    ? columns.value.find((candidate) =>
+                          view.nameComparison.equals(candidate.name, symbol.name),
+                      )
+                    : undefined;
+            if (column) {
+                return {
+                    range: occurrenceRange(snapshot, offset) ?? symbol.declaration,
+                    markdown: columnHover(column, { qualifier: object.name, object }),
+                };
+            }
+        }
         return {
             range: occurrenceRange(snapshot, offset) ?? symbol.declaration,
             markdown:
@@ -69,6 +84,9 @@ export class HoverFeatureProvider {
         const lines = [
             `**${object.system ? "system " : ""}${object.kind}** \`${qualifiedCatalogName(object)}\``,
         ];
+        if (object.extendedProperties?.length) {
+            lines.push(extendedPropertiesMarkdown(object.extendedProperties));
+        }
         if (["table", "view", "tableFunction"].includes(object.kind)) {
             const columns = view.columnState(object.ref);
             if (columns.kind === "loaded") {
@@ -220,11 +238,20 @@ function availabilityHover(syntax: SyntaxSnapshot, offset: number): HoverResult 
 function columnHover(column: ColumnMetadata, source: BoundQuerySource): string {
     const nullability =
         column.nullable === undefined ? "" : column.nullable ? " NULL" : " NOT NULL";
-    return `**column** \`${column.name}\`\n\nType: \`${
+    const details = `**column** \`${column.name}\`\n\nType: \`${
         column.typeDisplay ?? "unknown"
     }${nullability}\`\n\nSource: \`${
         source.object ? qualifiedCatalogName(source.object) : source.qualifier
     }\``;
+    return column.extendedProperties?.length
+        ? `${details}\n\n${extendedPropertiesMarkdown(column.extendedProperties)}`
+        : details;
+}
+
+function extendedPropertiesMarkdown(
+    properties: readonly { readonly name: string; readonly value: string }[],
+): string {
+    return properties.map((property) => `**${property.name}**: ${property.value}`).join("\n\n");
 }
 
 function identifierRangeAt(

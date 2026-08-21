@@ -67,6 +67,7 @@ export class CompletionExpansionProvider {
             if (!columns.value) continue;
             const qualify = sourcePrefix !== undefined || selected.length > 1;
             for (const column of columns.value) {
+                if (column.hidden) continue;
                 expanded.push(
                     qualify
                         ? `${quoteIdentifier(source.qualifier)}.${quoteIdentifier(column.name)}`

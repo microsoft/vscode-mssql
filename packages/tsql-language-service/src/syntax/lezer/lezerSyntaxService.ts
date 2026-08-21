@@ -1024,12 +1024,14 @@ function collectSyntaxFacts(
                             : text.slice(nearRange.start, nearRange.end);
                     const expectation = expectedSuffix(node.node, text, nearRange);
                     const keyword = keywordMetadata(near);
+                    const commonError = commonErrorMessage(text, nearRange, near);
                     diagnostics.push({
                         code: "syntax",
                         message:
-                            keyword?.category === "reserved"
+                            commonError ??
+                            (keyword?.category === "reserved"
                                 ? `Incorrect syntax near the keyword '${near}'.${expectation}`
-                                : `Incorrect syntax near '${near}'.${expectation}`,
+                                : `Incorrect syntax near '${near}'.${expectation}`),
                         severity: "error",
                         range: nearRange,
                     });
@@ -1131,6 +1133,16 @@ function collectSyntaxFacts(
         });
     }
     return { diagnostics, rawErrorNodeCount, hasMixedRegions };
+}
+
+function commonErrorMessage(text: string, near: TextRange, token: string): string | undefined {
+    if (
+        token.toUpperCase() === "FROM" &&
+        /\bSELECT\s+TOP\s*(?:\([^)]*\)|\d+)(?:\s+PERCENT)?\s*$/iu.test(text.slice(0, near.start))
+    ) {
+        return "A SELECT list is required after TOP. Specify columns or add * before FROM.";
+    }
+    return undefined;
 }
 
 /** Reports repeated INSERT, UPDATE, or DELETE actions in one DML trigger declaration. */

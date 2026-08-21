@@ -10,7 +10,7 @@ import { createCatalogFeatureServices as createServices } from "../../support/ca
 
 suite("catalog hover", () => {
     // Verifies catalog hover provides object kind, exact SQL types, nullability, and signatures.
-    test("hovers catalog objects with lazily loaded details", async () => {
+    test("hovers catalog objects with lazily loaded details and extended properties (vscode-mssql#22576)", async () => {
         const { runtime, features } = createServices();
         const tableSql = "SELECT * FROM dbo.Users;";
         await runtime.open("file:///table-hover.sql", 1, tableSql);
@@ -22,6 +22,7 @@ suite("catalog hover", () => {
         assert.ok(tableHover);
         assert.match(tableHover.markdown, /\*\*table\*\*/);
         assert.match(tableHover.markdown, /Display Name.*nvarchar\(100\).*NULL/s);
+        assert.match(tableHover.markdown, /MS_Description.*Application users/s);
 
         const columnSql = "SELECT Id FROM dbo.Users;";
         await runtime.open("file:///column-hover.sql", 1, columnSql);
@@ -29,6 +30,7 @@ suite("catalog hover", () => {
         assert.ok(columnHover);
         assert.match(columnHover.markdown, /\*\*column\*\* `Id`/);
         assert.match(columnHover.markdown, /Type: `int NOT NULL`/);
+        assert.match(columnHover.markdown, /MS_Description.*Stable user identifier/s);
 
         const procedureSql = "EXEC sales.RebuildOrder;";
         await runtime.open("file:///procedure-hover.sql", 1, procedureSql);

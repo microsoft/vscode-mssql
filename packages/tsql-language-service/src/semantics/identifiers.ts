@@ -95,6 +95,13 @@ export function normalizeIdentifier(value: string): string {
     return value;
 }
 
+/** Removes a T-SQL string delimiter and unescapes doubled apostrophes. */
+export function normalizeStringLiteral(value: string): string {
+    const quoted = /^[Nn]'/u.test(value) ? value.slice(1) : value;
+    if (!quoted.startsWith("'") || !quoted.endsWith("'") || quoted.length < 2) return value;
+    return quoted.slice(1, -1).replaceAll("''", "'");
+}
+
 /** True when the component carries `[...]` or `"..."` delimiters. */
 export function isQuotedIdentifier(value: string): boolean {
     return (

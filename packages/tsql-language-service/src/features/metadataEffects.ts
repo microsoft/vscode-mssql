@@ -15,6 +15,7 @@ const invalidatedCatalogSections = Object.freeze([
     "objects",
     "columns",
     "parameters",
+    "constraints",
     "principals",
     "definitions",
 ] satisfies readonly MetadataSection[]);

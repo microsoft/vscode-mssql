@@ -30,7 +30,7 @@ import type {
     ResolvedCall,
     SignatureModel,
 } from "./contracts.js";
-import { boundNameFrom } from "./boundName.js";
+import { boundNameFrom, catalogPartsAt } from "./boundName.js";
 
 /**
  * One call model for every callable shape the grammar writes.
@@ -314,7 +314,15 @@ function resolveTarget(
         return { kind: "local", symbol: `local:${parts.join(".")}`, objectKind: local.kind };
     }
     if (local && !local.exists) return { kind: "unresolved", name: written };
-    const resolution = input.metadata.resolveObject(parts);
+    const resolution = input.metadata.resolveObject(
+        catalogPartsAt(
+            input.metadata,
+            input.syntax,
+            input.index.get("UseStatement") ?? [],
+            parts,
+            offset,
+        ),
+    );
     if (resolution.kind === "resolved") {
         const kind = resolution.object.kind;
         if (

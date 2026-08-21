@@ -5,9 +5,11 @@
 
 import type {
     ColumnMetadata,
+    ForeignKeyMetadata,
     MetadataProvider,
     MetadataView,
     ObjectMetadata,
+    ObjectRef,
     ParameterMetadata,
     SqlPrincipalKind,
 } from "../metadata/index.js";
@@ -57,13 +59,52 @@ import {
     type PrefixContext,
 } from "./completionPrefix.js";
 import { assertDocumentOffset } from "./featureSnapshotUtilities.js";
-import { sourceForQualifier, visibleQuerySources } from "./querySources.js";
+import { sourceForQualifier, visibleQuerySources, type BoundQuerySource } from "./querySources.js";
 import { principalHoverMarkdown, qualifiedCatalogName } from "./catalogPresentation.js";
 import { signatureContext } from "./signatureHelp.js";
 import type { CompletionItem, CompletionResult } from "./contracts.js";
 
 const tableKinds = ["table", "view", "tableFunction", "synonym"] as const;
 const maximumCatalogItems = 1_000;
+const maximumRelationshipHydrationCandidates = 10;
+const tableHints = Object.freeze([
+    "FORCESEEK",
+    "FORCESCAN",
+    "HOLDLOCK",
+    "INDEX",
+    "KEEPIDENTITY",
+    "KEEPDEFAULTS",
+    "NOEXPAND",
+    "NOLOCK",
+    "NOWAIT",
+    "PAGLOCK",
+    "READCOMMITTED",
+    "READCOMMITTEDLOCK",
+    "READPAST",
+    "READUNCOMMITTED",
+    "REPEATABLEREAD",
+    "ROWLOCK",
+    "SERIALIZABLE",
+    "SNAPSHOT",
+    "SPATIAL_WINDOW_MAX_CELLS",
+    "TABLOCK",
+    "TABLOCKX",
+    "UPDLOCK",
+    "XLOCK",
+]);
+const commonPhrases = Object.freeze([
+    "SELECT DISTINCT",
+    "ORDER BY",
+    "GROUP BY",
+    "INNER JOIN",
+    "LEFT JOIN",
+    "RIGHT JOIN",
+    "FULL JOIN",
+    "CROSS APPLY",
+    "OUTER APPLY",
+    "WHEN MATCHED",
+    "WHEN NOT MATCHED",
+]);
 
 /** Completion and expansion policy over one published semantic snapshot and pinned catalog view. */
 export class CompletionFeatureProvider {
@@ -80,6 +121,9 @@ export class CompletionFeatureProvider {
     public completion(uri: string, version: number, offset: number): CompletionResult {
         const snapshot = this._runtime.snapshot(uri, version);
         assertDocumentOffset(snapshot, offset);
+        if (isNonSqlCompletionOffset(snapshot.syntax, offset)) {
+            return { items: [], incomplete: false };
+        }
         const view = snapshot.metadata;
         const items: CompletionItem[] = [];
         let incomplete = false;
@@ -102,6 +146,7 @@ export class CompletionFeatureProvider {
         // Completion reads that object rather than re-deriving context per branch.
         const context = completionContextAt(snapshot, offset);
         const { prefix, principalContext, objectContext, dataTypeContext } = context;
+        const recoveredObjectContext = recoveredCatalogCompletionContext(snapshot, prefix);
         const source = sourceForQualifier(snapshot, view, offset, prefix.qualifiers);
         if (dataTypeContext) {
             if (prefix.qualifiers.length === 0) {
@@ -112,6 +157,16 @@ export class CompletionFeatureProvider {
             });
             items.push(...catalog.items);
             incomplete ||= catalog.incomplete;
+        } else if (recoveredObjectContext) {
+            const catalog = catalogCompletions(
+                this._metadata,
+                view,
+                prefix,
+                recoveredObjectContext,
+            );
+            items.push(...catalog.items);
+            incomplete ||= catalog.incomplete;
+            items.push(...localObjectCompletions(snapshot, view, offset, prefix));
         } else if (source) {
             const columns = source.columns
                 ? { value: source.columns, incomplete: false }
@@ -152,11 +207,29 @@ export class CompletionFeatureProvider {
             items.push(...relationQualifierCompletions(snapshot, view, offset, prefix));
             items.push(...localSymbolCompletions(snapshot, prefix));
             if (context.expression) {
-                items.push(...builtInFunctionCompletions(prefix, snapshot.syntax.profile));
                 items.push(...scalarFunctionCompletions(view, prefix));
             }
             items.push(...keywordCompletions(prefix, snapshot.syntax.profile));
+            items.push(...commonPhraseCompletions(prefix));
         }
+
+        if (
+            prefix.qualifiers.length === 0 &&
+            (context.expression || isRecoveredExpressionPrefix(snapshot, offset, prefix))
+        ) {
+            items.push(...builtInFunctionCompletions(prefix, snapshot.syntax.profile));
+            items.push(...systemVariableCompletions(prefix, snapshot.syntax.profile));
+        }
+        items.push(...contextualClauseCompletions(snapshot, offset, prefix));
+        const relationships = relationshipJoinCompletions(
+            this._catalog,
+            snapshot,
+            view,
+            offset,
+            prefix,
+        );
+        items.push(...relationships.items);
+        incomplete ||= relationships.incomplete;
 
         if (context.vectorParameter) {
             items.push(...vectorParameterCompletions(prefix));
@@ -169,8 +242,30 @@ export class CompletionFeatureProvider {
         return { items: deduplicate(items), incomplete };
     }
 
-    public resolveCompletion(item: CompletionItem): Promise<CompletionItem> {
-        return Promise.resolve(item);
+    public async resolveCompletion(item: CompletionItem): Promise<CompletionItem> {
+        const hydration = procedureHydrationData(item.data);
+        if (!hydration) return item;
+        this._metadata.requestHydration({
+            section: "parameters",
+            object: hydration.object,
+            priority: "interactive",
+            reason: "completion",
+        });
+        await this._metadata.waitForHydration?.();
+        const state = this._metadata.pin().parameterState(hydration.object);
+        const parameters =
+            state.kind === "loaded"
+                ? state.value
+                : state.kind === "failed"
+                  ? state.previous
+                  : undefined;
+        const snippet = parameters && procedureParameterSnippet(parameters);
+        if (!snippet || !item.edit) return item;
+        return {
+            ...item,
+            insertTextFormat: "snippet",
+            edit: { ...item.edit, newText: `${item.edit.newText} ${snippet}` },
+        };
     }
 
     private unqualifiedSourceCompletions(
@@ -179,7 +274,11 @@ export class CompletionFeatureProvider {
         offset: number,
         prefix: PrefixContext,
     ): { readonly items: readonly CompletionItem[]; readonly incomplete: boolean } {
-        const query = ancestor(snapshot.syntax.nodeAt(offset), ["QuerySpecification"]);
+        const node = snapshot.syntax.nodeAt(Math.max(0, offset - 1));
+        const select = ancestor(node, ["SelectStatement"]);
+        const query =
+            ancestor(node, ["QuerySpecification"]) ??
+            (select ? firstDescendant(select, "QuerySpecification") : undefined);
         if (!query) return { items: [], incomplete: false };
         const items: CompletionItem[] = [];
         let incomplete = false;
@@ -332,14 +431,35 @@ function catalogCompletions(
         const insertion = needsSchema
             ? completionMultipartInsertion(prefix, [object.schema!, object.name])
             : completionIdentifierInsertion(prefix, object.name);
-        const label = needsSchema ? `${object.schema}.${object.name}` : object.name;
+        const label =
+            needsSchema && prefix.prefix.length === 0
+                ? `${object.schema}.${object.name}`
+                : object.name;
+        const parameterState =
+            object.kind === "procedure" ? view.parameterState(object.ref) : undefined;
+        const procedureSnippet =
+            parameterState?.kind === "loaded"
+                ? procedureParameterSnippet(parameterState.value)
+                : undefined;
         items.push({
             label,
             kind: object.kind,
             detail: `${object.system ? "system " : ""}${object.kind} ${qualifiedCatalogName(object)}`,
             documentation: `SQL ${object.kind} \`${qualifiedCatalogName(object)}\``,
             sortText: `${objectSortRank(object)}-${object.name.toLowerCase()}`,
-            edit: { ...prefix.range, newText: insertion },
+            ...(procedureSnippet ? { insertTextFormat: "snippet" as const } : {}),
+            ...(object.kind === "procedure" && parameterState?.kind !== "loaded"
+                ? {
+                      data: {
+                          kind: "procedureParameterHydration" as const,
+                          object: object.ref,
+                      },
+                  }
+                : {}),
+            edit: {
+                ...prefix.range,
+                newText: procedureSnippet ? `${insertion} ${procedureSnippet}` : insertion,
+            },
         });
     }
     return { items, incomplete: incomplete || objects.length > maximumCatalogItems };
@@ -494,6 +614,23 @@ function keywordCompletions(
         }));
 }
 
+function commonPhraseCompletions(prefix: PrefixContext): readonly CompletionItem[] {
+    if (prefix.prefix.length === 0) return [];
+    const folded = prefix.prefix.toLowerCase();
+    return commonPhrases
+        .filter((phrase) => phrase.toLowerCase().startsWith(folded))
+        .map((phrase) => ({
+            label: phrase,
+            kind: "keyword",
+            detail: "T-SQL phrase",
+            sortText: `39-${phrase.toLowerCase()}`,
+            edit: {
+                ...prefix.range,
+                newText: completionIdentifierInsertion(prefix, phrase, false),
+            },
+        }));
+}
+
 function dataTypeCompletions(
     prefix: PrefixContext,
     profile: TsqlFeatureProfile,
@@ -522,19 +659,334 @@ function builtInFunctionCompletions(
     const folded = prefix.prefix.toLowerCase();
     return builtInsOfKind("routine")
         .filter((entry) => isBuiltInAvailable(entry, builtInProfile(profile)))
-        .filter((entry) => entry.signatures && entry.signatures.length > 0)
-        .map((entry) => entry.name.toUpperCase())
+        .filter((entry) => entry.name.toLowerCase().startsWith(folded))
+        .map((entry) => {
+            const name = entry.name.toUpperCase();
+            const parameters = entry.signatures?.[0]?.parameters ?? [];
+            const placeholders = parameters
+                .filter((parameter) => parameter.optional !== true)
+                .map((parameter, index) => `\${${index + 1}:${parameter.name}}`);
+            const insertion =
+                placeholders.length > 0 ? `${name}(${placeholders.join(", ")})` : name;
+            return {
+                label: name,
+                kind: "function",
+                detail: "SQL Server built-in function",
+                sortText: `15-${name.toLowerCase()}`,
+                ...(placeholders.length > 0 ? { insertTextFormat: "snippet" as const } : {}),
+                edit: {
+                    ...prefix.range,
+                    newText: completionIdentifierInsertion(prefix, insertion, false),
+                },
+            };
+        });
+}
+
+function systemVariableCompletions(
+    prefix: PrefixContext,
+    profile: TsqlFeatureProfile,
+): readonly CompletionItem[] {
+    const folded = prefix.prefix.toLowerCase();
+    return builtInsOfKind("systemVariable")
+        .filter((entry) => isBuiltInAvailable(entry, builtInProfile(profile)))
+        .filter((entry) => entry.name.toLowerCase().startsWith(folded))
+        .map((entry) => ({
+            label: entry.name.toUpperCase(),
+            kind: "variable",
+            detail: "SQL Server global variable",
+            documentation: entry.documentation,
+            sortText: `14-${entry.name.toLowerCase()}`,
+            edit: {
+                ...prefix.range,
+                newText: completionIdentifierInsertion(prefix, entry.name.toUpperCase(), false),
+            },
+        }));
+}
+
+function isRecoveredExpressionPrefix(
+    snapshot: DocumentAnalysisSnapshot,
+    offset: number,
+    prefix: PrefixContext,
+): boolean {
+    if (prefix.prefix.length === 0 || prefix.qualifiers.length > 0) return false;
+    const node = snapshot.syntax.nodeAt(Math.max(0, offset - 1));
+    if (ancestor(node, ["QuerySpecification"]) && !ancestor(node, ["FromClause"])) return true;
+    return !ancestor(node, ["TableAlias"]);
+}
+
+function recoveredCatalogCompletionContext(
+    snapshot: DocumentAnalysisSnapshot,
+    prefix: PrefixContext,
+): CatalogCompletionContext | undefined {
+    const leading = snapshot.text.text.slice(0, prefix.contextStart);
+    return /\b(?:FROM|JOIN)\s+(?:[^\s.]+\.)*$/iu.test(leading) ? { kinds: tableKinds } : undefined;
+}
+
+function contextualClauseCompletions(
+    snapshot: DocumentAnalysisSnapshot,
+    offset: number,
+    prefix: PrefixContext,
+): readonly CompletionItem[] {
+    const node = snapshot.syntax.nodeAt(Math.max(0, offset - 1));
+    const names = ancestor(node, ["TableHintClause"])
+        ? tableHints
+        : ancestor(node, ["MergeActionClause"])
+          ? ["MATCHED"]
+          : [];
+    const folded = prefix.prefix.toLowerCase();
+    return names
         .filter((name) => name.toLowerCase().startsWith(folded))
         .map((name) => ({
             label: name,
-            kind: "function",
-            detail: "SQL Server built-in function",
-            sortText: `15-${name.toLowerCase()}`,
+            kind: "keyword",
+            sortText: `02-${name.toLowerCase()}`,
             edit: {
                 ...prefix.range,
                 newText: completionIdentifierInsertion(prefix, name, false),
             },
         }));
+}
+
+function relationshipJoinCompletions(
+    catalog: CatalogFeatureContext,
+    snapshot: DocumentAnalysisSnapshot,
+    view: MetadataView,
+    offset: number,
+    prefix: PrefixContext,
+): { readonly items: readonly CompletionItem[]; readonly incomplete: boolean } {
+    const node = snapshot.syntax.nodeAt(Math.max(0, offset - 1));
+    const join = ancestor(node, ["JoinPart"]);
+    const query = ancestor(node, ["QuerySpecification"]);
+    if (!join || !query) return { items: [], incomplete: false };
+    const sources = visibleQuerySources(snapshot, view, query).filter(
+        (source): source is BoundQuerySource & { readonly object: ObjectMetadata } =>
+            source.object !== undefined,
+    );
+    if (sources.length === 0) return { items: [], incomplete: false };
+    const written = snapshot.text.text.slice(join.start, prefix.contextStart);
+    if (/\bON\s*$/iu.test(written)) {
+        const joined = sources.at(-1);
+        if (!joined) return { items: [], incomplete: false };
+        const hydrationObjects = new Set(sources.map((source) => source.object.ref.id));
+        const metadataAccess: RelationshipMetadataAccess = {
+            hydrationObjects,
+            observedObjects: new Set(),
+        };
+        const results = sources
+            .slice(0, -1)
+            .map((source) =>
+                relationshipConditions(catalog, view, joined, source, prefix, metadataAccess),
+            );
+        return {
+            items: results.flatMap((result) => result.items),
+            incomplete: results.some((result) => result.incomplete),
+        };
+    }
+    if (!/\bJOIN\s*$/iu.test(written)) return { items: [], incomplete: false };
+    const source = sources.at(-1)!;
+    const existing = new Set(sources.map((candidate) => candidate.object.ref.id));
+    const objects = view
+        .searchObjects({
+            database: view.environment.currentDatabase,
+            prefix: prefix.prefix,
+            kinds: tableKinds,
+            limit: maximumCatalogItems,
+        })
+        .filter((object) => !existing.has(object.ref.id));
+    // The already-written source is one request regardless of catalog size. Candidate-owned
+    // relationships are hydrated only after the written prefix has narrowed the list enough to
+    // avoid turning one completion into hundreds of catalog requests.
+    const hydrationObjects = new Set(sources.map((candidate) => candidate.object.ref.id));
+    if (objects.length <= maximumRelationshipHydrationCandidates) {
+        for (const object of objects) hydrationObjects.add(object.ref.id);
+    }
+    const metadataAccess: RelationshipMetadataAccess = {
+        hydrationObjects,
+        observedObjects: new Set(),
+    };
+    const results = objects.map((object) => {
+        const candidate: BoundQuerySource & { readonly object: ObjectMetadata } = {
+            qualifier: object.name,
+            object,
+        };
+        const conditions = relationshipConditions(
+            catalog,
+            view,
+            candidate,
+            source,
+            prefix,
+            metadataAccess,
+        );
+        return {
+            incomplete: conditions.incomplete,
+            items: conditions.items.map((condition) => ({
+                ...condition,
+                label: `${object.name} ON ${condition.label}`,
+                edit: {
+                    ...prefix.range,
+                    newText: `${completionMultipartInsertion(prefix, [object.schema, object.name])} ON ${condition.edit?.newText ?? condition.label}`,
+                },
+            })),
+        };
+    });
+    return {
+        items: results.flatMap((result) => result.items),
+        incomplete: results.some((result) => result.incomplete),
+    };
+}
+
+function relationshipConditions(
+    catalog: CatalogFeatureContext,
+    view: MetadataView,
+    left: BoundQuerySource & { readonly object: ObjectMetadata },
+    right: BoundQuerySource & { readonly object: ObjectMetadata },
+    prefix: PrefixContext,
+    metadataAccess: RelationshipMetadataAccess,
+): { readonly items: readonly CompletionItem[]; readonly incomplete: boolean } {
+    const forward = directedRelationshipConditions(
+        catalog,
+        view,
+        left,
+        right,
+        prefix,
+        metadataAccess,
+    );
+    const reverse = directedRelationshipConditions(
+        catalog,
+        view,
+        right,
+        left,
+        prefix,
+        metadataAccess,
+    );
+    return {
+        items: [...forward.items, ...reverse.items],
+        incomplete: forward.incomplete || reverse.incomplete,
+    };
+}
+
+interface RelationshipMetadataAccess {
+    readonly hydrationObjects: ReadonlySet<string>;
+    readonly observedObjects: Set<string>;
+}
+
+function directedRelationshipConditions(
+    catalog: CatalogFeatureContext,
+    view: MetadataView,
+    child: BoundQuerySource & { readonly object: ObjectMetadata },
+    parent: BoundQuerySource & { readonly object: ObjectMetadata },
+    prefix: PrefixContext,
+    metadataAccess: RelationshipMetadataAccess,
+): { readonly items: readonly CompletionItem[]; readonly incomplete: boolean } {
+    const state = view.foreignKeyState(child.object.ref);
+    if (state.kind !== "loaded") {
+        if (
+            metadataAccess.hydrationObjects.has(child.object.ref.id) &&
+            !metadataAccess.observedObjects.has(child.object.ref.id) &&
+            (state.kind === "notLoaded" || state.kind === "failed")
+        ) {
+            metadataAccess.observedObjects.add(child.object.ref.id);
+            catalog.hydrate(
+                { section: "constraints", object: child.object.ref, priority: "interactive" },
+                "completion",
+            );
+        }
+        const previous = state.kind === "failed" ? state.previous : undefined;
+        return previous
+            ? {
+                  items: relationshipItems(previous, child, parent, prefix),
+                  incomplete: true,
+              }
+            : {
+                  items: [],
+                  incomplete: metadataAccess.hydrationObjects.has(child.object.ref.id),
+              };
+    }
+    if (!metadataAccess.observedObjects.has(child.object.ref.id)) {
+        metadataAccess.observedObjects.add(child.object.ref.id);
+        catalog.noteResident(
+            { section: "constraints", object: child.object.ref, priority: "interactive" },
+            "completion",
+        );
+    }
+    return { items: relationshipItems(state.value, child, parent, prefix), incomplete: false };
+}
+
+function relationshipItems(
+    relationships: readonly ForeignKeyMetadata[],
+    child: BoundQuerySource & { readonly object: ObjectMetadata },
+    parent: BoundQuerySource & { readonly object: ObjectMetadata },
+    prefix: PrefixContext,
+): readonly CompletionItem[] {
+    return relationships
+        .filter(
+            (foreignKey) =>
+                foreignKey.referencedObject?.id === parent.object.ref.id &&
+                foreignKey.columns?.length,
+        )
+        .map((foreignKey) => {
+            const condition = foreignKey
+                .columns!.map(
+                    (column) =>
+                        `${child.qualifier}.${column.parentColumn} = ${parent.qualifier}.${column.referencedColumn}`,
+                )
+                .join(" AND ");
+            return {
+                label: condition,
+                kind: "reference",
+                detail: `foreign key ${foreignKey.name}`,
+                sortText: `01-${foreignKey.name.toLowerCase()}`,
+                edit: { ...prefix.range, newText: condition },
+            };
+        });
+}
+
+function procedureHydrationData(
+    data: unknown,
+): { readonly kind: "procedureParameterHydration"; readonly object: ObjectRef } | undefined {
+    if (!data || typeof data !== "object") return undefined;
+    const candidate = data as {
+        readonly kind?: unknown;
+        readonly object?: { readonly id?: unknown; readonly database?: unknown };
+    };
+    if (
+        candidate.kind !== "procedureParameterHydration" ||
+        typeof candidate.object?.id !== "string"
+    ) {
+        return undefined;
+    }
+    return {
+        kind: "procedureParameterHydration",
+        object: {
+            id: candidate.object.id,
+            ...(typeof candidate.object.database === "string"
+                ? { database: candidate.object.database }
+                : {}),
+        },
+    };
+}
+
+function isNonSqlCompletionOffset(snapshot: SyntaxSnapshot, offset: number): boolean {
+    const tokens = [...snapshot.tokens()];
+    // The recovery tokenizer exposes an unterminated apostrophe as an error token and continues
+    // parsing the following text. For completion that following text is still string content.
+    if (tokens.some((token) => token.kind === "⚠" && token.text === "'" && token.start < offset)) {
+        return true;
+    }
+    return tokens.some((token) => {
+        if (token.start <= offset && offset < token.end) {
+            return ["LineComment", "BlockComment", "StringLiteral"].includes(token.kind);
+        }
+        if (token.end !== offset) return false;
+        const written = snapshot.document.text.slice(token.start, token.end);
+        if (token.kind === "LineComment") return token.end === snapshot.document.text.length;
+        if (token.kind === "BlockComment") return !written.endsWith("*/");
+        if (token.kind === "StringLiteral") {
+            const quoted = /^[Nn]'/u.test(written) ? written.slice(1) : written;
+            return quoted.length < 2 || !quoted.endsWith("'");
+        }
+        return false;
+    });
 }
 
 /**
@@ -601,6 +1053,17 @@ function parameterCompletions(
             sortText: `01-${parameter.ordinal.toString().padStart(5, "0")}`,
             edit: { ...prefix.range, newText: `${parameter.name} = ` },
         }));
+}
+
+function procedureParameterSnippet(parameters: readonly ParameterMetadata[]): string | undefined {
+    if (parameters.length === 0) return undefined;
+    return [...parameters]
+        .sort((left, right) => left.ordinal - right.ordinal)
+        .map(
+            (parameter, index) =>
+                `${parameter.name} = \${${index + 1}:NULL}${parameter.output ? " OUTPUT" : ""}`,
+        )
+        .join(", ");
 }
 
 function localSymbolCompletions(
@@ -1033,7 +1496,7 @@ function equal(left: string, right: string, view: MetadataView): boolean {
 function deduplicate(items: readonly CompletionItem[]): readonly CompletionItem[] {
     const seen = new Set<string>();
     return items.filter((item) => {
-        const key = `${item.kind}\u0000${item.label}\u0000${item.edit?.start ?? -1}`;
+        const key = `${item.kind}\u0000${item.label}\u0000${item.edit?.start ?? -1}\u0000${item.edit?.newText ?? ""}`;
         if (seen.has(key)) return false;
         seen.add(key);
         return true;

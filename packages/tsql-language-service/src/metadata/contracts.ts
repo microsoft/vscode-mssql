@@ -75,6 +75,13 @@ export interface ObjectMetadata {
      * result: an absent value leaves the call's type unknown rather than making it look untyped.
      */
     readonly returnType?: string;
+    /** User-authored catalog annotations such as MS_Description. */
+    readonly extendedProperties?: readonly ExtendedPropertyMetadata[];
+}
+
+export interface ExtendedPropertyMetadata {
+    readonly name: string;
+    readonly value: string;
 }
 
 /** One DML trigger owned by a table or view, described by the actions that fire it. */
@@ -125,6 +132,12 @@ export interface ForeignKeyMetadata {
     readonly referencedObject?: ObjectRef;
     readonly updateAction?: ForeignKeyAction;
     readonly deleteAction?: ForeignKeyAction;
+    readonly columns?: readonly ForeignKeyColumnMetadata[];
+}
+
+export interface ForeignKeyColumnMetadata {
+    readonly parentColumn: string;
+    readonly referencedColumn: string;
 }
 
 /**
@@ -157,6 +170,10 @@ export interface ColumnMetadata {
     readonly nullable?: boolean;
     readonly identity?: boolean;
     readonly computed?: boolean;
+    /** Hidden columns exist in the catalog but are omitted from SELECT * expansion. */
+    readonly hidden?: boolean;
+    /** User-authored catalog annotations such as MS_Description. */
+    readonly extendedProperties?: readonly ExtendedPropertyMetadata[];
     /** One-based position in the owning table's primary key, when catalog metadata provides it. */
     readonly primaryKeyOrdinal?: number;
 }

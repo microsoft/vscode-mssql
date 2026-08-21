@@ -25,6 +25,15 @@ import {
 } from "./previewSemanticTokens";
 
 export class PreviewCompletionProvider implements vscode.CompletionItemProvider {
+    private readonly _serviceItems = new WeakMap<
+        vscode.CompletionItem,
+        {
+            readonly document: vscode.TextDocument;
+            readonly item: ServiceCompletionItem;
+            readonly state: PreviewDocumentState;
+        }
+    >();
+
     public constructor(
         private readonly _enabled: () => boolean,
         private readonly _state: (uri: vscode.Uri) => PreviewDocumentState | undefined,
@@ -78,11 +87,31 @@ export class PreviewCompletionProvider implements vscode.CompletionItemProvider 
                 );
             }
             return new vscode.CompletionList(
-                result.items.map((item) => toVscodeCompletionItem(document, item)),
+                result.items.map((item) => {
+                    const converted = toVscodeCompletionItem(document, item);
+                    this._serviceItems.set(converted, { document, item, state });
+                    return converted;
+                }),
                 result.incomplete,
             );
         } catch {
             return undefined;
+        }
+    }
+
+    public async resolveCompletionItem(
+        item: vscode.CompletionItem,
+        token: vscode.CancellationToken,
+    ): Promise<vscode.CompletionItem> {
+        const source = this._serviceItems.get(item);
+        if (!source || token.isCancellationRequested || source.state.disposed) return item;
+        try {
+            const resolved = await source.state.features.resolveCompletion(source.item);
+            return token.isCancellationRequested
+                ? item
+                : toVscodeCompletionItem(source.document, resolved);
+        } catch {
+            return item;
         }
     }
 }

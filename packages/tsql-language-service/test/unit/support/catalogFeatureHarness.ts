@@ -21,9 +21,14 @@ export interface CatalogFeatureServices {
     readonly runtime: InProcessLanguageServiceRuntime;
 }
 
-export function createCatalogFeatureServices(): CatalogFeatureServices {
+export function createCatalogFeatureServices(options?: {
+    readonly includeHiddenUserColumn?: boolean;
+}): CatalogFeatureServices {
     const objects: readonly ObjectMetadata[] = [
-        object("users", "dbo", "Users", "table"),
+        {
+            ...object("users", "dbo", "Users", "table"),
+            extendedProperties: [{ name: "MS_Description", value: "Application users" }],
+        },
         object("orders", "sales", "Orders", "table"),
         object("odd-orders", "My Schema", "Order-Items", "table"),
         object("reserved-object", "My Schema", "select", "table"),
@@ -59,8 +64,24 @@ export function createCatalogFeatureServices(): CatalogFeatureServices {
             [
                 "users",
                 [
-                    { name: "Id", typeDisplay: "int", nullable: false },
+                    {
+                        name: "Id",
+                        typeDisplay: "int",
+                        nullable: false,
+                        extendedProperties: [
+                            { name: "MS_Description", value: "Stable user identifier" },
+                        ],
+                    },
                     { name: "Display Name", typeDisplay: "nvarchar(100)", nullable: true },
+                    ...(options?.includeHiddenUserColumn
+                        ? [
+                              {
+                                  name: "SysStartTime",
+                                  typeDisplay: "datetime2",
+                                  hidden: true,
+                              },
+                          ]
+                        : []),
                 ],
             ],
             [
@@ -73,6 +94,18 @@ export function createCatalogFeatureServices(): CatalogFeatureServices {
             ],
         ]),
         parameters: new Map([["rebuild", [{ ordinal: 1, name: "@OrderId", typeDisplay: "int" }]]]),
+        foreignKeys: new Map([
+            [
+                "orders",
+                [
+                    {
+                        name: "FK_Orders_Users",
+                        referencedObject: { id: "users", database: "CustomerDb" },
+                        columns: [{ parentColumn: "CustomerId", referencedColumn: "Id" }],
+                    },
+                ],
+            ],
+        ]),
         principals: [
             { id: "login:app", name: "AppLogin", kind: "login" },
             { id: "role:sysadmin", name: "sysadmin", kind: "serverRole", system: true },

@@ -17,6 +17,7 @@ const allSections: readonly MetadataSection[] = [
     "objects",
     "columns",
     "parameters",
+    "constraints",
     "principals",
     "definitions",
 ];

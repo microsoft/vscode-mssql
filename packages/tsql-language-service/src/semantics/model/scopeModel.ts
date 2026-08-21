@@ -17,9 +17,13 @@ import {
 } from "../../syntax/treeUtilities.js";
 import type { TextRange } from "../../text/index.js";
 import { textRangeKey as rangeKey } from "../../text/index.js";
-import { multipartIdentifierParts, normalizeIdentifier } from "../identifiers.js";
+import {
+    multipartIdentifierParts,
+    normalizeIdentifier,
+    normalizeStringLiteral,
+} from "../identifiers.js";
 import { itemsWithinRanges, rangeIndexFor } from "./lookups.js";
-import { boundNameFrom } from "./boundName.js";
+import { boundNameFrom, catalogPartsAt } from "./boundName.js";
 import { declaredType } from "./expressionTypes.js";
 import { columnAllowsNull } from "./declarationFacts.js";
 import type {
@@ -305,10 +309,24 @@ function namedRelation(
     if (!name) return undefined;
     const written = source(input, name);
     const parts = multipartIdentifierParts(written);
+    const resolvedParts = catalogPartsAt(
+        input.metadata,
+        input.syntax,
+        input.index.get("UseStatement") ?? [],
+        parts,
+        node.start,
+    );
     const exposedName = aliasOf(input, node) ?? parts.at(-1);
     if (!exposedName) return undefined;
-    const bound = boundNameFrom(input.metadata, name, written, "relation");
-    const resolution = input.metadata.resolveObject(parts);
+    const bound = boundNameFrom(
+        input.metadata,
+        name,
+        written,
+        "relation",
+        undefined,
+        resolvedParts,
+    );
+    const resolution = input.metadata.resolveObject(resolvedParts);
     if (resolution.kind === "resolved") {
         const state = input.metadata.columnState(resolution.object.ref);
         return relation(node, scopeId, {
@@ -355,9 +373,16 @@ function functionRelation(
     if (!name) return undefined;
     const written = source(input, name);
     const parts = multipartIdentifierParts(written);
+    const resolvedParts = catalogPartsAt(
+        input.metadata,
+        input.syntax,
+        input.index.get("UseStatement") ?? [],
+        parts,
+        node.start,
+    );
     const exposedName = aliasOf(input, node) ?? parts.at(-1);
     if (!exposedName) return undefined;
-    const bound = boundNameFrom(input.metadata, name, written, "routine");
+    const bound = boundNameFrom(input.metadata, name, written, "routine", undefined, resolvedParts);
     // `Doc.nodes('/path')` shreds an XML column into a rowset of XML fragments. It is written like
     // a table-valued call but is a method on a column, and its one column is always XML, so it is
     // recognised here rather than being reported as an unresolvable routine.
@@ -415,7 +440,7 @@ function functionRelation(
             columns: toBoundColumns(local.columns),
         });
     }
-    const resolution = input.metadata.resolveObject(parts);
+    const resolution = input.metadata.resolveObject(resolvedParts);
     if (resolution.kind !== "resolved") {
         return relation(node, scopeId, {
             id: `relation:${rangeKey(node)}`,
@@ -765,6 +790,16 @@ function projectedColumns(
     const columns: ColumnMetadata[] = [];
     for (const element of descendants(list, "SelectElement")) {
         if (hasDescendant(element, "Star")) continue;
+        const stringAlias = directChild(element, "StringLiteral");
+        if (stringAlias) {
+            columns.push({ name: normalizeStringLiteral(source(input, stringAlias)) });
+            continue;
+        }
+        const identifierAlias = directChild(element, "IdentifierName");
+        if (identifierAlias) {
+            columns.push({ name: normalizeIdentifier(source(input, identifierAlias)) });
+            continue;
+        }
         const names = descendants(element, "IdentifierName");
         const name = names.at(-1);
         if (name) columns.push({ name: normalizeIdentifier(source(input, name)) });

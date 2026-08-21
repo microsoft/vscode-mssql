@@ -300,6 +300,11 @@ const documentedRoutines: readonly BuiltInEntry[] = [
         returnType: "bigint",
         minimumCompatibility: 130,
     }),
+    routine("DATEFROMPARTS", {
+        parameters: ["year", "month", "day"],
+        documentation: "Returns a date value for the specified year, month, and day.",
+        returnType: "date",
+    }),
     routine("DATENAME", {
         parameters: ["datepart", "date"],
         documentation: "Returns the named part of a date as text.",
@@ -748,7 +753,6 @@ const recognizedRoutineNames: readonly string[] = [
     "COT",
     "CUME_DIST",
     "DATALENGTH",
-    "DATEFROMPARTS",
     "DAY",
     "DB_ID",
     "DB_NAME",

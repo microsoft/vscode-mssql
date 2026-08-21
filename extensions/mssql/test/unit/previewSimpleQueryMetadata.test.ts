@@ -62,6 +62,7 @@ suite("Preview language service integration", () => {
             schema: "dbo",
             name: "Customers",
             kind: "table",
+            extendedProperties: [{ name: "MS_Description", value: "Application customers" }],
         });
         const systemResolution = view.resolveObject(["sys", "objects"]);
         expect(systemResolution.kind).to.equal("resolved");
@@ -109,6 +110,11 @@ suite("Preview language service integration", () => {
         );
         await loader.hydrate(
             executor,
+            { section: "constraints", object: resolution.object.ref, priority: "interactive" },
+            publisher,
+        );
+        await loader.hydrate(
+            executor,
             {
                 section: "columns",
                 object: systemResolution.object.ref,
@@ -126,6 +132,10 @@ suite("Preview language service integration", () => {
                     nullable: true,
                     identity: undefined,
                     computed: undefined,
+                    hidden: true,
+                    extendedProperties: [
+                        { name: "MS_Description", value: "Customer display name" },
+                    ],
                     primaryKeyOrdinal: 1,
                 },
             ],
@@ -134,9 +144,21 @@ suite("Preview language service integration", () => {
             kind: "loaded",
             value: [{ ordinal: 1, name: "@id", typeDisplay: "int", output: false }],
         });
+        expect(view.foreignKeyState(resolution.object.ref)).to.deep.equal({
+            kind: "loaded",
+            value: [
+                {
+                    name: "FK_Customers_Parent",
+                    referencedObject: { id: "LargeDb:42", database: "LargeDb" },
+                    updateAction: "noAction",
+                    deleteAction: "cascade",
+                    columns: [{ parentColumn: "ParentId", referencedColumn: "Id" }],
+                },
+            ],
+        });
         expect(view.columnState(systemResolution.object.ref).kind).to.equal("loaded");
-        // Six identity reads plus one query for each of the three explicit hydrations above.
-        expect(queries).to.have.length(9);
+        // Six identity reads plus one query for each of the four explicit hydrations above.
+        expect(queries).to.have.length(10);
 
         await loader.hydrate(
             executor,
@@ -359,6 +381,7 @@ suite("Preview language service integration", () => {
                     nullable: false,
                     identity: undefined,
                     computed: undefined,
+                    hidden: undefined,
                     primaryKeyOrdinal: undefined,
                 },
             ],
@@ -477,6 +500,7 @@ suite("Preview language service integration", () => {
             "objects",
             "columns",
             "parameters",
+            "constraints",
             "principals",
             "definitions",
         ];
@@ -508,6 +532,7 @@ suite("Preview language service integration", () => {
             "objects",
             "columns",
             "parameters",
+            "constraints",
             "principals",
             "definitions",
         ]);
@@ -597,9 +622,41 @@ function resultFor(query: string): SimpleQueryResult {
                 "is_nullable",
                 "is_identity",
                 "is_computed",
+                "is_hidden",
+                "column_description",
                 "primary_key_ordinal",
             ],
-            [["42", "1", "Name", "nvarchar", "200", "0", "0", "1", "0", "0", "1"]],
+            [
+                [
+                    "42",
+                    "1",
+                    "Name",
+                    "nvarchar",
+                    "200",
+                    "0",
+                    "0",
+                    "1",
+                    "0",
+                    "0",
+                    "1",
+                    "Customer display name",
+                    "1",
+                ],
+            ],
+        );
+    }
+    if (/FROM\s+(?:\[[^\]]+\]\.)?sys\.foreign_keys/i.test(query)) {
+        return table(
+            [
+                "constraint_id",
+                "constraint_name",
+                "referenced_object_id",
+                "update_action",
+                "delete_action",
+                "parent_column_name",
+                "referenced_column_name",
+            ],
+            [["501", "FK_Customers_Parent", "42", "NO_ACTION", "CASCADE", "ParentId", "Id"]],
         );
     }
     if (/FROM\s+(?:\[[^\]]+\]\.)?sys\.all_parameters/i.test(query)) {
@@ -634,16 +691,30 @@ function resultFor(query: string): SimpleQueryResult {
     }
     if (query.includes("FROM sys.objects")) {
         return table(
-            ["object_id", "schema_name", "object_name", "object_type", "is_ms_shipped"],
-            [["42", "dbo", "Customers", "U ", "0"]],
+            [
+                "object_id",
+                "schema_name",
+                "object_name",
+                "object_type",
+                "is_ms_shipped",
+                "object_description",
+            ],
+            [["42", "dbo", "Customers", "U ", "0", "Application customers"]],
         );
     }
     if (query.includes("FROM sys.all_objects")) {
         return table(
-            ["object_id", "schema_name", "object_name", "object_type", "is_ms_shipped"],
             [
-                ["-2147483646", "sys", "objects", "V ", "1"],
-                ["42", "dbo", "Customers", "U ", "0"],
+                "object_id",
+                "schema_name",
+                "object_name",
+                "object_type",
+                "is_ms_shipped",
+                "object_description",
+            ],
+            [
+                ["-2147483646", "sys", "objects", "V ", "1", undefined],
+                ["42", "dbo", "Customers", "U ", "0", "Application customers"],
             ],
         );
     }

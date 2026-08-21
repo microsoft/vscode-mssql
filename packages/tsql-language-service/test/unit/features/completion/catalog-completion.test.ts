@@ -97,7 +97,7 @@ suite("catalog completion", () => {
         await runtime.open("file:///cross-schema-edit.sql", 1, sql);
         const item = features
             .completion("file:///cross-schema-edit.sql", 1, sql.length)
-            .items.find((candidate) => candidate.label === "dbo.Users");
+            .items.find((candidate) => candidate.label === "Users");
 
         assertDefined(item);
         assert.deepEqual(item.edit, {

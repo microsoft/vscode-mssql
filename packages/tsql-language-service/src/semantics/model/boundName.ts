@@ -4,8 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type { MetadataView } from "../../metadata/index.js";
-import type { SyntaxNode } from "../../syntax/index.js";
+import type { SyntaxNode, SyntaxSnapshot } from "../../syntax/index.js";
+import { firstDescendantOfKind } from "../../syntax/treeUtilities.js";
 import { formatMultipartName, parseMultipartName } from "../identifiers.js";
+import { normalizeIdentifier } from "../identifiers.js";
 import type { BoundName, BoundNameRole, CallTarget, NameResolution } from "./contracts.js";
 
 /**
@@ -21,12 +23,14 @@ export function boundNameFrom(
     written: string,
     role: BoundNameRole,
     target?: CallTarget,
+    resolutionParts?: readonly string[],
 ): BoundName {
     const parsed = parseMultipartName(written, node.start);
     const normalized = parsed.parts.map((part) => part.normalized);
     const object = normalized.at(-1) ?? "";
     const schema = normalized.at(-2) ?? metadata.environment.defaultSchema;
-    const database = normalized.at(-3) ?? metadata.environment.currentDatabase;
+    const resolved = resolutionParts ?? normalized;
+    const database = resolved.at(-3) ?? metadata.environment.currentDatabase;
     return Object.freeze({
         parts: parsed.parts,
         range: { start: node.start, end: node.end },
@@ -35,9 +39,32 @@ export function boundNameFrom(
         ...(schema === undefined ? {} : { schema }),
         object,
         hasOmittedParts: parsed.hasOmittedParts,
-        resolution: resolutionFor(metadata, normalized, target),
+        resolution: resolutionFor(metadata, resolved, target),
         insertionForm: formatMultipartName(normalized),
     }) as BoundName;
+}
+
+/** Applies the most recent preceding USE statement to a one- or two-part catalog name. */
+export function catalogPartsAt(
+    metadata: MetadataView,
+    syntax: SyntaxSnapshot,
+    useStatements: readonly SyntaxNode[],
+    parts: readonly string[],
+    offset: number,
+): readonly string[] {
+    if (parts.length >= 3 || parts.length === 0) return parts;
+    let database = metadata.environment.currentDatabase;
+    for (const statement of useStatements) {
+        if (statement.end > offset) break;
+        const name = firstDescendantOfKind(statement, "IdentifierName");
+        if (name) {
+            database = normalizeIdentifier(syntax.document.text.slice(name.start, name.end));
+        }
+    }
+    if (!database) return parts;
+    if (parts.length === 2) return [database, ...parts];
+    const schema = metadata.environment.defaultSchema;
+    return schema ? [database, schema, ...parts] : parts;
 }
 
 function resolutionFor(

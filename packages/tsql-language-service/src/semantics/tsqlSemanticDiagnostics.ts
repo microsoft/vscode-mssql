@@ -42,6 +42,7 @@ import {
     multipartIdentifierPartRange,
     multipartIdentifierParts,
     normalizeIdentifier,
+    normalizeStringLiteral,
 } from "./identifiers.js";
 import {
     validateBatchContracts,
@@ -2062,6 +2063,26 @@ function projectedColumns(syntax: SyntaxSnapshot, root: SyntaxNode): readonly Co
     const selectList = firstDescendant(root, "SelectList");
     if (!selectList) return [];
     return directOwnedDescendants(selectList, "SelectElement").flatMap((element) => {
+        const stringAlias = directChildren(element, "StringLiteral").at(-1);
+        if (stringAlias) {
+            return [
+                {
+                    name: normalizeStringLiteral(
+                        syntax.document.text.slice(stringAlias.start, stringAlias.end),
+                    ),
+                },
+            ];
+        }
+        const identifierAlias = directChildren(element, "IdentifierName").at(-1);
+        if (identifierAlias) {
+            return [
+                {
+                    name: normalizeIdentifier(
+                        syntax.document.text.slice(identifierAlias.start, identifierAlias.end),
+                    ),
+                },
+            ];
+        }
         const alias = lastDescendant(element, "IdentifierName");
         if (!alias) return [];
         return [{ name: normalizeIdentifier(syntax.document.text.slice(alias.start, alias.end)) }];

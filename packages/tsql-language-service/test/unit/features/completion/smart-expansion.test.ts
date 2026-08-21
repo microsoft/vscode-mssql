@@ -12,7 +12,7 @@ import { assertDefined } from "../../support/assertions.ts";
 suite("smart SQL completion expansion", () => {
     // Verifies SELECT * expansion uses bound catalog columns and quotes unsafe identifiers.
     test("expands SELECT star from the bound source", async () => {
-        const { runtime, features } = createServices();
+        const { runtime, features } = createServices({ includeHiddenUserColumn: true });
         const sql = "SELECT * FROM dbo.Users;";
         await runtime.open("file:///star.sql", 1, sql);
         const result = features.completion("file:///star.sql", 1, sql.indexOf("*") + 1);

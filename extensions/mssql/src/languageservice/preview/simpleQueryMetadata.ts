@@ -13,6 +13,8 @@ import {
     resolveMetadataRuntimeOptions,
     sqlObjectTypeCodes,
     ColumnMetadata,
+    ForeignKeyAction,
+    ForeignKeyMetadata,
     MetadataHydrationRequest,
     MetadataRuntimeOptions,
     ObjectMetadata,
@@ -414,6 +416,35 @@ export class VscodeMssqlSimpleQueryMetadataLoader implements SimpleQueryMetadata
             });
             return;
         }
+        if (request.section === "constraints") {
+            const foreignKeyRows = rows(
+                await catalogExecutor.execute(
+                    foreignKeysQuery(
+                        objectId,
+                        request.object.database,
+                        this._queryVariant,
+                        this._options.detailResultLimit + 1,
+                    ),
+                    signal,
+                ),
+            );
+            const foreignKeys = mapForeignKeys(
+                limitedDetailRows(
+                    foreignKeyRows,
+                    "constraints",
+                    this._options.detailResultLimit,
+                    publisher,
+                ),
+                request.object.database,
+            );
+            publisher.merge({
+                foreignKeys: new Map([[request.object.id, foreignKeys]]),
+                foreignKeyStates: new Map([
+                    [request.object.id, { kind: "loaded", value: foreignKeys }],
+                ]),
+            });
+            return;
+        }
         if (request.section === "parameters") {
             const parameterRows = rows(
                 await catalogExecutor.execute(
@@ -459,6 +490,7 @@ function mapObjects(
         const schema = row.get("schema_name");
         const name = row.get("object_name");
         const kind = decodeSqlObjectKind(row.get("object_type"));
+        const properties = extendedProperties(row.get("object_description"));
         reportUnknownValue(publisher, "object_type", row.get("object_type"), kind);
         if (!objectId || !schema || !name || !kind) return [];
         return [
@@ -472,6 +504,7 @@ function mapObjects(
                 name,
                 kind,
                 system: decodeSqlBit(row.get("is_ms_shipped")) || undefined,
+                ...(properties ? { extendedProperties: properties } : {}),
             },
         ];
     });
@@ -542,10 +575,13 @@ function mapColumns(
         const nullable = decodeSqlBit(row.get("is_nullable"));
         const identity = decodeSqlBit(row.get("is_identity"));
         const computed = decodeSqlBit(row.get("is_computed"));
+        const hidden = decodeSqlBit(row.get("is_hidden"));
+        const properties = extendedProperties(row.get("column_description"));
         const primaryKeyOrdinal = decodeSqlInt32(row.get("primary_key_ordinal"));
         reportUnknownValue(publisher, "bit", row.get("is_nullable"), nullable);
         reportUnknownValue(publisher, "bit", row.get("is_identity"), identity);
         reportUnknownValue(publisher, "bit", row.get("is_computed"), computed);
+        reportUnknownValue(publisher, "bit", row.get("is_hidden"), hidden);
         reportUnknownValue(publisher, "sql_int", row.get("primary_key_ordinal"), primaryKeyOrdinal);
         return [
             {
@@ -554,10 +590,65 @@ function mapColumns(
                 nullable,
                 identity: identity || undefined,
                 computed: computed || undefined,
+                hidden: hidden || undefined,
+                ...(properties ? { extendedProperties: properties } : {}),
                 primaryKeyOrdinal,
             },
         ];
     });
+}
+
+function mapForeignKeys(
+    foreignKeyRows: readonly ReadonlyMap<string, string | undefined>[],
+    database: string | undefined,
+): readonly ForeignKeyMetadata[] {
+    const foreignKeys = new Map<
+        string,
+        ForeignKeyMetadata & { columns: { parentColumn: string; referencedColumn: string }[] }
+    >();
+    for (const row of foreignKeyRows) {
+        const id = row.get("constraint_id");
+        const name = row.get("constraint_name");
+        const referencedObjectId = row.get("referenced_object_id");
+        const parentColumn = row.get("parent_column_name");
+        const referencedColumn = row.get("referenced_column_name");
+        if (!id || !name || !referencedObjectId || !parentColumn || !referencedColumn) continue;
+        const existing = foreignKeys.get(id);
+        if (existing) {
+            existing.columns.push({ parentColumn, referencedColumn });
+            continue;
+        }
+        foreignKeys.set(id, {
+            name,
+            referencedObject: {
+                id: metadataObjectId(database, referencedObjectId),
+                ...(database ? { database } : {}),
+            },
+            updateAction: decodeForeignKeyAction(row.get("update_action")),
+            deleteAction: decodeForeignKeyAction(row.get("delete_action")),
+            columns: [{ parentColumn, referencedColumn }],
+        });
+    }
+    return [...foreignKeys.values()];
+}
+
+function decodeForeignKeyAction(value: string | undefined): ForeignKeyAction | undefined {
+    switch (value?.trim().toUpperCase()) {
+        case "NO_ACTION":
+            return "noAction";
+        case "CASCADE":
+            return "cascade";
+        case "SET_NULL":
+            return "setNull";
+        case "SET_DEFAULT":
+            return "setDefault";
+        default:
+            return undefined;
+    }
+}
+
+function extendedProperties(value: string | undefined) {
+    return value === undefined ? undefined : [{ name: "MS_Description", value }];
 }
 
 function mapParameters(
@@ -671,7 +762,7 @@ function reportUnknownValue(
 
 function limitedDetailRows(
     input: readonly ReadonlyMap<string, string | undefined>[],
-    section: "columns" | "parameters",
+    section: "columns" | "parameters" | "constraints",
     limit: number,
     publisher: SimpleQueryMetadataPublisher,
 ): readonly ReadonlyMap<string, string | undefined>[] {
@@ -805,9 +896,13 @@ SELECT TOP (${pageSize})
     s.name AS schema_name,
     o.name AS object_name,
     o.type AS object_type,
-    o.is_ms_shipped
+    o.is_ms_shipped,
+    CONVERT(nvarchar(4000), ep.value) AS object_description
 FROM sys.objects AS o${catalogReadHint(variant)}
 JOIN sys.schemas AS s${catalogReadHint(variant)} ON s.schema_id = o.schema_id
+LEFT JOIN sys.extended_properties AS ep${catalogReadHint(variant)}
+    ON ep.class = 1 AND ep.major_id = o.object_id AND ep.minor_id = 0
+    AND ep.name = N'MS_Description'
 WHERE o.object_id > ${lastObjectId}
   AND o.type IN (${objectTypeFilter()})
 ORDER BY o.object_id;`;
@@ -818,9 +913,13 @@ SELECT TOP (${pageSize})
     s.name AS schema_name,
     o.name AS object_name,
     o.type AS object_type,
-    o.is_ms_shipped
+    o.is_ms_shipped,
+    CONVERT(nvarchar(4000), ep.value) AS object_description
 FROM sys.all_objects AS o${catalogReadHint(variant)}
 JOIN sys.schemas AS s${catalogReadHint(variant)} ON s.schema_id = o.schema_id
+LEFT JOIN sys.extended_properties AS ep${catalogReadHint(variant)}
+    ON ep.class = 1 AND ep.major_id = o.object_id AND ep.minor_id = 0
+    AND ep.name = N'MS_Description'
 WHERE o.object_id > ${lastObjectId}
   AND o.type IN (${objectTypeFilter()})
 ORDER BY o.object_id;`;
@@ -838,9 +937,13 @@ SELECT TOP (${pageSize})
     s.name AS schema_name,
     o.name AS object_name,
     o.type AS object_type,
-    o.is_ms_shipped
+    o.is_ms_shipped,
+    CONVERT(nvarchar(4000), ep.value) AS object_description
 FROM ${catalog}.sys.all_objects AS o${catalogReadHint(variant)}
 JOIN ${catalog}.sys.schemas AS s${catalogReadHint(variant)} ON s.schema_id = o.schema_id
+LEFT JOIN ${catalog}.sys.extended_properties AS ep${catalogReadHint(variant)}
+    ON ep.class = 1 AND ep.major_id = o.object_id AND ep.minor_id = 0
+    AND ep.name = N'MS_Description'
 WHERE o.object_id > ${lastObjectId}
   AND o.type IN (${objectTypeFilter()})
 ORDER BY o.object_id;`;
@@ -864,6 +967,8 @@ SELECT TOP (${resultLimit})
     c.is_nullable,
     c.is_identity,
     c.is_computed,
+    COLUMNPROPERTY(c.object_id, c.name, 'IsHidden') AS is_hidden,
+    CONVERT(nvarchar(4000), ep.value) AS column_description,
     pkc.key_ordinal AS primary_key_ordinal
 FROM ${catalog}sys.all_columns AS c${catalogReadHint(variant)}
 JOIN ${catalog}sys.all_objects AS o${catalogReadHint(variant)} ON o.object_id = c.object_id
@@ -874,9 +979,39 @@ LEFT JOIN ${catalog}sys.index_columns AS pkc${catalogReadHint(variant)}
     ON pkc.object_id = pki.object_id
     AND pkc.index_id = pki.index_id
     AND pkc.column_id = c.column_id
+LEFT JOIN ${catalog}sys.extended_properties AS ep${catalogReadHint(variant)}
+    ON ep.class = 1 AND ep.major_id = c.object_id AND ep.minor_id = c.column_id
+    AND ep.name = N'MS_Description'
 WHERE o.type IN (${objectTypeFilter("columns")})
   AND c.object_id = ${objectId}
 ORDER BY c.column_id;`;
+};
+
+const foreignKeysQuery = (
+    objectId: number,
+    database: string | undefined,
+    variant: CatalogQueryVariant,
+    resultLimit: number,
+) => {
+    const catalog = database ? `${quoteIdentifier(database)}.` : "";
+    return `
+SELECT TOP (${resultLimit})
+    fk.object_id AS constraint_id,
+    fk.name AS constraint_name,
+    fk.referenced_object_id,
+    fk.update_referential_action_desc AS update_action,
+    fk.delete_referential_action_desc AS delete_action,
+    pc.name AS parent_column_name,
+    rc.name AS referenced_column_name
+FROM ${catalog}sys.foreign_keys AS fk${catalogReadHint(variant)}
+JOIN ${catalog}sys.foreign_key_columns AS fkc${catalogReadHint(variant)}
+    ON fkc.constraint_object_id = fk.object_id
+JOIN ${catalog}sys.all_columns AS pc${catalogReadHint(variant)}
+    ON pc.object_id = fkc.parent_object_id AND pc.column_id = fkc.parent_column_id
+JOIN ${catalog}sys.all_columns AS rc${catalogReadHint(variant)}
+    ON rc.object_id = fkc.referenced_object_id AND rc.column_id = fkc.referenced_column_id
+WHERE fk.parent_object_id = ${objectId}
+ORDER BY fk.object_id, fkc.constraint_column_id;`;
 };
 
 const parametersQuery = (
