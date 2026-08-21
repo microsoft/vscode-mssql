@@ -76,6 +76,7 @@ export function useFluentResultGridKeyboardController({
         };
         const clearFocusState = () => setIsGridFocused(false);
 
+        syncFocusState();
         window.addEventListener("blur", clearFocusState);
         window.addEventListener("focus", syncFocusState);
         document.addEventListener("visibilitychange", syncFocusState);

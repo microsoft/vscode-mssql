@@ -147,7 +147,14 @@ export function useFluentResultGridSlickLifecycle({
                         publishSelectionSummaryRef.current.cancel();
                         if (!shouldSuppressSelectionSummaryChangeRef.current()) {
                             onSelectionChangeRef.current?.(displaySelection);
-                            publishSelectionSummaryRef.current(selection, displaySelection);
+                            if (selection.length === 0) {
+                                void onSelectionSummaryChangeRef.current?.(
+                                    selection,
+                                    displaySelection,
+                                );
+                            } else {
+                                publishSelectionSummaryRef.current(selection, displaySelection);
+                            }
                         }
                         emitStateChange(grid);
                     },
