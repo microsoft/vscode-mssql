@@ -1,0 +1,23 @@
+-- Scalar input + two string labels
+SELECT AI_EXTRACT('text', 'spam', 'ham');
+
+-- Column input + two string labels
+SELECT AI_EXTRACT(t.text_col, 'spam', 'ham')
+FROM dbo.Texts AS t;
+
+-- Variable input + three labels
+DECLARE @s NVARCHAR(MAX) = N'Hello world';
+SELECT AI_EXTRACT(@s, 'topic', 'sentiment', 'intent');
+SELECT AI_EXTRACT('b' + 'a', 'topic', 'sentiment', 'intent');
+SELECT AI_EXTRACT(@s + 'a', 'topic', 'sentiment', 'intent');
+SELECT * FROM AI_EXTRACT((SELECT t.text_col FROM dbo.Texts AS t), 'topic', 'sentiment', 'intent');
+GO
+
+-- RETURN context
+CREATE OR ALTER FUNCTION dbo.fx(@s NVARCHAR(MAX))
+RETURNS NVARCHAR(MAX)
+AS
+BEGIN
+    RETURN (AI_EXTRACT(@s, 'labelA', 'labelB'));
+END;
+GO

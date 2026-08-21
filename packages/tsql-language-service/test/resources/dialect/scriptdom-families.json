@@ -1,0 +1,482 @@
+{
+    "schemaVersion": 1,
+    "description": "The denominator of the dialect inventory: every ScriptDOM script family relevant to Azure SQL Database, Azure SQL Managed Instance, Azure Synapse dedicated SQL pool, and Fabric Data Warehouse, with an explicit decision for each. A family is never counted as passing because no scenario names it.",
+    "source": {
+        "name": "Microsoft SQL Script DOM",
+        "path": "Test/SqlDom/TestScripts",
+        "selection": "Script names matching dw, azure, fabric, external, workload, copy, predict, materialized, ctas, distribution, federation, classifier, or resource."
+    },
+    "families": [
+        {
+            "script": "AiAnalyzeSentimentTestsFabricDW.sql",
+            "decision": "missing",
+            "scenarioPrefixes": ["fabric"],
+            "note": "Fabric Data Warehouse script family.",
+            "profiles": ["fabric-warehouse"]
+        },
+        {
+            "script": "AiClassifyTestsFabricDW.sql",
+            "decision": "missing",
+            "scenarioPrefixes": ["fabric"],
+            "note": "Fabric Data Warehouse script family.",
+            "profiles": ["fabric-warehouse"]
+        },
+        {
+            "script": "AiExtractTestsFabricDW.sql",
+            "decision": "missing",
+            "scenarioPrefixes": ["fabric"],
+            "note": "Fabric Data Warehouse script family.",
+            "profiles": ["fabric-warehouse"]
+        },
+        {
+            "script": "AiFixGrammarTestsFabricDW.sql",
+            "decision": "missing",
+            "scenarioPrefixes": ["fabric"],
+            "note": "Fabric Data Warehouse script family.",
+            "profiles": ["fabric-warehouse"]
+        },
+        {
+            "script": "AiGenerateResponseTestsFabricDW.sql",
+            "decision": "missing",
+            "scenarioPrefixes": ["fabric"],
+            "note": "Fabric Data Warehouse script family.",
+            "profiles": ["fabric-warehouse"]
+        },
+        {
+            "script": "AiSummarizeTestsFabricDW.sql",
+            "decision": "missing",
+            "scenarioPrefixes": ["fabric"],
+            "note": "Fabric Data Warehouse script family.",
+            "profiles": ["fabric-warehouse"]
+        },
+        {
+            "script": "AiTranslateTestsFabricDW.sql",
+            "decision": "covered",
+            "scenarioPrefixes": ["fabric"],
+            "note": "Fabric Data Warehouse script family.",
+            "profiles": ["fabric-warehouse"]
+        },
+        {
+            "script": "AlterCreateResourcePoolStatement120.sql",
+            "decision": "missing",
+            "scenarioPrefixes": ["sqlserver"],
+            "note": "Resource Governor is boxed-instance surface retained as the common-language control."
+        },
+        {
+            "script": "AlterDatabaseOptionsTests140_Azure.sql",
+            "decision": "covered",
+            "scenarioPrefixes": ["azure-db"],
+            "note": "Azure SQL Database script family.",
+            "profiles": ["azure-sql-database"]
+        },
+        {
+            "script": "AlterExternalDataSourceStatementTests130.sql",
+            "decision": "missing",
+            "scenarioPrefixes": ["synapse", "fabric"],
+            "note": "External data objects are shared analytics surface."
+        },
+        {
+            "script": "AlterExternalLanguage150.sql",
+            "decision": "outOfScope",
+            "scenarioPrefixes": [],
+            "note": "External libraries and languages are R/Python/Java extensibility, which no scoped profile exposes; tracked outside this runbook."
+        },
+        {
+            "script": "AlterExternalLibrary140.sql",
+            "decision": "outOfScope",
+            "scenarioPrefixes": [],
+            "note": "External libraries and languages are R/Python/Java extensibility, which no scoped profile exposes; tracked outside this runbook."
+        },
+        {
+            "script": "AlterExternalLibrary150.sql",
+            "decision": "outOfScope",
+            "scenarioPrefixes": [],
+            "note": "External libraries and languages are R/Python/Java extensibility, which no scoped profile exposes; tracked outside this runbook."
+        },
+        {
+            "script": "AlterExternalModelStatementTests170.sql",
+            "decision": "missing",
+            "scenarioPrefixes": ["azure-db", "sqlserver"],
+            "note": "External models and authentication are boxed and Azure SQL Database surface covered by the shared external inventory."
+        },
+        {
+            "script": "AlterExternalResourcePoolStatementTests130.sql",
+            "decision": "missing",
+            "scenarioPrefixes": ["sqlserver"],
+            "note": "Resource Governor is boxed-instance surface retained as the common-language control."
+        },
+        {
+            "script": "AlterResourceGovernorStatementTests.sql",
+            "decision": "missing",
+            "scenarioPrefixes": ["sqlserver"],
+            "note": "Resource Governor is boxed-instance surface retained as the common-language control."
+        },
+        {
+            "script": "AlterServerConfigurationExternalAuthenticationTests150.sql",
+            "decision": "missing",
+            "scenarioPrefixes": ["azure-db", "sqlserver"],
+            "note": "External models and authentication are boxed and Azure SQL Database surface covered by the shared external inventory."
+        },
+        {
+            "script": "AlterTableStatementTests140_Azure.sql",
+            "decision": "missing",
+            "scenarioPrefixes": ["azure-db"],
+            "note": "Azure SQL Database script family.",
+            "profiles": ["azure-sql-database"]
+        },
+        {
+            "script": "AlterWorkloadGroupStatementSqlDwTests.sql",
+            "decision": "missing",
+            "scenarioPrefixes": ["synapse"],
+            "note": "Dedicated SQL pool script family.",
+            "profiles": ["azure-synapse-dedicated"]
+        },
+        {
+            "script": "AlterWorkloadGroupStatementTests130.sql",
+            "decision": "missing",
+            "scenarioPrefixes": ["synapse", "sqlserver"],
+            "note": "Workload groups exist on both Resource Governor and the dedicated pool."
+        },
+        {
+            "script": "CloneTableTestsFabricDW.sql",
+            "decision": "covered",
+            "scenarioPrefixes": ["fabric"],
+            "note": "Fabric Data Warehouse script family.",
+            "profiles": ["fabric-warehouse"]
+        },
+        {
+            "script": "CopyCommandTestsDw.sql",
+            "decision": "covered",
+            "scenarioPrefixes": ["synapse"],
+            "note": "Dedicated SQL pool script family.",
+            "profiles": ["azure-synapse-dedicated"]
+        },
+        {
+            "script": "CreateAlterDatabaseStatementTestsAzure110.sql",
+            "decision": "covered",
+            "scenarioPrefixes": ["azure-db"],
+            "note": "Azure SQL Database script family.",
+            "profiles": ["azure-sql-database"]
+        },
+        {
+            "script": "CreateAlterDatabaseStatementTestsAzure120.sql",
+            "decision": "covered",
+            "scenarioPrefixes": ["azure-db"],
+            "note": "Azure SQL Database script family.",
+            "profiles": ["azure-sql-database"]
+        },
+        {
+            "script": "CreateAlterDropResourcePoolStatementTests.sql",
+            "decision": "missing",
+            "scenarioPrefixes": ["sqlserver"],
+            "note": "Resource Governor is boxed-instance surface retained as the common-language control."
+        },
+        {
+            "script": "CreateAlterDropWorkloadGroupStatementTests.sql",
+            "decision": "missing",
+            "scenarioPrefixes": ["synapse", "sqlserver"],
+            "note": "Workload groups exist on both Resource Governor and the dedicated pool."
+        },
+        {
+            "script": "CreateAlterExternalDataSourceTestsFabricDW.sql",
+            "decision": "covered",
+            "scenarioPrefixes": ["fabric"],
+            "note": "Fabric Data Warehouse script family.",
+            "profiles": ["fabric-warehouse"]
+        },
+        {
+            "script": "CreateAlterFederationStatementTestsAzure110.sql",
+            "decision": "missing",
+            "scenarioPrefixes": ["azure-db"],
+            "note": "Azure SQL Database script family.",
+            "profiles": ["azure-sql-database"]
+        },
+        {
+            "script": "CreateAlterResourcePoolStatementTests110.sql",
+            "decision": "missing",
+            "scenarioPrefixes": ["sqlserver"],
+            "note": "Resource Governor is boxed-instance surface retained as the common-language control."
+        },
+        {
+            "script": "CreateAlterTableClusterByTestsFabricDW.sql",
+            "decision": "covered",
+            "scenarioPrefixes": ["fabric"],
+            "note": "Fabric Data Warehouse script family.",
+            "profiles": ["fabric-warehouse"]
+        },
+        {
+            "script": "CreateAlterWorkloadGroupStatementTests110.sql",
+            "decision": "missing",
+            "scenarioPrefixes": ["synapse", "sqlserver"],
+            "note": "Workload groups exist on both Resource Governor and the dedicated pool."
+        },
+        {
+            "script": "CreateColumnStoreIndexTestsDw.sql",
+            "decision": "covered",
+            "scenarioPrefixes": ["synapse"],
+            "note": "Dedicated SQL pool script family.",
+            "profiles": ["azure-synapse-dedicated"]
+        },
+        {
+            "script": "CreateDatabaseCollateBeforeEditionTestsFabricDW.sql",
+            "decision": "covered",
+            "scenarioPrefixes": ["fabric"],
+            "note": "Fabric Data Warehouse script family.",
+            "profiles": ["fabric-warehouse"]
+        },
+        {
+            "script": "CreateExternalDataSource140.sql",
+            "decision": "missing",
+            "scenarioPrefixes": ["synapse", "fabric"],
+            "note": "External data objects are shared analytics surface."
+        },
+        {
+            "script": "CreateExternalDataSourceStatementTests130.sql",
+            "decision": "missing",
+            "scenarioPrefixes": ["synapse", "fabric"],
+            "note": "External data objects are shared analytics surface."
+        },
+        {
+            "script": "CreateExternalDataSourceStatementTests160.sql",
+            "decision": "covered",
+            "scenarioPrefixes": ["synapse", "fabric"],
+            "note": "External data objects are shared analytics surface."
+        },
+        {
+            "script": "CreateExternalFileFormatStatementTests130.sql",
+            "decision": "covered",
+            "scenarioPrefixes": ["synapse", "fabric"],
+            "note": "External data objects are shared analytics surface."
+        },
+        {
+            "script": "CreateExternalFileFormatStatementTests160.sql",
+            "decision": "missing",
+            "scenarioPrefixes": ["synapse", "fabric"],
+            "note": "External data objects are shared analytics surface."
+        },
+        {
+            "script": "CreateExternalLanguage150.sql",
+            "decision": "outOfScope",
+            "scenarioPrefixes": [],
+            "note": "External libraries and languages are R/Python/Java extensibility, which no scoped profile exposes; tracked outside this runbook."
+        },
+        {
+            "script": "CreateExternalLibrary140.sql",
+            "decision": "outOfScope",
+            "scenarioPrefixes": [],
+            "note": "External libraries and languages are R/Python/Java extensibility, which no scoped profile exposes; tracked outside this runbook."
+        },
+        {
+            "script": "CreateExternalLibrary150.sql",
+            "decision": "outOfScope",
+            "scenarioPrefixes": [],
+            "note": "External libraries and languages are R/Python/Java extensibility, which no scoped profile exposes; tracked outside this runbook."
+        },
+        {
+            "script": "CreateExternalModelStatementTests170.sql",
+            "decision": "missing",
+            "scenarioPrefixes": ["azure-db", "sqlserver"],
+            "note": "External models and authentication are boxed and Azure SQL Database surface covered by the shared external inventory."
+        },
+        {
+            "script": "CreateExternalResourcePoolStatementTests130.sql",
+            "decision": "missing",
+            "scenarioPrefixes": ["sqlserver"],
+            "note": "Resource Governor is boxed-instance surface retained as the common-language control."
+        },
+        {
+            "script": "CreateExternalTableStatementTests130.sql",
+            "decision": "covered",
+            "scenarioPrefixes": ["synapse", "fabric"],
+            "note": "External data objects are shared analytics surface."
+        },
+        {
+            "script": "CreateExternalTableStatementTests160.sql",
+            "decision": "missing",
+            "scenarioPrefixes": ["synapse", "fabric"],
+            "note": "External data objects are shared analytics surface."
+        },
+        {
+            "script": "CreateExternalTableStatementTestsFabricDW.sql",
+            "decision": "covered",
+            "scenarioPrefixes": ["fabric"],
+            "note": "Fabric Data Warehouse script family.",
+            "profiles": ["fabric-warehouse"]
+        },
+        {
+            "script": "CreateProcedureCloneTableTestsFabricDW.sql",
+            "decision": "covered",
+            "scenarioPrefixes": ["fabric"],
+            "note": "Fabric Data Warehouse script family.",
+            "profiles": ["fabric-warehouse"]
+        },
+        {
+            "script": "CreateTableTests140_Azure.sql",
+            "decision": "missing",
+            "scenarioPrefixes": ["azure-db"],
+            "note": "Azure SQL Database script family.",
+            "profiles": ["azure-sql-database"]
+        },
+        {
+            "script": "CreateUserFromExternalProvider130.sql",
+            "decision": "missing",
+            "scenarioPrefixes": ["azure-db"],
+            "note": "Microsoft Entra principals are Azure SQL Database and Managed Instance surface."
+        },
+        {
+            "script": "CreateUserFromExternalProvider160.sql",
+            "decision": "covered",
+            "scenarioPrefixes": ["azure-db"],
+            "note": "Microsoft Entra principals are Azure SQL Database and Managed Instance surface."
+        },
+        {
+            "script": "CreateWorkloadClassifierStatementSqlDwTests.sql",
+            "decision": "covered",
+            "scenarioPrefixes": ["synapse"],
+            "note": "Dedicated SQL pool script family.",
+            "profiles": ["azure-synapse-dedicated"]
+        },
+        {
+            "script": "CreateWorkloadGroupStatementSqlDwTests130.sql",
+            "decision": "covered",
+            "scenarioPrefixes": ["synapse"],
+            "note": "Dedicated SQL pool script family.",
+            "profiles": ["azure-synapse-dedicated"]
+        },
+        {
+            "script": "CreateWorkloadGroupStatementTests130.sql",
+            "decision": "missing",
+            "scenarioPrefixes": ["synapse", "sqlserver"],
+            "note": "Workload groups exist on both Resource Governor and the dedicated pool."
+        },
+        {
+            "script": "CtasStatementTests.sql",
+            "decision": "covered",
+            "scenarioPrefixes": ["synapse"],
+            "note": "CTAS and external-table CTAS are analytics-engine surface."
+        },
+        {
+            "script": "DropExternalLanguage150.sql",
+            "decision": "outOfScope",
+            "scenarioPrefixes": [],
+            "note": "External libraries and languages are R/Python/Java extensibility, which no scoped profile exposes; tracked outside this runbook."
+        },
+        {
+            "script": "DropExternalLibrary140.sql",
+            "decision": "outOfScope",
+            "scenarioPrefixes": [],
+            "note": "External libraries and languages are R/Python/Java extensibility, which no scoped profile exposes; tracked outside this runbook."
+        },
+        {
+            "script": "DropExternalModelStatementTests170.sql",
+            "decision": "missing",
+            "scenarioPrefixes": ["azure-db", "sqlserver"],
+            "note": "External models and authentication are boxed and Azure SQL Database surface covered by the shared external inventory."
+        },
+        {
+            "script": "ExternalFunctionTestsFabricDW.sql",
+            "decision": "covered",
+            "scenarioPrefixes": ["fabric"],
+            "note": "Fabric Data Warehouse script family.",
+            "profiles": ["fabric-warehouse"]
+        },
+        {
+            "script": "ExternalTableCtasStatementTests.sql",
+            "decision": "covered",
+            "scenarioPrefixes": ["synapse"],
+            "note": "CTAS and external-table CTAS are analytics-engine surface."
+        },
+        {
+            "script": "IdentityColumnTestsFabricDW.sql",
+            "decision": "covered",
+            "scenarioPrefixes": ["fabric"],
+            "note": "Fabric Data Warehouse script family.",
+            "profiles": ["fabric-warehouse"]
+        },
+        {
+            "script": "InvokeExternalApiTestsFabricDW.sql",
+            "decision": "covered",
+            "scenarioPrefixes": ["fabric"],
+            "note": "Fabric Data Warehouse script family.",
+            "profiles": ["fabric-warehouse"]
+        },
+        {
+            "script": "MaterializedViewTests130.sql",
+            "decision": "missing",
+            "scenarioPrefixes": ["synapse"],
+            "note": "Materialized views are analytics-engine surface."
+        },
+        {
+            "script": "MaterializedViewTests140.sql",
+            "decision": "missing",
+            "scenarioPrefixes": ["synapse"],
+            "note": "Materialized views are analytics-engine surface."
+        },
+        {
+            "script": "MaterializedViewTests150.sql",
+            "decision": "covered",
+            "scenarioPrefixes": ["synapse"],
+            "note": "Materialized views are analytics-engine surface."
+        },
+        {
+            "script": "MaterializedViewTests160.sql",
+            "decision": "missing",
+            "scenarioPrefixes": ["synapse"],
+            "note": "Materialized views are analytics-engine surface."
+        },
+        {
+            "script": "ModernGroupByAllTestsFabricDW.sql",
+            "decision": "covered",
+            "scenarioPrefixes": ["fabric"],
+            "note": "Fabric Data Warehouse script family.",
+            "profiles": ["fabric-warehouse"]
+        },
+        {
+            "script": "NestedCTETestsFabricDW.sql",
+            "decision": "covered",
+            "scenarioPrefixes": ["fabric"],
+            "note": "Fabric Data Warehouse script family.",
+            "profiles": ["fabric-warehouse"]
+        },
+        {
+            "script": "OrderByAllTestsFabricDW.sql",
+            "decision": "covered",
+            "scenarioPrefixes": ["fabric"],
+            "note": "Fabric Data Warehouse script family.",
+            "profiles": ["fabric-warehouse"]
+        },
+        {
+            "script": "PredictSqlDwTests.sql",
+            "decision": "covered",
+            "scenarioPrefixes": ["synapse"],
+            "note": "Dedicated SQL pool script family.",
+            "profiles": ["azure-synapse-dedicated"]
+        },
+        {
+            "script": "RestoreStatementTests140_Azure.sql",
+            "decision": "missing",
+            "scenarioPrefixes": ["azure-db"],
+            "note": "Azure SQL Database script family.",
+            "profiles": ["azure-sql-database"]
+        },
+        {
+            "script": "ScalarFunctionTestsFabricDW.sql",
+            "decision": "missing",
+            "scenarioPrefixes": ["fabric"],
+            "note": "Fabric Data Warehouse script family.",
+            "profiles": ["fabric-warehouse"]
+        },
+        {
+            "script": "SecurityStatementExternalModelTests170.sql",
+            "decision": "missing",
+            "scenarioPrefixes": ["azure-db", "sqlserver"],
+            "note": "External models and authentication are boxed and Azure SQL Database surface covered by the shared external inventory."
+        },
+        {
+            "script": "UseFederationTests110.sql",
+            "decision": "outOfScope",
+            "scenarioPrefixes": [],
+            "note": "Azure SQL Database federations were retired in 2015 and no scoped profile exposes them; the syntax still parses structurally."
+        }
+    ]
+}

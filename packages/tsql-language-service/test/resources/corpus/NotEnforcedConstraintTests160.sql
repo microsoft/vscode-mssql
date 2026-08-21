@@ -1,0 +1,26 @@
+CREATE TABLE [dbo].[t1] (
+    [c0] INT NOT NULL,
+    [c1] INT NOT NULL
+);
+
+
+GO
+ALTER TABLE [dbo].[t1]
+    ADD CONSTRAINT [PK_t1_c0] PRIMARY KEY NONCLUSTERED ([c0]) NOT ENFORCED;
+
+
+GO
+ALTER TABLE [dbo].[t1]
+    ADD CONSTRAINT [Unique_t1_c1] UNIQUE NONCLUSTERED ([c1]) NOT ENFORCED;
+
+
+GO
+CREATE TABLE [dbo].[t2] (
+    [c0] INT NOT NULL,
+    [c1] INT
+);
+
+
+GO
+ALTER TABLE [dbo].[t2]
+    ADD CONSTRAINT [FK_t2] FOREIGN KEY ([c0]) REFERENCES [dbo].[t1] ([c0]) NOT ENFORCED;

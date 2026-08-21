@@ -1,0 +1,1 @@
+﻿DROP EXTERNAL MODEL my_model1;

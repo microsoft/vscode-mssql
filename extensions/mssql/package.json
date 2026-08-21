@@ -154,6 +154,7 @@
         "@azure/storage-blob": "^12.31.0",
         "@microsoft/vscode-azext-azureauth": "^5.1.1",
         "@microsoft/vscode-azureresources-api": "^3.1.1",
+        "@vscode-mssql/tsql-language-service": "file:../../packages/tsql-language-service",
         "@xmldom/xmldom": "^0.9.10",
         "dockerode": "^4.0.9",
         "dotenv": "^16.4.5",
@@ -378,6 +379,117 @@
                 "unbalancedBracketScopes": [
                     "constant.character.bracket.sql"
                 ]
+            }
+        ],
+        "semanticTokenTypes": [
+            {
+                "id": "server",
+                "superType": "namespace",
+                "description": "%mssql.semanticTokenTypes.server.description%"
+            },
+            {
+                "id": "database",
+                "superType": "namespace",
+                "description": "%mssql.semanticTokenTypes.database.description%"
+            },
+            {
+                "id": "schema",
+                "superType": "namespace",
+                "description": "%mssql.semanticTokenTypes.schema.description%"
+            },
+            {
+                "id": "table",
+                "superType": "type",
+                "description": "%mssql.semanticTokenTypes.table.description%"
+            },
+            {
+                "id": "view",
+                "superType": "type",
+                "description": "%mssql.semanticTokenTypes.view.description%"
+            },
+            {
+                "id": "temporaryTable",
+                "superType": "type",
+                "description": "%mssql.semanticTokenTypes.temporaryTable.description%"
+            },
+            {
+                "id": "commonTableExpression",
+                "superType": "type",
+                "description": "%mssql.semanticTokenTypes.commonTableExpression.description%"
+            },
+            {
+                "id": "column",
+                "superType": "property",
+                "description": "%mssql.semanticTokenTypes.column.description%"
+            },
+            {
+                "id": "procedure",
+                "superType": "function",
+                "description": "%mssql.semanticTokenTypes.procedure.description%"
+            },
+            {
+                "id": "alias",
+                "superType": "variable",
+                "description": "%mssql.semanticTokenTypes.alias.description%"
+            },
+            {
+                "id": "identifier",
+                "description": "%mssql.semanticTokenTypes.identifier.description%"
+            }
+        ],
+        "semanticTokenModifiers": [
+            {
+                "id": "write",
+                "description": "%mssql.semanticTokenModifiers.write.description%"
+            },
+            {
+                "id": "system",
+                "description": "%mssql.semanticTokenModifiers.system.description%"
+            },
+            {
+                "id": "quoted",
+                "description": "%mssql.semanticTokenModifiers.quoted.description%"
+            },
+            {
+                "id": "temporary",
+                "description": "%mssql.semanticTokenModifiers.temporary.description%"
+            }
+        ],
+        "semanticTokenScopes": [
+            {
+                "language": "sql",
+                "scopes": {
+                    "alias": [
+                        "variable.other"
+                    ],
+                    "column": [
+                        "variable.other.property"
+                    ],
+                    "commonTableExpression": [
+                        "entity.name.type"
+                    ],
+                    "database": [
+                        "entity.name.namespace"
+                    ],
+                    "procedure": [
+                        "entity.name.function"
+                    ],
+                    "schema": [
+                        "entity.name.namespace"
+                    ],
+                    "server": [
+                        "entity.name.namespace"
+                    ],
+                    "table": [
+                        "entity.name.type"
+                    ],
+                    "temporaryTable": [
+                        "entity.name.type"
+                    ],
+                    "view": [
+                        "entity.name.type"
+                    ]
+                }
             }
         ],
         "snippets": [
@@ -1758,6 +1870,18 @@
                 "command": "mssql.openInMssqlExtensionFromAzureResources",
                 "title": "%mssql.openInMssqlExtensionFromAzureResources%",
                 "category": "MS SQL"
+            },
+            {
+                "command": "mssql.preview.showLanguageServiceStats",
+                "title": "%mssql.preview.showLanguageServiceStats%",
+                "category": "MS SQL",
+                "enablement": "config.mssql.preview.languageService"
+            },
+            {
+                "command": "mssql.preview.refreshLanguageServiceMetadata",
+                "title": "%mssql.preview.refreshLanguageServiceMetadata%",
+                "category": "MS SQL",
+                "enablement": "config.mssql.preview.languageService"
             }
         ],
         "keybindings": [
@@ -1818,6 +1942,18 @@
                     "default": true,
                     "description": "%mssql.preview.betaExecutionPlan.description%",
                     "scope": "application"
+                },
+                "mssql.preview.languageService": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "%mssql.preview.languageService.description%",
+                    "scope": "window"
+                },
+                "mssql.preview.languageServiceStatsCodeLens": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "%mssql.preview.languageServiceStatsCodeLens.description%",
+                    "scope": "window"
                 },
                 "mssql.preview.useVscodeAccountsForEntraMFA": {
                     "type": [

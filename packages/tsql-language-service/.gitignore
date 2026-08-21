@@ -1,0 +1,9 @@
+dist/
+node_modules/
+benchmarks/generated/
+benchmarks/results/
+benchmarks/dotnet/bin/
+benchmarks/dotnet/obj/
+.eslintcache
+*.tsbuildinfo
+.env

@@ -1,0 +1,33 @@
+ALTER EXTERNAL DATA SOURCE eds1 SET LOCATION = 'someServerLocation';
+
+ALTER EXTERNAL DATA SOURCE eds2 SET RESOURCE_MANAGER_LOCATION = 'someResourceManagerLocation';
+
+ALTER EXTERNAL DATA SOURCE eds3 SET CREDENTIAL = cred1;
+
+ALTER EXTERNAL DATA SOURCE eds4 SET DATABASE_NAME = 'someShardMapName';
+
+ALTER EXTERNAL DATA SOURCE eds5 SET SHARD_MAP_NAME = 'someShardMapName';
+
+ALTER EXTERNAL DATA SOURCE eds6 SET LOCATION = 'someServerLocation', RESOURCE_MANAGER_LOCATION = 'someResourceManagerLocation';
+
+ALTER EXTERNAL DATA SOURCE eds7 SET LOCATION = 'someServerLocation', CREDENTIAL = cred1;
+
+ALTER EXTERNAL DATA SOURCE eds8 SET LOCATION = 'someServerLocation', RESOURCE_MANAGER_LOCATION = 'someResourceManagerLocation', CREDENTIAL = cred1;
+
+ALTER EXTERNAL DATA SOURCE eds9 SET LOCATION = 'someServerLocation', CREDENTIAL = cred1, RESOURCE_MANAGER_LOCATION = 'someResourceManagerLocation';
+
+ALTER EXTERNAL DATA SOURCE eds10 SET LOCATION = 'someServerLocation', CREDENTIAL = cred1, DATABASE_NAME = 'someDatabaseName', SHARD_MAP_NAME = 'someShardMapName';
+
+ALTER EXTERNAL DATA SOURCE eds11 SET LOCATION = 'someServerLocation', CREDENTIAL = cred1, SHARD_MAP_NAME = 'someShardMapName', DATABASE_NAME = 'someDatabaseName';
+
+ALTER EXTERNAL DATA SOURCE eds12 SET LOCATION = 'someServerLocation', DATABASE_NAME = 'someDatabaseName', CREDENTIAL = cred1, SHARD_MAP_NAME = 'someShardMapName';
+
+ALTER EXTERNAL DATA SOURCE eds13 SET LOCATION = 'someServerLocation', DATABASE_NAME = 'someDatabaseName', SHARD_MAP_NAME = 'someShardMapName', CREDENTIAL = cred1;
+
+ALTER EXTERNAL DATA SOURCE eds14 SET LOCATION = 'someServerLocation', SHARD_MAP_NAME = 'someShardMapName', CREDENTIAL = cred1, DATABASE_NAME = 'someDatabaseName';
+
+ALTER EXTERNAL DATA SOURCE eds15 SET LOCATION = 'someServerLocation', SHARD_MAP_NAME = 'someShardMapName', DATABASE_NAME = 'someDatabaseName', CREDENTIAL = cred1;
+
+ALTER EXTERNAL DATA SOURCE eds16 SET LOCATION = 'someServerLocation', DATABASE_NAME = 'someDatabaseName', CREDENTIAL = cred1;
+
+ALTER EXTERNAL DATA SOURCE eds17 SET LOCATION = 'someServerLocation', CREDENTIAL = cred1, DATABASE_NAME = 'someDatabaseName';

@@ -21,6 +21,33 @@
     "Remove": "Remove",
     "Port must be a number between 1 and 65535": "Port must be a number between 1 and 65535",
     "SQL Tools (MSSQL)": "SQL Tools (MSSQL)",
+    "Enable the T-SQL Language Service preview setting first.": "Enable the T-SQL Language Service preview setting first.",
+    "Open a SQL editor to refresh language service metadata.": "Open a SQL editor to refresh language service metadata.",
+    "Connect this SQL editor before refreshing metadata.": "Connect this SQL editor before refreshing metadata.",
+    "T-SQL language service metadata refreshed in {0} ms./{0} is the metadata refresh duration in milliseconds": {
+        "message": "T-SQL language service metadata refreshed in {0} ms.",
+        "comment": ["{0} is the metadata refresh duration in milliseconds"]
+    },
+    "T-SQL language service metadata refresh failed: {0}/{0} is the metadata refresh error message": {
+        "message": "T-SQL language service metadata refresh failed: {0}",
+        "comment": ["{0} is the metadata refresh error message"]
+    },
+    "Open a SQL editor to inspect language service status.": "Open a SQL editor to inspect language service status.",
+    "Open detailed T-SQL language service status": "Open detailed T-SQL language service status",
+    "$(loading~spin) T-SQL preview: initializing": "$(loading~spin) T-SQL preview: initializing",
+    "metadata failed": "metadata failed",
+    "metadata loading": "metadata loading",
+    "metadata offline": "metadata offline",
+    "metadata ready": "metadata ready",
+    "metadata pending": "metadata pending",
+    "$(pulse) T-SQL preview: parse {0} ms | bind {1} ms | {2}/{0} is parse time in milliseconds{1} is semantic binding time in milliseconds{2} is localized metadata readiness status": {
+        "message": "$(pulse) T-SQL preview: parse {0} ms | bind {1} ms | {2}",
+        "comment": [
+            "{0} is parse time in milliseconds",
+            "{1} is semantic binding time in milliseconds",
+            "{2} is localized metadata readiness status"
+        ]
+    },
     "Create Database": "Create Database",
     "Drop Database": "Drop Database",
     "Rename Database": "Rename Database",
@@ -1859,6 +1886,86 @@
         "comment": ["{0} is the error message returned from the import helper."]
     },
     "This connection's group has not been selected, so this connection will be imported to the root.": "This connection's group has not been selected, so this connection will be imported to the root.",
+    "T-SQL preview stats: {0}/{0} is the name of the SQL file the statistics describe": {
+        "message": "T-SQL preview stats: {0}",
+        "comment": ["{0} is the name of the SQL file the statistics describe"]
+    },
+    "Overview": "Overview",
+    "Metadata": "Metadata",
+    "Requests": "Requests",
+    "Pipeline": "Pipeline",
+    "Parse": "Parse",
+    "Bind": "Bind",
+    "Diagnostics": "Diagnostics",
+    "Not measured yet": "Not measured yet",
+    "The preview language service is turned off for this document.": "The preview language service is turned off for this document.",
+    "This document has not been analysed yet. Statistics appear after the first parse.": "This document has not been analysed yet. Statistics appear after the first parse.",
+    "{0} parse, {1} changed ranges/{0} is full or incremental{1} is a count of changed text ranges": {
+        "message": "{0} parse, {1} changed ranges",
+        "comment": ["{0} is full or incremental", "{1} is a count of changed text ranges"]
+    },
+    "{0} of {1} statements rebound/{0} and {1} are counts of statements": {
+        "message": "{0} of {1} statements rebound",
+        "comment": ["{0} and {1} are counts of statements"]
+    },
+    "{0} errors, {1} warnings, {2} hints/{0}, {1} and {2} are counts of diagnostics": {
+        "message": "{0} errors, {1} warnings, {2} hints",
+        "comment": ["{0}, {1} and {2} are counts of diagnostics"]
+    },
+    "Fetch log": "Fetch log",
+    "Catalog queries this document caused. Schemas and objects load when a database comes into scope; columns, parameters and definitions load per object, the first time a request needs them.": "Catalog queries this document caused. Schemas and objects load when a database comes into scope; columns, parameters and definitions load per object, the first time a request needs them.",
+    "Databases": "Databases",
+    "Metadata reloads": "Metadata reloads",
+    "What caused metadata to be reloaded, and how long each reload took.": "What caused metadata to be reloaded, and how long each reload took.",
+    "Time loading metadata": "Time loading metadata",
+    "Answered from memory": "Answered from memory",
+    "Loading now": "Loading now",
+    "Slowest fetch": "Slowest fetch",
+    "Time": "Time",
+    "Kind": "Kind",
+    "Scope": "Scope",
+    "Duration": "Duration",
+    "Rows": "Rows",
+    "Source": "Source",
+    "Trigger": "Trigger",
+    "Effect": "Effect",
+    "Reload time": "Reload time",
+    "Memory": "Memory",
+    "Empty": "Empty",
+    "Cancelled": "Cancelled",
+    "This document has not loaded any metadata yet.": "This document has not loaded any metadata yet.",
+    "No language feature requests have been measured yet.": "No language feature requests have been measured yet.",
+    "Request": "Request",
+    "Count": "Count",
+    "Median": "Median",
+    "p95": "p95",
+    "Discarded": "Discarded",
+    "Results computed against a document version the editor had already moved past. These are caught before they reach the editor.": "Results computed against a document version the editor had already moved past. These are caught before they reach the editor.",
+    "Measured since this document was opened. Cancellation is not counted here: a cancelled request is one the editor abandoned, which this layer cannot observe.": "Measured since this document was opened. Cancellation is not counted here: a cancelled request is one the editor abandoned, which this layer cannot observe.",
+    "{0} fetches across {1} databases/{0} is a count of fetches{1} is a count of databases": {
+        "message": "{0} fetches across {1} databases",
+        "comment": ["{0} is a count of fetches", "{1} is a count of databases"]
+    },
+    "{0} from memory, {1} from the server/{0} and {1} are counts of catalog fetches": {
+        "message": "{0} from memory, {1} from the server",
+        "comment": ["{0} and {1} are counts of catalog fetches"]
+    },
+    "Export debug log": "Export debug log",
+    "Include names and SQL": "Include names and SQL",
+    "Database names, object names and SQL text. Off by default because exported logs are usually attached to bug reports.": "Database names, object names and SQL text. Off by default because exported logs are usually attached to bug reports.",
+    "Language service statistics copied to the clipboard": "Language service statistics copied to the clipboard",
+    "Export": "Export",
+    "There are no statistics to export yet.": "There are no statistics to export yet.",
+    "Language service statistics exported to {0}/{0} is a file path": {
+        "message": "Language service statistics exported to {0}",
+        "comment": ["{0} is a file path"]
+    },
+    "Query": "Query",
+    "This provider does not record a fetch log.": "This provider does not record a fetch log.",
+    "{0} ms/{0} is a duration in milliseconds": {
+        "message": "{0} ms",
+        "comment": ["{0} is a duration in milliseconds"]
+    },
     "MSSQL: Welcome & What's New": "MSSQL: Welcome & What's New",
     "Try it": "Try it",
     "Watch demo": "Watch demo",
@@ -2568,7 +2675,6 @@
     "Toggle actual execution plan collection for SQL queries": "Toggle actual execution plan collection for SQL queries",
     "Copy all query result content": "Copy all query result content",
     "Show or hide the query result panel": "Show or hide the query result panel",
-    "Query": "Query",
     "Shortcut": "Shortcut",
     "Keybinding": "Keybinding",
     "Clear Quick Query": "Clear Quick Query",
@@ -2991,10 +3097,7 @@
     },
     "No rows affected": "No rows affected",
     "Selected": "Selected",
-    "Rows": "Rows",
-    "Time": "Time",
     "No selection": "No selection",
-    "Count": "Count",
     "Avg": "Avg",
     "Sum": "Sum",
     "Min": "Min",
@@ -3070,7 +3173,6 @@
     },
     "Source Column": "Source Column",
     "Target Table": "Target Table",
-    "Export": "Export",
     "Add Table": "Add Table",
     "Auto Arrange": "Auto Arrange",
     "Auto Arrange Confirmation": "Auto Arrange Confirmation",
@@ -3487,7 +3589,6 @@
     "Optional - Override default GraphQL singular type name": "Optional - Override default GraphQL singular type name",
     "Custom GraphQL Plural Type": "Custom GraphQL Plural Type",
     "Optional - Override default GraphQL plural type name": "Optional - Override default GraphQL plural type name",
-    "Source": "Source",
     "Source: {0}/{0} is the fully qualified DAB source object name": {
         "message": "Source: {0}",
         "comment": ["{0} is the fully qualified DAB source object name"]
@@ -4157,6 +4258,18 @@
         "message": "{0} settings imported",
         "comment": ["{0} is the number of settings imported (plural)"]
     },
+    "{0} parse, {1} changed ranges/{0} is the parse mode, full or incremental{1} is a count of changed text ranges": {
+        "message": "{0} parse, {1} changed ranges",
+        "comment": [
+            "{0} is the parse mode, full or incremental",
+            "{1} is a count of changed text ranges"
+        ]
+    },
+    "{0} still loading/{0} is a count of catalog fetches currently in flight": {
+        "message": "{0} still loading",
+        "comment": ["{0} is a count of catalog fetches currently in flight"]
+    },
+    "Copy the debug log to the clipboard": "Copy the debug log to the clipboard",
     "MSSQL: What's new": "MSSQL: What's new",
     "MSSQL extension icon": "MSSQL extension icon",
     "New to MSSQL extension? Check out our quick-start guide.": "New to MSSQL extension? Check out our quick-start guide.",

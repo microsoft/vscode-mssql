@@ -3038,6 +3038,10 @@ export default class MainController implements vscode.Disposable {
         return this._statusview;
     }
 
+    public get scriptingService(): ScriptingService {
+        return this._scriptingService;
+    }
+
     public get sqlDocumentService(): SqlDocumentService {
         return this._sqlDocumentService;
     }

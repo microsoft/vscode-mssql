@@ -15,3 +15,6 @@ sqltoolsservice/
 
 # Package lock files
 package-lock.json
+
+# Generated Lezer parser (checked in; bytes must match the build stamp in grammar-build.json)
+packages/tsql-language-service/src/syntax/lezer/generated/

@@ -1,0 +1,4063 @@
+// A script is a sequence of SQL Server batches separated by line-leading GO commands.
+@top Script { Batch (BatchSeparator Batch)* }
+
+// An expression top rule supports nested condition parsing in procedural statements.
+@top ExpressionRoot { Expression }
+
+// A dedicated top rule parses the contents of a statement-leading grouped-query token. Keeping
+// this out of Statement avoids making `(` a global statement starter during error recovery.
+@top GroupedQueryRoot { GroupedSelectStatement }
+
+// A batch owns statement boundaries so recovery cannot create statements across GO. SQL Server
+// also permits one procedure invocation without EXEC when it is the first statement in a batch.
+Batch {
+  ImplicitExecuteStatement statementSequence
+  | statementSequence
+}
+
+// The implicit form is intentionally batch-leading; it is not included in Statement, so an
+// identifier appearing after another statement cannot silently become an EXECUTE fallback.
+ImplicitExecuteStatement { MultipartIdentifier ExecuteArgumentList? }
+
+// A statement sequence is shared by batches, blocks, and programmable-object bodies.
+statementSequence { (Semicolon | Statement)* }
+
+// A batch separator recognizes SQL client GO commands only when the external lexer marks them.
+BatchSeparator { Go IntegerLiteral? }
+
+// A statement selects one explicitly supported T-SQL statement family.
+Statement {
+  SelectStatement
+  | GroupedQueryStatement
+  | InsertStatement
+  | UpdateStatement
+  | DeleteStatement
+  | MergeStatement
+  | ExecuteStatement
+  | CreateTableStatement
+  | AlterTableStatement
+  | DropTableStatement
+  | CreateIndexStatement
+  | CreateJsonIndexStatement
+  | CreateVectorIndexStatement
+  | CreateSemanticIndexStatement
+  | AlterIndexStatement
+  | DropIndexStatement
+  | CreateStatisticsStatement
+  | UpdateStatisticsStatement
+  | DropStatisticsStatement
+  | RuleDefaultStatement
+  | SecurityPolicyStatement
+  | CreateViewStatement
+  | AlterViewStatement
+  | CreateMaterializedViewStatement
+  | AlterMaterializedViewStatement
+  | DropViewStatement
+  | CreateSynonymStatement
+  | DropSynonymStatement
+  | CreateTypeStatement
+  | DropTypeStatement
+  | CreateSequenceStatement
+  | AlterSequenceStatement
+  | DropSequenceStatement
+  | CreateProcedureStatement
+  | AlterProcedureStatement
+  | DropProcedureStatement
+  | CreateFunctionStatement
+  | AlterFunctionStatement
+  | DropFunctionStatement
+  | CreateTriggerStatement
+  | AlterTriggerStatement
+  | DropTriggerStatement
+  | EnableDisableTriggerStatement
+  | CursorLifecycleStatement
+  | DatabaseEncryptionKeyStatement
+  | CreateDatabaseStatement
+  | AlterDatabaseStatement
+  | DropDatabaseStatement
+  | RenameObjectStatement
+  | CreateSchemaStatement
+  | AlterSchemaStatement
+  | DropSchemaStatement
+  | CreatePrincipalStatement
+  | AlterPrincipalStatement
+  | DropPrincipalStatement
+  | DropSpecialObjectStatement
+  | RemoteServiceBindingStatement
+  | FederationStatement
+  | CryptographicProviderStatement
+  | LegacyDiskStatement
+  | RouteStatement
+  | ApplicationRoleStatement
+  | SignatureStatement
+  | DataClassificationStatement
+  | PermissionStatement
+  | AlterAuthorizationStatement
+  | CreateExternalTableStatement
+  | DropExternalTableStatement
+  | CreateExternalDataSourceStatement
+  | AlterExternalDataSourceStatement
+  | DropExternalDataSourceStatement
+  | CreateExternalFileFormatStatement
+  | DropExternalFileFormatStatement
+  | CreateExternalStreamStatement
+  | DropExternalStreamStatement
+  | CreateExternalModelStatement
+  | AlterExternalModelStatement
+  | DropExternalModelStatement
+  | ExternalLibraryStatement
+  | ExternalLanguageStatement
+  | CreatePartitionFunctionStatement
+  | AlterPartitionFunctionStatement
+  | DropPartitionFunctionStatement
+  | CreatePartitionSchemeStatement
+  | AlterPartitionSchemeStatement
+  | DropPartitionSchemeStatement
+  | BackupStatement
+  | RestoreStatement
+  | BulkInsertStatement
+  | CopyIntoStatement
+  | InsertBulkStatement
+  | LegacyTextStatement
+  | DbccStatement
+  | CreateCertificateStatement
+  | AlterCertificateStatement
+  | DropCertificateStatement
+  | MasterKeyStatement
+  | SymmetricKeyStatement
+  | AsymmetricKeyStatement
+  | AssemblyStatement
+  | AggregateStatement
+  | CredentialStatement
+  | XmlSchemaCollectionStatement
+  | MessageTypeStatement
+  | ContractStatement
+  | BrokerPriorityStatement
+  | BeginDialogStatement
+  | BeginConversationTimerStatement
+  | GetConversationGroupStatement
+  | MoveConversationStatement
+  | EndConversationStatement
+  | SendStatement
+  | ReceiveStatement
+  | QueueStatement
+  | ServiceStatement
+  | EndpointStatement
+  | AvailabilityGroupStatement
+  | AuditStatement
+  | CreateEventSessionStatement
+  | AlterEventSessionStatement
+  | DropEventSessionStatement
+  | CreateEventNotificationStatement
+  | DropEventNotificationStatement
+  | ServerConfigurationStatement
+  | DatabaseScopedConfigurationStatement
+  | ResourceGovernorStatement
+  | ResourcePoolStatement
+  | WorkloadGroupStatement
+  | WorkloadClassifierStatement
+  | ColumnMasterKeyStatement
+  | ColumnEncryptionKeyStatement
+  | XmlIndexStatement
+  | SpatialIndexStatement
+  | FullTextStatement
+  | DeclareStatement
+  | SetStatement
+  | ProceduralStatement
+  | BreakStatement
+  | ContinueStatement
+  | GotoStatement
+  | LabelStatement
+  | ReturnStatement
+  | PrintStatement
+  | ThrowStatement
+  | RaiserrorStatement
+  | BeginTransactionStatement
+  | CommitTransactionStatement
+  | RollbackTransactionStatement
+  | SaveTransactionStatement
+  | ExecuteAsStatement
+  | RevertStatement
+  | KeyAccessStatement
+  | UseStatement
+  | TruncateTableStatement
+  | CheckpointStatement
+  | KillStatement
+  | ReconfigureStatement
+  | ShutdownStatement
+  | SetUserStatement
+  | LinenoStatement
+  }
+
+// SETUSER impersonates a database user; the bare form reverts to the original user. WITH NORESET
+// is a statement-level tail, so it goes through optionalDdlTail rather than a trailing optional --
+// WITH also starts a CTE statement, which would otherwise be a shift/reduce conflict.
+SetUserStatement {
+  Setuser
+  | Setuser (Variable | StringLiteral) optionalDdlTail<SetUserNoresetClause>
+}
+SetUserNoresetClause { With Noreset }
+
+// LINENO sets the line number the next statement reports.
+LinenoStatement { Lineno IntegerLiteral }
+
+// Cursor lifecycle statements open, fetch, close, and deallocate a declared cursor.
+CursorLifecycleStatement {
+  Open (Global? IdentifierName | Variable)
+  | Fetch FetchOrientation? From? (Global? IdentifierName | Variable) (Into Variable (Comma Variable)*)?
+  | Close (Global? IdentifierName | Variable)
+  | Deallocate (Global? IdentifierName | Variable)
+}
+FetchOrientation { Next | Prior | First | Last | Absolute Expression | Relative Expression }
+
+// CREATE DATABASE keeps the documented ordering of copy, containment, storage, collation,
+// attach/snapshot, and WITH clauses while allowing Azure service-tier options in their two slots.
+CreateDatabaseStatement {
+  Create Database IdentifierName optionalDdlTail<CreateDatabaseBody>
+}
+// Each clause remains a named node. Duplicate and ordering validation belongs to the semantic
+// validation pass, which avoids an exponential parser state matrix for equivalent platform forms.
+CreateDatabaseBody { CreateDatabaseClause CreateDatabaseClauseTail }
+CreateDatabaseClauseTail {
+  ~createDatabaseClauseTail ()
+  | ~createDatabaseClauseTail CreateDatabaseBody
+}
+CreateDatabaseClause {
+  As Copy Of MultipartIdentifier OptionalAzureDatabaseOptions
+  | AzureDatabaseOptions
+  | DatabaseContainmentClause
+  | DatabaseFileClause
+  | DatabaseLogClause
+  | DatabaseCollationClause
+  | CreateDatabaseAddendum
+  | DatabaseWithClause
+}
+OptionalAzureDatabaseOptions {
+  ~azureDatabaseOptions ()
+  | ~azureDatabaseOptions AzureDatabaseOptions
+}
+DatabaseContainmentClause { Containment Equal (None | Partial) }
+// A collation name is a named node everywhere it appears so it can be validated once.
+CollateClause { Collate IdentifierName }
+// Expression collation can be followed by another CLR/UDT property. Keep this continuation local
+// to expressions so DDL collation clauses do not accidentally accept dotted suffixes.
+expressionCollateClause { CollateClause (UdtDataMemberCall expressionCollateClause?)? }
+DatabaseCollationClause { CollateClause }
+CreateDatabaseAddendum { For IdentifierName | As Snapshot Of MultipartIdentifier }
+
+// ALTER DATABASE separates file mutations from option-state transitions and their rollback policy.
+AlterDatabaseStatement { Alter Database (IdentifierName | Current) AlterDatabaseAction }
+DropDatabaseStatement { Drop Database IfExistsClause? IdentifierName (Comma IdentifierName)* }
+
+// Dedicated-pool RENAME OBJECT changes a table name and permits the documented optional :: marker.
+RenameObjectStatement { Rename Object DoubleColon? MultipartIdentifier To IdentifierName }
+DatabaseFileClause { On DatabaseFileItem (Comma DatabaseFileItem)* }
+DatabaseFileItem {
+  (Primary | Filegroup IdentifierName DatabaseFilegroupModifier*)? FileDefinition
+}
+DatabaseFilegroupModifier { Contains IdentifierName | Default }
+
+// Every action that reaches a database's files or filegroups is one node, so an engine without a
+// file surface reports the whole action once instead of reporting a nested definition.
+DatabaseFileAction {
+  Add Log? File FileDefinition (Comma FileDefinition)* (To Filegroup IdentifierName)?
+  | Add Filegroup IdentifierName DatabaseFilegroupModifier*
+  | Remove (File | Filegroup) IdentifierName
+  | Modify File FileDefinition
+  | Modify Filegroup IdentifierName DatabaseFilegroupChange OptionalDatabaseTermination
+}
+DatabaseLogClause { Log On FileDefinition (Comma FileDefinition)* }
+FileDefinition { OpenParen FileOption (Comma FileOption)* CloseParen }
+// File assignments preserve SQL Server size units, percentage growth, UNLIMITED, and ALTER-only
+// NEWNAME/OFFLINE forms without treating the contents as a general SQL expression list.
+FileOption {
+  Offline
+  | FileOptionName Equal FileOptionValue
+}
+FileOptionName { Name | FileName | Size | MaxSize | FileGrowth | IdentifierName }
+FileOptionValue { Literal (IdentifierName | PercentSign)? | IdentifierName }
+
+DatabaseWithClause { With DatabaseOptionList }
+DatabaseOptionList { DatabaseOption (Comma DatabaseOption)* }
+// Database options are recursively bounded because QUERY_STORE, FILESTREAM, change tracking, and
+// automatic tuning contain nested assignment lists rather than arbitrary statement text.
+DatabaseOption {
+  Hadr HadrDatabaseOption
+  | DatabaseOptionName OptionalDatabaseOptionTail
+}
+DatabaseOptionName { IdentifierName | Containment | Encryption | FileStream }
+OptionalDatabaseOptionTail {
+  ~databaseOptionTail ()
+  | ~databaseOptionTail DatabaseOptionTail
+}
+DatabaseOptionTail {
+  Equal? DatabaseOptionValue OptionalDatabaseOptionContinuation All? OptionalDatabaseOptionArguments
+  | Equal? DatabaseOptionArguments
+}
+OptionalDatabaseOptionContinuation {
+  ~databaseOptionContinuation ()
+  | ~databaseOptionContinuation DatabaseOptionValue
+}
+HadrDatabaseOption { IdentifierName | Availability Group Equal IdentifierName }
+OptionalDatabaseOptionArguments {
+  ~databaseOptionArguments ()
+  | ~databaseOptionArguments DatabaseOptionArguments
+}
+// SQL Server database options nest at most through an option group and one leaf group (for example
+// QUERY_STORE(CLEANUP_POLICY=(...))). Keeping those levels explicit avoids an unbounded LR cycle.
+DatabaseOptionArguments { OpenParen DatabaseNestedOptionList? CloseParen }
+DatabaseNestedOptionList { DatabaseNestedOption (Comma DatabaseNestedOption)* }
+DatabaseNestedOption { DatabaseOptionName OptionalDatabaseNestedOptionTail }
+OptionalDatabaseNestedOptionTail {
+  ~databaseNestedOptionTail ()
+  | ~databaseNestedOptionTail DatabaseNestedOptionTail
+}
+DatabaseNestedOptionTail {
+  Equal? DatabaseOptionValue OptionalDatabaseOptionContinuation
+  | Equal? DatabaseLeafOptionArguments
+}
+DatabaseLeafOptionArguments { OpenParen DatabaseLeafOptionList? CloseParen }
+DatabaseLeafOptionList { DatabaseLeafOption (Comma DatabaseLeafOption)* }
+DatabaseLeafOption { DatabaseOptionName OptionalDatabaseLeafOptionTail }
+OptionalDatabaseLeafOptionTail {
+  ~databaseLeafOptionTail ()
+  | ~databaseLeafOptionTail DatabaseLeafOptionTail
+}
+DatabaseLeafOptionTail {
+  Equal? DatabaseOptionValue OptionalDatabaseOptionContinuation
+}
+
+// Azure SQL database options use a parenthesized service-tier assignment list.
+AzureDatabaseOptions {
+  OpenParen AzureDatabaseOption (Comma AzureDatabaseOption)* CloseParen
+}
+AzureDatabaseOption { IdentifierName Equal AzureDatabaseOptionValue }
+AzureDatabaseOptionValue {
+  ~azureOption IdentifierName OpenParen AzureDatabaseOption (Comma AzureDatabaseOption)* CloseParen
+  | ~azureOption OptionValue
+}
+
+// Values cover reserved state words plus literals and non-reserved option identifiers.
+DatabaseOptionValue {
+  IdentifierName | Literal | On | Off | Full | Simple | BulkLogged | All | Auto
+  | ReadOnly | Read | User | Plus IntegerLiteral | Minus IntegerLiteral
+}
+AlterDatabaseAction {
+  DatabaseFileAction
+  | Modify AzureDatabaseOptions OptionalDatabaseManualCutoverClause
+  | Modify Name Equal IdentifierName
+  | Set DatabaseOptionList OptionalDatabaseTermination
+  | CollateClause
+  | Rebuild Log (On FileDefinition)?
+  | PerformCutover
+}
+OptionalDatabaseManualCutoverClause {
+  ~databaseManualCutover ()
+  | ~databaseManualCutover DatabaseManualCutoverClause
+}
+DatabaseManualCutoverClause { With IdentifierName }
+DatabaseFilegroupChange { Name Equal IdentifierName | Default | IdentifierName }
+OptionalDatabaseTermination {
+  ~databaseTermination ()
+  | ~databaseTermination DatabaseTermination
+}
+DatabaseTermination {
+  With (Rollback (After Expression IdentifierName? | Immediate) | Nowait)
+}
+
+// Schema lifecycle statements support ownership and object transfer.
+// CREATE SCHEMA carries a name, an AUTHORIZATION owner, or both; requiring at least one of them is
+// a validation rule so the empty header keeps a schema statement instead of becoming recovery.
+// The header may be followed by schema elements, which carry no statement terminator of their own.
+// SQL Server absorbs them greedily, so the element shift wins over ending the schema statement.
+CreateSchemaStatement {
+  Create Schema IdentifierName? (Authorization IdentifierName)? SchemaElement*
+}
+// SQL Server allows exactly these object and permission statements inside a CREATE SCHEMA header.
+// The marker gives the element shift priority over ending the schema statement before it.
+SchemaElement { !schemaElement (CreateTableStatement | CreateViewStatement | PermissionStatement) }
+// A transferred object may name its securable class, as in TRANSFER xml schema collection::c1.
+AlterSchemaStatement {
+  Alter Schema IdentifierName Transfer (SecurableClass DoubleColon)? MultipartIdentifier
+}
+// DROP SCHEMA retains legacy CASCADE/RESTRICT and multipart error-recovery shapes structurally.
+DropSchemaStatement { Drop Schema IfExistsClause? MultipartIdentifier (Cascade | Restrict)? }
+
+// Principal DDL dispatches to syntax specific to logins, database users, and roles.
+CreatePrincipalStatement {
+  Create (
+    Login IdentifierName LoginCreationClause
+    | User IdentifierName optionalDdlTail<UserCreationClause>
+    | Role IdentifierName (Authorization IdentifierName)?
+    | Server Role IdentifierName (Authorization IdentifierName)?
+  )
+}
+AlterPrincipalStatement {
+  Alter (
+    Login IdentifierName AlterLoginClause
+    | User IdentifierName PrincipalOptionClause
+    | Role IdentifierName ((Add | Drop) Member IdentifierName | With Name Equal IdentifierName)
+    | Server Role IdentifierName
+      ((Add | Drop) Member IdentifierName | With Name Equal IdentifierName)
+  )
+}
+DropPrincipalStatement {
+  Drop (Login | User | Role | Server Role) IfExistsClause? IdentifierName (Comma IdentifierName)*
+}
+
+// Less common named objects retain their multiword DROP prefixes and exact object names.
+DropSpecialObjectStatement {
+  Drop Application Role IdentifierName
+  | Drop Remote Service Binding IdentifierName
+  | Drop Route IdentifierName
+}
+
+// DISK INIT and DISK RESIZE are the pre-7.0 device statements. Their options are ordinary named
+// assignments, so the bounded generic option list models them without a dedicated vocabulary.
+LegacyDiskStatement { Disk (Init | Resize) GenericOptionList }
+
+// A route names the network address that Service Broker uses to reach a remote service.
+RouteStatement {
+  (Create | Alter) Route IdentifierName (Authorization IdentifierName)? With GenericOptionList
+}
+
+// An application role carries a password and an optional default schema.
+ApplicationRoleStatement {
+  (Create | Alter) Application Role IdentifierName With ApplicationRoleOption
+    (Comma ApplicationRoleOption)*
+}
+// Application-role options use a small generic name/value family; LOGIN is contextual here and
+// must remain an identifier-shaped option rather than being forced through principal DDL options.
+ApplicationRoleOption {
+  Password Equal StringLiteral
+  | IdentifierName Equal IdentifierName
+}
+
+// A cryptographic provider registers an external key-management DLL with the instance.
+// ENABLE and DISABLE can also start a statement of their own, so the trailing action stays a
+// bounded GLR continuation rather than a plain optional.
+CryptographicProviderStatement {
+  (Create | Alter) Cryptographic Provider IdentifierName
+    optionalDdlTail<CryptographicProviderAction>
+  | Drop Cryptographic Provider IdentifierName
+}
+CryptographicProviderAction { From File Equal StringLiteral | Enable | Disable }
+
+// A remote service binding ties a Service Broker service to a database principal and certificate.
+// USER is a reserved word but is also this statement's principal option name, so the option name
+// needs an explicit branch here.
+RemoteServiceBindingStatement {
+  (Create | Alter) Remote Service Binding IdentifierName (Authorization IdentifierName)?
+  (To Service StringLiteral)? With RemoteBindingOption (Comma RemoteBindingOption)*
+}
+RemoteBindingOption { (User | GenericOptionName) Equal OptionValue }
+
+// Azure SQL Database federations are deprecated but retained for existing scripts. The federation
+// distribution name and its boundary values stay structural so the members remain addressable.
+FederationStatement {
+  Create Federation IdentifierName OpenParen IdentifierName DataType Range CloseParen
+  | Alter Federation IdentifierName FederationAlterAction
+  | Drop Federation IdentifierName
+  | Use Federation (Root | IdentifierName FederationTarget?) With GenericOptionList
+}
+FederationAlterAction {
+  (Split | Drop) At OpenParen (Low | High)? IdentifierName Equal Expression CloseParen
+}
+FederationTarget { OpenParen IdentifierName Equal Expression CloseParen }
+LoginCreationClause {
+  With LoginPasswordOption LoginPasswordModifier* (Comma PrincipalOption)*
+  | From (
+      Windows optionalDdlTail<PrincipalOptionClause>
+      | External Provider optionalDdlTail<PrincipalOptionClause>
+      | (Certificate IdentifierName | Asymmetric Key IdentifierName)
+        optionalDdlTail<LoginCredentialClause>
+    )
+}
+LoginCredentialClause { With Credential Equal IdentifierName }
+LoginPasswordOption { Password Equal (StringLiteral | BinaryLiteral) }
+LoginPasswordModifier { Hashed | MustChange }
+UserCreationClause {
+  (For | From) (Login IdentifierName | Certificate IdentifierName | Asymmetric Key IdentifierName | External Provider)
+  optionalDdlTail<PrincipalOptionClause>
+  | Without Login optionalDdlTail<PrincipalOptionClause>
+  | PrincipalOptionClause
+}
+PrincipalOptionClause { With PrincipalOption (Comma PrincipalOption)* }
+PrincipalOption {
+  Password Equal Expression (OldPassword Equal Expression)? | PrincipalNonPasswordOption
+}
+PrincipalNonPasswordOption {
+  // A contained user names its language by LCID as well as by name, and clears its default schema
+  // with NULL. Neither value shape is accepted by the other options.
+  DefaultDatabase Equal IdentifierName | DefaultSchema Equal (IdentifierName | Null)
+  | Login Equal IdentifierName
+  | DefaultLanguage Equal (IdentifierName | IntegerLiteral)
+  | Name Equal IdentifierName | Sid Equal BinaryLiteral
+  | CheckPolicy Equal (On | Off) | CheckExpiration Equal (On | Off)
+  | Credential Equal IdentifierName | ObjectId Equal StringLiteral | Type Equal IdentifierName
+}
+AlterLoginClause {
+  Enable | Disable | (Add | Drop) Credential IdentifierName
+  | With AlterLoginOption (Comma AlterLoginOption)*
+}
+AlterLoginOption {
+  Password Equal (StringLiteral | BinaryLiteral) AlterLoginPasswordModifier*
+  | PrincipalNonPasswordOption | No Credential
+}
+AlterLoginPasswordModifier { MustChange | Unlock | Hashed | OldPassword Equal StringLiteral }
+
+// ADD/DROP SIGNATURE protects one signable object with one or more certificates, asymmetric
+// keys, or a password. COUNTER SIGNATURE uses the same object and cryptographic shapes.
+SignatureStatement {
+  ~eventSessionAddContinuation Add SignatureKind To SignableElement By SignatureCryptoList
+  | Drop SignatureKind From SignableElement By SignatureCryptoList
+}
+SignatureKind { Counter? Signature }
+SignableElement {
+  (Object | Assembly | Database) DoubleColon MultipartIdentifier
+  | MultipartIdentifier
+}
+SignatureCryptoList { SignatureCrypto (Comma SignatureCrypto)* }
+SignatureCrypto {
+  (Certificate IdentifierName | Asymmetric Key IdentifierName)
+    optionalDdlTail<SignatureCryptoWithClause>
+  | Password Equal StringLiteral
+}
+SignatureCryptoWithClause { With (Password Equal StringLiteral | Signature Equal BinaryLiteral) }
+
+// Sensitivity classifications attach an option set to one or more table columns. A classified
+// column must include its table name; a schema name is optional.
+DataClassificationStatement {
+  ~eventSessionAddContinuation Add Sensitivity Classification To ClassificationColumnList
+    ClassificationWithClause
+  | Drop Sensitivity Classification From ClassificationColumnList
+}
+ClassificationColumnList { ClassificationColumn (Comma ClassificationColumn)* }
+ClassificationColumn { IdentifierName Dot IdentifierName (Dot IdentifierName)? }
+ClassificationWithClause {
+  With OpenParen ClassificationOption (Comma ClassificationOption)* CloseParen
+}
+ClassificationOption { IdentifierName Equal (StringLiteral | IdentifierName) }
+
+// GRANT, DENY, and REVOKE retain permission, securable, and principal structure.
+PermissionStatement {
+  (Grant | Deny) PermissionList PermissionTarget? To PrincipalList
+    optionalDdlTail<PermissionTailList>
+  | Revoke (Grant Option For)? PermissionList PermissionTarget? (To | From) PrincipalList
+    optionalDdlTail<PermissionTailList>
+}
+PermissionList { PermissionItem (Comma PermissionItem)* }
+PermissionItem { (All Privileges? | PermissionName) ColumnNameList? }
+PermissionName { PermissionWord PermissionWord* }
+PermissionWord {
+  Alter | Any | Authorization | Connect | Control | Create | Database | Delete | Exec | Execute | External
+  | Impersonate | Insert | Login | Object | Ownership | References | Schema | Select | Server
+  | Table | Take | Type | Update | User | View | Definition | Column | Master | Key | Encryption
+  // Permission names spelled with a reserved word, as in GRANT CREATE PROCEDURE or GRANT BACKUP
+  // LOG. A reserved word specializes with no identifier fallback, so each one has to be named here.
+  | Backup | Default | File | Full | Function | Group | Proc | Procedure | Restore | Rule | Trigger
+  | IdentifierName
+}
+PermissionTarget { On (SecurableClass DoubleColon)? SecurableName ColumnNameList? }
+SecurableClass {
+  Database | Schema | Object | Type | Login | User | Role | Server | Endpoint | Assembly
+  | Certificate | Asymmetric Key | Symmetric Key | Xml Schema Collection
+  | Availability Group | Service | External Model
+  | IdentifierName IdentifierName*
+}
+SecurableName { MultipartIdentifier | OmittedTableSourceName }
+PrincipalList { PermissionPrincipal (Comma PermissionPrincipal)* }
+PermissionPrincipal { IdentifierName | Null }
+PermissionTailList {
+  With Grant Option (As IdentifierName)?
+  | Cascade (As IdentifierName)?
+  | As IdentifierName
+}
+
+// ALTER AUTHORIZATION transfers ownership of a server-, database-, schema-, or object-level securable.
+AlterAuthorizationStatement {
+  Alter Authorization On (SecurableClass DoubleColon)? SecurableName
+  To (IdentifierName | Schema Owner)
+}
+
+// External tables bind a declared or CTAS shape to a named external source and file format.
+// The CTAS form places its option list before AS SELECT, because the projected shape comes from
+// the query rather than from a declared column list.
+CreateExternalTableStatement {
+  Create External Table MultipartIdentifier
+  (
+    TableDefinition ExternalTableWithClause
+    | ExternalTableWithClause As SelectStatement
+    | As SelectStatement
+  )
+}
+
+// DROP EXTERNAL TABLE removes one or more external table declarations.
+DropExternalTableStatement {
+  Drop External Table IfExistsClause? MultipartIdentifier (Comma MultipartIdentifier)*
+}
+
+// External-table options retain location, source, format, distribution, and reject policies.
+ExternalTableWithClause { With OpenParen ExternalTableOption (Comma ExternalTableOption)* CloseParen }
+
+// An external table names its distribution column, as in DISTRIBUTION = SHARDED(c1). The shared
+// generic option value cannot express `name (columns)` because that shape is ambiguous with an
+// Azure service-tier option value; this option list is bounded, so it is unambiguous here.
+ExternalTableOption {
+  GenericOptionName Equal ExternalTableColumnOptionValue
+  | GenericOption
+}
+ExternalTableColumnOptionValue {
+  IdentifierName OpenParen IdentifierName (Comma IdentifierName)* CloseParen
+}
+
+// CREATE EXTERNAL DATA SOURCE retains provider, location, credential, and pushdown options.
+CreateExternalDataSourceStatement {
+  Create External Data Source IdentifierName With OpenParen GenericOptionList CloseParen
+}
+
+// ALTER EXTERNAL DATA SOURCE changes one or more bounded source options.
+AlterExternalDataSourceStatement { Alter External Data Source IdentifierName Set GenericOptionList }
+
+// DROP EXTERNAL DATA SOURCE removes one named source.
+DropExternalDataSourceStatement { Drop External Data Source IdentifierName }
+
+// CREATE EXTERNAL FILE FORMAT retains its format type and nested formatting options.
+CreateExternalFileFormatStatement {
+  Create External File Format IdentifierName With OpenParen GenericOptionList CloseParen
+}
+
+// DROP EXTERNAL FILE FORMAT removes one named format.
+DropExternalFileFormatStatement { Drop External File Format IdentifierName }
+
+// CREATE EXTERNAL STREAM declares an optional input row shape and a named parameter list. Which
+// parameters are required, and whether one is repeated, are validation rules rather than parse
+// rules, so every parameter name parses here.
+CreateExternalStreamStatement {
+  Create External Stream MultipartIdentifier TableDefinition?
+  With OpenParen ExternalStreamParam (Comma ExternalStreamParam)* CloseParen
+}
+ExternalStreamParam { IdentifierName Equal (MultipartIdentifier | StringLiteral) }
+
+// DROP EXTERNAL STREAM removes one named stream.
+DropExternalStreamStatement { Drop External Stream MultipartIdentifier }
+
+// SQL Server 2025 external models bind an embedding model endpoint or local runtime definition.
+CreateExternalModelStatement {
+  Create External Model IdentifierName (Authorization IdentifierName)?
+  With OpenParen ExternalModelOption (Comma ExternalModelOption)* CloseParen
+}
+
+// ALTER EXTERNAL MODEL replaces one or more endpoint/model settings in one SET list.
+AlterExternalModelStatement {
+  Alter External Model IdentifierName
+  Set OpenParen ExternalModelOption (Comma ExternalModelOption)* CloseParen
+}
+
+// DROP EXTERNAL MODEL removes one model definition.
+DropExternalModelStatement { Drop External Model IdentifierName }
+
+// External-model options retain their documented value domains for useful malformed-input recovery.
+ExternalModelOption {
+  Location Equal StringLiteral
+  | ApiFormat Equal StringLiteral
+  | ModelType Equal Embeddings
+  | Model Equal StringLiteral
+  | Parameters Equal StringLiteral
+  | LocalRuntimePath Equal StringLiteral
+  | Credential Equal IdentifierName
+}
+
+// External libraries install one or more binary/string payloads for a named runtime language.
+ExternalLibraryStatement {
+  Create External Library IdentifierName (Authorization IdentifierName)?
+    From ExternalFileDescriptor (Comma ExternalFileDescriptor)*
+    With OpenParen Language Equal StringLiteral CloseParen
+  | Alter External Library IdentifierName (Authorization IdentifierName)?
+    Set ExternalFileDescriptor With OpenParen Language Equal StringLiteral CloseParen
+  | Drop External Library IdentifierName (Authorization IdentifierName)?
+}
+
+// External languages install, replace, add, or remove platform-specific runtime files.
+ExternalLanguageStatement {
+  Create External Language IdentifierName (Authorization IdentifierName)?
+    From ExternalLanguageDescriptor (Comma ExternalLanguageDescriptor)*
+  | Alter External Language IdentifierName (Authorization IdentifierName)?
+    (Set ExternalLanguageDescriptor | Add ExternalLanguageDescriptor | Remove Platform IdentifierName)
+  | Drop External Language IdentifierName (Authorization IdentifierName)?
+}
+ExternalFileDescriptor {
+  OpenParen Content Equal (StringLiteral | BinaryLiteral)
+  (Comma Platform Equal IdentifierName)* CloseParen
+}
+ExternalLanguageDescriptor {
+  OpenParen Content Equal (StringLiteral | BinaryLiteral)
+  Comma FileName Equal StringLiteral
+  (Comma ExternalLanguageDescriptorOption)* CloseParen
+}
+ExternalLanguageDescriptorOption {
+  Platform Equal IdentifierName | Parameters Equal StringLiteral | EnvironmentVariables Equal StringLiteral
+}
+
+// A partition function maps typed boundary values to ordered partitions.
+CreatePartitionFunctionStatement {
+  Create Partition Function IdentifierName OpenParen DataType CollateClause? CloseParen
+  As Range (Left | Right)? For Values OpenParen ArgumentList? CloseParen
+}
+
+// ALTER PARTITION FUNCTION splits or merges one boundary range.
+AlterPartitionFunctionStatement {
+  Alter Partition Function IdentifierName OpenParen CloseParen
+  (Split | Merge) optionalDdlTail<PartitionBoundary>
+}
+PartitionBoundary { Range OpenParen Expression CloseParen }
+
+// DROP PARTITION FUNCTION removes one partition function.
+DropPartitionFunctionStatement { Drop Partition Function IdentifierName }
+
+// A partition scheme maps a partition function to one or more filegroups.
+CreatePartitionSchemeStatement {
+  Create Partition Scheme IdentifierName As Partition IdentifierName All?
+  To OpenParen FilegroupTarget (Comma FilegroupTarget)* CloseParen
+}
+
+// ALTER PARTITION SCHEME selects the next filegroup used by a split.
+AlterPartitionSchemeStatement { Alter Partition Scheme IdentifierName Next Used FilegroupTarget? }
+
+// DROP PARTITION SCHEME removes one partition scheme.
+DropPartitionSchemeStatement { Drop Partition Scheme IdentifierName }
+
+// Filegroup targets accept ordinary, delimited, DEFAULT, and string-valued filegroup names.
+FilegroupTarget { IdentifierName | StringLiteral | Default }
+
+// BACKUP writes a database or transaction log to one or more logical or physical devices.
+// DUMP and LOAD are the pre-7.0 spellings of BACKUP and RESTORE and share their whole structure.
+BackupStatement {
+  (Backup | Dump) (Database | Log | Transaction | Tran) (IdentifierName | Variable) BackupFileSelection?
+  To BackupDeviceList (Mirror To BackupDeviceList)* optionalDdlTail<BackupRestoreWithClause>
+  | (Backup | Dump) Service? Master Key To File Equal StringLiteral
+    Encryption By Password Equal StringLiteral
+  // A certificate backup writes the public certificate and, optionally, its private key.
+  | (Backup | Dump) Certificate IdentifierName To File Equal StringLiteral
+    optionalDdlTail<CertificatePrivateKey>
+}
+
+// RESTORE loads a database/log or inspects backup metadata from one or more devices.
+RestoreStatement {
+  // A restore may name no device at all, as in `RESTORE DATABASE db1` to finish a recovery.
+  (Restore | Load) (
+    (Database | Log | Transaction | Tran) (IdentifierName | Variable) RestoreFileSelection?
+      (From BackupDeviceList)?
+    | RestoreInspection From BackupDeviceList
+  ) optionalDdlTail<BackupRestoreWithClause>
+  | (Restore | Load) Service? Master Key From File Equal StringLiteral
+    Decryption By Password Equal StringLiteral
+    (Encryption By Password Equal StringLiteral)? Force?
+}
+
+// Legacy RULE/DEFAULT objects retain DROP IF EXISTS compatibility through SQL Server 2025.
+RuleDefaultStatement {
+  Drop (Rule | Default) IfExistsClause? MultipartIdentifier (Comma MultipartIdentifier)* DropTriggerScope?
+  | Create (Rule | Default) MultipartIdentifier As Expression
+}
+
+// Security policies bind filter/block predicate functions to tables and expose lifecycle options.
+SecurityPolicyStatement {
+  Create Security Policy MultipartIdentifier optionalDdlTail<SecurityPolicyCreateTail>
+  | Alter Security Policy MultipartIdentifier SecurityPolicyAlterTail
+  | Drop Security Policy IfExistsClause? MultipartIdentifier (Comma MultipartIdentifier)* DropTriggerScope?
+}
+
+SecurityPolicyCreateTail {
+  SecurityPolicyPredicateAdd (Comma SecurityPolicyPredicateAdd)*
+    optionalDdlTail<SecurityPolicyWithClause> SecurityPolicyReplicationClause?
+  | SecurityPolicyWithClause SecurityPolicyReplicationClause?
+  | SecurityPolicyReplicationClause
+}
+
+SecurityPolicyAlterTail {
+  SecurityPolicyAlterAction (Comma SecurityPolicyAlterAction)* optionalDdlTail<SecurityPolicyWithClause>
+  | SecurityPolicyWithClause
+  | (Add | Drop) SecurityPolicyReplicationClause
+}
+
+SecurityPolicyPredicateAdd { Add SecurityPolicyPredicateDefinition }
+SecurityPolicyAlterAction {
+  (Add | Alter) SecurityPolicyPredicateDefinition
+  | Drop (Filter | Block) Predicate On MultipartIdentifier SecurityPolicyPredicateTiming?
+}
+SecurityPolicyPredicateDefinition {
+  (Filter | Block) Predicate Expression On MultipartIdentifier SecurityPolicyPredicateTiming?
+}
+SecurityPolicyPredicateTiming { (After | Before) (Insert | Update | Delete) }
+SecurityPolicyWithClause { With OpenParen GenericOptionList CloseParen }
+SecurityPolicyReplicationClause { Not For Replication }
+
+// BACKUP and RESTORE file selections identify files, filegroups, or pages.
+// A file selection value may be one name or a parenthesized list of names.
+// A backup selects named files or filegroups; READ_WRITE_FILEGROUPS stands for every read/write
+// filegroup and mixes freely into the same comma-separated list.
+BackupFileSelection { backupSelectionItem (Comma backupSelectionItem)* }
+backupSelectionItem {
+  (File | Filegroup | Page) Equal BackupSelectionValue
+  | ReadWriteFilegroups
+}
+BackupSelectionValue {
+  BackupScalar
+  | OpenParen BackupScalar (Comma BackupScalar)* CloseParen
+}
+
+// RESTORE reuses the same file selection vocabulary.
+RestoreFileSelection { BackupFileSelection }
+
+// Backup devices accept logical names/variables and DISK, TAPE, or URL physical assignments.
+BackupDeviceList { BackupDevice (Comma BackupDevice)* }
+BackupDevice { BackupScalar | (Disk | Tape | Url) Equal BackupScalar }
+
+// A backup scalar is a literal, identifier, or variable without general expression ambiguity.
+BackupScalar { StringLiteral | IdentifierName | Variable }
+
+// Backup/restore WITH options use bounded generic assignments and standalone option names.
+// STOPATMARK and STOPBEFOREMARK additionally accept `AFTER <datetime>`, which no other option does,
+// so the suffix is modelled here rather than widening every generic option list.
+BackupRestoreWithClause { With BackupRestoreOption (Comma BackupRestoreOption)* }
+// FILE = 3 selects a backup set. The word is reserved, so it cannot arrive through
+// GenericOptionName, and it cannot be added there either: a certificate's private-key option list
+// already reads FILE = 'path' through its own rule, and one shared name would collide with it.
+BackupRestoreOption {
+  GenericOptionName Equal OptionValue After BackupScalar
+  | File Equal OptionValue
+  // MOVE pairs a logical file name with the path it is restored to; neither side is an assignment.
+  | Move BackupScalar To BackupScalar
+  | GenericOption
+}
+
+// RESTORE inspection forms report backup metadata without restoring a database.
+RestoreInspection { FileListOnly | HeaderOnly | LabelOnly | VerifyOnly | Rewindonly }
+
+// DBCC retains its command, optional named/literal arguments, and WITH option list.
+DbccStatement { Dbcc IdentifierName DbccArgumentList? optionalDdlTail<DbccWithClause> }
+DbccArgumentList { OpenParen (DbccArgument (Comma DbccArgument)*)? CloseParen }
+DbccArgument { ~dbccArg IdentifierName Equal DbccValue | ~dbccArg DbccValue }
+DbccValue { Literal | IdentifierName | Variable | Plus IntegerLiteral | Minus IntegerLiteral }
+DbccWithClause { With IdentifierName ((Comma | Join) IdentifierName)* }
+
+// BULK INSERT loads rows from a file or external location with bounded SQL Server options.
+BulkInsertStatement {
+  Bulk Insert MultipartIdentifier From BulkSource
+  optionalDdlTail<BulkWithClause>
+}
+
+// INSERT BULK declares the incoming row shape used by bulk-copy clients.
+InsertBulkStatement {
+  Insert Bulk MultipartIdentifier TableDefinition? optionalDdlTail<BulkWithClause>
+}
+// A bulk source is a path literal, a client-supplied variable, or a named data file.
+BulkSource { StringLiteral | Variable | IdentifierName | IntegerLiteral }
+
+// ORDER is reserved, so the bulk sort-order option needs its own branch beside the named options.
+BulkWithClause { With OpenParen BulkOption (Comma BulkOption)* CloseParen }
+BulkOption {
+  Order OpenParen OrderExpression (Comma OrderExpression)* CloseParen
+  | GenericOption
+}
+
+// COPY INTO bulk-loads one or more external files in Synapse and Fabric SQL engines.
+CopyIntoStatement {
+  Copy Into MultipartIdentifier CopyColumnMappingList? From CopySourceList optionalDdlTail<CopyWithClause>
+}
+
+// COPY column mappings can supply a default value and the one-based source field ordinal.
+CopyColumnMappingList {
+  OpenParen CopyColumnMapping (Comma CopyColumnMapping)* CloseParen
+}
+CopyColumnMapping { IdentifierName (Default Expression)? IntegerLiteral }
+
+// COPY accepts one or more literal external file locations and nested load options.
+CopySourceList { StringLiteral (Comma StringLiteral)* }
+CopyWithClause { With OpenParen CopyOptionList CloseParen }
+CopyOptionList { CopyOption (Comma CopyOption)* }
+CopyOption { CopyOptionName Equal CopyOptionValue }
+// IDENTITY_INSERT is a reserved SET option name that is also a COPY option name.
+CopyOptionName { IdentifierName | Identity | IdentityInsert }
+CopyOptionValue { Literal | IdentifierName | On | Off | OpenParen CopyOptionList CloseParen }
+
+// Legacy text/image DML remains supported for existing SQL Server applications.
+LegacyTextStatement {
+  UpdateText Bulk? TextColumnReference TextDmlAtom TextTimestamp?
+    TextDmlAtom TextDmlAtom optionalDdlTail<TextUpdateDataClause>
+  | ReadText TextColumnReference TextDmlAtom TextDmlAtom TextDmlAtom Holdlock?
+  | WriteText Bulk? TextColumnReference TextDmlAtom TextLogClause? TextInsertedData
+}
+TextColumnReference {
+  IdentifierName !textColumn Dot IdentifierName
+  | IdentifierName !textColumn Dot IdentifierName Dot IdentifierName
+  | IdentifierName !textColumn Dot IdentifierName Dot IdentifierName Dot IdentifierName
+  | Dot IdentifierName Dot IdentifierName
+  | Dot Dot IdentifierName Dot IdentifierName
+}
+TextDmlAtom {
+  Literal | Variable | GlobalVariable
+  | Plus IntegerLiteral | Minus IntegerLiteral
+}
+TextTimestamp { Timestamp Equal TextDmlAtom }
+TextLogClause { With Log }
+TextUpdateDataClause { TextLogClause? TextInsertedData }
+TextInsertedData { TextDmlAtom | TextColumnReference TextDmlAtom? }
+
+// Certificate lifecycle statements retain authorization, import, private-key, and activity clauses.
+CreateCertificateStatement {
+  Create Certificate IdentifierName (Authorization IdentifierName)? CertificateSource?
+  CertificateEncryption? optionalDdlTail<CertificateWithClause> CertificateActivity?
+}
+AlterCertificateStatement {
+  Alter Certificate IdentifierName
+  (
+    CertificatePrivateKey | Remove Private Key | With CertificateActivity | CertificateActivity
+    // Undocumented attestation forms the product still accepts.
+    | Remove Attested Option | Attested By StringLiteral
+  )
+}
+DropCertificateStatement { Drop Certificate IdentifierName }
+CertificateSource {
+  From (
+    Assembly IdentifierName
+    | Executable? File Equal StringLiteral optionalDdlTail<CertificatePrivateKey>
+  )
+}
+// A private-key clause mixes ordinary named options (FILE, ALGORITHM) with the multiword
+// ENCRYPTION/DECRYPTION BY PASSWORD forms, which a plain named-option list cannot express.
+CertificatePrivateKey {
+  With Private Key OpenParen PrivateKeyOption (Comma PrivateKeyOption)* CloseParen
+}
+// FILE is a contextual keyword elsewhere in this clause family, so it needs an explicit branch
+// rather than relying on the identifier reading.
+PrivateKeyOption { KeyPasswordOption | File Equal StringLiteral | GenericOption }
+CertificateEncryption { Encryption By Password Equal StringLiteral }
+CertificateWithClause { With GenericOptionList }
+CertificateActivity { Active For BeginDialog Equal (On | Off) }
+
+// Master-key statements model creation, password opening, regeneration, encryption, and removal.
+MasterKeyStatement {
+  Create Master Key (Encryption By Password Equal StringLiteral)?
+  | Alter Master Key MasterKeyAction
+  | Drop Master Key
+  | Open Master Key Decryption By Password Equal StringLiteral
+  | Close Master Key
+  // The service master key is regenerated or rebound to a new service account rather than
+  // re-encrypted, so it has its own action set.
+  | Alter Service Master Key ServiceMasterKeyAction
+}
+ServiceMasterKeyAction {
+  Force? Regenerate
+  | With GenericOptionList
+}
+MasterKeyAction {
+  Force? Regenerate With Encryption By Password Equal StringLiteral
+  | (Add | Drop) Encryption By (Service Master Key | Password Equal StringLiteral)
+}
+
+// OPEN/CLOSE key statements change decryption state without mutating the key definition.
+KeyAccessStatement {
+  Open Symmetric Key IdentifierName Decryption By KeyDecryption
+  | Close Symmetric Key IdentifierName
+  | Close All Symmetric Keys
+}
+
+// Opening a symmetric key accepts a password directly or an optional password after certificate
+// and asymmetric-key mechanisms. A symmetric-key mechanism cannot carry the password modifier.
+KeyDecryption {
+  Password Equal StringLiteral
+  | Certificate IdentifierName optionalDdlTail<KeyDecryptionPasswordClause>
+  | Asymmetric Key IdentifierName optionalDdlTail<KeyDecryptionPasswordClause>
+  | Symmetric Key IdentifierName
+}
+KeyDecryptionPasswordClause { With Password Equal StringLiteral }
+
+// Symmetric keys retain algorithms and every key-encryption relationship.
+SymmetricKeyStatement {
+  // An extensible key management provider supplies the key material instead of a WITH option list.
+  Create Symmetric Key IdentifierName (Authorization IdentifierName)?
+    From Provider IdentifierName optionalDdlTail<SymmetricProviderOptions>
+    (Encryption By KeyEncryptionList)?
+  | Create Symmetric Key IdentifierName (Authorization IdentifierName)?
+  With GenericOptionList Encryption By KeyEncryptionList
+  | Alter Symmetric Key IdentifierName (Add | Drop) Encryption By KeyEncryptionList
+  | Drop Symmetric Key IdentifierName (Remove Provider Key)?
+}
+// Provider options are optional, but when present they remain one bounded WITH assignment list.
+SymmetricProviderOptions { With GenericOptionList }
+KeyEncryptionList { KeyEncryption (Comma KeyEncryption)* }
+KeyEncryption {
+  Certificate IdentifierName | Password Equal StringLiteral | Symmetric Key IdentifierName
+  | Asymmetric Key IdentifierName | Provider IdentifierName
+}
+
+// Asymmetric keys retain assembly/file/provider sources and optional decryption passwords.
+AsymmetricKeyStatement {
+  Create Asymmetric Key IdentifierName (Authorization IdentifierName)?
+  (
+    From (Assembly IdentifierName | Executable? File Equal StringLiteral | Provider IdentifierName)
+      (Encryption By Password Equal StringLiteral)? optionalDdlTail<AsymmetricKeyAlgorithm>
+    | AsymmetricKeyAlgorithm
+  )
+  | Alter Asymmetric Key IdentifierName AsymmetricKeyAlterAction
+  | Drop Asymmetric Key IdentifierName (Remove Provider Key)?
+}
+// The signing algorithm may be stated on its own or after a provider/file source, and a
+// provider-backed key continues with further named options after it.
+AsymmetricKeyAlgorithm {
+  With Algorithm Equal IdentifierName
+    (Encryption By Password Equal StringLiteral)?
+    (Comma GenericOption)*
+}
+AsymmetricKeyAlterAction {
+  Remove Private Key
+  | Remove Attested Option
+  | Attested By StringLiteral
+  | With Private Key OpenParen KeyPasswordOption (Comma KeyPasswordOption)* CloseParen
+}
+KeyPasswordOption { (Encryption | Decryption) By Password Equal StringLiteral }
+
+// CLR assemblies retain source payloads, ownership, permission options, and file changes.
+AssemblyStatement {
+  Create Assembly IdentifierName (Authorization IdentifierName)? From Expression (Comma Expression)*
+    optionalDdlTail<AssemblyWithClause>
+  | Alter Assembly IdentifierName AssemblyAlterTail
+  | Drop Assembly IfExistsClause? IdentifierName (Comma IdentifierName)*
+    optionalDdlTail<AssemblyDropClause>
+}
+AssemblyWithClause { With AssemblyOption (Comma AssemblyOption)* }
+AssemblyOption {
+  PermissionSet Equal IdentifierName | Visibility Equal (On | Off) | Unchecked Data
+}
+AssemblyAlterTail {
+  From Expression optionalDdlTail<AssemblyWithClause>
+    optionalDdlTail<AssemblyDropFileClause> optionalDdlTail<AssemblyAddFileClause>
+  | AssemblyWithClause optionalDdlTail<AssemblyDropFileClause> optionalDdlTail<AssemblyAddFileClause>
+  | AssemblyDropFileClause optionalDdlTail<AssemblyAddFileClause>
+  | AssemblyAddFileClause
+}
+AssemblyDropFileClause { Drop File (All | StringLiteral (Comma StringLiteral)*) }
+AssemblyAddFileClause { Add File From AssemblyFile (Comma AssemblyFile)* }
+AssemblyFile { Expression (As StringLiteral)? }
+AssemblyDropClause { With No Dependents }
+
+// CLR user-defined aggregates bind typed parameters and a return type to an assembly entry point.
+AggregateStatement {
+  Create Aggregate MultipartIdentifier OpenParen AggregateParameter (Comma AggregateParameter)* CloseParen
+    Returns DataType External Name AssemblyEntryPoint
+  | Drop Aggregate IfExistsClause? MultipartIdentifier (Comma MultipartIdentifier)* DropTriggerScope?
+}
+AggregateParameter { Variable As? DataType (Null | Not Null)? }
+AssemblyEntryPoint { IdentifierName (Dot IdentifierName)? }
+
+// Credentials bind an identity and optional secret to a server credential name.
+CredentialStatement {
+  (Create | Alter) (Database Scoped)? Credential IdentifierName With Identity Equal StringLiteral
+  (Comma Secret Equal StringLiteral)? (For Cryptographic Provider IdentifierName)?
+  | Drop (Database Scoped)? Credential IdentifierName
+}
+
+// XML schema collections store and extend an XML schema expression under a schema-qualified name.
+XmlSchemaCollectionStatement {
+  Create Xml Schema Collection MultipartIdentifier As Expression
+  | Alter Xml Schema Collection MultipartIdentifier Add Expression
+  | Drop Xml Schema Collection MultipartIdentifier
+}
+
+// Service Broker message types define owner and validation behavior.
+MessageTypeStatement {
+  Create Message Type IdentifierName (Authorization IdentifierName)?
+  (Validation Equal MessageValidation)?
+  | Alter Message Type IdentifierName (Validation Equal MessageValidation)?
+  | Drop Message Type IdentifierName
+}
+MessageValidation { None | Empty | WellFormedXml | ValidXml With Schema Collection MultipartIdentifier }
+
+// Service Broker contracts map message types to initiator, target, or either side.
+ContractStatement {
+  Create Contract IdentifierName (Authorization IdentifierName)?
+  OpenParen ContractMessage (Comma ContractMessage)* CloseParen
+  | Drop Contract IdentifierName
+}
+ContractMessage { IdentifierName Sent By (Initiator | Target | Any) }
+
+// Broker priorities rank matching Service Broker conversations by a bounded option list.
+BrokerPriorityStatement {
+  (Create | Alter) Broker Priority IdentifierName For Conversation
+    (BrokerPrioritySet | BrokerPriorityEnd)
+  | Drop Broker Priority IdentifierName
+}
+BrokerPrioritySet {
+  Set OpenParen BrokerPriorityOption (Comma BrokerPriorityOption)* CloseParen
+}
+BrokerPriorityOption {
+  PriorityLevel Equal (IntegerLiteral | Default)
+  | ContractName Equal (IdentifierName | Any)
+  | RemoteServiceName Equal (StringLiteral | Any)
+  | LocalServiceName Equal (IdentifierName | Any)
+}
+
+// BEGIN DIALOG opens a Service Broker conversation and binds it to a dialog handle. CONVERSATION
+// is an optional noise word after DIALOG, and service/contract names may be literals or variables.
+BeginDialogStatement {
+  Begin Dialog Conversation? Variable
+  From Service BrokerServiceName
+  To Service BrokerServiceName (Comma BrokerServiceName)?
+  (On Contract BrokerServiceName)?
+  optionalDdlTail<BeginDialogWithClause>
+}
+BeginDialogWithClause { With BeginDialogOptionList }
+BeginDialogOptionList { BeginDialogOption (Comma BeginDialogOption)* }
+BeginDialogOption { IdentifierName Equal (Variable | On | Off | IntegerLiteral) }
+BrokerServiceName { IdentifierName | StringLiteral | Variable }
+
+// GET CONVERSATION GROUP locks the next available conversation group from one broker queue.
+GetConversationGroupStatement {
+  Get Conversation Group Variable From MultipartIdentifier
+}
+
+// MOVE CONVERSATION assigns an existing dialog handle to a new conversation group.
+MoveConversationStatement { Move Conversation Expression To Expression }
+
+// BEGIN CONVERSATION TIMER schedules a timeout for an existing dialog handle.
+BeginConversationTimerStatement {
+  Begin Conversation Timer OpenParen Variable CloseParen Timeout Equal Expression
+}
+
+// END CONVERSATION closes one Service Broker conversation with optional cleanup/error details.
+EndConversationStatement {
+  End Conversation Expression optionalDdlTail<EndConversationWithClause>
+}
+EndConversationWithClause { With (Cleanup | Error Equal Expression Description Equal Expression) }
+
+// SEND posts one Service Broker message on one dialog handle, or on a parenthesized list of two or
+// more handles, with an optional message type and an optional message body.
+SendStatement {
+  Send On Conversation SendConversationList SendMessageType? SendMessageBody?
+}
+SendConversationList {
+  OpenParen Expression (Comma Expression)+ CloseParen
+  | Expression
+}
+SendMessageType { Message Type (MultipartIdentifier | Variable) }
+SendMessageBody { OpenParen Expression CloseParen }
+
+// RECEIVE reads one or more projected values from a Service Broker queue.
+ReceiveStatement {
+  Receive TopClause? ReceiveElement (Comma ReceiveElement)* From MultipartIdentifier
+  (Into Variable)? WhereClause?
+}
+ReceiveElement { SelectElement }
+
+// Queue statements retain activation/status options and optional filegroup placement.
+QueueStatement {
+  Create Queue QueueObjectName QueueTail
+  | Alter Queue QueueObjectName QueueTail
+  | Drop Queue QueueObjectName
+}
+QueueObjectName { MultipartIdentifier | Dot IdentifierName Dot IdentifierName }
+QueueTail { optionalDdlTail<QueueWithClause> (On FilegroupTarget)? }
+QueueWithClause { With GenericOptionList }
+
+// Service statements bind a queue and optional contracts, or alter those bindings.
+ServiceStatement {
+  Create Service IdentifierName (Authorization IdentifierName)? On Queue MultipartIdentifier
+  (OpenParen IdentifierName (Comma IdentifierName)* CloseParen)?
+  | Alter Service IdentifierName ServiceAlterAction
+  | Drop Service IdentifierName
+}
+ServiceAlterAction {
+  On Queue MultipartIdentifier
+  | OpenParen (Add | Drop) Contract IdentifierName
+    (Comma (Add | Drop) Contract IdentifierName)* CloseParen
+}
+
+// Endpoints retain authorization/state, transport, and payload option containers.
+EndpointStatement {
+  Create Endpoint IdentifierName (Authorization IdentifierName)? EndpointState?
+  As IdentifierName EndpointOptionContainer For IdentifierName EndpointOptionContainer
+  | Alter Endpoint IdentifierName EndpointAlterOptionList?
+    (As IdentifierName EndpointOptionContainer)? (For IdentifierName EndpointOptionContainer)?
+  | Drop Endpoint IdentifierName
+}
+EndpointState { State Equal IdentifierName }
+EndpointAlterOptionList { EndpointAlterOption (Comma EndpointAlterOption)* }
+EndpointAlterOption { State Equal IdentifierName | Affinity Equal EndpointValue }
+EndpointOptionContainer { OpenParen EndpointOptionList? CloseParen }
+EndpointOptionList { EndpointOption (Comma EndpointOption)* }
+EndpointOption {
+  EndpointWebMethodOption
+  | EndpointOptionName Equal EndpointValue
+}
+EndpointOptionName { IdentifierName | Database | Schema }
+
+// SOAP WEBMETHOD entries name one or two string components and carry endpoint option assignments.
+EndpointWebMethodOption {
+  (Add | Alter)? WebMethod EndpointWebMethodName EndpointOptionContainer
+  | Drop WebMethod EndpointWebMethodName
+}
+EndpointWebMethodName { StringLiteral (Dot StringLiteral)? }
+
+// Endpoint values are comma-bounded scalar word sequences or parenthesized value/IP lists.
+EndpointValue {
+  EndpointValueAtom+
+  | EndpointParenthesizedValue
+}
+EndpointValueAtom {
+  Literal | IdentifierName | On | Off | All | None | Database | Schema | Certificate
+}
+EndpointParenthesizedValue {
+  OpenParen (Ipv4Address | StringLiteral | EndpointWordValue (Comma EndpointWordValue)*)? CloseParen
+}
+EndpointWordValue { IdentifierName | On | Off | All | None | Database | Schema | Certificate }
+Ipv4Address {
+  Ipv4Fragment+ (Colon Ipv4Fragment+)?
+}
+Ipv4Fragment { IntegerLiteral | DecimalLiteral | Dot }
+
+// Availability groups retain databases, replica endpoints, options, and operational actions.
+AvailabilityGroupStatement {
+  Create Availability Group IdentifierName (With OpenParen GenericOptionList CloseParen)?
+  For Database IdentifierName (Comma IdentifierName)* Replica On AvailabilityReplicaList
+  | Alter Availability Group IdentifierName AvailabilityAlterAction
+  | Drop Availability Group IdentifierName
+}
+AvailabilityReplicaList { AvailabilityReplica (Comma AvailabilityReplica)* }
+AvailabilityReplica { StringLiteral With OpenParen GenericOptionList CloseParen }
+AvailabilityAlterAction {
+  (Add | Remove) Database IdentifierName (Comma IdentifierName)*
+  | (Add | Modify) Replica On AvailabilityReplicaList
+  | Remove Replica On StringLiteral (Comma StringLiteral)*
+  | Set OpenParen GenericOptionList CloseParen
+  | Failover optionalDdlTail<AvailabilityFailoverWithClause>
+  | Join | ForceFailoverAllowDataLoss | Online | Offline
+}
+AvailabilityFailoverWithClause { With OpenParen GenericOptionList CloseParen }
+
+// SQL Audit statements retain audit definitions and specifications as one unambiguous family.
+AuditStatement {
+  (Create | Alter) Server Audit AuditServerChange
+  | Drop Server Audit AuditServerDrop
+  | (Create | Alter) Database Audit Specification AuditSpecificationBody
+  | Drop Database Audit Specification IdentifierName
+}
+
+// The token following SERVER AUDIT distinguishes an audit name from SPECIFICATION.
+AuditServerChange {
+  Specification AuditSpecificationBody
+  | IdentifierName AuditDefinitionChange
+}
+AuditServerDrop { Specification IdentifierName | IdentifierName }
+// A server audit may end with a WHERE predicate that filters recorded events, and ALTER may drop
+// that predicate with REMOVE WHERE. WHERE cannot start a statement, so the trailing optional is
+// safe here without a GLR marker.
+AuditDefinitionChange {
+  To AuditDestination optionalDdlTail<AuditWithClause> AuditFilterClause?
+  | AuditWithClause AuditFilterClause?
+  | AuditFilterClause
+  | Remove Where
+  | Modify Name Equal IdentifierName
+}
+AuditFilterClause { Where Expression }
+
+// Audit destinations cover files, URLs, and Windows log targets with bounded assignments.
+AuditDestination {
+  (File | Url | IdentifierName)
+  (OpenParen AuditDestinationOption (Comma AuditDestinationOption)* CloseParen)?
+}
+AuditDestinationOption { IdentifierName Equal ConfigurationValue }
+AuditWithClause { With OpenParen GenericOptionList CloseParen }
+
+// Server and database audit specifications bind action groups to a named server audit.
+AuditSpecificationBody { IdentifierName optionalDdlTail<AuditSpecificationTail> }
+AuditSpecificationTail {
+  For Server Audit IdentifierName optionalDdlTail<AuditSpecificationActionTail>
+  | AuditSpecificationActionTail
+}
+AuditSpecificationActionTail {
+  AuditActionItemList optionalDdlTail<AuditWithClause>
+  | AuditWithClause
+}
+AuditActionItemList { AuditActionItem (Comma AuditActionItem)* }
+AuditActionItem { (Add | Drop) OpenParen AuditAction CloseParen }
+AuditAction { IdentifierName | PermissionList On MultipartIdentifier By PrincipalList }
+
+// Extended Events sessions declare scoped event producers, targets, predicates, and runtime options.
+CreateEventSessionStatement {
+  Create Event Session IdentifierName On EventSessionScope
+  EventSessionAddAction EventSessionAddContinuation
+  optionalDdlTail<EventSessionWithClause>
+}
+EventSessionAddContinuation {
+  ~eventSessionAddContinuation ()
+  | ~eventSessionAddContinuation Comma? EventSessionAddAction EventSessionAddContinuation
+}
+
+// ALTER EVENT SESSION changes event/target membership, options, or the running state.
+AlterEventSessionStatement {
+  Alter Event Session IdentifierName On EventSessionScope (
+    EventSessionAlterAction (Comma EventSessionAlterAction)* optionalDdlTail<EventSessionWithClause>
+    | EventSessionWithClause
+    | State Equal (Start | Stop)
+  )
+}
+
+// DROP EVENT SESSION removes one server- or database-scoped session.
+DropEventSessionStatement { Drop Event Session IdentifierName On EventSessionScope }
+
+// Extended Events sessions are scoped to either the SQL Server instance or current database.
+EventSessionScope { Server | Database }
+
+// CREATE accepts event producers and event consumers; adjacent ADD clauses may omit commas.
+EventSessionAddAction {
+  Add Event MultipartIdentifier EventSessionEventDeclaration?
+  | Add Target MultipartIdentifier EventSessionTargetDeclaration?
+}
+
+// ALTER additionally permits removing an existing event or target.
+EventSessionAlterAction {
+  EventSessionAddAction
+  | Drop (Event | Target) MultipartIdentifier
+}
+
+// An event declaration orders SET values, captured ACTION fields, and one filtering predicate.
+EventSessionEventDeclaration {
+  OpenParen EventSessionSetClause? EventSessionActionClause? EventSessionWhereClause? CloseParen
+}
+
+// A target declaration has only target-specific SET assignments.
+EventSessionTargetDeclaration { OpenParen EventSessionSetClause? CloseParen }
+
+// Event and target SET clauses accept one or more named scalar assignments.
+EventSessionSetClause { Set EventSessionAssignment (Comma EventSessionAssignment)* }
+EventSessionAssignment { IdentifierName Equal Expression }
+
+// ACTION captures one or more package-qualified Extended Events fields.
+EventSessionActionClause { Action OpenParen MultipartIdentifier (Comma MultipartIdentifier)* CloseParen }
+
+// WHERE uses the regular Boolean expression grammar, including NOT LIKE and package predicates.
+EventSessionWhereClause { Where Expression }
+
+// WITH configures bounded, named session options without accepting arbitrary statement tails.
+EventSessionWithClause {
+  With OpenParen EventSessionOption (Comma EventSessionOption)* CloseParen
+}
+EventSessionOption { IdentifierName Equal EventSessionOptionValue }
+EventSessionOptionValue {
+  (Plus | Minus)? Literal IdentifierName?
+  | On
+  | Off
+  | None
+  | IdentifierName
+}
+
+// Event notifications route selected DDL and trace events to one Service Broker service.
+CreateEventNotificationStatement {
+  Create Event Notification IdentifierName
+  On EventNotificationScope EventNotificationFanInClause?
+  For IdentifierName (Comma IdentifierName)*
+  To Service StringLiteral Comma StringLiteral
+}
+
+// DROP EVENT NOTIFICATION removes one or more notifications from an explicit scope.
+DropEventNotificationStatement {
+  Drop Event Notification IdentifierName (Comma IdentifierName)* On EventNotificationScope
+}
+
+// Server and database scopes are global; queue scope names one multipart Service Broker queue.
+EventNotificationScope { Server | Database | Queue MultipartIdentifier }
+
+// FAN_IN coalesces notifications from all databases for a database-scoped definition.
+EventNotificationFanInClause { With FanIn }
+
+// ALTER SERVER CONFIGURATION enumerates multiword paths to bound recovery work.
+ServerConfigurationStatement { Alter Server Configuration Set ServerConfigurationSetting }
+ServerConfigurationSetting {
+  Diagnostics Log (On | Off | IdentifierName Equal ConfigurationValue)
+  | Failover Cluster Property IdentifierName Equal ConfigurationValue
+  | Buffer Pool Extension (On OpenParen GenericOptionList CloseParen | Off)
+  | Hadr Cluster Context Equal ConfigurationValue
+  | Process Affinity (Cpu | NumaNode) Equal ServerConfigurationRangeList
+  | SoftNuma (On | Off)
+  | External Authentication (On (OpenParen GenericOptionList CloseParen)? | Off)
+}
+ServerConfigurationRangeList { Auto | ResourceRange (Comma ResourceRange)* }
+
+// Configuration values support scalar values, size units, and well-known state values.
+ConfigurationValue {
+  (Plus | Minus)? Literal IdentifierName?
+  | Local | None | On | Off | Primary | Rollback | IdentifierName
+}
+
+// Database-scoped configuration supports primary/secondary SET and cache CLEAR forms.
+DatabaseScopedConfigurationStatement {
+  Alter Database Scoped Configuration (For Secondary)?
+  (Set DatabaseScopedConfigurationSetting | Clear IdentifierName BinaryLiteral?)
+}
+// The setting wrapper keeps the option name and value independently addressable for validation.
+DatabaseScopedConfigurationSetting { IdentifierName Equal ConfigurationValue }
+
+// Database encryption keys retain the algorithm and server protector portions as separate nodes.
+DatabaseEncryptionKeyStatement {
+  Create Database Encryption Key With DatabaseEncryptionAlgorithmClause
+    DatabaseEncryptionProtectorClause
+  | Alter Database Encryption Key (
+      Regenerate With DatabaseEncryptionAlgorithmClause DatabaseEncryptionProtectorClause?
+      | DatabaseEncryptionProtectorClause
+    )
+  | Drop Database Encryption Key
+}
+DatabaseEncryptionAlgorithmClause { IdentifierName Equal IdentifierName }
+DatabaseEncryptionProtectorClause {
+  Encryption By Server (Certificate IdentifierName | Asymmetric Key IdentifierName)
+}
+
+// Resource Governor operational statements are separate from resource-pool definitions.
+ResourceGovernorStatement {
+  Alter Resource Governor
+  (Reconfigure | Disable | Reset Statistics | With OpenParen GenericOptionList CloseParen)
+}
+
+// Resource pools support regular and external pools with bounded multiword options.
+ResourcePoolStatement {
+  (Create | Alter) External? Resource Pool IdentifierName optionalDdlTail<ResourceWithClause>
+  | Drop External? Resource Pool IdentifierName
+}
+ResourceWithClause { With OpenParen ResourceOption (Comma ResourceOption)* CloseParen }
+ResourceOption { ResourceOptionName Equal ResourceOptionValue }
+ResourceOptionName { Affinity (Scheduler | Cpu | NumaNode) | IdentifierName }
+ResourceOptionValue {
+  On | Off | Auto | Literal | IdentifierName
+  | OpenParen ResourceRange (Comma ResourceRange)* CloseParen
+}
+ResourceRange { additiveExpression (To additiveExpression)? }
+
+// Workload groups retain their bounded options and optional resource-pool association.
+WorkloadGroupStatement {
+  (Create | Alter) Workload Group IdentifierName optionalDdlTail<WorkloadGroupTail>
+  | Drop Workload Group IdentifierName
+}
+WorkloadGroupTail {
+  ResourceWithClause optionalDdlTail<WorkloadUsingClause>
+  | WorkloadUsingClause
+}
+WorkloadUsingClause { Using External? IdentifierName (Comma External? IdentifierName)? }
+
+// A dedicated SQL pool routes a request to a workload group through a classifier. Only CREATE and
+// DROP exist; ALTER is deliberately absent so an invented spelling stays a syntax error.
+WorkloadClassifierStatement {
+  Create Workload Classifier IdentifierName With OpenParen GenericOptionList CloseParen
+  | Drop Workload Classifier IdentifierName
+}
+
+// Column master keys retain provider and key-path assignments used by Always Encrypted.
+ColumnMasterKeyStatement {
+  Create Column Master Key IdentifierName With OpenParen GenericOptionList CloseParen
+  | Drop Column Master Key IdentifierName
+}
+
+// Column encryption keys contain one or more encrypted values or one ALTER value action.
+ColumnEncryptionKeyStatement {
+  Create Column Encryption Key IdentifierName With Values
+  ColumnEncryptionKeyValue (Comma ColumnEncryptionKeyValue)*
+  | Alter Column Encryption Key IdentifierName (Add | Drop) Value ColumnEncryptionKeyValue
+  | Drop Column Encryption Key IdentifierName
+}
+ColumnEncryptionKeyValue { OpenParen GenericOptionList CloseParen }
+
+// XML indexes retain primary, secondary, and selective path declarations and index options.
+XmlIndexStatement {
+  Create Primary Xml Index IdentifierName On MultipartIdentifier
+  OpenParen IdentifierName CloseParen optionalDdlTail<IndexWithClause>
+  | Create Xml Index IdentifierName On MultipartIdentifier OpenParen IdentifierName CloseParen
+    Using Xml Index IdentifierName For (Path | Value | Property)
+    optionalDdlTail<IndexWithClause>
+  | Create Xml Index IdentifierName On MultipartIdentifier OpenParen IdentifierName CloseParen
+    Using Xml Index IdentifierName For ColumnNameList optionalDdlTail<IndexWithClause>
+  | Create Selective Xml Index IdentifierName On MultipartIdentifier
+    OpenParen IdentifierName CloseParen SelectiveXmlNamespaces? For
+    OpenParen SelectiveXmlPath (Comma SelectiveXmlPath)* CloseParen
+    optionalDdlTail<IndexWithClause>
+}
+SelectiveXmlNamespaces {
+  With XmlNamespaces OpenParen XmlNamespaceItem (Comma XmlNamespaceItem)* CloseParen
+}
+SelectiveXmlPath {
+  IdentifierName Equal StringLiteral
+  (As (XQuery StringLiteral? | Sql DataType) MaxLengthClause? Singleton?)?
+}
+MaxLengthClause { MaxLength OpenParen IntegerLiteral CloseParen }
+
+// Spatial indexes retain tessellation scheme, nested spatial options, and storage target.
+SpatialIndexStatement {
+  Create Spatial Index IdentifierName On TableSourceName OpenParen IdentifierName CloseParen
+  (Using IdentifierName)? optionalDdlTail<IndexWithClause> IndexStorageClause?
+}
+
+// Full-text objects cover catalogs, stoplists, and table indexes with structured columns/options.
+FullTextStatement {
+  Create FullText Catalog IdentifierName optionalDdlTail<FullTextCatalogTail>
+  | Alter FullText Catalog IdentifierName FullTextCatalogAlterAction
+  | Drop FullText Catalog IdentifierName
+  | Create FullText StopList IdentifierName FullTextStopListTail
+  | Alter FullText StopList IdentifierName FullTextStopListAction
+  | Drop FullText StopList IdentifierName
+  | Create FullText Index On omittedOrMultipartName FullTextColumnList?
+    Key Index IdentifierName FullTextCatalogTarget? optionalDdlTail<FullTextWithClause>
+  | Alter FullText Index On omittedOrMultipartName FullTextAlterAction
+  | Drop FullText Index On omittedOrMultipartName
+  | Create Search Property List IdentifierName SearchPropertyListCreateTail?
+  | Alter Search Property List IdentifierName SearchPropertyListAction
+  | Drop Search Property List IdentifierName
+}
+FullTextCatalogTail {
+  (On Filegroup? FilegroupTarget | In Path StringLiteral)?
+  optionalDdlTail<FullTextCatalogOptions> (As Default)? (Authorization IdentifierName)?
+}
+FullTextCatalogOptions { With IdentifierName Equal (On | Off) }
+FullTextCatalogAlterAction {
+  Rebuild OptionalFullTextCatalogOptions | Reorganize | As Default
+}
+OptionalFullTextCatalogOptions {
+  ~fullTextCatalogOptions ()
+  | ~fullTextCatalogOptions FullTextCatalogOptions
+}
+FullTextStopListTail {
+  (From (System StopList | MultipartIdentifier))? (Authorization IdentifierName)?
+}
+FullTextStopListAction {
+  Add StringLiteral Language FullTextLanguage
+  | Drop (StringLiteral Language FullTextLanguage | All (Language FullTextLanguage)?)
+}
+FullTextLanguage { IdentifierName | Literal }
+FullTextColumnList { OpenParen FullTextColumn (Comma FullTextColumn)* CloseParen }
+FullTextColumn {
+  IdentifierName (Type Column IdentifierName)? (Language (IdentifierName | Literal))?
+  StatisticalSemantics?
+}
+FullTextCatalogTarget { On (IdentifierName | OpenParen FullTextCatalogPlacement CloseParen) }
+FullTextCatalogPlacement {
+  Filegroup IdentifierName (Comma IdentifierName)?
+  | IdentifierName (Comma Filegroup IdentifierName)?
+}
+FullTextWithClause {
+  With (OpenParen FullTextIndexOptionList CloseParen | FullTextIndexOptionList)
+}
+FullTextIndexOptionList { FullTextIndexOption (Comma FullTextIndexOption)* }
+FullTextIndexOption {
+  StopList Equal? (Off | System | IdentifierName)
+  | Search Property List Equal? (Off | IdentifierName)
+  | No Population
+  | IdentifierName Equal? (On | Off | Auto | IdentifierName)
+}
+FullTextAlterAction {
+  Enable | Disable
+  | Set FullTextIndexOption OptionalFullTextNoPopulation
+  | Add FullTextColumnList OptionalFullTextNoPopulation
+  | Drop ColumnNameList OptionalFullTextNoPopulation
+  | Start (Full | Incremental | Update) Population
+  | (Stop | Pause | Resume) Population
+  | Alter Column IdentifierName (Add | Drop) StatisticalSemantics OptionalFullTextNoPopulation
+}
+OptionalFullTextNoPopulation {
+  ~fullTextNoPopulation ()
+  | ~fullTextNoPopulation FullTextNoPopulation
+}
+FullTextNoPopulation { With No Population }
+SearchPropertyListCreateTail {
+  From MultipartIdentifier (Authorization IdentifierName)? | Authorization IdentifierName
+}
+SearchPropertyListAction {
+  Add StringLiteral With OpenParen GenericOptionList CloseParen
+  | Drop StringLiteral
+}
+
+// CREATE PROCEDURE defines parameters, bounded module options, and a mounted SQL body.
+CreateProcedureStatement {
+  Create (Or Alter)? (Proc | Procedure) MultipartIdentifier ProcedureNumberClause? ProcedureParameterClause?
+  ProcedureWithClause? (For Replication)? As ModuleBody
+}
+
+// ALTER PROCEDURE replaces an existing module body without changing its identity.
+AlterProcedureStatement {
+  Alter (Proc | Procedure) MultipartIdentifier ProcedureNumberClause? ProcedureParameterClause?
+  ProcedureWithClause? (For Replication)? As ModuleBody
+}
+
+// DROP PROCEDURE removes one or more stored procedures.
+DropProcedureStatement { Drop (Proc | Procedure) IfExistsClause? MultipartIdentifier (Comma MultipartIdentifier)* DropTriggerScope? }
+ProcedureNumberClause { Semicolon IntegerLiteral }
+
+// SQL Server accepts both the conventional bare parameter list and a parenthesized list.
+ProcedureParameterClause {
+  ProcedureParameterList
+  | OpenParen ProcedureParameterList? CloseParen
+}
+
+// Procedure parameters support nullability, defaults, VARYING cursors, and OUTPUT markers.
+ProcedureParameterList { ProcedureParameter (Comma ProcedureParameter)* }
+ProcedureParameter {
+  Variable As? (DataType | Cursor Varying?) (Null | Not Null)?
+  (Equal Expression)? (Out | Output | ReadOnly)?
+}
+
+// A module WITH clause holds named attributes; which names a statement accepts is a validation
+// rule, so the option name stays an identifier and never turns a misplaced option into recovery.
+ProcedureWithClause { With ProcedureOption (Comma ProcedureOption)* }
+ProcedureOption { IdentifierName | Execute As ModulePrincipal }
+
+// Module execution principals are contextual words or a quoted database principal name.
+ModulePrincipal { Caller | Self | Owner | StringLiteral }
+
+// Transact-SQL bodies are recursively mounted; CLR modules preserve their three-part entry point.
+ModuleBody { ExternalModuleBody | BlockChunk }
+ExternalModuleBody { External Name ClrTypeName }
+
+// CREATE FUNCTION covers scalar, inline-table, and multi-statement table return forms.
+CreateFunctionStatement {
+  Create (Or Alter)? Function MultipartIdentifier FunctionDefinition
+}
+
+// ALTER FUNCTION replaces any supported Transact-SQL function form.
+AlterFunctionStatement {
+  Alter Function MultipartIdentifier FunctionDefinition
+}
+
+// DROP FUNCTION removes one or more scalar or table-valued functions.
+DropFunctionStatement { Drop Function IfExistsClause? MultipartIdentifier (Comma MultipartIdentifier)* DropTriggerScope? }
+
+FunctionParameterList { OpenParen (ProcedureParameter (Comma ProcedureParameter)*)? CloseParen }
+FunctionDefinition {
+  FunctionParameterList? As ExternalFunctionBody
+  | FunctionParameterList? Returns DataType FunctionScalarBody
+  // ORDER follows the WITH clause: the product rejects the reverse order.
+  | FunctionParameterList? Returns FunctionTableReturnType FunctionWithClause?
+    FunctionOrderClause? FunctionTableBody
+}
+// Inline table functions may omit AS; multi-statement and CLR bodies retain the AS introducer.
+FunctionTableBody {
+  As FunctionBody
+  | Return (SelectStatement | ReturnedQuery)
+}
+// Fabric external functions bind the SQL signature to a one- or multipart remote function name.
+ExternalFunctionBody { External Function MultipartIdentifier }
+FunctionScalarBody {
+  As (ExternalFunctionBody | FunctionBody)
+  | FunctionWithClause As FunctionBody
+}
+FunctionTableReturnType { Table TableDefinition? | Variable Table TableDefinition }
+// CLR table-valued functions can declare the output ordering contract.
+FunctionOrderClause { Order OpenParen OrderExpression (Comma OrderExpression)* CloseParen }
+FunctionWithClause { With FunctionOption (Comma FunctionOption)* }
+FunctionOption {
+  Encryption | SchemaBinding | NativeCompilation | Execute As ModulePrincipal
+  | IdentifierName Equal (On | Off)
+  | Returns Null On Null Input | Called On Null Input
+}
+FunctionBody { Return (SelectStatement | ReturnedQuery) | ModuleBody }
+// A returned query may introduce XML namespaces before its SELECT without widening all subqueries.
+ReturnedQuery {
+  OpenParen XmlNamespacesWithClause? QueryExpression OrderByClause? ForClause? OptionClause? CloseParen
+}
+
+// CREATE TRIGGER models DML triggers with timing, events, options, and a mounted SQL body.
+CreateTriggerStatement {
+  Create (Or Alter)? Trigger MultipartIdentifier On TriggerTarget TriggerWithClause?
+  (For | After | Instead Of) TriggerEventList TriggerAppendClause? TriggerReplicationClause?
+  As ModuleBody
+}
+// `FOR INSERT WITH APPEND` is the pre-110 spelling. The option is a contextual word rather than a
+// keyword, matching how SQL Server reads it: the parser accepts any name here and the semantic pass
+// decides whether it is one this engine still supports.
+TriggerAppendClause { With IdentifierName }
+
+// ALTER TRIGGER replaces a DML trigger while preserving its object identity.
+AlterTriggerStatement {
+  Alter Trigger MultipartIdentifier On TriggerTarget TriggerWithClause?
+  (For | After | Instead Of) TriggerEventList TriggerReplicationClause? As ModuleBody
+}
+
+// Triggers target a table/view, the current database, or all server-scoped DDL events.
+TriggerTarget { MultipartIdentifier | Database | All Server }
+
+// DROP TRIGGER optionally identifies the database/server scope used by DDL and LOGON triggers.
+DropTriggerStatement {
+  Drop Trigger IfExistsClause? MultipartIdentifier (Comma MultipartIdentifier)* DropTriggerScope?
+}
+
+// SQL Server parses this scope tail after any DROP object list and rejects it on every kind except
+// DROP TRIGGER, so the shape stays structural and the restriction is a validation rule.
+DropTriggerScope { On (Database | All Server) }
+TriggerWithClause { With TriggerOption (Comma TriggerOption)* }
+TriggerOption { IdentifierName | Execute As ModulePrincipal }
+
+// DML events use reserved terminals; DDL event groups and LOGON remain contextual identifiers.
+TriggerEventList { TriggerEvent (Comma TriggerEvent)* }
+TriggerEvent { Insert | Update | Delete | IdentifierName }
+TriggerReplicationClause { Not For Replication }
+
+// ENABLE/DISABLE TRIGGER addresses named triggers or ALL on an object, database, or server scope.
+EnableDisableTriggerStatement {
+  (Enable | Disable) Trigger (All | MultipartIdentifier (Comma MultipartIdentifier)*)
+  On TriggerTarget
+}
+
+// Procedural statements have real nodes while bounded regions are recursively parsed as SQL.
+ProceduralStatement { IfStatement | WhileStatement | BeginControlStatement | WaitForStatement }
+
+// A controlled body is nested control flow, a BEGIN block, or one mounted SQL statement.
+controlledStatement { ProceduralStatement | OpaqueSqlStatement }
+
+// Boundary tests require the external token to cover exactly one statement before it is mounted.
+OpaqueSqlStatement { StatementChunk }
+
+
+// DECLARE introduces variables, table variables, and local cursors in the current batch.
+DeclareStatement {
+  Declare (CursorDeclaration | VariableDeclaration (Comma VariableDeclaration)*)
+}
+
+// A variable declaration supplies a scalar type/value or table definition.
+VariableDeclaration {
+  Variable As? (DataType | Cursor) (Null | Not Null)? (Equal Expression)?
+  | Variable As? Table TableDefinition
+}
+
+// A cursor declaration binds one local cursor name to a SELECT statement. SQL Server parses one
+// ISO option list before CURSOR and one T-SQL extended list after it, so both lists are structural
+// and which names each list accepts is a validation rule.
+CursorDeclaration { IdentifierName CursorIsoOption* Cursor CursorOption* For SelectStatement }
+
+// The ISO list carries INSENSITIVE and SCROLL; the extended list carries scope, scrolling,
+// concurrency, and update behavior.
+CursorIsoOption { IdentifierName }
+CursorOption { IdentifierName }
+
+// SET assigns a variable, or applies exactly one SET statement family. SQL Server's grammar
+// treats each family as mutually exclusive; a comma only joins items within one family (a bare
+// on/off option list sharing one trailing toggle, or the generic named-value option list). ROWCOUNT
+// and TEXTSIZE stay dedicated single-value alternatives because those names are fully reserved
+// keywords, never plain identifiers (see the keyword demotion trap in the runbook).
+SetStatement {
+  SetCursorAssignment
+  | Set Variable assignmentOperator Expression
+  // A UDT column exposed through a variable takes exactly one member level, reached by `.` or `::`.
+  // `SET @a.b.c = 1` and a bare `@a::b` outside a SET target are both rejected by the product, so
+  // the shape is written out here rather than reusing the general member-expression rules.
+  | Set Variable (Dot | DoubleColon) IdentifierName assignmentOperator Expression
+  | Set Variable (Dot | DoubleColon) IdentifierName !call OpenParen ArgumentList? CloseParen
+  | Set FipsFlaggerSetCommand (Comma FipsFlaggerSetCommand)+
+  | Set SetOnOffOptionList (On | Off)
+  | Set SetGenericOption (Comma SetGenericOption)*
+  | Set Transaction Isolation Level IsolationLevel
+  | Set IdentityInsert MultipartIdentifier (On | Off)
+  | Set Statistics StatisticsOption (Comma StatisticsOption)* (On | Off)
+  | Set RowCount (signedLiteral | Variable)
+  | Set TextSize signedLiteral
+  | Set Errlvl signedLiteral
+  | Set Offsets SetOffsetsList (On | Off)
+}
+
+// SET can assign a cursor definition to a variable; this is distinct from a scalar expression.
+SetCursorAssignment { Set Variable Equal Cursor CursorOption* For SelectStatement }
+
+// SET OFFSETS names the constructs whose offsets are returned to the client. Its list reuses
+// reserved statement keywords, so they are accepted here as offset names.
+SetOffsetsList { SetOffsetsItem (Comma SetOffsetsItem)* }
+SetOffsetsItem { Select | From | Order | Table | Procedure | Execute | IdentifierName }
+
+// A shared trailing ON/OFF applies to every named option in the list, matching SQL Server's
+// SET NOCOUNT, ANSI_NULLS ON form (one toggle, not one per name). Exact option-name validity
+// (NOCOUNT, ANSI_NULLS, ANSI_PADDING, ARITHABORT, QUOTED_IDENTIFIER, FIPS_FLAGGER, and the rest of
+// the boolean session settings) is a validation rule so an unsupported name is diagnosed, not
+// recovered.
+SetOnOffOptionList { IdentifierName (Comma IdentifierName)* }
+
+// FIPS_FLAGGER is the one legacy SET command whose value is attached to each comma-separated
+// command rather than shared as one trailing toggle. ScriptDOM accepts repeated levels in one
+// statement, for example `SET FIPS_FLAGGER OFF, FIPS_FLAGGER 'ENTRY'`.
+FipsFlaggerSetCommand { FipsFlagger (Off | StringLiteral) }
+
+// SQL Server's generic named-value SET options (DEADLOCK_PRIORITY, LOCK_TIMEOUT, DATEFIRST,
+// LANGUAGE, DATEFORMAT, QUERY_GOVERNOR_COST_LIMIT, and others) share one option-name/value shape
+// and may be comma-joined across different names, for example SET LANGUAGE us_english,
+// DATEFORMAT ymd. Exact name and value validity is a validation rule.
+// Lower dynamic precedence so this generic shape loses to the dedicated STATISTICS, ERRLVL, and
+// on/off-toggle alternatives whenever both structurally fit the same span (their option/value
+// text is a contextual keyword that could otherwise also read as a generic name or identifier
+// value, for example STATISTICS IO or ERRLVL -1).
+SetGenericOption[@dynamicPrecedence=-1] { IdentifierName SetGenericOptionValue }
+// A local variable is accepted here too: the real-world corpus exercises
+// SET DEADLOCK_PRIORITY @var, so this stays permissive on the value shape rather than risk
+// rejecting valid SQL on an under-verified narrowing.
+SetGenericOptionValue { signedLiteral | GlobalVariable | Variable | IdentifierName }
+
+// A signed literal allows a leading minus (never a plus) on a SET option value, matching SQL
+// Server's SET LOCK_TIMEOUT -1 form. TEXTSIZE, ERRLVL, and ROWCOUNT reuse this shape rather than a
+// stricter integer-only one: whether the literal is actually an integer stays a validation rule,
+// so a decimal value gets a precise "out of range" diagnostic instead of a generic recovery.
+signedLiteral { Minus? Literal }
+
+// STATISTICS SET options select IO, TIME, PROFILE, XML, or JSON output and share one trailing
+// ON/OFF across a comma-separated list, matching SQL Server's SET STATISTICS IO, TIME ON form.
+StatisticsOption { Io | Time | Profile | Xml | Json }
+
+// An isolation level uses one of SQL Server's supported transaction consistency modes.
+IsolationLevel {
+  Read Uncommitted | Read Committed | Repeatable Read | Snapshot | Serializable
+}
+
+// IF conditionally executes one statement and an optional ELSE statement.
+IfStatement { If !ifStatement ProceduralCondition controlledStatement (!danglingElse Else controlledStatement)? }
+
+// The condition region is mounted with the ExpressionRoot parser for full error visibility.
+ProceduralCondition { ConditionChunk }
+
+// WHILE repeatedly executes one statement while its condition remains true.
+WhileStatement { While !whileStatement ProceduralCondition controlledStatement }
+
+// BEGIN selects a block, TRY/CATCH, or transaction after one deterministic statement prefix.
+BeginControlStatement {
+  Begin !beginStatement (
+    Try BlockChunk? End Try Begin Catch BlockChunk? End Catch
+    | Atomic AtomicWithClause? BlockChunk? End
+    | BlockChunk? End
+  )
+}
+AtomicWithClause { With OpenParen AtomicOption (Comma AtomicOption)* CloseParen }
+AtomicOption {
+  Transaction Isolation Level Equal AtomicIsolationLevel
+  | DelayedDurability Equal (On | Off)
+  | Language Equal Literal
+  | IdentifierName Equal (Literal | IdentifierName)
+}
+AtomicIsolationLevel {
+  Read (Committed | Uncommitted) | Repeatable Read | Serializable | Snapshot
+}
+
+// BREAK exits the nearest WHILE loop.
+BreakStatement { Break }
+
+// CONTINUE starts the nearest WHILE loop's next iteration.
+ContinueStatement { Continue }
+
+// GOTO transfers execution to a label in the current batch.
+GotoStatement { Goto IdentifierName }
+
+// A label declares a GOTO destination.
+LabelStatement { Label }
+
+// RETURN exits the current batch or module with an optional integer expression.
+ReturnStatement { Return Expression? }
+
+// PRINT writes one scalar expression to the messages stream.
+PrintStatement { Print Expression }
+
+// THROW raises the active exception or accepts an integer/variable error number and two values.
+ThrowStatement { Throw ((IntegerLiteral | Variable) Comma Expression Comma Expression)? }
+
+// RAISERROR raises a formatted error with severity, state, arguments, and options.
+//
+// The unparenthesized form is the pre-110 spelling, `RAISERROR 50001 'message'`. SQL Server still
+// accepts it and legacy scripts are full of it, so it parses here and the availability layer is
+// what reports it as deprecated. The two forms cannot be confused: one continues with a bracket and
+// the other with a number or a variable.
+RaiserrorStatement {
+  Raiserror OpenParen Expression Comma Expression Comma Expression
+  (Comma Expression)* CloseParen optionalDdlTail<RaiserrorOptions>
+  | Raiserror LegacyRaiserrorSeverity LegacyRaiserrorMessage
+}
+LegacyRaiserrorSeverity { Minus? IntegerLiteral | Variable }
+LegacyRaiserrorMessage { StringLiteral | Variable }
+
+// RAISERROR options follow WITH and are comma-separated names.
+RaiserrorOptions { With IdentifierName (Comma IdentifierName)* }
+
+// WAITFOR pauses until a delay, time, or receive condition.
+// A receive-style WAITFOR wraps its statement in parentheses; the timeout that may follow is
+// optional and, in the product's own scripts, comma-separated from the parenthesized statement.
+WaitForStatement {
+  Waitfor (Delay | Time) Expression
+  | Waitfor OpenParen OpaqueSqlStatement CloseParen optionalDdlTail<WaitForTimeoutClause>
+}
+WaitForTimeoutClause { Comma? Timeout Expression? }
+
+// BEGIN TRANSACTION starts a local or distributed transaction with an optional name.
+BeginTransactionStatement {
+  Begin Distributed? (Tran | Transaction) TransactionName? optionalDdlTail<TransactionMarkClause>
+}
+TransactionMarkClause { With Mark (Literal | Variable)? }
+
+// COMMIT completes the current transaction and optionally names or delays durability.
+CommitTransactionStatement {
+  Commit (Work | (Tran | Transaction) TransactionName?)? optionalDdlTail<DelayedDurabilityClause>
+}
+
+// Delayed durability controls transaction-log flush behavior for COMMIT.
+DelayedDurabilityClause {
+  With OpenParen DelayedDurability Equal (On | Off) CloseParen
+}
+
+// ROLLBACK abandons the current transaction or rolls back to a savepoint.
+RollbackTransactionStatement { Rollback (Tran | Transaction)? TransactionName? }
+
+// SAVE TRANSACTION creates a named savepoint.
+SaveTransactionStatement { Save (Tran | Transaction) TransactionName }
+
+// Transaction names may be fixed identifiers or values supplied through a local variable.
+// A transaction name is an identifier, a variable, or SQL Server's legacy concatenated form, which
+// joins a signed integer and a two-part identifier into one savepoint name.
+TransactionName { IdentifierName | Variable | LegacyTransactionName }
+LegacyTransactionName {
+  (Plus | Minus)? IntegerLiteral Colon IdentifierName Dot IdentifierName
+}
+
+// EXECUTE AS changes the session execution principal independently of module execution. USER and
+// LOGIN accept scalar expressions (including variables and function calls); CALLER is the only
+// principal kind that does not take an equals sign or value.
+ExecuteAsStatement {
+  Execute As (
+    (Login | User) Equal Expression
+    | Caller
+  ) optionalDdlTail<ExecuteAsCookieClause>
+}
+
+// An EXECUTE AS cookie clause captures a securely revertible context token.
+// NO REVERT and the cookie capture are independent; either may appear alone.
+ExecuteAsCookieClause { With Cookie Into Variable | With No Revert }
+
+// REVERT restores the previous execution context and may supply a cookie variable.
+RevertStatement { Revert optionalDdlTail<RevertCookieClause> }
+
+// A REVERT cookie clause supplies the token returned by EXECUTE AS.
+RevertCookieClause { With Cookie Equal (Variable | Literal) }
+
+// USE changes the active database for following batches.
+UseStatement { Use IdentifierName }
+
+// TRUNCATE TABLE removes all rows and supports a partition range.
+TruncateTableStatement {
+  Truncate Table TableSourceName optionalDdlTail<TruncatePartitionsClause>
+}
+
+// A truncate partition clause selects one partition or an inclusive partition range.
+TruncatePartitionsClause {
+  With OpenParen Partitions OpenParen PartitionRange (Comma PartitionRange)* CloseParen CloseParen
+}
+
+// CHECKPOINT requests a database checkpoint with an optional duration.
+CheckpointStatement { Checkpoint Expression? }
+
+// KILL terminates a session or one of SQL Server's asynchronous jobs/subscriptions.
+// KILL addresses a session, a query-notification subscription, or a statistics job. Each target
+// form has a fixed word count: an optional middle word would be ambiguous with the session form,
+// which is a single token, and that ambiguity explodes the state table rather than reporting a
+// conflict.
+KillStatement {
+  Kill IdentifierName IdentifierName IdentifierName (All | signedIntegerTarget)
+  | Kill IdentifierName IdentifierName signedIntegerTarget
+  | Kill (signedIntegerTarget | StringLiteral | IdentifierName)
+    optionalDdlTail<KillWithClause>
+}
+signedIntegerTarget { (Minus | Plus)? IntegerLiteral }
+KillWithClause { With IdentifierName }
+
+// RECONFIGURE applies configuration changes with an optional override.
+ReconfigureStatement { Reconfigure optionalDdlTail<ReconfigureWithClause> }
+ReconfigureWithClause { With Override }
+
+// SHUTDOWN stops the SQL Server instance and can wait for immediate termination.
+ShutdownStatement { Shutdown optionalDdlTail<ShutdownWithClause> }
+ShutdownWithClause { With Nowait }
+
+// CREATE VIEW and CREATE OR ALTER VIEW bind a named projection to one SELECT query.
+CreateViewStatement {
+  Create (Or Alter)? View MultipartIdentifier ColumnNameList?
+  ViewOptionClause? As SelectStatement ViewCheckOptionClause?
+}
+
+// ALTER VIEW replaces a view projection while retaining the existing object identity.
+AlterViewStatement {
+  Alter View MultipartIdentifier ColumnNameList? ViewOptionClause? As SelectStatement
+  ViewCheckOptionClause?
+}
+
+// Dedicated SQL pools support persisted materialized views with distribution options.
+CreateMaterializedViewStatement {
+  Create Materialized View MultipartIdentifier MaterializedViewWithClause As SelectStatement
+}
+MaterializedViewWithClause {
+  With OpenParen MaterializedViewOption (Comma MaterializedViewOption)* CloseParen
+}
+MaterializedViewOption {
+  Distribution Equal (Hash OpenParen IdentifierName (Comma IdentifierName)* CloseParen | RoundRobin)
+  | ForAppend
+}
+
+// Materialized views expose only REBUILD and DISABLE lifecycle operations.
+AlterMaterializedViewStatement { Alter Materialized View MultipartIdentifier (Rebuild | Disable) }
+
+// View options are the bounded SQL Server SCHEMABINDING, ENCRYPTION, and VIEW_METADATA set.
+ViewOptionClause { With IdentifierName (Comma IdentifierName)* }
+
+// WITH CHECK OPTION restricts view writes to rows visible through the view predicate.
+ViewCheckOptionClause { ViewCheckWith Check Option }
+
+// DROP VIEW removes one or more views and supports SQL Server's IF EXISTS guard.
+DropViewStatement { Drop View IfExistsClause? MultipartIdentifier (Comma MultipartIdentifier)* DropTriggerScope? }
+
+// CREATE SYNONYM assigns a local schema object name to a one- through four-part target.
+// Both the synonym and its target may omit leading name components, as in `.mysyn FOR ...t1`.
+CreateSynonymStatement { Create Synonym TableSourceName For TableSourceName }
+
+// DROP SYNONYM removes one or more synonyms and supports IF EXISTS.
+DropSynonymStatement { Drop Synonym IfExistsClause? MultipartIdentifier (Comma MultipartIdentifier)* DropTriggerScope? }
+
+// CREATE TYPE defines an alias type, CLR type, or table type. A memory-optimized table type
+// carries the same WITH option list as a memory-optimized table.
+CreateTypeStatement {
+  Create Type MultipartIdentifier
+  (
+    From DataType (Null | Not Null)?
+    | External Name ClrTypeName
+    | As Table TableDefinition optionalDdlTail<TableOptionClause>
+  )
+}
+
+// SELECT ... INTO may generate an identity column. IDENTITY is reserved, so the call needs its own
+// production rather than the ordinary function-call path.
+IdentityFunctionCall {
+  Identity OpenParen DataType (Comma Expression Comma Expression)? CloseParen
+}
+
+// A CLR type name retains its assembly and class identifiers as a dedicated declaration value.
+ClrTypeName { IdentifierName (Dot IdentifierName (Dot IdentifierName)?)? }
+
+// DROP TYPE removes one or more user-defined types and supports IF EXISTS.
+DropTypeStatement { Drop Type IfExistsClause? MultipartIdentifier (Comma MultipartIdentifier)* }
+
+// CREATE SEQUENCE defines a numeric generator with an explicitly bounded option vocabulary.
+CreateSequenceStatement { Create Sequence MultipartIdentifier SequenceOption* }
+
+// ALTER SEQUENCE changes generator options or restarts the next generated value.
+AlterSequenceStatement { Alter Sequence MultipartIdentifier SequenceAlterOption* }
+
+// A sequence option controls type, bounds, increment, cycling, and cache behavior.
+SequenceOption {
+  As DataType | Start With Expression | Increment By Expression |
+  (MinValue | MaxValue) Expression | No (MinValue | MaxValue | Cycle | Cache) |
+  Cycle | Cache Expression?
+}
+
+// ALTER SEQUENCE accepts CREATE options plus RESTART with an optional new value.
+SequenceAlterOption { SequenceOption | Restart optionalDdlTail<SequenceRestartValue> }
+
+// A restart value overrides the next sequence value after ALTER SEQUENCE RESTART.
+SequenceRestartValue { With Expression }
+
+// DROP SEQUENCE removes one or more generators and supports IF EXISTS.
+DropSequenceStatement { Drop Sequence IfExistsClause? MultipartIdentifier (Comma MultipartIdentifier)* DropTriggerScope? }
+
+// CREATE TABLE defines ordinary, temporary, graph, temporal, ledger, or CTAS tables.
+CreateTableStatement {
+  Create Table TableSourceName (
+    CtasColumnNameList TableOptionClause As SelectStatement
+    | TableOptionClause As SelectStatement
+    | As? SelectStatement
+    | CreateTableDefinitionBody CreateTableStorageClause* optionalDdlTail<TableOptionClause>
+  )
+}
+
+// A definition body is distinct from CTAS so SELECT INTO's ON filegroup remains unambiguous.
+CreateTableDefinitionBody {
+  TableDefinition (As (Node | Edge))?
+  | As (FileTable | Node | Edge)
+  | As Clone Of MultipartIdentifier (At StringLiteral)?
+}
+
+// A table definition contains columns, constraints, periods, and inline indexes.
+TableDefinition { OpenParen TableElement (Comma TableElement)* Comma? CloseParen }
+
+// A table element selects one supported definition kind.
+TableElement { ColumnDefinition | TableConstraint | PeriodDefinition | InlineIndexDefinition }
+
+// A column definition binds its name, type, computed expression, and ordered options.
+ColumnDefinition {
+  ~columnName IdentifierName (
+    As Expression (Persisted (Not Null)?)? ColumnConstraint*
+    | DataType ColumnOption*
+  )
+  // A row-version column may be declared by its type alone: `timestamp NOT NULL` names both the
+  // column and its type. TIMESTAMP is also an ordinary identifier, so both readings stay alive.
+  | ~columnName Timestamp ColumnOption*
+}
+
+// A column option models nullability, defaults, identity, generated values, and constraints.
+ColumnOption {
+  ~columnOption
+  (Null
+  | Not Null
+  | CollateClause
+  | Sparse
+  | Hidden
+  | FileStream
+  | ColumnSet For AllSparseColumns
+  | Rowguidcol
+  | IdentityOption
+  | Default DefaultExpression optionalDdlTail<DefaultWithValues>
+  | Generated Always As GeneratedColumnKind
+  | Masked With OpenParen Function Equal StringLiteral CloseParen
+  | Encrypted With OpenParen GenericOptionList CloseParen
+  | ColumnInlineIndexDefinition
+  | ColumnConstraint)
+}
+
+// A column-level inline index implicitly uses its containing column as the key.
+ColumnInlineIndexDefinition {
+  Index IdentifierName? (Clustered | Nonclustered)? (Columnstore | Hash)? IndexColumnList?
+  IncludeClause? ColumnIndexWhereClause? optionalDdlTail<IndexWithClause> CreateTableStorageClause*
+}
+ColumnIndexWhereClause { Where ColumnIndexFilterPredicate }
+ColumnIndexFilterPredicate { ColumnIndexFilterTerm (And ColumnIndexFilterTerm)* }
+ColumnIndexFilterTerm {
+  ColumnReference (
+    comparisonOperator Literal | Is Not? Null | Not? In OpenParen ArgumentList CloseParen
+  )
+}
+DefaultWithValues { With Values }
+
+// DEFAULT accepts scalar arithmetic/bitwise expressions without consuming a following column COLLATE.
+DefaultExpression { defaultAdditiveExpression }
+defaultAdditiveExpression {
+  defaultMultiplicativeExpression
+  ((Plus | Minus | Ampersand | Pipe | Caret | AtTimeZone) defaultMultiplicativeExpression)*
+}
+defaultMultiplicativeExpression {
+  defaultUnaryExpression ((Star | Slash | PercentSign) defaultUnaryExpression)*
+}
+defaultUnaryExpression { (Plus | Minus | Tilde)* primaryExpression }
+
+// ROWGUIDCOL is a pseudo-column reference even though it is reserved in DDL positions.
+RowguidReference {
+  Rowguidcol
+  | IdentifierName Dot Rowguidcol
+  | IdentifierName Dot IdentifierName Dot Rowguidcol
+  | IdentifierName Dot IdentifierName Dot IdentifierName Dot Rowguidcol
+  | IdentifierName Dot Dot IdentifierName Dot Rowguidcol
+}
+
+// An IDENTITY option retains seed/increment and NOT FOR REPLICATION as one column option.
+IdentityOption {
+  Identity IdentityArguments? ~columnOption (Not For Replication)?
+}
+
+// IDENTITY accepts optional seed and increment expressions.
+IdentityArguments { OpenParen Expression Comma Expression CloseParen }
+
+// A generated column kind identifies temporal, ledger, transaction, or sequence boundaries.
+GeneratedColumnKind {
+  Row Start
+  | Row End
+  | TransactionId Start
+  | TransactionId End
+  | SequenceNumber Start
+  | SequenceNumber End
+  | IdentifierName (Start | End)
+}
+
+// An inline column constraint defines keys, checks, or referential behavior.
+// A column-level key constraint may still restate its column list, and engines that accept
+// unenforced constraints mark them NOT ENFORCED.
+ColumnConstraint {
+  Constraint IdentifierName?
+  (Primary Key IndexCharacteristics IndexColumnList? optionalDdlTail<ConstraintEnforcement>
+     optionalDdlTail<ConstraintIndexTail>
+   | Unique IndexCharacteristics IndexColumnList? optionalDdlTail<ConstraintEnforcement>
+     optionalDdlTail<ConstraintIndexTail>
+   | Check (Not For Replication)? OpenParen Expression CloseParen
+   | Foreign Key ColumnNameList? ReferencesClause optionalDdlTail<ConstraintEnforcement>
+   | ReferencesClause | Default DefaultExpression)
+  | Primary Key IndexCharacteristics IndexColumnList? optionalDdlTail<ConstraintEnforcement>
+    optionalDdlTail<ConstraintIndexTail>
+  | Unique IndexCharacteristics IndexColumnList? optionalDdlTail<ConstraintEnforcement>
+    optionalDdlTail<ConstraintIndexTail>
+  | Check (Not For Replication)? OpenParen Expression CloseParen
+  | Foreign Key ColumnNameList? ReferencesClause
+  | ReferencesClause
+}
+// NOT here would otherwise be read as the start of a NOT NULL column option, so the enforcement
+// marker stays a bounded GLR continuation on the key constraints that actually accept it.
+ConstraintEnforcement { Not? Enforced }
+
+// A table constraint defines primary, unique, foreign, or check constraints over columns.
+TableConstraint {
+  Constraint IdentifierName? TableConstraintBody
+  | TableConstraintBody
+}
+TableConstraintBody {
+  // A table-level key constraint carries the same NOT ENFORCED marker as a column-level one.
+  Primary Key IndexCharacteristics IndexColumnList optionalDdlTail<ConstraintEnforcement>
+    optionalDdlTail<ConstraintIndexTail>
+  | Unique IndexCharacteristics IndexColumnList optionalDdlTail<ConstraintEnforcement>
+    optionalDdlTail<ConstraintIndexTail>
+  | Foreign Key ColumnNameList? ReferencesClause optionalDdlTail<ConstraintEnforcement>
+  | Check (Not For Replication)? OpenParen Expression CloseParen
+  | Default DefaultExpression For IdentifierName optionalDdlTail<DefaultWithValues>
+  | Connection OpenParen GraphConnection (Comma GraphConnection)* CloseParen
+    (On Delete Cascade)?
+}
+GraphConnection { MultipartIdentifier To MultipartIdentifier }
+
+// Constraint-backed indexes retain legacy/non-parenthesized options and storage placement.
+ConstraintIndexTail {
+  ConstraintIndexWithClause optionalDdlTail<CreateTableStorageClause>
+  | CreateTableStorageClause
+}
+ConstraintIndexWithClause {
+  With (OpenParen GenericOptionList CloseParen | LegacyConstraintIndexOption+)
+}
+
+// Pre-2005 constraint syntax permits these index attributes without parentheses or commas.
+LegacyConstraintIndexOption {
+  SortedData | SortedDataReorg | FillFactor Equal (IntegerLiteral | DecimalLiteral)
+}
+
+// A REFERENCES clause names its target columns and optional cascade actions.
+ReferencesClause {
+  References MultipartIdentifier ColumnNameList? ReferentialActionClause* optionalReferenceReplication
+}
+optionalReferenceReplication {
+  ~referenceReplication ()
+  | ~referenceReplication Not For Replication
+}
+
+// Referential actions describe DELETE or UPDATE cascade behavior.
+ReferentialActionClause { On (Delete | Update) (No Action | Cascade | Set Null | Set Default) }
+
+// PERIOD FOR SYSTEM_TIME names the temporal start and end columns.
+PeriodDefinition { Period For SystemTime OpenParen IdentifierName Comma IdentifierName CloseParen }
+
+// An inline index defines a regular or columnstore index inside CREATE TABLE.
+// A clustered columnstore index indexes the whole table, so it names no key columns.
+InlineIndexDefinition {
+  Index IdentifierName Unique? (Clustered | Nonclustered)? (Columnstore | Hash)? IndexColumnList?
+  IncludeClause? WhereClause? optionalDdlTail<IndexWithClause> CreateTableStorageClause*
+}
+
+// Index characteristics select clustering and columnstore storage.
+// HASH belongs to a memory-optimized index, which declares its bucket count in the WITH list.
+IndexCharacteristics { (Clustered | Nonclustered)? (Columnstore | Hash)? }
+
+// An index column list contains columns with optional sort direction.
+IndexColumnList { OpenParen IndexColumn (Comma IndexColumn)* CloseParen }
+
+// An index column carries an optional ascending or descending direction.
+IndexColumn { IdentifierName (Asc | Desc)? }
+
+// INCLUDE adds non-key columns to an index.
+IncludeClause { Include ColumnNameList }
+
+// A CREATE TABLE storage clause selects a filegroup or large-value storage target, or maps the
+// table onto a federation distribution key.
+CreateTableStorageClause {
+  (On | TextImageOn | FileStreamOn) (IdentifierName | StringLiteral | Default) ColumnNameList?
+  | Federated On OpenParen IdentifierName Equal IdentifierName CloseParen
+}
+
+// Table options configure temporal, ledger, memory, durability, compression, and related features.
+TableOptionClause { With OpenParen TableOption (Comma TableOption)* CloseParen }
+
+// Table options include named assignments, CTAS index shapes, heaps, and partitions.
+TableOption {
+  ClusterByTableOption
+  | IdentifierName Equal TableOptionValue optionalOptionPartitions
+  // An ordered clustered columnstore index names its ordering columns after INDEX.
+  | (Clustered | Nonclustered)? Columnstore? Index IndexColumnList?
+    (Order OpenParen IndexColumn (Comma IndexColumn)* CloseParen)?
+  | Heap
+  // RANGE LEFT/RIGHT is optional; the boundary list may also be empty.
+  | Partition OpenParen IdentifierName Range (Left | Right)? For Values
+    OpenParen ArgumentList? CloseParen CloseParen
+}
+TableOptionValue {
+  MultipartOptionValue | OptionValue | IdentifierName OpenParen ArgumentList? CloseParen
+}
+
+// Fabric Data Warehouse orders a table's storage by named columns. It is spelled as a table option
+// rather than an index, so it takes its own node and the availability registry gates it.
+ClusterByTableOption { Cluster By ColumnNameList }
+
+// A generic option list retains named SQL Server option assignments without hiding statements.
+GenericOptionList { GenericOption (Comma GenericOption)* }
+
+// A generic option supports an assignment, value list, or stand-alone option name. A bare signed
+// literal is also a list item, so coordinate lists such as BOUNDING_BOX = (4, -5.5, 6, -9) stay
+// inside the option grammar instead of becoming recovery.
+GenericOption {
+  GenericOptionName (
+    // A qualified value may itself carry a nested option list, for example
+    // LEDGER = ON (LEDGER_VIEW = dbo.v (TRANSACTION_ID_COLUMN_NAME = t)).
+    Equal (MultipartOptionValue (OpenParen GenericOptionList CloseParen)? | OptionValue)
+      optionalOptionPartitions
+    | OpenParen GenericOptionList? CloseParen
+    | To (IdentifierName | StringLiteral) ColumnNameList?
+  )?
+  | (Plus | Minus)? Literal
+  // QUEUE ACTIVATION(DROP) uses DROP as a bare value, not as an option name with a value.
+  | Drop
+  // A queue ACTIVATION list names the principal its procedure runs as. The option grammar is
+  // shared, so where this may appear is checked in the semantic pass.
+  | Execute As (Self | Owner | StringLiteral)
+  // FILESTREAM_ON names its filegroup directly, the way MOVE TO does, with no equals sign.
+  | FileStreamOn FilegroupTarget
+}
+
+// A trailing ON belongs either to this option's partition scope or to the statement's own storage
+// clause (for example QUEUE ... ON filegroup), so the continuation stays a bounded GLR choice.
+optionalOptionPartitions {
+  ~optionPartitions ()
+  | ~optionPartitions OptionPartitionsClause
+}
+
+// Compression options may be scoped to individual partitions or inclusive partition ranges,
+// for example DATA_COMPRESSION = PAGE ON PARTITIONS (1, 3 TO 5).
+OptionPartitionsClause {
+  On Partitions OpenParen PartitionRange (Comma PartitionRange)* CloseParen
+}
+PartitionRange { Expression (To Expression)? }
+
+// Legacy constraint option words remain valid generic names in modern parenthesized option lists.
+// Backup encryption names its key holder with two words, as in SERVER CERTIFICATE = cert1.
+GenericOptionName {
+  IdentifierName | FillFactor | SortedData | SortedDataReorg | Server (Certificate | Asymmetric Key)
+}
+
+// An option value is deliberately smaller than an expression to keep DDL option parsing bounded.
+// ON and OFF may each carry a nested option list, for example
+// REMOTE_DATA_ARCHIVE = OFF (MIGRATION_STATE = PAUSED). The same shape after an arbitrary
+// identifier (OFF_WITHOUT_DATA_RECOVERY) has its own contextual option state below.
+OptionValue {
+  (On | Off) OpenParen GenericOptionList CloseParen |
+  // ScriptDOM gives REMOTE_DATA_ARCHIVE one additional option state. It is a contextual terminal,
+  // so only this exact value takes the nested-option path; ordinary HASH(...) and other
+  // identifier-shaped option values remain TableOptionValue calls.
+  OffWithoutDataRecovery OpenParen GenericOptionList CloseParen |
+  On | Off | Continue | Shutdown | None | Table | All | Literal IdentifierName? | IdentifierName |
+  Variable |
+  Plus IntegerLiteral | Minus IntegerLiteral |
+  OpenParen GenericOptionList? CloseParen
+}
+
+// Multipart option values are isolated so common single-name options remain deterministic.
+MultipartOptionValue {
+  IdentifierName Dot IdentifierName (Dot IdentifierName (Dot IdentifierName)?)?
+  | IdentifierName Dot Dot IdentifierName (Dot IdentifierName)?
+}
+
+// An option value list contains comma-separated bounded option values.
+OptionValueList { OptionValue (Comma OptionValue)* }
+
+// ALTER TABLE adds, changes, drops, validates, switches, or rebuilds table elements.
+AlterTableStatement { Alter Table MultipartIdentifier AlterTableAction }
+
+// An ALTER TABLE action is one explicitly modeled table mutation family.
+AlterTableAction {
+  // Fabric's clustering action is parenthesized, which no other ADD form is, so the two never
+  // compete for the same lookahead.
+  Add OpenParen ClusterByTableOption CloseParen
+  | Add TableElement (Comma TableElement)*
+  | With (Check | Nocheck) Add TableElement (Comma TableElement)*
+  | Alter Column (ColumnDefinition | IdentifierName AlterColumnAttributeAction)
+    optionalDdlTail<IndexWithClause>
+  | Alter Index IdentifierName AlterTableIndexOperation
+  | Drop Period For SystemTime
+  | Drop AlterTableDropElement (Comma AlterTableDropElement)*
+  | (With (Check | Nocheck))? (Check | Nocheck) Constraint (All | IdentifierName (Comma IdentifierName)*)
+  | (Enable | Disable) Trigger (All | IdentifierName (Comma IdentifierName)*)
+  // ENABLE/DISABLE also toggles named table features such as CHANGE_TRACKING, which carries its
+  // own option list. Which feature names are valid is a validation rule.
+  | (Enable | Disable) IdentifierName optionalDdlTail<TableOptionClause>
+  | Switch (Partition Expression)? To MultipartIdentifier (Partition Expression)?
+    optionalDdlTail<AlterTableSwitchWithClause>
+  | Set OpenParen GenericOptionList CloseParen
+  | Rebuild (Partition Equal (All | Expression))? optionalDdlTail<IndexWithClause>
+  // A partitioned table merges or splits one boundary range in place.
+  | (Merge | Split) Range OpenParen Expression CloseParen
+}
+
+// Memory-optimized inline indexes can be rebuilt through ALTER TABLE instead of ALTER INDEX ON.
+AlterTableIndexOperation {
+  Rebuild optionalDdlTail<IndexWithClause>
+  | (Disable | Reorganize | Pause | Resume | Abort) optionalDdlTail<IndexWithClause>
+}
+
+// SWITCH supports SQL Server's bounded WAIT_AT_LOW_PRIORITY lock-wait option list.
+AlterTableSwitchWithClause { With OpenParen GenericOptionList CloseParen }
+
+// ALTER COLUMN ADD/DROP toggles metadata attributes without requiring a replacement type.
+AlterColumnAttributeAction {
+  (Add | Drop) (Rowguidcol | Not For Replication | Hidden | Persisted | Sparse)
+  | Add Masked With OpenParen Function Equal StringLiteral CloseParen
+  | Drop Masked
+}
+
+// Each dropped table element owns its optional low-priority, move, or online option list.
+AlterTableDropElement {
+  (Column IfExistsClause? | Constraint IfExistsClause? | Index IfExistsClause?)? IdentifierName
+  optionalDdlTail<IndexWithClause>
+}
+
+// DROP TABLE removes one or more tables and supports SQL Server's IF EXISTS guard.
+DropTableStatement { Drop Table IfExistsClause? MultipartIdentifier (Comma MultipartIdentifier)* DropTriggerScope? }
+
+// IF EXISTS guards supported DDL drops against absent objects.
+IfExistsClause { If Exists }
+
+// CREATE INDEX defines regular rowstore or columnstore indexes.
+CreateIndexStatement {
+  Create CreateIndexKind Index IdentifierName On MultipartIdentifier CreateIndexTail
+}
+
+// A regular index kind combines uniqueness, clustering, and optional columnstore storage.
+CreateIndexKind { Unique? (Clustered | Nonclustered)? Columnstore? }
+
+// A regular index tail orders keys, included columns, filter, options, and storage.
+CreateIndexTail {
+  IndexColumnList? IncludeClause? IndexOrderClause? WhereClause?
+  optionalDdlTail<IndexWithClause | LegacyCreateIndexWithClause>
+  IndexStorageClause? IndexFileStreamClause?
+}
+
+// Pre-2005 CREATE INDEX accepted a non-parenthesized WITH list. Its small historical allowlist is
+// validation rather than grammar so unsupported identifier-shaped names retain an exact range.
+LegacyCreateIndexWithClause {
+  With LegacyCreateIndexOption (Comma LegacyCreateIndexOption)*
+}
+LegacyCreateIndexOption {
+  (Identifier | FillFactor | DropExisting | MaxDop)
+  (Equal (Plus | Minus)? (IntegerLiteral | DecimalLiteral))?
+}
+
+// A columnstore index declares the ORDER of the columns it sorts for segment elimination.
+// Which columns may appear there is a validation rule, so every column name parses here.
+IndexOrderClause { Order OpenParen IndexOrderColumn (Comma IndexOrderColumn)* CloseParen }
+IndexOrderColumn { IdentifierName (Asc | Desc)? }
+
+// FILESTREAM_ON places FILESTREAM data independently of the relational index filegroup.
+IndexFileStreamClause { FileStreamOn (IdentifierName | StringLiteral | Null) }
+
+// CREATE JSON INDEX indexes one JSON column and optional path list on SQL Server 2025.
+CreateJsonIndexStatement {
+  Create Json Index IdentifierName On MultipartIdentifier
+  OpenParen IdentifierName CloseParen JsonPathClause? optionalDdlTail<IndexWithClause>
+}
+
+// A JSON index path clause lists the JSON paths materialized by the index.
+JsonPathClause { For OpenParen StringLiteral (Comma StringLiteral)* CloseParen }
+
+// CREATE VECTOR INDEX indexes one vector column with vector-specific options.
+CreateVectorIndexStatement {
+  Create Vector Index IdentifierName On MultipartIdentifier
+  OpenParen IdentifierName CloseParen optionalDdlTail<IndexWithClause> IndexStorageClause?
+}
+
+// CREATE SEMANTIC INDEX configures vector, full-text, or hybrid search over table columns.
+CreateSemanticIndexStatement {
+  Create Semantic Index IdentifierName On MultipartIdentifier
+  OpenParen SemanticIndexColumn (Comma SemanticIndexColumn)* CloseParen
+  SemanticIndexWithClause SemanticIndexStorageClause?
+}
+
+// Semantic columns independently select search, type-column, language, and chunking behavior.
+SemanticIndexColumn {
+  IdentifierName
+  (SearchType Equal IdentifierName)?
+  (Type Column IdentifierName)?
+  (Language (IdentifierName | IntegerLiteral))?
+  (ChunkUsing OpenParen GenericOptionList CloseParen)?
+}
+
+// Semantic index options describe model binding and physical vector/full-text behavior.
+SemanticIndexWithClause {
+  With OpenParen SemanticIndexOption (Comma SemanticIndexOption)* CloseParen
+}
+SemanticIndexOption {
+  ExternalModel Equal SemanticExternalModel
+  | VectorIndex OpenParen GenericOptionList CloseParen
+  | FullTextStopList Equal (Off | System | IdentifierName)
+  | MaxDop Equal IntegerLiteral
+  | DropExisting Equal (On | Off)
+  | GenericOption
+}
+SemanticExternalModel {
+  (IdentifierName | OpenParen IdentifierName CloseParen)
+  (OpenParen Parameters Equal StringLiteral CloseParen)?
+}
+SemanticIndexStorageClause { On IdentifierName }
+
+// WITH index options uses SQL Server's named option list.
+IndexWithClause { With OpenParen IndexOption (Comma IndexOption)* CloseParen }
+
+// ORDER names columns rather than taking a value, which the shared option grammar cannot express.
+IndexOption { Order ColumnNameList | GenericOption }
+
+// An index storage clause selects a filegroup or partition scheme and optional columns.
+IndexStorageClause { On (IdentifierName | StringLiteral) ColumnNameList? }
+
+// ALTER INDEX performs enablement, maintenance, movement, or option changes. Its target accepts
+// SQL Server's omitted multipart components, for example ALTER INDEX i ON .db..t1.
+AlterIndexStatement {
+  Alter Index (All | IdentifierName) On TableSourceName
+  AlterIndexOperation
+}
+
+// An ALTER INDEX operation separates the ambiguous optional WITH tail into explicit GLR branches.
+AlterIndexOperation {
+  Rebuild AlterIndexRebuildTail
+  | Disable
+  | (Reorganize | Pause | Resume | Abort | Set) AlterIndexOptionalTail
+  | SelectiveXmlAlterClause
+}
+
+// Selective XML index ALTER mutates promoted paths and can redeclare namespace prefixes.
+SelectiveXmlAlterClause {
+  SelectiveXmlNamespaces? For OpenParen SelectiveXmlAlterPath
+  (Comma SelectiveXmlAlterPath)* CloseParen
+}
+SelectiveXmlAlterPath { Add SelectiveXmlPath | Remove IdentifierName }
+
+// A rebuild tail may be empty, select a partition, add options, or combine both.
+AlterIndexRebuildTail {
+  optionalDdlTail<IndexWithClause>
+  | Partition Equal (All | Expression) optionalDdlTail<IndexWithClause>
+}
+
+// Other index operations use explicit empty and continued branches for deterministic recovery.
+AlterIndexOptionalTail {
+  optionalDdlTail<IndexWithClause>
+  | Partition Equal (All | Expression) optionalDdlTail<IndexWithClause>
+  | OpenParen GenericOptionList CloseParen
+}
+
+// DROP INDEX removes modern table-qualified indexes or legacy owner-qualified names.
+DropIndexStatement { Drop Index IfExistsClause? DropIndexItem (Comma DropIndexItem)* }
+DropIndexItem {
+  (IdentifierName On MultipartIdentifier | MultipartIdentifier)
+  optionalDdlTail<IndexWithClause>
+}
+
+// CREATE STATISTICS defines a sampled or filtered statistics object over one table or view.
+CreateStatisticsStatement {
+  Create Statistics IdentifierName On MultipartIdentifier IndexColumnList
+  WhereClause? optionalDdlTail<StatisticsWithClause>
+}
+
+// UPDATE STATISTICS refreshes all or selected statistics on one table or indexed view.
+UpdateStatisticsStatement {
+  Update Statistics MultipartIdentifier StatisticsTargetList?
+  optionalDdlTail<StatisticsWithClause>
+}
+
+// DROP STATISTICS removes one or more table-qualified statistics objects.
+DropStatisticsStatement {
+  Drop Statistics omittedOrMultipartName (Comma omittedOrMultipartName)*
+}
+
+// Selected statistics targets can be a bare name or a parenthesized comma-separated list.
+StatisticsTargetList {
+  IdentifierName
+  | OpenParen IdentifierName (Comma IdentifierName)* CloseParen
+}
+
+// Statistics options use the same bounded assignment vocabulary as other SQL Server WITH lists.
+StatisticsWithClause { With StatisticsDdlOption (Comma StatisticsDdlOption)* }
+StatisticsDdlOption {
+  // ALL and INDEX are reserved words, so neither can arrive through the identifier branch below.
+  All | Index
+  | FullScan | Resample optionalOptionPartitions | NoRecompute
+  | Sample Expression (Percent | Rows)
+  // ROWCOUNT and PAGECOUNT accept bigint-sized persisted cardinality estimates.
+  | (RowCount | PageCount) Equal IntegerLiteral
+  | IdentifierName (Equal OptionValue)?
+}
+
+// Optional DDL continuations keep valid statement endings and WITH continuations as bounded GLR paths.
+optionalDdlTail<content> { ~ddlTail () | ~ddlTail content }
+
+// An INSERT statement requires a target and one explicit values, query, default, or execute source.
+InsertStatement {
+  // OVER stands where INTO does, naming the target of a legacy INSERT OVER form.
+  dmlWithClause? Insert TopClause? (Into | Over)? DmlTarget InsertColumnList? OutputClause?
+  InsertSource OptionClause?
+}
+
+// An INSERT column list names the target columns populated by the source.
+InsertColumnList { OpenParen InsertColumn (Comma InsertColumn)* CloseParen }
+
+// An INSERT column may use a multipart name for graph and sparse-column syntax, including the
+// omitted-component forms ScriptDOM accepts in this position.
+InsertColumn { InsertColumnTripleOmitted | OmittedTableSourceName | MultipartIdentifier }
+InsertColumnTripleOmitted { IdentifierName TripleDot IdentifierName }
+
+// An INSERT source is VALUES, DEFAULT VALUES, a query, or an executed procedure result.
+InsertSource { ValuesInsertSource | Default Values | InsertQuerySource | ExecuteStatement }
+
+// A query INSERT source follows ScriptDOM's query-expression rule. A lone parenthesized query is
+// valid here as well as a parenthesized query participating in UNION/EXCEPT.
+InsertQuerySource { WithClause? InsertQueryExpression OrderByClause? ForClause? }
+InsertQueryExpression { QueryExpression | ParenthesizedQuery }
+
+// A VALUES source contains one or more rows and permits DEFAULT in individual cells.
+ValuesInsertSource { Values RowValue (Comma RowValue)* }
+
+// A row value is a parenthesized list of expressions or DEFAULT markers.
+RowValue { OpenParen Expression (Comma Expression)* CloseParen }
+
+// An UPDATE statement assigns target columns and may join/filter rows before applying query hints.
+UpdateStatement {
+  dmlWithClause? Update updatePrefix Set SetClause (Comma SetClause)* updateTail
+}
+
+// The UPDATE prefix owns its optional TOP filter and required target.
+updatePrefix { TopClause? DmlTarget }
+
+// The UPDATE tail orders output, joined source, predicate, and query hints.
+updateTail { OutputClause? FromClause? WhereClause? OptionClause? }
+
+// A SET clause includes SQL Server's chained variable/column assignment form.
+SetClause {
+  Variable variableAssignmentTail
+  | MultipartIdentifier assignmentOperator Expression
+  // A UDT column may be mutated by calling a method on it instead of being assigned.
+  | MultipartIdentifier !call OpenParen ArgumentList? CloseParen
+}
+
+// Factoring the first equals keeps ordinary variable assignments deterministic while retaining
+// SQL Server's `@variable = column += expression` capture form.
+variableAssignmentTail {
+  Equal ((Variable | MultipartIdentifier) chainedCompoundAssignmentOperator Expression | Expression)
+  | compoundAssignmentOperator Expression
+}
+
+// `*=` is also a legacy comparison token, so the chained form uses the unambiguous operators.
+chainedCompoundAssignmentOperator {
+  PlusEqual | MinusEqual | SlashEqual | PercentEqual | AmpersandEqual | PipeEqual | CaretEqual
+  | ConcatEqual
+}
+
+compoundAssignmentOperator {
+  PlusEqual | MinusEqual | StarEqual | SlashEqual | PercentEqual | AmpersandEqual | PipeEqual | CaretEqual
+  | ConcatEqual
+}
+
+// An assignment operator supports ordinary and compound DML assignments.
+assignmentOperator {
+  Equal | PlusEqual | MinusEqual | StarEqual | SlashEqual | PercentEqual | AmpersandEqual |
+  PipeEqual | CaretEqual | ConcatEqual
+}
+
+// A DELETE statement removes rows from one target with optional joined sources and filtering.
+DeleteStatement {
+  dmlWithClause? Delete deletePrefix deleteTail
+}
+
+// The DELETE prefix owns its optional TOP, FROM marker, and required target.
+deletePrefix { TopClause? From? DmlTarget }
+
+// The DELETE tail orders output, joined source, predicate, and query hints.
+deleteTail { OutputClause? FromClause? WhereClause? OptionClause? }
+
+// A MERGE statement synchronizes a target from a source and requires SQL Server's semicolon.
+MergeStatement { mergeCore Semicolon }
+
+// The statement's body, shared with the nested-source form. MERGE is the one DML statement whose
+// terminator the language requires, and a MERGE written inside a rowset source ends at the closing
+// parenthesis instead, so the requirement belongs to the statement rather than to the body.
+mergeCore {
+  dmlWithClause? Merge TopClause? Into? DmlTarget TableAlias? Using TableSource On Expression
+  MergeActionClause+ OutputClause? OptionClause?
+}
+NestedMergeStatement { mergeCore }
+
+// A MERGE action selects matched or unmatched rows and an optional additional predicate.
+MergeActionClause { When MergeCondition (And Expression)? Then MergeAction }
+
+// A MERGE condition distinguishes matched rows from target- or source-only rows.
+MergeCondition { Matched | Not Matched (By (Target | Source))? }
+
+// A MERGE action updates, deletes, or inserts the selected rows.
+MergeAction { Update Set SetClause (Comma SetClause)* | Delete | Insert InsertColumnList? MergeInsertSource }
+
+// A MERGE insert source accepts DEFAULT VALUES or exactly one VALUES row.
+MergeInsertSource { Default Values | Values RowValue }
+
+// A DML target may be a named object, rowset variable, or callable rowset target.
+DmlTarget {
+  (TableSourceName (!call OpenParen ArgumentList? CloseParen)? | Variable)
+  ~sourceSuffix TableHintClause?
+  | OpenRowsetDmlTarget
+}
+
+// OPENROWSET can be the target of INSERT as well as a source in the FROM clause.
+OpenRowsetDmlTarget { OpenRowset OpenParen OpenRowsetArguments CloseParen }
+
+// OUTPUT projects affected rows and can route the result into another table.
+// A statement may route rows into a table and still return a second projection to the client, so
+// an OUTPUT INTO clause can be followed by another OUTPUT list.
+OutputClause {
+  Output OutputElement (Comma OutputElement)* OutputIntoClause?
+  (Output OutputElement (Comma OutputElement)*)?
+}
+
+// An OUTPUT element is an expression with an optional exposed name.
+OutputElement { Expression (As? IdentifierName)? }
+
+// OUTPUT INTO names a destination and optional destination columns. The bounded tail marker is
+// required now that an INSERT query source may also begin with a parenthesis.
+OutputIntoClause { Into DmlTarget optionalDdlTail<InsertColumnList> }
+
+// EXECUTE invokes a procedure, scalar string, or variable with positional or named arguments.
+ExecuteStatement {
+  (Exec | Execute) ExecuteReturnStatus? ExecutableEntity
+  OptionalExecuteStatementTail
+}
+OptionalExecuteStatementTail {
+  ~executeStatementTail ()
+  | ~executeStatementTail ExecuteStatementTail
+}
+
+// An EXECUTE tail orders arguments, execution context, and linked-server routing.
+ExecuteStatementTail {
+  ExecuteArgumentList ExecuteContextClause? ExecuteAtClause? OptionalExecuteWithClause
+  | ExecuteContextClause ExecuteAtClause? OptionalExecuteWithClause
+  | ExecuteAtClause OptionalExecuteWithClause
+  | ExecuteWithClause
+}
+OptionalExecuteWithClause {
+  ~executeWithClause ()
+  | ~executeWithClause ExecuteWithClause
+}
+
+// An EXECUTE return-status assignment stores the procedure return code in a variable.
+ExecuteReturnStatus { Variable Equal }
+
+// An executable entity is a module name, dynamic string expression, or variable.
+ExecutableEntity {
+  MultipartIdentifier OptionalExecuteProcedureNumber
+  | OpenDataSourceExecutable
+  | Variable | StringLiteral | ParenthesizedExecuteString
+}
+OptionalExecuteProcedureNumber {
+  ~executeProcedureNumber ()
+  | ~executeProcedureNumber ProcedureNumberClause
+}
+OpenDataSourceExecutable {
+  OpenDataSource OpenParen StringLiteral Comma StringLiteral CloseParen
+  Dot MultipartIdentifier
+}
+
+// A parenthesized dynamic SQL entity concatenates strings, variables, and Unicode constants.
+ParenthesizedExecuteString {
+  OpenParen ExecuteStringPart (Plus ExecuteStringPart)*
+  (Comma ExecuteArgumentValue)* CloseParen
+}
+ExecuteStringPart { StringLiteral | Variable | GlobalVariable }
+ExecuteArgumentValue { Expression }
+
+// An EXECUTE argument list supports positional and named procedure parameters.
+ExecuteArgumentList { ExecuteArgument (Comma ExecuteArgument)* }
+
+// An EXECUTE argument carries an optional parameter name and optional OUTPUT marker.
+ExecuteArgument { NamedExecuteArgument | PositionalExecuteArgument }
+
+// A named EXECUTE argument binds a variable-shaped parameter name before its value.
+NamedExecuteArgument[@dynamicPrecedence=1] {
+  Variable ~executeArgument Equal Expression ExecuteArgumentOption?
+}
+
+// A positional EXECUTE argument is one expression with an optional argument option.
+PositionalExecuteArgument { Expression ~executeArgument ExecuteArgumentOption? }
+
+// SQL Server parses one parameter option after an EXECUTE argument; READONLY is parsed here and
+// rejected by validation, because only a routine declaration may carry it.
+ExecuteArgumentOption { Output | Out | ReadOnly }
+
+// EXECUTE AS selects LOGIN, USER, or CALLER security context for a module invocation.
+ExecuteContextClause { As ((Login | User) (Equal StringLiteral)? | Caller) }
+
+// EXECUTE AT directs the call to a linked server.
+ExecuteAtClause { At MultipartIdentifier }
+
+// EXECUTE WITH owns RECOMPILE and SQL Server's structured RESULT SETS declarations. Known module
+// options that are invalid for EXECUTE use three contextual terminals, avoiding a broad identifier
+// alternative inside this GLR-marked optional continuation.
+ExecuteWithClause { With ExecuteOption (Comma ExecuteOption)* }
+ExecuteOption { Recompile | Result Sets ExecuteResultSetsValue | InvalidExecuteModuleOption }
+InvalidExecuteModuleOption {
+  ExecuteInvalidSimpleOption
+  | ExecuteInvalidContextOption As ModulePrincipal
+  | ExecuteInvalidNullInputOption Null On Null Input
+  | Called On Null Input
+  | ExecuteInvalidInlineOption Equal (On | Off)
+}
+ExecuteResultSetsValue {
+  None | Undefined
+  | OpenParen ExecuteResultSet (Comma ExecuteResultSet)* CloseParen
+}
+ExecuteResultSet {
+  OpenParen ExecuteResultColumn (Comma ExecuteResultColumn)* CloseParen
+  | As Object MultipartIdentifier
+  | As For Xml
+  | As Type MultipartIdentifier
+}
+ExecuteResultColumn { IdentifierName DataType (Null | Not Null)? }
+
+// A SELECT-leading statement and a parenthesized query statement use distinct entry rules. This
+// keeps grouped queries structural instead of hiding their parentheses as recovery nodes.
+SelectStatement {
+  selectWithClause? SelectQueryExpression OrderByClause? ComputeChunk? ForClause? OptionClause?
+}
+
+// A grouped query is also a complete statement and may continue with the normal set operators.
+// RETURN commits to its optional expression before this statement alternative is considered, so
+// `RETURN (SELECT 1)` remains one ReturnStatement rather than two adjacent statements.
+GroupedSelectStatement {
+  GroupedParenthesizedQuery
+  (Intersect All? QueryPrimary)* ((Union All? | Except All?) QueryTerm)*
+  OrderByClause? ComputeChunk? ForClause? OptionClause?
+}
+GroupedQueryStatement { GroupedQueryChunk }
+GroupedParenthesizedQuery {
+  OpenParen (QueryExpression | groupedInnerQuery) OrderByClause? ForClause? OptionClause?
+  CloseParen
+}
+// Extra wrapping parentheses nest to any depth. `derivedQuery` recurses the same way, and for the
+// same reason: one grouped query is not a QueryExpression, so each layer needs its own rule.
+groupedInnerQuery { ParenthesizedQuery | OpenParen groupedInnerQuery CloseParen }
+
+// A SELECT may declare XML namespaces in the same WITH header that declares CTEs.
+selectWithClause { WithClause | XmlNamespacesWithClause }
+
+// A WITH clause declares one or more common table expressions for the following statement.
+WithClause { With CommonTableExpression (Comma CommonTableExpression)* }
+
+// Namespace headers remain isolated from the hot CTE path used by every SELECT statement.
+XmlNamespacesWithClause { With XmlNamespacesClause (Comma CommonTableExpression)* }
+
+// A DML statement may stamp a change-tracking context in the same WITH header that declares CTEs.
+ChangeTrackingContextWithClause {
+  With ChangeTrackingContextClause (Comma CommonTableExpression)*
+}
+ChangeTrackingContextClause { ChangeTrackingContext OpenParen Expression CloseParen }
+
+// DML statements accept either an ordinary CTE header or one that also stamps a change-tracking
+// context; SELECT keeps the plain CTE header so the hot query path is unaffected.
+dmlWithClause { WithClause | ChangeTrackingContextWithClause }
+
+// XMLNAMESPACES declares the default or prefixed namespaces visible to the following query.
+XmlNamespacesClause {
+  XmlNamespaces OpenParen XmlNamespaceItem (Comma XmlNamespaceItem)* CloseParen
+}
+XmlNamespaceItem { Default StringLiteral | StringLiteral As IdentifierName }
+
+// A common table expression binds a name and optional columns to a parenthesized query.
+// Extra wrapping parentheses are a distinct alternative so QueryExpression never needs a lone
+// grouped query, which would collide with scalar ParenthesizedQuery.
+CommonTableExpression {
+  IdentifierName ColumnNameList? As OpenParen NestedCommonTableExpressionQuery CloseParen
+  | IdentifierName ColumnNameList? As OpenParen QueryExpression OrderByClause? CloseParen
+  | IdentifierName ColumnNameList? As OpenParen ParenthesizedQuery CloseParen
+}
+
+// Fabric Data Warehouse lets a common table expression declare its own. The nested header begins
+// with WITH, which no other body can start with, so the choice is decided by one token.
+NestedCommonTableExpressionQuery { WithClause QueryExpression OrderByClause? }
+
+// A SELECT-leading query never starts with '('; INTERSECT binds tighter than UNION/EXCEPT.
+SelectQueryExpression {
+  QuerySpecification (Intersect All? QueryPrimary)* ((Union All? | Except All?) QueryTerm)*
+}
+
+// A query expression is SELECT-leading, or a grouped query that continues with a set operator.
+// A lone grouped query is not a QueryExpression; that reduce would collide with scalar
+// ParenthesizedQuery inside another pair of parentheses.
+QueryExpression {
+  SelectQueryExpression
+  | ParenthesizedQuery (Intersect All? QueryPrimary)+ ((Union All? | Except All?) QueryTerm)*
+  | ParenthesizedQuery ((Union All? | Except All?) QueryTerm)+
+}
+
+// An INTERSECT term binds more tightly than UNION and EXCEPT.
+QueryTerm { QueryPrimary (Intersect All? QueryPrimary)* }
+
+// A query primary after a set operator is one SELECT block or a grouped query expression.
+QueryPrimary { QuerySpecification | ParenthesizedQuery }
+
+// A parenthesized query is shared by set-expression grouping, scalar subqueries, and derived tables.
+ParenthesizedQuery { OpenParen QueryExpression OrderByClause? ForClause? OptionClause? CloseParen }
+
+// A query specification describes one SELECT/FROM/WHERE/GROUP/HAVING/WINDOW block.
+QuerySpecification {
+  Select selectModifiers SelectList querySpecificationTail
+}
+
+// SELECT modifiers keep optional TOP and quantifier choices out of the main LR state. The
+// quantifier precedes TOP: SELECT ALL TOP 80 PERCENT is valid and SELECT TOP 80 ALL is not.
+selectModifiers { (All | Distinct)? TopClause? }
+
+// The query tail orders optional clauses exactly as SQL Server requires them.
+querySpecificationTail {
+  IntoClause? FromClause? WhereClause? GroupByClause? HavingClause? WindowClause?
+}
+
+// TOP limits a query; SQL Server 2025 adds approximate vector retrieval beside WITH TIES.
+TopClause {
+  // The parenthesized form also takes a query, as in `UPDATE TOP (SELECT ...) t1`. A query and an
+  // expression are told apart by their first token, so the two share one pair of parentheses.
+  Top (IntegerLiteral | DecimalLiteral | FloatLiteral
+    | OpenParen (Expression | QueryExpression) CloseParen) Percent?
+  (With (Ties | ApproximateKeyword))?
+}
+ApproximateKeyword { Approx | Approximate }
+
+// A select list contains a wildcard or one or more projected expressions.
+SelectList { SelectElement (Comma SelectElement)* }
+
+// A projected expression may expose an explicit or implicit result-column alias.
+// A select list may also assign into a variable. Plain `@v = expr` already parses through the
+// comparison path, and `*=` is a legacy comparison token, so only the unambiguous compound
+// operators need this dedicated form.
+SelectElement {
+  Star
+  | SelectVariableAssignment
+  | Expression ((As? IdentifierName) | (As StringLiteral) | LegacyStringAlias)?
+}
+SelectVariableAssignment { Variable chainedCompoundAssignmentOperator Expression }
+
+// INTO names the destination created by a SELECT statement and may place it on a filegroup.
+IntoClause { Into MultipartIdentifier IntoStorageClause? }
+IntoStorageClause { On (IdentifierName | Default) }
+
+// FROM introduces one or more joined rowset sources. SQL 80 also accepted a
+// colon after FROM in compatibility-only scripts (for example, `FROM: sysobjects`).
+FromClause { From Colon? TableSource (Comma TableSource)* }
+
+// A table source is a primary rowset followed by zero or more joins or applies.
+TableSource { TableSourcePrimary JoinPart* }
+
+// A primary rowset is a table, variable, rowset function, or derived query with an optional alias.
+TableSourcePrimary {
+  DerivedTable
+  | NestedDmlTableSource
+  | ParenthesizedTableSource
+  | OdbcOuterJoinTableSource
+  | TableValueConstructor
+  | ChangeTableSource
+  | OpenRowsetSource
+  | OpenQuerySource
+  | OpenDataSourceSource
+  | OpenXmlSource
+  | FullTextTableSource
+  | VectorSearchTableSource
+  | PredictTableSource
+  | FunctionTableSource
+  | GlobalFunctionTableSource
+  | VariableTableSource
+  | NamedTableSource
+}
+
+// The ODBC outer-join escape wraps one complete table source and can nest recursively.
+OdbcOuterJoinTableSource { OpenBrace Oj TableSource CloseBrace }
+
+// Parentheses can group a joined table source and expose the complete group through one alias.
+ParenthesizedTableSource { OpenParen TableSource CloseParen TableAlias? }
+
+// A DML statement is a valid rowset; its OUTPUT clause supplies the rows, so requiring that clause
+// is a validation rule rather than a parse rule.
+NestedDmlTableSource {
+  OpenParen (InsertStatement | UpdateStatement | DeleteStatement) Semicolon?
+    CloseParen TableAlias ColumnNameList?
+  // A MERGE carries its own terminator, so the nested form does not offer a second optional one:
+  // the token after the body decides which reading applies, with no ambiguity to resolve.
+  | OpenParen (MergeStatement | NestedMergeStatement) CloseParen TableAlias ColumnNameList?
+}
+
+// A table variable is a valid rowset and may carry a correlation name.
+// A table-valued UDT method reached through a variable is a rowset, and takes the same correlation
+// name and exposed-column tail as any other function rowset.
+VariableTableSource {
+  Variable TableAlias?
+  | Variable Dot IdentifierName !call OpenParen TableFunctionArgumentList? CloseParen
+    functionTableSourceTail
+}
+
+// A table value constructor exposes VALUES rows as a correlated rowset.
+TableValueConstructor { OpenParen ValuesInsertSource CloseParen TableAlias ColumnNameList? }
+
+// CHANGETABLE exposes change tracking rows for CHANGES or VERSION operations.
+ChangeTableSource {
+  ChangeTable OpenParen ChangeTableArguments CloseParen TableAlias? ColumnNameList?
+}
+
+// CHANGETABLE arguments select changed rows or a tracked row version.
+// CHANGES accepts an optional third argument naming a seek behaviour such as FORCESEEK.
+ChangeTableArguments {
+  Changes TableSourceName Comma Expression (Comma ForceSeek)?
+  | Version TableSourceName Comma ColumnNameList Comma RowValue (Comma ForceSeek)?
+}
+
+// OPENROWSET supports provider and BULK forms with optional projected column metadata.
+OpenRowsetSource {
+  OpenRowset OpenParen OpenRowsetArguments CloseParen openRowsetTableSourceTail
+}
+
+// OPENROWSET arguments retain provider expressions or a BULK path and bounded options.
+// A bulk source may be one path or a parenthesized list of paths.
+OpenRowsetArguments {
+  Bulk (StringLiteral | OpenParen StringLiteral (Comma StringLiteral)* Comma? CloseParen)
+    (Comma OpenRowsetBulkOption)*
+  // Newer providers use named arguments instead of the positional provider/connection/object form.
+  | OpenRowsetNamedArgument (Comma OpenRowsetNamedArgument)*
+  | OpenRowsetProviderValue OpenRowsetProviderTail?
+}
+OpenRowsetNamedArgument { IdentifierName Equal (Literal | Variable) }
+OpenRowsetProviderTail {
+  Comma OpenRowsetProviderValue
+  (Semicolon OpenRowsetProviderValue? Semicolon OpenRowsetProviderValue?)?
+  (Comma OpenRowsetProviderValue)?
+}
+OpenRowsetProviderValue { StringLiteral | Variable | MultipartIdentifier }
+OpenRowsetBulkOption {
+  IdentifierName (Equal (Literal | Variable | IdentifierName))?
+  | Order OpenParen OrderExpression (Comma OrderExpression)* CloseParen Unique?
+}
+
+// OPENROWSET column metadata may carry a one-based ordinal after its type. Keep this separate
+// from OPENJSON's schema element, whose optional string is a JSON path rather than an ordinal.
+openRowsetTableSourceTail { ~sourceSuffix OpenRowsetColumnSchema? TableAlias? ColumnNameList? }
+OpenRowsetColumnSchema {
+  With OpenParen OpenRowsetColumnSchemaElement (Comma OpenRowsetColumnSchemaElement)* CloseParen
+}
+OpenRowsetColumnSchemaElement {
+  IdentifierName DataType CollateClause? (IntegerLiteral | StringLiteral)?
+}
+
+// OPENQUERY executes one pass-through query against a linked server.
+OpenQuerySource {
+  OpenQuery OpenParen IdentifierName Comma StringLiteral CloseParen TableAlias?
+}
+
+// OPENDATASOURCE qualifies a remote object and retains legacy omitted multipart components.
+OpenDataSourceSource {
+  OpenDataSource OpenParen StringLiteral Comma StringLiteral CloseParen
+  OpenDataSourceObject TableAlias?
+}
+OpenDataSourceObject {
+  Dot (StringLiteral | IdentifierName)
+  | Dot Dot Dot IdentifierName
+  | Dot IdentifierName Dot IdentifierName Dot IdentifierName
+}
+
+// OPENXML can expose either an inline column schema or the shape of an existing table.
+OpenXmlSource {
+  OpenXml OpenParen Variable Comma (StringLiteral | Variable)
+  (Comma (IntegerLiteral | Variable))? CloseParen
+  OptionalOpenXmlWithClause TableAlias?
+}
+OptionalOpenXmlWithClause {
+  ~openXmlWithClause ()
+  | ~openXmlWithClause OpenXmlWithClause
+}
+OpenXmlWithClause {
+  With (MultipartIdentifier | OpenParen OpenXmlColumn (Comma OpenXmlColumn)* CloseParen)
+}
+OpenXmlColumn { IdentifierName DataType (StringLiteral | Variable)? }
+
+// CONTAINSTABLE and FREETEXTTABLE own their non-expression column and LANGUAGE/TOP_N syntax.
+FullTextTableSource {
+  (ContainsTable | FreeTextTable) OpenParen MultipartIdentifier Comma FullTextTableColumns
+  Comma (StringLiteral | Variable) FullTextTableOptions? CloseParen TableAlias?
+}
+FullTextTableColumns {
+  Star | OpenParen Star CloseParen | ColumnNameList | IdentifierName
+  | Property OpenParen IdentifierName Comma StringLiteral CloseParen
+}
+FullTextTableOptions {
+  Comma (
+    Language FullTextTableValue (Comma FullTextTableValue)?
+    | FullTextTableValue (Comma Language FullTextTableValue)?
+  )
+}
+FullTextTableValue { Literal | Variable | IdentifierName }
+
+// VECTOR_SEARCH keeps its named argument surface recoverable so semantic validation can report
+// missing, misspelled, duplicated, or misordered parameters with useful diagnostics.
+VectorSearchTableSource {
+  VectorSearch OpenParen VectorSearchParameter (Comma VectorSearchParameter)* CloseParen
+  VectorSearchTail
+}
+VectorSearchParameter {
+  Table Equal VectorSearchTableArgument
+  | VectorSearchParameterName Equal Expression
+  | For Index Create
+}
+VectorSearchTableArgument { MultipartIdentifier TableAlias? }
+VectorSearchParameterName { Column | SimilarTo | Metric | TopN | StartId | IdentifierName }
+VectorSearchTail {
+  ~vectorSearchTail ()
+  | ~vectorSearchTail TableAlias optionalPostAliasVectorSearchHint
+  | ~vectorSearchTail VectorSearchHintClause TableAlias?
+}
+optionalPostAliasVectorSearchHint {
+  ~postAliasVectorHint ()
+  | ~postAliasVectorHint VectorSearchHintClause
+}
+VectorSearchHintClause { With OpenParen ForceAnnOnly CloseParen }
+
+// A dedicated SQL pool scores rows through a stored model. Parameter names stay generic, as they
+// are in ScriptDOM's own grammar, so a misspelled or duplicated one is a semantic diagnostic rather
+// than a parse failure. The DATA argument's correlation name is the only structural difference from
+// an ordinary named option, and only the AS spelling is modelled: a bare alias would make the
+// argument's expression and its alias compete for the same identifier.
+PredictTableSource {
+  Predict OpenParen PredictParameter (Comma PredictParameter)* CloseParen functionTableSourceTail
+}
+PredictParameter { GenericOptionName Equal PredictArgument }
+PredictArgument { Expression (As IdentifierName)? }
+
+// A named table source accepts multipart names, sampling, hints, and correlation names.
+NamedTableSource { TableSourceName TemporalTableClause? namedTableSourceTail }
+
+// Table sources accept SQL Server's omitted server/database multipart components.
+TableSourceName { MultipartIdentifier | OmittedTableSourceName }
+OmittedTableSourceName {
+  // The first dot is the one that says a component was omitted, so it is the leading-dot token.
+  // A single omitted schema component leaves just `.name`.
+  LeadingDot IdentifierName (
+    Dot IdentifierName (Dot IdentifierName)?
+    | Dot Dot IdentifierName (Dot IdentifierName)?
+    | Dot Star
+  )?
+  // ScriptDOM preserves arbitrary runs of omitted leading components in compatibility inputs such
+  // as `..........c1`; keep that spelling bounded to dot-initial names.
+  | LeadingDot Dot+ IdentifierName (Dot Star | Dot IdentifierName (Dot IdentifierName)?)?
+}
+
+// FOR SYSTEM_TIME selects one temporal-history interval before sampling, aliasing, or hints.
+TemporalTableClause {
+  ~sourceSuffix For SystemTime (
+    As Of TemporalPoint | From TemporalPoint To TemporalPoint | Between TemporalPoint And TemporalPoint
+    | Contained In OpenParen TemporalPoint Comma TemporalPoint CloseParen | All
+  )
+}
+TemporalPoint { additiveExpression }
+
+// A named rowset tail preserves SQL Server's sample, alias, and hint ordering.
+namedTableSourceTail {
+  ~sourceSuffix TableSampleClause? (
+    ~sourceSuffix GraphPathTableAlias
+    |
+    // TABLESAMPLE may also follow the correlation name, as in `FROM t AS a TABLESAMPLE (...)`.
+    // The marker is repeated after it because a following WITH is either this source's hint list
+    // or the CTE header of the next statement.
+    TableAlias ~sourceSuffix TableSampleClause? ~sourceSuffix
+      (TableHintClause | LegacyTableHintClause | LegacyBareTableHint)?
+    | ~sourceSuffix (TableHintClause | LegacyIndexTableHintClause | LegacyBareTableHint)?
+  )
+}
+
+// FOR PATH marks a graph rowset. Its correlation name is optional: `FROM edge3 FOR PATH` is a
+// complete source. FOR is reserved, so the optional name cannot be confused with anything that
+// could follow the source instead.
+GraphPathTableAlias { For Path TableAlias? }
+
+// A rowset function source supports built-ins such as OPENJSON and OPENROWSET.
+// The semantic full-text table functions take `*` as a column argument meaning every indexed
+// column, so a rowset function argument is slightly wider than a scalar argument.
+FunctionTableSource {
+  TableSourceName !call OpenParen TableFunctionArgumentList? CloseParen functionTableSourceTail
+}
+TableFunctionArgumentList { TableFunctionArgument (Comma TableFunctionArgument)* }
+// A column list argument needs at least two names; a single parenthesized name is an ordinary
+// parenthesized expression and keeps that reading.
+TableFunctionArgument {
+  Star
+  | OpenParen Star CloseParen
+  | OpenParen IdentifierName (Comma IdentifierName)+ CloseParen
+  | Expression
+}
+
+// Legacy built-in table functions may use a leading double-colon qualifier.
+GlobalFunctionTableSource {
+  DoubleColon IdentifierName !call OpenParen ArgumentList? CloseParen functionTableSourceTail
+}
+
+// A function rowset tail carries OPENJSON schema, correlation name, and exposed columns.
+functionTableSourceTail { ~sourceSuffix WithColumnSchema? TableAlias? ColumnNameList? }
+
+// A derived table requires a correlation name and may declare its exposed columns.
+// Extra wrapping parentheses are local to this FROM production so QueryExpression never
+// needs a lone grouped query, which would collide with scalar ParenthesizedQuery.
+DerivedTable {
+  derivedQuery TableAlias derivedTableTail
+  // `(SELECT ...) FOR PATH AS e (cols)` names the path rather than the derived table, so the
+  // ordinary correlation name is absent. FOR cannot begin one, so the two forms stay disjoint.
+  | derivedQuery GraphPathTableAlias ColumnNameList?
+}
+derivedQuery { ParenthesizedQuery | OpenParen derivedQuery CloseParen }
+
+// A derived rowset tail optionally assigns names to its projected columns.
+derivedTableTail { ~sourceSuffix (GraphPathTableAlias ColumnNameList? | ColumnNameList?) }
+
+// A table alias may use AS and can expose a simple identifier.
+TableAlias { As? IdentifierName }
+
+// A column-name list declares an ordered set of names in parentheses.
+ColumnNameList { OpenParen IdentifierName (Comma IdentifierName)* CloseParen }
+
+// OPENJSON WITH describes the shape produced by the JSON rowset function.
+WithColumnSchema { ~sourceSuffix With OpenParen ColumnSchemaElement (Comma ColumnSchemaElement)* CloseParen }
+
+// A rowset column schema supplies a name, type/collation, optional path, and optional AS JSON flag.
+ColumnSchemaElement {
+  IdentifierName DataType CollateClause? StringLiteral? (As Json)?
+}
+
+// TABLESAMPLE accepts an optional method and a numeric sample with an optional unit.
+TableSampleClause {
+  TableSample IdentifierName? OpenParen Expression (Percent | Rows)? CloseParen
+  (Repeatable OpenParen Expression CloseParen)?
+}
+
+// A WITH table-hint list attaches one or more hints to a table source.
+TableHintClause { ~sourceSuffix With OpenParen TableHint (Comma? TableHint)* CloseParen }
+
+// Legacy table hints omit WITH and follow an optional correlation name directly.
+LegacyTableHintClause { OpenParen TableHint (Comma? TableHint)* CloseParen }
+LegacyBareTableHint { Holdlock LegacyOldForceIndex? }
+LegacyOldForceIndex { OpenParen IntegerLiteral CloseParen }
+
+// A no-alias legacy hint list is disambiguated by the reserved INDEX hint and the contextual
+// legacy words. This keeps `t (TABLOCK, INDEX(i))` separate from a table-valued call while the
+// ordinary identifier/function path remains available for `dbo.tvf(nolock)`.
+LegacyIndexTableHintClause {
+  OpenParen LegacyIndexHint (Comma LegacyTableHintNoIndex)* CloseParen
+  | OpenParen LegacyTableHintNoIndex (Comma LegacyTableHintNoIndex)* Comma LegacyIndexHint
+    (Comma LegacyTableHintNoIndex)* CloseParen
+}
+// The hints named here are the ones that can be told from a table-valued call's arguments. A bare
+// name cannot: `t (FASTFIRSTROW)` and `t (@value)` have the same shape, and only knowing that `t` is
+// a table rather than a function separates them, which the parser does not know at this point.
+// SQL Server resolves it with parser modes; that retired spelling is left unparsed rather than
+// bought at the price of making every table-valued call ambiguous.
+LegacyTableHintNoIndex {
+  (Holdlock | Readpast | Tablock) (OpenParen TableHintArgument (Comma TableHintArgument)* CloseParen | Equal Expression)?
+}
+LegacyIndexHint { Index (OpenParen TableHintArgument (Comma TableHintArgument)* CloseParen | Equal Expression)? }
+
+// A table hint is an identifier with an optional argument list or assignment.
+TableHint {
+  TableHintName (OpenParen (TableHintArgument (Comma TableHintArgument)*)? CloseParen | Equal Expression)?
+  | Literal
+}
+
+// FORCESEEK may name an index by ordinal and then list the seek columns, as in FORCESEEK(1(c1)).
+// A named index uses the ordinary call shape, so only the ordinal form needs its own branch.
+TableHintArgument {
+  IntegerLiteral OpenParen IdentifierName (Comma IdentifierName)* CloseParen
+  | Expression
+}
+TableHintName { IdentifierName | Holdlock | Index | Serializable | Nowait }
+
+// A join combines a rowset using regular, CROSS JOIN, APPLY, PIVOT, or UNPIVOT syntax.
+JoinPart { QualifiedJoin | CrossJoin | ApplyJoin | PivotJoin | UnpivotJoin }
+
+// A qualified join optionally specifies its kind and requires an ON search condition.
+// Joins nest without parentheses: in `t1 JOIN t2 LEFT JOIN t3 ON a ON b` the inner join and its
+// ON bind first, and the trailing ON closes the outer join. Allowing further joins before this
+// join's own ON keeps that shape structural instead of recovery.
+QualifiedJoin {
+  (Inner | Left Outer? | Right Outer? | Full Outer?) JoinHint? Join TableSourcePrimary JoinPart* On Expression
+  | Join TableSourcePrimary JoinPart* On Expression
+}
+
+// A join hint chooses the physical join operator; LOCAL is an undocumented prefix SQL Server keeps.
+// A hint only follows an explicit join type, because a bare table source followed by MERGE is the
+// start of the next statement.
+JoinHint { Local? (Loop | Hash | Merge | Remote) }
+
+// CROSS JOIN produces the Cartesian product and deliberately has no ON predicate.
+CrossJoin { Cross Join TableSourcePrimary }
+
+// CROSS/OUTER APPLY invokes a correlated rowset for every left-side row.
+ApplyJoin { (Cross | Outer) Apply TableSourcePrimary }
+
+// PIVOT rotates aggregate values into named columns.
+PivotJoin {
+  Pivot OpenParen Expression For MultipartIdentifier In PivotColumnList CloseParen
+  TableAlias?
+}
+
+// A PIVOT column list parses multipart names so a qualified column is diagnosed rather than
+// recovered; only an unqualified name is legal there.
+PivotColumnList { OpenParen MultipartIdentifier (Comma MultipartIdentifier)* CloseParen }
+
+// UNPIVOT rotates named columns into row values.
+// The value and pivoted columns parse as multipart names so a qualified name is diagnosed; the
+// unpivoted column list itself only ever names source columns without a prefix.
+// The unpivoted column list parses multipart names so a qualified name is diagnosed rather than
+// recovered; only an unqualified name is legal there.
+UnpivotJoin {
+  Unpivot OpenParen MultipartIdentifier For MultipartIdentifier In UnpivotColumnList CloseParen
+  TableAlias?
+}
+UnpivotColumnList { OpenParen MultipartIdentifier (Comma MultipartIdentifier)* CloseParen }
+
+// WHERE filters rows using one scalar Boolean expression.
+// A positioned UPDATE or DELETE names the cursor whose current row it acts on instead of a
+// predicate. Which statements may say it is a validation rule, as with the other shared clauses.
+WhereClause { Where (Expression | Current Of Global? (IdentifierName | Variable)) }
+
+// GROUP BY supports ordinary expressions, rollups, cubes, and grouping sets.
+GroupByClause {
+  Group By (GroupByAllClause | GroupingElement (Comma GroupingElement)*)
+    optionalDdlTail<GroupByOption>
+}
+
+// Legacy GROUP BY ALL retains its optional grouping list; ORDER BY ALL is gated separately.
+GroupByAllClause { All (GroupingElement (Comma GroupingElement)*)? }
+
+// A grouping element selects one expression or a composite grouping operator. A trailing WITH
+// belongs to the element it follows: a parenthesized distribution hint may appear mid-list, and the
+// legacy CUBE/ROLLUP option closes the clause.
+GroupingElement {
+  Expression optionalDdlTail<(GroupingDistributionClause | GroupByOption)>
+  // The empty grouping set is a list element in its own right, not only a GROUPING SETS member.
+  | OpenParen CloseParen
+  | Rollup OpenParen GroupingList? CloseParen
+  | Cube OpenParen GroupingList? CloseParen
+  | Grouping Sets OpenParen GroupingSet (Comma GroupingSet)* CloseParen
+}
+
+// Distributed aggregation is attached to one ordinary grouping expression.
+GroupingDistributionClause { With OpenParen IdentifierName CloseParen }
+
+// The legacy tail is WITH CUBE or WITH ROLLUP; any other word is reported, not recovered.
+GroupByOption { With IdentifierName }
+
+// ROLLUP/CUBE lists may contain nested composite expression groups.
+GroupingList { GroupingListItem (Comma GroupingListItem)* }
+GroupingListItem {
+  Expression
+  | OpenParen Expression (Comma Expression)+ CloseParen
+}
+
+// A grouping set is either an expression or a parenthesized expression list, including ().
+GroupingSet {
+  Expression
+  | OpenParen CloseParen
+  | OpenParen Expression Comma Expression (Comma Expression)* CloseParen
+}
+
+// HAVING filters groups after aggregation.
+HavingClause { Having Expression }
+
+// WINDOW declares reusable named window specifications after HAVING.
+WindowClause { Window WindowDefinition (Comma WindowDefinition)* }
+
+// A named window associates an identifier with one window specification.
+WindowDefinition { IdentifierName As WindowSpecification }
+
+// ORDER BY sorts a query and owns ordinary OFFSET/FETCH or standalone approximate FETCH.
+OrderByClause {
+  Order By (OrderByAllClause | OrderExpression (Comma OrderExpression)*) orderByPagination
+}
+
+// ORDER BY ALL optionally carries a direction and remains linked to OFFSET/FETCH.
+OrderByAllClause { All (Asc | Desc)? }
+
+orderByPagination {
+  ~orderByPagination ()
+  | ~orderByPagination OffsetFetchClause
+  | ~orderByPagination ApproximateFetchClause
+}
+
+// An ordering expression has an optional ASC or DESC direction.
+OrderExpression { Expression (Asc | Desc)? }
+
+
+// OFFSET/FETCH requires a row count; accepting APPROX here lets validation explain that the
+// approximate form must be standalone instead of producing a generic recovery diagnostic.
+OffsetFetchClause {
+  Offset Expression (Row | Rows)
+  offsetFetchTail
+}
+
+// FETCH is an optional but structurally linked continuation of OFFSET.
+offsetFetchTail {
+  ~offsetFetch () |
+  ~offsetFetch Fetch ApproximateKeyword? (First | Next) Expression (Row | Rows) Only
+}
+
+// SQL Server 2025 permits FETCH APPROX/APPROXIMATE without a preceding OFFSET.
+ApproximateFetchClause {
+  Fetch ApproximateKeyword (First | Next) Expression (Row | Rows) Only
+}
+
+// FOR controls BROWSE, XML, or JSON result serialization with structured modes/directives.
+ForClause {
+  For (
+    Browse
+    | Read Only
+    | Update (Of IdentifierName (Comma IdentifierName)*)?
+    | Xml XmlForMode XmlForOptionList?
+    | Json JsonForMode JsonForOptionList?
+  )
+}
+XmlForMode {
+  Auto | Explicit | Raw (OpenParen StringLiteral CloseParen)? | Path (OpenParen StringLiteral CloseParen)?
+}
+JsonForMode { Auto | Path }
+XmlForOptionList { Comma XmlForOption (Comma XmlForOption)* }
+JsonForOptionList { Comma JsonForOption (Comma JsonForOption)* }
+XmlForOption {
+  Binary Base64 | Type | Root (OpenParen StringLiteral? CloseParen)?
+  | Elements (Xsinil | Absent)?
+  | XmlData
+  | XmlSchema (OpenParen StringLiteral CloseParen)?
+}
+JsonForOption {
+  Root (OpenParen StringLiteral? CloseParen)? | IncludeNullValues | WithoutArrayWrapper
+}
+
+// OPTION attaches one or more query hints to the statement.
+OptionClause { Option OpenParen QueryHint (Comma QueryHint)* CloseParen }
+
+// A query hint is a name followed by optional values or an assignment. SQL Server's join, union,
+// and group strategy hints pair a strategy word with a reserved clause keyword (ORDER GROUP,
+// HASH UNION, MERGE JOIN), so those reserved words are accepted here as hint words rather than
+// starting a clause. Which combinations are meaningful is a validation rule.
+QueryHint {
+  Table Hint OpenParen MultipartIdentifier (Comma TableHint)* CloseParen
+  | Use IdentifierName (OpenParen ArgumentList CloseParen | Literal)
+  | IdentifierName For OpenParen OptimizeForValue (Comma OptimizeForValue)* CloseParen
+  // A hint may lead with one or two ordinary words before its reserved clause words, as in
+  // `HASH UNION` and `OPTIMIZE CORRELATED UNION ALL`. Two leading words are also the shape of the
+  // ordinary `<name> <expression>` hint, so both readings stay alive as a bounded GLR split
+  // instead of one being preferred at the first word.
+  | ~queryHint IdentifierName? IdentifierName? (Correlated Union All | QueryHintClauseWord+)
+  | ~queryHint IdentifierName (Equal? Expression)?
+}
+
+// The reserved clause keywords SQL Server reuses inside OPTION hint phrases.
+QueryHintClauseWord { Group | Union | Join | Order | All | Merge }
+
+// OPTIMIZE FOR pins a parameter to a literal value or declares it UNKNOWN.
+OptimizeForValue { Variable (Equal Expression | IdentifierName) }
+
+// An expression is a precedence-ordered scalar or Boolean T-SQL expression.
+Expression { orExpression }
+
+// OR is the lowest-precedence Boolean binary operator.
+orExpression { andExpression (Or andExpression)* }
+
+// AND binds more tightly than OR.
+andExpression { notExpression (And notExpression)* }
+
+// NOT negates one predicate expression.
+notExpression { Not* predicateExpression }
+
+// Predicates compare scalar expressions or test NULL, ranges, sets, patterns, and existence.
+predicateExpression {
+  GraphMatchPredicate
+  | FullTextPredicate
+  | UpdatePredicate
+  | additiveExpression (
+    comparisonOperator (QuantifiedSubquery | additiveExpression)
+    | Is Not? (Null | Distinct From (QuantifiedSubquery | additiveExpression))
+    | Not? Between additiveExpression And additiveExpression
+    | Not? In OpenParen (QueryExpression | ArgumentList?) CloseParen
+    | Not? Like additiveExpression (Escape additiveExpression | OdbcEscapeClause)?
+  )?
+  | Exists OpenParen QueryExpression CloseParen
+}
+
+// A quantifier turns the right side of a comparison into a subquery test. The quantifier word
+// is what separates it from an ordinary parenthesised scalar subquery, so no ambiguity is created.
+QuantifiedSubquery { (Some | Any | All) OpenParen QueryExpression CloseParen }
+
+// CONTAINS and FREETEXT accept one column, a qualified star, or a parenthesized column list.
+FullTextPredicate {
+  (Contains | FreeText) OpenParen FullTextColumnTarget Comma Expression
+  (Comma Language additiveExpression)? CloseParen
+}
+// PROPERTY(column, 'name') searches one registered document property instead of the column body.
+// A bare `*` searches every full-text indexed column of the table.
+FullTextColumnTarget {
+  FullTextColumnReference
+  | FullTextPropertyTarget
+  | Star
+  | OpenParen (Star | FullTextColumnReference (Comma FullTextColumnReference)*) CloseParen
+}
+FullTextPropertyTarget {
+  Property OpenParen ColumnReference Comma StringLiteral CloseParen
+}
+FullTextColumnReference { StarExpression | ColumnReference }
+
+// UPDATE(column) is a trigger-only Boolean predicate, but remains structurally valid everywhere.
+UpdatePredicate { UpdatePredicateKeyword OpenParen IdentifierName CloseParen }
+
+// ODBC LIKE escapes retain their braces and one required escape expression.
+OdbcEscapeClause { OpenBrace Escape additiveExpression CloseBrace }
+
+// MATCH owns graph traversal syntax so arrow punctuation never leaks into scalar recovery.
+GraphMatchPredicate { Match !graphMatch OpenParen GraphMatchExpression CloseParen }
+GraphMatchExpression { GraphMatchTerm (And GraphMatchTerm)* }
+GraphMatchTerm {
+  ShortestPath OpenParen GraphPathPattern CloseParen
+  | GraphLastNodeComparison
+  | GraphPathPattern
+}
+
+// A graph path is direct, repeats a suffix, or repeats a parenthesized path segment.
+GraphPathPattern {
+  GraphCompletePath
+  | GraphPathNode OpenParen GraphLeadingOpenPath CloseParen GraphQuantifier
+  | OpenParen (GraphCompletePath | GraphTrailingOpenPath) CloseParen GraphQuantifier GraphPathNode?
+}
+GraphCompletePath { GraphPathNode (GraphEdge GraphPathNode)+ }
+GraphLeadingOpenPath { GraphEdge GraphPathNode (GraphEdge GraphPathNode)* }
+GraphTrailingOpenPath { GraphPathNode (GraphEdge GraphPathNode)* GraphEdge }
+GraphEdge { GraphForwardEdge | GraphBackwardEdge }
+GraphForwardEdge { Minus OpenParen IdentifierName CloseParen Minus GreaterThan }
+GraphBackwardEdge { LessThan Minus OpenParen IdentifierName CloseParen Minus }
+GraphPathNode { IdentifierName | GraphLastNode }
+GraphLastNode { LastNode OpenParen IdentifierName CloseParen }
+GraphLastNodeComparison { GraphLastNode Equal GraphLastNode }
+GraphQuantifier { Plus | OpenBrace IntegerLiteral Comma IntegerLiteral CloseBrace }
+
+// Comparison operators test equality and ordering relationships.
+comparisonOperator {
+  Equal | NotEqual | LessThan | LessThanOrEqual | GreaterThan | GreaterThanOrEqual
+  | StarEqual | EqualStar
+}
+
+// Addition, subtraction, concatenation, and bitwise operators share one precedence level.
+// `||` is SQL Server 2022's string concatenation operator and binds like `+`.
+additiveExpression {
+  multiplicativeExpression
+  ((Plus | Minus | Ampersand | Pipe | Caret | DoublePipe | ShiftLeft | ShiftRight | AtTimeZone)
+    multiplicativeExpression)*
+}
+
+// Multiplication, division, and modulo bind above additive operators.
+multiplicativeExpression { unaryExpression ((Star | Slash | PercentSign) unaryExpression)* }
+
+// Unary plus, minus, and bitwise not apply to one primary expression.
+unaryExpression {
+  (Plus | Minus | Tilde)* primaryExpression
+  (!collateExpression expressionCollateClause)?
+}
+
+// A primary expression is the atomic unit consumed by unary and binary operators.
+primaryExpression {
+  primaryAtom
+}
+
+// A primary expression is a literal, reference, call, CASE, cast, subquery, or parenthesized value.
+primaryAtom {
+  Literal
+  | VariableMemberExpression
+  | Variable
+  | GlobalVariable
+  | StarExpression
+  | IdentityFunctionCall
+  | CaseExpression
+  | CastExpression
+  | TryCastExpression
+  | ParseExpression
+  | ConvertExpression
+  | AiGenerateEmbeddingsExpression
+  | JsonConstructorExpression
+  | JsonAggregateExpression
+  | JsonQueryExpression
+  | JsonValueExpression
+  | TrimExpression
+  | NextValueExpression
+  | UdtStaticMemberExpression
+  | FunctionCall
+  | KeywordFunctionCall
+  | User
+  | RowguidReference
+  | OdbcEscapeExpression
+  | ColumnReference
+  | ParenthesizedQuery
+  | ParenthesizedMemberExpression
+  | OpenParen Expression CloseParen
+}
+
+// Not modelled: an expression name that omits its leading components, as in `..t1.c1`, `.c.d` and
+// `.f2(1)`. All are valid per ScriptDOM, but a Dot-initial primary atom is ambiguous with an
+// ordinary name continuing — in `EXEC a .b` the parser cannot tell a second name part from a new
+// argument, and one token of lookahead cannot separate `.b` from `..b`, so bounding the dot run
+// does not help either. Resolving it needs a GLR marker spanning both readings rather than a new
+// alternative here. Tracked as remaining work; table-source positions already accept these shapes
+// through OmittedTableSourceName.
+
+// A parenthesized value exposes CLR members too, as in `(a.b()).A`. The member list is required,
+// so this stays distinguishable from an ordinary parenthesized expression by one token of lookahead.
+ParenthesizedMemberExpression {
+  OpenParen Expression CloseParen (FunctionMemberCall | UdtDataMemberCall)+
+}
+
+// XML and CLR values stored in variables expose instance methods and data members through dotted
+// access. A member without an argument list is a property or field; whether that shape is valid for
+// the member it names is a validation rule.
+VariableMemberExpression { Variable (FunctionMemberCall | UdtDataMemberCall)+ }
+UdtDataMemberCall { Dot IdentifierName }
+
+// A CLR user type exposes its static methods, properties, and fields through the :: operator.
+UdtStaticMemberExpression {
+  omittedOrMultipartName DoubleColon IdentifierName
+  (!call OpenParen ArgumentList? CloseParen)?
+  (FunctionMemberCall | UdtDataMemberCall)*
+}
+
+// TRIM accepts ordinary, character-set, and SQL Server 2022 positional forms.
+TrimExpression {
+  Trim OpenParen (
+    (Leading | Trailing | Both)? Expression From Expression
+    | Expression
+  ) CloseParen
+}
+
+// SQL Server 2025 embedding generation names the model inside the function argument grammar.
+AiGenerateEmbeddingsExpression {
+  AiGenerateEmbeddings OpenParen Expression Use Model MultipartIdentifier
+  (Parameters Expression)? CloseParen
+}
+
+// JSON_OBJECT and JSON_ARRAY use SQL/JSON clause ordering rather than an ordinary argument list.
+JsonConstructorExpression { JsonObjectExpression | JsonArrayExpression }
+JsonObjectExpression { JsonObject OpenParen JsonObjectBody CloseParen }
+JsonObjectBody {
+  JsonNullClause JsonReturningClause?
+  | JsonReturningClause
+  | JsonObjectMemberList JsonNullClause? JsonReturningClause?
+  | ()
+}
+JsonObjectMemberList { JsonObjectMember (Comma JsonObjectMember)* }
+JsonObjectMember { Expression Colon Expression }
+JsonArrayExpression { JsonArray OpenParen JsonArrayBody CloseParen }
+JsonArrayBody {
+  JsonNullClause JsonReturningClause?
+  | JsonReturningClause
+  | JsonArrayElementList JsonNullClause? JsonReturningClause?
+  | ()
+}
+JsonArrayElementList { Expression (Comma Expression)* }
+
+// SQL Server 2025 aggregate constructors accept ordering/null handling inside the call and OVER.
+JsonAggregateExpression { JsonObjectAggregateExpression | JsonArrayAggregateExpression }
+JsonObjectAggregateExpression {
+  JsonObjectAgg OpenParen JsonObjectAggregateBody CloseParen OverClause?
+}
+JsonObjectAggregateBody {
+  JsonNullClause JsonReturningClause?
+  | JsonReturningClause
+  | JsonObjectMember JsonNullClause? JsonReturningClause?
+  | ()
+}
+JsonArrayAggregateExpression {
+  JsonArrayAgg OpenParen Expression OrderByClause? JsonNullClause? JsonReturningClause? CloseParen
+  OverClause?
+}
+JsonNullClause { (Null | Absent) On Null }
+JsonReturningClause { Returning Json }
+
+// JSON_QUERY adds WITH ARRAY WRAPPER in SQL Server 2025, while JSON_VALUE can return SQL types.
+JsonQueryExpression {
+  JsonQuery OpenParen Expression (Comma Expression)? JsonArrayWrapperClause? CloseParen
+}
+JsonArrayWrapperClause { With Array Wrapper }
+JsonValueExpression {
+  JsonValue OpenParen Expression Comma Expression JsonValueReturningClause? CloseParen
+}
+JsonValueReturningClause { Returning DataType }
+
+
+// ODBC scalar escapes cover function calls and date/time literal forms accepted by SQL Server.
+OdbcEscapeExpression {
+  OpenBrace (
+    Fn OdbcFunctionExpression
+    | IdentifierName StringLiteral
+  ) CloseBrace
+}
+OdbcFunctionExpression {
+  Extract OpenParen IdentifierName From Expression CloseParen
+  | OdbcFunctionName (OpenParen ArgumentList? CloseParen)?
+}
+OdbcFunctionName {
+  IdentifierName | Convert | Insert | Left | Right | Truncate | User | Current | Database
+}
+
+// LEFT and RIGHT are reserved join keywords but remain callable scalar built-ins.
+KeywordFunctionCall {
+  (Left | Right) OpenParen ArgumentList? CloseParen WithinGroupClause? OverClause?
+}
+
+// NEXT VALUE FOR obtains the next sequence value with an optional ordered OVER clause.
+NextValueExpression { Next Value For MultipartIdentifier OverClause? }
+
+// A qualified star selects every column from a named rowset.
+StarExpression {
+  IdentifierName Dot (IdentifierName Dot (IdentifierName Dot)?)? Star
+}
+
+// A column reference uses a one- through four-part identifier.
+// A column reference accepts the same omitted server/database components a table source does, so
+// `master..t1.c1` and `..t1.c1` name the same object in a projection that they name in a FROM.
+//
+// This works only because the leading dot is its own token. Reusing OmittedTableSourceName here
+// with an ordinary Dot was attempted first and rejected by the generator: it turns `Exec name · Dot`
+// into a shift/reduce conflict against `ExecutableEntity -> MultipartIdentifier
+// OptionalExecuteProcedureNumber`, because the parser cannot tell whether the dot continues the
+// name it is holding or begins a new omitted one. leadingDotToken decides that in the tokenizer,
+// where the parser state answers it, so the two readings never compete here.
+// A column reference also reaches the two-omitted-component form `server...object`. It is bounded
+// to this position rather than added to the shared multipart name: widening that rule turns
+// `Exec name · Dot` into a shift/reduce conflict against a bare executable name.
+ColumnReference { TripleOmittedName | omittedOrMultipartName }
+
+// `a...d` names an object whose two middle components are omitted.
+TripleOmittedName { IdentifierName TripleDot IdentifierName }
+
+// A name written in full, or one whose leading server/database components are omitted. The two are
+// interchangeable wherever a name is read, which is why calls and CLR static members share this
+// rule: `.t2.f()` and `master..t1::Prop` are as valid as their fully written forms.
+omittedOrMultipartName { MultipartIdentifier | OmittedTableSourceName }
+
+// A function call invokes a multipart name and may continue through CLR/UDT method calls.
+FunctionCall {
+  omittedOrMultipartName !call OpenParen ((All | Distinct)? ArgumentList | Star)? CloseParen
+  (FunctionMemberCall | UdtDataMemberCall)*
+  NullTreatmentClause?
+  WithinGroupClause? OverClause?
+}
+
+// FIRST_VALUE/LAST_VALUE and the LAG/LEAD family accept an explicit null treatment.
+NullTreatmentClause { (Respect | Ignore) Nulls }
+// A member followed by an argument list is a call, so the parenthesis is shifted before the
+// argument-free data-member form can reduce.
+FunctionMemberCall { Dot IdentifierName !call OpenParen ArgumentList? CloseParen }
+
+// WITHIN GROUP orders values consumed by an ordered-set function.
+WithinGroupClause { Within Group OpenParen (OrderByClause | Graph Path) CloseParen }
+
+// OVER applies a named or inline window to a function expression.
+OverClause { Over (IdentifierName | WindowSpecification) }
+
+// A window specification contains an optional base window, partition, order, and frame.
+WindowSpecification {
+  OpenParen IdentifierName? (Partition By Expression (Comma Expression)*)?
+  OrderByClause? WindowFrameClause? CloseParen
+}
+
+// A window frame selects ROWS, RANGE, or GROUPS boundaries.
+WindowFrameClause { (Rows | Range | Groups) (WindowFrameBound | Between WindowFrameBound And WindowFrameBound) }
+
+// A window-frame bound is UNBOUNDED, CURRENT ROW, or a preceding/following expression.
+WindowFrameBound { Unbounded (Preceding | Following) | Current Row | Expression (Preceding | Following) }
+
+// CASE supports searched and simple conditional expressions.
+CaseExpression { Case Expression? WhenClause+ (Else Expression)? End }
+
+// A WHEN branch maps one condition or value to a result expression.
+WhenClause { When Expression Then Expression }
+
+// CAST converts one expression to a named SQL data type.
+CastExpression { Cast OpenParen Expression As DataType CloseParen }
+
+// TRY_CAST converts one expression while producing NULL on conversion failure.
+TryCastExpression { TryCast OpenParen Expression As DataType CloseParen }
+
+// PARSE and TRY_PARSE convert a string using an optional culture.
+ParseExpression {
+  (Parse | TryParse) OpenParen Expression As DataType (Using Expression)? CloseParen
+}
+
+// CONVERT and TRY_CONVERT support an optional style expression.
+ConvertExpression { (Convert | TryConvert) OpenParen DataType Comma Expression (Comma Expression)? CloseParen }
+
+// An argument list contains one or more scalar expressions.
+ArgumentList { Expression (Comma Expression)* }
+
+// A literal is a SQL scalar constant.
+Literal { Null | Default | StringLiteral | BinaryLiteral | MoneyLiteral | FloatLiteral | DecimalLiteral | IntegerLiteral }
+
+// A data type includes multipart user types and SQL's multiword ANSI/legacy type synonyms.
+// The XML type may bind a schema collection, optionally stating CONTENT or DOCUMENT. Without one of
+// those words the name is an ordinary argument, so the two forms stay distinguishable by token.
+DataType { DataTypeName Varying? (OpenParen ArgumentList CloseParen | XmlTypeSpec)? }
+XmlTypeSpec { OpenParen (Content | Document) MultipartIdentifier CloseParen }
+DataTypeName {
+  MultipartIdentifier
+  // NATIONAL also qualifies a schema-qualified type name, as in `national sys.text`.
+  | National (Char | Character | Varchar | MultipartIdentifier)
+  | Double Precision
+}
+
+// Column references may exceed four parts — `a.b.c.d.e.f.g` is valid — while rowset and module
+// names are capped at four by the semantic pass. This fixed seven-part form covers the current
+// conformance corpus and is written as nested
+// inline optional groups rather than a repetition on purpose: a repetition or a named tail rule
+// reduces before each following dot, which is a shift/reduce conflict against `a.b.*` in
+// StarExpression, whereas inline groups only ever shift.
+MultipartIdentifier {
+  IdentifierName (
+    Dot IdentifierName (Dot IdentifierName (Dot IdentifierName (Dot IdentifierName
+      (Dot IdentifierName (Dot IdentifierName)?)?)?)?)?
+    | Dot IdentifierName Dot Dot IdentifierName
+    | Dot Dot IdentifierName (Dot IdentifierName)?
+    // Two omitted middle components — `server...object` — are not modelled. Adding the alternative
+    // here was attempted and rejected: it turns `Exec name · Dot` into a shift/reduce conflict
+    // against `ExecutableEntity -> MultipartIdentifier OptionalExecuteProcedureNumber`, because the
+    // extra branch leaves the reduction of a bare name viable on the same lookahead. The leading
+    // forms — `..object`, `...object` — are unaffected: OmittedTableSourceName covers those, and a
+    // column reference now reaches it.
+  )?
+}
+
+// An identifier name includes ordinary, delimited, and temporary SQL identifiers.
+IdentifierName { Identifier | BracketedIdentifier | DoubleQuotedIdentifier | TempIdentifier | PseudoColumn }
+
+@skip { byteOrderMark | horizontalWhitespace | lineBreak | lineContentStart | LineComment | BlockComment }
+
+@context sqlServerContext from "../lexicalContext"
+
+@external tokens sqlServerTokens from "../tokenizers" {
+  // GO is emitted only for a complete line-leading SQL client batch command.
+  Go,
+  // Block comments are external so nested SQL Server comments retain one exact span.
+  BlockComment,
+  // Horizontal and newline trivia are distinct so line-leading state survives incremental reuse.
+  horizontalWhitespace,
+  lineBreak,
+  // A zero-width marker records the first non-trivia character even during error recovery.
+  lineContentStart,
+  // Labels are external so OBJECT::name cannot be mistaken for an identifier label.
+  Label,
+  // MATCH is contextual: it becomes graph syntax only where a predicate can start.
+  Match,
+  // UPDATE is distinct from DML only when an expression expects UPDATE(column).
+  UpdatePredicateKeyword,
+  // WITH specializes only for the trailing WITH CHECK OPTION view clause.
+  ViewCheckWith,
+  // AT TIME ZONE remains compound in the grammar and is decomposed by the public token API.
+  AtTimeZone,
+  // Money literals require ScriptDOM's broad Unicode currency-sign and internal-spacing rules.
+  MoneyLiteral,
+  // These contextual terminals keep invalid EXECUTE module options structured without widening
+  // the optional EXECUTE tail to every identifier and contextual keyword.
+  ExecuteInvalidSimpleOption,
+  ExecuteInvalidContextOption,
+  ExecuteInvalidNullInputOption,
+  ExecuteInvalidInlineOption
+}
+
+// Separate token groups keep the hot query path from invoking every recovery scanner per token.
+@external tokens conditionToken from "../proceduralTokenizer" { ConditionChunk }
+@external tokens blockToken from "../proceduralTokenizer" { BlockChunk }
+@external tokens statementToken from "../proceduralTokenizer" { StatementChunk }
+// A grouped query is scanned as one bounded statement and parsed with GroupedQueryRoot as a mount.
+@external tokens groupedQueryToken from "../proceduralTokenizer" { GroupedQueryChunk }
+// Legacy COMPUTE is one bounded suffix so it cannot widen the main expression automaton.
+@external tokens computeToken from "../proceduralTokenizer" { ComputeChunk }
+// A contextual zero-width terminator avoids confusing an optional broker SET clause with SET statements.
+@external tokens brokerPriorityEndToken from "../brokerPriorityTokenizer" { BrokerPriorityEnd }
+// CTAS output names are recognized only when a simple name list is followed by WITH.
+@external tokens ctasColumnNameListToken from "../ctasTokenizer" { CtasColumnNameList }
+
+// A dot that begins a name with omitted leading components, as in `..t1.c1`. It is emitted only
+// where an ordinary Dot cannot be shifted, so the two never compete.
+@external tokens leadingDotToken from "../tokenizers" { LeadingDot }
+// Three consecutive dots after an identifier are the bounded omitted-middle-component spelling.
+@external tokens tripleDotToken from "../tokenizers" { TripleDot }
+
+@external specialize { Identifier } reservedKeyword from "../keywordSpecializer" {
+  Add, All, Alter, And, As, Asc, Authorization, Backup, Begin, Between, Break, Browse, Bulk, By,
+  Cascade, Case, Cast, Certificate, ContainsTable,
+  Check, Checkpoint, Clustered, Collate, Column, Commit, Constraint, Continue, Convert, Create,
+  Cross, Current, Cursor, Declare, Default, Delete, Desc, Distinct, Distributed, Drop, Else, End,
+  Dbcc, Escape, Except, Exec, Execute, Exists, Fetch, For, Foreign, From, Full, Goto, Group, Having,
+  FreeTextTable, Identity, If, In, Index, Inner, Insert, Intersect, Into, Is, Join, Key, Left, Like, Merge,
+  Nocheck, Nonclustered, Not, Null, Oj, On, OpenDataSource, OpenQuery, OpenRowset, OpenXml, Option, Or, Order, Outer, Over, Percent,
+  Pivot, Primary, Print, Raiserror, Read, References, Replication, Restore, Return, Revert, Revoke, Right,
+  Rollback, RowCount, Rowguidcol, Save, Select, Set, Table, TableSample, TextSize, Then, To, Top,
+  Tran, Transaction, Trigger, Truncate, TryConvert, Union, Unique, Unpivot, Update, Use, User,
+  Values, View, Waitfor, When, Where, While, With, External, Of, Proc, Procedure, Grant, Deny,
+  Database, Schema, Setuser, Lineno
+}
+
+// A string specializes as a bare legacy column alias only after a complete SELECT expression.
+@external specialize { StringLiteral } legacyStringAlias from "../keywordSpecializer" {
+  LegacyStringAlias
+}
+
+@external extend { Identifier } contextualKeyword from "../keywordSpecializer" {
+  Abort, Absent, Action, Always, Approx, Approximate, Array,
+  Apply, At, Atomic, Auto, Base64, Binary, Called, Caller, Catch, Changes, ChangeTable, ChunkUsing, Clone, Copy,
+  CheckExpiration, CheckPolicy, Columnstore, Committed, Connect, Contained, Contains, Content, Cookie, Cube, Delay, DelayedDurability, Disable, Durability, Dynamic, Edge, Errlvl,
+  DropExisting, Enable, Embeddings, Encrypted, ExternalModel, ApiFormat, Location, Model, ModelType, LocalRuntimePath, FastForward, FileStreamOn, FileTable, First, Following, FullTextStopList,
+  ForwardOnly, Function, FipsFlagger, Generated, Global, Graph, Grouping, Groups, Hidden, High, IdentityInsert, FileStream, ColumnSet, AllSparseColumns,
+  Include, Increment, Io, Isolation, Json, JsonArray, JsonArrayAgg, JsonObject, JsonObjectAgg, JsonQuery, JsonValue, Keyset, Language, Level, Local, FreeText, AiGenerateEmbeddings,
+  LastNode, Login, Low, Masked, Matched, MaxDop, MaxValue, MinValue, Name, Next, No, Node, Normal, Off, Offset, Offsets,
+  Dialog,
+  OffWithoutDataRecovery, Only, Optimistic, Out, Output, Partition, Partitions, Pause, Period, Persisted, Readpast, Tablock,
+  Preceding, Profile, Range, ReadOnly, Rebuild,
+  Reorganize, Repeatable, Restart, Result, Resume, Rollup, Row, Rows,
+  Rewindonly, Scroll, ScrollLocks, Sequence, SequenceNumber, Serializable, Sets, Some, ShortestPath, Receive, Search, SearchType, Semantic, Snapshot, Source, Sparse, Start, Static, Statistics, Stream, Switch, SystemTime, Target, TextImageOn,
+  Throw, Ties, Time, Timer, Timeout, TransactionId, Try, TryCast, Parse, TryParse, ReadWriteFilegroups,
+  TypeWarning, Unbounded, Uncommitted,
+  Synonym, Type, Using, Value, Vector, VectorIndex, VectorSearch, Version, Window, Within, Work, Xml, Cache, Cycle,
+  Active, After, Absolute, Affinity, Aggregate, Algorithm, Any, Application, Assembly, Asymmetric, Attested, Audit, Authentication, Availability, BeginDialog, Binding, Buffer, BulkLogged, Catalog, Classification, Counter, Event, Session, Signature, Sensitivity, Notification, FanIn, Extract, Fn,
+  Broker, Priority, Conversation, PriorityLevel, ContractName, RemoteServiceName, LocalServiceName, Before, Block, Filter, Predicate, Correlated,
+  Get, Move,
+  Cleanup, Description, Document, Error,
+  ChangeTrackingContext, Classifier, Clear, Close, Cluster, Collection, Configuration, Connection, Containment, Context, Contract, Control, Cpu, Credential, Cryptographic, Data, Deallocate, Definition, Diagnostics,
+  Decryption, Dependents, Disk, Elements, Empty, Endpoint, EnvironmentVariables, Executable, Explicit,
+  DefaultDatabase, DefaultLanguage, DefaultSchema, Encryption, Extension, File, Filegroup, FileGrowth, FileListOnly, FileName,
+  Dump, Enforced, Failover, Ignore, Keys, Mark, Noreset, Nulls, Respect, Federated, Federation, Force, ForceSeek, Init, Resize, Load, ForceFailoverAllowDataLoss, Format, FullScan, FullText, Hadr, Hashed, HeaderOnly, Holdlock, Incremental, Initiator,
+  Immediate, Instead, LabelOnly, Last, Library, List, Log, Loop, Master, Materialized, Distribution, Hash, ForAppend, ForceAnnOnly, RoundRobin, MaxLength, MaxSize, Member, Message, Metric, Mirror, MustChange, NativeCompilation,
+  Impersonate, IncludeNullValues, Kill, None, NoRecompute, Nowait, ObjectId, Offline, OldPassword, Online, Open, Owner, Override, Page, Parameters, Path, PermissionSet, Platform, Population, Property, Partial, Password, Private, WebMethod,
+  NumaNode, Object, PageCount, Predict, Prior, Process, Provider, Queue, Recompile, Regenerate, Rename, Remove, Relative, Remote, Route, Modify, Replica, Scheduler, Self, Server, SoftNuma,
+  Heap, Policy, Pool, Privileges, PerformCutover, Raw, ReadText, Reconfigure, Reset, Resample, Resource, Returning, Root, Rule, Returns, Role, Sample, Scoped, Secondary, Secret, Security, Selective, Send, Sent, Service, Shutdown, Sid, Singleton, Spatial, Specification, Sql, State,
+  StatisticalSemantics, Stop, StopList, Symmetric, System, Timestamp, UpdateText, WriteText, XmlData, XmlSchema,
+  SchemaBinding, Scheme, SimilarTo, Simple, Size, Split, StartId, Take, Tape, TopN, Ownership, Transfer, Url, Used, Governor, Workload,
+  Char, Character, Double, FillFactor, National, Precision, SortedData, SortedDataReorg, Varchar,
+  Both, Hint, Leading, Restrict, Trailing, Trim,
+  Input, Unchecked, Undefined, Unlock, Validation, ValidXml, Varying, VerifyOnly, Visibility, WellFormedXml, Windows, Without, WithoutArrayWrapper, Wrapper, XmlNamespaces, XQuery, Xsinil
+}
+
+@precedence {
+  // Distinct control-flow starters commit before recursively entering the broad statement set.
+  beginStatement @cut,
+  ifStatement @cut,
+  whileStatement @cut,
+  // MATCH commits to graph traversal syntax instead of falling back to a scalar function call.
+  graphMatch @cut,
+  // CREATE SCHEMA owns the elements that follow its header rather than ending before them.
+  schemaElement @right,
+  // ELSE binds to the nearest unmatched IF.
+  danglingElse @right,
+  // Calls must shift an opening parenthesis before reducing the shared multipart name.
+  call,
+  // COLLATE following a scalar belongs to that expression, including inside DEFAULT.
+  collateExpression @cut,
+  // A dotted legacy text target always consumes its complete column reference.
+  textColumn @cut
+}
+
+@tokens {
+  @precedence {
+    byteOrderMark, LineComment, StringLiteral, BinaryLiteral, FloatLiteral, DecimalLiteral, IntegerLiteral,
+    GlobalVariable, Variable, TempIdentifier, BracketedIdentifier, DoubleQuotedIdentifier, Identifier,
+    Dot, PlusEqual, MinusEqual, StarEqual, EqualStar, SlashEqual, PercentEqual, AmpersandEqual,
+    ConcatEqual, DoublePipe, PipeEqual,
+    CaretEqual, ShiftLeft, ShiftRight, Plus, Minus, Star, Slash, PercentSign, Ampersand, Pipe, Caret,
+    LessThanOrEqual, GreaterThanOrEqual, LessThan, GreaterThan, Equal
+  }
+
+  // A line comment runs from two hyphens to, but not including, the line break.
+  LineComment { "--" ![\n\r]* }
+
+  // A UTF-8-decoded byte-order mark is harmless trivia at the beginning of ScriptDOM fixtures.
+  byteOrderMark { "\uFEFF" }
+
+  // A Unicode or ordinary string preserves escaped single quotes and may span lines.
+  StringLiteral { $[nN]? "'" ("''" | !['])* "'" }
+
+  // A binary literal begins with 0x and contains hexadecimal digits.
+  BinaryLiteral { "0" $[xX] $[0-9a-fA-F]* }
+
+  // A floating-point literal contains an exponent and optional fractional part.
+  // Retain an incomplete exponent as one token so syntax validation can report the exponent marker.
+  FloatLiteral { ($[0-9]+ ("." $[0-9]*)? | "." $[0-9]+) $[eE] $[+-]? $[0-9]* }
+
+  // A decimal literal contains a decimal point but no exponent.
+  DecimalLiteral { $[0-9]+ "." $[0-9]* | "." $[0-9]+ }
+
+  // An integer literal contains one or more decimal digits.
+  IntegerLiteral { $[0-9]+ }
+
+  // A global variable begins with two at-signs.
+  GlobalVariable { "@@" $[A-Za-z_\u0080-\uffff] $[A-Za-z0-9_#$@\u0080-\uffff]* }
+
+  // A local variable or parameter begins with one at-sign. ScriptDOM permits zero or more
+  // alphanumeric/name characters after it, including the boundary forms `@` and `@3`.
+  Variable { "@" $[A-Za-z0-9_\u0080-\u0084\u0086-\u009f\u00a1-\u167f\u1681-\u1fff\u200c-\u2027\u202a-\u205e\u2060-\u2fff\u3001-\uffff]* $[A-Za-z0-9_#$@\u0080-\u0084\u0086-\u009f\u00a1-\u167f\u1681-\u1fff\u200c-\u2027\u202a-\u205e\u2060-\u2fff\u3001-\uffff]* }
+
+  // A temporary object name begins with one or two number signs.
+  TempIdentifier { "#" "#"? $[A-Za-z_\u0080-\u0084\u0086-\u009f\u00a1-\u167f\u1681-\u1fff\u200c-\u2027\u202a-\u205e\u2060-\u2fff\u3001-\uffff] $[A-Za-z0-9_#$@\u0080-\u0084\u0086-\u009f\u00a1-\u167f\u1681-\u1fff\u200c-\u2027\u202a-\u205e\u2060-\u2fff\u3001-\uffff]* }
+
+  // A regular identifier uses SQL Server's common Unicode identifier characters.
+  Identifier { $[A-Za-z_\u0080-\u0084\u0086-\u009f\u00a1-\u167f\u1681-\u1fff\u200c-\u2027\u202a-\u205e\u2060-\u2fff\u3001-\uffff] $[A-Za-z0-9_#$@\u0080-\u0084\u0086-\u009f\u00a1-\u167f\u1681-\u1fff\u200c-\u2027\u202a-\u205e\u2060-\u2fff\u3001-\uffff]* }
+
+  // A bracketed identifier supports a doubled closing bracket escape.
+  BracketedIdentifier { "[" ( "]]" | ![\]] )* "]" }
+
+  // A quoted identifier supports a doubled quote escape when QUOTED_IDENTIFIER is enabled.
+  DoubleQuotedIdentifier { "\"" ( "\"\"" | ![\"] )* "\"" }
+
+  // Statement and list punctuation have stable named terminals for editor features.
+  Semicolon { ";" }
+  Comma { "," }
+  Dot { "." }
+  OpenParen { "(" }
+  CloseParen { ")" }
+  Colon { ":" }
+  OpenBrace { "{" }
+  CloseBrace { "}" }
+
+  // Arithmetic, bitwise, assignment, and comparison operators retain exact terminal kinds.
+  Plus { "+" }
+  Minus { "-" }
+  Star { "*" }
+  Slash { "/" }
+  PercentSign { "%" }
+  Ampersand { "&" }
+  Pipe { "|" }
+  Caret { "^" }
+  Tilde { "~" }
+  Equal { "=" }
+  PlusEqual { "+=" }
+  MinusEqual { "-=" }
+  StarEqual { "*=" }
+  EqualStar { "=*" }
+  SlashEqual { "/=" }
+  PercentEqual { "%=" }
+  AmpersandEqual { "&=" }
+  PipeEqual { "|=" }
+  CaretEqual { "^=" }
+  // Shift operators are single longest-match tokens so `>>` is not reduced as a comparison.
+  ShiftLeft { "<<" }
+  ShiftRight { ">>" }
+
+  // SQL Server 2022 adds `||` string concatenation and its `||=` compound assignment. Both are
+  // longest-match tokens so neither collapses into two bitwise-or tokens.
+  DoublePipe { "||" }
+  ConcatEqual { "||=" }
+
+  // A double colon qualifies a securable class in permission statements.
+  DoubleColon { "::" }
+
+  // A pseudo-column begins with a dollar sign and participates in multipart references.
+  PseudoColumn { "$" $[A-Za-z_\u0080-\u0084\u0086-\u009f\u00a1-\u167f\u1681-\u1fff\u200c-\u2027\u202a-\u205e\u2060-\u2fff\u3001-\uffff] $[A-Za-z0-9_#$@\u0080-\u0084\u0086-\u009f\u00a1-\u167f\u1681-\u1fff\u200c-\u2027\u202a-\u205e\u2060-\u2fff\u3001-\uffff]* }
+  NotEqual { "<>" | "!=" }
+  LessThanOrEqual { "<=" | "!>" }
+  GreaterThanOrEqual { ">=" | "!<" }
+  LessThan { "<" }
+  GreaterThan { ">" }
+}

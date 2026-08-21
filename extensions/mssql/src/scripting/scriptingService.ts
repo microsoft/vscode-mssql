@@ -487,7 +487,19 @@ export class ScriptingService {
         }
     }
 
-    public async script(scriptingParams: IScriptingParams): Promise<string> {
+    /**
+     * Runs one scripting operation. A background caller — a language feature answering a keystroke
+     * rather than a command the user invoked — passes `quiet` so the operation neither raises a
+     * progress notification nor reports failure to the user; it throws instead, for the caller to
+     * handle.
+     */
+    public async script(
+        scriptingParams: IScriptingParams,
+        options: {
+            readonly quiet?: boolean;
+            readonly token?: vscode.CancellationToken;
+        } = {},
+    ): Promise<string> {
         const scriptTelemetryActivity = startActivity(
             TelemetryViews.ScriptingService,
             TelemetryActions.Script,
@@ -496,79 +508,88 @@ export class ScriptingService {
                 operation: this.stringifyScriptOperation(scriptingParams.operation),
             },
         );
+        const run = async (token: vscode.CancellationToken): Promise<string> => {
+            const scriptPromise = new Deferred<{
+                script: string;
+                errorMessage: string;
+                errorDetails: string;
+            }>();
+
+            let operationId: string | undefined;
+
+            token.onCancellationRequested(() => {
+                if (!operationId) {
+                    scriptTelemetryActivity.end(ActivityStatus.Canceled);
+                    return;
+                }
+                this._client.sendRequest(ScriptingCancelRequest.type, {
+                    operationId,
+                });
+                const pending = this._onGoingScriptingOperations.get(operationId);
+                if (pending) {
+                    this._onGoingScriptingOperations.delete(operationId);
+                    pending.resolve({
+                        script: undefined,
+                        errorMessage: SCRIPT_OPERATION_CANCELED_ERROR,
+                        errorDetails: undefined,
+                    });
+                }
+            });
+
+            const result = await this._client.sendRequest(ScriptingRequest.type, scriptingParams);
+
+            operationId = result?.operationId;
+
+            if (!operationId) {
+                const error = new Error("Missing operation id from scripting response");
+                scriptTelemetryActivity.endFailed(error, true /* include error message */);
+                return undefined;
+            }
+
+            this._onGoingScriptingOperations.set(operationId, scriptPromise);
+
+            const scriptResult = await scriptPromise.promise;
+
+            if (scriptResult.errorMessage) {
+                scriptTelemetryActivity.endFailed(
+                    new Error(scriptResult.errorMessage),
+                    false /* do not include error message */,
+                );
+                if (scriptResult.errorMessage === SCRIPT_OPERATION_CANCELED_ERROR) {
+                    scriptTelemetryActivity.end(ActivityStatus.Canceled);
+                    return;
+                }
+                if (!options.quiet) {
+                    vscode.window.showErrorMessage(
+                        LocalizedConstants.msgScriptingOperationFailed(scriptResult.errorMessage),
+                    );
+                }
+                this._logger.error(
+                    "Scripting error details: ",
+                    scriptResult.errorMessage,
+                    scriptResult.errorDetails,
+                );
+                throw new Error(scriptResult.errorMessage);
+            }
+            scriptTelemetryActivity.end(ActivityStatus.Succeeded);
+            return scriptResult.script;
+        };
+
+        if (options.quiet) {
+            const cancellation = new vscode.CancellationTokenSource();
+            try {
+                return await run(options.token ?? cancellation.token);
+            } finally {
+                cancellation.dispose();
+            }
+        }
         return await vscode.window.withProgress(
             {
                 location: vscode.ProgressLocation.Notification,
                 title: LocalizedConstants.ObjectExplorer.GeneratingScript,
                 cancellable: true,
             },
-            async (_progress, token) => {
-                const scriptPromise = new Deferred<{
-                    script: string;
-                    errorMessage: string;
-                    errorDetails: string;
-                }>();
-
-                let operationId: string | undefined;
-
-                token.onCancellationRequested(() => {
-                    if (!operationId) {
-                        scriptTelemetryActivity.end(ActivityStatus.Canceled);
-                        return;
-                    }
-                    this._client.sendRequest(ScriptingCancelRequest.type, {
-                        operationId,
-                    });
-                    const pending = this._onGoingScriptingOperations.get(operationId);
-                    if (pending) {
-                        this._onGoingScriptingOperations.delete(operationId);
-                        pending.resolve({
-                            script: undefined,
-                            errorMessage: SCRIPT_OPERATION_CANCELED_ERROR,
-                            errorDetails: undefined,
-                        });
-                    }
-                });
-
-                const result = await this._client.sendRequest(
-                    ScriptingRequest.type,
-                    scriptingParams,
-                );
-
-                operationId = result?.operationId;
-
-                if (!operationId) {
-                    const error = new Error("Missing operation id from scripting response");
-                    scriptTelemetryActivity.endFailed(error, true /* include error message */);
-                    return undefined;
-                }
-
-                this._onGoingScriptingOperations.set(operationId, scriptPromise);
-
-                const scriptResult = await scriptPromise.promise;
-
-                if (scriptResult.errorMessage) {
-                    scriptTelemetryActivity.endFailed(
-                        new Error(scriptResult.errorMessage),
-                        false /* do not include error message */,
-                    );
-                    if (scriptResult.errorMessage === SCRIPT_OPERATION_CANCELED_ERROR) {
-                        scriptTelemetryActivity.end(ActivityStatus.Canceled);
-                        return;
-                    }
-                    vscode.window.showErrorMessage(
-                        LocalizedConstants.msgScriptingOperationFailed(scriptResult.errorMessage),
-                    );
-                    this._logger.error(
-                        "Scripting error details: ",
-                        scriptResult.errorMessage,
-                        scriptResult.errorDetails,
-                    );
-                    throw new Error(scriptResult.errorMessage);
-                }
-                scriptTelemetryActivity.end(ActivityStatus.Succeeded);
-                return scriptResult.script;
-            },
+            async (_progress, token) => run(token),
         );
     }
 }

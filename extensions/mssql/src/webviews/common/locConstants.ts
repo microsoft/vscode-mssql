@@ -3326,6 +3326,112 @@ export class LocConstants {
         };
     }
 
+    public get languageServiceStats() {
+        return {
+            overview: l10n.t("Overview"),
+            metadata: l10n.t("Metadata"),
+            requests: l10n.t("Requests"),
+            pipeline: l10n.t("Pipeline"),
+            parse: l10n.t("Parse"),
+            bind: l10n.t("Bind"),
+            diagnostics: l10n.t("Diagnostics"),
+            previewDisabled: l10n.t(
+                "The preview language service is turned off for this document.",
+            ),
+            noStatsYet: l10n.t(
+                "This document has not been analysed yet. Statistics appear after the first parse.",
+            ),
+            parseCaption: (mode: string, changedRanges: number) =>
+                l10n.t({
+                    message: "{0} parse, {1} changed ranges",
+                    args: [mode, changedRanges],
+                    comment: [
+                        "{0} is the parse mode, full or incremental",
+                        "{1} is a count of changed text ranges",
+                    ],
+                }),
+            bindCaption: (rebound: number, examined: number) =>
+                l10n.t({
+                    message: "{0} of {1} statements rebound",
+                    args: [rebound, examined],
+                    comment: ["{0} and {1} are counts of statements"],
+                }),
+            diagnosticsCaption: (errors: number, warnings: number, hints: number) =>
+                l10n.t({
+                    message: "{0} errors, {1} warnings, {2} hints",
+                    args: [errors, warnings, hints],
+                    comment: ["{0}, {1} and {2} are counts of diagnostics"],
+                }),
+            fetchLog: l10n.t("Fetch log"),
+            fetchLogDescription: l10n.t(
+                "Catalog queries this document caused. Schemas and objects load when a database comes into scope; columns, parameters and definitions load per object, the first time a request needs them.",
+            ),
+            reloads: l10n.t("Metadata reloads"),
+            reloadsDescription: l10n.t(
+                "What caused metadata to be reloaded, and how long each reload took.",
+            ),
+            timeLoading: l10n.t("Time loading metadata"),
+            answeredLocally: l10n.t("Answered from memory"),
+            loadingNowCaption: (count: number) =>
+                l10n.t({
+                    message: "{0} still loading",
+                    args: [count],
+                    comment: ["{0} is a count of catalog fetches currently in flight"],
+                }),
+            slowestFetch: l10n.t("Slowest fetch"),
+            columnTime: l10n.t("Time"),
+            columnSection: l10n.t("Kind"),
+            columnScope: l10n.t("Scope"),
+            columnDuration: l10n.t("Duration"),
+            columnRows: l10n.t("Rows"),
+            columnSource: l10n.t("Source"),
+            columnCause: l10n.t("Trigger"),
+            columnEffect: l10n.t("Effect"),
+            columnReloadTime: l10n.t("Reload time"),
+            columnRequest: l10n.t("Request"),
+            columnCount: l10n.t("Count"),
+            columnMedian: l10n.t("Median"),
+            columnP95: l10n.t("p95"),
+            columnStale: l10n.t("Discarded"),
+            sourceServer: l10n.t("Server"),
+            sourceResident: l10n.t("Memory"),
+            outcomeFailed: l10n.t("Failed"),
+            outcomeEmpty: l10n.t("Empty"),
+            outcomeCancelled: l10n.t("Cancelled"),
+            noFetches: l10n.t("This document has not loaded any metadata yet."),
+            noRequests: l10n.t("No language feature requests have been measured yet."),
+            requestsDescription: l10n.t(
+                "Measured since this document was opened. Cancellation is not counted here: a cancelled request is one the editor abandoned, which this layer cannot observe.",
+            ),
+            fetchesAcross: (fetches: number, databases: number) =>
+                l10n.t({
+                    message: "{0} fetches across {1} databases",
+                    args: [fetches, databases],
+                    comment: ["{0} is a count of fetches", "{1} is a count of databases"],
+                }),
+            residentCaption: (resident: number, server: number) =>
+                l10n.t({
+                    message: "{0} from memory, {1} from the server",
+                    args: [resident, server],
+                    comment: ["{0} and {1} are counts of catalog fetches"],
+                }),
+            export: l10n.t("Export debug log"),
+            copy: l10n.t("Copy"),
+            copyTooltip: l10n.t("Copy the debug log to the clipboard"),
+            includeIdentifiers: l10n.t("Include names and SQL"),
+            includeIdentifiersHint: l10n.t(
+                "Database names, object names and SQL text. Off by default because exported logs are usually attached to bug reports.",
+            ),
+            queryHeading: l10n.t("Query"),
+            milliseconds: (value: string) =>
+                l10n.t({
+                    message: "{0} ms",
+                    args: [value],
+                    comment: ["{0} is a duration in milliseconds"],
+                }),
+        };
+    }
+
     public get changelog() {
         return {
             pageTitle: l10n.t("MSSQL: What's new"),
