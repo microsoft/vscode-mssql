@@ -166,8 +166,29 @@ function sourcePrefixForStar(text: string): string | undefined {
 }
 
 function insertCleanupEnd(text: string, start: number): number {
-    const match = /^(?:\s*\(\s*\)?|\s*[);])*/u.exec(text.slice(start));
-    return match && match[0].trim().length > 0 ? start + match[0].length : start;
+    let cursor = start;
+    let consumedEnd = start;
+    while (cursor < text.length) {
+        while (cursor < text.length && isWhitespace(text[cursor]!)) cursor++;
+        const character = text[cursor];
+        if (character === "(") {
+            cursor++;
+            while (cursor < text.length && isWhitespace(text[cursor]!)) cursor++;
+            if (text[cursor] === ")") cursor++;
+            consumedEnd = cursor;
+            continue;
+        }
+        if (character === ")" || character === ";") {
+            consumedEnd = ++cursor;
+            continue;
+        }
+        break;
+    }
+    return consumedEnd;
+}
+
+function isWhitespace(character: string): boolean {
+    return character.trim().length === 0;
 }
 
 function insertExpansionListContext(text: string, targetEnd: number, offset: number): boolean {

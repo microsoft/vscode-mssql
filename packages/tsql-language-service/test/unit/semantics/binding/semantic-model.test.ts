@@ -16,6 +16,7 @@ import type {
 import { assertDefined, assertKnownColumns } from "../../support/assertions.ts";
 const {
     CatalogSemanticBinder,
+    compactMultipartName,
     InMemoryMetadataProvider,
     InProcessLanguageServiceRuntime,
     LezerSyntaxService,
@@ -572,6 +573,10 @@ suite("identifier handling", () => {
         assert.equal(identifierRole("#temporary"), "temporaryObject");
         assert.equal(identifierRole("@local"), "localVariable");
         assert.equal(identifierRole("@@global"), "globalVariable");
+        assert.equal(
+            compactMultipartName(`  database${"\t".repeat(50_000)}.${"\t".repeat(50_000)}dbo  `),
+            "database.dbo",
+        );
     });
 
     // Part ranges are absolute when the caller supplies the name's own start, so a diagnostic can

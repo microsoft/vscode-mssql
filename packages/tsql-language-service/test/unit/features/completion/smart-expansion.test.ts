@@ -78,6 +78,20 @@ suite("smart SQL completion expansion", () => {
         assert.doesNotMatch(expansion.edit.newText, /OrderId|ComputedTotal/);
         assert.match(expansion.edit.newText, /VALUES \(\n\s+\$\{1:NULL\}\n\);\$0$/);
     });
+    test("cleans long whitespace runs after an INSERT target", async () => {
+        const { runtime, features } = createServices();
+        const sql = `INSERT INTO sales.Orders${"\t".repeat(50_000)});`;
+        await runtime.open("file:///long-insert-cleanup.sql", 1, sql);
+        const offset = sql.indexOf("Orders") + "Orders".length;
+
+        const expansion = features
+            .completion("file:///long-insert-cleanup.sql", 1, offset)
+            .items.find((item) => item.label === "Expand INSERT columns and VALUES");
+
+        assert.ok(expansion);
+        assertDefined(expansion.edit);
+        assert.equal(expansion.edit.end, sql.length);
+    });
     // Verifies Ctrl+Space at the target's end offers INSERT expansion without a typing trigger.
     test("offers INSERT expansion for manual completion", async () => {
         const { runtime, features } = createServices();

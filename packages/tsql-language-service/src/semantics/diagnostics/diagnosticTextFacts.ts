@@ -192,20 +192,78 @@ export interface ParsedDataTypeText {
  * list remains a measured text fallback rather than forcing the main grammar to reject the node.
  */
 export function parseDataTypeText(source: string): ParsedDataTypeText | undefined {
-    const match = new RegExp(
-        String.raw`^\s*${tsqlIdentifierPattern.component}(?:\s*\.\s*${tsqlIdentifierPattern.component})*\s*(?:\(([^)]*)\))?`,
-        "iu",
-    ).exec(source);
-    if (!match) return undefined;
-    const name = multipartIdentifierParts(match[0]!.split("(", 1)[0]!).at(-1)?.toLowerCase();
+    let cursor = skipWhitespace(source, 0);
+    const nameStart = cursor;
+    let nameEnd = dataTypeComponentEnd(source, cursor);
+    if (nameEnd === undefined) return undefined;
+    cursor = nameEnd;
+
+    while (true) {
+        const separator = skipWhitespace(source, cursor);
+        if (source[separator] !== ".") break;
+        const componentStart = skipWhitespace(source, separator + 1);
+        const componentEnd = dataTypeComponentEnd(source, componentStart);
+        if (componentEnd === undefined) break;
+        nameEnd = componentEnd;
+        cursor = componentEnd;
+    }
+
+    const name = multipartIdentifierParts(source.slice(nameStart, nameEnd)).at(-1)?.toLowerCase();
     if (!name) return undefined;
-    const arguments_ = (match[1] ?? "")
+    cursor = skipWhitespace(source, cursor);
+    const argumentStart = source[cursor] === "(" ? cursor + 1 : undefined;
+    const argumentEnd = argumentStart === undefined ? -1 : source.indexOf(")", argumentStart);
+    const argumentText = argumentEnd < 0 ? "" : source.slice(argumentStart, argumentEnd);
+    const arguments_ = argumentText
         .split(",")
         .map((value) => value.trim())
         .filter((value) => /^[+-]?[0-9]+$/u.test(value))
         .map(Number);
     return { name, arguments: arguments_ };
 }
+
+function dataTypeComponentEnd(source: string, start: number): number | undefined {
+    const opening = source[start];
+    if (opening === "[" || opening === '"') {
+        const closing = opening === "[" ? "]" : '"';
+        let cursor = start + 1;
+        while (cursor < source.length) {
+            if (source[cursor] !== closing) {
+                cursor++;
+                continue;
+            }
+            if (source[cursor + 1] === closing) {
+                cursor += 2;
+                continue;
+            }
+            return cursor + 1;
+        }
+        return undefined;
+    }
+    const firstCharacter = codePointCharacter(source, start);
+    if (!dataTypeIdentifierStart.test(firstCharacter)) return undefined;
+    let cursor = start + firstCharacter.length;
+    while (cursor < source.length) {
+        const character = codePointCharacter(source, cursor);
+        if (!dataTypeIdentifierContinuation.test(character)) break;
+        cursor += character.length;
+    }
+    return cursor;
+}
+
+function codePointCharacter(source: string, offset: number): string {
+    const codePoint = source.codePointAt(offset);
+    return codePoint === undefined ? "" : String.fromCodePoint(codePoint);
+}
+
+function skipWhitespace(source: string, start: number): number {
+    let cursor = start;
+    while (cursor < source.length && source[cursor]!.trim().length === 0) cursor++;
+    return cursor;
+}
+
+const dataTypeIdentifierStart = new RegExp(`^${tsqlIdentifierPattern.start}$`, "u");
+const dataTypeIdentifierContinuation = new RegExp(`^${tsqlIdentifierPattern.continuation}$`, "u");
 
 /** Removes a parser-owned data type's argument list while retaining its multipart name. */
 export function dataTypeNameText(source: string): string {

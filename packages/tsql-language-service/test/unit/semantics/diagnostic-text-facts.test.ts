@@ -100,6 +100,14 @@ suite("owned diagnostic text facts", () => {
             arguments: [1536, -1],
         });
         assert.equal(parseDataTypeText("."), undefined);
+        assert.deepEqual(parseDataTypeText(`dbo.Vector ${"(".repeat(50_000)}`), {
+            name: "vector",
+            arguments: [],
+        });
+        assert.deepEqual(parseDataTypeText("dbo.𐐀Type(1)"), {
+            name: "𐐨type",
+            arguments: [1],
+        });
         assert.equal(normalizedSystemDataTypeText(" NATIONAL   CHAR (10) "), "national char");
         assert.deepEqual(
             recoveredVariableDeclarations("noise DECLARE @变量 int; DECLARED @wrong", 50),

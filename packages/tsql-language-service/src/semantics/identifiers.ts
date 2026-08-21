@@ -344,7 +344,26 @@ export function formatMultipartName(parts: readonly string[]): string {
 
 /** The written name with whitespace around its separators removed, for diagnostic messages. */
 export function compactMultipartName(text: string): string {
-    return text.replaceAll(/\s*\.\s*/gu, ".").trim();
+    const compacted: string[] = [];
+    let whitespaceStart: number | undefined;
+    for (let index = 0; index < text.length; index++) {
+        const character = text[index]!;
+        if (character.trim().length === 0) {
+            whitespaceStart ??= index;
+            continue;
+        }
+        if (character === ".") {
+            whitespaceStart = undefined;
+            compacted.push(character);
+            continue;
+        }
+        if (whitespaceStart !== undefined && compacted.length > 0 && compacted.at(-1) !== ".") {
+            compacted.push(text.slice(whitespaceStart, index));
+        }
+        whitespaceStart = undefined;
+        compacted.push(character);
+    }
+    return compacted.join("");
 }
 
 function countSeparators(text: string): number {
