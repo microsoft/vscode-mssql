@@ -3,10 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-const assert = require("node:assert/strict");
-const { suite, test } = require("node:test");
-const { ImmutableTextSnapshot, LezerSyntaxService } = require("../../dist/index.js");
-const generatedTerms = require("../../dist/syntax/lezer/generated/tsqlParser.terms.js");
+import assert from "node:assert/strict";
+import { suite, test } from "node:test";
+
+import { ImmutableTextSnapshot, LezerSyntaxService } from "../../../src/index.ts";
+import type { SyntaxNode } from "../../../src/syntax/contracts.ts";
+import * as generatedTerms from "../../../src/syntax/lezer/generated/tsqlParser.terms.js";
 
 suite("generated syntax-kind contract", () => {
     // Every public node and token name must be generated or one of the two documented adapters.
@@ -19,7 +21,7 @@ suite("generated syntax-kind contract", () => {
             ),
         );
         const generated = new Set(Object.keys(generatedTerms));
-        const walk = (node) => {
+        const walk = (node: SyntaxNode): void => {
             assert.ok(node.kind === "⚠" || generated.has(node.kind), node.kind);
             for (const child of node.children()) walk(child);
         };

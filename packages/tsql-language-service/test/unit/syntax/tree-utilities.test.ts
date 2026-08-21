@@ -3,15 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-const assert = require("node:assert/strict");
-const { suite, test } = require("node:test");
-const {
+import assert from "node:assert/strict";
+import { suite, test } from "node:test";
+
+import {
     ImmutableTextSnapshot,
     LezerSyntaxService,
     descendantsOfKind,
     descendantsOwnedByKind,
     sameSyntaxNode,
-} = require("../../dist/index.js");
+} from "../../../src/index.ts";
 
 suite("typed syntax tree utilities", () => {
     // An outer query must not claim table sources owned by a nested derived query.
@@ -24,6 +25,7 @@ suite("typed syntax tree utilities", () => {
         const queries = descendantsOfKind(syntax.root(), "QuerySpecification");
         assert.equal(queries.length, 2);
         const outer = queries.find((query) => query.start === 0);
+        assert.ok(outer);
         const owned = descendantsOwnedByKind(outer, "NamedTableSource", outer);
         assert.deepEqual(
             owned.map((node) => sql.slice(node.start, node.end)),
