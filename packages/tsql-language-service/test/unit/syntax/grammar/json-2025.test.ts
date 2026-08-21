@@ -49,6 +49,32 @@ SELECT JSON_VALUE(@doc, '$.count' RETURNING INT);`);
         assert.match(snapshot.tree.toString(), /JsonValueReturningClause/);
     });
 
+    test("parses correlated JSON rowsets and nested extraction", () => {
+        const snapshot = parse(`
+SELECT JSON_VALUE(userRow.value, '$.id'), roleRow.value
+FROM OPENJSON(@json, '$.users') AS userRow
+CROSS APPLY OPENJSON(JSON_QUERY(userRow.value, '$.roles')) AS roleRow;
+`);
+
+        assert.deepEqual(snapshot.diagnostics, []);
+        assert.equal(snapshot.statistics.rawErrorNodeCount, 0);
+        assert.match(snapshot.tree.toString(), /ApplyJoin/);
+    });
+
+    test("parses JSON extraction from temp-table columns", () => {
+        const snapshot = parse(`
+CREATE TABLE #products (id int, document nvarchar(max));
+INSERT INTO #products VALUES (1, N'{"brand":"Contoso","specs":{"ram":"16GB"}}');
+SELECT JSON_VALUE(document, '$.brand'), JSON_QUERY(document, '$.specs')
+FROM #products
+WHERE JSON_VALUE(document, '$.specs.ram') IS NOT NULL;
+DROP TABLE #products;
+`);
+
+        assert.deepEqual(snapshot.diagnostics, []);
+        assert.equal(snapshot.statistics.rawErrorNodeCount, 0);
+    });
+
     // Verifies constructor punctuation errors are visible instead of falling into generic calls.
     test("reports malformed JSON constructor members", () => {
         const snapshot = parse("SELECT JSON_OBJECT('name' u.name); ");

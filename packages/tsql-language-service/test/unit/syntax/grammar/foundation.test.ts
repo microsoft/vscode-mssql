@@ -105,6 +105,14 @@ suite("T-SQL lexical and query grammar foundation", () => {
         assert.ok(tokens.some((token) => token.kind === "FloatLiteral"));
     });
 
+    test("parses arithmetic expressions without evaluating them", () => {
+        assertValid(`
+SELECT 1 / 0 AS quotient;
+SELECT TOP 1 CONCAT('{"id":', ABS(CHECKSUM(NEWID())) % 1000, '}') AS document;
+SELECT 'first' + CHAR(13) + CHAR(10) + CHAR(9) + 'second' AS formatted_text;
+`);
+    });
+
     // SQL Server treats the non-ASCII whitespace set as trivia, not as part of an identifier.
     test("separates Unicode whitespace from identifiers", () => {
         const unicodeWhitespace = "\u0085\u00a0\u1680\u2000\u2001\u2028\u2029\u202f\u205f\u3000";

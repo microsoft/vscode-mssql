@@ -10,6 +10,30 @@ import * as semanticHarness from "../../support/semanticHarness.ts";
 const { analyzeSql: analyze, createMetadata: metadata, messages, table } = semanticHarness;
 
 suite("T-SQL query binding diagnostics", () => {
+    test("reports undeclared variables in control flow and transaction names", async () => {
+        const diagnostics = await analyze(
+            `IF @error_count = 0
+BEGIN
+    COMMIT TRANSACTION @tran_name;
+END;`,
+            metadata({}),
+        );
+
+        assert.deepEqual(
+            diagnostics.map(({ code, message }) => ({ code, message })),
+            [
+                {
+                    code: "ScalarVariableRequired",
+                    message: 'Must declare the scalar variable "@error_count".',
+                },
+                {
+                    code: "ScalarVariableRequired",
+                    message: 'Must declare the scalar variable "@tran_name".',
+                },
+            ],
+        );
+    });
+
     // Loaded source shapes support invalid, ambiguous, and prefix diagnostics.
     test("validates qualified and unqualified column references", async () => {
         const provider = metadata({

@@ -10,6 +10,55 @@ import { createSyntaxHarness } from "../../support/syntaxHarness.ts";
 const { parse } = createSyntaxHarness("scanner-parser.sql");
 
 suite("T-SQL scanner and parser diagnostic coverage", () => {
+    test("preserves recovery across malformed multiline strings", () => {
+        const sql = `'This is the second line of the SQL script. It should be properly handled by the SQL parser.' AS line2,
+    'third' AS line3;
+SELECT 'another' AS line1,
+    'second line
+            continuation' AS line2,
+    'third' AS line3;
+SELECT 'last' AS line1,
+    'unfinished statement' AS line2`;
+        const snapshot = parse(sql);
+
+        assert.equal(snapshot.statistics.rawErrorNodeCount, 5);
+        assert.deepEqual(
+            snapshot.diagnostics.map(({ code, message, range }) => ({
+                code,
+                message,
+                source: sql.slice(range.start, range.end),
+            })),
+            [
+                {
+                    code: "syntax",
+                    message:
+                        "Incorrect syntax near ''This is the second line of the SQL script. It should be properly handled by the SQL parser.''.",
+                    source: "'This is the second line of the SQL script. It should be properly handled by the SQL parser.'",
+                },
+                {
+                    code: "syntax",
+                    message: "Incorrect syntax near the keyword 'AS'.",
+                    source: "AS",
+                },
+                {
+                    code: "syntax",
+                    message: "Incorrect syntax near ','.",
+                    source: ",",
+                },
+                {
+                    code: "syntax",
+                    message: "Incorrect syntax near the keyword 'AS'.",
+                    source: "AS",
+                },
+                {
+                    code: "syntax",
+                    message: "Incorrect syntax near 'line3'.",
+                    source: "line3",
+                },
+            ],
+        );
+    });
+
     // Unterminated SQL strings produce one precise scanner message without duplicate recovery noise.
     test("reports an unclosed quotation mark", () => {
         const sql = "SELECT 'unfinished";

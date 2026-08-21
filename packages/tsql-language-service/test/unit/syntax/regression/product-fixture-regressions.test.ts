@@ -10,6 +10,26 @@ import { createSyntaxHarness } from "../../support/syntaxHarness.ts";
 const { assertValid, parse } = createSyntaxHarness("product-fixture-regressions.sql");
 
 suite("T-SQL product fixture regressions", () => {
+    test("parses representative catalog query shapes", () => {
+        assertValid(`
+SELECT TOP (10) o.object_id, o.name, s.name AS schema_name
+FROM sys.objects AS o
+JOIN sys.schemas AS s ON s.schema_id = o.schema_id
+ORDER BY o.object_id;
+
+WITH numbered AS (
+    SELECT ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS id
+    FROM sys.all_objects AS first
+    CROSS JOIN sys.all_objects AS second
+)
+SELECT id, CASE WHEN id % 11 = 0 THEN NULL ELSE CONCAT('value-', id) END
+FROM numbered;
+
+PRINT 'before result';
+RAISERROR('manual test warning', 10, 1);
+`);
+    });
+
     // Derived from long_varchar_table_select.sql: a named inline DEFAULT is one column constraint.
     test("parses named default column constraints", () => {
         assertValid(`
@@ -34,6 +54,16 @@ COMMIT TRANSACTION @tran_name;
 CREATE DATABASE SCOPED CREDENTIAL [sa]
 WITH IDENTITY = N'sa', SECRET = N'temporary';
 DROP DATABASE SCOPED CREDENTIAL [sa];
+`);
+    });
+
+    test("parses escaped brackets in multipart identifiers", () => {
+        assertValid(`
+CREATE EXTERNAL TABLE []]]]]]]]dbo[[[].[test[table]]]
+(
+    [c[o]]l1] int
+)
+WITH (LOCATION = N'/table', DATA_SOURCE = [MyDs]);
 `);
     });
 

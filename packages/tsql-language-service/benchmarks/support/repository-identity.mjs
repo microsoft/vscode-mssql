@@ -5,7 +5,7 @@
 
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { readFile } from "node:fs/promises";
+import { readFile, realpath } from "node:fs/promises";
 import path from "node:path";
 
 /**
@@ -17,9 +17,10 @@ import path from "node:path";
  */
 export async function repositoryIdentity(packageDirectory) {
     try {
-        const root = git(packageDirectory, ["rev-parse", "--show-toplevel"]).trim();
+        const canonicalPackageDirectory = await realpath(packageDirectory);
+        const root = git(canonicalPackageDirectory, ["rev-parse", "--show-toplevel"]).trim();
         const commit = git(root, ["rev-parse", "HEAD"]).trim();
-        const scope = path.relative(root, packageDirectory).replaceAll("\\", "/");
+        const scope = path.relative(root, canonicalPackageDirectory).replaceAll("\\", "/");
         const scopes = executableScopes(scope);
         const status = gitBuffer(root, [
             "status",

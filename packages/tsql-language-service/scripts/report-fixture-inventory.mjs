@@ -6,11 +6,11 @@
 
 // Milestone 1 fixture inventory.
 //
-// Enumerates every conformance and real-world fixture that still carries a raw recovery node,
-// assigns each recovery node to a grammar family, and classifies each fixture as valid/supported,
-// valid/profile-gated, intentionally malformed, or a negative diagnostic fixture. The milestone
-// requires a complete, reviewable classification rather than a self-selected sample, and the counts
-// have to stay reproducible as the grammar changes, so this is a script rather than a static list.
+// Enumerates every corpus fixture that still carries a raw recovery node, assigns each recovery
+// node to a grammar family, and classifies each fixture as valid/supported, valid/profile-gated,
+// or intentionally malformed. The milestone requires a complete, reviewable classification rather
+// than a self-selected sample, and the counts have to stay reproducible as the grammar changes, so
+// this is a script rather than a static list.
 //
 // Usage:
 //   node scripts/report-fixture-inventory.mjs                     # summary to stdout
@@ -97,7 +97,6 @@ const rows = [];
 const nodes = [];
 
 await collectCorpus();
-await collectRealWorld();
 
 const byClass = new Map();
 const byFamily = new Map();
@@ -125,7 +124,7 @@ if (ledgerIndex >= 0) {
 printSummary();
 
 async function collectCorpus() {
-    const root = join(packageRoot, "test", "corpus", "tsql-conformance");
+    const root = join(packageRoot, "test", "resources", "corpus");
     const manifest = JSON.parse(await readFile(join(root, "manifest.json"), "utf8"));
     for (const file of manifest.files) {
         const text = decode(await readFile(join(root, file.path)), file.encoding);
@@ -140,36 +139,6 @@ async function collectCorpus() {
                 source: "corpus",
                 path: file.path,
                 cls: corpusClass(file),
-            }),
-        });
-    }
-}
-
-async function collectRealWorld() {
-    const root = join(packageRoot, "test", "fixtures", "real-world-sql");
-    const manifest = JSON.parse(await readFile(join(root, "manifest.json"), "utf8"));
-    for (const file of manifest.files) {
-        const text = decode(await readFile(join(root, file.path)), file.encoding);
-        const snapshot = service.parse(new ImmutableTextSnapshot(`rw:/${file.path}`, 1, text));
-        if (snapshot.statistics.rawErrorNodeCount === 0) continue;
-        // The real-world manifest declares its own expectations per fixture.
-        const malformed =
-            (file.expectedRawErrorNodeCount ?? 0) > 0 ||
-            (file.expectedSyntaxDiagnostics ?? []).length > 0;
-        const cls = malformed
-            ? "intentionally malformed"
-            : (file.expectedSemanticDiagnostics ?? []).length > 0
-              ? "negative diagnostic fixture"
-              : "valid, supported";
-        rows.push({
-            source: "real-world",
-            path: file.path,
-            raw: snapshot.statistics.rawErrorNodeCount,
-            cls,
-            families: familiesIn(snapshot, text, {
-                source: "real-world",
-                path: file.path,
-                cls,
             }),
         });
     }
