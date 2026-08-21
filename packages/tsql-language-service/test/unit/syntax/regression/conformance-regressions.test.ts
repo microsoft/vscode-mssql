@@ -3,9 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-const assert = require("node:assert/strict");
-const { suite, test } = require("node:test");
-const { ImmutableTextSnapshot, LezerSyntaxService } = require("../../../dist/index.js");
+import assert from "node:assert/strict";
+import { suite, test } from "node:test";
+import { ImmutableTextSnapshot, LezerSyntaxService } from "../../../../src/index.ts";
+import type { SqlEngineProfile } from "../../../../src/common/engineProfile.ts";
+import type { SyntaxSnapshot } from "../../../../src/syntax/contracts.ts";
+import { syntaxTree } from "../../support/syntaxHarness.ts";
 
 suite("T-SQL corpus baseline grammar regressions", () => {
     // XML and CLR instance methods remain available when the receiver is a local variable.
@@ -111,8 +114,8 @@ OFFSET 0 ROWS FETCH NEXT 5 ROWS ONLY;`;
     test("parses chained shift operators", () => {
         const snapshot = parse("SELECT value << 1 >> 2 FROM dbo.t;");
         assert.equal(snapshot.statistics.rawErrorNodeCount, 0);
-        assert.match(snapshot.tree.toString(), /ShiftLeft/);
-        assert.match(snapshot.tree.toString(), /ShiftRight/);
+        assert.match(syntaxTree(snapshot), /ShiftLeft/);
+        assert.match(syntaxTree(snapshot), /ShiftRight/);
     });
 
     // TRIM accepts character-set and positional SQL Server 2022 forms in RETURN expressions.
@@ -155,17 +158,17 @@ RETURN TRIM(BOTH 'x' FROM @value);
         const fresh = service.parse(afterDocument);
 
         assert.deepEqual(incremental.diagnostics, fresh.diagnostics);
-        assert.equal(incremental.tree.toString(), fresh.tree.toString());
+        assert.equal(syntaxTree(incremental), syntaxTree(fresh));
     });
 });
 
-function assertValid(sql) {
+function assertValid(sql: string) {
     const snapshot = parse(sql);
     assert.equal(snapshot.statistics.rawErrorNodeCount, 0);
     assert.deepEqual(snapshot.diagnostics, []);
 }
 
-function parse(sql, engineProfile = "sql-server") {
+function parse(sql: string, engineProfile: SqlEngineProfile = "sql-server"): SyntaxSnapshot {
     return new LezerSyntaxService(undefined, {
         serverMajorVersion: 17,
         compatibilityLevel: 170,
@@ -174,6 +177,6 @@ function parse(sql, engineProfile = "sql-server") {
     }).parse(document(1, sql));
 }
 
-function document(version, text) {
+function document(version: number, text: string): ImmutableTextSnapshot {
     return new ImmutableTextSnapshot("file:///corpus-baseline-regression.sql", version, text);
 }

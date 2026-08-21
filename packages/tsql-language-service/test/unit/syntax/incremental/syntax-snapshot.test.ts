@@ -3,13 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-const assert = require("node:assert/strict");
-const { suite, test } = require("node:test");
-const {
+import assert from "node:assert/strict";
+import { suite, test } from "node:test";
+import {
     ImmutableTextSnapshot,
     LezerSyntaxService,
     applyTextChanges,
-} = require("../../../dist/index.js");
+} from "../../../../src/index.ts";
+import type { SyntaxSnapshot } from "../../../../src/syntax/contracts.ts";
+import { lezerTree, syntaxTree } from "../../support/syntaxHarness.ts";
 
 suite("incremental syntax snapshots", () => {
     // A localized edit must use Lezer's incremental path and retain the final document version.
@@ -31,7 +33,7 @@ suite("incremental syntax snapshots", () => {
         const snapshot = service.parse(
             new ImmutableTextSnapshot("file:///compact.sql", 1, "SELECT 1; -- comment"),
         );
-        const tree = snapshot.tree.toString();
+        const tree = syntaxTree(snapshot);
         assert.equal(tree.includes("Item("), false);
         assert.equal(tree.includes("Whitespace"), false);
         assert.match(tree, /^Script\(Batch\(Statement\(SelectStatement/);
@@ -60,9 +62,9 @@ suite("incremental syntax snapshots", () => {
     });
 });
 
-function treeShape(snapshot) {
+function treeShape(snapshot: SyntaxSnapshot) {
     const nodes = [];
-    const cursor = snapshot.tree.cursor();
+    const cursor = lezerTree(snapshot).cursor();
     do nodes.push([cursor.name, cursor.from, cursor.to]);
     while (cursor.next());
     return nodes;

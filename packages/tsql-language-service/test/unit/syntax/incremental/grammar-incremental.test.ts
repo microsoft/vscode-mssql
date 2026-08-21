@@ -3,13 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-const assert = require("node:assert/strict");
-const { suite, test } = require("node:test");
-const {
+import assert from "node:assert/strict";
+import { suite, test } from "node:test";
+import {
     ImmutableTextSnapshot,
     LezerSyntaxService,
     applyTextChanges,
-} = require("../../../dist/index.js");
+} from "../../../../src/index.ts";
+import type { SyntaxService, SyntaxSnapshot } from "../../../../src/syntax/contracts.ts";
+import type { TextChange, TextSnapshot } from "../../../../src/text/contracts.ts";
+import { syntaxTree } from "../../support/syntaxHarness.ts";
 
 suite("T-SQL incremental batch parsing", () => {
     // Verifies native Lezer fragments preserve the canonical grammar tree after a local edit.
@@ -32,7 +35,7 @@ suite("T-SQL incremental batch parsing", () => {
         assert.equal(incremental.statistics.reparsedChunkCount, 1);
         assert.ok(incremental.statistics.parsedCharacterCount <= 10 * 1024);
         assert.equal(incremental.statistics.rawErrorNodeCount, 0);
-        assert.equal(incremental.tree.toString(), fresh.tree.toString());
+        assert.equal(syntaxTree(incremental), syntaxTree(fresh));
         assert.deepEqual(incremental.diagnostics, fresh.diagnostics);
         assert.deepEqual([...incremental.tokens()], [...fresh.tokens()]);
     });
@@ -86,7 +89,7 @@ suite("T-SQL incremental batch parsing", () => {
 
         assert.equal(incremental.statistics.batchCount, 1);
         assert.ok(incremental.statistics.reusableFragmentCount > 0);
-        assert.equal(incremental.tree.toString(), fresh.tree.toString());
+        assert.equal(syntaxTree(incremental), syntaxTree(fresh));
         assert.deepEqual(incremental.diagnostics, fresh.diagnostics);
     });
 
@@ -103,8 +106,8 @@ suite("T-SQL incremental batch parsing", () => {
         const incremental = service.update(first, nextDocument, [change]);
         const fresh = service.parse(nextDocument);
 
-        assert.equal(incremental.tree.toString(), fresh.tree.toString());
-        assert.doesNotMatch(incremental.tree.toString(), /BatchSeparator\(Go/);
+        assert.equal(syntaxTree(incremental), syntaxTree(fresh));
+        assert.doesNotMatch(syntaxTree(incremental), /BatchSeparator\(Go/);
     });
 
     // Verifies GO-looking lines inside strings and nested comments never become batch separators.
@@ -119,7 +122,7 @@ GO
 GO
 SELECT 2;`;
         const snapshot = parse(sql);
-        const separators = snapshot.tree.toString().match(/BatchSeparator\(Go\)/gu) ?? [];
+        const separators = syntaxTree(snapshot).match(/BatchSeparator\(Go\)/gu) ?? [];
 
         assert.equal(separators.length, 1);
         assert.deepEqual(snapshot.diagnostics, []);
@@ -141,7 +144,7 @@ SELECT 2;`;
     });
 });
 
-function parse(sql) {
+function parse(sql: string): SyntaxSnapshot {
     return new LezerSyntaxService().parse(
         new ImmutableTextSnapshot("file:///incremental.sql", 1, sql),
     );
@@ -151,14 +154,19 @@ function largeBatchScript() {
     return Array.from({ length: 1_500 }, (_, index) => `SELECT ${index};\nGO\n`).join("");
 }
 
-function assertIncrementalEquivalent(service, document, snapshot, change) {
+function assertIncrementalEquivalent(
+    service: SyntaxService,
+    document: TextSnapshot,
+    snapshot: SyntaxSnapshot,
+    change: TextChange,
+) {
     const nextDocument = applyTextChanges(document, 2, [change]);
     const incremental = service.update(snapshot, nextDocument, [change]);
     const fresh = service.parse(nextDocument);
 
     assert.ok(incremental.statistics.reusedChunkCount > 0);
     assert.ok(incremental.statistics.reparsedChunkCount <= 2);
-    assert.equal(incremental.tree.toString(), fresh.tree.toString());
+    assert.equal(syntaxTree(incremental), syntaxTree(fresh));
     assert.deepEqual(incremental.diagnostics, fresh.diagnostics);
     assert.deepEqual([...incremental.tokens()], [...fresh.tokens()]);
 }

@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from "node:assert/strict";
+import type { Tree } from "@lezer/common";
 
 import type { TsqlFeatureProfile } from "../../../src/common/engineCapabilities.ts";
 import type { SyntaxService, SyntaxSnapshot } from "../../../src/syntax/contracts.ts";
@@ -12,11 +13,15 @@ import { ImmutableTextSnapshot, applyTextChanges } from "../../../src/text/textS
 import { LezerSyntaxService } from "../../../src/syntax/lezer/lezerSyntaxService.ts";
 
 export type GrammarSyntaxSnapshot = SyntaxSnapshot & {
-    readonly tree: { toString(): string };
+    readonly tree: Tree;
 };
 
+export function lezerTree(snapshot: SyntaxSnapshot): Tree {
+    return (snapshot as GrammarSyntaxSnapshot).tree;
+}
+
 export function syntaxTree(snapshot: SyntaxSnapshot): string {
-    return (snapshot as GrammarSyntaxSnapshot).tree.toString();
+    return lezerTree(snapshot).toString();
 }
 
 /** Creates one small, public-API syntax harness for a grammar domain. */

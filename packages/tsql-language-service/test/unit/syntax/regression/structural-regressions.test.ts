@@ -3,10 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-const assert = require("node:assert/strict");
-const { suite, test } = require("node:test");
+import assert from "node:assert/strict";
+import { suite, test } from "node:test";
 
-const { createSyntaxHarness } = require("../../support/syntaxHarness.js");
+import type { TsqlFeatureProfile } from "../../../../src/index.ts";
+import { createSyntaxHarness } from "../../support/syntaxHarness.ts";
 const { assertValid, parse } = createSyntaxHarness("structural-regressions.sql");
 
 // Distributed tables and COPY INTO belong to the analytics engines, so those structural
@@ -16,7 +17,7 @@ const analyticsProfile = {
     serverMajorVersion: 13,
     compatibilityLevel: 130,
     previewFeatures: false,
-};
+} satisfies TsqlFeatureProfile;
 
 suite("T-SQL structural grammar regressions", () => {
     // Graph tables define named and unnamed edge-connection constraints.

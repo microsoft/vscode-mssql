@@ -3,10 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-const assert = require("node:assert/strict");
-const { suite, test } = require("node:test");
+import assert from "node:assert/strict";
+import { suite, test } from "node:test";
 
-const { createSyntaxHarness } = require("../../support/syntaxHarness.js");
+import { createSyntaxHarness } from "../../support/syntaxHarness.ts";
 const { parse } = createSyntaxHarness("scanner-parser.sql");
 
 suite("T-SQL scanner and parser diagnostic coverage", () => {
