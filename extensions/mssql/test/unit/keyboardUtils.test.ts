@@ -34,34 +34,56 @@ suite("keyboardUtils Tests", () => {
     });
 
     suite("isCtrlInsertCopyShortcut", () => {
-        test("matches Ctrl+Insert without additional modifiers", () => {
+        const ctrlInsertEvent = {
+            altKey: false,
+            code: "Insert",
+            ctrlKey: true,
+            key: "Insert",
+            metaKey: false,
+            shiftKey: false,
+        };
+
+        test("matches Ctrl+Insert by code and key", () => {
+            expect(isCtrlInsertCopyShortcut(ctrlInsertEvent)).to.equal(true);
+        });
+
+        test("matches Ctrl+Insert when only the code identifies Insert", () => {
             expect(
                 isCtrlInsertCopyShortcut({
-                    altKey: false,
-                    code: "Insert",
-                    ctrlKey: true,
-                    key: "Insert",
-                    metaKey: false,
-                    shiftKey: false,
+                    ...ctrlInsertEvent,
+                    key: "Unidentified",
                 }),
             ).to.equal(true);
         });
 
-        test("rejects Insert without Ctrl and Ctrl+Shift+Insert", () => {
-            const event = {
-                altKey: false,
-                code: "Insert",
-                ctrlKey: false,
-                key: "Insert",
-                metaKey: false,
-                shiftKey: false,
-            };
-
-            expect(isCtrlInsertCopyShortcut(event)).to.equal(false);
-            expect(isCtrlInsertCopyShortcut({ ...event, ctrlKey: true, shiftKey: true })).to.equal(
-                false,
-            );
+        test("matches Ctrl+Insert when only the key identifies Insert", () => {
+            expect(
+                isCtrlInsertCopyShortcut({
+                    ...ctrlInsertEvent,
+                    code: "",
+                }),
+            ).to.equal(true);
         });
+
+        const rejectedShortcuts = [
+            { name: "rejects Insert without Ctrl", event: { ...ctrlInsertEvent, ctrlKey: false } },
+            {
+                name: "rejects Ctrl+Shift+Insert",
+                event: { ...ctrlInsertEvent, shiftKey: true },
+            },
+            { name: "rejects Ctrl+Alt+Insert", event: { ...ctrlInsertEvent, altKey: true } },
+            { name: "rejects Ctrl+Meta+Insert", event: { ...ctrlInsertEvent, metaKey: true } },
+            {
+                name: "rejects Ctrl with a non-Insert key",
+                event: { ...ctrlInsertEvent, code: "Delete", key: "Delete" },
+            },
+        ];
+
+        for (const { name, event } of rejectedShortcuts) {
+            test(name, () => {
+                expect(isCtrlInsertCopyShortcut(event)).to.equal(false);
+            });
+        }
     });
 
     suite("getShortcutInfo", () => {
