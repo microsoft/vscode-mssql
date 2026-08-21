@@ -18,9 +18,14 @@ import ConnectionManager from "../../../src/controllers/connectionManager";
 import { ConnectionSharingService } from "../../../src/connectionSharing/connectionSharingService";
 import type { HeadlessQueryResult } from "../../../src/queryExecution/headlessQueryExecutor";
 import { NotebookConnectionManager } from "../../../src/notebooks/notebookConnectionManager";
+import * as NotebookResultsSerializer from "../../../src/notebooks/notebookResultsSerializer";
 import { IDbColumn } from "../../../src/models/interfaces";
 import { BatchSummary } from "../../../src/models/contracts/queryExecute";
-import type { NotebookQueryResultOutputData } from "../../../src/sharedInterfaces/notebookQueryResult";
+import {
+    NotebookSaveAsFormat,
+    type NotebookQueryResultOutputData,
+    type NotebookSaveAsMessage,
+} from "../../../src/sharedInterfaces/notebookQueryResult";
 
 function makeQueryResult(overrides?: Partial<HeadlessQueryResult>): HeadlessQueryResult {
     return {
@@ -1468,6 +1473,79 @@ suite("SqlNotebookController", () => {
         test("hides the summary status bar item when there is no selection", () => {
             notebookMessage({ type: "selectionSummary", metrics: undefined });
             expect(mockSelectionSummaryStatusBarItem.hide).to.have.been.called;
+        });
+    });
+
+    suite("save results", () => {
+        const notebook = makeNotebook([], undefined, vscode.Uri.file("c:\\test.ipynb"));
+        const csvUri = vscode.Uri.file("c:\\test_resultset_1.csv");
+        const excelUri = vscode.Uri.file("c:\\test_resultset_1.xlsx");
+        const saveAsMessage: NotebookSaveAsMessage = {
+            type: "saveAs",
+            format: NotebookSaveAsFormat.Csv,
+            columnInfo: [makeColumn("id", "int")],
+            rows: [],
+            resultSetIndex: 0,
+        };
+
+        function stubSuccessfulSave(savedUri: vscode.Uri, action?: string): sinon.SinonStub {
+            sandbox.stub(NotebookResultsSerializer, "saveNotebookResults").resolves(savedUri);
+            const showInformationMessageStub: sinon.SinonStub = sandbox.stub(
+                vscode.window,
+                "showInformationMessage",
+            );
+            showInformationMessageStub.resolves(action);
+            return showInformationMessageStub;
+        }
+
+        test("shows an Open File action after saving results", async () => {
+            const showInformationMessageStub = stubSuccessfulSave(csvUri);
+
+            await controller["handleSaveAs"](notebook, saveAsMessage);
+
+            expect(showInformationMessageStub).to.have.been.calledWith(
+                LocalizedConstants.Notebooks.savedResultsTo(csvUri.fsPath),
+                LocalizedConstants.Common.openFile,
+            );
+        });
+
+        test("opens saved results beside the notebook when Open File is selected", async () => {
+            stubSuccessfulSave(csvUri, LocalizedConstants.Common.openFile);
+
+            await controller["handleSaveAs"](notebook, saveAsMessage);
+
+            expect(executeCommandStub).to.have.been.calledWith("vscode.open", csvUri, {
+                viewColumn: vscode.ViewColumn.Beside,
+                preview: false,
+            });
+        });
+
+        test("opens Excel results with the system application", async () => {
+            stubSuccessfulSave(excelUri, LocalizedConstants.Common.openFile);
+            const openExternalStub = sandbox.stub(vscode.env, "openExternal").resolves(true);
+
+            await controller["handleSaveAs"](notebook, {
+                ...saveAsMessage,
+                format: NotebookSaveAsFormat.Excel,
+            });
+
+            expect(openExternalStub).to.have.been.calledWith(excelUri);
+            expect(executeCommandStub).to.not.have.been.calledWith("vscode.open");
+        });
+
+        test("shows an error when saved results cannot be opened", async () => {
+            stubSuccessfulSave(excelUri, LocalizedConstants.Common.openFile);
+            sandbox.stub(vscode.env, "openExternal").resolves(false);
+            const showErrorMessageStub = sandbox.stub(vscode.window, "showErrorMessage");
+
+            await controller["handleSaveAs"](notebook, {
+                ...saveAsMessage,
+                format: NotebookSaveAsFormat.Excel,
+            });
+
+            expect(showErrorMessageStub).to.have.been.calledWith(
+                LocalizedConstants.Notebooks.openResultsFailed,
+            );
         });
     });
 

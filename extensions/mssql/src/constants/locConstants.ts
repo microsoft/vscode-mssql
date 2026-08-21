@@ -998,6 +998,7 @@ export class Notebooks {
             comment: ["{0} is the saved file path"],
         });
     }
+    public static openResultsFailed = l10n.t("Failed to open saved results.");
 }
 
 export class ObjectExplorer {
