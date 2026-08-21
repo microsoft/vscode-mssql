@@ -32,7 +32,9 @@
     --fluent-result-grid-list-inactive-selection-background: var(
         --fluent-result-grid-list-active-selection-background
     );
-    --fluent-result-grid-list-inactive-selection-foreground: var(--fluent-result-grid-foreground);
+    --fluent-result-grid-list-inactive-selection-foreground: var(
+        --fluent-result-grid-list-active-selection-foreground
+    );
     --fluent-result-grid-list-hover-background: #2a2d2e;
     --fluent-result-grid-list-hover-foreground: var(--fluent-result-grid-foreground);
     --fluent-result-grid-list-focus-outline: #007fd4;
@@ -355,18 +357,14 @@
 .fluent-result-grid
     .slickgrid-container
     .slick-row.even
-    .slick-cell:where(
-        :not(.selected):not(.active):not(.cell-null):not(.fluent-result-grid-row-number-cell)
-    ) {
+    .slick-cell:where(:not(.selected):not(.cell-null):not(.fluent-result-grid-row-number-cell)) {
     background-color: var(--fluent-result-grid-row-even-background);
 }
 
 .fluent-result-grid
     .slickgrid-container
     .slick-row.odd
-    .slick-cell:where(
-        :not(.selected):not(.active):not(.cell-null):not(.fluent-result-grid-row-number-cell)
-    ) {
+    .slick-cell:where(:not(.selected):not(.cell-null):not(.fluent-result-grid-row-number-cell)) {
     background-color: var(--fluent-result-grid-row-odd-background);
 }
 
@@ -399,7 +397,7 @@
 .fluent-result-grid
     .slickgrid-container
     .slick-row:not(:hover)
-    .slick-cell.cell-null:not(.selected):not(.active) {
+    .slick-cell.cell-null:not(.selected) {
     background-color: var(--fluent-result-grid-null-cell-background);
     color: var(--fluent-result-grid-null-cell-foreground);
 }
@@ -420,8 +418,8 @@
 }
 
 .fluent-result-grid.focused .slick-cell.active {
-    background-color: var(--fluent-result-grid-list-focus-background);
-    color: var(--fluent-result-grid-list-focus-foreground);
+    outline: 2px solid var(--fluent-result-grid-list-focus-outline);
+    outline-offset: -1px;
 }
 
 .fluent-result-grid .slick-cell.selected.active {
@@ -444,6 +442,39 @@
 .fluent-result-grid .slick-row:hover {
     outline: 1px dashed var(--fluent-result-grid-list-hover-outline);
     outline-offset: -1px;
+}
+
+/* A range decorator exists only while a block selection is being dragged. Suppress transient
+ * row-hover styling during that gesture so the selection preview does not flicker. */
+.fluent-result-grid:has(.slick-range-decorator) .slick-row:hover {
+    outline: none;
+}
+
+.fluent-result-grid:has(.slick-range-decorator)
+    .slick-row.even:hover
+    .slick-cell:not(.selected):not(.active) {
+    background-color: var(--fluent-result-grid-row-even-background);
+    color: var(--fluent-result-grid-foreground);
+}
+
+.fluent-result-grid:has(.slick-range-decorator)
+    .slick-row.odd:hover
+    .slick-cell:not(.selected):not(.active) {
+    background-color: var(--fluent-result-grid-row-odd-background);
+    color: var(--fluent-result-grid-foreground);
+}
+
+.fluent-result-grid:has(.slick-range-decorator)
+    .slick-row:hover
+    .slick-cell.cell-null:not(.selected):not(.active) {
+    background-color: var(--fluent-result-grid-null-cell-background);
+    color: var(--fluent-result-grid-null-cell-foreground);
+}
+
+/* Results Grid does not implement SlickGrid's Excel-style fill/replace behavior. */
+.fluent-result-grid .slick-drag-replace-handle {
+    display: none !important;
+    pointer-events: none !important;
 }
 
 .results-grid--gridlines-horizontal .fluent-result-grid .slick-cell {

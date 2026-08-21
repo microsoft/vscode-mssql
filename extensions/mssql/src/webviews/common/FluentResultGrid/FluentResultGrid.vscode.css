@@ -48,7 +48,7 @@ body .fluent-result-grid {
     );
     --fluent-result-grid-list-inactive-selection-foreground: var(
         --vscode-list-inactiveSelectionForeground,
-        var(--fluent-result-grid-foreground)
+        var(--vscode-list-activeSelectionForeground, #ffffff)
     );
     --fluent-result-grid-list-hover-background: var(--vscode-list-hoverBackground, #2a2d2e);
     --fluent-result-grid-list-hover-foreground: var(
