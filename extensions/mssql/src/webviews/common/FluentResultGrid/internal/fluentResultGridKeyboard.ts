@@ -12,6 +12,7 @@ import {
     FluentResultGridCommand,
     type FluentResultGridBuiltInCommandId,
 } from "../types/fluentResultGridCommandIds";
+import { isCtrlInsertCopyShortcut } from "../../keyboardUtils";
 
 export type FluentResultGridKeyboardShortcutEvent = Pick<
     KeyboardEvent,
@@ -88,6 +89,10 @@ export function getFluentResultGridKeyboardAction(
     event: FluentResultGridKeyboardShortcutEvent,
     keyBindings: FluentResultGridKeyBindingMap,
 ): FluentResultGridKeyboardAction | undefined {
+    if (isCtrlInsertCopyShortcut(event)) {
+        return { kind: "command", commandId: FluentResultGridCommand.CopySelection };
+    }
+
     const shortcutOnlyCommands = [
         FluentResultGridCommand.CopySelection,
         FluentResultGridCommand.CopyWithHeaders,
