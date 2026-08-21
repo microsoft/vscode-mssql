@@ -98,12 +98,16 @@ suite("Extension API Tests", () => {
 
         sandbox.stub(connectionManagerStub, "connectionStore").get(() => connectionStoreStub);
         sandbox.stub(connectionManagerStub, "connectionUI").get(() => connectionUiStub);
-        sandbox
-            .stub(connectionManagerStub, "onConnectionsChanged")
-            .get(() => connectionsChangedEmitter.event);
-        sandbox
-            .stub(outputContentProviderStub, "onQueryExecutionCatalogChanged")
-            .get(() => queryExecutionCatalogEmitter.event);
+        sandbox.define(
+            connectionManagerStub,
+            "onConnectionsChanged",
+            connectionsChangedEmitter.event,
+        );
+        sandbox.define(
+            outputContentProviderStub,
+            "onQueryExecutionCatalogChanged",
+            queryExecutionCatalogEmitter.event,
+        );
         sandbox
             .stub(MainController.prototype, "connectionManager")
             .get(() => connectionManagerStub);
