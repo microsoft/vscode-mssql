@@ -16,12 +16,18 @@ import {
 import { useQueryResultSelector } from "./queryResultSelector";
 import { QueryResultCommandsContext } from "./queryResultStateProvider";
 
+const SELECTION_SUMMARY_LOADING_GRACE_PERIOD_MS = 200;
+
 function useDisplayedSelectionSummary(
     selectionSummary: qr.SelectionSummary | undefined,
     executionStartTime: number | undefined,
 ) {
     const summariesByResultRef = useRef(new Map<string, qr.SelectionSummary>());
     const summaryKey = getSelectionSummaryResultKey(selectionSummary, executionStartTime);
+    const loadingRequestId = isSelectionSummaryLoading(selectionSummary)
+        ? selectionSummary?.requestId
+        : undefined;
+    const [visibleLoadingRequestId, setVisibleLoadingRequestId] = useState<string>();
 
     useEffect(() => {
         summariesByResultRef.current.clear();
@@ -33,12 +39,30 @@ function useDisplayedSelectionSummary(
         }
     }, [selectionSummary, summaryKey]);
 
-    // Keep completed metrics stable while their replacement loads, but retain the current
-    // loading command and tooltip so the operation can still be canceled.
-    return getSelectionSummaryWithStableMetrics(
-        selectionSummary,
-        summaryKey ? summariesByResultRef.current.get(summaryKey) : undefined,
-    );
+    useEffect(() => {
+        if (!loadingRequestId) {
+            return;
+        }
+
+        const timer = window.setTimeout(() => {
+            setVisibleLoadingRequestId(loadingRequestId);
+        }, SELECTION_SUMMARY_LOADING_GRACE_PERIOD_MS);
+        return () => window.clearTimeout(timer);
+    }, [loadingRequestId]);
+
+    const completedSummary = summaryKey ? summariesByResultRef.current.get(summaryKey) : undefined;
+    const showLoadingAffordance =
+        loadingRequestId !== undefined && visibleLoadingRequestId === loadingRequestId;
+
+    // Keep the completed footer unchanged during the grace period. Slow replacements retain
+    // stable metrics while exposing the current loading command and tooltip.
+    return {
+        displayedSelectionSummary:
+            loadingRequestId && !showLoadingAffordance
+                ? completedSummary
+                : getSelectionSummaryWithStableMetrics(selectionSummary, completedSummary),
+        showLoadingAffordance,
+    };
 }
 
 const useStyles = makeStyles({
@@ -392,7 +416,7 @@ export const QueryResultSummaryFooter = ({
     const tabStates = useQueryResultSelector((state) => state.tabStates);
     const isExecuting = useQueryResultSelector((state) => state.isExecuting ?? false);
     const executionStartTime = useQueryResultSelector((state) => state.executionStartTime);
-    const displayedSelectionSummary = useDisplayedSelectionSummary(
+    const { displayedSelectionSummary, showLoadingAffordance } = useDisplayedSelectionSummary(
         selectionSummary,
         executionStartTime,
     );
@@ -445,11 +469,13 @@ export const QueryResultSummaryFooter = ({
                 : locConstants.queryResult.runningWithDuration(compactExecutionText)
             : compactExecutionText;
     const selectionStats = displayedSelectionSummary?.stats;
-    const selectionCommand = displayedSelectionSummary?.command;
+    const selectionCommand = showLoadingAffordance
+        ? selectionSummary?.command
+        : displayedSelectionSummary?.command;
     const selectionActionUri = selectionCommand?.arguments[0];
     const selectionStatusText =
         displayedSelectionSummary?.displayText ?? displayedSelectionSummary?.text ?? "";
-    const selectionIsLoading = isSelectionSummaryLoading(displayedSelectionSummary);
+    const selectionIsLoading = showLoadingAffordance && isSelectionSummaryLoading(selectionSummary);
     const selectionDisplayContent = selectionStats ? (
         <span className={classes.loadingSelectionContent}>
             {renderSelectionMetricsInline(selectionStats, classes)}
