@@ -5332,6 +5332,11 @@ Error:
         <source xml:lang="en">Image tag</source>
         <target state="translated">이미지 태그</target>
       </trans-unit>
+      <trans-unit id="++CODE++45386a69d2b5eb577c53d296ecd652d7cc6583c3f759680582587663cff8539c">
+        <source xml:lang="en">Impact {0}%</source>
+        <note>{0} is the estimated percentage improvement from creating the index</note>
+        <target state="new">Impact {0}%</target>
+      </trans-unit>
       <trans-unit id="++CODE++09b493255c6cc11aae4f73f97494b4d0123bb42869372d0a2182f0a324eb5ef5">
         <source xml:lang="en">Import BACPAC</source>
         <target state="translated">BACPAC 가져오기</target>
@@ -6302,6 +6307,14 @@ Error:
         <source xml:lang="en">Missing connection reference. Please provide exactly one of connectionId or connectionName.</source>
         <target state="translated">연결 참조가 없습니다. connectionId 또는 connectionName 중 반드시 하나만 제공하세요.</target>
       </trans-unit>
+      <trans-unit id="++CODE++c0ddd09f7b9ebbe309bc4e518e1aad4479cbbc1eb792cac263b398e11a85af5a">
+        <source xml:lang="en">Missing index</source>
+        <target state="new">Missing index</target>
+      </trans-unit>
+      <trans-unit id="++CODE++efb9ca4f5a017be57cf3a7cb05a528919e6419abddfe79c4a2d8937b2a901186">
+        <source xml:lang="en">Missing index recommendations</source>
+        <target state="new">Missing index recommendations</target>
+      </trans-unit>
       <trans-unit id="++CODE++910bb9ebcad74af9fe7fae916e94812f8a97c60f93e76a1167b4ca1583d70f27">
         <source xml:lang="en">Missing schema payload for replace_schema operation.</source>
         <target state="translated">replace_schema 작업에 필요한 스키마 페이로드가 없습니다.</target>
@@ -7248,6 +7261,10 @@ Error:
       <trans-unit id="++CODE++eca206dacc5627de738a49f5b7cc3a89393f5c0d8e5da0dadfb8baec1c274678">
         <source xml:lang="en">Open the generated SELECT statement in a new editor</source>
         <target state="translated">생성된 SELECT 문을 새 편집기에서 열기</target>
+      </trans-unit>
+      <trans-unit id="++CODE++bcec92c3fcbd6a1012ed2ae1a5d10e462184bbb5ca83b2df5552cb49620c78cf">
+        <source xml:lang="en">Open the recommended index script in a new query editor</source>
+        <target state="new">Open the recommended index script in a new query editor</target>
       </trans-unit>
       <trans-unit id="++CODE++3a8e07b84d53ba502ae8ee669003537bdbbe321d6c8c6fb6cbd63019cb3d400e">
         <source xml:lang="en">Opening Publish Script. This may take a while...</source>
@@ -12006,6 +12023,10 @@ Are you sure you want to continue?</target>
       <trans-unit id="mssql.resultsGrid.inMemoryDataProcessingThreshold">
         <source xml:lang="en">Controls the max number of rows allowed to do filtering and sorting in memory. If the number is exceeded, sorting and filtering will be disabled. Warning: Increasing this may impact performance.</source>
         <target state="translated">메모리에서 필터링 및 정렬할 수 있는 최대 행 수를 제어합니다. 숫자를 초과하는 경우 정렬과 필터링이 비활성화됩니다. 경고: 이 항목을 늘리면 성능에 영향을 미칠 수 있습니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.statusBar.showQueryExecutionStatus.description">
+        <source xml:lang="en">Controls whether the query execution status (executing, canceling, completed) is displayed in the status bar.</source>
+        <target state="new">Controls whether the query execution status (executing, canceling, completed) is displayed in the status bar.</target>
       </trans-unit>
       <trans-unit id="mssql.copyAll">
         <source xml:lang="en">Copy All</source>
