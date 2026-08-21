@@ -317,6 +317,7 @@ export interface CopySelectionRequestParams {
     resultId: number;
     selection: ISlickRange[];
     includeHeaders?: boolean;
+    preserveSelectionLayout?: boolean;
 }
 
 export namespace CopySelectionRequest {

@@ -515,6 +515,7 @@
     },
     "Schema designer details are not available.": "Schema designer details are not available.",
     "Copying results...": "Copying results...",
+    "Copying results canceled": "Copying results canceled",
     "Do you want to always display query results in a new tab instead of the query pane?": "Do you want to always display query results in a new tab instead of the query pane?",
     "Always show in new tab": "Always show in new tab",
     "Keep in query pane": "Keep in query pane",

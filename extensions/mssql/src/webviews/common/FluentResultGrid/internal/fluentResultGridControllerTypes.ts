@@ -47,6 +47,7 @@ export interface FluentResultGridControllerResult {
     dataView: FluentResultGridDataView<FluentResultGridDataRow>;
     dataViewKey: number;
     displayedRowCount: number;
+    clearSelection: () => void;
     focusGrid: () => void;
     gridOptions: GridOption;
     handleBeforeHeaderCellDestroy: (event: CustomEvent) => void;
