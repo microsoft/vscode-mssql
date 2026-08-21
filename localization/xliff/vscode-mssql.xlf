@@ -226,9 +226,6 @@
     <trans-unit id="++CODE++02a16a835f1e9c9cbe76a8cb9042d2f3861fc237036221e1f0c60383600f45f6">
       <source xml:lang="en">Add Row</source>
     </trans-unit>
-    <trans-unit id="++CODE++937a7b0b3cc8c58a787de5a63bfc07573789ee22a22918957f92651c0edb31f9">
-      <source xml:lang="en">Add Server Connection</source>
-    </trans-unit>
     <trans-unit id="++CODE++cbc187e255409f8de0f011bbebfc96b04028928cce72ccb35ca8a088f156aba9">
       <source xml:lang="en">Add Table</source>
     </trans-unit>
@@ -6593,6 +6590,10 @@
     </trans-unit>
     <trans-unit id="++CODE++5a2df8a2745d54fa2197753e1c2c22a8dea9676916677120da5c44550647180d">
       <source xml:lang="en">Saved Connections</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f7fdd5b0b1aa6beecb02dab9409db0a6853b395f5bf95a4d3098a057f1284209">
+      <source xml:lang="en">Saved connection &apos;{0}&apos; not found.</source>
+      <note>{0} is the saved connection ID</note>
     </trans-unit>
     <trans-unit id="++CODE++214bf67326266805ed0887a2154efa6a38e78d684c4f4c69c33cbecdb16feb13">
       <source xml:lang="en">Saved results to {0}</source>

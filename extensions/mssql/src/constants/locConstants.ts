@@ -2116,6 +2116,13 @@ export class SchemaCompare {
     public static Open = l10n.t("Open");
     public static Save = l10n.t("Save");
     public static defaultUserName = l10n.t("default");
+    public static failedToConnectToServer = l10n.t("Failed to connect to server");
+    public static savedConnectionNotFound = (connectionId: string) =>
+        l10n.t({
+            message: "Saved connection '{0}' not found.",
+            args: [connectionId],
+            comment: ["{0} is the saved connection ID"],
+        });
     public static Yes = l10n.t("Yes");
     public static No = l10n.t("No");
     public static optionsChangedMessage = l10n.t(
