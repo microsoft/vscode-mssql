@@ -12306,6 +12306,10 @@ Una volta completate le modifiche, fai clic sul pulsante 'Pubblica' per inviare 
         <source xml:lang="en">Filter your Object Explorer Tree</source>
         <target state="translated">Filtra l'albero Esplora oggetti</target>
       </trans-unit>
+      <trans-unit id="mssql.resultsGrid.freezeFirstColumnByDefault">
+        <source xml:lang="en">Freeze the first data column by default in new result grids. Existing saved grid state takes precedence.</source>
+        <target state="new">Freeze the first data column by default in new result grids. Existing saved grid state takes precedence.</target>
+      </trans-unit>
       <trans-unit id="mssql.sqlScriptsSubmenu">
         <source xml:lang="en">Generate Script</source>
         <target state="translated">Genera script</target>
