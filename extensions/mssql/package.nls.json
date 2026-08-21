@@ -126,6 +126,7 @@
     "mssql.connection.order": "[Optional] A non-negative number used to sort this connection in the Object Explorer sidebar. Connections with an 'order' value are displayed first, lowest to highest; remaining connections follow in alphabetical order.",
     "mssql.enableConnectionPooling": "Enables connection pooling to improve overall connectivity performance. This setting is disabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: 'MS SQL: Clear Pooled Connections'. Note: May keep serverless databases active and prevent auto-pausing.",
     "mssql.statusBar.enableConnectionColor": "When enabled, colorizes the connection status bar item with the color of the connection group. This setting is disabled by default.  This uses the connection group folder's color directly, and does not alter it in order to ensure contrast with the current VS Code theme. Users should choose connection group colors that work well with their theme.",
+    "mssql.statusBar.showQueryExecutionStatus.description": "Controls whether the query execution status (executing, canceling, completed) is displayed in the status bar.",
     "mssql.shortcuts": "Shortcuts handled inside MSSQL views",
     "mssql.messagesDefaultOpen": "True for the messages pane to be open by default; false for closed",
     "mssql.messages.copyIncludeTimestamps": "When enabled, Copy All in the query result Messages pane includes message timestamps.",

@@ -2420,6 +2420,12 @@
                     "default": true,
                     "scope": "window"
                 },
+                "mssql.statusBar.showQueryExecutionStatus": {
+                    "type": "boolean",
+                    "description": "%mssql.statusBar.showQueryExecutionStatus.description%",
+                    "default": true,
+                    "scope": "window"
+                },
                 "mssql.format.alignColumnDefinitionsInColumns": {
                     "type": "boolean",
                     "markdownDescription": "%mssql.format.alignColumnDefinitionsInColumns%",
