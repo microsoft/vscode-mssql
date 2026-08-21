@@ -1121,9 +1121,9 @@ export default class QueryRunner {
         resultId: number,
         showThresholdWarning: boolean = true,
     ): Promise<void> {
-        // A new service request supersedes an old one for the same owner. When no replacement
-        // request will be sent, explicitly cancel any service work for the cleared selection.
-        void this.invalidateSelectionSummaryRequest(selections.length === 0);
+        // Invalidate local state immediately and cancel any service work before starting a
+        // replacement request for the same owner.
+        const previousCancellation = this.invalidateSelectionSummaryRequest(true);
 
         const request: SelectionSummaryRequestContext = {
             id: uuid(),
@@ -1171,6 +1171,11 @@ export default class QueryRunner {
                 batchId,
                 resultId,
             });
+            return;
+        }
+
+        await previousCancellation;
+        if (!isCurrentRequest()) {
             return;
         }
 
