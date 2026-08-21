@@ -12,6 +12,9 @@ import {
     EditSessionReadyParams,
     DbCellValue,
     SqlPaneMode,
+    EditRow,
+    EditRowState,
+    EditCell,
 } from "../sharedInterfaces/tableExplorer";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import ConnectionManager from "../controllers/connectionManager";
@@ -32,6 +35,15 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 > {
     private operationId: string;
     private _preserveTableQuery = false;
+    private _latestCellUpdateRequestIds = new Map<string, number>();
+    private _cellOperationQueues = new Map<string, Promise<void>>();
+    private _pendingCellOperations = new Set<Promise<void>>();
+    private _failedEditOperations = new Set<string>();
+    private _lifecycleOperationQueue = Promise.resolve();
+    private _lifecycleOperationCount = 0;
+    private _cellOperationsEnabled = true;
+    private _commitInProgress = false;
+    private _sessionReplacementPending = false;
 
     constructor(
         context: vscode.ExtensionContext,
@@ -68,6 +80,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 currentPage: 1, // Start on page 1
                 failedCells: [], // Track cells that failed to update
                 originalCellValues: new Map<string, DbCellValue>(), // Cache original values for reliable revert
+                cellUpdateAcknowledgements: {},
             },
             {
                 title: qualifiedTableName,
@@ -104,6 +117,9 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 
     private onEditSessionReady(result: EditSessionReadyParams): void {
         if (result.success) {
+            this._cellOperationsEnabled = true;
+            this._commitInProgress = false;
+            this._sessionReplacementPending = false;
             this.state.ownerUri = result.ownerUri;
             this.state.loadStatus = ApiStatus.Loading;
             this.updateState();
@@ -125,6 +141,8 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             this.state.loadStatus = ApiStatus.Error;
             this.state.resultSet = undefined;
             this._preserveTableQuery = false;
+            this._cellOperationsEnabled = false;
+            this._sessionReplacementPending = false;
             this.updateState();
 
             sendErrorEvent(
@@ -362,7 +380,151 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         state.deletedRows = [];
         state.failedCells = [];
         state.originalCellValues?.clear();
+        state.cellUpdateAcknowledgements = {};
+        this._latestCellUpdateRequestIds.clear();
+        this._failedEditOperations.clear();
         state.updateScript = undefined;
+    }
+
+    private updateResultCell(
+        state: TableExplorerWebViewState,
+        row: EditRow,
+        columnId: number,
+        cell: EditCell,
+    ): EditRow {
+        const cells = [...row.cells];
+        cells[columnId] = cell;
+
+        if (row.state === EditRowState.dirtyInsert) {
+            return {
+                ...row,
+                cells,
+            };
+        }
+
+        const rowKeyPrefix = `${row.id}-`;
+        const hasPendingCellUpdate = [...this._latestCellUpdateRequestIds].some(
+            ([key, requestId]) =>
+                key.startsWith(rowKeyPrefix) &&
+                state.cellUpdateAcknowledgements?.[key]?.requestId !== requestId,
+        );
+        const isRowDirty =
+            hasPendingCellUpdate ||
+            cells.some((resultCell) => (resultCell as EditCell).isDirty === true);
+
+        return {
+            ...row,
+            cells,
+            isDirty: isRowDirty,
+            state: isRowDirty ? EditRowState.dirtyUpdate : EditRowState.clean,
+        };
+    }
+
+    private async enqueueCellOperation<T>(
+        cellKey: string,
+        operation: () => Promise<T>,
+    ): Promise<T> {
+        const lifecycleOperations = this._lifecycleOperationQueue;
+        const previousOperation = this._cellOperationQueues.get(cellKey) ?? Promise.resolve();
+        let completeOperation!: () => void;
+        const currentOperation = new Promise<void>((resolve) => {
+            completeOperation = resolve;
+        });
+        this._cellOperationQueues.set(cellKey, currentOperation);
+        this._pendingCellOperations.add(currentOperation);
+
+        await Promise.all([lifecycleOperations, previousOperation]);
+        try {
+            return await operation();
+        } finally {
+            completeOperation();
+            this._pendingCellOperations.delete(currentOperation);
+            if (this._cellOperationQueues.get(cellKey) === currentOperation) {
+                this._cellOperationQueues.delete(cellKey);
+            }
+        }
+    }
+
+    private async enqueueLifecycleOperation<T>(operation: () => Promise<T>): Promise<T> {
+        this._lifecycleOperationCount++;
+        const previousLifecycleOperations = this._lifecycleOperationQueue;
+        const pendingCellOperations = [...this._pendingCellOperations];
+        let completeLifecycleOperation!: () => void;
+        const currentLifecycleOperation = new Promise<void>((resolve) => {
+            completeLifecycleOperation = resolve;
+        });
+        const lifecycleOperations = previousLifecycleOperations.then(
+            () => currentLifecycleOperation,
+        );
+        this._lifecycleOperationQueue = lifecycleOperations;
+
+        await previousLifecycleOperations;
+        await Promise.all(pendingCellOperations);
+        try {
+            return await operation();
+        } finally {
+            this._lifecycleOperationCount--;
+            completeLifecycleOperation();
+            if (this._lifecycleOperationQueue === lifecycleOperations) {
+                this._lifecycleOperationQueue = Promise.resolve();
+            }
+        }
+    }
+
+    private throwIfEditOperationsFailed(): void {
+        if (this._failedEditOperations.size > 0) {
+            throw new Error("One or more edit operations failed");
+        }
+    }
+
+    private getRowRevertFailureKey(rowId: number): string {
+        return `row:${rowId}`;
+    }
+
+    private hasTrackedPendingChangesForRow(
+        state: TableExplorerWebViewState,
+        rowId: number,
+    ): boolean {
+        const rowKeyPrefix = `${rowId}-`;
+        const row = state.resultSet?.subset.find((resultRow) => resultRow.id === rowId);
+        return (
+            state.newRows.some((newRow) => newRow.id === rowId) ||
+            state.deletedRows.includes(rowId) ||
+            [...(state.originalCellValues?.keys() ?? [])].some((key) =>
+                key.startsWith(rowKeyPrefix),
+            ) ||
+            (state.failedCells?.some((key) => key.startsWith(rowKeyPrefix)) ?? false) ||
+            Object.entries(state.cellUpdateAcknowledgements ?? {}).some(
+                ([key, acknowledgement]) => key.startsWith(rowKeyPrefix) && acknowledgement.isDirty,
+            ) ||
+            row?.isDirty === true ||
+            row?.state === EditRowState.dirtyInsert ||
+            row?.state === EditRowState.dirtyDelete ||
+            row?.state === EditRowState.dirtyUpdate
+        );
+    }
+
+    private areEditMutationsBlocked(): boolean {
+        return (
+            !this._cellOperationsEnabled ||
+            this._commitInProgress ||
+            this._sessionReplacementPending
+        );
+    }
+
+    private throwIfEditMutationBlocked(): void {
+        if (this.areEditMutationsBlocked()) {
+            throw new Error("Edit operation was not applied because the session is unavailable");
+        }
+    }
+
+    private trackUnappliedCellUpdate(state: TableExplorerWebViewState, cacheKey: string): void {
+        this._failedEditOperations.add(cacheKey);
+        if (!state.failedCells?.includes(cacheKey)) {
+            state.failedCells = [...(state.failedCells ?? []), cacheKey];
+        }
+        this.showRestorePromptAfterClose = true;
+        this.updateState();
     }
 
     /**
@@ -370,19 +532,47 @@ export class TableExplorerWebViewController extends WebviewPanelController<
      * marks state as loading, clears the stale result set so the webview re-initializes the grid,
      * disposes the backend session (best-effort), and clears any pending-edit bookkeeping.
      */
-    private async tearDownEditSession(state: TableExplorerWebViewState): Promise<void> {
+    private async tearDownEditSession(
+        state: TableExplorerWebViewState,
+        confirmDiscardPendingChanges = false,
+    ): Promise<boolean> {
+        const previousLoadStatus = state.loadStatus;
+        this._sessionReplacementPending = true;
         state.loadStatus = ApiStatus.Loading;
-
-        state.resultSet = undefined;
         this.updateState();
-
         try {
-            await this._tableExplorerService.dispose(state.ownerUri);
-        } catch {}
+            return await this.enqueueLifecycleOperation(async () => {
+                if (
+                    confirmDiscardPendingChanges &&
+                    this.hasPendingChanges(state) &&
+                    !(await this.promptDiscardPendingChanges())
+                ) {
+                    this._sessionReplacementPending = false;
+                    state.loadStatus = previousLoadStatus;
+                    this.updateState();
+                    return false;
+                }
 
-        this.resetPendingChangesState(state);
-        this.showRestorePromptAfterClose = false;
-        this.updateState();
+                this._cellOperationsEnabled = false;
+
+                state.resultSet = undefined;
+                this.updateState();
+
+                try {
+                    await this._tableExplorerService.dispose(state.ownerUri);
+                } catch {}
+
+                this.resetPendingChangesState(state);
+                this.showRestorePromptAfterClose = false;
+                this.updateState();
+                return true;
+            });
+        } catch (error) {
+            this._sessionReplacementPending = false;
+            state.loadStatus = previousLoadStatus;
+            this.updateState();
+            throw error;
+        }
     }
 
     /**
@@ -411,12 +601,19 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 `Failed to restore original session: ${getErrorMessage(restoreError)}`,
             );
             state.loadStatus = ApiStatus.Error;
+            this._sessionReplacementPending = false;
             return false;
         }
     }
 
     private registerRpcHandlers(): void {
         this.registerReducer("commitChanges", async (state) => {
+            if (this._commitInProgress) {
+                throw new Error("A commit is already in progress");
+            }
+            this.throwIfEditMutationBlocked();
+            this._commitInProgress = true;
+
             this.logger.info(
                 `Committing changes for: ${state.tableName} - OperationId: ${this.operationId}`,
             );
@@ -434,48 +631,74 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             );
 
             try {
-                await this._tableExplorerService.commit(state.ownerUri);
-                vscode.window.showInformationMessage(
-                    LocConstants.TableExplorer.changesSavedSuccessfully,
-                );
+                return await this.enqueueLifecycleOperation(async () => {
+                    try {
+                        this.throwIfEditOperationsFailed();
+                        await this._tableExplorerService.commit(state.ownerUri);
+                        vscode.window.showInformationMessage(
+                            LocConstants.TableExplorer.changesSavedSuccessfully,
+                        );
 
-                // Clear tracking state after successful commit
-                state.newRows = [];
-                state.deletedRows = [];
-                state.failedCells = [];
-                state.originalCellValues?.clear(); // Clear cached original values since they're now outdated
-                this.showRestorePromptAfterClose = false;
+                        if (state.resultSet) {
+                            state.resultSet = {
+                                ...state.resultSet,
+                                subset: state.resultSet.subset.map((row) => ({
+                                    ...row,
+                                    isDirty: false,
+                                    state: EditRowState.clean,
+                                    cells: row.cells.map((cell) => ({
+                                        ...cell,
+                                        isDirty: false,
+                                    })),
+                                })),
+                            };
+                        }
 
-                this.logger.debug(
-                    `Cleared new rows, deleted rows, failed cells, and original cell values cache after successful commit - OperationId: ${this.operationId}`,
-                );
+                        // Clear tracking state after successful commit
+                        state.newRows = [];
+                        state.deletedRows = [];
+                        state.failedCells = [];
+                        state.originalCellValues?.clear(); // Clear cached original values since they're now outdated
+                        state.cellUpdateAcknowledgements = {};
+                        this._latestCellUpdateRequestIds.clear();
+                        this._failedEditOperations.clear();
+                        this.showRestorePromptAfterClose = false;
 
-                endActivity.end(ActivityStatus.Succeeded, {
-                    elapsedTime: (Date.now() - startTime).toString(),
-                    operationId: this.operationId,
+                        this.logger.debug(
+                            `Cleared new rows, deleted rows, failed cells, and original cell values cache after successful commit - OperationId: ${this.operationId}`,
+                        );
+
+                        endActivity.end(ActivityStatus.Succeeded, {
+                            elapsedTime: (Date.now() - startTime).toString(),
+                            operationId: this.operationId,
+                        });
+                    } catch (error) {
+                        this.logger.error(
+                            `Error committing changes: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+                        );
+
+                        endActivity.endFailed(
+                            new Error("Failed to commit changes"),
+                            true /* includeErrorMessage */,
+                            undefined /* errorCode */,
+                            undefined /* errorType */,
+                            {
+                                elapsedTime: (Date.now() - startTime).toString(),
+                                operationId: this.operationId,
+                            },
+                        );
+
+                        vscode.window.showErrorMessage(
+                            LocConstants.TableExplorer.failedToSaveChanges(getErrorMessage(error)),
+                        );
+                        throw error;
+                    }
+
+                    return state;
                 });
-            } catch (error) {
-                this.logger.error(
-                    `Error committing changes: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
-                );
-
-                endActivity.endFailed(
-                    new Error("Failed to commit changes"),
-                    true /* includeErrorMessage */,
-                    undefined /* errorCode */,
-                    undefined /* errorType */,
-                    {
-                        elapsedTime: (Date.now() - startTime).toString(),
-                        operationId: this.operationId,
-                    },
-                );
-
-                vscode.window.showErrorMessage(
-                    LocConstants.TableExplorer.failedToSaveChanges(getErrorMessage(error)),
-                );
+            } finally {
+                this._commitInProgress = false;
             }
-
-            return state;
         });
 
         this.registerReducer("loadSubset", async (state, payload) => {
@@ -564,9 +787,14 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         });
 
         this.registerReducer("createRow", async (state) => {
+            if (this.areEditMutationsBlocked()) {
+                return state;
+            }
+
             this.logger.info(
                 `Creating new row for: ${state.tableName} - OperationId: ${this.operationId}`,
             );
+            this.showRestorePromptAfterClose = true;
 
             const startTime = Date.now();
             const endActivity = startActivity(
@@ -579,68 +807,78 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 },
             );
 
-            try {
-                const result = await this._tableExplorerService.createRow(state.ownerUri);
-                vscode.window.showInformationMessage(
-                    LocConstants.TableExplorer.rowCreatedSuccessfully,
-                );
-                this.logger.debug(
-                    `Created row with ID: ${result.newRowId} - OperationId: ${this.operationId}`,
-                );
-
-                // Track new row and mark unsaved changes
-                state.newRows = [...state.newRows, result.row];
-                this.showRestorePromptAfterClose = true;
-
-                // Update result set with new row
-                if (state.resultSet) {
-                    // Create a completely new resultSet object to ensure React detects the change
-                    state.resultSet = {
-                        ...state.resultSet,
-                        subset: [...state.resultSet.subset, result.row],
-                        rowCount: state.resultSet.rowCount + 1,
-                    };
-
-                    this.logger.debug(
-                        `Added new row to result set, now has ${state.resultSet.rowCount} rows (${state.newRows.length} new)`,
-                    );
-
-                    this.updateState();
-                } else {
-                    this.logger.warn("Cannot add row: result set is undefined");
+            return await this.enqueueLifecycleOperation(async () => {
+                if (!this._cellOperationsEnabled) {
+                    return state;
                 }
 
-                await this.regenerateScriptIfVisible(state);
+                try {
+                    const result = await this._tableExplorerService.createRow(state.ownerUri);
+                    vscode.window.showInformationMessage(
+                        LocConstants.TableExplorer.rowCreatedSuccessfully,
+                    );
+                    this.logger.debug(
+                        `Created row with ID: ${result.newRowId} - OperationId: ${this.operationId}`,
+                    );
 
-                endActivity.end(ActivityStatus.Succeeded, {
-                    elapsedTime: (Date.now() - startTime).toString(),
-                    operationId: this.operationId,
-                });
-            } catch (error) {
-                this.logger.error(
-                    `Error creating row: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
-                );
+                    // Track new row and mark unsaved changes
+                    state.newRows = [...state.newRows, result.row];
 
-                endActivity.endFailed(
-                    new Error("Failed to create row"),
-                    true /* includeErrorMessage */,
-                    undefined /* errorCode */,
-                    undefined /* errorType */,
-                    {
+                    // Update result set with new row
+                    if (state.resultSet) {
+                        // Create a completely new resultSet object to ensure React detects the change
+                        state.resultSet = {
+                            ...state.resultSet,
+                            subset: [...state.resultSet.subset, result.row],
+                            rowCount: state.resultSet.rowCount + 1,
+                        };
+
+                        this.logger.debug(
+                            `Added new row to result set, now has ${state.resultSet.rowCount} rows (${state.newRows.length} new)`,
+                        );
+
+                        this.updateState();
+                    } else {
+                        this.logger.warn("Cannot add row: result set is undefined");
+                    }
+
+                    await this.regenerateScriptIfVisible(state);
+
+                    endActivity.end(ActivityStatus.Succeeded, {
                         elapsedTime: (Date.now() - startTime).toString(),
                         operationId: this.operationId,
-                    },
-                );
+                    });
+                } catch (error) {
+                    this.showRestorePromptAfterClose = this.hasPendingChanges(state);
+                    this.logger.error(
+                        `Error creating row: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+                    );
 
-                vscode.window.showErrorMessage(
-                    LocConstants.TableExplorer.failedToCreateNewRow(getErrorMessage(error)),
-                );
-            }
+                    endActivity.endFailed(
+                        new Error("Failed to create row"),
+                        true /* includeErrorMessage */,
+                        undefined /* errorCode */,
+                        undefined /* errorType */,
+                        {
+                            elapsedTime: (Date.now() - startTime).toString(),
+                            operationId: this.operationId,
+                        },
+                    );
 
-            return state;
+                    vscode.window.showErrorMessage(
+                        LocConstants.TableExplorer.failedToCreateNewRow(getErrorMessage(error)),
+                    );
+                }
+
+                return state;
+            });
         });
 
         this.registerReducer("deleteRow", async (state, payload) => {
+            if (this.areEditMutationsBlocked()) {
+                return state;
+            }
+
             this.logger.debug(`Deleting row: ${payload.rowId} - OperationId: ${this.operationId}`);
 
             const startTime = Date.now();
@@ -654,113 +892,121 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 },
             );
 
-            // Check if this is a newly created row BEFORE calling the service
-            // The backend completely removes new rows (including decrementing NextRowId),
-            // so they cannot be reverted and should be removed from the UI immediately
-            const isNewRow = state.newRows.some((row) => row.id === payload.rowId);
+            this.showRestorePromptAfterClose = true;
+            return await this.enqueueLifecycleOperation(async () => {
+                // A preceding commit can move the row from new to persisted while this operation waits.
+                const isNewRow = state.newRows.some((row) => row.id === payload.rowId);
 
-            try {
-                await this._tableExplorerService.deleteRow(state.ownerUri, payload.rowId);
+                try {
+                    await this._tableExplorerService.deleteRow(state.ownerUri, payload.rowId);
+                    this._failedEditOperations.delete(this.getRowRevertFailureKey(payload.rowId));
 
-                // Remove all failed cells for this row
-                if (state.failedCells) {
-                    state.failedCells = state.failedCells.filter(
-                        (key) => !key.startsWith(`${payload.rowId}-`),
-                    );
-                }
-
-                // Clear all cached original values for this row
-                if (state.originalCellValues) {
-                    const keysToDelete: string[] = [];
-                    state.originalCellValues.forEach((_, key) => {
+                    // Remove all failed cells for this row
+                    if (state.failedCells) {
+                        state.failedCells = state.failedCells.filter(
+                            (key) => !key.startsWith(`${payload.rowId}-`),
+                        );
+                    }
+                    for (const key of this._failedEditOperations) {
                         if (key.startsWith(`${payload.rowId}-`)) {
-                            keysToDelete.push(key);
+                            this._failedEditOperations.delete(key);
                         }
-                    });
-                    keysToDelete.forEach((key) => state.originalCellValues?.delete(key));
-                    this.logger.debug(
-                        `Cleared ${keysToDelete.length} cached values for deleted row ${payload.rowId}`,
-                    );
-                }
-
-                if (isNewRow) {
-                    // For newly created rows, the backend completely removes them
-                    // Remove from newRows tracking and from resultSet immediately
-                    state.newRows = state.newRows.filter((row) => row.id !== payload.rowId);
-
-                    if (state.resultSet) {
-                        state.resultSet = {
-                            ...state.resultSet,
-                            subset: state.resultSet.subset.filter(
-                                (row) => row.id !== payload.rowId,
-                            ),
-                            rowCount: state.resultSet.rowCount - 1,
-                        };
                     }
 
-                    vscode.window.showInformationMessage(
-                        LocConstants.TableExplorer.rowDeletedSuccessfully,
-                    );
-
-                    this.logger.debug(
-                        `Removed newly created row ${payload.rowId} from UI (${state.newRows.length} new rows remaining)`,
-                    );
-
-                    // Check if we still have unsaved changes
-                    if (state.newRows.length === 0 && state.deletedRows.length === 0) {
-                        this.showRestorePromptAfterClose = false;
-                    }
-                } else {
-                    // For existing rows, mark for deletion (keep visible but styled as deleted)
-                    if (!state.deletedRows.includes(payload.rowId)) {
-                        state.deletedRows = [...state.deletedRows, payload.rowId];
+                    // Clear all cached original values for this row
+                    if (state.originalCellValues) {
+                        const keysToDelete: string[] = [];
+                        state.originalCellValues.forEach((_, key) => {
+                            if (key.startsWith(`${payload.rowId}-`)) {
+                                keysToDelete.push(key);
+                            }
+                        });
+                        keysToDelete.forEach((key) => state.originalCellValues?.delete(key));
+                        this.logger.debug(
+                            `Cleared ${keysToDelete.length} cached values for deleted row ${payload.rowId}`,
+                        );
                     }
 
-                    vscode.window.showInformationMessage(
-                        LocConstants.TableExplorer.rowMarkedForRemoval,
-                    );
+                    if (isNewRow) {
+                        // For newly created rows, the backend completely removes them
+                        // Remove from newRows tracking and from resultSet immediately
+                        state.newRows = state.newRows.filter((row) => row.id !== payload.rowId);
 
-                    this.showRestorePromptAfterClose = true;
+                        if (state.resultSet) {
+                            state.resultSet = {
+                                ...state.resultSet,
+                                subset: state.resultSet.subset.filter(
+                                    (row) => row.id !== payload.rowId,
+                                ),
+                                rowCount: state.resultSet.rowCount - 1,
+                            };
+                        }
 
-                    this.logger.debug(
-                        `Marked row ${payload.rowId} for deletion (${state.deletedRows.length} total deleted)`,
-                    );
-                }
+                        vscode.window.showInformationMessage(
+                            LocConstants.TableExplorer.rowDeletedSuccessfully,
+                        );
 
-                // Update state to trigger re-render
-                this.updateState();
+                        this.logger.debug(
+                            `Removed newly created row ${payload.rowId} from UI (${state.newRows.length} new rows remaining)`,
+                        );
+                    } else {
+                        // For existing rows, mark for deletion (keep visible but styled as deleted)
+                        if (!state.deletedRows.includes(payload.rowId)) {
+                            state.deletedRows = [...state.deletedRows, payload.rowId];
+                        }
 
-                await this.regenerateScriptIfVisible(state);
+                        vscode.window.showInformationMessage(
+                            LocConstants.TableExplorer.rowMarkedForRemoval,
+                        );
 
-                endActivity.end(ActivityStatus.Succeeded, {
-                    elapsedTime: (Date.now() - startTime).toString(),
-                    operationId: this.operationId,
-                });
-            } catch (error) {
-                this.logger.error(
-                    `Error deleting row: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
-                );
+                        this.logger.debug(
+                            `Marked row ${payload.rowId} for deletion (${state.deletedRows.length} total deleted)`,
+                        );
+                    }
+                    this.showRestorePromptAfterClose = this.hasPendingChanges(state);
 
-                endActivity.endFailed(
-                    new Error("Failed to delete row"),
-                    true /* includeErrorMessage */,
-                    undefined /* errorCode */,
-                    undefined /* errorType */,
-                    {
+                    // Update state to trigger re-render
+                    this.updateState();
+
+                    await this.regenerateScriptIfVisible(state);
+
+                    endActivity.end(ActivityStatus.Succeeded, {
                         elapsedTime: (Date.now() - startTime).toString(),
                         operationId: this.operationId,
-                    },
-                );
+                    });
+                } catch (error) {
+                    this.logger.error(
+                        `Error deleting row: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+                    );
 
-                vscode.window.showErrorMessage(
-                    LocConstants.TableExplorer.failedToRemoveRow(getErrorMessage(error)),
-                );
-            }
+                    endActivity.endFailed(
+                        new Error("Failed to delete row"),
+                        true /* includeErrorMessage */,
+                        undefined /* errorCode */,
+                        undefined /* errorType */,
+                        {
+                            elapsedTime: (Date.now() - startTime).toString(),
+                            operationId: this.operationId,
+                        },
+                    );
 
-            return state;
+                    vscode.window.showErrorMessage(
+                        LocConstants.TableExplorer.failedToRemoveRow(getErrorMessage(error)),
+                    );
+                    this.showRestorePromptAfterClose = this.hasPendingChanges(state);
+                }
+
+                return state;
+            });
         });
 
         this.registerReducer("updateCell", async (state, payload) => {
+            const cacheKey = `${payload.rowId}-${payload.columnId}`;
+            if (this.areEditMutationsBlocked()) {
+                this.trackUnappliedCellUpdate(state, cacheKey);
+                throw new Error("Cell update was not applied because the session is unavailable");
+            }
+
             this.logger.debug(
                 `Updating cell: row ${payload.rowId}, column ${payload.columnId} - OperationId: ${this.operationId}`,
             );
@@ -778,131 +1024,232 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 
             // Cache the original cell value BEFORE attempting the update
             // This ensures we can revert even if the update fails
-            const cacheKey = `${payload.rowId}-${payload.columnId}`;
-            if (state.resultSet && !state.originalCellValues?.has(cacheKey)) {
-                const rowIndex = state.resultSet.subset.findIndex(
-                    (row) => row.id === payload.rowId,
-                );
-                if (rowIndex !== -1) {
-                    const originalCell = state.resultSet.subset[rowIndex].cells[payload.columnId];
-                    if (!state.originalCellValues) {
-                        state.originalCellValues = new Map<string, DbCellValue>();
-                    }
-                    // Deep copy to ensure we have all properties
-                    state.originalCellValues.set(cacheKey, {
-                        displayValue: originalCell.displayValue,
-                        isNull: originalCell.isNull,
-                        invariantCultureDisplayValue: originalCell.invariantCultureDisplayValue,
-                    });
-                    this.logger.trace(`Cached original value for cell ${cacheKey}`);
-                }
+            const registeredBeforeQueue = this._lifecycleOperationCount === 0;
+            if (registeredBeforeQueue) {
+                this._latestCellUpdateRequestIds.set(cacheKey, payload.requestId);
             }
+            this.showRestorePromptAfterClose = true;
 
-            try {
-                const updateCellResult = await this._tableExplorerService.updateCell(
-                    state.ownerUri,
-                    payload.rowId,
-                    payload.columnId,
-                    payload.newValue,
-                );
+            const ownerUri = state.ownerUri;
+            return await this.enqueueCellOperation(cacheKey, async () => {
+                if (!this._cellOperationsEnabled) {
+                    if (this._latestCellUpdateRequestIds.get(cacheKey) === payload.requestId) {
+                        this._latestCellUpdateRequestIds.delete(cacheKey);
+                    }
+                    this.trackUnappliedCellUpdate(state, cacheKey);
+                    throw new Error(
+                        "Cell update was not applied because the session is unavailable",
+                    );
+                }
 
+                if (!registeredBeforeQueue) {
+                    this._latestCellUpdateRequestIds.set(cacheKey, payload.requestId);
+                }
                 this.showRestorePromptAfterClose = true;
-
-                // Remove from failed cells tracking if it was previously failed
-                if (state.failedCells) {
-                    const failedKey = `${payload.rowId}-${payload.columnId}`;
-                    state.failedCells = state.failedCells.filter((key) => key !== failedKey);
-                }
-
-                // Update the cell value in the result set
-                if (state.resultSet && updateCellResult.cell) {
+                if (state.resultSet && !state.originalCellValues?.has(cacheKey)) {
                     const rowIndex = state.resultSet.subset.findIndex(
                         (row) => row.id === payload.rowId,
                     );
-
                     if (rowIndex !== -1) {
-                        const updatedCell = {
-                            ...updateCellResult.cell,
-                            displayValue: payload.newValue,
-                        };
-
-                        state.resultSet.subset[rowIndex].cells[payload.columnId] = updatedCell;
-
-                        this.updateState();
-
-                        this.logger.debug(
-                            `Updated cell in result set at row ${rowIndex}, column ${payload.columnId}`,
-                        );
-                    }
-                }
-
-                this.logger.debug(`Cell updated successfully - OperationId: ${this.operationId}`);
-
-                await this.regenerateScriptIfVisible(state);
-
-                endActivity.end(ActivityStatus.Succeeded, {
-                    elapsedTime: (Date.now() - startTime).toString(),
-                    operationId: this.operationId,
-                });
-            } catch (error) {
-                this.logger.error(
-                    `Error updating cell: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
-                );
-
-                // Track failed cell for UI highlighting
-                const failedKey = `${payload.rowId}-${payload.columnId}`;
-                if (!state.failedCells) {
-                    state.failedCells = [failedKey];
-                } else if (!state.failedCells.includes(failedKey)) {
-                    state.failedCells = [...state.failedCells, failedKey];
-                }
-
-                // Update the cell in the result set to show the attempted value with isDirty flag
-                // This ensures the UI shows what the user typed even though the update failed
-                if (state.resultSet) {
-                    const rowIndex = state.resultSet.subset.findIndex(
-                        (row) => row.id === payload.rowId,
-                    );
-
-                    if (rowIndex !== -1) {
-                        const currentCell =
+                        const originalCell =
                             state.resultSet.subset[rowIndex].cells[payload.columnId];
-                        const failedCell = {
-                            ...currentCell,
-                            displayValue: payload.newValue,
-                            isDirty: true,
-                        };
-
-                        state.resultSet.subset[rowIndex].cells[payload.columnId] = failedCell;
-
-                        this.logger.debug(
-                            `Updated cell in result set to show failed edit at row ${rowIndex}, column ${payload.columnId}`,
-                        );
+                        if (!state.originalCellValues) {
+                            state.originalCellValues = new Map<string, DbCellValue>();
+                        }
+                        // Deep copy to ensure we have all properties
+                        state.originalCellValues.set(cacheKey, {
+                            displayValue: originalCell.displayValue,
+                            isNull: originalCell.isNull,
+                            invariantCultureDisplayValue: originalCell.invariantCultureDisplayValue,
+                        });
+                        this.logger.trace(`Cached original value for cell ${cacheKey}`);
                     }
                 }
 
-                this.updateState();
+                try {
+                    const updateCellResult = await this._tableExplorerService.updateCell(
+                        ownerUri,
+                        payload.rowId,
+                        payload.columnId,
+                        payload.newValue,
+                    );
 
-                endActivity.endFailed(
-                    new Error("Failed to update cell"),
-                    true /* includeErrorMessage */,
-                    undefined /* errorCode */,
-                    undefined /* errorType */,
-                    {
+                    if (!this._cellOperationsEnabled) {
+                        if (this.isDisposed) {
+                            endActivity.end(ActivityStatus.Succeeded, {
+                                elapsedTime: (Date.now() - startTime).toString(),
+                                operationId: this.operationId,
+                            });
+                            return state;
+                        }
+                        throw new Error("Cell update stopped during session disposal");
+                    }
+
+                    if (this._latestCellUpdateRequestIds.get(cacheKey) !== payload.requestId) {
+                        this.logger.trace(
+                            `Ignoring stale update response for cell ${cacheKey}, request ${payload.requestId}`,
+                        );
+                        endActivity.end(ActivityStatus.Succeeded, {
+                            elapsedTime: (Date.now() - startTime).toString(),
+                            operationId: this.operationId,
+                        });
+                        return state;
+                    }
+
+                    // Remove from failed cells tracking if it was previously failed
+                    this._failedEditOperations.delete(cacheKey);
+                    if (state.failedCells) {
+                        const failedKey = `${payload.rowId}-${payload.columnId}`;
+                        state.failedCells = state.failedCells.filter((key) => key !== failedKey);
+                    }
+
+                    if (!updateCellResult.cell.isDirty) {
+                        state.originalCellValues?.delete(cacheKey);
+                    }
+                    state.cellUpdateAcknowledgements = {
+                        ...state.cellUpdateAcknowledgements,
+                        [cacheKey]: {
+                            requestId: payload.requestId,
+                            isDirty: updateCellResult.cell.isDirty,
+                        },
+                    };
+
+                    // Update the cell value in the result set if the row is still loaded
+                    if (state.resultSet) {
+                        const rowIndex = state.resultSet.subset.findIndex(
+                            (row) => row.id === payload.rowId,
+                        );
+
+                        if (rowIndex !== -1) {
+                            const updatedRow = this.updateResultCell(
+                                state,
+                                state.resultSet.subset[rowIndex],
+                                payload.columnId,
+                                updateCellResult.cell,
+                            );
+                            state.resultSet = {
+                                ...state.resultSet,
+                                subset: state.resultSet.subset.map((row, index) =>
+                                    index === rowIndex ? updatedRow : row,
+                                ),
+                            };
+
+                            this.logger.debug(
+                                `Updated cell in result set at row ${rowIndex}, column ${payload.columnId}`,
+                            );
+                        }
+                    }
+                    this.showRestorePromptAfterClose = this.hasPendingChanges(state);
+                    this.updateState();
+
+                    this.logger.debug(
+                        `Cell updated successfully - OperationId: ${this.operationId}`,
+                    );
+
+                    await this.regenerateScriptIfVisible(state);
+
+                    endActivity.end(ActivityStatus.Succeeded, {
                         elapsedTime: (Date.now() - startTime).toString(),
                         operationId: this.operationId,
-                    },
-                );
+                    });
+                } catch (error) {
+                    if (!this._cellOperationsEnabled) {
+                        endActivity.endFailed(
+                            new Error("Cell update stopped during session disposal"),
+                            false /* includeErrorMessage */,
+                        );
+                        if (this.isDisposed) {
+                            return state;
+                        }
+                        this.trackUnappliedCellUpdate(state, cacheKey);
+                        throw error;
+                    }
 
-                vscode.window.showErrorMessage(
-                    LocConstants.TableExplorer.failedToUpdateCell(getErrorMessage(error)),
-                );
-            }
+                    if (this._latestCellUpdateRequestIds.get(cacheKey) !== payload.requestId) {
+                        this.logger.trace(
+                            `Ignoring stale update failure for cell ${cacheKey}, request ${payload.requestId}`,
+                        );
+                        endActivity.endFailed(
+                            new Error("Stale cell update failed"),
+                            false /* includeErrorMessage */,
+                        );
+                        return state;
+                    }
 
-            return state;
+                    this.logger.error(
+                        `Error updating cell: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+                    );
+
+                    // Track failed cell for UI highlighting
+                    const failedKey = `${payload.rowId}-${payload.columnId}`;
+                    this._failedEditOperations.add(cacheKey);
+                    if (!state.failedCells) {
+                        state.failedCells = [failedKey];
+                    } else if (!state.failedCells.includes(failedKey)) {
+                        state.failedCells = [...state.failedCells, failedKey];
+                    }
+
+                    // Update the cell in the result set to show the attempted value with isDirty flag
+                    // This ensures the UI shows what the user typed even though the update failed
+                    if (state.resultSet) {
+                        const rowIndex = state.resultSet.subset.findIndex(
+                            (row) => row.id === payload.rowId,
+                        );
+
+                        if (rowIndex !== -1) {
+                            const currentRow = state.resultSet.subset[rowIndex];
+                            const currentCell = currentRow.cells[payload.columnId];
+                            const failedCell = {
+                                ...currentCell,
+                                displayValue: payload.newValue,
+                                invariantCultureDisplayValue: payload.newValue,
+                                isNull: false,
+                                isDirty: true,
+                            };
+                            const updatedRow = this.updateResultCell(
+                                state,
+                                currentRow,
+                                payload.columnId,
+                                failedCell,
+                            );
+                            state.resultSet = {
+                                ...state.resultSet,
+                                subset: state.resultSet.subset.map((row, index) =>
+                                    index === rowIndex ? updatedRow : row,
+                                ),
+                            };
+
+                            this.logger.debug(
+                                `Updated cell in result set to show failed edit at row ${rowIndex}, column ${payload.columnId}`,
+                            );
+                        }
+                    }
+
+                    this.updateState();
+
+                    endActivity.endFailed(
+                        new Error("Failed to update cell"),
+                        true /* includeErrorMessage */,
+                        undefined /* errorCode */,
+                        undefined /* errorType */,
+                        {
+                            elapsedTime: (Date.now() - startTime).toString(),
+                            operationId: this.operationId,
+                        },
+                    );
+
+                    vscode.window.showErrorMessage(
+                        LocConstants.TableExplorer.failedToUpdateCell(getErrorMessage(error)),
+                    );
+                }
+
+                return state;
+            });
         });
 
         this.registerReducer("revertCell", async (state, payload) => {
+            this.throwIfEditMutationBlocked();
+
             this.logger.debug(
                 `Reverting cell: row ${payload.rowId}, column ${payload.columnId} - OperationId: ${this.operationId}`,
             );
@@ -919,117 +1266,153 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             );
 
             const cacheKey = `${payload.rowId}-${payload.columnId}`;
+            const latestUpdateRequestIdAtRevert = this._latestCellUpdateRequestIds.get(cacheKey);
 
-            try {
-                // Always call the service to revert to ensure backend state is properly cleaned up
-                this.logger.trace(`Calling service to revert cell ${cacheKey}`);
-                const revertCellResult = await this._tableExplorerService.revertCell(
-                    state.ownerUri,
-                    payload.rowId,
-                    payload.columnId,
-                );
-
-                // Check if we have a cached original value
-                const cachedOriginalValue = state.originalCellValues?.get(cacheKey);
-
-                // Use cached value if available to ensure correct display, otherwise use service result
-                // Creating a new object ensures React detects the change
-                const revertedCell = cachedOriginalValue
-                    ? {
-                          ...cachedOriginalValue,
-                          isDirty: false,
-                      }
-                    : {
-                          ...revertCellResult.cell,
-                          isDirty: false,
-                      };
-
-                if (cachedOriginalValue) {
-                    this.logger.trace(`Using cached original value for cell ${cacheKey}`);
-                }
-
-                // Remove from cache after successful revert
-                if (state.originalCellValues?.has(cacheKey)) {
-                    state.originalCellValues.delete(cacheKey);
-                    this.logger.trace(
-                        `Removed cached value for cell ${cacheKey} after successful revert`,
+            return await this.enqueueCellOperation(cacheKey, async () => {
+                if (!this._cellOperationsEnabled) {
+                    throw new Error(
+                        "Cell revert was not applied because the session is unavailable",
                     );
                 }
 
-                // Remove from failed cells tracking
-                if (state.failedCells) {
-                    const failedKey = `${payload.rowId}-${payload.columnId}`;
-                    state.failedCells = state.failedCells.filter((key) => key !== failedKey);
-                }
-
-                // Update the cell value in the result set
-                if (state.resultSet && revertedCell) {
-                    const rowIndex = state.resultSet.subset.findIndex(
-                        (row) => row.id === payload.rowId,
+                try {
+                    // Always call the service to revert to ensure backend state is properly cleaned up
+                    this.logger.trace(`Calling service to revert cell ${cacheKey}`);
+                    const revertCellResult = await this._tableExplorerService.revertCell(
+                        state.ownerUri,
+                        payload.rowId,
+                        payload.columnId,
                     );
 
-                    if (rowIndex !== -1) {
-                        // Create a completely new subset array with new row objects
-                        const newSubset = state.resultSet.subset.map((row, idx) => {
-                            if (idx === rowIndex) {
-                                // Create new cells array with the reverted cell
-                                const newCells = [...row.cells];
-                                newCells[payload.columnId] = revertedCell;
+                    if (!this._cellOperationsEnabled) {
+                        throw new Error(
+                            "Cell revert was not applied because the session is unavailable",
+                        );
+                    }
 
-                                return {
-                                    ...row,
-                                    cells: newCells,
-                                };
-                            }
-                            return { ...row }; // Create new row objects to ensure change detection
-                        });
+                    // Check if we have a cached original value
+                    const cachedOriginalValue = state.originalCellValues?.get(cacheKey);
 
-                        // Create completely new resultSet object
-                        state.resultSet = {
-                            ...state.resultSet,
-                            subset: newSubset,
-                        };
+                    // Use cached value if available to ensure correct display, otherwise use service result
+                    // Creating a new object ensures React detects the change
+                    const revertedCell = cachedOriginalValue
+                        ? {
+                              ...cachedOriginalValue,
+                              isDirty: false,
+                          }
+                        : {
+                              ...revertCellResult.cell,
+                              isDirty: false,
+                          };
 
-                        this.logger.debug(
-                            `Reverted cell in result set at row ${rowIndex}, column ${payload.columnId}`,
+                    if (cachedOriginalValue) {
+                        this.logger.trace(`Using cached original value for cell ${cacheKey}`);
+                    }
+
+                    // Remove from cache after successful revert
+                    if (state.originalCellValues?.has(cacheKey)) {
+                        state.originalCellValues.delete(cacheKey);
+                        this.logger.trace(
+                            `Removed cached value for cell ${cacheKey} after successful revert`,
+                        );
+                    }
+                    if (state.cellUpdateAcknowledgements) {
+                        delete state.cellUpdateAcknowledgements[cacheKey];
+                    }
+                    if (
+                        this._latestCellUpdateRequestIds.get(cacheKey) ===
+                        latestUpdateRequestIdAtRevert
+                    ) {
+                        this._latestCellUpdateRequestIds.delete(cacheKey);
+                    }
+                    this._failedEditOperations.delete(cacheKey);
+
+                    // Remove from failed cells tracking
+                    if (state.failedCells) {
+                        const failedKey = `${payload.rowId}-${payload.columnId}`;
+                        state.failedCells = state.failedCells.filter((key) => key !== failedKey);
+                    }
+
+                    // Update the cell value in the result set
+                    if (state.resultSet && revertedCell) {
+                        const rowIndex = state.resultSet.subset.findIndex(
+                            (row) => row.id === payload.rowId,
                         );
 
-                        this.updateState();
+                        if (rowIndex !== -1) {
+                            const newSubset = state.resultSet.subset.map((row, idx) =>
+                                idx === rowIndex
+                                    ? this.updateResultCell(
+                                          state,
+                                          row,
+                                          payload.columnId,
+                                          revertedCell,
+                                      )
+                                    : row,
+                            );
+
+                            // Create completely new resultSet object
+                            state.resultSet = {
+                                ...state.resultSet,
+                                subset: newSubset,
+                            };
+                            this.showRestorePromptAfterClose = this.hasPendingChanges(state);
+
+                            this.logger.debug(
+                                `Reverted cell in result set at row ${rowIndex}, column ${payload.columnId}`,
+                            );
+
+                            this.updateState();
+                        }
                     }
-                }
-                this.logger.debug(`Cell reverted successfully - OperationId: ${this.operationId}`);
+                    this.logger.debug(
+                        `Cell reverted successfully - OperationId: ${this.operationId}`,
+                    );
 
-                await this.regenerateScriptIfVisible(state);
+                    await this.regenerateScriptIfVisible(state);
 
-                endActivity.end(ActivityStatus.Succeeded, {
-                    elapsedTime: (Date.now() - startTime).toString(),
-                    operationId: this.operationId,
-                });
-            } catch (error) {
-                this.logger.error(
-                    `Error reverting cell: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
-                );
-
-                endActivity.endFailed(
-                    new Error("Failed to revert cell"),
-                    true /* includeErrorMessage */,
-                    undefined /* errorCode */,
-                    undefined /* errorType */,
-                    {
+                    endActivity.end(ActivityStatus.Succeeded, {
                         elapsedTime: (Date.now() - startTime).toString(),
                         operationId: this.operationId,
-                    },
-                );
+                    });
+                } catch (error) {
+                    if (!this._cellOperationsEnabled) {
+                        endActivity.endFailed(
+                            new Error("Cell revert stopped during session disposal"),
+                            false /* includeErrorMessage */,
+                        );
+                        throw error;
+                    }
 
-                vscode.window.showErrorMessage(
-                    LocConstants.TableExplorer.failedToRevertCell(getErrorMessage(error)),
-                );
-            }
+                    this.logger.error(
+                        `Error reverting cell: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+                    );
+                    this._failedEditOperations.add(cacheKey);
 
-            return state;
+                    endActivity.endFailed(
+                        new Error("Failed to revert cell"),
+                        true /* includeErrorMessage */,
+                        undefined /* errorCode */,
+                        undefined /* errorType */,
+                        {
+                            elapsedTime: (Date.now() - startTime).toString(),
+                            operationId: this.operationId,
+                        },
+                    );
+
+                    vscode.window.showErrorMessage(
+                        LocConstants.TableExplorer.failedToRevertCell(getErrorMessage(error)),
+                    );
+                    throw error;
+                }
+
+                return state;
+            });
         });
 
         this.registerReducer("revertRow", async (state, payload) => {
+            this.throwIfEditMutationBlocked();
+
             this.logger.debug(`Reverting row: ${payload.rowId} - OperationId: ${this.operationId}`);
 
             const startTime = Date.now();
@@ -1043,121 +1426,154 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 },
             );
 
-            try {
-                const revertRowResult = await this._tableExplorerService.revertRow(
-                    state.ownerUri,
+            return await this.enqueueLifecycleOperation(async () => {
+                const hadTrackedPendingChanges = this.hasTrackedPendingChangesForRow(
+                    state,
                     payload.rowId,
                 );
-
-                // Remove from deletedRows if it was marked for deletion
-                state.deletedRows = state.deletedRows.filter((id) => id !== payload.rowId);
-
-                // Remove all failed cells for this row
-                if (state.failedCells) {
-                    state.failedCells = state.failedCells.filter(
-                        (key) => !key.startsWith(`${payload.rowId}-`),
+                try {
+                    const revertRowResult = await this._tableExplorerService.revertRow(
+                        state.ownerUri,
+                        payload.rowId,
                     );
-                }
+                    this._failedEditOperations.delete(this.getRowRevertFailureKey(payload.rowId));
 
-                // Clear all cached original values for this row
-                if (state.originalCellValues) {
-                    const keysToDelete: string[] = [];
-                    state.originalCellValues.forEach((_, key) => {
-                        if (key.startsWith(`${payload.rowId}-`)) {
-                            keysToDelete.push(key);
-                        }
-                    });
-                    keysToDelete.forEach((key) => state.originalCellValues?.delete(key));
-                    this.logger.debug(
-                        `Cleared ${keysToDelete.length} cached values for row ${payload.rowId}`,
-                    );
-                }
+                    // Remove from deletedRows if it was marked for deletion
+                    state.deletedRows = state.deletedRows.filter((id) => id !== payload.rowId);
 
-                // Check if this was a newly created row (row will be null after revert)
-                const isNewRow = state.newRows.some((row) => row.id === payload.rowId);
-
-                if (revertRowResult.row) {
-                    // Update the row in the result set (for existing rows that were modified)
-                    if (state.resultSet) {
-                        const rowIndex = state.resultSet.subset.findIndex(
-                            (row) => row.id === payload.rowId,
+                    // Remove all failed cells for this row
+                    if (state.failedCells) {
+                        state.failedCells = state.failedCells.filter(
+                            (key) => !key.startsWith(`${payload.rowId}-`),
                         );
+                    }
 
-                        if (rowIndex !== -1) {
+                    // Clear all cached original values for this row
+                    if (state.originalCellValues) {
+                        const keysToDelete: string[] = [];
+                        state.originalCellValues.forEach((_, key) => {
+                            if (key.startsWith(`${payload.rowId}-`)) {
+                                keysToDelete.push(key);
+                            }
+                        });
+                        keysToDelete.forEach((key) => state.originalCellValues?.delete(key));
+                        this.logger.debug(
+                            `Cleared ${keysToDelete.length} cached values for row ${payload.rowId}`,
+                        );
+                    }
+                    if (state.cellUpdateAcknowledgements) {
+                        state.cellUpdateAcknowledgements = Object.fromEntries(
+                            Object.entries(state.cellUpdateAcknowledgements).filter(
+                                ([key]) => !key.startsWith(`${payload.rowId}-`),
+                            ),
+                        );
+                    }
+                    for (const key of this._latestCellUpdateRequestIds.keys()) {
+                        if (key.startsWith(`${payload.rowId}-`)) {
+                            this._latestCellUpdateRequestIds.delete(key);
+                        }
+                    }
+                    for (const key of this._failedEditOperations) {
+                        if (key.startsWith(`${payload.rowId}-`)) {
+                            this._failedEditOperations.delete(key);
+                        }
+                    }
+
+                    // Check if this was a newly created row (row will be null after revert)
+                    const isNewRow = state.newRows.some((row) => row.id === payload.rowId);
+
+                    if (revertRowResult.row) {
+                        // Update the row in the result set (for existing rows that were modified)
+                        if (state.resultSet) {
+                            const rowIndex = state.resultSet.subset.findIndex(
+                                (row) => row.id === payload.rowId,
+                            );
+
+                            if (rowIndex !== -1) {
+                                state.resultSet = {
+                                    ...state.resultSet,
+                                    subset: state.resultSet.subset.map((row, idx) => {
+                                        if (idx === rowIndex) {
+                                            return revertRowResult.row;
+                                        }
+
+                                        return row;
+                                    }),
+                                };
+
+                                this.updateState();
+
+                                this.logger.debug(
+                                    `Reverted row at index ${rowIndex} with ${revertRowResult.row.cells.length} cells`,
+                                );
+                            }
+                        }
+                    } else if (isNewRow) {
+                        // Row was a newly created row that was reverted - remove it from the UI
+                        state.newRows = state.newRows.filter((row) => row.id !== payload.rowId);
+
+                        if (state.resultSet) {
                             state.resultSet = {
                                 ...state.resultSet,
-                                subset: state.resultSet.subset.map((row, idx) => {
-                                    if (idx === rowIndex) {
-                                        return revertRowResult.row;
-                                    }
-
-                                    return row;
-                                }),
+                                subset: state.resultSet.subset.filter(
+                                    (row) => row.id !== payload.rowId,
+                                ),
+                                rowCount: state.resultSet.rowCount - 1,
                             };
+                        }
 
-                            this.updateState();
+                        this.updateState();
 
-                            this.logger.debug(
-                                `Reverted row at index ${rowIndex} with ${revertRowResult.row.cells.length} cells`,
-                            );
+                        this.logger.debug(
+                            `Removed newly created row ${payload.rowId} from UI after revert`,
+                        );
+
+                        // Check if we still have unsaved changes
+                        if (state.newRows.length === 0 && state.deletedRows.length === 0) {
+                            this.showRestorePromptAfterClose = false;
                         }
                     }
-                } else if (isNewRow) {
-                    // Row was a newly created row that was reverted - remove it from the UI
-                    state.newRows = state.newRows.filter((row) => row.id !== payload.rowId);
-
-                    if (state.resultSet) {
-                        state.resultSet = {
-                            ...state.resultSet,
-                            subset: state.resultSet.subset.filter(
-                                (row) => row.id !== payload.rowId,
-                            ),
-                            rowCount: state.resultSet.rowCount - 1,
-                        };
-                    }
-
-                    this.updateState();
 
                     this.logger.debug(
-                        `Removed newly created row ${payload.rowId} from UI after revert`,
+                        `Row reverted successfully - OperationId: ${this.operationId}`,
                     );
 
-                    // Check if we still have unsaved changes
-                    if (state.newRows.length === 0 && state.deletedRows.length === 0) {
-                        this.showRestorePromptAfterClose = false;
-                    }
-                }
+                    await this.regenerateScriptIfVisible(state);
 
-                this.logger.debug(`Row reverted successfully - OperationId: ${this.operationId}`);
-
-                await this.regenerateScriptIfVisible(state);
-
-                endActivity.end(ActivityStatus.Succeeded, {
-                    elapsedTime: (Date.now() - startTime).toString(),
-                    operationId: this.operationId,
-                });
-            } catch (error) {
-                this.logger.error(
-                    `Error reverting row: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
-                );
-
-                endActivity.endFailed(
-                    new Error("Failed to revert row"),
-                    true /* includeErrorMessage */,
-                    undefined /* errorCode */,
-                    undefined /* errorType */,
-                    {
+                    endActivity.end(ActivityStatus.Succeeded, {
                         elapsedTime: (Date.now() - startTime).toString(),
                         operationId: this.operationId,
-                    },
-                );
+                    });
+                } catch (error) {
+                    this.logger.error(
+                        `Error reverting row: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+                    );
 
-                vscode.window.showErrorMessage(
-                    LocConstants.TableExplorer.failedToRevertRow(getErrorMessage(error)),
-                );
-            }
+                    endActivity.endFailed(
+                        new Error("Failed to revert row"),
+                        true /* includeErrorMessage */,
+                        undefined /* errorCode */,
+                        undefined /* errorType */,
+                        {
+                            elapsedTime: (Date.now() - startTime).toString(),
+                            operationId: this.operationId,
+                        },
+                    );
 
-            return state;
+                    vscode.window.showErrorMessage(
+                        LocConstants.TableExplorer.failedToRevertRow(getErrorMessage(error)),
+                    );
+                    const failureKey = this.getRowRevertFailureKey(payload.rowId);
+                    if (hadTrackedPendingChanges) {
+                        this._failedEditOperations.add(failureKey);
+                    } else {
+                        this._failedEditOperations.delete(failureKey);
+                    }
+                    throw error;
+                }
+
+                return state;
+            });
         });
 
         this.registerReducer("generateScript", async (state) => {
@@ -1490,8 +1906,8 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 return state;
             }
 
-            if (this.hasPendingChanges(state) && !(await this.promptDiscardPendingChanges())) {
-                this.logger.debug("User cancelled custom query due to pending changes");
+            if (this._sessionReplacementPending) {
+                this.logger.debug("Rejecting custom query while session replacement is pending");
                 endActivity.end(ActivityStatus.Succeeded, {
                     elapsedTime: (Date.now() - startTime).toString(),
                     operationId: this.operationId,
@@ -1501,7 +1917,16 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 return state;
             }
 
-            await this.tearDownEditSession(state);
+            if (!(await this.tearDownEditSession(state, true))) {
+                this.logger.debug("User cancelled custom query due to pending changes");
+                endActivity.end(ActivityStatus.Succeeded, {
+                    elapsedTime: (Date.now() - startTime).toString(),
+                    operationId: this.operationId,
+                    cancelled: "true",
+                    ...filterTelemetry,
+                });
+                return state;
+            }
 
             const objectName = state.tableName;
             const schemaName = state.schemaName;
@@ -1707,8 +2132,8 @@ export class TableExplorerWebViewController extends WebviewPanelController<
     /**
      * Override the base class's showRestorePrompt to handle unsaved changes.
      * This is called from the onDidDispose handler in the base class.
-     * Prompts the user to save or discard changes, then allows disposal to continue.
-     * Always returns undefined to allow the close to proceed after handling the user's choice.
+     * Prompts the user to save or discard changes. If saving fails, restores the webview
+     * without disposing the edit session so the user can retry.
      */
     protected override async showRestorePrompt(): Promise<
         | {
@@ -1731,7 +2156,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             this.logger.info("User chose to save changes before closing");
 
             try {
-                await this._tableExplorerService.commit(this.state.ownerUri);
+                await this.enqueueLifecycleOperation(() => {
+                    this.throwIfEditOperationsFailed();
+                    return this._tableExplorerService.commit(this.state.ownerUri);
+                });
                 vscode.window.showInformationMessage(
                     LocConstants.TableExplorer.changesSavedSuccessfully,
                 );
@@ -1742,6 +2170,13 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 vscode.window.showErrorMessage(
                     LocConstants.TableExplorer.failedToSaveChanges(getErrorMessage(error)),
                 );
+                return {
+                    title: LocConstants.TableExplorer.Save,
+                    run: async () => {
+                        await this.createWebviewPanel();
+                        this.panel.reveal();
+                    },
+                };
             }
         } else if (result === LocConstants.TableExplorer.Discard) {
             this.logger.info("User chose to discard changes");
@@ -1749,7 +2184,6 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             this.logger.info("User dismissed the prompt - treating as discard");
         }
 
-        // Always return undefined to allow disposal to continue
         return undefined;
     }
 
@@ -1758,12 +2192,14 @@ export class TableExplorerWebViewController extends WebviewPanelController<
      * This is called when the webview tab is closed (after any prompts are handled).
      */
     public override dispose(): void {
+        this._cellOperationsEnabled = false;
         if (this.state.ownerUri) {
-            this.logger.info(
-                `Disposing Table Explorer resources for ownerUri: ${this.state.ownerUri}`,
-            );
+            const ownerUri = this.state.ownerUri;
+            this.logger.info(`Disposing Table Explorer resources for ownerUri: ${ownerUri}`);
 
-            void this._tableExplorerService.dispose(this.state.ownerUri).catch((error) => {
+            void this.enqueueLifecycleOperation(() =>
+                this._tableExplorerService.dispose(ownerUri),
+            ).catch((error) => {
                 this.logger.error(
                     `Error disposing table explorer service: ${getErrorMessage(error)}`,
                 );

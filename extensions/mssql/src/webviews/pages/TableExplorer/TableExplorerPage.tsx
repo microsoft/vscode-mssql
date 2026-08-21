@@ -124,6 +124,9 @@ export const TableExplorerPage: React.FC = () => {
     const loadStatus = useTableExplorerSelector((s) => s.loadStatus);
     const currentRowCount = useTableExplorerSelector((s) => s.currentRowCount);
     const failedCells = useTableExplorerSelector((s) => s.failedCells);
+    const cellUpdateAcknowledgements = useTableExplorerSelector(
+        (s) => s.cellUpdateAcknowledgements,
+    );
     const deletedRows = useTableExplorerSelector((s) => s.deletedRows);
     const newRows = useTableExplorerSelector((s) => s.newRows);
     const showScriptPane = useTableExplorerSelector((s) => s.showScriptPane);
@@ -170,6 +173,7 @@ export const TableExplorerPage: React.FC = () => {
     const gridRef = useRef<TableDataGridRef>(null);
     const [cellChangeCount, setCellChangeCount] = React.useState(0);
     const [deletionCount, setDeletionCount] = React.useState(0);
+    const [isSaving, setIsSaving] = React.useState(false);
     const [selectedRowIds, setSelectedRowIds] = React.useState<number[]>([]);
     const [filtersOpen, setFiltersOpen] = React.useState(false);
     const [activeFilters, setActiveFilters] = React.useState<AppliedFilter[]>([]);
@@ -351,6 +355,8 @@ export const TableExplorerPage: React.FC = () => {
                     <div className={classes.contentArea}>
                         <TableExplorerToolbar
                             onSaveComplete={handleSaveComplete}
+                            isSaving={isSaving}
+                            onSavingChange={setIsSaving}
                             cellChangeCount={cellChangeCount}
                             deletionCount={deletionCount}
                             currentRowCount={currentRowCount}
@@ -375,7 +381,7 @@ export const TableExplorerPage: React.FC = () => {
                                     columns={filterColumns}
                                     onApply={handleApplyFilters}
                                     onClear={handleClearFilters}
-                                    disabled={isLoading}
+                                    disabled={isLoading || isSaving}
                                     initialFilters={activeFilters}
                                     isOpen={filtersOpen}
                                 />
@@ -394,12 +400,14 @@ export const TableExplorerPage: React.FC = () => {
                                 <TableDataGrid
                                     ref={gridRef}
                                     resultSet={resultSet}
+                                    cellUpdateAcknowledgements={cellUpdateAcknowledgements}
                                     themeKind={themeKind}
                                     currentRowCount={currentRowCount}
                                     failedCells={failedCells}
                                     deletedRows={deletedRows}
                                     newRowIds={newRows?.map((r) => r.id)}
                                     tableQuery={tableQuery}
+                                    mutationsBlocked={isSaving || isLoading}
                                     onDeleteRow={context?.deleteRow}
                                     onUpdateCell={context?.updateCell}
                                     onRevertCell={context?.revertCell}

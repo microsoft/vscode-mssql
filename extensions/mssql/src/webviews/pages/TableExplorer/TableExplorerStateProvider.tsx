@@ -25,8 +25,8 @@ export const TableExplorerStateProvider: React.FC<{
     const commands = useMemo<TableExplorerContextProps>(
         () => ({
             ...getCoreRPCs(extensionRpc),
-            commitChanges: function (): void {
-                extensionRpc.action("commitChanges", {});
+            commitChanges: async function (): Promise<void> {
+                await extensionRpc.actionAsync("commitChanges", {});
             },
 
             loadSubset: function (rowCount: number): void {
@@ -41,16 +41,26 @@ export const TableExplorerStateProvider: React.FC<{
                 extensionRpc.action("deleteRow", { rowId });
             },
 
-            updateCell: function (rowId: number, columnId: number, newValue: string): void {
-                extensionRpc.action("updateCell", { rowId, columnId, newValue });
+            updateCell: async function (
+                rowId: number,
+                columnId: number,
+                newValue: string,
+                requestId: number,
+            ): Promise<void> {
+                await extensionRpc.actionAsync("updateCell", {
+                    rowId,
+                    columnId,
+                    newValue,
+                    requestId,
+                });
             },
 
-            revertCell: function (rowId: number, columnId: number): void {
-                extensionRpc.action("revertCell", { rowId, columnId });
+            revertCell: async function (rowId: number, columnId: number): Promise<void> {
+                await extensionRpc.actionAsync("revertCell", { rowId, columnId });
             },
 
-            revertRow: function (rowId: number): void {
-                extensionRpc.action("revertRow", { rowId });
+            revertRow: async function (rowId: number): Promise<void> {
+                await extensionRpc.actionAsync("revertRow", { rowId });
             },
 
             generateScript: function (): void {

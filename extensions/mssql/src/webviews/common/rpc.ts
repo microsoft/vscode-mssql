@@ -189,6 +189,16 @@ export class WebviewRpc<Reducers> {
         });
     }
 
+    public async actionAsync<MethodName extends keyof Reducers>(
+        method: MethodName,
+        payload?: Reducers[MethodName],
+    ): Promise<void> {
+        await this.sendRequest(ReducerRequest.type<Reducers>(), {
+            type: method,
+            payload: payload,
+        });
+    }
+
     public sendActionEvent(event: WebviewTelemetryActionEvent) {
         void this.sendNotification(SendActionEventNotification.type, event);
     }

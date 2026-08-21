@@ -35,6 +35,7 @@ import { locConstants as loc } from "../../common/locConstants";
 import { useTableExplorerContext } from "./TableExplorerStateProvider";
 import { useTableExplorerSelector } from "./tableExplorerSelector";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
+import { commitChangesAndClearTracking } from "../../../tableExplorer/editDataUtils";
 import type { DataColumnVisibility } from "./TableDataGrid";
 
 const useStyles = makeStyles({
@@ -52,6 +53,8 @@ const useStyles = makeStyles({
 
 interface TableExplorerToolbarProps {
     onSaveComplete?: () => void;
+    isSaving?: boolean;
+    onSavingChange?: (isSaving: boolean) => void;
     cellChangeCount: number;
     deletionCount: number;
     currentRowCount?: number;
@@ -125,6 +128,8 @@ const ColumnsMenu: React.FC<ColumnsMenuProps> = ({
 
 export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
     onSaveComplete,
+    isSaving = false,
+    onSavingChange,
     cellChangeCount,
     deletionCount,
     currentRowCount,
@@ -147,21 +152,28 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
     // Use selectors to access state
     const loadStatus = useTableExplorerSelector((s) => s.loadStatus);
     const isLoading = loadStatus === ApiStatus.Loading;
+    const isBusy = isLoading || isSaving;
 
     const [loadRowCount, setLoadRowCount] = React.useState<string>(String(DEFAULT_ROW_COUNT));
 
     const lastSubmittedRowCountRef = React.useRef<number>(DEFAULT_ROW_COUNT);
 
-    const handleSave = () => {
-        context.commitChanges();
-        // Call the callback to clear change tracking after save
-        if (onSaveComplete) {
-            onSaveComplete();
+    const handleSave = async () => {
+        if (isSaving) {
+            return;
+        }
+        onSavingChange?.(true);
+        try {
+            await commitChangesAndClearTracking(context.commitChanges, onSaveComplete);
+        } finally {
+            onSavingChange?.(false);
         }
     };
 
     const handleAddRow = () => {
-        context.createRow();
+        if (!isSaving) {
+            context.createRow();
+        }
     };
 
     const fetchRowsForValue = (rawValue: string) => {
@@ -224,7 +236,7 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
                 title={saveButtonText}
                 icon={<SaveRegular />}
                 onClick={handleSave}
-                disabled={changeCount === 0 || isLoading}>
+                disabled={changeCount === 0 || isBusy}>
                 {saveButtonText}
             </ToolbarButton>
             <ToolbarButton
@@ -232,14 +244,14 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
                 title={loc.tableExplorer.addRow}
                 icon={<AddRegular />}
                 onClick={handleAddRow}
-                disabled={isLoading}>
+                disabled={isBusy}>
                 {loc.tableExplorer.addRow}
             </ToolbarButton>
             <Menu>
                 <MenuTrigger disableButtonEnhancement>
                     <SplitButton
                         icon={<CodeRegular />}
-                        disabled={isLoading}
+                        disabled={isBusy}
                         size="small"
                         primaryActionButton={{
                             onClick: showScriptPane
@@ -272,7 +284,7 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
                 title={loc.tableExplorer.viewTableDiagram}
                 icon={<OrganizationRegular />}
                 onClick={() => context.viewTableDiagram()}
-                disabled={isLoading}>
+                disabled={isBusy}>
                 {loc.tableExplorer.viewTableDiagram}
             </ToolbarButton>
             {onShowSql && (
@@ -281,7 +293,7 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
                     title={loc.tableExplorer.openSqlInEditor}
                     icon={<DocumentTextRegular />}
                     onClick={onShowSql}
-                    disabled={isLoading}>
+                    disabled={isBusy}>
                     {loc.tableExplorer.showSql}
                 </ToolbarButton>
             )}
@@ -293,7 +305,7 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
                     title={loc.tableExplorer.filtersTooltip}
                     icon={<FilterRegular />}
                     onClick={onToggleFilters}
-                    disabled={isLoading}>
+                    disabled={isBusy}>
                     {loc.tableExplorer.filters}
                 </ToolbarButton>
             )}
@@ -304,7 +316,7 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
                             aria-label={loc.tableExplorer.export}
                             title={loc.tableExplorer.export}
                             icon={<ArrowDownloadRegular />}
-                            disabled={isLoading}>
+                            disabled={isBusy}>
                             {loc.tableExplorer.export}
                         </ToolbarButton>
                     </MenuTrigger>
@@ -325,7 +337,7 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
             )}
             {getDataColumns && onSetColumnVisibility && (
                 <ColumnsMenu
-                    isLoading={isLoading}
+                    isLoading={isBusy}
                     getDataColumns={getDataColumns}
                     onSetColumnVisibility={onSetColumnVisibility}
                 />
@@ -336,7 +348,7 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
                     title={loc.tableExplorer.deleteSelected(selectedRowCount)}
                     icon={<DeleteRegular />}
                     onClick={onDeleteSelected}
-                    disabled={isLoading}>
+                    disabled={isBusy}>
                     {loc.tableExplorer.deleteSelected(selectedRowCount)}
                 </ToolbarButton>
             )}
@@ -350,7 +362,7 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
                     onBlur={onRowCountBlur}
                     size="small"
                     freeform
-                    disabled={isLoading}>
+                    disabled={isBusy}>
                     <Option value="10">10</Option>
                     <Option value="50">50</Option>
                     <Option value="100">100</Option>
