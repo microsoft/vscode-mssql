@@ -997,7 +997,8 @@ export class SqlNotebookController implements vscode.Disposable {
             return;
         }
 
-        await vscode.commands.executeCommand("vscode.open", savedUri, {
+        const doc = await vscode.workspace.openTextDocument(savedUri);
+        await vscode.window.showTextDocument(doc, {
             viewColumn: vscode.ViewColumn.Beside,
             preview: false,
         });
