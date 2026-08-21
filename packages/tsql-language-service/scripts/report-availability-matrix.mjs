@@ -40,7 +40,7 @@ const SYMBOLS = { available: "yes", unavailable: "no", deferred: "defer" };
 
 const manifest = JSON.parse(
     await readFile(
-        join(packageRoot, "test", "dialect", "manifest", "dialect-scenarios.json"),
+        join(packageRoot, "test", "resources", "dialect", "dialect-scenarios.json"),
         "utf8",
     ),
 );

@@ -99,6 +99,21 @@ resolved-catalog, and missing-object workloads.
 node benchmarks/semantic-diagnostics.mjs --statements 100 --warmups 10 --samples 40
 ```
 
+## SQL Parser comparison
+
+`compare-sqlparser.mjs` compares the TypeScript parser with the public
+`Microsoft.SqlServer.Management.SqlParser` NuGet package using the same generated documents and
+fixed-width edits. The npm command restores and builds the pinned .NET helper before running it, so
+it does not require a separate SqlParser checkout.
+
+```powershell
+npm run benchmark:sqlparser -- --sizes 100k,1m,10m --samples 3 --warmups 1
+```
+
+The report records the loaded SqlParser assembly and informational versions. Use
+`SQLPARSER_BENCHMARK_EXE` or `--sqlparser-exe` only to compare against an explicitly supplied local
+build.
+
 ## Dialect and optional external comparisons
 
 `dialect.mjs` measures profile-gated grammar workloads. Optional local comparison harnesses are

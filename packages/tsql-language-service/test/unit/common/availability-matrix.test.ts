@@ -50,7 +50,7 @@ interface AvailabilityManifest {
 }
 
 const manifest = parseManifest(
-    readFileSync(`${__dirname}/../../dialect/manifest/dialect-scenarios.json`, "utf8"),
+    readFileSync(`${__dirname}/../../resources/dialect/dialect-scenarios.json`, "utf8"),
 );
 
 function profileOf(engineProfile: SqlEngineProfile, level?: number): TsqlFeatureProfile {

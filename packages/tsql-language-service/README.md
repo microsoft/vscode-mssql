@@ -124,7 +124,12 @@ Do not edit generated parser files. Grammar changes belong in
 `src/syntax/lezer/grammar/tsql.grammar` with focused positive, negative, incomplete-input, and
 incremental/fresh tests.
 
-## Benchmarks
+## Performance gates and benchmarks
+
+Performance gates under `test/performance/` enforce deterministic scaling, work, and memory budgets
+through `test:performance` and the offline test lane. Benchmarks under `benchmarks/` produce
+machine-dependent measurements for comparison and investigation; they do not replace pass/fail
+regression gates.
 
 Parser, semantic, catalog-feature, dialect, worker, and full language-service lifecycle benchmarks
 live under `benchmarks/`, separate from correctness tests. The lifecycle benchmark measures first and

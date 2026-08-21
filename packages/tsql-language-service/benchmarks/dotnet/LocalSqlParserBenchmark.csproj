@@ -5,13 +5,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
-    <LocalSqlParserAssembly Condition="'$(LocalSqlParserAssembly)' == ''">$(MSBuildThisFileDirectory)..\..\..\..\..\SqlParser\bin\Release\net8.0\Microsoft.SqlServer.Management.SqlParser.dll</LocalSqlParserAssembly>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />
-    <Reference Include="Microsoft.SqlServer.Management.SqlParser">
-      <HintPath>$(LocalSqlParserAssembly)</HintPath>
-      <Private>true</Private>
-    </Reference>
+    <PackageReference Include="Microsoft.SqlServer.Management.SqlParser" Version="180.7.0" />
   </ItemGroup>
 </Project>

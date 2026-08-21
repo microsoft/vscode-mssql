@@ -5,28 +5,13 @@
 
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
-import { createRequire } from "node:module";
 import path from "node:path";
 import { suite, test } from "node:test";
 
-const require = createRequire(__filename);
+import { diagnosticCatalog, type DiagnosticRole } from "./diagnosticCatalog.ts";
+import { diagnosticEvidence } from "./diagnosticEvidence.ts";
 
-interface DiagnosticEvidence {
-    readonly diagnostics: readonly string[];
-    readonly suite: string;
-    readonly test: string;
-}
-
-interface DiagnosticCatalogEntry {
-    readonly category: "scanner" | "parser" | "binder";
-    readonly name: string;
-    readonly role?: string;
-}
-
-const evidence: readonly DiagnosticEvidence[] = require("../../../fixtures/diagnostic-evidence.cjs");
-const target: readonly DiagnosticCatalogEntry[] = require("../../../fixtures/tsql-diagnostic-catalog.cjs");
-
-const nonDiagnosticRoles = new Map([
+const nonDiagnosticRoles = new Map<string, DiagnosticRole>([
     ["ParseResultsShouldNotContainNullElement", "api-precondition"],
     ["CommaOr", "message-fragment"],
     ["Expecting", "message-fragment"],
@@ -36,27 +21,30 @@ const nonDiagnosticRoles = new Map([
     ["ExtendedStoredProceduresNotSupported", "signature-help-text"],
     ["StoredProceduresAlwaysReturnInt", "signature-help-text"],
 ]);
-const supported: readonly string[] = evidence.flatMap(({ diagnostics }) => diagnostics);
+const supported: readonly string[] = diagnosticEvidence.flatMap(({ diagnostics }) => diagnostics);
 
 suite("T-SQL diagnostic coverage inventory", () => {
     // Locks the reviewed scanner, parser, and binder inventory independently of implementation progress.
     test("contains the reviewed diagnostic inventory", () => {
-        assert.equal(target.length, 265);
+        assert.equal(diagnosticCatalog.length, 265);
         assert.deepEqual(
             Object.fromEntries(
                 ["scanner", "parser", "binder"].map((category) => [
                     category,
-                    target.filter((entry) => entry.category === category).length,
+                    diagnosticCatalog.filter((entry) => entry.category === category).length,
                 ]),
             ),
             { scanner: 1, parser: 14, binder: 250 },
         );
-        assert.equal(new Set(target.map(({ name }) => name)).size, target.length);
+        assert.equal(
+            new Set(diagnosticCatalog.map(({ name }) => name)).size,
+            diagnosticCatalog.length,
+        );
     });
 
     // Only reviewed API preconditions and message fragments stay outside the product denominator.
     test("excludes only the reviewed non-diagnostic entries", () => {
-        const roleEntries = target.filter((entry) => entry.role !== undefined);
+        const roleEntries = diagnosticCatalog.filter((entry) => entry.role !== undefined);
         assert.deepEqual(
             roleEntries.map(({ name, role }) => [name, role]).sort(),
             [...nonDiagnosticRoles].sort(),
@@ -67,7 +55,7 @@ suite("T-SQL diagnostic coverage inventory", () => {
     // Every supported family points to a checked-in focused behavior suite instead of a bare count.
     test("links every supported family to executable behavior evidence", () => {
         const testRoot = path.resolve(__dirname, "..", "..", "..");
-        for (const group of evidence) {
+        for (const group of diagnosticEvidence) {
             assert.ok(group.diagnostics.length > 0, group.test);
             assert.equal(typeof group.suite, "string", group.test);
             assert.ok(group.suite.length > 0, group.test);
@@ -84,7 +72,7 @@ suite("T-SQL diagnostic coverage inventory", () => {
     // Duplicate evidence, unknown names, and excluded message fragments cannot inflate coverage.
     test("keeps diagnostic evidence unique and inside the product inventory", () => {
         assert.equal(new Set(supported).size, supported.length);
-        const targetNames = new Set(target.map(({ name }) => name));
+        const targetNames = new Set(diagnosticCatalog.map(({ name }) => name));
         assert.deepEqual(
             supported.filter((name) => !targetNames.has(name)),
             [],
@@ -97,7 +85,7 @@ suite("T-SQL diagnostic coverage inventory", () => {
 
     // Keeps the headline gap reproducible from the evidence manifest rather than a second set here.
     test("reports supported and remaining product families from evidence", () => {
-        const productDiagnostics = target.filter((entry) => entry.role === undefined);
+        const productDiagnostics = diagnosticCatalog.filter((entry) => entry.role === undefined);
         assert.equal(productDiagnostics.length, 257);
         assert.equal(supported.length, 257);
         assert.equal(productDiagnostics.length - supported.length, 0);

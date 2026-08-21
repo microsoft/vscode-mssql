@@ -22,7 +22,7 @@ const defaultSqlParserExecutable = join(
     "bin",
     "Release",
     "net10.0",
-    "LocalSqlParserBenchmark.exe",
+    process.platform === "win32" ? "LocalSqlParserBenchmark.exe" : "LocalSqlParserBenchmark",
 );
 const options = parseArgs(process.argv.slice(2));
 const sizes = parseSizes(options.sizes ?? "100k,1m,10m");
