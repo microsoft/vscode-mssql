@@ -627,6 +627,11 @@ Selecione "{0}" para estabelecer uma conexão.</target>
         <source xml:lang="en">Apply changes to target</source>
         <target state="translated">Aplicar alterações ao destino</target>
       </trans-unit>
+      <trans-unit id="++CODE++0963a1833c56c3195b7b5963499b990b2c0147db68fb3374bc7d1f1767868636">
+        <source xml:lang="en">Apply changes to {0}</source>
+        <note>{0} is the target connection name, optionally followed by a colon and the selected database name</note>
+        <target state="translated">Aplicar alterações a {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++c4a87b18e24f113de61cbf89c652cf2ecc1d73abd2d01baf409c174c8242ef7d">
         <source xml:lang="en">Apply contextual suggestions for SQL syntax, relationships, and constraints</source>
         <target state="translated">Aplicar sugestões contextuais para sintaxe, relações e restrições SQL</target>
@@ -656,10 +661,14 @@ Selecione "{0}" para estabelecer uma conexão.</target>
         <note>{0} is the name or summary of a reusable filter</note>
         <target state="translated">Tem certeza de que quer excluir "{0}"? Essa ação não pode ser desfeita.</target>
       </trans-unit>
-      <trans-unit id="++CODE++9d9d0bfa74aaf1db2f58269ddd7f7e8141a4069574d576aab3174f0f810ad1e0">
-        <source xml:lang="en">Are you sure you want to delete the container {0}? This will remove both the container and its connection from VS Code.</source>
+      <trans-unit id="++CODE++08dd9018a8985b14cb37706073caca7d76b6b750d933c87571c8250f626ec7ec">
+        <source xml:lang="en">Are you sure you want to delete the container '{0}'?
+
+This will remove both the container and its connection from VS Code.</source>
         <note>{0} is the container name</note>
-        <target state="translated">Tem certeza de que deseja excluir o contêiner {0}? Isso removerá tanto o contêiner quanto sua conexão do VS Code.</target>
+        <target state="new">Are you sure you want to delete the container '{0}'?
+
+This will remove both the container and its connection from VS Code.</target>
       </trans-unit>
       <trans-unit id="++CODE++dc1158b4986e0eadcc929a35b9de0147ca4e8e317ec963db232cb2516688ed79">
         <source xml:lang="en">Are you sure you want to delete the selected items?</source>
@@ -687,10 +696,6 @@ Selecione "{0}" para estabelecer uma conexão.</target>
       <trans-unit id="++CODE++aa77fc627924038ff6102753f77884b3fac27ed5e3f422e7b96ea681cb99a417">
         <source xml:lang="en">Are you sure you want to undo all copilot changes? This will revert all tracked changes to their original state.</source>
         <target state="translated">Tem certeza de que quer desfazer todas as alterações do Copilot? Isso reverterá todas as alterações controladas para seu estado original.</target>
-      </trans-unit>
-      <trans-unit id="++CODE++2f582613dd0458d381445844942f7e490b54f428e2c1e42e8c7643e1aa646a17">
-        <source xml:lang="en">Are you sure you want to update the target?</source>
-        <target state="translated">Tem certeza de que deseja atualizar o destino?</target>
       </trans-unit>
       <trans-unit id="++CODE++7eef7067697ade3fc0f13737f97978c65df37d0c48ff8f50718f6062f6e6e246">
         <source xml:lang="en">Are you sure you want to {0}?</source>
@@ -1260,6 +1265,11 @@ Selecione "{0}" para estabelecer uma conexão.</target>
       <trans-unit id="++CODE++c0bf75bd78bf9572596720d596bd5a20a5b9145cde0fe50dec1e783cb184d69b">
         <source xml:lang="en">Change</source>
         <target state="translated">Alterar</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9b854acdaffe1ccfbbe1f3cd5a96568aabc4aabd00a7c4f46e21df4209ea6f6c">
+        <source xml:lang="en">Change ({0})</source>
+        <note>{0} is the total number of objects that will be changed</note>
+        <target state="translated">Alterar ({0})</target>
       </trans-unit>
       <trans-unit id="++CODE++f07538573cf58e02922ee656434ca50a18ffecd2668d86edf8360309745f7e74">
         <source xml:lang="en">Change Connection</source>
@@ -2489,6 +2499,10 @@ Selecione "{0}" para estabelecer uma conexão.</target>
         <source xml:lang="en">Copy-only Backup</source>
         <target state="translated">Backup somente cópia</target>
       </trans-unit>
+      <trans-unit id="++CODE++76ed55852b66d19d1756277312208fcad6a988622d291a320d248cec88f8c3d9">
+        <source xml:lang="en">Copying results canceled</source>
+        <target state="new">Copying results canceled</target>
+      </trans-unit>
       <trans-unit id="++CODE++35c380196401c05c48fe5f5fffd349ba06d9988118b87a1c12e1164a28175997">
         <source xml:lang="en">Copying results...</source>
         <target state="translated">Copiando resultados...</target>
@@ -2533,6 +2547,11 @@ Selecione "{0}" para estabelecer uma conexão.</target>
       <trans-unit id="++CODE++4759498ac2a719c619e2c8cf8ee60af2d2407425e95d308eb208425b2a6d427a">
         <source xml:lang="en">Create</source>
         <target state="translated">Criar</target>
+      </trans-unit>
+      <trans-unit id="++CODE++67c81fd9f64486ea6821165b00081accf1585e73f1e56216f4fccbef8347cf50">
+        <source xml:lang="en">Create ({0})</source>
+        <note>{0} is the total number of objects that will be created</note>
+        <target state="translated">Criar ({0})</target>
       </trans-unit>
       <trans-unit id="++CODE++48d1f93834dfc421237288d07022d5dc4c61f90e5cc91494cee4960abc481d1d">
         <source xml:lang="en">Create Connection Group</source>
@@ -2609,7 +2628,7 @@ Selecione "{0}" para estabelecer uma conexão.</target>
       </trans-unit>
       <trans-unit id="++CODE++2dda2d5e705c870b4711000d9e6e1a1552a6426ff2835af34a45eb0ea5f3182b">
         <source xml:lang="en">Create an Azure SQL Database</source>
-        <target state="new">Create an Azure SQL Database</target>
+        <target state="translated">Criar um Banco de Dados SQL do Azure</target>
       </trans-unit>
       <trans-unit id="++CODE++dfc42cab83fbac4fe6fa1922367034eb24905e5540deef714d06396fb60dbe31">
         <source xml:lang="en">Create and manage keyboard shortcuts for frequently used queries, as well as query editor and results grid actions, to discover available commands and execute them more efficiently.</source>
@@ -3287,6 +3306,11 @@ Selecione "{0}" para estabelecer uma conexão.</target>
 {1} is the server name</note>
         <target state="translated">Remover "{0}" de "{1}". Esta ação não pode ser desfeita.</target>
       </trans-unit>
+      <trans-unit id="++CODE++f8015b4fbcb2d117cf37878c082deba94ddcb0494be0d317ac829a86118dfd18">
+        <source xml:lang="en">Drop ({0})</source>
+        <note>{0} is the total number of objects that will be dropped</note>
+        <target state="translated">Remover ({0})</target>
+      </trans-unit>
       <trans-unit id="++CODE++090015e97e08461a02b0915ed446e955928a4686cdc839c66bd9f7781b81d8fb">
         <source xml:lang="en">Drop Database</source>
         <target state="translated">Remover Banco de Dados</target>
@@ -3927,7 +3951,7 @@ Erro:
       <trans-unit id="++CODE++2755320f7f041c845a3a28a6143d1595e153faab71dbe4b039f618d209b12c7c">
         <source xml:lang="en">Execution plan {0}, use arrow keys to navigate between nodes</source>
         <note>{0} is the one-based execution plan number</note>
-        <target state="new">Execution plan {0}, use arrow keys to navigate between nodes</target>
+        <target state="translated">Plano de execução {0}, use as teclas de seta para navegar entre os nós</target>
       </trans-unit>
       <trans-unit id="++CODE++9c1c3546bc3e94eb9cf8d7e8bef7d64b5f0213e752e4be0185a9ffc4d87f671c">
         <source xml:lang="en">Execution time unavailable</source>
@@ -4979,6 +5003,10 @@ Erro:
         <source xml:lang="en">Foreign keys</source>
         <target state="translated">Chaves estrangeiras</target>
       </trans-unit>
+      <trans-unit id="++CODE++6ac3a5dde58a68f029c5950c2516f4cd048d4c110da072784bce3d4665681431">
+        <source xml:lang="en">Format T-SQL with expanded configuration options and greater control over query style and layout using the new SQL Formatter.</source>
+        <target state="translated">Formate T-SQL com opções de configuração expandidas e mais controle sobre o estilo e o layout da consulta usando o novo formatador SQL.</target>
+      </trans-unit>
       <trans-unit id="++CODE++d00bd4ec32e4e1cc45ddae0ad3fd34af28cefb4f236b0f8cc19ff7bfe70dda17">
         <source xml:lang="en">Formula</source>
         <target state="translated">Fórmula</target>
@@ -5307,6 +5335,11 @@ Erro:
       <trans-unit id="++CODE++c4a77afa3d5cd701f32b5f09c195c635b256db8595687828c3ea0785ab5b72f4">
         <source xml:lang="en">Image tag</source>
         <target state="translated">Rótulo da imagem</target>
+      </trans-unit>
+      <trans-unit id="++CODE++45386a69d2b5eb577c53d296ecd652d7cc6583c3f759680582587663cff8539c">
+        <source xml:lang="en">Impact {0}%</source>
+        <note>{0} is the estimated percentage improvement from creating the index</note>
+        <target state="new">Impact {0}%</target>
       </trans-unit>
       <trans-unit id="++CODE++09b493255c6cc11aae4f73f97494b4d0123bb42869372d0a2182f0a324eb5ef5">
         <source xml:lang="en">Import BACPAC</source>
@@ -5874,7 +5907,7 @@ Erro:
       </trans-unit>
       <trans-unit id="++CODE++9317b8d436ab0b46444508db90ea7c78235b63b678dfdcb8196216d0d9cecd18">
         <source xml:lang="en">Loading databases...</source>
-        <target state="new">Loading databases...</target>
+        <target state="translated">Carregando bancos de dados...</target>
       </trans-unit>
       <trans-unit id="++CODE++d1fdc252fab1c642cc1b487dbb6658fd77d5831e03b3d391b4c73b01226d75ff">
         <source xml:lang="en">Loading deployment</source>
@@ -6277,6 +6310,14 @@ Erro:
       <trans-unit id="++CODE++c4cb38118e976f2ec6af215b6206c1aeadd0a3a1a95b4ab00681c97e9a276753">
         <source xml:lang="en">Missing connection reference. Please provide exactly one of connectionId or connectionName.</source>
         <target state="translated">Referência de conexão ausente. Forneça exatamente uma de connectionId ou connectionName.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c0ddd09f7b9ebbe309bc4e518e1aad4479cbbc1eb792cac263b398e11a85af5a">
+        <source xml:lang="en">Missing index</source>
+        <target state="new">Missing index</target>
+      </trans-unit>
+      <trans-unit id="++CODE++efb9ca4f5a017be57cf3a7cb05a528919e6419abddfe79c4a2d8937b2a901186">
+        <source xml:lang="en">Missing index recommendations</source>
+        <target state="new">Missing index recommendations</target>
       </trans-unit>
       <trans-unit id="++CODE++910bb9ebcad74af9fe7fae916e94812f8a97c60f93e76a1167b4ca1583d70f27">
         <source xml:lang="en">Missing schema payload for replace_schema operation.</source>
@@ -7224,6 +7265,10 @@ Erro:
       <trans-unit id="++CODE++eca206dacc5627de738a49f5b7cc3a89393f5c0d8e5da0dadfb8baec1c274678">
         <source xml:lang="en">Open the generated SELECT statement in a new editor</source>
         <target state="translated">Abrir a instrução SELECT gerada em um novo editor</target>
+      </trans-unit>
+      <trans-unit id="++CODE++bcec92c3fcbd6a1012ed2ae1a5d10e462184bbb5ca83b2df5552cb49620c78cf">
+        <source xml:lang="en">Open the recommended index script in a new query editor</source>
+        <target state="new">Open the recommended index script in a new query editor</target>
       </trans-unit>
       <trans-unit id="++CODE++3a8e07b84d53ba502ae8ee669003537bdbbe321d6c8c6fb6cbd63019cb3d400e">
         <source xml:lang="en">Opening Publish Script. This may take a while...</source>
@@ -8413,6 +8458,10 @@ Consulta: {2}</target>
         <source xml:lang="en">SQL Database Projects — Code Analysis</source>
         <target state="translated">Projetos de Banco de Dados SQL — Code Analysis</target>
       </trans-unit>
+      <trans-unit id="++CODE++e74a95e3a6af01ffd48fa366bdcc8b0d75763b2dc1e2dc9a6db717eb0c4c920d">
+        <source xml:lang="en">SQL Formatter</source>
+        <target state="translated">Formatador de SQL</target>
+      </trans-unit>
       <trans-unit id="++CODE++bcb563c464628dce28a629cdda03742239a5b0f9e25da0a87aea6e68ad25933a">
         <source xml:lang="en">SQL Login</source>
         <target state="translated">Logon do SQL</target>
@@ -9302,10 +9351,6 @@ Consulta: {2}</target>
         <source xml:lang="en">Shortcuts Configuration</source>
         <target state="translated">Configuração de Atalhos</target>
       </trans-unit>
-      <trans-unit id="++CODE++0f1b94abd66e64f81ea87f920176dbbbd52464f63ca0c67e770a12a2dfb4d4ba">
-        <source xml:lang="en">Shortcuts Configuration (Preview)</source>
-        <target state="translated">Configuração de Atalhos (Versão Prévia)</target>
-      </trans-unit>
       <trans-unit id="++CODE++bf913efbcc381cf124165f3786831debf4e1caf3e8b775f07ba3b65e58534ac6">
         <source xml:lang="en">Shortcuts configuration page</source>
         <target state="translated">Página de configuração de atalhos</target>
@@ -10056,6 +10101,22 @@ Consulta: {2}</target>
         <source xml:lang="en">The connection with ID '{0}' does not have the 'server' property set and is being ignored.  Please set the 'server' property on this connection in order to use it.</source>
         <note>{0} is the connection ID for the connection that has been ignored</note>
         <target state="translated">A conexão com ID '{0}' não tem a propriedade 'servidor' definida e será ignorada.  Defina a propriedade 'servidor' nessa conexão para usá-la.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9e157e2e4c433d963de65edac5ffc84fdfcf02d13a0f07d348b9da33ad60d851">
+        <source xml:lang="en">The container '{0}' is also used by other saved connections:
+{1}
+
+Deleting it will remove both the container and this connection from VS Code, and the other connections will stop working.
+
+Are you sure you want to continue?</source>
+        <note>{0} is the container name
+{1} is the list of connection display names</note>
+        <target state="new">The container '{0}' is also used by other saved connections:
+{1}
+
+Deleting it will remove both the container and this connection from VS Code, and the other connections will stop working.
+
+Are you sure you want to continue?</target>
       </trans-unit>
       <trans-unit id="++CODE++90a4ba6d5483f640dbf83e90ca81103b564ff6be1e78dc9caf91eea1c299757e">
         <source xml:lang="en">The custom cloud choice is not configured. Please configure the setting `{0}`.</source>
@@ -11512,6 +11573,12 @@ Consulta: {2}</target>
 {1} is the filter description</note>
         <target state="translated">{0}: {1}</target>
       </trans-unit>
+      <trans-unit id="++CODE++55f24db16f4beabd9824e9b1d95a51c23fc95d0c90963d57090e89c7c01dfad2">
+        <source xml:lang="en">{0}: {1}</source>
+        <note>{0} is a schema object type, such as Table or View
+{1} is the number of objects of that type</note>
+        <target state="translated">{0}: {1}</target>
+      </trans-unit>
       <trans-unit id="++CODE++0873f7c5661e8c2fe6846216acefe354d9d8358b51c94dba0dea19b699b5b6d3">
         <source xml:lang="en">{0}: {1}</source>
         <note>{0} is the qualified table name
@@ -11961,6 +12028,10 @@ Consulta: {2}</target>
         <source xml:lang="en">Controls the max number of rows allowed to do filtering and sorting in memory. If the number is exceeded, sorting and filtering will be disabled. Warning: Increasing this may impact performance.</source>
         <target state="translated">Controla o número máximo de linhas permitidas para filtragem e classificação na memória. Se o número for excedido, a classificação e a filtragem serão desabilitadas. Aviso: aumentar isso pode afetar o desempenho.</target>
       </trans-unit>
+      <trans-unit id="mssql.statusBar.showQueryExecutionStatus.description">
+        <source xml:lang="en">Controls whether the query execution status (executing, canceling, completed) is displayed in the status bar.</source>
+        <target state="new">Controls whether the query execution status (executing, canceling, completed) is displayed in the status bar.</target>
+      </trans-unit>
       <trans-unit id="mssql.copyAll">
         <source xml:lang="en">Copy All</source>
         <target state="translated">Copiar Tudo</target>
@@ -12238,6 +12309,10 @@ Quando terminar de fazer suas alterações, clique no botão "Publicar" para env
       <trans-unit id="mssql.walkthroughs.nextSteps.objectExplorerFilters.title">
         <source xml:lang="en">Filter your Object Explorer Tree</source>
         <target state="translated">Filtrar sua Árvore do Pesquisador de Objetos</target>
+      </trans-unit>
+      <trans-unit id="mssql.resultsGrid.freezeFirstColumnByDefault">
+        <source xml:lang="en">Freeze the first data column by default in new result grids. Existing saved grid state takes precedence.</source>
+        <target state="new">Freeze the first data column by default in new result grids. Existing saved grid state takes precedence.</target>
       </trans-unit>
       <trans-unit id="mssql.sqlScriptsSubmenu">
         <source xml:lang="en">Generate Script</source>
