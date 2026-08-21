@@ -94,6 +94,7 @@ export function useFluentResultGridCommandController({
     filterStateRef,
     gridId,
     onCommand,
+    onSelectionSummaryChange,
     openOverlay,
     reactGridRef,
     resultIdentitySignature,
@@ -118,6 +119,7 @@ export function useFluentResultGridCommandController({
     filterStateRef: MutableRefObject<ColumnFilterMap>;
     gridId: string;
     onCommand?: FluentResultGridProps["onCommand"];
+    onSelectionSummaryChange?: FluentResultGridProps["onSelectionSummaryChange"];
     openOverlay: FluentResultGridProviderContextValue["openOverlay"];
     reactGridRef: MutableRefObject<ReactGridInstanceWithSharedService | undefined>;
     resultIdentitySignature: string;
@@ -130,6 +132,15 @@ export function useFluentResultGridCommandController({
     updateHeaderButtonStates: (grid: SlickGrid) => void;
 }): FluentResultGridCommandController {
     const activeFilterColumnRef = useRef<string | undefined>(undefined);
+
+    const clearSelectionBeforeTransform = useCallback(
+        (grid: SlickGrid) => {
+            grid.getSelectionModel()?.setSelectedRanges([]);
+            grid.resetActiveCell();
+            void onSelectionSummaryChange?.([]);
+        },
+        [onSelectionSummaryChange],
+    );
 
     useEffect(() => {
         activeFilterColumnRef.current = undefined;
@@ -241,6 +252,7 @@ export function useFluentResultGridCommandController({
             }
 
             filterStateRef.current = clearedFilters;
+            clearSelectionBeforeTransform(grid);
             const applied = await applyGridTransforms(grid, { preserveScrollPosition: true });
             if (!applied) {
                 return;
@@ -254,6 +266,7 @@ export function useFluentResultGridCommandController({
         },
         [
             applyGridTransforms,
+            clearSelectionBeforeTransform,
             closeOverlay,
             emitStateChange,
             filterStateRef,
@@ -282,6 +295,7 @@ export function useFluentResultGridCommandController({
 
             sortStateRef.current = undefined;
             filterStateRef.current = clearedSortFilters;
+            clearSelectionBeforeTransform(grid);
             const applied = await applyGridTransforms(grid, { preserveScrollPosition: true });
             if (!applied) {
                 return;
@@ -294,6 +308,7 @@ export function useFluentResultGridCommandController({
         },
         [
             applyGridTransforms,
+            clearSelectionBeforeTransform,
             emitStateChange,
             filterStateRef,
             sortStateRef,
@@ -359,6 +374,7 @@ export function useFluentResultGridCommandController({
                 sorted: nextSort,
             };
 
+            clearSelectionBeforeTransform(grid);
             const applied = await applyGridTransforms(grid);
             if (!applied) {
                 return;
@@ -371,6 +387,7 @@ export function useFluentResultGridCommandController({
         },
         [
             applyGridTransforms,
+            clearSelectionBeforeTransform,
             emitStateChange,
             filterStateRef,
             sortStateRef,
@@ -406,6 +423,7 @@ export function useFluentResultGridCommandController({
                 },
             };
 
+            clearSelectionBeforeTransform(grid);
             const applied = await applyGridTransforms(grid, { preserveScrollPosition: true });
             if (applied) {
                 updateHeaderButtonStates(grid);
@@ -414,6 +432,7 @@ export function useFluentResultGridCommandController({
         },
         [
             applyGridTransforms,
+            clearSelectionBeforeTransform,
             emitStateChange,
             filterStateRef,
             sortStateRef,

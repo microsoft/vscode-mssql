@@ -249,6 +249,7 @@ export function useFluentResultGridController({
         filterStateRef: dataController.filterStateRef,
         gridId,
         onCommand,
+        onSelectionSummaryChange,
         openOverlay,
         reactGridRef,
         resultIdentitySignature,
