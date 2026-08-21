@@ -991,6 +991,74 @@ suite("Query Runner tests", () => {
             );
         });
 
+        test("copyResults shows progress for large overlapping Beta Grid selections", async () => {
+            const queryRunner = createQueryRunner();
+            const selection = [
+                { fromRow: 0, toRow: 2, fromCell: 0, toCell: 0 },
+                { fromRow: 1, toRow: 2, fromCell: 2, toCell: 2 },
+            ];
+            getConfigurationStub.returns(
+                stubs.createWorkspaceConfiguration({
+                    [Constants.configInMemoryDataProcessingThreshold]: 1,
+                }),
+            );
+            sandbox.stub(queryRunner, "getRows").resolves({
+                resultSubset: {
+                    rowCount: 3,
+                    rows: [
+                        [{ isNull: false, displayValue: "r0c0" }],
+                        [{ isNull: false, displayValue: "r1c0" }],
+                        [{ isNull: false, displayValue: "r2c0" }],
+                    ],
+                },
+            });
+
+            await queryRunner.copyResults(selection, 0, 0, false, true);
+
+            sinon.assert.calledOnce(vscode.window.withProgress as sinon.SinonStub);
+        });
+
+        test("a new copy cancels an in-flight overlapping Beta Grid copy", async () => {
+            const queryRunner = createQueryRunner();
+            const sparseSelection = [
+                { fromRow: 0, toRow: 2, fromCell: 0, toCell: 0 },
+                { fromRow: 1, toRow: 2, fromCell: 2, toCell: 2 },
+            ];
+            let resolveRows!: (value: QueryExecuteSubsetResult) => void;
+            const pendingRows = new Promise<QueryExecuteSubsetResult>((resolve) => {
+                resolveRows = resolve;
+            });
+            sandbox.stub(queryRunner, "getRows").returns(pendingRows);
+            testSqlToolsServerClient.sendRequest
+                .withArgs(CopyResults2Request.type, sinon.match.object)
+                .resolves({ content: "new copy" });
+
+            const firstCopy = queryRunner.copyResults(sparseSelection, 0, 0, false, true);
+            const secondCopy = queryRunner.copyResults(
+                [{ fromRow: 4, toRow: 4, fromCell: 0, toCell: 0 }],
+                0,
+                0,
+                false,
+            );
+            resolveRows({
+                resultSubset: {
+                    rowCount: 3,
+                    rows: [
+                        [{ isNull: false, displayValue: "old0" }],
+                        [{ isNull: false, displayValue: "old1" }],
+                        [{ isNull: false, displayValue: "old2" }],
+                    ],
+                },
+            });
+
+            await Promise.all([firstCopy, secondCopy]);
+
+            expect(clipboardWriteTextStub).to.have.been.calledOnceWith("new copy");
+            expect(testSqlToolsServerClient.sendNotification).to.not.have.been.calledWith(
+                CancelCopy2Notification.type,
+            );
+        });
+
         test("copyResults keeps legacy overlapping selections on the backend copy path", async () => {
             const queryRunner = createQueryRunner();
             const selection = [

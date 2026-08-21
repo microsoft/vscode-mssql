@@ -886,61 +886,94 @@ export default class QueryRunner {
         includeHeaders: boolean,
     ): Promise<void> {
         try {
-            const rowSelections = new Map<number, ISlickRange[]>();
-            const orderedRowIndexes: number[] = [];
-            const columnIndexSet = new Set<number>();
+            await this.runCopyOperation(
+                this.getTotalSelectedRows(selection),
+                false,
+                async (copyToken) => {
+                    const rowSelections = new Map<number, ISlickRange[]>();
+                    const orderedRowIndexes: number[] = [];
+                    const columnIndexSet = new Set<number>();
 
-            for (const range of selection) {
-                for (let columnIndex = range.fromCell; columnIndex <= range.toCell; columnIndex++) {
-                    columnIndexSet.add(columnIndex);
-                }
+                    for (const range of selection) {
+                        if (copyToken.isCancellationRequested) {
+                            return;
+                        }
 
-                for (let rowIndex = range.fromRow; rowIndex <= range.toRow; rowIndex++) {
-                    const selectionsForRow = rowSelections.get(rowIndex);
-                    if (selectionsForRow) {
-                        selectionsForRow.push(range);
-                    } else {
-                        rowSelections.set(rowIndex, [range]);
-                        orderedRowIndexes.push(rowIndex);
+                        for (
+                            let columnIndex = range.fromCell;
+                            columnIndex <= range.toCell;
+                            columnIndex++
+                        ) {
+                            columnIndexSet.add(columnIndex);
+                        }
+
+                        for (let rowIndex = range.fromRow; rowIndex <= range.toRow; rowIndex++) {
+                            const selectionsForRow = rowSelections.get(rowIndex);
+                            if (selectionsForRow) {
+                                selectionsForRow.push(range);
+                            } else {
+                                rowSelections.set(rowIndex, [range]);
+                                orderedRowIndexes.push(rowIndex);
+                            }
+                        }
                     }
-                }
-            }
 
-            const columnIndexes = [...columnIndexSet].sort((a, b) => a - b);
-            const rowsByIndex = await this.getSelectedRows(orderedRowIndexes, batchId, resultId);
-            const removeNewLines = vscode.workspace
-                .getConfiguration(Constants.extensionConfigSectionName, vscode.Uri.parse(this.uri))
-                .get<boolean>(Constants.configCopyRemoveNewLine, true);
-            const lines: string[] = [];
-
-            if (includeHeaders) {
-                const columnInfo =
-                    this.batchSets[batchId]?.resultSetSummaries[resultId]?.columnInfo ?? [];
-                lines.push(
-                    columnIndexes
-                        .map((columnIndex) => columnInfo[columnIndex]?.columnName ?? "")
-                        .join("\t"),
-                );
-            }
-
-            for (const rowIndex of orderedRowIndexes) {
-                const row = rowsByIndex.get(rowIndex);
-                const selectionsForRow = rowSelections.get(rowIndex) ?? [];
-                const values = columnIndexes.map((columnIndex) => {
-                    const isSelected = selectionsForRow.some(
-                        (range) => columnIndex >= range.fromCell && columnIndex <= range.toCell,
+                    const columnIndexes = [...columnIndexSet].sort((a, b) => a - b);
+                    const rowsByIndex = await this.getSelectedRows(
+                        orderedRowIndexes,
+                        batchId,
+                        resultId,
+                        copyToken,
                     );
-                    if (!isSelected) {
-                        return "";
+                    if (copyToken.isCancellationRequested) {
+                        return;
                     }
 
-                    const value = row?.[columnIndex]?.displayValue ?? "";
-                    return removeNewLines ? value.replace(/\r\n|\r|\n/g, " ") : value;
-                });
-                lines.push(values.join("\t"));
-            }
+                    const removeNewLines = vscode.workspace
+                        .getConfiguration(
+                            Constants.extensionConfigSectionName,
+                            vscode.Uri.parse(this.uri),
+                        )
+                        .get<boolean>(Constants.configCopyRemoveNewLine, true);
+                    const lines: string[] = [];
 
-            await this.writeStringToClipboard(lines.join(editorEol));
+                    if (includeHeaders) {
+                        const columnInfo =
+                            this.batchSets[batchId]?.resultSetSummaries[resultId]?.columnInfo ?? [];
+                        lines.push(
+                            columnIndexes
+                                .map((columnIndex) => columnInfo[columnIndex]?.columnName ?? "")
+                                .join("\t"),
+                        );
+                    }
+
+                    for (const rowIndex of orderedRowIndexes) {
+                        if (copyToken.isCancellationRequested) {
+                            return;
+                        }
+
+                        const row = rowsByIndex.get(rowIndex);
+                        const selectionsForRow = rowSelections.get(rowIndex) ?? [];
+                        const values = columnIndexes.map((columnIndex) => {
+                            const isSelected = selectionsForRow.some(
+                                (range) =>
+                                    columnIndex >= range.fromCell && columnIndex <= range.toCell,
+                            );
+                            if (!isSelected) {
+                                return "";
+                            }
+
+                            const value = row?.[columnIndex]?.displayValue ?? "";
+                            return removeNewLines ? value.replace(/\r\n|\r|\n/g, " ") : value;
+                        });
+                        lines.push(values.join("\t"));
+                    }
+
+                    if (!copyToken.isCancellationRequested) {
+                        await this.writeStringToClipboard(lines.join(editorEol));
+                    }
+                },
+            );
         } catch (error) {
             vscode.window.showErrorMessage(
                 LocalizedConstants.QueryResult.copyError(getErrorMessage(error)),
@@ -952,6 +985,7 @@ export default class QueryRunner {
         rowIndexes: number[],
         batchId: number,
         resultId: number,
+        cancellationToken?: vscode.CancellationToken,
     ): Promise<Map<number, QueryExecuteSubsetResult["resultSubset"]["rows"][number]>> {
         const rowsByIndex = new Map<
             number,
@@ -960,6 +994,10 @@ export default class QueryRunner {
         const sortedRowIndexes = [...rowIndexes].sort((a, b) => a - b);
 
         for (let index = 0; index < sortedRowIndexes.length; ) {
+            if (cancellationToken?.isCancellationRequested) {
+                break;
+            }
+
             const rangeStart = sortedRowIndexes[index];
             let rangeEnd = rangeStart;
             while (
@@ -976,6 +1014,9 @@ export default class QueryRunner {
                 batchId,
                 resultId,
             );
+            if (cancellationToken?.isCancellationRequested) {
+                break;
+            }
             result.resultSubset.rows.forEach((row, rowOffset) => {
                 rowsByIndex.set(rangeStart + rowOffset, row);
             });
@@ -989,6 +1030,71 @@ export default class QueryRunner {
      * Copy the result range using the query/copy2 contract
      */
     private _copyOperationCancellation: vscode.CancellationTokenSource | undefined;
+    private _copyOperationUsesCopy2 = false;
+
+    private async runCopyOperation(
+        totalRows: number,
+        usesCopy2: boolean,
+        operation: (copyToken: vscode.CancellationToken) => Promise<void>,
+    ): Promise<void> {
+        const previousCancellation = this._copyOperationCancellation;
+        const previousOperationUsesCopy2 = this._copyOperationUsesCopy2;
+        if (previousCancellation) {
+            previousCancellation.cancel();
+            if (previousOperationUsesCopy2) {
+                await this._client.sendNotification(CancelCopy2Notification.type);
+            }
+            previousCancellation.dispose();
+        }
+
+        const cancellation = new vscode.CancellationTokenSource();
+        this._copyOperationCancellation = cancellation;
+        this._copyOperationUsesCopy2 = usesCopy2;
+
+        const executeCopy = async (
+            _progress?: vscode.Progress<unknown>,
+            progressToken?: vscode.CancellationToken,
+        ): Promise<void> => {
+            const progressCancellation = progressToken?.onCancellationRequested(() => {
+                cancellation.cancel();
+                if (usesCopy2) {
+                    void this._client.sendNotification(CancelCopy2Notification.type);
+                }
+                void vscode.window.showInformationMessage("Copying results cancelled");
+            });
+            const cancellationPromise = new Promise<void>((resolve) => {
+                cancellation.token.onCancellationRequested(resolve);
+            });
+
+            try {
+                await Promise.race([operation(cancellation.token), cancellationPromise]);
+            } finally {
+                progressCancellation?.dispose();
+            }
+        };
+
+        try {
+            if (totalRows > getInMemoryGridDataProcessingThreshold()) {
+                await vscode.window.withProgress(
+                    {
+                        location: vscode.ProgressLocation.Notification,
+                        title: LocalizedConstants.copyingResults,
+                        cancellable: true,
+                    },
+                    executeCopy,
+                );
+            } else {
+                await executeCopy();
+            }
+        } finally {
+            if (this._copyOperationCancellation === cancellation) {
+                this._copyOperationCancellation = undefined;
+                this._copyOperationUsesCopy2 = false;
+            }
+            cancellation.dispose();
+        }
+    }
+
     private async copyResults2(
         selection: ISlickRange[],
         batchId: number,
@@ -1002,43 +1108,11 @@ export default class QueryRunner {
             encoding?: string;
         },
     ): Promise<void> {
-        // Cancel any in-progress copy operation
-        if (this._copyOperationCancellation) {
-            this._copyOperationCancellation.cancel();
-            await this._client.sendNotification(CancelCopy2Notification.type);
-            this._copyOperationCancellation.dispose();
-        }
-        this._copyOperationCancellation = new vscode.CancellationTokenSource();
-        const copyToken = this._copyOperationCancellation.token;
-
-        const totalRows = this.getTotalSelectedRows(selection);
-        const threshold = getInMemoryGridDataProcessingThreshold();
-        const showProgress = totalRows > threshold;
-
-        const executeCopy = async (
-            _progress?: vscode.Progress<any>,
-            token?: vscode.CancellationToken,
-        ) => {
-            return new Promise<void>(async (resolve, reject) => {
-                try {
-                    // Handle cancellation from the progress dialog (user clicked cancel)
-                    token?.onCancellationRequested(async () => {
-                        await this._client.sendNotification(CancelCopy2Notification.type);
-                        vscode.window.showInformationMessage("Copying results cancelled");
-                        resolve();
-                    });
-
-                    // Handle internal cancellation (new copy operation started) - no notification
-                    copyToken.onCancellationRequested(async () => {
-                        resolve();
-                    });
-
-                    // Check if already cancelled before starting
-                    if (copyToken.isCancellationRequested) {
-                        resolve();
-                        return;
-                    }
-
+        try {
+            await this.runCopyOperation(
+                this.getTotalSelectedRows(selection),
+                true,
+                async (copyToken) => {
                     const selections: TableSelectionRange[] = selection.map((range) => ({
                         fromRow: range.fromRow,
                         toRow: range.toRow,
@@ -1061,42 +1135,20 @@ export default class QueryRunner {
 
                     const result = await this._client.sendRequest(CopyResults2Request.type, params);
 
-                    // Check if cancelled while waiting for the request
                     if (copyToken.isCancellationRequested) {
-                        resolve();
                         return;
                     }
 
                     if (result?.content) {
                         await this.writeStringToClipboard(result.content);
                     }
-
-                    resolve();
-                } catch (error) {
-                    // Don't show error if cancelled
-                    if (copyToken.isCancellationRequested) {
-                        resolve();
-                        return;
-                    }
-                    vscode.window.showErrorMessage(
-                        LocalizedConstants.QueryResult.copyError(getErrorMessage(error)),
-                    );
-                    reject(error);
-                }
-            });
-        };
-
-        if (showProgress) {
-            await vscode.window.withProgress(
-                {
-                    location: vscode.ProgressLocation.Notification,
-                    title: LocalizedConstants.copyingResults,
-                    cancellable: true,
                 },
-                executeCopy,
             );
-        } else {
-            await executeCopy();
+        } catch (error) {
+            vscode.window.showErrorMessage(
+                LocalizedConstants.QueryResult.copyError(getErrorMessage(error)),
+            );
+            throw error;
         }
     }
 
