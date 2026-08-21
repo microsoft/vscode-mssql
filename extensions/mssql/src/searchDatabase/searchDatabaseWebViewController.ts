@@ -22,12 +22,13 @@ import { MetadataType, ObjectMetadata } from "../sharedInterfaces/metadata";
 import { getErrorMessage, uuid } from "../utils/utils";
 import { ScriptingService } from "../scripting/scriptingService";
 import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest";
-import { IScriptingObject } from "vscode-mssql";
+import { IScriptingObject, type IConnectionInfo } from "vscode-mssql";
 import * as Constants from "../constants/constants";
 import * as LocConstants from "../constants/locConstants";
 import { Deferred } from "../protocol";
 import { sendActionEvent, startActivity } from "extension-toolkit/vscode";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import * as Utils from "../models/utils";
 
 export class SearchDatabaseWebViewController extends WebviewPanelController<
     SearchDatabaseWebViewState,
@@ -43,16 +44,25 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
     private _operationId: string;
     // Deferred that resolves when initialization completes (success or error)
     private _initialized: Deferred<void> = new Deferred<void>();
+    private _connectionCredentials: IConnectionInfo | undefined;
 
     constructor(
         context: vscode.ExtensionContext,
         private _metadataService: IMetadataService,
         private _connectionManager: ConnectionManager,
-        private _targetNode: TreeNodeInfo,
+        targetNode: TreeNodeInfo | undefined,
         private _scriptingService: ScriptingService,
     ) {
-        const serverName = _targetNode?.connectionProfile?.server || "Server";
-        const databaseName = ObjectExplorerUtils.getDatabaseName(_targetNode) || "master";
+        const activeEditorUri = Utils.getActiveTextEditorUri();
+        const connectionCredentials =
+            targetNode?.connectionProfile ??
+            (activeEditorUri
+                ? _connectionManager.getConnectionInfo(activeEditorUri)?.credentials
+                : undefined);
+        const serverName = connectionCredentials?.server || "Server";
+        const databaseName = targetNode
+            ? ObjectExplorerUtils.getDatabaseName(targetNode) || "master"
+            : connectionCredentials?.database || "master";
 
         // Generate a unique, stable owner URI for this webview instance (per-panel URI, stable for panel lifetime)
         const instanceId = uuid();
@@ -104,6 +114,7 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
 
         this._ownerUri = ownerUri;
         this._operationId = uuid();
+        this._connectionCredentials = connectionCredentials;
         this.logInfo(
             `SearchDatabaseWebViewController created for server '${serverName}', database '${databaseName}', ownerUri '${ownerUri}'`,
         );
@@ -215,6 +226,17 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
         return this._ownerUri;
     }
 
+    private getConnectionCredentials(): IConnectionInfo {
+        if (!this._connectionCredentials) {
+            throw new Error(LocConstants.SearchDatabase.failedToEstablishConnection);
+        }
+
+        return {
+            ...this._connectionCredentials,
+            database: this.state.selectedDatabase,
+        };
+    }
+
     /**
      * Ensure a connection is established for the given URI and specified database.
      *
@@ -251,8 +273,7 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
             await this._connectionManager.disconnect(connectionUri);
         }
 
-        const connectionCreds = { ...this._targetNode.connectionProfile };
-        connectionCreds.database = targetDatabase;
+        const connectionCreds = this.getConnectionCredentials();
 
         if (!this._connectionManager.isConnecting(connectionUri)) {
             this.logVerbose(`Connecting to database '${targetDatabase}'`);
@@ -876,8 +897,7 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
 
             // Get server info from connection manager - use the current connection credentials
             // with the selected database to ensure we get the correct server info
-            const connectionCreds = { ...this._targetNode.connectionProfile };
-            connectionCreds.database = this.state.selectedDatabase;
+            const connectionCreds = this.getConnectionCredentials();
             const serverInfo = this._connectionManager.getServerInfo(connectionCreds);
 
             // Create scripting parameters
@@ -957,7 +977,7 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
                     schema: object.schema,
                     metadataTypeName: object.metadataTypeName,
                 },
-                connectionProfile: { ...this._targetNode.connectionProfile },
+                connectionProfile: this.getConnectionCredentials(),
                 nodeType: "Table",
                 parentNode: {
                     metadata: {
@@ -1011,7 +1031,7 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
             // The node needs nodeType, label, metadata, connectionProfile, and a parent with database metadata
             // so that getDatabaseNameForNode can find the database name.
             // It also needs updateConnectionProfile method which the controller calls during initialization.
-            const connectionProfile = { ...this._targetNode.connectionProfile };
+            const connectionProfile = this.getConnectionCredentials();
             const syntheticNode = {
                 metadata: {
                     name: object.name,
