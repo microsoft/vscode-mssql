@@ -752,6 +752,8 @@ export class SqlOutputContentProvider {
                     return;
                 }
                 state.selectionSummary = {
+                    status: e.status,
+                    requestId: e.requestId,
                     stats: e.stats,
                     text: e.text,
                     displayText: getSelectionSummaryDisplayText(e.text),

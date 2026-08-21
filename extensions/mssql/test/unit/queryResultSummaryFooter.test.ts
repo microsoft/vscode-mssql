@@ -7,7 +7,10 @@ import { expect } from "chai";
 import * as qr from "../../src/sharedInterfaces/queryResult";
 import {
     getDisplayedRowsCount,
+    getSelectionSummaryResultKey,
+    getSelectionSummaryWithStableMetrics,
     getTotalResultSetRowCount,
+    isSelectionSummaryLoading,
 } from "../../src/webviews/pages/QueryResult/queryResultUtils";
 
 suite("QueryResultSummaryFooter row count", () => {
@@ -61,5 +64,56 @@ suite("QueryResultSummaryFooter row count", () => {
 
     test("sums row counts only when result sets have row counts", () => {
         expect(getTotalResultSetRowCount({})).to.equal(undefined);
+    });
+
+    test("identifies only the loading selection-summary state", () => {
+        expect(
+            isSelectionSummaryLoading({
+                status: "loading",
+                text: "translated loading text",
+            }),
+        ).to.equal(true);
+        expect(
+            isSelectionSummaryLoading({
+                status: "confirmation",
+                text: "translated confirmation text",
+            }),
+        ).to.equal(false);
+        expect(
+            isSelectionSummaryLoading({
+                status: "success",
+                text: "translated result text",
+            }),
+        ).to.equal(false);
+    });
+
+    test("keys selection summaries by their execution and result grid", () => {
+        expect(getSelectionSummaryResultKey({ batchId: 2, resultId: 3 }, 1000)).to.equal(
+            "1000_2_3",
+        );
+        expect(getSelectionSummaryResultKey({ batchId: 2 })).to.equal(undefined);
+        expect(getSelectionSummaryResultKey(undefined)).to.equal(undefined);
+    });
+
+    test("keeps completed metrics without hiding the current loading command", () => {
+        const command = {
+            title: "cancel",
+            command: "cancelSummary",
+            arguments: ["uri"],
+        };
+        const result = getSelectionSummaryWithStableMetrics(
+            { status: "loading", command, tooltip: "cancel loading" },
+            {
+                status: "success",
+                stats: { count: 4, distinctCount: 3, nullCount: 1 },
+            },
+        );
+
+        expect(result).to.deep.equal({
+            status: "loading",
+            command,
+            tooltip: "cancel loading",
+            stats: { count: 4, distinctCount: 3, nullCount: 1 },
+        });
     });
 });

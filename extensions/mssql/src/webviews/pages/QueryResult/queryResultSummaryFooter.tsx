@@ -4,12 +4,41 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Tooltip, makeStyles, mergeClasses } from "@fluentui/react-components";
-import { Fragment, useContext, useEffect, useMemo, useState } from "react";
+import { Fragment, useContext, useEffect, useMemo, useRef, useState } from "react";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import { locConstants } from "../../common/locConstants";
-import { getDisplayedRowsCount } from "./queryResultUtils";
+import {
+    getDisplayedRowsCount,
+    getSelectionSummaryResultKey,
+    getSelectionSummaryWithStableMetrics,
+} from "./queryResultUtils";
 import { useQueryResultSelector } from "./queryResultSelector";
 import { QueryResultCommandsContext } from "./queryResultStateProvider";
+
+function useDisplayedSelectionSummary(
+    selectionSummary: qr.SelectionSummary | undefined,
+    executionStartTime: number | undefined,
+) {
+    const summariesByResultRef = useRef(new Map<string, qr.SelectionSummary>());
+    const summaryKey = getSelectionSummaryResultKey(selectionSummary, executionStartTime);
+
+    useEffect(() => {
+        summariesByResultRef.current.clear();
+    }, [executionStartTime]);
+
+    useEffect(() => {
+        if (selectionSummary?.status === "success" && summaryKey) {
+            summariesByResultRef.current.set(summaryKey, selectionSummary);
+        }
+    }, [selectionSummary, summaryKey]);
+
+    // Keep completed metrics stable while their replacement loads, but retain the current
+    // loading command and tooltip so the operation can still be canceled.
+    return getSelectionSummaryWithStableMetrics(
+        selectionSummary,
+        summaryKey ? summariesByResultRef.current.get(summaryKey) : undefined,
+    );
+}
 
 const useStyles = makeStyles({
     footer: {
@@ -356,6 +385,10 @@ export const QueryResultSummaryFooter = ({
     const tabStates = useQueryResultSelector((state) => state.tabStates);
     const isExecuting = useQueryResultSelector((state) => state.isExecuting ?? false);
     const executionStartTime = useQueryResultSelector((state) => state.executionStartTime);
+    const displayedSelectionSummary = useDisplayedSelectionSummary(
+        selectionSummary,
+        executionStartTime,
+    );
     const executionElapsedMilliseconds = useQueryResultSelector(
         (state) => state.executionElapsedMilliseconds,
     );
@@ -404,10 +437,11 @@ export const QueryResultSummaryFooter = ({
                 ? locConstants.queryResult.runningLabel
                 : locConstants.queryResult.runningWithDuration(compactExecutionText)
             : compactExecutionText;
-    const selectionStats = selectionSummary?.stats;
-    const selectionCommand = selectionSummary?.command;
+    const selectionStats = displayedSelectionSummary?.stats;
+    const selectionCommand = displayedSelectionSummary?.command;
     const selectionActionUri = selectionCommand?.arguments[0];
-    const selectionStatusText = selectionSummary?.displayText ?? selectionSummary?.text ?? "";
+    const selectionStatusText =
+        displayedSelectionSummary?.displayText ?? displayedSelectionSummary?.text ?? "";
     const selectionDisplayContent = selectionStats
         ? renderSelectionMetricsInline(selectionStats, classes)
         : (selectionStatusText ?? "") || locConstants.queryResult.noSelectionSummary;
@@ -415,7 +449,7 @@ export const QueryResultSummaryFooter = ({
         renderSelectionMetricsTooltip(selectionStats, classes)
     ) : (
         <span className={classes.selectionTooltipText}>
-            {selectionSummary?.tooltip ||
+            {displayedSelectionSummary?.tooltip ||
                 selectionStatusText ||
                 locConstants.queryResult.noSelectionSummary}
         </span>
