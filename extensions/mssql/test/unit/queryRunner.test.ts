@@ -847,6 +847,57 @@ suite("Query Runner tests", () => {
             );
         });
 
+        test("cancels service work before starting a replacement summary", async () => {
+            setupWorkspaceConfig({ [Constants.configInMemoryDataProcessingThreshold]: 5000 });
+            const queryRunner = createQueryRunner();
+            const summaries: SelectionSummary[] = [];
+            const listener = queryRunner.onSummaryChanged((summary) => summaries.push(summary));
+            let resolveFirstSummary:
+                | ((value: QueryExecuteContracts.GridSelectionSummaryResponse) => void)
+                | undefined;
+            const summaryRequestStub = testSqlToolsServerClient.sendRequest.withArgs(
+                GridSelectionSummaryRequest.type,
+                sinon.match.object,
+            );
+            summaryRequestStub.onFirstCall().returns(
+                new Promise<QueryExecuteContracts.GridSelectionSummaryResponse>((resolve) => {
+                    resolveFirstSummary = resolve;
+                }),
+            );
+            summaryRequestStub.onSecondCall().resolves({
+                count: 1,
+                distinctCount: 1,
+                nullCount: 0,
+                sum: 4,
+            });
+
+            const firstRequest = queryRunner.generateSelectionSummaryData(selection, 0, 0);
+            await Promise.resolve();
+            const secondRequest = queryRunner.generateSelectionSummaryData(
+                [{ fromRow: 3, toRow: 3, fromCell: 0, toCell: 0 }],
+                0,
+                0,
+            );
+            resolveFirstSummary?.({
+                count: 2,
+                distinctCount: 2,
+                nullCount: 0,
+                sum: 3,
+            });
+            await Promise.all([firstRequest, secondRequest]);
+            listener.dispose();
+
+            expect(testSqlToolsServerClient.sendNotification).to.have.been.calledWith(
+                CancelGridSelectionSummaryNotification.type,
+                { ownerUri: standardUri },
+            );
+            expect(summaries.map((summary) => summary.status)).to.deep.equal([
+                "loading",
+                "loading",
+                "success",
+            ]);
+        });
+
         test("invalidates an in-flight summary when the query runner is reset", async () => {
             setupWorkspaceConfig({ [Constants.configInMemoryDataProcessingThreshold]: 5000 });
             const queryRunner = createQueryRunner();
