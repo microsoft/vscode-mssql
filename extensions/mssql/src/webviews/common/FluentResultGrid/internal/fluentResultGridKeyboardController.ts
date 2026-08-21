@@ -5,6 +5,7 @@
 
 import {
     useCallback,
+    useEffect,
     useState,
     type FocusEvent as ReactFocusEvent,
     type KeyboardEvent as ReactKeyboardEvent,
@@ -62,6 +63,28 @@ export function useFluentResultGridKeyboardController({
     reactGridRef: MutableRefObject<ReactGridInstanceWithSharedService | undefined>;
 }): FluentResultGridKeyboardController {
     const [isGridFocused, setIsGridFocused] = useState(false);
+
+    useEffect(() => {
+        const syncFocusState = () => {
+            const container = containerRef.current;
+            setIsGridFocused(
+                document.hasFocus() &&
+                    !!container &&
+                    !!document.activeElement &&
+                    container.contains(document.activeElement),
+            );
+        };
+        const clearFocusState = () => setIsGridFocused(false);
+
+        window.addEventListener("blur", clearFocusState);
+        window.addEventListener("focus", syncFocusState);
+        document.addEventListener("visibilitychange", syncFocusState);
+        return () => {
+            window.removeEventListener("blur", clearFocusState);
+            window.removeEventListener("focus", syncFocusState);
+            document.removeEventListener("visibilitychange", syncFocusState);
+        };
+    }, [containerRef]);
 
     const moveFocusOutsideGrid = useCallback(
         (forward: boolean) => {
