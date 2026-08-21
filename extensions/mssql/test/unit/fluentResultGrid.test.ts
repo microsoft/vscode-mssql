@@ -182,6 +182,18 @@ suite("Fluent Result Grid", () => {
             });
         });
 
+        test("maps Ctrl+Insert to Copy selection", () => {
+            const action = getFluentResultGridKeyboardAction(
+                keyboardEvent({ code: "Insert", ctrlKey: true, key: "Insert" }),
+                {},
+            );
+
+            expect(action).to.deep.equal({
+                kind: "command",
+                commandId: FluentResultGridCommand.CopySelection,
+            });
+        });
+
         test("maps fallback select-all and shift-arrow shortcuts", () => {
             expect(
                 getFluentResultGridKeyboardAction(

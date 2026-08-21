@@ -286,3 +286,18 @@ export function eventMatchesShortcut(
     // If neither code nor key specified, we can't match.
     return false;
 }
+
+/**
+ * Returns whether the keyboard event is the standard Ctrl+Insert Copy alternative.
+ */
+export function isCtrlInsertCopyShortcut(
+    event: Pick<KeyboardEvent, "altKey" | "code" | "ctrlKey" | "key" | "metaKey" | "shiftKey">,
+): boolean {
+    return (
+        event.ctrlKey &&
+        !event.metaKey &&
+        !event.altKey &&
+        !event.shiftKey &&
+        (event.code === "Insert" || event.key === "Insert")
+    );
+}
