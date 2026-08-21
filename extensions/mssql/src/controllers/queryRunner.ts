@@ -95,6 +95,7 @@ interface SelectionSummaryRequestContext {
     confirmation?: Deferred<void>;
     cancel?: Deferred<void>;
     isCanceled: boolean;
+    serviceRequestInFlight: boolean;
 }
 
 function getRowsAffectedFromMessage(message: string): number | undefined {
@@ -306,6 +307,7 @@ export default class QueryRunner {
      * Resets the query runner to a clean state if we want to run another query on it.
      */
     public async resetQueryRunner(): Promise<void> {
+        await this.invalidateSelectionSummaryRequest(true);
         try {
             await this.cancel();
         } catch {
@@ -515,6 +517,7 @@ export default class QueryRunner {
      * @param _selection Optional selection metadata associated with a document-based execution.
      */
     public setupQueryExecution(_selection?: ISelectionData): void {
+        void this.invalidateSelectionSummaryRequest(true);
         this._logger.info(LocalizedConstants.msgStartedExecute(this._ownerUri));
         this._isExecuting = true;
         this._totalElapsedMilliseconds = 0;
@@ -666,6 +669,7 @@ export default class QueryRunner {
      * @returns A promise that will be rejected if a problem occured
      */
     public async dispose(): Promise<void> {
+        await this.invalidateSelectionSummaryRequest(true);
         let disposeDetails = new QueryDisposeParams();
         disposeDetails.ownerUri = this.uri;
         try {
@@ -1091,21 +1095,40 @@ export default class QueryRunner {
 
     private _selectionSummaryRequest: SelectionSummaryRequestContext | undefined;
 
+    private async invalidateSelectionSummaryRequest(cancelServiceWork: boolean): Promise<void> {
+        const request = this._selectionSummaryRequest;
+        this._selectionSummaryRequest = undefined;
+        request?.confirmation?.resolve();
+        request?.cancel?.reject();
+        if (request) {
+            request.isCanceled = true;
+        }
+
+        if (cancelServiceWork && request?.serviceRequestInFlight) {
+            try {
+                await this._client.sendNotification(CancelGridSelectionSummaryNotification.type, {
+                    ownerUri: this.uri,
+                });
+            } catch {
+                // The local request is already invalidated; cancellation is best effort.
+            }
+        }
+    }
+
     public async generateSelectionSummaryData(
         selections: ISlickRange[],
         batchId: number,
         resultId: number,
         showThresholdWarning: boolean = true,
     ): Promise<void> {
-        const previousRequest = this._selectionSummaryRequest;
-        // Unblock an old confirmation so its async operation can observe that it was superseded.
-        // Rejecting an old cancel handle prevents it from sending a service cancellation.
-        previousRequest?.confirmation?.resolve();
-        previousRequest?.cancel?.reject();
+        // A new service request supersedes an old one for the same owner. When no replacement
+        // request will be sent, explicitly cancel any service work for the cleared selection.
+        void this.invalidateSelectionSummaryRequest(selections.length === 0);
 
         const request: SelectionSummaryRequestContext = {
             id: uuid(),
             isCanceled: false,
+            serviceRequestInFlight: false,
         };
         this._selectionSummaryRequest = request;
 
@@ -1219,14 +1242,21 @@ export default class QueryRunner {
                 toColumn: range.toCell,
             }));
 
-            const result = await this._client.sendRequest(GridSelectionSummaryRequest.type, {
-                ownerUri: this.uri,
-                batchIndex: batchId,
-                resultSetIndex: resultId,
-                rowsStartIndex: 0,
-                rowsCount: 0,
-                selections: simpleSelections,
-            });
+            request.serviceRequestInFlight = true;
+            const result = await (async () => {
+                try {
+                    return await this._client.sendRequest(GridSelectionSummaryRequest.type, {
+                        ownerUri: this.uri,
+                        batchIndex: batchId,
+                        resultSetIndex: resultId,
+                        rowsStartIndex: 0,
+                        rowsCount: 0,
+                        selections: simpleSelections,
+                    });
+                } finally {
+                    request.serviceRequestInFlight = false;
+                }
+            })();
 
             if (!isCurrentRequest() || request.isCanceled) {
                 return;
