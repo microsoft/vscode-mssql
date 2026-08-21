@@ -4,7 +4,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { readFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 
 const latencyPolicies = {
@@ -43,6 +43,81 @@ export function compareBenchmarkReports(baselineValue, candidateValue) {
         comparisons,
         regressions: comparisons.filter((comparison) => comparison.regression),
     };
+}
+
+export function benchmarkTableRows(baselineValue, candidateValue) {
+    if (baselineValue !== undefined) {
+        return compareBenchmarkReports(baselineValue, candidateValue).comparisons.map((item) => ({
+            metric: item.name,
+            baseline: item.baseline,
+            candidate: item.candidate,
+            delta: item.delta,
+            ratio: item.ratio,
+            result: item.regression ? "REGRESSION" : "pass",
+        }));
+    }
+
+    const candidate = benchmarkReport(candidateValue, "candidate");
+    return measurements(candidate).map(({ name, value }) => ({
+        metric: name,
+        baseline: undefined,
+        candidate: value,
+        delta: undefined,
+        ratio: undefined,
+        result: "N/A",
+    }));
+}
+
+export function formatBenchmarkMarkdown(baselineValue, candidateValue) {
+    const rows = benchmarkTableRows(baselineValue, candidateValue);
+    return [
+        "## T-SQL language service benchmark",
+        "",
+        "| Metric | Main | Candidate | Delta | Ratio | Result |",
+        "| --- | ---: | ---: | ---: | ---: | --- |",
+        ...rows.map(
+            (row) =>
+                `| ${row.metric} | ${formatValue(row.baseline)} | ${formatValue(row.candidate)} | ${formatDelta(row.delta)} | ${formatRatio(row.ratio)} | ${row.result} |`,
+        ),
+        "",
+    ].join("\n");
+}
+
+function measurements(report) {
+    const result = [{ name: "catalogBuildMs", value: report.catalogBuildMs }];
+    appendRowMeasurements(result, "feature", report.featureLanes);
+    appendRowMeasurements(result, "host", report.hostHeartbeat.rows);
+    if (report.worker) appendRowMeasurements(result, "worker", report.worker.rows);
+    if (report.memory.state === "collected") {
+        for (const metric of ["sharedCatalogMiB", "perDocumentCatalogMiB"]) {
+            result.push({ name: `memory/${metric}`, value: report.memory[metric] });
+        }
+    }
+    return result;
+}
+
+function appendRowMeasurements(result, group, reportRows) {
+    for (const row of reportRows) {
+        for (const metric of Object.keys(latencyPolicies)) {
+            if (row[metric] !== undefined) {
+                result.push({ name: `${group}/${row.lane}/${metric}`, value: row[metric] });
+            }
+        }
+    }
+}
+
+function formatValue(value) {
+    return value === undefined ? "N/A" : String(Math.round(value * 1000) / 1000);
+}
+
+function formatDelta(value) {
+    if (value === undefined) return "N/A";
+    const rounded = Math.round(value * 1000) / 1000;
+    return rounded > 0 ? `+${rounded}` : String(rounded);
+}
+
+function formatRatio(value) {
+    return value === undefined ? "N/A" : `${Math.round(value * 100)}%`;
 }
 
 function compareRows(comparisons, group, baselineRows, candidateRows) {
@@ -187,27 +262,27 @@ function finiteNumber(value, name) {
 }
 
 async function main(args) {
-    if (args.length !== 2)
-        throw new Error("Usage: compare-reports.mjs <baseline.json> <candidate.json>");
-    const [baselinePath, candidatePath] = args;
+    const markdownIndex = args.indexOf("--markdown");
+    const markdownPath = markdownIndex < 0 ? undefined : args.splice(markdownIndex, 2)[1];
+    if ((markdownIndex >= 0 && !markdownPath) || (args.length !== 1 && args.length !== 2)) {
+        throw new Error(
+            "Usage: compare-reports.mjs [<baseline.json>] <candidate.json> [--markdown <output.md>]",
+        );
+    }
+    const [baselinePath, candidatePath] = args.length === 2 ? args : [undefined, args[0]];
     const [baseline, candidate] = await Promise.all([
-        readFile(baselinePath, "utf8").then(JSON.parse),
+        baselinePath ? readFile(baselinePath, "utf8").then(JSON.parse) : undefined,
         readFile(candidatePath, "utf8").then(JSON.parse),
     ]);
-    const result = compareBenchmarkReports(baseline, candidate);
-    console.table(
-        result.comparisons.map((item) => ({
-            metric: item.name,
-            baseline: item.baseline,
-            candidate: item.candidate,
-            delta: Math.round(item.delta * 1000) / 1000,
-            ratio: `${Math.round(item.ratio * 100)}%`,
-            result: item.regression ? "REGRESSION" : "pass",
-        })),
-    );
-    if (result.regressions.length > 0) {
+    const rows = benchmarkTableRows(baseline, candidate);
+    console.table(rows);
+    if (markdownPath) {
+        await writeFile(markdownPath, formatBenchmarkMarkdown(baseline, candidate), "utf8");
+    }
+    const regressions = rows.filter((row) => row.result === "REGRESSION");
+    if (regressions.length > 0) {
         throw new Error(
-            `Major benchmark regressions:\n${result.regressions.map((item) => `- ${item.name}`).join("\n")}`,
+            `Major benchmark regressions:\n${regressions.map((item) => `- ${item.metric}`).join("\n")}`,
         );
     }
 }

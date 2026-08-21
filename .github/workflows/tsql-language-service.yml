@@ -131,6 +131,7 @@ jobs:
             popd
           else
             echo "No package benchmark exists at $base_sha; this run will establish the initial main baseline." >> "$GITHUB_STEP_SUMMARY"
+            echo >> "$GITHUB_STEP_SUMMARY"
           fi
 
           npm run benchmark:language-service -- \
@@ -143,22 +144,18 @@ jobs:
             --corpora realistic,many-batches \
             --json benchmarks/results/candidate.json
 
+          comparison_args=(benchmarks/results/candidate.json)
           if [[ -f benchmarks/results/main.json ]]; then
-            set +e
-            node benchmarks/support/compare-reports.mjs \
-              benchmarks/results/main.json \
-              benchmarks/results/candidate.json 2>&1 | tee benchmarks/results/comparison.txt
-            comparison_status=${PIPESTATUS[0]}
-            set -e
-            {
-              echo "## T-SQL language service benchmark"
-              echo
-              echo '```text'
-              cat benchmarks/results/comparison.txt
-              echo '```'
-            } >> "$GITHUB_STEP_SUMMARY"
-            exit "$comparison_status"
+            comparison_args=(benchmarks/results/main.json benchmarks/results/candidate.json)
           fi
+          set +e
+          node benchmarks/support/compare-reports.mjs \
+            "${comparison_args[@]}" \
+            --markdown benchmarks/results/comparison.md 2>&1 | tee benchmarks/results/comparison.txt
+          comparison_status=${PIPESTATUS[0]}
+          set -e
+          cat benchmarks/results/comparison.md >> "$GITHUB_STEP_SUMMARY"
+          exit "$comparison_status"
 
       - name: Upload benchmark reports
         if: always()

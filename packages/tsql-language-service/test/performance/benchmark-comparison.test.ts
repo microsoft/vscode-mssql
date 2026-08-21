@@ -79,6 +79,33 @@ test("benchmark comparison rejects different configurations", async () => {
     );
 });
 
+test("benchmark table uses N/A until a main report exists", async () => {
+    const { benchmarkTableRows, formatBenchmarkMarkdown } = await import(
+        "../../benchmarks/support/compare-reports.mjs"
+    );
+    const candidate = report({ p50Ms: 12 });
+    const rows = benchmarkTableRows(undefined, candidate);
+
+    assert.equal(rows[0]?.baseline, undefined);
+    assert.equal(rows[0]?.result, "N/A");
+    assert.match(
+        formatBenchmarkMarkdown(undefined, candidate),
+        /\| catalogBuildMs \| N\/A \| 100 \| N\/A \| N\/A \| N\/A \|/u,
+    );
+});
+
+test("benchmark table renders the main comparison", async () => {
+    const { formatBenchmarkMarkdown } = await import(
+        "../../benchmarks/support/compare-reports.mjs"
+    );
+    const markdown = formatBenchmarkMarkdown(report({ p50Ms: 10 }), report({ p50Ms: 12 }));
+
+    assert.match(
+        markdown,
+        /\| feature\/corpus\/open\/p50Ms \| 10 \| 12 \| \+2 \| 120% \| pass \|/u,
+    );
+});
+
 function report(options: ReportOptions): unknown {
     return {
         schemaVersion: 2,

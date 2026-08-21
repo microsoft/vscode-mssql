@@ -29,6 +29,7 @@ import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import * as UriOwnershipInitialization from "../../src/uriOwnership/uriOwnershipInitialization";
 import { IconUtils } from "../../src/utils/iconUtils";
 import { UriOwnershipCoordinator } from "../../src/uriOwnership/uriOwnershipCore";
+import { SqlOutputContentProvider } from "../../src/models/sqlOutputContentProvider";
 
 const { expect } = chai;
 
@@ -38,11 +39,9 @@ suite("Extension API Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let context: vscode.ExtensionContext;
     let vscodeMssql: IExtension;
-    let mainController: MainController;
     let connectionManagerStub: sinon.SinonStubbedInstance<ConnectionManager>;
     let connectionStoreStub: sinon.SinonStubbedInstance<ConnectionStore>;
     let connectionUiStub: sinon.SinonStubbedInstance<ConnectionUI>;
-    let originalConnectionManager: ConnectionManager;
 
     setup(async () => {
         sandbox = sinon.createSandbox();
@@ -90,6 +89,28 @@ suite("Extension API Tests", () => {
         sandbox.stub(VscodeHttpClient.prototype, "warnOnInvalidProxySettings").returns();
         sandbox.stub(MainController.prototype, "activate").resolves(true);
 
+        connectionManagerStub = sandbox.createStubInstance(ConnectionManager);
+        connectionStoreStub = sandbox.createStubInstance(ConnectionStore);
+        connectionUiStub = sandbox.createStubInstance(ConnectionUI);
+        const connectionsChangedEmitter = new vscode.EventEmitter<void>();
+        const queryExecutionCatalogEmitter = new vscode.EventEmitter();
+        const outputContentProviderStub = sandbox.createStubInstance(SqlOutputContentProvider);
+
+        sandbox.stub(connectionManagerStub, "connectionStore").get(() => connectionStoreStub);
+        sandbox.stub(connectionManagerStub, "connectionUI").get(() => connectionUiStub);
+        sandbox
+            .stub(connectionManagerStub, "onConnectionsChanged")
+            .get(() => connectionsChangedEmitter.event);
+        sandbox
+            .stub(outputContentProviderStub, "onQueryExecutionCatalogChanged")
+            .get(() => queryExecutionCatalogEmitter.event);
+        sandbox
+            .stub(MainController.prototype, "connectionManager")
+            .get(() => connectionManagerStub);
+        sandbox
+            .stub(MainController.prototype, "outputContentProvider")
+            .get(() => outputContentProviderStub);
+
         const sqlToolsClient: sinon.SinonStubbedInstance<SqlToolsServerClient> =
             sandbox.createStubInstance(SqlToolsServerClient);
         sandbox.stub(sqlToolsClient, "sqlToolsServicePath").get(() => "test/sqltoolsservice");
@@ -103,19 +124,6 @@ suite("Extension API Tests", () => {
         sandbox.stub(UriOwnershipInitialization, "initializeUriOwnershipCoordinator").returns();
 
         vscodeMssql = await Extension.activate(context);
-        mainController = await Extension.getController();
-
-        connectionManagerStub = sandbox.createStubInstance(ConnectionManager);
-        connectionStoreStub = sandbox.createStubInstance(ConnectionStore);
-        connectionUiStub = sandbox.createStubInstance(ConnectionUI);
-
-        sandbox.stub(connectionManagerStub, "connectionStore").get(() => connectionStoreStub);
-        sandbox.stub(connectionManagerStub, "connectionUI").get(() => connectionUiStub);
-
-        // the Extension class doesn't reinitialize the controller for each test,
-        // so we need to save the original properties we swap here and restore then after each test.
-        originalConnectionManager = mainController.connectionManager;
-        mainController.connectionManager = connectionManagerStub;
     });
 
     teardown(() => {
@@ -124,10 +132,6 @@ suite("Extension API Tests", () => {
             (Extension as any).controller = undefined;
             (Extension as any).uriOwnershipCoordinator = undefined;
             /* eslint-enable @typescript-eslint/no-explicit-any */
-
-            if (mainController && originalConnectionManager) {
-                mainController.connectionManager = originalConnectionManager;
-            }
         } finally {
             sandbox.restore();
         }
