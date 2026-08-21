@@ -19,7 +19,9 @@ import {
     CopyResults2Request,
     CancelCopy2Notification,
     CopyType,
+    GridSelectionSummaryRequest,
 } from "../../src/models/contracts/queryExecute";
+import type { SelectionSummary } from "../../src/sharedInterfaces/queryResult";
 import StatusView from "../../src/views/statusView";
 import * as Constants from "../../src/constants/constants";
 import * as QueryExecuteContracts from "../../src/models/contracts/queryExecute";
@@ -761,6 +763,84 @@ suite("Query Runner tests", () => {
             QueryExecuteContracts.QueryExecuteStatementRequest.type,
             expectedParams,
         );
+    });
+
+    suite("selection summary lifecycle", () => {
+        const selection = [{ fromRow: 0, toRow: 1, fromCell: 0, toCell: 1 }];
+
+        test("clears the summary without sending a service request", async () => {
+            const queryRunner = createQueryRunner();
+            const summaries: SelectionSummary[] = [];
+            const listener = queryRunner.onSummaryChanged((summary) => summaries.push(summary));
+
+            await queryRunner.generateSelectionSummaryData([], 2, 3);
+            listener.dispose();
+
+            expect(summaries).to.have.length(1);
+            expect(summaries[0]).to.include({
+                status: "idle",
+                batchId: 2,
+                resultId: 3,
+            });
+            expect(summaries[0].requestId).to.be.a("string").and.not.be.empty;
+            expect(testSqlToolsServerClient.sendRequest).to.not.have.been.calledWith(
+                GridSelectionSummaryRequest.type,
+                sinon.match.object,
+            );
+        });
+
+        test("unblocks a superseded threshold confirmation", async () => {
+            setupWorkspaceConfig({ [Constants.configInMemoryDataProcessingThreshold]: 0 });
+            const queryRunner = createQueryRunner();
+            const summaries: SelectionSummary[] = [];
+            const listener = queryRunner.onSummaryChanged((summary) => summaries.push(summary));
+
+            const firstRequest = queryRunner.generateSelectionSummaryData(selection, 0, 0);
+            const secondRequest = queryRunner.generateSelectionSummaryData([], 1, 0);
+            await Promise.all([firstRequest, secondRequest]);
+            listener.dispose();
+
+            expect(summaries.map((summary) => summary.status)).to.deep.equal([
+                "confirmation",
+                "idle",
+            ]);
+            expect(summaries[0].requestId).to.not.equal(summaries[1].requestId);
+            expect(testSqlToolsServerClient.sendRequest).to.not.have.been.calledWith(
+                GridSelectionSummaryRequest.type,
+                sinon.match.object,
+            );
+        });
+
+        test("does not publish a stale service response after the selection is cleared", async () => {
+            setupWorkspaceConfig({ [Constants.configInMemoryDataProcessingThreshold]: 5000 });
+            const queryRunner = createQueryRunner();
+            const summaries: SelectionSummary[] = [];
+            const listener = queryRunner.onSummaryChanged((summary) => summaries.push(summary));
+            let resolveSummary:
+                | ((value: QueryExecuteContracts.GridSelectionSummaryResponse) => void)
+                | undefined;
+            const serviceResponse = new Promise<QueryExecuteContracts.GridSelectionSummaryResponse>(
+                (resolve) => {
+                    resolveSummary = resolve;
+                },
+            );
+            testSqlToolsServerClient.sendRequest
+                .withArgs(GridSelectionSummaryRequest.type, sinon.match.object)
+                .returns(serviceResponse);
+
+            const firstRequest = queryRunner.generateSelectionSummaryData(selection, 0, 0);
+            await queryRunner.generateSelectionSummaryData([], 0, 0);
+            resolveSummary?.({
+                count: 2,
+                distinctCount: 2,
+                nullCount: 0,
+                sum: 3,
+            });
+            await firstRequest;
+            listener.dispose();
+
+            expect(summaries.map((summary) => summary.status)).to.deep.equal(["loading", "idle"]);
+        });
     });
 
     suite("Copy Results", () => {

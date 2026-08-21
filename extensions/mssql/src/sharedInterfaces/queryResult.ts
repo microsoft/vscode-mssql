@@ -102,7 +102,11 @@ export interface SelectionSummaryMetrics {
     sum?: number;
 }
 
+export type SelectionSummaryStatus = "idle" | "loading" | "confirmation" | "success" | "error";
+
 export interface SelectionSummary {
+    status?: SelectionSummaryStatus;
+    requestId?: string;
     stats?: SelectionSummaryMetrics;
     text?: string;
     displayText?: string;

@@ -107,3 +107,29 @@ export function getDisplayedRowsCount(
 
     return rowsAffected;
 }
+
+export function isSelectionSummaryLoading(
+    selectionSummary: qr.SelectionSummary | undefined,
+): boolean {
+    return selectionSummary?.status === "loading";
+}
+
+export function getSelectionSummaryResultKey(
+    selectionSummary: qr.SelectionSummary | undefined,
+    executionStartTime?: number,
+): string | undefined {
+    return selectionSummary?.batchId !== undefined && selectionSummary.resultId !== undefined
+        ? `${executionStartTime ?? "unknown"}_${selectionSummary.batchId}_${selectionSummary.resultId}`
+        : undefined;
+}
+
+export function getSelectionSummaryWithStableMetrics(
+    selectionSummary: qr.SelectionSummary | undefined,
+    completedSummary: qr.SelectionSummary | undefined,
+): qr.SelectionSummary | undefined {
+    if (!isSelectionSummaryLoading(selectionSummary) || !completedSummary?.stats) {
+        return selectionSummary;
+    }
+
+    return { ...selectionSummary, stats: completedSummary.stats };
+}

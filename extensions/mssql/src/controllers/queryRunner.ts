@@ -90,6 +90,13 @@ export interface SummaryChanged extends SelectionSummary {
     continue?: Deferred<void>;
 }
 
+interface SelectionSummaryRequestContext {
+    id: string;
+    confirmation?: Deferred<void>;
+    cancel?: Deferred<void>;
+    isCanceled: boolean;
+}
+
 function getRowsAffectedFromMessage(message: string): number | undefined {
     const rowsAffectedMatch = message.match(/\(?\s*(\d+)\s+rows?\s+affected\s*\)?/i);
     if (!rowsAffectedMatch?.[1]) {
@@ -1082,8 +1089,7 @@ export default class QueryRunner {
         });
     }
 
-    private _requestID: string;
-    private _cancelConfirmation: Deferred<void>;
+    private _selectionSummaryRequest: SelectionSummaryRequestContext | undefined;
 
     public async generateSelectionSummaryData(
         selections: ISlickRange[],
@@ -1091,13 +1097,26 @@ export default class QueryRunner {
         resultId: number,
         showThresholdWarning: boolean = true,
     ): Promise<void> {
+        const previousRequest = this._selectionSummaryRequest;
+        // Unblock an old confirmation so its async operation can observe that it was superseded.
+        // Rejecting an old cancel handle prevents it from sending a service cancellation.
+        previousRequest?.confirmation?.resolve();
+        previousRequest?.cancel?.reject();
+
+        const request: SelectionSummaryRequestContext = {
+            id: uuid(),
+            isCanceled: false,
+        };
+        this._selectionSummaryRequest = request;
+
+        const isCurrentRequest = () => this._selectionSummaryRequest === request;
+
         /** Ask the user to proceed for large selections. */
-        const waitForUserToProceed = async (
-            requestId: string,
-            totalRows: number,
-        ): Promise<void> => {
+        const waitForUserToProceed = async (totalRows: number): Promise<boolean> => {
             const proceed = new Deferred<void>();
-            this.fireSummaryChangedEvent(requestId, {
+            request.confirmation = proceed;
+            this.fireSummaryChangedEvent(request, {
+                status: "confirmation",
                 command: {
                     title: Constants.cmdHandleSummaryOperation,
                     command: Constants.cmdHandleSummaryOperation,
@@ -1111,10 +1130,32 @@ export default class QueryRunner {
                 resultId,
             });
             await proceed.promise;
+            if (request.confirmation === proceed) {
+                request.confirmation = undefined;
+            }
+            return isCurrentRequest();
         };
 
+        if (selections.length === 0) {
+            this.fireSummaryChangedEvent(request, {
+                status: "idle",
+                stats: undefined,
+                text: undefined,
+                tooltip: undefined,
+                uri: this.uri,
+                command: undefined,
+                continue: undefined,
+                batchId,
+                resultId,
+            });
+            return;
+        }
+
+        const totalRows = this.getTotalSelectedRows(selections);
+
         const showProgress = (cancelConfirmation: Deferred<void>) => {
-            this.fireSummaryChangedEvent(this._requestID, {
+            this.fireSummaryChangedEvent(request, {
+                status: "loading",
                 command: {
                     title: Constants.cmdHandleSummaryOperation,
                     command: Constants.cmdHandleSummaryOperation,
@@ -1129,35 +1170,35 @@ export default class QueryRunner {
             });
         };
 
-        // create a new request and cancel any in-flight run
-        this._requestID = uuid();
-        const requestId = this._requestID;
-        this._cancelConfirmation?.resolve();
-        this._cancelConfirmation = undefined;
-
-        const totalRows = this.getTotalSelectedRows(selections);
-
         const threshold = getInMemoryGridDataProcessingThreshold();
 
         // optional “are you sure?” for large selections
         if (showThresholdWarning && totalRows > threshold) {
-            await waitForUserToProceed(requestId, totalRows);
+            if (!(await waitForUserToProceed(totalRows))) {
+                return;
+            }
         }
 
         const sendCancelSummaryEvent = async () => {
+            if (!isCurrentRequest()) {
+                return;
+            }
             // Reset and allow user to start a new summary operation
-            this._cancelConfirmation = undefined;
-            await waitForUserToProceed(requestId, totalRows);
-            await this.generateSelectionSummaryData(selections, batchId, resultId, false);
+            request.cancel = undefined;
+            if (await waitForUserToProceed(totalRows)) {
+                await this.generateSelectionSummaryData(selections, batchId, resultId, false);
+            }
         };
 
-        this._cancelConfirmation = new Deferred<void>();
-        const cancel = this._cancelConfirmation;
-        let isCanceled = false;
+        const cancel = new Deferred<void>();
+        request.cancel = cancel;
         // Set up cancellation handling
         cancel.promise
             .then(async () => {
-                isCanceled = true;
+                if (!isCurrentRequest()) {
+                    return;
+                }
+                request.isCanceled = true;
                 await this._client.sendNotification(CancelGridSelectionSummaryNotification.type, {
                     ownerUri: this.uri,
                 });
@@ -1187,8 +1228,7 @@ export default class QueryRunner {
                 selections: simpleSelections,
             });
 
-            if (isCanceled) {
-                await sendCancelSummaryEvent();
+            if (!isCurrentRequest() || request.isCanceled) {
                 return;
             }
 
@@ -1210,11 +1250,11 @@ export default class QueryRunner {
             const { text, tooltip } = buildSelectionSummaryStatusBarStrings(stats);
 
             // Resolve the cancel confirmation to clean up
-            if (!isCanceled) {
-                cancel.reject();
-            }
+            cancel.reject();
+            request.cancel = undefined;
 
-            this.fireSummaryChangedEvent(requestId, {
+            this.fireSummaryChangedEvent(request, {
+                status: "success",
                 stats,
                 text,
                 tooltip,
@@ -1225,12 +1265,15 @@ export default class QueryRunner {
                 resultId,
             });
         } catch (error) {
-            // Clean up on error
-            if (!isCanceled) {
-                cancel.reject(error);
+            if (!isCurrentRequest() || request.isCanceled) {
+                return;
             }
+            // Clean up on error
+            cancel.reject(error);
+            request.cancel = undefined;
 
-            this.fireSummaryChangedEvent(requestId, {
+            this.fireSummaryChangedEvent(request, {
+                status: "error",
                 text: `$(error) ${LocalizedConstants.QueryResult.errorLoadingSummary}`,
                 tooltip: LocalizedConstants.QueryResult.errorLoadingSummaryTooltip(
                     getErrorMessage(error),
@@ -1245,9 +1288,12 @@ export default class QueryRunner {
         }
     }
 
-    private fireSummaryChangedEvent(requestId: string, summary: SummaryChanged): void {
-        if (this._requestID === requestId) {
-            this._onSummaryChangedEmitter.fire(summary);
+    private fireSummaryChangedEvent(
+        request: SelectionSummaryRequestContext,
+        summary: SummaryChanged,
+    ): void {
+        if (this._selectionSummaryRequest === request) {
+            this._onSummaryChangedEmitter.fire({ ...summary, requestId: request.id });
         }
     }
 
