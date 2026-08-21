@@ -25,16 +25,7 @@
     --fluent-result-grid-scrollbar-thumb-active-background: rgba(191, 191, 191, 0.4);
     --fluent-result-grid-empty-state-background: var(--fluent-result-grid-background);
     --fluent-result-grid-empty-state-foreground: var(--fluent-result-grid-description-foreground);
-    --fluent-result-grid-list-focus-background: #094771;
-    --fluent-result-grid-list-focus-foreground: #ffffff;
-    --fluent-result-grid-list-active-selection-background: #094771;
-    --fluent-result-grid-list-active-selection-foreground: #ffffff;
-    --fluent-result-grid-list-inactive-selection-background: var(
-        --fluent-result-grid-list-active-selection-background
-    );
-    --fluent-result-grid-list-inactive-selection-foreground: var(
-        --fluent-result-grid-list-active-selection-foreground
-    );
+    --fluent-result-grid-list-inactive-selection-background: rgba(128, 128, 128, 0.2);
     --fluent-result-grid-list-hover-background: #2a2d2e;
     --fluent-result-grid-list-hover-foreground: var(--fluent-result-grid-foreground);
     --fluent-result-grid-list-focus-outline: #007fd4;
@@ -66,8 +57,8 @@
     --slick-cell-text-color: var(--fluent-result-grid-foreground);
     --slick-canvas-bg-color: var(--fluent-result-grid-background);
     --slick-row-mouse-hover-color: var(--fluent-result-grid-list-hover-background);
-    --slick-row-selected-color: var(--fluent-result-grid-list-active-selection-background);
-    --slick-cell-selected-color: var(--fluent-result-grid-list-active-selection-background);
+    --slick-row-selected-color: var(--fluent-result-grid-list-inactive-selection-background);
+    --slick-cell-selected-color: var(--fluent-result-grid-list-inactive-selection-background);
     --slick-border-color: var(--fluent-result-grid-border-color);
     --slick-grid-border-color: var(--fluent-result-grid-border-color);
     --slick-cell-border-right: 1px solid var(--fluent-result-grid-border-color);
@@ -404,12 +395,10 @@
 
 .fluent-result-grid .slick-cell.selected {
     background-color: var(--fluent-result-grid-list-inactive-selection-background);
-    color: var(--fluent-result-grid-list-inactive-selection-foreground);
 }
 
-.fluent-result-grid.focused .slick-cell.selected {
-    background-color: var(--fluent-result-grid-list-active-selection-background);
-    color: var(--fluent-result-grid-list-active-selection-foreground);
+.fluent-result-grid .slick-cell.cell-null.selected {
+    color: var(--fluent-result-grid-null-cell-foreground);
 }
 
 .fluent-result-grid .slick-cell.active {
@@ -428,8 +417,6 @@
 }
 
 .fluent-result-grid.focused .slick-cell.selected.active {
-    background-color: var(--fluent-result-grid-list-active-selection-background);
-    color: var(--fluent-result-grid-list-active-selection-foreground);
     outline: 2px solid var(--fluent-result-grid-list-focus-outline);
     outline-offset: -1px;
 }
