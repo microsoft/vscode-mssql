@@ -1292,7 +1292,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Invalid SQL Server password for {0}. Password must be 8–128 characters long and meet the complexity requirements.  For more information see https://docs.microsoft.com/sql/relational-databases/security/password-policy]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Ungültiges SQL Server-Kennwort für {0}. Das Kennwort muss 8 bis 128 Zeichen lang sein und die Komplexitätsanforderungen erfüllen.  Weitere Informationen finden Sie unter https://docs.microsoft.com/sql/relational-databases/security/password-policy]]></Val>
+            <Val><![CDATA[Ungültiges SQL Server-Kennwort für {0}. Das Kennwort muss 8 bis 128 Zeichen lang sein und die Komplexitätsanforderungen erfüllen. Weitere Informationen siehe https://docs.microsoft.com/sql/relational-databases/security/password-policy]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
