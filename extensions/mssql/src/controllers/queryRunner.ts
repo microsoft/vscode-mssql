@@ -1094,8 +1094,9 @@ export default class QueryRunner {
     }
 
     private _selectionSummaryRequest: SelectionSummaryRequestContext | undefined;
+    private _selectionSummaryCancellation: Promise<void> = Promise.resolve();
 
-    private async invalidateSelectionSummaryRequest(cancelServiceWork: boolean): Promise<void> {
+    private invalidateSelectionSummaryRequest(cancelServiceWork: boolean): Promise<void> {
         const request = this._selectionSummaryRequest;
         this._selectionSummaryRequest = undefined;
         request?.confirmation?.resolve();
@@ -1105,14 +1106,21 @@ export default class QueryRunner {
         }
 
         if (cancelServiceWork && request?.serviceRequestInFlight) {
-            try {
-                await this._client.sendNotification(CancelGridSelectionSummaryNotification.type, {
-                    ownerUri: this.uri,
-                });
-            } catch {
-                // The local request is already invalidated; cancellation is best effort.
-            }
+            this._selectionSummaryCancellation = this._selectionSummaryCancellation.then(
+                async () => {
+                    try {
+                        await this._client.sendNotification(
+                            CancelGridSelectionSummaryNotification.type,
+                            { ownerUri: this.uri },
+                        );
+                    } catch {
+                        // The local request is already invalidated; cancellation is best effort.
+                    }
+                },
+            );
         }
+
+        return this._selectionSummaryCancellation;
     }
 
     public async generateSelectionSummaryData(
