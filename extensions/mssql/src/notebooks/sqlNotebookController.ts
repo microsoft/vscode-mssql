@@ -18,12 +18,13 @@ import { NotebookConnectionManager } from "./notebookConnectionManager";
 import { NotebookCodeLensProvider } from "./notebookCodeLensProvider";
 import { HeadlessBatchResult } from "../queryExecution/headlessQueryExecutor";
 import * as formatter from "./resultFormatter";
-import type {
-    NotebookQueryResultBlock,
-    NotebookQueryResultGridBlock,
-    NotebookQueryResultOutputData,
-    NotebookRendererMessage,
-    NotebookSaveAsMessage,
+import {
+    NotebookSaveAsFormat,
+    type NotebookQueryResultBlock,
+    type NotebookQueryResultGridBlock,
+    type NotebookQueryResultOutputData,
+    type NotebookRendererMessage,
+    type NotebookSaveAsMessage,
 } from "../sharedInterfaces/notebookQueryResult";
 import type { SelectionSummaryMetrics } from "../sharedInterfaces/queryResult";
 import { buildSelectionSummaryStatusBarStrings } from "../queryResult/selectionSummaryFormatter";
@@ -959,9 +960,21 @@ export class SqlNotebookController implements vscode.Disposable {
                 resultSetIndex: message.resultSetIndex,
             });
             if (saved) {
-                void vscode.window.showInformationMessage(
+                const action = await vscode.window.showInformationMessage(
                     LocalizedConstants.Notebooks.savedResultsTo(saved.fsPath),
+                    LocalizedConstants.Common.openFile,
                 );
+                if (action === LocalizedConstants.Common.openFile) {
+                    try {
+                        await this.openSavedResults(saved, message.format);
+                    } catch (err) {
+                        const errorMsg = err instanceof Error ? err.message : String(err);
+                        this.log.error(`[handleSaveAs] Failed to open saved results: ${errorMsg}`);
+                        void vscode.window.showErrorMessage(
+                            LocalizedConstants.Notebooks.openResultsFailed,
+                        );
+                    }
+                }
             }
         } catch (err) {
             const errorMsg = err instanceof Error ? err.message : String(err);
@@ -970,6 +983,25 @@ export class SqlNotebookController implements vscode.Disposable {
                 LocalizedConstants.Notebooks.saveResultsFailed(errorMsg),
             );
         }
+    }
+
+    private async openSavedResults(
+        savedUri: vscode.Uri,
+        format: NotebookSaveAsFormat,
+    ): Promise<void> {
+        if (format === NotebookSaveAsFormat.Excel) {
+            const opened = await vscode.env.openExternal(savedUri);
+            if (!opened) {
+                throw new Error("No application is available to open the Excel file.");
+            }
+            return;
+        }
+
+        const doc = await vscode.workspace.openTextDocument(savedUri);
+        await vscode.window.showTextDocument(doc, {
+            viewColumn: vscode.ViewColumn.Beside,
+            preview: false,
+        });
     }
 
     private async executeCells(

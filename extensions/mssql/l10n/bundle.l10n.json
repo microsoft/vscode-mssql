@@ -601,6 +601,7 @@
         "message": "Saved results to {0}",
         "comment": ["{0} is the saved file path"]
     },
+    "Failed to open saved results.": "Failed to open saved results.",
     "Error loading; refresh to try again": "Error loading; refresh to try again",
     "No items": "No items",
     "We couldn't connect using the current connection information. Would you like to retry the connection or edit the connection profile?": "We couldn't connect using the current connection information. Would you like to retry the connection or edit the connection profile?",
