@@ -52,8 +52,6 @@ import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import { getLocalizationFileContentsCached } from "./localizationCache";
 
-export const WEBVIEW_INIT_TIMEOUT_MS = 5_000;
-
 class WebviewControllerMessageReader extends AbstractMessageReader implements MessageReader {
     private _onData: Emitter<Message>;
     private _disposables: vscode.Disposable[] = [];
@@ -120,7 +118,6 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
      */
     private _webviewReady: Deferred<void> = new Deferred<void>();
     private _isWebviewReady: boolean = false;
-    private _webviewReadyTimeoutHandle: ReturnType<typeof setTimeout> | undefined;
 
     private _state: State;
     private _isFirstLoad: boolean = true;
@@ -339,22 +336,24 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
             const timeToLoad = timeStamp - this._loadStartTime;
             if (this._isFirstLoad) {
                 /**
-                 * This notification is sent from the webview when it has finished loading. We use
-                 * this to track when the webview is ready to receive messages.
+                 * This notification is sent from the webview when it has finished loading.
+                 * We use this to track when the webview is ready to receive messages.
                  */
-                this._isWebviewReady = true;
-                if (this._webviewReadyTimeoutHandle !== undefined) {
-                    clearTimeout(this._webviewReadyTimeoutHandle);
-                    this._webviewReadyTimeoutHandle = undefined;
-                }
-                this._webviewReady.resolve();
+                this.markWebviewReady();
 
                 this.logger.trace(
                     `Load stats for ${this._sourceFile}` + "\n" + `Total time: ${timeToLoad} ms`,
                 );
-                this._endLoadActivity.end(ActivityStatus.Succeeded, {
-                    type: this._sourceFile,
-                });
+                this._endLoadActivity.end(
+                    ActivityStatus.Succeeded,
+                    {
+                        type: this._sourceFile,
+                    },
+                    {
+                        timeToLoad,
+                        ...(message.stages ?? {}),
+                    },
+                );
                 this._isFirstLoad = false;
             }
         });
@@ -626,38 +625,28 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
         this._onDisposed.fire();
         this._disposables.forEach((d) => d.dispose());
         this._isDisposed = true;
-        if (this._webviewReadyTimeoutHandle !== undefined) {
-            clearTimeout(this._webviewReadyTimeoutHandle);
-            this._webviewReadyTimeoutHandle = undefined;
-        }
         this._webviewReady.reject(new Error(LocalizedConstants.Webview.webviewDisposedBeforeReady));
     }
 
     /**
      * Waits for the webview to become ready. This is useful for ensuring that the webview is ready to receive messages before sending any.
-     * @param timeoutMs Optional timeout in milliseconds to wait for the webview to become ready. Defaults to 5 seconds.
-     * @returns A promise that resolves when the webview is ready or rejects if there is an error or timeout.
+     * @returns A promise that resolves when the webview is ready or rejects if the webview is disposed first.
      */
-    public whenWebviewReady(timeoutMs: number = WEBVIEW_INIT_TIMEOUT_MS): Promise<void> {
+    public whenWebviewReady(): Promise<void> {
         if (this._isWebviewReady) {
             return Promise.resolve();
         }
 
-        if (this._webviewReadyTimeoutHandle === undefined) {
-            this._webviewReadyTimeoutHandle = setTimeout(() => {
-                this._webviewReadyTimeoutHandle = undefined;
-                this._webviewReady.reject(
-                    new Error(
-                        LocalizedConstants.Webview.webviewNotReadyTimeout(
-                            this._sourceFile,
-                            timeoutMs,
-                        ),
-                    ),
-                );
-            }, timeoutMs);
+        return this._webviewReady.promise;
+    }
+
+    private markWebviewReady(): void {
+        if (this._isWebviewReady) {
+            return;
         }
 
-        return this._webviewReady.promise;
+        this._isWebviewReady = true;
+        this._webviewReady.resolve();
     }
 
     private readKeyBindingsConfig(): Record<string, string> {
