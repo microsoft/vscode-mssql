@@ -9020,6 +9020,15 @@
     <trans-unit id="mssql.format.options.sqlVersion">
       <source xml:lang="en">**Used when Preview Formatter is enabled.** T-SQL version used to parse and generate formatted scripts.</source>
     </trans-unit>
+    <trans-unit id="mssql.saveAsExcel.autoFilterHeaderRow">
+      <source xml:lang="en">**Used when column headers are enabled.** When true, enable auto filtering on the header row when saving results as an Excel file</source>
+    </trans-unit>
+    <trans-unit id="mssql.saveAsExcel.freezeHeaderRow">
+      <source xml:lang="en">**Used when column headers are enabled.** When true, freeze the header row when saving results as an Excel file</source>
+    </trans-unit>
+    <trans-unit id="mssql.saveAsExcel.boldHeaderRow">
+      <source xml:lang="en">**Used when column headers are enabled.** When true, make the header row bold when saving results as an Excel file</source>
+    </trans-unit>
     <trans-unit id="mssql.addObjectExplorer">
       <source xml:lang="en">Add Connection</source>
     </trans-unit>
@@ -9823,6 +9832,12 @@
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.groupBySchema">
       <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>
+    </trans-unit>
+    <trans-unit id="mssql.saveAsExcel.autoSizeColumns">
+      <source xml:lang="en">When true, attempt to automatically size columns when saving results as an Excel file</source>
+    </trans-unit>
+    <trans-unit id="mssql.saveAsExcel.includeHeaders">
+      <source xml:lang="en">When true, column headers are included when saving results as an Excel file</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.Tooltip.WindowsAuthLabel">
       <source xml:lang="en">Windows Authentication</source>
