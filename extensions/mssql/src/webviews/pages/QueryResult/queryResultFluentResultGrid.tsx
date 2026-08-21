@@ -687,6 +687,7 @@ const QueryResultFluentResultGrid = forwardRef<ResultGridHandle, ResultGridProps
                         resultId: event.resultId,
                         selection,
                         includeHeaders: false,
+                        preserveSelectionLayout: true,
                     });
                     context.showCopyIndicator();
                     break;
@@ -697,6 +698,7 @@ const QueryResultFluentResultGrid = forwardRef<ResultGridHandle, ResultGridProps
                         resultId: event.resultId,
                         selection,
                         includeHeaders: true,
+                        preserveSelectionLayout: true,
                     });
                     context.showCopyIndicator();
                     break;

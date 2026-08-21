@@ -316,7 +316,7 @@ export function getDisplayedFluentResultGridSelectionForCopy(
     const dataSelections = getFluentResultGridDataSelectionsFromRanges(selectedRanges);
 
     if (dataSelections.length > 0) {
-        return dataSelections;
+        return orderFluentResultGridSelectionsByDisplayPosition(dataSelections);
     }
 
     return [
@@ -334,19 +334,7 @@ export function convertDisplayedSelectionRowsToActual(
     getActualRowId: (displayRow: number) => number | undefined,
 ): ISlickRange[] {
     const converted: ISlickRange[] = [];
-    const orderedSelection = [...selection].sort((left, right) => {
-        if (left.fromRow !== right.fromRow) {
-            return left.fromRow - right.fromRow;
-        }
-        if (left.fromCell !== right.fromCell) {
-            return left.fromCell - right.fromCell;
-        }
-        if (left.toRow !== right.toRow) {
-            return left.toRow - right.toRow;
-        }
-
-        return left.toCell - right.toCell;
-    });
+    const orderedSelection = orderFluentResultGridSelectionsByDisplayPosition(selection);
 
     for (const range of orderedSelection) {
         let start: number | undefined;
@@ -395,4 +383,22 @@ export function convertDisplayedSelectionRowsToActual(
     }
 
     return converted;
+}
+
+function orderFluentResultGridSelectionsByDisplayPosition(
+    selection: readonly ISlickRange[],
+): ISlickRange[] {
+    return [...selection].sort((left, right) => {
+        if (left.fromRow !== right.fromRow) {
+            return left.fromRow - right.fromRow;
+        }
+        if (left.fromCell !== right.fromCell) {
+            return left.fromCell - right.fromCell;
+        }
+        if (left.toRow !== right.toRow) {
+            return left.toRow - right.toRow;
+        }
+
+        return left.toCell - right.toCell;
+    });
 }

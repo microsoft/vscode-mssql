@@ -834,16 +834,148 @@ export default class QueryRunner {
      * @param batchId The id of the batch to copy from
      * @param resultId The id of the result to copy from
      * @param includeHeaders [Optional]: Should column headers be included in the copy selection
+     * @param preserveSelectionLayout [Optional]: Copy each selected row once when ranges overlap
      */
     public async copyResults(
         selection: ISlickRange[],
         batchId: number,
         resultId: number,
         includeHeaders?: boolean,
+        preserveSelectionLayout?: boolean,
     ): Promise<void> {
+        if (preserveSelectionLayout && this.selectionRowsOverlap(selection)) {
+            await this.copyResultsPreservingSelectionLayout(
+                selection,
+                batchId,
+                resultId,
+                includeHeaders ?? false,
+            );
+            return;
+        }
+
         await this.copyResults2(selection, batchId, resultId, CopyType.Text, {
             includeHeaders: includeHeaders ?? false,
         });
+    }
+
+    private selectionRowsOverlap(selection: ISlickRange[]): boolean {
+        const rangesByRow = [...selection].sort((a, b) => a.fromRow - b.fromRow);
+        let lastSelectedRow = -1;
+
+        for (const range of rangesByRow) {
+            if (range.fromRow <= lastSelectedRow) {
+                return true;
+            }
+            lastSelectedRow = Math.max(lastSelectedRow, range.toRow);
+        }
+
+        return false;
+    }
+
+    private async copyResultsPreservingSelectionLayout(
+        selection: ISlickRange[],
+        batchId: number,
+        resultId: number,
+        includeHeaders: boolean,
+    ): Promise<void> {
+        try {
+            const rowSelections = new Map<number, ISlickRange[]>();
+            const orderedRowIndexes: number[] = [];
+            const columnIndexSet = new Set<number>();
+
+            for (const range of selection) {
+                for (let columnIndex = range.fromCell; columnIndex <= range.toCell; columnIndex++) {
+                    columnIndexSet.add(columnIndex);
+                }
+
+                for (let rowIndex = range.fromRow; rowIndex <= range.toRow; rowIndex++) {
+                    const selectionsForRow = rowSelections.get(rowIndex);
+                    if (selectionsForRow) {
+                        selectionsForRow.push(range);
+                    } else {
+                        rowSelections.set(rowIndex, [range]);
+                        orderedRowIndexes.push(rowIndex);
+                    }
+                }
+            }
+
+            const columnIndexes = [...columnIndexSet].sort((a, b) => a - b);
+            const rowsByIndex = await this.getSelectedRows(orderedRowIndexes, batchId, resultId);
+            const removeNewLines = vscode.workspace
+                .getConfiguration(Constants.extensionConfigSectionName, vscode.Uri.parse(this.uri))
+                .get<boolean>(Constants.configCopyRemoveNewLine, true);
+            const lines: string[] = [];
+
+            if (includeHeaders) {
+                const columnInfo =
+                    this.batchSets[batchId]?.resultSetSummaries[resultId]?.columnInfo ?? [];
+                lines.push(
+                    columnIndexes
+                        .map((columnIndex) => columnInfo[columnIndex]?.columnName ?? "")
+                        .join("\t"),
+                );
+            }
+
+            for (const rowIndex of orderedRowIndexes) {
+                const row = rowsByIndex.get(rowIndex);
+                const selectionsForRow = rowSelections.get(rowIndex) ?? [];
+                const values = columnIndexes.map((columnIndex) => {
+                    const isSelected = selectionsForRow.some(
+                        (range) => columnIndex >= range.fromCell && columnIndex <= range.toCell,
+                    );
+                    if (!isSelected) {
+                        return "";
+                    }
+
+                    const value = row?.[columnIndex]?.displayValue ?? "";
+                    return removeNewLines ? value.replace(/\r\n|\r|\n/g, " ") : value;
+                });
+                lines.push(values.join("\t"));
+            }
+
+            await this.writeStringToClipboard(lines.join(editorEol));
+        } catch (error) {
+            vscode.window.showErrorMessage(
+                LocalizedConstants.QueryResult.copyError(getErrorMessage(error)),
+            );
+        }
+    }
+
+    private async getSelectedRows(
+        rowIndexes: number[],
+        batchId: number,
+        resultId: number,
+    ): Promise<Map<number, QueryExecuteSubsetResult["resultSubset"]["rows"][number]>> {
+        const rowsByIndex = new Map<
+            number,
+            QueryExecuteSubsetResult["resultSubset"]["rows"][number]
+        >();
+        const sortedRowIndexes = [...rowIndexes].sort((a, b) => a - b);
+
+        for (let index = 0; index < sortedRowIndexes.length; ) {
+            const rangeStart = sortedRowIndexes[index];
+            let rangeEnd = rangeStart;
+            while (
+                index + 1 < sortedRowIndexes.length &&
+                sortedRowIndexes[index + 1] === rangeEnd + 1
+            ) {
+                index++;
+                rangeEnd = sortedRowIndexes[index];
+            }
+
+            const result = await this.getRows(
+                rangeStart,
+                rangeEnd - rangeStart + 1,
+                batchId,
+                resultId,
+            );
+            result.resultSubset.rows.forEach((row, rowOffset) => {
+                rowsByIndex.set(rangeStart + rowOffset, row);
+            });
+            index++;
+        }
+
+        return rowsByIndex;
     }
 
     /**

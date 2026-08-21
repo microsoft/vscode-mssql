@@ -32,6 +32,7 @@ import {
     activateFluentResultGridCellWithoutChangingSelection,
     clearFluentResultGridSelection,
     convertDisplayedSelectionRowsToActual,
+    getDisplayedFluentResultGridSelectionForCopy,
     getFluentResultGridClickSelection,
     getFluentResultGridDataSelectionsFromRanges,
     getFluentResultGridRangesAfterClick,
@@ -266,6 +267,27 @@ suite("Fluent Result Grid", () => {
                 { fromRow: 1, fromCell: 0, toRow: 1, toCell: 0 },
                 { fromRow: 3, fromCell: 1, toRow: 4, toCell: 2 },
                 { fromRow: 7, fromCell: 3, toRow: 7, toCell: 3 },
+            ]);
+        });
+
+        test("orders copied ranges by their displayed rows", () => {
+            const grid = {
+                getColumns: () => [{}, {}, {}, {}],
+                getSelectionModel: () => ({
+                    getSelectedRanges: () => [
+                        new SlickRange(3, 1, 3, 3),
+                        new SlickRange(0, 1, 0, 2),
+                        new SlickRange(2, 2, 2, 2),
+                    ],
+                }),
+            };
+
+            expect(
+                getDisplayedFluentResultGridSelectionForCopy(grid as unknown as SlickGrid, 4),
+            ).to.deep.equal([
+                { fromRow: 0, fromCell: 0, toRow: 0, toCell: 1 },
+                { fromRow: 2, fromCell: 1, toRow: 2, toCell: 1 },
+                { fromRow: 3, fromCell: 0, toRow: 3, toCell: 2 },
             ]);
         });
 
