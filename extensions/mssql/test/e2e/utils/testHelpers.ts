@@ -34,7 +34,7 @@ export async function addDatabaseConnection(
     await iframe.getByRole("textbox", { name: "Server name" }).fill(serverName);
 
     if (databaseName) {
-        await iframe.getByRole("textbox", { name: "Database name" }).fill(databaseName);
+        await iframe.getByRole("combobox", { name: "Database name" }).fill(databaseName);
     }
     await iframe.getByRole("combobox", { name: "Authentication type" }).click();
     // Then select an option from the dropdown list that appears
