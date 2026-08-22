@@ -2757,52 +2757,7 @@ export default class MainController implements vscode.Disposable {
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 Constants.cmdDeleteContainer,
-                async (node: TreeNodeInfo) => {
-                    if (
-                        !node ||
-                        !node.connectionProfile ||
-                        !(await this.isContainerReadyForCommands(node))
-                    ) {
-                        return;
-                    }
-
-                    const confirmation = await vscode.window.showInformationMessage(
-                        LocalizedConstants.LocalContainers.deleteContainerConfirmation(
-                            node.connectionProfile.containerName,
-                        ),
-                        { modal: true },
-                        LocalizedConstants.Common.delete,
-                    );
-
-                    if (confirmation === LocalizedConstants.Common.delete) {
-                        node.loadingLabel =
-                            LocalizedConstants.LocalContainers.deletingContainerLoadingLabel;
-                        await this._objectExplorerProvider.setNodeLoading(node);
-                        this._objectExplorerProvider.refresh(node);
-
-                        const containerName = node.connectionProfile.containerName;
-                        const deletedSuccessfully = await deleteContainer(containerName);
-                        vscode.window.showInformationMessage(
-                            deletedSuccessfully
-                                ? LocalizedConstants.LocalContainers.deletedContainerSucessfully(
-                                      containerName,
-                                  )
-                                : LocalizedConstants.LocalContainers.failDeleteContainer(
-                                      containerName,
-                                  ),
-                        );
-                        node.loadingLabel =
-                            LocalizedConstants.LocalContainers.startingContainerLoadingLabel;
-                        if (deletedSuccessfully) {
-                            // Delete node from tree
-                            await this._objectExplorerProvider.removeNode(
-                                node as ConnectionNode,
-                                false,
-                            );
-                            return this._objectExplorerProvider.refresh(undefined);
-                        }
-                    }
-                },
+                async (node: TreeNodeInfo) => this.deleteContainerForNode(node),
             ),
         );
     }
@@ -4068,6 +4023,66 @@ export default class MainController implements vscode.Disposable {
                 ),
             )
         ).success;
+    }
+
+    private async deleteContainerForNode(node: TreeNodeInfo): Promise<void> {
+        const connectionProfile = node?.connectionProfile;
+        const containerName = connectionProfile?.containerName;
+        if (!containerName) {
+            return;
+        }
+
+        const savedConnections =
+            await this.connectionManager.connectionStore.connectionConfig.getConnections();
+        const otherConnectionsUsingContainer = savedConnections.filter(
+            (profile) =>
+                profile.id !== connectionProfile.id && profile.containerName === containerName,
+        );
+        if (otherConnectionsUsingContainer.length > 0) {
+            const confirmation = await vscode.window.showWarningMessage(
+                LocalizedConstants.LocalContainers.deleteSharedContainerConfirmation(
+                    containerName,
+                    otherConnectionsUsingContainer.map(ConnInfo.getConnectionDisplayName),
+                ),
+                { modal: true },
+                LocalizedConstants.Common.delete,
+            );
+            if (confirmation !== LocalizedConstants.Common.delete) {
+                return;
+            }
+        }
+
+        if (!(await this.isContainerReadyForCommands(node))) {
+            return;
+        }
+
+        if (otherConnectionsUsingContainer.length === 0) {
+            const confirmation = await vscode.window.showInformationMessage(
+                LocalizedConstants.LocalContainers.deleteContainerConfirmation(containerName),
+                { modal: true },
+                LocalizedConstants.Common.delete,
+            );
+
+            if (confirmation !== LocalizedConstants.Common.delete) {
+                return;
+            }
+        }
+
+        node.loadingLabel = LocalizedConstants.LocalContainers.deletingContainerLoadingLabel;
+        await this._objectExplorerProvider.setNodeLoading(node);
+        this._objectExplorerProvider.refresh(node);
+
+        const deletedSuccessfully = await deleteContainer(containerName);
+        void vscode.window.showInformationMessage(
+            deletedSuccessfully
+                ? LocalizedConstants.LocalContainers.deletedContainerSucessfully(containerName)
+                : LocalizedConstants.LocalContainers.failDeleteContainer(containerName),
+        );
+        node.loadingLabel = LocalizedConstants.LocalContainers.startingContainerLoadingLabel;
+        if (deletedSuccessfully) {
+            await this._objectExplorerProvider.removeNode(node as ConnectionNode, false);
+            this._objectExplorerProvider.refresh(undefined);
+        }
     }
 
     public removeAadAccount(prompter: IPrompter): void {

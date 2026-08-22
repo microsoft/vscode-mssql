@@ -6,7 +6,6 @@
 import {
     useCallback,
     useEffect,
-    useRef,
     useState,
     type FocusEvent as ReactFocusEvent,
     type KeyboardEvent as ReactKeyboardEvent,
@@ -31,48 +30,21 @@ export interface FluentResultGridKeyboardController {
     focusGrid: () => void;
     handleGridContainerBlur: (event: ReactFocusEvent<HTMLDivElement>) => void;
     handleGridContainerFocus: (event: ReactFocusEvent<HTMLDivElement>) => void;
-    handleGridPointerDownCapture: () => void;
     handleGridKeyDownCapture: (event: ReactKeyboardEvent<HTMLDivElement>) => void;
     handleKeyDown: (eventData: SlickEventData, args: { grid: SlickGrid }) => void;
     isGridFocused: boolean;
 }
 
 /**
- * A container focus arriving within this window of a pointerdown is
- * pointer-initiated (the focus event fires synchronously inside the
- * pointerdown's default action; the window only absorbs dispatch overhead).
+ * Only keyboard-visible focus should reveal the active grid cell. The browser preserves this
+ * signal when focus enters the webview from its host, while native scrollbar interactions do not
+ * make the container focus-visible.
  */
-const POINTER_FOCUS_WINDOW_MS = 200;
-
-/** Pure decision seam for the pointer-initiated container-focus guard. */
-export function isFluentResultGridPointerInitiatedFocus(
-    pointerDownAt: number | undefined,
-    now: number,
+export function shouldRevealFluentResultGridActiveCell(
+    isDirectContainerFocus: boolean,
+    isFocusVisible: boolean,
 ): boolean {
-    return pointerDownAt !== undefined && now - pointerDownAt < POINTER_FOCUS_WINDOW_MS;
-}
-
-/**
- * A container focus within this window of a Tab keydown is keyboard entry.
- * Tab dispatches its focus change synchronously in the keydown's default
- * action; the window only absorbs dispatch overhead.
- */
-const KEYBOARD_FOCUS_WINDOW_MS = 250;
-
-/**
- * Pure decision seam for the reveal-on-focus guard: ONLY provable keyboard
- * entry (a recent Tab keydown) may re-activate the grid and scroll the
- * active cell into view. Chromium moves focus to this container when the
- * user grabs a grid scrollbar WITHOUT dispatching any pointer or mouse
- * event, so "no recent pointerdown" cannot identify scrollbar grabs — the
- * yank (backward jumps, cross-axis resets mid-drag) must be gated on
- * positive evidence of keyboard entry instead.
- */
-export function isFluentResultGridKeyboardInitiatedFocus(
-    tabKeyDownAt: number | undefined,
-    now: number,
-): boolean {
-    return tabKeyDownAt !== undefined && now - tabKeyDownAt < KEYBOARD_FOCUS_WINDOW_MS;
+    return isDirectContainerFocus && isFocusVisible;
 }
 
 export function useFluentResultGridKeyboardController({
@@ -91,6 +63,29 @@ export function useFluentResultGridKeyboardController({
     reactGridRef: MutableRefObject<ReactGridInstanceWithSharedService | undefined>;
 }): FluentResultGridKeyboardController {
     const [isGridFocused, setIsGridFocused] = useState(false);
+
+    useEffect(() => {
+        const syncFocusState = () => {
+            const container = containerRef.current;
+            setIsGridFocused(
+                document.hasFocus() &&
+                    !!container &&
+                    !!document.activeElement &&
+                    container.contains(document.activeElement),
+            );
+        };
+        const clearFocusState = () => setIsGridFocused(false);
+
+        syncFocusState();
+        window.addEventListener("blur", clearFocusState);
+        window.addEventListener("focus", syncFocusState);
+        document.addEventListener("visibilitychange", syncFocusState);
+        return () => {
+            window.removeEventListener("blur", clearFocusState);
+            window.removeEventListener("focus", syncFocusState);
+            document.removeEventListener("visibilitychange", syncFocusState);
+        };
+    }, [containerRef]);
 
     const moveFocusOutsideGrid = useCallback(
         (forward: boolean) => {
@@ -214,46 +209,15 @@ export function useFluentResultGridKeyboardController({
         grid.gotoCell(row, cell, false);
     }, [containerRef, reactGridRef]);
 
-    // Chromium focuses the nearest focusable ancestor — this container — when
-    // the user grabs a grid SCROLLBAR. Re-activating on that focus calls
-    // gotoCell(), which scrolls the ACTIVE cell back into view mid-drag
-    // (backward jumps, a cross-axis reset to the active cell, a synchronous
-    // full row render per grab). Scrollbar grabs dispatch NO pointer or
-    // mouse events, so absence-of-pointer evidence cannot identify them:
-    // the reveal is gated on POSITIVE evidence of keyboard entry (a recent
-    // Tab keydown, tracked window-level because the keydown fires on the
-    // element focus is LEAVING). Cell clicks still activate through
-    // SlickGrid's own click pipeline; every other focus provenance leaves
-    // the scroll position alone.
-    const pointerDownAtRef = useRef<number | undefined>(undefined);
-    const handleGridPointerDownCapture = useCallback(() => {
-        pointerDownAtRef.current = performance.now();
-    }, []);
-    const tabKeyDownAtRef = useRef<number | undefined>(undefined);
-    useEffect(() => {
-        const onWindowKeyDown = (event: KeyboardEvent) => {
-            if (event.key === "Tab") {
-                tabKeyDownAtRef.current = performance.now();
-            }
-        };
-        window.addEventListener("keydown", onWindowKeyDown, true);
-        return () => window.removeEventListener("keydown", onWindowKeyDown, true);
-    }, []);
-
     const handleGridContainerFocus = useCallback(
         (event: ReactFocusEvent<HTMLDivElement>) => {
             setIsGridFocused(true);
 
-            const now = performance.now();
-            const keyboardInitiated = isFluentResultGridKeyboardInitiatedFocus(
-                tabKeyDownAtRef.current,
-                now,
+            const shouldRevealActiveCell = shouldRevealFluentResultGridActiveCell(
+                event.target === event.currentTarget,
+                event.currentTarget.matches(":focus-visible"),
             );
-            const pointerInitiated = isFluentResultGridPointerInitiatedFocus(
-                pointerDownAtRef.current,
-                now,
-            );
-            if (event.target === event.currentTarget && keyboardInitiated && !pointerInitiated) {
+            if (shouldRevealActiveCell) {
                 focusGrid();
             }
         },
@@ -271,7 +235,6 @@ export function useFluentResultGridKeyboardController({
         focusGrid,
         handleGridContainerBlur,
         handleGridContainerFocus,
-        handleGridPointerDownCapture,
         handleGridKeyDownCapture,
         handleKeyDown,
         isGridFocused,

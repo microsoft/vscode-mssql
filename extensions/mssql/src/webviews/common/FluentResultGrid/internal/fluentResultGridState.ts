@@ -13,6 +13,7 @@ import type { FluentResultGridState } from "../types/fluentResultGridState";
 import {
     FLUENT_RESULT_GRID_DEFAULT_COLUMN_WIDTH,
     FLUENT_RESULT_GRID_DEFAULT_FONT_SIZE,
+    FLUENT_RESULT_GRID_FIRST_DATA_CELL_INDEX,
     FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_ID,
 } from "./fluentResultGridConstants";
 import type { FluentResultGridDataRow } from "./fluentResultGridDataView";
@@ -54,6 +55,18 @@ export function shouldApplyFluentResultGridFrozenOptions(
         options.enableMouseWheelScrollHandler !== true ||
         (options.frozenColumn ?? -1) !== columnIndex ||
         options.skipFreezeColumnValidation !== true
+    );
+}
+
+export function getFluentResultGridInitialFrozenColumnIndex(
+    savedFrozenColumnIndex: number | undefined,
+    freezeFirstColumnByDefault: boolean,
+): number {
+    return (
+        savedFrozenColumnIndex ??
+        (freezeFirstColumnByDefault
+            ? FLUENT_RESULT_GRID_FIRST_DATA_CELL_INDEX
+            : FLUENT_RESULT_GRID_DEFAULT_FROZEN_COLUMN_INDEX)
     );
 }
 

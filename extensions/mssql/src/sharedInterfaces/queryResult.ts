@@ -65,6 +65,7 @@ export type GridLinesMode = "both" | "horizontal" | "vertical" | "none";
 
 export interface GridSettings {
     alternatingRowColors?: boolean;
+    freezeFirstColumnByDefault?: boolean;
     showGridLines?: GridLinesMode;
     rowPadding?: number | null;
 }
@@ -319,6 +320,7 @@ export interface CopySelectionRequestParams {
     resultId: number;
     selection: ISlickRange[];
     includeHeaders?: boolean;
+    preserveSelectionLayout?: boolean;
 }
 
 export namespace CopySelectionRequest {

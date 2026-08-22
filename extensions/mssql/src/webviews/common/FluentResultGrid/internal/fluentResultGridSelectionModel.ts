@@ -10,92 +10,96 @@ import {
     type OnActiveCellChangedEventArgs,
     type SlickEventData,
 } from "@slickgrid-universal/common";
+import { FluentResultGridCellRangeSelector } from "./fluentResultGridCellRangeSelector";
+import {
+    getFluentResultGridRangesAfterClick,
+    getFluentResultGridRangesAfterDrag,
+} from "./fluentResultGridSelection";
 
 export class FluentResultGridSelectionModel extends SlickHybridSelectionModel {
-    /**
-     * Armed by a ctrl-click so the activation that follows keeps the
-     * irregular selection (the base model would otherwise reset it).
-     */
-    private preserveRangesOnActiveCellChange = false;
+    private readonly _cellRangeSelector: FluentResultGridCellRangeSelector;
+    private _selectionBeforeCellRange: SlickRange[] = [];
+    private _settingActiveCellFromRange = false;
 
     constructor(options?: Partial<HybridSelectionModelOption>) {
-        super(options);
-    }
-
-    /**
-     * Cell-mode mouse selection (SSMS/Excel parity — the hybrid model only
-     * implements modifier clicks for ROW mode):
-     * - plain click: the clicked cell becomes the selection (and the anchor)
-     * - shift-click: box from the active anchor to the clicked cell; the
-     *   anchor stays active so repeated shift-clicks re-extend from it
-     * - ctrl-click: toggle the clicked cell in/out of an irregular selection
-     * - ctrl+shift-click: add the anchor→cell box to the selection
-     */
-    protected override handleClick(e: SlickEventData): boolean | void {
-        if (this._activeSelectionIsRow) {
-            return super.handleClick(e);
-        }
-        const cell = this._grid.getCellFromEvent(e);
-        if (!cell || !this._grid.canCellBeActive(cell.row, cell.cell)) {
-            return;
-        }
-        const ctrl = e.ctrlKey || e.metaKey;
-        const shift = e.shiftKey;
-        if (!ctrl && !shift) {
-            // Plain click collapses any multi-selection to the clicked cell.
-            // onClick fires BEFORE activation, and with selectActiveRow=false
-            // the base active-cell handler leaves ranges alone afterwards.
-            this.setSelectedRanges([new SlickRange(cell.row, cell.cell, cell.row, cell.cell)]);
-            return;
-        }
-        const ranges = this.getSelectedRanges().slice();
-        if (shift) {
-            const anchor = this._grid.getActiveCell();
-            const anchorRow = anchor?.row ?? cell.row;
-            const anchorCell = anchor?.cell ?? cell.cell;
-            const box = new SlickRange(
-                Math.min(anchorRow, cell.row),
-                Math.min(anchorCell, cell.cell),
-                Math.max(anchorRow, cell.row),
-                Math.max(anchorCell, cell.cell),
-            );
-            this.setSelectedRanges(ctrl ? [...ranges, box] : [box]);
-            // Keep the anchor cell active: suppress the activation this click
-            // would trigger, so the next shift-click extends from the same
-            // anchor (Excel/SSMS behavior).
-            e.preventDefault();
-            e.stopImmediatePropagation();
-            return true;
-        }
-        // ctrl-click: toggle a single cell; activation proceeds so the
-        // clicked cell becomes the new anchor.
-        const index = ranges.findIndex(
-            (range) =>
-                range.fromRow === cell.row &&
-                range.toRow === cell.row &&
-                range.fromCell === cell.cell &&
-                range.toCell === cell.cell,
-        );
-        if (index >= 0) {
-            ranges.splice(index, 1);
-        } else {
-            ranges.push(new SlickRange(cell.row, cell.cell, cell.row, cell.cell));
-        }
-        this.preserveRangesOnActiveCellChange = true;
-        this.setSelectedRanges(ranges);
-        return true;
+        const cellRangeSelector = new FluentResultGridCellRangeSelector();
+        super({ ...options, cellRangeSelector });
+        this._cellRangeSelector = cellRangeSelector;
     }
 
     protected override handleActiveCellChange(
         eventData: SlickEventData,
         args: OnActiveCellChangedEventArgs,
     ): void {
-        if (!this._activeSelectionIsRow && this.preserveRangesOnActiveCellChange) {
-            this.preserveRangesOnActiveCellChange = false;
-            this._prevSelectedRow = undefined;
+        super.handleActiveCellChange(eventData, args);
+
+        if (
+            this._settingActiveCellFromRange ||
+            this._activeSelectionIsRow ||
+            !this._options?.selectActiveCell ||
+            args.row === undefined ||
+            args.cell === undefined
+        ) {
             return;
         }
-        super.handleActiveCellChange(eventData, args);
+
+        // SlickGrid tracks its active cell separately from its selected ranges. Keep the two in
+        // sync so a click has an unambiguous selection and Ctrl/Cmd+C copies the clicked cell.
+        this.setSelectedRanges([new SlickRange(args.row, args.cell)], undefined, "");
+    }
+
+    protected override handleClick(eventData: SlickEventData): boolean | void {
+        if (this._activeSelectionIsRow) {
+            return super.handleClick(eventData);
+        }
+
+        const cell = this._grid.getCellFromEvent(eventData);
+        if (!cell || !this._grid.canCellBeActive(cell.row, cell.cell)) {
+            return false;
+        }
+
+        this.setSelectedRanges(
+            getFluentResultGridRangesAfterClick(
+                this.getSelectedRanges(),
+                cell,
+                this._grid.getActiveCell(),
+                {
+                    ctrlKey: eventData.ctrlKey,
+                    metaKey: eventData.metaKey,
+                    shiftKey: eventData.shiftKey,
+                },
+            ),
+            undefined,
+            "",
+        );
+
+        // Own the entire click transaction. If SlickGrid continues processing this event it will
+        // set the active cell again and onActiveCellChanged can replace the ranges computed above.
+        this._grid.setActiveCell(cell.row, cell.cell, false, false, true);
+        eventData.stopImmediatePropagation();
+        return true;
+    }
+
+    protected override handleBeforeCellRangeSelected(
+        eventData: SlickEventData,
+        cell: { row: number; cell: number },
+    ): boolean | void {
+        const result = super.handleBeforeCellRangeSelected(eventData, cell);
+        if (result === false) {
+            return false;
+        }
+
+        this._selectionBeforeCellRange = this.getSelectedRanges().slice();
+
+        // Match the Production Grid: the drag anchor becomes active immediately, while the
+        // previous selected ranges remain intact until the gesture is committed.
+        try {
+            this._settingActiveCellFromRange = true;
+            this._grid.setActiveCell(cell.row, cell.cell, false, false, true);
+        } finally {
+            this._settingActiveCellFromRange = false;
+        }
+        return result;
     }
 
     protected override handleCellRangeSelected(
@@ -115,14 +119,26 @@ export class FluentResultGridSelectionModel extends SlickHybridSelectionModel {
             return false;
         }
 
-        this._grid.setActiveCell(
-            args.range.fromRow,
-            args.range.fromCell,
-            args.allowAutoEdit ? undefined : false,
-            false,
-            true,
-        );
-        this.setSelectedRanges([args.range], undefined, args.selectionMode);
+        try {
+            this._settingActiveCellFromRange = true;
+            this._grid.setActiveCell(
+                args.range.fromRow,
+                args.range.fromCell,
+                args.allowAutoEdit ? undefined : false,
+                false,
+                true,
+            );
+
+            const selectedRanges = getFluentResultGridRangesAfterDrag(
+                this._selectionBeforeCellRange,
+                args.range,
+                this.gridOptions.multiSelect !== false && this._cellRangeSelector.appendToSelection,
+            );
+            this.setSelectedRanges(selectedRanges, undefined, args.selectionMode);
+        } finally {
+            this._settingActiveCellFromRange = false;
+            this._selectionBeforeCellRange = [];
+        }
         return true;
     }
 }

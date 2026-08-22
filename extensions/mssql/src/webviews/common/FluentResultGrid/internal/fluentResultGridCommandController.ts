@@ -50,7 +50,9 @@ import type { FluentResultGridFilterValue } from "./fluentResultGridOverlays";
 import {
     convertDisplayedSelectionRowsToActual,
     getDisplayedFluentResultGridSelectionForCopy,
+    getFluentResultGridClickSelection,
     getFluentResultGridDataSelectionsFromRanges,
+    setFluentResultGridSelection,
 } from "./fluentResultGridSelection";
 import {
     buildFluentResultGridFilterItems,
@@ -250,7 +252,7 @@ export function useFluentResultGridCommandController({
             updateHeaderButtonStates(grid);
             emitStateChange(grid);
             grid.invalidate();
-            grid.focus();
+            grid.focus("internal");
         },
         [
             applyGridTransforms,
@@ -290,7 +292,7 @@ export function useFluentResultGridCommandController({
             updateHeaderButtonStates(grid);
             emitStateChange(grid);
             grid.invalidate();
-            grid.focus();
+            grid.focus("internal");
         },
         [
             applyGridTransforms,
@@ -367,7 +369,7 @@ export function useFluentResultGridCommandController({
             updateHeaderButtonStates(grid);
             emitStateChange(grid);
             grid.invalidate();
-            grid.focus();
+            grid.focus("internal");
         },
         [
             applyGridTransforms,
@@ -488,6 +490,13 @@ export function useFluentResultGridCommandController({
         grid.getSelectionModel()?.setSelectedRanges([range]);
     }, []);
 
+    const selectRangeAndActivate = useCallback(
+        (grid: SlickGrid, range: SlickRange, row: number, cell: number) => {
+            setFluentResultGridSelection(grid, [range], { row, cell });
+        },
+        [],
+    );
+
     const selectAllCells = useCallback(
         (grid: SlickGrid) => {
             const rowCount = grid.getDataLength();
@@ -531,7 +540,7 @@ export function useFluentResultGridCommandController({
                 return;
             }
 
-            selectRange(
+            selectRangeAndActivate(
                 grid,
                 new SlickRange(
                     0,
@@ -539,10 +548,11 @@ export function useFluentResultGridCommandController({
                     grid.getDataLength() - 1,
                     activeColumn.active.cell,
                 ),
+                activeColumn.active.row,
+                activeColumn.active.cell,
             );
-            grid.setActiveCell(activeColumn.active.row, activeColumn.active.cell);
         },
-        [getActiveDataColumn, selectRange],
+        [getActiveDataColumn, selectRangeAndActivate],
     );
 
     const selectActiveCellRow = useCallback(
@@ -552,7 +562,7 @@ export function useFluentResultGridCommandController({
                 return;
             }
 
-            selectRange(
+            selectRangeAndActivate(
                 grid,
                 new SlickRange(
                     active.row,
@@ -560,13 +570,11 @@ export function useFluentResultGridCommandController({
                     active.row,
                     grid.getColumns().length - 1,
                 ),
-            );
-            grid.setActiveCell(
                 active.row,
                 Math.max(FLUENT_RESULT_GRID_FIRST_DATA_CELL_INDEX, active.cell),
             );
         },
-        [selectRange],
+        [selectRangeAndActivate],
     );
 
     const moveActiveCellToRowEdge = useCallback(
@@ -579,10 +587,14 @@ export function useFluentResultGridCommandController({
             const cell = toEnd
                 ? grid.getColumns().length - 1
                 : FLUENT_RESULT_GRID_FIRST_DATA_CELL_INDEX;
-            grid.setActiveCell(active.row, cell);
-            selectRange(grid, new SlickRange(active.row, cell, active.row, cell));
+            selectRangeAndActivate(
+                grid,
+                new SlickRange(active.row, cell, active.row, cell),
+                active.row,
+                cell,
+            );
         },
-        [selectRange],
+        [selectRangeAndActivate],
     );
 
     const expandSelection = useCallback((grid: SlickGrid, keyCode: string) => {
@@ -775,26 +787,23 @@ export function useFluentResultGridCommandController({
             }
 
             const grid = args.grid as SlickGrid;
-            if (args.cell === 0 && showRowNumberColumn) {
-                selectRange(
+            const clickSelection = getFluentResultGridClickSelection(
+                args,
+                grid.getColumns().length,
+                showRowNumberColumn,
+            );
+            if (clickSelection) {
+                setFluentResultGridSelection(
                     grid,
-                    new SlickRange(
-                        args.row,
-                        FLUENT_RESULT_GRID_FIRST_DATA_CELL_INDEX,
-                        args.row,
-                        grid.getColumns().length - 1,
-                    ),
+                    [clickSelection.range],
+                    clickSelection.activeCell,
                 );
-                grid.setActiveCell(args.row, FLUENT_RESULT_GRID_FIRST_DATA_CELL_INDEX);
                 return;
             }
 
             if (args.cell < FLUENT_RESULT_GRID_FIRST_DATA_CELL_INDEX) {
                 return;
             }
-
-            grid.setActiveCell(args.row, args.cell);
-            selectRange(grid, new SlickRange(args.row, args.cell, args.row, args.cell));
 
             const row = grid.getDataItem(args.row) as FluentResultGridDataRow | undefined;
             const columnDefinition = grid.getColumns()[args.cell] as

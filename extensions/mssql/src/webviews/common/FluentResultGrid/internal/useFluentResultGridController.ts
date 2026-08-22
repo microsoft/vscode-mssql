@@ -58,11 +58,13 @@ import { useFluentResultGridCommandController } from "./fluentResultGridCommandC
 import { useFluentResultGridKeyboardController } from "./fluentResultGridKeyboardController";
 import { useFluentResultGridSlickLifecycle } from "./fluentResultGridSlickLifecycle";
 import {
+    activateFluentResultGridCellWithoutChangingSelection,
     getFirstVisibleCellInFluentResultGridRange,
     getDisplayedFluentResultGridSelectionForCopy,
     getFluentResultGridDataSelectionsFromRanges,
     getFluentResultGridSlickRangesFromDataSelections,
     isFluentResultGridAllCellsSelected,
+    clearFluentResultGridSelection,
 } from "./fluentResultGridSelection";
 import { hasActiveFluentResultGridFilters } from "./fluentResultGridTransforms";
 
@@ -98,6 +100,7 @@ export function useFluentResultGridController({
     onGridDisposed,
     onGridRendered,
     onStateChange,
+    onSelectionChange,
     onSelectionSummaryChange,
     onInMemoryDataProcessingThresholdExceeded,
 }: FluentResultGridControllerOptions): FluentResultGridControllerResult {
@@ -307,6 +310,13 @@ export function useFluentResultGridController({
         reactGridRef,
     });
 
+    const clearSelection = useCallback(() => {
+        const grid = reactGridRef.current?.slickGrid;
+        if (grid) {
+            clearFluentResultGridSelection(grid);
+        }
+    }, []);
+
     const restoredInitialStateSignatureRef = useRef<string | undefined>(undefined);
     const restoreInitialState = useCallback(
         async (grid: SlickGrid) => {
@@ -374,7 +384,7 @@ export function useFluentResultGridController({
                         ? getFirstVisibleCellInFluentResultGridRange(grid, ranges[0])
                         : undefined;
                     if (activeCell) {
-                        grid.setActiveCell(activeCell.row, activeCell.cell);
+                        activateFluentResultGridCellWithoutChangingSelection(grid, activeCell);
                     }
                 }
 
@@ -534,6 +544,13 @@ export function useFluentResultGridController({
                 selectActiveRow: false,
                 selectionType: "cell",
             },
+            // Cell values are rendered in child elements. SlickGrid's default only starts a drag
+            // when the event target is the cell itself, making selection depend on whether the
+            // pointer starts over text or padding.
+            allowDragFromClosest: "div.slick-cell",
+            // Ctrl/Cmd is used to append a dragged block. SlickGrid's option merge retains its
+            // default blocked keys here, so the initialized array is cleared in the lifecycle.
+            preventDragFromKeys: [],
             skipFreezeColumnValidation: true,
         }),
         [
@@ -561,11 +578,13 @@ export function useFluentResultGridController({
         onGridCreated,
         onGridDisposed,
         onGridRendered,
+        onSelectionChange,
         onSelectionSummaryChange,
         persistScrollPosition,
         reactGridRef,
         restoreCurrentInitialState,
         shouldSuppressSelectionSummaryChange: () => isRestoringInitialStateRef.current,
+        transformedRowsRef: dataController.transformedRowsRef,
     });
 
     const scrollToRow = useCallback((rowIndex: number): boolean => {
@@ -619,6 +638,7 @@ export function useFluentResultGridController({
         dataView: dataController.dataView,
         dataViewKey: dataController.dataViewKey,
         displayedRowCount: dataController.displayedRowCount,
+        clearSelection,
         focusGrid: keyboardController.focusGrid,
         selectAll,
         scrollToRow,
@@ -630,7 +650,6 @@ export function useFluentResultGridController({
         handleContextMenu: commandController.handleContextMenu,
         handleGridContainerBlur: keyboardController.handleGridContainerBlur,
         handleGridContainerFocus: keyboardController.handleGridContainerFocus,
-        handleGridPointerDownCapture: keyboardController.handleGridPointerDownCapture,
         handleGridKeyDownCapture: keyboardController.handleGridKeyDownCapture,
         handleHeaderCellRendered: headerController.handleHeaderCellRendered,
         handleHeaderClick: headerController.handleHeaderClick,

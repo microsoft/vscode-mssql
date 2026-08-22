@@ -3,7 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useCallback, useEffect, useRef, type MutableRefObject } from "react";
+import { useCallback, useEffect, useMemo, useRef, type MutableRefObject } from "react";
+import debounce from "lodash/debounce";
 import {
     SlickEventData,
     SlickEventHandler,
@@ -12,10 +13,18 @@ import {
 } from "@slickgrid-universal/common";
 import type { SlickgridReactInstance } from "slickgrid-react";
 import type { FluentResultGridProps } from "../types/fluentResultGridProps";
-import type { ReactGridInstanceWithSharedService } from "./fluentResultGridControllerTypes";
+import type {
+    ReactGridInstanceWithSharedService,
+    SourceRow,
+} from "./fluentResultGridControllerTypes";
 import type { FluentResultGridDataRow, FluentResultGridDataView } from "./fluentResultGridDataView";
+import { FLUENT_RESULT_GRID_SELECTION_SUMMARY_DEBOUNCE_MS } from "./fluentResultGridConstants";
 import { makeFluentResultGridMenuButtonsUntabbable } from "./fluentResultGridDomUtils";
-import { getFluentResultGridDataSelectionsFromRanges } from "./fluentResultGridSelection";
+import { enableFluentResultGridModifierDrag } from "./fluentResultGridCellRangeSelector";
+import {
+    convertDisplayedSelectionRowsToActual,
+    getFluentResultGridDataSelectionsFromRanges,
+} from "./fluentResultGridSelection";
 import { FluentResultGridSelectionModel } from "./fluentResultGridSelectionModel";
 
 export interface FluentResultGridSlickLifecycleController {
@@ -32,11 +41,13 @@ export function useFluentResultGridSlickLifecycle({
     onGridCreated,
     onGridDisposed,
     onGridRendered,
+    onSelectionChange,
     onSelectionSummaryChange,
     persistScrollPosition,
     reactGridRef,
     restoreCurrentInitialState,
     shouldSuppressSelectionSummaryChange,
+    transformedRowsRef,
 }: {
     attachFrozenPaneWheelHandler: (grid: SlickGrid) => void;
     dataView: FluentResultGridDataView<FluentResultGridDataRow>;
@@ -47,11 +58,13 @@ export function useFluentResultGridSlickLifecycle({
     onGridCreated?: FluentResultGridProps["onGridCreated"];
     onGridDisposed?: FluentResultGridProps["onGridDisposed"];
     onGridRendered?: FluentResultGridProps["onGridRendered"];
+    onSelectionChange?: FluentResultGridProps["onSelectionChange"];
     onSelectionSummaryChange?: FluentResultGridProps["onSelectionSummaryChange"];
     persistScrollPosition: (grid: SlickGrid) => void;
     reactGridRef: MutableRefObject<ReactGridInstanceWithSharedService | undefined>;
     restoreCurrentInitialState: (grid: SlickGrid) => void;
     shouldSuppressSelectionSummaryChange: () => boolean;
+    transformedRowsRef: MutableRefObject<SourceRow[] | undefined>;
 }): FluentResultGridSlickLifecycleController {
     const selectionEventHandlerRef = useRef<SlickEventHandler | undefined>(undefined);
     const gridStateEventHandlerRef = useRef<SlickEventHandler | undefined>(undefined);
@@ -59,6 +72,29 @@ export function useFluentResultGridSlickLifecycle({
     const renderEventHandlerRef = useRef<SlickEventHandler | undefined>(undefined);
     const gridMenuObserverRef = useRef<MutationObserver | undefined>(undefined);
     const gridCreatedRef = useRef(false);
+    const onSelectionChangeRef = useRef(onSelectionChange);
+    const onSelectionSummaryChangeRef = useRef(onSelectionSummaryChange);
+    const shouldSuppressSelectionSummaryChangeRef = useRef(shouldSuppressSelectionSummaryChange);
+    onSelectionChangeRef.current = onSelectionChange;
+    onSelectionSummaryChangeRef.current = onSelectionSummaryChange;
+    shouldSuppressSelectionSummaryChangeRef.current = shouldSuppressSelectionSummaryChange;
+    const publishSelectionSummary = useMemo(
+        () =>
+            debounce(
+                (
+                    selection: Parameters<
+                        NonNullable<FluentResultGridProps["onSelectionSummaryChange"]>
+                    >[0],
+                    displaySelection: Parameters<
+                        NonNullable<FluentResultGridProps["onSelectionSummaryChange"]>
+                    >[1],
+                ) => {
+                    void onSelectionSummaryChangeRef.current?.(selection, displaySelection);
+                },
+                FLUENT_RESULT_GRID_SELECTION_SUMMARY_DEBOUNCE_MS,
+            ),
+        [],
+    );
     const handleKeyDownRef = useRef<
         ((eventData: SlickEventData, args: { grid: SlickGrid }) => void) | undefined
     >(undefined);
@@ -81,6 +117,7 @@ export function useFluentResultGridSlickLifecycle({
             keyboardEventHandlerRef.current = undefined;
             renderEventHandlerRef.current?.unsubscribeAll();
             renderEventHandlerRef.current = undefined;
+            publishSelectionSummary.cancel();
             gridMenuObserverRef.current?.disconnect();
             gridMenuObserverRef.current = undefined;
             if (gridCreatedRef.current) {
@@ -88,7 +125,7 @@ export function useFluentResultGridSlickLifecycle({
                 onGridDisposedRef.current?.();
             }
         };
-    }, [detachFrozenPaneWheelHandler]);
+    }, [detachFrozenPaneWheelHandler, publishSelectionSummary]);
 
     // SlickGrid can retain its live instance while React swaps the custom
     // data view (for example, a rerun changes a one-column readiness result
@@ -105,8 +142,13 @@ export function useFluentResultGridSlickLifecycle({
         (event: CustomEvent<SlickgridReactInstance>) => {
             const reactGrid = event.detail as ReactGridInstanceWithSharedService;
             const grid = reactGrid.slickGrid;
+            if (gridCreatedRef.current && reactGridRef.current !== reactGrid) {
+                onGridDisposedRef.current?.();
+                gridCreatedRef.current = false;
+            }
             reactGridRef.current = reactGrid;
             dataViewRef.current?.setGrid(grid);
+            enableFluentResultGridModifierDrag(grid.getOptions().preventDragFromKeys);
             attachFrozenPaneWheelHandler(grid);
             grid.setSelectionModel(
                 new FluentResultGridSelectionModel({
@@ -135,9 +177,26 @@ export function useFluentResultGridSlickLifecycle({
                 selectionEventHandlerRef.current.subscribe(
                     selectionModel.onSelectedRangesChanged,
                     (_event, ranges: SlickRange[]) => {
-                        const selection = getFluentResultGridDataSelectionsFromRanges(ranges);
-                        if (!shouldSuppressSelectionSummaryChange()) {
-                            void onSelectionSummaryChange?.(selection);
+                        const displaySelection =
+                            getFluentResultGridDataSelectionsFromRanges(ranges);
+                        const transformedRows = transformedRowsRef.current;
+                        const selection = transformedRows
+                            ? convertDisplayedSelectionRowsToActual(
+                                  displaySelection,
+                                  (displayRow) => transformedRows[displayRow]?.rowId,
+                              )
+                            : displaySelection;
+                        publishSelectionSummary.cancel();
+                        if (!shouldSuppressSelectionSummaryChangeRef.current()) {
+                            onSelectionChangeRef.current?.(displaySelection);
+                            if (selection.length === 0) {
+                                void onSelectionSummaryChangeRef.current?.(
+                                    selection,
+                                    displaySelection,
+                                );
+                            } else {
+                                publishSelectionSummary(selection, displaySelection);
+                            }
                         }
                         emitStateChange(grid);
                     },
@@ -173,11 +232,11 @@ export function useFluentResultGridSlickLifecycle({
             attachFrozenPaneWheelHandler,
             dataViewRef,
             emitStateChange,
-            onSelectionSummaryChange,
             persistScrollPosition,
+            publishSelectionSummary,
             reactGridRef,
             restoreCurrentInitialState,
-            shouldSuppressSelectionSummaryChange,
+            transformedRowsRef,
         ],
     );
 

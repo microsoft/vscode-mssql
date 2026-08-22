@@ -17,6 +17,7 @@ import { DeploymentContext } from "../deploymentStateProvider";
 import { useLocalContainersDeploymentSelector } from "../deploymentSelector";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { WhatsNextCard } from "../whatsNextCard";
+import { ConnectToDatabaseCard } from "../connectToDatabaseCard";
 
 export const LocalContainersDeploymentProvisioningPage: React.FC = () => {
     const classes = stepPageStyles();
@@ -24,6 +25,7 @@ export const LocalContainersDeploymentProvisioningPage: React.FC = () => {
     const dockerSteps = useLocalContainersDeploymentSelector((s) => s.dockerSteps);
     const currentDockerStep = useLocalContainersDeploymentSelector((s) => s.currentDockerStep);
     const containerName = useLocalContainersDeploymentSelector((s) => s.formState?.containerName);
+    const connectionString = useLocalContainersDeploymentSelector((s) => s.connectionString);
     const lastStep = DockerStepOrder.connectToContainer;
 
     const localContainersWrappedState = useMemo(
@@ -59,7 +61,15 @@ export const LocalContainersDeploymentProvisioningPage: React.FC = () => {
                 <StepCard step={dockerSteps[DockerStepOrder.checkContainer]} />
                 <StepCard step={dockerSteps[DockerStepOrder.connectToContainer]} />
                 {dockerSteps[lastStep]?.loadState === ApiStatus.Loaded && (
-                    <WhatsNextCard className={classes.postDeploymentCard} />
+                    <>
+                        {connectionString && (
+                            <ConnectToDatabaseCard
+                                connectionString={connectionString}
+                                className={classes.postDeploymentCard}
+                            />
+                        )}
+                        <WhatsNextCard className={classes.postDeploymentCard} />
+                    </>
                 )}
             </div>
         </div>

@@ -54,7 +54,11 @@ export interface FluentResultGridBehaviorProps {
 export interface FluentResultGridCallbackProps {
     onCommand?: (event: FluentResultGridCommandEvent) => MaybePromise<void>;
     onStateChange?: (state: FluentResultGridState) => void;
-    onSelectionSummaryChange?: (selection: readonly ISlickRange[]) => MaybePromise<void>;
+    onSelectionChange?: (selection: readonly ISlickRange[]) => void;
+    onSelectionSummaryChange?: (
+        selection: readonly ISlickRange[],
+        displaySelection?: readonly ISlickRange[],
+    ) => MaybePromise<void>;
     onInMemoryDataProcessingThresholdExceeded?: () => MaybePromise<void>;
     /** Called after SlickGrid has created and initialized its live grid instance. */
     onGridCreated?: () => void;
@@ -77,6 +81,7 @@ export interface FluentResultGridProps
 
 export interface FluentResultGridHandle {
     focusGrid: () => void;
+    clearSelection?: () => void;
     /**
      * Select every data cell, or report that restored view state already has
      * the full range selected. Returns false before grid creation.

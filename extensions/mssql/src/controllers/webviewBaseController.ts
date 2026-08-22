@@ -65,7 +65,6 @@ export const WEBVIEW_INIT_TIMEOUT_MS = 5_000;
  * normal caching.
  */
 const WEBVIEW_ASSET_STAMP = Date.now().toString(36);
-
 class WebviewControllerMessageReader extends AbstractMessageReader implements MessageReader {
     private _onData: Emitter<Message>;
     private _disposables: vscode.Disposable[] = [];
@@ -432,22 +431,24 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
             const timeToLoad = timeStamp - this._loadStartTime;
             if (this._isFirstLoad) {
                 /**
-                 * This notification is sent from the webview when it has finished loading. We use
-                 * this to track when the webview is ready to receive messages.
+                 * This notification is sent from the webview when it has finished loading.
+                 * We use this to track when the webview is ready to receive messages.
                  */
-                this._isWebviewReady = true;
-                if (this._webviewReadyTimeoutHandle !== undefined) {
-                    clearTimeout(this._webviewReadyTimeoutHandle);
-                    this._webviewReadyTimeoutHandle = undefined;
-                }
-                this._webviewReady.resolve();
+                this.markWebviewReady();
 
                 this.logger.trace(
                     `Load stats for ${this._sourceFile}` + "\n" + `Total time: ${timeToLoad} ms`,
                 );
-                this._endLoadActivity.end(ActivityStatus.Succeeded, {
-                    type: this._sourceFile,
-                });
+                this._endLoadActivity.end(
+                    ActivityStatus.Succeeded,
+                    {
+                        type: this._sourceFile,
+                    },
+                    {
+                        timeToLoad,
+                        ...(message.stages ?? {}),
+                    },
+                );
                 this._isFirstLoad = false;
             }
         });
@@ -780,6 +781,19 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
         }
 
         return this._webviewReady.promise;
+    }
+
+    private markWebviewReady(): void {
+        if (this._isWebviewReady) {
+            return;
+        }
+
+        this._isWebviewReady = true;
+        if (this._webviewReadyTimeoutHandle !== undefined) {
+            clearTimeout(this._webviewReadyTimeoutHandle);
+            this._webviewReadyTimeoutHandle = undefined;
+        }
+        this._webviewReady.resolve();
     }
 
     private readKeyBindingsConfig(): Record<string, string> {

@@ -29,7 +29,7 @@ jobs:
 
     steps:
       - name: Checkout PR branch
-        uses: actions/checkout@v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
@@ -45,7 +45,7 @@ jobs:
       - name: Download baseline sizes
         if: env.should_compare_baseline == 'true'
         continue-on-error: true
-        uses: dawidd6/action-download-artifact@v21
+        uses: dawidd6/action-download-artifact@b6e2e70617bc3265edd6dab6c906732b2f1ae151 # v21
         with:
           workflow: publish-baseline.yml
           branch: ${{ github.event.pull_request.base.ref }}
@@ -57,7 +57,7 @@ jobs:
         uses: ./.github/actions/setup-node
 
       - name: Setup .NET Core # Required to execute ReportGenerator
-        uses: actions/setup-dotnet@v5
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: 8.x
           dotnet-quality: "ga"
@@ -97,25 +97,25 @@ jobs:
           npm run package -- --preview
 
       - name: MSSQL - Upload VSIX files
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: mssql-vsix
           path: ./extensions/mssql/*.vsix
 
       - name: SqlProj - Upload VSIX files
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: sql-database-projects-vsix
           path: ./extensions/sql-database-projects/*.vsix
 
       - name: DataWorkspace - Upload VSIX files
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: data-workspace-vsix
           path: ./extensions/data-workspace/*.vsix
 
       - name: Keymap - Upload VSIX files
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: keymap-vsix
           path: ./extensions/database-management-keymap/*.vsix
@@ -296,7 +296,7 @@ jobs:
           echo "mssql_unit_tests_pr_exit_code=$UNIT_EXIT_CODE" >> $GITHUB_ENV
 
       - name: MSSQL - Unit Test Report
-        uses: dorny/test-reporter@v3
+        uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3.0.0
         if: success() || failure()
         with:
           name: "Unit Test Report"
@@ -358,14 +358,14 @@ jobs:
           echo "mssql_smoke_tests_pr_exit_code=$SMOKE_EXIT_CODE" >> $GITHUB_ENV
 
       - name: Upload Smoke Test Screenshots and Videos
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: smoke-test-failure-screenshots
           path: ./extensions/mssql/test-results/**/
           retention-days: 7
 
       - name: Smoke Test Report
-        uses: dorny/test-reporter@v3
+        uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3.0.0
         if: success() || failure()
         with:
           name: "Smoke Test Report"
@@ -384,7 +384,7 @@ jobs:
           fi
 
       - name: Generate Coverage Report
-        uses: danielpalme/ReportGenerator-GitHub-Action@v5
+        uses: danielpalme/ReportGenerator-GitHub-Action@d3ebf1f760f7d8ab92cc44d9bcfee7ad73722a31 # v5.5.11
         with:
           reports: "./extensions/mssql/coverage/cobertura-coverage.xml"
           targetdir: "coveragereport"
@@ -392,13 +392,13 @@ jobs:
           toolpath: "reportgeneratortool"
 
       - name: Upload coverage report artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: CoverageReport
           path: coveragereport
 
       - name: MSSQL - Upload coverage to Codecov
-        uses: codecov/codecov-action@v6
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./extensions/mssql/coverage/cobertura-coverage.xml
@@ -416,7 +416,7 @@ jobs:
           echo "| keymap VSIX                 | ${{ env.keymap_target_vsix_size }} KB | ${{ env.keymap_pr_vsix_size }} KB | ${{ env.keymap_vsix_change_icon }} ${{ env.keymap_vsix_size_diff }} KB ( ${{ env.keymap_vsix_percentage_change }}% ) |" >> results.md
 
       - name: Find comment
-        uses: peter-evans/find-comment@v4
+        uses: peter-evans/find-comment@b30e6a3c0ed37e7c023ccd3f1db5c6c0b0c23aad # v4.0.0
         if: env.should_compare_baseline == 'true'
         id: fc
         with:
@@ -426,7 +426,7 @@ jobs:
             ### PR Changes
 
       - name: Create or update comment
-        uses: peter-evans/create-or-update-comment@v5
+        uses: peter-evans/create-or-update-comment@e8674b075228eee787fea43ef493e45ece1004c9 # v5.0.0
         if: env.should_compare_baseline == 'true'
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -444,7 +444,7 @@ jobs:
           echo "sqlproj_unit_tests_pr_exit_code=$UNIT_EXIT_CODE" >> $GITHUB_ENV
 
       - name: SqlProj - Upload coverage to Codecov
-        uses: codecov/codecov-action@v6
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./extensions/sql-database-projects/coverage/cobertura-coverage.xml
@@ -459,7 +459,7 @@ jobs:
           echo "dataworkspace_unit_tests_pr_exit_code=$UNIT_EXIT_CODE" >> $GITHUB_ENV
 
       - name: DataWorkspace - Upload coverage to Codecov
-        uses: codecov/codecov-action@v6
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./extensions/data-workspace/coverage/cobertura-coverage.xml
@@ -522,7 +522,7 @@ jobs:
           fi
 
       - name: Find comment
-        uses: peter-evans/find-comment@v4
+        uses: peter-evans/find-comment@b30e6a3c0ed37e7c023ccd3f1db5c6c0b0c23aad # v4.0.0
         if: github.event_name == 'pull_request'
         id: loc-comment
         with:
@@ -533,7 +533,7 @@ jobs:
 
       - name: Create or update comment
         if: github.event_name == 'pull_request' && env.loc_update_required == 'true'
-        uses: peter-evans/create-or-update-comment@v5
+        uses: peter-evans/create-or-update-comment@e8674b075228eee787fea43ef493e45ece1004c9 # v5.0.0
         with:
           comment-id: ${{ steps.loc-comment.outputs.comment-id }}
           token: ${{ secrets.GITHUB_TOKEN }}

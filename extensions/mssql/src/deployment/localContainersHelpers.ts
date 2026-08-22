@@ -26,6 +26,7 @@ import * as sqlServerContainer from "./sqlServerContainer";
 import { FormItemOptions, FormItemSpec, FormItemType } from "../sharedInterfaces/form";
 import { getGroupIdFormItem } from "../connectionconfig/formComponentHelpers";
 import { UserSurvey } from "../nps/userSurvey";
+import { getErrorMessage } from "../utils/utils";
 
 export async function initializeLocalContainersState(
     groupOptions: FormItemOptions[],
@@ -92,10 +93,13 @@ export function registerLocalContainersReducers(deploymentController: Deployment
                 localContainersState.formState,
                 deploymentController.containerConnect,
             );
-            stepSuccessful = connectionResult;
+            stepSuccessful = connectionResult.success;
 
-            if (!connectionResult) {
+            if (connectionResult.success) {
+                localContainersState.connectionString = connectionResult.connectionString ?? "";
+            } else {
                 currentStep.errorMessage = `${connectErrorTooltip} ${localContainersState.formState.profileName}`;
+                currentStep.fullErrorText = connectionResult.fullErrorText;
             }
 
             UserSurvey.getInstance().promptUserForNPSFeedback(
@@ -295,8 +299,8 @@ export function sendLocalContainersCloseEventTelemetry(state: lc.LocalContainers
 export async function addContainerConnection(
     dockerProfile: lc.DockerConnectionProfile,
     connectAdapter: ContainerConnectAdapter,
-): Promise<boolean> {
-    let connection: unknown = {
+): Promise<lc.ContainerConnectionResult> {
+    const connection: unknown = {
         ...dockerProfile,
         server: `${localhost},${dockerProfile.port}`,
         profileName: dockerProfile.profileName || dockerProfile.containerName,
@@ -310,12 +314,14 @@ export async function addContainerConnection(
     try {
         // The seam decides WHICH Object Explorer persists and opens the
         // profile (classic OE session vs v2 data-plane connect, DOCK-1).
-        await connectAdapter.saveAndConnect(connection as IConnectionProfile);
-    } catch {
-        return false;
-    }
+        const connectionString = await connectAdapter.saveAndConnect(
+            connection as IConnectionProfile,
+        );
 
-    return true;
+        return { success: true, connectionString };
+    } catch (error) {
+        return { success: false, fullErrorText: getErrorMessage(error) };
+    }
 }
 
 export function setLocalContainersFormComponents(

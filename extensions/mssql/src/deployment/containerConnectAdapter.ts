@@ -17,8 +17,22 @@ import { IConnectionProfile } from "../models/interfaces";
 import { stableProfileId } from "../services/metadata/profileAuthAdapter";
 
 export interface ContainerConnectAdapter {
-    /** Persist the profile and open it in the owning Object Explorer (throws on failure). */
-    saveAndConnect(profile: IConnectionProfile): Promise<void>;
+    /**
+     * Persist the profile, open it in the owning Object Explorer, and return a display-safe
+     * connection string without a password. Throws when any part of the operation fails.
+     */
+    saveAndConnect(profile: IConnectionProfile): Promise<string>;
+}
+
+async function getDisplayConnectionString(
+    mainController: MainController,
+    profile: IConnectionProfile,
+): Promise<string> {
+    return mainController.connectionManager.getConnectionString(
+        mainController.connectionManager.createConnectionDetails(profile),
+        false /* includePassword */,
+        false /* includeApplicationName */,
+    );
 }
 
 /** Classic OE adapter — byte-identical to the pre-seam behavior. */
@@ -29,7 +43,9 @@ export function classicContainerConnectAdapter(
         saveAndConnect: async (connection: IConnectionProfile) => {
             const profile =
                 await mainController.connectionManager.connectionUI.saveProfile(connection);
+            const connectionString = await getDisplayConnectionString(mainController, profile);
             await mainController.createObjectExplorerSession(profile);
+            return connectionString;
         },
     };
 }
@@ -47,6 +63,7 @@ export function oeV2ContainerConnectAdapter(
         saveAndConnect: async (connection: IConnectionProfile) => {
             const profile =
                 await mainController.connectionManager.connectionUI.saveProfile(connection);
+            const connectionString = await getDisplayConnectionString(mainController, profile);
             const connected = await vscode.commands.executeCommand<boolean>(
                 "mssql.objectExplorerV2.connectProfileById",
                 stableProfileId(profile as unknown as Parameters<typeof stableProfileId>[0]),
@@ -55,6 +72,7 @@ export function oeV2ContainerConnectAdapter(
                 throw new Error("Object Explorer v2 could not connect to the new container.");
             }
             void vscode.commands.executeCommand("mssql.objectExplorerV2.focus");
+            return connectionString;
         },
     };
 }

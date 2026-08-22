@@ -137,6 +137,7 @@ export function registerCommonRequestHandlers(
                 message.resultId,
                 message.selection,
                 shouldIncludeHeaders(message.includeHeaders),
+                message.preserveSelectionLayout,
             );
     });
 

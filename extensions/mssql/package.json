@@ -3446,6 +3446,12 @@
                     "default": true,
                     "scope": "window"
                 },
+                "mssql.statusBar.showQueryExecutionStatus": {
+                    "type": "boolean",
+                    "description": "%mssql.statusBar.showQueryExecutionStatus.description%",
+                    "default": true,
+                    "scope": "window"
+                },
                 "mssql.format.alignColumnDefinitionsInColumns": {
                     "type": "boolean",
                     "markdownDescription": "%mssql.format.alignColumnDefinitionsInColumns%",
@@ -3604,6 +3610,11 @@
                     "type": "boolean",
                     "default": false,
                     "description": "%mssql.resultsGrid.alternatingRowColors%"
+                },
+                "mssql.resultsGrid.freezeFirstColumnByDefault": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "%mssql.resultsGrid.freezeFirstColumnByDefault%"
                 },
                 "mssql.resultsGrid.showGridLines": {
                     "type": "string",

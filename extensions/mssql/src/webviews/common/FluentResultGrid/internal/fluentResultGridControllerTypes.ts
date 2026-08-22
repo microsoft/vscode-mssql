@@ -47,6 +47,7 @@ export interface FluentResultGridControllerResult {
     dataView: FluentResultGridDataView<FluentResultGridDataRow>;
     dataViewKey: number;
     displayedRowCount: number;
+    clearSelection: () => void;
     focusGrid: () => void;
     selectAll: () => "selected" | "alreadySelected" | false;
     scrollToRow: (rowIndex: number) => boolean;
@@ -58,7 +59,6 @@ export interface FluentResultGridControllerResult {
     handleContextMenu: (event: CustomEvent) => void;
     handleGridContainerBlur: (event: ReactFocusEvent<HTMLDivElement>) => void;
     handleGridContainerFocus: (event: ReactFocusEvent<HTMLDivElement>) => void;
-    handleGridPointerDownCapture: () => void;
     handleGridKeyDownCapture: (event: ReactKeyboardEvent<HTMLDivElement>) => void;
     handleHeaderCellRendered: (event: CustomEvent) => void;
     handleHeaderClick: (event: CustomEvent) => void;

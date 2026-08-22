@@ -325,6 +325,7 @@ export const configAutoColumnSizingMode = "resultsGrid.autoSizeColumnsMode";
 export const configInMemoryDataProcessingThreshold =
     "mssql.resultsGrid.inMemoryDataProcessingThreshold";
 export const configResultsGridAlternatingRowColors = "resultsGrid.alternatingRowColors";
+export const configResultsGridFreezeFirstColumnByDefault = "resultsGrid.freezeFirstColumnByDefault";
 export const configResultsGridShowGridLines = "resultsGrid.showGridLines";
 export const configResultsGridRowPadding = "resultsGrid.rowPadding";
 export const configAutoDisableNonTSqlLanguageService = "mssql.autoDisableNonTSqlLanguageService";
@@ -335,6 +336,7 @@ export const configShowActiveConnectionAsCodeLensSuggestion =
     "mssql.query.showActiveConnectionAsCodeLensSuggestion";
 export const configStatusBarConnectionInfoMaxLength = "statusBar.connectionInfoMaxLength";
 export const configStatusBarEnableConnectionColor = "mssql.statusBar.enableConnectionColor";
+export const configStatusBarShowQueryExecutionStatus = "statusBar.showQueryExecutionStatus";
 export const configSchemaDesignerEnableExpandCollapseButtons =
     "mssql.schemaDesigner.enableExpandCollapseButtons";
 export const configSavePasswordsUntilRestart =
