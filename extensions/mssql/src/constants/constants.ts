@@ -335,6 +335,7 @@ export const configShowActiveConnectionAsCodeLensSuggestion =
     "mssql.query.showActiveConnectionAsCodeLensSuggestion";
 export const configStatusBarConnectionInfoMaxLength = "statusBar.connectionInfoMaxLength";
 export const configStatusBarEnableConnectionColor = "mssql.statusBar.enableConnectionColor";
+export const configStatusBarShowQueryExecutionStatus = "statusBar.showQueryExecutionStatus";
 export const configSchemaDesignerEnableExpandCollapseButtons =
     "mssql.schemaDesigner.enableExpandCollapseButtons";
 export const configSavePasswordsUntilRestart =
