@@ -4051,6 +4051,10 @@
     <trans-unit id="++CODE++c4a77afa3d5cd701f32b5f09c195c635b256db8595687828c3ea0785ab5b72f4">
       <source xml:lang="en">Image tag</source>
     </trans-unit>
+    <trans-unit id="++CODE++45386a69d2b5eb577c53d296ecd652d7cc6583c3f759680582587663cff8539c">
+      <source xml:lang="en">Impact {0}%</source>
+      <note>{0} is the estimated percentage improvement from creating the index</note>
+    </trans-unit>
     <trans-unit id="++CODE++09b493255c6cc11aae4f73f97494b4d0123bb42869372d0a2182f0a324eb5ef5">
       <source xml:lang="en">Import BACPAC</source>
     </trans-unit>
@@ -4790,6 +4794,12 @@
     <trans-unit id="++CODE++c4cb38118e976f2ec6af215b6206c1aeadd0a3a1a95b4ab00681c97e9a276753">
       <source xml:lang="en">Missing connection reference. Please provide exactly one of connectionId or connectionName.</source>
     </trans-unit>
+    <trans-unit id="++CODE++c0ddd09f7b9ebbe309bc4e518e1aad4479cbbc1eb792cac263b398e11a85af5a">
+      <source xml:lang="en">Missing index</source>
+    </trans-unit>
+    <trans-unit id="++CODE++efb9ca4f5a017be57cf3a7cb05a528919e6419abddfe79c4a2d8937b2a901186">
+      <source xml:lang="en">Missing index recommendations</source>
+    </trans-unit>
     <trans-unit id="++CODE++910bb9ebcad74af9fe7fae916e94812f8a97c60f93e76a1167b4ca1583d70f27">
       <source xml:lang="en">Missing schema payload for replace_schema operation.</source>
     </trans-unit>
@@ -5505,6 +5515,9 @@
     </trans-unit>
     <trans-unit id="++CODE++eca206dacc5627de738a49f5b7cc3a89393f5c0d8e5da0dadfb8baec1c274678">
       <source xml:lang="en">Open the generated SELECT statement in a new editor</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bcec92c3fcbd6a1012ed2ae1a5d10e462184bbb5ca83b2df5552cb49620c78cf">
+      <source xml:lang="en">Open the recommended index script in a new query editor</source>
     </trans-unit>
     <trans-unit id="++CODE++3a8e07b84d53ba502ae8ee669003537bdbbe321d6c8c6fb6cbd63019cb3d400e">
       <source xml:lang="en">Opening Publish Script. This may take a while...</source>
