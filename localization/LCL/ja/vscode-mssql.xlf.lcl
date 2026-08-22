@@ -919,6 +919,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++08dd9018a8985b14cb37706073caca7d76b6b750d933c87571c8250f626ec7ec" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Are you sure you want to delete the container '{0}'?]A;]A;This will remove both the container and its connection from VS Code.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[コンテナー {0} を削除しますか?]A;]A;これにより、コンテナーとその接続の両方が VS Code から削除されます。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++08e2c4e53c4b3b6008b7bc4d82eb29ab933d3b6c08b34eda0637fbf148fb1529" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Clear Recent Connections List]]></Val>
@@ -15346,15 +15355,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++9d9d0bfa74aaf1db2f58269ddd7f7e8141a4069574d576aab3174f0f810ad1e0" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Are you sure you want to delete the container {0}? This will remove both the container and its connection from VS Code.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[コンテナー {0} を削除しますか?これにより、コンテナーとその接続の両方が VS Code から削除されます。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++9d9d46783dcefefd1551f73e73f02714e347e6e8e8f33052135e0d3fefd8e0d8" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Compress backup]]></Val>
@@ -15369,6 +15369,15 @@
           <Val><![CDATA[Delete reusable filter?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[再利用可能なフィルターを削除しますか?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++9e157e2e4c433d963de65edac5ffc84fdfcf02d13a0f07d348b9da33ad60d851" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The container '{0}' is also used by other saved connections:]A;{1}]A;]A;Deleting it will remove both the container and this connection from VS Code, and the other connections will stop working.]A;]A;Are you sure you want to continue?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[コンテナー '{0}' は、他の保存済みの接続でも使用されています:]A;{1}]A;]A;これを削除すると、コンテナーとこの接続の両方が VS Code から削除され、他の接続は機能しなくなります。]A;]A;続行しますか?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
