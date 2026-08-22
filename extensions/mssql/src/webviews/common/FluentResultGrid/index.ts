@@ -34,6 +34,7 @@ export type {
     FluentResultGridColumnWindowingOptions,
     FluentResultGridDataSource,
     FluentResultGridInMemoryDataSource,
+    FluentResultGridReadPurpose,
     FluentResultGridRow,
     FluentResultGridRows,
     FluentResultGridRowsResult,

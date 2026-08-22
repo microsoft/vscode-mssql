@@ -22,6 +22,7 @@ import type {
 import type {
     FluentResultGridColumnWindow,
     FluentResultGridDataSource,
+    FluentResultGridReadPurpose,
 } from "../types/fluentResultGridDataSource";
 import type { MaybePromise } from "../types/fluentResultGridPrimitives";
 import type { FluentResultGridState } from "../types/fluentResultGridState";
@@ -54,6 +55,7 @@ export interface FluentResultGridDataController {
         offset: number,
         count: number,
         columnWindow?: FluentResultGridColumnWindow,
+        readPurpose?: FluentResultGridReadPurpose,
     ) => Promise<SourceRow[]>;
     filterStateRef: MutableRefObject<ColumnFilterMap>;
     hasActiveSort: () => boolean;
@@ -104,12 +106,13 @@ export function useFluentResultGridDataController({
             offset: number,
             count: number,
             columnWindow?: FluentResultGridColumnWindow,
+            readPurpose: FluentResultGridReadPurpose = "authoritative",
         ): Promise<SourceRow[]> => {
             const currentDataSource = dataSourceRef.current;
             const rows =
                 currentDataSource.kind === "rows"
                     ? currentDataSource.rows.slice(offset, offset + count)
-                    : await currentDataSource.getRows(offset, count, columnWindow);
+                    : await currentDataSource.getRows(offset, count, columnWindow, readPurpose);
 
             return rows.map((cells, rowOffset) => ({
                 rowId: offset + rowOffset,
@@ -124,13 +127,16 @@ export function useFluentResultGridDataController({
             offset: number,
             count: number,
             columnWindow?: FluentResultGridColumnWindow,
+            readPurpose?: FluentResultGridReadPurpose,
         ): Promise<DbCellValue[][]> => {
             const transformedRows = transformedRowsRef.current;
             if (transformedRows) {
                 return transformedRows.slice(offset, offset + count).map((row) => row.cells);
             }
 
-            return (await fetchRowsFromSource(offset, count, columnWindow)).map((row) => row.cells);
+            return (await fetchRowsFromSource(offset, count, columnWindow, readPurpose)).map(
+                (row) => row.cells,
+            );
         },
         [fetchRowsFromSource],
     );

@@ -20,6 +20,7 @@ import type {
     FluentResultGridColumnWindow,
     FluentResultGridColumnWindowingOptions,
     FluentResultGridDataSource,
+    FluentResultGridReadPurpose,
     FluentResultGridRow,
 } from "../types/fluentResultGridDataSource";
 import type { MaybePromise } from "../types/fluentResultGridPrimitives";
@@ -420,10 +421,12 @@ class FluentResultGridWindowedRowStore<T extends Slick.SlickData>
             offset: number,
             count: number,
             columnWindow?: FluentResultGridColumnWindow,
+            readPurpose?: FluentResultGridReadPurpose,
         ) => MaybePromise<T[]>,
         private readonly columnWindowingEnabled: boolean,
     ) {
         this.windowSize = toPositiveInteger(windowSize, 1);
+        this.columnWindowInitialized = !columnWindowingEnabled;
 
         const loadCompleteCallback = (start: number, end: number) => {
             if (!this.disposed) {
@@ -441,22 +444,31 @@ class FluentResultGridWindowedRowStore<T extends Slick.SlickData>
         loadCompleteCallback: (start: number, end: number) => void,
     ): FluentResultGridDataWindow<T> {
         return new FluentResultGridDataWindow(
-            (offset, count) => this.loadRows(offset, count, this.columnWindow),
+            (offset, count) => this.loadRows(offset, count, this.columnWindow, "viewport"),
             this.createPlaceholderRow,
             loadCompleteCallback,
         );
     }
 
     private columnWindow: FluentResultGridColumnWindow | undefined;
+    private columnWindowInitialized: boolean;
+
+    private createPlaceholderRange(start: number, end: number): T[] {
+        return Array.from({ length: end - start }, (_value, index) =>
+            this.createPlaceholderRow(start + index),
+        );
+    }
 
     public setColumnWindow(columnWindow: FluentResultGridColumnWindow | undefined): boolean {
         if (!this.columnWindowingEnabled) {
             return false;
         }
-        if (
+        const unchanged =
+            this.columnWindowInitialized &&
             this.columnWindow?.start === columnWindow?.start &&
-            this.columnWindow?.count === columnWindow?.count
-        ) {
+            this.columnWindow?.count === columnWindow?.count;
+        this.columnWindowInitialized = true;
+        if (unchanged) {
             return false;
         }
         this.columnWindow = columnWindow;
@@ -506,6 +518,14 @@ class FluentResultGridWindowedRowStore<T extends Slick.SlickData>
 
         if (range.end <= range.start) {
             return [];
+        }
+
+        // SlickGrid reads its data synchronously during construction, before
+        // setGrid() gives us the horizontal viewport. Keep those reads as
+        // placeholders so a wide source never starts an unprojected row
+        // generation that competes with the first projected viewport load.
+        if (!this.columnWindowInitialized) {
+            return this.createPlaceholderRange(range.start, range.end);
         }
 
         const currentRows = this.getRangeFromCurrentWindows(range.start, range.end);
@@ -576,7 +596,7 @@ class FluentResultGridWindowedRowStore<T extends Slick.SlickData>
         }
 
         const rows = await Promise.resolve(
-            this.loadRows(range.start, range.end - range.start, undefined),
+            this.loadRows(range.start, range.end - range.start, undefined, "authoritative"),
         ).catch(() => []);
         return Array.from(
             { length: range.end - range.start },
@@ -973,8 +993,8 @@ export function createFluentResultGridDataView<T extends Slick.SlickData = Fluen
             options.windowSize ?? defaultWindowSize,
             (index) => rowFactory.createPlaceholderRow(index, columnCount),
             dataSource.rowCount,
-            async (offset, count, columnWindow) => {
-                const rows = await dataSource.getRows(offset, count, columnWindow);
+            async (offset, count, columnWindow, readPurpose) => {
+                const rows = await dataSource.getRows(offset, count, columnWindow, readPurpose);
                 return rows.map((row, rowOffset) =>
                     rowFactory.createRow(row, offset + rowOffset, columnCount),
                 );

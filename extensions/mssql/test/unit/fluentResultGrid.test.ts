@@ -188,6 +188,7 @@ suite("Fluent Result Grid", () => {
                 count: number;
                 start?: number;
                 columns?: number;
+                purpose?: "viewport" | "authoritative";
             }> = [];
             const dataView = createFluentResultGridDataView({
                 columnCount: 300,
@@ -196,12 +197,13 @@ suite("Fluent Result Grid", () => {
                     kind: "windowed",
                     rowCount: 100,
                     columnWindowing: { minimumColumnCount: 64, overscanColumnCount: 8 },
-                    getRows: (offset, count, columnWindow) => {
+                    getRows: (offset, count, columnWindow, readPurpose) => {
                         requests.push({
                             offset,
                             count,
                             start: columnWindow?.start,
                             columns: columnWindow?.count,
+                            purpose: readPurpose,
                         });
                         return Array.from({ length: count }, () => []);
                     },
@@ -209,6 +211,9 @@ suite("Fluent Result Grid", () => {
             });
             dataView.setLength(100, true);
             dataView.refresh(0);
+            // SlickGrid probes rows synchronously in its constructor, before
+            // the data view receives the grid and can resolve column pixels.
+            expect(dataView.getItem(0)).to.not.equal(undefined);
             expect(requests).to.deep.equal([]);
             let viewport = { top: 0, bottom: 5, leftPx: 0, rightPx: 648 };
             const grid = {
@@ -230,13 +235,22 @@ suite("Fluent Result Grid", () => {
             await Promise.resolve();
             expect(requests.length).to.be.greaterThan(0);
             expect(
-                requests.every((request) => request.start === 0 && request.columns === 14),
+                requests.every(
+                    (request) =>
+                        request.start === 0 &&
+                        request.columns === 14 &&
+                        request.purpose === "viewport",
+                ),
             ).to.equal(true);
 
             dataView.setLength(100, true);
             dataView.refresh(0);
             await Promise.resolve();
-            expect(requests.every((request) => request.start !== undefined)).to.equal(true);
+            expect(
+                requests.every(
+                    (request) => request.start !== undefined && request.purpose === "viewport",
+                ),
+            ).to.equal(true);
 
             viewport = { top: 0, bottom: 5, leftPx: 29_448, rightPx: 30_048 };
             dataView.ensureViewportLoaded();
@@ -251,6 +265,7 @@ suite("Fluent Result Grid", () => {
                 count: 1,
                 start: undefined,
                 columns: undefined,
+                purpose: "authoritative",
             });
             dataView.dispose();
             if (previousRequestAnimationFrame) {

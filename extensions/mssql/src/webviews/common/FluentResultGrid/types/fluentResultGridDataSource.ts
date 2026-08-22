@@ -28,6 +28,9 @@ export interface FluentResultGridColumnWindowingOptions {
     overscanColumnCount?: number;
 }
 
+/** Distinguishes render-driving viewport reads from full-row utility reads. */
+export type FluentResultGridReadPurpose = "viewport" | "authoritative";
+
 export interface FluentResultGridInMemoryDataSource {
     kind: "rows";
     rows: FluentResultGridRows;
@@ -42,11 +45,14 @@ export interface FluentResultGridWindowedDataSource {
     /**
      * columnWindow is present only for viewport reads. Calls without it are
      * authoritative full-row reads used by sort/filter/autosize/commands.
+     * readPurpose is explicit because narrow viewport reads also omit the
+     * column window.
      */
     getRows: (
         offset: number,
         count: number,
         columnWindow?: FluentResultGridColumnWindow,
+        readPurpose?: FluentResultGridReadPurpose,
     ) => FluentResultGridRowsResult;
 }
 

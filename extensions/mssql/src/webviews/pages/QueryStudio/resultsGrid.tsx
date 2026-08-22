@@ -36,6 +36,7 @@ import {
     type FluentResultGridColumnWindow,
     type FluentResultGridKeyBindingMap,
     type FluentResultGridHandle,
+    type FluentResultGridReadPurpose,
     type FluentResultGridStrings,
     type FluentResultGridState,
     type FluentResultGridTheme,
@@ -677,6 +678,7 @@ export function QsResultGridSurface(props: {
                 offset: number,
                 count: number,
                 columnWindow?: FluentResultGridColumnWindow,
+                readPurpose: FluentResultGridReadPurpose = "authoritative",
             ) => {
                 const perfEnabled = perfMarksEnabled();
                 const requestedAt = perfEnabled ? performance.now() : 0;
@@ -724,12 +726,17 @@ export function QsResultGridSurface(props: {
                         projected,
                         ms: Math.round((performance.now() - requestedAt) * 100) / 100,
                     });
-                    pendingRenderedWindowRef.current = {
-                        receivedAt: performance.now(),
-                        rows: window.rowCount,
-                        columns: window.columns.length,
-                        projected,
-                    };
+                    // Full-row reads for autosize, sort/filter, and commands do
+                    // not update SlickGrid's viewport. Letting them overwrite
+                    // this slot races render telemetry against unrelated I/O.
+                    if (readPurpose === "viewport") {
+                        pendingRenderedWindowRef.current = {
+                            receivedAt: performance.now(),
+                            rows: window.rowCount,
+                            columns: window.columns.length,
+                            projected,
+                        };
+                    }
                 }
                 return queryStudioWindowToGridRows(
                     window,
