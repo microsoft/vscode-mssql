@@ -1091,6 +1091,11 @@ export class LocConstants {
             message: l10n.t("Message"),
             openResultInNewTab: l10n.t("Open in New Tab"),
             resultsToolbar: l10n.t("Results toolbar"),
+            moreActions: l10n.t("More Actions"),
+            previewGrid: l10n.t("Preview Grid"),
+            previewGridSwitchTooltip: l10n.t(
+                "Switch between the classic and the preview results grid",
+            ),
             showplanXML: l10n.t("Showplan XML"),
             showMenu: (shortcut: string) => {
                 if (shortcut) {

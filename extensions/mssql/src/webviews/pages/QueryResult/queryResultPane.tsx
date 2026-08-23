@@ -6,6 +6,10 @@
 import {
     Button,
     Link,
+    Menu,
+    MenuPopover,
+    MenuTrigger,
+    Switch,
     Tab,
     TabList,
     Title3,
@@ -13,12 +17,18 @@ import {
     Text,
     Spinner,
     Toolbar,
+    ToolbarButton,
 } from "@fluentui/react-components";
 import { type ComponentType, useContext, useEffect, useState } from "react";
-import { DatabaseSearch24Regular, ErrorCircle24Regular, OpenRegular } from "@fluentui/react-icons";
+import {
+    DatabaseSearch24Regular,
+    ErrorCircle24Regular,
+    MoreVertical20Filled,
+    OpenRegular,
+} from "@fluentui/react-icons";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import { locConstants } from "../../common/locConstants";
-import { hasResultsOrMessages } from "./queryResultUtils";
+import { getTotalResultSetRowCount, hasResultsOrMessages } from "./queryResultUtils";
 import { QueryResultCommandsContext } from "./queryResultStateProvider";
 import { useQueryResultSelector } from "./queryResultSelector";
 import { WebviewAction } from "../../../sharedInterfaces/webview";
@@ -51,6 +61,9 @@ const useStyles = makeStyles({
         display: "flex",
         alignItems: "center",
         gap: "4px",
+    },
+    menuSwitch: {
+        padding: "4px 8px",
     },
     queryResultPaneTabs: {
         flex: 1,
@@ -336,6 +349,40 @@ export const QueryResultPane = ({ GridView, isBetaResultsGridEnabled }: QueryRes
                             {locConstants.queryResult.openResultInNewTab}
                         </Button>
                     )}
+                    <Menu>
+                        <MenuTrigger disableButtonEnhancement>
+                            <ToolbarButton
+                                appearance="subtle"
+                                icon={<MoreVertical20Filled />}
+                                aria-label={locConstants.queryResult.moreActions}
+                                title={locConstants.queryResult.moreActions}
+                            />
+                        </MenuTrigger>
+                        <MenuPopover>
+                            <div className={classes.menuSwitch}>
+                                <Switch
+                                    label={locConstants.queryResult.previewGrid}
+                                    checked={isBetaResultsGridEnabled}
+                                    title={locConstants.queryResult.previewGridSwitchTooltip}
+                                    onChange={() => {
+                                        // Not awaited: switching the mode reloads this webview
+                                        // into the other bundle, so the response may never arrive.
+                                        void context.extensionRpc
+                                            .sendRequest(qr.ToggleResultsGridModeRequest.type, {
+                                                gridCount: getGridCount(resultSetSummaries),
+                                                rowCount:
+                                                    getTotalResultSetRowCount(resultSetSummaries),
+                                            })
+                                            .catch((error) => {
+                                                log.error(
+                                                    `Failed to toggle results grid mode: ${error}`,
+                                                );
+                                            });
+                                    }}
+                                />
+                            </div>
+                        </MenuPopover>
+                    </Menu>
                 </Toolbar>
             </div>
 
