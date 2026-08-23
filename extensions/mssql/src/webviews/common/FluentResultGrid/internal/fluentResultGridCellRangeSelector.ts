@@ -21,6 +21,22 @@ export function isFluentResultGridAppendSelectionEvent(
 }
 
 /**
+ * True when a drag gesture was started with a mouse button other than the primary one.
+ *
+ * SlickEventData proxies the native event's properties but does not declare them, so the button
+ * is read from either the wrapper or the native event it carries. Touch and keyboard gestures
+ * report no button and are always treated as primary.
+ */
+export function isFluentResultGridSecondaryButtonEvent(event: unknown): boolean {
+    const source = event as
+        | { button?: number; nativeEvent?: { button?: number } | null }
+        | null
+        | undefined;
+    const button = source?.button ?? source?.nativeEvent?.button;
+    return button !== undefined && button !== 0;
+}
+
+/**
  * SlickGrid applies grid options with a jQuery-style deep extend, which keeps the default array
  * entries when an empty array is supplied. Its drag service captures the resulting array by
  * reference during initialization; clearing that array in place enables modifier drags.
@@ -44,7 +60,34 @@ export class FluentResultGridCellRangeSelector extends SlickCellRangeSelector {
         return this._appendToSelection;
     }
 
+    /**
+     * Range selection is a primary-button gesture. The drag service this grid uses binds
+     * `mousedown` for every button, so without this a right-click that moves even slightly is
+     * processed as a fresh single-cell drag and replaces a Ctrl/Cmd-built selection before the
+     * context menu opens. The Production Grid gets the same protection from its drag library.
+     */
+    protected override handleDragInit(eventData: SlickEventData, dragData: DragRowMove): void {
+        if (isFluentResultGridSecondaryButtonEvent(eventData)) {
+            return;
+        }
+        super.handleDragInit(eventData, dragData);
+    }
+
+    protected override handleDragStart(
+        eventData: SlickEventData,
+        dragData: DragRowMove,
+    ): HTMLDivElement | undefined {
+        if (isFluentResultGridSecondaryButtonEvent(eventData)) {
+            return undefined;
+        }
+        return super.handleDragStart(eventData, dragData);
+    }
+
     protected override handleDragEnd(eventData: SlickEventData, dragData: DragRowMove): void {
+        if (isFluentResultGridSecondaryButtonEvent(eventData)) {
+            return;
+        }
+
         this._appendToSelection = isFluentResultGridAppendSelectionEvent(eventData);
         try {
             // onCellRangeSelected is raised synchronously inside the base implementation.
