@@ -539,6 +539,7 @@ export class ReactFlowExecutionPlanController implements ExecutionPlanGraphContr
 interface ReactFlowExecutionPlanProps {
     root: ExecutionPlanNode;
     themeKind: ColorThemeKind;
+    planNumber: number;
     onReady: (controller: ExecutionPlanGraphController | null) => void;
     comparisonGroupRoots?: ReadonlyMap<string, number>;
     onSelectionChange?: (node: ExecutionPlanNode) => void;
@@ -549,6 +550,7 @@ interface ReactFlowExecutionPlanProps {
 export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
     root,
     themeKind,
+    planNumber,
     onReady,
     comparisonGroupRoots,
     onSelectionChange,
@@ -564,6 +566,7 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
     const [highlightedId, setHighlightedId] = useState<string>();
     const [tooltipsEnabled, setTooltipsEnabled] = useState(true);
     const [tooltip, setTooltip] = useState<TooltipState>();
+    const [focusAnnouncement, setFocusAnnouncement] = useState("");
     const selectedIdRef = useRef(selectedId);
     const tooltipsEnabledRef = useRef(tooltipsEnabled);
     const onSelectionChangeRef = useRef(onSelectionChange);
@@ -684,7 +687,7 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
                         targetId,
                         content: formatExecutionPlanNodeTooltip(node),
                         x: bounds.right + 8,
-                        y: bounds.top,
+                        y: bounds.bottom + 8,
                         sourceBounds: {
                             left: bounds.left,
                             right: bounds.right,
@@ -723,25 +726,11 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
 
             switch (event.key) {
                 case "ArrowRight":
-                    if (collapsedNodeIds.has(id)) {
-                        setCollapsedNodeIds((current) => {
-                            const next = new Set(current);
-                            next.delete(id);
-                            return next;
-                        });
-                        break;
+                    if (!collapsedNodeIds.has(id)) {
+                        targetId = model.getChildIds(id)[0];
                     }
-                    targetId = model.getChildIds(id)[0];
                     break;
                 case "ArrowLeft":
-                    if (model.getChildIds(id).length > 0 && !collapsedNodeIds.has(id)) {
-                        setCollapsedNodeIds((current) => {
-                            const next = new Set(current);
-                            next.add(id);
-                            return next;
-                        });
-                        break;
-                    }
                     targetId = parentId;
                     break;
                 case "ArrowUp":
@@ -965,84 +954,105 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
     }, [expandAncestors, focusNode, instance, model, onReady, positions]);
 
     return (
-        <div
-            ref={canvasRef}
-            className="execution-plan-flow-canvas"
-            role="tree"
-            aria-label={locConstants.executionPlan.executionPlanGraph}>
-            <ReactFlow<ExecutionPlanFlowNode, ExecutionPlanFlowEdge>
-                nodes={nodes}
-                edges={edges}
-                nodeTypes={NODE_TYPES}
-                edgeTypes={EDGE_TYPES}
-                onInit={setInstance}
-                defaultViewport={{ x: 0, y: 0, zoom: 1 }}
-                viewport={viewport}
-                onViewportChange={onViewportChange}
-                minZoom={0.01}
-                maxZoom={2}
-                panOnDrag
-                zoomOnScroll={false}
-                zoomOnPinch
-                zoomOnDoubleClick={false}
-                preventScrolling={false}
-                nodesDraggable={false}
-                nodesConnectable={false}
-                nodesFocusable={false}
-                autoPanOnNodeFocus={false}
-                edgesFocusable={false}
-                disableKeyboardA11y
-                onlyRenderVisibleElements
-                selectionOnDrag={false}
-                multiSelectionKeyCode={null}
-                deleteKeyCode={null}
-                proOptions={{ hideAttribution: true }}
-                onPaneClick={() => setTooltip(undefined)}
-                onEdgeClick={(event: MouseEvent, edge: ExecutionPlanFlowEdge) => {
-                    const edgeData = edge.data;
-                    if (tooltipsEnabledRef.current && edgeData) {
-                        const targetId = `edge:${edge.id}`;
-                        setTooltip((current) => {
-                            if (current?.targetId === targetId) {
-                                return undefined;
-                            }
-                            return {
-                                targetId,
-                                content: formatExecutionPlanEdgeTooltip(edgeData),
-                                x: event.clientX + 8,
-                                y: event.clientY + 8,
-                            };
-                        });
-                        focusNode(selectedIdRef.current);
+        <>
+            <div
+                className="execution-plan-flow-announcement"
+                role="status"
+                aria-live="polite"
+                aria-atomic="true">
+                {focusAnnouncement}
+            </div>
+            <div
+                ref={canvasRef}
+                className="execution-plan-flow-canvas"
+                role="tree"
+                aria-label={locConstants.executionPlan.executionPlanGraph(planNumber)}
+                onFocusCapture={(event) => {
+                    if (!event.currentTarget.contains(event.relatedTarget)) {
+                        setFocusAnnouncement(
+                            locConstants.executionPlan.executionPlanGraph(planNumber),
+                        );
+                    }
+                }}
+                onBlurCapture={(event) => {
+                    if (!event.currentTarget.contains(event.relatedTarget)) {
+                        setFocusAnnouncement("");
                     }
                 }}>
-                {comparisonGroups.length > 0 && (
-                    <ViewportPortal>
-                        {comparisonGroups.map((group) => (
-                            <div
-                                key={group.id}
-                                className={`execution-plan-comparison-group execution-plan-comparison-group-${Math.abs(group.groupIndex) % 4}`}
-                                style={{
-                                    transform: `translate(${group.x}px, ${group.y}px)`,
-                                    width: group.width,
-                                    height: group.height,
-                                }}
-                                aria-hidden
-                            />
-                        ))}
-                    </ViewportPortal>
+                <ReactFlow<ExecutionPlanFlowNode, ExecutionPlanFlowEdge>
+                    nodes={nodes}
+                    edges={edges}
+                    nodeTypes={NODE_TYPES}
+                    edgeTypes={EDGE_TYPES}
+                    onInit={setInstance}
+                    defaultViewport={{ x: 0, y: 0, zoom: 1 }}
+                    viewport={viewport}
+                    onViewportChange={onViewportChange}
+                    minZoom={0.01}
+                    maxZoom={2}
+                    panOnDrag
+                    zoomOnScroll={false}
+                    zoomOnPinch
+                    zoomOnDoubleClick={false}
+                    preventScrolling={false}
+                    nodesDraggable={false}
+                    nodesConnectable={false}
+                    nodesFocusable={false}
+                    autoPanOnNodeFocus={false}
+                    edgesFocusable={false}
+                    disableKeyboardA11y
+                    onlyRenderVisibleElements
+                    selectionOnDrag={false}
+                    multiSelectionKeyCode={null}
+                    deleteKeyCode={null}
+                    proOptions={{ hideAttribution: true }}
+                    onPaneClick={() => setTooltip(undefined)}
+                    onEdgeClick={(event: MouseEvent, edge: ExecutionPlanFlowEdge) => {
+                        const edgeData = edge.data;
+                        if (tooltipsEnabledRef.current && edgeData) {
+                            const targetId = `edge:${edge.id}`;
+                            setTooltip((current) => {
+                                if (current?.targetId === targetId) {
+                                    return undefined;
+                                }
+                                return {
+                                    targetId,
+                                    content: formatExecutionPlanEdgeTooltip(edgeData),
+                                    x: event.clientX + 8,
+                                    y: event.clientY + 8,
+                                };
+                            });
+                            focusNode(selectedIdRef.current);
+                        }
+                    }}>
+                    {comparisonGroups.length > 0 && (
+                        <ViewportPortal>
+                            {comparisonGroups.map((group) => (
+                                <div
+                                    key={group.id}
+                                    className={`execution-plan-comparison-group execution-plan-comparison-group-${Math.abs(group.groupIndex) % 4}`}
+                                    style={{
+                                        transform: `translate(${group.x}px, ${group.y}px)`,
+                                        width: group.width,
+                                        height: group.height,
+                                    }}
+                                    aria-hidden
+                                />
+                            ))}
+                        </ViewportPortal>
+                    )}
+                </ReactFlow>
+                {tooltip && (
+                    <ExecutionPlanTooltip
+                        tooltip={tooltip}
+                        onClose={() => {
+                            setTooltip(undefined);
+                            focusNode(selectedIdRef.current);
+                        }}
+                    />
                 )}
-            </ReactFlow>
-            {tooltip && (
-                <ExecutionPlanTooltip
-                    tooltip={tooltip}
-                    onClose={() => {
-                        setTooltip(undefined);
-                        focusNode(selectedIdRef.current);
-                    }}
-                />
-            )}
-        </div>
+            </div>
+        </>
     );
 };
 

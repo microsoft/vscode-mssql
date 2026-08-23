@@ -229,6 +229,7 @@ function ComparisonPlanPane({
                         key={`${side}-${source.selectedGraphIndex}`}
                         root={graph.root}
                         themeKind={themeKind}
+                        planNumber={source.selectedGraphIndex + 1}
                         onReady={handleReady}
                         comparisonGroupRoots={groupRoots}
                         onSelectionChange={onSelectionChange}

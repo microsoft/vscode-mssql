@@ -313,7 +313,11 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             databaseName: ObjectExplorerUtils.getDatabaseName(sourceContext),
             ownerUri: ownerUri,
             packageFilePath: "",
-            connectionDetails: undefined,
+            connectionDetails: {
+                options: {
+                    database: connectionProfile.database,
+                },
+            },
             connectionName: connectionProfile.profileName ? connectionProfile.profileName : "",
             projectFilePath: "",
             targetScripts: [],
@@ -729,7 +733,11 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 databaseName: payload.databaseName,
                 ownerUri: payload.serverConnectionUri,
                 packageFilePath: "",
-                connectionDetails: undefined,
+                connectionDetails: {
+                    options: {
+                        database: connectionProfile.database,
+                    },
+                },
                 connectionName: connectionProfile.profileName ? connectionProfile.profileName : "",
                 projectFilePath: "",
                 targetScripts: [],
@@ -1170,46 +1178,11 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 },
             );
 
-            const yes = locConstants.SchemaCompare.Yes;
-            const result = await vscode.window.showWarningMessage(
-                locConstants.SchemaCompare.areYouSureYouWantToUpdateTheTarget,
-                { modal: true },
-                yes,
+            const actionCounts = this.getIncludedUpdateActionCounts(
+                state.schemaCompareResult?.differences,
             );
 
-            if (result !== yes) {
-                this.logger.debug(
-                    `User canceled publishing changes - OperationId: ${this.operationId}`,
-                );
-
-                endActivity.end(ActivityStatus.Canceled, {
-                    elapsedTime: (Date.now() - startTime).toString(),
-                    operationId: this.operationId,
-                    sourceType: getSchemaCompareEndpointTypeString(
-                        state.sourceEndpointInfo.endpointType,
-                    ),
-                    targetType: getSchemaCompareEndpointTypeString(
-                        state.targetEndpointInfo.endpointType,
-                    ),
-                });
-
-                return state;
-            }
-
-            if (state.schemaCompareResult && state.schemaCompareResult.differences) {
-                const includedDiffs = state.schemaCompareResult.differences.filter(
-                    (diff) => diff.included,
-                );
-                const actionCounts = {
-                    [SchemaUpdateAction.Delete]: 0,
-                    [SchemaUpdateAction.Add]: 0,
-                    [SchemaUpdateAction.Change]: 0,
-                };
-
-                includedDiffs.forEach((diff) => {
-                    actionCounts[diff.updateAction]++;
-                });
-
+            if (state.schemaCompareResult?.differences) {
                 const updateActionBreakdown = {
                     numDiffsDeleted: actionCounts[SchemaUpdateAction.Delete],
                     numDiffsAdded: actionCounts[SchemaUpdateAction.Add],
@@ -2336,7 +2309,11 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                         databaseName: databaseName,
                         ownerUri: connectionUri,
                         packageFilePath: "",
-                        connectionDetails: undefined,
+                        connectionDetails: {
+                            options: {
+                                database: connectionProfile.database,
+                            },
+                        },
                         connectionName: connectionProfile.profileName
                             ? connectionProfile.profileName
                             : "",
@@ -2682,7 +2659,11 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                     databaseName: connInfo.database,
                     ownerUri: ownerUri,
                     packageFilePath: "",
-                    connectionDetails: undefined,
+                    connectionDetails: {
+                        options: {
+                            database: connectionProfile.database,
+                        },
+                    },
                     connectionName: connectionProfile.profileName
                         ? connectionProfile.profileName
                         : "",
@@ -2800,6 +2781,22 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             `Found ${finalDifferences.length} object type differences out of ${differences.length} total differences - OperationId: ${this.operationId}`,
         );
         return finalDifferences;
+    }
+
+    private getIncludedUpdateActionCounts(
+        differences: DiffEntry[] | undefined,
+    ): Record<SchemaUpdateAction, number> {
+        const actionCounts = {
+            [SchemaUpdateAction.Delete]: 0,
+            [SchemaUpdateAction.Change]: 0,
+            [SchemaUpdateAction.Add]: 0,
+        };
+
+        differences
+            ?.filter((difference) => difference.included)
+            .forEach((difference) => actionCounts[difference.updateAction]++);
+
+        return actionCounts;
     }
 
     /**

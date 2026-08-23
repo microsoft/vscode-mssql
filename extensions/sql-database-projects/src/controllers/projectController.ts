@@ -1849,10 +1849,14 @@ export class ProjectsController {
             : "";
     }
 
+    /**
+     * This command can be launched from the Object Explorer, the projects view title menu, or the
+     * command palette, so only an Object Explorer node carries a connection profile.
+     */
     private getConnectionProfileFromContext(
-        context: mssqlVscode.ITreeNodeInfo | undefined,
+        context: mssqlVscode.ITreeNodeInfo | dataworkspace.WorkspaceTreeItem | undefined,
     ): mssqlVscode.IConnectionInfo | undefined {
-        return context?.connectionProfile;
+        return context && "connectionProfile" in context ? context.connectionProfile : undefined;
     }
 
     private refreshProjectsTree(workspaceTreeItem: dataworkspace.WorkspaceTreeItem): void {
@@ -1870,21 +1874,20 @@ export class ProjectsController {
      * prompting the user for a name, file path location and extract target
      */
     public async createProjectFromDatabase(
-        context: mssqlVscode.ITreeNodeInfo | undefined,
+        context: mssqlVscode.ITreeNodeInfo | dataworkspace.WorkspaceTreeItem | undefined,
     ): Promise<void> {
         const profile = this.getConnectionProfileFromContext(context);
-        if (context) {
+        if (profile) {
             // The profile we get from VS Code is for the overall server connection and isn't updated based
             // on the database node the command was launched from. Get the actual database name from the
             // MSSQL extension and update the connection info here.
             const treeNodeContext = context as mssqlVscode.ITreeNodeInfo;
-            const databaseName = (await utils.getVscodeMssqlApi()).getDatabaseNameFromTreeNode(
+            profile.database = (await utils.getVscodeMssqlApi()).getDatabaseNameFromTreeNode(
                 treeNodeContext,
             );
-            (profile as mssqlVscode.IConnectionInfo).database = databaseName;
         }
         await createNewProjectFromDatabaseWithQuickpick(
-            profile as mssqlVscode.IConnectionInfo,
+            profile,
             (
                 model: ImportDataModel,
                 connectionInfo?: string | mssqlVscode.IConnectionInfo,

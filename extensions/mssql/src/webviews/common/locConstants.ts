@@ -443,7 +443,7 @@ export class LocConstants {
 
     public get shortcutsConfiguration() {
         return {
-            title: l10n.t("Shortcuts Configuration (Preview)"),
+            title: l10n.t("Shortcuts Configuration"),
             pageAriaLabel: l10n.t("Shortcuts configuration page"),
             configurationSections: l10n.t("Configuration sections"),
             subtitle: l10n.t("Configure Quick Query and Extension shortcuts."),
@@ -946,6 +946,19 @@ export class LocConstants {
                     args: [index, costPercentage],
                     comment: ["{0} is the query number", "{1} is the query cost"],
                 }),
+            missingIndex: l10n.t("Missing index"),
+            missingIndexImpact: (impact: string) =>
+                l10n.t({
+                    message: "Impact {0}%",
+                    args: [impact],
+                    comment: [
+                        "{0} is the estimated percentage improvement from creating the index",
+                    ],
+                }),
+            missingIndexRecommendations: l10n.t("Missing index recommendations"),
+            openIndexRecommendationScript: l10n.t(
+                "Open the recommended index script in a new query editor",
+            ),
             equals: l10n.t("Equals"),
             contains: l10n.t("Contains"),
             actualElapsedTime: l10n.t("Actual Elapsed Time"),
@@ -1046,7 +1059,12 @@ export class LocConstants {
             reactFlowRendererError: l10n.t(
                 "The React Flow execution plan preview could not render this plan.",
             ),
-            executionPlanGraph: l10n.t("Execution plan"),
+            executionPlanGraph: (planNumber: number) =>
+                l10n.t({
+                    message: "Execution plan {0}, use arrow keys to navigate between nodes",
+                    args: [planNumber],
+                    comment: ["{0} is the one-based execution plan number"],
+                }),
             executionPlanDetails: l10n.t("Execution plan details"),
             expandNode: (name: string) =>
                 l10n.t({
@@ -2321,6 +2339,41 @@ export class LocConstants {
             ),
             apply: l10n.t("Apply"),
             applyChangesToTarget: l10n.t("Apply changes to target"),
+            applyChangesTitle: (targetName: string) =>
+                l10n.t({
+                    message: "Apply changes to {0}",
+                    args: [targetName],
+                    comment: [
+                        "{0} is the target connection name, optionally followed by a colon and the selected database name",
+                    ],
+                }),
+            createChangesSummary: (count: number) =>
+                l10n.t({
+                    message: "Create ({0})",
+                    args: [count],
+                    comment: ["{0} is the total number of objects that will be created"],
+                }),
+            changeChangesSummary: (count: number) =>
+                l10n.t({
+                    message: "Change ({0})",
+                    args: [count],
+                    comment: ["{0} is the total number of objects that will be changed"],
+                }),
+            dropChangesSummary: (count: number) =>
+                l10n.t({
+                    message: "Drop ({0})",
+                    args: [count],
+                    comment: ["{0} is the total number of objects that will be dropped"],
+                }),
+            objectTypeChangeCount: (objectType: string, count: number) =>
+                l10n.t({
+                    message: "{0}: {1}",
+                    args: [objectType, count],
+                    comment: [
+                        "{0} is a schema object type, such as Table or View",
+                        "{1} is the number of objects of that type",
+                    ],
+                }),
             options: l10n.t("Options"),
             switchDirection: l10n.t("Switch Direction"),
             switchSourceAndTarget: l10n.t("Switch Source and Target"),
@@ -2376,9 +2429,6 @@ export class LocConstants {
                         "{0} is a comma-separated list of fully-qualified object names that will be dropped from under the selected parent object when the diff is applied.",
                     ],
                 }),
-            areYouSureYouWantToUpdateTheTarget: l10n.t(
-                "Are you sure you want to update the target?",
-            ),
             thereWasAnErrorUpdatingTheProject: l10n.t("There was an error updating the project"),
             schemaCompareApplyFailed: (errorMessage: string) =>
                 l10n.t({
@@ -2610,7 +2660,7 @@ export class LocConstants {
     public get azureSqlDatabase() {
         return {
             loadingAzureSqlDatabase: l10n.t("Loading Azure SQL Database..."),
-            azureSqlDatabaseHeader: l10n.t("Create an Azure SQL Database (Preview)"),
+            azureSqlDatabaseHeader: l10n.t("Create an Azure SQL Database"),
             azureSqlDatabaseDescription: l10n.t(
                 "Try Azure SQL Database at no cost with our free tier offer! Provision a fully managed cloud database directly from VS Code.",
             ),
@@ -2913,6 +2963,7 @@ export class LocConstants {
                 "No connections available. Please create a connection first.",
             ),
             connectingToServer: l10n.t("Connecting to server..."),
+            loadingDatabases: l10n.t("Loading databases..."),
             connectionFailed: l10n.t("Failed to connect to server"),
             deployDacpac: l10n.t("Publish DACPAC"),
             extractDacpac: l10n.t("Extract DACPAC"),

@@ -1,7 +1,7 @@
 {
     "name": "mssql",
     "displayName": "SQL Server (mssql)",
-    "version": "1.45.0",
+    "version": "1.46.0",
     "description": "Design and optimize schemas for SQL Server, Azure SQL, and SQL Database in Fabric using a modern, lightweight extension built for developers",
     "publisher": "ms-mssql",
     "preview": false,
@@ -211,7 +211,7 @@
                 {
                     "id": "queryResult",
                     "title": "%extension.queryResult%",
-                    "icon": "media/SignIn.svg"
+                    "icon": "media/queryResultView.svg"
                 }
             ]
         },
@@ -222,7 +222,7 @@
                     "id": "queryResult",
                     "name": "%extension.queryResult%",
                     "when": "!config.mssql.openQueryResultsInTabByDefault",
-                    "icon": "media/objectTypes/Table.svg"
+                    "icon": "media/queryResultView.svg"
                 }
             ],
             "objectExplorer": [
@@ -1210,7 +1210,10 @@
                 "command": "mssql.revealQueryResult",
                 "title": "%mssql.revealQueryResult%",
                 "category": "MS SQL",
-                "icon": "$(table)"
+                "icon": {
+                    "dark": "media/queryResultView_dark.svg",
+                    "light": "media/queryResultView_light.svg"
+                }
             },
             {
                 "command": "mssql.toggleQueryResultPanel",
@@ -1806,19 +1809,13 @@
                 },
                 "mssql.preview.betaResultsGrid": {
                     "type": "boolean",
-                    "default": false,
+                    "default": true,
                     "description": "%mssql.preview.betaResultsGrid.description%",
-                    "scope": "application"
-                },
-                "mssql.preview.betaObjectExplorerFilter": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "%mssql.preview.betaObjectExplorerFilter.description%",
                     "scope": "application"
                 },
                 "mssql.preview.betaExecutionPlan": {
                     "type": "boolean",
-                    "default": false,
+                    "default": true,
                     "description": "%mssql.preview.betaExecutionPlan.description%",
                     "scope": "application"
                 },
@@ -2423,6 +2420,12 @@
                     "default": true,
                     "scope": "window"
                 },
+                "mssql.statusBar.showQueryExecutionStatus": {
+                    "type": "boolean",
+                    "description": "%mssql.statusBar.showQueryExecutionStatus.description%",
+                    "default": true,
+                    "scope": "window"
+                },
                 "mssql.format.alignColumnDefinitionsInColumns": {
                     "type": "boolean",
                     "markdownDescription": "%mssql.format.alignColumnDefinitionsInColumns%",
@@ -2815,6 +2818,11 @@
                     "type": "boolean",
                     "default": false,
                     "description": "%mssql.resultsGrid.alternatingRowColors%"
+                },
+                "mssql.resultsGrid.freezeFirstColumnByDefault": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "%mssql.resultsGrid.freezeFirstColumnByDefault%"
                 },
                 "mssql.resultsGrid.showGridLines": {
                     "type": "string",

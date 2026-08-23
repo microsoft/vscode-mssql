@@ -6,6 +6,7 @@
 import "./executionPlan.css";
 
 import {
+    Badge,
     Button,
     Input,
     makeStyles,
@@ -18,24 +19,31 @@ import {
     Checkmark20Regular,
     Dismiss16Regular,
     Dismiss20Regular,
+    Lightbulb16Filled,
 } from "@fluentui/react-icons";
 import {
     KeyboardEvent as ReactKeyboardEvent,
     lazy,
     Suspense,
     useCallback,
+    useContext,
     useEffect,
     useRef,
     useState,
 } from "react";
 
 import { ExecutionPlanGraphController } from "./executionPlanGraphController";
-import { normalizeExecutionPlanQuery } from "./executionPlanQuery";
+import {
+    normalizeExecutionPlanQuery,
+    ParsedRecommendation,
+    parseRecommendationDisplayString,
+} from "./executionPlanQuery";
 import { FindNode } from "./findNodes";
 import { HighlightExpensiveOperations } from "./highlightExpensiveOperations";
 import { LegacyIconStack } from "./legacyIconMenu";
 import { PropertiesPane } from "./properties";
 import { ReactFlowIconStack } from "./reactFlowIconMenu";
+import { ExecutionPlanContext } from "./executionPlanStateProvider";
 import { locConstants } from "../../common/locConstants";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { useExecutionPlanSelector } from "./executionPlanSelector";
@@ -129,6 +137,59 @@ const useStyles = makeStyles({
         paddingTop: "4px",
         borderTop: `1px solid ${tokens.colorNeutralStroke2}`,
     },
+    recommendations: {
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "stretch",
+        rowGap: "3px",
+        paddingTop: "6px",
+        // caps the header at roughly three recommendations before scrolling, so a plan
+        // with many missing indexes doesn't squeeze the graph out of view
+        maxHeight: "78px",
+        overflowY: "auto",
+    },
+    recommendationButton: {
+        display: "flex",
+        justifyContent: "flex-start",
+        alignItems: "center",
+        columnGap: "6px",
+        width: "100%",
+        minWidth: 0,
+        height: "auto",
+        minHeight: "22px",
+        padding: "2px 6px",
+        borderRadius: tokens.borderRadiusMedium,
+        border: `1px solid ${tokens.colorTransparentStroke}`,
+        backgroundColor: tokens.colorNeutralBackground3,
+        textAlign: "left",
+        ":hover": {
+            backgroundColor: tokens.colorNeutralBackground3Hover,
+            border: `1px solid ${tokens.colorNeutralStroke1}`,
+        },
+        ":hover:active": {
+            backgroundColor: tokens.colorNeutralBackground3Pressed,
+        },
+    },
+    recommendationIcon: {
+        flexShrink: 0,
+        color: tokens.colorPaletteYellowForeground2,
+    },
+    recommendationLabel: {
+        flexShrink: 0,
+        fontSize: "12px",
+        lineHeight: "17px",
+        fontWeight: tokens.fontWeightSemibold,
+        color: tokens.colorNeutralForeground1,
+    },
+    recommendationImpact: {
+        flexShrink: 0,
+    },
+    recommendationScript: {
+        flexGrow: 1,
+        minWidth: 0,
+        fontSize: "12px",
+        lineHeight: "17px",
+    },
     queryPlanParent: {
         opacity: 1,
         height: "100%",
@@ -193,14 +254,23 @@ interface ExecutionPlanGraphProps {
     graphIndex: number;
 }
 
+/** A recommendation split into the parts the header renders separately. */
+interface RecommendationView extends ParsedRecommendation {
+    /** Untouched server string, used as the button's accessible name and tooltip. */
+    accessibleName: string;
+    queryWithDescription: string;
+}
+
 export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphIndex }) => {
     const classes = useStyles();
     const { themeKind, extensionRpc } = useVscodeWebview();
+    const context = useContext(ExecutionPlanContext);
     const executionPlanState = useExecutionPlanSelector<ExecutionPlanState>(
         (s) => s.executionPlanState,
     );
     const [query, setQuery] = useState("");
     const [xml, setXml] = useState("");
+    const [recommendations, setRecommendations] = useState<RecommendationView[]>([]);
     const [cost, setCost] = useState(0);
     const [executionPlanView, setExecutionPlanView] = useState<ExecutionPlanGraphController | null>(
         null,
@@ -233,6 +303,13 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
 
         setQuery(normalizeExecutionPlanQuery(graph.query));
         setXml(graph.graphFile.graphFileContent);
+        setRecommendations(
+            (graph.recommendations ?? []).map((recommendation) => ({
+                ...parseRecommendationDisplayString(recommendation.displayString),
+                accessibleName: recommendation.displayString,
+                queryWithDescription: recommendation.queryWithDescription,
+            })),
+        );
     }, [executionPlanState, graph, graphIndex]);
 
     useEffect(() => {
@@ -288,6 +365,12 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
             graphIndex + 1,
             getQueryCostPercentage(),
         );
+    };
+
+    const handleRecommendationClick = (recommendation: RecommendationView) => {
+        // opens the CREATE INDEX script wrapped in its explanatory comment block, without
+        // running it, so the user can review and edit before executing
+        context?.showQuery(recommendation.queryWithDescription);
     };
 
     // this is for resizing the properties panel
@@ -355,7 +438,11 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                             : "calc(100% - 35px)",
                     }}
                     aria-live="polite"
-                    aria-label={`${getQueryCostString()}, ${query}`}>
+                    aria-label={
+                        recommendations.length > 0
+                            ? `${getQueryCostString()}, ${query}, ${locConstants.executionPlan.missingIndexRecommendations}`
+                            : `${getQueryCostString()}, ${query}`
+                    }>
                     {isReactFlowActive ? (
                         <>
                             <div className={classes.queryCostSummary}>{getQueryCostString()}</div>
@@ -366,6 +453,51 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                                 showLineBreaks
                                 title={query}
                             />
+                            {recommendations.length > 0 && (
+                                <div
+                                    className={classes.recommendations}
+                                    role="group"
+                                    aria-label={
+                                        locConstants.executionPlan.missingIndexRecommendations
+                                    }>
+                                    {recommendations.map((recommendation, index) => (
+                                        <Button
+                                            key={index}
+                                            appearance="subtle"
+                                            className={classes.recommendationButton}
+                                            icon={
+                                                <Lightbulb16Filled
+                                                    className={classes.recommendationIcon}
+                                                />
+                                            }
+                                            aria-label={recommendation.accessibleName}
+                                            title={`${recommendation.accessibleName}\n\n${locConstants.executionPlan.openIndexRecommendationScript}`}
+                                            onClick={() =>
+                                                handleRecommendationClick(recommendation)
+                                            }>
+                                            <span className={classes.recommendationLabel}>
+                                                {locConstants.executionPlan.missingIndex}
+                                            </span>
+                                            {recommendation.impact !== undefined && (
+                                                <Badge
+                                                    appearance="tint"
+                                                    color="success"
+                                                    size="small"
+                                                    className={classes.recommendationImpact}>
+                                                    {locConstants.executionPlan.missingIndexImpact(
+                                                        recommendation.impact.toFixed(1),
+                                                    )}
+                                                </Badge>
+                                            )}
+                                            <SqlText
+                                                className={classes.recommendationScript}
+                                                text={recommendation.script}
+                                                singleLine
+                                            />
+                                        </Button>
+                                    ))}
+                                </div>
+                            )}
                         </>
                     ) : (
                         <>
@@ -427,6 +559,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                                 <ReactFlowExecutionPlan
                                     root={graph.root}
                                     themeKind={themeKind}
+                                    planNumber={graphIndex + 1}
                                     onReady={handleRendererReady}
                                 />
                             </Suspense>
