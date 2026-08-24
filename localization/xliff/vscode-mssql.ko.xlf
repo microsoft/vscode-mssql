@@ -666,9 +666,9 @@ Select "{0}" to establish a connection.</source>
 
 This will remove both the container and its connection from VS Code.</source>
         <note>{0} is the container name</note>
-        <target state="new">Are you sure you want to delete the container '{0}'?
+        <target state="translated">컨테이너 '{0}'을(를) 삭제하시겠습니까?
 
-This will remove both the container and its connection from VS Code.</target>
+VS Code에서 컨테이너와 해당 연결이 모두 제거됩니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++dc1158b4986e0eadcc929a35b9de0147ca4e8e317ec963db232cb2516688ed79">
         <source xml:lang="en">Are you sure you want to delete the selected items?</source>
@@ -10123,12 +10123,12 @@ Deleting it will remove both the container and this connection from VS Code, and
 Are you sure you want to continue?</source>
         <note>{0} is the container name
 {1} is the list of connection display names</note>
-        <target state="new">The container '{0}' is also used by other saved connections:
+        <target state="translated">컨테이너 '{0}'은(는) 다음의 다른 저장된 연결에서도 사용됩니다.
 {1}
 
-Deleting it will remove both the container and this connection from VS Code, and the other connections will stop working.
+삭제하면 VS Code에서 컨테이너와 이 연결이 모두 제거되고, 다른 연결은 더 이상 작동하지 않습니다.
 
-Are you sure you want to continue?</target>
+계속하시겠습니까?</target>
       </trans-unit>
       <trans-unit id="++CODE++90a4ba6d5483f640dbf83e90ca81103b564ff6be1e78dc9caf91eea1c299757e">
         <source xml:lang="en">The custom cloud choice is not configured. Please configure the setting `{0}`.</source>
