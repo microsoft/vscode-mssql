@@ -57,6 +57,7 @@ import {
 import {
     enableFluentResultGridModifierDrag,
     isFluentResultGridAppendSelectionEvent,
+    isFluentResultGridSecondaryButtonEvent,
 } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridCellRangeSelector";
 
 function cell(value: string | null): DbCellValue {
@@ -613,6 +614,23 @@ suite("Fluent Result Grid", () => {
             expect(isFluentResultGridAppendSelectionEvent({})).to.be.false;
             expect(isFluentResultGridAppendSelectionEvent({ ctrlKey: true })).to.be.true;
             expect(isFluentResultGridAppendSelectionEvent({ metaKey: true })).to.be.true;
+        });
+
+        test("treats non-primary mouse buttons as secondary drag gestures", () => {
+            // Right-click must not start a range selection: the drag service binds mousedown for
+            // every button, so an unguarded right-drag replaces a Ctrl-built selection.
+            expect(isFluentResultGridSecondaryButtonEvent({ button: 2 })).to.be.true;
+            expect(isFluentResultGridSecondaryButtonEvent({ button: 1 })).to.be.true;
+            expect(isFluentResultGridSecondaryButtonEvent({ nativeEvent: { button: 2 } })).to.be
+                .true;
+
+            expect(isFluentResultGridSecondaryButtonEvent({ button: 0 })).to.be.false;
+            expect(isFluentResultGridSecondaryButtonEvent({ nativeEvent: { button: 0 } })).to.be
+                .false;
+            // Touch and keyboard gestures report no button at all.
+            expect(isFluentResultGridSecondaryButtonEvent({})).to.be.false;
+            expect(isFluentResultGridSecondaryButtonEvent(undefined)).to.be.false;
+            expect(isFluentResultGridSecondaryButtonEvent({ nativeEvent: null })).to.be.false;
         });
 
         test("removes SlickGrid's option-merged modifier drag blockers in place", () => {
