@@ -118,6 +118,7 @@ export enum TelemetryActions {
     CopyHeaders = "CopyHeaders",
     OpenQueryResultsInTabByDefaultPrompt = "OpenQueryResultsInTabByDefaultPrompt",
     OpenQueryResult = "OpenQueryResult",
+    ToggleResultsGridMode = "ToggleResultsGridMode",
     Restore = "Restore",
     LoadConnection = "LoadConnection",
     LoadConnectionProperties = "LoadConnectionProperties",
