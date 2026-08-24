@@ -6380,6 +6380,10 @@ Error:
         <source xml:lang="en">Monthly limits</source>
         <target state="translated">每月限制</target>
       </trans-unit>
+      <trans-unit id="++CODE++98eea4c1c21f333640ea131c6484e3a8a861029affc6ac5438a67df28df6af68">
+        <source xml:lang="en">More Actions</source>
+        <target state="new">More Actions</target>
+      </trans-unit>
       <trans-unit id="++CODE++0149b409a73e8498a5256e13dbf70225738e9e1fed0d976e20ad8ef338cc2d22">
         <source xml:lang="en">More Query Actions</source>
         <target state="translated">更多查詢動作</target>
@@ -7586,6 +7590,10 @@ Error:
       <trans-unit id="++CODE++9d13699b657fe91178f41ecf87e9c11095306c7b62e26f7e7a1b019df9ca50b1">
         <source xml:lang="en">Preview Database Updates</source>
         <target state="translated">預覽資料庫更新</target>
+      </trans-unit>
+      <trans-unit id="++CODE++cd3c37c0fff7336e44e0cf23750941ac5a52b322309637bd4733036d1b863ce8">
+        <source xml:lang="en">Preview Grid</source>
+        <target state="new">Preview Grid</target>
       </trans-unit>
       <trans-unit id="++CODE++a57b08a480b822a0a572b993391c292ede593bf8000b406675b180bbb16260fa">
         <source xml:lang="en">Previous</source>
@@ -9822,6 +9830,10 @@ Query: {2}</source>
       <trans-unit id="++CODE++5f9a6468c67e9a70a4b7b3b9b65d5c8d1ff0dcd29d0deeebf7232dde003c2918">
         <source xml:lang="en">Switch between result panes and tabs</source>
         <target state="translated">在結果窗格和索引標籤之間切換</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6652212ed4ac6802693dae6e359f8c57272ec99f52ac06f1bc5f7d7948fb9e89">
+        <source xml:lang="en">Switch between the classic and the preview results grid</source>
+        <target state="new">Switch between the classic and the preview results grid</target>
       </trans-unit>
       <trans-unit id="++CODE++d797c6360240f8a9e067207c81426437b0a655a0a744840a19a889ab8de4b58e">
         <source xml:lang="en">Switch results view</source>
