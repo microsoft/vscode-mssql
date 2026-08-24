@@ -38,7 +38,9 @@ export async function addDatabaseConnection(
     }
     await iframe.getByRole("combobox", { name: "Authentication type" }).click();
     // Then select an option from the dropdown list that appears
-    await iframe.getByRole("option", { name: authType }).click();
+    const authenticationOptionName =
+        authType === "Integrated" ? "Windows Authentication" : authType;
+    await iframe.getByRole("option", { name: authenticationOptionName }).click();
 
     if (authType === "SQL Login") {
         await iframe.getByRole("textbox", { name: "User name" }).fill(userName);
