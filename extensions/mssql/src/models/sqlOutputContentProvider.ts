@@ -495,15 +495,6 @@ export class SqlOutputContentProvider {
         title: string,
         executionPlanOptions?: ExecutionPlanOptions,
     ): Promise<QueryRunner | undefined> {
-        let queryRunner = await this.createQueryRunner(
-            statusView ? statusView : this._statusView,
-            uri,
-            title,
-        );
-        if (!queryRunner) {
-            return;
-        }
-
         // Clear previous grid state (filters, sorts, column widths) for this URI
         store.deleteUriState(uri);
 
@@ -514,8 +505,31 @@ export class SqlOutputContentProvider {
                 this._actualPlanStatuses.includes(uri) ||
                 executionPlanOptions?.includeActualExecutionPlanXml,
         );
+
+        // Reveal the results host before resetting the previous runner or waiting for SQL Tools
+        // Service to accept the new execution. Those operations can take noticeable time, but the
+        // webview can bootstrap concurrently and immediately acknowledge the user's action.
+        const initialState = this._queryResultWebviewController.getQueryResultState(uri);
+        initialState.isExecuting = true;
+        initialState.executionStartTime = Date.now();
+        this.updateWebviewState(uri, initialState);
+
         if (isOpenQueryResultsInTabByDefaultEnabled()) {
-            await this._queryResultWebviewController.createPanelController(queryRunner.uri);
+            void this._queryResultWebviewController.createPanelController(uri);
+        } else {
+            this.revealQueryResult(uri, "throw");
+        }
+
+        let queryRunner = await this.createQueryRunner(
+            statusView ? statusView : this._statusView,
+            uri,
+            title,
+        );
+        if (!queryRunner) {
+            initialState.isExecuting = false;
+            initialState.executionStartTime = undefined;
+            this.updateWebviewState(uri, initialState);
+            return;
         }
         return queryRunner;
     }
@@ -583,7 +597,6 @@ export class SqlOutputContentProvider {
                 resultWebviewState.executionElapsedMilliseconds = undefined;
                 resultWebviewState.rowsAffected = undefined;
                 this.updateWebviewState(queryRunner.uri, resultWebviewState);
-                this.revealQueryResult(queryRunner.uri, "throw");
                 sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.OpenQueryResult, {
                     defaultLocation: isOpenQueryResultsInTabByDefaultEnabled() ? "tab" : "pane",
                 });

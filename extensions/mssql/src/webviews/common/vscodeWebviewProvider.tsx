@@ -169,41 +169,32 @@ export function VscodeWebviewProvider<State, Reducers>({ children }: VscodeWebvi
                 }
             })();
 
-            try {
-                const [initialState, keyboardShortcuts, eol] = await Promise.all([
-                    extensionRpc.sendRequest(GetStateRequest.type<State>()).then((value) => {
-                        mark("getState");
-                        return value;
-                    }),
-                    extensionRpc
-                        .sendRequest(GetKeyBindingsConfigRequest.type)
-                        .then((value) => {
-                            mark("getKeyBindings");
-                            return value;
-                        })
-                        .catch((error) => {
-                            log.error("KeyBindings bootstrap failed", error);
-                            return undefined;
-                        }),
-                    extensionRpc
-                        .sendRequest(GetEOLRequest.type)
-                        .then((value) => {
-                            mark("getEOL");
-                            return value;
-                        })
-                        .catch((error) => {
-                            log.error("EOL bootstrap failed", error);
-                            return undefined;
-                        }),
-                ]);
-
-                stateRef.current = initialState;
-                if (keyboardShortcuts !== undefined) {
+            // Defaults are already available for shortcuts and EOL, so refresh them without
+            // extending the first-paint critical path.
+            void extensionRpc
+                .sendRequest(GetKeyBindingsConfigRequest.type)
+                .then((keyboardShortcuts) => {
+                    mark("getKeyBindings");
                     setKeyBindings(parseWebviewKeyboardShortcutConfig(keyboardShortcuts));
-                }
-                if (eol !== undefined) {
+                })
+                .catch((error) => {
+                    log.error("KeyBindings bootstrap failed", error);
+                });
+
+            void extensionRpc
+                .sendRequest(GetEOLRequest.type)
+                .then((eol) => {
+                    mark("getEOL");
                     setEOL(eol);
-                }
+                })
+                .catch((error) => {
+                    log.error("EOL bootstrap failed", error);
+                });
+
+            try {
+                const initialState = await extensionRpc.sendRequest(GetStateRequest.type<State>());
+                mark("getState");
+                stateRef.current = initialState;
             } catch (error) {
                 log.error("Bootstrap failed", error);
                 // Prevent indefinite blank screen when initial state fetch fails.

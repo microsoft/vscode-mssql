@@ -599,9 +599,8 @@ suite("SqlOutputProvider Tests using mocks", () => {
 
         sandbox.stub(contentProvider, "createQueryRunner").resolves(mockRunner);
 
-        // Stub _queryResultWebviewController methods to avoid errors
+        // Stub panel creation to avoid opening a real webview
         const webviewController = contentProvider["_queryResultWebviewController"];
-        sandbox.stub(webviewController, "addQueryResultState");
         sandbox.stub(webviewController, "createPanelController").resolves();
 
         // Call runCurrentStatement which calls initializeRunnerAndWebviewState
@@ -613,6 +612,66 @@ suite("SqlOutputProvider Tests using mocks", () => {
         );
 
         expect(deleteUriStateSpy).to.have.been.calledWith(uri);
+    });
+
+    test("runQuery reveals the results view before runner initialization completes", async () => {
+        const uri = "test_uri";
+        const title = "test_title";
+        let resolveRunner: (runner: QueryRunner) => void;
+        const runnerInitialization = new Promise<QueryRunner>((resolve) => {
+            resolveRunner = resolve;
+        });
+        const executeCommandStub = sandbox.stub(vscode.commands, "executeCommand").resolves();
+        sandbox.stub(contentProvider, "createQueryRunner").returns(runnerInitialization);
+
+        const runQueryStub = sandbox.stub().resolves();
+        const runner = {
+            uri,
+            runQuery: runQueryStub,
+            onComplete: new vscode.EventEmitter<void>().event,
+        } as unknown as QueryRunner;
+
+        const runPromise = contentProvider.runQuery(statusViewInstance, uri, undefined, title);
+
+        expect(executeCommandStub).to.have.been.calledWith("queryResult.focus", {
+            preserveFocus: true,
+        });
+        const initialState = contentProvider.queryResultWebviewController.getQueryResultState(uri);
+        expect(initialState.isExecuting).to.be.true;
+        expect(initialState.executionStartTime).to.be.a("number");
+        expect(runQueryStub).to.not.have.been.called;
+
+        resolveRunner!(runner);
+        await runPromise;
+
+        expect(runQueryStub).to.have.been.calledWith(undefined, sinon.match.object, undefined);
+    });
+
+    test("runQuery does not wait for results tab bootstrap before dispatching", async () => {
+        const uri = "test_uri";
+        const title = "test_title";
+        getConfigurationStub.returns(
+            stubs.createWorkspaceConfiguration({
+                [Constants.configOpenQueryResultsInTabByDefault]: true,
+            }),
+        );
+
+        const panelBootstrap = new Promise<void>(() => undefined);
+        const createPanelControllerStub = sandbox
+            .stub(contentProvider.queryResultWebviewController, "createPanelController")
+            .returns(panelBootstrap);
+        const runQueryStub = sandbox.stub().resolves();
+        const runner = {
+            uri,
+            runQuery: runQueryStub,
+            onComplete: new vscode.EventEmitter<void>().event,
+        } as unknown as QueryRunner;
+        sandbox.stub(contentProvider, "createQueryRunner").resolves(runner);
+
+        await contentProvider.runQuery(statusViewInstance, uri, undefined, title);
+
+        expect(createPanelControllerStub).to.have.been.calledWithExactly(uri);
+        expect(runQueryStub).to.have.been.calledWith(undefined, sinon.match.object, undefined);
     });
 
     test("runQuery updates footer execution state on start, message, and complete", async () => {
