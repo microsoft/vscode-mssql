@@ -2897,6 +2897,9 @@
     },
     "Open in New Tab": "Open in New Tab",
     "Results toolbar": "Results toolbar",
+    "More Actions": "More Actions",
+    "Preview Grid": "Preview Grid",
+    "Switch between the classic and the preview results grid": "Switch between the classic and the preview results grid",
     "Showplan XML": "Showplan XML",
     "Show Menu ({0})/{0} is the keyboard shortcut for showing the menu": {
         "message": "Show Menu ({0})",

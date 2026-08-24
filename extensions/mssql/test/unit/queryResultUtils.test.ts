@@ -4,11 +4,18 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from "chai";
+import * as chai from "chai";
 import * as sinon from "sinon";
+import sinonChai from "sinon-chai";
 import * as vscode from "vscode";
 import * as queryResultUtils from "../../src/queryResult/utils";
 import * as Constants from "../../src/constants/constants";
 import * as qr from "../../src/sharedInterfaces/queryResult";
+import { getPreviewConfigKey, PreviewFeature } from "../../src/previews/previewService";
+import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
+import { stubPreviewService, stubTelemetry } from "./utils";
+
+chai.use(sinonChai);
 
 suite("QueryResult Utils Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -163,6 +170,184 @@ suite("QueryResult Utils Tests", () => {
 
             expect(queryResultUtils.messageToString(message, true)).to.equal(
                 "12:34:56 PM\tFirst line\n12:34:56 PM\tSecond line",
+            );
+        });
+    });
+
+    suite("toggleResultsGridMode request handler", () => {
+        const betaGridConfigKey = getPreviewConfigKey(PreviewFeature.BetaResultsGrid);
+        const correlationId = "test-correlation-id";
+
+        /**
+         * Registers the common request handlers against a stand-in controller and returns the
+         * captured toggle handler along with the config `update` stub it writes through.
+         */
+        function registerHandlers(updateBehavior?: (stub: sinon.SinonStub) => void): {
+            invokeToggle: (params?: qr.ToggleResultsGridModeParams) => Promise<void>;
+            update: sinon.SinonStub;
+            setGridModeChangeReportedBySwitch: sinon.SinonStub;
+        } {
+            const handlers = new Map<
+                string,
+                (params?: qr.ToggleResultsGridModeParams) => Promise<void>
+            >();
+            const update = sandbox.stub().resolves();
+            updateBehavior?.(update);
+
+            sandbox.stub(vscode.workspace, "getConfiguration").returns({
+                get: sandbox.stub(),
+                update,
+            } as unknown as vscode.WorkspaceConfiguration);
+
+            const setGridModeChangeReportedBySwitch = sandbox.stub();
+
+            const controller = {
+                onRequest: sandbox
+                    .stub()
+                    .callsFake(
+                        (
+                            type: { method: string },
+                            handler: (params?: qr.ToggleResultsGridModeParams) => Promise<void>,
+                        ) => {
+                            handlers.set(type.method, handler);
+                        },
+                    ),
+                onNotification: sandbox.stub(),
+                registerReducer: sandbox.stub(),
+                getQueryResultWebviewViewController: sandbox
+                    .stub()
+                    .returns({ setGridModeChangeReportedBySwitch }),
+            };
+
+            queryResultUtils.registerCommonRequestHandlers(
+                controller as unknown as Parameters<
+                    typeof queryResultUtils.registerCommonRequestHandlers
+                >[0],
+                correlationId,
+            );
+
+            const handler = handlers.get(qr.ToggleResultsGridModeRequest.type.method);
+            expect(handler, "toggle handler should be registered").to.not.be.undefined;
+
+            return {
+                invokeToggle: (params?) => handler!(params),
+                update,
+                setGridModeChangeReportedBySwitch,
+            };
+        }
+
+        test("turns the beta grid off when it is currently enabled", async () => {
+            stubTelemetry(sandbox);
+            stubPreviewService(sandbox, { [PreviewFeature.BetaResultsGrid]: true });
+
+            const { invokeToggle, update } = registerHandlers();
+            await invokeToggle();
+
+            expect(update).to.have.been.calledWithExactly(
+                betaGridConfigKey,
+                false,
+                vscode.ConfigurationTarget.Global,
+            );
+        });
+
+        test("turns the beta grid on when the setting is unset and experimental features are off", async () => {
+            // The preview setting falls back to the global experimental flag when unset, so the
+            // toggle must negate the effective value rather than the stored one.
+            stubTelemetry(sandbox);
+            stubPreviewService(sandbox, {}, false);
+
+            const { invokeToggle, update } = registerHandlers();
+            await invokeToggle();
+
+            expect(update).to.have.been.calledWithExactly(
+                betaGridConfigKey,
+                true,
+                vscode.ConfigurationTarget.Global,
+            );
+        });
+
+        test("sends telemetry describing the mode being switched to", async () => {
+            const { sendActionEvent } = stubTelemetry(sandbox);
+            stubPreviewService(sandbox, { [PreviewFeature.BetaResultsGrid]: true });
+
+            const { invokeToggle } = registerHandlers();
+            await invokeToggle();
+
+            expect(sendActionEvent).to.have.been.calledWithMatch(
+                TelemetryViews.QueryResult,
+                TelemetryActions.ToggleResultsGridMode,
+                sinon.match({
+                    correlationId: correlationId,
+                    newMode: "classic",
+                    source: "resultsPaneSwitch",
+                    // The stand-in controller is not a QueryResultWebviewController, so the
+                    // handler reports it as a tab-hosted view.
+                    webviewLocation: "document",
+                }),
+                sinon.match((measurements) => Object.keys(measurements).length === 0),
+            );
+        });
+
+        test("claims the configuration change so the listener does not double count it", async () => {
+            stubTelemetry(sandbox);
+            stubPreviewService(sandbox, { [PreviewFeature.BetaResultsGrid]: true });
+
+            const { invokeToggle, setGridModeChangeReportedBySwitch } = registerHandlers();
+            await invokeToggle();
+
+            expect(setGridModeChangeReportedBySwitch).to.have.been.calledWithExactly(true);
+        });
+
+        test("releases the claim when writing the configuration fails", async () => {
+            stubTelemetry(sandbox);
+            stubPreviewService(sandbox, { [PreviewFeature.BetaResultsGrid]: true });
+
+            const { invokeToggle, setGridModeChangeReportedBySwitch } = registerHandlers((stub) =>
+                stub.rejects(new Error("write failed")),
+            );
+
+            // The listener never fires for a failed write, so a stale claim would swallow the
+            // telemetry for the next genuine settings-driven change.
+            try {
+                await invokeToggle();
+                expect.fail("expected the failed configuration write to propagate");
+            } catch (error) {
+                expect((error as Error).message).to.equal("write failed");
+            }
+
+            expect(setGridModeChangeReportedBySwitch).to.have.been.calledWithExactly(false);
+        });
+
+        test("reports the on-screen result set size, bucketized", async () => {
+            const { sendActionEvent } = stubTelemetry(sandbox);
+            stubPreviewService(sandbox, { [PreviewFeature.BetaResultsGrid]: true });
+
+            const { invokeToggle } = registerHandlers();
+            await invokeToggle({ gridCount: 3, rowCount: 1234 });
+
+            expect(sendActionEvent).to.have.been.calledWithMatch(
+                sinon.match.any,
+                sinon.match.any,
+                sinon.match.any,
+                sinon.match({
+                    gridCount: 3,
+                    rowCount: queryResultUtils.bucketizeRowCount(1234),
+                }),
+            );
+        });
+
+        test("omits result set measurements when the webview does not report them", async () => {
+            const { sendActionEvent } = stubTelemetry(sandbox);
+            stubPreviewService(sandbox, { [PreviewFeature.BetaResultsGrid]: true });
+
+            const { invokeToggle } = registerHandlers();
+            await invokeToggle({});
+
+            expect(sendActionEvent).to.have.been.calledWithMatch(
+                sinon.match.any,
+                sinon.match.any,
+                sinon.match.any,
+                sinon.match((measurements) => Object.keys(measurements).length === 0),
             );
         });
     });
