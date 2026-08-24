@@ -29,6 +29,7 @@ import { QueryResultsGridView } from "./queryResultsGridView";
 import { QueryResultCommandsContext } from "./queryResultStateProvider";
 import { useQueryResultSelector } from "./queryResultSelector";
 import type { ResultGridHandle, ResultGridProps } from "./resultGrid";
+import { getFluentResultGridInitialFrozenColumnIndex } from "../../common/FluentResultGrid/internal/fluentResultGridState";
 
 const DEFAULT_FONT_SIZE = 12;
 const BASE_ROW_PADDING = 12;
@@ -487,6 +488,7 @@ function areResultSetSummariesEquivalent(
 
 const QueryResultFluentResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props, ref) => {
     const context = useContext(QueryResultCommandsContext);
+    const extensionRpc = context?.extensionRpc;
     const uri = useQueryResultSelector((state) => state.uri);
     const fontSettings = useQueryResultSelector((state) => state.fontSettings);
     const gridSettings = useQueryResultSelector((state) => state.gridSettings);
@@ -508,9 +510,11 @@ const QueryResultFluentResultGrid = forwardRef<ResultGridHandle, ResultGridProps
     const filtersSignatureRef = useRef<string | undefined>(undefined);
     const gridViewStateSignatureRef = useRef<string | undefined>(undefined);
     const scrollPositionSignatureRef = useRef<string | undefined>(undefined);
+    const freezeFirstColumnByDefaultRef = useRef(gridSettings?.freezeFirstColumnByDefault ?? false);
+    freezeFirstColumnByDefaultRef.current = gridSettings?.freezeFirstColumnByDefault ?? false;
 
     useEffect(() => {
-        if (!context || !uri) {
+        if (!extensionRpc || !uri) {
             return;
         }
 
@@ -519,19 +523,19 @@ const QueryResultFluentResultGrid = forwardRef<ResultGridHandle, ResultGridProps
         setIsInitialStateLoaded(false);
         void (async () => {
             const [filters, columnWidths, gridViewState, scrollPosition] = await Promise.all([
-                context.extensionRpc.sendRequest(qr.GetFiltersRequest.type, {
+                extensionRpc.sendRequest(qr.GetFiltersRequest.type, {
                     uri,
                     gridId: props.gridId,
                 }),
-                context.extensionRpc.sendRequest(qr.GetColumnWidthsRequest.type, {
+                extensionRpc.sendRequest(qr.GetColumnWidthsRequest.type, {
                     uri,
                     gridId: props.gridId,
                 }),
-                context.extensionRpc.sendRequest(qr.GetGridViewStateRequest.type, {
+                extensionRpc.sendRequest(qr.GetGridViewStateRequest.type, {
                     uri,
                     gridId: props.gridId,
                 }),
-                context.extensionRpc.sendRequest(qr.GetGridScrollPositionRequest.type, {
+                extensionRpc.sendRequest(qr.GetGridScrollPositionRequest.type, {
                     uri,
                     gridId: props.gridId,
                 }),
@@ -543,6 +547,10 @@ const QueryResultFluentResultGrid = forwardRef<ResultGridHandle, ResultGridProps
 
             const nextInitialState: FluentResultGridState = {
                 ...(gridViewState ?? {}),
+                frozenColumnIndex: getFluentResultGridInitialFrozenColumnIndex(
+                    gridViewState?.frozenColumnIndex,
+                    freezeFirstColumnByDefaultRef.current,
+                ),
                 columnWidths,
                 filters: filters ?? {},
                 sort: getSortStateFromFilters(filters),
@@ -560,18 +568,18 @@ const QueryResultFluentResultGrid = forwardRef<ResultGridHandle, ResultGridProps
         return () => {
             disposed = true;
         };
-    }, [context, props.gridId, uri]);
+    }, [extensionRpc, props.gridId, uri]);
 
     const dataSource = useMemo(
         () => ({
             kind: "windowed" as const,
             rowCount: latestDataSourceRowCountRef.current,
             getRows: async (offset: number, count: number) => {
-                if (!context || !uri) {
+                if (!extensionRpc || !uri) {
                     return [];
                 }
 
-                const response = await context.extensionRpc.sendRequest(qr.GetRowsRequest.type, {
+                const response = await extensionRpc.sendRequest(qr.GetRowsRequest.type, {
                     uri,
                     batchId: props.batchId,
                     resultId: props.resultId,
@@ -581,7 +589,7 @@ const QueryResultFluentResultGrid = forwardRef<ResultGridHandle, ResultGridProps
                 return response?.rows ?? [];
             },
         }),
-        [context, props.batchId, props.resultId, uri],
+        [extensionRpc, props.batchId, props.resultId, uri],
     );
 
     const handleStateChange = useCallback(

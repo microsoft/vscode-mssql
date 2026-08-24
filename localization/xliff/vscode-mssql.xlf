@@ -9345,6 +9345,9 @@
     <trans-unit id="mssql.walkthroughs.nextSteps.objectExplorerFilters.title">
       <source xml:lang="en">Filter your Object Explorer Tree</source>
     </trans-unit>
+    <trans-unit id="mssql.resultsGrid.freezeFirstColumnByDefault">
+      <source xml:lang="en">Freeze the first data column by default in new result grids. Existing saved grid state takes precedence.</source>
+    </trans-unit>
     <trans-unit id="mssql.sqlScriptsSubmenu">
       <source xml:lang="en">Generate Script</source>
     </trans-unit>

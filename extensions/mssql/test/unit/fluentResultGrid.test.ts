@@ -18,6 +18,7 @@ import {
 } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridTransforms";
 import {
     FLUENT_RESULT_GRID_DEFAULT_FROZEN_COLUMN_INDEX,
+    getFluentResultGridInitialFrozenColumnIndex,
     normalizeFluentResultGridFrozenColumnIndex,
     stabilizeFluentResultGridColumnInfo,
 } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridState";
@@ -149,6 +150,13 @@ suite("Fluent Result Grid", () => {
     });
 
     suite("state helpers", () => {
+        test("uses the optional freeze-first-column default only when no saved state exists", () => {
+            expect(getFluentResultGridInitialFrozenColumnIndex(undefined, false)).to.equal(0);
+            expect(getFluentResultGridInitialFrozenColumnIndex(undefined, true)).to.equal(1);
+            expect(getFluentResultGridInitialFrozenColumnIndex(0, true)).to.equal(0);
+            expect(getFluentResultGridInitialFrozenColumnIndex(3, false)).to.equal(3);
+        });
+
         test("clamps frozen column index to the valid column range", () => {
             expect(normalizeFluentResultGridFrozenColumnIndex(undefined, 5)).to.equal(
                 FLUENT_RESULT_GRID_DEFAULT_FROZEN_COLUMN_INDEX,

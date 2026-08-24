@@ -2819,6 +2819,11 @@
                     "default": false,
                     "description": "%mssql.resultsGrid.alternatingRowColors%"
                 },
+                "mssql.resultsGrid.freezeFirstColumnByDefault": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "%mssql.resultsGrid.freezeFirstColumnByDefault%"
+                },
                 "mssql.resultsGrid.showGridLines": {
                     "type": "string",
                     "default": "both",

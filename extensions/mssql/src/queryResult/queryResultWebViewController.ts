@@ -166,6 +166,7 @@ export class QueryResultWebviewController extends WebviewViewController<
                 }
                 if (
                     e.affectsConfiguration("mssql.resultsGrid.alternatingRowColors") ||
+                    e.affectsConfiguration("mssql.resultsGrid.freezeFirstColumnByDefault") ||
                     e.affectsConfiguration("mssql.resultsGrid.showGridLines") ||
                     e.affectsConfiguration("mssql.resultsGrid.rowPadding")
                 ) {
@@ -498,6 +499,9 @@ export class QueryResultWebviewController extends WebviewViewController<
         return {
             alternatingRowColors:
                 (config.get(Constants.configResultsGridAlternatingRowColors) as boolean) ?? false,
+            freezeFirstColumnByDefault:
+                (config.get(Constants.configResultsGridFreezeFirstColumnByDefault) as boolean) ??
+                false,
             showGridLines,
             rowPadding: config.get(Constants.configResultsGridRowPadding) as number | undefined,
         };
