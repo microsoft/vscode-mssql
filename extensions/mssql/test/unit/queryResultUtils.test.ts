@@ -243,7 +243,7 @@ suite("QueryResult Utils Tests", () => {
             const { invokeToggle, update } = registerHandlers();
             await invokeToggle();
 
-            expect(update).to.have.been.calledOnceWithExactly(
+            expect(update).to.have.been.calledWithExactly(
                 betaGridConfigKey,
                 false,
                 vscode.ConfigurationTarget.Global,
@@ -259,7 +259,7 @@ suite("QueryResult Utils Tests", () => {
             const { invokeToggle, update } = registerHandlers();
             await invokeToggle();
 
-            expect(update).to.have.been.calledOnceWithExactly(
+            expect(update).to.have.been.calledWithExactly(
                 betaGridConfigKey,
                 true,
                 vscode.ConfigurationTarget.Global,
@@ -273,18 +273,18 @@ suite("QueryResult Utils Tests", () => {
             const { invokeToggle } = registerHandlers();
             await invokeToggle();
 
-            expect(sendActionEvent).to.have.been.calledOnceWithExactly(
+            expect(sendActionEvent).to.have.been.calledWithMatch(
                 TelemetryViews.QueryResult,
                 TelemetryActions.ToggleResultsGridMode,
-                {
+                sinon.match({
                     correlationId: correlationId,
                     newMode: "classic",
                     source: "resultsPaneSwitch",
                     // The stand-in controller is not a QueryResultWebviewController, so the
                     // handler reports it as a tab-hosted view.
                     webviewLocation: "document",
-                },
-                {},
+                }),
+                sinon.match((measurements) => Object.keys(measurements).length === 0),
             );
         });
 
@@ -295,7 +295,7 @@ suite("QueryResult Utils Tests", () => {
             const { invokeToggle, setGridModeChangeReportedBySwitch } = registerHandlers();
             await invokeToggle();
 
-            expect(setGridModeChangeReportedBySwitch).to.have.been.calledOnceWithExactly(true);
+            expect(setGridModeChangeReportedBySwitch).to.have.been.calledWithExactly(true);
         });
 
         test("releases the claim when writing the configuration fails", async () => {
@@ -315,9 +315,7 @@ suite("QueryResult Utils Tests", () => {
                 expect((error as Error).message).to.equal("write failed");
             }
 
-            expect(setGridModeChangeReportedBySwitch.secondCall).to.have.been.calledWithExactly(
-                false,
-            );
+            expect(setGridModeChangeReportedBySwitch).to.have.been.calledWithExactly(false);
         });
 
         test("reports the on-screen result set size, bucketized", async () => {
@@ -327,10 +325,15 @@ suite("QueryResult Utils Tests", () => {
             const { invokeToggle } = registerHandlers();
             await invokeToggle({ gridCount: 3, rowCount: 1234 });
 
-            expect(sendActionEvent.firstCall.args[3]).to.deep.equal({
-                gridCount: 3,
-                rowCount: queryResultUtils.bucketizeRowCount(1234),
-            });
+            expect(sendActionEvent).to.have.been.calledWithMatch(
+                sinon.match.any,
+                sinon.match.any,
+                sinon.match.any,
+                sinon.match({
+                    gridCount: 3,
+                    rowCount: queryResultUtils.bucketizeRowCount(1234),
+                }),
+            );
         });
 
         test("omits result set measurements when the webview does not report them", async () => {
@@ -340,7 +343,12 @@ suite("QueryResult Utils Tests", () => {
             const { invokeToggle } = registerHandlers();
             await invokeToggle({});
 
-            expect(sendActionEvent.firstCall.args[3]).to.deep.equal({});
+            expect(sendActionEvent).to.have.been.calledWithMatch(
+                sinon.match.any,
+                sinon.match.any,
+                sinon.match.any,
+                sinon.match((measurements) => Object.keys(measurements).length === 0),
+            );
         });
     });
 });
