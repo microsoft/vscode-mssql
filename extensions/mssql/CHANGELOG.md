@@ -1,5 +1,20 @@
 # Change Log
 
+## Version 1.45.1
+
+- Release date: August 26, 2026
+- Release status: GA
+
+### What's new in 1.45.1
+
+- Improved cell selection in the new Query Results Grid (Preview) to match the familiar classic grid experience, including support for multi-cell selection with Ctrl/Cmd+click
+- Fixed an issue where running a query could get stuck on "Executing query" and results would never appear
+- Restored the "Executing query" timer in the status bar while queries run, with a new `mssql.statusBar.showQueryExecutionStatus` setting to hide it if you prefer
+- Added an option to always freeze the first column of query results, so key values stay visible while scrolling wide result sets. Enable with `mssql.resultsGrid.freezeFirstColumnByDefault` in settings
+- Added Ctrl+Insert as an alternative shortcut for copying selected results
+- Added a Preview Grid toggle to the Query Results toolbar so you can switch between the new and classic results grids without editing settings
+- Added missing index recommendations to the execution plan view, making it easy to spot indexing opportunities for slow queries
+
 ## Version 1.45.0
 
 - Release date: August 19, 2026
