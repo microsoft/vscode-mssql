@@ -4,12 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import "./queryResultEagerStyles";
-import { lazy } from "react";
 import { renderQueryResult } from "./queryResultEntrypoint";
-
-const QueryResultFluentResultGridView = lazy(async () => {
-    const module = await import("./queryResultFluentResultGrid");
-    return { default: module.QueryResultFluentResultGridView };
-});
+import { QueryResultFluentResultGridView } from "./queryResultFluentResultGrid";
 
 renderQueryResult(QueryResultFluentResultGridView, true);

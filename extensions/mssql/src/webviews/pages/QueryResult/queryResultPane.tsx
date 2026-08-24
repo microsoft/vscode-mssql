@@ -29,11 +29,7 @@ import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { eventMatchesShortcut } from "../../common/keyboardUtils";
 import { QueryResultSummaryFooter } from "./queryResultSummaryFooter";
 import { CopyIndicator } from "../../common/CopyIndicator";
-
-const QueryMessageTab = lazy(async () => {
-    const module = await import("./queryMessageTab");
-    return { default: module.QueryMessageTab };
-});
+import { QueryMessageTab } from "./queryMessageTab";
 
 const QueryExecutionPlanTab = lazy(async () => {
     const module = await import("./queryExecutionPlanTab");
@@ -157,22 +153,13 @@ export const QueryResultPane = ({ GridView, isBetaResultsGridEnabled }: QueryRes
     const isExecuting = useQueryResultSelector<boolean>((s) => s.isExecuting ?? false);
     const { keyBindings } = useVscodeWebview();
     const hasContent = hasResultsOrMessages(resultSetSummaries, messages);
-    const [renderedTabs, setRenderedTabs] = useState<Set<qr.QueryResultPaneTabs>>(() => new Set());
+    const [hasRenderedExecutionPlan, setHasRenderedExecutionPlan] = useState(false);
 
     useEffect(() => {
-        const activeTab = tabStates?.resultPaneTab;
-        if (!hasContent || activeTab === undefined) {
-            return;
+        if (tabStates?.resultPaneTab === qr.QueryResultPaneTabs.ExecutionPlan) {
+            setHasRenderedExecutionPlan(true);
         }
-        setRenderedTabs((tabs) => {
-            if (tabs.has(activeTab)) {
-                return tabs;
-            }
-            const nextTabs = new Set(tabs);
-            nextTabs.add(activeTab);
-            return nextTabs;
-        });
-    }, [hasContent, tabStates?.resultPaneTab]);
+    }, [tabStates?.resultPaneTab]);
 
     useEffect(() => {
         const handler = (event: KeyboardEvent) => {
@@ -376,10 +363,7 @@ export const QueryResultPane = ({ GridView, isBetaResultsGridEnabled }: QueryRes
                                 : "hidden",
                     }}
                     aria-hidden={tabStates!.resultPaneTab !== qr.QueryResultPaneTabs.Results}>
-                    {(tabStates!.resultPaneTab === qr.QueryResultPaneTabs.Results ||
-                        renderedTabs.has(qr.QueryResultPaneTabs.Results)) && (
-                        <QueryResultsTab GridView={GridView} />
-                    )}
+                    <QueryResultsTab GridView={GridView} />
                 </div>
 
                 <div
@@ -391,15 +375,7 @@ export const QueryResultPane = ({ GridView, isBetaResultsGridEnabled }: QueryRes
                                 : "hidden",
                     }}
                     aria-hidden={tabStates!.resultPaneTab !== qr.QueryResultPaneTabs.Messages}>
-                    {(tabStates!.resultPaneTab === qr.QueryResultPaneTabs.Messages ||
-                        renderedTabs.has(qr.QueryResultPaneTabs.Messages)) && (
-                        <Suspense
-                            fallback={
-                                <Spinner label={locConstants.queryResult.loadingResultsMessage} />
-                            }>
-                            <QueryMessageTab />
-                        </Suspense>
-                    )}
+                    <QueryMessageTab />
                 </div>
 
                 <div
@@ -416,7 +392,7 @@ export const QueryResultPane = ({ GridView, isBetaResultsGridEnabled }: QueryRes
                     }}
                     aria-hidden={tabStates!.resultPaneTab !== qr.QueryResultPaneTabs.ExecutionPlan}>
                     {(tabStates!.resultPaneTab === qr.QueryResultPaneTabs.ExecutionPlan ||
-                        renderedTabs.has(qr.QueryResultPaneTabs.ExecutionPlan)) && (
+                        hasRenderedExecutionPlan) && (
                         <Suspense
                             fallback={
                                 <Spinner label={locConstants.queryResult.loadingResultsMessage} />

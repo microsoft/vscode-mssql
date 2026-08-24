@@ -98,9 +98,5 @@ export const QueryResultsTab = ({ GridView }: QueryResultsTabProps) => {
             </Suspense>
         );
     }
-    return (
-        <Suspense fallback={<QueryResultsLoading />}>
-            <GridView />
-        </Suspense>
-    );
+    return <GridView />;
 };

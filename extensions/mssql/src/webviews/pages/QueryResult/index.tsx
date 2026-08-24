@@ -4,18 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import "./queryResultEagerStyles";
-import { lazy } from "react";
 import { renderQueryResult } from "./queryResultEntrypoint";
+import { QueryResultsGridView } from "./queryResultsGridView";
+import ResultGrid from "./resultGrid";
 
-const QueryResultLegacyGridView = lazy(async () => {
-    const [{ QueryResultsGridView }, { default: ResultGrid }] = await Promise.all([
-        import("./queryResultsGridView"),
-        import("./resultGrid"),
-    ]);
-
-    return {
-        default: () => <QueryResultsGridView GridComponent={ResultGrid} />,
-    };
-});
+const QueryResultLegacyGridView = () => <QueryResultsGridView GridComponent={ResultGrid} />;
 
 renderQueryResult(QueryResultLegacyGridView, false);
