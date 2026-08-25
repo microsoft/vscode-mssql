@@ -79,6 +79,7 @@ export class SqlOutputContentProvider {
             vscode.window.registerWebviewViewProvider(
                 "queryResult",
                 this._queryResultWebviewController,
+                { webviewOptions: { retainContextWhenHidden: true } },
             ),
         );
 
