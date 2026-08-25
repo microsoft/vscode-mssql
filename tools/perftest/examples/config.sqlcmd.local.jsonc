@@ -1,0 +1,50 @@
+// SQLCMD-mode gate scenario (SC-5, SQLCMD_MODE_PLAN.md): open Query Studio
+// with a sqlcmd script (setvar/$(var)/GO 2), sqlcmd mode pre-enabled via the
+// open-context seam, autorun to results visible. Success requires the
+// sqlcmd.run marker (the run actually went through the preprocessor).
+// Run from the perftest repo root:
+//   node packages/perftest-cli/dist/cli.js run --config examples/config.sqlcmd.local.jsonc
+{
+    "schemaVersion": 2,
+    "runId": "auto",
+    "passType": "measurement",
+    "repetitions": 3,
+    "warmupRepetitions": 1,
+    "scenarios": ["querystudio-sqlcmd-run"],
+    "vscode": {
+        "version": "stable",
+        "quality": "stable",
+        "launchMode": "directSpawn",
+        "profileMode": "scenarioDefault",
+        "workspaceRoot": "./workspaces/perf",
+        "extensions": [
+            {
+                "id": "ms-mssql.mssql",
+                "source": "developmentPath",
+                "path": "../vscode-mssql/extensions/mssql",
+            },
+            {
+                "id": "perftest.mssql-perf-driver",
+                "source": "developmentPath",
+                "path": "./extensions/mssql-perf-driver",
+            },
+        ],
+        "extraArgs": [],
+        "env": {
+            "MSSQL_SQLTOOLSSERVICE": "C:\\repos\\test\\sqltoolsservice\\src\\Microsoft.SqlTools.ServiceLayer\\bin\\Debug\\net10.0",
+            "PERF_DOTNET_PATH": "C:\\Program Files\\dotnet\\dotnet.exe",
+        },
+    },
+    "sql": {
+        "provider": "external",
+        "connectionStringEnv": "STS2_SQLSERVER_CONNSTRING",
+        "snapshot": "seed-v2",
+        "cacheMode": "warm",
+        "connectionProfile": "default",
+    },
+    "environment": { "requireIdle": false },
+    "diagnostics": { "markers": true, "processSampler": false, "otel": "off" },
+    "store": { "type": "sqlite", "path": "./perf.db" },
+    "regression": { "baseline": "none", "failOnRegression": false },
+    "output": { "dir": "./perf-runs", "keepArtifacts": "always" },
+}

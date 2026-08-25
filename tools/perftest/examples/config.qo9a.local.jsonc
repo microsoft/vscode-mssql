@@ -1,0 +1,57 @@
+// QO-9a result-shape baseline config (coding-docs/query-optimization):
+// the five new Query Studio shapes plus the existing 10k anchor, measured
+// pre-optimization so QO-4..QO-8 have honest before/after evidence.
+// Same environment shape as config.eval.local.jsonc (external SQL via
+// STS2_SQLSERVER_CONNSTRING, dev-path extensions, sqlite store).
+{
+    "schemaVersion": 2,
+    "runId": "auto",
+    "passType": "measurement",
+    "repetitions": 3,
+    "warmupRepetitions": 1,
+    "scenarios": [
+        "querystudio-query-scalar-results-focus",
+        "querystudio-query-10k",
+        "querystudio-query-100k-narrow",
+        "querystudio-query-wide-1000x300",
+        "querystudio-query-large-cells",
+        "querystudio-query-10k-messages",
+        "querystudio-query-100-resultsets",
+    ],
+    "vscode": {
+        "version": "stable",
+        "quality": "stable",
+        "launchMode": "directSpawn",
+        "profileMode": "scenarioDefault",
+        "workspaceRoot": "./workspaces/perf",
+        "extensions": [
+            {
+                "id": "ms-mssql.mssql",
+                "source": "developmentPath",
+                "path": "../vscode-mssql/extensions/mssql",
+            },
+            {
+                "id": "perftest.mssql-perf-driver",
+                "source": "developmentPath",
+                "path": "./extensions/mssql-perf-driver",
+            },
+        ],
+        "extraArgs": [],
+        "env": {
+            "MSSQL_SQLTOOLSSERVICE": "C:\\repos\\test\\sqltoolsservice\\src\\Microsoft.SqlTools.ServiceLayer\\bin\\Debug\\net10.0",
+            "PERF_DOTNET_PATH": "C:\\Program Files\\dotnet\\dotnet.exe",
+        },
+    },
+    "sql": {
+        "provider": "external",
+        "connectionStringEnv": "STS2_SQLSERVER_CONNSTRING",
+        "snapshot": "seed-v2",
+        "cacheMode": "warm",
+        "connectionProfile": "default",
+    },
+    "environment": { "requireIdle": false },
+    "diagnostics": { "markers": true, "processSampler": true, "otel": "off" },
+    "store": { "type": "sqlite", "path": "./perf.db" },
+    "regression": { "baseline": "none", "failOnRegression": false },
+    "output": { "dir": "./perf-runs", "keepArtifacts": "always" },
+}

@@ -1,0 +1,57 @@
+// QO-9b tuning-spread matrix (coding-docs/query-optimization): the spread
+// axis points over the three key shapes. The base (default-knob) points come
+// from the QO-9a runs of the unsuffixed scenarios on the same tree; combos
+// inject knobs via mssql.queryStudio.tuning.overrides in userSettings and
+// runs correlate by the QueryTuning snapshot digest on the submit marker.
+{
+    "schemaVersion": 2,
+    "runId": "auto",
+    "passType": "measurement",
+    "repetitions": 3,
+    "warmupRepetitions": 1,
+    "scenarios": [
+        "querystudio-query-100k-narrow-p128",
+        "querystudio-query-100k-narrow-p512",
+        "querystudio-query-100k-narrow-b64k",
+        "querystudio-query-wide-1000x300-p128",
+        "querystudio-query-wide-1000x300-w200",
+        "querystudio-query-wide-1000x300-adaptive",
+        "querystudio-query-large-cells-cell64k",
+    ],
+    "vscode": {
+        "version": "stable",
+        "quality": "stable",
+        "launchMode": "directSpawn",
+        "profileMode": "scenarioDefault",
+        "workspaceRoot": "./workspaces/perf",
+        "extensions": [
+            {
+                "id": "ms-mssql.mssql",
+                "source": "developmentPath",
+                "path": "../vscode-mssql/extensions/mssql",
+            },
+            {
+                "id": "perftest.mssql-perf-driver",
+                "source": "developmentPath",
+                "path": "./extensions/mssql-perf-driver",
+            },
+        ],
+        "extraArgs": [],
+        "env": {
+            "MSSQL_SQLTOOLSSERVICE": "C:\\repos\\test\\sqltoolsservice\\src\\Microsoft.SqlTools.ServiceLayer\\bin\\Debug\\net10.0",
+            "PERF_DOTNET_PATH": "C:\\Program Files\\dotnet\\dotnet.exe",
+        },
+    },
+    "sql": {
+        "provider": "external",
+        "connectionStringEnv": "STS2_SQLSERVER_CONNSTRING",
+        "snapshot": "seed-v2",
+        "cacheMode": "warm",
+        "connectionProfile": "default",
+    },
+    "environment": { "requireIdle": false },
+    "diagnostics": { "markers": true, "processSampler": true, "otel": "off" },
+    "store": { "type": "sqlite", "path": "./perf.db" },
+    "regression": { "baseline": "none", "failOnRegression": false },
+    "output": { "dir": "./perf-runs", "keepArtifacts": "always" },
+}

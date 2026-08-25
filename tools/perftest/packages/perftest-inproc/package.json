@@ -1,0 +1,22 @@
+{
+    "name": "@mssqlperf/inproc",
+    "version": "0.1.0",
+    "private": true,
+    "description": "In-process perftest runner: run scenario specs directly inside a live VS Code extension host (self-test). Self-contained; imported relatively by vscode-mssql.",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "build": "tsc -p tsconfig.json",
+        "typecheck": "tsc -p tsconfig.json --noEmit",
+        "test": "vitest run"
+    },
+    "devDependencies": {
+        "@types/node": "^24.0.0",
+        "@types/vscode": "1.101.0",
+        "typescript": "^5.8.0",
+        "vitest": "^3.2.0"
+    }
+}

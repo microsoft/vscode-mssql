@@ -1,0 +1,44 @@
+// M6' acceptance step 2: the SAME noop scenario with a 250ms synthetic delay
+// injected into the measured window (PERF_SYNTHETIC_DELAY_MS), compared
+// against the "gate-proof" named baseline. Expected outcome: REGRESSED
+// verdict on scenario.wallclock and exit code 1.
+{
+    "schemaVersion": 2,
+    "runId": "auto",
+    "passType": "measurement",
+    "repetitions": 5,
+    "warmupRepetitions": 0,
+    "scenarios": ["noop"],
+    "vscode": {
+        "version": "stable",
+        "quality": "stable",
+        "launchMode": "directSpawn",
+        "profileMode": "scenarioDefault",
+        "extensions": [
+            {
+                "id": "perftest.mssql-perf-driver",
+                "source": "developmentPath",
+                "path": "./extensions/mssql-perf-driver",
+            },
+        ],
+        "extraArgs": [],
+        "env": { "PERF_SYNTHETIC_DELAY_MS": "250" },
+    },
+    "sql": {
+        "provider": "external",
+        "snapshot": "none",
+        "cacheMode": "unknown",
+        "connectionProfile": "none",
+    },
+    "environment": { "requireIdle": false },
+    "diagnostics": { "markers": true, "processSampler": false, "otel": "off" },
+    "store": { "type": "sqlite", "path": "./perf.db" },
+    "regression": {
+        "baseline": "gate-proof",
+        "failOnRegression": true,
+        "thresholds": {
+            "default": { "pct": 10, "absMs": 5, "test": "welchT", "minSamples": 3, "maxCv": 0.5 },
+        },
+    },
+    "output": { "dir": "./perf-runs", "keepArtifacts": "always" },
+}

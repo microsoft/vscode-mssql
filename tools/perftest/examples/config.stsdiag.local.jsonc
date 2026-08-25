@@ -1,0 +1,57 @@
+// M3: diagnostic pass with sts2-based STS diagnostics.
+// Runs the query scenario against a LOCALLY BUILT SQL Tools Service
+// (MSSQL_SQLTOOLSSERVICE) with the sts2 observability core enabled
+// (STS_ENABLE_STS2=1). The stsEnvelopeJournal collector harvests the envelope
+// journal into rep artifacts and derives official:false STS RPC latencies.
+// Run from the perftest repo root:
+//   node packages/perftest-cli/dist/cli.js run --config examples/config.stsdiag.local.jsonc
+{
+    "schemaVersion": 2,
+    "runId": "auto",
+    "passType": "diagnostic",
+    "repetitions": 2,
+    "warmupRepetitions": 0,
+    "scenarios": ["query-10k-results"],
+    "vscode": {
+        "version": "stable",
+        "quality": "stable",
+        "launchMode": "directSpawn",
+        "profileMode": "scenarioDefault",
+        "workspaceRoot": "./workspaces/perf",
+        "extensions": [
+            {
+                "id": "ms-mssql.mssql",
+                "source": "developmentPath",
+                "path": "../vscode-mssql/extensions/mssql",
+            },
+            {
+                "id": "perftest.mssql-perf-driver",
+                "source": "developmentPath",
+                "path": "./extensions/mssql-perf-driver",
+            },
+        ],
+        "extraArgs": [],
+        "env": {
+            "MSSQL_SQLTOOLSSERVICE": "C:\\repos\\test\\sqltoolsservice\\src\\Microsoft.SqlTools.ServiceLayer\\bin\\Debug\\net10.0",
+            "PERF_DOTNET_PATH": "C:\\Program Files\\dotnet\\dotnet.exe",
+            "STS_ENABLE_STS2": "1",
+        },
+    },
+    "sql": {
+        "provider": "external",
+        "connectionStringEnv": "STS2_SQLSERVER_CONNSTRING",
+        "snapshot": "seed-v1",
+        "cacheMode": "warm",
+        "connectionProfile": "default",
+    },
+    "environment": { "requireIdle": false },
+    "diagnostics": {
+        "markers": true,
+        "processSampler": true,
+        "stsEnvelopeJournal": true,
+        "otel": "off",
+    },
+    "store": { "type": "sqlite", "path": "./perf.db" },
+    "regression": { "baseline": "none", "failOnRegression": false },
+    "output": { "dir": "./perf-runs", "keepArtifacts": "always" },
+}

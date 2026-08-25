@@ -1,0 +1,51 @@
+// OE v2 container scenarios (DOCK-4): deploy → ready → data-plane connect,
+// and stopped-container → pre-flight → connected. REQUIRES a running Docker
+// engine and a locally cached mcr.microsoft.com/mssql/server:2025-latest
+// image (the seams never pull). Exploratory — not part of the standing gates.
+// Run from the perftest repo root:
+//   node packages/perftest-cli/dist/cli.js run --config examples/config.containers.local.jsonc
+{
+    "schemaVersion": 2,
+    "runId": "auto",
+    "passType": "measurement",
+    "repetitions": 1,
+    "warmupRepetitions": 0,
+    "scenarios": ["oev2-container-deploy", "oev2-container-reconnect"],
+    "vscode": {
+        "version": "stable",
+        "quality": "stable",
+        "launchMode": "directSpawn",
+        "profileMode": "scenarioDefault",
+        "workspaceRoot": "./workspaces/perf",
+        "extensions": [
+            {
+                "id": "ms-mssql.mssql",
+                "source": "developmentPath",
+                "path": "../vscode-mssql/extensions/mssql",
+            },
+            {
+                "id": "perftest.mssql-perf-driver",
+                "source": "developmentPath",
+                "path": "./extensions/mssql-perf-driver",
+            },
+        ],
+        "extraArgs": [],
+        "env": {
+            "MSSQL_SQLTOOLSSERVICE": "C:\\repos\\test\\sqltoolsservice\\src\\Microsoft.SqlTools.ServiceLayer\\bin\\Debug\\net10.0",
+            "PERF_DOTNET_PATH": "C:\\Program Files\\dotnet\\dotnet.exe",
+        },
+    },
+    // Containers provision their own SQL — provider external + snapshot none
+    // keeps the schema satisfied without env-connstring provisioning.
+    "sql": {
+        "provider": "external",
+        "snapshot": "none",
+        "cacheMode": "unknown",
+        "connectionProfile": "none",
+    },
+    "environment": { "requireIdle": false },
+    "diagnostics": { "markers": true, "processSampler": false, "otel": "off" },
+    "store": { "type": "sqlite", "path": "./perf.db" },
+    "regression": { "baseline": "none", "failOnRegression": false },
+    "output": { "dir": "./perf-runs", "keepArtifacts": "always" },
+}

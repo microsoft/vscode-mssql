@@ -1,0 +1,3505 @@
+{
+    "schemaVersion": "obs-contract/1",
+    "description": "Canonical event vocabulary across vscode-mssql, perftest, and (namespaced) STS. Seeded from the verified emitted inventory 2026-07-04; conformance tests in each repo keep it honest. attrsComplete:false means the attribute list is known-partial (allowed while the registry matures — unknown attrs are a docs gap, not a violation).",
+    "conventions": {
+        "pairing": "Marker pairs are EXPLICIT via pairsWith — suffix conventions vary (.begin/.end, begin/ready, submit/complete) and must not be guessed.",
+        "prefixFamilies": "Entries with 'prefix' match dynamically-named families (rpc.<method>, sts.dispatch.<method>, ...). Family-level rules apply to every member.",
+        "sts": "sts.* events arrive epoch-aligned in extension-anchored traces and are diagnostic-only there, always."
+    },
+    "events": [
+        {
+            "name": "mssql.activate.begin",
+            "kind": "marker",
+            "phase": "begin",
+            "pairsWith": "mssql.activate.end",
+            "feature": "activation",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {},
+            "attrsComplete": false
+        },
+        {
+            "name": "mssql.activate.end",
+            "kind": "marker",
+            "phase": "end",
+            "pairsWith": "mssql.activate.begin",
+            "feature": "activation",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {},
+            "attrsComplete": false
+        },
+        {
+            "name": "mssql.command.invoked",
+            "kind": "marker",
+            "phase": "instant",
+            "feature": "shell",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {
+                "commandId": "structuralMetadata"
+            },
+            "attrsComplete": false,
+            "notes": "Root-action anchor for traces; not a timing endpoint by itself."
+        },
+        {
+            "name": "mssql.connection.begin",
+            "kind": "marker",
+            "phase": "begin",
+            "pairsWith": "mssql.connection.ready",
+            "feature": "connection",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {},
+            "attrsComplete": false
+        },
+        {
+            "name": "mssql.connection.ready",
+            "kind": "marker",
+            "phase": "end",
+            "pairsWith": "mssql.connection.begin",
+            "feature": "connection",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {},
+            "attrsComplete": false
+        },
+        {
+            "name": "mssql.connection.failed",
+            "kind": "marker",
+            "phase": "instant",
+            "feature": "connection",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {
+                "reason": "safeEnum"
+            },
+            "attrsComplete": false,
+            "notes": "Failure instant — invalidates the connection pair, never a fabricated duration."
+        },
+        {
+            "name": "mssql.query.submit",
+            "kind": "marker",
+            "phase": "begin",
+            "pairsWith": "mssql.query.complete",
+            "feature": "query",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {},
+            "attrsComplete": false
+        },
+        {
+            "name": "mssql.query.complete",
+            "kind": "marker",
+            "phase": "end",
+            "pairsWith": "mssql.query.submit",
+            "feature": "query",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {
+                "rowCount": "structuralMetadata",
+                "hasError": "structuralMetadata"
+            },
+            "attrsComplete": false
+        },
+        {
+            "name": "mssql.query.cancelRequested",
+            "kind": "marker",
+            "phase": "instant",
+            "feature": "query",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {},
+            "attrsComplete": false
+        },
+        {
+            "name": "mssql.query.cancelled",
+            "kind": "marker",
+            "phase": "instant",
+            "feature": "query",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {},
+            "attrsComplete": false
+        },
+        {
+            "name": "mssql.query.cancelFailed",
+            "kind": "marker",
+            "phase": "instant",
+            "feature": "query",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {
+                "reason": "safeEnum"
+            },
+            "attrsComplete": false
+        },
+        {
+            "name": "mssql.resultsGrid.windowFetch.begin",
+            "kind": "marker",
+            "phase": "begin",
+            "pairsWith": "mssql.resultsGrid.windowFetch.end",
+            "feature": "resultsGrid",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {},
+            "attrsComplete": false
+        },
+        {
+            "name": "mssql.resultsGrid.windowFetch.end",
+            "kind": "marker",
+            "phase": "end",
+            "pairsWith": "mssql.resultsGrid.windowFetch.begin",
+            "feature": "resultsGrid",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {
+                "rowStart": "structuralMetadata",
+                "rowCount": "structuralMetadata"
+            },
+            "attrsComplete": false
+        },
+        {
+            "name": "mssql.resultsGrid.dataReceived",
+            "kind": "marker",
+            "phase": "instant",
+            "feature": "resultsGrid",
+            "processRoles": ["webview"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {},
+            "attrsComplete": false
+        },
+        {
+            "name": "mssql.resultsGrid.renderComplete",
+            "kind": "webviewMark",
+            "phase": "instant",
+            "feature": "resultsGrid",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": true,
+            "attrs": {
+                "rowCount": "structuralMetadata"
+            },
+            "attrsComplete": false,
+            "notes": "Cross-process endpoint (webview paint after extension-host submit). Measurement-eligible via the harness's calibrated clock model ONLY (perftest calibrates webview clocks per run); epoch-aligned/diagnostic everywhere else."
+        },
+        {
+            "name": "mssql.sts.spawn.begin",
+            "kind": "marker",
+            "phase": "begin",
+            "pairsWith": "mssql.sts.spawn.end",
+            "feature": "stsLifecycle",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {},
+            "attrsComplete": false
+        },
+        {
+            "name": "mssql.sts.spawn.end",
+            "kind": "marker",
+            "phase": "end",
+            "pairsWith": "mssql.sts.spawn.begin",
+            "feature": "stsLifecycle",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {},
+            "attrsComplete": false
+        },
+        {
+            "name": "mssql.sts.ready",
+            "kind": "marker",
+            "phase": "instant",
+            "feature": "stsLifecycle",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {},
+            "attrsComplete": false
+        },
+        {
+            "name": "mssql.sts.pid",
+            "kind": "event",
+            "phase": "instant",
+            "feature": "stsLifecycle",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {
+                "pid": "structuralMetadata"
+            },
+            "attrsComplete": false
+        },
+        {
+            "name": "mssql.oe.expand.begin",
+            "kind": "marker",
+            "phase": "begin",
+            "pairsWith": "mssql.oe.expand.end",
+            "feature": "objectExplorer",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {},
+            "attrsComplete": false
+        },
+        {
+            "name": "mssql.oe.expand.end",
+            "kind": "marker",
+            "phase": "end",
+            "pairsWith": "mssql.oe.expand.begin",
+            "feature": "objectExplorer",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {
+                "childCount": "structuralMetadata",
+                "nodeType": "structuralMetadata"
+            },
+            "attrsComplete": false
+        },
+        {
+            "name": "mssql.tableDesigner.init.begin",
+            "kind": "marker",
+            "phase": "begin",
+            "pairsWith": "mssql.tableDesigner.init.end",
+            "feature": "tableDesigner",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {
+                "isEdit": "structuralMetadata"
+            },
+            "attrsComplete": false
+        },
+        {
+            "name": "mssql.tableDesigner.init.end",
+            "kind": "marker",
+            "phase": "end",
+            "pairsWith": "mssql.tableDesigner.init.begin",
+            "feature": "tableDesigner",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {
+                "error": "structuralMetadata",
+                "reason": "safeEnum"
+            },
+            "attrsComplete": false
+        },
+        {
+            "name": "mssql.tableDesigner.publish.begin",
+            "kind": "marker",
+            "phase": "begin",
+            "pairsWith": "mssql.tableDesigner.publish.end",
+            "feature": "tableDesigner",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {},
+            "attrsComplete": false
+        },
+        {
+            "name": "mssql.tableDesigner.publish.end",
+            "kind": "marker",
+            "phase": "end",
+            "pairsWith": "mssql.tableDesigner.publish.begin",
+            "feature": "tableDesigner",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {
+                "error": "structuralMetadata",
+                "reason": "safeEnum"
+            },
+            "attrsComplete": false
+        },
+        {
+            "name": "mssql.schemaDesigner.init.begin",
+            "kind": "marker",
+            "phase": "begin",
+            "pairsWith": "mssql.schemaDesigner.init.end",
+            "feature": "schemaDesigner",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {},
+            "attrsComplete": false
+        },
+        {
+            "name": "mssql.schemaDesigner.init.end",
+            "kind": "marker",
+            "phase": "end",
+            "pairsWith": "mssql.schemaDesigner.init.begin",
+            "feature": "schemaDesigner",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {
+                "tableCount": "structuralMetadata",
+                "error": "structuralMetadata",
+                "reason": "safeEnum"
+            },
+            "attrsComplete": false
+        },
+        {
+            "name": "mssql.schemaDesigner.ready",
+            "kind": "webviewMark",
+            "phase": "instant",
+            "feature": "schemaDesigner",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": true,
+            "attrs": {
+                "tableCount": "structuralMetadata"
+            },
+            "attrsComplete": false,
+            "notes": "First meaningful rendered graph in the LEGACY schema designer webview (nodes committed + one frame painted). Added for fair rendered-phase comparison with the schema visualizer (addendum §13.6/§14.2). Measurement-eligible via the harness calibrated plane only, same rule as queryStudio.resultsRendered."
+        },
+        {
+            "name": "mssql.schemaVisualizer.open.begin",
+            "kind": "marker",
+            "phase": "begin",
+            "pairsWith": "mssql.schemaVisualizer.open.end",
+            "feature": "schemaVisualizer",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {},
+            "attrsComplete": false
+        },
+        {
+            "name": "mssql.schemaVisualizer.open.end",
+            "kind": "marker",
+            "phase": "end",
+            "pairsWith": "mssql.schemaVisualizer.open.begin",
+            "feature": "schemaVisualizer",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {
+                "tableCount": "structuralMetadata",
+                "columnCount": "structuralMetadata",
+                "fkCount": "structuralMetadata",
+                "generation": "structuralMetadata",
+                "freshness": "safeEnum",
+                "source": "safeEnum",
+                "validation": "safeEnum",
+                "error": "structuralMetadata",
+                "reason": "safeEnum"
+            },
+            "attrsComplete": false,
+            "notes": "Extension-host model preparation completed (metadata acquire + canonical model + projection built). Host/model-phase counterpart of schemaDesigner.init.end (DacFx session/model load). NO identifiers ride — counts and enums only."
+        },
+        {
+            "name": "mssql.schemaVisualizer.modelReady",
+            "kind": "webviewMark",
+            "phase": "instant",
+            "feature": "schemaVisualizer",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": true,
+            "attrs": {
+                "tableCount": "structuralMetadata"
+            },
+            "attrsComplete": false,
+            "notes": "Model delivered to and accepted by the webview (pre-layout)."
+        },
+        {
+            "name": "mssql.schemaVisualizer.layout.begin",
+            "kind": "webviewMark",
+            "phase": "begin",
+            "pairsWith": "mssql.schemaVisualizer.layout.end",
+            "feature": "schemaVisualizer",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": true,
+            "attrs": {},
+            "attrsComplete": false
+        },
+        {
+            "name": "mssql.schemaVisualizer.layout.end",
+            "kind": "webviewMark",
+            "phase": "end",
+            "pairsWith": "mssql.schemaVisualizer.layout.begin",
+            "feature": "schemaVisualizer",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": true,
+            "attrs": {
+                "nodeCount": "structuralMetadata",
+                "edgeCount": "structuralMetadata",
+                "layoutMode": "safeEnum",
+                "canceled": "structuralMetadata"
+            },
+            "attrsComplete": false
+        },
+        {
+            "name": "mssql.schemaVisualizer.ready",
+            "kind": "webviewMark",
+            "phase": "instant",
+            "feature": "schemaVisualizer",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": true,
+            "attrs": {
+                "renderedTables": "structuralMetadata",
+                "renderedEdges": "structuralMetadata",
+                "totalTables": "structuralMetadata",
+                "layoutMode": "safeEnum",
+                "subsetMode": "safeEnum"
+            },
+            "attrsComplete": false,
+            "notes": "First meaningful rendered graph: required model received, initial subset chosen, layout completed or deliberately skipped, React Flow holds the expected node/edge count, one animation frame after commit (addendum §11.5). Measurement-eligible via the harness calibrated plane only."
+        },
+        {
+            "name": "mssql.schemaVisualizer.refresh.begin",
+            "kind": "marker",
+            "phase": "begin",
+            "pairsWith": "mssql.schemaVisualizer.refresh.end",
+            "feature": "schemaVisualizer",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {},
+            "attrsComplete": false
+        },
+        {
+            "name": "mssql.schemaVisualizer.refresh.end",
+            "kind": "marker",
+            "phase": "end",
+            "pairsWith": "mssql.schemaVisualizer.refresh.begin",
+            "feature": "schemaVisualizer",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {
+                "outcome": "safeEnum",
+                "fingerprintChanged": "structuralMetadata"
+            },
+            "attrsComplete": false
+        },
+        {
+            "name": "mssql.schemaVisualizer.driftDetected",
+            "kind": "marker",
+            "phase": "instant",
+            "feature": "schemaVisualizer",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {
+                "dirty": "structuralMetadata"
+            },
+            "attrsComplete": false,
+            "notes": "Visualizer FINGERPRINT changed (never emitted on bare generation change — addendum §6.1)."
+        },
+        {
+            "name": "mssql.schemaVisualizer.rebase.begin",
+            "kind": "marker",
+            "phase": "begin",
+            "pairsWith": "mssql.schemaVisualizer.rebase.end",
+            "feature": "schemaVisualizer",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {},
+            "attrsComplete": false
+        },
+        {
+            "name": "mssql.schemaVisualizer.rebase.end",
+            "kind": "marker",
+            "phase": "end",
+            "pairsWith": "mssql.schemaVisualizer.rebase.begin",
+            "feature": "schemaVisualizer",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {
+                "outcome": "safeEnum",
+                "operationCount": "structuralMetadata",
+                "conflictCount": "structuralMetadata"
+            },
+            "attrsComplete": false
+        },
+        {
+            "name": "mssql.schemaVisualizer.commit.handoff.begin",
+            "kind": "marker",
+            "phase": "begin",
+            "pairsWith": "mssql.schemaVisualizer.commit.handoff.end",
+            "feature": "schemaVisualizer",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {},
+            "attrsComplete": false
+        },
+        {
+            "name": "mssql.schemaVisualizer.commit.handoff.end",
+            "kind": "marker",
+            "phase": "end",
+            "pairsWith": "mssql.schemaVisualizer.commit.handoff.begin",
+            "feature": "schemaVisualizer",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {
+                "outcome": "safeEnum",
+                "operationCount": "structuralMetadata",
+                "correlatedCount": "structuralMetadata",
+                "conflictCount": "structuralMetadata",
+                "dataLoss": "structuralMetadata",
+                "error": "structuralMetadata",
+                "reason": "safeEnum"
+            },
+            "attrsComplete": false,
+            "notes": "Classic credential resolution through v1 createSession/correlation/getReport readiness (addendum §13.2). Publish is a separate pair."
+        },
+        {
+            "name": "mssql.schemaVisualizer.publish.begin",
+            "kind": "marker",
+            "phase": "begin",
+            "pairsWith": "mssql.schemaVisualizer.publish.end",
+            "feature": "schemaVisualizer",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {},
+            "attrsComplete": false
+        },
+        {
+            "name": "mssql.schemaVisualizer.publish.end",
+            "kind": "marker",
+            "phase": "end",
+            "pairsWith": "mssql.schemaVisualizer.publish.begin",
+            "feature": "schemaVisualizer",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {
+                "outcome": "safeEnum",
+                "error": "structuralMetadata",
+                "reason": "safeEnum"
+            },
+            "attrsComplete": false,
+            "notes": "Confirmed publish only (valid preview token). Emitted around v1 publishSession through post-publish disposal."
+        },
+        {
+            "name": "mssql.schemaCompare.compare.begin",
+            "kind": "marker",
+            "phase": "begin",
+            "pairsWith": "mssql.schemaCompare.compare.end",
+            "feature": "schemaCompare",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {},
+            "attrsComplete": false
+        },
+        {
+            "name": "mssql.schemaCompare.compare.end",
+            "kind": "marker",
+            "phase": "end",
+            "pairsWith": "mssql.schemaCompare.compare.begin",
+            "feature": "schemaCompare",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {
+                "differences": "structuralMetadata",
+                "error": "structuralMetadata"
+            },
+            "attrsComplete": false
+        },
+        {
+            "name": "scenario.start",
+            "kind": "marker",
+            "phase": "begin",
+            "pairsWith": "scenario.end",
+            "feature": "harness",
+            "processRoles": ["harness", "extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {
+                "scenarioId": "structuralMetadata"
+            },
+            "attrsComplete": false
+        },
+        {
+            "name": "scenario.end",
+            "kind": "marker",
+            "phase": "end",
+            "pairsWith": "scenario.start",
+            "feature": "harness",
+            "processRoles": ["harness", "extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {
+                "status": "safeEnum"
+            },
+            "attrsComplete": false
+        },
+        {
+            "name": "system.rich.snapshot",
+            "kind": "richMetric",
+            "phase": "instant",
+            "feature": "diagnostics",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {
+                "heapUsedMB": "diagnosticMetric",
+                "rssMB": "diagnosticMetric",
+                "externalMB": "diagnosticMetric",
+                "arrayBuffersMB": "diagnosticMetric",
+                "eventLoopP95Ms": "diagnosticMetric",
+                "cpuUserMs": "diagnosticMetric",
+                "cpuSystemMs": "diagnosticMetric"
+            },
+            "attrsComplete": false,
+            "notes": "Rich collection output. Its PRESENCE marks the rep diagnostic-only."
+        },
+        {
+            "prefix": "exthost.memory.",
+            "kind": "marker",
+            "feature": "harness",
+            "processRoles": ["extensionHost"],
+            "timingClass": "derived",
+            "measurementEligible": false,
+            "attrs": {
+                "value": "diagnosticMetric"
+            },
+            "attrsComplete": true,
+            "notes": "Extension-host process.memoryUsage counter sampled by the perf driver; normalized as diagnostic peak/final metrics."
+        },
+        {
+            "name": "sessionDiag.enabled",
+            "kind": "event",
+            "phase": "instant",
+            "feature": "diagnostics",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {
+                "captureMode": "safeEnum"
+            },
+            "attrsComplete": false
+        },
+        {
+            "name": "sessionDiag.disabled",
+            "kind": "event",
+            "phase": "instant",
+            "feature": "diagnostics",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {},
+            "attrsComplete": false
+        },
+        {
+            "name": "sessionDiag.elevated",
+            "kind": "event",
+            "phase": "instant",
+            "feature": "diagnostics",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {
+                "durationMinutes": "structuralMetadata"
+            },
+            "attrsComplete": false,
+            "notes": "Elevation reason is user free text — classified identifierSensitive and stored only in the local audit record, never forwarded."
+        },
+        {
+            "name": "sessionDiag.elevation.expired",
+            "kind": "event",
+            "phase": "instant",
+            "feature": "diagnostics",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {},
+            "attrsComplete": false
+        },
+        {
+            "name": "selfTest.run.end",
+            "kind": "event",
+            "phase": "instant",
+            "feature": "selfTest",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {
+                "runStatus": "safeEnum",
+                "passed": "structuralMetadata",
+                "failed": "structuralMetadata"
+            },
+            "attrsComplete": false
+        },
+        {
+            "prefix": "rpc.",
+            "kind": "spanFamily",
+            "feature": "rpc",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {},
+            "attrsComplete": false,
+            "notes": "Client-observed JSON-RPC round-trips (rpc.<method>[.begin|.end]). Same-process timing but diagnostic by policy — they explain, they do not gate."
+        },
+        {
+            "prefix": "webview.",
+            "kind": "spanFamily",
+            "feature": "webviewRpc",
+            "processRoles": ["extensionHost", "webview"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {},
+            "attrsComplete": false,
+            "notes": "Webview controller RPC spans (webview.<controller>.<op>). Console-viewer spans additionally carry the viewerInternal tag and are excluded from product analysis."
+        },
+        {
+            "prefix": "sts.dispatch.",
+            "kind": "spanFamily",
+            "feature": "stsDispatcher",
+            "processRoles": ["sqlToolsService"],
+            "timingClass": "epochAligned",
+            "measurementEligible": false,
+            "attrs": {},
+            "attrsComplete": false,
+            "notes": "Every STS JSON-RPC handler execution (sts.dispatch.<method>). Protocol metadata only."
+        },
+        {
+            "prefix": "sts.sql.",
+            "kind": "spanFamily",
+            "feature": "sqlDriver",
+            "processRoles": ["sqlToolsService"],
+            "timingClass": "epochAligned",
+            "measurementEligible": false,
+            "attrs": {},
+            "attrsComplete": false,
+            "notes": "Known members: sts.sql.executeReader, sts.sql.connectionOpen."
+        },
+        {
+            "prefix": "sts.smo.",
+            "kind": "spanFamily",
+            "feature": "objectExplorer",
+            "processRoles": ["sqlToolsService"],
+            "timingClass": "epochAligned",
+            "measurementEligible": false,
+            "attrs": {},
+            "attrsComplete": false,
+            "notes": "Known members: sts.smo.expand, sts.smo.refresh."
+        },
+        {
+            "prefix": "sts.dacfx.",
+            "kind": "spanFamily",
+            "feature": "dacfx",
+            "processRoles": ["sqlToolsService"],
+            "timingClass": "epochAligned",
+            "measurementEligible": false,
+            "attrs": {},
+            "attrsComplete": false,
+            "notes": "DacFxService operations (sts.dacfx.<OperationType>) AND designer DesignServices work (sts.dacfx.tableDesigner.*, sts.dacfx.schemaDesigner.*)."
+        },
+        {
+            "name": "sts2.query.stats",
+            "kind": "event",
+            "phase": "instant",
+            "feature": "queryStudio",
+            "processRoles": ["sqlToolsService"],
+            "timingClass": "epochAligned",
+            "measurementEligible": false,
+            "attrs": {
+                "status": "safeEnum",
+                "pagesSent": "structuralMetadata",
+                "pages": "structuralMetadata",
+                "rows": "structuralMetadata",
+                "cellSlots": "structuralMetadata",
+                "nullCells": "structuralMetadata",
+                "encodedBytes": "structuralMetadata",
+                "eventPayloadBytes": "structuralMetadata",
+                "maxEventPayloadBytes": "structuralMetadata",
+                "readMsTotal": "structuralMetadata",
+                "creditWaitMsTotal": "structuralMetadata",
+                "encodeMsTotal": "structuralMetadata",
+                "rowsSerializeMsTotal": "structuralMetadata",
+                "utf8MeasureMsTotal": "structuralMetadata",
+                "nullBitmapMsTotal": "structuralMetadata",
+                "pageBodyBuildMsTotal": "structuralMetadata",
+                "eventBuildMsTotal": "structuralMetadata",
+                "postBuildMsTotal": "structuralMetadata",
+                "postMsTotal": "structuralMetadata",
+                "encodePrepAllocatedBytes": "structuralMetadata",
+                "eventBuildAllocatedBytes": "structuralMetadata",
+                "postBuildAllocatedBytes": "structuralMetadata"
+            },
+            "attrsComplete": false,
+            "notes": "Journaled STS v2 query-pipeline aggregate. The diagnostic contains opaque query/connection correlation fields plus the listed privacy-safe counts, bytes, timings, and managed allocation deltas; SQL and cell values are forbidden."
+        },
+        {
+            "name": "sts2.query.coordinator.stats",
+            "kind": "event",
+            "phase": "instant",
+            "feature": "queryStudio",
+            "processRoles": ["sqlToolsService"],
+            "timingClass": "epochAligned",
+            "measurementEligible": false,
+            "attrs": {
+                "status": "safeEnum",
+                "pages": "structuralMetadata",
+                "captureCanonicalBytes": "structuralMetadata",
+                "queueWaitMsTotal": "structuralMetadata",
+                "captureMsTotal": "structuralMetadata",
+                "captureAllocatedBytes": "structuralMetadata",
+                "inputEnvelopeBuildMsTotal": "structuralMetadata",
+                "inputEnvelopeBuildAllocatedBytes": "structuralMetadata",
+                "inputJournalMsTotal": "structuralMetadata",
+                "coreMsTotal": "structuralMetadata",
+                "coreAllocatedBytes": "structuralMetadata",
+                "outputEncodeMsTotal": "structuralMetadata",
+                "outputEncodeAllocatedBytes": "structuralMetadata",
+                "outputEnvelopeBuildMsTotal": "structuralMetadata",
+                "outputEnvelopeBuildAllocatedBytes": "structuralMetadata",
+                "outputJournalMsTotal": "structuralMetadata",
+                "outputActionMsTotal": "structuralMetadata",
+                "outputActionAllocatedBytes": "structuralMetadata",
+                "outputSubstitutionMsTotal": "structuralMetadata",
+                "outputSubstitutionAllocatedBytes": "structuralMetadata",
+                "outputGatewayEmitMsTotal": "structuralMetadata",
+                "outputGatewayEmitAllocatedBytes": "structuralMetadata"
+            },
+            "attrsComplete": false,
+            "notes": "Replay-ignored STS v2 runtime aggregate for post-driver coordinator stages. Opaque query correlation stays out of normalized tags; SQL and cell values are forbidden."
+        },
+        {
+            "name": "import.linesSkipped",
+            "kind": "event",
+            "phase": "instant",
+            "feature": "harness",
+            "processRoles": ["system"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {
+                "skipped": "structuralMetadata",
+                "reason": "safeEnum"
+            },
+            "attrsComplete": true,
+            "notes": "Synthetic import-loss record: how many markers.jsonl lines were refused (malformed/oversized) so imported traces never silently under-report."
+        },
+        {
+            "name": "mssql.queryStudio.open.begin",
+            "kind": "marker",
+            "phase": "begin",
+            "pairsWith": "mssql.queryStudio.open.end",
+            "feature": "queryStudio",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {},
+            "attrsComplete": false
+        },
+        {
+            "name": "mssql.queryStudio.open.end",
+            "kind": "marker",
+            "phase": "end",
+            "pairsWith": "mssql.queryStudio.open.begin",
+            "feature": "queryStudio",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {
+                "fromCache": "structuralMetadata",
+                "monacoMs": "structuralMetadata"
+            },
+            "attrsComplete": false
+        },
+        {
+            "name": "mssql.queryStudio.connect.begin",
+            "kind": "marker",
+            "phase": "begin",
+            "pairsWith": "mssql.queryStudio.connect.ready",
+            "feature": "queryStudio",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {},
+            "attrsComplete": false
+        },
+        {
+            "name": "mssql.queryStudio.connect.ready",
+            "kind": "marker",
+            "phase": "end",
+            "pairsWith": "mssql.queryStudio.connect.begin",
+            "feature": "queryStudio",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {
+                "backend": "structuralMetadata",
+                "authKind": "safeEnum",
+                "encrypted": "structuralMetadata",
+                "metadataSession": "structuralMetadata",
+                "error": "structuralMetadata",
+                "reason": "safeEnum"
+            },
+            "attrsComplete": false,
+            "notes": "Failure emits connect.ready with error+reason (addendum 3.5); no third phase."
+        },
+        {
+            "name": "mssql.queryStudio.query.submit",
+            "kind": "marker",
+            "phase": "begin",
+            "pairsWith": "mssql.queryStudio.query.complete",
+            "feature": "queryStudio",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {
+                "backend": "safeEnum",
+                "scope": "safeEnum",
+                "batchCount": "structuralMetadata",
+                "selection": "structuralMetadata",
+                "tuningDigest": "structuralMetadata",
+                "tuningProfile": "safeEnum"
+            },
+            "attrsComplete": false,
+            "notes": "tuningDigest/tuningProfile: resolved QueryTuning snapshot attribution (QO-1) — a salt-free hash of numeric/enum knobs, never user data."
+        },
+        {
+            "name": "mssql.queryStudio.query.complete",
+            "kind": "marker",
+            "phase": "end",
+            "pairsWith": "mssql.queryStudio.query.submit",
+            "feature": "queryStudio",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {
+                "backend": "safeEnum",
+                "status": "safeEnum",
+                "durationMs": "structuralMetadata",
+                "batches": "structuralMetadata",
+                "resultSets": "structuralMetadata",
+                "rows": "structuralMetadata",
+                "errors": "structuralMetadata",
+                "canceled": "structuralMetadata",
+                "partial": "structuralMetadata",
+                "bytes": "structuralMetadata",
+                "pages": "structuralMetadata",
+                "spillWrites": "structuralMetadata",
+                "spillReads": "structuralMetadata",
+                "spillEncoding": "safeEnum",
+                "appendMsTotal": "structuralMetadata",
+                "spillWriteMsTotal": "structuralMetadata",
+                "spillSerializeMsTotal": "structuralMetadata",
+                "spillWriteIoMsTotal": "structuralMetadata",
+                "spillReadMsTotal": "structuralMetadata",
+                "spillDeserializeMsTotal": "structuralMetadata",
+                "materializeMsTotal": "structuralMetadata",
+                "windowCacheHits": "structuralMetadata",
+                "windowCacheMisses": "structuralMetadata",
+                "residentPageBytes": "structuralMetadata",
+                "memoryBytesPeak": "structuralMetadata",
+                "pendingSpillBytesPeak": "structuralMetadata",
+                "windowCacheBytes": "structuralMetadata",
+                "windowCachePeakBytes": "structuralMetadata",
+                "windowCacheEvictions": "structuralMetadata",
+                "windowCacheBypasses": "structuralMetadata",
+                "windowCacheOversizeSkips": "structuralMetadata",
+                "windowCacheMaxBytes": "structuralMetadata"
+            },
+            "attrsComplete": false,
+            "notes": "Design 17.1 named this query.execute begin/end; frozen as submit/complete to mirror the classic query pair convention. Row-pipeline aggregates (pages/spill*/append*/materialize*/windowCache*) added by QO-2 attribution."
+        },
+        {
+            "name": "mssql.queryStudio.query.firstResult",
+            "kind": "marker",
+            "phase": "instant",
+            "feature": "queryStudio",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {
+                "backend": "safeEnum",
+                "pageRows": "structuralMetadata",
+                "msFromSubmit": "structuralMetadata"
+            },
+            "attrsComplete": true,
+            "notes": "Compatibility alias for the first accepted row page. New measurements use mssql.queryStudio.query.firstPage."
+        },
+        {
+            "name": "mssql.queryStudio.query.firstPage",
+            "kind": "marker",
+            "phase": "instant",
+            "feature": "queryStudio",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {
+                "backend": "safeEnum",
+                "pageRows": "structuralMetadata",
+                "msFromSubmit": "structuralMetadata"
+            },
+            "attrsComplete": true,
+            "notes": "First result page after durable RowStore acceptance; this is the provider-to-host first-page boundary, not merely driver production."
+        },
+        {
+            "name": "mssql.queryStudio.resultsRendered",
+            "kind": "webviewMark",
+            "phase": "instant",
+            "feature": "queryStudio",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": true,
+            "attrs": {
+                "rows": "structuralMetadata",
+                "resultSets": "structuralMetadata",
+                "activeTab": "safeEnum",
+                "partial": "structuralMetadata",
+                "fromSpill": "structuralMetadata"
+            },
+            "attrsComplete": false,
+            "notes": "Semantic end of the user-perceived query; activeTab is sampled at the actual post-paint boundary. Measurement-eligible via the harness calibrated plane only (same rule as classic renderComplete)."
+        },
+        {
+            "name": "mssql.queryStudio.boot.scriptStart",
+            "kind": "webviewMark",
+            "phase": "instant",
+            "feature": "queryStudio",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": true,
+            "attrs": {},
+            "attrsComplete": false,
+            "notes": "BOOT-1: first statement of the entry module - everything before this is webview HTML + chunk fetch/parse."
+        },
+        {
+            "name": "mssql.queryStudio.boot.reactMount",
+            "kind": "webviewMark",
+            "phase": "instant",
+            "feature": "queryStudio",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": true,
+            "attrs": {},
+            "attrsComplete": false,
+            "notes": "BOOT-1: React root render invoked."
+        },
+        {
+            "name": "mssql.queryStudio.boot.monacoReady",
+            "kind": "webviewMark",
+            "phase": "instant",
+            "feature": "queryStudio",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": true,
+            "attrs": {},
+            "attrsComplete": false,
+            "notes": "BOOT-1: Monaco editor instance created and model attached."
+        },
+        {
+            "name": "mssql.queryStudio.boot.editorInteractive",
+            "kind": "webviewMark",
+            "phase": "instant",
+            "feature": "queryStudio",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": true,
+            "attrs": {
+                "fromCache": "structuralMetadata"
+            },
+            "attrsComplete": false,
+            "notes": "BOOT-1: first paint AFTER the editor mounted - the above-the-fold moment (perfMarkAfterNextPaint)."
+        },
+        {
+            "name": "mssql.queryStudio.boot.gridChunkRequested",
+            "kind": "webviewMark",
+            "phase": "instant",
+            "feature": "queryStudio",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": true,
+            "attrs": {},
+            "attrsComplete": false,
+            "notes": "BOOT-1/P1: idle prefetch of the grid chunk began (post-editorInteractive)."
+        },
+        {
+            "name": "mssql.queryStudio.boot.gridChunkLoaded",
+            "kind": "webviewMark",
+            "phase": "instant",
+            "feature": "queryStudio",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": true,
+            "attrs": {
+                "waitedForByRender": "structuralMetadata"
+            },
+            "attrsComplete": false,
+            "notes": "BOOT-1/P1: grid chunk resolved; waitedForByRender=true means results arrived before the chunk (placeholder was shown)."
+        },
+        {
+            "name": "mssql.queryStudio.boot.planChunkLoaded",
+            "kind": "webviewMark",
+            "phase": "instant",
+            "feature": "queryStudio",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": true,
+            "attrs": {},
+            "attrsComplete": false,
+            "notes": "BOOT-1/P2: execution-plan chunk (azdataGraph) resolved - ONLY on plan-tab activation, never at init."
+        },
+        {
+            "name": "mssql.queryStudio.boot.vectorChunkRequested",
+            "kind": "webviewMark",
+            "phase": "instant",
+            "feature": "queryStudio",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": true,
+            "attrs": {},
+            "attrsComplete": false,
+            "notes": "VEC-5 (reserved): lazy Vector Workbench chunk load began - ONLY on vector-tab activation, never at init."
+        },
+        {
+            "name": "mssql.queryStudio.boot.vectorChunkLoaded",
+            "kind": "webviewMark",
+            "phase": "instant",
+            "feature": "queryStudio",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": true,
+            "attrs": {
+                "waitedForByRender": "structuralMetadata"
+            },
+            "attrsComplete": false,
+            "notes": "VEC-5 (reserved): Vector Workbench chunk resolved; waitedForByRender=true means the tab was activated before the chunk (placeholder was shown)."
+        },
+        {
+            "name": "mssql.queryStudio.boot.spatialChunkRequested",
+            "kind": "webviewMark",
+            "phase": "instant",
+            "feature": "queryStudio",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": true,
+            "attrs": {},
+            "attrsComplete": true,
+            "notes": "SPA-1: lazy Spatial pane chunk load began. This mark must be absent until an eligible Spatial tab is activated."
+        },
+        {
+            "name": "mssql.queryStudio.boot.spatialChunkLoaded",
+            "kind": "webviewMark",
+            "phase": "instant",
+            "feature": "queryStudio",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": true,
+            "attrs": {
+                "waitedForByRender": "structuralMetadata"
+            },
+            "attrsComplete": true,
+            "notes": "SPA-1: Spatial pane chunk resolved. The renderer and decode worker remain separately lazy behind activation."
+        },
+        {
+            "name": "mssql.queryStudio.boot.autoRunStart",
+            "kind": "webviewMark",
+            "phase": "instant",
+            "feature": "queryStudio",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": true,
+            "attrs": {},
+            "attrsComplete": false,
+            "notes": "BOOT-1: autoRun submission dispatched (open-with-SQL scenario)."
+        },
+        {
+            "name": "mssql.queryStudio.sqlcmd.toggle",
+            "kind": "marker",
+            "phase": "instant",
+            "feature": "queryStudio",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {
+                "enabled": "structuralMetadata",
+                "source": "safeEnum"
+            },
+            "attrsComplete": true,
+            "notes": "SQLCMD mode flipped for a document. source: user | scanPrompt | scanAuto."
+        },
+        {
+            "name": "mssql.queryStudio.sqlcmd.run",
+            "kind": "marker",
+            "phase": "instant",
+            "feature": "queryStudio",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {
+                "steps": "structuralMetadata",
+                "batches": "structuralMetadata",
+                "setvars": "structuralMetadata",
+                "includes": "structuralMetadata",
+                "connects": "structuralMetadata",
+                "onError": "safeEnum",
+                "errorCode": "safeEnum",
+                "preprocessMs": "structuralMetadata"
+            },
+            "attrsComplete": true,
+            "notes": "One per SQLCMD-mode run: preprocess outcome, counts only. Privacy: never SQL text, variable names/values, file paths, or server names. errorCode present only on parse failure."
+        },
+        {
+            "name": "mssql.queryStudio.scan.run",
+            "kind": "marker",
+            "phase": "instant",
+            "feature": "queryStudio",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {
+                "rules": "structuralMetadata",
+                "matched": "structuralMetadata",
+                "sampledLines": "structuralMetadata",
+                "ms": "structuralMetadata",
+                "action": "safeEnum"
+            },
+            "attrsComplete": true,
+            "notes": "Post-open scan-and-detect sweep (once per document). action: none | sqlcmdPrompt | sqlcmdAuto | sqlcmdEnabled | sqlcmdDeclined | psqlSuppress. Rule ids and counts only; never file content."
+        },
+        {
+            "name": "mssql.queryStudio.rows.windowFetch.begin",
+            "kind": "marker",
+            "phase": "begin",
+            "pairsWith": "mssql.queryStudio.rows.windowFetch.end",
+            "feature": "queryStudio",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {},
+            "attrsComplete": false
+        },
+        {
+            "name": "mssql.queryStudio.rows.windowFetch.end",
+            "kind": "marker",
+            "phase": "end",
+            "pairsWith": "mssql.queryStudio.rows.windowFetch.begin",
+            "feature": "queryStudio",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {
+                "resultSetId": "structuralMetadata",
+                "start": "structuralMetadata",
+                "count": "structuralMetadata",
+                "fromSpill": "structuralMetadata",
+                "ms": "structuralMetadata",
+                "cacheHit": "structuralMetadata",
+                "materializedPages": "structuralMetadata",
+                "residentPageBytes": "structuralMetadata",
+                "pendingSpillBytes": "structuralMetadata",
+                "windowCacheBytes": "structuralMetadata",
+                "windowCacheEntries": "structuralMetadata",
+                "windowCacheEvictions": "structuralMetadata",
+                "windowCacheBypasses": "structuralMetadata",
+                "windowCacheOversizeSkips": "structuralMetadata",
+                "windowCacheMaxBytes": "structuralMetadata",
+                "gridPreview": "structuralMetadata",
+                "gridPreviewTransformMs": "structuralMetadata",
+                "sourceValueCharacters": "structuralMetadata",
+                "returnedValueCharacters": "structuralMetadata"
+            },
+            "attrsComplete": false,
+            "notes": "Window materialization plus page/window-cache state at completion. Grid previews report aggregate source/returned character counts and bounded display/language transform time; cache admission is terminal-only and bounded by entries plus retained bytes. Per-cell null/non-empty count attrs emit only at verbose diagnostics."
+        },
+        {
+            "name": "mssql.queryStudio.state.push",
+            "kind": "marker",
+            "phase": "instant",
+            "feature": "queryStudio",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {
+                "executionKind": "safeEnum",
+                "intervalMs": "structuralMetadata",
+                "urgent": "structuralMetadata",
+                "buildMs": "structuralMetadata",
+                "resultSets": "structuralMetadata",
+                "columns": "structuralMetadata",
+                "rows": "structuralMetadata",
+                "messages": "structuralMetadata",
+                "payloadChars": "structuralMetadata"
+            },
+            "attrsComplete": false,
+            "notes": "Coarse Query Studio state was rebuilt and queued for the webview through the base controller's single canonical state notification. urgent identifies the first-result summary push that bypasses normal pacing. payloadChars is computed only in PERF_MODE to avoid a second serialization in normal sessions."
+        },
+        {
+            "name": "mssql.queryStudio.rows.maxRowsPerResultSet",
+            "kind": "marker",
+            "phase": "instant",
+            "feature": "queryStudio",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {
+                "batchIndex": "structuralMetadata",
+                "resultSetId": "structuralMetadata",
+                "rowLimit": "structuralMetadata",
+                "retainedRows": "structuralMetadata"
+            },
+            "attrsComplete": false,
+            "notes": "Row cap reached: the result set was truncated and the query canceled (cancel-on-cap). Registered retroactively — emitted since the row-cap commit."
+        },
+        {
+            "name": "mssql.queryStudio.rows.append",
+            "kind": "marker",
+            "phase": "instant",
+            "feature": "queryStudio",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {
+                "resultSetId": "structuralMetadata",
+                "rows": "structuralMetadata",
+                "bytes": "structuralMetadata",
+                "ms": "structuralMetadata"
+            },
+            "attrsComplete": false,
+            "notes": "Per-page store append (QO-2). Emitted only at verbose diagnostics — aggregates ride query.complete."
+        },
+        {
+            "name": "mssql.queryStudio.rows.dispose.begin",
+            "kind": "marker",
+            "phase": "begin",
+            "pairsWith": "mssql.queryStudio.rows.dispose.end",
+            "feature": "queryStudio",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {
+                "resultSets": "diagnosticMetric",
+                "residentPageBytes": "diagnosticMetric",
+                "spillBytes": "diagnosticMetric",
+                "spillWrites": "diagnosticMetric",
+                "spillReads": "diagnosticMetric",
+                "windowCacheBytes": "diagnosticMetric"
+            },
+            "attrsComplete": true,
+            "notes": "QO lifecycle: RowStore disposal requested after capturing aggregate resident/spill/cache ownership. No result identifiers or values."
+        },
+        {
+            "name": "mssql.queryStudio.rows.dispose.end",
+            "kind": "marker",
+            "phase": "end",
+            "pairsWith": "mssql.queryStudio.rows.dispose.begin",
+            "feature": "queryStudio",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {
+                "outcome": "safeEnum",
+                "spillFileRemoved": "structuralMetadata",
+                "ms": "diagnosticMetric"
+            },
+            "attrsComplete": true,
+            "notes": "QO lifecycle: queued spill writes settled and best-effort close/delete completed."
+        },
+        {
+            "name": "mssql.queryStudio.rows.spill.write",
+            "kind": "marker",
+            "phase": "instant",
+            "feature": "queryStudio",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {
+                "resultSetId": "structuralMetadata",
+                "bytes": "structuralMetadata",
+                "ms": "structuralMetadata",
+                "serializeMs": "structuralMetadata",
+                "ioMs": "structuralMetadata",
+                "encoding": "safeEnum"
+            },
+            "attrsComplete": false,
+            "notes": "Per-frame spill write (QO-2). Verbose diagnostics only."
+        },
+        {
+            "name": "mssql.queryStudio.rows.spill.read",
+            "kind": "marker",
+            "phase": "instant",
+            "feature": "queryStudio",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {
+                "resultSetId": "structuralMetadata",
+                "bytes": "structuralMetadata",
+                "ms": "structuralMetadata",
+                "ioMs": "structuralMetadata",
+                "deserializeMs": "structuralMetadata",
+                "encoding": "safeEnum"
+            },
+            "attrsComplete": false,
+            "notes": "Per-frame spill read + decode (QO-2). Verbose diagnostics only."
+        },
+        {
+            "name": "mssql.queryStudio.grid.window.request",
+            "kind": "webviewMark",
+            "phase": "instant",
+            "feature": "queryStudio",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": false,
+            "attrs": {
+                "resultSetId": "structuralMetadata",
+                "start": "structuralMetadata",
+                "count": "structuralMetadata",
+                "columnStart": "structuralMetadata",
+                "columnCount": "structuralMetadata",
+                "totalColumns": "structuralMetadata",
+                "requestedCells": "structuralMetadata",
+                "projected": "structuralMetadata"
+            },
+            "attrsComplete": true,
+            "notes": "Grid viewport window RPC issued from the webview data source with exact row/column projection cardinality (QO-2/QO-6)."
+        },
+        {
+            "name": "mssql.queryStudio.grid.window.received",
+            "kind": "webviewMark",
+            "phase": "instant",
+            "feature": "queryStudio",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": false,
+            "attrs": {
+                "resultSetId": "structuralMetadata",
+                "start": "structuralMetadata",
+                "count": "structuralMetadata",
+                "columnStart": "structuralMetadata",
+                "columnCount": "structuralMetadata",
+                "totalColumns": "structuralMetadata",
+                "returnedRows": "structuralMetadata",
+                "returnedColumns": "structuralMetadata",
+                "returnedCells": "structuralMetadata",
+                "valueMode": "safeEnum",
+                "projected": "structuralMetadata",
+                "ms": "structuralMetadata"
+            },
+            "attrsComplete": true,
+            "notes": "Window RPC resolved in the webview with exact returned projection cardinality; ms = request→receive round trip (QO-2/QO-6)."
+        },
+        {
+            "name": "mssql.queryStudio.grid.copy.begin",
+            "kind": "webviewMark",
+            "phase": "begin",
+            "pairsWith": "mssql.queryStudio.grid.copy.end",
+            "feature": "queryStudio",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": true,
+            "attrs": {
+                "resultSetId": "structuralMetadata",
+                "ranges": "structuralMetadata",
+                "resultRows": "structuralMetadata",
+                "resultColumns": "structuralMetadata",
+                "includeHeaders": "structuralMetadata"
+            },
+            "attrsComplete": true,
+            "notes": "Grid copy planning begins in the webview. Pairs with copy.end for full selection-plan, projected-fetch, TSV-build, and Clipboard API latency."
+        },
+        {
+            "name": "mssql.queryStudio.grid.copy.end",
+            "kind": "webviewMark",
+            "phase": "end",
+            "pairsWith": "mssql.queryStudio.grid.copy.begin",
+            "feature": "queryStudio",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": true,
+            "attrs": {
+                "resultSetId": "structuralMetadata",
+                "outcome": "safeEnum",
+                "rpcRequests": "structuralMetadata",
+                "characters": "structuralMetadata",
+                "durationMs": "structuralMetadata",
+                "planMs": "structuralMetadata",
+                "fetchDecodeMs": "structuralMetadata",
+                "formatMs": "structuralMetadata",
+                "clipboardMs": "structuralMetadata",
+                "clipboardAttempts": "structuralMetadata",
+                "clipboardMode": "safeEnum",
+                "copyRoute": "safeEnum",
+                "hostRowFetches": "structuralMetadata",
+                "windowRows": "structuralMetadata",
+                "rows": "structuralMetadata",
+                "columns": "structuralMetadata",
+                "cells": "structuralMetadata",
+                "reason": "safeEnum"
+            },
+            "attrsComplete": false,
+            "notes": "Grid copy terminates with safe outcome/reason and exact work cardinalities; large/MAX-like shapes may build and write host-direct, avoiding raw-value webview transport while retaining the same bounded planner and TSV semantics."
+        },
+        {
+            "name": "mssql.queryStudio.grid.firstVisibleRowsPainted",
+            "kind": "webviewMark",
+            "phase": "instant",
+            "feature": "queryStudio",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": false,
+            "attrs": {
+                "resultSetId": "structuralMetadata",
+                "rows": "structuralMetadata",
+                "columns": "structuralMetadata",
+                "fetchedColumns": "structuralMetadata",
+                "projected": "structuralMetadata"
+            },
+            "attrsComplete": false,
+            "notes": "First real (non-placeholder) rows painted for a run's first grid — the user-perceived 'results are here' moment, tighter than resultsRendered (QO-2). Diagnostic until harness-proven stable."
+        },
+        {
+            "name": "mssql.queryStudio.results.block.visibility",
+            "kind": "webviewMark",
+            "phase": "instant",
+            "feature": "queryStudio",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": false,
+            "attrs": {
+                "resultSetId": "structuralMetadata",
+                "mounted": "structuralMetadata",
+                "reason": "safeEnum"
+            },
+            "attrsComplete": true,
+            "notes": "A stacked result block entered or left the viewport warm band. Leaving replaces the live grid with an equal-height placeholder while retaining panel-local grid state."
+        },
+        {
+            "name": "mssql.queryStudio.run.observed",
+            "kind": "webviewMark",
+            "phase": "instant",
+            "feature": "queryStudio",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": false,
+            "attrs": {
+                "executionKind": "safeEnum",
+                "generationChanged": "structuralMetadata",
+                "terminal": "structuralMetadata",
+                "resultSets": "structuralMetadata",
+                "rows": "structuralMetadata"
+            },
+            "attrsComplete": false,
+            "notes": "A distinct Query Studio run generation was observed by the renderer. This exposes fast runs whose debounced coarse state skips the transient executing phase; the generation value itself is intentionally excluded."
+        },
+        {
+            "name": "mssql.queryStudio.results.summary.received",
+            "kind": "webviewMark",
+            "phase": "instant",
+            "feature": "queryStudio",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": false,
+            "attrs": {
+                "executionKind": "safeEnum",
+                "terminal": "structuralMetadata",
+                "streaming": "structuralMetadata",
+                "resultSets": "structuralMetadata",
+                "columns": "structuralMetadata",
+                "rows": "structuralMetadata"
+            },
+            "attrsComplete": true,
+            "notes": "The first non-empty result-set summary for a run reached the renderer. This isolates host state delivery from grid chunk loading and first-row paint."
+        },
+        {
+            "name": "mssql.queryStudio.results.paneMounted",
+            "kind": "webviewMark",
+            "phase": "instant",
+            "feature": "queryStudio",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": false,
+            "attrs": {
+                "activeTab": "safeEnum",
+                "resultSets": "structuralMetadata",
+                "rows": "structuralMetadata",
+                "rafThrottled": "structuralMetadata"
+            },
+            "attrsComplete": true,
+            "notes": "The first results-region commit for a run completed its following paint. This milestone includes the tab strip/pane shell and can precede the lazy grid's first real rows."
+        },
+        {
+            "name": "mssql.queryStudio.tabs.eligibility",
+            "kind": "webviewMark",
+            "phase": "instant",
+            "feature": "queryStudio",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": false,
+            "attrs": {
+                "durationMs": "structuralMetadata",
+                "resultSets": "structuralMetadata",
+                "columns": "structuralMetadata",
+                "dataResultSets": "structuralMetadata",
+                "planResultSets": "structuralMetadata",
+                "vectorColumns": "structuralMetadata",
+                "spatialColumns": "structuralMetadata"
+            },
+            "attrsComplete": true,
+            "notes": "Static result-tab eligibility and column metadata classification for one host state snapshot. Local row, cursor, resize, and tab renders reuse the classified result."
+        },
+        {
+            "name": "mssql.queryStudio.tab.activation.begin",
+            "kind": "webviewMark",
+            "phase": "begin",
+            "pairsWith": "mssql.queryStudio.tab.activation.end",
+            "feature": "queryStudio",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": false,
+            "attrs": {
+                "from": "safeEnum",
+                "to": "safeEnum",
+                "source": "safeEnum",
+                "mountedBefore": "structuralMetadata",
+                "requestId": "structuralMetadata"
+            },
+            "attrsComplete": false,
+            "notes": "Result-pane activation starts before state changes. Source is a bounded enum such as user, runReset, terminalError, planRun, eligibility, restore, or perf."
+        },
+        {
+            "name": "mssql.queryStudio.tab.activation.end",
+            "kind": "webviewMark",
+            "phase": "end",
+            "pairsWith": "mssql.queryStudio.tab.activation.begin",
+            "feature": "queryStudio",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": false,
+            "attrs": {
+                "from": "safeEnum",
+                "to": "safeEnum",
+                "source": "safeEnum",
+                "mountedBefore": "structuralMetadata",
+                "requestId": "structuralMetadata",
+                "rafThrottled": "structuralMetadata"
+            },
+            "attrsComplete": false,
+            "notes": "Result-pane activation settled after the next paint. Paired attributes allow tab latency and unexpected automatic focus changes to be diagnosed without recording query or schema content."
+        },
+        {
+            "name": "mssql.queryStudio.interaction.begin",
+            "kind": "webviewMark",
+            "phase": "begin",
+            "pairsWith": "mssql.queryStudio.interaction.end",
+            "feature": "queryStudio",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": false,
+            "attrs": {
+                "requestId": "structuralMetadata",
+                "action": "safeEnum",
+                "axis": "safeEnum",
+                "target": "safeEnum",
+                "resultSetIndex": "structuralMetadata",
+                "steps": "structuralMetadata",
+                "includeHeaders": "structuralMetadata"
+            },
+            "attrsComplete": false,
+            "notes": "A PERF_MODE-only semantic Query Studio interaction began. The contract permits relative scrolling, a bounded paint-settled result-stack sweep, select-all, or copy-all against a result-set ordinal; pixels, selectors, SQL, identifiers, and cell values are unrepresentable."
+        },
+        {
+            "name": "mssql.queryStudio.interaction.end",
+            "kind": "webviewMark",
+            "phase": "end",
+            "pairsWith": "mssql.queryStudio.interaction.begin",
+            "feature": "queryStudio",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": false,
+            "attrs": {
+                "requestId": "structuralMetadata",
+                "action": "safeEnum",
+                "axis": "safeEnum",
+                "target": "safeEnum",
+                "resultSetIndex": "structuralMetadata",
+                "steps": "structuralMetadata",
+                "includeHeaders": "structuralMetadata",
+                "outcome": "safeEnum",
+                "rafThrottled": "structuralMetadata"
+            },
+            "attrsComplete": false,
+            "notes": "The semantic interaction settled through the following paint. Select-all waits for the host selection summary; copy-all waits for bounded projected fetch, TSV assembly, and Clipboard API completion; scroll scenarios wait for their product rendering seams."
+        },
+        {
+            "name": "mssql.queryStudio.webview.health",
+            "kind": "webviewMark",
+            "phase": "instant",
+            "feature": "queryStudio",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": false,
+            "attrs": {
+                "checkpoint": "safeEnum",
+                "longTaskCount": "structuralMetadata",
+                "longTaskTotalMs": "structuralMetadata",
+                "longestTaskMs": "structuralMetadata",
+                "gridInstances": "structuralMetadata",
+                "mountedTabs": "structuralMetadata",
+                "domNodes": "structuralMetadata",
+                "usedJsHeapBytes": "structuralMetadata",
+                "totalJsHeapBytes": "structuralMetadata",
+                "jsHeapLimitBytes": "structuralMetadata",
+                "rafThrottled": "structuralMetadata"
+            },
+            "attrsComplete": true,
+            "notes": "Post-paint renderer checkpoint for terminal results, tab activation, and semantic interactions. Long-task counters reset per run; Chromium heap fields are omitted when performance.memory is unavailable."
+        },
+        {
+            "name": "mssql.queryStudio.grid.instance.created",
+            "kind": "webviewMark",
+            "phase": "instant",
+            "feature": "queryStudio",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": false,
+            "attrs": {
+                "resultSetId": "structuralMetadata",
+                "rows": "structuralMetadata",
+                "columns": "structuralMetadata"
+            },
+            "attrsComplete": false,
+            "notes": "A SlickGrid instance was created for a Query Studio result set. Used with disposed to detect retained-grid growth while traversing many result sets."
+        },
+        {
+            "name": "mssql.queryStudio.grid.instance.disposed",
+            "kind": "webviewMark",
+            "phase": "instant",
+            "feature": "queryStudio",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": false,
+            "attrs": {
+                "resultSetId": "structuralMetadata"
+            },
+            "attrsComplete": false,
+            "notes": "A Query Studio result grid surface unmounted. Created-minus-disposed is the renderer's live-grid count."
+        },
+        {
+            "name": "mssql.queryStudio.grid.render.complete",
+            "kind": "webviewMark",
+            "phase": "instant",
+            "feature": "queryStudio",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": false,
+            "attrs": {
+                "resultSetId": "structuralMetadata",
+                "rows": "structuralMetadata",
+                "columns": "structuralMetadata",
+                "fetchedColumns": "structuralMetadata",
+                "projected": "structuralMetadata",
+                "msFromWindowReceived": "structuralMetadata"
+            },
+            "attrsComplete": false,
+            "notes": "SlickGrid onRendered fired after a received window was applied. Unlike firstVisibleRowsPainted, this is the actual grid render boundary before the following paint."
+        },
+        {
+            "name": "mssql.queryStudio.export.begin",
+            "kind": "marker",
+            "phase": "begin",
+            "pairsWith": "mssql.queryStudio.export.end",
+            "feature": "queryStudio",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {
+                "format": "safeEnum",
+                "rows": "structuralMetadata"
+            },
+            "attrsComplete": false,
+            "notes": "Streaming result export (QO-8): begin at writer start, end with rows/bytes/canceled."
+        },
+        {
+            "name": "mssql.queryStudio.export.end",
+            "kind": "marker",
+            "phase": "end",
+            "pairsWith": "mssql.queryStudio.export.begin",
+            "feature": "queryStudio",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {
+                "format": "safeEnum",
+                "rows": "structuralMetadata",
+                "bytes": "structuralMetadata",
+                "canceled": "structuralMetadata",
+                "streamed": "structuralMetadata"
+            },
+            "attrsComplete": false
+        },
+        {
+            "name": "mssql.queryStudio.textView.capped",
+            "kind": "webviewMark",
+            "phase": "instant",
+            "feature": "queryStudio",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": false,
+            "attrs": {
+                "totalRows": "structuralMetadata",
+                "renderedRows": "structuralMetadata"
+            },
+            "attrsComplete": false,
+            "notes": "Text view refused to materialize past textViewMaxRows (QO-8) — the cap is user-visible, never silent."
+        },
+        {
+            "name": "mssql.queryStudio.plan.parse",
+            "kind": "marker",
+            "phase": "instant",
+            "feature": "queryStudio",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {
+                "plans": "structuralMetadata",
+                "cacheHit": "structuralMetadata",
+                "ms": "structuralMetadata"
+            },
+            "attrsComplete": false,
+            "notes": "Execution-plan graph parse with digest cache (QO-8)."
+        },
+        {
+            "name": "mssql.queryStudio.messagesPrepared",
+            "kind": "webviewMark",
+            "phase": "instant",
+            "feature": "queryStudio",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": false,
+            "attrs": {
+                "messages": "structuralMetadata",
+                "visibleRows": "structuralMetadata",
+                "durationMs": "structuralMetadata"
+            },
+            "attrsComplete": false,
+            "notes": "Messages display-prep pass (QO-2 retro-registration — emitted since the message-log memoization commit)."
+        },
+        {
+            "name": "mssql.queryStudio.messages.window",
+            "kind": "marker",
+            "phase": "instant",
+            "feature": "queryStudio",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {
+                "startIndex": "structuralMetadata",
+                "nextIndex": "structuralMetadata",
+                "returned": "structuralMetadata",
+                "total": "structuralMetadata",
+                "textCharacters": "structuralMetadata",
+                "hasMore": "structuralMetadata",
+                "durationMs": "structuralMetadata"
+            },
+            "attrsComplete": true,
+            "notes": "Bounded Messages restore/catch-up window served by the extension host; live positioned notifications use the same absolute index space."
+        },
+        {
+            "name": "mssql.queryStudio.messages.copy.begin",
+            "kind": "webviewMark",
+            "phase": "begin",
+            "pairsWith": "mssql.queryStudio.messages.copy.end",
+            "feature": "queryStudio",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": true,
+            "attrs": {
+                "visibleMessages": "structuralMetadata"
+            },
+            "attrsComplete": true,
+            "notes": "Messages Copy All begins in the webview and delegates bounded formatting plus clipboard write to the host without returning raw message text."
+        },
+        {
+            "name": "mssql.queryStudio.messages.copy.end",
+            "kind": "webviewMark",
+            "phase": "end",
+            "pairsWith": "mssql.queryStudio.messages.copy.begin",
+            "feature": "queryStudio",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": true,
+            "attrs": {
+                "outcome": "safeEnum",
+                "messages": "structuralMetadata",
+                "characters": "structuralMetadata",
+                "buildMs": "structuralMetadata",
+                "clipboardMs": "structuralMetadata",
+                "copyRoute": "safeEnum",
+                "reason": "safeEnum",
+                "durationMs": "structuralMetadata"
+            },
+            "attrsComplete": true,
+            "notes": "Messages Copy All ends with aggregate outcome, bounded formatting and host clipboard timing only; message text never appears in a marker."
+        },
+        {
+            "name": "mssql.queryStudio.messagesRendered",
+            "kind": "webviewMark",
+            "phase": "instant",
+            "feature": "queryStudio",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": false,
+            "attrs": {
+                "messages": "structuralMetadata"
+            },
+            "attrsComplete": false,
+            "notes": "Messages pane painted after append (QO-2 retro-registration — emitted since the message-log memoization commit)."
+        },
+        {
+            "name": "mssql.queryStudio.cancel",
+            "kind": "marker",
+            "phase": "instant",
+            "feature": "queryStudio",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {
+                "status": "safeEnum",
+                "msToAck": "structuralMetadata",
+                "msToTerminal": "structuralMetadata"
+            },
+            "attrsComplete": false
+        },
+        {
+            "prefix": "queryStudio.sync.",
+            "kind": "spanFamily",
+            "feature": "queryStudio",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {},
+            "attrsComplete": false,
+            "notes": "Text-sync spans (applyEdit, resync) — diagnostic; resync count must be zero in dogfood."
+        },
+        {
+            "prefix": "queryStudio.lsp.",
+            "kind": "spanFamily",
+            "feature": "queryStudio",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {},
+            "attrsComplete": false
+        },
+        {
+            "name": "sqlDataPlane.tsNative.query.terminal",
+            "kind": "marker",
+            "phase": "instant",
+            "feature": "sqlDataPlane",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {
+                "queryStatus": "safeEnum",
+                "resultSets": "structuralMetadata",
+                "rows": "structuralMetadata",
+                "pages": "structuralMetadata",
+                "driverEvents": "structuralMetadata",
+                "logicalEncodedBytes": "structuralMetadata",
+                "encodeMsTotal": "structuralMetadata",
+                "sinkWaitMsTotal": "structuralMetadata",
+                "pauseMsBackpressure": "structuralMetadata",
+                "pauseMsCpuYield": "structuralMetadata",
+                "yields": "structuralMetadata",
+                "maxSynchronousSliceMs": "structuralMetadata",
+                "firstMetadataMs": "structuralMetadata",
+                "firstPageProducedMs": "structuralMetadata",
+                "firstPageAcceptedMs": "structuralMetadata",
+                "outcomeCertainty": "safeEnum",
+                "errorCode": "safeEnum",
+                "processMemorySamples": "diagnosticMetric",
+                "processHeapUsedStartBytes": "diagnosticMetric",
+                "processHeapUsedPeakBytes": "diagnosticMetric",
+                "processHeapUsedFinalBytes": "diagnosticMetric",
+                "processExternalStartBytes": "diagnosticMetric",
+                "processExternalPeakBytes": "diagnosticMetric",
+                "processExternalFinalBytes": "diagnosticMetric",
+                "processRssStartBytes": "diagnosticMetric",
+                "processRssPeakBytes": "diagnosticMetric",
+                "processRssFinalBytes": "diagnosticMetric",
+                "processArrayBuffersAvailable": "safeEnum",
+                "processArrayBuffersStartBytes": "diagnosticMetric",
+                "processArrayBuffersPeakBytes": "diagnosticMetric",
+                "processArrayBuffersFinalBytes": "diagnosticMetric",
+                "diag": "structuralMetadata",
+                "durationMs": "structuralMetadata"
+            },
+            "attrsComplete": true,
+            "notes": "One privacy-safe ts-native engine aggregate per query. Forwarded to PERF_MODE traces as diagnostic-only attribution; never emitted per row or cell."
+        },
+        {
+            "prefix": "sqlDataPlane.",
+            "kind": "spanFamily",
+            "feature": "sqlDataPlane",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {},
+            "attrsComplete": false,
+            "notes": "Adapter spans/metrics (openSession, execute, page, queueWait, creditStallMs, protocolViolation, deadline) — doc 03 §15.1; metadata only."
+        },
+        {
+            "prefix": "sqlDataPlane.auth.token.",
+            "kind": "spanFamily",
+            "feature": "sqlDataPlane",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {
+                "authKind": "safeEnum",
+                "hasAccountId": "structuralMetadata",
+                "hasTenantId": "structuralMetadata",
+                "hasAccountLabel": "structuralMetadata",
+                "result": "safeEnum",
+                "expiryBucket": "safeEnum",
+                "errorClass": "safeEnum",
+                "diag": "structuralMetadata",
+                "durationMs": "structuralMetadata"
+            },
+            "attrsComplete": true,
+            "notes": "Diagnostic/non-gating SQL-token acquisition. Fixed enums, presence booleans, duration, and coarse expiry buckets only. Forbidden: tokens, account/tenant IDs, labels/emails, endpoints, claims, and provider error messages."
+        },
+        {
+            "prefix": "rpc.v2.",
+            "kind": "spanFamily",
+            "feature": "sqlDataPlane",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {},
+            "attrsComplete": false,
+            "notes": "STS2 wire request spans from the client binding."
+        },
+        {
+            "prefix": "metadata.",
+            "kind": "spanFamily",
+            "feature": "metadata",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {},
+            "attrsComplete": false,
+            "notes": "MetadataService spans/events (metadata.hydrate, metadata.contextBuild, metadata.drift; cache/drift design adds metadata.ensureFresh + metadata.validate — attrs mode/reason/freshness/tier/result as safe enums, waitedMs/durationMs as diagnostic.metric). Database/object names are metadata — classified (source.path), never plaintext under redacted capture. No SQL text beyond the fixed hydration scripts' identifiers."
+        },
+        {
+            "prefix": "completions.",
+            "kind": "spanFamily",
+            "feature": "completions",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {
+                "captureFeatureId": "structuralMetadata",
+                "captureSessionId": "structuralMetadata",
+                "captureEventId": "structuralMetadata"
+            },
+            "attrsComplete": false,
+            "notes": "Inline-completion pipeline spans/events (completions.request span; completions.stage instants; completions.result carries reverse-link IDs). Covers BOTH surfaces (classic editor + Query Studio) via a surface attr. Prompt text, document text, and schema-context text NEVER ride these events — rich capture lives in the gated feature trace store, not the diag substrate. captureFeatureId/captureSessionId/captureEventId are OPAQUE mssql.observabilityLink/1 reverse-link ids pointing at the rich record when one exists (emitted only when rich capture was armed); they are never content."
+        },
+        {
+            "prefix": "queryStudio.inlineCompletion.",
+            "kind": "spanFamily",
+            "feature": "queryStudio",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {},
+            "attrsComplete": false,
+            "notes": "Query Studio Monaco bridge spans (queryStudio.inlineCompletion.bridge = webview RPC round-trip + provider call). Design 04 §17.1 span; bridge overhead target <=10ms over the bare provider call."
+        },
+        {
+            "prefix": "replay.",
+            "kind": "spanFamily",
+            "feature": "replay",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {},
+            "attrsComplete": false,
+            "notes": "Generic replay-engine lifecycle (replay.run span, replay.item span) emitted by the core feature-capture framework for ANY feature's replay (completions, Query Studio runs). Items carry replayTraceId/replayRunId/replaySourceEventId (+matrix cell) as fields; replayed work re-emits its ordinary feature events tagged the same way."
+        },
+        {
+            "prefix": "sqlLanguage.",
+            "kind": "spanFamily",
+            "feature": "sqlLanguage",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {},
+            "attrsComplete": false,
+            "notes": "Native T-SQL language service spans/events (sqlLanguage.lex/segment/parse/overlay/bind/completion/hover/signature/diagnostics/semanticTokens/definition). PRIVACY: no document text, no user-written identifiers, no literal values EVER — counts, kinds, durations, context kinds, readiness states, suppression-reason counts, provider generation, cache hit/miss, size buckets only (language-service design 05 §18.1)."
+        },
+        {
+            "prefix": "sqlScripting.",
+            "kind": "spanFamily",
+            "feature": "sqlLanguage",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {},
+            "attrsComplete": false,
+            "notes": "TypeScript scripting engine spans (sqlScripting.script). Object kind, operation, fidelity level, anchor count, duration — never generated script text or object names (design 05 §18.1)."
+        },
+        {
+            "prefix": "queryStudio.languageService.",
+            "kind": "spanFamily",
+            "feature": "queryStudio",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {},
+            "attrsComplete": false,
+            "notes": "Query Studio language-feature routing spans (queryStudio.languageService.route = per-request engine selection + result; queryStudio.languageService.bridge = STS v1 provider-command bridge call). Attrs: feature name, engine (nativeTypeScript|sqlToolsServiceBridge), maturity, circuit-break state — no text."
+        },
+        {
+            "name": "settings.snapshot",
+            "kind": "event",
+            "phase": "instant",
+            "feature": "diagnostics",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {
+                "settingsFeature": "safeEnum",
+                "keyCount": "structuralMetadata"
+            },
+            "attrsComplete": false,
+            "notes": "Effective-settings snapshot (kind:state) for a feature's config surface, emitted on capture arm and on demand. Values pass classify(); secret-bearing settings are never plaintext regardless of capture mode."
+        },
+        {
+            "name": "settings.changed",
+            "kind": "event",
+            "phase": "instant",
+            "feature": "diagnostics",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {
+                "settingsFeature": "safeEnum",
+                "keyCount": "structuralMetadata"
+            },
+            "attrsComplete": false,
+            "notes": "Delta re-snapshot when a watched feature's configuration changes while capture is active. Same classification rules as settings.snapshot."
+        },
+        {
+            "name": "queryStudio.saveAs.adopted",
+            "kind": "event",
+            "phase": "instant",
+            "feature": "queryStudio",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {
+                "extension": "safeEnum",
+                "reopened": "structuralMetadata",
+                "orphansClosed": "structuralMetadata",
+                "transplantPending": "structuralMetadata"
+            },
+            "attrsComplete": false,
+            "notes": "A Query Studio document was saved under a new name and the saved file was adopted back into Query Studio via model transplant (connection + results continue under the new URI). reopened=true when the watcher had to openWith the target itself; orphansClosed counts stranded source tabs closed; transplantPending=true when the target had not yet resolved at emit time."
+        },
+        {
+            "name": "queryStudio.runRecord.captured",
+            "kind": "event",
+            "phase": "instant",
+            "feature": "queryStudio",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {
+                "batches": "structuralMetadata",
+                "resultSets": "structuralMetadata",
+                "elevated": "structuralMetadata",
+                "replay": "structuralMetadata",
+                "captureFeatureId": "structuralMetadata",
+                "captureSessionId": "structuralMetadata",
+                "captureEventId": "structuralMetadata"
+            },
+            "attrsComplete": false,
+            "notes": "A QsRunRecord was captured for a Query Studio execution (design 04 §17.2). The record itself lives in the feature trace store; SQL text is digest-only unless elevated capture was active at record time."
+        },
+        {
+            "prefix": "metadataStore.",
+            "kind": "spanFamily",
+            "feature": "metadata",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {},
+            "attrsComplete": false,
+            "notes": "Shared MetadataStore spans/events (oe-docs metadata_service_oe_v2_design §13): metadataStore.prepareProfile, .acquireServer, .acquireDatabase, .acquireObjectDetails, .refresh, .disposeLease, .session.open/.close, .hydrate.server/.database/.objectDetails, .drift.detected, .cache.hit/.miss, .keyCorrectness.violation. OE-parity additions (oe-docs OE_V1_PARITY_PLAN §2.2/§2.8): .auxCatalog.hydrate (span per lazy section fetch; attrs: scope server|database, section KEY [code constant, e.g. security/logins], rowCount, durationMs, result, errorClass, singleFlightCoalesced) and .auxCatalog.refresh. Attrs: key kind, SHORT profile fingerprint, section names/keys (code constants only), readiness state, generation, counts, duration, backend kind, error class. PRIVACY: no SQL text, rows, connection strings, secrets, raw endpoints, or unclassified object/database names — database rides as source.path classification like metadata.* today; aux item NAMES (logins, users, credentials, …) are object-name-classified and NEVER ride events."
+        },
+        {
+            "prefix": "metadataCache.",
+            "kind": "spanFamily",
+            "feature": "metadata",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {},
+            "attrsComplete": false,
+            "notes": "Persistent metadata snapshot cache + freshness policy (metadata-docs cache/drift design §18, review addendum §8/App C): metadataCache.load/.save/.hit/.miss/.validate/.policyDecision/.backgroundRefresh/.evict/.corrupt/.clear/.offlineMode/.raceLost. Attr allowlist: serverFpPrefix + dbHashPrefix (diagnostic.metadata — non-reversible HASH prefixes, never names), generation, readinessSummary, staleAgeBucket (fixed buckets <1m,<10m,<1h,<1d,<7d,<30d,>=30d), payloadBytes/durationMs/waitedMs (diagnostic.metric), mode/reason/source/freshness/tier/result/errorClass/skipped/policyIntersected/raceLost (safe enums/bools). FORBIDDEN: object names, raw database names, SQL text, result rows, endpoints, connection strings, secrets/tokens, prompt text, module definitions, description values. contentHash prefix stays OUT of events pending review (addendum §12 Q2) — snapshot status/feature-capture only."
+        },
+        {
+            "name": "mssql.metadata.cache.warmAcquire.begin",
+            "kind": "marker",
+            "phase": "begin",
+            "pairsWith": "mssql.metadata.cache.warmAcquire.end",
+            "feature": "metadata",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {},
+            "attrsComplete": false,
+            "notes": "PERF_MODE probe (mssql.perf.metadataCacheWarmAcquire): wraps a fresh-store acquire that MUST be served from the persistent disk cache (store.status().source === 'disk' asserted; throws on honesty failure). Measures disk load + publish + freshness decision — the executable form of the cache-load budget (metadata-docs cache design §20)."
+        },
+        {
+            "name": "mssql.metadata.cache.warmAcquire.end",
+            "kind": "marker",
+            "phase": "end",
+            "pairsWith": "mssql.metadata.cache.warmAcquire.begin",
+            "feature": "metadata",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {
+                "objects": "structuralMetadata",
+                "waitedMs": "structuralMetadata"
+            },
+            "attrsComplete": false
+        },
+        {
+            "prefix": "objectExplorerV2.",
+            "kind": "spanFamily",
+            "feature": "objectExplorer",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {},
+            "attrsComplete": false,
+            "notes": "Object Explorer v2 spans/events (oe-docs oe_view_design §14.1): objectExplorerV2.view.activate, .connection.open/.close/.lost, .serverCatalog.acquire/.refresh, .databaseCatalog.acquire/.refresh, .tree.expand/.filter/.search, .command.route/.native/.handoff, .legacyConnection.created, .unsupported, .noV1Browse.violation. OE-parity additions (oe-docs OE_V1_PARITY_PLAN §2.8): .hierarchy.resolve (event; attrs: scope, folderCount, gatedCount — registry-driven layout proof), .command.invoke (event; attrs: commandId [code constant], route native|legacyRedirect, nodeKind, result), .group.mutate (event; attrs: op create|edit|delete|moveConnection|moveGroup|dnd, result — NEVER group names). Attrs: view mode, data-plane backend kind, node kind, folder kind/id (code constants), readiness state, generation, object/filter counts, duration, result status, command route (native|handoff|hidden|unavailable), handoff level (h1|h2|h3), unsupported reason, short profile fingerprint. PRIVACY: never full node paths (path KIND only), never object names, never SQL text or endpoints. The noV1Browse.violation event is the architecture tripwire — any emission is a test failure."
+        },
+        {
+            "prefix": "centralObservability.",
+            "kind": "spanFamily",
+            "feature": "centralObservability",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {},
+            "attrsComplete": false,
+            "notes": "Central-store upload/readback in the product (central design §11, addendum C-13): centralObservability.preview (span; attrs: sourceKind, policyId, tables, droppedFields, digestedFields, bytesEstimate), .upload (span; attrs: batchOutcome, items, rows, waitedMs), .upload.item (span; attrs: itemKind, ordinal, rowCount), .upload.refused (event; attrs: reasonCode), .provider.query (span; attrs: viewName, rowCount, resultFlags, page), .provider.failed (event; attrs: errorClass). Attr allowlist: counts, durations, policy ids, outcome/reason enums, view names, schema/contract versions, digest PREFIXES (8 chars max). FORBIDDEN: server/database/schema/object names, paths, endpoints, connection strings, SQL text, payload content, full digests, tokens, secrets. CLI-side push/migrate telemetry is harness-log spans (centralPush.*, centralInit.*), NOT DiagEvents."
+        },
+        {
+            "name": "mssql.central.preview.begin",
+            "kind": "marker",
+            "phase": "begin",
+            "pairsWith": "mssql.central.preview.end",
+            "feature": "centralObservability",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {},
+            "attrsComplete": false,
+            "notes": "PERF_MODE: builds the UploadPreview (projection dry-run) for a fixture session (addendum §9 budget: p95 < 1.5 s at 100k events)."
+        },
+        {
+            "name": "mssql.central.preview.end",
+            "kind": "marker",
+            "phase": "end",
+            "pairsWith": "mssql.central.preview.begin",
+            "feature": "centralObservability",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {
+                "events": "structuralMetadata",
+                "tables": "structuralMetadata"
+            },
+            "attrsComplete": false,
+            "notes": "Pairs with mssql.central.preview.begin."
+        },
+        {
+            "name": "mssql.central.upload.begin",
+            "kind": "marker",
+            "phase": "begin",
+            "pairsWith": "mssql.central.upload.end",
+            "feature": "centralObservability",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {},
+            "attrsComplete": false,
+            "notes": "PERF_MODE (mssql.perf.centralUploadRoundTrip): full begin→stage→commit of a fixture session over the SQL Data Plane to a live store; cancel only at item boundaries."
+        },
+        {
+            "name": "mssql.central.upload.end",
+            "kind": "marker",
+            "phase": "end",
+            "pairsWith": "mssql.central.upload.begin",
+            "feature": "centralObservability",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {
+                "items": "structuralMetadata",
+                "rows": "structuralMetadata",
+                "outcome": "structuralMetadata"
+            },
+            "attrsComplete": false,
+            "notes": "Pairs with mssql.central.upload.begin."
+        },
+        {
+            "name": "mssql.central.provider.list.begin",
+            "kind": "marker",
+            "phase": "begin",
+            "pairsWith": "mssql.central.provider.list.end",
+            "feature": "centralObservability",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {},
+            "attrsComplete": false,
+            "notes": "PERF_MODE: one paged central runs list through the central Perf History provider (pageRows honored; addendum §9 budget p95 < 200 ms/page on the 1k-run fixture)."
+        },
+        {
+            "name": "mssql.central.provider.list.end",
+            "kind": "marker",
+            "phase": "end",
+            "pairsWith": "mssql.central.provider.list.begin",
+            "feature": "centralObservability",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {
+                "page": "structuralMetadata",
+                "rowCount": "structuralMetadata"
+            },
+            "attrsComplete": false,
+            "notes": "Pairs with mssql.central.provider.list.begin."
+        },
+        {
+            "name": "mssql.queryResults.snapshot.create.begin",
+            "kind": "marker",
+            "phase": "begin",
+            "pairsWith": "mssql.queryResults.snapshot.create.end",
+            "feature": "queryResults",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {},
+            "attrsComplete": false,
+            "notes": "C2D-1: snapshot creation over a retained result store. Creation is O(result-set-count); scanFree on the end marker is the standing proof."
+        },
+        {
+            "name": "mssql.queryResults.snapshot.create.end",
+            "kind": "marker",
+            "phase": "end",
+            "pairsWith": "mssql.queryResults.snapshot.create.begin",
+            "feature": "queryResults",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {
+                "resultSetCount": "structuralMetadata",
+                "totalRows": "structuralMetadata",
+                "ownerKind": "safeEnum",
+                "purpose": "safeEnum",
+                "scanFree": "safeEnum"
+            },
+            "attrsComplete": true,
+            "notes": "C2D-1. scanFree=false is a regression: creation performed row-window reads."
+        },
+        {
+            "name": "mssql.queryResults.snapshot.acquire",
+            "kind": "marker",
+            "phase": "instant",
+            "feature": "queryResults",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {
+                "ownerKind": "safeEnum",
+                "leaseCount": "structuralMetadata"
+            },
+            "attrsComplete": true,
+            "notes": "C2D-1: a consumer acquired a snapshot lease."
+        },
+        {
+            "name": "mssql.queryResults.snapshot.release",
+            "kind": "marker",
+            "phase": "instant",
+            "feature": "queryResults",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {
+                "reason": "safeEnum",
+                "leaseCount": "structuralMetadata"
+            },
+            "attrsComplete": true,
+            "notes": "C2D-1: a snapshot lease released; leaseCount is the remaining count."
+        },
+        {
+            "name": "mssql.queryResults.snapshot.dispose",
+            "kind": "marker",
+            "phase": "instant",
+            "feature": "queryResults",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {
+                "reason": "safeEnum",
+                "ageMs": "diagnosticMetric",
+                "storeDisposed": "safeEnum"
+            },
+            "attrsComplete": true,
+            "notes": "C2D-1: snapshot disposed (last lease, TTL, budget, or service shutdown); storeDisposed says whether the physical store went with it."
+        },
+        {
+            "name": "mssql.queryResults.snapshot.retentionSweep",
+            "kind": "marker",
+            "phase": "instant",
+            "feature": "queryResults",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {
+                "trigger": "safeEnum",
+                "swept": "structuralMetadata",
+                "expired": "structuralMetadata",
+                "snapshots": "structuralMetadata",
+                "retainedStores": "structuralMetadata"
+            },
+            "attrsComplete": true,
+            "notes": "C2D-1: TTL/budget/cap sweep over unleased snapshots. Leased snapshots are never victims."
+        },
+        {
+            "name": "mssql.queryResults.store.demote",
+            "kind": "marker",
+            "phase": "instant",
+            "feature": "queryResults",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {
+                "reason": "safeEnum",
+                "targetBytes": "structuralMetadata",
+                "memoryBytesBefore": "diagnosticMetric"
+            },
+            "attrsComplete": true,
+            "notes": "C2D-1 addendum §5.1: live owner released while snapshot leases remain — memory cap shrinks lazily (async spill drains the overage)."
+        },
+        {
+            "name": "mssql.queryResults.grant.minted",
+            "kind": "marker",
+            "phase": "instant",
+            "feature": "queryResults",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {
+                "operationClass": "safeEnum"
+            },
+            "attrsComplete": true,
+            "notes": "C2D-5 §1.3: a value-access grant was minted after user consent. Grant ids never logged."
+        },
+        {
+            "name": "mssql.queryResults.grant.denied",
+            "kind": "marker",
+            "phase": "instant",
+            "feature": "queryResults",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {
+                "operationClass": "safeEnum",
+                "reason": "safeEnum"
+            },
+            "attrsComplete": true,
+            "notes": "C2D-5 §1.3: a value-class read was refused at the gate (missing/expired/consumed/mismatched grant)."
+        },
+        {
+            "name": "mssql.queryResults.aiTool.invoke.begin",
+            "kind": "marker",
+            "phase": "begin",
+            "pairsWith": "mssql.queryResults.aiTool.invoke.end",
+            "feature": "queryResults",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {
+                "operation": "safeEnum"
+            },
+            "attrsComplete": true,
+            "notes": "C2D-5: mssql_query_results invocation."
+        },
+        {
+            "name": "mssql.queryResults.aiTool.invoke.end",
+            "kind": "marker",
+            "phase": "end",
+            "pairsWith": "mssql.queryResults.aiTool.invoke.begin",
+            "feature": "queryResults",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {
+                "operation": "safeEnum",
+                "outcome": "safeEnum"
+            },
+            "attrsComplete": true,
+            "notes": "C2D-5: outcome ok | denied | <typed error code> | error. Payload contents never logged."
+        },
+        {
+            "name": "mssql.queryResults.transform.evaluate.begin",
+            "kind": "marker",
+            "phase": "begin",
+            "pairsWith": "mssql.queryResults.transform.evaluate.end",
+            "feature": "queryResults",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {
+                "terminalKind": "safeEnum",
+                "opCount": "structuralMetadata",
+                "specDigest": "structuralMetadata"
+            },
+            "attrsComplete": true,
+            "notes": "C2D-T: fused transform evaluation begins. Filter literals and output values NEVER ride diagnostics — spec digest only (§3.7)."
+        },
+        {
+            "name": "mssql.queryResults.transform.evaluate.end",
+            "kind": "marker",
+            "phase": "end",
+            "pairsWith": "mssql.queryResults.transform.evaluate.begin",
+            "feature": "queryResults",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {
+                "terminalKind": "safeEnum",
+                "opCount": "structuralMetadata",
+                "specDigest": "structuralMetadata",
+                "rowsScanned": "diagnosticMetric",
+                "rowsMatched": "diagnosticMetric",
+                "partial": "safeEnum",
+                "partialReason": "safeEnum",
+                "outputRows": "structuralMetadata",
+                "outputClass": "safeEnum",
+                "ms": "diagnosticMetric"
+            },
+            "attrsComplete": true,
+            "notes": "C2D-T: EvalStats honesty — a budget-cut evaluation reports partial + reason, never a confident lie. Cancellation surfaces as partialReason=canceled."
+        },
+        {
+            "name": "mssql.queryResults.derive.begin",
+            "kind": "marker",
+            "phase": "begin",
+            "pairsWith": "mssql.queryResults.derive.end",
+            "feature": "queryResults",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {},
+            "attrsComplete": false,
+            "notes": "C2D-T §3.6: derived snapshot creation (row-id view, no page copies)."
+        },
+        {
+            "name": "mssql.queryResults.derive.end",
+            "kind": "marker",
+            "phase": "end",
+            "pairsWith": "mssql.queryResults.derive.begin",
+            "feature": "queryResults",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {
+                "specDigest": "structuralMetadata",
+                "derivedRows": "structuralMetadata",
+                "rowsScanned": "diagnosticMetric",
+                "fromDerived": "safeEnum"
+            },
+            "attrsComplete": true,
+            "notes": "C2D-T §3.6."
+        },
+        {
+            "name": "mssql.queryResults.context.update",
+            "kind": "marker",
+            "phase": "instant",
+            "feature": "queryResults",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {
+                "sourceKind": "safeEnum",
+                "reason": "safeEnum",
+                "hasSelection": "safeEnum",
+                "selectedCells": "structuralMetadata"
+            },
+            "attrsComplete": true,
+            "notes": "C2D-4: active-result context updated from a grid selection (throttled webview-side; shape only, never values)."
+        },
+        {
+            "name": "mssql.queryResults.pin.open.begin",
+            "kind": "marker",
+            "phase": "begin",
+            "pairsWith": "mssql.queryResults.pin.open.end",
+            "feature": "queryResults",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {},
+            "attrsComplete": false,
+            "notes": "C2D-3: pinned results custom editor resolve begins."
+        },
+        {
+            "name": "mssql.queryResults.pin.open.end",
+            "kind": "marker",
+            "phase": "end",
+            "pairsWith": "mssql.queryResults.pin.open.begin",
+            "feature": "queryResults",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {
+                "expired": "safeEnum",
+                "resultSetCount": "structuralMetadata"
+            },
+            "attrsComplete": true,
+            "notes": "C2D-3: pinned document controller constructed (host side; first webview paint is a webview mark)."
+        },
+        {
+            "name": "mssql.queryResults.pin.rendered",
+            "kind": "webviewMark",
+            "phase": "instant",
+            "feature": "queryResults",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": true,
+            "attrs": {
+                "resultSets": "structuralMetadata",
+                "rows": "structuralMetadata"
+            },
+            "attrsComplete": true,
+            "notes": "C2D-8: first paint of a pinned results document (double-rAF, same rule as queryStudio.resultsRendered) — the user-perceived end of a pin action."
+        },
+        {
+            "name": "mssql.queryResults.pin.close",
+            "kind": "marker",
+            "phase": "instant",
+            "feature": "queryResults",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {
+                "expired": "safeEnum"
+            },
+            "attrsComplete": true,
+            "notes": "C2D-3: pinned document panel disposed."
+        },
+        {
+            "name": "mssql.queryResults.spill.orphanSweep",
+            "kind": "marker",
+            "phase": "instant",
+            "feature": "queryResults",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {
+                "dirsRemoved": "structuralMetadata",
+                "bytesRemoved": "diagnosticMetric",
+                "failures": "structuralMetadata"
+            },
+            "attrsComplete": true,
+            "notes": "C2D-1 addendum §5.4: startup reclaim of session-nonce spill dirs whose session lock is stale — crashed hosts must not leak spill."
+        },
+        {
+            "name": "mssql.queryResults.vector.ingest",
+            "kind": "marker",
+            "phase": "instant",
+            "feature": "queryResults",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {
+                "phase": "safeEnum",
+                "totalRows": "diagnosticMetric",
+                "rows": "diagnosticMetric",
+                "dimensions": "diagnosticMetric",
+                "packedBytes": "diagnosticMetric",
+                "scannedBytes": "diagnosticMetric",
+                "rowsScanned": "diagnosticMetric",
+                "nulls": "diagnosticMetric",
+                "unavailable": "diagnosticMetric",
+                "transport": "safeEnum",
+                "partialReason": "safeEnum"
+            },
+            "attrsComplete": true,
+            "notes": "VEC-4: vector column ingest checkpoint. phase: open | packed. transport: binary-v1 | textFallback. partialReason: timeBudget | rowBudget | byteBudget | componentBudget (only on budget-cut ingests). Counts/bytes only — never components, keys, labels, or distances."
+        },
+        {
+            "name": "mssql.queryResults.vector.analysis.begin",
+            "kind": "marker",
+            "phase": "begin",
+            "pairsWith": "mssql.queryResults.vector.analysis.end",
+            "feature": "queryResults",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {
+                "totalBudgetMs": "diagnosticMetric"
+            },
+            "attrsComplete": true,
+            "notes": "VEC-4: vector profile analysis started (ingest + worker). Budget echoed from the resolved QueryTuning snapshot, never client-supplied."
+        },
+        {
+            "name": "mssql.queryResults.vector.analysis.end",
+            "kind": "marker",
+            "phase": "end",
+            "pairsWith": "mssql.queryResults.vector.analysis.begin",
+            "feature": "queryResults",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {
+                "outcome": "safeEnum",
+                "rows": "diagnosticMetric",
+                "dimensions": "diagnosticMetric",
+                "findings": "diagnosticMetric",
+                "partialTime": "safeEnum",
+                "workerMs": "diagnosticMetric",
+                "ms": "diagnosticMetric"
+            },
+            "attrsComplete": true,
+            "notes": "VEC-4: analysis finished. outcome: ok | refused | error. partialTime=true means the worker hit its time budget and reported honest partial findings. Finding COUNTS only — never finding content."
+        },
+        {
+            "name": "mssql.queryResults.vector.analysis.cancel",
+            "kind": "marker",
+            "phase": "instant",
+            "feature": "queryResults",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {},
+            "attrsComplete": true,
+            "notes": "VEC-4: a running vector analysis worker was terminated (rerun, close, or explicit cancel) — invalidates the analysis pair, never a fabricated duration."
+        },
+        {
+            "name": "mssql.queryResults.vector.worker.end",
+            "kind": "marker",
+            "phase": "instant",
+            "feature": "queryResults",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {
+                "operation": "safeEnum",
+                "outcome": "safeEnum",
+                "rows": "diagnosticMetric",
+                "dimensions": "diagnosticMetric",
+                "partialTime": "safeEnum",
+                "ms": "diagnosticMetric"
+            },
+            "attrsComplete": true,
+            "notes": "VEC-4: one local analysis worker settled. operation: profile | projection. outcome: ok | error | cancelled. partialTime is present only for a completed worker result. Counts/timing/enums only — never components, coordinates, keys, labels, findings, or error text."
+        },
+        {
+            "name": "mssql.queryResults.vector.model.end",
+            "kind": "marker",
+            "phase": "instant",
+            "feature": "queryResults",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {
+                "outcome": "safeEnum",
+                "dims": "diagnosticMetric",
+                "ms": "diagnosticMetric"
+            },
+            "attrsComplete": true,
+            "notes": "VEC-10: one consented re-embed model call finished. outcome: ok | error | refused. NEVER text, vectors, endpoints, or model output — counts/ms only."
+        },
+        {
+            "name": "mssql.queryResults.vector.search.end",
+            "kind": "marker",
+            "phase": "instant",
+            "feature": "queryResults",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {
+                "outcome": "safeEnum",
+                "k": "diagnosticMetric",
+                "exactMs": "diagnosticMetric",
+                "approxMs": "diagnosticMetric",
+                "approxIncluded": "safeEnum",
+                "ms": "diagnosticMetric"
+            },
+            "attrsComplete": true,
+            "notes": "VEC-8: one search comparison finished (exact + optional approx). outcome: ok | error | refused. NEVER SQL text, keys, labels, or distances — counts/ms only."
+        },
+        {
+            "name": "mssql.queryResults.vector.render.begin",
+            "kind": "webviewMark",
+            "phase": "begin",
+            "pairsWith": "mssql.queryResults.vector.render.firstPaint",
+            "feature": "queryResults",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": true,
+            "attrs": {},
+            "attrsComplete": false,
+            "notes": "VEC-5 (reserved): Vector Workbench pane render begins (profile summary received)."
+        },
+        {
+            "name": "mssql.queryResults.vector.render.firstPaint",
+            "kind": "webviewMark",
+            "phase": "end",
+            "pairsWith": "mssql.queryResults.vector.render.begin",
+            "feature": "queryResults",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": true,
+            "attrs": {},
+            "attrsComplete": false,
+            "notes": "VEC-5 (reserved): first paint of the Vector Workbench pane (double-rAF, same rule as queryStudio.resultsRendered)."
+        },
+        {
+            "name": "mssql.queryResults.spatial.prepare.begin",
+            "kind": "marker",
+            "phase": "begin",
+            "pairsWith": "mssql.queryResults.spatial.prepare.end",
+            "feature": "queryResults",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {
+                "sourceMode": "safeEnum",
+                "rowBudget": "diagnosticMetric",
+                "payloadBudgetBytes": "diagnosticMetric"
+            },
+            "attrsComplete": true,
+            "notes": "SPA-5: controller-bound spatial source preparation began. Counts and budgets only; never result identifiers, columns, labels, SRIDs, coordinates, or WKB."
+        },
+        {
+            "name": "mssql.queryResults.spatial.prepare.end",
+            "kind": "marker",
+            "phase": "end",
+            "pairsWith": "mssql.queryResults.spatial.prepare.begin",
+            "feature": "queryResults",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": true,
+            "attrs": {
+                "outcome": "safeEnum",
+                "sourceRowsScanned": "diagnosticMetric",
+                "candidateCells": "diagnosticMetric",
+                "nullCells": "diagnosticMetric",
+                "transportUnavailableCells": "diagnosticMetric",
+                "payloadBytes": "diagnosticMetric",
+                "responseBytes": "diagnosticMetric",
+                "partial": "safeEnum",
+                "partialReason": "safeEnum",
+                "ms": "diagnosticMetric"
+            },
+            "attrsComplete": true,
+            "notes": "SPA-5: spatial preparation reached a terminal state. outcome/partialReason are bounded enums and all other attributes are aggregate counts."
+        },
+        {
+            "name": "mssql.queryResults.spatial.prepare.cancel",
+            "kind": "marker",
+            "phase": "instant",
+            "feature": "queryResults",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {
+                "reason": "safeEnum",
+                "sourceRowsScanned": "diagnosticMetric"
+            },
+            "attrsComplete": true,
+            "notes": "SPA-5: an in-flight spatial preparation was cancelled. No handle, generation, source identity, or result value is emitted."
+        },
+        {
+            "name": "mssql.queryResults.spatial.chunk.end",
+            "kind": "marker",
+            "phase": "instant",
+            "feature": "queryResults",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {
+                "sequence": "structuralMetadata",
+                "sourceRowsScanned": "diagnosticMetric",
+                "features": "diagnosticMetric",
+                "payloadBytes": "diagnosticMetric",
+                "done": "safeEnum",
+                "ms": "diagnosticMetric"
+            },
+            "attrsComplete": true,
+            "notes": "SPA-5: one byte-capped pull response completed. Sequence is session-local structural metadata; no source identity or feature data."
+        },
+        {
+            "name": "mssql.queryResults.spatial.decode.begin",
+            "kind": "webviewMark",
+            "phase": "begin",
+            "pairsWith": "mssql.queryResults.spatial.decode.end",
+            "feature": "queryResults",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": true,
+            "attrs": {
+                "mode": "safeEnum"
+            },
+            "attrsComplete": true,
+            "notes": "SPA-6: decode began for the active generation. mode: worker | mainThreadFallback."
+        },
+        {
+            "name": "mssql.queryResults.spatial.decode.end",
+            "kind": "webviewMark",
+            "phase": "end",
+            "pairsWith": "mssql.queryResults.spatial.decode.begin",
+            "feature": "queryResults",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": true,
+            "attrs": {
+                "outcome": "safeEnum",
+                "features": "diagnosticMetric",
+                "vertices": "diagnosticMetric",
+                "skipped": "diagnosticMetric",
+                "derivedBytes": "diagnosticMetric",
+                "ms": "diagnosticMetric"
+            },
+            "attrsComplete": true,
+            "notes": "SPA-6: WKB decode settled for one active generation. Aggregate counts only; never geometry buffers, coordinates, extents, labels, or SRIDs."
+        },
+        {
+            "name": "mssql.queryResults.spatial.decode.cancel",
+            "kind": "webviewMark",
+            "phase": "instant",
+            "feature": "queryResults",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": false,
+            "attrs": {
+                "reason": "safeEnum"
+            },
+            "attrsComplete": true,
+            "notes": "SPA-6: worker or cooperative fallback decode was cancelled for a bounded reason."
+        },
+        {
+            "name": "mssql.queryResults.spatial.render.begin",
+            "kind": "webviewMark",
+            "phase": "begin",
+            "pairsWith": "mssql.queryResults.spatial.render.firstPaint",
+            "feature": "queryResults",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": true,
+            "attrs": {
+                "tier": "safeEnum",
+                "offline": "safeEnum",
+                "layer": "safeEnum"
+            },
+            "attrsComplete": true,
+            "notes": "SPA-6/10: map/list render began after at least one decoded batch was accepted. tier: canvas | clusters | gpuPoints | listOnly. layer: none | worldOutline | xyzRaster; offline is false only while an online layer is active."
+        },
+        {
+            "name": "mssql.queryResults.spatial.render.firstPaint",
+            "kind": "webviewMark",
+            "phase": "end",
+            "pairsWith": "mssql.queryResults.spatial.render.begin",
+            "feature": "queryResults",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": true,
+            "attrs": {
+                "tier": "safeEnum",
+                "features": "diagnosticMetric",
+                "vertices": "diagnosticMetric",
+                "partial": "safeEnum",
+                "rafThrottled": "structuralMetadata",
+                "layer": "safeEnum"
+            },
+            "attrsComplete": true,
+            "notes": "SPA-6: first actual renderer completion after at least one accepted feature, not component mount or a loading placeholder."
+        },
+        {
+            "name": "mssql.queryResults.spatial.render.settled",
+            "kind": "webviewMark",
+            "phase": "instant",
+            "feature": "queryResults",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": false,
+            "attrs": {
+                "tier": "safeEnum",
+                "features": "diagnosticMetric",
+                "vertices": "diagnosticMetric",
+                "skipped": "diagnosticMetric",
+                "partial": "safeEnum",
+                "longTasks": "diagnosticMetric",
+                "derivedBytes": "diagnosticMetric",
+                "ms": "diagnosticMetric",
+                "layer": "safeEnum"
+            },
+            "attrsComplete": true,
+            "notes": "SPA-6/7: bounded preparation and rendering settled. Exact values are diagnostic metrics and contain no result-derived content."
+        },
+        {
+            "name": "mssql.queryResults.spatial.render.cancel",
+            "kind": "webviewMark",
+            "phase": "instant",
+            "feature": "queryResults",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": false,
+            "attrs": {
+                "reason": "safeEnum"
+            },
+            "attrsComplete": true,
+            "notes": "SPA-6: render generation was invalidated by tab leave, source change, rerun, hide, disposal, or a terminal local budget."
+        },
+        {
+            "name": "mssql.queryResults.spatial.interaction.end",
+            "kind": "webviewMark",
+            "phase": "instant",
+            "feature": "queryResults",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": false,
+            "attrs": {
+                "action": "safeEnum",
+                "tier": "safeEnum",
+                "frames": "diagnosticMetric",
+                "p95FrameMs": "diagnosticMetric",
+                "inputDelayMs": "diagnosticMetric"
+            },
+            "attrsComplete": true,
+            "notes": "SPA-7 PERF_MODE semantic probe result for pan, zoom, select, filter, or fit. Never emits coordinates, bounds, labels, or selection ordinals."
+        },
+        {
+            "name": "mssql.queryResults.spatial.resources.released",
+            "kind": "marker",
+            "phase": "instant",
+            "feature": "queryResults",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {
+                "reason": "safeEnum",
+                "leases": "diagnosticMetric",
+                "sessions": "diagnosticMetric"
+            },
+            "attrsComplete": true,
+            "notes": "SPA-5/8: host cleanup evidence after a spatial session terminal path. Counts must reach zero at complete disposal boundaries."
+        },
+        {
+            "name": "mssql.queryResults.spatial.basemap.open",
+            "kind": "marker",
+            "phase": "instant",
+            "feature": "queryResults",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrsComplete": true,
+            "attrs": {
+                "outcome": "safeEnum",
+                "layerClass": "safeEnum"
+            },
+            "notes": "SPA-10: host basemap session open attempt. outcome: ready | consentRequired | declined | incompatible | untrusted | unavailable. layerClass: xyzRaster. Never a source id, endpoint, or host name."
+        },
+        {
+            "name": "mssql.queryResults.spatial.basemap.tile.end",
+            "kind": "marker",
+            "phase": "instant",
+            "feature": "queryResults",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrsComplete": true,
+            "attrs": {
+                "cache": "safeEnum",
+                "outcome": "safeEnum",
+                "ms": "diagnosticMetric",
+                "bytes": "diagnosticMetric"
+            },
+            "notes": "SPA-10: one host tile request completed. cache: memory | disk | network. outcome: ok | notFound | cancelled | unavailable. Never a tile coordinate, URL, or source identity."
+        },
+        {
+            "name": "mssql.queryResults.spatial.basemap.close",
+            "kind": "marker",
+            "phase": "instant",
+            "feature": "queryResults",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrsComplete": true,
+            "attrs": {
+                "reason": "safeEnum",
+                "tiles": "diagnosticMetric"
+            },
+            "notes": "SPA-10: host basemap session terminal path. reason: layerChange | rerun | hidden | disposed | configChanged | expired."
+        },
+        {
+            "name": "mssql.queryResults.spatial.basemap.layer.begin",
+            "kind": "webviewMark",
+            "feature": "queryResults",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": true,
+            "attrsComplete": true,
+            "phase": "begin",
+            "pairsWith": "mssql.queryResults.spatial.basemap.layer.ready",
+            "attrs": {
+                "layer": "safeEnum"
+            },
+            "notes": "SPA-10: a selected map layer began loading (world outline asset fetch or first online tile batch). layer: worldOutline | xyzRaster."
+        },
+        {
+            "name": "mssql.queryResults.spatial.basemap.layer.ready",
+            "kind": "webviewMark",
+            "feature": "queryResults",
+            "processRoles": ["webview"],
+            "timingClass": "epochAligned",
+            "measurementEligible": true,
+            "attrsComplete": true,
+            "phase": "end",
+            "pairsWith": "mssql.queryResults.spatial.basemap.layer.begin",
+            "attrs": {
+                "layer": "safeEnum",
+                "outcome": "safeEnum"
+            },
+            "notes": "SPA-10: the selected map layer painted (outcome ok) or reached a terminal failure (outcome unavailable). Feature rendering is never blocked by this state."
+        }
+    ],
+    "metrics": [
+        {
+            "name": "scenario.wallclock",
+            "feature": "harness",
+            "derivedFrom": ["scenario.start", "scenario.end"]
+        },
+        {
+            "name": "mssql.connection",
+            "feature": "connection",
+            "derivedFrom": ["mssql.connection.begin", "mssql.connection.ready"]
+        },
+        {
+            "name": "mssql.query.toComplete",
+            "feature": "query",
+            "derivedFrom": ["mssql.query.submit", "mssql.query.complete"]
+        },
+        {
+            "name": "mssql.query.toRender",
+            "feature": "resultsGrid",
+            "derivedFrom": ["mssql.query.submit", "mssql.resultsGrid.renderComplete"]
+        },
+        {
+            "name": "mssql.oe.expand",
+            "feature": "objectExplorer",
+            "derivedFrom": ["mssql.oe.expand.begin", "mssql.oe.expand.end"]
+        },
+        {
+            "name": "mssql.tableDesigner.init",
+            "feature": "tableDesigner",
+            "derivedFrom": ["mssql.tableDesigner.init.begin", "mssql.tableDesigner.init.end"]
+        },
+        {
+            "name": "mssql.schemaDesigner.init",
+            "feature": "schemaDesigner",
+            "derivedFrom": ["mssql.schemaDesigner.init.begin", "mssql.schemaDesigner.init.end"]
+        },
+        {
+            "name": "mssql.schemaDesigner.init.toReady",
+            "feature": "schemaDesigner",
+            "derivedFrom": ["mssql.schemaDesigner.init.begin", "mssql.schemaDesigner.ready"]
+        },
+        {
+            "name": "mssql.schemaVisualizer.open",
+            "feature": "schemaVisualizer",
+            "derivedFrom": ["mssql.schemaVisualizer.open.begin", "mssql.schemaVisualizer.open.end"]
+        },
+        {
+            "name": "mssql.schemaVisualizer.open.toReady",
+            "feature": "schemaVisualizer",
+            "derivedFrom": ["mssql.schemaVisualizer.open.begin", "mssql.schemaVisualizer.ready"]
+        },
+        {
+            "name": "mssql.schemaVisualizer.layout",
+            "feature": "schemaVisualizer",
+            "derivedFrom": [
+                "mssql.schemaVisualizer.layout.begin",
+                "mssql.schemaVisualizer.layout.end"
+            ]
+        },
+        {
+            "name": "mssql.schemaVisualizer.commit.handoff",
+            "feature": "schemaVisualizer",
+            "derivedFrom": [
+                "mssql.schemaVisualizer.commit.handoff.begin",
+                "mssql.schemaVisualizer.commit.handoff.end"
+            ]
+        },
+        {
+            "name": "mssql.schemaVisualizer.publish",
+            "feature": "schemaVisualizer",
+            "derivedFrom": [
+                "mssql.schemaVisualizer.publish.begin",
+                "mssql.schemaVisualizer.publish.end"
+            ]
+        },
+        {
+            "name": "mssql.queryStudio.open",
+            "feature": "queryStudio",
+            "derivedFrom": ["mssql.queryStudio.open.begin", "mssql.queryStudio.open.end"]
+        },
+        {
+            "name": "mssql.queryStudio.connect",
+            "feature": "queryStudio",
+            "derivedFrom": ["mssql.queryStudio.connect.begin", "mssql.queryStudio.connect.ready"]
+        },
+        {
+            "name": "mssql.queryStudio.query.toComplete",
+            "feature": "queryStudio",
+            "derivedFrom": ["mssql.queryStudio.query.submit", "mssql.queryStudio.query.complete"]
+        },
+        {
+            "name": "mssql.queryStudio.query.toFirstPage",
+            "feature": "queryStudio",
+            "derivedFrom": ["mssql.queryStudio.query.submit", "mssql.queryStudio.query.firstPage"]
+        },
+        {
+            "name": "mssql.queryStudio.query.toRender",
+            "feature": "queryStudio",
+            "derivedFrom": ["mssql.queryStudio.query.submit", "mssql.queryStudio.resultsRendered"]
+        },
+        {
+            "name": "mssql.queryStudio.grid.copy",
+            "feature": "queryStudio",
+            "derivedFrom": ["mssql.queryStudio.grid.copy.begin", "mssql.queryStudio.grid.copy.end"]
+        },
+        {
+            "name": "mssql.queryStudio.rows.dispose",
+            "feature": "queryStudio",
+            "derivedFrom": [
+                "mssql.queryStudio.rows.dispose.begin",
+                "mssql.queryStudio.rows.dispose.end"
+            ]
+        },
+        {
+            "name": "mssql.queryStudio.messages.copy",
+            "feature": "queryStudio",
+            "derivedFrom": [
+                "mssql.queryStudio.messages.copy.begin",
+                "mssql.queryStudio.messages.copy.end"
+            ]
+        },
+        {
+            "name": "sqlDataPlane.tsNative.query.duration",
+            "feature": "sqlDataPlane",
+            "derivedFrom": ["sqlDataPlane.tsNative.query.terminal"]
+        },
+        {
+            "name": "sqlDataPlane.tsNative.query.firstMetadata",
+            "feature": "sqlDataPlane",
+            "derivedFrom": ["sqlDataPlane.tsNative.query.terminal"]
+        },
+        {
+            "name": "sqlDataPlane.tsNative.query.firstPageProduced",
+            "feature": "sqlDataPlane",
+            "derivedFrom": ["sqlDataPlane.tsNative.query.terminal"]
+        },
+        {
+            "name": "sqlDataPlane.tsNative.query.firstPageAccepted",
+            "feature": "sqlDataPlane",
+            "derivedFrom": ["sqlDataPlane.tsNative.query.terminal"]
+        },
+        {
+            "name": "sqlDataPlane.tsNative.query.encode",
+            "feature": "sqlDataPlane",
+            "derivedFrom": ["sqlDataPlane.tsNative.query.terminal"]
+        },
+        {
+            "name": "sqlDataPlane.tsNative.query.sinkWait",
+            "feature": "sqlDataPlane",
+            "derivedFrom": ["sqlDataPlane.tsNative.query.terminal"]
+        },
+        {
+            "name": "sqlDataPlane.tsNative.query.pause.backpressure",
+            "feature": "sqlDataPlane",
+            "derivedFrom": ["sqlDataPlane.tsNative.query.terminal"]
+        },
+        {
+            "name": "sqlDataPlane.tsNative.query.pause.cpuYield",
+            "feature": "sqlDataPlane",
+            "derivedFrom": ["sqlDataPlane.tsNative.query.terminal"]
+        },
+        {
+            "name": "sqlDataPlane.tsNative.query.maxSynchronousSlice",
+            "feature": "sqlDataPlane",
+            "derivedFrom": ["sqlDataPlane.tsNative.query.terminal"]
+        },
+        {
+            "name": "sqlDataPlane.tsNative.query.logicalEncodedBytes",
+            "feature": "sqlDataPlane",
+            "derivedFrom": ["sqlDataPlane.tsNative.query.terminal"]
+        },
+        {
+            "name": "sqlDataPlane.tsNative.query.pages",
+            "feature": "sqlDataPlane",
+            "derivedFrom": ["sqlDataPlane.tsNative.query.terminal"]
+        },
+        {
+            "name": "sqlDataPlane.tsNative.query.driverEvents",
+            "feature": "sqlDataPlane",
+            "derivedFrom": ["sqlDataPlane.tsNative.query.terminal"]
+        },
+        {
+            "name": "sqlDataPlane.tsNative.query.yields",
+            "feature": "sqlDataPlane",
+            "derivedFrom": ["sqlDataPlane.tsNative.query.terminal"]
+        },
+        {
+            "name": "sqlDataPlane.tsNative.query.processHeapUsedPeakBytes",
+            "feature": "sqlDataPlane",
+            "derivedFrom": ["sqlDataPlane.tsNative.query.terminal"]
+        },
+        {
+            "name": "sqlDataPlane.tsNative.query.processExternalPeakBytes",
+            "feature": "sqlDataPlane",
+            "derivedFrom": ["sqlDataPlane.tsNative.query.terminal"]
+        },
+        {
+            "name": "sqlDataPlane.tsNative.query.processRssPeakBytes",
+            "feature": "sqlDataPlane",
+            "derivedFrom": ["sqlDataPlane.tsNative.query.terminal"]
+        },
+        {
+            "name": "sqlDataPlane.tsNative.query.processArrayBuffersPeakBytes",
+            "feature": "sqlDataPlane",
+            "derivedFrom": ["sqlDataPlane.tsNative.query.terminal"]
+        },
+        {
+            "name": "mssql.queryResults.snapshot.create",
+            "feature": "queryResults",
+            "derivedFrom": [
+                "mssql.queryResults.snapshot.create.begin",
+                "mssql.queryResults.snapshot.create.end"
+            ]
+        },
+        {
+            "name": "mssql.queryResults.pin.open",
+            "feature": "queryResults",
+            "derivedFrom": ["mssql.queryResults.pin.open.begin", "mssql.queryResults.pin.open.end"]
+        },
+        {
+            "name": "mssql.queryResults.transform.evaluate",
+            "feature": "queryResults",
+            "derivedFrom": [
+                "mssql.queryResults.transform.evaluate.begin",
+                "mssql.queryResults.transform.evaluate.end"
+            ]
+        },
+        {
+            "name": "mssql.queryResults.pin.toRender",
+            "feature": "queryResults",
+            "derivedFrom": ["mssql.queryResults.pin.open.begin", "mssql.queryResults.pin.rendered"]
+        },
+        {
+            "name": "mssql.queryStudio.open.toEditorInteractive",
+            "feature": "queryStudio",
+            "derivedFrom": [
+                "mssql.queryStudio.open.begin",
+                "mssql.queryStudio.boot.editorInteractive"
+            ]
+        },
+        {
+            "name": "mssql.queryStudio.open.toResultsRendered",
+            "feature": "queryStudio",
+            "derivedFrom": ["mssql.queryStudio.open.begin", "mssql.queryStudio.resultsRendered"]
+        },
+        {
+            "name": "mssql.queryStudio.boot.vectorChunkLoad",
+            "feature": "queryStudio",
+            "derivedFrom": [
+                "mssql.queryStudio.boot.vectorChunkRequested",
+                "mssql.queryStudio.boot.vectorChunkLoaded"
+            ]
+        },
+        {
+            "name": "mssql.queryStudio.boot.spatialChunkLoad",
+            "feature": "queryStudio",
+            "derivedFrom": [
+                "mssql.queryStudio.boot.spatialChunkRequested",
+                "mssql.queryStudio.boot.spatialChunkLoaded"
+            ]
+        },
+        {
+            "name": "mssql.queryResults.vector.analysis",
+            "feature": "queryResults",
+            "derivedFrom": [
+                "mssql.queryResults.vector.analysis.begin",
+                "mssql.queryResults.vector.analysis.end"
+            ]
+        },
+        {
+            "name": "mssql.queryResults.spatial.prepare",
+            "feature": "queryResults",
+            "derivedFrom": [
+                "mssql.queryResults.spatial.prepare.begin",
+                "mssql.queryResults.spatial.prepare.end"
+            ]
+        },
+        {
+            "name": "mssql.queryResults.spatial.decode",
+            "feature": "queryResults",
+            "derivedFrom": [
+                "mssql.queryResults.spatial.decode.begin",
+                "mssql.queryResults.spatial.decode.end"
+            ]
+        },
+        {
+            "name": "mssql.queryResults.spatial.render.firstPaint",
+            "feature": "queryResults",
+            "derivedFrom": [
+                "mssql.queryResults.spatial.render.begin",
+                "mssql.queryResults.spatial.render.firstPaint"
+            ]
+        },
+        {
+            "name": "mssql.queryResults.spatial.basemap.layerReady",
+            "feature": "queryResults",
+            "derivedFrom": [
+                "mssql.queryResults.spatial.basemap.layer.begin",
+                "mssql.queryResults.spatial.basemap.layer.ready"
+            ]
+        }
+    ]
+}

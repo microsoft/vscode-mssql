@@ -1,0 +1,70 @@
+// Expanded TSQ2 backend A/B matrix. Every pair uses identical SQL, success
+// oracles, marker boundaries, diagnostics, and process sampling; only the
+// activation-time provider setting and expected bound identity differ.
+// Run from the perftest repo root:
+//   node packages/perftest-cli/dist/cli.js run --config examples/config.backend-shapes.local.jsonc
+{
+    "schemaVersion": 2,
+    "runId": "auto",
+    "passType": "measurement",
+    "repetitions": 3,
+    "warmupRepetitions": 1,
+    "scenarios": [
+        "querystudio-query-100k-narrow-sts2",
+        "querystudio-query-100k-narrow-tsnative",
+        "querystudio-query-wide-1000x300-sts2",
+        "querystudio-query-wide-1000x300-tsnative",
+        "querystudio-query-large-cells-sts2",
+        "querystudio-query-large-cells-tsnative",
+        "querystudio-query-blob-xml-sts2",
+        "querystudio-query-blob-xml-tsnative",
+        "querystudio-interaction-copyall-large-cells-forced-spill-sts2",
+        "querystudio-interaction-copyall-large-cells-forced-spill-tsnative",
+        "querystudio-query-100-resultsets-sts2",
+        "querystudio-query-100-resultsets-tsnative",
+        "querystudio-query-spatial-10k-sts2",
+        "querystudio-query-spatial-10k-tsnative",
+        "querystudio-query-vector-5k-sts2",
+        "querystudio-query-vector-5k-tsnative",
+        "querystudio-cancel-long-query-sts2",
+        "querystudio-cancel-long-query-tsnative",
+        "querystudio-dispose-forced-spill-sts2",
+        "querystudio-dispose-forced-spill-tsnative",
+    ],
+    "vscode": {
+        "version": "stable",
+        "quality": "stable",
+        "launchMode": "directSpawn",
+        "profileMode": "scenarioDefault",
+        "workspaceRoot": "./workspaces/perf",
+        "extensions": [
+            {
+                "id": "ms-mssql.mssql",
+                "source": "developmentPath",
+                "path": "../vscode-mssql/extensions/mssql",
+            },
+            {
+                "id": "perftest.mssql-perf-driver",
+                "source": "developmentPath",
+                "path": "./extensions/mssql-perf-driver",
+            },
+        ],
+        "extraArgs": [],
+        "env": {
+            "MSSQL_SQLTOOLSSERVICE": "C:\\repos\\test\\sqltoolsservice\\src\\Microsoft.SqlTools.ServiceLayer\\bin\\Debug\\net10.0",
+            "PERF_DOTNET_PATH": "C:\\Program Files\\dotnet\\dotnet.exe",
+        },
+    },
+    "sql": {
+        "provider": "external",
+        "connectionStringEnv": "STS2_SQLSERVER_SQLLOGIN_CONNSTRING",
+        "snapshot": "seed-v2",
+        "cacheMode": "warm",
+        "connectionProfile": "default",
+    },
+    "environment": { "requireIdle": false },
+    "diagnostics": { "markers": true, "processSampler": true, "otel": "off" },
+    "store": { "type": "sqlite", "path": "./perf.db" },
+    "regression": { "baseline": "none", "failOnRegression": false },
+    "output": { "dir": "./perf-runs", "keepArtifacts": "always" },
+}

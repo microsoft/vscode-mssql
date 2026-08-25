@@ -1,0 +1,61 @@
+// SV-R10: designer A/B — legacy Schema Designer (DacFx/STS v1) vs Schema
+// Visualizer (MetadataStore/data plane), same database, same warm profile
+// (scope equality per the schema-visualizer addendum §14.3). Both scenarios
+// run in ONE config; compare with the auto-selected designer phase map:
+//   node packages/perftest-cli/dist/cli.js run --config examples/config.schema-visualizer.local.jsonc
+//   node packages/perftest-cli/dist/cli.js head-to-head \
+//     --baseline-scenario schema-designer-open --candidate-scenario schema-visualizer-open
+// Connection string from STS2_SQLSERVER_SQLLOGIN_CONNSTRING (never logged).
+// Rendered-phase metrics stay unofficial until baseline history exists.
+{
+    "schemaVersion": 2,
+    "runId": "auto",
+    "passType": "measurement",
+    "repetitions": 3,
+    "warmupRepetitions": 1,
+    "scenarios": ["schema-designer-open", "schema-visualizer-open"],
+    "vscode": {
+        "version": "stable",
+        "quality": "stable",
+        "launchMode": "directSpawn",
+        "profileMode": "scenarioDefault",
+        "workspaceRoot": "./workspaces/perf",
+        "extensions": [
+            {
+                "id": "ms-mssql.mssql",
+                "source": "developmentPath",
+                "path": "../vscode-mssql/extensions/mssql",
+            },
+            {
+                "id": "perftest.mssql-perf-driver",
+                "source": "developmentPath",
+                "path": "./extensions/mssql-perf-driver",
+            },
+        ],
+        "extraArgs": [],
+        "env": {
+            // sts2 endpoints require the LOCAL service build (v2/initialize fails
+            // against the packaged STS — found via the sessionDiag journal).
+            "MSSQL_SQLTOOLSSERVICE": "C:\\repos\\test\\langsrv2\\sqltoolsservice\\src\\Microsoft.SqlTools.ServiceLayer\\bin\\Debug\\net10.0",
+            "PERF_DOTNET_PATH": "C:\\Program Files\\dotnet\\dotnet.exe",
+        },
+    },
+    "sql": {
+        "provider": "external",
+        "connectionStringEnv": "STS2_SQLSERVER_SQLLOGIN_CONNSTRING",
+        "snapshot": "seed-v1",
+        "cacheMode": "warm",
+        "connectionProfile": "default",
+    },
+    "environment": {
+        "requireIdle": false,
+    },
+    "diagnostics": {
+        "markers": true,
+        "processSampler": true,
+        "otel": "off",
+    },
+    "store": { "type": "sqlite", "path": "./perf.db" },
+    "regression": { "baseline": "none", "failOnRegression": false },
+    "output": { "dir": "./perf-runs", "keepArtifacts": "always" },
+}

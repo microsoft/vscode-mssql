@@ -1,0 +1,61 @@
+// VEC-12 Vector Workbench scenarios: unopened cost plus Profile, Projection,
+// exact Search, and verified-index ANN Search.
+// querystudio-vector-unopened-f32 proves the lazy Vector tab costs ~0 when
+// never activated (markerAbsent negative proofs); querystudio-vector-profile-f32
+// measures host-driven activation → profile first paint. Projection and Search
+// use the real nested-workspace PERF_MODE seam. The ANN scenario deliberately
+// fails if VectorLabSearchCorpus lacks a compatible cosine index. Requires the
+// local VectorLab database (5000 rows, 64-dim f32 vectors) on the server named
+// by STS2_SQLSERVER_CONNSTRING. No baseline history yet — failOnRegression false.
+// Run from the perftest repo root:
+//   node packages/perftest-cli/dist/cli.js run --config examples/config.vector.local.jsonc
+{
+    "schemaVersion": 2,
+    "runId": "auto",
+    "passType": "measurement",
+    "repetitions": 3,
+    "warmupRepetitions": 1,
+    "scenarios": [
+        "querystudio-vector-unopened-f32",
+        "querystudio-vector-profile-f32",
+        "querystudio-vector-projection-f32",
+        "querystudio-vector-search-exact-f32",
+        "querystudio-vector-search-ann-f32",
+    ],
+    "vscode": {
+        "version": "stable",
+        "quality": "stable",
+        "launchMode": "directSpawn",
+        "profileMode": "scenarioDefault",
+        "workspaceRoot": "./workspaces/perf",
+        "extensions": [
+            {
+                "id": "ms-mssql.mssql",
+                "source": "developmentPath",
+                "path": "../vscode-mssql/extensions/mssql",
+            },
+            {
+                "id": "perftest.mssql-perf-driver",
+                "source": "developmentPath",
+                "path": "./extensions/mssql-perf-driver",
+            },
+        ],
+        "extraArgs": [],
+        "env": {
+            "MSSQL_SQLTOOLSSERVICE": "C:\\repos\\test\\sqltoolsservice\\src\\Microsoft.SqlTools.ServiceLayer\\bin\\Debug\\net10.0",
+            "PERF_DOTNET_PATH": "C:\\Program Files\\dotnet\\dotnet.exe",
+        },
+    },
+    "sql": {
+        "provider": "external",
+        "connectionStringEnv": "STS2_SQLSERVER_CONNSTRING",
+        "snapshot": "seed-v2",
+        "cacheMode": "warm",
+        "connectionProfile": "default",
+    },
+    "environment": { "requireIdle": false },
+    "diagnostics": { "markers": true, "processSampler": false, "otel": "off" },
+    "store": { "type": "sqlite", "path": "./perf.db" },
+    "regression": { "baseline": "none", "failOnRegression": false },
+    "output": { "dir": "./perf-runs", "keepArtifacts": "always" },
+}

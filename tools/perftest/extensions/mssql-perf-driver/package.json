@@ -1,0 +1,25 @@
+{
+    "name": "mssql-perf-driver",
+    "displayName": "MSSQL Perf Driver",
+    "description": "Automation driver for the MSSQL VS Code performance harness. Inert unless PERF_MODE=1.",
+    "publisher": "perftest",
+    "version": "0.1.0",
+    "private": true,
+    "engines": {
+        "vscode": "^1.101.0"
+    },
+    "main": "./dist/extension.js",
+    "activationEvents": [
+        "*"
+    ],
+    "contributes": {},
+    "scripts": {
+        "build": "tsc -p tsconfig.json",
+        "typecheck": "tsc -p tsconfig.json --noEmit"
+    },
+    "devDependencies": {
+        "@types/node": "^24.0.0",
+        "@types/vscode": "1.101.0",
+        "typescript": "^5.8.0"
+    }
+}

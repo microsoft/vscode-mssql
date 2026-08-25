@@ -1,0 +1,14 @@
+node_modules/
+dist/
+out/
+*.tsbuildinfo
+perf-runs/
+!perf-runs/.gitkeep
+perf.db
+perf.db-journal
+perf.db-wal
+perf.db-shm
+.vscode-test/
+*.vsix
+npm-debug.log*
+.DS_Store

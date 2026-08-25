@@ -1,0 +1,53 @@
+// Milestone 4': connect + query scenarios against an EXTERNAL SQL Server.
+// The connection string comes from the STS2_SQLSERVER_CONNSTRING env var and
+// is never logged or persisted. Seed (PerfHarness DB, 10k deterministic rows)
+// is applied and verified before the run.
+// Run from the perftest repo root:
+//   node packages/perftest-cli/dist/cli.js run --config examples/config.sql.local.jsonc
+{
+    "schemaVersion": 2,
+    "runId": "auto",
+    "passType": "measurement",
+    "repetitions": 3,
+    "warmupRepetitions": 1,
+    "scenarios": ["connect-local-container", "query-10k-results"],
+    "vscode": {
+        "version": "stable",
+        "quality": "stable",
+        "launchMode": "directSpawn",
+        "profileMode": "scenarioDefault",
+        "workspaceRoot": "./workspaces/perf",
+        "extensions": [
+            {
+                "id": "ms-mssql.mssql",
+                "source": "developmentPath",
+                "path": "../vscode-mssql/extensions/mssql",
+            },
+            {
+                "id": "perftest.mssql-perf-driver",
+                "source": "developmentPath",
+                "path": "./extensions/mssql-perf-driver",
+            },
+        ],
+        "extraArgs": [],
+        "env": {},
+    },
+    "sql": {
+        "provider": "external",
+        "connectionStringEnv": "STS2_SQLSERVER_CONNSTRING",
+        "snapshot": "seed-v1",
+        "cacheMode": "warm",
+        "connectionProfile": "default",
+    },
+    "environment": {
+        "requireIdle": false,
+    },
+    "diagnostics": {
+        "markers": true,
+        "processSampler": true,
+        "otel": "off",
+    },
+    "store": { "type": "sqlite", "path": "./perf.db" },
+    "regression": { "baseline": "none", "failOnRegression": false },
+    "output": { "dir": "./perf-runs", "keepArtifacts": "always" },
+}

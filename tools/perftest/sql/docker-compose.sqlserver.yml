@@ -1,0 +1,41 @@
+# Perf harness SQL Server (design §13.4). Image pinned by DIGEST, never a
+# floating tag — reproducibility rule §A3.3. Digest resolved 2026-07-01 from
+# mcr.microsoft.com/mssql/server:2022-latest.
+#
+# SA password comes from PERF_SQL_SA_PASSWORD (synthetic perf credential; the
+# provisioner supplies a default). Seed scripts are mounted read-only and
+# applied by the provisioner via sqlcmd inside the container.
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server@sha256:e07b9699a2b749969f19d86563ceeea22bd3a69f7f1db85a8d1ac4bdaf0c6f56
+    container_name: perftest-sqlserver
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "${PERF_SQL_SA_PASSWORD:-PerfH@rness2026!}"
+      MSSQL_PID: "Developer"
+      MSSQL_MEMORY_LIMIT_MB: "4096"
+    ports:
+      - "14333:1433"
+    volumes:
+      - ./seed:/perf-seed:ro
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "/opt/mssql-tools18/bin/sqlcmd",
+          "-S",
+          "localhost",
+          "-U",
+          "sa",
+          "-P",
+          "${PERF_SQL_SA_PASSWORD:-PerfH@rness2026!}",
+          "-C",
+          "-Q",
+          "SELECT 1",
+          "-b",
+        ]
+      interval: 5s
+      timeout: 10s
+      retries: 24
+      start_period: 20s
