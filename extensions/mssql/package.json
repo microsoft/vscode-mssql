@@ -2392,6 +2392,12 @@
                     "default": false,
                     "scope": "resource"
                 },
+                "mssql.results.showBatchMessages": {
+                    "type": "boolean",
+                    "description": "%mssql.results.showBatchMessages%",
+                    "default": true,
+                    "scope": "resource"
+                },
                 "mssql.splitPaneSelection": {
                     "type": "string",
                     "description": "%mssql.splitPaneSelection%",

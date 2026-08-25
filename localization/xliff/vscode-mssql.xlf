@@ -9905,6 +9905,9 @@
     <trans-unit id="mssql.showBatchTime">
       <source xml:lang="en">[Optional] Should execution time be shown for individual batches</source>
     </trans-unit>
+    <trans-unit id="mssql.results.showBatchMessages">
+      <source xml:lang="en">[Optional] Show batch start and completion messages, including &apos;Started executing query at...&apos; and &apos;Commands completed successfully&apos;.</source>
+    </trans-unit>
     <trans-unit id="mssql.connection.profileName">
       <source xml:lang="en">[Optional] Specify a custom name for this connection profile to easily browse and search in the command palette of Visual Studio Code.</source>
     </trans-unit>

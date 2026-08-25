@@ -638,6 +638,10 @@ export class SqlOutputContentProvider {
             );
 
             const batchStartListener = queryRunner.onBatchStart(async (batch) => {
+                if (!Utils.shouldShowBatchMessages()) {
+                    return;
+                }
+
                 let time = new Date().toLocaleTimeString();
                 if (batch.executionElapsed && batch.executionEnd) {
                     time = new Date(batch.executionStart).toLocaleTimeString();
@@ -673,7 +677,12 @@ export class SqlOutputContentProvider {
                     queryRunner.uri,
                 );
 
-                resultWebviewState.messages.push(message);
+                const showBatchMessages = Utils.shouldShowBatchMessages();
+                if (message.isError || showBatchMessages) {
+                    resultWebviewState.messages.push(
+                        showBatchMessages ? message : { ...message, batchId: undefined },
+                    );
+                }
                 if (typeof message.rowsAffected === "number") {
                     resultWebviewState.rowsAffected = message.rowsAffected;
                 }
@@ -698,11 +707,13 @@ export class SqlOutputContentProvider {
                 resultWebviewState.isExecuting = false;
                 resultWebviewState.executionStartTime = undefined;
                 resultWebviewState.executionElapsedMilliseconds = totalElapsedMilliseconds;
-                resultWebviewState.messages.push({
-                    message: LocalizedConstants.elapsedTimeLabel(totalMilliseconds),
-                    isError: false, // Elapsed time messages are never displayed as errors
-                    time: new Date().toLocaleTimeString(),
-                });
+                if (Utils.shouldShowBatchMessages()) {
+                    resultWebviewState.messages.push({
+                        message: LocalizedConstants.elapsedTimeLabel(totalMilliseconds),
+                        isError: false, // Elapsed time messages are never displayed as errors
+                        time: new Date().toLocaleTimeString(),
+                    });
+                }
                 // if there is an error, show the error message and set the tab to the messages tab
                 let tabState: QueryResultPaneTabs;
                 if (hasError) {
