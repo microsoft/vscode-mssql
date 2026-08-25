@@ -707,6 +707,12 @@ function getExtensionConfiguration(): vscode.WorkspaceConfiguration {
     return vscode.workspace.getConfiguration(Constants.extensionConfigSectionName);
 }
 
+export function shouldShowBatchMessages(): boolean {
+    return vscode.workspace
+        .getConfiguration(Constants.extensionConfigSectionName)
+        .get<boolean>(Constants.configResultsShowBatchMessages, true);
+}
+
 export function getConfigTracingLevel(): string {
     let config = getExtensionConfiguration();
     if (config) {

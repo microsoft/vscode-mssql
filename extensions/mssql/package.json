@@ -1834,6 +1834,18 @@
                     "description": "%mssql.openQueryResultsInTabByDefault.description%",
                     "scope": "application"
                 },
+                "mssql.query.playCompletionSound": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "%mssql.query.playCompletionSound.description%",
+                    "scope": "window"
+                },
+                "mssql.query.completionSoundFile": {
+                    "type": "string",
+                    "default": "",
+                    "description": "%mssql.query.completionSoundFile.description%",
+                    "scope": "window"
+                },
                 "mssql.openQueryResultsInTabByDefaultDoNotShowPrompt": {
                     "type": "boolean",
                     "default": false,
@@ -2390,6 +2402,12 @@
                     "type": "boolean",
                     "description": "%mssql.showBatchTime%",
                     "default": false,
+                    "scope": "resource"
+                },
+                "mssql.results.showBatchMessages": {
+                    "type": "boolean",
+                    "description": "%mssql.results.showBatchMessages%",
+                    "default": true,
                     "scope": "resource"
                 },
                 "mssql.splitPaneSelection": {

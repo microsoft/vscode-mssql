@@ -1789,9 +1789,6 @@
     <trans-unit id="++CODE++7a1861e47d92e338be8a74dd8c9e93ebc0002af27499b52996ca43c9a8684555">
       <source xml:lang="en">Copy All</source>
     </trans-unit>
-    <trans-unit id="++CODE++7644dd0a33ff475c31116e369646b3410ca1463eb32dd1aabf3569f79cc02b4e">
-      <source xml:lang="en">Copy As</source>
-    </trans-unit>
     <trans-unit id="++CODE++96060c7cd5841d631c4c2cf65834a41409b3005fd80c393f48e902ade8901239">
       <source xml:lang="en">Copy Column Name</source>
     </trans-unit>
@@ -1833,6 +1830,9 @@
     </trans-unit>
     <trans-unit id="++CODE++fd4aee4cb3fa5d5963fc78a7261f20700d94a8ddbbb5b963e97a84c441149508">
       <source xml:lang="en">Copy as JSON</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9f3caf9137006097dc46f53a5532c3ca91cbaf4a45dc05251e73d904a37b6b3f">
+      <source xml:lang="en">Copy as...</source>
     </trans-unit>
     <trans-unit id="++CODE++d2b6ebb67aeb8ede651aa24682be64c81d2e0a970c297908b470e55fd14c0bcc">
       <source xml:lang="en">Copy code and open webpage</source>
@@ -1897,6 +1897,9 @@
     </trans-unit>
     <trans-unit id="++CODE++d43b358b5e9ef2a45f199ba7a0da47d1fb8386373fa697097e8fe2be290c0e87">
       <source xml:lang="en">Copy-only Backup</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2f8ae7d0e784eed8f3eddb9e69ab86082813b39e7e7d7200de5e66cd261dee36">
+      <source xml:lang="en">Copying as an IN clause requires selecting exactly one column.</source>
     </trans-unit>
     <trans-unit id="++CODE++76ed55852b66d19d1756277312208fcad6a988622d291a320d248cec88f8c3d9">
       <source xml:lang="en">Copying results canceled</source>
@@ -9509,6 +9512,9 @@
     <trans-unit id="mssql.pauseQueryHistoryCapture">
       <source xml:lang="en">Pause Query History Capture</source>
     </trans-unit>
+    <trans-unit id="mssql.query.playCompletionSound.description">
+      <source xml:lang="en">Play a sound after a query finishes executing.</source>
+    </trans-unit>
     <trans-unit id="mssql.preventAutoExecuteScript">
       <source xml:lang="en">Prevent automatic execution of scripts (e.g., &apos;Select Top 1000&apos;). When enabled, scripts will not be automatically executed upon generation.</source>
     </trans-unit>
@@ -9758,6 +9764,9 @@
     <trans-unit id="mssql.connectionGroup.name">
       <source xml:lang="en">The name of the connection group.</source>
     </trans-unit>
+    <trans-unit id="mssql.query.completionSoundFile.description">
+      <source xml:lang="en">The path to a custom WAV file to play after a query finishes executing. The bundled default chime is used when the path is empty or invalid, or when the custom file is larger than 400 KB.</source>
+    </trans-unit>
     <trans-unit id="mssql.objectExplorer.expandTimeout">
       <source xml:lang="en">The timeout in seconds for expanding a node in Object Explorer. The default value is 45 seconds.</source>
     </trans-unit>
@@ -9901,6 +9910,9 @@
     </trans-unit>
     <trans-unit id="mssql.showBatchTime">
       <source xml:lang="en">[Optional] Should execution time be shown for individual batches</source>
+    </trans-unit>
+    <trans-unit id="mssql.results.showBatchMessages">
+      <source xml:lang="en">[Optional] Show batch start and completion messages, including &apos;Started executing query at...&apos; and &apos;Commands completed successfully&apos;.</source>
     </trans-unit>
     <trans-unit id="mssql.connection.profileName">
       <source xml:lang="en">[Optional] Specify a custom name for this connection profile to easily browse and search in the command palette of Visual Studio Code.</source>
