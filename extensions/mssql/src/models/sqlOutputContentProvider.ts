@@ -28,6 +28,7 @@ import * as Utils from "./utils";
 // can transpile to throttle_1.default and fail at runtime in unit tests.
 import throttle = require("lodash/throttle");
 import store from "../queryResult/singletonStore";
+import { QueryCompletionSoundService } from "../services/queryCompletionSoundService";
 // tslint:disable-next-line:no-require-imports
 const pd = require("pretty-data").pd;
 const logger = getLogger("SqlOutputContentProvider");
@@ -58,12 +59,17 @@ export class SqlOutputContentProvider {
     private _queryExecutionInFlightUris: Set<string> = new Set();
     // Throttled state update functions per result URI (messages, results, etc.)
     private _stateUpdateThrottles: Map<string, ReturnType<typeof throttle>> = new Map();
+    private _queryCompletionSoundService: QueryCompletionSoundService;
 
     constructor(
         private _context: vscode.ExtensionContext,
         private _statusView: StatusView,
         private _executionPlanService: ExecutionPlanService,
+        queryCompletionSoundService?: QueryCompletionSoundService,
     ) {
+        this._queryCompletionSoundService =
+            queryCompletionSoundService ??
+            new QueryCompletionSoundService(this._context.extensionPath);
         /**
          * TODO: aaskhan
          * Remove query results management code from queryResultwebviewController so
@@ -79,6 +85,7 @@ export class SqlOutputContentProvider {
             vscode.window.registerWebviewViewProvider(
                 "queryResult",
                 this._queryResultWebviewController,
+                { webviewOptions: { retainContextWhenHidden: true } },
             ),
         );
 
@@ -224,10 +231,17 @@ export class SqlOutputContentProvider {
         resultId: number,
         selection: Interfaces.ISlickRange[],
         includeHeaders?: boolean,
+        preserveSelectionLayout?: boolean,
     ): void {
         void this._queryResultsMap
             .get(uri)
-            .queryRunner.copyResults(selection, batchId, resultId, includeHeaders);
+            .queryRunner.copyResults(
+                selection,
+                batchId,
+                resultId,
+                includeHeaders,
+                preserveSelectionLayout,
+            );
     }
 
     public copyAsCsvRequestHandler(
@@ -630,6 +644,10 @@ export class SqlOutputContentProvider {
             );
 
             const batchStartListener = queryRunner.onBatchStart(async (batch) => {
+                if (!Utils.shouldShowBatchMessages()) {
+                    return;
+                }
+
                 let time = new Date().toLocaleTimeString();
                 if (batch.executionElapsed && batch.executionEnd) {
                     time = new Date(batch.executionStart).toLocaleTimeString();
@@ -665,7 +683,12 @@ export class SqlOutputContentProvider {
                     queryRunner.uri,
                 );
 
-                resultWebviewState.messages.push(message);
+                const showBatchMessages = Utils.shouldShowBatchMessages();
+                if (message.isError || showBatchMessages) {
+                    resultWebviewState.messages.push(
+                        showBatchMessages ? message : { ...message, batchId: undefined },
+                    );
+                }
                 if (typeof message.rowsAffected === "number") {
                     resultWebviewState.rowsAffected = message.rowsAffected;
                 }
@@ -674,7 +697,13 @@ export class SqlOutputContentProvider {
             });
 
             const onCompleteListener = queryRunner.onComplete(async (e) => {
-                const { totalMilliseconds, totalElapsedMilliseconds, hasError, isRefresh } = e;
+                const {
+                    totalMilliseconds,
+                    totalElapsedMilliseconds,
+                    hasError,
+                    isFullExecutionComplete,
+                    isRefresh,
+                } = e;
                 if (!isRefresh) {
                     // only update query history with new queries
                     vscode.commands.executeCommand(
@@ -682,6 +711,9 @@ export class SqlOutputContentProvider {
                         queryRunner.uri,
                         hasError,
                     );
+                    if (isFullExecutionComplete) {
+                        void this._queryCompletionSoundService.play();
+                    }
                 }
 
                 const resultWebviewState = this._queryResultWebviewController.getQueryResultState(
@@ -690,11 +722,13 @@ export class SqlOutputContentProvider {
                 resultWebviewState.isExecuting = false;
                 resultWebviewState.executionStartTime = undefined;
                 resultWebviewState.executionElapsedMilliseconds = totalElapsedMilliseconds;
-                resultWebviewState.messages.push({
-                    message: LocalizedConstants.elapsedTimeLabel(totalMilliseconds),
-                    isError: false, // Elapsed time messages are never displayed as errors
-                    time: new Date().toLocaleTimeString(),
-                });
+                if (Utils.shouldShowBatchMessages()) {
+                    resultWebviewState.messages.push({
+                        message: LocalizedConstants.elapsedTimeLabel(totalMilliseconds),
+                        isError: false, // Elapsed time messages are never displayed as errors
+                        time: new Date().toLocaleTimeString(),
+                    });
+                }
                 // if there is an error, show the error message and set the tab to the messages tab
                 let tabState: QueryResultPaneTabs;
                 if (hasError) {

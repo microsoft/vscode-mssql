@@ -496,8 +496,8 @@
       <source xml:lang="en">Are you sure you want to delete &quot;{0}&quot;? This action cannot be undone.</source>
       <note>{0} is the name or summary of a reusable filter</note>
     </trans-unit>
-    <trans-unit id="++CODE++9d9d0bfa74aaf1db2f58269ddd7f7e8141a4069574d576aab3174f0f810ad1e0">
-      <source xml:lang="en">Are you sure you want to delete the container {0}? This will remove both the container and its connection from VS Code.</source>
+    <trans-unit id="++CODE++08dd9018a8985b14cb37706073caca7d76b6b750d933c87571c8250f626ec7ec">
+      <source xml:lang="en">Are you sure you want to delete the container &apos;{0}&apos;?&#10;&#10;This will remove both the container and its connection from VS Code.</source>
       <note>{0} is the container name</note>
     </trans-unit>
     <trans-unit id="++CODE++dc1158b4986e0eadcc929a35b9de0147ca4e8e317ec963db232cb2516688ed79">
@@ -1786,9 +1786,6 @@
     <trans-unit id="++CODE++7a1861e47d92e338be8a74dd8c9e93ebc0002af27499b52996ca43c9a8684555">
       <source xml:lang="en">Copy All</source>
     </trans-unit>
-    <trans-unit id="++CODE++7644dd0a33ff475c31116e369646b3410ca1463eb32dd1aabf3569f79cc02b4e">
-      <source xml:lang="en">Copy As</source>
-    </trans-unit>
     <trans-unit id="++CODE++96060c7cd5841d631c4c2cf65834a41409b3005fd80c393f48e902ade8901239">
       <source xml:lang="en">Copy Column Name</source>
     </trans-unit>
@@ -1830,6 +1827,9 @@
     </trans-unit>
     <trans-unit id="++CODE++fd4aee4cb3fa5d5963fc78a7261f20700d94a8ddbbb5b963e97a84c441149508">
       <source xml:lang="en">Copy as JSON</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9f3caf9137006097dc46f53a5532c3ca91cbaf4a45dc05251e73d904a37b6b3f">
+      <source xml:lang="en">Copy as...</source>
     </trans-unit>
     <trans-unit id="++CODE++d2b6ebb67aeb8ede651aa24682be64c81d2e0a970c297908b470e55fd14c0bcc">
       <source xml:lang="en">Copy code and open webpage</source>
@@ -1894,6 +1894,12 @@
     </trans-unit>
     <trans-unit id="++CODE++d43b358b5e9ef2a45f199ba7a0da47d1fb8386373fa697097e8fe2be290c0e87">
       <source xml:lang="en">Copy-only Backup</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2f8ae7d0e784eed8f3eddb9e69ab86082813b39e7e7d7200de5e66cd261dee36">
+      <source xml:lang="en">Copying as an IN clause requires selecting exactly one column.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++76ed55852b66d19d1756277312208fcad6a988622d291a320d248cec88f8c3d9">
+      <source xml:lang="en">Copying results canceled</source>
     </trans-unit>
     <trans-unit id="++CODE++35c380196401c05c48fe5f5fffd349ba06d9988118b87a1c12e1164a28175997">
       <source xml:lang="en">Copying results...</source>
@@ -4061,6 +4067,10 @@
     <trans-unit id="++CODE++c4a77afa3d5cd701f32b5f09c195c635b256db8595687828c3ea0785ab5b72f4">
       <source xml:lang="en">Image tag</source>
     </trans-unit>
+    <trans-unit id="++CODE++45386a69d2b5eb577c53d296ecd652d7cc6583c3f759680582587663cff8539c">
+      <source xml:lang="en">Impact {0}%</source>
+      <note>{0} is the estimated percentage improvement from creating the index</note>
+    </trans-unit>
     <trans-unit id="++CODE++09b493255c6cc11aae4f73f97494b4d0123bb42869372d0a2182f0a324eb5ef5">
       <source xml:lang="en">Import BACPAC</source>
     </trans-unit>
@@ -4800,6 +4810,12 @@
     <trans-unit id="++CODE++c4cb38118e976f2ec6af215b6206c1aeadd0a3a1a95b4ab00681c97e9a276753">
       <source xml:lang="en">Missing connection reference. Please provide exactly one of connectionId or connectionName.</source>
     </trans-unit>
+    <trans-unit id="++CODE++c0ddd09f7b9ebbe309bc4e518e1aad4479cbbc1eb792cac263b398e11a85af5a">
+      <source xml:lang="en">Missing index</source>
+    </trans-unit>
+    <trans-unit id="++CODE++efb9ca4f5a017be57cf3a7cb05a528919e6419abddfe79c4a2d8937b2a901186">
+      <source xml:lang="en">Missing index recommendations</source>
+    </trans-unit>
     <trans-unit id="++CODE++910bb9ebcad74af9fe7fae916e94812f8a97c60f93e76a1167b4ca1583d70f27">
       <source xml:lang="en">Missing schema payload for replace_schema operation.</source>
     </trans-unit>
@@ -4847,6 +4863,9 @@
     </trans-unit>
     <trans-unit id="++CODE++7b2f513a67abc570d3348717ad85ae669570734afe2bf57015c2cc9b0dce3764">
       <source xml:lang="en">Monthly limits</source>
+    </trans-unit>
+    <trans-unit id="++CODE++98eea4c1c21f333640ea131c6484e3a8a861029affc6ac5438a67df28df6af68">
+      <source xml:lang="en">More Actions</source>
     </trans-unit>
     <trans-unit id="++CODE++0149b409a73e8498a5256e13dbf70225738e9e1fed0d976e20ad8ef338cc2d22">
       <source xml:lang="en">More Query Actions</source>
@@ -5516,6 +5535,9 @@
     <trans-unit id="++CODE++eca206dacc5627de738a49f5b7cc3a89393f5c0d8e5da0dadfb8baec1c274678">
       <source xml:lang="en">Open the generated SELECT statement in a new editor</source>
     </trans-unit>
+    <trans-unit id="++CODE++bcec92c3fcbd6a1012ed2ae1a5d10e462184bbb5ca83b2df5552cb49620c78cf">
+      <source xml:lang="en">Open the recommended index script in a new query editor</source>
+    </trans-unit>
     <trans-unit id="++CODE++3a8e07b84d53ba502ae8ee669003537bdbbe321d6c8c6fb6cbd63019cb3d400e">
       <source xml:lang="en">Opening Publish Script. This may take a while...</source>
     </trans-unit>
@@ -5755,6 +5777,9 @@
     </trans-unit>
     <trans-unit id="++CODE++9d13699b657fe91178f41ecf87e9c11095306c7b62e26f7e7a1b019df9ca50b1">
       <source xml:lang="en">Preview Database Updates</source>
+    </trans-unit>
+    <trans-unit id="++CODE++cd3c37c0fff7336e44e0cf23750941ac5a52b322309637bd4733036d1b863ce8">
+      <source xml:lang="en">Preview Grid</source>
     </trans-unit>
     <trans-unit id="++CODE++a57b08a480b822a0a572b993391c292ede593bf8000b406675b180bbb16260fa">
       <source xml:lang="en">Previous</source>
@@ -7457,6 +7482,9 @@
     <trans-unit id="++CODE++5f9a6468c67e9a70a4b7b3b9b65d5c8d1ff0dcd29d0deeebf7232dde003c2918">
       <source xml:lang="en">Switch between result panes and tabs</source>
     </trans-unit>
+    <trans-unit id="++CODE++6652212ed4ac6802693dae6e359f8c57272ec99f52ac06f1bc5f7d7948fb9e89">
+      <source xml:lang="en">Switch between the classic and the preview results grid</source>
+    </trans-unit>
     <trans-unit id="++CODE++d797c6360240f8a9e067207c81426437b0a655a0a744840a19a889ab8de4b58e">
       <source xml:lang="en">Switch results view</source>
     </trans-unit>
@@ -7668,6 +7696,11 @@
     <trans-unit id="++CODE++0104b69959544fb6f98a7e7723e2df4d657c581b43004a1e47f677a02589311e">
       <source xml:lang="en">The connection with ID &apos;{0}&apos; does not have the &apos;server&apos; property set and is being ignored.  Please set the &apos;server&apos; property on this connection in order to use it.</source>
       <note>{0} is the connection ID for the connection that has been ignored</note>
+    </trans-unit>
+    <trans-unit id="++CODE++9e157e2e4c433d963de65edac5ffc84fdfcf02d13a0f07d348b9da33ad60d851">
+      <source xml:lang="en">The container &apos;{0}&apos; is also used by other saved connections:&#10;{1}&#10;&#10;Deleting it will remove both the container and this connection from VS Code, and the other connections will stop working.&#10;&#10;Are you sure you want to continue?</source>
+      <note>{0} is the container name
+{1} is the list of connection display names</note>
     </trans-unit>
     <trans-unit id="++CODE++90a4ba6d5483f640dbf83e90ca81103b564ff6be1e78dc9caf91eea1c299757e">
       <source xml:lang="en">The custom cloud choice is not configured. Please configure the setting `{0}`.</source>
@@ -9138,6 +9171,9 @@
     <trans-unit id="mssql.resultsGrid.inMemoryDataProcessingThreshold">
       <source xml:lang="en">Controls the max number of rows allowed to do filtering and sorting in memory. If the number is exceeded, sorting and filtering will be disabled. Warning: Increasing this may impact performance.</source>
     </trans-unit>
+    <trans-unit id="mssql.statusBar.showQueryExecutionStatus.description">
+      <source xml:lang="en">Controls whether the query execution status (executing, canceling, completed) is displayed in the status bar.</source>
+    </trans-unit>
     <trans-unit id="mssql.copyAll">
       <source xml:lang="en">Copy All</source>
     </trans-unit>
@@ -9345,6 +9381,9 @@
     <trans-unit id="mssql.walkthroughs.nextSteps.objectExplorerFilters.title">
       <source xml:lang="en">Filter your Object Explorer Tree</source>
     </trans-unit>
+    <trans-unit id="mssql.resultsGrid.freezeFirstColumnByDefault">
+      <source xml:lang="en">Freeze the first data column by default in new result grids. Existing saved grid state takes precedence.</source>
+    </trans-unit>
     <trans-unit id="mssql.sqlScriptsSubmenu">
       <source xml:lang="en">Generate Script</source>
     </trans-unit>
@@ -9473,6 +9512,9 @@
     </trans-unit>
     <trans-unit id="mssql.pauseQueryHistoryCapture">
       <source xml:lang="en">Pause Query History Capture</source>
+    </trans-unit>
+    <trans-unit id="mssql.query.playCompletionSound.description">
+      <source xml:lang="en">Play a sound after a query finishes executing.</source>
     </trans-unit>
     <trans-unit id="mssql.preventAutoExecuteScript">
       <source xml:lang="en">Prevent automatic execution of scripts (e.g., &apos;Select Top 1000&apos;). When enabled, scripts will not be automatically executed upon generation.</source>
@@ -9723,6 +9765,9 @@
     <trans-unit id="mssql.connectionGroup.name">
       <source xml:lang="en">The name of the connection group.</source>
     </trans-unit>
+    <trans-unit id="mssql.query.completionSoundFile.description">
+      <source xml:lang="en">The path to a custom WAV file to play after a query finishes executing. The bundled default chime is used when the path is empty or invalid, or when the custom file is larger than 400 KB.</source>
+    </trans-unit>
     <trans-unit id="mssql.objectExplorer.expandTimeout">
       <source xml:lang="en">The timeout in seconds for expanding a node in Object Explorer. The default value is 45 seconds.</source>
     </trans-unit>
@@ -9866,6 +9911,9 @@
     </trans-unit>
     <trans-unit id="mssql.showBatchTime">
       <source xml:lang="en">[Optional] Should execution time be shown for individual batches</source>
+    </trans-unit>
+    <trans-unit id="mssql.results.showBatchMessages">
+      <source xml:lang="en">[Optional] Show batch start and completion messages, including &apos;Started executing query at...&apos; and &apos;Commands completed successfully&apos;.</source>
     </trans-unit>
     <trans-unit id="mssql.connection.profileName">
       <source xml:lang="en">[Optional] Specify a custom name for this connection profile to easily browse and search in the command palette of Visual Studio Code.</source>

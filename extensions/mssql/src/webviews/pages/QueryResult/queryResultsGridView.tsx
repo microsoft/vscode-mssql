@@ -93,6 +93,7 @@ export const QueryResultsGridView = ({
     );
     const [maximizedGridKey, setMaximizedGridKey] = useState<string | undefined>(undefined);
     const gridRefs = useRef<Array<ResultGridHandle | undefined>>([]);
+    const activeSelectionGridKeyRef = useRef<string | undefined>(undefined);
     const { keyBindings } = useVscodeWebview();
 
     // Derive a stable flat list for rendering
@@ -346,6 +347,30 @@ export const QueryResultsGridView = ({
         [gridRefs],
     );
 
+    const handleGridSelectionChange = useCallback(
+        (gridKey: string, hasSelection: boolean) => {
+            if (!hasSelection) {
+                if (activeSelectionGridKeyRef.current === gridKey) {
+                    activeSelectionGridKeyRef.current = undefined;
+                }
+                return;
+            }
+
+            if (activeSelectionGridKeyRef.current === gridKey) {
+                return;
+            }
+
+            activeSelectionGridKeyRef.current = gridKey;
+            gridList.forEach((item, index) => {
+                const itemKey = `${item.batchId}_${item.resultId}`;
+                if (itemKey !== gridKey) {
+                    gridRefs.current[index]?.clearSelection?.();
+                }
+            });
+        },
+        [gridList],
+    );
+
     useEffect(() => {
         const handler = (event: KeyboardEvent) => {
             if (!event.shiftKey || event.key !== "Tab") {
@@ -505,6 +530,9 @@ export const QueryResultsGridView = ({
                                 }
                                 isMaximized={isMaximized}
                                 onToggleMaximize={() => handleToggleMaximize(gridKey)}
+                                onSelectionChange={(hasSelection) =>
+                                    handleGridSelectionChange(gridKey, hasSelection)
+                                }
                             />
                         </div>
                         {showExternalCommandBar && (
