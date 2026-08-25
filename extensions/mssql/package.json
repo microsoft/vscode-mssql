@@ -1,7 +1,7 @@
 {
     "name": "mssql",
     "displayName": "SQL Server (mssql)",
-    "version": "1.45.0",
+    "version": "1.46.0",
     "description": "Design and optimize schemas for SQL Server, Azure SQL, and SQL Database in Fabric using a modern, lightweight extension built for developers",
     "publisher": "ms-mssql",
     "preview": false,
@@ -1933,19 +1933,13 @@
                 },
                 "mssql.preview.betaResultsGrid": {
                     "type": "boolean",
-                    "default": false,
+                    "default": true,
                     "description": "%mssql.preview.betaResultsGrid.description%",
-                    "scope": "application"
-                },
-                "mssql.preview.betaObjectExplorerFilter": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "%mssql.preview.betaObjectExplorerFilter.description%",
                     "scope": "application"
                 },
                 "mssql.preview.betaExecutionPlan": {
                     "type": "boolean",
-                    "default": false,
+                    "default": true,
                     "description": "%mssql.preview.betaExecutionPlan.description%",
                     "scope": "application"
                 },
@@ -1975,6 +1969,18 @@
                     "default": false,
                     "description": "%mssql.openQueryResultsInTabByDefault.description%",
                     "scope": "application"
+                },
+                "mssql.query.playCompletionSound": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "%mssql.query.playCompletionSound.description%",
+                    "scope": "window"
+                },
+                "mssql.query.completionSoundFile": {
+                    "type": "string",
+                    "default": "",
+                    "description": "%mssql.query.completionSoundFile.description%",
+                    "scope": "window"
                 },
                 "mssql.openQueryResultsInTabByDefaultDoNotShowPrompt": {
                     "type": "boolean",
@@ -2534,6 +2540,12 @@
                     "default": false,
                     "scope": "resource"
                 },
+                "mssql.results.showBatchMessages": {
+                    "type": "boolean",
+                    "description": "%mssql.results.showBatchMessages%",
+                    "default": true,
+                    "scope": "resource"
+                },
                 "mssql.splitPaneSelection": {
                     "type": "string",
                     "description": "%mssql.splitPaneSelection%",
@@ -2559,6 +2571,12 @@
                 "mssql.statusBar.enableConnectionColor": {
                     "type": "boolean",
                     "description": "%mssql.statusBar.enableConnectionColor%",
+                    "default": true,
+                    "scope": "window"
+                },
+                "mssql.statusBar.showQueryExecutionStatus": {
+                    "type": "boolean",
+                    "description": "%mssql.statusBar.showQueryExecutionStatus.description%",
                     "default": true,
                     "scope": "window"
                 },
@@ -2954,6 +2972,11 @@
                     "type": "boolean",
                     "default": false,
                     "description": "%mssql.resultsGrid.alternatingRowColors%"
+                },
+                "mssql.resultsGrid.freezeFirstColumnByDefault": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "%mssql.resultsGrid.freezeFirstColumnByDefault%"
                 },
                 "mssql.resultsGrid.showGridLines": {
                     "type": "string",

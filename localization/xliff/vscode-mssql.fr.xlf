@@ -166,7 +166,7 @@
       <trans-unit id="++CODE++b120c5984701afdfec284eb8567363262db10fa29e8c4bd4c8ba44d673511b45">
         <source xml:lang="en">A file named '{0}' already exists in the workspace root.</source>
         <note>{0} is the deployment script file name</note>
-        <target state="new">A file named '{0}' already exists in the workspace root.</target>
+        <target state="translated">Un fichier nommé « {0} » existe déjà à la racine de l’espace de travail.</target>
       </trans-unit>
       <trans-unit id="++CODE++6ab58ce9ca23e017bf594366b66b620458a5580640ddaf3aebf96f3c8fdf0977">
         <source xml:lang="en">A firewall rule is required to access this server.</source>
@@ -198,7 +198,7 @@
       </trans-unit>
       <trans-unit id="++CODE++810a308ea3cf5aa3f49ed6152899a6baa212e12f047653d5523bf0190a1ade5f">
         <source xml:lang="en">ARM template</source>
-        <target state="new">ARM template</target>
+        <target state="translated">Modèle ARM</target>
       </trans-unit>
       <trans-unit id="++CODE++9aa3df89bd0844fc7cab254d4e810af6cf12b5d9fa011b7675f45bbae8bcadf7">
         <source xml:lang="en">Accelerate schema evolution by autogenerating ORM migrations or T-SQL change scripts</source>
@@ -1016,7 +1016,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++58dc7c57a2a33c0296c19821b099c26fbc36524b42f44701954de1580e1b394c">
         <source xml:lang="en">Bicep</source>
-        <target state="new">Bicep</target>
+        <target state="translated">Bicep</target>
       </trans-unit>
       <trans-unit id="++CODE++79654f98221029c4c838b279ed9a41aa49c8a3cdb1cc95d81a456c510e6854d0">
         <source xml:lang="en">Blanks</source>
@@ -2607,9 +2607,9 @@ Sélectionnez « {0} » pour établir une connexion.</target>
         <source xml:lang="en">Create a new profiling session</source>
         <target state="translated">Créer une session de profilage</target>
       </trans-unit>
-      <trans-unit id="++CODE++ba9ae98bcb402b5a736ffd9e5da622d3bf7e67b5a7da246d9238029b9d1449ed">
-        <source xml:lang="en">Create an Azure SQL Database (Preview)</source>
-        <target state="translated">Créer Azure SQL Database (préversion)</target>
+      <trans-unit id="++CODE++2dda2d5e705c870b4711000d9e6e1a1552a6426ff2835af34a45eb0ea5f3182b">
+        <source xml:lang="en">Create an Azure SQL Database</source>
+        <target state="new">Create an Azure SQL Database</target>
       </trans-unit>
       <trans-unit id="++CODE++dfc42cab83fbac4fe6fa1922367034eb24905e5540deef714d06396fb60dbe31">
         <source xml:lang="en">Create and manage keyboard shortcuts for frequently used queries, as well as query editor and results grid actions, to discover available commands and execute them more efficiently.</source>
@@ -3255,11 +3255,11 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++d6eafe82359100423c93c5ce53c352c1b51ca1e699215fcec3f5c5dd9bf12d24">
         <source xml:lang="en">Download</source>
-        <target state="new">Download</target>
+        <target state="translated">Télécharger</target>
       </trans-unit>
       <trans-unit id="++CODE++400da40cfed58da293f9d4814548dd8f6d03a1acb727c417e2022f8202a988a5">
         <source xml:lang="en">Download deployment scripts</source>
-        <target state="new">Download deployment scripts</target>
+        <target state="translated">Scripts de téléchargement du déploiement</target>
       </trans-unit>
       <trans-unit id="++CODE++ade5b866b0e6b83f736f3f1e46c0448a8ed129ae76c552d26cd62d610f1eb0e5">
         <source xml:lang="en">Download offline VSIX</source>
@@ -3916,10 +3916,6 @@ Erreur :
         <source xml:lang="en">Execution cancelled</source>
         <target state="translated">Exécution annulée</target>
       </trans-unit>
-      <trans-unit id="++CODE++5b273fdcb747a01d31053e82b95e940110b6fe3d05d9bffc057856d6f21d127b">
-        <source xml:lang="en">Execution plan</source>
-        <target state="translated">Plan d’exécution</target>
-      </trans-unit>
       <trans-unit id="++CODE++a49223aa30fb671e98c03012a63a1c68e98b7cf3c612f59d98ba0057c54da0c9">
         <source xml:lang="en">Execution plan details</source>
         <target state="translated">Informations sur le plan d’exécution</target>
@@ -3927,6 +3923,11 @@ Erreur :
       <trans-unit id="++CODE++88a9a5f2694fe0574b7aedb637b626756bd9b763fe1f9853852480a5952e6c1d">
         <source xml:lang="en">Execution plan toolbar</source>
         <target state="translated">Barre d’outils du plan d’exécution</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2755320f7f041c845a3a28a6143d1595e153faab71dbe4b039f618d209b12c7c">
+        <source xml:lang="en">Execution plan {0}, use arrow keys to navigate between nodes</source>
+        <note>{0} is the one-based execution plan number</note>
+        <target state="new">Execution plan {0}, use arrow keys to navigate between nodes</target>
       </trans-unit>
       <trans-unit id="++CODE++9c1c3546bc3e94eb9cf8d7e8bef7d64b5f0213e752e4be0185a9ffc4d87f671c">
         <source xml:lang="en">Execution time unavailable</source>
@@ -4048,7 +4049,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++354c23855ffdc2a762eda7724646c278d8edd844c4452f3102e57a45a401616c">
         <source xml:lang="en">Export Infrastructure as Code</source>
-        <target state="new">Export Infrastructure as Code</target>
+        <target state="translated">Exporte Infrastructure Azure en tant que code</target>
       </trans-unit>
       <trans-unit id="++CODE++3ea11e5375be0ce5e379faa26d710b97b89245399ffbc2531367154056e88037">
         <source xml:lang="en">Export all captured events to a CSV file</source>
@@ -5871,6 +5872,10 @@ Erreur :
         <source xml:lang="en">Loading databases in selected workspace...</source>
         <target state="translated">Chargement des bases de données dans l’espace de travail sélectionné...</target>
       </trans-unit>
+      <trans-unit id="++CODE++9317b8d436ab0b46444508db90ea7c78235b63b678dfdcb8196216d0d9cecd18">
+        <source xml:lang="en">Loading databases...</source>
+        <target state="new">Loading databases...</target>
+      </trans-unit>
       <trans-unit id="++CODE++d1fdc252fab1c642cc1b487dbb6658fd77d5831e03b3d391b4c73b01226d75ff">
         <source xml:lang="en">Loading deployment</source>
         <target state="translated">Chargement du déploiement</target>
@@ -6954,7 +6959,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++99a08e07827bc7f24060a74b7ffc267608800da571cb939d0b363307b4a0f7f0">
         <source xml:lang="en">No workspace folder is open. Open a folder to add the deployment script.</source>
-        <target state="new">No workspace folder is open. Open a folder to add the deployment script.</target>
+        <target state="translated">Aucun dossier d’espace de travail n’est ouvert. Ouvrez un dossier pour ajouter le script de déploiement.</target>
       </trans-unit>
       <trans-unit id="++CODE++2e2fde2243e1e09534c9955387549ec84e351284a8ef12942f9d1cbab4a58039">
         <source xml:lang="en">No workspace folder is open. Open a folder to add the generated file.</source>
@@ -7291,7 +7296,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++b24963ea2cbc74b97321a347754137aa207b126695a95c860406098528966b55">
         <source xml:lang="en">Overwrite</source>
-        <target state="new">Overwrite</target>
+        <target state="translated">Remplacer</target>
       </trans-unit>
       <trans-unit id="++CODE++6e92fffc548b4ca49a6b4963939ef5c52a72dbcd88ec22bfad258e4c3e06fd58">
         <source xml:lang="en">Overwrite all existing backup sets</source>
@@ -8503,7 +8508,7 @@ Requête : {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++cf564a428e81bbe6843b079291c1bf098f4e7dc933decd522db75052937b9fed">
         <source xml:lang="en">Save Infrastructure-as-Code templates to recreate this database later.</source>
-        <target state="new">Save Infrastructure-as-Code templates to recreate this database later.</target>
+        <target state="translated">Enregistrez les modèles Infrastructure-as-Code pour recréer cette base de données plus tard.</target>
       </trans-unit>
       <trans-unit id="++CODE++caf4128d5bf679fef30d60d545684f44efcc2e9a7098df16fcbd0b625580c89f">
         <source xml:lang="en">Save Password</source>
@@ -9975,7 +9980,7 @@ Requête : {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++05b073bd5e46bbede792d1e77a68c71801b7bac2dd8e0236299dede9a3a1909d">
         <source xml:lang="en">Terraform</source>
-        <target state="new">Terraform</target>
+        <target state="translated">Terraform</target>
       </trans-unit>
       <trans-unit id="++CODE++799f6f8acde01a01209703f348f68f7802b5c8623007342d362bed19959e7ed5">
         <source xml:lang="en">Test connecting with the current settings</source>
@@ -10196,6 +10201,10 @@ Requête : {2}</target>
         <source xml:lang="en">The “{0}” extension uses a connection-sharing capability that the MSSQL extension is retiring. File a feature request for the capability you use so we can consider adding it natively.</source>
         <note>{0} is the extension name</note>
         <target state="translated">L’extension « {0} » utilise une fonctionnalité de partage de connexion que l’extension MSSQL met hors service. Ouvrez une demande de fonctionnalité pour la capacité que vous utilisez afin que nous puissions envisager de l’ajouter en mode natif.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1a7dce1f7d58b78f71a31ac2a4451b08304b7426c9609ec2b348c9002e866c68">
+        <source xml:lang="en">There is no query text to execute. Enter a query or select non-empty query text.</source>
+        <target state="translated">Il n’y a aucun texte de requête à exécuter. Entrez une requête ou sélectionnez un texte de requête non vide.</target>
       </trans-unit>
       <trans-unit id="++CODE++fe68202651f2e6c4af304386d80e491e5c52755db829443bb2cefbf2b25df757">
         <source xml:lang="en">There was an error updating the project</source>
@@ -12304,7 +12313,7 @@ Vous pouvez vous connecter à une base de données en entrant vos informations d
       </trans-unit>
       <trans-unit id="mssql.intelliSense.completionTimeoutMilliseconds">
         <source xml:lang="en">Maximum time in milliseconds to wait for one IntelliSense completion operation before it times out. This does not change the SQL command timeout.</source>
-        <target state="new">Maximum time in milliseconds to wait for one IntelliSense completion operation before it times out. This does not change the SQL command timeout.</target>
+        <target state="translated">Durée d’attente maximale en millisecondes pour une opération de complétion IntelliSense avant son expiration. Cela ne modifie pas le délai d’expiration de la commande SQL.</target>
       </trans-unit>
       <trans-unit id="mssql.openAzureDataStudioMigration">
         <source xml:lang="en">Migrate from Azure Data Studio</source>

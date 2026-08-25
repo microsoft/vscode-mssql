@@ -5,6 +5,7 @@
 
 import {
     useCallback,
+    useEffect,
     useState,
     type FocusEvent as ReactFocusEvent,
     type KeyboardEvent as ReactKeyboardEvent,
@@ -34,6 +35,18 @@ export interface FluentResultGridKeyboardController {
     isGridFocused: boolean;
 }
 
+/**
+ * Only keyboard-visible focus should reveal the active grid cell. The browser preserves this
+ * signal when focus enters the webview from its host, while native scrollbar interactions do not
+ * make the container focus-visible.
+ */
+export function shouldRevealFluentResultGridActiveCell(
+    isDirectContainerFocus: boolean,
+    isFocusVisible: boolean,
+): boolean {
+    return isDirectContainerFocus && isFocusVisible;
+}
+
 export function useFluentResultGridKeyboardController({
     commandContext,
     containerRef,
@@ -50,6 +63,29 @@ export function useFluentResultGridKeyboardController({
     reactGridRef: MutableRefObject<ReactGridInstanceWithSharedService | undefined>;
 }): FluentResultGridKeyboardController {
     const [isGridFocused, setIsGridFocused] = useState(false);
+
+    useEffect(() => {
+        const syncFocusState = () => {
+            const container = containerRef.current;
+            setIsGridFocused(
+                document.hasFocus() &&
+                    !!container &&
+                    !!document.activeElement &&
+                    container.contains(document.activeElement),
+            );
+        };
+        const clearFocusState = () => setIsGridFocused(false);
+
+        syncFocusState();
+        window.addEventListener("blur", clearFocusState);
+        window.addEventListener("focus", syncFocusState);
+        document.addEventListener("visibilitychange", syncFocusState);
+        return () => {
+            window.removeEventListener("blur", clearFocusState);
+            window.removeEventListener("focus", syncFocusState);
+            document.removeEventListener("visibilitychange", syncFocusState);
+        };
+    }, [containerRef]);
 
     const moveFocusOutsideGrid = useCallback(
         (forward: boolean) => {
@@ -177,7 +213,11 @@ export function useFluentResultGridKeyboardController({
         (event: ReactFocusEvent<HTMLDivElement>) => {
             setIsGridFocused(true);
 
-            if (event.target === event.currentTarget) {
+            const shouldRevealActiveCell = shouldRevealFluentResultGridActiveCell(
+                event.target === event.currentTarget,
+                event.currentTarget.matches(":focus-visible"),
+            );
+            if (shouldRevealActiveCell) {
                 focusGrid();
             }
         },

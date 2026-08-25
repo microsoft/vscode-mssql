@@ -16,7 +16,7 @@ import { TreeNodeInfo } from "./nodes/treeNodeInfo";
 import { randomUUID } from "crypto";
 import { sendActionEvent } from "extension-toolkit/vscode";
 import { ObjectExplorerFilterStore } from "./objectExplorerFilterStore";
-import { PreviewFeature, previewService } from "../previews/previewService";
+import { getPreviewConfigKey, PreviewFeature } from "../previews/previewService";
 
 export class ObjectExplorerFilterWebviewController extends WebviewPanelController<
     ObjectExplorerFilterState,
@@ -149,9 +149,13 @@ export class ObjectExplorerFilter {
             treeNode.nodeType,
             treeNode.filterableProperties,
         );
-        const isPreviewEnabled = previewService.isFeatureEnabled(
-            PreviewFeature.BetaObjectExplorerFilter,
-        );
+        const isPreviewEnabled =
+            vscode.workspace
+                .getConfiguration()
+                .get<boolean>(
+                    getPreviewConfigKey(PreviewFeature.BetaObjectExplorerFilter),
+                    false,
+                ) ?? false;
         const data: ObjectExplorerFilterState = {
             filterProperties: treeNode.filterableProperties,
             existingFilters: treeNode.filters,

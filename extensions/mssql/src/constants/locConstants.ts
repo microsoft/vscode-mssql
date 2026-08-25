@@ -86,7 +86,7 @@ export let renameDatabaseDialogTitle = l10n.t("Rename Database");
 export let createDatabaseWebviewTitle = l10n.t("Create Database");
 export let dropDatabaseWebviewTitle = l10n.t("Drop Database");
 export let renameDatabaseWebviewTitle = l10n.t("Rename Database");
-export let shortcutsConfigurationTitle = l10n.t("Shortcuts Configuration (Preview)");
+export let shortcutsConfigurationTitle = l10n.t("Shortcuts Configuration");
 export let shortcutsConfigurationSaved = l10n.t("Configuration saved.");
 export let quickQuerySlotOutOfRange = (maxSlot: number) =>
     l10n.t({
@@ -883,6 +883,7 @@ export let failedToAddTextToWorkspace = (errorMessage: string) =>
     });
 export let schemaDesignerDetailsUnavailable = l10n.t("Schema designer details are not available.");
 export let copyingResults = l10n.t("Copying results...");
+export let copyingResultsCanceled = l10n.t("Copying results canceled");
 
 export let openQueryResultsInTabByDefaultPrompt = l10n.t(
     "Do you want to always display query results in a new tab instead of the query pane?",
@@ -1922,9 +1923,20 @@ export class LocalContainers {
     public static deleteContainerConfirmation = (containerName: string) => {
         return l10n.t({
             message:
-                "Are you sure you want to delete the container {0}? This will remove both the container and its connection from VS Code.",
+                "Are you sure you want to delete the container '{0}'?\n\nThis will remove both the container and its connection from VS Code.",
             args: [containerName],
             comment: ["{0} is the container name"],
+        });
+    };
+    public static deleteSharedContainerConfirmation = (
+        containerName: string,
+        connectionDisplayNames: string[],
+    ) => {
+        return l10n.t({
+            message:
+                "The container '{0}' is also used by other saved connections:\n{1}\n\nDeleting it will remove both the container and this connection from VS Code, and the other connections will stop working.\n\nAre you sure you want to continue?",
+            args: [containerName, connectionDisplayNames.map((n) => `· ${n}`).join(os.EOL)],
+            comment: ["{0} is the container name", "{1} is the list of connection display names"],
         });
     };
     public static configureLinuxContainers = l10n.t("Configure Linux containers");
@@ -2160,9 +2172,6 @@ export class SchemaCompare {
             args: [errorMessage ? errorMessage : "Unknown"],
             comment: ["{0} is the error message returned from the generate script operation"],
         });
-    public static areYouSureYouWantToUpdateTheTarget = l10n.t(
-        "Are you sure you want to update the target?",
-    );
     public static schemaCompareApplyFailed = (errorMessage: string) =>
         l10n.t({
             message: "Failed to apply changes: '{0}'",
@@ -2311,7 +2320,7 @@ export class Connection {
         return l10n.t({
             message:
                 "The following workspace or workspace folder connections are missing the 'id' property and are being ignored.  Please manually add the 'id' property to the connection in order to use it. \n\n {0}",
-            args: [connectionDisplayNames.join("\n")],
+            args: [connectionDisplayNames.join(os.EOL)],
             comment: [
                 "{0} is the list of display names for the connections that have been ignored",
             ],
@@ -3666,6 +3675,10 @@ export class Changelog {
     public static sqlProjCodeAnalysisTitle = l10n.t("SQL Database Projects — Code Analysis");
     public static sqlProjCodeAnalysisDescription = l10n.t(
         "Analyze static code with customizable rulesets in SQL Database Projects.",
+    );
+    public static sqlFormatterTitle = l10n.t("SQL Formatter");
+    public static sqlFormatterDescription = l10n.t(
+        "Format T-SQL with expanded configuration options and greater control over query style and layout using the new SQL Formatter.",
     );
 
     // Sidebar content
