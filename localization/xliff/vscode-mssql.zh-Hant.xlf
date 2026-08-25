@@ -2354,10 +2354,6 @@ This will remove both the container and its connection from VS Code.</source>
         <source xml:lang="en">Copy All</source>
         <target state="translated">全部複製</target>
       </trans-unit>
-      <trans-unit id="++CODE++7644dd0a33ff475c31116e369646b3410ca1463eb32dd1aabf3569f79cc02b4e">
-        <source xml:lang="en">Copy As</source>
-        <target state="translated">複製為</target>
-      </trans-unit>
       <trans-unit id="++CODE++96060c7cd5841d631c4c2cf65834a41409b3005fd80c393f48e902ade8901239">
         <source xml:lang="en">Copy Column Name</source>
         <target state="translated">複製資料行名稱</target>
@@ -2413,6 +2409,10 @@ This will remove both the container and its connection from VS Code.</source>
       <trans-unit id="++CODE++fd4aee4cb3fa5d5963fc78a7261f20700d94a8ddbbb5b963e97a84c441149508">
         <source xml:lang="en">Copy as JSON</source>
         <target state="translated">複製為 JSON</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9f3caf9137006097dc46f53a5532c3ca91cbaf4a45dc05251e73d904a37b6b3f">
+        <source xml:lang="en">Copy as...</source>
+        <target state="new">Copy as...</target>
       </trans-unit>
       <trans-unit id="++CODE++d2b6ebb67aeb8ede651aa24682be64c81d2e0a970c297908b470e55fd14c0bcc">
         <source xml:lang="en">Copy code and open webpage</source>
@@ -2498,6 +2498,10 @@ This will remove both the container and its connection from VS Code.</source>
       <trans-unit id="++CODE++d43b358b5e9ef2a45f199ba7a0da47d1fb8386373fa697097e8fe2be290c0e87">
         <source xml:lang="en">Copy-only Backup</source>
         <target state="translated">僅複製備份</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2f8ae7d0e784eed8f3eddb9e69ab86082813b39e7e7d7200de5e66cd261dee36">
+        <source xml:lang="en">Copying as an IN clause requires selecting exactly one column.</source>
+        <target state="new">Copying as an IN clause requires selecting exactly one column.</target>
       </trans-unit>
       <trans-unit id="++CODE++76ed55852b66d19d1756277312208fcad6a988622d291a320d248cec88f8c3d9">
         <source xml:lang="en">Copying results canceled</source>
