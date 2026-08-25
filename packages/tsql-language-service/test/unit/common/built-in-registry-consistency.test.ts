@@ -77,13 +77,35 @@ suite("built-in registry consistency", () => {
         }
     });
 
-    test("requires two values before a repeat where the engine does", () => {
+    test("requires the documented values before a repeat", () => {
         assert.equal(requiredArity("COALESCE").minimum, 2);
         assert.equal(requiredArity("CONCAT").minimum, 2);
+        assert.equal(requiredArity("CONCAT_WS").minimum, 3);
+        assert.equal(requiredArity("AI_CLASSIFY").minimum, 3);
+        assert.equal(requiredArity("AI_EXTRACT").minimum, 3);
         assert.match(
             formatSignature("COALESCE", requiredSignature("COALESCE")),
             /expression, expression, \.\.\.expression/u,
         );
+    });
+
+    test("publishes the documented REPLICATE contract", () => {
+        assert.deepEqual(requiredArity("REPLICATE"), { minimum: 2, maximum: 2 });
+        assert.equal(
+            formatSignature("REPLICATE", requiredSignature("REPLICATE")),
+            "REPLICATE(string_expression, integer_expression)",
+        );
+    });
+
+    test("publishes optional AI arguments from the current syntax", () => {
+        assert.deepEqual(requiredArity("AI_GENERATE_EMBEDDINGS"), {
+            minimum: 2,
+            maximum: 3,
+        });
+        assert.deepEqual(requiredArity("AI_GENERATE_RESPONSE"), {
+            minimum: 1,
+            maximum: 2,
+        });
     });
 
     test("answers signature help from the same entry a diagnostic reads", async () => {
@@ -125,5 +147,27 @@ suite("built-in registry consistency", () => {
         assert.deepEqual(await analyze("SELECT COALESCE(1);"), [
             "Function 'COALESCE' requires at least 2 arguments.",
         ]);
+        assert.deepEqual(await analyze("SELECT REPLICATE('x');"), [
+            " The REPLICATE function requires 2 arguments.",
+        ]);
+    });
+
+    test("serves REPLICATE signature help from the shared registry", async () => {
+        const provider = new InMemoryMetadataProvider({
+            environment: { currentDatabase: "db", defaultSchema: "dbo" },
+        });
+        const runtime = new InProcessLanguageServiceRuntime(
+            new LezerSyntaxService(),
+            new CatalogSemanticBinder(),
+            provider,
+        );
+        const sql = "SELECT REPLICATE('x', ";
+        await runtime.open(uri, 1, sql);
+        const features = new TsqlLanguageFeatureService(runtime, provider);
+
+        const help = features.signatureHelp(uri, 1, sql.length);
+        assert.ok(help);
+        assert.equal(help.signatures[0]?.label, "REPLICATE(string_expression, integer_expression)");
+        assert.equal(help.activeParameter, 1);
     });
 });

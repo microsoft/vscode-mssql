@@ -18,7 +18,9 @@ link to executable evidence before removal.
 ## Language features
 
 - [ ] Expand contextual completion for uncommon DDL, security, administration, and platform forms.
-- [ ] Add richer hover/signature documentation for specialized metadata and callable forms.
+- [ ] Resolve the signatureless legacy and internal spellings in the
+      [built-in routine coverage report](../readiness/BUILT_IN_ROUTINE_COVERAGE.md) when authoritative
+      callable contracts or removal evidence become available.
 - [ ] Add catalog-wide references/rename only when a backend can provide authoritative identities.
 - [ ] Broaden scripted definition support and report backend limitations explicitly.
 
