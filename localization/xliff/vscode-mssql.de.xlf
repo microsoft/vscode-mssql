@@ -2501,7 +2501,7 @@ Dadurch werden sowohl der Container als auch seine Verbindung aus VS Code entfer
       </trans-unit>
       <trans-unit id="++CODE++76ed55852b66d19d1756277312208fcad6a988622d291a320d248cec88f8c3d9">
         <source xml:lang="en">Copying results canceled</source>
-        <target state="new">Copying results canceled</target>
+        <target state="translated">Das Kopieren der Ergebnisse wurde abgebrochen.</target>
       </trans-unit>
       <trans-unit id="++CODE++35c380196401c05c48fe5f5fffd349ba06d9988118b87a1c12e1164a28175997">
         <source xml:lang="en">Copying results...</source>
@@ -5339,7 +5339,7 @@ Fehler:
       <trans-unit id="++CODE++45386a69d2b5eb577c53d296ecd652d7cc6583c3f759680582587663cff8539c">
         <source xml:lang="en">Impact {0}%</source>
         <note>{0} is the estimated percentage improvement from creating the index</note>
-        <target state="new">Impact {0}%</target>
+        <target state="translated">Auswirkung {0} %</target>
       </trans-unit>
       <trans-unit id="++CODE++09b493255c6cc11aae4f73f97494b4d0123bb42869372d0a2182f0a324eb5ef5">
         <source xml:lang="en">Import BACPAC</source>
@@ -6313,11 +6313,11 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++c0ddd09f7b9ebbe309bc4e518e1aad4479cbbc1eb792cac263b398e11a85af5a">
         <source xml:lang="en">Missing index</source>
-        <target state="new">Missing index</target>
+        <target state="translated">Fehlender Index</target>
       </trans-unit>
       <trans-unit id="++CODE++efb9ca4f5a017be57cf3a7cb05a528919e6419abddfe79c4a2d8937b2a901186">
         <source xml:lang="en">Missing index recommendations</source>
-        <target state="new">Missing index recommendations</target>
+        <target state="translated">Empfehlungen zu fehlenden Indizes</target>
       </trans-unit>
       <trans-unit id="++CODE++910bb9ebcad74af9fe7fae916e94812f8a97c60f93e76a1167b4ca1583d70f27">
         <source xml:lang="en">Missing schema payload for replace_schema operation.</source>
@@ -7272,7 +7272,7 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++bcec92c3fcbd6a1012ed2ae1a5d10e462184bbb5ca83b2df5552cb49620c78cf">
         <source xml:lang="en">Open the recommended index script in a new query editor</source>
-        <target state="new">Open the recommended index script in a new query editor</target>
+        <target state="translated">Das empfohlene Indexskript in einem neuen Abfrage-Editor öffnen</target>
       </trans-unit>
       <trans-unit id="++CODE++3a8e07b84d53ba502ae8ee669003537bdbbe321d6c8c6fb6cbd63019cb3d400e">
         <source xml:lang="en">Opening Publish Script. This may take a while...</source>
@@ -12042,7 +12042,7 @@ Sind Sie sicher, dass Sie den Vorgang fortsetzen?</target>
       </trans-unit>
       <trans-unit id="mssql.statusBar.showQueryExecutionStatus.description">
         <source xml:lang="en">Controls whether the query execution status (executing, canceling, completed) is displayed in the status bar.</source>
-        <target state="new">Controls whether the query execution status (executing, canceling, completed) is displayed in the status bar.</target>
+        <target state="translated">Steuert, ob der Status der Abfrageausführung („Wird ausgeführt“, „Wird abgebrochen“, „Abgeschlossen“) in der Statusleiste angezeigt wird.</target>
       </trans-unit>
       <trans-unit id="mssql.copyAll">
         <source xml:lang="en">Copy All</source>
@@ -12324,7 +12324,7 @@ Nachdem Sie Ihre Änderungen vorgenommen haben, klicken Sie auf die Schaltfläch
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.freezeFirstColumnByDefault">
         <source xml:lang="en">Freeze the first data column by default in new result grids. Existing saved grid state takes precedence.</source>
-        <target state="new">Freeze the first data column by default in new result grids. Existing saved grid state takes precedence.</target>
+        <target state="translated">Standardmäßig die erste Datenspalte in neuen Ergebnisrastern fixieren. Vorhandener gespeicherter Rasterstatus hat Vorrang.</target>
       </trans-unit>
       <trans-unit id="mssql.sqlScriptsSubmenu">
         <source xml:lang="en">Generate Script</source>
