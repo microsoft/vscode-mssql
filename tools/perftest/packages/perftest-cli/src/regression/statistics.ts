@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 /**
  * Aggregation and statistics for regression comparison (design §24.1/§24.3).
  * Pure functions, fully unit-tested — these numbers gate CI, so the math has

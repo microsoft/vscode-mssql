@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 /**
  * Local SQLite store (design §23). The schema file in @mssqlperf/contracts is
  * the single source of truth; this module only executes it and provides typed
@@ -19,6 +24,8 @@ import {
     type ValidationRecord,
 } from "@mssqlperf/contracts";
 import type { HarnessLogger } from "../telemetry/logger";
+
+export const PERF_STORE_SCHEMA_VERSION = 1;
 
 export interface RunRow {
     runId: string;
@@ -84,11 +91,28 @@ export class PerfStore {
         mkdirSync(dirname(absolute), { recursive: true });
         const span = logger.span("store.open", { path: absolute });
         const db = new Database(absolute);
-        db.pragma("journal_mode = WAL");
-        const schema = readFileSync(sqliteSchemaPath(), "utf8");
-        db.exec(schema);
-        span.end();
-        return new PerfStore(db, logger, absolute);
+        try {
+            db.pragma("journal_mode = WAL");
+            const foundVersion = db.pragma("user_version", { simple: true }) as number;
+            if (foundVersion !== 0 && foundVersion !== PERF_STORE_SCHEMA_VERSION) {
+                throw new Error(
+                    `Unsupported perf-store schema version ${foundVersion}; ` +
+                        `this harness supports version ${PERF_STORE_SCHEMA_VERSION}`,
+                );
+            }
+
+            const schema = readFileSync(sqliteSchemaPath(), "utf8");
+            db.exec(schema);
+            if (foundVersion === 0) {
+                db.pragma(`user_version = ${PERF_STORE_SCHEMA_VERSION}`);
+            }
+            span.end();
+            return new PerfStore(db, logger, absolute);
+        } catch (error) {
+            db.close();
+            span.fail(error as Error);
+            throw error;
+        }
     }
 
     tableNames(): string[] {
@@ -346,8 +370,7 @@ export class PerfStore {
          LIMIT 1`,
             )
             .get(name, scenarioId ?? "*") as
-            | { run_id: string; environment_hash: string }
-            | undefined;
+            { run_id: string; environment_hash: string } | undefined;
         return row ? { runId: row.run_id, environmentHash: row.environment_hash } : undefined;
     }
 

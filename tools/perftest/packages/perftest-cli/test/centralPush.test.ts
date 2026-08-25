@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -13,13 +18,18 @@ describe("push preview and identity (C1 output discipline)", () => {
         const source = JSON.parse(
             readFileSync(join(FIXTURES, "golden-run", "source.json"), "utf8"),
         ) as PerfRunSource;
+        const refusedAbsolutePath = source.reps
+            .flatMap((rep) => rep.result.artifacts ?? [])
+            .map((artifact) => artifact.path)
+            .find((path) => /^[A-Za-z]:[\\/]/.test(path));
+        expect(refusedAbsolutePath).toBeDefined();
         const projection = projectPerfRun(source, { uploadPolicyId: "ci-official.v1" });
         const text = renderPreview(projection);
         expect(text).toContain("ci-official.v1");
         expect(text).toContain("REFUSED:  artifacts.path");
         expect(text).not.toContain("GOLDEN-MACHINE-01");
         expect(text).not.toContain("golden run user note");
-        expect(text).not.toContain("C:\absolute");
+        expect(text).not.toContain(refusedAbsolutePath!);
     });
 
     it("pushIdentity distinguishes CI from developer pushes", () => {
@@ -54,5 +64,20 @@ describe("push preview and identity (C1 output discipline)", () => {
                 process.env[CENTRAL_CONNSTRING_ENV] = saved;
             }
         }
+    });
+
+    it("trusts certificates by default only for local SQL Server targets", () => {
+        const local = resolveCentralTarget(
+            "Server=localhost,1433;Database=PerfCentral;User Id=sa;Password=test",
+        );
+        const remote = resolveCentralTarget(
+            "Server=sql.example.com;Database=PerfCentral;User Id=sa;Password=test",
+        );
+        const explicit = resolveCentralTarget(
+            "Server=sql.example.com;Database=PerfCentral;User Id=sa;Password=test;TrustServerCertificate=True",
+        );
+        expect(local.trustServerCertificate).toBe(true);
+        expect(remote.trustServerCertificate).toBe(false);
+        expect(explicit.trustServerCertificate).toBe(true);
     });
 });

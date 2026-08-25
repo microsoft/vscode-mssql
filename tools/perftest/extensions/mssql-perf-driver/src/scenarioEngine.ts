@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 /**
  * Scenario step engine (design §16.2). Executes ScenarioSpec steps with
  * VS Code commands and semantic waits — no sleeps, no pixel automation.
@@ -7,6 +12,7 @@
 
 import * as vscode from "vscode";
 import type { MarkerBus } from "./markerBus";
+import { validateTimerMs } from "./timer";
 
 // Structural mirrors of @mssqlperf/contracts (the driver is dependency-free,
 // so the shapes are duplicated here; the wire format is identical JSON).
@@ -24,6 +30,8 @@ export interface ScenarioStep {
     serverScoped?: boolean;
     /** oeExpand: node labels from the server root, e.g. ["Databases","PerfCatalog","Tables"]. */
     oePath?: string[];
+    /** Create the OE session without a database so the path begins at server scope. */
+    oeServerLevel?: boolean;
     /** completionProbe: a suggestion label that must be present. */
     expect?: string;
     /** queryStudioInteract: closed semantic result-surface action. */
@@ -36,6 +44,7 @@ export interface ScenarioStep {
         selection?: string;
     };
     timeoutMs?: number;
+    ms?: number;
 }
 
 export interface ConnectionProfileSpec {
@@ -118,15 +127,18 @@ export interface EngineContext {
      * in-proc engine so both hosts share cleanup semantics.
      */
     deferCleanup?: (cleanup: () => Promise<void>) => void;
+    /** Per-repetition OE sessions, reused so a second expansion is a real refresh. */
+    oeSessions?: Map<string, DriverOeSessionHandle>;
 }
 
 const DEFAULT_STEP_TIMEOUT_MS = 30000;
 
 function withTimeout<T>(promise: Promise<T>, timeoutMs: number, what: string): Promise<T> {
+    const safeTimeoutMs = validateTimerMs(timeoutMs, DEFAULT_STEP_TIMEOUT_MS, `${what} timeout`);
     return new Promise<T>((resolve, reject) => {
         const timer = setTimeout(
-            () => reject(new Error(`Timed out after ${timeoutMs}ms: ${what}`)),
-            timeoutMs,
+            () => reject(new Error(`Timed out after ${safeTimeoutMs}ms: ${what}`)),
+            safeTimeoutMs,
         );
         promise.then(
             (value) => {
@@ -192,7 +204,12 @@ export async function runScenario(
         // Gate-proof hook: PERF_SYNTHETIC_DELAY_MS injects a real, transparent
         // delay into the measured window so the regression pipeline can be proven
         // against an actual slowdown. Recorded on scenario.end for auditability.
-        const syntheticDelayMs = Number(process.env["PERF_SYNTHETIC_DELAY_MS"] ?? "0");
+        const syntheticDelayMs = validateTimerMs(
+            Number(process.env["PERF_SYNTHETIC_DELAY_MS"] ?? "0"),
+            0,
+            "PERF_SYNTHETIC_DELAY_MS",
+        );
+        const extraRunQuery = process.env["PERF_EXTRA_RUNQUERY"] === "1";
         try {
             if (spec.loop) {
                 await runLoop(spec.loop, ctx, steps);
@@ -206,7 +223,7 @@ export async function runScenario(
             // Gate-proof hook (12.3 acceptance): PERF_EXTRA_RUNQUERY=1 issues one
             // additional real query in the measured window — a genuine extra SQL
             // round-trip the investigation diff must surface. Recorded on markers.
-            if (process.env["PERF_EXTRA_RUNQUERY"] === "1") {
+            if (extraRunQuery) {
                 const extraStartNs = (BigInt(Date.now()) * 1000000n).toString();
                 await vscode.commands.executeCommand("mssql.runQuery");
                 await ctx.bus.wait("mssql.query.complete", undefined, 60000, extraStartNs);
@@ -224,13 +241,14 @@ export async function runScenario(
                     scenarioId: spec.scenarioId,
                     endBasis: spec.measure.end.name,
                     ...(syntheticDelayMs > 0 ? { syntheticDelayMs } : {}),
-                    ...(process.env["PERF_EXTRA_RUNQUERY"] === "1" ? { extraRunQuery: true } : {}),
+                    ...(extraRunQuery ? { extraRunQuery: true } : {}),
                 });
             } else {
                 await emitScenarioEnd({
                     scenarioId: spec.scenarioId,
                     endBasis: "afterLastAction",
                     ...(syntheticDelayMs > 0 ? { syntheticDelayMs } : {}),
+                    ...(extraRunQuery ? { extraRunQuery: true } : {}),
                 });
             }
         } catch (error) {
@@ -430,7 +448,11 @@ async function executeStep(
     ctx: EngineContext,
     afterUnixNs?: string,
 ): Promise<void> {
-    const timeoutMs = step.timeoutMs ?? DEFAULT_STEP_TIMEOUT_MS;
+    const timeoutMs = validateTimerMs(
+        step.timeoutMs,
+        DEFAULT_STEP_TIMEOUT_MS,
+        `${describeStep(step)} timeout`,
+    );
     switch (step.type) {
         case "noop":
             return;
@@ -438,7 +460,7 @@ async function executeStep(
             // Gate-proving synthetic workload only (see contracts): the delay is a
             // real elapsed cost inside the measured window, honestly measured.
             await new Promise<void>((resolveDelay) =>
-                setTimeout(resolveDelay, (step as unknown as { ms: number }).ms),
+                setTimeout(resolveDelay, validateTimerMs(step.ms, 0, "syntheticDelay duration")),
             );
             return;
         case "command":
@@ -653,7 +675,7 @@ async function executeStep(
                 throw new Error("oeExpand step requires oePath (node labels from the server root)");
             }
             await withTimeout(
-                oeExpand(step.oePath, step.profile ?? "default", ctx),
+                oeExpand(step.oePath, step.profile ?? "default", ctx, step.oeServerLevel === true),
                 timeoutMs,
                 `oeExpand(${step.oePath.join("/")})`,
             );
@@ -805,117 +827,46 @@ function assertProbe(assertion: string, fields: Record<string, number>): void {
  * provider — the same getChildren path the tree UI uses, so the product's
  * mssql.oe.expand markers fire.
  */
-async function oeExpand(path: string[], profileName: string, ctx: EngineContext): Promise<void> {
-    const profile = ctx.connectionProfiles?.[profileName];
-    if (!profile) {
-        throw new Error(`No connection profile '${profileName}' for oeExpand`);
-    }
-    const controller = (await vscode.commands.executeCommand("mssql.getControllerForTests")) as
-        | {
-              _objectExplorerProvider?: {
-                  createSession(credentials: unknown): Promise<
-                      | {
-                            sessionId?: string;
-                            errorMessage?: string;
-                            connectionNode?: { label?: unknown; nodePath?: string };
-                        }
-                      | undefined
-                  >;
-                  getChildren(
-                      element?: unknown,
-                  ): Promise<Array<{ label?: unknown; nodePath?: string }> | undefined>;
-              };
-          }
-        | undefined;
-    const provider = controller?._objectExplorerProvider;
-    if (!provider) {
-        throw new Error("object explorer provider unavailable");
-    }
-    const credentials: Record<string, unknown> = {
-        server: profile.server,
-        database: profile.database ?? "",
-        authenticationType: profile.authenticationType,
-        user: profile.user ?? "",
-        password: profile.password ?? "",
-        savePassword: false,
-        encrypt: profile.encrypt ?? "Optional",
-        trustServerCertificate: profile.trustServerCertificate ?? false,
-        applicationName: ctx.applicationName ?? "vscode-mssql-perf",
-        connectTimeout: 30,
-        commandTimeout: 30,
-        profileName: `perf-oe-${Date.now()}`,
-    };
-    const session = await provider.createSession(credentials);
-    if (!session || session.errorMessage) {
-        throw new Error(`OE session failed: ${session?.errorMessage ?? "no session"}`);
-    }
-    // Walk from the session-bound connection node — root-list nodes can be
-    // saved-but-disconnected profiles whose expansion would prompt for creds.
-    let current: { label?: unknown; nodePath?: string } | undefined = session.connectionNode;
-    if (!current) {
-        const nodes = (await provider.getChildren(undefined)) ?? [];
-        current = nodes[nodes.length - 1];
-    }
-    if (!current) {
-        throw new Error("OE has no connection node after session creation");
-    }
-
-    // getChildren caches a "Loading..." placeholder and expands async; each
-    // completed expansion emits the product's mssql.oe.expand.end marker and
-    // refreshes the cache. Re-check after every fresh end marker until settled.
-    const walkDeadline = Date.now() + 280000;
-    const expandSettled = async (node: {
-        label?: unknown;
-        nodePath?: string;
-    }): Promise<Array<{ label?: unknown; nodePath?: string }>> => {
-        const isLoading = (list: Array<{ label?: unknown }>): boolean =>
-            list.length === 1 &&
-            String(
-                typeof list[0]!.label === "string"
-                    ? list[0]!.label
-                    : ((list[0]!.label as { label?: string })?.label ?? ""),
-            ).startsWith("Loading");
-        let afterNs = (BigInt(Date.now()) * 1000000n).toString();
-        let children = (await provider.getChildren(node)) ?? [];
-        while (isLoading(children)) {
-            const remaining = walkDeadline - Date.now();
-            if (remaining <= 0) {
-                throw new Error(`OE expand of '${node.nodePath ?? "?"}' did not settle in time`);
-            }
-            // Any fresh expansion completion is a re-check trigger (tree nodePath
-            // and notification payload formats can differ).
-            const marker = await ctx.bus.wait(
-                "mssql.oe.expand.end",
-                undefined,
-                Math.min(remaining, 120000),
-                afterNs,
-            );
-            afterNs = marker.timestampUnixNs;
-            children = (await provider.getChildren(node)) ?? [];
-        }
-        return children;
-    };
-
-    for (const label of path) {
-        const children = await expandSettled(current);
-        const next = children.find((c) => {
-            const l =
-                typeof c.label === "string" ? c.label : (c.label as { label?: string })?.label;
-            return l === label || (l ?? "").startsWith(label);
+async function oeExpand(
+    path: string[],
+    profileName: string,
+    ctx: EngineContext,
+    serverLevel = false,
+): Promise<void> {
+    const sessionKey = `${profileName}|${serverLevel ? "server" : "database"}`;
+    ctx.oeSessions ??= new Map<string, DriverOeSessionHandle>();
+    let handle = ctx.oeSessions.get(sessionKey);
+    if (!handle) {
+        handle = await createDriverOeSession(profileName, ctx, serverLevel);
+        ctx.oeSessions.set(sessionKey, handle);
+        const ownedHandle = handle;
+        ctx.deferCleanup?.(async () => {
+            ctx.oeSessions?.delete(sessionKey);
+            await ownedHandle.dispose();
         });
+    }
+
+    let current: DriverOeNode = handle.connectionNode;
+    for (const label of [...path, undefined]) {
+        const children = (await handle.provider.expandNode(current, handle.sessionId)) ?? [];
+        if (label === undefined) {
+            ctx.log(
+                `oeExpand: '${driverOeLabel(current) || current.nodePath}' returned ${children.length} node(s)`,
+            );
+            return;
+        }
+        const next = children.find(
+            (child) => driverOeLabel(child) === label || driverOeLabel(child).startsWith(label),
+        );
         if (!next) {
-            const available = children
-                .map((c) =>
-                    typeof c.label === "string" ? c.label : (c.label as { label?: string })?.label,
-                )
-                .slice(0, 12)
-                .join(", ");
-            throw new Error(`OE node '${label}' not found (children: ${available})`);
+            const available = children.map(driverOeLabel).filter(Boolean).slice(0, 12).join(", ");
+            throw new Error(
+                `OE node '${label}' not found under '${driverOeLabel(current) || "root"}' ` +
+                    `(children: ${available || "(none)"})`,
+            );
         }
         current = next;
     }
-    // Expand the final node (e.g. Tables) — this is the measured expansion.
-    await expandSettled(current);
 }
 
 /** Disconnect the active editor's connection via the product's test seam. */
@@ -926,8 +877,7 @@ async function mssqlDisconnect(ctx: EngineContext): Promise<void> {
     }
     const uri = editor.document.uri.toString();
     const controller = (await vscode.commands.executeCommand("mssql.getControllerForTests")) as
-        | { connectionManager?: { disconnect(fileUri: string): Promise<boolean> } }
-        | undefined;
+        { connectionManager?: { disconnect(fileUri: string): Promise<boolean> } } | undefined;
     if (!controller?.connectionManager) {
         throw new Error("mssql.getControllerForTests returned no controller");
     }
@@ -994,16 +944,23 @@ async function provisionSavedProfile(
                   connectionManager?: {
                       connectionStore?: {
                           saveProfilePasswordIfNeeded(profile: unknown): Promise<boolean>;
+                          lookupPassword(profile: unknown): Promise<string | undefined>;
+                          deleteCredential(profile: unknown): Promise<void>;
                       };
                   };
               }
             | undefined;
         const store = controller?.connectionManager?.connectionStore;
-        if (!store?.saveProfilePasswordIfNeeded) {
+        if (
+            !store?.saveProfilePasswordIfNeeded ||
+            !store.lookupPassword ||
+            !store.deleteCredential
+        ) {
             throw new Error(
                 "connectionStore seam unavailable — cannot seed the SqlLogin credential",
             );
         }
+        const previousPassword = await store.lookupPassword(savedProfile);
         const saved = await store.saveProfilePasswordIfNeeded({
             ...savedProfile,
             password: profile.password,
@@ -1011,6 +968,16 @@ async function provisionSavedProfile(
         if (!saved) {
             throw new Error("credential store refused the SqlLogin password for the saved profile");
         }
+        ctx.deferCleanup?.(async () => {
+            if (previousPassword) {
+                await store.saveProfilePasswordIfNeeded({
+                    ...savedProfile,
+                    password: previousPassword,
+                });
+            } else {
+                await store.deleteCredential(savedProfile);
+            }
+        });
     }
     ctx.log(`provisionSavedProfile: saved profile targets ${profile.server}`);
 }
@@ -1028,8 +995,7 @@ async function queryStudioConnect(
     let last: { connected?: boolean; error?: string } | undefined;
     for (;;) {
         last = (await vscode.commands.executeCommand("mssql.perf.queryStudioConnect")) as
-            | { connected?: boolean; error?: string }
-            | undefined;
+            { connected?: boolean; error?: string } | undefined;
         if (last?.connected === true) {
             break;
         }
@@ -1077,8 +1043,7 @@ async function queryStudioTerminalState(
 ): Promise<{ phase?: string; errorCount?: number; error?: string } | undefined> {
     for (;;) {
         const state = (await vscode.commands.executeCommand("mssql.perf.queryStudioState")) as
-            | { phase?: string; errorCount?: number; error?: string }
-            | undefined;
+            { phase?: string; errorCount?: number; error?: string } | undefined;
         const phase = state?.phase;
         if (phase && phase !== "executing" && phase !== "cancelRequested") {
             return state;
@@ -1163,10 +1128,60 @@ interface DriverOeSeam {
     removeNode?(node: DriverOeNode, showUserConfirmationPrompt?: boolean): Promise<void>;
 }
 
+interface DriverOeSessionHandle {
+    provider: DriverOeSeam;
+    sessionId: string;
+    connectionNode: DriverOeNode;
+    dispose: () => Promise<void>;
+}
+
 function driverOeLabel(node: DriverOeNode): string {
     return typeof node.label === "string"
         ? node.label
         : String((node.label as { label?: string })?.label ?? "");
+}
+
+async function createDriverOeSession(
+    profileName: string,
+    ctx: EngineContext,
+    serverLevel: boolean,
+): Promise<DriverOeSessionHandle> {
+    const profile = ctx.connectionProfiles?.[profileName];
+    if (!profile) {
+        throw new Error(`No connection profile '${profileName}' for Object Explorer`);
+    }
+    const controller = (await vscode.commands.executeCommand("mssql.getControllerForTests")) as
+        { _objectExplorerProvider?: DriverOeSeam } | undefined;
+    const provider = controller?._objectExplorerProvider;
+    if (!provider) {
+        throw new Error("object explorer provider unavailable");
+    }
+    const session = await provider.createSession({
+        server: profile.server,
+        database: serverLevel ? "" : (profile.database ?? ""),
+        authenticationType: profile.authenticationType,
+        user: profile.user ?? "",
+        password: profile.password ?? "",
+        savePassword: false,
+        encrypt: profile.encrypt ?? "Optional",
+        trustServerCertificate: profile.trustServerCertificate ?? false,
+        applicationName: ctx.applicationName ?? "vscode-mssql-perf",
+        connectTimeout: 30,
+        commandTimeout: 30,
+        profileName: `perf-oe-${profileName}-${Date.now()}`,
+    });
+    if (!session?.sessionId || session.errorMessage) {
+        throw new Error(`OE session failed: ${session?.errorMessage ?? "no session id returned"}`);
+    }
+    if (!session.connectionNode) {
+        throw new Error("OE session has no connection node");
+    }
+    return {
+        provider,
+        sessionId: session.sessionId,
+        connectionNode: session.connectionNode,
+        dispose: async () => provider.removeNode?.(session.connectionNode!, false),
+    };
 }
 
 async function designerOpen(
@@ -1180,8 +1195,7 @@ async function designerOpen(
         throw new Error(`No connection profile '${profileName}' for designerOpen`);
     }
     const controller = (await vscode.commands.executeCommand("mssql.getControllerForTests")) as
-        | { _objectExplorerProvider?: DriverOeSeam }
-        | undefined;
+        { _objectExplorerProvider?: DriverOeSeam } | undefined;
     const provider = controller?._objectExplorerProvider;
     if (!provider) {
         throw new Error("object explorer provider unavailable");

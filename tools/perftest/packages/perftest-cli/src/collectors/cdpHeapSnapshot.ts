@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 /**
  * cdpHeapSnapshot collector (Phase-2 M10.5, diagnostic only): V8 heap
  * snapshots of the extension host at scenario start and end (each preceded by
@@ -105,11 +110,20 @@ export class CdpHeapSnapshotCollector implements Collector {
         await this.client.send("HeapProfiler.collectGarbage", {}, 60_000);
 
         const chunks: string[] = [];
-        this.client.on("HeapProfiler.addHeapSnapshotChunk", (params) => {
+        const onChunk = (params: unknown) => {
             const chunk = (params as { chunk?: string })?.chunk;
             if (chunk) chunks.push(chunk);
-        });
-        await this.client.send("HeapProfiler.takeHeapSnapshot", { reportProgress: false }, 180_000);
+        };
+        this.client.on("HeapProfiler.addHeapSnapshotChunk", onChunk);
+        try {
+            await this.client.send(
+                "HeapProfiler.takeHeapSnapshot",
+                { reportProgress: false },
+                180_000,
+            );
+        } finally {
+            this.client.off("HeapProfiler.addHeapSnapshotChunk", onChunk);
+        }
         const json = chunks.join("");
         chunks.length = 0;
         const path = join(ctx.artifactsDir, `exthost-${label}.heapsnapshot`);

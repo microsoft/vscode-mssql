@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 /**
  * Config loading (design §25): JSONC parse → JSON Schema validation →
  * normalized PerfConfig with resolved runId. The raw text and parsed snapshot
@@ -6,6 +11,7 @@
 
 import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
+import { dirname, resolve } from "node:path";
 import { parse as parseJsonc, printParseErrorCode, type ParseError } from "jsonc-parser";
 import { newRunId, validateConfig, type PerfConfig } from "@mssqlperf/contracts";
 
@@ -45,6 +51,7 @@ export function parseJsoncStrict(text: string, sourcePath: string): unknown {
 }
 
 export function loadConfig(configPath: string): LoadedConfig {
+    configPath = resolve(configPath);
     let rawText: string;
     try {
         rawText = readFileSync(configPath, "utf8");
@@ -60,10 +67,34 @@ export function loadConfig(configPath: string): LoadedConfig {
 
     const config = data as PerfConfig;
     expandDiagnosticRecipe(config);
+    resolveConfigPaths(config, dirname(configPath));
     const runId = !config.runId || config.runId === "auto" ? newRunId() : config.runId;
+    if (!/^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/u.test(runId)) {
+        throw new ConfigError(
+            "runId must start with an alphanumeric character and contain only letters, numbers, '.', '_' or '-' (maximum 128 characters)",
+        );
+    }
     const configHash = "sha256:" + createHash("sha256").update(rawText, "utf8").digest("hex");
 
     return { config, runId, configHash, configPath, rawText };
+}
+
+function resolveConfigPaths(config: PerfConfig, configDir: string): void {
+    config.output.dir = resolve(configDir, config.output.dir);
+    if (config.store.path) {
+        config.store.path = resolve(configDir, config.store.path);
+    }
+    if (config.vscode.workspaceRoot) {
+        config.vscode.workspaceRoot = resolve(configDir, config.vscode.workspaceRoot);
+    }
+    for (const extension of config.vscode.extensions) {
+        if (extension.source === "developmentPath") {
+            extension.path = resolve(configDir, extension.path);
+        }
+    }
+    if (config.sql.composeFile) {
+        config.sql.composeFile = resolve(configDir, config.sql.composeFile);
+    }
 }
 
 /**

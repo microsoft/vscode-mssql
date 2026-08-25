@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 import { describe, expect, it } from "vitest";
 
 import {
@@ -12,7 +17,6 @@ import {
     RANK_ORDER,
     RANK_TABLE_VERSION,
     sanitizePayloadString,
-    sha256Hex,
     sqlLiteral,
     sqlNString,
     UPLOAD_POLICIES,
@@ -55,7 +59,9 @@ describe("central digest rules (design §6.2, addendum C-14/C-15)", () => {
 
     it("entityLockResource matches the T-SQL applock recipe", () => {
         const r = entityLockResource("perfRun", "run-1");
-        expect(r).toBe(`central:perfRun:${sha256Hex("run-1")}`);
+        expect(r).toBe(
+            "central:perfRun:" + "865a1b0ec7dbad1693ad6e65ad4ec9e53a98812f75114f824101108db8bf899c",
+        );
     });
 });
 

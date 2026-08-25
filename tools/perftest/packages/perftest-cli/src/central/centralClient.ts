@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 /**
  * Central-store SQL client for the CLI writer (central design §8.1, review
  * addendum §6). Wraps the `mssql` (tedious) driver with typed, parameterized
@@ -21,10 +26,7 @@ export class CentralClientError extends Error {
     constructor(
         message: string,
         public readonly code:
-            | "noTarget"
-            | "integratedAuthUnsupported"
-            | "connectFailed"
-            | "protocol",
+            "noTarget" | "integratedAuthUnsupported" | "connectFailed" | "protocol",
     ) {
         super(message);
         this.name = "CentralClientError";
@@ -54,7 +56,7 @@ export function resolveCentralTarget(explicit?: string): CentralTarget {
         throw new CentralClientError(
             "Central connection needs SQL authentication (User Id + Password); the Node TDS driver " +
                 "cannot use Integrated Security. Create a SQL login for the central store — see " +
-                "coding-docs/observability-docs/central/setup-instructions.md",
+                "tools/perftest/packages/perf-contracts/sql/central-store.roles.sql",
             "integratedAuthUnsupported",
         );
     }
@@ -63,7 +65,7 @@ export function resolveCentralTarget(explicit?: string): CentralTarget {
         database: parsed.database ?? "PerfCentral",
         user: parsed.user,
         password: parsed.password,
-        trustServerCertificate: parsed.trustServerCertificate ?? true,
+        trustServerCertificate: parsed.trustServerCertificate ?? isLocalSqlServer(parsed.server),
         encrypt: (parsed.encrypt ?? "true").toLowerCase() !== "false",
     };
 }
@@ -74,6 +76,11 @@ export interface CentralIdentity {
     principal: PrincipalInput;
     displayName?: string;
     isCi?: boolean;
+}
+
+function isLocalSqlServer(server: string): boolean {
+    const host = server.split(/[\\,]/u, 1)[0]!.trim().toLowerCase();
+    return ["localhost", "127.0.0.1", "::1", ".", "(local)", "(localdb)"].includes(host);
 }
 
 export class CentralClient {
@@ -127,9 +134,16 @@ export class CentralClient {
         await this.pool.close();
     }
 
-    /** Raw query escape hatch for admin/check flows (no user data). */
-    async query<T = Record<string, unknown>>(text: string): Promise<T[]> {
-        const result = await this.pool.request().query(text);
+    /** Parameterized query escape hatch for admin/check/report flows. */
+    async query<T = Record<string, unknown>>(
+        text: string,
+        parameters: Record<string, string> = {},
+    ): Promise<T[]> {
+        const request = this.pool.request();
+        for (const [name, value] of Object.entries(parameters)) {
+            request.input(name, sql.NVarChar, value);
+        }
+        const result = await request.query(text);
         return (result.recordset ?? []) as T[];
     }
 

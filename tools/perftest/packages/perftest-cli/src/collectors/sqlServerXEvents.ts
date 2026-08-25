@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 /**
  * sqlServerXEvents collector (Phase-2 M8, design §19): captures EVERY SQL
  * command a scenario causes, with per-command detail, correlated to the rep
@@ -10,14 +15,15 @@
  *
  * Honesty rules: correlation is by exact app-name match — events that cannot
  * be attributed to THIS rep are counted and surfaced as a validation warning,
- * never guessed into metrics. SQL text is persisted only in diagnostic passes
- * with captureSqlText enabled (synthetic DB only, §29). All metrics
+ * never guessed into metrics. The session observes matching application names
+ * across databases; SQL text is persisted only in diagnostic passes with
+ * captureSqlText enabled (§29). All metrics
  * official:false until a §12.3 calibration approves the session for
  * measurement passes.
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { join } from "node:path";
 import type { ArtifactRef, Metric } from "@mssqlperf/contracts";
 import type { Collector, CollectorContext, CollectorValidation } from "./types";
 
@@ -53,7 +59,7 @@ export class SqlServerXEventsCollector implements Collector {
     private readFailed: string | undefined;
     private sessionStarted = false;
 
-    constructor(private readonly options: { captureSqlText: boolean }) {}
+    constructor(private readonly options: { captureSqlText: boolean; harnessRoot: string }) {}
 
     async validate(ctx: CollectorContext): Promise<CollectorValidation[]> {
         if (!ctx.sqlExec) {
@@ -65,7 +71,7 @@ export class SqlServerXEventsCollector implements Collector {
                 },
             ];
         }
-        const dir = resolve("sql", "xevents");
+        const dir = join(this.options.harnessRoot, "sql", "xevents");
         const files = {
             create: join(dir, "create-perf-session.sql"),
             start: join(dir, "start-perf-session.sql"),

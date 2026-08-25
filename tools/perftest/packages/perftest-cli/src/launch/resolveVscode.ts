@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 /**
  * VS Code acquisition (design §13.1): use @vscode/test-electron to download
  * and cache a pinned build, then hand the raw executable to the spawner —

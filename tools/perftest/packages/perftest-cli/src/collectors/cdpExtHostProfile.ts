@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 /**
  * cdpExtHostProfile collector (diagnostic pass only, design §14.3): V8 CPU
  * profile of the extension host across the scenario window.
@@ -10,12 +15,11 @@
  * timing (§12.2).
  */
 
-import { request as httpRequest } from "node:http";
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
-import WebSocket from "ws";
 import type { ArtifactRef } from "@mssqlperf/contracts";
 import type { Collector, CollectorContext, CollectorValidation, MutableLaunchSpec } from "./types";
+import { CdpClient, discoverCdpTargets } from "./cdpClient";
 
 export class CdpExtHostProfileCollector implements Collector {
     readonly name = "cdpExtHostProfile";
@@ -26,9 +30,7 @@ export class CdpExtHostProfileCollector implements Collector {
     >;
 
     private port = 0;
-    private socket: WebSocket | undefined;
-    private nextId = 1;
-    private readonly pendingReplies = new Map<number, (result: unknown) => void>();
+    private client: CdpClient | undefined;
     private profile: unknown;
     private profiling = false;
 
@@ -44,13 +46,20 @@ export class CdpExtHostProfileCollector implements Collector {
 
     async onScenarioStart(ctx: CollectorContext): Promise<void> {
         try {
-            if (!this.socket) {
-                const wsUrl = await this.discoverTarget();
-                await this.connect(wsUrl);
+            if (!this.client) {
+                const targets = await discoverCdpTargets(this.port);
+                const wsUrl = targets.find(
+                    (target) => target.webSocketDebuggerUrl,
+                )?.webSocketDebuggerUrl;
+                if (!wsUrl) {
+                    throw new Error(`No inspector target on port ${this.port}`);
+                }
+                this.client = new CdpClient();
+                await this.client.connect(wsUrl);
             }
-            await this.send("Profiler.enable");
-            await this.send("Profiler.setSamplingInterval", { interval: 100 });
-            await this.send("Profiler.start");
+            await this.client.send("Profiler.enable");
+            await this.client.send("Profiler.setSamplingInterval", { interval: 100 });
+            await this.client.send("Profiler.start");
             this.profiling = true;
             ctx.logger.info("cdpExtHost.profilerStarted");
         } catch (error) {
@@ -63,7 +72,8 @@ export class CdpExtHostProfileCollector implements Collector {
             return;
         }
         try {
-            const result = (await this.send("Profiler.stop")) as { profile?: unknown };
+            const result = (await this.client?.send("Profiler.stop")) as
+                { profile?: unknown } | undefined;
             this.profile = result?.profile;
             this.profiling = false;
             ctx.logger.info("cdpExtHost.profilerStopped");
@@ -73,8 +83,8 @@ export class CdpExtHostProfileCollector implements Collector {
     }
 
     async postExit(ctx: CollectorContext): Promise<ArtifactRef[]> {
-        this.socket?.close();
-        this.socket = undefined;
+        this.client?.close();
+        this.client = undefined;
         if (!this.profile) {
             return [];
         }
@@ -87,95 +97,5 @@ export class CdpExtHostProfileCollector implements Collector {
                 retention: "always",
             },
         ];
-    }
-
-    // ---------------------------------------------------------------------------
-
-    private discoverTarget(retries = 20): Promise<string> {
-        return new Promise((resolve, reject) => {
-            const attempt = (remaining: number): void => {
-                const req = httpRequest(
-                    { host: "127.0.0.1", port: this.port, path: "/json/list", timeout: 2000 },
-                    (res) => {
-                        let body = "";
-                        res.setEncoding("utf8");
-                        res.on("data", (chunk: string) => (body += chunk));
-                        res.on("end", () => {
-                            try {
-                                const targets = JSON.parse(body) as Array<{
-                                    webSocketDebuggerUrl?: string;
-                                }>;
-                                const url = targets.find(
-                                    (t) => t.webSocketDebuggerUrl,
-                                )?.webSocketDebuggerUrl;
-                                if (url) {
-                                    resolve(url);
-                                    return;
-                                }
-                            } catch {
-                                // fall through to retry
-                            }
-                            retry(remaining);
-                        });
-                    },
-                );
-                req.on("error", () => retry(remaining));
-                req.on("timeout", () => {
-                    req.destroy();
-                    retry(remaining);
-                });
-                req.end();
-            };
-            const retry = (remaining: number): void => {
-                if (remaining <= 0) {
-                    reject(new Error(`No inspector target on port ${this.port}`));
-                } else {
-                    setTimeout(() => attempt(remaining - 1), 500);
-                }
-            };
-            attempt(retries);
-        });
-    }
-
-    private connect(wsUrl: string): Promise<void> {
-        return new Promise((resolve, reject) => {
-            const socket = new WebSocket(wsUrl);
-            this.socket = socket;
-            socket.on("open", () => resolve());
-            socket.on("error", (error) => reject(error));
-            socket.on("message", (data) => {
-                try {
-                    const message = JSON.parse(String(data)) as { id?: number; result?: unknown };
-                    if (message.id !== undefined) {
-                        const pending = this.pendingReplies.get(message.id);
-                        if (pending) {
-                            this.pendingReplies.delete(message.id);
-                            pending(message.result);
-                        }
-                    }
-                } catch {
-                    // ignore non-JSON frames
-                }
-            });
-        });
-    }
-
-    private send(method: string, params?: Record<string, unknown>): Promise<unknown> {
-        return new Promise((resolve, reject) => {
-            if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
-                reject(new Error("inspector socket not open"));
-                return;
-            }
-            const id = this.nextId++;
-            const timer = setTimeout(() => {
-                this.pendingReplies.delete(id);
-                reject(new Error(`inspector call ${method} timed out`));
-            }, 30_000);
-            this.pendingReplies.set(id, (result) => {
-                clearTimeout(timer);
-                resolve(result);
-            });
-            this.socket.send(JSON.stringify({ id, method, ...(params ? { params } : {}) }));
-        });
     }
 }

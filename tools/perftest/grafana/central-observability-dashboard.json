@@ -1,5 +1,5 @@
 {
-    "__comment": "Central Observability dashboard (central design §9.3, C4). Import into Grafana with a Microsoft SQL Server datasource pointed at the central store DB using a central_grafana-role login. Every panel reads canned central.* views only — never base tables. See coding-docs/observability-docs/central/setup-instructions.md §5.",
+    "__comment": "Central Observability dashboard (central design §9.3, C4). Import into Grafana with a Microsoft SQL Server datasource pointed at the central store DB using a central_grafana-role login. Every panel reads canned central.* views only — never base tables. See tools/perftest/docs/CLI.md#central-store-commands.",
     "title": "MSSQL Central Observability",
     "uid": "mssql-central-observability",
     "schemaVersion": 39,

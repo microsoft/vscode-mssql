@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 /**
  * Minimal Chrome DevTools Protocol client over WebSocket: request/response
  * with ids, plus event subscription. Shared by the renderer tracing collector
@@ -133,6 +138,12 @@ export class CdpClient {
             this.socket = socket;
             socket.on("open", () => resolve());
             socket.on("error", (error) => reject(error));
+            socket.on("close", () => {
+                this.rejectPending(new Error("CDP socket closed"));
+                if (this.socket === socket) {
+                    this.socket = undefined;
+                }
+            });
             socket.on("message", (data) => {
                 try {
                     const message = JSON.parse(String(data)) as {
@@ -168,6 +179,17 @@ export class CdpClient {
         const list = this.eventHandlers.get(method) ?? [];
         list.push(handler);
         this.eventHandlers.set(method, list);
+    }
+
+    off(method: string, handler: (params: unknown) => void): void {
+        const remaining = (this.eventHandlers.get(method) ?? []).filter(
+            (candidate) => candidate !== handler,
+        );
+        if (remaining.length > 0) {
+            this.eventHandlers.set(method, remaining);
+        } else {
+            this.eventHandlers.delete(method);
+        }
     }
 
     send(method: string, params?: Record<string, unknown>, timeoutMs = 30_000): Promise<unknown> {
@@ -221,13 +243,16 @@ export class CdpClient {
     }
 
     close(): void {
-        const error = new Error("CDP client closed");
+        this.rejectPending(new Error("CDP client closed"));
+        this.eventHandlers.clear();
+        this.socket?.close();
+        this.socket = undefined;
+    }
+
+    private rejectPending(error: Error): void {
         for (const pending of this.pending.values()) {
             pending.reject(error);
         }
         this.pending.clear();
-        this.eventHandlers.clear();
-        this.socket?.close();
-        this.socket = undefined;
     }
 }

@@ -4,6 +4,9 @@ How the harness gets SQL Tools Service–side diagnostics, and why it builds on
 the **sts2 refactor's observability core** instead of the design doc's
 original §18 ActivitySource plan.
 
+> **Status:** The STS2 instrumentation described here is not yet on
+> `sqltoolsservice/main`; it lands with the STS2 integration changes.
+
 ## The decision (plan amendment vs design §18)
 
 Design §18 proposed adding OpenTelemetry ActivitySources, a StreamJsonRpc
@@ -53,8 +56,10 @@ failures swallowed; nothing touches stdout (the RPC channel).
   `STS_ENABLE_STS2=1` — env flows orchestrator → VS Code → extension host →
   the spawned STS child.
 - After the rep exits, journal directories (`**/sts2/<runId>/`, under the
-  rep's user-data where the extension points STS logs) are copied to
-  `artifacts/sts2/` and parsed.
+  rep's user-data where the extension points STS logs) are parsed for
+  privacy-safe metrics. Raw journals are retained in `artifacts/sts2/` only
+  when `captureSqlText` is explicitly enabled for a diagnostic pass;
+  otherwise the raw generated journal is removed after parsing.
 - `rpc.in.request` envelopes are matched to `rpc.out.result`/`rpc.out.error`
   by `corr`; per-method median handler latencies are emitted as
   `sts.rpc.<method>.duration` metrics — always `official: false` (collector

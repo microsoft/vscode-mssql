@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 /**
  * VS Code direct spawn (design §13.1). Fresh --user-data-dir and
  * --extensions-dir per profile mode, perf env vars, stdout/stderr captured to
@@ -100,12 +105,33 @@ export function spawnVscode(options: VscodeLaunchOptions, logger: HarnessLogger)
         env: buildChildEnv(options.env),
         stdio: ["ignore", "pipe", "pipe"],
         windowsHide: false,
+        detached: process.platform !== "win32",
     });
 
     const stdout = createWriteStream(options.stdoutPath);
     const stderr = createWriteStream(options.stderrPath);
+    stdout.on("error", (error) => logger.warn("vscode.stdoutCaptureFailed", String(error)));
+    stderr.on("error", (error) => logger.warn("vscode.stderrCaptureFailed", String(error)));
     child.stdout?.pipe(stdout);
     child.stderr?.pipe(stderr);
+
+    const exited = new Promise<number | null>((resolve) => {
+        let settled = false;
+        const finish = (code: number | null) => {
+            if (settled) return;
+            settled = true;
+            resolve(code);
+        };
+        child.once("error", (error) => {
+            logger.error("vscode.spawnFailed", String(error));
+            span.fail(error);
+            finish(null);
+        });
+        child.once("exit", (code) => {
+            logger.info("vscode.exited", undefined, { pid: child.pid, code });
+            finish(code);
+        });
+    });
 
     if (child.pid === undefined) {
         span.fail(new Error("spawn returned no pid"));
@@ -113,13 +139,6 @@ export function spawnVscode(options: VscodeLaunchOptions, logger: HarnessLogger)
     }
     const pid = child.pid;
     span.end({ pid });
-
-    const exited = new Promise<number | null>((resolve) => {
-        child.once("exit", (code) => {
-            logger.info("vscode.exited", undefined, { pid, code });
-            resolve(code);
-        });
-    });
 
     return {
         child,
@@ -142,7 +161,7 @@ export function spawnVscode(options: VscodeLaunchOptions, logger: HarnessLogger)
                 });
             } else {
                 try {
-                    child.kill("SIGKILL");
+                    process.kill(-pid, "SIGKILL");
                 } catch {
                     // already gone
                 }

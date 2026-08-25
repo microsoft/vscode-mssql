@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 /**
  * Trace Identity V1 correlation linter: registry-driven pairing (explicit
  * pairsWith — begin/ready, submit/complete), span-family suffix pairing,
@@ -59,6 +64,19 @@ describe("correlation linter", () => {
         expect(rpc?.ends).toBe(1);
     });
 
+    test("all registered span-family namespaces are paired", () => {
+        const report = lintCorrelation([
+            ev({ type: "metadata.hydrate.begin", traceId: "t1" }),
+            ev({ type: "metadata.hydrate.begin", traceId: "t2" }),
+            ev({ type: "metadata.hydrate.end", traceId: "t1" }),
+        ]);
+        expect(report.unmatchedPairs).toContainEqual({
+            name: "metadata.hydrate",
+            begins: 2,
+            ends: 1,
+        });
+    });
+
     test("orphans counted only for correlatable product markers", () => {
         const report = lintCorrelation([
             ev({ type: "mssql.query.submit" }), // orphan
@@ -70,6 +88,15 @@ describe("correlation linter", () => {
         expect(report.orphanCount).toBe(2);
         expect(report.orphanRatio).toBe(1);
         expect(report.score).toBe("poor");
+    });
+
+    test("registered non-mssql namespaces count as correlatable", () => {
+        const report = lintCorrelation([
+            ev({ type: "queryStudio.sync.request.begin" }),
+            ev({ type: "queryStudio.sync.request.end" }),
+        ]);
+        expect(report.orphanCount).toBe(2);
+        expect(report.orphanRatio).toBe(1);
     });
 
     test("leaked roots flagged past the TTL with honest note", () => {
@@ -89,7 +116,7 @@ describe("correlation linter", () => {
     test("epoch-aligned sts events counted + explained, scenario window noise counted", () => {
         const report = lintCorrelation([
             ev({ type: "scenario.start", epochMs: 2000 }),
-            ev({ type: "sts.sql.executeReader", epochMs: 2100, tags: ["stsDiag"] }),
+            ev({ type: "sts2.query.stats", epochMs: 2100 }),
             ev({ type: "mssql.query.submit", traceId: "t", epochMs: 2200 }),
             ev({ type: "mssql.query.complete", traceId: "t", epochMs: 2300 }),
             ev({ type: "scenario.end", epochMs: 3000 }),

@@ -1,4 +1,5 @@
 PRAGMA foreign_keys = ON;
+PRAGMA user_version = 1;
 
 CREATE TABLE IF NOT EXISTS runs (
   run_id TEXT PRIMARY KEY,

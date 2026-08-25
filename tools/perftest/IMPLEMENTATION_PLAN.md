@@ -2,11 +2,10 @@
 
 > Frozen migration context imported from standalone perftest commit
 > `860365ff65f9bbb4e102309860004d8e9bdf36f4`. Do not use this file for the
-> current vscode-mssql refactor status; see `UPSTREAM.md` and the workspace
-> handoff files instead.
+> current vscode-mssql refactor status; see `UPSTREAM.md` instead.
 
 > Working backlog for the autonomous build. Derived from `PERFTEST_BUILD_PROMPT.md` and
-> `perftest-docs/mssql-vscode-perf-system-v2/MSSQL_VSCODE_PERF_SYSTEM_DESIGN.md` (§32/§33),
+> the standalone perf-system design (not imported here; §32/§33),
 > plus user-expanded scope: full diagnostic pass, STS trace context building on the sts2
 > refactor, harness self-telemetry, and a `docs/` folder built alongside the code.
 >
@@ -40,7 +39,7 @@
       (strict), `.gitignore`, workspace layout per design §5
       (`packages/perf-contracts`, `packages/perftest-cli`, `extensions/mssql-perf-driver`,
       `sql/`, `scripts/`, `examples/`, `docs/`, `perf-runs/`).
-- [x] 0.2 `perf-contracts`: copy 3 JSON schemas + SQLite schema verbatim from perftest-docs;
+- [x] 0.2 `perf-contracts`: import 3 JSON schemas + SQLite schema from the historical design;
       TS types mirroring marker/result/config/control messages; runtime validators (ajv);
       example config/result/marker as test fixtures that must validate.
 - [x] 0.3 Harness telemetry core: `HarnessLogger` (structured JSONL + pretty console),

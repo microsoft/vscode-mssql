@@ -261,7 +261,7 @@ _Generated from registry obs-contract/1. Do not edit by hand._
 | `mssql.queryResults.vector.analysis`                       | queryResults     | `mssql.queryResults.vector.analysis.begin` → `mssql.queryResults.vector.analysis.end`               |
 | `mssql.queryResults.spatial.prepare`                       | queryResults     | `mssql.queryResults.spatial.prepare.begin` → `mssql.queryResults.spatial.prepare.end`               |
 | `mssql.queryResults.spatial.decode`                        | queryResults     | `mssql.queryResults.spatial.decode.begin` → `mssql.queryResults.spatial.decode.end`                 |
-| `mssql.queryResults.spatial.render.firstPaint`             | queryResults     | `mssql.queryResults.spatial.render.begin` → `mssql.queryResults.spatial.render.firstPaint`          |
+| `mssql.queryResults.spatial.render.toFirstPaint`           | queryResults     | `mssql.queryResults.spatial.render.begin` → `mssql.queryResults.spatial.render.firstPaint`          |
 | `mssql.queryResults.spatial.basemap.layerReady`            | queryResults     | `mssql.queryResults.spatial.basemap.layer.begin` → `mssql.queryResults.spatial.basemap.layer.ready` |
 
 ## Field classifications

@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 import { describe, expect, it } from "vitest";
 import {
     incompleteBeta,
@@ -143,6 +148,21 @@ describe("classifyMetric", () => {
         const result = classifyMetric(KEY, [120, 121, 120, 119], [100, 100, 101, 99], true, custom);
         expect(result.verdict).toBe("unchanged"); // +20% < 50% custom threshold
     });
+
+    it("does not apply the millisecond floor to ratio metrics", () => {
+        const threshold = resolveThreshold("soak.reliability.failureRate", {
+            default: { pct: 10, absMs: 5, minSamples: 3, test: "none" },
+        });
+        const result = classifyMetric(
+            { ...KEY, name: "soak.reliability.failureRate", unit: "ratio" },
+            [1, 1, 1],
+            [0, 0, 0],
+            true,
+            threshold,
+        );
+        expect(result.verdict).toBe("regressed");
+        expect(result.deltaPct).toBe(Number.POSITIVE_INFINITY);
+    });
 });
 
 describe("overallStatus (worst metric wins)", () => {
@@ -160,5 +180,8 @@ describe("overallStatus (worst metric wins)", () => {
     });
     it("all unchanged → passed", () => {
         expect(overallStatus([mk("unchanged")])).toBe("passed");
+    });
+    it("no official metric comparisons → inconclusive", () => {
+        expect(overallStatus([])).toBe("inconclusive");
     });
 });

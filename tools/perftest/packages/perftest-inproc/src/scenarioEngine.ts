@@ -16,6 +16,7 @@
 
 import * as vscode from "vscode";
 import type { MarkerBus } from "./markerBus";
+import { validateTimerMs } from "./timer";
 
 // Structural mirrors of @mssqlperf/contracts (this package is contract-free so
 // its .d.ts stays self-contained for cross-repo relative import; the wire
@@ -141,10 +142,11 @@ export class ScenarioCancelledError extends Error {
 }
 
 function withTimeout<T>(promise: Promise<T>, timeoutMs: number, what: string): Promise<T> {
+    const safeTimeoutMs = validateTimerMs(timeoutMs, DEFAULT_STEP_TIMEOUT_MS, `${what} timeout`);
     return new Promise<T>((resolve, reject) => {
         const timer = setTimeout(
-            () => reject(new Error(`Timed out after ${timeoutMs}ms: ${what}`)),
-            timeoutMs,
+            () => reject(new Error(`Timed out after ${safeTimeoutMs}ms: ${what}`)),
+            safeTimeoutMs,
         );
         promise.then(
             (value) => {
@@ -161,21 +163,21 @@ function withTimeout<T>(promise: Promise<T>, timeoutMs: number, what: string): P
 
 /** Cancellable sleep: wakes early (rejecting) when the run is cancelled. */
 function cancellableSleep(ms: number, ctx: EngineContext): Promise<void> {
+    const safeMs = validateTimerMs(ms, 0, "syntheticDelay duration");
     return new Promise<void>((resolve, reject) => {
-        const started = Date.now();
-        const tick = setInterval(
-            () => {
-                if (ctx.isCancelled?.()) {
-                    clearInterval(tick);
-                    reject(new ScenarioCancelledError());
-                } else if (Date.now() - started >= ms) {
-                    clearInterval(tick);
-                    resolve();
-                }
-            },
-            Math.min(200, ms),
-        );
-        tick.unref?.();
+        const finish = setTimeout(() => {
+            clearInterval(cancelPoll);
+            resolve();
+        }, safeMs);
+        const cancelPoll = setInterval(() => {
+            if (ctx.isCancelled?.()) {
+                clearTimeout(finish);
+                clearInterval(cancelPoll);
+                reject(new ScenarioCancelledError());
+            }
+        }, 200);
+        finish.unref?.();
+        cancelPoll.unref?.();
     });
 }
 
@@ -451,7 +453,11 @@ async function executeStep(
     ctx: EngineContext,
     afterUnixNs?: string,
 ): Promise<void> {
-    const timeoutMs = step.timeoutMs ?? DEFAULT_STEP_TIMEOUT_MS;
+    const timeoutMs = validateTimerMs(
+        step.timeoutMs,
+        DEFAULT_STEP_TIMEOUT_MS,
+        `${describeStep(step)} timeout`,
+    );
     switch (step.type) {
         case "noop":
             return;
@@ -746,8 +752,7 @@ async function createOeSession(
         throw new Error(`No connection profile '${profileName}' for Object Explorer`);
     }
     const controller = (await vscode.commands.executeCommand("mssql.getControllerForTests")) as
-        | { _objectExplorerProvider?: OeProviderSeam }
-        | undefined;
+        { _objectExplorerProvider?: OeProviderSeam } | undefined;
     const provider = controller?._objectExplorerProvider;
     if (!provider) {
         throw new Error("object explorer provider unavailable");
@@ -918,8 +923,7 @@ async function mssqlDisconnect(ctx: EngineContext): Promise<void> {
     }
     const uri = editor.document.uri.toString();
     const controller = (await vscode.commands.executeCommand("mssql.getControllerForTests")) as
-        | { connectionManager?: { disconnect(fileUri: string): Promise<boolean> } }
-        | undefined;
+        { connectionManager?: { disconnect(fileUri: string): Promise<boolean> } } | undefined;
     if (!controller?.connectionManager) {
         throw new Error("mssql.getControllerForTests returned no controller");
     }

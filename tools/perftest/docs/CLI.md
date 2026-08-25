@@ -7,29 +7,24 @@ contract for CI gates.
 
 ## Exit codes
 
-| Code | Meaning                                                                 |
-| ---- | ----------------------------------------------------------------------- |
-| 0    | Run completed, no gated regression                                      |
-| 1    | Gated regression found                                                  |
-| 2    | Config or schema validation failed                                      |
-| 3    | Environment preflight failed                                            |
-| 4    | Scenario failed                                                         |
-| 5    | Infrastructure or collector failure (also: command not implemented yet) |
-| 6    | Insufficient valid samples                                              |
+| Code | Meaning                             |
+| ---- | ----------------------------------- |
+| 0    | Run completed, no gated regression  |
+| 1    | Gated regression found              |
+| 2    | Config or schema validation failed  |
+| 3    | Environment preflight failed        |
+| 4    | Scenario failed                     |
+| 5    | Infrastructure or collector failure |
+| 6    | Insufficient valid samples          |
 
 ## Commands
 
 ### `perftest doctor [--json] [--config <path>]`
 
-Environment preflight (design §13.3). Reports machine identity (hostname, OS,
-CPU, memory) and per-check status. Checks that are not implemented yet are
-listed as `SKIP` with the milestone they arrive in — the report never
-overstates what was verified. With `--config`, additionally validates the
-config file. Exits 3 if any check fails.
-
-Current checks: node version, docker availability, dotnet SDK, disk space,
-free memory. Arriving later: VS Code resolution (M1), SQL container health,
-machine idle, AC power, CPU frequency policy (M4), ETW elevation (M5).
+Environment preflight (design §13.3). Reports machine identity and the status
+of Node, Docker Compose, dotnet, sqlcmd, disk, memory, power policy, elevation,
+and any supplied config. A check is `SKIP` only when it is genuinely not
+applicable or not configured. Exits 3 if any required check fails.
 
 ### `perftest schema validate <file> [--contract marker|perf-config|perf-result]`
 
@@ -54,9 +49,10 @@ Creates/opens the SQLite store and applies the canonical schema
 
 ### `perftest run --config <path> [--scenario <id>] [--pass <type>]`
 
-Loads and schema-validates the config (real today; exit 2 on invalid), then
-executes the run pipeline. **Pipeline lands in Milestone 1** — until then the
-command reports not-implemented and exits 5 without writing anything.
+Loads and schema-validates the config, provisions SQL when requested, launches
+VS Code, runs the selected scenarios and collectors, persists results, and
+writes reports. Exits 2 for invalid config, 4 for scenario failures, 5 for
+infrastructure failures, and 6 when valid samples are insufficient.
 
 ### `perftest report <runId> [--open]`
 
@@ -119,12 +115,23 @@ dotnet global tools with `-Install`.
 Artifact retention: deletes old run directories, never those referenced by a
 regressed comparison when `--keep-regressions` is set.
 
+### Central-store commands
+
+- `perftest push <runDir> [--target <connectionString>] [--dry-run]` previews
+  or uploads a privacy-filtered run projection.
+- `perftest central init|check|health|cleanup [--target <connectionString>]`
+  initializes, validates, reports health, or applies retention to the central
+  SQL Server store.
+- `perftest central report [--target <connectionString>] [--out <file>] [--open]`
+  writes the central HTML dashboard.
+
 ## Config loading
 
 `--config` files are JSONC (comments + trailing commas allowed). Loading:
 parse → schema validation (all errors reported) → `runId: "auto"` resolution →
 `sha256` config hash. The raw text is preserved and snapshotted into each run
-directory as `run-config.snapshot.json`.
+directory as `run-config.snapshot.jsonc`. Relative paths are resolved against
+the config file, not the process working directory.
 
 ## Logging
 

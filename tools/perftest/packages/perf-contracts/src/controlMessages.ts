@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 /**
  * Control-plane message contracts (design §9). The orchestrator hosts a
  * localhost WebSocket control server; the mssql-perf-driver automation
@@ -25,12 +30,7 @@ export type ControlMessageKind =
     | "error";
 
 export type SenderRole =
-    | "orchestrator"
-    | "automationExtension"
-    | "productExtension"
-    | "sts"
-    | "webview"
-    | "child";
+    "orchestrator" | "automationExtension" | "productExtension" | "sts" | "webview" | "child";
 
 export interface ControlSender {
     role: SenderRole | string;

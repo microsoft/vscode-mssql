@@ -23,7 +23,8 @@
             "const": 2
         },
         "runId": {
-            "type": "string"
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
         },
         "passType": {
             "enum": ["measurement", "diagnostic", "calibration"]
@@ -127,6 +128,10 @@
                 },
                 "provisionSeed": {
                     "type": "boolean"
+                },
+                "connectionStringEnv": {
+                    "type": "string",
+                    "minLength": 1
                 }
             }
         },
@@ -158,7 +163,7 @@
         },
         "diagnostics": {
             "type": "object",
-            "additionalProperties": true,
+            "additionalProperties": false,
             "properties": {
                 "markers": {
                     "type": "boolean"
@@ -174,6 +179,21 @@
                 },
                 "startupProfile": {
                     "type": "boolean"
+                },
+                "cdp": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "extHostProfile": {
+                            "type": "boolean"
+                        },
+                        "rendererTrace": {
+                            "type": "boolean"
+                        },
+                        "rendererProfile": {
+                            "type": "boolean"
+                        }
+                    }
                 },
                 "dotnetCounters": {
                     "type": "boolean"
@@ -192,6 +212,30 @@
                 "wprEtw": {
                     "type": "boolean"
                 },
+                "vscodeDiag": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "logs": {
+                            "type": "boolean"
+                        },
+                        "status": {
+                            "type": "boolean"
+                        }
+                    }
+                },
+                "stsEnvelopeJournal": {
+                    "type": "boolean"
+                },
+                "captureSqlText": {
+                    "type": "boolean"
+                },
+                "heapSnapshots": {
+                    "type": "boolean"
+                },
+                "gcDump": {
+                    "type": "boolean"
+                },
                 "recipe": {
                     "enum": ["light", "ui-rendering", "service", "sql", "memory", "full"]
                 }
@@ -203,7 +247,7 @@
             "required": ["type"],
             "properties": {
                 "type": {
-                    "enum": ["sqlite", "postgres", "none"]
+                    "enum": ["sqlite", "none"]
                 },
                 "path": {
                     "type": "string"
@@ -222,7 +266,18 @@
                 },
                 "thresholds": {
                     "type": "object",
-                    "additionalProperties": true
+                    "additionalProperties": false,
+                    "properties": {
+                        "default": {
+                            "$ref": "#/$defs/thresholdSpec"
+                        },
+                        "metrics": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "$ref": "#/$defs/thresholdSpec"
+                            }
+                        }
+                    }
                 }
             }
         },
@@ -237,6 +292,20 @@
                 "keepArtifacts": {
                     "enum": ["always", "on-regression", "on-failure", "never"]
                 }
+            }
+        }
+    },
+    "$defs": {
+        "thresholdSpec": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "pct": { "type": "number", "minimum": 0 },
+                "absMs": { "type": "number", "minimum": 0 },
+                "minSamples": { "type": "integer", "minimum": 1 },
+                "maxCv": { "type": "number", "minimum": 0 },
+                "test": { "type": "string" },
+                "pValue": { "type": "number", "minimum": 0, "maximum": 1 }
             }
         }
     }

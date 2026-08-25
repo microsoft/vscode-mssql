@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 import { describe, expect, it } from "vitest";
 import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
@@ -37,7 +42,10 @@ function rowsOf<T>(projection: CentralProjection, kind: string): T[] {
 function checkExpected(name: string, projection: CentralProjection): void {
     const path = join(FIXTURES, name, "expected.json");
     if (!existsSync(path)) {
-        throw new Error(`${path} missing — regenerate with scripts/central-lock-goldens`);
+        throw new Error(
+            `${path} missing — project the matching source.json with this test's policy, ` +
+                "review the digest/table changes, and write this comparison object to expected.json",
+        );
     }
     const expected = JSON.parse(readFileSync(path, "utf8"));
     expect({
@@ -62,6 +70,24 @@ describe("golden perf-run projection (T-B5 perftest half)", () => {
 
     it("matches the locked golden digests", () => {
         checkExpected("golden-run", projectPerfRun(loadRun(), { uploadPolicyId: policy }));
+    });
+
+    it("refuses values that exceed central column limits before payload digesting", () => {
+        const source = loadRun();
+        for (const rep of source.reps) {
+            for (const repo of rep.result.git ?? []) {
+                repo.remote = `https://${"x".repeat(400)}`;
+            }
+        }
+        const projection = projectPerfRun(source, { uploadPolicyId: policy });
+
+        expect(projection.preview.refused).toContainEqual({
+            field: "run_repositories[0].remote",
+            cls: "diagnostic.metadata",
+            reason: "columnLimit:400",
+        });
+        expect(projection.items.some((item) => item.item_kind === "run_repositories")).toBe(false);
+        expect(() => assertUploadable(projection)).toThrow(/upload refused/);
     });
 
     it("applies the C-8 subtraction map under team-default", () => {
@@ -101,6 +127,18 @@ describe("golden perf-run projection (T-B5 perftest half)", () => {
         const metrics = rowsOf<Record<string, unknown>>(p, "metrics");
         expect(metrics.filter((m) => m.attempt_id === 1)).toHaveLength(1);
         expect(metrics.every((m) => typeof m.official === "number")).toBe(true);
+    });
+
+    it("refuses malformed source metrics instead of fabricating zero", () => {
+        const source = loadRun();
+        const metric = source.reps[0]!.result.metrics[0] as unknown as Record<string, unknown>;
+        delete metric["value"];
+        const projection = projectPerfRun(source, { uploadPolicyId: policy });
+        expect(projection.preview.refused).toContainEqual(
+            expect.objectContaining({ reason: "invalidMetric" }),
+        );
+        const metrics = rowsOf<Record<string, unknown>>(projection, "metrics");
+        expect(metrics.some((row) => row["value"] === 0)).toBe(false);
     });
 
     it("summarizes tables and source in the preview from the real item stream", () => {
@@ -231,6 +269,7 @@ describe("privacy canaries (T-B8; addendum §5)", () => {
         const tdSurface = JSON.stringify(td.items);
         for (const canary of [
             "CANARY-SERVER.contoso.com",
+            "CANARY-TRUNCATED-SERVER.contoso.com",
             "CanaryProdDB",
             "CanarySecretTable",
             "CANARY-USER-NOTE",

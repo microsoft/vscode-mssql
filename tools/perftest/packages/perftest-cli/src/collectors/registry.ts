@@ -1,40 +1,46 @@
-/**
- * Collector registry. Collectors register here as they are implemented;
- * `collectors list` reports exactly what exists (design §14.3 catalog is the
- * roadmap, not a claim).
- */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
 
-import type { Collector } from "./types";
-import { ProcessSamplerCollector } from "./processSampler";
+import type { CollectorCost } from "./types";
+import type { PassType } from "@mssqlperf/contracts";
 
-const registry = new Map<string, Collector>();
-
-export function registerCollector(collector: Collector): void {
-    registry.set(collector.name, collector);
+export interface CollectorDescriptor {
+    name: string;
+    cost: CollectorCost;
+    allowedPassTypes: PassType[];
 }
 
-export function listCollectors(): Collector[] {
-    return [...registry.values()];
+const IMPLEMENTED_COLLECTORS: CollectorDescriptor[] = [
+    {
+        name: "markers",
+        cost: "low",
+        allowedPassTypes: ["measurement", "diagnostic", "calibration"],
+    },
+    {
+        name: "processSampler",
+        cost: "low",
+        allowedPassTypes: ["measurement", "diagnostic", "calibration"],
+    },
+    { name: "stsEnvelopeJournal", cost: "low", allowedPassTypes: ["diagnostic", "calibration"] },
+    { name: "sqlServerXEvents", cost: "medium", allowedPassTypes: ["diagnostic"] },
+    { name: "dotnetCounters", cost: "low", allowedPassTypes: ["diagnostic", "calibration"] },
+    { name: "dotnetTrace", cost: "high", allowedPassTypes: ["diagnostic"] },
+    { name: "wprEtw", cost: "high", allowedPassTypes: ["diagnostic"] },
+    { name: "cdpExtHostProfile", cost: "medium", allowedPassTypes: ["diagnostic"] },
+    { name: "cdpRendererTrace", cost: "high", allowedPassTypes: ["diagnostic"] },
+    { name: "cdpRendererProfile", cost: "medium", allowedPassTypes: ["diagnostic"] },
+    { name: "heapSnapshots", cost: "high", allowedPassTypes: ["diagnostic"] },
+    { name: "gcDump", cost: "high", allowedPassTypes: ["diagnostic"] },
+];
+
+export function listCollectors(): CollectorDescriptor[] {
+    return [...IMPLEMENTED_COLLECTORS];
 }
 
-export function getCollector(name: string): Collector | undefined {
-    return registry.get(name);
-}
-
-// Listing-only prototypes; the pipeline creates fresh instances per rep.
-registerCollector(new ProcessSamplerCollector());
-
-/** Planned collectors from the design §14.3 catalog, for honest listing. */
+/** Catalog entries that still have no implementation in runPipeline. */
 export const PLANNED_COLLECTORS: Array<{ name: string; milestone: string }> = [
-    { name: "markers", milestone: "M1" },
-    { name: "sqlServerXEvents", milestone: "M4-rest" },
-    { name: "stsEnvelopeJournal", milestone: "M3" },
-    { name: "dotnetCounters", milestone: "M3/M5" },
-    { name: "otelMinimal", milestone: "M3" },
-    { name: "cdpExtHostProfile", milestone: "M5" },
-    { name: "cdpRendererTrace", milestone: "M5" },
-    { name: "cdpRendererProfile", milestone: "query-perf" },
-    { name: "dotnetTrace", milestone: "M5" },
-    { name: "wprEtw", milestone: "M5" },
-    { name: "vscodeDiag", milestone: "M5" },
+    { name: "otelMinimal", milestone: "future OpenTelemetry integration" },
+    { name: "vscodeDiag", milestone: "future VS Code diagnostics integration" },
 ];

@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 /**
  * Central-store integration tests (review addendum §10): the disposition
  * algebra (T-B1), the begin-lock race (T-B2), resume (T-B3), parity of the

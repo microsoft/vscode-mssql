@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 /**
  * Scenario parity (Chunk 4): a workflow graduates from in-product self-test
  * to CLI without a semantic rewrite. For metric families both hosts measure,

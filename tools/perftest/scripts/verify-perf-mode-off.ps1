@@ -1,4 +1,6 @@
 # Verifies zero perf-mode behavior when PERF_MODE is absent (harness guardrail 3).
+# Product-side PERF_MODE support is pending the core-observability change and
+# is not present on vscode-mssql main at the time this harness is imported.
 #
 # Launches the cached VS Code build with BOTH the product extension and the
 # perf driver loaded, with NO perf environment variables, while a decoy
@@ -10,7 +12,7 @@
 #
 # Note: without user interaction the product extension stays lazily
 # unactivated (same as production). The in-activation no-op path is enforced
-# by the PERF_MODE gate in src/perf/perfTelemetry.ts (module-load resolution).
+# by the pending PERF_MODE gate in src/perf/perfTelemetry.ts (module-load resolution).
 #
 # Usage: pwsh scripts/verify-perf-mode-off.ps1   (from tools/perftest)
 

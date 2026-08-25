@@ -2,7 +2,7 @@
 
 Implementation documentation for the MSSQL VS Code performance harness. The
 historical design lived outside the imported repository at
-`perftest-docs/mssql-vscode-perf-system-v2/MSSQL_VSCODE_PERF_SYSTEM_DESIGN.md`.
+the historical perf-system design, which is not imported into this repository.
 These documents describe what is actually **built**, how to use it, and where it
 deliberately diverges from or extends that design. See [`../UPSTREAM.md`](../UPSTREAM.md)
 for import provenance and current migration policy.

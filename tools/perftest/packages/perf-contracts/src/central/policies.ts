@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 /**
  * Upload-policy vocabulary for the central observability store (central
  * design §7, review addendum C-7/C-8, Appendix A/B).
@@ -44,12 +49,7 @@ export type DataClassification =
     | "unknown";
 
 export type RedactionHandling =
-    | "plain"
-    | "redacted"
-    | "digest"
-    | "tokenized"
-    | "truncated"
-    | "omitted";
+    "plain" | "redacted" | "digest" | "tokenized" | "truncated" | "omitted";
 
 /** A payload field after capture-policy application (structural copy). */
 export interface ClassifiedValueShape {
@@ -115,10 +115,7 @@ export type PolicyAction = "keep" | "digest" | "drop" | "refuse";
 export type CentralSourceKind = "perfRun" | "diagSession" | "featureTrace";
 
 export type UploadPolicyId =
-    | "team-default.v1"
-    | "team-names.v1"
-    | "elevated-support.v1"
-    | "ci-official.v1";
+    "team-default.v1" | "team-names.v1" | "elevated-support.v1" | "ci-official.v1";
 
 export interface UploadPolicy {
     policyId: UploadPolicyId;
@@ -207,11 +204,14 @@ export const UPLOAD_POLICIES: Readonly<Record<UploadPolicyId, UploadPolicy>> = O
 export const DEFAULT_UPLOAD_POLICY_ID: UploadPolicyId = "team-default.v1";
 
 // ---------------------------------------------------------------------------
-// Perf-twin column rules (addendum Appendix A — binding for goldens)
+// Perf-twin column overrides consulted directly by the projector
 // ---------------------------------------------------------------------------
 
 /**
- * Column-level actions that OVERRIDE the class-level rule.
+ * Column-level actions that OVERRIDE the class-level rule. Only columns read
+ * through projection.ts columnAction() belong here. Structural subtraction
+ * (output_dir/config_path/result_path, local comparison tables and uploader
+ * FKs) is enforced by the central DTO/DDL having no corresponding field.
  *  - "drop": never uploaded under this policy;
  *  - "digest": uploaded as a digest;
  *  - "keep": uploaded plaintext;
@@ -237,9 +237,6 @@ function allPolicies(action: ColumnAction): Readonly<Record<UploadPolicyId, Colu
 }
 
 export const PERF_TWIN_COLUMN_RULES: Readonly<Record<string, PerfTwinColumnRule>> = Object.freeze({
-    "runs.output_dir": { cls: "source.path", actions: allPolicies("drop") },
-    "runs.config_path": { cls: "source.path", actions: allPolicies("drop") },
-    "repetitions.result_path": { cls: "source.path", actions: allPolicies("drop") },
     "runs.machine_id": {
         cls: "source.path",
         actions: Object.freeze({
@@ -267,19 +264,6 @@ export const PERF_TWIN_COLUMN_RULES: Readonly<Record<string, PerfTwinColumnRule>
             "ci-official.v1": "drop" as ColumnAction,
         }),
     },
-    "baselines.notes": {
-        cls: "user.text",
-        actions: Object.freeze({
-            "team-default.v1": "drop" as ColumnAction,
-            "team-names.v1": "keep" as ColumnAction,
-            "elevated-support.v1": "keep" as ColumnAction,
-            "ci-official.v1": "drop" as ColumnAction,
-        }),
-    },
-    "artifacts.path": { cls: "source.path", actions: allPolicies("relativeOnly") },
-    "baselines.created_by": { cls: "user.text", actions: allPolicies("uploaderFk") },
-    "comparisons.*": { cls: "diagnostic.metadata", actions: allPolicies("localOnly") },
-    "comparison_metrics.*": { cls: "diagnostic.metadata", actions: allPolicies("localOnly") },
 });
 
 // ---------------------------------------------------------------------------

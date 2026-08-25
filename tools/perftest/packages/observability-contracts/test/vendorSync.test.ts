@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 /**
  * Vendor-sync guard (pre-branch stabilizer): the snapshot vendored into
  * vscode-mssql must be byte-identical to the generated output of THIS
@@ -6,9 +11,10 @@
  */
 
 import { describe, expect, test } from "vitest";
-import { execSync } from "child_process";
 import * as fs from "fs";
 import * as path from "path";
+import { format } from "prettier";
+import { generateSnapshot } from "../src/generator";
 
 const GENERATED = path.join(
     __dirname,
@@ -32,16 +38,25 @@ const VENDORED = path.join(
 );
 
 describe("vendored snapshot sync", () => {
-    test("generated output matches the copy vendored into vscode-mssql", () => {
+    const formatSnapshot = () =>
+        format(generateSnapshot(), {
+            parser: "typescript",
+            endOfLine: "lf",
+            printWidth: 100,
+            tabWidth: 4,
+        });
+
+    test("tracked generated output is fresh", async () => {
+        expect(fs.readFileSync(GENERATED, "utf8")).toBe(await formatSnapshot());
+    });
+
+    test("generated output matches the copy vendored into vscode-mssql", async () => {
         if (!fs.existsSync(VENDORED)) {
             // Standalone checkout of perftest without the sibling repo: nothing to
             // compare against — skip honestly rather than fake a pass.
             console.warn("vendored copy not found (standalone checkout) — skipped");
             return;
         }
-        // Regenerate from the current registry so the comparison reflects THIS
-        // tree, not a stale generated/ folder.
-        execSync("node dist/generate.js", { cwd: path.join(__dirname, ".."), stdio: "pipe" });
         // The vscode-mssql pre-commit hook prettier-formats the vendored copy
         // (whitespace + unquoting identifier-safe object keys), so normalize both
         // transformations away: any SEMANTIC drift (registry content, types,
@@ -51,11 +66,11 @@ describe("vendored snapshot sync", () => {
                 .replace(/"([A-Za-z_][A-Za-z0-9_]*)":/g, "$1:")
                 .replace(/\s+/g, "")
                 .replace(/,([}\])])/g, "$1");
-        const generated = normalize(fs.readFileSync(GENERATED, "utf8"));
+        const generated = normalize(await formatSnapshot());
         const vendored = normalize(fs.readFileSync(VENDORED, "utf8"));
         expect(
             generated === vendored,
-            "vendored snapshot is STALE — run `npm run build && npm run generate` here, then copy generated/typescript/observabilityContract.generated.ts to vscode-mssql/extensions/mssql/src/sharedInterfaces/",
+            "vendored snapshot is STALE — run `npm run build && npm run generate` here, then copy generated/typescript/observabilityContract.generated.ts to extensions/mssql/src/sharedInterfaces/",
         ).toBe(true);
     });
 });

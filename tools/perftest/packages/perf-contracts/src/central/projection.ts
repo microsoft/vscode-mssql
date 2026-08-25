@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 /**
  * Canonical projection: local ground truth → central row streams + preview
  * (central design §4/§7.3, review addendum C-1/C-4..C-10/C-15).
@@ -28,6 +33,7 @@ import {
     type CentralScenarioRow,
     type CentralValidationRow,
     CENTRAL_CONTRACT_VERSION,
+    CENTRAL_COLUMN_LIMITS,
     CENTRAL_PROJECTOR_VERSION,
     type UploadItemKind,
     type UploadItemPayload,
@@ -262,6 +268,34 @@ function toItems(
     return items;
 }
 
+function enforceColumnLimits(kind: UploadItemKind, rows: unknown[], notes: FieldNotes): unknown[] {
+    const limits = CENTRAL_COLUMN_LIMITS[kind];
+    if (!limits) {
+        return rows;
+    }
+
+    let valid = true;
+    for (const [rowIndex, row] of rows.entries()) {
+        if (!row || typeof row !== "object" || Array.isArray(row)) {
+            continue;
+        }
+        for (const [column, limit] of Object.entries(limits)) {
+            const value = (row as Record<string, unknown>)[column];
+            if (typeof value === "string" && value.length > limit) {
+                valid = false;
+                notes.refuse(
+                    `${kind}[${rowIndex}].${column}`,
+                    "diagnostic.metadata",
+                    `columnLimit:${limit}`,
+                );
+            }
+        }
+    }
+    // A refused projection is never uploaded. Omitting its rows here also
+    // ensures no digest is computed over data SQL Server cannot represent.
+    return valid ? rows : [];
+}
+
 function buildProjection(args: {
     kind: "perfRun" | "diagSession";
     naturalKey: string;
@@ -277,10 +311,11 @@ function buildProjection(args: {
     let ordinal = 0;
     const items: UploadItemPayload[] = [];
     for (const [kind, rows, chunkSize] of args.itemsByKind) {
-        if (rows.length === 0) {
+        const checkedRows = enforceColumnLimits(kind, rows, args.notes);
+        if (checkedRows.length === 0) {
             continue;
         }
-        const kindItems = toItems(kind, rows, chunkSize, ordinal);
+        const kindItems = toItems(kind, checkedRows, chunkSize, ordinal);
         ordinal += kindItems.length;
         items.push(...kindItems);
     }
@@ -366,7 +401,7 @@ function applyPolicyToPayload(
             continue;
         }
         let out: ClassifiedValueShape = field;
-        if (action === "digest" && field.handling === "plain") {
+        if (action === "digest" && (field.handling === "plain" || field.handling === "truncated")) {
             out = {
                 cls: field.cls,
                 handling: "digest",
@@ -732,19 +767,30 @@ export function projectPerfRun(
             end_utc: rep.endUnixNs ? unixNsToUtcIso(rep.endUnixNs) : null,
         });
 
-        for (const m of r.metrics) {
+        for (let metricIndex = 0; metricIndex < r.metrics.length; metricIndex++) {
+            const m = r.metrics[metricIndex]!;
+            const name = str(m["name"]);
+            const value = num(m["value"]);
+            const unit = str(m["unit"]);
+            const component = str(m["component"]);
+            const processRole = str(m["processRole"]);
+            const sourceName = str(m["source"]);
+            if (!name || value === null || !unit || !component || !processRole || !sourceName) {
+                notes.refuse(`metrics[${metricIndex}]`, "diagnostic.metadata", "invalidMetric");
+                continue;
+            }
             metricCount++;
             metricRows.push({
                 run_id: source.runId,
                 scenario_id: rep.scenarioId,
                 rep_id: rep.repId,
                 attempt_id: rep.attemptId,
-                name: str(m["name"]) ?? "",
-                value: num(m["value"]) ?? 0,
-                unit: str(m["unit"]) ?? "",
-                component: str(m["component"]) ?? "",
-                process_role: str(m["processRole"]) ?? "",
-                source: str(m["source"]) ?? "",
+                name,
+                value,
+                unit,
+                component,
+                process_role: processRole,
+                source: sourceName,
                 official: m["official"] ? 1 : 0,
                 lower_is_better: m["lowerIsBetter"] ? 1 : 0,
                 aggregation: str(m["aggregation"]),
@@ -762,14 +808,29 @@ export function projectPerfRun(
             });
         }
 
-        for (const v of r.validations) {
+        for (let validationIndex = 0; validationIndex < r.validations.length; validationIndex++) {
+            const v = r.validations[validationIndex]!;
+            const validationName = str(v["name"]);
+            const validationStatus = str(v["status"]);
+            if (
+                !validationName ||
+                !validationStatus ||
+                !["passed", "warning", "failed", "skipped"].includes(validationStatus)
+            ) {
+                notes.refuse(
+                    `validations[${validationIndex}]`,
+                    "diagnostic.metadata",
+                    "invalidValidation",
+                );
+                continue;
+            }
             validationRows.push({
                 run_id: source.runId,
                 scenario_id: rep.scenarioId,
                 rep_id: rep.repId,
                 attempt_id: rep.attemptId,
-                name: str(v["name"]) ?? "",
-                status: (str(v["status"]) ?? "skipped") as CentralValidationRow["status"],
+                name: validationName,
+                status: validationStatus as CentralValidationRow["status"],
                 message: str(v["message"]),
                 details_json:
                     v["details"] !== undefined && v["details"] !== null
@@ -778,10 +839,23 @@ export function projectPerfRun(
             });
         }
 
-        for (const a of r.artifacts) {
+        for (let artifactIndex = 0; artifactIndex < r.artifacts.length; artifactIndex++) {
+            const a = r.artifacts[artifactIndex]!;
             const rawPath = str(a["path"]) ?? "";
             if (isUnsafePath(rawPath)) {
                 notes.refuse("artifacts.path", "source.path", "absolutePath");
+                continue;
+            }
+            const retention = str(a["retention"]);
+            if (
+                !retention ||
+                !["always", "on-regression", "on-failure", "never"].includes(retention)
+            ) {
+                notes.refuse(
+                    `artifacts[${artifactIndex}].retention`,
+                    "diagnostic.metadata",
+                    "invalidArtifact",
+                );
                 continue;
             }
             const relative = `${rep.repDir}/${rawPath.replace(/\\/g, "/")}`;
@@ -792,7 +866,7 @@ export function projectPerfRun(
                 attempt_id: rep.attemptId,
                 kind: str(a["kind"]) ?? "",
                 relative_path: relative,
-                retention: (str(a["retention"]) ?? "always") as CentralArtifactRefRow["retention"],
+                retention: retention as CentralArtifactRefRow["retention"],
                 size_bytes: num(a["sizeBytes"]),
                 sha256: str(a["sha256"]),
                 content_type: str(a["contentType"]),

@@ -1,6 +1,11 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 import { describe, expect, it } from "vitest";
 
-import { ProcessSamplerCollector } from "../src/collectors/processSampler";
+import { parsePosixCpuTime, ProcessSamplerCollector } from "../src/collectors/processSampler";
 
 interface TestSample {
     timestampUnixNs: string;
@@ -13,6 +18,11 @@ interface TestSample {
 const MB = 1024 * 1024;
 
 describe("processSampler provider-fair totals", () => {
+    it("parses POSIX ps CPU times with or without an hours field", () => {
+        expect(parsePosixCpuTime("1:23.45")).toBeCloseTo(83.45);
+        expect(parsePosixCpuTime("2:01:23.45")).toBeCloseTo(7283.45);
+    });
+
     it("sums extensionHost + sts at aligned timestamps and excludes VS Code main", async () => {
         const collector = new ProcessSamplerCollector();
         const samples = (

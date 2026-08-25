@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 /**
  * Minimal `vscode` stub for unit tests: the scenario engine imports the module
  * at load; connection-free scenarios (noop, syntheticDelay, waits) exercise

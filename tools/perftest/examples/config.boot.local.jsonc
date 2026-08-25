@@ -1,10 +1,6 @@
-// Full-evaluation gate run (B7 close-out re-verification + multi-rep QS baseline).
-// Covers the standing gates: query-10k-results, debug-console-smoke,
-// querystudio-open, querystudio-query-10k — 3 official reps each (+1 warmup)
-// so querystudio-query-10k starts accruing multi-rep baseline history
-// (PROGRESS Entry 9 residual).
-// Run from the perftest repo root:
-//   node packages/perftest-cli/dist/cli.js run --config examples/config.eval.local.jsonc
+// Query Studio boot baseline: open the view with and without auto-run.
+// Run from the vscode-mssql root:
+//   npm run perftest -- run --config examples/config.boot.local.jsonc
 {
     "schemaVersion": 2,
     "runId": "auto",
@@ -17,24 +13,21 @@
         "quality": "stable",
         "launchMode": "directSpawn",
         "profileMode": "scenarioDefault",
-        "workspaceRoot": "./workspaces/perf",
+        "workspaceRoot": "../workspaces/perf",
         "extensions": [
             {
                 "id": "ms-mssql.mssql",
                 "source": "developmentPath",
-                "path": "../vscode-mssql/extensions/mssql",
+                "path": "../../../extensions/mssql",
             },
             {
                 "id": "perftest.mssql-perf-driver",
                 "source": "developmentPath",
-                "path": "./extensions/mssql-perf-driver",
+                "path": "../extensions/mssql-perf-driver",
             },
         ],
         "extraArgs": [],
-        "env": {
-            "MSSQL_SQLTOOLSSERVICE": "C:\\repos\\test\\sqltoolsservice\\src\\Microsoft.SqlTools.ServiceLayer\\bin\\Debug\\net10.0",
-            "PERF_DOTNET_PATH": "C:\\Program Files\\dotnet\\dotnet.exe",
-        },
+        "env": {},
     },
     "sql": {
         "provider": "external",
@@ -45,7 +38,7 @@
     },
     "environment": { "requireIdle": false },
     "diagnostics": { "markers": true, "processSampler": false, "otel": "off" },
-    "store": { "type": "sqlite", "path": "./perf.db" },
+    "store": { "type": "sqlite", "path": "../perf.db" },
     "regression": { "baseline": "none", "failOnRegression": false },
-    "output": { "dir": "./perf-runs", "keepArtifacts": "always" },
+    "output": { "dir": "../perf-runs", "keepArtifacts": "always" },
 }

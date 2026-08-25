@@ -11,6 +11,8 @@
  * markerSeen criteria resolve here.
  */
 
+import { validateTimerMs } from "./timer";
+
 export interface BusMarker {
     name: string;
     phase: string;
@@ -65,6 +67,7 @@ export class MarkerBus {
         afterUnixNs?: string,
         isCancelled?: () => boolean,
     ): Promise<BusMarker> {
+        const safeTimeoutMs = validateTimerMs(timeoutMs, 30000, `marker '${name}' timeout`);
         const existing = this.find(name, attrs, afterUnixNs);
         if (existing) {
             return Promise.resolve(existing);
@@ -98,11 +101,11 @@ export class MarkerBus {
                         : "";
                 reject(
                     new Error(
-                        `Timed out after ${timeoutMs}ms waiting for marker '${name}'${staleNote}. ` +
+                        `Timed out after ${safeTimeoutMs}ms waiting for marker '${name}'${staleNote}. ` +
                             `Last observed markers: ${tail || "(none)"} · ${this.markers.length} total on the bus`,
                     ),
                 );
-            }, timeoutMs);
+            }, safeTimeoutMs);
             const listener: Listener = (marker) => {
                 if (
                     marker.name === name &&

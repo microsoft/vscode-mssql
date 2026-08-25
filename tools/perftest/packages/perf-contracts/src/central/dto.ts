@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 /**
  * Central-store row DTOs and protocol shapes (central design §4.2/§5/§7.3,
  * review addendum C-1..C-10, §3).
@@ -221,6 +226,105 @@ export type UploadItemKind =
     | "diag_events"
     | "diag_gaps";
 
+/**
+ * Length limits owned by the projection contract. Stored-procedure JSON
+ * shredding deliberately uses nvarchar(max), so values are either accepted
+ * here or rejected by the destination column instead of being truncated.
+ */
+export const CENTRAL_COLUMN_LIMITS: Readonly<
+    Partial<Record<UploadItemKind, Readonly<Record<string, number>>>>
+> = {
+    runs: {
+        run_id: 100,
+        created_at_unix_ns: 30,
+        pass_type: 20,
+        status: 20,
+        config_hash: 100,
+        environment_hash: 100,
+        machine_id: 200,
+    },
+    run_repositories: { run_id: 100, repo: 200, sha: 80, branch: 200, remote: 400 },
+    environments: {
+        environment_hash: 100,
+        captured_at_unix_ns: 30,
+        machine_id: 200,
+        os_platform: 60,
+        os_version: 200,
+        cpu_model: 200,
+        vscode_version: 60,
+        sts_version: 60,
+        sql_image_digest: 200,
+        sql_snapshot: 200,
+    },
+    scenarios: {
+        scenario_id: 200,
+        display_name: 400,
+        owner: 200,
+        definition_hash: 100,
+    },
+    repetitions: {
+        run_id: 100,
+        scenario_id: 200,
+        status: 20,
+        trace_id: 80,
+        start_unix_ns: 30,
+        end_unix_ns: 30,
+    },
+    metrics: {
+        run_id: 100,
+        scenario_id: 200,
+        name: 200,
+        unit: 40,
+        component: 80,
+        process_role: 80,
+        source: 40,
+        aggregation: 40,
+        trace_id: 80,
+        span_id: 40,
+        start_unix_ns: 30,
+        end_unix_ns: 30,
+        confidence: 20,
+    },
+    validations: { run_id: 100, scenario_id: 200, name: 200, status: 20 },
+    artifact_refs: {
+        run_id: 100,
+        scenario_id: 200,
+        kind: 80,
+        relative_path: 400,
+        retention: 20,
+        sha256: 80,
+        content_type: 120,
+        created_at_unix_ns: 30,
+    },
+    diag_sessions: {
+        session_id: 100,
+        source: 30,
+        capture_mode: 40,
+        capture_policy_id: 120,
+        environment_hash: 100,
+        product_sha: 80,
+        status: 20,
+    },
+    diag_events: {
+        event_id: 80,
+        monotonic_ns: 40,
+        process: 40,
+        feature: 80,
+        kind: 40,
+        type: 200,
+        status: 40,
+        trace_id: 80,
+        cause_event_id: 80,
+        entity_kind: 40,
+        entity_ref: 200,
+        timing_class: 60,
+        cls_max: 80,
+        tags_json: 400,
+        payload_digest: 100,
+    },
+    diag_gaps: { gap_id: 80, reason: 40, backfill_status: 20 },
+};
+
 export interface UploadItemPayload {
     item_kind: UploadItemKind;
     item_ordinal: number;
@@ -296,12 +400,7 @@ export interface CentralProjection {
 // ---------------------------------------------------------------------------
 
 export type UploadDispositionKind =
-    | "proceed"
-    | "resume"
-    | "alreadyPresent"
-    | "reprojected"
-    | "extendCandidate"
-    | "refused";
+    "proceed" | "resume" | "alreadyPresent" | "reprojected" | "extendCandidate" | "refused";
 
 export interface UploadDisposition {
     disposition: UploadDispositionKind;

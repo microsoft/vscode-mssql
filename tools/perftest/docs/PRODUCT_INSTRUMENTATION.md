@@ -1,9 +1,11 @@
 # vscode-mssql instrumentation (PERF_MODE)
 
+> **Status:** The product-side instrumentation described here is not yet on
+> `main`; it lands with the core-observability and STS2-client changes. Paths
+> below are relative to `extensions/mssql/` once those changes merge.
+
 What the perf harness adds inside the product extension, where, and the rules
-that keep it invisible outside perf runs. Product changes live on branch
-`dev/karlb/perftest` of `vscode-mssql`; all paths below are relative to
-`extensions/mssql/`.
+that keep it invisible outside perf runs.
 
 ## The gate
 

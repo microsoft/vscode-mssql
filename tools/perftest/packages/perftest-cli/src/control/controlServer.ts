@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 /**
  * Local control server (design §9): a 127.0.0.1 HTTP server hosting
  *  - `ws://.../control` — the WebSocket control channel with the driver
@@ -11,6 +16,7 @@
  */
 
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
+import { timingSafeEqual } from "node:crypto";
 import { WebSocketServer, WebSocket } from "ws";
 import {
     nowUnixNs,
@@ -57,6 +63,8 @@ interface PendingWait<T> {
     timer: NodeJS.Timeout;
 }
 
+const MAX_CONTROL_PAYLOAD_BYTES = 4 * 1024 * 1024;
+
 export class ControlServer {
     private readonly http: Server;
     private readonly wss: WebSocketServer;
@@ -68,7 +76,13 @@ export class ControlServer {
     private waitingReady: PendingWait<ReadyMessage> | undefined;
     private waitingOutcome: PendingWait<ScenarioOutcome> | undefined;
     private pendingCalibration:
-        | { seq: number; t0UnixNs: string; resolve: (m: CalibrationPongMessage) => void }
+        | {
+              seq: number;
+              t0UnixNs: string;
+              resolve: (m: CalibrationPongMessage) => void;
+              reject: (error: Error) => void;
+              timer: NodeJS.Timeout;
+          }
         | undefined;
     readonly discoveredProcesses: ProcessDiscoveredMessage["payload"][] = [];
 
@@ -78,7 +92,11 @@ export class ControlServer {
         private readonly port: number,
     ) {
         this.http = http;
-        this.wss = new WebSocketServer({ server: http, path: "/control" });
+        this.wss = new WebSocketServer({
+            server: http,
+            path: "/control",
+            maxPayload: MAX_CONTROL_PAYLOAD_BYTES,
+        });
         this.wss.on("connection", (socket) => this.onConnection(socket));
         // Markers ingested from other processes (HTTP path: product extension,
         // STS, webview bridge) are relayed to the driver so its waitForMarker
@@ -133,9 +151,8 @@ export class ControlServer {
             return;
         }
         const auth = req.headers.authorization ?? "";
-        const url = new URL(req.url, `http://127.0.0.1:${this.port}`);
-        const token = auth.startsWith("Bearer ") ? auth.slice(7) : url.searchParams.get("token");
-        if (token !== this.options.token) {
+        const token = auth.startsWith("Bearer ") ? auth.slice(7) : undefined;
+        if (!tokenMatches(token, this.options.token)) {
             this.options.logger.warn("controlServer.markerAuthFailed");
             res.writeHead(401).end();
             return;
@@ -144,7 +161,7 @@ export class ControlServer {
         req.setEncoding("utf8");
         req.on("data", (chunk: string) => {
             body += chunk;
-            if (body.length > 4 * 1024 * 1024) {
+            if (body.length > MAX_CONTROL_PAYLOAD_BYTES) {
                 res.writeHead(413).end();
                 req.destroy();
             }
@@ -180,17 +197,23 @@ export class ControlServer {
         this.options.logger.debug("controlServer.connection");
         let authenticated = false;
         socket.on("message", (data) => {
-            let message: ControlMessage;
+            let parsed: unknown;
             try {
-                message = JSON.parse(String(data)) as ControlMessage;
+                parsed = JSON.parse(String(data));
             } catch {
                 this.options.logger.warn("controlServer.badJson");
                 return;
             }
+            if (!isControlMessageShape(parsed)) {
+                this.options.logger.warn("controlServer.badMessageShape");
+                socket.close(1007, "invalid control message");
+                return;
+            }
+            const message = parsed as ControlMessage;
             if (!authenticated) {
                 if (
                     message.kind === "hello" &&
-                    (message as HelloMessage).payload?.token === this.options.token
+                    tokenMatches((message as HelloMessage).payload.token, this.options.token)
                 ) {
                     if (this.driver) {
                         this.options.logger.warn(
@@ -228,6 +251,17 @@ export class ControlServer {
                 }
                 return;
             }
+            if (
+                message.runId !== this.options.runId ||
+                message.repId !== this.options.repId ||
+                message.scenarioId !== this.options.scenarioId
+            ) {
+                this.options.logger.warn("controlServer.envelopeMismatch", undefined, {
+                    kind: message.kind,
+                });
+                socket.close(1008, "control envelope mismatch");
+                return;
+            }
             this.onDriverMessage(message);
         });
         socket.on("close", (code, reason) => {
@@ -237,6 +271,7 @@ export class ControlServer {
                     code,
                     reason: String(reason),
                 });
+                this.rejectPending(new Error(`driver disconnected (${code}: ${String(reason)})`));
             }
         });
         socket.on("error", (error) => {
@@ -342,10 +377,12 @@ export class ControlServer {
         for (let seq = 0; seq < samples; seq++) {
             const t0 = nowUnixNs();
             const pong = await new Promise<CalibrationPongMessage>((resolve, reject) => {
-                const timer = setTimeout(
-                    () => reject(new Error(`calibration ping ${seq} timed out`)),
-                    timeoutMs,
-                );
+                const timer = setTimeout(() => {
+                    if (this.pendingCalibration?.seq === seq) {
+                        this.pendingCalibration = undefined;
+                    }
+                    reject(new Error(`calibration ping ${seq} timed out`));
+                }, timeoutMs);
                 this.pendingCalibration = {
                     seq,
                     t0UnixNs: t0,
@@ -353,6 +390,11 @@ export class ControlServer {
                         clearTimeout(timer);
                         resolve(m);
                     },
+                    reject: (error) => {
+                        clearTimeout(timer);
+                        reject(error);
+                    },
+                    timer,
                 };
                 this.send({
                     ...this.envelope("calibrationPing"),
@@ -423,6 +465,7 @@ export class ControlServer {
 
     async close(): Promise<void> {
         const span = this.options.logger.span("controlServer.close");
+        this.rejectPending(new Error("control server closed"));
         for (const client of this.wss.clients) {
             client.close(1000, "run complete");
         }
@@ -485,4 +528,95 @@ export class ControlServer {
             wait.resolve(value);
         }
     }
+
+    private rejectPending(error: Error): void {
+        this.waitingHello?.reject(error);
+        this.waitingReady?.reject(error);
+        this.waitingOutcome?.reject(error);
+        this.waitingHello = undefined;
+        this.waitingReady = undefined;
+        this.waitingOutcome = undefined;
+        if (this.pendingCalibration) {
+            clearTimeout(this.pendingCalibration.timer);
+            this.pendingCalibration.reject(error);
+            this.pendingCalibration = undefined;
+        }
+    }
+}
+
+export function isControlMessageShape(value: unknown): value is ControlMessage {
+    if (
+        !isRecord(value) ||
+        value["schemaVersion"] !== 1 ||
+        typeof value["kind"] !== "string" ||
+        typeof value["runId"] !== "string" ||
+        !Number.isInteger(value["repId"]) ||
+        typeof value["scenarioId"] !== "string" ||
+        typeof value["timestampUnixNs"] !== "string" ||
+        !isRecord(value["sender"]) ||
+        !isRecord(value["payload"])
+    ) {
+        return false;
+    }
+    const payload = value["payload"];
+    switch (value["kind"]) {
+        case "hello":
+            return (
+                typeof payload["token"] === "string" &&
+                Number.isInteger(payload["extensionHostPid"]) &&
+                (payload["vscodeVersion"] === undefined ||
+                    typeof payload["vscodeVersion"] === "string")
+            );
+        case "ready":
+            return payload["checks"] === undefined || Array.isArray(payload["checks"]);
+        case "scenarioStarted":
+            return true;
+        case "scenarioCompleted":
+            return Array.isArray(payload["successChecks"]) && Array.isArray(payload["steps"]);
+        case "scenarioFailed":
+            return typeof payload["reason"] === "string";
+        case "marker":
+            return (
+                isRecord(payload["marker"]) &&
+                typeof payload["marker"]["name"] === "string" &&
+                typeof payload["marker"]["timestampUnixNs"] === "string"
+            );
+        case "calibrationPong":
+            return (
+                typeof payload["seq"] === "number" &&
+                typeof payload["t0UnixNs"] === "string" &&
+                typeof payload["e1UnixNs"] === "string" &&
+                typeof payload["e2UnixNs"] === "string"
+            );
+        case "processDiscovered":
+            return (
+                typeof payload["role"] === "string" &&
+                Number.isInteger(payload["pid"]) &&
+                typeof payload["name"] === "string" &&
+                typeof payload["reportedBy"] === "string" &&
+                Array.isArray(payload["discoveryMethods"])
+            );
+        case "artifactHint":
+            return typeof payload["kind"] === "string" && typeof payload["path"] === "string";
+        case "heartbeat":
+            return Number.isInteger(payload["seq"]);
+        case "error":
+            return typeof payload["message"] === "string";
+        default:
+            return false;
+    }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function tokenMatches(candidate: string | undefined, expected: string): boolean {
+    if (candidate === undefined) return false;
+    const candidateBytes = Buffer.from(candidate);
+    const expectedBytes = Buffer.from(expected);
+    return (
+        candidateBytes.length === expectedBytes.length &&
+        timingSafeEqual(candidateBytes, expectedBytes)
+    );
 }

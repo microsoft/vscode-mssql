@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 /**
  * `perftest central report` — a static, self-contained HTML report over the
  * central store (central design §9, CENT-4 local-visualization directive).
@@ -10,7 +15,15 @@
 
 import { writeFileSync } from "node:fs";
 import { trendChart } from "../report/charts";
-import { dataTable, kpiRow, pageShell, pill, section, type PillKind } from "../report/htmlShell";
+import {
+    dataTable,
+    esc,
+    kpiRow,
+    pageShell,
+    pill,
+    section,
+    type PillKind,
+} from "../report/htmlShell";
 import type { CentralClient } from "./centralClient";
 
 interface TrendKey {
@@ -77,13 +90,13 @@ export async function renderCentralReport(client: CentralClient, outPath: string
     );
 
     const regressionRows = regressions.map((r) => [
-        String(r["scenario_id"]),
-        String(r["metric_name"]),
+        esc(String(r["scenario_id"])),
+        esc(String(r["metric_name"])),
         verdictPill(String(r["verdict"])),
         r["delta_pct"] === null ? "—" : `${Number(r["delta_pct"]).toFixed(1)}%`,
         `${fmt(r["latest_median"])} ${String(r["unit"])}`,
         `${fmt(r["prior_mean"])} (${String(r["prior_runs"] ?? 0)} runs)`,
-        String(r["latest_run_id"]),
+        esc(String(r["latest_run_id"])),
     ]);
     sections.push(
         section(
@@ -110,8 +123,13 @@ export async function renderCentralReport(client: CentralClient, outPath: string
     for (const key of trendKeys) {
         const series = await client.query<Record<string, unknown>>(
             `SELECT run_id, run_created_at_utc, median_value, samples
-       FROM central.trend(N'${key.scenario_id.replace(/'/g, "''")}', N'${key.name.replace(/'/g, "''")}', N'${key.environment_hash.replace(/'/g, "''")}')
+       FROM central.trend(@scenario_id, @metric_name, @environment_hash)
        ORDER BY run_created_at_utc`,
+            {
+                scenario_id: key.scenario_id,
+                metric_name: key.name,
+                environment_hash: key.environment_hash,
+            },
         );
         if (series.length < 2) {
             continue;
@@ -156,11 +174,11 @@ export async function renderCentralReport(client: CentralClient, outPath: string
                           { label: "last session (UTC)" },
                       ],
                       sessionsByBuild.map((s) => [
-                          String(s["product_sha"]).slice(0, 12),
-                          String(s["sessions"]),
-                          String(s["events"]),
-                          String(s["gaps"]),
-                          String(s["last_session_utc"]).slice(0, 19),
+                          esc(String(s["product_sha"]).slice(0, 12)),
+                          esc(String(s["sessions"])),
+                          esc(String(s["events"])),
+                          esc(String(s["gaps"])),
+                          esc(String(s["last_session_utc"]).slice(0, 19)),
                       ]),
                   ),
         ),
@@ -182,14 +200,14 @@ export async function renderCentralReport(client: CentralClient, outPath: string
                     { label: "reason" },
                 ],
                 uploads.map((u) => [
-                    String(u["upload_batch_id"]),
-                    String(u["source_kind"]),
-                    String(u["natural_key"]),
+                    esc(String(u["upload_batch_id"])),
+                    esc(String(u["source_kind"])),
+                    esc(String(u["natural_key"])),
                     statusPill(String(u["status"])),
-                    String(u["tool"]),
-                    String(u["upload_policy_id"]),
-                    u["committed_at_utc"] ? String(u["committed_at_utc"]).slice(0, 19) : "—",
-                    u["outcome_reason"] ? String(u["outcome_reason"]) : "—",
+                    esc(String(u["tool"])),
+                    esc(String(u["upload_policy_id"])),
+                    u["committed_at_utc"] ? esc(String(u["committed_at_utc"]).slice(0, 19)) : "—",
+                    u["outcome_reason"] ? esc(String(u["outcome_reason"])) : "—",
                 ]),
             ),
         ),
@@ -211,13 +229,13 @@ export async function renderCentralReport(client: CentralClient, outPath: string
                         { label: "error" },
                     ],
                     failures.map((f) => [
-                        String(f["upload_batch_id"]),
-                        String(f["source_kind"]),
-                        String(f["natural_key"]),
+                        esc(String(f["upload_batch_id"])),
+                        esc(String(f["source_kind"])),
+                        esc(String(f["natural_key"])),
                         statusPill(String(f["status"])),
-                        f["outcome_reason"] ? String(f["outcome_reason"]) : "—",
-                        f["item_kind"] ? String(f["item_kind"]) : "—",
-                        f["error_code"] ? String(f["error_code"]) : "—",
+                        f["outcome_reason"] ? esc(String(f["outcome_reason"])) : "—",
+                        f["item_kind"] ? esc(String(f["item_kind"])) : "—",
+                        f["error_code"] ? esc(String(f["error_code"])) : "—",
                     ]),
                 ),
             ),

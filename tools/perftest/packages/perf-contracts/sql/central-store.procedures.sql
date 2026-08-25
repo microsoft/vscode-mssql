@@ -248,9 +248,9 @@ BEGIN
         SELECT @upload_batch_id, j.run_id, j.created_at_unix_ns, j.created_at_utc,
                j.pass_type, j.status, j.config_hash, j.environment_hash, j.machine_id, j.notes
         FROM OPENJSON(@payload) WITH (
-            run_id nvarchar(100), created_at_unix_ns nvarchar(30), created_at_utc datetime2(3),
-            pass_type nvarchar(20), status nvarchar(20), config_hash nvarchar(100),
-            environment_hash nvarchar(100), machine_id nvarchar(200), notes nvarchar(max)
+            run_id nvarchar(max), created_at_unix_ns nvarchar(max), created_at_utc datetime2(3),
+            pass_type nvarchar(max), status nvarchar(max), config_hash nvarchar(max),
+            environment_hash nvarchar(max), machine_id nvarchar(max), notes nvarchar(max)
         ) j;
         SET @inserted = @@ROWCOUNT;
     END
@@ -259,8 +259,8 @@ BEGIN
         INSERT INTO central.run_repositories (upload_batch_id, run_id, repo, sha, branch, dirty, remote)
         SELECT @upload_batch_id, j.run_id, j.repo, j.sha, j.branch, j.dirty, j.remote
         FROM OPENJSON(@payload) WITH (
-            run_id nvarchar(100), repo nvarchar(200), sha nvarchar(80),
-            branch nvarchar(200), dirty bit, remote nvarchar(400)
+            run_id nvarchar(max), repo nvarchar(max), sha nvarchar(max),
+            branch nvarchar(max), dirty bit, remote nvarchar(max)
         ) j;
         SET @inserted = @@ROWCOUNT;
     END
@@ -275,11 +275,11 @@ BEGIN
                j.memory_total_mb, j.vscode_version, j.extension_versions_json, j.sts_version,
                j.sql_image_digest, j.sql_snapshot, j.config_fingerprint_json
         FROM OPENJSON(@payload) WITH (
-            environment_hash nvarchar(100), captured_at_unix_ns nvarchar(30), captured_at_utc datetime2(3),
-            machine_id nvarchar(200), os_platform nvarchar(60), os_version nvarchar(200),
-            cpu_model nvarchar(200), logical_cores int, memory_total_mb int,
-            vscode_version nvarchar(60), extension_versions_json nvarchar(max),
-            sts_version nvarchar(60), sql_image_digest nvarchar(200), sql_snapshot nvarchar(200),
+            environment_hash nvarchar(max), captured_at_unix_ns nvarchar(max), captured_at_utc datetime2(3),
+            machine_id nvarchar(max), os_platform nvarchar(max), os_version nvarchar(max),
+            cpu_model nvarchar(max), logical_cores int, memory_total_mb int,
+            vscode_version nvarchar(max), extension_versions_json nvarchar(max),
+            sts_version nvarchar(max), sql_image_digest nvarchar(max), sql_snapshot nvarchar(max),
             config_fingerprint_json nvarchar(max)
         ) j;
         SET @inserted = @@ROWCOUNT;
@@ -289,8 +289,8 @@ BEGIN
         INSERT INTO central.scenarios (upload_batch_id, scenario_id, display_name, owner, tags_json, definition_hash)
         SELECT @upload_batch_id, j.scenario_id, j.display_name, j.owner, j.tags_json, j.definition_hash
         FROM OPENJSON(@payload) WITH (
-            scenario_id nvarchar(200), display_name nvarchar(400), owner nvarchar(200),
-            tags_json nvarchar(max), definition_hash nvarchar(100)
+            scenario_id nvarchar(max), display_name nvarchar(max), owner nvarchar(max),
+            tags_json nvarchar(max), definition_hash nvarchar(max)
         ) j;
         SET @inserted = @@ROWCOUNT;
     END
@@ -301,9 +301,9 @@ BEGIN
         SELECT @upload_batch_id, j.run_id, j.scenario_id, j.rep_id, j.attempt_id,
                j.status, j.warmup, j.trace_id, j.start_unix_ns, j.end_unix_ns, j.start_utc, j.end_utc
         FROM OPENJSON(@payload) WITH (
-            run_id nvarchar(100), scenario_id nvarchar(200), rep_id int, attempt_id int,
-            status nvarchar(20), warmup bit, trace_id nvarchar(80),
-            start_unix_ns nvarchar(30), end_unix_ns nvarchar(30),
+            run_id nvarchar(max), scenario_id nvarchar(max), rep_id int, attempt_id int,
+            status nvarchar(max), warmup bit, trace_id nvarchar(max),
+            start_unix_ns nvarchar(max), end_unix_ns nvarchar(max),
             start_utc datetime2(3), end_utc datetime2(3)
         ) j;
         SET @inserted = @@ROWCOUNT;
@@ -318,11 +318,11 @@ BEGIN
                j.lower_is_better, j.aggregation, j.trace_id, j.span_id, j.start_unix_ns,
                j.end_unix_ns, j.confidence, j.tags_json, j.derivation_json
         FROM OPENJSON(@payload) WITH (
-            run_id nvarchar(100), scenario_id nvarchar(200), rep_id int, attempt_id int,
-            name nvarchar(200), value float, unit nvarchar(40), component nvarchar(80),
-            process_role nvarchar(80), source nvarchar(40), official bit, lower_is_better bit,
-            aggregation nvarchar(40), trace_id nvarchar(80), span_id nvarchar(40),
-            start_unix_ns nvarchar(30), end_unix_ns nvarchar(30), confidence nvarchar(20),
+            run_id nvarchar(max), scenario_id nvarchar(max), rep_id int, attempt_id int,
+            name nvarchar(max), value float, unit nvarchar(max), component nvarchar(max),
+            process_role nvarchar(max), source nvarchar(max), official bit, lower_is_better bit,
+            aggregation nvarchar(max), trace_id nvarchar(max), span_id nvarchar(max),
+            start_unix_ns nvarchar(max), end_unix_ns nvarchar(max), confidence nvarchar(max),
             tags_json nvarchar(max), derivation_json nvarchar(max)
         ) j;
         SET @inserted = @@ROWCOUNT;
@@ -334,8 +334,8 @@ BEGIN
         SELECT @upload_batch_id, j.run_id, j.scenario_id, j.rep_id, j.attempt_id,
                j.name, j.status, j.message, j.details_json
         FROM OPENJSON(@payload) WITH (
-            run_id nvarchar(100), scenario_id nvarchar(200), rep_id int, attempt_id int,
-            name nvarchar(200), status nvarchar(20), message nvarchar(max), details_json nvarchar(max)
+            run_id nvarchar(max), scenario_id nvarchar(max), rep_id int, attempt_id int,
+            name nvarchar(max), status nvarchar(max), message nvarchar(max), details_json nvarchar(max)
         ) j;
         SET @inserted = @@ROWCOUNT;
     END
@@ -347,10 +347,10 @@ BEGIN
                j.kind, j.relative_path, j.retention, j.size_bytes, j.sha256, j.content_type,
                j.created_at_unix_ns, j.created_at_utc
         FROM OPENJSON(@payload) WITH (
-            run_id nvarchar(100), scenario_id nvarchar(200), rep_id int, attempt_id int,
-            kind nvarchar(80), relative_path nvarchar(400), retention nvarchar(20),
-            size_bytes bigint, sha256 nvarchar(80), content_type nvarchar(120),
-            created_at_unix_ns nvarchar(30), created_at_utc datetime2(3)
+            run_id nvarchar(max), scenario_id nvarchar(max), rep_id int, attempt_id int,
+            kind nvarchar(max), relative_path nvarchar(max), retention nvarchar(max),
+            size_bytes bigint, sha256 nvarchar(max), content_type nvarchar(max),
+            created_at_unix_ns nvarchar(max), created_at_utc datetime2(3)
         ) j;
         SET @inserted = @@ROWCOUNT;
     END
@@ -363,11 +363,11 @@ BEGIN
                j.capture_policy_id, @policy, j.created_utc, j.updated_utc, j.event_count, j.gap_count,
                j.source_size_bytes, j.provenance_json, j.environment_hash, j.product_sha, j.status
         FROM OPENJSON(@payload) WITH (
-            session_id nvarchar(100), source nvarchar(30), capture_mode nvarchar(40),
-            capture_policy_id nvarchar(120), created_utc datetime2(3), updated_utc datetime2(3),
+            session_id nvarchar(max), source nvarchar(max), capture_mode nvarchar(max),
+            capture_policy_id nvarchar(max), created_utc datetime2(3), updated_utc datetime2(3),
             event_count int, gap_count int, source_size_bytes bigint,
-            provenance_json nvarchar(max), environment_hash nvarchar(100),
-            product_sha nvarchar(80), status nvarchar(20)
+            provenance_json nvarchar(max), environment_hash nvarchar(max),
+            product_sha nvarchar(max), status nvarchar(max)
         ) j;
         SET @inserted = @@ROWCOUNT;
     END
@@ -394,13 +394,13 @@ BEGIN
                    j.duration_ms, j.timing_class, j.cls_max, j.cls_rank, j.cls_redacted_fields,
                    j.tags_json, j.payload_json, j.payload_digest
             FROM OPENJSON(@payload) WITH (
-                seq bigint, event_id nvarchar(80), epoch_ms bigint, event_time_utc datetime2(3),
-                monotonic_ns nvarchar(40), process nvarchar(40), pid int, feature nvarchar(80),
-                kind nvarchar(40), type nvarchar(200), status nvarchar(40), trace_id nvarchar(80),
-                cause_event_id nvarchar(80), entity_kind nvarchar(40), entity_ref nvarchar(200),
-                duration_ms float, timing_class nvarchar(60), cls_max nvarchar(80), cls_rank int,
+                seq bigint, event_id nvarchar(max), epoch_ms bigint, event_time_utc datetime2(3),
+                monotonic_ns nvarchar(max), process nvarchar(max), pid int, feature nvarchar(max),
+                kind nvarchar(max), type nvarchar(max), status nvarchar(max), trace_id nvarchar(max),
+                cause_event_id nvarchar(max), entity_kind nvarchar(max), entity_ref nvarchar(max),
+                duration_ms float, timing_class nvarchar(max), cls_max nvarchar(max), cls_rank int,
                 cls_redacted_fields int, tags_json nvarchar(max),
-                payload_json nvarchar(max), payload_digest nvarchar(100)
+                payload_json nvarchar(max), payload_digest nvarchar(max)
             ) j;
             SET @inserted = @@ROWCOUNT;
         END
@@ -412,8 +412,8 @@ BEGIN
                    j.dropped_count, j.reason, j.backfill_status, j.first_available_seq,
                    j.epoch_ms, j.gap_time_utc
             FROM OPENJSON(@payload) WITH (
-                gap_id nvarchar(80), from_seq bigint, through_seq bigint, dropped_count int,
-                reason nvarchar(40), backfill_status nvarchar(20), first_available_seq bigint,
+                gap_id nvarchar(max), from_seq bigint, through_seq bigint, dropped_count int,
+                reason nvarchar(max), backfill_status nvarchar(max), first_available_seq bigint,
                 epoch_ms bigint, gap_time_utc datetime2(3)
             ) j;
             SET @inserted = @@ROWCOUNT;
@@ -565,6 +565,24 @@ BEGIN
         SET @outcome = N'alreadyPresent';
     END
     ELSE IF @e_source = @source_digest
+         AND @e_contract = @contract AND @e_projector = @projector AND @e_policy = @policy
+    BEGIN
+        -- The same projector and policy produced different rows for the same
+        -- source while this writer staged. Mirror usp_begin_upload and retain
+        -- the mismatch as evidence instead of replacing current truth.
+        UPDATE central.upload_batches
+        SET status = N'refused', outcome_reason = N'projectionMismatch'
+        WHERE upload_batch_id = @upload_batch_id;
+        COMMIT TRAN;
+        SELECT @upload_batch_id AS upload_batch_id, N'refused' AS outcome,
+               N'projectionMismatch' AS reason_code, @kind AS source_kind,
+               @natural_key AS natural_key, @policy AS upload_policy_id,
+               NULL AS row_counts_json, @source_digest AS source_digest,
+               @content_digest AS content_digest, @projection_digest AS projection_digest,
+               @preview_digest AS preview_digest, NULL AS committed_at_utc;
+        RETURN;
+    END
+    ELSE IF @e_source = @source_digest
     BEGIN
         -- Legitimate re-projection (newer projector or different policy).
         UPDATE central.central_entities
@@ -573,8 +591,7 @@ BEGIN
             projection_digest = @projection_digest, upload_policy_id = @policy,
             updated_at_utc = sysutcdatetime()
         WHERE entity_id = @e_entity_id;
-        SET @outcome = CASE WHEN @e_projector = @projector AND @e_contract = @contract AND @e_policy = @policy
-                            THEN N'committed' ELSE N'reprojected' END;
+        SET @outcome = N'reprojected';
     END
     ELSE
     BEGIN
@@ -708,8 +725,9 @@ AS
 BEGIN
     SET NOCOUNT ON; SET XACT_ABORT ON;
 
-    IF IS_ROLEMEMBER(N'central_ci') = 0 AND IS_ROLEMEMBER(N'db_owner') = 0
-       AND IS_SRVROLEMEMBER(N'sysadmin') = 0
+    IF ISNULL(IS_ROLEMEMBER(N'central_ci'), 0) = 0
+       AND ISNULL(IS_ROLEMEMBER(N'db_owner'), 0) = 0
+       AND ISNULL(IS_SRVROLEMEMBER(N'sysadmin'), 0) = 0
         THROW 53040, N'usp_set_baseline: caller is not central_ci or admin', 1;
 
     IF NOT EXISTS (SELECT 1 FROM central.central_entities
@@ -762,7 +780,8 @@ BEGIN
     SELECT b.upload_batch_id
     FROM central.upload_batches b
     WHERE b.started_at_utc < DATEADD(day, -@orphan_after_days, @now)
-      AND b.status IN (N'abandoned', N'failed', N'refused', N'reprojected', N'committed', N'extended')
+      AND b.status IN (N'abandoned', N'failed', N'refused', N'reprojected', N'committed',
+                       N'extended', N'alreadyPresent')
       AND NOT EXISTS (SELECT 1 FROM central.central_entities e WHERE e.current_batch_id = b.upload_batch_id)
       AND EXISTS (SELECT 1 FROM central.upload_items i WHERE i.upload_batch_id = b.upload_batch_id);
     SET @orphan_batches = (SELECT COUNT(*) FROM @orphans);
@@ -788,7 +807,9 @@ BEGIN
     DECLARE @aged TABLE (session_sk int PRIMARY KEY);
     INSERT INTO @aged
     SELECT s.session_sk FROM central.diag_sessions s
+    JOIN central.upload_batches b ON b.upload_batch_id = s.upload_batch_id
     WHERE s.created_utc < DATEADD(day, -@diag_event_days, @now)
+      AND b.status <> N'started'
       AND EXISTS (SELECT 1 FROM central.diag_events e WHERE e.session_sk = s.session_sk);
     SET @aged_sessions = (SELECT COUNT(*) FROM @aged);
     IF @aged_sessions > 0

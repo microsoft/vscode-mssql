@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 /**
  * Scenario registry (design §7/§8). Scenario definitions are data
  * (ScenarioSpec) executed by the driver's step engine; the registry tracks
@@ -11,11 +16,7 @@ import type {
 } from "@mssqlperf/contracts";
 
 export type ScenarioMaturity =
-    | "exploratory"
-    | "diagnostic"
-    | "measurementCandidate"
-    | "ciGating"
-    | "releaseGate";
+    "exploratory" | "diagnostic" | "measurementCandidate" | "ciGating" | "releaseGate";
 
 export interface RegisteredScenario {
     spec: ScenarioSpec;
@@ -1357,7 +1358,7 @@ register({
 });
 
 // ---------------------------------------------------------------------------
-// QO-9a result-shape scenarios (coding-docs/query-optimization EXECUTION_PLAN):
+// QO-9a result-shape scenarios (historical query-optimization plan, not imported):
 // Query Studio under the shapes DBAs actually hit — deep results, wide grids,
 // huge cells, message floods, many result sets. All follow the
 // querystudio-query-10k discipline: activation-time preview gates in
@@ -3770,7 +3771,7 @@ register({
 });
 
 // ---------------------------------------------------------------------------
-// C2D-8 queryresults-* scenarios (coding-docs/chat-to-data PROGRESS): the
+// C2D-8 queryresults-* scenarios (historical chat-to-data plan, not imported): the
 // snapshot/pin/transform platform under the QO-9a fixtures. Exploratory,
 // wallclock unofficial — like the querystudio shapes, these accrue baselines
 // before any budget hardens. Pinning rides the mssql.queryStudio.pinAllResults
@@ -4016,7 +4017,7 @@ function registerSpatialActivation(args: {
                     withinMeasuredWindow: true,
                 },
                 {
-                    name: "mssql.queryResults.spatial.render.firstPaint",
+                    name: "mssql.queryResults.spatial.render.toFirstPaint",
                     source: "marker",
                     official: false,
                     lowerIsBetter: true,

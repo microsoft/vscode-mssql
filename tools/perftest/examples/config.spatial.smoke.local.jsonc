@@ -19,24 +19,21 @@
         "quality": "stable",
         "launchMode": "directSpawn",
         "profileMode": "scenarioDefault",
-        "workspaceRoot": "./workspaces/perf",
+        "workspaceRoot": "../workspaces/perf",
         "extensions": [
             {
                 "id": "ms-mssql.mssql",
                 "source": "developmentPath",
-                "path": "../vscode-mssql/extensions/mssql",
+                "path": "../../../extensions/mssql",
             },
             {
                 "id": "perftest.mssql-perf-driver",
                 "source": "developmentPath",
-                "path": "./extensions/mssql-perf-driver",
+                "path": "../extensions/mssql-perf-driver",
             },
         ],
         "extraArgs": [],
-        "env": {
-            "MSSQL_SQLTOOLSSERVICE": "C:\\repos\\test\\sqltoolsservice\\src\\Microsoft.SqlTools.ServiceLayer\\bin\\Debug\\net10.0",
-            "PERF_DOTNET_PATH": "C:\\Program Files\\dotnet\\dotnet.exe",
-        },
+        "env": {},
     },
     "sql": {
         "provider": "external",
@@ -48,7 +45,7 @@
     },
     "environment": { "requireIdle": false },
     "diagnostics": { "markers": true, "processSampler": false, "otel": "off" },
-    "store": { "type": "sqlite", "path": "./perf.db" },
+    "store": { "type": "sqlite", "path": "../perf.db" },
     "regression": { "baseline": "none", "failOnRegression": false },
-    "output": { "dir": "./perf-runs", "keepArtifacts": "always" },
+    "output": { "dir": "../perf-runs", "keepArtifacts": "always" },
 }

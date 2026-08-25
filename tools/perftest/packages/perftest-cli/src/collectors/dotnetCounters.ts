@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 /**
  * dotnetCounters collector (Phase-3 12.4, diagnostic only): live time-series
  * of STS runtime + sts2 counters via `dotnet-counters collect`.
@@ -33,7 +38,7 @@ export class DotnetCountersCollector implements Collector {
                 encoding: "utf8",
                 timeout: 15_000,
                 windowsHide: true,
-                shell: process.platform === "win32",
+                shell: false,
             });
             this.available = true;
             return [{ name: "dotnetCountersAvailable", status: "passed" }];
@@ -78,17 +83,29 @@ export class DotnetCountersCollector implements Collector {
             {
                 stdio: ["ignore", "pipe", "pipe"],
                 windowsHide: true,
-                shell: process.platform === "win32",
+                shell: false,
             },
         );
-        this.child.stdout?.pipe(toolLog);
-        this.child.stderr?.pipe(toolLog);
+        let toolLogEnded = false;
+        const endToolLog = () => {
+            if (!toolLogEnded) {
+                toolLogEnded = true;
+                toolLog.end();
+            }
+        };
+        toolLog.on("error", (error) => {
+            ctx.logger.warn("dotnetCounters.logFailed", String(error));
+        });
+        this.child.stdout?.pipe(toolLog, { end: false });
+        this.child.stderr?.pipe(toolLog, { end: false });
         this.child.on("error", (error) => {
             ctx.logger.warn("dotnetCounters.spawnFailed", String(error));
             this.child = undefined;
+            endToolLog();
         });
         this.child.on("exit", (code) => {
             ctx.logger.info("dotnetCounters.exited", undefined, { code });
+            endToolLog();
         });
     }
 

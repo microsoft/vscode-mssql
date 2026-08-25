@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 /**
  * Run pipeline (design §9.2 lifecycle, §22 output layout): for each scenario
  * repetition — provision dirs, start control server + marker sink, launch
@@ -44,7 +49,7 @@ import type { LoadedConfig } from "../config/loadConfig";
 import { ControlServer } from "../control/controlServer";
 import { MarkerSink } from "../markers/markerSink";
 import { resolveVscode, type ResolvedVscode } from "../launch/resolveVscode";
-import { spawnVscode } from "../launch/spawnVscode";
+import { spawnVscode, type LaunchedVscode } from "../launch/spawnVscode";
 import {
     captureEnvironment,
     environmentRelevantConfig,
@@ -113,243 +118,294 @@ export async function executeRun(options: RunOptions): Promise<RunSummary> {
         specs.push(registered.spec);
     }
 
-    // --- Run directory + config snapshot --------------------------------------
-    const runDir = resolve(config.output.dir, runId);
-    mkdirSync(runDir, { recursive: true });
-    writeFileSync(join(runDir, "run-config.snapshot.jsonc"), loaded.rawText, "utf8");
-
-    // --- Resolve VS Code + driver extension -----------------------------------
-    const vscodeBuild = await resolveVscode(config.vscode.version, logger.child("launch"));
-    const devPaths: string[] = [];
-    const extensionVersions: Record<string, string> = {};
-    for (const ext of config.vscode.extensions) {
-        if (ext.source === "developmentPath") {
-            // Relative paths resolve against the current working directory — run
-            // perftest from the monorepo root (documented in RUNNING_TESTS.md).
-            const extPath = resolve(ext.path);
-            const pkgPath = join(extPath, "package.json");
-            if (!existsSync(pkgPath)) {
-                throw new RunConfigError(
-                    `Extension developmentPath has no package.json: ${extPath}`,
-                );
-            }
-            const pkg = JSON.parse(readFileSync(pkgPath, "utf8")) as {
-                name: string;
-                version: string;
-                main?: string;
-            };
-            const mainFile = pkg.main
-                ? join(extPath, pkg.main.endsWith(".js") ? pkg.main : `${pkg.main}.js`)
-                : undefined;
-            if (mainFile && !existsSync(mainFile)) {
-                throw new RunConfigError(
-                    `Extension '${pkg.name}' at ${extPath} is not built (missing ${pkg.main})`,
-                );
-            }
-            devPaths.push(extPath);
-            extensionVersions[ext.id] = pkg.version;
-        } else {
-            throw new RunConfigError(
-                `Extension source '${ext.source}' is not supported yet (developmentPath only in M1)`,
-            );
-        }
-    }
-
-    const configFingerprint = environmentRelevantConfig(config);
-    const environment = captureEnvironment({
-        vscode: vscodeBuild,
-        extensionVersions,
-        sql: {
-            ...(config.sql.imageDigest !== undefined
-                ? { imageDigest: config.sql.imageDigest }
-                : {}),
-            snapshot: config.sql.snapshot,
-            cacheMode: config.sql.cacheMode,
-            provider: config.sql.provider,
-        },
-        configFingerprint,
-        passType,
-    });
-    writeFileSync(join(runDir, "environment.json"), JSON.stringify(environment, null, 2), "utf8");
-
-    const git: GitRepoInfo[] = [];
-    const vscodeMssqlRoot = resolve(options.harnessRoot, "..", "..");
-    for (const [name, path] of [
-        ["perftest", options.harnessRoot],
-        ["vscode-mssql", vscodeMssqlRoot],
-        ["sqltoolsservice", resolve(vscodeMssqlRoot, "..", "sqltoolsservice")],
-    ] as const) {
-        const info = getGitInfo(path, logger, name);
-        if (info) git.push(info);
-    }
-
-    // --- Store -----------------------------------------------------------------
     const store =
         config.store.type === "sqlite"
             ? PerfStore.open(resolve(config.store.path ?? "./perf.db"), logger.child("store"))
             : undefined;
-    store?.upsertEnvironment({
-        environmentHash: environment.environmentHash,
-        capturedAtUnixNs: nowUnixNs(),
-        machineId: environment.machineId ?? "unknown",
-        osPlatform: String((environment.os as Record<string, unknown>)?.["platform"] ?? ""),
-        osVersion: String((environment.os as Record<string, unknown>)?.["version"] ?? ""),
-        cpuModel: String((environment.cpu as Record<string, unknown>)?.["model"] ?? ""),
-        logicalCores: Number((environment.cpu as Record<string, unknown>)?.["logicalCores"] ?? 0),
-        memoryTotalMb: Number((environment.memory as Record<string, unknown>)?.["totalMb"] ?? 0),
-        vscodeVersion: vscodeBuild.version,
-        extensionVersionsJson: JSON.stringify(extensionVersions),
-        sqlImageDigest: config.sql.imageDigest ?? "",
-        sqlSnapshot: config.sql.snapshot,
-        configFingerprintJson: canonicalJson({ config: configFingerprint, passType }),
-    });
-    store?.insertRun({
-        runId,
-        createdAtUnixNs: nowUnixNs(),
-        passType,
-        status: "passed", // updated at the end
-        configHash: loaded.configHash,
-        configPath: loaded.configPath,
-        outputDir: runDir,
-        environmentHash: environment.environmentHash,
-        machineId: environment.machineId ?? "unknown",
-    });
-    for (const repo of git) {
-        store?.insertRunRepository(runId, repo);
+    if (store?.getRun(runId)) {
+        store.close();
+        throw new RunConfigError(`Run '${runId}' already exists in the store`);
     }
 
-    // --- SQL provisioning (only when a selected scenario needs a connection) ---
-    let sqlProfiles: Record<string, ConnectionProfileSpec> | undefined;
-    const needsSql = specs.some(
-        (s) => s.sql?.connectionProfile && s.sql.connectionProfile !== "none",
-    );
-    if (needsSql) {
-        // Catalog fixture only when a selected scenario targets it (10k-table
-        // build is skip-guarded server-side but still worth avoiding entirely).
-        const needsCatalog = specs.some((s) => s.sql?.database === "PerfCatalog");
-        const provisionSeed = config.sql.provisionSeed !== false;
-        const provisioned = await provisionSql(config, logger.child("sql"), {
-            seedFiles: provisionSeed
-                ? [
-                      resolve("sql", "seed", "create-perf-db.sql"),
-                      ...(needsCatalog ? [resolve("sql", "seed", "create-perf-catalog.sql")] : []),
-                  ]
-                : [],
-            ...(provisionSeed
-                ? {
-                      verifyQuery: {
-                          sql: "SET NOCOUNT ON; SELECT COUNT(*) FROM PerfHarness.dbo.PerfRows",
-                          expect: "10000",
-                      },
-                  }
-                : {}),
-            ...(needsCatalog
-                ? {
-                      verifyQueries: [
-                          {
-                              sql: "SET NOCOUNT ON; SELECT COUNT(*) FROM PerfCatalog.sys.tables",
-                              expect: "10000",
-                          },
-                      ],
-                  }
-                : {}),
-        });
-        sqlProfiles = { default: provisioned.profile };
-        logger.info("run.sqlProvisioned", undefined, {
-            provider: provisioned.provider,
-            validation: provisioned.validation,
-        });
-    }
-    const sqlExec = needsSql ? createSqlExecutor(config, logger.child("sqlExec")) : undefined;
-
-    // --- Execute ----------------------------------------------------------------
-    const allResults: PerfResult[] = [];
-    let infrastructureBroken = false;
-
-    for (const spec of specs) {
-        store?.upsertScenario({
-            scenarioId: spec.scenarioId,
-            displayName: spec.displayName,
-            tagsJson: JSON.stringify(spec.tags ?? []),
-        });
-        const totalReps = config.warmupRepetitions + config.repetitions;
-        for (let repId = 0; repId < totalReps; repId++) {
-            const warmup = repId < config.warmupRepetitions;
-            const repResult = await executeRep({
-                runId,
-                repId,
-                spec,
-                passType,
-                warmup,
-                runDir,
-                vscodeBuild,
-                devPaths,
-                environment,
-                git,
-                config,
-                ...(sqlProfiles ? { sqlProfiles } : {}),
-                ...(sqlExec ? { sqlExec } : {}),
-                logger: logger.child("rep"),
-            });
-            allResults.push(repResult.result);
-            if (store) {
-                persistRep(store, runId, spec.scenarioId, repId, warmup, repResult.result);
+    let activeCleanup: (() => Promise<void>) | undefined;
+    let handlingSignal = false;
+    const signalHandler = (signal: NodeJS.Signals): void => {
+        if (handlingSignal) {
+            return;
+        }
+        handlingSignal = true;
+        logger.warn("run.interrupted", `received ${signal}; aborting run`, { runId });
+        try {
+            if (store?.getRun(runId)) {
+                store.updateRunStatus(runId, "aborted");
             }
-            if (repResult.infrastructureBroken) {
-                infrastructureBroken = true;
-                logger.error("run.abort", "infrastructure failure - aborting remaining reps");
-                break;
+        } catch (error) {
+            logger.warn("run.interruptStatusFailed", String(error));
+        }
+        void Promise.resolve(activeCleanup?.()).finally(() => {
+            try {
+                store?.close();
+            } finally {
+                process.removeListener("SIGINT", signalHandler);
+                process.removeListener("SIGTERM", signalHandler);
+                try {
+                    process.kill(process.pid, signal);
+                } catch {
+                    process.exitCode = signal === "SIGINT" ? 130 : 143;
+                }
+            }
+        });
+    };
+
+    try {
+        // --- Run directory + config snapshot --------------------------------------
+        const runDir = resolve(config.output.dir, runId);
+        if (existsSync(runDir)) {
+            throw new RunConfigError(`Run output directory already exists: ${runDir}`);
+        }
+        mkdirSync(runDir, { recursive: true });
+        writeFileSync(join(runDir, "run-config.snapshot.jsonc"), loaded.rawText, "utf8");
+
+        // --- Resolve VS Code + driver extension -----------------------------------
+        const vscodeBuild = await resolveVscode(config.vscode.version, logger.child("launch"));
+        const devPaths: string[] = [];
+        const extensionVersions: Record<string, string> = {};
+        for (const ext of config.vscode.extensions) {
+            if (ext.source === "developmentPath") {
+                // loadConfig resolves config-supplied paths against the config file.
+                const extPath = resolve(ext.path);
+                const pkgPath = join(extPath, "package.json");
+                if (!existsSync(pkgPath)) {
+                    throw new RunConfigError(
+                        `Extension developmentPath has no package.json: ${extPath}`,
+                    );
+                }
+                const pkg = JSON.parse(readFileSync(pkgPath, "utf8")) as {
+                    name: string;
+                    version: string;
+                    main?: string;
+                };
+                const mainFile = pkg.main
+                    ? join(extPath, pkg.main.endsWith(".js") ? pkg.main : `${pkg.main}.js`)
+                    : undefined;
+                if (mainFile && !existsSync(mainFile)) {
+                    throw new RunConfigError(
+                        `Extension '${pkg.name}' at ${extPath} is not built (missing ${pkg.main})`,
+                    );
+                }
+                devPaths.push(extPath);
+                extensionVersions[ext.id] = pkg.version;
+            } else {
+                throw new RunConfigError(
+                    `Extension source '${ext.source}' is not supported yet (developmentPath only in M1)`,
+                );
             }
         }
-        if (infrastructureBroken) break;
-    }
 
-    // --- Summarize ----------------------------------------------------------------
-    const passed = allResults.filter((r) => r.status === "passed").length;
-    const failed = allResults.filter((r) => r.status === "failed").length;
-    const runStatus: "passed" | "failed" | "invalid" =
-        passed > 0 && failed === 0 ? "passed" : failed > 0 ? "failed" : "invalid";
-    store?.updateRunStatus(runId, runStatus);
-    store?.close();
+        const configFingerprint = environmentRelevantConfig(config);
+        const environment = captureEnvironment({
+            vscode: vscodeBuild,
+            extensionVersions,
+            sql: {
+                ...(config.sql.imageDigest !== undefined
+                    ? { imageDigest: config.sql.imageDigest }
+                    : {}),
+                snapshot: config.sql.snapshot,
+                cacheMode: config.sql.cacheMode,
+                provider: config.sql.provider,
+            },
+            configFingerprint,
+            passType,
+        });
+        writeFileSync(
+            join(runDir, "environment.json"),
+            JSON.stringify(environment, null, 2),
+            "utf8",
+        );
 
-    const summary = {
-        runId,
-        passType,
-        status: runStatus,
-        environmentHash: environment.environmentHash,
-        scenarios: Object.fromEntries(
-            specs.map((s) => [
-                s.scenarioId,
-                {
-                    reps: allResults
-                        .filter((r) => r.scenarioId === s.scenarioId)
-                        .map((r) => ({
-                            repId: r.repId,
-                            status: r.status,
-                            wallclockMs:
-                                r.metrics.find((m) => m.name === "scenario.wallclock")?.value ??
-                                null,
-                        })),
-                },
-            ]),
-        ),
-    };
-    writeFileSync(join(runDir, "summary.json"), JSON.stringify(summary, null, 2), "utf8");
+        const git: GitRepoInfo[] = [];
+        const vscodeMssqlRoot = resolve(options.harnessRoot, "..", "..");
+        for (const [name, path] of [
+            ["vscode-mssql", vscodeMssqlRoot],
+            ["sqltoolsservice", resolve(vscodeMssqlRoot, "..", "sqltoolsservice")],
+        ] as const) {
+            const info = getGitInfo(path, logger, name);
+            if (info) git.push(info);
+        }
 
-    const report = renderMarkdownReport({
-        runId,
-        passType,
-        createdAt: new Date().toISOString(),
-        environmentHash: environment.environmentHash,
-        ...(environment.machineId !== undefined ? { machineId: environment.machineId } : {}),
-        vscodeVersion: vscodeBuild.version,
-        results: allResults,
-        harnessLogPath: "harness-log.jsonl",
-    });
-    writeFileSync(join(runDir, "report.md"), report, "utf8");
-    writeFileSync(
-        join(runDir, "report.html"),
-        renderHtmlReport({
+        // --- Store -----------------------------------------------------------------
+        store?.upsertEnvironment({
+            environmentHash: environment.environmentHash,
+            capturedAtUnixNs: nowUnixNs(),
+            machineId: environment.machineId ?? "unknown",
+            osPlatform: String((environment.os as Record<string, unknown>)?.["platform"] ?? ""),
+            osVersion: String((environment.os as Record<string, unknown>)?.["version"] ?? ""),
+            cpuModel: String((environment.cpu as Record<string, unknown>)?.["model"] ?? ""),
+            logicalCores: Number(
+                (environment.cpu as Record<string, unknown>)?.["logicalCores"] ?? 0,
+            ),
+            memoryTotalMb: Number(
+                (environment.memory as Record<string, unknown>)?.["totalMb"] ?? 0,
+            ),
+            vscodeVersion: vscodeBuild.version,
+            extensionVersionsJson: JSON.stringify(extensionVersions),
+            sqlImageDigest: config.sql.imageDigest ?? "",
+            sqlSnapshot: config.sql.snapshot,
+            configFingerprintJson: canonicalJson({ config: configFingerprint, passType }),
+        });
+        store?.insertRun({
+            runId,
+            createdAtUnixNs: nowUnixNs(),
+            passType,
+            status: "aborted", // remains non-green unless the full run reaches a terminal verdict
+            configHash: loaded.configHash,
+            configPath: loaded.configPath,
+            outputDir: runDir,
+            environmentHash: environment.environmentHash,
+            machineId: environment.machineId ?? "unknown",
+        });
+        process.once("SIGINT", signalHandler);
+        process.once("SIGTERM", signalHandler);
+        for (const repo of git) {
+            store?.insertRunRepository(runId, repo);
+        }
+
+        // --- SQL provisioning (only when a selected scenario needs a connection) ---
+        let sqlProfiles: Record<string, ConnectionProfileSpec> | undefined;
+        const needsSql = specs.some(
+            (s) => s.sql?.connectionProfile && s.sql.connectionProfile !== "none",
+        );
+        if (needsSql) {
+            // Catalog fixture only when a selected scenario targets it (10k-table
+            // build is skip-guarded server-side but still worth avoiding entirely).
+            const needsCatalog = specs.some((s) => s.sql?.database === "PerfCatalog");
+            const provisionSeed = config.sql.provisionSeed !== false;
+            const provisioned = await provisionSql(config, logger.child("sql"), {
+                seedFiles: provisionSeed
+                    ? [
+                          join(options.harnessRoot, "sql", "seed", "create-perf-db.sql"),
+                          ...(needsCatalog
+                              ? [
+                                    join(
+                                        options.harnessRoot,
+                                        "sql",
+                                        "seed",
+                                        "create-perf-catalog.sql",
+                                    ),
+                                ]
+                              : []),
+                      ]
+                    : [],
+                ...(provisionSeed
+                    ? {
+                          verifyQuery: {
+                              sql: "SET NOCOUNT ON; SELECT COUNT(*) FROM PerfHarness.dbo.PerfRows",
+                              expect: "10000",
+                          },
+                      }
+                    : {}),
+                ...(needsCatalog
+                    ? {
+                          verifyQueries: [
+                              {
+                                  sql: "SET NOCOUNT ON; SELECT COUNT(*) FROM PerfCatalog.sys.tables",
+                                  expect: "10000",
+                              },
+                          ],
+                      }
+                    : {}),
+            });
+            sqlProfiles = { default: provisioned.profile };
+            logger.info("run.sqlProvisioned", undefined, {
+                provider: provisioned.provider,
+                validation: provisioned.validation,
+            });
+        }
+        const sqlExec = needsSql ? createSqlExecutor(config, logger.child("sqlExec")) : undefined;
+
+        // --- Execute ----------------------------------------------------------------
+        const allResults: PerfResult[] = [];
+        let infrastructureBroken = false;
+
+        for (const spec of specs) {
+            store?.upsertScenario({
+                scenarioId: spec.scenarioId,
+                displayName: spec.displayName,
+                tagsJson: JSON.stringify(spec.tags ?? []),
+            });
+            const totalReps = config.warmupRepetitions + config.repetitions;
+            for (let repId = 0; repId < totalReps; repId++) {
+                const warmup = repId < config.warmupRepetitions;
+                const repResult = await executeRep({
+                    runId,
+                    repId,
+                    spec,
+                    passType,
+                    warmup,
+                    runDir,
+                    vscodeBuild,
+                    devPaths,
+                    environment,
+                    git,
+                    config,
+                    harnessRoot: options.harnessRoot,
+                    ...(sqlProfiles ? { sqlProfiles } : {}),
+                    ...(sqlExec ? { sqlExec } : {}),
+                    logger: logger.child("rep"),
+                    onActiveCleanup: (cleanup) => {
+                        activeCleanup = cleanup;
+                    },
+                });
+                allResults.push(repResult.result);
+                if (store) {
+                    persistRep(store, runId, spec.scenarioId, repId, warmup, repResult.result);
+                }
+                if (repResult.infrastructureBroken) {
+                    infrastructureBroken = true;
+                    logger.error("run.abort", "infrastructure failure - aborting remaining reps");
+                    break;
+                }
+            }
+            if (infrastructureBroken) break;
+        }
+
+        // --- Summarize ----------------------------------------------------------------
+        const passed = allResults.filter((r) => r.status === "passed").length;
+        const failed = allResults.filter((r) => r.status === "failed").length;
+        const expectedResults = specs.length * (config.warmupRepetitions + config.repetitions);
+        const runStatus: "passed" | "failed" | "invalid" =
+            failed > 0
+                ? "failed"
+                : passed === expectedResults && allResults.length === expectedResults
+                  ? "passed"
+                  : "invalid";
+        store?.updateRunStatus(runId, runStatus);
+
+        const summary = {
+            runId,
+            passType,
+            status: runStatus,
+            environmentHash: environment.environmentHash,
+            scenarios: Object.fromEntries(
+                specs.map((s) => [
+                    s.scenarioId,
+                    {
+                        reps: allResults
+                            .filter((r) => r.scenarioId === s.scenarioId)
+                            .map((r) => ({
+                                repId: r.repId,
+                                status: r.status,
+                                wallclockMs:
+                                    r.metrics.find((m) => m.name === "scenario.wallclock")?.value ??
+                                    null,
+                            })),
+                    },
+                ]),
+            ),
+        };
+        writeFileSync(join(runDir, "summary.json"), JSON.stringify(summary, null, 2), "utf8");
+
+        const report = renderMarkdownReport({
             runId,
             passType,
             createdAt: new Date().toISOString(),
@@ -357,22 +413,48 @@ export async function executeRun(options: RunOptions): Promise<RunSummary> {
             ...(environment.machineId !== undefined ? { machineId: environment.machineId } : {}),
             vscodeVersion: vscodeBuild.version,
             results: allResults,
-        }),
-        "utf8",
-    );
+            harnessLogPath: "harness-log.jsonl",
+        });
+        writeFileSync(join(runDir, "report.md"), report, "utf8");
+        writeFileSync(
+            join(runDir, "report.html"),
+            renderHtmlReport({
+                runId,
+                passType,
+                createdAt: new Date().toISOString(),
+                environmentHash: environment.environmentHash,
+                ...(environment.machineId !== undefined
+                    ? { machineId: environment.machineId }
+                    : {}),
+                vscodeVersion: vscodeBuild.version,
+                results: allResults,
+            }),
+            "utf8",
+        );
 
-    writeRunIndex(runDir, logger.child("report"));
+        writeRunIndex(runDir, logger.child("report"));
 
-    const exitCode: ExitCodeValue = infrastructureBroken
-        ? ExitCode.infrastructureFailure
-        : failed > 0
-          ? ExitCode.scenarioFailed
-          : passed === 0
-            ? ExitCode.insufficientSamples
-            : ExitCode.ok;
+        const exitCode: ExitCodeValue = infrastructureBroken
+            ? ExitCode.infrastructureFailure
+            : failed > 0
+              ? ExitCode.scenarioFailed
+              : runStatus === "invalid"
+                ? ExitCode.insufficientSamples
+                : ExitCode.ok;
 
-    runSpan.end({ status: runStatus, passed, failed, total: allResults.length, exitCode });
-    return { runId, exitCode, results: allResults, runDir };
+        runSpan.end({ status: runStatus, passed, failed, total: allResults.length, exitCode });
+        return { runId, exitCode, results: allResults, runDir };
+    } catch (error) {
+        if (store?.getRun(runId)) {
+            store.updateRunStatus(runId, "aborted");
+        }
+        runSpan.fail(error);
+        throw error;
+    } finally {
+        process.removeListener("SIGINT", signalHandler);
+        process.removeListener("SIGTERM", signalHandler);
+        store?.close();
+    }
 }
 
 export class RunConfigError extends Error {}
@@ -392,18 +474,27 @@ class SimpleProcessRegistry implements ProcessRegistry {
 }
 
 /** Instantiate the collectors enabled by config for this pass (design §14). */
-function createCollectors(config: LoadedConfig["config"], passType: PassType): Collector[] {
+function createCollectors(
+    config: LoadedConfig["config"],
+    passType: PassType,
+    harnessRoot: string,
+): Collector[] {
     const collectors: Collector[] = [];
     if (config.diagnostics.processSampler) {
         collectors.push(new ProcessSamplerCollector());
     }
     if (config.diagnostics["stsEnvelopeJournal"] === true) {
-        collectors.push(new StsEnvelopeJournalCollector());
+        collectors.push(
+            new StsEnvelopeJournalCollector({
+                captureSqlText: config.diagnostics.captureSqlText === true,
+            }),
+        );
     }
     if (config.diagnostics.sqlServerXEvents === true) {
         collectors.push(
             new SqlServerXEventsCollector({
                 captureSqlText: config.diagnostics["captureSqlText"] === true,
+                harnessRoot,
             }),
         );
     }
@@ -473,9 +564,11 @@ interface RepExecutionInputs {
     environment: ReturnType<typeof captureEnvironment>;
     git: GitRepoInfo[];
     config: LoadedConfig["config"];
+    harnessRoot: string;
     sqlProfiles?: Record<string, ConnectionProfileSpec>;
     sqlExec?: SqlExecutor;
     logger: HarnessLogger;
+    onActiveCleanup?: (cleanup: (() => Promise<void>) | undefined) => void;
 }
 
 async function executeRep(
@@ -523,10 +616,26 @@ async function executeRep(
     let infrastructureError: string | undefined;
     let outcome;
     let calibration;
-    let launched;
+    let launched: LaunchedVscode | undefined;
     let infrastructureBroken = false;
     let spawnAtMs = 0;
     let readyAtMs = 0;
+    let cleanupPromise: Promise<void> | undefined;
+    const cleanupImmediately = (): Promise<void> => {
+        cleanupPromise ??= (async () => {
+            try {
+                if (launched) {
+                    await launched.killTree();
+                    await launched.waitForExit(5000);
+                }
+            } finally {
+                await server.close();
+                await sink.close();
+            }
+        })();
+        return cleanupPromise;
+    };
+    inputs.onActiveCleanup?.(cleanupImmediately);
 
     // coldDb cache mode (12.6): drop clean buffers + proc cache before each
     // rep so SQL starts cold. Requires sysadmin; failure is a validation
@@ -545,7 +654,7 @@ async function executeRep(
     }
 
     // Collector framework (design §14): per-rep instances, fault-isolated.
-    const collectors = createCollectors(inputs.config, inputs.passType);
+    const collectors = createCollectors(inputs.config, inputs.passType, inputs.harnessRoot);
     const processRegistry = new SimpleProcessRegistry();
     const collectorCtx: CollectorContext = {
         runId,
@@ -795,6 +904,7 @@ async function executeRep(
         }
         await server.close();
         await sink.close();
+        inputs.onActiveCleanup?.(undefined);
     }
 
     // Collector artifacts + resource metrics (always official:false / resource-only).

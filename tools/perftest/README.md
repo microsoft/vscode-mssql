@@ -11,7 +11,7 @@ the official numbers.
 This project now lives inside `vscode-mssql` at `tools/perftest`. See
 [`UPSTREAM.md`](UPSTREAM.md) for import provenance and migration policy.
 
-**Historical design source:** `perftest-docs/mssql-vscode-perf-system-v2/MSSQL_VSCODE_PERF_SYSTEM_DESIGN.md`
+**Historical design source:** the standalone perf-system design (not imported here).
 (not imported; the implementation documentation below is self-contained).
 **Docs for this implementation:** [`docs/`](docs/README.md)
 **Historical build log:** [`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md) · [`PROGRESS.md`](PROGRESS.md)
@@ -61,5 +61,10 @@ feature has landed on the branch being measured.
 6. No metric is ever fabricated. Missing data ⇒ no metric.
 7. No `sleep` in official action paths; semantic waits only. SQL image pinned by digest.
 8. No sensitive data by default (no SQL text, result data, connection strings, tokens).
+
+The driver uses a sandboxed VS Code profile for run settings. If a SQL Login
+scenario temporarily seeds the product credential store, cleanup restores a
+credential that already existed or deletes the temporary credential created by
+the run.
 
 See [`docs/README.md`](docs/README.md) for the full documentation set.

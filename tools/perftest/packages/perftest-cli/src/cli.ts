@@ -1,9 +1,12 @@
 #!/usr/bin/env node
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
 /**
  * perftest CLI (design §26). Command surface and exit codes are the public
- * contract; commands whose pipelines land in later milestones exit with a
- * clear "not implemented" message and ExitCode.infrastructureFailure rather
- * than pretending to run.
+ * contract. Exit requests unwind through Commander so resource-owning actions
+ * reach their finally blocks and piped stdout is allowed to flush.
  */
 
 import { Command } from "commander";
@@ -25,16 +28,14 @@ import { investigate, renderInvestigationConsole } from "./regression/investigat
 const { logger, sink } = createRootLogger();
 const HARNESS_ROOT = resolve(__dirname, "..", "..", "..");
 
-function exit(code: number): never {
-    process.exit(code);
+class CliExit extends Error {
+    constructor(readonly code: number) {
+        super(`CLI exit ${code}`);
+    }
 }
 
-function notImplemented(command: string, milestone: string): never {
-    process.stderr.write(
-        `perftest ${command} is not implemented yet - it arrives with ${milestone}.\n` +
-            `Nothing was executed and no data was written.\n`,
-    );
-    exit(ExitCode.infrastructureFailure);
+function exit(code: number): never {
+    throw new CliExit(code);
 }
 
 const program = new Command();
@@ -62,6 +63,7 @@ program
                     message: `${opts.config} validates against perf-config schema`,
                 });
             } catch (error) {
+                if (error instanceof CliExit) throw error;
                 report.checks.push({
                     name: "configValid",
                     status: "failed",
@@ -99,6 +101,7 @@ program
         try {
             data = parseJsoncStrict(readFileSync(file, "utf8"), file);
         } catch (error) {
+            if (error instanceof CliExit) throw error;
             process.stderr.write(
                 error instanceof ConfigError
                     ? `${error.message}\n${error.details.join("\n")}\n`
@@ -163,11 +166,11 @@ program
     .command("collectors")
     .description("Collector operations")
     .command("list")
-    .description("List registered collectors (implemented) and the planned catalog")
+    .description("List implemented collectors and the remaining planned catalog")
     .action(() => {
         const implemented = listCollectors();
         if (implemented.length === 0) {
-            process.stdout.write("No collectors implemented yet.\n");
+            process.stdout.write("No collectors implemented.\n");
         } else {
             process.stdout.write("Implemented collectors:\n");
             for (const c of implemented) {
@@ -179,9 +182,9 @@ program
         const implementedNames = new Set(implemented.map((c) => c.name));
         const planned = PLANNED_COLLECTORS.filter((p) => !implementedNames.has(p.name));
         if (planned.length > 0) {
-            process.stdout.write("Planned (design §14.3):\n");
+            process.stdout.write("Planned:\n");
             for (const p of planned) {
-                process.stdout.write(`  ${p.name.padEnd(24)} arrives ${p.milestone}\n`);
+                process.stdout.write(`  ${p.name.padEnd(24)} ${p.milestone}\n`);
             }
         }
         exit(ExitCode.ok);
@@ -225,6 +228,7 @@ program
         try {
             loaded = loadConfig(opts.config);
         } catch (error) {
+            if (error instanceof CliExit) throw error;
             if (error instanceof ConfigError) {
                 process.stderr.write(`${error.message}\n`);
                 for (const d of error.details) process.stderr.write(`  - ${d}\n`);
@@ -302,6 +306,7 @@ program
                         exit(ExitCode.regression);
                     }
                 } catch (error) {
+                    if (error instanceof CliExit) throw error;
                     if (error instanceof CompareError) {
                         process.stderr.write(`Baseline comparison skipped: ${error.message}\n`);
                     } else {
@@ -313,6 +318,7 @@ program
             }
             exit(summary.exitCode);
         } catch (error) {
+            if (error instanceof CliExit) throw error;
             if (error instanceof RunConfigError) {
                 process.stderr.write(`${error.message}\n`);
                 exit(ExitCode.configInvalid);
@@ -435,6 +441,7 @@ program
                           : ExitCode.ok,
                 );
             } catch (error) {
+                if (error instanceof CliExit) throw error;
                 if (error instanceof CompareError) {
                     process.stderr.write(`${error.message}\n`);
                     exit(ExitCode.configInvalid);
@@ -482,6 +489,7 @@ program
                         },
                     );
                 } catch (error) {
+                    if (error instanceof CliExit) throw error;
                     if (!(error instanceof CompareError)) throw error;
                     process.stderr.write(`Official gate skipped: ${error.message}\n`);
                 }
@@ -559,6 +567,7 @@ program
                         candidateScenario: opts.candidateScenario,
                     });
                 } catch (error) {
+                    if (error instanceof CliExit) throw error;
                     if (error instanceof HeadToHeadError) {
                         process.stderr.write(`${error.message}\n`);
                         exit(ExitCode.insufficientSamples);
@@ -753,6 +762,7 @@ baseline
                 );
                 exit(ExitCode.ok);
             } catch (error) {
+                if (error instanceof CliExit) throw error;
                 process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
                 exit(ExitCode.configInvalid);
             } finally {
@@ -882,6 +892,7 @@ program
                     const outcome = await runPush(baseOptions, undefined, pushLogger, write);
                     exit(outcome.failed > 0 ? ExitCode.pushFailed : ExitCode.ok);
                 } catch (error) {
+                    if (error instanceof CliExit) throw error;
                     process.stderr.write(`push: ${(error as Error).message}\n`);
                     exit(ExitCode.pushFailed);
                 }
@@ -906,9 +917,8 @@ async function withCentral(
     explicitTarget: string | undefined,
     action: (client: import("./central/centralClient").CentralClient) => Promise<number>,
 ): Promise<void> {
-    const { CentralClient, CentralClientError, resolveCentralTarget } = await import(
-        "./central/centralClient"
-    );
+    const { CentralClient, CentralClientError, resolveCentralTarget } =
+        await import("./central/centralClient");
     let client: import("./central/centralClient").CentralClient | undefined;
     let code: number = ExitCode.pushFailed;
     try {
@@ -916,6 +926,7 @@ async function withCentral(
         client = await CentralClient.connect(target);
         code = await action(client);
     } catch (error) {
+        if (error instanceof CliExit) throw error;
         if (error instanceof CentralClientError) {
             process.stderr.write(`central: ${error.message}\n`);
         } else {
@@ -1017,7 +1028,17 @@ central
         });
     });
 
-program.parseAsync(process.argv).catch((error: unknown) => {
-    logger.error("cli.unhandled", error instanceof Error ? error.stack : String(error));
-    exit(ExitCode.infrastructureFailure);
-});
+program
+    .parseAsync(process.argv)
+    .then(() => {
+        process.exitCode ??= ExitCode.ok;
+    })
+    .catch((error: unknown) => {
+        if (error instanceof CliExit) {
+            process.exitCode = error.code;
+        } else {
+            logger.error("cli.unhandled", error instanceof Error ? error.stack : String(error));
+            process.exitCode = ExitCode.infrastructureFailure;
+        }
+    })
+    .finally(() => sink.close());

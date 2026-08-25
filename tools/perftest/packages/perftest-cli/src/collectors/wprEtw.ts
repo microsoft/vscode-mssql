@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 /**
  * wprEtw collector (diagnostic pass, Windows, requires elevation): system
  * ETW capture via Windows Performance Recorder for whole-system CPU/disk

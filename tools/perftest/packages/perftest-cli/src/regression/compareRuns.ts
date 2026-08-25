@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 /**
  * Run comparison orchestration (design §24.3): resolve the baseline, enforce
  * environment-hash matching, classify every official metric key, persist to
@@ -99,6 +104,9 @@ export function compareRuns(
     }
 
     const currentSamples = store.officialSamples(currentRunId);
+    if (currentSamples.length === 0) {
+        throw new CompareError("current run has no official samples");
+    }
 
     const grouped = new Map<
         string,

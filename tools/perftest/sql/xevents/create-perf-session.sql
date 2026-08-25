@@ -4,9 +4,9 @@
 -- step). Ring-buffer target so external and container providers read the same
 -- way. Single batch (no GO) so it can run through sqlcmd -Q.
 --
--- SQL text is captured into the ring buffer only on the synthetic PerfHarness
--- database; the harness reader only *emits* text columns in diagnostic passes
--- with captureSqlText enabled (§29).
+-- The Application Name predicate applies on every database used by a scenario.
+-- The harness reader only *persists* text columns in diagnostic passes with
+-- captureSqlText enabled (§29).
 
 IF EXISTS (SELECT 1 FROM sys.server_event_sessions WHERE name = N'perftest_activity')
     DROP EVENT SESSION [perftest_activity] ON SERVER;

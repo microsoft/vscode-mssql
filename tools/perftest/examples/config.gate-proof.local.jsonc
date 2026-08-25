@@ -23,7 +23,7 @@
             {
                 "id": "perftest.mssql-perf-driver",
                 "source": "developmentPath",
-                "path": "./extensions/mssql-perf-driver",
+                "path": "../extensions/mssql-perf-driver",
             },
         ],
         "extraArgs": [],
@@ -37,7 +37,7 @@
     },
     "environment": { "requireIdle": false },
     "diagnostics": { "markers": true, "processSampler": false, "otel": "off" },
-    "store": { "type": "sqlite", "path": "./perf.db" },
+    "store": { "type": "sqlite", "path": "../perf.db" },
     "regression": {
         "baseline": "none",
         "failOnRegression": true,
@@ -45,5 +45,5 @@
             "default": { "pct": 10, "absMs": 5, "test": "welchT", "minSamples": 3, "maxCv": 0.5 },
         },
     },
-    "output": { "dir": "./perf-runs", "keepArtifacts": "always" },
+    "output": { "dir": "../perf-runs", "keepArtifacts": "always" },
 }

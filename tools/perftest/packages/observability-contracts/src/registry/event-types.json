@@ -1,6 +1,6 @@
 {
     "schemaVersion": "obs-contract/1",
-    "description": "Canonical event vocabulary across vscode-mssql, perftest, and (namespaced) STS. Seeded from the verified emitted inventory 2026-07-04; conformance tests in each repo keep it honest. attrsComplete:false means the attribute list is known-partial (allowed while the registry matures — unknown attrs are a docs gap, not a violation).",
+    "description": "Canonical event vocabulary across vscode-mssql, perftest, and (namespaced) STS. Seeded from the verified emitted inventory on 2026-07-04 and extended with planned vocabulary for coordinated feature branches; conformance tests in each repo keep emitted names honest. attrsComplete:false means the attribute list is known-partial (allowed while the registry matures — unknown attrs are a docs gap, not a violation).",
     "conventions": {
         "pairing": "Marker pairs are EXPLICIT via pairsWith — suffix conventions vary (.begin/.end, begin/ready, submit/complete) and must not be guessed.",
         "prefixFamilies": "Entries with 'prefix' match dynamically-named families (rpc.<method>, sts.dispatch.<method>, ...). Family-level rules apply to every member.",
@@ -3486,7 +3486,7 @@
             ]
         },
         {
-            "name": "mssql.queryResults.spatial.render.firstPaint",
+            "name": "mssql.queryResults.spatial.render.toFirstPaint",
             "feature": "queryResults",
             "derivedFrom": [
                 "mssql.queryResults.spatial.render.begin",

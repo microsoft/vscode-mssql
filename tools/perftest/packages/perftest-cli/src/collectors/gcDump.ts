@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 /**
  * gcDump collector (Phase-2 M10.5, diagnostic only): STS managed-heap dumps
  * at scenario start and end via `dotnet-gcdump`, for offline diffing in
@@ -30,7 +35,7 @@ export class GcDumpCollector implements Collector {
                 encoding: "utf8",
                 timeout: 15_000,
                 windowsHide: true,
-                shell: process.platform === "win32",
+                shell: false,
             });
             this.available = true;
             return [{ name: "gcDumpAvailable", status: "passed" }];
@@ -70,7 +75,7 @@ export class GcDumpCollector implements Collector {
             execFile(
                 "dotnet-gcdump",
                 ["collect", "-p", String(this.stsPid), "-o", outPath],
-                { timeout: 120_000, windowsHide: true, shell: process.platform === "win32" },
+                { timeout: 120_000, windowsHide: true, shell: false },
                 (error, _stdout, stderr) => {
                     if (error || !existsSync(outPath)) {
                         this.failureReason = `${label} gcdump failed: ${String(stderr || error).slice(0, 200)}`;

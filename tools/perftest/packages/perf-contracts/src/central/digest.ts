@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 /**
  * Central-store canonicalization and digest rules (central design §6.2, review
  * addendum C-1/C-14/C-15). This module is the single implementation both
@@ -129,5 +134,8 @@ export function principalDigest(input: PrincipalInput): string {
  * hex sha256 of the natural key (addendum C-2/§3).
  */
 export function entityLockResource(kind: string, naturalKey: string): string {
-    return `central:${kind}:${sha256Hex(naturalKey)}`;
+    const sqlServerHash = createHash("sha256")
+        .update(Buffer.from(naturalKey, "utf16le"))
+        .digest("hex");
+    return `central:${kind}:${sqlServerHash}`;
 }

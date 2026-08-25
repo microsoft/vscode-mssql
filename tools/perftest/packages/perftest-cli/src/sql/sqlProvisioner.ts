@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 /**
  * SQL provisioning (design §13.4): put SQL Server into a known, deterministic
  * state before measurement and hand the harness a connection profile.
@@ -78,10 +83,8 @@ interface ParsedConnectionString {
 /** Parse an ADO.NET-style connection string. Values are never logged. */
 export function parseSqlConnectionString(connectionString: string): ParsedConnectionString {
     const parts = new Map<string, string>();
-    for (const segment of connectionString.split(";")) {
-        const eq = segment.indexOf("=");
-        if (eq <= 0) continue;
-        parts.set(segment.slice(0, eq).trim().toLowerCase(), segment.slice(eq + 1).trim());
+    for (const [key, value] of parseConnectionStringPairs(connectionString)) {
+        parts.set(key.toLowerCase(), value);
     }
     const get = (...keys: string[]): string | undefined => {
         for (const key of keys) {
@@ -112,6 +115,97 @@ export function parseSqlConnectionString(connectionString: string): ParsedConnec
         parsed.trustServerCertificate = ["true", "yes"].includes(trustRaw.toLowerCase());
     }
     return parsed;
+}
+
+/** Parse quoted ADO.NET and brace-delimited ODBC-style values without exposing them. */
+function parseConnectionStringPairs(connectionString: string): Array<[string, string]> {
+    const pairs: Array<[string, string]> = [];
+    let offset = 0;
+    while (offset < connectionString.length) {
+        while (offset < connectionString.length && /[;\s]/u.test(connectionString[offset]!)) {
+            offset++;
+        }
+        if (offset >= connectionString.length) break;
+
+        const equals = connectionString.indexOf("=", offset);
+        if (equals < 0) {
+            throw new SqlProvisionError("Connection string contains a key without '='");
+        }
+        const key = connectionString.slice(offset, equals).trim();
+        if (!key) {
+            throw new SqlProvisionError("Connection string contains an empty key");
+        }
+        offset = equals + 1;
+        while (offset < connectionString.length && /\s/u.test(connectionString[offset]!)) {
+            offset++;
+        }
+
+        let value = "";
+        const opener = connectionString[offset];
+        if (opener === "'" || opener === '"') {
+            const quote = opener;
+            offset++;
+            let closed = false;
+            while (offset < connectionString.length) {
+                const char = connectionString[offset++]!;
+                if (char === quote) {
+                    if (connectionString[offset] === quote) {
+                        value += quote;
+                        offset++;
+                    } else {
+                        closed = true;
+                        break;
+                    }
+                } else {
+                    value += char;
+                }
+            }
+            if (!closed) {
+                throw new SqlProvisionError(
+                    `Connection string value for '${key}' has no closing quote`,
+                );
+            }
+        } else if (opener === "{") {
+            offset++;
+            let closed = false;
+            while (offset < connectionString.length) {
+                const char = connectionString[offset++]!;
+                if (char === "}") {
+                    if (connectionString[offset] === "}") {
+                        value += "}";
+                        offset++;
+                    } else {
+                        closed = true;
+                        break;
+                    }
+                } else {
+                    value += char;
+                }
+            }
+            if (!closed) {
+                throw new SqlProvisionError(
+                    `Connection string value for '${key}' has no closing brace`,
+                );
+            }
+        } else {
+            const semicolon = connectionString.indexOf(";", offset);
+            const end = semicolon < 0 ? connectionString.length : semicolon;
+            value = connectionString.slice(offset, end).trim();
+            offset = end;
+        }
+
+        while (offset < connectionString.length && /\s/u.test(connectionString[offset]!)) {
+            offset++;
+        }
+        if (offset < connectionString.length && connectionString[offset] !== ";") {
+            throw new SqlProvisionError(
+                `Connection string value for '${key}' must be followed by ';'`,
+            );
+        }
+        if (connectionString[offset] === ";") offset++;
+        pairs.push([key, value]);
+    }
+    return pairs;
 }
 
 export function createExternalConnectionProfile(
@@ -204,7 +298,7 @@ async function provisionDockerCompose(
         throw new SqlProvisionError("dockerCompose provider requires sql.composeFile");
     }
     const service = config.sql.service ?? "sqlserver";
-    const saPassword = process.env["PERF_SQL_SA_PASSWORD"] ?? "PerfH@rness2026!";
+    const saPassword = requireDockerSaPassword();
 
     const composeArgs = ["compose", "-f", resolve(composeFile)];
     logger.info("sql.compose.up", undefined, { composeFile, service });
@@ -219,6 +313,8 @@ async function provisionDockerCompose(
     const execBase = [
         ...composeArgs,
         "exec",
+        "-e",
+        "SQLCMDPASSWORD",
         "-T",
         service,
         "/opt/mssql-tools18/bin/sqlcmd",
@@ -226,8 +322,6 @@ async function provisionDockerCompose(
         "localhost",
         "-U",
         "sa",
-        "-P",
-        saPassword,
         "-C",
         "-b",
     ];
@@ -236,7 +330,7 @@ async function provisionDockerCompose(
         logger.info("sql.seed", undefined, { file: name });
         await execDocker(
             [...execBase, "-i", `/perf-seed/${name}`],
-            { PERF_SQL_SA_PASSWORD: saPassword },
+            { PERF_SQL_SA_PASSWORD: saPassword, SQLCMDPASSWORD: saPassword },
             logger,
             300_000,
         );
@@ -247,20 +341,23 @@ async function provisionDockerCompose(
         status: "warning",
         message: "no verify query configured",
     };
-    if (options.verifyQuery) {
+    const verifyQueries = [options.verifyQuery, ...(options.verifyQueries ?? [])].filter(
+        (query): query is VerifyQuery => query !== undefined,
+    );
+    for (const verifyQuery of verifyQueries) {
         const output = await execDocker(
-            [...execBase, "-h", "-1", "-Q", options.verifyQuery.sql],
-            { PERF_SQL_SA_PASSWORD: saPassword },
+            [...execBase, "-h", "-1", "-Q", verifyQuery.sql],
+            { PERF_SQL_SA_PASSWORD: saPassword, SQLCMDPASSWORD: saPassword },
             logger,
             120_000,
         );
-        const ok = output.includes(options.verifyQuery.expect);
+        const ok = output.includes(verifyQuery.expect);
         validation = {
             name: "sqlSeedVerified",
             status: ok ? "passed" : "failed",
             message: ok
-                ? `verify query returned ${options.verifyQuery.expect}`
-                : `verify query did not return ${options.verifyQuery.expect}`,
+                ? `verify query returned ${verifyQuery.expect}`
+                : `verify query did not return ${verifyQuery.expect}`,
         };
         if (!ok) {
             throw new SqlProvisionError(validation.message);
@@ -320,7 +417,7 @@ function runSqlcmd(
     } catch (error) {
         const err = error as { stdout?: string; stderr?: string; message?: string };
         throw new SqlProvisionError(
-            `sqlcmd failed (${label}): ${redact(String(err.stderr ?? err.stdout ?? err.message ?? error))}`,
+            `sqlcmd failed (${label}): ${redact(String(err.stderr || err.stdout || err.message || error))}`,
         );
     }
 }
@@ -392,6 +489,16 @@ function execDocker(
     });
 }
 
+function requireDockerSaPassword(): string {
+    const password = process.env["PERF_SQL_SA_PASSWORD"];
+    if (!password) {
+        throw new SqlProvisionError(
+            "dockerCompose provider requires PERF_SQL_SA_PASSWORD; set a strong disposable local-container password",
+        );
+    }
+    return password;
+}
+
 /** Strip likely secrets from error text before it can reach logs. */
 function redact(text: string): string {
     return text.replace(/(-P\s+\S+|password\s*=\s*[^;\s]+|pwd\s*=\s*[^;\s]+)/gi, "<redacted>");
@@ -454,7 +561,7 @@ export function createSqlExecutor(
     if (config.sql.provider === "dockerCompose" && config.sql.composeFile) {
         const composeFile = resolve(config.sql.composeFile);
         const service = config.sql.service ?? "sqlserver";
-        const saPassword = process.env["PERF_SQL_SA_PASSWORD"] ?? "PerfH@rness2026!";
+        const saPassword = requireDockerSaPassword();
         return async (sql, label) => {
             logger.trace("sql.exec", label);
             return execDocker(
@@ -463,6 +570,8 @@ export function createSqlExecutor(
                     "-f",
                     composeFile,
                     "exec",
+                    "-e",
+                    "SQLCMDPASSWORD",
                     "-T",
                     service,
                     "/opt/mssql-tools18/bin/sqlcmd",
@@ -470,8 +579,6 @@ export function createSqlExecutor(
                     "localhost",
                     "-U",
                     "sa",
-                    "-P",
-                    saPassword,
                     "-C",
                     "-b",
                     "-I",
@@ -480,7 +587,7 @@ export function createSqlExecutor(
                     "-Q",
                     sql,
                 ],
-                { PERF_SQL_SA_PASSWORD: saPassword },
+                { PERF_SQL_SA_PASSWORD: saPassword, SQLCMDPASSWORD: saPassword },
                 logger,
                 120_000,
             );

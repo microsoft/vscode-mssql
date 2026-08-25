@@ -3,11 +3,15 @@ dist/
 out/
 *.tsbuildinfo
 perf-runs/
-!perf-runs/.gitkeep
 perf.db
 perf.db-journal
 perf.db-wal
 perf.db-shm
+setup-report.json
+history.html
+central-report.html
+trend-*.html
+head-to-head-*.html
 .vscode-test/
 *.vsix
 npm-debug.log*

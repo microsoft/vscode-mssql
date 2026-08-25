@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 import { describe, expect, it } from "vitest";
 import type { Marker, ScenarioSpec } from "@mssqlperf/contracts";
 import { normalizeRep, type NormalizeInputs } from "../src/normalize/normalizer";
@@ -91,6 +96,36 @@ describe("normalizeRep", () => {
         expect(result.validations.find((v) => v.name === "requiredMarkersPresent")?.status).toBe(
             "failed",
         );
+    });
+
+    it("duplicate required markers invalidate the rep instead of widening the window", () => {
+        const result = normalizeRep(
+            baseInputs({
+                markers: [
+                    marker("scenario.start", { monotonicNs: "1000000000" }),
+                    marker("scenario.start", { monotonicNs: "1100000000" }),
+                    marker("scenario.end", { monotonicNs: "1250000000" }),
+                ],
+            }),
+        );
+        expect(result.status).toBe("invalid");
+        expect(result.metrics.find((m) => m.name === "scenario.wallclock")).toBeUndefined();
+        expect(
+            result.validations.find((v) => v.name === "requiredMarkersPresent")?.message,
+        ).toMatch(/exactly one/);
+    });
+
+    it("an inverted required-marker interval is invalid and never emits a negative metric", () => {
+        const result = normalizeRep(
+            baseInputs({
+                markers: [
+                    marker("scenario.start", { monotonicNs: "1250000000" }),
+                    marker("scenario.end", { monotonicNs: "1000000000" }),
+                ],
+            }),
+        );
+        expect(result.status).toBe("invalid");
+        expect(result.metrics.find((m) => m.name === "scenario.wallclock")).toBeUndefined();
     });
 
     it("scenario failure => failed status and unofficial metrics", () => {

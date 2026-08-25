@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 /**
  * Runtime JSON Schema validation (ajv, draft 2020-12) for the three perf
  * contracts. Schemas are loaded from the package's schemas/ directory so the

@@ -1,8 +1,15 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 /**
  * Local view of the rep's marker stream: markers this driver emitted plus
  * markers relayed by the control server from other perf-mode processes
  * (product extension, STS, webviews). waitForMarker steps resolve here.
  */
+
+import { validateTimerMs } from "./timer";
 
 export interface BusMarker {
     name: string;
@@ -51,6 +58,7 @@ export class MarkerBus {
         timeoutMs: number,
         afterUnixNs?: string,
     ): Promise<BusMarker> {
+        const safeTimeoutMs = validateTimerMs(timeoutMs, 30000, `marker '${name}' timeout`);
         const existing = this.find(name, attrs, afterUnixNs);
         if (existing) {
             return Promise.resolve(existing);
@@ -58,8 +66,10 @@ export class MarkerBus {
         return new Promise<BusMarker>((resolve, reject) => {
             const timer = setTimeout(() => {
                 this.listeners.delete(listener);
-                reject(new Error(`Timed out after ${timeoutMs}ms waiting for marker '${name}'`));
-            }, timeoutMs);
+                reject(
+                    new Error(`Timed out after ${safeTimeoutMs}ms waiting for marker '${name}'`),
+                );
+            }, safeTimeoutMs);
             const listener: Listener = (marker) => {
                 if (
                     marker.name === name &&

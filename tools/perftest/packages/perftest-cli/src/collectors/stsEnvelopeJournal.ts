@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 /**
  * stsEnvelopeJournal collector (diagnostic pass only): harvests the sts2
  * envelope journal that SQL Tools Service writes when launched with
@@ -10,7 +15,15 @@
  * (rpc.in.request → rpc.out.result/error matched by `corr`).
  */
 
-import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync } from "node:fs";
+import {
+    cpSync,
+    existsSync,
+    mkdirSync,
+    readdirSync,
+    readFileSync,
+    rmSync,
+    statSync,
+} from "node:fs";
 import { join } from "node:path";
 import type { ArtifactRef, Metric } from "@mssqlperf/contracts";
 import type { Collector, CollectorContext } from "./types";
@@ -37,6 +50,17 @@ export interface MultiplexerTransportSnapshot {
 
 export interface RpcTransportSnapshot extends Record<string, unknown> {
     schema: "sts2.rpc.transport.stats/1";
+}
+
+export interface StsEnvelopeJournalOptions {
+    captureSqlText: boolean;
+}
+
+export function shouldRetainRawStsJournal(
+    options: StsEnvelopeJournalOptions,
+    passType: CollectorContext["passType"],
+): boolean {
+    return options.captureSqlText && passType === "diagnostic";
 }
 
 const QUERY_PIPELINE_STAT_FIELDS = [
@@ -172,6 +196,8 @@ export class StsEnvelopeJournalCollector implements Collector {
     private collectedTransportStats: MultiplexerTransportSnapshot[] = [];
     private collectedRpcTransportStats: RpcTransportSnapshot[] = [];
 
+    constructor(private readonly options: StsEnvelopeJournalOptions) {}
+
     async postLaunch(): Promise<void> {
         this.startedAtMs = Date.now();
     }
@@ -219,23 +245,31 @@ export class StsEnvelopeJournalCollector implements Collector {
 
         const artifacts: ArtifactRef[] = [];
         const outRoot = join(ctx.artifactsDir, "sts2");
-        mkdirSync(outRoot, { recursive: true });
+        const retainRawJournal = shouldRetainRawStsJournal(this.options, ctx.passType);
+        if (retainRawJournal) {
+            mkdirSync(outRoot, { recursive: true });
+        }
         for (const dir of fresh) {
             const name = dir.split(/[\\/]/).slice(-1)[0] ?? "journal";
             const dest = join(outRoot, name);
             try {
-                cpSync(dir, dest, { recursive: true });
-                artifacts.push({
-                    kind: "sts2Journal",
-                    path: `artifacts/sts2/${name}`,
-                    retention: "always",
-                });
-                for (const file of readdirSync(dest)) {
+                const parseRoot = retainRawJournal ? dest : dir;
+                if (retainRawJournal) {
+                    cpSync(dir, dest, { recursive: true });
+                    artifacts.push({
+                        kind: "sts2Journal",
+                        path: `artifacts/sts2/${name}`,
+                        retention: "always",
+                    });
+                }
+                for (const file of readdirSync(parseRoot)) {
                     if (file.endsWith(".jsonl")) {
-                        this.parseSegment(join(dest, file), ctx);
+                        this.parseSegment(join(parseRoot, file), ctx);
                     } else if (file === "sts2-rpc-transport.log") {
                         this.collectedRpcTransportStats.push(
-                            ...parseRpcTransportStatsLog(readFileSync(join(dest, file), "utf8")),
+                            ...parseRpcTransportStatsLog(
+                                readFileSync(join(parseRoot, file), "utf8"),
+                            ),
                         );
                     }
                 }
@@ -243,6 +277,10 @@ export class StsEnvelopeJournalCollector implements Collector {
                 ctx.logger.warn("stsEnvelopeJournal.copyFailed", String(error), {
                     dir,
                 });
+            } finally {
+                if (!retainRawJournal) {
+                    rmSync(dir, { recursive: true, force: true });
+                }
             }
         }
 
@@ -275,6 +313,7 @@ export class StsEnvelopeJournalCollector implements Collector {
             multiplexerLogs: freshMultiplexerLogs.length,
             transportSnapshots: this.collectedTransportStats.length,
             rpcTransportSnapshots: this.collectedRpcTransportStats.length,
+            rawJournalRetained: retainRawJournal,
         });
         return artifacts;
     }

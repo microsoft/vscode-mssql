@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 /**
  * Standalone run index.html (Phase-3 M14.4): one self-contained page per run
  * — KPIs, cross-process waterfall, metric plots, SQL activity, soak analysis,

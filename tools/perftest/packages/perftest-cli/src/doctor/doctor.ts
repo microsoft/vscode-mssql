@@ -1,7 +1,12 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 /**
  * Environment preflight (design §13.3, incremental). Every check reports
- * passed/warning/failed/skipped — checks that are not implemented yet are
- * reported as `skipped` with a reason, never silently omitted and never faked.
+ * passed/warning/failed/skipped without advertising implemented capabilities
+ * as future work.
  */
 
 import { execFileSync } from "node:child_process";
@@ -37,7 +42,7 @@ function tryExec(command: string, args: string[]): string | undefined {
             encoding: "utf8",
             timeout: 15000,
             windowsHide: true,
-            shell: process.platform === "win32",
+            shell: false,
         }).trim();
     } catch {
         return undefined;
@@ -55,6 +60,23 @@ export function runDoctor(logger: HarnessLogger): DoctorReport {
         status: nodeMajor >= 22 ? "passed" : "failed",
         message: `Node ${process.versions.node}${nodeMajor >= 22 ? "" : " (need >= 22)"}`,
         details: { version: process.versions.node },
+    });
+
+    const composeVersion = tryExec("docker", ["compose", "version"]);
+    checks.push({
+        name: "dockerCompose",
+        status: composeVersion ? "passed" : "warning",
+        message: composeVersion ?? "docker compose is unavailable",
+    });
+
+    const sqlcmdVersion = tryExec("sqlcmd", ["-?"]);
+    checks.push({
+        name: "sqlcmd",
+        status: sqlcmdVersion !== undefined ? "passed" : "warning",
+        message:
+            sqlcmdVersion !== undefined
+                ? "sqlcmd is available for the external SQL provider"
+                : "sqlcmd not found - external SQL provisioning is unavailable",
     });
 
     // Docker (needed for the dockerCompose SQL provider; external provider works without it)
@@ -101,19 +123,24 @@ export function runDoctor(logger: HarnessLogger): DoctorReport {
         message: `${freeMemGb.toFixed(1)} GB free of ${(os.totalmem() / 1024 ** 3).toFixed(1)} GB`,
     });
 
-    // Not-yet-implemented preflight checks — reported honestly as skipped.
-    for (const [name, milestone] of [
-        ["vscodeResolved", "Milestone 1 (launcher resolves pinned VS Code build)"],
-        ["sqlContainerHealth", "Milestone 4 (SQL provisioner)"],
-        ["machineIdle", "Milestone 4 (idle-CPU sampling window)"],
-        ["acPower", "Milestone 4"],
-        ["cpuFrequencyPolicy", "Milestone 4"],
-        ["etwElevation", "Milestone 5 (WPR/ETW collector)"],
-    ] as const) {
+    const elevation =
+        process.platform === "win32"
+            ? tryExec("net", ["session"]) !== undefined
+            : tryExec("id", ["-u"]) === "0";
+    checks.push({
+        name: "diagnosticElevation",
+        status: elevation ? "passed" : "warning",
+        message: elevation
+            ? "process is elevated for WPR/ETW diagnostics"
+            : "process is not elevated; WPR/ETW diagnostics may be unavailable",
+    });
+
+    // These policies are not automatically enforced yet; say so without stale milestones.
+    for (const name of ["machineIdle", "acPower", "cpuFrequencyPolicy"] as const) {
         checks.push({
             name,
             status: "skipped",
-            message: `not implemented yet - arrives with ${milestone}`,
+            message: "automatic policy verification is not configured",
         });
     }
 

@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 /**
  * The sacred small suite: registry integrity + timing-honesty rules.
  * If these fail, the shared observability story is broken — fix the
@@ -55,6 +60,15 @@ describe("registry integrity", () => {
                     true,
                 );
             }
+        }
+    });
+
+    test("derived metric names do not collide with exact event names", () => {
+        const eventNames = new Set(reg.events.flatMap((event) => (event.name ? [event.name] : [])));
+        for (const metric of reg.metrics) {
+            expect(eventNames.has(metric.name), `metric/event name collision: ${metric.name}`).toBe(
+                false,
+            );
         }
     });
 
@@ -152,7 +166,7 @@ describe("timing honesty (eligibility decision)", () => {
         }
     });
 
-    test("derived metrics need a derivation block to measure", () => {
+    test("derived metrics need an eligible derivation chain to measure", () => {
         const bare = deriveEligibility({ ...base, source: "derived" });
         expect(bare.diagnosticOnly).toBe(true);
         expect(bare.reason).toContain("derivation block");
@@ -161,8 +175,25 @@ describe("timing honesty (eligibility decision)", () => {
             source: "derived",
             timePlane: "derived",
             hasDerivation: true,
+            inputs: [deriveEligibility(base)],
         });
         expect(provenanced.measurementEligible).toBe(true);
+        expect(provenanced.timePlane).toBe("monotonic");
+
+        const collector = deriveEligibility({
+            ...base,
+            source: "sqlServerXEvents",
+            fromCollector: true,
+        });
+        const laundered = deriveEligibility({
+            ...base,
+            source: "derived",
+            timePlane: "derived",
+            hasDerivation: true,
+            inputs: [deriveEligibility(base), collector],
+        });
+        expect(laundered.diagnosticOnly).toBe(true);
+        expect(laundered.reason).toContain("derived input is diagnostic-only");
     });
 });
 

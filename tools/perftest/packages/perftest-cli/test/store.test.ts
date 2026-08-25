@@ -1,7 +1,13 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 import { describe, expect, it } from "vitest";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import Database from "better-sqlite3";
 
 import { PerfStore } from "../src/store/sqliteStore";
 import { HarnessLogger, MemorySink } from "../src/telemetry/logger";
@@ -50,6 +56,23 @@ describe("PerfStore", () => {
             again.close();
         } finally {
             store.close();
+            rmSync(dir, { recursive: true, force: true });
+        }
+    });
+
+    it("refuses a database created by an unsupported schema version", () => {
+        const dir = mkdtempSync(join(tmpdir(), "perfstore-stale-"));
+        const path = join(dir, "perf.db");
+        const db = new Database(path);
+        db.pragma("user_version = 999");
+        db.close();
+
+        try {
+            const logger = new HarnessLogger("test", new MemorySink());
+            expect(() => PerfStore.open(path, logger)).toThrow(
+                "Unsupported perf-store schema version 999",
+            );
+        } finally {
             rmSync(dir, { recursive: true, force: true });
         }
     });

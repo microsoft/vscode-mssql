@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 /**
  * Control-channel client (design §9/§16): connects to the orchestrator's
  * WebSocket, authenticates with the one-time token, answers clock
@@ -77,11 +82,16 @@ export class ControlClient implements vscode.Disposable {
         };
 
         socket.onmessage = (event: MessageEvent) => {
-            void this.onMessage(String(event.data));
+            void this.onMessage(String(event.data)).catch((error: unknown) => {
+                this.log(
+                    `control message failed: ${error instanceof Error ? error.message : String(error)}`,
+                );
+            });
         };
 
         socket.onclose = () => {
             this.log("control socket closed");
+            this.rejectBoundaryWait(new Error("control socket closed"));
         };
 
         socket.onerror = () => {
@@ -90,62 +100,111 @@ export class ControlClient implements vscode.Disposable {
     }
 
     private async onMessage(raw: string): Promise<void> {
-        let message: ControlEnvelope;
+        let parsed: unknown;
         try {
-            message = JSON.parse(raw) as ControlEnvelope;
+            parsed = JSON.parse(raw);
         } catch {
             this.log(`bad JSON from control server: ${raw.slice(0, 200)}`);
             return;
         }
-        switch (message.kind) {
-            case "calibrationPing": {
-                const e1 = nowUnixNs();
-                const payload = message.payload as { seq: number; t0UnixNs: string };
-                this.send("calibrationPong", {
-                    seq: payload.seq,
-                    t0UnixNs: payload.t0UnixNs,
-                    e1UnixNs: e1,
-                    e2UnixNs: nowUnixNs(),
-                });
-                break;
-            }
-            case "startScenario": {
-                this.repId = message.repId;
-                this.scenarioId = message.scenarioId;
-                const payload = message.payload as {
-                    scenario: ScenarioSpec;
-                    connectionProfiles?: Record<string, ConnectionProfileSpec>;
-                };
-                await this.executeScenario(payload.scenario, payload.connectionProfiles);
-                break;
-            }
-            case "marker": {
-                const payload = message.payload as { marker: BusMarker };
-                this.bus.deliver(payload.marker);
-                break;
-            }
-            case "scenarioBoundaryAck": {
-                const payload = message.payload as { phase: "start" | "end" };
-                const pending = this.scenarioBoundaryWait;
-                if (pending?.phase === payload.phase) {
-                    clearTimeout(pending.timer);
-                    this.scenarioBoundaryWait = undefined;
-                    pending.resolve();
+        if (!isControlEnvelope(parsed)) {
+            this.log("invalid control message shape");
+            return;
+        }
+        const message = parsed;
+        if (
+            message.runId !== this.options.runId ||
+            message.repId !== this.repId ||
+            message.scenarioId !== this.scenarioId
+        ) {
+            this.log(`ignored mismatched control envelope '${message.kind}'`);
+            return;
+        }
+        try {
+            switch (message.kind) {
+                case "calibrationPing": {
+                    const e1 = nowUnixNs();
+                    if (
+                        !isRecord(message.payload) ||
+                        typeof message.payload["seq"] !== "number" ||
+                        typeof message.payload["t0UnixNs"] !== "string"
+                    ) {
+                        throw new Error("calibrationPing payload is invalid");
+                    }
+                    const payload = message.payload;
+                    this.send("calibrationPong", {
+                        seq: payload.seq,
+                        t0UnixNs: payload.t0UnixNs,
+                        e1UnixNs: e1,
+                        e2UnixNs: nowUnixNs(),
+                    });
+                    break;
                 }
-                break;
+                case "startScenario": {
+                    if (
+                        !isRecord(message.payload) ||
+                        !isScenarioSpec(message.payload["scenario"]) ||
+                        (message.payload["connectionProfiles"] !== undefined &&
+                            !isRecord(message.payload["connectionProfiles"]))
+                    ) {
+                        throw new Error("startScenario payload is invalid");
+                    }
+                    this.repId = message.repId;
+                    this.scenarioId = message.scenarioId;
+                    const payload = message.payload as unknown as {
+                        scenario: ScenarioSpec;
+                        connectionProfiles?: Record<string, ConnectionProfileSpec>;
+                    };
+                    await this.executeScenario(payload.scenario, payload.connectionProfiles);
+                    break;
+                }
+                case "marker": {
+                    if (!isRecord(message.payload) || !isBusMarker(message.payload["marker"])) {
+                        throw new Error("marker payload is invalid");
+                    }
+                    this.bus.deliver(message.payload["marker"]);
+                    break;
+                }
+                case "scenarioBoundaryAck": {
+                    if (
+                        !isRecord(message.payload) ||
+                        (message.payload["phase"] !== "start" && message.payload["phase"] !== "end")
+                    ) {
+                        throw new Error("scenarioBoundaryAck payload is invalid");
+                    }
+                    const payload = message.payload as { phase: "start" | "end" };
+                    const pending = this.scenarioBoundaryWait;
+                    if (pending?.phase === payload.phase) {
+                        clearTimeout(pending.timer);
+                        this.scenarioBoundaryWait = undefined;
+                        pending.resolve();
+                    }
+                    break;
+                }
+                case "shutdown": {
+                    this.log("shutdown requested; quitting VS Code");
+                    await vscode.commands.executeCommand("workbench.action.quit");
+                    break;
+                }
+                case "heartbeat":
+                    if (!isRecord(message.payload) || typeof message.payload["seq"] !== "number") {
+                        throw new Error("heartbeat payload is invalid");
+                    }
+                    this.send("heartbeat", {
+                        seq: message.payload["seq"],
+                    });
+                    break;
+                default:
+                    this.log(`unexpected control message kind '${message.kind}'`);
             }
-            case "shutdown": {
-                this.log("shutdown requested; quitting VS Code");
-                await vscode.commands.executeCommand("workbench.action.quit");
-                break;
+        } catch (error) {
+            const reason = error instanceof Error ? error.message : String(error);
+            this.log(`rejected '${message.kind}': ${reason}`);
+            if (message.kind === "startScenario") {
+                this.send("scenarioFailed", { reason });
+            } else {
+                this.send("error", { reason, sourceKind: message.kind });
             }
-            case "heartbeat":
-                this.send("heartbeat", {
-                    seq: (message.payload as { seq: number }).seq,
-                });
-                break;
-            default:
-                this.log(`unexpected control message kind '${message.kind}'`);
         }
     }
 
@@ -300,16 +359,52 @@ export class ControlClient implements vscode.Disposable {
             return;
         }
         this.disposed = true;
-        if (this.scenarioBoundaryWait) {
-            clearTimeout(this.scenarioBoundaryWait.timer);
-            this.scenarioBoundaryWait.reject(
-                new Error(
-                    `Control client disposed at scenario ${this.scenarioBoundaryWait.phase} boundary`,
-                ),
-            );
-            this.scenarioBoundaryWait = undefined;
-        }
+        this.rejectBoundaryWait(new Error("control client disposed"));
         this.socket?.close();
         this.socket = undefined;
     }
+
+    private rejectBoundaryWait(error: Error): void {
+        if (!this.scenarioBoundaryWait) return;
+        clearTimeout(this.scenarioBoundaryWait.timer);
+        this.scenarioBoundaryWait.reject(error);
+        this.scenarioBoundaryWait = undefined;
+    }
+}
+
+function isControlEnvelope(value: unknown): value is ControlEnvelope {
+    return (
+        isRecord(value) &&
+        value["schemaVersion"] === 1 &&
+        typeof value["kind"] === "string" &&
+        typeof value["runId"] === "string" &&
+        typeof value["repId"] === "number" &&
+        typeof value["scenarioId"] === "string" &&
+        typeof value["timestampUnixNs"] === "string" &&
+        isRecord(value["sender"])
+    );
+}
+
+function isScenarioSpec(value: unknown): value is ScenarioSpec {
+    return (
+        isRecord(value) &&
+        typeof value["scenarioId"] === "string" &&
+        isRecord(value["measure"]) &&
+        Array.isArray(value["measure"]["action"]) &&
+        typeof value["measure"]["timeoutMs"] === "number"
+    );
+}
+
+function isBusMarker(value: unknown): value is BusMarker {
+    return (
+        isRecord(value) &&
+        typeof value["name"] === "string" &&
+        typeof value["phase"] === "string" &&
+        typeof value["timestampUnixNs"] === "string" &&
+        isRecord(value["process"])
+    );
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
 }

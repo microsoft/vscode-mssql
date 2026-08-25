@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 /**
  * Soak/stress analysis (Phase-2 M10.2). Pure functions, unit-tested — these
  * verdicts make leak/reliability claims, the #1 fabrication risk of Phase 2.
@@ -181,7 +186,7 @@ export function analyzeSoak(
             iterations: iterations.length,
             steadyStateIterations: steady.length,
             failures: failures.length,
-            failureRate: steady.length ? Number((failures.length / steady.length).toFixed(4)) : 0,
+            failureRate: steady.length ? Number((failures.length / steady.length).toFixed(4)) : NaN,
             ...(failures.length > 0 ? { firstFailureIndex: failures[0]!.index } : {}),
             errorTaxonomy: taxonomy,
         },

@@ -58,6 +58,12 @@
                             "cls": "server.name",
                             "handling": "plain"
                         },
+                        "truncatedServerName": {
+                            "v": "CANARY-TRUNCATED-SERVER.contoso.com",
+                            "cls": "server.name",
+                            "handling": "truncated",
+                            "len": 4096
+                        },
                         "databaseName": {
                             "v": "CanaryProdDB",
                             "cls": "database.name",

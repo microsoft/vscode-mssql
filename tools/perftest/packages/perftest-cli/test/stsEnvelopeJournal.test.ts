@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 import { describe, expect, it } from "vitest";
 import {
     normalizeMultiplexerTransportStats,
@@ -6,7 +11,17 @@ import {
     normalizeRpcTransportStats,
     parseMultiplexerTransportStatsLog,
     parseRpcTransportStatsLog,
+    shouldRetainRawStsJournal,
 } from "../src/collectors/stsEnvelopeJournal";
+
+describe("stsEnvelopeJournal privacy gate", () => {
+    it("retains raw journals only for explicit diagnostic SQL-text capture", () => {
+        expect(shouldRetainRawStsJournal({ captureSqlText: true }, "diagnostic")).toBe(true);
+        expect(shouldRetainRawStsJournal({ captureSqlText: false }, "diagnostic")).toBe(false);
+        expect(shouldRetainRawStsJournal({ captureSqlText: true }, "calibration")).toBe(false);
+        expect(shouldRetainRawStsJournal({ captureSqlText: true }, "measurement")).toBe(false);
+    });
+});
 
 describe("stsEnvelopeJournal query pipeline normalization", () => {
     it("sums additive stats, keeps the maximum payload, and excludes correlation ids", () => {

@@ -35,13 +35,13 @@ field classifications, timing plane, and measurement eligibility.
   environment `interactiveHost` (exploratory at best, never CI-gating); the
   time plane comes from the registry (a metric derived from an epoch-aligned
   input event, e.g. `toRender` via the webview render mark, is epoch here).
-- **Conformance tests** in both repos grep the actually-emitted /
+- **Conformance tests** in this repository grep the actually-emitted /
   actually-awaited names and fail on unregistered vocabulary.
 
 ## Workflow for changing the vocabulary
 
 1. Edit the registry JSON.
 2. `npm run build && npm test && npm run generate` here.
-3. Copy `generated/typescript/observabilityContract.generated.ts` over
-   `vscode-mssql/extensions/mssql/src/sharedInterfaces/`.
-4. Both repos' conformance suites must pass.
+3. Copy `generated/typescript/observabilityContract.generated.ts` to
+   `extensions/mssql/src/sharedInterfaces/observabilityContract.generated.ts`.
+4. Run both the contract-package and extension conformance suites.

@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 import { describe, expect, it } from "vitest";
 import {
     explainEventName,
@@ -116,8 +121,7 @@ describe("Query Studio backend A/B registration (TSQ2-12)", () => {
     function fixtureOf(entry: NonNullable<typeof sts2>): string | undefined {
         return (
             entry.spec.setup?.find((step) => step.type === "openDocument") as
-                | { type: "openDocument"; path: string }
-                | undefined
+                { type: "openDocument"; path: string } | undefined
         )?.path;
     }
 

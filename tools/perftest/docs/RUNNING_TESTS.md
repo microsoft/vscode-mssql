@@ -3,7 +3,7 @@
 ## Prerequisites
 
 - Node ≥ 22 (Node 24 LTS recommended), npm.
-- `npm install && npm run build` in the perftest repo root.
+- `npm install && npm run build` in `tools/perftest`.
 - `perftest doctor` should pass (Docker/dotnet are warnings unless you run
   SQL/STS scenarios).
 - First run downloads the pinned VS Code build into `.vscode-test/` (cached
@@ -11,18 +11,21 @@
 
 ## Running
 
-Always run from the **perftest repo root** (relative paths in configs resolve
-against the working directory):
+Config paths resolve relative to the config file, while harness-owned SQL and
+collector assets resolve from `tools/perftest`. Either invocation below works:
 
 ```powershell
 # Everything in a config
-node packages/perftest-cli/dist/cli.js run --config examples/config.noop.local.jsonc
+npm run perftest -- --config examples/config.noop.local.jsonc
+
+# Or, from the vscode-mssql repository root:
+npm --prefix tools/perftest run perftest -- --config tools/perftest/examples/config.noop.local.jsonc
 
 # One scenario from the config
-node packages/perftest-cli/dist/cli.js run --config examples/config.noop.local.jsonc --scenario noop
+npm run perftest -- --config examples/config.noop.local.jsonc --scenario noop
 
 # Diagnostic pass (heavier collectors when configured; metrics never official)
-node packages/perftest-cli/dist/cli.js run --config <cfg> --pass diagnostic
+npm run perftest -- --config <cfg> --pass diagnostic
 ```
 
 During the run, VS Code windows will open and close on the desktop — one per

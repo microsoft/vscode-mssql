@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 /**
  * dotnetTrace collector (diagnostic pass only): EventPipe trace of the STS
  * process via the `dotnet-trace` tool on PATH. A bounded trace starts when STS
@@ -84,14 +89,26 @@ export class DotnetTraceCollector implements Collector {
         );
         this.child = child;
         const attachPromise = waitForTraceAttach(child, 5_000);
-        child.stdout?.pipe(toolLog);
-        child.stderr?.pipe(toolLog);
+        let toolLogEnded = false;
+        const endToolLog = () => {
+            if (!toolLogEnded) {
+                toolLogEnded = true;
+                toolLog.end();
+            }
+        };
+        toolLog.on("error", (error) => {
+            ctx.logger.warn("dotnetTrace.logFailed", String(error));
+        });
+        child.stdout?.pipe(toolLog, { end: false });
+        child.stderr?.pipe(toolLog, { end: false });
         child.on("error", (error) => {
             ctx.logger.warn("dotnetTrace.spawnFailed", String(error));
             this.child = undefined;
+            endToolLog();
         });
         child.on("exit", (code) => {
             ctx.logger.info("dotnetTrace.exited", undefined, { code });
+            endToolLog();
         });
         const attached = await attachPromise;
         ctx.logger.info("dotnetTrace.ready", undefined, { attached });

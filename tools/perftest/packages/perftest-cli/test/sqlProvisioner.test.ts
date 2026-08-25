@@ -1,5 +1,13 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 import { describe, expect, it } from "vitest";
-import { createExternalConnectionProfile } from "../src/sql/sqlProvisioner";
+import {
+    createExternalConnectionProfile,
+    parseSqlConnectionString,
+} from "../src/sql/sqlProvisioner";
 
 describe("external SQL profile provisioning", () => {
     const connection =
@@ -24,5 +32,29 @@ describe("external SQL profile provisioning", () => {
         expect(
             createExternalConnectionProfile("Server=localhost;Integrated Security=true", false),
         ).toMatchObject({ database: "master", authenticationType: "Integrated" });
+    });
+
+    it("parses quoted and brace-delimited values containing semicolons and equals signs", () => {
+        expect(
+            parseSqlConnectionString(
+                "Server=localhost;User ID=tester;Password='a;b=c';Database=PerfHarness",
+            ).password,
+        ).toBe("a;b=c");
+        expect(
+            parseSqlConnectionString(
+                'Server=localhost;User ID=tester;Password="a;""b=c";Database=PerfHarness',
+            ).password,
+        ).toBe('a;"b=c');
+        expect(
+            parseSqlConnectionString(
+                "Server=localhost;User ID=tester;Password={a;b=c}}d};Database=PerfHarness",
+            ).password,
+        ).toBe("a;b=c}d");
+    });
+
+    it("rejects unterminated quoted values with an actionable error", () => {
+        expect(() => parseSqlConnectionString("Server=localhost;Password='unterminated")).toThrow(
+            /closing quote/,
+        );
     });
 });

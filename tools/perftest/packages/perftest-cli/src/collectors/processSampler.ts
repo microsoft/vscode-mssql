@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 /**
  * processSampler collector (design §14.3): low-cost CPU/RSS sampling of the
  * processes the harness owns (VS Code main + discovered children like the
@@ -347,9 +352,8 @@ function readStatsPosix(
                     for (const line of stdout.split("\n")) {
                         const parts = line.trim().split(/\s+/);
                         if (parts.length < 3) continue;
-                        const [h = "0", m = "0", s = "0"] = (parts[1] ?? "").split(":").slice(-3);
                         map.set(Number(parts[0]), {
-                            cpuSeconds: Number(h) * 3600 + Number(m) * 60 + Number(s),
+                            cpuSeconds: parsePosixCpuTime(parts[1] ?? ""),
                             workingSetBytes: Number(parts[2]) * 1024,
                         });
                     }
@@ -358,4 +362,12 @@ function readStatsPosix(
             },
         );
     });
+}
+
+export function parsePosixCpuTime(text: string): number {
+    const fields = text.split(":").map(Number);
+    const seconds = fields.pop() ?? 0;
+    const minutes = fields.pop() ?? 0;
+    const hours = fields.pop() ?? 0;
+    return hours * 3600 + minutes * 60 + seconds;
 }

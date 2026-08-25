@@ -4,7 +4,7 @@ The contracts are the stable spine of the whole system: every producer (driver
 extension, product extension, STS, collectors) and every consumer (normalizer,
 store, regression engine, reports, future central infra) meets at these shapes.
 They live in `packages/perf-contracts` and were **copied verbatim** from the
-design (`perftest-docs/mssql-vscode-perf-system-v2`); the JSON files are the
+historical perf-system design (not imported here); the JSON files are the
 single source of truth and the TypeScript types mirror them.
 
 ```text

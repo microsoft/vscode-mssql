@@ -15,8 +15,7 @@ standalone repository workflow was excluded because workflows nested below
 `tools/perftest/.github/workflows` are not executed by GitHub Actions.
 
 `IMPLEMENTATION_PLAN.md` and `PROGRESS.md` are retained as frozen historical
-context. Current cross-session migration status belongs in the repository
-workspace's `inprogress.md` and `resume.md` handoff files.
+context only; they are not current product documentation.
 
 ## Scenario migration policy
 

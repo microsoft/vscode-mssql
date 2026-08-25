@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 /**
  * Reusable inline-SVG chart renderers (Phase-3 M14.1). Deterministic, zero
  * dependencies, self-contained output — reports open as file:// with no

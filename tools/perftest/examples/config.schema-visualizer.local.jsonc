@@ -19,25 +19,23 @@
         "quality": "stable",
         "launchMode": "directSpawn",
         "profileMode": "scenarioDefault",
-        "workspaceRoot": "./workspaces/perf",
+        "workspaceRoot": "../workspaces/perf",
         "extensions": [
             {
                 "id": "ms-mssql.mssql",
                 "source": "developmentPath",
-                "path": "../vscode-mssql/extensions/mssql",
+                "path": "../../../extensions/mssql",
             },
             {
                 "id": "perftest.mssql-perf-driver",
                 "source": "developmentPath",
-                "path": "./extensions/mssql-perf-driver",
+                "path": "../extensions/mssql-perf-driver",
             },
         ],
         "extraArgs": [],
         "env": {
             // sts2 endpoints require the LOCAL service build (v2/initialize fails
             // against the packaged STS — found via the sessionDiag journal).
-            "MSSQL_SQLTOOLSSERVICE": "C:\\repos\\test\\langsrv2\\sqltoolsservice\\src\\Microsoft.SqlTools.ServiceLayer\\bin\\Debug\\net10.0",
-            "PERF_DOTNET_PATH": "C:\\Program Files\\dotnet\\dotnet.exe",
         },
     },
     "sql": {
@@ -55,7 +53,7 @@
         "processSampler": true,
         "otel": "off",
     },
-    "store": { "type": "sqlite", "path": "./perf.db" },
+    "store": { "type": "sqlite", "path": "../perf.db" },
     "regression": { "baseline": "none", "failOnRegression": false },
-    "output": { "dir": "./perf-runs", "keepArtifacts": "always" },
+    "output": { "dir": "../perf-runs", "keepArtifacts": "always" },
 }

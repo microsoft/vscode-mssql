@@ -20,12 +20,12 @@
             {
                 "id": "ms-mssql.mssql",
                 "source": "developmentPath",
-                "path": "../vscode-mssql/extensions/mssql",
+                "path": "../../../extensions/mssql",
             },
             {
                 "id": "perftest.mssql-perf-driver",
                 "source": "developmentPath",
-                "path": "./extensions/mssql-perf-driver",
+                "path": "../extensions/mssql-perf-driver",
             },
         ],
         "extraArgs": [],
@@ -45,7 +45,7 @@
         "processSampler": false,
         "otel": "off",
     },
-    "store": { "type": "sqlite", "path": "./perf.db" },
+    "store": { "type": "sqlite", "path": "../perf.db" },
     "regression": { "baseline": "none", "failOnRegression": false },
-    "output": { "dir": "./perf-runs", "keepArtifacts": "always" },
+    "output": { "dir": "../perf-runs", "keepArtifacts": "always" },
 }

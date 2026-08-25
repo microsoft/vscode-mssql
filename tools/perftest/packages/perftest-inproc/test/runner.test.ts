@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 /**
  * In-process runner unit tests: marker-bus freshness + timeout diagnostics,
  * honest metric derivation, and runner policies (SQL skip, CLI-only skip,
@@ -8,6 +13,7 @@ import { MarkerBus, BusMarker } from "../src/markerBus";
 import { deriveMetrics } from "../src/metrics";
 import { SelfTestRunner } from "../src/runner";
 import { BuiltinScenario, builtinScenario, BUILTIN_SCENARIOS } from "../src/scenarios";
+import { validateTimerMs } from "../src/timer";
 
 function marker(name: string, atMs: number): BusMarker {
     return {
@@ -19,6 +25,13 @@ function marker(name: string, atMs: number): BusMarker {
 }
 
 describe("MarkerBus", () => {
+    test("rejects invalid and oversized untrusted timer durations", () => {
+        expect(() => validateTimerMs(-1, 100, "test timer")).toThrow(/outside/);
+        expect(() => validateTimerMs(Number.NaN, 100, "test timer")).toThrow(/outside/);
+        expect(() => validateTimerMs(86_400_001, 100, "test timer")).toThrow(/outside/);
+        expect(validateTimerMs(undefined, 100, "test timer")).toBe(100);
+    });
+
     test("freshness guard rejects stale markers", async () => {
         const bus = new MarkerBus();
         bus.deliver(marker("mssql.activate.end", 1000));

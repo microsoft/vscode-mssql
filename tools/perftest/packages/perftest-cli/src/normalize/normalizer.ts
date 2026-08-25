@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 /**
  * Rep normalizer (design §20): turns the raw signals of one repetition —
  * markers, scenario outcome, calibration, environment — into a schema-valid
@@ -121,9 +126,26 @@ export function normalizeRep(inputs: NormalizeInputs): PerfResult {
     const errors: ErrorRecord[] = [];
     const metrics: Metric[] = [];
 
-    const start = inputs.markers.find((m) => m.name === "scenario.start");
-    const end = inputs.markers.find((m) => m.name === "scenario.end");
-    const requiredPresent = Boolean(start && end);
+    const starts = inputs.markers.filter((m) => m.name === "scenario.start");
+    const ends = inputs.markers.filter((m) => m.name === "scenario.end");
+    const start = starts[0];
+    const end = ends[0];
+    let wallclock: ReturnType<typeof markerPairDuration> | undefined;
+    let requiredMarkerError: string | undefined;
+    if (starts.length !== 1 || ends.length !== 1) {
+        requiredMarkerError = `expected exactly one scenario.start and scenario.end (start=${starts.length}, end=${ends.length})`;
+    } else {
+        try {
+            wallclock = markerPairDuration(start!, end!);
+            if (wallclock.valueMs < 0) {
+                requiredMarkerError = `scenario.end precedes scenario.start (${wallclock.valueMs}ms)`;
+                wallclock = undefined;
+            }
+        } catch (error) {
+            requiredMarkerError = `invalid scenario marker timestamps: ${String(error)}`;
+        }
+    }
+    const requiredPresent = wallclock !== undefined;
 
     validations.push({
         name: "requiredMarkersPresent",
@@ -131,8 +153,7 @@ export function normalizeRep(inputs: NormalizeInputs): PerfResult {
         ...(requiredPresent
             ? {}
             : {
-                  message:
-                      `missing ${!start ? "scenario.start " : ""}${!end ? "scenario.end" : ""}`.trim(),
+                  message: requiredMarkerError ?? "required scenario markers are invalid",
               }),
     });
 
@@ -227,8 +248,8 @@ export function normalizeRep(inputs: NormalizeInputs): PerfResult {
     // meaningless). Default remains official.
     const wallclockDeclared =
         inputs.spec?.metrics?.find((m) => m.name === "scenario.wallclock")?.official ?? true;
-    if (start && end) {
-        const { valueMs, timePlane } = markerPairDuration(start, end);
+    if (wallclock && start && end) {
+        const { valueMs, timePlane } = wallclock;
         metrics.push({
             name: "scenario.wallclock",
             value: valueMs,
@@ -698,6 +719,14 @@ export function normalizeRep(inputs: NormalizeInputs): PerfResult {
         const timePlane =
             (metric.tags?.timePlane as "monotonic" | "epoch" | undefined) ??
             (metric.source === "derived" ? "derived" : "monotonic");
+        const candidateInputs = metric.derivation?.inputs.map(
+            (name) => metrics.find((candidate) => candidate.name === name)?.eligibility,
+        );
+        const resolvedInputs = candidateInputs?.every(
+            (candidate): candidate is NonNullable<typeof candidate> => candidate !== undefined,
+        )
+            ? candidateInputs
+            : [];
         const eligibility = deriveEligibility({
             source: metric.source,
             passType: inputs.passType,
@@ -707,6 +736,7 @@ export function normalizeRep(inputs: NormalizeInputs): PerfResult {
             richCollection: false,
             fromCollector: COLLECTOR_SOURCES.has(metric.source),
             hasDerivation: metric.derivation !== undefined,
+            ...(metric.derivation ? { inputs: resolvedInputs } : {}),
         });
         metrics[i] = { ...metric, eligibility };
         // Legacy flag vs structured decision disagreement is surfaced, never

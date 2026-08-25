@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 /**
  * Regression classification (design §24.3): compare official metric
  * distributions between a current run and a baseline run, per metric key,
@@ -97,7 +102,14 @@ export function classifyMetric(
     const current = summarize(currentValues);
     const baseline = summarize(baselineValues);
     const deltaAbs = current.aggregate - baseline.aggregate;
-    const deltaPct = baseline.aggregate !== 0 ? (deltaAbs / baseline.aggregate) * 100 : 0;
+    const deltaPct =
+        baseline.aggregate !== 0
+            ? (deltaAbs / baseline.aggregate) * 100
+            : deltaAbs === 0
+              ? 0
+              : deltaAbs > 0
+                ? Number.POSITIVE_INFINITY
+                : Number.NEGATIVE_INFINITY;
 
     const maxCv = threshold.maxCv ?? DEFAULT_THRESHOLD.maxCv!;
     if (current.cv > maxCv || baseline.cv > maxCv) {
@@ -122,8 +134,9 @@ export function classifyMetric(
         pValue = welchT(currentValues, baselineValues)?.pValue;
     }
 
-    const exceedsThresholds =
-        Math.abs(worsePct) >= threshold.pct && Math.abs(worseAbs) >= threshold.absMs;
+    const usesAbsoluteFloor = key.unit === "ms";
+    const regressionExceedsAbsoluteFloor = !usesAbsoluteFloor || worseAbs >= threshold.absMs;
+    const improvementExceedsAbsoluteFloor = !usesAbsoluteFloor || -worseAbs >= threshold.absMs;
     const significant =
         threshold.test !== "welchT" ||
         pValue === undefined ||
@@ -131,7 +144,7 @@ export function classifyMetric(
 
     let verdict: Verdict;
     let reason: string;
-    if (worsePct >= threshold.pct && worseAbs >= threshold.absMs) {
+    if (worsePct >= threshold.pct && regressionExceedsAbsoluteFloor) {
         if (significant) {
             verdict = "regressed";
             reason = `worse by ${worsePct.toFixed(1)}% / ${worseAbs.toFixed(1)}${key.unit}${pValue !== undefined ? ` (p=${pValue.toFixed(4)})` : ""}`;
@@ -139,14 +152,12 @@ export function classifyMetric(
             verdict = "inconclusive";
             reason = `delta exceeds thresholds but not statistically significant (p=${pValue?.toFixed(4)})`;
         }
-    } else if (-worsePct >= threshold.pct && -worseAbs >= threshold.absMs && significant) {
+    } else if (-worsePct >= threshold.pct && improvementExceedsAbsoluteFloor && significant) {
         verdict = "improved";
         reason = `better by ${(-worsePct).toFixed(1)}% / ${(-worseAbs).toFixed(1)}${key.unit}`;
     } else {
         verdict = "unchanged";
-        reason = exceedsThresholds
-            ? "delta within noise"
-            : `delta ${worsePct.toFixed(1)}% / ${worseAbs.toFixed(1)}${key.unit} below thresholds (${threshold.pct}% and ${threshold.absMs}${key.unit})`;
+        reason = `delta ${worsePct.toFixed(1)}% / ${worseAbs.toFixed(1)}${key.unit} below threshold (${threshold.pct}%${usesAbsoluteFloor ? ` and ${threshold.absMs}ms` : ""})`;
     }
 
     return {
@@ -164,6 +175,7 @@ export function classifyMetric(
 
 /** Worst-metric-wins run verdict over official gated metrics. */
 export function overallStatus(metrics: MetricComparison[]): RunComparison["status"] {
+    if (metrics.length === 0) return "inconclusive";
     if (metrics.some((m) => m.verdict === "regressed")) return "regressed";
     if (metrics.length > 0 && metrics.every((m) => m.verdict === "inconclusive"))
         return "inconclusive";

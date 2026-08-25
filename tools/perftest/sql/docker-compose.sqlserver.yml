@@ -3,7 +3,7 @@
 # mcr.microsoft.com/mssql/server:2022-latest.
 #
 # SA password comes from PERF_SQL_SA_PASSWORD (synthetic perf credential; the
-# provisioner supplies a default). Seed scripts are mounted read-only and
+# provisioner requires it explicitly). Seed scripts are mounted read-only and
 # applied by the provisioner via sqlcmd inside the container.
 
 services:
@@ -12,7 +12,7 @@ services:
     container_name: perftest-sqlserver
     environment:
       ACCEPT_EULA: "Y"
-      MSSQL_SA_PASSWORD: "${PERF_SQL_SA_PASSWORD:-PerfH@rness2026!}"
+      MSSQL_SA_PASSWORD: "${PERF_SQL_SA_PASSWORD:?Set PERF_SQL_SA_PASSWORD to a strong disposable local-container password}"
       MSSQL_PID: "Developer"
       MSSQL_MEMORY_LIMIT_MB: "4096"
     ports:
@@ -22,18 +22,8 @@ services:
     healthcheck:
       test:
         [
-          "CMD",
-          "/opt/mssql-tools18/bin/sqlcmd",
-          "-S",
-          "localhost",
-          "-U",
-          "sa",
-          "-P",
-          "${PERF_SQL_SA_PASSWORD:-PerfH@rness2026!}",
-          "-C",
-          "-Q",
-          "SELECT 1",
-          "-b",
+          "CMD-SHELL",
+          'SQLCMDPASSWORD="$${MSSQL_SA_PASSWORD}" /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -C -Q "SELECT 1" -b',
         ]
       interval: 5s
       timeout: 10s

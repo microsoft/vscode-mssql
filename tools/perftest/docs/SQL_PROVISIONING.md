@@ -1,5 +1,9 @@
 # SQL provisioning
 
+Docker provisioning requires `PERF_SQL_SA_PASSWORD` to be set to a strong,
+disposable local-container password. The value is passed through environment
+variables and is never placed on a host or container process command line.
+
 How the harness puts SQL Server into a known, deterministic state before
 measurement (design §13.4). Implementation:
 `packages/perftest-cli/src/sql/sqlProvisioner.ts`; assets under `sql/`.

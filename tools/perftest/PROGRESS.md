@@ -1,8 +1,8 @@
 # HISTORICAL PROGRESS LOG — MSSQL VS Code Perf Harness build
 
 > Frozen migration context imported from standalone perftest commit
-> `860365ff65f9bbb4e102309860004d8e9bdf36f4`. Current migration status is
-> maintained in the workspace `inprogress.md` and `resume.md` handoff files.
+> `860365ff65f9bbb4e102309860004d8e9bdf36f4`. See `UPSTREAM.md` for current
+> migration context.
 
 > Append-only. Newest entries at the BOTTOM. On restart: read this file end-to-end, then
 > resume at the first unchecked box in `IMPLEMENTATION_PLAN.md`. Environment facts and seam
@@ -15,7 +15,7 @@
 ### Environment facts (verified)
 
 - Workspace: `C:\repos\test` — contains `perftest/` (blank git repo, no commits yet),
-  `perftest-docs/`, `vscode-mssql/` (branch `dev/karlb/perftest`, clean),
+  the historical standalone design (not imported), the product extension,
   `sqltoolsservice/` (branch `dev/karlb/perftest`, clean), `PERFTEST_BUILD_PROMPT.md`.
 - Toolchain: Node v24.17.0, npm 11.13.0, Docker 29.6.1, dotnet SDK 10.0.301. Windows 11.
 - `STS2_SQLSERVER_CONNSTRING` env var is set (253 chars) — usable as `external` SQL provider
@@ -27,14 +27,14 @@
 ### Inputs read (full)
 
 - `PERFTEST_BUILD_PROMPT.md` — mission, guardrails, milestone order M0→M1→M2→M4′→M6′.
-- Design doc `perftest-docs/mssql-vscode-perf-system-v2/MSSQL_VSCODE_PERF_SYSTEM_DESIGN.md`
+- Standalone perf-system design (not imported into this repository)
   (all 34 sections) + 3 JSON schemas + `perf-store.schema.sql` + 2 example configs +
   example result. Schemas will be copied verbatim into `packages/perf-contracts/schemas/`
   and `sql/`.
 
 ### Seam map — vscode-mssql (from exploration; file paths relative to `extensions/mssql/`)
 
-- **Monorepo layout:** extension code lives in `vscode-mssql/extensions/mssql/` (NOT top-level
+- **Monorepo layout:** extension code lives in `extensions/mssql/` (NOT top-level
   src). Build: root `npm run build` (Node 24+, `scripts/workspaces.mjs`), extension bundle via
   esbuild → `dist/extension` (= package.json `main`). Watch mode exists. Package via
   `npm run package` (vsce). Extension ID `ms-mssql.mssql`, engines.vscode `^1.101.0`.
@@ -594,7 +594,7 @@ yet built/verified - continuing there.
 - gcDump collector VERIFIED: STS managed-heap dumps captured start+end
   (3.2MB -> 5.7MB - STS managed heap nearly doubled over 60 cycles; pair
   available for PerfView diff).
-- **_ ATTRIBUTION ANSWER for the connection-cycling growth finding: post-GC
+- **\_ ATTRIBUTION ANSWER for the connection-cycling growth finding: post-GC
   retained JS heap grew only 2.9MB/60 iters (~48KB/iter). Top retainers:
   (code) +2.59MB/+9,767 objects (V8 compiled-code accumulation from repeated
   connect/query - dynamic function/regex/lazy compilation per cycle);
