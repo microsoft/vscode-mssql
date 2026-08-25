@@ -22,18 +22,23 @@ export interface RunReportInputs {
     harnessLogPath: string;
 }
 
+/** Keep generated Markdown table cells on one row and preserve literal pipes. */
+export function markdownCell(value: string): string {
+    return value.replace(/\|/g, "\\|").replace(/\r?\n/g, " ");
+}
+
 export function renderMarkdownReport(inputs: RunReportInputs): string {
     const lines: string[] = [];
     lines.push(`# perftest run report`);
     lines.push("");
     lines.push(`| | |`);
     lines.push(`|---|---|`);
-    lines.push(`| Run | \`${inputs.runId}\` |`);
-    lines.push(`| Pass | ${inputs.passType} |`);
-    lines.push(`| Created | ${inputs.createdAt} |`);
-    lines.push(`| Machine | ${inputs.machineId ?? "unknown"} |`);
-    lines.push(`| VS Code | ${inputs.vscodeVersion ?? "unknown"} |`);
-    lines.push(`| Environment hash | \`${inputs.environmentHash}\` |`);
+    lines.push(`| Run | \`${markdownCell(inputs.runId)}\` |`);
+    lines.push(`| Pass | ${markdownCell(inputs.passType)} |`);
+    lines.push(`| Created | ${markdownCell(inputs.createdAt)} |`);
+    lines.push(`| Machine | ${markdownCell(inputs.machineId ?? "unknown")} |`);
+    lines.push(`| VS Code | ${markdownCell(inputs.vscodeVersion ?? "unknown")} |`);
+    lines.push(`| Environment hash | \`${markdownCell(inputs.environmentHash)}\` |`);
     lines.push("");
 
     const byScenario = new Map<string, PerfResult[]>();

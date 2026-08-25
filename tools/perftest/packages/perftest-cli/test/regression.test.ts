@@ -69,11 +69,13 @@ describe("statistics", () => {
         expect(twoTailedPValue(0, 10)).toBeCloseTo(1, 6);
     });
 
-    it("welchT detects a clear shift and ignores identical samples", () => {
+    it("welchT detects clear shifts, including separated constant samples", () => {
         const shifted = welchT([10, 11, 10, 12, 11], [20, 21, 20, 22, 21]);
         expect(shifted!.pValue).toBeLessThan(0.001);
         const same = welchT([10, 10, 10], [10, 10, 10]);
         expect(same!.pValue).toBe(1);
+        const separated = welchT([1, 1, 1], [0, 0, 0]);
+        expect(separated).toMatchObject({ t: Number.POSITIVE_INFINITY, pValue: 0 });
     });
 });
 
@@ -149,9 +151,9 @@ describe("classifyMetric", () => {
         expect(result.verdict).toBe("unchanged"); // +20% < 50% custom threshold
     });
 
-    it("does not apply the millisecond floor to ratio metrics", () => {
+    it("gates a zero-baseline ratio regression under the default Welch test", () => {
         const threshold = resolveThreshold("soak.reliability.failureRate", {
-            default: { pct: 10, absMs: 5, minSamples: 3, test: "none" },
+            default: { pct: 10, absMs: 5, minSamples: 3, test: "welchT" },
         });
         const result = classifyMetric(
             { ...KEY, name: "soak.reliability.failureRate", unit: "ratio" },
@@ -161,7 +163,23 @@ describe("classifyMetric", () => {
             threshold,
         );
         expect(result.verdict).toBe("regressed");
-        expect(result.deltaPct).toBe(Number.POSITIVE_INFINITY);
+        expect(result.deltaPct).toBeUndefined();
+        expect(result.pValue).toBe(0);
+        expect(JSON.stringify(result)).not.toContain("null");
+    });
+
+    it("does not apply the millisecond floor to byte metrics", () => {
+        const threshold = resolveThreshold("process.peakWorkingSet", {
+            default: { pct: 10, absMs: 5, minSamples: 3, test: "none" },
+        });
+        const result = classifyMetric(
+            { ...KEY, name: "process.peakWorkingSet", unit: "bytes" },
+            [12, 12, 12],
+            [10, 10, 10],
+            true,
+            threshold,
+        );
+        expect(result.verdict).toBe("regressed");
     });
 });
 

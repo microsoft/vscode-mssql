@@ -95,7 +95,7 @@ export class CdpHeapSnapshotCollector implements Collector {
         label: "start" | "end",
     ): Promise<{ stats: Map<string, ConstructorStats>; totalBytes: number }> {
         if (!this.client) {
-            const targets = await discoverCdpTargets(this.port);
+            const targets = await discoverCdpTargets(this.port, { preferredType: "node" });
             const url = targets.find((t) => t.webSocketDebuggerUrl)?.webSocketDebuggerUrl;
             if (!url) {
                 throw new Error(`no inspector target on port ${this.port}`);

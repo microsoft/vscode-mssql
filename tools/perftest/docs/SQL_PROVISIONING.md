@@ -14,7 +14,7 @@ measurement (design §13.4). Implementation:
 
 `sql/docker-compose.sqlserver.yml` — SQL Server 2022, **pinned by image
 digest** (never a floating tag), port `14333`, SA password from
-`PERF_SQL_SA_PASSWORD` (synthetic default supplied), seed directory mounted
+`PERF_SQL_SA_PASSWORD`, seed directory mounted
 read-only at `/perf-seed`, container healthcheck via in-container sqlcmd.
 
 Provisioning: `docker compose up -d --wait` → seed scripts applied via

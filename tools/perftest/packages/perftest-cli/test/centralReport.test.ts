@@ -32,6 +32,21 @@ describe("central HTML report", () => {
                         },
                     ];
                 }
+                if (sql.includes("regressions_last_30d")) {
+                    return [
+                        {
+                            scenario_id: canary,
+                            metric_name: "scenario.wallclock",
+                            verdict: "regressed",
+                            delta_pct: 12.5,
+                            latest_median: 112.5,
+                            unit: canary,
+                            prior_mean: 100,
+                            prior_runs: 3,
+                            latest_run_id: "run-1",
+                        },
+                    ];
+                }
                 return [];
             },
         } as unknown as CentralClient;

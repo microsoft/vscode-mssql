@@ -23,7 +23,17 @@ import {
     type RunComparison,
 } from "./regression";
 
-export class CompareError extends Error {}
+export type CompareErrorKind = "invalidComparison" | "insufficientSamples";
+
+export class CompareError extends Error {
+    constructor(
+        message: string,
+        readonly kind: CompareErrorKind = "invalidComparison",
+    ) {
+        super(message);
+        this.name = "CompareError";
+    }
+}
 
 export interface CompareOptions {
     thresholds?: { default?: ThresholdSpec; metrics?: Record<string, ThresholdSpec> };
@@ -105,7 +115,7 @@ export function compareRuns(
 
     const currentSamples = store.officialSamples(currentRunId);
     if (currentSamples.length === 0) {
-        throw new CompareError("current run has no official samples");
+        throw new CompareError("current run has no official samples", "insufficientSamples");
     }
 
     const grouped = new Map<

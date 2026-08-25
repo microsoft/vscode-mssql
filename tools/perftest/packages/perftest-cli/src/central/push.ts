@@ -24,6 +24,7 @@ import {
     getUploadPolicy,
     projectPerfRun,
     type CentralProjection,
+    type UploadReceipt,
     type UploadPolicyId,
 } from "@mssqlperf/contracts";
 import type { HarnessLogger } from "../telemetry/logger";
@@ -45,6 +46,17 @@ export interface PushOutcome {
     refused: number;
     failed: number;
     skipped: number;
+}
+
+/** Apply a commit receipt to the CLI summary without treating refusals as success. */
+export function recordCommitReceipt(outcome: PushOutcome, receipt: UploadReceipt): string {
+    const rows = Object.values(receipt.rowsByItemKind).reduce((a, b) => a + b, 0);
+    if (receipt.outcome === "refused") {
+        outcome.refused++;
+        return `  -> REFUSED: ${receipt.reasonCode ?? "commitRefused"} (batch ${receipt.uploadBatchId})`;
+    }
+    outcome.pushed++;
+    return `  -> ${receipt.outcome} (batch ${receipt.uploadBatchId}, ${rows} rows)`;
 }
 
 export function pushIdentity(ci: boolean): CentralIdentity {
@@ -153,11 +165,7 @@ export async function runPush(
             }
             const result = await uploadProjection(client, projection, identity);
             if (result.receipt) {
-                outcome.pushed++;
-                write(
-                    `  -> ${result.receipt.outcome} (batch ${result.receipt.uploadBatchId}, ` +
-                        `${Object.values(result.receipt.rowsByItemKind).reduce((a, b) => a + b, 0)} rows)`,
-                );
+                write(recordCommitReceipt(outcome, result.receipt));
             } else if (result.disposition.disposition === "alreadyPresent") {
                 outcome.alreadyPresent++;
                 write(`  -> alreadyPresent (no rows uploaded)`);

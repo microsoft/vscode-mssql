@@ -103,24 +103,35 @@ export function getCdpBrowserWebSocketUrl(port: number, timeoutMs = 2000): Promi
     });
 }
 
+export interface CdpDiscoveryOptions {
+    retries?: number;
+    delayMs?: number;
+    preferredType?: string;
+}
+
 export async function discoverCdpTargets(
     port: number,
-    retries = 20,
-    delayMs = 500,
+    options: CdpDiscoveryOptions = {},
 ): Promise<CdpTarget[]> {
+    const { retries = 20, delayMs = 500, preferredType } = options;
     let lastError: unknown;
     for (let i = 0; i < retries; i++) {
         try {
             const targets = await listCdpTargets(port);
-            if (targets.length > 0) {
-                return targets;
+            const candidates = preferredType
+                ? targets.filter((target) => target.type === preferredType)
+                : targets;
+            if (candidates.length > 0) {
+                return candidates;
             }
         } catch (error) {
             lastError = error;
         }
         await new Promise((r) => setTimeout(r, delayMs));
     }
-    throw new Error(`No CDP targets on port ${port}: ${String(lastError ?? "empty list")}`);
+    throw new Error(
+        `No ${preferredType ? `${preferredType} ` : ""}CDP targets on port ${port}: ${String(lastError ?? "empty list")}`,
+    );
 }
 
 export class CdpClient {

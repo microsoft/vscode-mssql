@@ -26,7 +26,10 @@ export class CentralClientError extends Error {
     constructor(
         message: string,
         public readonly code:
-            "noTarget" | "integratedAuthUnsupported" | "connectFailed" | "protocol",
+            | "noTarget"
+            | "integratedAuthUnsupported"
+            | "connectFailed"
+            | "protocol",
     ) {
         super(message);
         this.name = "CentralClientError";
@@ -318,6 +321,7 @@ function receiptFromRow(row: Record<string, unknown>): UploadReceipt {
     return {
         uploadBatchId: Number(row["upload_batch_id"]),
         outcome: String(row["outcome"]) as UploadReceipt["outcome"],
+        reasonCode: row["reason_code"] === null ? null : String(row["reason_code"]),
         kind: String(row["source_kind"]) as UploadReceipt["kind"],
         naturalKey: String(row["natural_key"]),
         uploadPolicyId: String(row["upload_policy_id"]),

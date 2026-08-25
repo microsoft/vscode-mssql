@@ -107,9 +107,7 @@ export function classifyMetric(
             ? (deltaAbs / baseline.aggregate) * 100
             : deltaAbs === 0
               ? 0
-              : deltaAbs > 0
-                ? Number.POSITIVE_INFINITY
-                : Number.NEGATIVE_INFINITY;
+              : undefined;
 
     const maxCv = threshold.maxCv ?? DEFAULT_THRESHOLD.maxCv!;
     if (current.cv > maxCv || baseline.cv > maxCv) {
@@ -127,7 +125,17 @@ export function classifyMetric(
 
     // Direction-aware "worse" delta: for lowerIsBetter metrics, worse = larger.
     const worseAbs = lowerIsBetter ? deltaAbs : -deltaAbs;
-    const worsePct = lowerIsBetter ? deltaPct : -deltaPct;
+    // A non-zero delta from a zero baseline is directionally unbounded for
+    // thresholding, but it must not be serialized as Infinity (JSON turns that
+    // into null and breaks downstream renderers).
+    const worsePct =
+        deltaPct !== undefined
+            ? lowerIsBetter
+                ? deltaPct
+                : -deltaPct
+            : worseAbs > 0
+              ? Number.POSITIVE_INFINITY
+              : Number.NEGATIVE_INFINITY;
 
     let pValue: number | undefined;
     if (threshold.test === "welchT") {
@@ -147,14 +155,14 @@ export function classifyMetric(
     if (worsePct >= threshold.pct && regressionExceedsAbsoluteFloor) {
         if (significant) {
             verdict = "regressed";
-            reason = `worse by ${worsePct.toFixed(1)}% / ${worseAbs.toFixed(1)}${key.unit}${pValue !== undefined ? ` (p=${pValue.toFixed(4)})` : ""}`;
+            reason = `worse by ${deltaPct === undefined ? "a non-zero delta from zero baseline" : `${worsePct.toFixed(1)}%`} / ${worseAbs.toFixed(1)}${key.unit}${pValue !== undefined ? ` (p=${pValue.toFixed(4)})` : ""}`;
         } else {
             verdict = "inconclusive";
             reason = `delta exceeds thresholds but not statistically significant (p=${pValue?.toFixed(4)})`;
         }
     } else if (-worsePct >= threshold.pct && improvementExceedsAbsoluteFloor && significant) {
         verdict = "improved";
-        reason = `better by ${(-worsePct).toFixed(1)}% / ${(-worseAbs).toFixed(1)}${key.unit}`;
+        reason = `better by ${deltaPct === undefined ? "a non-zero delta to zero baseline" : `${(-worsePct).toFixed(1)}%`} / ${(-worseAbs).toFixed(1)}${key.unit}`;
     } else {
         verdict = "unchanged";
         reason = `delta ${worsePct.toFixed(1)}% / ${worseAbs.toFixed(1)}${key.unit} below threshold (${threshold.pct}%${usesAbsoluteFloor ? ` and ${threshold.absMs}ms` : ""})`;

@@ -106,7 +106,7 @@ export class DotnetTraceCollector implements Collector {
             this.child = undefined;
             endToolLog();
         });
-        child.on("exit", (code) => {
+        child.on("close", (code) => {
             ctx.logger.info("dotnetTrace.exited", undefined, { code });
             endToolLog();
         });

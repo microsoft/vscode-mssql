@@ -43,6 +43,7 @@ function tryExec(command: string, args: string[]): string | undefined {
             timeout: 15000,
             windowsHide: true,
             shell: false,
+            stdio: ["ignore", "pipe", "ignore"],
         }).trim();
     } catch {
         return undefined;

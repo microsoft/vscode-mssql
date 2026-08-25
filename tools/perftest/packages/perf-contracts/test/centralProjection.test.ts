@@ -141,6 +141,19 @@ describe("golden perf-run projection (T-B5 perftest half)", () => {
         expect(metrics.some((row) => row["value"] === 0)).toBe(false);
     });
 
+    it("refuses metrics missing required boolean semantics", () => {
+        for (const field of ["official", "lowerIsBetter"] as const) {
+            const source = loadRun();
+            const metric = source.reps[0]!.result.metrics[0] as unknown as Record<string, unknown>;
+            delete metric[field];
+            const projection = projectPerfRun(source, { uploadPolicyId: policy });
+            expect(projection.preview.refused).toContainEqual(
+                expect.objectContaining({ reason: "invalidMetric" }),
+            );
+            expect(rowsOf(projection, "metrics")).toHaveLength(3);
+        }
+    });
+
     it("summarizes tables and source in the preview from the real item stream", () => {
         const p = projectPerfRun(loadRun(), { uploadPolicyId: policy });
         const byName = Object.fromEntries(p.preview.tables.map((t) => [t.name, t.rows]));

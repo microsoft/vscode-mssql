@@ -30,6 +30,7 @@ describe("control message validation", () => {
     });
 
     it("rejects unknown kinds and malformed terminal payloads", () => {
+        expect(isControlMessageShape(null)).toBe(false);
         expect(isControlMessageShape({ ...envelope, kind: "invented", payload: {} })).toBe(false);
         expect(
             isControlMessageShape({
@@ -43,6 +44,23 @@ describe("control message validation", () => {
                 ...envelope,
                 kind: "scenarioCompleted",
                 payload: { successChecks: "not-an-array", steps: [] },
+            }),
+        ).toBe(false);
+    });
+
+    it("requires the shared error-frame payload shape", () => {
+        expect(
+            isControlMessageShape({
+                ...envelope,
+                kind: "error",
+                payload: { message: "rejected", details: { sourceKind: "calibrationPing" } },
+            }),
+        ).toBe(true);
+        expect(
+            isControlMessageShape({
+                ...envelope,
+                kind: "error",
+                payload: { reason: "legacy shape", sourceKind: "calibrationPing" },
             }),
         ).toBe(false);
     });

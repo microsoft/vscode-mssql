@@ -11,7 +11,7 @@
  */
 
 import { mkdirSync, writeFileSync, statSync, existsSync, readFileSync } from "node:fs";
-import { join, resolve, dirname } from "node:path";
+import { join, resolve } from "node:path";
 import {
     newControlToken,
     newSpanId,
@@ -160,7 +160,10 @@ export async function executeRun(options: RunOptions): Promise<RunSummary> {
     try {
         // --- Run directory + config snapshot --------------------------------------
         const runDir = resolve(config.output.dir, runId);
-        if (existsSync(runDir)) {
+        // The CLI creates this directory first so it can attach the run-local log
+        // sink. A config snapshot, rather than the directory itself, is the durable
+        // signal that this run id has already started.
+        if (existsSync(join(runDir, "run-config.snapshot.jsonc"))) {
             throw new RunConfigError(`Run output directory already exists: ${runDir}`);
         }
         mkdirSync(runDir, { recursive: true });

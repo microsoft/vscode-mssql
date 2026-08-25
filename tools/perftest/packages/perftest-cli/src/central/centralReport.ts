@@ -94,7 +94,7 @@ export async function renderCentralReport(client: CentralClient, outPath: string
         esc(String(r["metric_name"])),
         verdictPill(String(r["verdict"])),
         r["delta_pct"] === null ? "—" : `${Number(r["delta_pct"]).toFixed(1)}%`,
-        `${fmt(r["latest_median"])} ${String(r["unit"])}`,
+        esc(`${fmt(r["latest_median"])} ${String(r["unit"])}`),
         `${fmt(r["prior_mean"])} (${String(r["prior_runs"] ?? 0)} runs)`,
         esc(String(r["latest_run_id"])),
     ]);

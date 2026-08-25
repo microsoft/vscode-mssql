@@ -7,8 +7,13 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { projectPerfRun, type PerfRunSource } from "@mssqlperf/contracts";
-import { pushIdentity, renderPreview } from "../src/central/push";
+import { projectPerfRun, type PerfRunSource, type UploadReceipt } from "@mssqlperf/contracts";
+import {
+    pushIdentity,
+    recordCommitReceipt,
+    renderPreview,
+    type PushOutcome,
+} from "../src/central/push";
 import { CENTRAL_CONNSTRING_ENV, resolveCentralTarget } from "../src/central/centralClient";
 
 const FIXTURES = join(__dirname, "..", "..", "perf-contracts", "fixtures", "central");
@@ -38,6 +43,26 @@ describe("push preview and identity (C1 output discipline)", () => {
         const ci = pushIdentity(true);
         expect(ci.principal.kind).toBe("ci");
         expect(ci.isCi).toBe(true);
+    });
+
+    it("counts a refused commit receipt as refused rather than pushed", () => {
+        const outcome: PushOutcome = {
+            pushed: 0,
+            alreadyPresent: 0,
+            refused: 0,
+            failed: 0,
+            skipped: 0,
+        };
+        const receipt = {
+            uploadBatchId: 42,
+            outcome: "refused",
+            reasonCode: "projectionMismatch",
+            rowsByItemKind: {},
+        } as UploadReceipt;
+        expect(recordCommitReceipt(outcome, receipt)).toContain(
+            "REFUSED: projectionMismatch (batch 42)",
+        );
+        expect(outcome).toMatchObject({ pushed: 0, refused: 1 });
     });
 
     it("target resolution errors are actionable and never echo the value", () => {

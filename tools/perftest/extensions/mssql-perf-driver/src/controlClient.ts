@@ -203,7 +203,7 @@ export class ControlClient implements vscode.Disposable {
             if (message.kind === "startScenario") {
                 this.send("scenarioFailed", { reason });
             } else {
-                this.send("error", { reason, sourceKind: message.kind });
+                this.send("error", { message: reason, details: { sourceKind: message.kind } });
             }
         }
     }

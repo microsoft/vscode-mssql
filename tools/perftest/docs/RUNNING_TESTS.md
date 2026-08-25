@@ -16,16 +16,16 @@ collector assets resolve from `tools/perftest`. Either invocation below works:
 
 ```powershell
 # Everything in a config
-npm run perftest -- --config examples/config.noop.local.jsonc
+npm run perftest -- run --config examples/config.noop.local.jsonc
 
 # Or, from the vscode-mssql repository root:
-npm --prefix tools/perftest run perftest -- --config tools/perftest/examples/config.noop.local.jsonc
+npm --prefix tools/perftest run perftest -- run --config examples/config.noop.local.jsonc
 
 # One scenario from the config
-npm run perftest -- --config examples/config.noop.local.jsonc --scenario noop
+npm run perftest -- run --config examples/config.noop.local.jsonc --scenario noop
 
 # Diagnostic pass (heavier collectors when configured; metrics never official)
-npm run perftest -- --config <cfg> --pass diagnostic
+npm run perftest -- run --config <cfg> --pass diagnostic
 ```
 
 During the run, VS Code windows will open and close on the desktop — one per

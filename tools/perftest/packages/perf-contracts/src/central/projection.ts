@@ -406,13 +406,18 @@ function applyPolicyToPayload(
                 cls: field.cls,
                 handling: "digest",
                 digest: fieldDigest(field.cls, field.v ?? null),
-                ...(typeof field.v === "string" ? { len: field.v.length } : {}),
+                ...(typeof field.v === "string" ? { len: field.len ?? field.v.length } : {}),
             };
             notes.digested(`${fieldPrefix}.${key}`, field.cls);
         } else if (typeof out.v === "string") {
             const sanitized = sanitizePayloadString(out.v);
             if (sanitized.changed) {
-                out = { ...out, v: sanitized.value, handling: "truncated", len: out.v.length };
+                out = {
+                    ...out,
+                    v: sanitized.value,
+                    handling: "truncated",
+                    len: out.len ?? out.v.length,
+                };
             }
         }
         filtered[key] = out;
@@ -775,7 +780,18 @@ export function projectPerfRun(
             const component = str(m["component"]);
             const processRole = str(m["processRole"]);
             const sourceName = str(m["source"]);
-            if (!name || value === null || !unit || !component || !processRole || !sourceName) {
+            const official = m["official"];
+            const lowerIsBetter = m["lowerIsBetter"];
+            if (
+                !name ||
+                value === null ||
+                !unit ||
+                !component ||
+                !processRole ||
+                !sourceName ||
+                typeof official !== "boolean" ||
+                typeof lowerIsBetter !== "boolean"
+            ) {
                 notes.refuse(`metrics[${metricIndex}]`, "diagnostic.metadata", "invalidMetric");
                 continue;
             }
@@ -791,8 +807,8 @@ export function projectPerfRun(
                 component,
                 process_role: processRole,
                 source: sourceName,
-                official: m["official"] ? 1 : 0,
-                lower_is_better: m["lowerIsBetter"] ? 1 : 0,
+                official: official ? 1 : 0,
+                lower_is_better: lowerIsBetter ? 1 : 0,
                 aggregation: str(m["aggregation"]),
                 trace_id: str(m["traceId"]),
                 span_id: str(m["spanId"]),

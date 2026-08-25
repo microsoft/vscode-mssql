@@ -95,8 +95,16 @@ export function welchT(a: number[], b: number[]): WelchResult | undefined {
     const seB = varB / b.length;
     const se = seA + seB;
     if (se === 0) {
-        // Identical constant samples: no evidence of difference.
-        return { t: 0, df: a.length + b.length - 2, pValue: 1 };
+        const df = a.length + b.length - 2;
+        // Equal constant samples contain no evidence of a difference. Different
+        // constant samples, by contrast, are perfectly separated.
+        return meanA === meanB
+            ? { t: 0, df, pValue: 1 }
+            : {
+                  t: meanA > meanB ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY,
+                  df,
+                  pValue: 0,
+              };
     }
     const t = (meanA - meanB) / Math.sqrt(se);
     const df = se ** 2 / (seA ** 2 / (a.length - 1) + seB ** 2 / (b.length - 1));

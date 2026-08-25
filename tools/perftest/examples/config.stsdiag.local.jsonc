@@ -1,6 +1,7 @@
 // M3: diagnostic pass with sts2-based STS diagnostics.
 // Runs the query scenario against a LOCALLY BUILT SQL Tools Service
-// (MSSQL_SQLTOOLSSERVICE) with the sts2 observability core enabled
+// (`MSSQL_SQLTOOLSSERVICE` must be set in `vscode.env`) with the sts2
+// observability core enabled
 // (STS_ENABLE_STS2=1). The stsEnvelopeJournal collector harvests the envelope
 // journal into rep artifacts and derives official:false STS RPC latencies.
 // Run from the perftest repo root:

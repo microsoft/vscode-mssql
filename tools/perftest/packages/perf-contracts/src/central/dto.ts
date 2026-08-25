@@ -400,7 +400,12 @@ export interface CentralProjection {
 // ---------------------------------------------------------------------------
 
 export type UploadDispositionKind =
-    "proceed" | "resume" | "alreadyPresent" | "reprojected" | "extendCandidate" | "refused";
+    | "proceed"
+    | "resume"
+    | "alreadyPresent"
+    | "reprojected"
+    | "extendCandidate"
+    | "refused";
 
 export interface UploadDisposition {
     disposition: UploadDispositionKind;
@@ -425,6 +430,8 @@ export type UploadBatchStatus =
 export interface UploadReceipt {
     uploadBatchId: number;
     outcome: UploadBatchStatus;
+    /** Safe protocol reason for a refused commit (for example projectionMismatch). */
+    reasonCode: string | null;
     kind: CentralSourceKind;
     naturalKey: string;
     uploadPolicyId: string;

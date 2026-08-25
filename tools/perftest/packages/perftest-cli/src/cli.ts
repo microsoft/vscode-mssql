@@ -444,7 +444,11 @@ program
                 if (error instanceof CliExit) throw error;
                 if (error instanceof CompareError) {
                     process.stderr.write(`${error.message}\n`);
-                    exit(ExitCode.configInvalid);
+                    exit(
+                        error.kind === "insufficientSamples"
+                            ? ExitCode.insufficientSamples
+                            : ExitCode.configInvalid,
+                    );
                 }
                 throw error;
             } finally {
@@ -917,8 +921,9 @@ async function withCentral(
     explicitTarget: string | undefined,
     action: (client: import("./central/centralClient").CentralClient) => Promise<number>,
 ): Promise<void> {
-    const { CentralClient, CentralClientError, resolveCentralTarget } =
-        await import("./central/centralClient");
+    const { CentralClient, CentralClientError, resolveCentralTarget } = await import(
+        "./central/centralClient"
+    );
     let client: import("./central/centralClient").CentralClient | undefined;
     let code: number = ExitCode.pushFailed;
     try {

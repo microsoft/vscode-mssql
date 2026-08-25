@@ -279,7 +279,16 @@ export class StsEnvelopeJournalCollector implements Collector {
                 });
             } finally {
                 if (!retainRawJournal) {
-                    rmSync(dir, { recursive: true, force: true });
+                    try {
+                        rmSync(dir, { recursive: true, force: true });
+                    } catch (error) {
+                        // A still-exiting STS process can briefly retain a handle on
+                        // Windows. Report this directory and continue cleaning the
+                        // remaining journals.
+                        ctx.logger.warn("stsEnvelopeJournal.cleanupFailed", String(error), {
+                            dir,
+                        });
+                    }
                 }
             }
         }

@@ -14,7 +14,9 @@ import { describe, expect, test } from "vitest";
 import * as fs from "fs";
 import * as path from "path";
 import { format } from "prettier";
-import { generateSnapshot } from "../src/generator";
+import { GENERATED_PRETTIER_OPTIONS, generateMarkdown, generateSnapshot } from "../src/generator";
+
+const GENERATED_MARKDOWN = path.join(__dirname, "..", "generated", "markdown", "EVENTS.md");
 
 const GENERATED = path.join(
     __dirname,
@@ -41,13 +43,18 @@ describe("vendored snapshot sync", () => {
     const formatSnapshot = () =>
         format(generateSnapshot(), {
             parser: "typescript",
-            endOfLine: "lf",
-            printWidth: 100,
-            tabWidth: 4,
+            ...GENERATED_PRETTIER_OPTIONS,
+        });
+
+    const formatMarkdown = () =>
+        format(generateMarkdown(), {
+            parser: "markdown",
+            ...GENERATED_PRETTIER_OPTIONS,
         });
 
     test("tracked generated output is fresh", async () => {
         expect(fs.readFileSync(GENERATED, "utf8")).toBe(await formatSnapshot());
+        expect(fs.readFileSync(GENERATED_MARKDOWN, "utf8")).toBe(await formatMarkdown());
     });
 
     test("generated output matches the copy vendored into vscode-mssql", async () => {

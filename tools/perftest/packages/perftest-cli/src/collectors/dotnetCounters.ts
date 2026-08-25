@@ -103,7 +103,7 @@ export class DotnetCountersCollector implements Collector {
             this.child = undefined;
             endToolLog();
         });
-        this.child.on("exit", (code) => {
+        this.child.on("close", (code) => {
             ctx.logger.info("dotnetCounters.exited", undefined, { code });
             endToolLog();
         });

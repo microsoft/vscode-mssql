@@ -117,8 +117,9 @@ regressed comparison when `--keep-regressions` is set.
 
 ### Central-store commands
 
-- `perftest push <runDir> [--target <connectionString>] [--dry-run]` previews
-  or uploads a privacy-filtered run projection.
+- `perftest push [runId] [--runs-dir <path>] [--all-new] [--policy <id>] [--ci]`
+  `[--target <connectionString>] [--dry-run]` previews or uploads one or more
+  privacy-filtered run projections.
 - `perftest central init|check|health|cleanup [--target <connectionString>]`
   initializes, validates, reports health, or applies retention to the central
   SQL Server store.

@@ -9,6 +9,12 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { loadRegistry } from "./index";
 
+export const GENERATED_PRETTIER_OPTIONS = {
+    endOfLine: "lf" as const,
+    printWidth: 100,
+    tabWidth: 4,
+};
+
 export function generateMarkdown(): string {
     const reg = loadRegistry();
     const lines: string[] = [

@@ -33,6 +33,7 @@ export class CdpExtHostProfileCollector implements Collector {
     private client: CdpClient | undefined;
     private profile: unknown;
     private profiling = false;
+    private failureReason: string | undefined;
 
     async validate(): Promise<CollectorValidation[]> {
         return [];
@@ -47,7 +48,7 @@ export class CdpExtHostProfileCollector implements Collector {
     async onScenarioStart(ctx: CollectorContext): Promise<void> {
         try {
             if (!this.client) {
-                const targets = await discoverCdpTargets(this.port);
+                const targets = await discoverCdpTargets(this.port, { preferredType: "node" });
                 const wsUrl = targets.find(
                     (target) => target.webSocketDebuggerUrl,
                 )?.webSocketDebuggerUrl;
@@ -63,7 +64,8 @@ export class CdpExtHostProfileCollector implements Collector {
             this.profiling = true;
             ctx.logger.info("cdpExtHost.profilerStarted");
         } catch (error) {
-            ctx.logger.warn("cdpExtHost.startFailed", String(error));
+            this.failureReason = `start failed: ${String(error).slice(0, 200)}`;
+            ctx.logger.warn("cdpExtHost.startFailed", this.failureReason);
         }
     }
 
@@ -73,12 +75,15 @@ export class CdpExtHostProfileCollector implements Collector {
         }
         try {
             const result = (await this.client?.send("Profiler.stop")) as
-                { profile?: unknown } | undefined;
+                | { profile?: unknown }
+                | undefined;
             this.profile = result?.profile;
             this.profiling = false;
             ctx.logger.info("cdpExtHost.profilerStopped");
         } catch (error) {
-            ctx.logger.warn("cdpExtHost.stopFailed", String(error));
+            this.profiling = false;
+            this.failureReason = `stop failed: ${String(error).slice(0, 200)}`;
+            ctx.logger.warn("cdpExtHost.stopFailed", this.failureReason);
         }
     }
 
@@ -97,5 +102,17 @@ export class CdpExtHostProfileCollector implements Collector {
                 retention: "always",
             },
         ];
+    }
+
+    postRunValidations(): CollectorValidation[] {
+        return this.failureReason
+            ? [
+                  {
+                      name: "cdpExtHostProfileCapture",
+                      status: "warning",
+                      message: this.failureReason,
+                  },
+              ]
+            : [];
     }
 }
