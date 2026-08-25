@@ -44,6 +44,9 @@ export const stepPageStyles = makeStyles({
         textAlign: "left",
         padding: "0 0 16px",
     },
+    postDeploymentCard: {
+        marginTop: "24px",
+    },
     buttonDiv: {
         display: "flex",
         flexDirection: "row",

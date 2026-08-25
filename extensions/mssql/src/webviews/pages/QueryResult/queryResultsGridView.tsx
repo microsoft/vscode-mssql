@@ -6,8 +6,8 @@
 import { makeStyles } from "@fluentui/react-components";
 import {
     createRef,
-    ForwardRefExoticComponent,
-    RefAttributes,
+    type ForwardRefExoticComponent,
+    type RefAttributes,
     useCallback,
     useContext,
     useEffect,
@@ -19,7 +19,7 @@ import { QueryResultCommandsContext } from "./queryResultStateProvider";
 import { useQueryResultSelector } from "./queryResultSelector";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import CommandBar from "./commandBar";
-import ResultGrid, { ResultGridHandle, ResultGridProps } from "./resultGrid";
+import type { ResultGridHandle, ResultGridProps } from "./resultGrid";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { eventMatchesShortcut } from "../../common/keyboardUtils";
 import { WebviewAction } from "../../../sharedInterfaces/webview";
@@ -56,7 +56,7 @@ type ResultGridComponent = ForwardRefExoticComponent<
 >;
 
 export interface QueryResultsGridViewProps {
-    GridComponent?: ResultGridComponent;
+    GridComponent: ResultGridComponent;
     showExternalCommandBar?: boolean;
 }
 
@@ -69,7 +69,7 @@ const DEFAULT_FONT_SIZE = 12;
 const BASE_ROW_PADDING = 12;
 
 export const QueryResultsGridView = ({
-    GridComponent = ResultGrid,
+    GridComponent,
     showExternalCommandBar = true,
 }: QueryResultsGridViewProps) => {
     const classes = useStyles();
@@ -93,6 +93,7 @@ export const QueryResultsGridView = ({
     );
     const [maximizedGridKey, setMaximizedGridKey] = useState<string | undefined>(undefined);
     const gridRefs = useRef<Array<ResultGridHandle | undefined>>([]);
+    const activeSelectionGridKeyRef = useRef<string | undefined>(undefined);
     const { keyBindings } = useVscodeWebview();
 
     // Derive a stable flat list for rendering
@@ -346,6 +347,30 @@ export const QueryResultsGridView = ({
         [gridRefs],
     );
 
+    const handleGridSelectionChange = useCallback(
+        (gridKey: string, hasSelection: boolean) => {
+            if (!hasSelection) {
+                if (activeSelectionGridKeyRef.current === gridKey) {
+                    activeSelectionGridKeyRef.current = undefined;
+                }
+                return;
+            }
+
+            if (activeSelectionGridKeyRef.current === gridKey) {
+                return;
+            }
+
+            activeSelectionGridKeyRef.current = gridKey;
+            gridList.forEach((item, index) => {
+                const itemKey = `${item.batchId}_${item.resultId}`;
+                if (itemKey !== gridKey) {
+                    gridRefs.current[index]?.clearSelection?.();
+                }
+            });
+        },
+        [gridList],
+    );
+
     useEffect(() => {
         const handler = (event: KeyboardEvent) => {
             if (!event.shiftKey || event.key !== "Tab") {
@@ -505,6 +530,9 @@ export const QueryResultsGridView = ({
                                 }
                                 isMaximized={isMaximized}
                                 onToggleMaximize={() => handleToggleMaximize(gridKey)}
+                                onSelectionChange={(hasSelection) =>
+                                    handleGridSelectionChange(gridKey, hasSelection)
+                                }
                             />
                         </div>
                         {showExternalCommandBar && (

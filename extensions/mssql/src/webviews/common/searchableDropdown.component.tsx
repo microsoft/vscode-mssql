@@ -26,12 +26,17 @@ import React, {
     useState,
 } from "react";
 import { locConstants } from "./locConstants";
+import { findOptionIndex, sortOptionsWithFavorites } from "../../sharedInterfaces/form";
 
 export interface SearchableDropdownOptions {
     /**
      * Unique value for the option
      */
     value: string;
+    /**
+     * Stable resource identity used for favorites. Defaults to value when omitted.
+     */
+    favoriteId?: string;
     /**
      * Display text for the option. If not provided, the value will be used as the display text.
      */
@@ -77,6 +82,10 @@ export interface SearchableDropdownProps {
      */
     ariaLabel?: string;
     /**
+     * Optional ref for the dropdown trigger button.
+     */
+    triggerRef?: React.Ref<HTMLButtonElement>;
+    /**
      * Size of the dropdown. Can be "small", "medium", or "large".
      * If not provided, the default size will be medium.
      */
@@ -120,6 +129,16 @@ export interface SearchableDropdownProps {
      * Optional function to render a decoration element for each option.
      */
     renderDecoration?: (option: SearchableDropdownOptions) => React.JSX.Element | undefined;
+
+    /**
+     * Favorite resource identities. Favorites are shown first only when this is provided.
+     */
+    favoriteOptionIds?: string[];
+
+    /**
+     * Toggles the favorite state for an option.
+     */
+    onToggleFavorite?: (favoriteId: string) => void;
 }
 
 /**
@@ -191,7 +210,44 @@ const sizeToFontSize: Record<string, string> = {
     large: tokens.fontSizeBase400,
 };
 
-export const SearchableDropdown = (props: SearchableDropdownProps) => {
+interface SearchableDropdownCoreProps extends SearchableDropdownProps {
+    onOpenStateChange?: (isOpen: boolean) => void;
+    selectionOptions?: SearchableDropdownOptions[];
+}
+
+const FavoritableSearchableDropdown = (props: SearchableDropdownProps) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const [favoriteOrderIds, setFavoriteOrderIds] = useState(props.favoriteOptionIds);
+
+    useEffect(() => {
+        if (!isOpen) {
+            setFavoriteOrderIds(props.favoriteOptionIds);
+        }
+    }, [isOpen, props.favoriteOptionIds]);
+
+    const orderedOptions = useMemo(
+        () => sortOptionsWithFavorites(props.options, favoriteOrderIds),
+        [props.options, favoriteOrderIds],
+    );
+
+    return (
+        <SearchableDropdownCore
+            {...props}
+            options={orderedOptions}
+            selectionOptions={props.options}
+            onOpenStateChange={setIsOpen}
+        />
+    );
+};
+
+export const SearchableDropdown = (props: SearchableDropdownProps) =>
+    props.favoriteOptionIds === undefined ? (
+        <SearchableDropdownCore {...props} />
+    ) : (
+        <FavoritableSearchableDropdown {...props} />
+    );
+
+const SearchableDropdownCore = (props: SearchableDropdownCoreProps) => {
     const [searchText, setSearchText] = useState("");
     const [selectedOption, setSelectedOption] = useState(
         props.selectedOption ?? {
@@ -206,6 +262,7 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
 
     const id = props.id ?? useId();
     const listboxId = `${id}-listbox`;
+    const [isOpen, setIsOpen] = useState(false);
 
     const filteredOptions = useMemo(
         () => searchOptions(searchText, props.options),
@@ -223,7 +280,6 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
         undefined as unknown as HTMLDivElement | null,
     );
 
-    const [isOpen, setIsOpen] = useState(false);
     const [isTriggerFocused, setIsTriggerFocused] = useState(false);
     const [activeIndex, setActiveIndex] = useState<number>(-1);
 
@@ -245,6 +301,18 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
         estimateSize: () => OPTION_HEIGHT_PX,
         overscan: VIRTUAL_OVERSCAN,
     });
+
+    const setTriggerRef = useCallback(
+        (element: HTMLButtonElement | null) => {
+            buttonRef.current = element;
+            if (typeof props.triggerRef === "function") {
+                props.triggerRef(element);
+            } else if (props.triggerRef) {
+                (props.triggerRef as React.RefObject<HTMLButtonElement | null>).current = element;
+            }
+        },
+        [props.triggerRef],
+    );
 
     const initActiveIndex = useCallback(
         (direction: "down" | "up" = "down") => {
@@ -276,7 +344,7 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
 
     const updateOption = useCallback(
         (option: SearchableDropdownOptions) => {
-            const index = props.options.findIndex((opt) => opt.value === option.value);
+            const index = findOptionIndex(props.selectionOptions ?? props.options, option);
             setSelectedOption(option);
             props.onSelect(option, index);
             closePopup(true);
@@ -535,6 +603,7 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
             open={isOpen}
             onOpenChange={(_e, data) => {
                 setIsOpen(data.open);
+                props.onOpenStateChange?.(data.open);
                 if (data.open) {
                     setSearchText("");
                     initActiveIndex("down");
@@ -548,7 +617,7 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                     id={id}
                     size={props.size ?? "medium"}
                     appearance="transparent"
-                    ref={buttonRef}
+                    ref={setTriggerRef}
                     icon={getDropdownIcon()}
                     iconPosition="after"
                     aria-haspopup="listbox"
@@ -659,6 +728,8 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
 
                                 const isSelected = option.value === selectedOption.value;
                                 const isActive = virtualRow.index === activeIndex;
+                                const favoriteId = option.favoriteId ?? option.value;
+                                const isFavorite = props.favoriteOptionIds?.includes(favoriteId);
 
                                 return (
                                     <div
@@ -738,6 +809,51 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                                                     <Text>{option.description}</Text>
                                                 )}
                                                 {option.icon && FluentOptionIcons[option.icon]}
+                                                {props.favoriteOptionIds !== undefined &&
+                                                    props.onToggleFavorite && (
+                                                        <button
+                                                            type="button"
+                                                            aria-label={
+                                                                isFavorite
+                                                                    ? locConstants.connectionDialog
+                                                                          .removeFromFavorites
+                                                                    : locConstants.connectionDialog
+                                                                          .addToFavorites
+                                                            }
+                                                            aria-pressed={isFavorite}
+                                                            title={
+                                                                isFavorite
+                                                                    ? locConstants.connectionDialog
+                                                                          .removeFromFavorites
+                                                                    : locConstants.connectionDialog
+                                                                          .addToFavorites
+                                                            }
+                                                            onMouseDown={(event) => {
+                                                                event.preventDefault();
+                                                                event.stopPropagation();
+                                                            }}
+                                                            onClick={(event) => {
+                                                                event.preventDefault();
+                                                                event.stopPropagation();
+                                                                props.onToggleFavorite?.(
+                                                                    favoriteId,
+                                                                );
+                                                            }}
+                                                            style={{
+                                                                display: "flex",
+                                                                padding: 0,
+                                                                border: 0,
+                                                                background: "transparent",
+                                                                color: "inherit",
+                                                                cursor: "pointer",
+                                                            }}>
+                                                            {isFavorite ? (
+                                                                <FluentIcons.Star16Filled />
+                                                            ) : (
+                                                                <FluentIcons.Star16Regular />
+                                                            )}
+                                                        </button>
+                                                    )}
                                                 {isSelected && <FluentIcons.Checkmark16Regular />}
                                             </span>
                                         </div>

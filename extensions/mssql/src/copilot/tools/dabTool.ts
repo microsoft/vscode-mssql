@@ -11,7 +11,7 @@ import ConnectionManager from "../../controllers/connectionManager";
 import { SchemaDesignerWebviewManager } from "../../schemaDesigner/schemaDesignerWebviewManager";
 import { SchemaDesignerWebviewController } from "../../schemaDesigner/schemaDesignerWebviewController";
 import { SchemaDesigner } from "../../sharedInterfaces/schemaDesigner";
-import { sendActionEvent } from "../../telemetry/telemetry";
+import { sendActionEvent } from "extension-toolkit/vscode";
 import { TelemetryActions, TelemetryViews } from "../../sharedInterfaces/telemetry";
 import { Dab } from "../../sharedInterfaces/dab";
 import { matchesStrictTargetHint, ToolTargetHint } from "./toolsUtils";

@@ -13,9 +13,20 @@ export const changelogConfig: ChangelogWebviewState = {
         title: locConstants.Changelog.mainContentTitle,
         entries: [
             {
+                title: locConstants.Changelog.sqlFormatterTitle,
+                description: locConstants.Changelog.sqlFormatterDescription,
+                isPreview: true,
+                actions: [
+                    {
+                        label: locConstants.Changelog.learnMore,
+                        type: "link",
+                        value: "https://aka.ms/vscode-mssql-formatter",
+                    },
+                ],
+            },
+            {
                 title: locConstants.Changelog.shortcutsConfigurationTitle,
                 description: locConstants.Changelog.shortcutsConfigurationDescription,
-                isPreview: true,
                 actions: [
                     {
                         label: locConstants.Changelog.tryIt,
@@ -32,7 +43,6 @@ export const changelogConfig: ChangelogWebviewState = {
             {
                 title: locConstants.Changelog.azureSqlProvisioningTitle,
                 description: locConstants.Changelog.azureSqlProvisioningDescription,
-                isPreview: true,
                 actions: [
                     {
                         label: locConstants.Changelog.tryIt,
@@ -43,28 +53,6 @@ export const changelogConfig: ChangelogWebviewState = {
                         label: locConstants.Changelog.learnMore,
                         type: "link",
                         value: "https://aka.ms/vscode-mssql-azuresql-docs",
-                    },
-                ],
-            },
-            {
-                title: locConstants.Changelog.schemaDesignerCopilotTitle,
-                description: locConstants.Changelog.schemaDesignerCopilotDescription,
-                actions: [
-                    {
-                        label: locConstants.Changelog.learnMore,
-                        type: "link",
-                        value: "https://aka.ms/vscode-mssql-schema-designer-copilot-docs",
-                    },
-                ],
-            },
-            {
-                title: locConstants.Changelog.dabWithCopilotTitle,
-                description: locConstants.Changelog.dabWithCopilotDescription,
-                actions: [
-                    {
-                        label: locConstants.Changelog.learnMore,
-                        type: "link",
-                        value: "https://aka.ms/vscode-mssql-dab-docs",
                     },
                 ],
             },
@@ -113,14 +101,24 @@ export const changelogConfig: ChangelogWebviewState = {
         description: locConstants.Changelog.secondaryContentDescription,
         entries: [
             {
-                title: locConstants.Changelog.fabricQueryProfilerTitle,
-                description: locConstants.Changelog.fabricQueryProfilerDescription,
-                codeSnippets: ["TSQL_Azure"],
+                title: locConstants.Changelog.schemaDesignerCopilotTitle,
+                description: locConstants.Changelog.schemaDesignerCopilotDescription,
                 actions: [
                     {
                         label: locConstants.Changelog.learnMore,
                         type: "link",
-                        value: "https://aka.ms/vscode-mssql-query-profiler-docs#create-a-profiling-session",
+                        value: "https://aka.ms/vscode-mssql-schema-designer-copilot-docs",
+                    },
+                ],
+            },
+            {
+                title: locConstants.Changelog.dabWithCopilotTitle,
+                description: locConstants.Changelog.dabWithCopilotDescription,
+                actions: [
+                    {
+                        label: locConstants.Changelog.learnMore,
+                        type: "link",
+                        value: "https://aka.ms/vscode-mssql-dab-docs",
                     },
                 ],
             },
@@ -158,22 +156,6 @@ export const changelogConfig: ChangelogWebviewState = {
                         label: locConstants.Changelog.learnMore,
                         type: "link",
                         value: "https://aka.ms/vscode-mssql-dacpac",
-                    },
-                ],
-            },
-            {
-                title: locConstants.Changelog.fabricIntegrationTitle,
-                description: locConstants.Changelog.fabricIntegrationDescription,
-                actions: [
-                    {
-                        label: locConstants.Changelog.watchDemo,
-                        type: "link",
-                        value: "https://aka.ms/vscode-mssql-fabric-db-demo",
-                    },
-                    {
-                        label: locConstants.Changelog.learnMore,
-                        type: "link",
-                        value: "https://aka.ms/vscode-mssql-fabric-docs",
                     },
                 ],
             },

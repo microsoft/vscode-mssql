@@ -13,12 +13,25 @@ import type { FluentResultGridState } from "../types/fluentResultGridState";
 import {
     FLUENT_RESULT_GRID_DEFAULT_COLUMN_WIDTH,
     FLUENT_RESULT_GRID_DEFAULT_FONT_SIZE,
+    FLUENT_RESULT_GRID_FIRST_DATA_CELL_INDEX,
     FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_ID,
 } from "./fluentResultGridConstants";
 import type { FluentResultGridDataRow } from "./fluentResultGridDataView";
 import { getFluentResultGridDataSelectionsFromRanges } from "./fluentResultGridSelection";
 
 export const FLUENT_RESULT_GRID_DEFAULT_FROZEN_COLUMN_INDEX = 0;
+
+export function getFluentResultGridInitialFrozenColumnIndex(
+    savedFrozenColumnIndex: number | undefined,
+    freezeFirstColumnByDefault: boolean,
+): number {
+    return (
+        savedFrozenColumnIndex ??
+        (freezeFirstColumnByDefault
+            ? FLUENT_RESULT_GRID_FIRST_DATA_CELL_INDEX
+            : FLUENT_RESULT_GRID_DEFAULT_FROZEN_COLUMN_INDEX)
+    );
+}
 
 export function normalizeFluentResultGridRowPadding(rowPadding: number | null | undefined): number {
     return typeof rowPadding === "number" && Number.isFinite(rowPadding)
@@ -59,6 +72,19 @@ export function createFluentResultGridColumnSignature(columnInfo: readonly IDbCo
             ].join(","),
         )
         .join("|");
+}
+
+export interface FluentResultGridColumnInfoSnapshot {
+    signature: string;
+    value: IDbColumn[];
+}
+
+export function stabilizeFluentResultGridColumnInfo(
+    current: FluentResultGridColumnInfoSnapshot | undefined,
+    columnInfo: IDbColumn[],
+): FluentResultGridColumnInfoSnapshot {
+    const signature = createFluentResultGridColumnSignature(columnInfo);
+    return current?.signature === signature ? current : { signature, value: columnInfo };
 }
 
 export function createFluentResultGridIdentitySignature({

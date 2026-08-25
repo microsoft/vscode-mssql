@@ -19,6 +19,7 @@ import {
     TableRow,
     Text,
     makeStyles,
+    mergeClasses,
     tokens,
 } from "@fluentui/react-components";
 import { CodeAnalysisContext } from "./codeAnalysisStateProvider";
@@ -38,7 +39,7 @@ import { DialogHeader } from "../../common/dialogHeader.component";
 import { DialogMessage } from "../../common/dialogMessage";
 import { ConfirmationDialog } from "../../common/confirmationDialog";
 import { allSeverities } from "../../common/constants";
-import { filterRules } from "./codeAnalysisUtils";
+import { filterRules, groupRulesByCategory } from "./codeAnalysisUtils";
 
 const codeAnalysisIconLight = require("../../../../media/codeAnalysis_light.svg");
 const codeAnalysisIconDark = require("../../../../media/codeAnalysis_dark.svg");
@@ -60,6 +61,15 @@ const useStyles = makeStyles({
         flexShrink: 1,
         minHeight: 0,
         overflow: "auto",
+    },
+
+    // Keeps the bar at its natural height inside the flex column; without this it is
+    // shrunk below its content and long warnings overlap the controls beneath it.
+    // `pre-line` is inherited by the bar's text, so warnings joined with newlines by
+    // the service stay on separate lines instead of running together.
+    messageContainer: {
+        flexShrink: 0,
+        whiteSpace: "pre-line",
     },
 
     // --- Table ---
@@ -144,7 +154,6 @@ const useStyles = makeStyles({
         alignItems: "center",
         flexShrink: 0,
     },
-
     // --- Footer ---
     footer: {
         display: "flex",
@@ -251,15 +260,7 @@ export const CodeAnalysisDialog = () => {
         [localRules, searchText, severityFilter],
     );
 
-    const groupedRuleEntries = useMemo(() => {
-        const groupedRules = new Map<string, SqlCodeAnalysisRule[]>();
-        filteredRules.forEach((rule) => {
-            const bucket = groupedRules.get(rule.category) ?? [];
-            bucket.push(rule);
-            groupedRules.set(rule.category, bucket);
-        });
-        return Array.from(groupedRules.entries()).sort(([a], [b]) => a.localeCompare(b));
-    }, [filteredRules]);
+    const groupedRuleEntries = useMemo(() => groupRulesByCategory(filteredRules), [filteredRules]);
 
     // --- Handlers ---
     /**
@@ -363,11 +364,13 @@ export const CodeAnalysisDialog = () => {
 
             {/* Error message bar */}
             {message && (
-                <DialogMessage
-                    message={message}
-                    onMessageButtonClicked={() => {}}
-                    onCloseMessage={() => context.closeMessage()}
-                />
+                <div className={styles.messageContainer}>
+                    <DialogMessage
+                        message={message}
+                        onMessageButtonClicked={() => {}}
+                        onCloseMessage={() => context.closeMessage()}
+                    />
+                </div>
             )}
 
             {/* Enable Code Analysis on Build */}
@@ -434,7 +437,10 @@ export const CodeAnalysisDialog = () => {
                                     {loc.rules}
                                 </TableHeaderCell>
                                 <TableHeaderCell
-                                    className={`${styles.tableHeaderCell} ${styles.severityCell}`}>
+                                    className={mergeClasses(
+                                        styles.tableHeaderCell,
+                                        styles.severityCell,
+                                    )}>
                                     {loc.severity}
                                 </TableHeaderCell>
                             </TableRow>
@@ -447,7 +453,10 @@ export const CodeAnalysisDialog = () => {
                                         {/* Category row */}
                                         <TableRow>
                                             <TableCell
-                                                className={`${styles.groupHeaderCell} ${styles.categoryHeaderCellClickable}`}
+                                                className={mergeClasses(
+                                                    styles.groupHeaderCell,
+                                                    styles.categoryHeaderCellClickable,
+                                                )}
                                                 onDoubleClick={() =>
                                                     toggleCategoryCollapsed(category)
                                                 }>

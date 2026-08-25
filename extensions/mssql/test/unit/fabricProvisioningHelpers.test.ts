@@ -138,6 +138,7 @@ suite("Fabric Provisioning logic", () => {
         expect(workspace.required).to.equal(true);
         expect(workspace.type).to.equal(FormItemType.SearchableDropdown);
         expect(Array.isArray(workspace.options)).to.be.true;
+        expect(workspace.favoriteOptionIds).to.deep.equal([]);
 
         // databaseName component
         const dbName = formComponents.databaseName;
@@ -152,6 +153,7 @@ suite("Fabric Provisioning logic", () => {
         expect(tenantId.type).to.equal(FormItemType.Dropdown);
         expect(tenantId.options.length).to.equal(1);
         expect(tenantId.options[0].value).to.equal("tenant1");
+        expect(tenantId.favoriteOptionIds).to.deep.equal([]);
 
         // databaseDescription component
         const dbDesc = formComponents.databaseDescription;
@@ -167,6 +169,7 @@ suite("Fabric Provisioning logic", () => {
         const groupId = formComponents.groupId;
         expect(groupId.propertyName).to.equal("groupId");
         expect(Array.isArray(groupId.options)).to.be.true;
+        expect(groupId.favoriteOptionIds).to.be.undefined;
 
         // Validation examples
         let result = accountId.validate({} as fp.FabricProvisioningState, "account1");

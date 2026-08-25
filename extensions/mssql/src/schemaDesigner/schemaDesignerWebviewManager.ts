@@ -10,7 +10,7 @@ import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import MainController from "../controllers/mainController";
 import * as LocConstants from "../constants/locConstants";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
-import { sendActionEvent } from "../telemetry/telemetry";
+import { sendActionEvent } from "extension-toolkit/vscode";
 import { IConnectionProfile } from "../models/interfaces";
 import { getLogger } from "../models/logger";
 import { getErrorMessage } from "../utils/utils";

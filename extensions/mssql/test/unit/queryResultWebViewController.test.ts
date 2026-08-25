@@ -12,7 +12,14 @@ import * as Constants from "../../src/constants/constants";
 import { SqlOutputContentProvider } from "../../src/models/sqlOutputContentProvider";
 import { QueryResultWebviewController } from "../../src/queryResult/queryResultWebViewController";
 import { ExecutionPlanService } from "../../src/services/executionPlanService";
-import { stubExtensionContext, stubVscodeWorkspace } from "./utils";
+import { getPreviewConfigKey, PreviewFeature } from "../../src/previews/previewService";
+import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
+import {
+    stubExtensionContext,
+    stubPreviewService,
+    stubTelemetry,
+    stubVscodeWorkspace,
+} from "./utils";
 
 chai.use(sinonChai);
 
@@ -28,6 +35,7 @@ suite("QueryResultWebviewController", () => {
     };
     let onDidChangeConfigurationHandler: ((e: vscode.ConfigurationChangeEvent) => void) | undefined;
     let openResultsInTabByDefault = false;
+    let betaExecutionPlanEnabled = false;
     let vscodeWorkspace: ReturnType<typeof stubVscodeWorkspace>;
 
     const testUri = "file:///test.sql";
@@ -74,6 +82,9 @@ suite("QueryResultWebviewController", () => {
                 if (key === Constants.configOpenQueryResultsInTabByDefault) {
                     return openResultsInTabByDefault;
                 }
+                if (key === getPreviewConfigKey(PreviewFeature.BetaExecutionPlan)) {
+                    return betaExecutionPlanEnabled;
+                }
                 return defaultValue;
             }),
             update: sandbox.stub().resolves(),
@@ -119,6 +130,16 @@ suite("QueryResultWebviewController", () => {
         expect(resolve).to.not.have.been.called;
     });
 
+    test("keeps freeze-first-column disabled by default and reads an explicit opt-in", () => {
+        expect(controller.getGridSettingsConfig().freezeFirstColumnByDefault).to.be.false;
+
+        configuration.get
+            .withArgs(Constants.configResultsGridFreezeFirstColumnByDefault)
+            .returns(true);
+
+        expect(controller.getGridSettingsConfig().freezeFirstColumnByDefault).to.be.true;
+    });
+
     test("moves current result to a tab when the setting is enabled through configuration change", async () => {
         openResultsInTabByDefault = true;
         const createPanelControllerStub = sandbox
@@ -134,6 +155,73 @@ suite("QueryResultWebviewController", () => {
         await Promise.resolve();
 
         expect(createPanelControllerStub).to.have.been.calledWithExactly(testUri);
+    });
+
+    test("initializes and propagates the React Flow execution plan preview setting", () => {
+        const executionPlanUri = "file:///execution-plan.sql";
+        controller.addQueryResultState(executionPlanUri, "execution-plan", true);
+
+        expect(
+            controller.getQueryResultState(executionPlanUri).executionPlanState
+                .isBetaExecutionPlanEnabled,
+        ).to.be.false;
+
+        betaExecutionPlanEnabled = true;
+        onDidChangeConfigurationHandler?.({
+            affectsConfiguration: (section: string) =>
+                section === getPreviewConfigKey(PreviewFeature.BetaExecutionPlan),
+        } as vscode.ConfigurationChangeEvent);
+
+        expect(
+            controller.getQueryResultState(executionPlanUri).executionPlanState
+                .isBetaExecutionPlanEnabled,
+        ).to.be.true;
+    });
+
+    test("reports results grid mode changes made through settings", () => {
+        const { sendActionEvent } = stubTelemetry(sandbox);
+        stubPreviewService(sandbox, { [PreviewFeature.BetaResultsGrid]: true });
+
+        onDidChangeConfigurationHandler?.({
+            affectsConfiguration: (section: string) =>
+                section === getPreviewConfigKey(PreviewFeature.BetaResultsGrid),
+        } as vscode.ConfigurationChangeEvent);
+
+        expect(sendActionEvent).to.have.been.calledWithMatch(
+            TelemetryViews.QueryResult,
+            TelemetryActions.ToggleResultsGridMode,
+            sinon.match({
+                correlationId: sinon.match.string,
+                newMode: "preview",
+                source: "settings",
+            }),
+        );
+        expect(controller.getQueryResultState(testUri).isBetaResultsGridEnabled).to.be.true;
+    });
+
+    test("suppresses switch telemetry once without suppressing the next settings change", () => {
+        const { sendActionEvent } = stubTelemetry(sandbox);
+        stubPreviewService(sandbox, { [PreviewFeature.BetaResultsGrid]: false });
+        const betaGridConfigurationChange = {
+            affectsConfiguration: (section: string) =>
+                section === getPreviewConfigKey(PreviewFeature.BetaResultsGrid),
+        } as vscode.ConfigurationChangeEvent;
+
+        controller.setGridModeChangeReportedBySwitch(true);
+        onDidChangeConfigurationHandler?.(betaGridConfigurationChange);
+
+        expect(sendActionEvent).to.not.have.been.called;
+
+        onDidChangeConfigurationHandler?.(betaGridConfigurationChange);
+
+        expect(sendActionEvent).to.have.been.calledWithMatch(
+            TelemetryViews.QueryResult,
+            TelemetryActions.ToggleResultsGridMode,
+            sinon.match({
+                newMode: "classic",
+                source: "settings",
+            }),
+        );
     });
 
     test("copies messages to the clipboard", async () => {

@@ -133,6 +133,7 @@ suite("Azure Helpers", () => {
                 "accountId should be the newly added account",
             );
             expect(signInStub.calledOnce, "signIn should be called once").to.be.true;
+            expect(getAccountsStub).to.have.been.calledWith(false);
             expect(
                 isSignedInStub.notCalled,
                 "isSignedIn should not be called because the prompt is being forced",

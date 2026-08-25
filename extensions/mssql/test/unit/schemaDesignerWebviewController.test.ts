@@ -22,6 +22,7 @@ import MainController from "../../src/controllers/mainController";
 import * as copilotUtils from "../../src/copilot/copilotUtils";
 import { DefaultSqlPortNumber } from "../../src/constants/constants";
 import {
+    observeWebviewReady,
     stubExtensionContext,
     stubUserSurvey,
     stubWebviewPanel,
@@ -159,6 +160,7 @@ suite("SchemaDesignerWebviewController tests", () => {
             treeNode,
             connectionUri,
         );
+        observeWebviewReady(ctrl);
         return ctrl;
     }
 

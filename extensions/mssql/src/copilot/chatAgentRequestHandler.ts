@@ -5,7 +5,7 @@
 
 import * as vscode from "vscode";
 import { CopilotService } from "../services/copilotService";
-import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent, startActivity } from "extension-toolkit/vscode";
 import * as Constants from "../constants/constants";
 import {
     GetNextMessageResponse,

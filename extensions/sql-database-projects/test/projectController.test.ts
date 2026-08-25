@@ -8,6 +8,7 @@ import * as path from "path";
 import * as vscode from "vscode";
 import * as sinon from "sinon";
 import * as dataworkspace from "dataworkspace";
+import * as vscodeMssql from "vscode-mssql";
 import * as baselines from "./baselines/baselines";
 import * as templates from "../src/templates/templates";
 import * as testUtils from "./testUtils";
@@ -15,8 +16,11 @@ import * as constants from "../src/common/constants";
 import { ExtractTarget } from "../src/common/enums";
 import * as utils from "../src/common/utils";
 
+import * as createProjectFromDatabaseQuickpick from "../src/dialogs/createProjectFromDatabaseQuickpick";
 import { SqlDatabaseProjectTreeViewProvider } from "../src/controllers/databaseProjectTreeViewProvider";
 import { ProjectsController } from "../src/controllers/projectController";
+import { NetCoreTool } from "../src/tools/netcoreTool";
+import { mockConnectionInfo } from "./dialogTestUtils";
 import { promises as fs } from "fs";
 import { createContext, TestContext } from "./testContext";
 import { Project } from "../src/models/project";
@@ -142,6 +146,67 @@ suite("ProjectsController", function (): void {
                 expect(spy.calledOnce, "showErrorMessage should have been called exactly once").to
                     .be.true;
                 expect(spy.calledWith(msg)).to.be.true; // showErrorMessage not called with expected message '${msg}' Actual '${spy.getCall(0).args[0]}'
+            });
+
+            test("Should suggest the folder's schema when adding an object from a schema folder", async function (): Promise<void> {
+                const showInputBoxStub = sandbox
+                    .stub(vscode.window, "showInputBox")
+                    .resolves(undefined);
+                sandbox.stub(utils, "sanitizeStringForFilename").returnsArg(0);
+                const projController = new ProjectsController(testContext.outputChannel);
+                const project = await testUtils.createTestProject(
+                    this.test,
+                    baselines.newProjectFileBaseline,
+                );
+
+                await projController.addItemPrompt(project, "sales/Tables", {
+                    itemType: ItemType.table,
+                });
+
+                expect(
+                    showInputBoxStub.firstCall.args[0]?.value,
+                    "the suggested name should be qualified with the folder's schema",
+                ).to.match(/^sales\.Table\d+$/);
+            });
+
+            test("Should not qualify the suggested name when adding from a dbo folder", async function (): Promise<void> {
+                const showInputBoxStub = sandbox
+                    .stub(vscode.window, "showInputBox")
+                    .resolves(undefined);
+                sandbox.stub(utils, "sanitizeStringForFilename").returnsArg(0);
+                const projController = new ProjectsController(testContext.outputChannel);
+                const project = await testUtils.createTestProject(
+                    this.test,
+                    baselines.newProjectFileBaseline,
+                );
+
+                await projController.addItemPrompt(project, "dbo/Tables", {
+                    itemType: ItemType.table,
+                });
+
+                expect(
+                    showInputBoxStub.firstCall.args[0]?.value,
+                    "dbo is the default schema, so the suggestion stays unqualified",
+                ).to.match(/^Table\d+$/);
+            });
+
+            test("Should not qualify the suggested name when adding from the project root", async function (): Promise<void> {
+                const showInputBoxStub = sandbox
+                    .stub(vscode.window, "showInputBox")
+                    .resolves(undefined);
+                sandbox.stub(utils, "sanitizeStringForFilename").returnsArg(0);
+                const projController = new ProjectsController(testContext.outputChannel);
+                const project = await testUtils.createTestProject(
+                    this.test,
+                    baselines.newProjectFileBaseline,
+                );
+
+                await projController.addItemPrompt(project, "", { itemType: ItemType.table });
+
+                expect(
+                    showInputBoxStub.firstCall.args[0]?.value,
+                    "the project root implies no schema",
+                ).to.match(/^Table\d+$/);
             });
 
             test("Should not create file if no itemTypeName is selected", async function (): Promise<void> {
@@ -1210,6 +1275,89 @@ suite("ProjectsController", function (): void {
             });
         });
 
+        suite("Restore Nuget Packages", function (): void {
+            /**
+             * Stubs task execution so restoreProject runs without spawning dotnet.
+             *
+             * `runTaskToCompletion` registers its listener inside the promise executor, so the
+             * end-of-task event is fired on a later tick to guarantee the listener is in place.
+             *
+             * @param exitCode code the task reports when it ends
+             * @returns the executeTask stub, so callers can assert on the task it received
+             */
+            function stubTaskRun(exitCode: number): sinon.SinonStub {
+                const execution = {} as vscode.TaskExecution;
+                const executeTaskStub = sandbox
+                    .stub(vscode.tasks, "executeTask")
+                    .resolves(execution);
+
+                sandbox
+                    .stub(vscode.tasks, "onDidEndTaskProcess")
+                    .callsFake((listener: (e: vscode.TaskProcessEndEvent) => void) => {
+                        setTimeout(
+                            () =>
+                                listener({
+                                    execution,
+                                    exitCode,
+                                } as vscode.TaskProcessEndEvent),
+                            0,
+                        );
+                        return { dispose: () => {} };
+                    });
+
+                return executeTaskStub;
+            }
+
+            test("Should run dotnet restore against the project file", async function (): Promise<void> {
+                sandbox.stub(NetCoreTool.prototype, "verifyNetCoreInstallation").resolves();
+                const executeTaskStub = stubTaskRun(0);
+                const showErrorMessageSpy = sandbox.spy(vscode.window, "showErrorMessage");
+                const project = await testUtils.createTestProject(
+                    this.test,
+                    baselines.newProjectFileBaseline,
+                );
+                const projController = new ProjectsController(testContext.outputChannel);
+
+                await projController.restoreProject(project);
+
+                expect(executeTaskStub.calledOnce, "a task should have been executed").to.be.true;
+                const task = executeTaskStub.firstCall.args[0] as vscode.Task;
+                expect(task.name, "task should be labelled as a restore").to.equal(
+                    constants.restoreTaskName,
+                );
+
+                const execution = task.execution as vscode.ProcessExecution;
+                expect(execution.process, "should invoke dotnet").to.equal(constants.dotnet);
+                expect(execution.args, "should pass restore and the project path").to.deep.equal([
+                    constants.restore,
+                    utils.getNonQuotedPath(project.projectFilePath),
+                ]);
+                expect(showErrorMessageSpy.notCalled, "no error should be shown for exit code 0").to
+                    .be.true;
+            });
+
+            test("Should show an error when restore fails", async function (): Promise<void> {
+                sandbox.stub(NetCoreTool.prototype, "verifyNetCoreInstallation").resolves();
+                stubTaskRun(1);
+                const showErrorMessageSpy = sandbox.spy(vscode.window, "showErrorMessage");
+                const project = await testUtils.createTestProject(
+                    this.test,
+                    baselines.newProjectFileBaseline,
+                );
+                const projController = new ProjectsController(testContext.outputChannel);
+
+                await projController.restoreProject(project);
+
+                expect(
+                    showErrorMessageSpy.calledOnce,
+                    "a failed restore should be surfaced to the user",
+                ).to.be.true;
+                expect(showErrorMessageSpy.firstCall.args[0]).to.equal(
+                    constants.projRestoreFailed(),
+                );
+            });
+        });
+
         suite("Publishing and script generation", function (): void {
             test("publishProject should invoke mssql.publishDatabaseProject command with correct project path", async function (): Promise<void> {
                 const proj = await testUtils.createTestProject(
@@ -1271,6 +1419,59 @@ suite("ProjectsController", function (): void {
 
     suite("Create project from database operations and dialog", function (): void {
         teardown(() => {});
+
+        suite("launch context handling", function (): void {
+            let quickpickStub: sinon.SinonStub;
+            let getDatabaseNameFromTreeNodeStub: sinon.SinonStub;
+
+            setup(function (): void {
+                quickpickStub = sandbox
+                    .stub(
+                        createProjectFromDatabaseQuickpick,
+                        "createNewProjectFromDatabaseWithQuickpick",
+                    )
+                    .resolves();
+                getDatabaseNameFromTreeNodeStub = sandbox.stub().returns("NodeDatabase");
+                sandbox.stub(utils, "getVscodeMssqlApi").resolves({
+                    getDatabaseNameFromTreeNode: getDatabaseNameFromTreeNodeStub,
+                } as unknown as vscodeMssql.IExtension);
+            });
+
+            test("Should preselect the database when launched from an Object Explorer node", async function (): Promise<void> {
+                const projController = new ProjectsController(testContext.outputChannel);
+                const objectExplorerNode = {
+                    connectionProfile: { ...mockConnectionInfo },
+                } as unknown as vscodeMssql.ITreeNodeInfo;
+
+                await projController.createProjectFromDatabase(objectExplorerNode);
+
+                expect(quickpickStub.calledOnce, "quickpick should have been launched").to.be.true;
+                expect(
+                    quickpickStub.firstCall.args[0].database,
+                    "database should be taken from the selected Object Explorer node",
+                ).to.equal("NodeDatabase");
+            });
+
+            test("Should prompt for a connection when launched from the projects view", async function (): Promise<void> {
+                const projController = new ProjectsController(testContext.outputChannel);
+                const projectsViewItem: dataworkspace.WorkspaceTreeItem = {
+                    treeDataProvider: new SqlDatabaseProjectTreeViewProvider(),
+                    element: undefined,
+                };
+
+                await projController.createProjectFromDatabase(projectsViewItem);
+
+                expect(quickpickStub.calledOnce, "quickpick should have been launched").to.be.true;
+                expect(
+                    quickpickStub.firstCall.args[0],
+                    "a projects view item carries no connection profile",
+                ).to.be.undefined;
+                expect(
+                    getDatabaseNameFromTreeNodeStub.notCalled,
+                    "database name should not be looked up for a projects view item",
+                ).to.be.true;
+            });
+        });
 
         test("Should create list of all files and folders correctly", async function (): Promise<void> {
             // dummy structure is 2 files (one .sql, one .txt) under parent folder + 2 directories with 5 .sql scripts each

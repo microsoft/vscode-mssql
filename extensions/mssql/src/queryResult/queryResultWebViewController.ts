@@ -9,7 +9,7 @@ import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import { WebviewViewController } from "../controllers/webviewViewController";
 import { SqlOutputContentProvider } from "../models/sqlOutputContentProvider";
-import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { randomUUID } from "crypto";
 import { ApiStatus } from "../sharedInterfaces/webview";
@@ -25,7 +25,13 @@ import {
 } from "./utils";
 import { Deferred } from "../protocol";
 import { getUriKey } from "../utils/utils";
-import { getPreviewConfigKey, PreviewFeature, previewService } from "../previews/previewService";
+import {
+    getPreviewConfigKey,
+    isBetaExecutionPlanEnabled,
+    PreviewFeature,
+    previewService,
+} from "../previews/previewService";
+import { getQueryResultWebviewSource } from "./queryResultWebviewSource";
 
 const QUERY_RESULT_VIEW_ID = "queryResult";
 
@@ -42,6 +48,12 @@ export class QueryResultWebviewController extends WebviewViewController<
     private _selectionSummaryContinuations: Map<string, Deferred<void>> = new Map();
     private _correlationId: string = randomUUID();
     /**
+     * Set while the results grid mode is being changed by the in-product switch, which reports
+     * its own telemetry. The configuration listener below fires for that write as well, so this
+     * keeps a single toggle from being counted twice.
+     */
+    private _gridModeChangeReportedBySwitch: boolean = false;
+    /**
      * Editor status bar item used to show the grid selection summary when the query results
      * footer preview is disabled. When the footer preview is enabled, the selection summary is
      * shown inside the results view footer instead and this item stays hidden.
@@ -56,23 +68,29 @@ export class QueryResultWebviewController extends WebviewViewController<
         private _executionPlanService: ExecutionPlanService,
         private _sqlOutputContentProvider: SqlOutputContentProvider,
     ) {
-        super(context, QUERY_RESULT_VIEW_ID, QUERY_RESULT_VIEW_ID, {
-            resultSetSummaries: {},
-            messages: [],
-            tabStates: {
-                resultPaneTab: qr.QueryResultPaneTabs.Messages,
+        const isBetaResultsGridEnabled = previewService.isFeatureEnabled(
+            PreviewFeature.BetaResultsGrid,
+        );
+        super(
+            context,
+            getQueryResultWebviewSource(isBetaResultsGridEnabled),
+            QUERY_RESULT_VIEW_ID,
+            {
+                resultSetSummaries: {},
+                messages: [],
+                tabStates: {
+                    resultPaneTab: qr.QueryResultPaneTabs.Messages,
+                },
+                executionPlanState: {},
+                fontSettings: {},
+                gridSettings: {},
+                autoSizeColumnsMode: qr.ResultsGridAutoSizeStyle.HeadersAndData,
+                isExecuting: false,
+                executionElapsedMilliseconds: undefined,
+                rowsAffected: undefined,
+                isBetaResultsGridEnabled,
             },
-            executionPlanState: {},
-            fontSettings: {},
-            gridSettings: {},
-            autoSizeColumnsMode: qr.ResultsGridAutoSizeStyle.HeadersAndData,
-            isExecuting: false,
-            executionElapsedMilliseconds: undefined,
-            rowsAffected: undefined,
-            isBetaResultsGridEnabled: previewService.isFeatureEnabled(
-                PreviewFeature.BetaResultsGrid,
-            ),
-        });
+        );
 
         void this.initialize();
 
@@ -126,17 +144,53 @@ export class QueryResultWebviewController extends WebviewViewController<
                     }
                     stateChanged = true;
                 }
-                if (e.affectsConfiguration(getPreviewConfigKey(PreviewFeature.BetaResultsGrid))) {
+                if (
+                    e.affectsConfiguration(getPreviewConfigKey(PreviewFeature.BetaResultsGrid)) ||
+                    e.affectsConfiguration(Constants.configEnableExperimentalFeatures)
+                ) {
                     const newValue = this.isBetaResultsGridEnabled;
+
+                    // The in-product switch reports its own richer event, so only report the
+                    // changes that came from elsewhere (the Settings UI, settings sync, or a
+                    // change to the global experimental features flag).
+                    if (this._gridModeChangeReportedBySwitch) {
+                        this._gridModeChangeReportedBySwitch = false;
+                    } else {
+                        sendActionEvent(
+                            TelemetryViews.QueryResult,
+                            TelemetryActions.ToggleResultsGridMode,
+                            {
+                                correlationId: this._correlationId,
+                                newMode: newValue ? "preview" : "classic",
+                                source: "settings",
+                            },
+                        );
+                    }
+
                     for (const [uri, state] of this._queryResultStateMap) {
                         state.isBetaResultsGridEnabled = newValue;
                         this._queryResultStateMap.set(uri, state);
                     }
+                    this.reloadWebview(getQueryResultWebviewSource(newValue));
+                    for (const controller of this._queryResultWebviewPanelControllerMap.values()) {
+                        controller.reloadForResultsGridChange(newValue);
+                    }
                     this.updateSelectionSummary();
+                    stateChanged = true;
+                }
+                if (e.affectsConfiguration(getPreviewConfigKey(PreviewFeature.BetaExecutionPlan))) {
+                    const newValue = isBetaExecutionPlanEnabled();
+                    for (const [uri, state] of this._queryResultStateMap) {
+                        if (state.executionPlanState) {
+                            state.executionPlanState.isBetaExecutionPlanEnabled = newValue;
+                        }
+                        this._queryResultStateMap.set(uri, state);
+                    }
                     stateChanged = true;
                 }
                 if (
                     e.affectsConfiguration("mssql.resultsGrid.alternatingRowColors") ||
+                    e.affectsConfiguration("mssql.resultsGrid.freezeFirstColumnByDefault") ||
                     e.affectsConfiguration("mssql.resultsGrid.showGridLines") ||
                     e.affectsConfiguration("mssql.resultsGrid.rowPadding")
                 ) {
@@ -242,6 +296,15 @@ export class QueryResultWebviewController extends WebviewViewController<
             !this.isOpenQueryResultsInTabByDefaultEnabled &&
             !this.isDefaultQueryResultToDocumentDoNotShowPromptEnabled
         );
+    }
+
+    /**
+     * Suppresses the configuration listener's telemetry for the next results grid mode change,
+     * for use by the in-product switch which reports the change itself. Pass `false` to release
+     * the suppression if the configuration write ends up failing.
+     */
+    public setGridModeChangeReportedBySwitch(reported: boolean): void {
+        this._gridModeChangeReportedBySwitch = reported;
     }
 
     private get isBetaResultsGridEnabled(): boolean {
@@ -370,24 +433,19 @@ export class QueryResultWebviewController extends WebviewViewController<
         controller.revealToForeground();
         this._queryResultWebviewPanelControllerMap.set(uri, controller);
         this.showSplashScreen();
-        try {
-            await controller.whenWebviewReady();
-        } catch (e) {
-            // If the webview was disposed or timed out before it became ready, clean up the
-            // panel controller entry so callers are not blocked indefinitely.
+        // Do not block query execution on webview bootstrap, and do not dispose
+        // the panel if ready is delayed or never arrives.
+        void controller.whenWebviewReady().catch((e) => {
             sendErrorEvent(
                 TelemetryViews.QueryResult,
                 TelemetryActions.CreatePanelController,
                 e instanceof Error ? e : new Error(String(e)),
                 true, // includeErrorMessage
             );
-            this._queryResultWebviewPanelControllerMap.delete(uri);
-            controller.panel.dispose();
-            void vscode.window.showErrorMessage(
-                LocalizedConstants.QueryResult.queryResultPanelFailedToLoad,
-            );
-            throw e;
-        }
+            if (controller.isDisposed) {
+                this._queryResultWebviewPanelControllerMap.delete(uri);
+            }
+        });
     }
 
     public addQueryResultState(uri: string, title: string, isExecutionPlan?: boolean): void {
@@ -407,6 +465,7 @@ export class QueryResultWebviewController extends WebviewViewController<
                     executionPlanGraphs: [],
                     totalCost: 0,
                     xmlPlans: {},
+                    isBetaExecutionPlanEnabled: isBetaExecutionPlanEnabled(),
                 },
             }),
             fontSettings: {
@@ -473,6 +532,9 @@ export class QueryResultWebviewController extends WebviewViewController<
         return {
             alternatingRowColors:
                 (config.get(Constants.configResultsGridAlternatingRowColors) as boolean) ?? false,
+            freezeFirstColumnByDefault:
+                (config.get(Constants.configResultsGridFreezeFirstColumnByDefault) as boolean) ??
+                false,
             showGridLines,
             rowPadding: config.get(Constants.configResultsGridRowPadding) as number | undefined,
         };

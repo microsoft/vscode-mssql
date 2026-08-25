@@ -9,19 +9,44 @@ import { CoreRPCs } from "./webview";
 export interface ObjectExplorerFilterState {
     filterProperties: vscodeMssql.NodeFilterProperty[];
     existingFilters: vscodeMssql.NodeFilter[];
+    isPreviewEnabled: boolean;
+    filterScopeId: string;
+    filterPresets: ObjectExplorerFilterPreset[];
     nodePath?: string;
+}
+
+export interface ObjectExplorerFilterPreset {
+    id: string;
+    name?: string;
+    filters: vscodeMssql.NodeFilter[];
+    isPinned: boolean;
+    lastUsed: number;
 }
 
 export interface ObjectExplorerReducers {
     submit: {
         filters: vscodeMssql.NodeFilter[];
+        saveName?: string;
+    };
+    setPresetPinned: {
+        presetId: string;
+        isPinned: boolean;
+    };
+    deletePreset: {
+        presetId: string;
+    };
+    renamePreset: {
+        presetId: string;
+        name: string;
     };
     cancel: {};
 }
 
 export interface ObjectExplorerFilterContextProps extends CoreRPCs {
-    submit: (filters: vscodeMssql.NodeFilter[]) => void;
-    clearAllFilters: () => void;
+    submit: (filters: vscodeMssql.NodeFilter[], saveName?: string) => void;
+    setPresetPinned: (presetId: string, isPinned: boolean) => void;
+    deletePreset: (presetId: string) => void;
+    renamePreset: (presetId: string, name: string) => void;
     cancel: () => void;
 }
 

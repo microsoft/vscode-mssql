@@ -12,7 +12,7 @@ import SqlDocumentService, { ConnectionStrategy } from "../controllers/sqlDocume
 import { getDesignerView } from "./tableDesignerTabDefinition";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import { IConnectionProfile } from "../models/interfaces";
-import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent, startActivity } from "extension-toolkit/vscode";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { LoadingLogEntry } from "../sharedInterfaces/webview";
 import * as LocConstants from "../constants/locConstants";

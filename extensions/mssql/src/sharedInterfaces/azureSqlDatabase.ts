@@ -6,6 +6,7 @@
 import { ApiStatus } from "./webview";
 import { FormContextProps, FormItemSpec, FormReducers, FormState } from "./form";
 import { IDialogProps } from "./connectionDialog";
+import { FirewallRuleSpec } from "./firewallRule";
 import { KnownFreeLimitExhaustionBehavior, KnownSampleName, Server } from "@azure/arm-sql";
 import { AzureSubscription, AzureTenant } from "@microsoft/vscode-azext-azureauth";
 
@@ -51,6 +52,8 @@ export class AzureSqlDatabaseState
     provisionLoadState: ApiStatus = ApiStatus.NotStarted;
     deploymentStartTime: string = "";
     connectionLoadState: ApiStatus = ApiStatus.NotStarted;
+    canAddFirewallRule: boolean = false;
+    firewallErrorMessage: string = "";
     /** True when the server was just created via the drawer with SQL auth credentials already provided */
     serverCreatedWithAuth: boolean = false;
     azureComponentStatuses: Record<string, ApiStatus> = {
@@ -71,6 +74,8 @@ export class AzureSqlDatabaseState
     publicIp: string = "";
     subscriptionName: string = "";
     serverRegion: string = "";
+    /** Connection string to the provisioned database (password excluded), populated once the connection succeeds. */
+    connectionString: string = "";
     constructor(params?: Partial<AzureSqlDatabaseState>) {
         for (const key in params) {
             if (key in this) {
@@ -149,6 +154,10 @@ export interface AzureSqlDatabaseContextProps extends FormContextProps<AzureSqlD
     submitCreateResourceGroup(spec: CreateResourceGroupSpec): void;
     setCreateServerDrawerState(shouldOpen: boolean): void;
     submitCreateServer(spec: CreateServerSpec): void;
+    openFirewallRuleDialog(): void;
+    closeFirewallRuleDialog(): void;
+    addFirewallRule(firewallRuleSpec: FirewallRuleSpec): void;
+    signIntoAzureForFirewallRule(): void;
 }
 
 export interface AzureSqlDatabaseReducers extends FormReducers<AzureSqlDatabaseFormState> {
@@ -158,4 +167,8 @@ export interface AzureSqlDatabaseReducers extends FormReducers<AzureSqlDatabaseF
     submitCreateResourceGroup: { spec: CreateResourceGroupSpec };
     setCreateServerDrawerState: { shouldOpen: boolean };
     submitCreateServer: { spec: CreateServerSpec };
+    openFirewallRuleDialog: {};
+    closeFirewallRuleDialog: {};
+    addAzureSqlFirewallRule: { firewallRuleSpec: FirewallRuleSpec };
+    signIntoAzureForFirewallRule: {};
 }

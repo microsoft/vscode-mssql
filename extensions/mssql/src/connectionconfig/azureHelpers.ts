@@ -23,7 +23,7 @@ import {
     ConnectionDialogWebviewState,
 } from "../sharedInterfaces/connectionDialog";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-import { sendErrorEvent } from "../telemetry/telemetry";
+import { sendErrorEvent } from "extension-toolkit/vscode";
 import { getErrorMessage, listAllIterator } from "../utils/utils";
 import {
     activeDirectory,
@@ -158,14 +158,14 @@ export class VsCodeAzureHelper {
     public static async getAccountById(
         accountId: string,
     ): Promise<vscode.AuthenticationSessionAccountInformation> {
-        const accounts = await this.getAccounts();
+        const accounts = await this.getAccounts(false);
         return accounts.find((a) => a.id === accountId);
     }
 
     public static async getAccountByName(
         accountName: string,
     ): Promise<vscode.AuthenticationSessionAccountInformation> {
-        const accounts = await this.getAccounts();
+        const accounts = await this.getAccounts(false);
         return accounts.find((a) => a.label === accountName);
     }
 
@@ -190,7 +190,7 @@ export class VsCodeAzureHelper {
 
         if (forceSignInPrompt || !(await auth.isSignedIn())) {
             const accountsBefore = new Set(
-                (await VsCodeAzureHelper.getAccounts()).map((a) => a.id),
+                (await VsCodeAzureHelper.getAccounts(false)).map((a) => a.id),
             );
 
             const result = await auth.signIn();
@@ -199,14 +199,14 @@ export class VsCodeAzureHelper {
                 throw new Error("Azure sign-in was canceled or failed.");
             }
 
-            const accountsAfter = await VsCodeAzureHelper.getAccounts();
+            const accountsAfter = await VsCodeAzureHelper.getAccounts(false);
             const newAccount = accountsAfter.find((a) => !accountsBefore.has(a.id));
 
             return { auth, newAccountId: newAccount?.id ?? accountsAfter[0]?.id };
         }
 
         // Already signed in — return the first available account
-        const accounts = await VsCodeAzureHelper.getAccounts();
+        const accounts = await VsCodeAzureHelper.getAccounts(false);
         return { auth, newAccountId: accounts[0]?.id };
     }
 
@@ -635,7 +635,7 @@ export class VsCodeAzureHelper {
         return "UnableToCheck";
     }
 
-    private static getAzureSqlServerName(server: string | undefined): string | undefined {
+    public static getAzureSqlServerName(server: string | undefined): string | undefined {
         if (!server) {
             return undefined;
         }

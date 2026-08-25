@@ -43,8 +43,9 @@ import { ObjectManagementService } from "../services/objectManagementService";
 import StatusView from "../views/statusView";
 import { IConnectionGroup, IConnectionProfile, ISelectionData } from "../models/interfaces";
 import ConnectionManager from "./connectionManager";
+import { IInstantiationService } from "extension-toolkit/base";
 import SqlDocumentService, { ConnectionStrategy } from "./sqlDocumentService";
-import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent, VscodeHttpClient } from "extension-toolkit/vscode";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { TableDesignerService } from "../services/tableDesignerService";
 import { getPreviewConfigKey, PreviewFeature, previewService } from "../previews/previewService";
@@ -118,7 +119,6 @@ import { SearchDatabaseWebViewController } from "../searchDatabase/searchDatabas
 import { ChangelogWebviewController } from "./changelogWebviewController";
 import { AzureDataStudioMigrationWebviewController } from "./azureDataStudioMigrationWebviewController";
 import { ShortcutsConfigurationWebviewController } from "./shortcutsConfigurationWebviewController";
-import { HttpClient } from "../http/httpClient";
 import { ILogger } from "../sharedInterfaces/logger";
 import { logger } from "../models/logger";
 import { FileBrowserService } from "../services/fileBrowserService";
@@ -193,7 +193,11 @@ export default class MainController implements vscode.Disposable {
      * The main controller constructor
      * @constructor
      */
-    constructor(context: vscode.ExtensionContext, connectionManager?: ConnectionManager) {
+    constructor(
+        context: vscode.ExtensionContext,
+        @IInstantiationService private readonly _instantiationService: IInstantiationService,
+        connectionManager?: ConnectionManager,
+    ) {
         this._context = context;
         if (connectionManager) {
             this._connectionMgr = connectionManager;
@@ -202,7 +206,9 @@ export default class MainController implements vscode.Disposable {
         this.configuration = vscode.workspace.getConfiguration();
 
         UserSurvey.createInstance(this._context);
-        new HttpClient(this._logger).warnOnInvalidProxySettings();
+        new VscodeHttpClient({
+            logger: this._logger,
+        }).warnOnInvalidProxySettings();
     }
 
     /**
@@ -401,10 +407,8 @@ export default class MainController implements vscode.Disposable {
             });
             this.registerCommand(Constants.cmdOpenAzureDataStudioMigration);
             this._event.on(Constants.cmdOpenAzureDataStudioMigration, async () => {
-                const migrationController = new AzureDataStudioMigrationWebviewController(
-                    this._context,
-                    this.connectionManager.connectionStore,
-                    this.connectionManager.connectionStore.connectionConfig,
+                const migrationController = this._instantiationService.createInstance(
+                    AzureDataStudioMigrationWebviewController,
                     this.azureAccountService,
                 );
 
@@ -1067,11 +1071,14 @@ export default class MainController implements vscode.Disposable {
         );
 
         // Init connection manager and connection MRU
-        this._connectionMgr = new ConnectionManager(
-            this._context,
-            this._statusview,
-            this._prompter,
-        );
+        if (!this._connectionMgr) {
+            this._connectionMgr = this._instantiationService.createInstance(
+                ConnectionManager,
+                this._context,
+                this._statusview,
+                this._prompter,
+            );
+        }
 
         this._sqlDocumentService = new SqlDocumentService(this);
         this.configureQuickQueryService();
@@ -1694,18 +1701,17 @@ export default class MainController implements vscode.Disposable {
 
         this.registerCommand(Constants.cmdConnectionGroupCreate);
         this._event.on(Constants.cmdConnectionGroupCreate, () => {
-            const connGroupDialog = new ConnectionGroupWebviewController(
-                this._context,
-                this.connectionManager.connectionStore.connectionConfig,
+            const connGroupDialog = this._instantiationService.createInstance(
+                ConnectionGroupWebviewController,
+                undefined,
             );
             connGroupDialog.revealToForeground();
         });
 
         this.registerCommandWithArgs(Constants.cmdConnectionGroupEdit);
         this._event.on(Constants.cmdConnectionGroupEdit, (node: ConnectionGroupNode) => {
-            const connGroupDialog = new ConnectionGroupWebviewController(
-                this._context,
-                this.connectionManager.connectionStore.connectionConfig,
+            const connGroupDialog = this._instantiationService.createInstance(
+                ConnectionGroupWebviewController,
                 node.connectionGroup,
             );
             connGroupDialog.revealToForeground();
@@ -2208,52 +2214,7 @@ export default class MainController implements vscode.Disposable {
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 Constants.cmdDeleteContainer,
-                async (node: TreeNodeInfo) => {
-                    if (
-                        !node ||
-                        !node.connectionProfile ||
-                        !(await this.isContainerReadyForCommands(node))
-                    ) {
-                        return;
-                    }
-
-                    const confirmation = await vscode.window.showInformationMessage(
-                        LocalizedConstants.LocalContainers.deleteContainerConfirmation(
-                            node.connectionProfile.containerName,
-                        ),
-                        { modal: true },
-                        LocalizedConstants.Common.delete,
-                    );
-
-                    if (confirmation === LocalizedConstants.Common.delete) {
-                        node.loadingLabel =
-                            LocalizedConstants.LocalContainers.deletingContainerLoadingLabel;
-                        await this._objectExplorerProvider.setNodeLoading(node);
-                        this._objectExplorerProvider.refresh(node);
-
-                        const containerName = node.connectionProfile.containerName;
-                        const deletedSuccessfully = await deleteContainer(containerName);
-                        vscode.window.showInformationMessage(
-                            deletedSuccessfully
-                                ? LocalizedConstants.LocalContainers.deletedContainerSucessfully(
-                                      containerName,
-                                  )
-                                : LocalizedConstants.LocalContainers.failDeleteContainer(
-                                      containerName,
-                                  ),
-                        );
-                        node.loadingLabel =
-                            LocalizedConstants.LocalContainers.startingContainerLoadingLabel;
-                        if (deletedSuccessfully) {
-                            // Delete node from tree
-                            await this._objectExplorerProvider.removeNode(
-                                node as ConnectionNode,
-                                false,
-                            );
-                            return this._objectExplorerProvider.refresh(undefined);
-                        }
-                    }
-                },
+                async (node: TreeNodeInfo) => this.deleteContainerForNode(node),
             ),
         );
     }
@@ -2793,8 +2754,11 @@ export default class MainController implements vscode.Disposable {
             let uri = Utils.getActiveTextEditorUri();
             let title = path.basename(editor.document.fileName);
 
-            // return early if the document does contain any text
+            // Return early if the document does not contain any query text.
             if (editor.document.getText(undefined).trim().length === 0) {
+                void vscode.window.showInformationMessage(
+                    LocalizedConstants.msgNoQueryTextToExecute,
+                );
                 return;
             }
 
@@ -2811,6 +2775,9 @@ export default class MainController implements vscode.Disposable {
             let shouldRunSelection = false;
             if (!editor.selection.isEmpty) {
                 if (editor.document.getText(editor.selection).trim().length === 0) {
+                    void vscode.window.showInformationMessage(
+                        LocalizedConstants.msgNoQueryTextToExecute,
+                    );
                     return;
                 }
 
@@ -2884,6 +2851,9 @@ export default class MainController implements vscode.Disposable {
             // Trim down the selection. If it is empty after selecting, then we don't execute
             let selectionToTrim = editor.selection.isEmpty ? undefined : editor.selection;
             if (editor.document.getText(selectionToTrim).trim().length === 0) {
+                void vscode.window.showInformationMessage(
+                    LocalizedConstants.msgNoQueryTextToExecute,
+                );
                 return;
             }
 
@@ -3493,6 +3463,66 @@ export default class MainController implements vscode.Disposable {
                 this._objectExplorerProvider.objectExplorerService,
             )
         ).success;
+    }
+
+    private async deleteContainerForNode(node: TreeNodeInfo): Promise<void> {
+        const connectionProfile = node?.connectionProfile;
+        const containerName = connectionProfile?.containerName;
+        if (!containerName) {
+            return;
+        }
+
+        const savedConnections =
+            await this.connectionManager.connectionStore.connectionConfig.getConnections();
+        const otherConnectionsUsingContainer = savedConnections.filter(
+            (profile) =>
+                profile.id !== connectionProfile.id && profile.containerName === containerName,
+        );
+        if (otherConnectionsUsingContainer.length > 0) {
+            const confirmation = await vscode.window.showWarningMessage(
+                LocalizedConstants.LocalContainers.deleteSharedContainerConfirmation(
+                    containerName,
+                    otherConnectionsUsingContainer.map(ConnInfo.getConnectionDisplayName),
+                ),
+                { modal: true },
+                LocalizedConstants.Common.delete,
+            );
+            if (confirmation !== LocalizedConstants.Common.delete) {
+                return;
+            }
+        }
+
+        if (!(await this.isContainerReadyForCommands(node))) {
+            return;
+        }
+
+        if (otherConnectionsUsingContainer.length === 0) {
+            const confirmation = await vscode.window.showInformationMessage(
+                LocalizedConstants.LocalContainers.deleteContainerConfirmation(containerName),
+                { modal: true },
+                LocalizedConstants.Common.delete,
+            );
+
+            if (confirmation !== LocalizedConstants.Common.delete) {
+                return;
+            }
+        }
+
+        node.loadingLabel = LocalizedConstants.LocalContainers.deletingContainerLoadingLabel;
+        await this._objectExplorerProvider.setNodeLoading(node);
+        this._objectExplorerProvider.refresh(node);
+
+        const deletedSuccessfully = await deleteContainer(containerName);
+        void vscode.window.showInformationMessage(
+            deletedSuccessfully
+                ? LocalizedConstants.LocalContainers.deletedContainerSucessfully(containerName)
+                : LocalizedConstants.LocalContainers.failDeleteContainer(containerName),
+        );
+        node.loadingLabel = LocalizedConstants.LocalContainers.startingContainerLoadingLabel;
+        if (deletedSuccessfully) {
+            await this._objectExplorerProvider.removeNode(node as ConnectionNode, false);
+            this._objectExplorerProvider.refresh(undefined);
+        }
     }
 
     public removeAadAccount(prompter: IPrompter): void {

@@ -54,6 +54,8 @@ export enum TelemetryViews {
 }
 
 export enum TelemetryActions {
+    ConnectionSharingApiCalled = "ConnectionSharingApiCalled",
+    ConnectionSharingRetirementToast = "ConnectionSharingRetirementToast",
     GetDatabaseProjectScriptFiles = "GetDatabaseProjectScriptFiles",
     GetDatabaseProjectSchemaProvider = "GetDatabaseProjectSchemaProvider",
     ListingDatabasesForActiveServer = "ListingDatabasesForActiveServer",
@@ -116,6 +118,7 @@ export enum TelemetryActions {
     CopyHeaders = "CopyHeaders",
     OpenQueryResultsInTabByDefaultPrompt = "OpenQueryResultsInTabByDefaultPrompt",
     OpenQueryResult = "OpenQueryResult",
+    ToggleResultsGridMode = "ToggleResultsGridMode",
     Restore = "Restore",
     LoadConnection = "LoadConnection",
     LoadConnectionProperties = "LoadConnectionProperties",

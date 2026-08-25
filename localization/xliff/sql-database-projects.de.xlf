@@ -730,14 +730,6 @@
         <source xml:lang="en">Project was successfully updated.</source>
         <target state="translated">Das Projekt wurde erfolgreich aktualisiert.</target>
       </trans-unit>
-      <trans-unit id="++CODE++0f985b5f2f6e8763caa6b2f25235fe75ef4141e9cf1e7db22b1417d93a2a1362">
-        <source xml:lang="en">Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues while using the SQL Database Projects extension.  Error: {1}</source>
-        <target state="translated">Proxyeinstellungen gefunden, beim Analysieren der URL ist jedoch ein Fehler aufgetreten: „{0}“. Bei Verwendung der Erweiterung „SQL-Datenbankprojekte“ können Verbindungsprobleme auftreten.  Fehler: {1}</target>
-      </trans-unit>
-      <trans-unit id="++CODE++9750573b32aa963fde1aee5156fb2fcd86a69be01757c0acffdb44d4baaa4de3">
-        <source xml:lang="en">Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues while using the SQL Database Projects extension.</source>
-        <target state="translated">Proxyeinstellungen gefunden, jedoch ohne Protokoll (z. B. http://): „{0}“. Bei Verwendung der Erweiterung „SQL-Datenbankprojekte“ können Verbindungsprobleme auftreten.</target>
-      </trans-unit>
       <trans-unit id="++CODE++859390eb495b2ead7f05f0f799546c71435b2db31dbe082adecc3426fffc3391">
         <source xml:lang="en">Publish</source>
         <target state="translated">Veröffentlichen</target>
@@ -789,6 +781,14 @@
       <trans-unit id="++CODE++b0b75e297ad9735605b50a4457fc9ebf3ac736f3fe1a96c37e516bde80c0b529">
         <source xml:lang="en">Reset all variables</source>
         <target state="translated">Alle Variablen zurücksetzen</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a1fd0aa6b9bdf8696143377ec1bf93d31e265ac3127aaee41867716f69f4405e">
+        <source xml:lang="en">Restore NuGet packages</source>
+        <target state="translated">Wiederherstellen der NuGet-Pakete</target>
+      </trans-unit>
+      <trans-unit id="++CODE++633c647dc177f1bc66b204e5f67b5243fa1a1fbcdf8848eca20af08cc00cfea2">
+        <source xml:lang="en">Restore NuGet packages failed. Check the terminal output for more details.</source>
+        <target state="translated">Fehler beim Wiederherstellen der NuGet-Pakete. Weitere Informationen finden Sie in der Terminalausgabe.</target>
       </trans-unit>
       <trans-unit id="++CODE++29185835a277f43007e12333c37a5bca92231e5bf3f9de29afc41a0497e2f8f3">
         <source xml:lang="en">Revert values to project defaults</source>
@@ -1089,10 +1089,6 @@
       <trans-unit id="++CODE++eedafe8ff2506c4b821270652d82a5ed959bb9297fb5e3f3408ca19018545705">
         <source xml:lang="en">Unable to reach nuget.org. If you are behind a proxy or in an offline environment, you can manually place the required DLL files in the build directory: {0}</source>
         <target state="translated">Nuget.org kann nicht erreicht werden. Wenn Sie sich hinter einem Proxy oder in einer Offlineumgebung befinden, können Sie die erforderlichen DLL-Dateien manuell im Buildverzeichnis platzieren: {0}</target>
-      </trans-unit>
-      <trans-unit id="++CODE++96d229ad39923c7fdc914e4075785ffba3c0282697aa7f4f31a289baa4b83996">
-        <source xml:lang="en">Unable to read proxy agent options.</source>
-        <target state="translated">Proxy-Agent-Optionen können nicht gelesen werden.</target>
       </trans-unit>
       <trans-unit id="++CODE++768599fd8afd8acd64dffa68e96ad5970f54933220398e5b545b222719c8b353">
         <source xml:lang="en">Unhandled item type during delete: '{0}</source>
@@ -1401,6 +1397,10 @@ Projekte:
       <trans-unit id="sqlDatabaseProjects.rename">
         <source xml:lang="en">Rename</source>
         <target state="translated">Umbenennen</target>
+      </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.restorePackages">
+        <source xml:lang="en">Restore Packages</source>
+        <target state="translated">Pakete wiederherstellen</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.objectExplorerSubmenu">
         <source xml:lang="en">SQL Database Projects</source>

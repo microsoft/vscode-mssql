@@ -77,9 +77,11 @@ export default class StatusView implements vscode.Disposable {
                         this.showStatusBarItem(fileUri, bar.statusChangeDatabase);
                         this.showStatusBarItem(fileUri, bar.statusLanguageService);
                         if (!this.isInWebviewFooterEnabled) {
-                            this.showStatusBarItem(fileUri, bar.statusQuery);
                             this.showStatusBarItem(fileUri, bar.rowCount);
                             this.showStatusBarItem(fileUri, bar.executionTime);
+                        }
+                        if (this.isShowQueryExecutionStatusEnabled) {
+                            this.showStatusBarItem(fileUri, bar.statusQuery);
                         } else {
                             bar.statusQuery.hide();
                         }
@@ -116,11 +118,20 @@ export default class StatusView implements vscode.Disposable {
 
     /**
      * Whether the in-webview query results footer preview is enabled. When enabled, the
-     * row count and execution time status bar items (and the query progress indicator) are
-     * suppressed because the footer surfaces that information inside the results view.
+     * row count and execution time status bar items are suppressed because the footer surfaces
+     * that information inside the results view.
      */
     private get isInWebviewFooterEnabled(): boolean {
         return previewService.isFeatureEnabled(PreviewFeature.BetaResultsGrid);
+    }
+
+    /**
+     * Whether the query execution status bar item is enabled in settings.
+     */
+    private get isShowQueryExecutionStatusEnabled(): boolean {
+        return vscode.workspace
+            .getConfiguration(Constants.extensionConfigSectionName)
+            .get<boolean>(Constants.configStatusBarShowQueryExecutionStatus, true);
     }
 
     // Create status bar item if needed
@@ -198,9 +209,11 @@ export default class StatusView implements vscode.Disposable {
         this.showStatusBarItem(fileUri, bar.statusChangeDatabase);
         this.showStatusBarItem(fileUri, bar.statusLanguageService);
         if (!this.isInWebviewFooterEnabled) {
-            this.showStatusBarItem(fileUri, bar.statusQuery);
             this.showStatusBarItem(fileUri, bar.rowCount);
             this.showStatusBarItem(fileUri, bar.executionTime);
+        }
+        if (this.isShowQueryExecutionStatusEnabled) {
+            this.showStatusBarItem(fileUri, bar.statusQuery);
         } else {
             bar.statusQuery.hide();
         }
@@ -352,7 +365,7 @@ export default class StatusView implements vscode.Disposable {
         let bar = this.getStatusBar(fileUri);
         clearInterval(bar.queryTimer);
         this.hideStatusBarItem(fileUri, bar.executionTime);
-        if (this.isInWebviewFooterEnabled) {
+        if (!this.isShowQueryExecutionStatusEnabled) {
             bar.statusQuery.hide();
             return;
         }
@@ -364,7 +377,7 @@ export default class StatusView implements vscode.Disposable {
 
     public executedQuery(fileUri: string): void {
         let bar = this.getStatusBar(fileUri);
-        if (this.isInWebviewFooterEnabled) {
+        if (!this.isShowQueryExecutionStatusEnabled) {
             bar.statusQuery.hide();
             return;
         }
@@ -387,7 +400,8 @@ export default class StatusView implements vscode.Disposable {
 
     public cancelingQuery(fileUri: string): void {
         let bar = this.getStatusBar(fileUri);
-        if (this.isInWebviewFooterEnabled) {
+        clearInterval(bar.queryTimer);
+        if (!this.isShowQueryExecutionStatusEnabled) {
             bar.statusQuery.hide();
             return;
         }
@@ -396,8 +410,6 @@ export default class StatusView implements vscode.Disposable {
         bar.statusQuery.command = undefined;
         bar.statusQuery.text = LocalizedConstants.cancelingQueryLabel;
         this.showStatusBarItem(fileUri, bar.statusQuery);
-        this.showProgress(fileUri, LocalizedConstants.cancelingQueryLabel, bar.statusQuery);
-        clearInterval(bar.queryTimer);
     }
 
     public languageServiceStatusChanged(fileUri: string, status: string): void {
