@@ -6,6 +6,41 @@
     fill: var(--vscode-charts-yellow);
 }
 
+.execution-plan-numbered-icon {
+    position: relative;
+    display: inline-flex;
+    width: 1em;
+    height: 1em;
+    align-items: center;
+    justify-content: center;
+}
+
+.execution-plan-numbered-icon > svg {
+    width: 1em;
+    height: 1em;
+}
+
+.execution-plan-numbered-icon-badge {
+    position: absolute;
+    top: -0.15em;
+    right: -0.2em;
+    display: inline-flex;
+    box-sizing: border-box;
+    min-width: 1.05em;
+    height: 1.05em;
+    padding: 0 0.2em;
+    border: 1px solid var(--vscode-badge-foreground);
+    border-radius: 999px;
+    align-items: center;
+    justify-content: center;
+    background: var(--vscode-badge-background);
+    color: var(--vscode-badge-foreground);
+    font-family: var(--vscode-font-family);
+    font-size: 0.48em;
+    font-weight: 600;
+    line-height: 1;
+}
+
 .vscode-high-contrast .execution-plan-icon-accent-blue,
 .vscode-high-contrast .execution-plan-icon-accent-yellow,
 .vscode-high-contrast-light .execution-plan-icon-accent-blue,
@@ -17,5 +52,11 @@
     .execution-plan-icon-accent-blue,
     .execution-plan-icon-accent-yellow {
         fill: currentColor;
+    }
+
+    .execution-plan-numbered-icon-badge {
+        border-color: currentColor;
+        background: Canvas;
+        color: CanvasText;
     }
 }

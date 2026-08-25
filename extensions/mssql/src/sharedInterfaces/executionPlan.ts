@@ -7,6 +7,10 @@ import { ApiStatus } from "./webview";
 
 export interface ExecutionPlanWebviewState {
     executionPlanState: ExecutionPlanState;
+    /**
+     * Present when this webview is displaying the React Flow execution-plan comparison editor.
+     */
+    executionPlanComparisonState?: ExecutionPlanComparisonState;
 }
 
 export interface ExecutionPlanState {
@@ -63,6 +67,23 @@ export interface ExecutionPlanReducers {
     updateTotalCost: {
         addedCost: number;
     };
+    /**
+     * Opens the selected statement in the React Flow execution-plan comparison editor.
+     */
+    compareExecutionPlan: {
+        graphIndex: number;
+    };
+    /**
+     * Selects or browses for the plan shown in the second comparison pane.
+     */
+    selectComparisonPlan: {};
+    /**
+     * Changes the active statement in either comparison pane.
+     */
+    setComparisonGraphIndexes: {
+        primaryGraphIndex?: number;
+        secondaryGraphIndex?: number;
+    };
 }
 
 export interface ExecutionPlanProvider {
@@ -94,6 +115,32 @@ export interface ExecutionPlanProvider {
      * @param addedCost the cost of the current execution plan graph
      */
     updateTotalCost(addedCost: number): void;
+
+    compareExecutionPlan(graphIndex: number): void;
+
+    selectComparisonPlan(): void;
+
+    setComparisonGraphIndexes(
+        primaryGraphIndex: number | undefined,
+        secondaryGraphIndex: number | undefined,
+    ): void;
+}
+
+export interface ExecutionPlanComparisonSource {
+    /**
+     * Display name of the source file or query-result plan.
+     */
+    sourceName: string;
+    graphs: ExecutionPlanGraph[];
+    selectedGraphIndex: number;
+}
+
+export interface ExecutionPlanComparisonState {
+    primary: ExecutionPlanComparisonSource;
+    secondary?: ExecutionPlanComparisonSource;
+    comparisonResult?: ExecutionPlanComparisonResult;
+    loadState: ApiStatus;
+    errorMessage?: string;
 }
 
 export interface ExecutionPlanGraph {
@@ -363,12 +410,15 @@ export interface ExecutionPlanService {
      */
     getExecutionPlan(planFile: ExecutionPlanGraphInfo): Thenable<GetExecutionPlanResult>;
 
-    // /**
-    //  * Compares two execution plans and identifies matching regions in both execution plans.
-    //  * @param firstPlanFile file that contains the first execution plan.
-    //  * @param secondPlanFile file that contains the second execution plan.
-    //  */
-    // compareExecutionPlanGraph(firstPlanFile: ExecutionPlanGraphInfo, secondPlanFile: ExecutionPlanGraphInfo): Thenable<ExecutionPlanComparisonResult>;
+    /**
+     * Compares two execution plans and identifies matching regions in both execution plans.
+     * @param firstPlanFile file that contains the first execution plan.
+     * @param secondPlanFile file that contains the second execution plan.
+     */
+    compareExecutionPlanGraph(
+        firstPlanFile: ExecutionPlanGraphInfo,
+        secondPlanFile: ExecutionPlanGraphInfo,
+    ): Thenable<ExecutionPlanComparisonResult>;
     /**
      * Determines if the provided value is an execution plan and returns the appropriate file extension.
      * @param value String that needs to be checked.
