@@ -946,6 +946,19 @@ export class LocConstants {
                     args: [index, costPercentage],
                     comment: ["{0} is the query number", "{1} is the query cost"],
                 }),
+            missingIndex: l10n.t("Missing index"),
+            missingIndexImpact: (impact: string) =>
+                l10n.t({
+                    message: "Impact {0}%",
+                    args: [impact],
+                    comment: [
+                        "{0} is the estimated percentage improvement from creating the index",
+                    ],
+                }),
+            missingIndexRecommendations: l10n.t("Missing index recommendations"),
+            openIndexRecommendationScript: l10n.t(
+                "Open the recommended index script in a new query editor",
+            ),
             equals: l10n.t("Equals"),
             contains: l10n.t("Contains"),
             actualElapsedTime: l10n.t("Actual Elapsed Time"),
@@ -1078,6 +1091,11 @@ export class LocConstants {
             message: l10n.t("Message"),
             openResultInNewTab: l10n.t("Open in New Tab"),
             resultsToolbar: l10n.t("Results toolbar"),
+            moreActions: l10n.t("More Actions"),
+            previewGrid: l10n.t("Preview Grid"),
+            previewGridSwitchTooltip: l10n.t(
+                "Switch between the classic and the preview results grid",
+            ),
             showplanXML: l10n.t("Showplan XML"),
             showMenu: (shortcut: string) => {
                 if (shortcut) {

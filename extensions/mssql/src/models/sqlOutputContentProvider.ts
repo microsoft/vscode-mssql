@@ -79,6 +79,7 @@ export class SqlOutputContentProvider {
             vscode.window.registerWebviewViewProvider(
                 "queryResult",
                 this._queryResultWebviewController,
+                { webviewOptions: { retainContextWhenHidden: true } },
             ),
         );
 
@@ -224,10 +225,17 @@ export class SqlOutputContentProvider {
         resultId: number,
         selection: Interfaces.ISlickRange[],
         includeHeaders?: boolean,
+        preserveSelectionLayout?: boolean,
     ): void {
         void this._queryResultsMap
             .get(uri)
-            .queryRunner.copyResults(selection, batchId, resultId, includeHeaders);
+            .queryRunner.copyResults(
+                selection,
+                batchId,
+                resultId,
+                includeHeaders,
+                preserveSelectionLayout,
+            );
     }
 
     public copyAsCsvRequestHandler(
