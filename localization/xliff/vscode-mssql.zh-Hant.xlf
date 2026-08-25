@@ -12508,6 +12508,10 @@ Start by clicking the filter button next to most folders in the Connections view
         <source xml:lang="en">Pause Query History Capture</source>
         <target state="translated">暫停查詢記錄擷取</target>
       </trans-unit>
+      <trans-unit id="mssql.query.playCompletionSound.description">
+        <source xml:lang="en">Play a sound after a query finishes executing.</source>
+        <target state="new">Play a sound after a query finishes executing.</target>
+      </trans-unit>
       <trans-unit id="mssql.preventAutoExecuteScript">
         <source xml:lang="en">Prevent automatic execution of scripts (e.g., 'Select Top 1000'). When enabled, scripts will not be automatically executed upon generation.</source>
         <target state="translated">防止指令碼自動執行 (例如「選取前 1000 筆」)。啟用後，指令碼不會在產生時自動執行。</target>
@@ -12840,6 +12844,10 @@ Start by clicking the filter button next to most folders in the Connections view
         <source xml:lang="en">The name of the connection group.</source>
         <target state="translated">連線群組的名稱。</target>
       </trans-unit>
+      <trans-unit id="mssql.query.completionSoundFile.description">
+        <source xml:lang="en">The path to a custom WAV file to play after a query finishes executing. The bundled default chime is used when the path is empty or invalid, or when the custom file is larger than 400 KB.</source>
+        <target state="new">The path to a custom WAV file to play after a query finishes executing. The bundled default chime is used when the path is empty or invalid, or when the custom file is larger than 400 KB.</target>
+      </trans-unit>
       <trans-unit id="mssql.objectExplorer.expandTimeout">
         <source xml:lang="en">The timeout in seconds for expanding a node in Object Explorer. The default value is 45 seconds.</source>
         <target state="translated">在物件總管中展開節點的逾時秒數。預設值為 45 秒。</target>
@@ -13035,6 +13043,10 @@ You can also click the 'Open in New Tab' button to view your query results in th
       <trans-unit id="mssql.showBatchTime">
         <source xml:lang="en">[Optional] Should execution time be shown for individual batches</source>
         <target state="translated">[選用] 是否顯示個別批次的執行時間</target>
+      </trans-unit>
+      <trans-unit id="mssql.results.showBatchMessages">
+        <source xml:lang="en">[Optional] Show batch start and completion messages, including 'Started executing query at...' and 'Commands completed successfully'.</source>
+        <target state="new">[Optional] Show batch start and completion messages, including 'Started executing query at...' and 'Commands completed successfully'.</target>
       </trans-unit>
       <trans-unit id="mssql.connection.profileName">
         <source xml:lang="en">[Optional] Specify a custom name for this connection profile to easily browse and search in the command palette of Visual Studio Code.</source>
