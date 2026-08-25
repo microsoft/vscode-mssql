@@ -534,6 +534,10 @@ suite("Query Runner tests", () => {
         // If:
         // ... I have a query runner
         let queryRunner = createQueryRunner();
+        let isFullExecutionComplete = false;
+        queryRunner.onComplete((event) => {
+            isFullExecutionComplete = event.isFullExecutionComplete;
+        });
 
         // ... And I handle a query completion event
         queryRunner.handleQueryComplete(result);
@@ -541,6 +545,20 @@ suite("Query Runner tests", () => {
         // ... The state of the query runner has been updated
         expect(queryRunner.batchSets.length).to.equal(1);
         expect(queryRunner.isExecutingQuery).to.equal(false);
+        expect(isFullExecutionComplete).to.be.true;
+    });
+
+    test("Cleanup is not reported as a full query execution completion", async () => {
+        const queryRunner = createQueryRunner();
+        let isFullExecutionComplete = true;
+        queryRunner.onComplete((event) => {
+            isFullExecutionComplete = event.isFullExecutionComplete;
+        });
+        testSqlToolsServerClient.sendRequest.resolves();
+
+        await queryRunner.dispose();
+
+        expect(isFullExecutionComplete).to.be.false;
     });
 
     test("Notification - Query complete preserves absolute batch selection from service", () => {

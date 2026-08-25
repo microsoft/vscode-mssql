@@ -28,6 +28,7 @@ import * as Utils from "./utils";
 // can transpile to throttle_1.default and fail at runtime in unit tests.
 import throttle = require("lodash/throttle");
 import store from "../queryResult/singletonStore";
+import { QueryCompletionSoundService } from "../services/queryCompletionSoundService";
 // tslint:disable-next-line:no-require-imports
 const pd = require("pretty-data").pd;
 const logger = getLogger("SqlOutputContentProvider");
@@ -58,12 +59,17 @@ export class SqlOutputContentProvider {
     private _queryExecutionInFlightUris: Set<string> = new Set();
     // Throttled state update functions per result URI (messages, results, etc.)
     private _stateUpdateThrottles: Map<string, ReturnType<typeof throttle>> = new Map();
+    private _queryCompletionSoundService: QueryCompletionSoundService;
 
     constructor(
         private _context: vscode.ExtensionContext,
         private _statusView: StatusView,
         private _executionPlanService: ExecutionPlanService,
+        queryCompletionSoundService?: QueryCompletionSoundService,
     ) {
+        this._queryCompletionSoundService =
+            queryCompletionSoundService ??
+            new QueryCompletionSoundService(this._context.extensionPath);
         /**
          * TODO: aaskhan
          * Remove query results management code from queryResultwebviewController so
@@ -691,7 +697,13 @@ export class SqlOutputContentProvider {
             });
 
             const onCompleteListener = queryRunner.onComplete(async (e) => {
-                const { totalMilliseconds, totalElapsedMilliseconds, hasError, isRefresh } = e;
+                const {
+                    totalMilliseconds,
+                    totalElapsedMilliseconds,
+                    hasError,
+                    isFullExecutionComplete,
+                    isRefresh,
+                } = e;
                 if (!isRefresh) {
                     // only update query history with new queries
                     vscode.commands.executeCommand(
@@ -699,6 +711,9 @@ export class SqlOutputContentProvider {
                         queryRunner.uri,
                         hasError,
                     );
+                    if (isFullExecutionComplete) {
+                        void this._queryCompletionSoundService.play();
+                    }
                 }
 
                 const resultWebviewState = this._queryResultWebviewController.getQueryResultState(
