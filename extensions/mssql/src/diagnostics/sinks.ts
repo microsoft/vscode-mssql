@@ -298,6 +298,9 @@ export class LiveTailSink implements DiagnosticSink {
     ) {}
 
     public subscribe(listener: LiveTailListener): { snapshot: DiagEvent[]; lastSeq: number } {
+        // A new subscriber starts from the ring snapshot. Never let an old
+        // subscriber's queued batch or gap state replay on top of that snapshot.
+        this.clearSubscriberDelivery();
         this.listener = listener;
         return {
             snapshot: [...this.ring],
@@ -307,6 +310,7 @@ export class LiveTailSink implements DiagnosticSink {
 
     public unsubscribe(): void {
         this.listener = undefined;
+        this.clearSubscriberDelivery();
     }
 
     public tryWrite(event: DiagEvent): void {
@@ -394,12 +398,19 @@ export class LiveTailSink implements DiagnosticSink {
     }
 
     public dispose(): void {
+        this.listener = undefined;
+        this.clearSubscriberDelivery();
+    }
+
+    private clearSubscriberDelivery(): void {
         if (this.deliverTimer) {
             clearTimeout(this.deliverTimer);
             this.deliverTimer = undefined;
         }
-        this.listener = undefined;
         this.pending = [];
+        this.droppedFrom = undefined;
+        this.droppedThrough = undefined;
+        this.droppedCount = 0;
     }
 }
 

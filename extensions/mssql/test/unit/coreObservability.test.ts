@@ -211,6 +211,32 @@ suite("Core observability", () => {
         sink.dispose();
     });
 
+    test("live-tail subscription boundaries do not replay pending events or gaps", async () => {
+        const sink = new LiveTailSink(2, 5);
+        sink.subscribe(() => undefined);
+        sink.tryWrite(event(1));
+        sink.tryWrite(event(2));
+        sink.tryWrite(event(3));
+        sink.unsubscribe();
+
+        let delivered: DiagEvent[] = [];
+        let deliveredGap: GapRecord | undefined;
+        const state = sink.subscribe((events, gap) => {
+            delivered = events;
+            deliveredGap = gap;
+        });
+        expect(state.snapshot.map((value) => value.seq)).to.deep.equal([2, 3]);
+
+        await new Promise((resolve) => setTimeout(resolve, 15));
+        expect(delivered).to.be.empty;
+
+        sink.tryWrite(event(4));
+        await new Promise((resolve) => setTimeout(resolve, 15));
+        expect(delivered.map((value) => value.seq)).to.deep.equal([4]);
+        expect(deliveredGap).to.equal(undefined);
+        sink.dispose();
+    });
+
     test("redacted session journals never persist secrets or provider text", () => {
         const root = fs.mkdtempSync(path.join(os.tmpdir(), "mssql-core-diag-"));
         try {
