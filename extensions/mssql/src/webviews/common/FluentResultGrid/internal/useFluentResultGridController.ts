@@ -26,7 +26,6 @@ import type {
 } from "./fluentResultGridControllerTypes";
 import {
     FLUENT_RESULT_GRID_DEFAULT_IN_MEMORY_DATA_PROCESSING_THRESHOLD,
-    FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_ID,
     FLUENT_RESULT_GRID_SCROLL_POSITION_DEBOUNCE_MS,
 } from "./fluentResultGridConstants";
 import {
@@ -47,6 +46,7 @@ import {
     getFluentResultGridStateForEmit,
     normalizeFluentResultGridFrozenColumnIndex,
     normalizeFluentResultGridRowPadding,
+    restoreFluentResultGridColumnWidths,
     stabilizeFluentResultGridColumnInfo,
     type FluentResultGridColumnInfoSnapshot,
 } from "./fluentResultGridState";
@@ -304,17 +304,17 @@ export function useFluentResultGridController({
             restoredStateRef.current = false;
             try {
                 const shouldAutoSizeColumns = !initialState?.columnWidths?.length;
-                if (initialState?.columnWidths?.length) {
-                    layoutController.cancelAutoSizeColumns();
-                    const restoredColumns = grid.getColumns().map((column) => {
-                        if (column.id === FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_ID) {
-                            return column;
-                        }
-
-                        const columnIndex = Number(column.field);
-                        const width = initialState.columnWidths?.[columnIndex];
-                        return typeof width === "number" ? { ...column, width } : column;
-                    });
+                if (
+                    initialState?.columnWidths?.length ||
+                    typeof initialState?.rowNumberColumnWidth === "number"
+                ) {
+                    if (initialState.columnWidths?.length) {
+                        layoutController.cancelAutoSizeColumns();
+                    }
+                    const restoredColumns = restoreFluentResultGridColumnWidths(
+                        grid.getColumns() as Column<FluentResultGridDataRow>[],
+                        initialState,
+                    );
                     grid.setColumns(restoredColumns);
                 }
 
