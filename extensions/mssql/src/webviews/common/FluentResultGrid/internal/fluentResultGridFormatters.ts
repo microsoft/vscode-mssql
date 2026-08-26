@@ -157,8 +157,10 @@ export function fluentResultGridRowNumberFormatter(
     value: unknown,
 ): FormatterResultWithHtml {
     const rowNumber = document.createElement("span");
+    const displayValue = value?.toString() ?? "";
     rowNumber.className = "row-number fluent-result-grid-row-number";
-    rowNumber.textContent = value?.toString() ?? "";
+    rowNumber.textContent = displayValue;
+    rowNumber.title = displayValue;
     return { html: rowNumber };
 }
 

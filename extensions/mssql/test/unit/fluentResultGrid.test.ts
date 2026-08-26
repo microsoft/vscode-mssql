@@ -49,6 +49,12 @@ import {
     isFluentResultGridAppendSelectionEvent,
     isFluentResultGridSecondaryButtonEvent,
 } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridCellRangeSelector";
+import { createFluentResultGridColumns } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridColumns";
+import {
+    FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_ID,
+    FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_WIDTH,
+} from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridConstants";
+import { fluentResultGridRowNumberFormatter } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridFormatters";
 
 function cell(value: string | null): DbCellValue {
     return {
@@ -87,6 +93,26 @@ function keyboardEvent(
 
 suite("Fluent Result Grid", () => {
     suite("columns", () => {
+        test("allows the row number column to be widened", () => {
+            const columns = createFluentResultGridColumns({ columnInfo: [column("name")] });
+            const rowNumberColumn = columns.find(
+                (column) => column.id === FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_ID,
+            );
+
+            expect(rowNumberColumn).to.include({
+                width: FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_WIDTH,
+                minWidth: FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_WIDTH,
+                resizable: true,
+            });
+            expect(rowNumberColumn?.maxWidth).to.equal(undefined);
+        });
+
+        test("shows the full row number in a tooltip", () => {
+            const result = fluentResultGridRowNumberFormatter(undefined, undefined, "10000");
+
+            expect(result.html).to.include({ textContent: "10000", title: "10000" });
+        });
+
         test("retains column definitions when a result update contains the same schema", () => {
             const first = stabilizeFluentResultGridColumnInfo(undefined, [column("name")]);
             const repeatedSchema = stabilizeFluentResultGridColumnInfo(first, [column("name")]);
