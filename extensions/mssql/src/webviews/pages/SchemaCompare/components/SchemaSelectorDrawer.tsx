@@ -36,6 +36,10 @@ import {
     SchemaCompareEndpointType,
     ExtractTarget,
 } from "../../../../sharedInterfaces/schemaCompare";
+import {
+    SearchableDropdown,
+    SearchableDropdownOptions,
+} from "../../../common/searchableDropdown.component";
 
 const useStyles = makeStyles({
     drawerWidth: {
@@ -275,13 +279,13 @@ const SchemaSelectorDrawer = (props: Props) => {
         updateOkButtonState(type);
     };
 
-    const handleDatabaseServerSelected = (_: SelectionEvents, data: OptionOnSelectData) => {
-        if (data.optionValue) {
-            const connectionDatabaseName = activeServers[data.optionValue]?.database ?? "";
-            setServerConnectionUri(data.optionValue);
-            setServerName(data.optionText ?? "");
+    const handleDatabaseServerSelected = (option: SearchableDropdownOptions) => {
+        if (option.value) {
+            const connectionDatabaseName = activeServers[option.value]?.database ?? "";
+            setServerConnectionUri(option.value);
+            setServerName(option.text ?? option.value);
             setDatabaseName(connectionDatabaseName);
-            context.listDatabasesForActiveServer(data.optionValue, connectionDatabaseName);
+            context.listDatabasesForActiveServer(option.value, connectionDatabaseName);
         }
     };
 
@@ -351,22 +355,22 @@ const SchemaSelectorDrawer = (props: Props) => {
                     <>
                         <Label>{loc.schemaCompare.server}</Label>
                         <div className={classes.positionItemsHorizontally}>
-                            <Dropdown
-                                className={classes.fileInputWidth}
-                                value={serverName}
-                                selectedOptions={[serverConnectionUri]}
-                                onOptionSelect={(event, data) =>
-                                    handleDatabaseServerSelected(event, data)
-                                }>
-                                {Object.keys(activeServers).map((connUri) => {
-                                    return (
-                                        <Option key={connUri} value={connUri}>
-                                            {activeServers[connUri].profileName ||
-                                                activeServers[connUri].server}
-                                        </Option>
-                                    );
-                                })}
-                            </Dropdown>
+                            <SearchableDropdown
+                                style={{ width: "300px" }}
+                                options={Object.keys(activeServers).map((connectionUri) => ({
+                                    value: connectionUri,
+                                    text:
+                                        activeServers[connectionUri].profileName ||
+                                        activeServers[connectionUri].server,
+                                }))}
+                                selectedOption={{
+                                    value: serverConnectionUri,
+                                    text: serverName,
+                                }}
+                                onSelect={handleDatabaseServerSelected}
+                                ariaLabel={loc.schemaCompare.server}
+                                showPlaceholder
+                            />
                         </div>
                         <Label>{loc.schemaCompare.database}</Label>
                         <div className={classes.databaseSelectionRow}>
