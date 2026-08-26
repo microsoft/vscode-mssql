@@ -39,6 +39,8 @@ test/resources/launchDir
 # Build artifacts
 *BROWSE.VC*
 examples
+!tools/perftest/examples/
+!tools/perftest/examples/**
 sqltoolsservice
 sqltools-mcp
 flatfileservice

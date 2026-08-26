@@ -1,0 +1,109 @@
+{
+    "__comment": "Central Observability dashboard (central design §9.3, C4). Import into Grafana with a Microsoft SQL Server datasource pointed at the central store DB using a central_grafana-role login. Every panel reads canned central.* views only — never base tables. See tools/perftest/docs/CLI.md#central-store-commands.",
+    "title": "MSSQL Central Observability",
+    "uid": "mssql-central-observability",
+    "schemaVersion": 39,
+    "tags": ["mssql", "perftest", "central"],
+    "timezone": "utc",
+    "time": { "from": "now-30d", "to": "now" },
+    "refresh": "5m",
+    "templating": {
+        "list": [
+            {
+                "name": "scenario",
+                "type": "query",
+                "datasource": { "type": "mssql" },
+                "query": "SELECT DISTINCT scenario_id FROM central.official_metric_samples ORDER BY scenario_id",
+                "includeAll": true,
+                "multi": false
+            }
+        ]
+    },
+    "panels": [
+        {
+            "type": "stat",
+            "title": "Store health",
+            "gridPos": { "x": 0, "y": 0, "w": 24, "h": 4 },
+            "datasource": { "type": "mssql" },
+            "targets": [
+                {
+                    "format": "table",
+                    "rawSql": "SELECT perf_run_entities AS [perf runs], diag_session_entities AS [diag sessions], diag_event_rows AS [event rows], started_batches AS [started], failed_or_refused_7d AS [failed/refused 7d] FROM central.central_health"
+                }
+            ]
+        },
+        {
+            "type": "timeseries",
+            "title": "Official wallclock trend — $scenario",
+            "gridPos": { "x": 0, "y": 4, "w": 16, "h": 9 },
+            "datasource": { "type": "mssql" },
+            "targets": [
+                {
+                    "format": "time_series",
+                    "rawSql": "SELECT run_created_at_utc AS time, median_value AS value, scenario_id AS metric FROM (SELECT DISTINCT s.scenario_id, r.created_at_utc AS run_created_at_utc, PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY s.value) OVER (PARTITION BY s.scenario_id, s.run_id) AS median_value FROM central.official_metric_samples s JOIN central.visible_batches v ON v.kind = N'perfRun' AND v.natural_key = s.run_id JOIN central.runs r ON r.upload_batch_id = v.upload_batch_id AND r.run_id = s.run_id WHERE s.name = N'scenario.wallclock' AND ('$scenario' = 'All' OR s.scenario_id = '$scenario')) t WHERE run_created_at_utc >= $__timeFrom() AND run_created_at_utc <= $__timeTo() ORDER BY time"
+                }
+            ],
+            "fieldConfig": { "defaults": { "unit": "ms" } }
+        },
+        {
+            "type": "table",
+            "title": "Regressions — last 30 days",
+            "gridPos": { "x": 16, "y": 4, "w": 8, "h": 9 },
+            "datasource": { "type": "mssql" },
+            "targets": [
+                {
+                    "format": "table",
+                    "rawSql": "SELECT scenario_id, metric_name, verdict, ROUND(delta_pct, 1) AS delta_pct, latest_run_id FROM central.regressions_last_30d WHERE verdict IN (N'regressed', N'improved') ORDER BY verdict, scenario_id"
+                }
+            ]
+        },
+        {
+            "type": "timeseries",
+            "title": "Upload health by day (writers)",
+            "gridPos": { "x": 0, "y": 13, "w": 12, "h": 8 },
+            "datasource": { "type": "mssql" },
+            "targets": [
+                {
+                    "format": "time_series",
+                    "rawSql": "SELECT CAST(started_at_utc AS date) AS time, COUNT(*) AS value, status AS metric FROM central.upload_history WHERE started_at_utc >= $__timeFrom() GROUP BY CAST(started_at_utc AS date), status ORDER BY time"
+                }
+            ]
+        },
+        {
+            "type": "table",
+            "title": "Fleet by build — CI runs vs dogfood sessions",
+            "gridPos": { "x": 12, "y": 13, "w": 12, "h": 8 },
+            "datasource": { "type": "mssql" },
+            "targets": [
+                {
+                    "format": "table",
+                    "rawSql": "SELECT LEFT(sha, 12) AS sha, repo, perf_runs, perf_runs_passed, dogfood_sessions, dogfood_events, dogfood_gaps FROM central.fleet_by_build ORDER BY perf_runs DESC"
+                }
+            ]
+        },
+        {
+            "type": "table",
+            "title": "Sessions by feature error rate (gap-aware)",
+            "gridPos": { "x": 0, "y": 21, "w": 12, "h": 8 },
+            "datasource": { "type": "mssql" },
+            "targets": [
+                {
+                    "format": "table",
+                    "rawSql": "SELECT TOP (25) session_id, feature, events, error_events, ROUND(error_rate * 100, 2) AS error_pct, window_quality FROM central.sessions_by_feature_error_rate WHERE error_events > 0 ORDER BY error_rate DESC"
+                }
+            ]
+        },
+        {
+            "type": "table",
+            "title": "Policy drops (what the boundary removed)",
+            "gridPos": { "x": 12, "y": 21, "w": 12, "h": 8 },
+            "datasource": { "type": "mssql" },
+            "targets": [
+                {
+                    "format": "table",
+                    "rawSql": "SELECT upload_policy_id, source_kind, field, dropped_count, batches FROM central.policy_drop_summary ORDER BY dropped_count DESC"
+                }
+            ]
+        }
+    ]
+}
