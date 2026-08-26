@@ -1523,6 +1523,10 @@ export default class ConnectionManager {
             initRequestCompleted = true;
         } catch (error) {
             initRequestCompleted = true;
+            Perf.marker("mssql.connection.failed", "instant", {
+                error: true,
+                reason: "requestRejected",
+            });
             this.removeActiveConnection(fileUri);
             connectionCompletePromise.reject(error);
             this._uriToConnectionCompleteParamsMap.delete(connectParams.ownerUri);
@@ -1548,6 +1552,10 @@ export default class ConnectionManager {
          */
         if (!initResponse) {
             const initialConnectionError = new Error("Failed to initiate connection");
+            Perf.marker("mssql.connection.failed", "instant", {
+                error: true,
+                reason: "emptyResponse",
+            });
             this.removeActiveConnection(fileUri);
             connectionCompletePromise.reject(initialConnectionError);
             this._uriToConnectionCompleteParamsMap.delete(connectParams.ownerUri);
@@ -1599,6 +1607,10 @@ export default class ConnectionManager {
                 ) {
                     connectionActivity.update({ retryConnection: "true" });
                     connectionActivity.end(ActivityStatus.Retrying);
+                    Perf.marker("mssql.connection.failed", "instant", {
+                        error: true,
+                        reason: "serverlessRetry",
+                    });
 
                     return await this.connect(fileUri, connectionInfo.credentials, {
                         shouldHandleErrors,
@@ -1620,6 +1632,10 @@ export default class ConnectionManager {
                 });
                 if (errorHandlingResult.isHandled) {
                     connectionActivity.end(ActivityStatus.Retrying);
+                    Perf.marker("mssql.connection.failed", "instant", {
+                        error: true,
+                        reason: "credentialRetry",
+                    });
                     return await this.connect(fileUri, errorHandlingResult.updatedCredentials, {
                         connectionSource: connectionSource,
                     });
@@ -1631,8 +1647,9 @@ export default class ConnectionManager {
             connectionInfo.messages = result.messages;
             connectionInfo.connecting = false;
 
-            Perf.marker("mssql.connection.failed", "end", {
+            Perf.marker("mssql.connection.failed", "instant", {
                 error: true,
+                reason: result.errorNumber !== undefined ? "sqlError" : "unknown",
                 ...(result.errorNumber !== undefined ? { errorNumber: result.errorNumber } : {}),
             });
 

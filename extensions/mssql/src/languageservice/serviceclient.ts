@@ -20,6 +20,7 @@ import {
 } from "vscode-languageclient";
 import * as Utils from "../models/utils";
 import { Perf } from "../perf/perfTelemetry";
+import { diagnosticErrorClass } from "../diagnostics/diagnosticsCore";
 import { getLogger } from "../models/logger";
 import * as Constants from "../constants/constants";
 import ServerProvider from "./server";
@@ -371,7 +372,6 @@ export default class SqlToolsServiceClient {
             logger.debug("Sql Tools Service executable was not found in expected location.");
             throw new Error("Sql Tools Service executable was not found in expected location.");
         }
-        Perf.marker("mssql.sts.spawn.begin", "begin");
         this.client = await this.createLanguageClient(sqlToolsServicePath);
 
         const resourceProviderServicePath = await this._server.tryGetExecutablePathInFolder(
@@ -391,7 +391,16 @@ export default class SqlToolsServiceClient {
 
         if (context !== undefined) {
             // Create the language clients and start them.
-            await this.client.start();
+            Perf.marker("mssql.sts.spawn.begin", "begin");
+            try {
+                await this.client.start();
+            } catch (error) {
+                Perf.marker("mssql.sts.spawn.end", "end", {
+                    error: true,
+                    errorClass: diagnosticErrorClass(error),
+                });
+                throw error;
+            }
             const stsPid = this.client.serverProcess?.pid;
             Perf.setStsPid(stsPid);
             Perf.marker("mssql.sts.spawn.end", "end", { pid: stsPid ?? null });

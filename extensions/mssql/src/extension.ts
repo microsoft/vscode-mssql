@@ -46,6 +46,7 @@ import { IConnectionStore, ConnectionStore } from "./models/connectionStore";
 import { IAccountStore, AccountStore } from "./azure/accountStore";
 import { registerPerfApi } from "./perf/perfApi";
 import { Perf } from "./perf/perfTelemetry";
+import { diagnosticErrorClass } from "./diagnostics/diagnosticsCore";
 
 /** exported for testing purposes only */
 export let controller: MainController = undefined;
@@ -77,7 +78,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
         Perf.marker("mssql.activate.end", "end", {
             failed: true,
             error: true,
-            errorName: error instanceof Error ? error.name : "UnknownError",
+            errorClass: diagnosticErrorClass(error),
         });
         Perf.flush();
         throw error;

@@ -58,6 +58,7 @@ import * as os from "os";
 import { Deferred } from "../protocol";
 import { sendActionEvent, startActivity } from "extension-toolkit/vscode";
 import { Perf } from "../perf/perfTelemetry";
+import { diagnosticErrorClass } from "../diagnostics/diagnosticsCore";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { SelectionSummary } from "../sharedInterfaces/queryResult";
 import { bucketizeRowCount, getInMemoryGridDataProcessingThreshold } from "../queryResult/utils";
@@ -442,6 +443,10 @@ export default class QueryRunner {
             runQueryActivity?.end(ActivityStatus.Succeeded);
         } catch (error) {
             runQueryRequestCompleted = true;
+            Perf.marker("mssql.query.complete", "end", {
+                hasError: true,
+                errorClass: diagnosticErrorClass(error),
+            });
             this._handleQueryCleanup(undefined, error);
             this._startFailedEmitter.fire(getErrorMessage(error));
             runQueryActivity?.endFailed(error, false);
