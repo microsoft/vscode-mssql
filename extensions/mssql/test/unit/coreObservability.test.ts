@@ -5,6 +5,7 @@
 
 import { expect } from "chai";
 import * as fs from "fs";
+import * as http from "http";
 import * as os from "os";
 import * as path from "path";
 import {
@@ -14,6 +15,7 @@ import {
 } from "../../src/diagnostics/diagnosticsCore";
 import { CAPTURE_POLICIES, classifyPayload } from "../../src/diagnostics/redaction";
 import { LiveTailSink, PerfModeSink, SessionDiagSink } from "../../src/diagnostics/sinks";
+import { parsePerfRepId } from "../../src/perf/perfTelemetry";
 import { DIAG_SCHEMA_VERSION, DiagEvent, GapRecord } from "../../src/sharedInterfaces/diagnostics";
 
 const PROVIDER_CANARY = "CANARY-provider-message-7f3a9";
@@ -35,12 +37,94 @@ function event(seq: number): DiagEvent {
     };
 }
 
+async function listen(server: http.Server): Promise<number> {
+    await new Promise<void>((resolve, reject) => {
+        server.once("error", reject);
+        server.listen(0, "127.0.0.1", () => {
+            server.off("error", reject);
+            resolve();
+        });
+    });
+    const address = server.address();
+    if (address === null || typeof address === "string") {
+        throw new Error("test HTTP server did not bind a TCP port");
+    }
+    return address.port;
+}
+
+async function close(server: http.Server): Promise<void> {
+    await new Promise<void>((resolve, reject) => {
+        server.close((error) => (error ? reject(error) : resolve()));
+    });
+}
+
+async function eventually(predicate: () => boolean): Promise<void> {
+    const deadline = Date.now() + 2_000;
+    while (!predicate()) {
+        if (Date.now() >= deadline) {
+            throw new Error("condition was not met before timeout");
+        }
+        await new Promise((resolve) => setTimeout(resolve, 10));
+    }
+}
+
 suite("Core observability", () => {
     test("the no-sink path is inert", () => {
         const core = new DiagnosticsCore();
         expect(core.anySinkActive).to.equal(false);
         expect(core.emit({ feature: "test", type: "test.noop" })).to.equal(undefined);
         expect(core.lastSeq).to.equal(0);
+    });
+
+    test("the default active-sink envelope is redacted while store capture is off", () => {
+        const core = new DiagnosticsCore();
+        const received: DiagEvent[] = [];
+        core.addSink({ id: "collecting", tryWrite: (value) => received.push(value) });
+
+        core.emit({
+            feature: "connection",
+            type: "test.defaultPolicy",
+            fields: { server: { raw: "private-server", cls: "server.name" } },
+        });
+
+        expect(core.captureMode).to.equal("off");
+        expect(received[0].payload?.["server"].handling).to.equal("digest");
+        expect(JSON.stringify(received[0])).to.not.include("private-server");
+    });
+
+    test("adding the same sink is idempotent and same-id replacement disposes the old sink", () => {
+        const core = new DiagnosticsCore();
+        let firstDisposals = 0;
+        const received: DiagEvent[] = [];
+        const first: DiagnosticSink = {
+            id: "replaceable",
+            tryWrite: () => undefined,
+            dispose: () => firstDisposals++,
+        };
+        const replacement: DiagnosticSink = {
+            id: "replaceable",
+            tryWrite: (value) => received.push(value),
+        };
+
+        core.addSink(first);
+        core.addSink(first);
+        expect(firstDisposals).to.equal(0);
+
+        core.addSink(replacement);
+        core.emit({ feature: "test", type: "test.replacement" });
+        expect(firstDisposals).to.equal(1);
+        expect(received).to.have.length(1);
+    });
+
+    test("full capture duration is clamped to a positive bounded interval", () => {
+        const core = new DiagnosticsCore();
+        const before = Date.now();
+
+        core.setCaptureMode("full", { durationMs: -10 });
+
+        expect(core.captureExpiresEpochMs).to.be.at.least(before + 1_000);
+        expect(core.captureExpiresEpochMs).to.be.at.most(Date.now() + 1_000);
+        core.setCaptureMode("off");
     });
 
     test("sink failures are isolated and root actions retain one trace", () => {
@@ -83,6 +167,7 @@ suite("Core observability", () => {
         expect(received).to.have.length(2);
         expect(received[1].causeEventId).to.equal(received[0].eventId);
         expect(received[1].traceId).to.equal(received[0].traceId);
+        expect(received[1].timingClass).to.equal("officialSameProcess");
         expect(received[1].payload?.["errorClass"].v).to.equal("UnknownError");
         expect(JSON.stringify(received)).to.not.include(PROVIDER_CANARY);
         expect(JSON.stringify(received)).to.not.include(SECRET_CANARY);
@@ -181,5 +266,48 @@ suite("Core observability", () => {
         expect(sink.queuedCount).to.equal(1);
         expect(JSON.stringify(queued)).to.include("rowCount");
         expect(JSON.stringify(queued)).to.not.include(SECRET_CANARY);
+        sink.dispose();
+        expect((sink as unknown as { flushTimer: NodeJS.Timeout | undefined }).flushTimer).to.equal(
+            undefined,
+        );
+    });
+
+    test("the harness sink accounts for a partial non-2xx rejection exactly once", async () => {
+        const server = http.createServer((request, response) => {
+            request.resume();
+            request.on("end", () => {
+                response.writeHead(400, { "content-type": "application/json" });
+                response.end(JSON.stringify({ accepted: 1, rejected: 1 }));
+            });
+        });
+        const port = await listen(server);
+        const sink = new PerfModeSink(
+            `http://127.0.0.1:${port}/v1/markers`,
+            "token",
+            "run",
+            0,
+            "scenario",
+        );
+        try {
+            sink.tryWrite({ ...event(1), tags: ["perfMarker", "phase:instant"] });
+            sink.tryWrite({ ...event(2), tags: ["perfMarker", "phase:instant"] });
+            sink.flush();
+
+            await eventually(() => sink.droppedCount === 1);
+            expect(sink.droppedCount).to.equal(1);
+            expect(sink.health().healthy).to.equal(false);
+        } finally {
+            sink.dispose();
+            await close(server);
+        }
+    });
+
+    test("invalid harness repetition ids fall back to zero", () => {
+        expect(parsePerfRepId(undefined)).to.equal(0);
+        expect(parsePerfRepId("-1")).to.equal(0);
+        expect(parsePerfRepId("1.5")).to.equal(0);
+        expect(parsePerfRepId("not-a-number")).to.equal(0);
+        expect(parsePerfRepId("9007199254740992")).to.equal(0);
+        expect(parsePerfRepId("42")).to.equal(42);
     });
 });

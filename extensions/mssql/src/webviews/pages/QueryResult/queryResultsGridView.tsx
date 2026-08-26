@@ -176,6 +176,10 @@ export const QueryResultsGridView = ({
     // enabled (PERF_MODE runs); otherwise perfMarkAfterNextPaint is inert.
     const lastPerfMarkKey = useRef<string | undefined>(undefined);
     useEffect(() => {
+        if (isExecuting === true) {
+            lastPerfMarkKey.current = undefined;
+            return;
+        }
         if (isExecuting !== false || gridList.length === 0) {
             return;
         }

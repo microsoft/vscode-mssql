@@ -1444,7 +1444,6 @@ export default class ConnectionManager {
             serverlessWakeFailedAttempts = 0,
         } = options;
 
-        Perf.marker("mssql.connection.begin", "begin");
         const connectionActivity = startActivity(
             TelemetryViews.ConnectionManager,
             TelemetryActions.Connect,
@@ -1465,6 +1464,10 @@ export default class ConnectionManager {
         }
 
         credentials = await this.prepareConnectionInfo(credentials, connectionActivity);
+
+        // Measure the actual connection attempt. Credential/Entra preparation
+        // may prompt, throw, or be cancelled and must not leave an orphan begin.
+        Perf.marker("mssql.connection.begin", "begin");
 
         // Check if the connection is one that we can check for pause status (i.e., a Azure SQL database using Entra MFA auth)
         const isPauseAwareConnection =

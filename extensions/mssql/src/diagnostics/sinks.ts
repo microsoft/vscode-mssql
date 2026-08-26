@@ -5,12 +5,12 @@
 
 /**
  * Diagnostic sinks. Each sink is independently gated:
- *  - PerfModeSink:    PERF_MODE=1 (harness runs) — reproduces the exact legacy
- *                     perf-marker wire format so Phases 1-3 stay bit-compatible.
+ *  - PerfModeSink:    PERF_MODE=1 (harness runs) — reproduces the existing
+ *                     perf-marker wire format.
  *  - LiveTailSink:    active while a Debug Console subscribes; bounded ring
  *                     with exact gap accounting.
  *  - SessionDiagSink: user-enabled Session Diag store; JSONL segment journal
- *                     with batched, non-blocking writes.
+ *                     with batched synchronous writes off the emission path.
  */
 
 import * as fs from "fs";
@@ -20,7 +20,7 @@ import { DiagEvent, GapRecord, SessionManifest, SinkHealth } from "../sharedInte
 import { diagnosticErrorClass, DiagnosticSink } from "./diagnosticsCore";
 
 // ---------------------------------------------------------------------------
-// PerfModeSink — legacy harness wire format
+// PerfModeSink — harness wire format
 // ---------------------------------------------------------------------------
 
 const PERF_MAX_QUEUE = 1000;
@@ -45,7 +45,8 @@ interface LegacyPerfMarker {
  * Types of diagnostic span events forwarded to the harness IN ADDITION to the
  * Perf-facade markers: JSON-RPC round-trips, webview request spans, STS-side
  * dispatcher/SqlCommand/SMO/DacFx spans, and the narrow SQL-token acquisition
- * family. These give CLI-run waterfalls real sublane detail instead of one
+ * family. Some families are reserved for later SQL Data Plane and Debug
+ * Console PRs. These give CLI-run waterfalls real sublane detail instead of one
  * "doing scenario" block. The names are additive to the marker vocabulary
  * (the normalizer tolerates unknown markers; importPerfRep pairs
  * *.begin/*.end into bars).
@@ -56,7 +57,7 @@ const FORWARDED_SPAN_TYPES =
 /**
  * Forwards marker-tagged diagnostics to the perf orchestrator's HTTP sink.
  * Events emitted through the Perf facade (tag "perfMarker") are relayed in the
- * exact legacy wire format; diagnostic spans matching FORWARDED_SPAN_TYPES are
+ * established harness wire format; diagnostic spans matching FORWARDED_SPAN_TYPES are
  * relayed additively (tagged diag) so harness traces carry cross-process
  * detail. Everything else stays out of the harness contract.
  */
@@ -134,7 +135,7 @@ export class PerfModeSink implements DiagnosticSink {
             repId: this.repId,
             scenarioId: this.scenarioId,
             name: event.type,
-            phase: isForwardedSpan ? forwardedPhase(event) : legacyPhase(event),
+            phase: isForwardedSpan ? forwardedPhase(event) : harnessMarkerPhase(event),
             timestampUnixNs: (BigInt(Math.round(event.epochMs)) * 1000000n).toString(),
             monotonicNs: event.monotonicNs ?? "0",
             process: {
@@ -172,6 +173,14 @@ export class PerfModeSink implements DiagnosticSink {
         this.queue = [];
         try {
             const body = batch.map((m) => JSON.stringify(m)).join("\n");
+            let settled = false;
+            const accountDropped = (count: number) => {
+                if (settled) {
+                    return;
+                }
+                settled = true;
+                this.dropped += count;
+            };
             const request = http.request(
                 this.markerUrl,
                 {
@@ -182,12 +191,49 @@ export class PerfModeSink implements DiagnosticSink {
                     },
                     timeout: PERF_POST_TIMEOUT_MS,
                 },
-                (response) => response.resume(),
+                (response) => {
+                    let responseBody = "";
+                    response.setEncoding("utf8");
+                    response.on("data", (chunk: string) => {
+                        if (responseBody.length < 4096) {
+                            responseBody += chunk.slice(0, 4096 - responseBody.length);
+                        }
+                    });
+                    response.on("end", () => {
+                        const status = response.statusCode ?? 0;
+                        if (status >= 200 && status < 300) {
+                            settled = true;
+                            return;
+                        }
+                        let rejected = batch.length;
+                        try {
+                            const parsed: unknown = JSON.parse(responseBody);
+                            if (
+                                typeof parsed === "object" &&
+                                parsed !== null &&
+                                "rejected" in parsed
+                            ) {
+                                const value = (parsed as { rejected?: unknown }).rejected;
+                                if (
+                                    typeof value === "number" &&
+                                    Number.isInteger(value) &&
+                                    value > 0 &&
+                                    value <= batch.length
+                                ) {
+                                    rejected = value;
+                                }
+                            }
+                        } catch {
+                            // Non-harness error responses count the whole batch.
+                        }
+                        accountDropped(rejected);
+                    });
+                    response.on("aborted", () => accountDropped(batch.length));
+                    response.on("error", () => accountDropped(batch.length));
+                },
             );
-            request.on("error", () => {
-                this.dropped += batch.length;
-            });
-            request.on("timeout", () => request.destroy());
+            request.on("error", () => accountDropped(batch.length));
+            request.on("timeout", () => request.destroy(new Error("perf marker POST timed out")));
             request.end(body);
         } catch {
             this.dropped += batch.length;
@@ -204,9 +250,17 @@ export class PerfModeSink implements DiagnosticSink {
         }, PERF_FLUSH_INTERVAL_MS);
         this.flushTimer.unref?.();
     }
+
+    public dispose(): void {
+        if (this.flushTimer) {
+            clearTimeout(this.flushTimer);
+            this.flushTimer = undefined;
+        }
+        this.flush();
+    }
 }
 
-function legacyPhase(event: DiagEvent): string {
+function harnessMarkerPhase(event: DiagEvent): string {
     if (event.tags?.includes("phase:begin")) return "begin";
     if (event.tags?.includes("phase:end")) return "end";
     if (event.tags?.includes("phase:counter")) return "counter";
@@ -380,10 +434,11 @@ export class SessionDiagSink implements DiagnosticSink {
         policyId: string,
         provenance: SessionManifest["provenance"],
         /**
-         * Bundle-catalog seam (WI-2.3): called after every successful
+         * Reserved bundle-catalog seam for the later session-management PR:
+         * called after every successful
          * manifest rewrite — the existing flush path only, never the
          * emission hot path. Receives the LIVE manifest; the listener must
-         * copy what it keeps, synchronously. Undefined = no-op (legacy
+         * copy what it keeps, synchronously. Undefined = no-op (existing
          * behavior unchanged).
          */
         private readonly onManifestWritten?: (manifest: SessionManifest) => void,

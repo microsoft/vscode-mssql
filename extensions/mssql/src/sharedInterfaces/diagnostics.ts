@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 /**
- * Shared contracts for the MSSQL diagnostics substrate and the Debug Console
- * webview (design: debug-docs/MSSQL_Debug_Console_Technical_Design.md).
+ * Shared contracts for the MSSQL diagnostics substrate and the later Debug
+ * Console webview.
  * Everything here crosses the extension-host <-> webview boundary, so it must
  * stay JSON-serializable and free of runtime imports.
  */

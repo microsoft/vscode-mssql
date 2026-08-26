@@ -104,9 +104,11 @@ suite("Core diagnostics redaction hard rules", () => {
     test("long plain values are truncated with honest length accounting", () => {
         const long = "x".repeat(5000);
         const full = CAPTURE_POLICIES.full("test", Date.now() + 60_000);
-        const value = classify(long, "sql.text", full);
-        expect(value.handling).to.equal("truncated");
-        expect(String(value.v).length).to.equal(4096);
-        expect(value.len).to.equal(5000);
+        for (const cls of ["sql.text", "diagnostic.metadata"] as const) {
+            const value = classify(long, cls, full);
+            expect(value.handling, cls).to.equal("truncated");
+            expect(String(value.v).length, cls).to.equal(4096);
+            expect(value.len, cls).to.equal(5000);
+        }
     });
 });

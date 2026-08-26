@@ -7,7 +7,7 @@
  * Diagnostics core: the single emission path for all product instrumentation.
  * One event model, pluggable sinks, different gates:
  *
- *   PerfModeSink     — PERF_MODE=1 harness capture (exact legacy wire format)
+ *   PerfModeSink     — PERF_MODE=1 harness capture (established wire format)
  *   LiveTailSink     — bounded ring feeding the Debug Console live view
  *   SessionDiagSink  — user-enabled local Session Diag store (JSONL segments)
  *
@@ -72,6 +72,9 @@ export interface DiagSpan {
     fail(error: unknown): void;
 }
 
+// The SQL Data Plane codes and most Entra names are reserved for later
+// feature extractions. Keeping the closed allowlist here avoids broadening
+// error metadata when those producers arrive.
 const SAFE_ERROR_CODES = new Set([
     "SqlDataPlane.InvalidRequest",
     "SqlDataPlane.Busy",
@@ -133,7 +136,9 @@ export class DiagnosticsCore {
     private seq = 0;
     private eventCounter = 0;
     public readonly sessionId: string;
-    private policy: CapturePolicy = CAPTURE_POLICIES.off;
+    // Store capture starts off, but active non-store sinks receive the default
+    // redacted envelope promised by setCaptureMode("off").
+    private policy: CapturePolicy = CAPTURE_POLICIES.redacted;
     private storePolicy: CapturePolicy = CAPTURE_POLICIES.off;
     private policyRevertTimer: NodeJS.Timeout | undefined;
     /** Ambient trace for synchronous scopes; async work passes traceId explicitly. */
@@ -152,6 +157,7 @@ export class DiagnosticsCore {
     private rootTrace: string | undefined;
     private rootTraceStartedMs = 0;
     private static readonly ROOT_WINDOW_MS = 120_000;
+    // OE/command/userAction families are reserved for later feature PRs.
     private static readonly ROOT_BEGINNERS: RegExp[] = [
         /^mssql\.command\.invoked$/,
         /^mssql\.query\.submit$/,
@@ -170,6 +176,9 @@ export class DiagnosticsCore {
     // --- sinks ---------------------------------------------------------------
 
     public addSink(sink: DiagnosticSink): void {
+        if (this.sinks.some((candidate) => candidate === sink)) {
+            return;
+        }
         this.removeSink(sink.id);
         this.sinks.push(sink);
     }
@@ -286,7 +295,10 @@ export class DiagnosticsCore {
             this.policyRevertTimer = undefined;
         }
         if (mode === "full") {
-            const durationMs = Math.min(options?.durationMs ?? 15 * 60_000, 60 * 60_000);
+            const requestedDurationMs = options?.durationMs ?? 15 * 60_000;
+            const durationMs = Number.isFinite(requestedDurationMs)
+                ? Math.max(1_000, Math.min(requestedDurationMs, 60 * 60_000))
+                : 15 * 60_000;
             const expires = Date.now() + durationMs;
             this.storePolicy = CAPTURE_POLICIES.full(options?.reason ?? "elevated", expires);
             this.policyRevertTimer = setTimeout(() => {
@@ -528,6 +540,7 @@ export class DiagnosticsCore {
                     type: `${input.type}.end`,
                     status: "error",
                     durationMs: Number(durationMs.toFixed(2)),
+                    timingClass: "officialSameProcess",
                     fields: {
                         ...input.fields,
                         errorClass: {

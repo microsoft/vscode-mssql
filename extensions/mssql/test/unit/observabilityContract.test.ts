@@ -14,13 +14,14 @@
 import { expect } from "chai";
 import * as fs from "fs";
 import * as path from "path";
+import * as ts from "typescript";
 import {
     OBS_CONTRACT,
     deriveEligibility,
     explainEventName,
     lintCorrelation,
 } from "../../src/sharedInterfaces/observabilityContract.generated";
-import { featureFor } from "../../src/perf/perfTelemetry";
+import { featureFor, PERF_ATTR_CLASSIFICATION } from "../../src/perf/perfTelemetry";
 
 const SRC_ROOT = path.join(__dirname, "..", "..", "..", "src");
 
@@ -36,39 +37,194 @@ function walk(dir: string, out: string[] = []): string[] {
     return out;
 }
 
+interface EmittedMarker {
+    attrs: Set<string>;
+    files: Set<string>;
+}
+
+function propertyNameText(name: ts.PropertyName | undefined): string | undefined {
+    if (name === undefined) {
+        return undefined;
+    }
+    if (ts.isIdentifier(name) || ts.isStringLiteralLike(name) || ts.isNumericLiteral(name)) {
+        return name.text;
+    }
+    return undefined;
+}
+
+function collectObjectKeys(expression: ts.Expression | undefined, target: Set<string>): void {
+    if (expression === undefined) {
+        return;
+    }
+    const visit = (node: ts.Node): void => {
+        if (ts.isObjectLiteralExpression(node)) {
+            for (const property of node.properties) {
+                if (!ts.isSpreadAssignment(property)) {
+                    const key = propertyNameText(property.name);
+                    if (key !== undefined) {
+                        target.add(key);
+                    }
+                }
+            }
+        }
+        ts.forEachChild(node, visit);
+    };
+    visit(expression);
+}
+
+function emittedMarkers(): Map<string, EmittedMarker> {
+    const emitted = new Map<string, EmittedMarker>();
+    for (const file of walk(SRC_ROOT)) {
+        const source = fs.readFileSync(file, "utf8");
+        const sourceFile = ts.createSourceFile(
+            file,
+            source,
+            ts.ScriptTarget.Latest,
+            true,
+            file.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS,
+        );
+        const record = (name: string, attrsExpression?: ts.Expression): void => {
+            const marker = emitted.get(name) ?? {
+                attrs: new Set<string>(),
+                files: new Set<string>(),
+            };
+            marker.files.add(path.relative(SRC_ROOT, file));
+            collectObjectKeys(attrsExpression, marker.attrs);
+            emitted.set(name, marker);
+        };
+        const visit = (node: ts.Node): void => {
+            if (ts.isCallExpression(node)) {
+                if (
+                    ts.isPropertyAccessExpression(node.expression) &&
+                    ts.isIdentifier(node.expression.expression) &&
+                    node.expression.expression.text === "Perf" &&
+                    node.expression.name.text === "marker"
+                ) {
+                    const name = node.arguments[0];
+                    if (name !== undefined && ts.isStringLiteralLike(name)) {
+                        record(name.text, node.arguments[2]);
+                    }
+                } else if (
+                    ts.isIdentifier(node.expression) &&
+                    (node.expression.text === "perfMark" ||
+                        node.expression.text === "perfMarkAfterNextPaint")
+                ) {
+                    const name = node.arguments[0];
+                    if (name !== undefined && ts.isStringLiteralLike(name)) {
+                        record(name.text, node.arguments[1]);
+                    }
+                } else if (
+                    ts.isPropertyAccessExpression(node.expression) &&
+                    ts.isIdentifier(node.expression.expression) &&
+                    node.expression.expression.text === "diag" &&
+                    (node.expression.name.text === "emit" ||
+                        node.expression.name.text === "startSpan")
+                ) {
+                    const input = node.arguments[0];
+                    if (input !== undefined && ts.isObjectLiteralExpression(input)) {
+                        const typeProperty = input.properties.find(
+                            (property): property is ts.PropertyAssignment =>
+                                ts.isPropertyAssignment(property) &&
+                                propertyNameText(property.name) === "type" &&
+                                ts.isStringLiteralLike(property.initializer),
+                        );
+                        const fieldsProperty = input.properties.find(
+                            (property): property is ts.PropertyAssignment =>
+                                ts.isPropertyAssignment(property) &&
+                                propertyNameText(property.name) === "fields",
+                        );
+                        if (
+                            typeProperty !== undefined &&
+                            ts.isStringLiteralLike(typeProperty.initializer)
+                        ) {
+                            if (node.expression.name.text === "startSpan") {
+                                record(
+                                    `${typeProperty.initializer.text}.begin`,
+                                    fieldsProperty?.initializer,
+                                );
+                                record(
+                                    `${typeProperty.initializer.text}.end`,
+                                    fieldsProperty?.initializer,
+                                );
+                            } else {
+                                record(typeProperty.initializer.text, fieldsProperty?.initializer);
+                            }
+                        }
+                    }
+                }
+            }
+            ts.forEachChild(node, visit);
+        };
+        visit(sourceFile);
+    }
+    return emitted;
+}
+
 suite("Observability Contract conformance", () => {
-    test("the Perf facade uses registry feature buckets", () => {
-        for (const name of [
-            "mssql.activate.begin",
-            "mssql.connection.begin",
-            "mssql.query.submit",
-            "mssql.resultsGrid.renderComplete",
-        ]) {
-            expect(featureFor(name)).to.equal(explainEventName(name).entry?.feature);
+    test("every literal emitted marker uses its registry feature bucket", function () {
+        if (!fs.existsSync(SRC_ROOT)) {
+            this.skip();
+        }
+        for (const name of emittedMarkers().keys()) {
+            expect(featureFor(name), name).to.equal(explainEventName(name).entry?.feature);
         }
         expect(featureFor("unregistered.test.event")).to.equal("system");
     });
 
-    test("every Perf marker literal emitted by src/ is registered", function () {
+    test("every literal marker emitted by src/ is registered", function () {
         if (!fs.existsSync(SRC_ROOT)) {
             this.skip(); // packaged test run without sources
         }
-        const emitted = new Set<string>();
-        for (const file of walk(SRC_ROOT)) {
-            const source = fs.readFileSync(file, "utf8");
-            for (const m of source.matchAll(/Perf\.(?:marker|begin|end|instant)\(\s*"([^"]+)"/g)) {
-                emitted.add(m[1]);
-            }
-            for (const m of source.matchAll(/perfMarkAfterNextPaint\(\s*"([^"]+)"/g)) {
-                emitted.add(m[1]);
-            }
-        }
-        expect(emitted.size, "no markers found — extraction regex broke?").to.be.greaterThan(8);
-        const unknown = [...emitted].filter((name) => !explainEventName(name).known);
+        const emitted = emittedMarkers();
+        expect(emitted.size, "no markers found — syntax collector broke?").to.be.greaterThan(8);
+        const unknown = [...emitted.keys()].filter((name) => !explainEventName(name).known);
         expect(
             unknown,
             `unregistered marker names (add to the registry + regenerate):\n${unknown.join("\n")}`,
         ).to.deep.equal([]);
+    });
+
+    test("every literal marker attribute has a runtime privacy classification", function () {
+        if (!fs.existsSync(SRC_ROOT)) {
+            this.skip();
+        }
+        const missing: string[] = [];
+        for (const [name, marker] of emittedMarkers()) {
+            for (const attr of marker.attrs) {
+                if (PERF_ATTR_CLASSIFICATION[attr] === undefined) {
+                    missing.push(`${name}.${attr} (${[...marker.files].join(", ")})`);
+                }
+            }
+        }
+        // Added by perfMarkAfterNextPaint rather than by an individual marker call.
+        if (PERF_ATTR_CLASSIFICATION["rafThrottled"] === undefined) {
+            missing.push("webview helper.rafThrottled (webviews/common/perfMarks.ts)");
+        }
+        expect(
+            missing,
+            `unclassified runtime marker attributes:\n${missing.join("\n")}`,
+        ).to.deep.equal([]);
+    });
+
+    test("attrsComplete registry entries declare every emitted literal attribute", function () {
+        if (!fs.existsSync(SRC_ROOT)) {
+            this.skip();
+        }
+        const missing: string[] = [];
+        for (const [name, marker] of emittedMarkers()) {
+            const entry = explainEventName(name).entry;
+            if (entry?.attrsComplete !== true) {
+                continue;
+            }
+            for (const attr of marker.attrs) {
+                if (entry.attrs[attr] === undefined) {
+                    missing.push(`${name}.${attr}`);
+                }
+            }
+        }
+        expect(missing, `incomplete closed registry attrs:\n${missing.join("\n")}`).to.deep.equal(
+            [],
+        );
     });
 
     test("registry attr classifications resolve and sts families stay diagnostic", () => {

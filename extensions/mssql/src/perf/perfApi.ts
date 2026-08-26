@@ -4,10 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 /**
- * Perf-only API surface (harness design §16.3). Registered ONLY when
+ * Reserved perf-driver health API. Registered ONLY when
  * PERF_MODE=1; outside perf mode this function is a no-op and the command
- * does not exist. Not a public extension API — the perf driver extension is
- * the only intended caller (via vscode.commands.executeCommand).
+ * does not exist. Not a public extension API; the perf driver may query it in
+ * later delivery-health scenarios via vscode.commands.executeCommand.
  */
 
 import * as vscode from "vscode";

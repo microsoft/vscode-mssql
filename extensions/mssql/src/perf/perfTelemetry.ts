@@ -6,15 +6,14 @@
 /**
  * Performance-harness instrumentation facade.
  *
- * Since Phase 4 this is a thin facade over the unified diagnostics core
- * (src/diagnostics): every Perf.marker call becomes a diagnostic event that
- * routes to whichever sinks are active — the PERF_MODE harness sink (exact
- * legacy wire format, gated on PERF_MODE=1), the Debug Console live tail, and
+ * This is a thin facade over the unified diagnostics core (src/diagnostics):
+ * every Perf.marker call becomes a diagnostic event that
+ * routes to whichever sinks are active — the PERF_MODE harness sink (the
+ * established wire format, gated on PERF_MODE=1), the Debug Console live tail, and
  * the user-enabled Session Diag store. One emission path, several gates.
  *
- * The public API is unchanged from Phases 1-3 and the PERF_MODE wire contract
- * is preserved bit-for-bit by PerfModeSink. When no sink is active a marker
- * call costs one array-length check.
+ * The existing PERF_MODE wire contract is preserved by PerfModeSink. When no
+ * sink is active a marker call costs one array-length check.
  */
 
 import { diag } from "../diagnostics/diagnosticsCore";
@@ -81,7 +80,7 @@ export function featureFor(name: string): string {
  * metadata; in normal use, name-bearing keys are classified so the
  * redaction policy governs them.
  */
-const ATTR_CLASSIFICATION: Record<string, DataClassification> = {
+export const PERF_ATTR_CLASSIFICATION: Readonly<Record<string, DataClassification>> = {
     nodePath: "object.name",
     nodeType: "diagnostic.metadata",
     objectName: "object.name",
@@ -95,8 +94,20 @@ const ATTR_CLASSIFICATION: Record<string, DataClassification> = {
     commandId: "diagnostic.metadata",
     hasError: "diagnostic.metadata",
     pid: "diagnostic.metadata",
+    rafThrottled: "diagnostic.metadata",
+    reason: "diagnostic.metadata",
+    resultSets: "diagnostic.metadata",
     rowCount: "diagnostic.metadata",
 };
+
+/** Parse the harness repetition id without ever emitting NaN/null on the wire. */
+export function parsePerfRepId(value: string | undefined): number {
+    if (value === undefined || !/^\d+$/.test(value)) {
+        return 0;
+    }
+    const parsed = Number(value);
+    return Number.isSafeInteger(parsed) && parsed >= 0 ? parsed : 0;
+}
 
 class PerfFacade implements IPerfTelemetry {
     public readonly enabled: boolean;
@@ -114,7 +125,7 @@ class PerfFacade implements IPerfTelemetry {
                     markerUrl,
                     token,
                     process.env.PERF_RUN_ID ?? "unknown-run",
-                    Number(process.env.PERF_REP_ID ?? "0"),
+                    parsePerfRepId(process.env.PERF_REP_ID),
                     process.env.PERF_SCENARIO_ID ?? "unknown-scenario",
                 );
                 diag.addSink(this.perfSink);
@@ -139,7 +150,7 @@ class PerfFacade implements IPerfTelemetry {
                         raw: value,
                         cls: this.enabled
                             ? "diagnostic.metadata"
-                            : (ATTR_CLASSIFICATION[key] ?? "unknown"),
+                            : (PERF_ATTR_CLASSIFICATION[key] ?? "unknown"),
                     };
                 }
             }
@@ -184,7 +195,7 @@ class PerfFacade implements IPerfTelemetry {
                         raw: value,
                         cls: this.enabled
                             ? "diagnostic.metadata"
-                            : (ATTR_CLASSIFICATION[key] ?? "unknown"),
+                            : (PERF_ATTR_CLASSIFICATION[key] ?? "unknown"),
                     };
                 }
             }
@@ -210,13 +221,6 @@ class PerfFacade implements IPerfTelemetry {
 
     public setStsPid(pid: number | undefined): void {
         this.stsPid = pid;
-        if (pid !== undefined) {
-            diag.emit({
-                feature: "connection",
-                type: "mssql.sts.pid",
-                fields: { pid: { raw: pid, cls: "diagnostic.metadata" } },
-            });
-        }
     }
 
     public getState(): PerfState {

@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 /**
- * Webview-side perf marks (harness design §17.5). Disabled by default: marks
+ * Webview-side perf marks. Disabled by default: marks
  * are emitted only after the extension controller sends PerfEnableNotification,
  * which it does only under PERF_MODE=1. Outside perf mode every call here is
  * an inert boolean check.
@@ -86,7 +86,7 @@ export function perfMark(
 
 /**
  * Record a mark after the next paint has committed (double
- * requestAnimationFrame, design §17.5) — the honest "visually complete"
+ * requestAnimationFrame) — the honest "visually complete"
  * moment. Runs unconditionally so pre-enablement marks still carry
  * paint-accurate timestamps; the cost is two coalesced rAF callbacks on
  * completion events only.
@@ -95,7 +95,21 @@ export function perfMarkAfterNextPaint(
     name: string,
     attrs?: { [key: string]: string | number | boolean | null },
 ): void {
+    // Hidden/backgrounded VS Code webviews can suspend rAF indefinitely. The
+    // intentional delay is a bounded fallback, not startup synchronisation:
+    // it preserves a marked (and honestly labelled) endpoint instead of
+    // silently invalidating the performance repetition.
+    let completed = false;
+    const emit = (rafThrottled: boolean) => {
+        if (completed) {
+            return;
+        }
+        completed = true;
+        clearTimeout(fallback);
+        perfMark(name, rafThrottled ? { ...(attrs ?? {}), rafThrottled: true } : attrs);
+    };
+    const fallback = setTimeout(() => emit(true), 500);
     requestAnimationFrame(() => {
-        requestAnimationFrame(() => perfMark(name, attrs));
+        requestAnimationFrame(() => emit(false));
     });
 }
