@@ -18,7 +18,10 @@ import {
     summarizeSelectionCells,
     type SelectionCell,
 } from "../../../sharedInterfaces/selectionSummary";
-import type { NotebookSelectionSummaryMessage } from "../../../sharedInterfaces/notebookQueryResult";
+import type {
+    NotebookCopyAsCsvOptions,
+    NotebookSelectionSummaryMessage,
+} from "../../../sharedInterfaces/notebookQueryResult";
 import "./notebookResultGrid.css";
 import "../../media/slickgrid.css";
 import "../../media/table.css";
@@ -28,6 +31,7 @@ export interface NotebookResultGridProps {
     rows: DbCellValue[][];
     rowCount: number;
     addBottomSpacing?: boolean;
+    copyAsCsvOptions?: NotebookCopyAsCsvOptions;
     postMessage?: (message: unknown) => void;
 }
 
@@ -151,6 +155,7 @@ export function NotebookResultGrid({
     columnInfo,
     rows,
     addBottomSpacing,
+    copyAsCsvOptions,
     postMessage,
 }: NotebookResultGridProps) {
     const containerRef = useRef<HTMLDivElement>(null);
@@ -300,7 +305,11 @@ export function NotebookResultGrid({
         selectionModel.onSelectedRangesChanged.subscribe(handleSelectedRangesChanged);
 
         // Register context menu (right-click) with copy operations
-        const contextMenu = new NotebookContextMenu<Slick.SlickData>();
+        const contextMenu = new NotebookContextMenu<Slick.SlickData>(
+            columnInfo,
+            copyAsCsvOptions,
+            postMessage,
+        );
         grid.registerPlugin(contextMenu);
 
         // Reuse Query Result auto-size behavior for double-clicking a resize handle.
@@ -379,7 +388,7 @@ export function NotebookResultGrid({
             grid.destroy();
             tableDataView.dispose();
         };
-    }, [columnInfo, rows, postMessage]);
+    }, [columnInfo, copyAsCsvOptions, rows, postMessage]);
 
     const className = addBottomSpacing
         ? "notebook-result-grid-container notebook-result-grid-container-spaced"

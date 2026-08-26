@@ -6841,6 +6841,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++45386a69d2b5eb577c53d296ecd652d7cc6583c3f759680582587663cff8539c" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Impact {0}%]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Impact {0} %]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++455754ccf3a6df55b0fe352903062c9adb22d5ce025f6c0b0b8b2a59c6e3a7fc" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Getting Docker Ready...]]></Val>
@@ -10045,6 +10054,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++6652212ed4ac6802693dae6e359f8c57272ec99f52ac06f1bc5f7d7948fb9e89" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Switch between the classic and the preview results grid]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Basculez entre la grille de résultats classique et la grille de résultats de préversion]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++66537f058f1d64aa91d143821967b726382f308bef7eed1bbbf400dd835869f8" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Toggle Query Result Panel]]></Val>
@@ -11805,6 +11823,15 @@
           <Val><![CDATA[Quick Queries]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Requêtes rapides]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++76ed55852b66d19d1756277312208fcad6a988622d291a320d248cec88f8c3d9" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Copying results canceled]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Copie des résultats annulée]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -14901,6 +14928,15 @@
           <Val><![CDATA[BACPAC imported successfully to database '{0}']]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[BACPAC a été correctement importé dans la base de données « {0} »]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++98eea4c1c21f333640ea131c6484e3a8a861029affc6ac5438a67df28df6af68" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[More Actions]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Autres actions]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -18397,6 +18433,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++bcec92c3fcbd6a1012ed2ae1a5d10e462184bbb5ca83b2df5552cb49620c78cf" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Open the recommended index script in a new query editor]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ouvrir le script d’index recommandé dans un nouvel éditeur de requête]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++bcee7af9ed6ff5fd5d2ab891504e131bb92f0a78f9149309fb2bad179f9711a1" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Execute only the T-SQL statement under the cursor]]></Val>
@@ -18735,6 +18780,15 @@
           <Val><![CDATA[Change]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Modifier]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++c0ddd09f7b9ebbe309bc4e518e1aad4479cbbc1eb792cac263b398e11a85af5a" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Missing index]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Index manquant]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -19860,6 +19914,15 @@
           <Val><![CDATA[Overall, how satisfied are you with {0}?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Globalement, dans quelle mesure êtes-vous satisfait(e) de {0} ?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++cd3c37c0fff7336e44e0cf23750941ac5a52b322309637bd4733036d1b863ce8" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Preview Grid]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Afficher un aperçu de la grille]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -23307,6 +23370,15 @@
           <Val><![CDATA[Connecting using profile {0}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Connexion à l’aide du profil {0}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++efb9ca4f5a017be57cf3a7cb05a528919e6419abddfe79c4a2d8937b2a901186" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Missing index recommendations]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Recommandations relatives aux index manquants]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -27583,6 +27655,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";package.mssql.resultsGrid.freezeFirstColumnByDefault" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Freeze the first data column by default in new result grids. Existing saved grid state takes precedence.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Figer par défaut la première colonne de données dans les nouvelles grilles de résultats. L’état de grille enregistré existant est prioritaire.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";package.mssql.resultsGrid.inMemoryDataProcessingThreshold" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Controls the max number of rows allowed to do filtering and sorting in memory. If the number is exceeded, sorting and filtering will be disabled. Warning: Increasing this may impact performance.]]></Val>
@@ -28002,6 +28083,15 @@
           <Val><![CDATA[When enabled, colorizes the connection status bar item with the color of the connection group. This setting is disabled by default.  This uses the connection group folder's color directly, and does not alter it in order to ensure contrast with the current VS Code theme. Users should choose connection group colors that work well with their theme.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Lorsque cette option est activée, elle colorise l'élément de la barre d'état de connexion avec la couleur du groupe de connexions. Ce paramètre est désactivé par défaut.  Cette option utilise directement la couleur du dossier du groupe de connexions et ne la modifie pas afin de garantir un contraste avec le thème actuel de VS Code. Les utilisateurs doivent choisir des couleurs de groupe de connexions qui s'harmonisent bien avec leur thème.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.statusBar.showQueryExecutionStatus.description" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Controls whether the query execution status (executing, canceling, completed) is displayed in the status bar.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Contrôle si l’état d’exécution de la requête (en cours d’exécution, annulation, terminé) s’affiche dans la barre d’état.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />

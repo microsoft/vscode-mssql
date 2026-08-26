@@ -6841,6 +6841,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++45386a69d2b5eb577c53d296ecd652d7cc6583c3f759680582587663cff8539c" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Impact {0}%]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[影響 {0}%]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++455754ccf3a6df55b0fe352903062c9adb22d5ce025f6c0b0b8b2a59c6e3a7fc" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Getting Docker Ready...]]></Val>
@@ -10045,6 +10054,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++6652212ed4ac6802693dae6e359f8c57272ec99f52ac06f1bc5f7d7948fb9e89" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Switch between the classic and the preview results grid]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[在傳統和預覽結果網格之間切換]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++66537f058f1d64aa91d143821967b726382f308bef7eed1bbbf400dd835869f8" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Toggle Query Result Panel]]></Val>
@@ -11805,6 +11823,15 @@
           <Val><![CDATA[Quick Queries]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[快速查詢]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++76ed55852b66d19d1756277312208fcad6a988622d291a320d248cec88f8c3d9" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Copying results canceled]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[已取消複製結果]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -14901,6 +14928,15 @@
           <Val><![CDATA[BACPAC imported successfully to database '{0}']]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[BACPAC 已成功匯入至資料庫 '{0}']]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++98eea4c1c21f333640ea131c6484e3a8a861029affc6ac5438a67df28df6af68" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[More Actions]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[其他動作]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -18397,6 +18433,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++bcec92c3fcbd6a1012ed2ae1a5d10e462184bbb5ca83b2df5552cb49620c78cf" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Open the recommended index script in a new query editor]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[在新的查詢編輯器中開啟建議的索引指令碼]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++bcee7af9ed6ff5fd5d2ab891504e131bb92f0a78f9149309fb2bad179f9711a1" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Execute only the T-SQL statement under the cursor]]></Val>
@@ -18735,6 +18780,15 @@
           <Val><![CDATA[Change]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[變更]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++c0ddd09f7b9ebbe309bc4e518e1aad4479cbbc1eb792cac263b398e11a85af5a" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Missing index]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[遺漏索引]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -19860,6 +19914,15 @@
           <Val><![CDATA[Overall, how satisfied are you with {0}?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[整體而言，您對 {0} 的滿意程度如何?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++cd3c37c0fff7336e44e0cf23750941ac5a52b322309637bd4733036d1b863ce8" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Preview Grid]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[預覽格線]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -23307,6 +23370,15 @@
           <Val><![CDATA[Connecting using profile {0}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[正在使用設定檔 {0} 連接]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++efb9ca4f5a017be57cf3a7cb05a528919e6419abddfe79c4a2d8937b2a901186" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Missing index recommendations]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[遺漏索引建議]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -27583,6 +27655,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";package.mssql.resultsGrid.freezeFirstColumnByDefault" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Freeze the first data column by default in new result grids. Existing saved grid state takes precedence.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[根據預設，凍結新結果方格中的第一個資料行。現有已儲存的方格狀態優先。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";package.mssql.resultsGrid.inMemoryDataProcessingThreshold" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Controls the max number of rows allowed to do filtering and sorting in memory. If the number is exceeded, sorting and filtering will be disabled. Warning: Increasing this may impact performance.]]></Val>
@@ -28002,6 +28083,15 @@
           <Val><![CDATA[When enabled, colorizes the connection status bar item with the color of the connection group. This setting is disabled by default.  This uses the connection group folder's color directly, and does not alter it in order to ensure contrast with the current VS Code theme. Users should choose connection group colors that work well with their theme.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[啟用後，系統會將連線狀態列項目以連線群組的顏色進行著色。預設會停用此設定。 這會直接使用連線群組資料夾的顏色，且不會進行調整，以確保與目前的 VS Code 主題具有足夠的對比度。使用者應選擇適合其主題的連線群組顏色。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.statusBar.showQueryExecutionStatus.description" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Controls whether the query execution status (executing, canceling, completed) is displayed in the status bar.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[控制查詢執行狀態 (執行中、取消中、已完成) 是否顯示在狀態列中。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />

@@ -300,6 +300,7 @@ export const configMaxRecentConnections = "maxRecentConnections";
 export const configCopyRemoveNewLine = "copyRemoveNewLine";
 export const configSplitPaneSelection = "splitPaneSelection";
 export const configShowBatchTime = "showBatchTime";
+export const configResultsShowBatchMessages = "results.showBatchMessages";
 export const configMessagesCopyIncludeTimestamps = "messages.copyIncludeTimestamps";
 export const configPreventAutoExecuteScript = "mssql.query.preventAutoExecuteScript";
 export enum extConfigResultKeys {
@@ -317,6 +318,8 @@ export const configPersistQueryResultTabs = "persistQueryResultTabs";
 export const configQueryHistoryLimit = "queryHistoryLimit";
 export const configEnableQueryHistoryCapture = "enableQueryHistoryCapture";
 export const configEnableQueryHistoryFeature = "enableQueryHistoryFeature";
+export const configQueryCompletionSoundEnabled = "query.playCompletionSound";
+export const configQueryCompletionSoundFile = "query.completionSoundFile";
 export const configEnableExperimentalFeatures = "mssql.enableExperimentalFeatures";
 export const configOpenQueryResultsInTabByDefault = "mssql.openQueryResultsInTabByDefault";
 export const configOpenQueryResultsInTabByDefaultDoNotShowPrompt =

@@ -16,6 +16,7 @@ otherwise.
 7.  dockerode (https://github.com/apocas/dockerode)
 8.  OpenLayers (https://github.com/openlayers/openlayers)
 9.  Natural Earth via world-atlas (https://github.com/topojson/world-atlas)
+10. Notifications (https://github.com/akx/Notifications)
 
 %% Bower Package Manager for Visual Studio Code NOTICES, INFORMATION, AND LICENSE BEGIN HERE
 =========================================
@@ -370,3 +371,14 @@ OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
 =========================================
 END OF Natural Earth / world-atlas NOTICES, INFORMATION, AND LICENSE
+
+%% Notifications NOTICES, INFORMATION, AND LICENSE BEGIN HERE
+=========================================
+The query completion sound is derived from Information_Block.ogg from Notifications:
+https://github.com/akx/Notifications
+
+The original sound is licensed under the Creative Commons Public Domain license:
+https://creativecommons.org/publicdomain/mark/1.0/
+
+=========================================
+END OF Notifications NOTICES, INFORMATION, AND LICENSE

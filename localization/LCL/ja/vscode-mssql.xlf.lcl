@@ -6841,6 +6841,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++45386a69d2b5eb577c53d296ecd652d7cc6583c3f759680582587663cff8539c" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Impact {0}%]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[影響 {0}%]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++455754ccf3a6df55b0fe352903062c9adb22d5ce025f6c0b0b8b2a59c6e3a7fc" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Getting Docker Ready...]]></Val>
@@ -10045,6 +10054,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++6652212ed4ac6802693dae6e359f8c57272ec99f52ac06f1bc5f7d7948fb9e89" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Switch between the classic and the preview results grid]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[グリッド表示のクラシック版とプレビュー版を切り替える]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++66537f058f1d64aa91d143821967b726382f308bef7eed1bbbf400dd835869f8" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Toggle Query Result Panel]]></Val>
@@ -11805,6 +11823,15 @@
           <Val><![CDATA[Quick Queries]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[クイック クエリ]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++76ed55852b66d19d1756277312208fcad6a988622d291a320d248cec88f8c3d9" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Copying results canceled]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[結果のコピーがキャンセルされました]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -14901,6 +14928,15 @@
           <Val><![CDATA[BACPAC imported successfully to database '{0}']]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[BACPAC がデータベース '{0}' に正常にインポートされました]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++98eea4c1c21f333640ea131c6484e3a8a861029affc6ac5438a67df28df6af68" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[More Actions]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[その他の操作]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -18397,6 +18433,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++bcec92c3fcbd6a1012ed2ae1a5d10e462184bbb5ca83b2df5552cb49620c78cf" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Open the recommended index script in a new query editor]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[新しいクエリ エディター内でインデックス スクリプトの提案を開く]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++bcee7af9ed6ff5fd5d2ab891504e131bb92f0a78f9149309fb2bad179f9711a1" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Execute only the T-SQL statement under the cursor]]></Val>
@@ -18735,6 +18780,15 @@
           <Val><![CDATA[Change]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[変更]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++c0ddd09f7b9ebbe309bc4e518e1aad4479cbbc1eb792cac263b398e11a85af5a" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Missing index]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[未指定インデックス]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -19860,6 +19914,15 @@
           <Val><![CDATA[Overall, how satisfied are you with {0}?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[{0} の全体的な満足度はどの程度ですか?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++cd3c37c0fff7336e44e0cf23750941ac5a52b322309637bd4733036d1b863ce8" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Preview Grid]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[グリッドのプレビュー]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -23307,6 +23370,15 @@
           <Val><![CDATA[Connecting using profile {0}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[プロファイル {0} を使用した接続]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++efb9ca4f5a017be57cf3a7cb05a528919e6419abddfe79c4a2d8937b2a901186" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Missing index recommendations]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[未指定インデックスの提案]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -27583,6 +27655,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";package.mssql.resultsGrid.freezeFirstColumnByDefault" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Freeze the first data column by default in new result grids. Existing saved grid state takes precedence.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[新しい結果グリッド内の最初のデータ列を既定で固定します。既存の保存済みグリッドの状態が優先されます。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";package.mssql.resultsGrid.inMemoryDataProcessingThreshold" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Controls the max number of rows allowed to do filtering and sorting in memory. If the number is exceeded, sorting and filtering will be disabled. Warning: Increasing this may impact performance.]]></Val>
@@ -28002,6 +28083,15 @@
           <Val><![CDATA[When enabled, colorizes the connection status bar item with the color of the connection group. This setting is disabled by default.  This uses the connection group folder's color directly, and does not alter it in order to ensure contrast with the current VS Code theme. Users should choose connection group colors that work well with their theme.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[有効にすると、接続ステータス バー項目が接続グループの色で色分けされます。この設定は既定では無効になっています。 この機能では、接続グループ フォルダーの色が直接使用され、現在の VS Code テーマとのコントラストを確保するために変更されることはありません。ユーザーは、テーマに適切な接続グループの色を選択する必要があります。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.statusBar.showQueryExecutionStatus.description" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Controls whether the query execution status (executing, canceling, completed) is displayed in the status bar.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[クエリの実行状態 (実行中、取り消し中、完了済み) をステータス バーに表示するかどうかを制御します。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
