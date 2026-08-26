@@ -4,10 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 /**
- * Webview-side perf marks. Disabled by default: marks
- * are emitted only after the extension controller sends PerfEnableNotification,
- * which it does only under PERF_MODE=1. Outside perf mode every call here is
- * an inert boolean check.
+ * Webview-side perf marks. Disabled by default: marks are sent to the
+ * extension only after the controller sends PerfEnableNotification, which it
+ * does only under PERF_MODE=1. Outside perf mode the cost is bounded and
+ * local: perfMark captures its clocks and queues at most MAX_PENDING marks,
+ * perfMarkAfterNextPaint schedules two rAF callbacks plus one 500 ms timer,
+ * and no RPC is ever sent.
  */
 
 import type { WebviewRpc } from "./rpc";

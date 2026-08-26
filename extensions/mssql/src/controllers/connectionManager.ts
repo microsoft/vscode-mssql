@@ -1574,7 +1574,7 @@ export default class ConnectionManager {
             connectionInitiated: "true",
         });
 
-        const result = await connectionCompletePromise.promise;
+        const result = await this.awaitConnectionCompletion(connectionCompletePromise.promise);
 
         connectionInfo.connecting = false;
 
@@ -1835,6 +1835,26 @@ export default class ConnectionManager {
 
     /**
      * Handles the steps to take on a successful connection.
+     * Waits for the connection/complete notification. The only code that rejects
+     * this deferred is cancelConnection ("Connection cancelled"), which would
+     * otherwise leave the mssql.connection.begin perf interval without a
+     * terminal marker; close it with a failure marker before rethrowing.
+     */
+    private async awaitConnectionCompletion(
+        completion: Promise<ConnectionContracts.ConnectionCompleteParams>,
+    ): Promise<ConnectionContracts.ConnectionCompleteParams> {
+        try {
+            return await completion;
+        } catch (error) {
+            Perf.marker("mssql.connection.failed", "instant", {
+                error: true,
+                reason: "cancelled",
+            });
+            throw error;
+        }
+    }
+
+    /**
      * @param fileUri uri of the file the connection is for
      * @param connectionInfo the connection info object to update
      * @param result the result of the connection
