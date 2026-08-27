@@ -2300,7 +2300,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             const savedConnections = await this.connectionMgr.connectionStore.readAllConnections();
             for (const connection of savedConnections) {
                 const profile = connection as IConnectionProfile;
-                const connectionId = profile.id || `${profile.server}_${profile.database || ""}`;
+                const connectionId = profile.id;
 
                 connections[connectionId] = {
                     profileName: profile.profileName || getConnectionDisplayName(profile),

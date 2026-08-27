@@ -163,7 +163,12 @@ const SchemaSelectorDrawer = (props: Props) => {
             value: connectionId,
             text: connection.profileName || connection.server,
         }))
-        .sort((connA, connB) => connA.text.localeCompare(connB.text));
+        .sort((connectionA, connectionB) =>
+            connectionA.text.localeCompare(connectionB.text, undefined, {
+                numeric: true,
+                sensitivity: "base",
+            }),
+        );
     const databaseGroups = new Map<string, typeof displayedDatabases>();
     for (const database of displayedDatabases) {
         const groupName = database.groupName ?? "";
@@ -376,6 +381,7 @@ const SchemaSelectorDrawer = (props: Props) => {
                                 }}
                                 onSelect={handleDatabaseServerSelected}
                                 ariaLabel={loc.schemaCompare.connection}
+                                placeholder={loc.common.select}
                                 showPlaceholder
                             />
                         </div>
