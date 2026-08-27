@@ -70,6 +70,13 @@ export function featureFor(name: string): string {
     if (name.startsWith("mssql.query")) return "query";
     if (name.startsWith("mssql.resultsGrid")) return "resultsGrid";
     if (name.startsWith("mssql.oe")) return "objectExplorer";
+    if (
+        name.startsWith("debugConsole.") ||
+        name.startsWith("sessionDiag.") ||
+        name.startsWith("system.rich.")
+    ) {
+        return "diagnostics";
+    }
     if (name.startsWith("driver.")) return "harness";
     return "system";
 }
@@ -90,14 +97,18 @@ export const PERF_ATTR_CLASSIFICATION: Readonly<Record<string, DataClassificatio
     error: "diagnostic.metadata",
     errorClass: "diagnostic.metadata",
     errorNumber: "diagnostic.metadata",
+    events: "diagnostic.metadata",
     failed: "diagnostic.metadata",
     commandId: "diagnostic.metadata",
     hasError: "diagnostic.metadata",
     pid: "diagnostic.metadata",
     rafThrottled: "diagnostic.metadata",
     reason: "diagnostic.metadata",
+    redactions: "diagnostic.metadata",
     resultSets: "diagnostic.metadata",
     rowCount: "diagnostic.metadata",
+    captureMode: "diagnostic.metadata",
+    durationMinutes: "diagnostic.metadata",
 };
 
 /** Parse the harness repetition id without ever emitting NaN/null on the wire. */

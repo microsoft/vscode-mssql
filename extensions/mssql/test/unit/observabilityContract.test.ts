@@ -53,23 +53,20 @@ function propertyNameText(name: ts.PropertyName | undefined): string | undefined
 }
 
 function collectObjectKeys(expression: ts.Expression | undefined, target: Set<string>): void {
-    if (expression === undefined) {
+    if (expression === undefined || !ts.isObjectLiteralExpression(expression)) {
         return;
     }
-    const visit = (node: ts.Node): void => {
-        if (ts.isObjectLiteralExpression(node)) {
-            for (const property of node.properties) {
-                if (!ts.isSpreadAssignment(property)) {
-                    const key = propertyNameText(property.name);
-                    if (key !== undefined) {
-                        target.add(key);
-                    }
-                }
+    // Only the direct properties are marker attributes. Diagnostic fields use
+    // nested `{ raw, cls }` envelopes; those implementation keys are not part
+    // of the event vocabulary and must not be classified as attributes.
+    for (const property of expression.properties) {
+        if (!ts.isSpreadAssignment(property)) {
+            const key = propertyNameText(property.name);
+            if (key !== undefined) {
+                target.add(key);
             }
         }
-        ts.forEachChild(node, visit);
-    };
-    visit(expression);
+    }
 }
 
 function emittedMarkers(): Map<string, EmittedMarker> {

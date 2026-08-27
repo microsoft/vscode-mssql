@@ -1121,6 +1121,37 @@
         },
         "commands": [
             {
+                "command": "mssql.openDebugConsole",
+                "title": "%mssql.openDebugConsole%",
+                "category": "MS SQL",
+                "enablement": "config.mssql.debugConsole.enabled"
+            },
+            {
+                "command": "mssql.sessionDiag.enable",
+                "title": "%mssql.sessionDiag.enable%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.sessionDiag.disable",
+                "title": "%mssql.sessionDiag.disable%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.sessionDiag.elevateCapture",
+                "title": "%mssql.sessionDiag.elevateCapture%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.sessionDiag.clear",
+                "title": "%mssql.sessionDiag.clear%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.sessionDiag.openStorageFolder",
+                "title": "%mssql.sessionDiag.openStorageFolder%",
+                "category": "MS SQL"
+            },
+            {
                 "command": "mssql.runQuery",
                 "title": "%mssql.runQuery%",
                 "category": "MS SQL",
@@ -3201,6 +3232,67 @@
                     "type": "boolean",
                     "description": "%mssql.showChangelogOnUpdate%",
                     "default": true
+                },
+                "mssql.sessionDiag.enabled": {
+                    "type": "boolean",
+                    "default": false,
+                    "markdownDescription": "%mssql.sessionDiag.enabled.description%",
+                    "scope": "application"
+                },
+                "mssql.sessionDiag.storePath": {
+                    "type": "string",
+                    "default": "",
+                    "markdownDescription": "%mssql.sessionDiag.storePath.description%",
+                    "scope": "application"
+                },
+                "mssql.sessionDiag.captureMode": {
+                    "type": "string",
+                    "enum": [
+                        "redacted",
+                        "digest"
+                    ],
+                    "default": "redacted",
+                    "markdownDescription": "%mssql.sessionDiag.captureMode.description%",
+                    "scope": "application"
+                },
+                "mssql.sessionDiag.maxSessions": {
+                    "type": "number",
+                    "minimum": 1,
+                    "default": 10,
+                    "markdownDescription": "%mssql.sessionDiag.maxSessions.description%",
+                    "scope": "application"
+                },
+                "mssql.sessionDiag.maxAgeDays": {
+                    "type": "number",
+                    "minimum": 1,
+                    "default": 14,
+                    "markdownDescription": "%mssql.sessionDiag.maxAgeDays.description%",
+                    "scope": "application"
+                },
+                "mssql.sessionDiag.maxTotalMB": {
+                    "type": "number",
+                    "minimum": 1,
+                    "default": 512,
+                    "markdownDescription": "%mssql.sessionDiag.maxTotalMB.description%",
+                    "scope": "application"
+                },
+                "mssql.debugConsole.enabled": {
+                    "type": "boolean",
+                    "default": false,
+                    "markdownDescription": "%mssql.debugConsole.enabled.description%",
+                    "scope": "application"
+                },
+                "mssql.debugConsole.perfRunsRoot": {
+                    "type": "string",
+                    "default": "",
+                    "markdownDescription": "%mssql.debugConsole.perfRunsRoot.description%",
+                    "scope": "application"
+                },
+                "mssql.debugConsole.richCollection": {
+                    "type": "boolean",
+                    "default": false,
+                    "markdownDescription": "%mssql.debugConsole.richCollection.description%",
+                    "scope": "application"
                 }
             }
         },

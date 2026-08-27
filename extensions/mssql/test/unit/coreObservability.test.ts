@@ -116,6 +116,21 @@ suite("Core observability", () => {
         expect(received).to.have.length(1);
     });
 
+    test("sink-state listeners observe transitions and can unsubscribe", () => {
+        const core = new DiagnosticsCore();
+        const transitions: boolean[] = [];
+        const unsubscribe = core.onSinkStateChanged((active) => transitions.push(active));
+        const sink: DiagnosticSink = { id: "observed", tryWrite: () => undefined };
+
+        core.addSink(sink);
+        core.addSink(sink);
+        core.removeSink(sink.id);
+        unsubscribe();
+        core.addSink({ id: "after-unsubscribe", tryWrite: () => undefined });
+
+        expect(transitions).to.deep.equal([true, false]);
+    });
+
     test("full capture duration is clamped to a positive bounded interval", () => {
         const core = new DiagnosticsCore();
         const before = Date.now();

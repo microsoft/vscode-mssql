@@ -9263,6 +9263,9 @@
     <trans-unit id="mssql.cancelBackgroundTask">
       <source xml:lang="en">Cancel Task</source>
     </trans-unit>
+    <trans-unit id="mssql.sessionDiag.enabled.description">
+      <source xml:lang="en">Capture classified, redacted MSSQL diagnostics locally from startup until shutdown while enabled. Nothing is uploaded. Secrets and connection strings are never persisted. Past sessions appear in the Debug Console&apos;s Session History.</source>
+    </trans-unit>
     <trans-unit id="mssql.newEditorConnectionBehavior.transferActive.description">
       <source xml:lang="en">Carry the active editor&apos;s connection to newly opened query editor tabs and SQL files.</source>
     </trans-unit>
@@ -9307,6 +9310,9 @@
     </trans-unit>
     <trans-unit id="mssql.clearPooledConnections">
       <source xml:lang="en">Clear Pooled Connections</source>
+    </trans-unit>
+    <trans-unit id="mssql.debugConsole.richCollection.description">
+      <source xml:lang="en">Collect CPU, memory, event-loop lag, and per-span diagnostic counters while capture is active. Off adds no rich-collection overhead.</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.Tooltip.commandTimeoutLabel">
       <source xml:lang="en">Command Timeout</source>
@@ -9374,6 +9380,9 @@
     <trans-unit id="mssql.dacpacDialog.launch">
       <source xml:lang="en">DACPAC/BACPAC Operations...</source>
     </trans-unit>
+    <trans-unit id="mssql.sessionDiag.captureMode.description">
+      <source xml:lang="en">Default capture mode when session diagnostics are enabled. Full capture requires the explicit, time-bounded elevation command.</source>
+    </trans-unit>
     <trans-unit id="mssql.defaultQueryResultsViewMode.description">
       <source xml:lang="en">Default view mode for query results display.</source>
     </trans-unit>
@@ -9388,6 +9397,9 @@
     </trans-unit>
     <trans-unit id="mssql.dacpacDialog.deploy">
       <source xml:lang="en">Deploy DACPAC</source>
+    </trans-unit>
+    <trans-unit id="mssql.sessionDiag.storePath.description">
+      <source xml:lang="en">Directory for locally captured diagnostic sessions. Leave empty to use VS Code global storage. Changes take effect after restart.</source>
     </trans-unit>
     <trans-unit id="mssql.disableActualPlan">
       <source xml:lang="en">Disable Actual Plan (MSSQL)</source>
@@ -9509,6 +9521,9 @@
     <trans-unit id="mssql.schemaDesigner.enableExpandCollapseButtons">
       <source xml:lang="en">Enable expand/collapse buttons in Schema Designer table nodes when tables have more than 10 columns</source>
     </trans-unit>
+    <trans-unit id="mssql.debugConsole.enabled.description">
+      <source xml:lang="en">Enable the experimental local MSSQL Debug Console diagnostics viewer. Restart VS Code after changing this setting.</source>
+    </trans-unit>
     <trans-unit id="mssql.sqlDataPlane.enabled.description">
       <source xml:lang="en">Enable the experimental, STS v2-backed SQL Data Plane for preview consumers. Requires SQL Tools Service 6.0.20260825.2 or later; older bundled services are launched without the STS v2 lane. Reload the window after changing this setting. Existing query, connection, language service, and Object Explorer behavior remains unchanged.</source>
     </trans-unit>
@@ -9596,6 +9611,9 @@
     <trans-unit id="mssql.manageProfiles">
       <source xml:lang="en">Manage Connection Profiles</source>
     </trans-unit>
+    <trans-unit id="mssql.sessionDiag.maxAgeDays.description">
+      <source xml:lang="en">Maximum age in days for locally retained diagnostic sessions.</source>
+    </trans-unit>
     <trans-unit id="mssql.query.maxXmlCharsToStore">
       <source xml:lang="en">Maximum number of characters to store for each value in XML columns after running a query. Default value: 2,097,152. Valid value range: 1 to 2,147,483,647.</source>
     </trans-unit>
@@ -9604,6 +9622,9 @@
     </trans-unit>
     <trans-unit id="mssql.profiler.eventBufferSize">
       <source xml:lang="en">Maximum number of events to keep in memory for the Profiler. When this limit is reached, older events are dropped. Increase this value if you need to retain more events during profiling sessions.</source>
+    </trans-unit>
+    <trans-unit id="mssql.sessionDiag.maxSessions.description">
+      <source xml:lang="en">Maximum number of locally retained diagnostic sessions.</source>
     </trans-unit>
     <trans-unit id="mssql.logFilesRemovalLimit">
       <source xml:lang="en">Maximum number of old files to remove upon startup that have expired mssql.logRetentionMinutes. Files that do not get cleaned up due to this limitation get cleaned up next time Azure Data Studio starts up.</source>
@@ -9631,6 +9652,9 @@
     </trans-unit>
     <trans-unit id="mssql.sqlDataPlane.timeouts.initializeMs.description">
       <source xml:lang="en">Maximum time in milliseconds to wait for the STS v2 initialization handshake.</source>
+    </trans-unit>
+    <trans-unit id="mssql.sessionDiag.maxTotalMB.description">
+      <source xml:lang="en">Maximum total size in MB for the local diagnostic session store. The oldest closed sessions are removed first when capture starts and the budget is exceeded.</source>
     </trans-unit>
     <trans-unit id="mssql.openAzureDataStudioMigration">
       <source xml:lang="en">Migrate from Azure Data Studio</source>
@@ -9674,6 +9698,9 @@
     <trans-unit id="mssql.openChangelog">
       <source xml:lang="en">Open Changelog</source>
     </trans-unit>
+    <trans-unit id="mssql.openDebugConsole">
+      <source xml:lang="en">Open Debug Console</source>
+    </trans-unit>
     <trans-unit id="mssql.openExecutionPlanFile">
       <source xml:lang="en">Open Execution Plan File</source>
     </trans-unit>
@@ -9703,6 +9730,9 @@
     </trans-unit>
     <trans-unit id="mssql.openInMssqlExtensionFromAzureResources">
       <source xml:lang="en">Open in MSSQL extension</source>
+    </trans-unit>
+    <trans-unit id="mssql.debugConsole.perfRunsRoot.description">
+      <source xml:lang="en">Optional path to a perftest perf-runs directory used as the default Perf Test History source.</source>
     </trans-unit>
     <trans-unit id="mssql.pauseQueryHistoryCapture">
       <source xml:lang="en">Pause Query History Capture</source>
@@ -9835,6 +9865,21 @@
     </trans-unit>
     <trans-unit id="mssql.userFeedback">
       <source xml:lang="en">Send Feedback</source>
+    </trans-unit>
+    <trans-unit id="mssql.sessionDiag.clear">
+      <source xml:lang="en">Session Diagnostics: Clear Local Data</source>
+    </trans-unit>
+    <trans-unit id="mssql.sessionDiag.disable">
+      <source xml:lang="en">Session Diagnostics: Disable Capture</source>
+    </trans-unit>
+    <trans-unit id="mssql.sessionDiag.elevateCapture">
+      <source xml:lang="en">Session Diagnostics: Elevate Capture (Time-Bounded)</source>
+    </trans-unit>
+    <trans-unit id="mssql.sessionDiag.enable">
+      <source xml:lang="en">Session Diagnostics: Enable Capture</source>
+    </trans-unit>
+    <trans-unit id="mssql.sessionDiag.openStorageFolder">
+      <source xml:lang="en">Session Diagnostics: Open Storage Folder</source>
     </trans-unit>
     <trans-unit id="mssql.resultsFontFamily">
       <source xml:lang="en">Set the font family for the results grid; set to blank to use the editor font</source>

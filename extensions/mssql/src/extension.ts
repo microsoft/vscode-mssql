@@ -40,6 +40,9 @@ import {
 } from "./uriOwnership/uriOwnershipInitialization";
 import { registerSqlToolsMcpServer } from "./sqlToolsMcp/registerSqlToolsMcpServer";
 import { registerSqlDataPlane } from "./services/sqlDataPlane/sqlDataPlaneService";
+import { DiagnosticsManager } from "./diagnostics/diagnosticsManager";
+import { registerDebugConsole } from "./controllers/debugConsoleWebviewController";
+import { startStsDiagListener, stopStsDiagListener } from "./diagnostics/stsDiagListener";
 import { CredentialStore, ICredentialStore } from "./credentialstore/credentialstore";
 import { ConnectionConfig, IConnectionConfig } from "./connectionconfig/connectionconfig";
 import { IConnectionStore, ConnectionStore } from "./models/connectionStore";
@@ -59,6 +62,15 @@ let activation: MssqlActivation | undefined;
 
 export async function activate(context: vscode.ExtensionContext): Promise<MssqlExtensionApi> {
     initializeExtensionToolkit();
+
+    // Install diagnostics before the first activation marker so an enabled
+    // session store captures the complete activation lifecycle.
+    const diagnosticsManager = new DiagnosticsManager(context);
+    context.subscriptions.push(diagnosticsManager);
+    if (vscode.workspace.getConfiguration().get<boolean>("mssql.debugConsole.enabled", false)) {
+        registerDebugConsole(context, diagnosticsManager);
+    }
+
     Perf.setActivationState("activating");
     Perf.marker("mssql.activate.begin", "begin");
 
@@ -139,6 +151,18 @@ class MssqlActivation {
         // Exposed for testing purposes
         vscode.commands.registerCommand("mssql.getControllerForTests", () => controller);
         registerSqlDataPlane(context);
+
+        // Start before SQL Tools Service spawns so the child inherits the
+        // diagnostics endpoint and token. The listener only accepts bounded,
+        // authenticated local batches and emits classified metadata.
+        const configuration = vscode.workspace.getConfiguration();
+        if (
+            Perf.enabled ||
+            configuration.get<boolean>("mssql.debugConsole.enabled", false) ||
+            configuration.get<boolean>("mssql.sessionDiag.enabled", false)
+        ) {
+            await startStsDiagListener();
+        }
         await controller.activate();
 
         initializeUriOwnershipCoordinator(uriOwnershipCoordinator, controller.connectionManager);
@@ -193,6 +217,7 @@ class MssqlActivation {
     }
 
     async deactivate(): Promise<void> {
+        stopStsDiagListener();
         if (controller) {
             await controller.deactivate();
             controller.dispose();

@@ -146,6 +146,7 @@ export class DiagnosticsCore {
     /** Entity-keyed correlation: feature code registers uri->trace bindings. */
     private entityTraces = new Map<string, string>();
     private listeners: Array<(mode: CaptureMode) => void> = [];
+    private sinkListeners = new Set<(active: boolean) => void>();
     /**
      * Root-action auto-correlation for normal use: a root-begin event (query
      * submit, connection begin, OE expand, command begin) opens a trace that
@@ -181,6 +182,7 @@ export class DiagnosticsCore {
         }
         this.removeSink(sink.id);
         this.sinks.push(sink);
+        this.notifySinkStateChanged();
     }
 
     public removeSink(id: string): void {
@@ -192,6 +194,9 @@ export class DiagnosticsCore {
             } catch {
                 // sink failures never propagate
             }
+        }
+        if (removed.length > 0) {
+            this.notifySinkStateChanged();
         }
     }
 
@@ -236,6 +241,22 @@ export class DiagnosticsCore {
 
     public get anySinkActive(): boolean {
         return this.sinks.length > 0;
+    }
+
+    public onSinkStateChanged(listener: (active: boolean) => void): () => void {
+        this.sinkListeners.add(listener);
+        return () => this.sinkListeners.delete(listener);
+    }
+
+    private notifySinkStateChanged(): void {
+        const active = this.anySinkActive;
+        for (const listener of this.sinkListeners) {
+            try {
+                listener(active);
+            } catch {
+                // Instrumentation listeners never break sink lifecycle.
+            }
+        }
     }
 
     // --- rich collection (COLLECT_ALL_THE_DATA) --------------------------------
