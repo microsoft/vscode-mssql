@@ -1129,7 +1129,7 @@ This will remove both the container and its connection from VS Code.</source>
       </trans-unit>
       <trans-unit id="++CODE++24908cc5593d5d8ea1f67ad6b873dd49a8a045f441e35de15d8041d2caccfa93">
         <source xml:lang="en">Bulk Actions</source>
-        <target state="translated">一括処理</target>
+        <target state="translated">一括アクション</target>
       </trans-unit>
       <trans-unit id="++CODE++6f52d618fb243f0ae137c3c850eb0bda8b347766a553b613fc210f6eb6bb5c97">
         <source xml:lang="en">Bulk-logged</source>
@@ -2428,7 +2428,7 @@ This will remove both the container and its connection from VS Code.</source>
       </trans-unit>
       <trans-unit id="++CODE++9f3caf9137006097dc46f53a5532c3ca91cbaf4a45dc05251e73d904a37b6b3f">
         <source xml:lang="en">Copy as...</source>
-        <target state="new">Copy as...</target>
+        <target state="translated">名前を付けてコピー...</target>
       </trans-unit>
       <trans-unit id="++CODE++d2b6ebb67aeb8ede651aa24682be64c81d2e0a970c297908b470e55fd14c0bcc">
         <source xml:lang="en">Copy code and open webpage</source>
@@ -2517,7 +2517,7 @@ This will remove both the container and its connection from VS Code.</source>
       </trans-unit>
       <trans-unit id="++CODE++2f8ae7d0e784eed8f3eddb9e69ab86082813b39e7e7d7200de5e66cd261dee36">
         <source xml:lang="en">Copying as an IN clause requires selecting exactly one column.</source>
-        <target state="new">Copying as an IN clause requires selecting exactly one column.</target>
+        <target state="translated">IN 句としてコピーするには、1 列だけを選択する必要があります。</target>
       </trans-unit>
       <trans-unit id="++CODE++76ed55852b66d19d1756277312208fcad6a988622d291a320d248cec88f8c3d9">
         <source xml:lang="en">Copying results canceled</source>
@@ -7390,6 +7390,11 @@ Error:
         <source xml:lang="en">Open the recommended index script in a new query editor</source>
         <target state="translated">新しいクエリ エディター内でインデックス スクリプトの提案を開く</target>
       </trans-unit>
+      <trans-unit id="++CODE++4c969acf8c9571fca86e1043a4d93465d243866dcbe158d57747e9e5b6a0f0a1">
+        <source xml:lang="en">Open with {0}</source>
+        <note>{0} is the display name of the alternative SQL data plane provider</note>
+        <target state="new">Open with {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++3a8e07b84d53ba502ae8ee669003537bdbbe321d6c8c6fb6cbd63019cb3d400e">
         <source xml:lang="en">Opening Publish Script. This may take a while...</source>
         <target state="translated">発行スクリプトを開いています。これには時間がかかる場合があります...</target>
@@ -10487,6 +10492,19 @@ Are you sure you want to continue?</source>
         <source xml:lang="en">This connection does not have a display name in Azure Data Studio.</source>
         <target state="translated">この接続には、Azure Data Studio に表示名がありません。</target>
       </trans-unit>
+      <trans-unit id="++CODE++329810295b47ce5776d407fc4e50a37485233d7dd613d772d86a0ce05d79dc9a">
+        <source xml:lang="en">This connection requires {0}, which {1} does not support.</source>
+        <note>{0} is a list of required capabilities
+{1} is the display name of the current SQL data plane provider</note>
+        <target state="new">This connection requires {0}, which {1} does not support.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b0c89663acc98614cd8dfa3215e2f5e2a3692b5a8c97f64835b8b1dc2ec13668">
+        <source xml:lang="en">This connection requires {0}, which {1} does not support. Connected with {2} instead.</source>
+        <note>{0} is a list of required capabilities
+{1} is the display name of the current SQL data plane provider
+{2} is the display name of the alternative SQL data plane provider</note>
+        <target state="new">This connection requires {0}, which {1} does not support. Connected with {2} instead.</target>
+      </trans-unit>
       <trans-unit id="++CODE++ba00b52adf9dcec97ed54898b307de1328526c8df30c80a9a17dc41f6c39a926">
         <source xml:lang="en">This connection's group has not been selected, so this connection will be imported to the root.</source>
         <target state="translated">この接続のグループが選択されていないため、この接続はルートにインポートされます。</target>
@@ -12176,6 +12194,10 @@ Are you sure you want to continue?</source>
         <source xml:lang="en">Choose how result grid columns are automatically sized (headers + data, data only, or disable auto sizing).</source>
         <target state="translated">結果グリッドの列を自動的にサイズ調整する方法を選択します（ヘッダーとデータ、データのみ、または自動サイズ設定を無効にする）。</target>
       </trans-unit>
+      <trans-unit id="mssql.sqlDataPlane.capabilityFallback.description">
+        <source xml:lang="en">Choose how to handle a backend that lacks a required capability: ask before using an alternative (`prompt`), use an alternative automatically (`auto`), or fail without switching (`off`).</source>
+        <target state="new">Choose how to handle a backend that lacks a required capability: ask before using an alternative (`prompt`), use an alternative automatically (`auto`), or fail without switching (`off`).</target>
+      </trans-unit>
       <trans-unit id="mssql.chooseAuthMethod">
         <source xml:lang="en">Chooses which Authentication method to use</source>
         <target state="translated">使用する認証方法を選択する</target>
@@ -12474,6 +12496,10 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <source xml:lang="en">Enable expand/collapse buttons in Schema Designer table nodes when tables have more than 10 columns</source>
         <target state="translated">テーブルに 10 を超える列がある場合に、スキーマ デザイナーのテーブル ノードの展開/折りたたみボタンを有効にする</target>
       </trans-unit>
+      <trans-unit id="mssql.sqlDataPlane.enabled.description">
+        <source xml:lang="en">Enable the experimental, STS v2-backed SQL Data Plane for preview consumers. Requires SQL Tools Service 6.0.20260825.2 or later; older bundled services are launched without the STS v2 lane. Reload the window after changing this setting. Existing query, connection, language service, and Object Explorer behavior remains unchanged.</source>
+        <target state="new">Enable the experimental, STS v2-backed SQL Data Plane for preview consumers. Requires SQL Tools Service 6.0.20260825.2 or later; older bundled services are launched without the STS v2 lane. Reload the window after changing this setting. Existing query, connection, language service, and Object Explorer behavior remains unchanged.</target>
+      </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.enabledLabel">
         <source xml:lang="en">Enabled</source>
         <target state="translated">有効</target>
@@ -12614,9 +12640,29 @@ You can connect to a database by entering your connection information, using a c
         <source xml:lang="en">Maximum size of text and ntext data returned from a SELECT statement</source>
         <target state="translated">SELECT ステートメントから返されるテキストおよび ntext データの最大サイズ</target>
       </trans-unit>
+      <trans-unit id="mssql.sqlDataPlane.timeouts.cancelAckMs.description">
+        <source xml:lang="en">Maximum time in milliseconds to wait for STS v2 to acknowledge a query cancellation.</source>
+        <target state="new">Maximum time in milliseconds to wait for STS v2 to acknowledge a query cancellation.</target>
+      </trans-unit>
+      <trans-unit id="mssql.sqlDataPlane.timeouts.closeMs.description">
+        <source xml:lang="en">Maximum time in milliseconds to wait for an STS v2 connection to close.</source>
+        <target state="new">Maximum time in milliseconds to wait for an STS v2 connection to close.</target>
+      </trans-unit>
+      <trans-unit id="mssql.sqlDataPlane.timeouts.openMs.description">
+        <source xml:lang="en">Maximum time in milliseconds to wait for an STS v2 connection to open.</source>
+        <target state="new">Maximum time in milliseconds to wait for an STS v2 connection to open.</target>
+      </trans-unit>
+      <trans-unit id="mssql.sqlDataPlane.timeouts.disposeDrainMs.description">
+        <source xml:lang="en">Maximum time in milliseconds to wait for an STS v2 query disposal to produce its terminal event.</source>
+        <target state="new">Maximum time in milliseconds to wait for an STS v2 query disposal to produce its terminal event.</target>
+      </trans-unit>
       <trans-unit id="mssql.intelliSense.completionTimeoutMilliseconds">
         <source xml:lang="en">Maximum time in milliseconds to wait for one IntelliSense completion operation before it times out. This does not change the SQL command timeout.</source>
         <target state="translated">1 回の IntelliSense 完了操作がタイムアウトするのを待機する最大時間 (ミリ秒単位)。これにより、SQL コマンドのタイムアウトは変更されません。</target>
+      </trans-unit>
+      <trans-unit id="mssql.sqlDataPlane.timeouts.initializeMs.description">
+        <source xml:lang="en">Maximum time in milliseconds to wait for the STS v2 initialization handshake.</source>
+        <target state="new">Maximum time in milliseconds to wait for the STS v2 initialization handshake.</target>
       </trans-unit>
       <trans-unit id="mssql.openAzureDataStudioMigration">
         <source xml:lang="en">Migrate from Azure Data Studio</source>
@@ -12876,6 +12922,10 @@ Start by clicking the filter button next to most folders in the Connections view
         <source xml:lang="en">Select Top 1000</source>
         <target state="translated">上位 1000 を選択する</target>
       </trans-unit>
+      <trans-unit id="mssql.sqlDataPlane.backend.description">
+        <source xml:lang="en">Select the SQL Data Plane backend. Only the local STS v2 backend is available in this preview.</source>
+        <target state="new">Select the SQL Data Plane backend. Only the local STS v2 backend is available in this preview.</target>
+      </trans-unit>
       <trans-unit id="mssql.selectedAzureSubscriptions">
         <source xml:lang="en">Selected Azure subscriptions for browsing and managing servers and databases</source>
         <target state="translated">サーバーとデータベースを参照および管理するために選択された Azure サブスクリプション</target>
@@ -12935,6 +12985,10 @@ Start by clicking the filter button next to most folders in the Connections view
       <trans-unit id="mssql.persistQueryResultTabs">
         <source xml:lang="en">Should query result selections and scroll positions be saved when switching tabs (may impact performance)</source>
         <target state="translated">タブを切り替えるときにクエリ結果セクションとスクロール位置を保存する場合 (パフォーマンスに影響する可能性があります)</target>
+      </trans-unit>
+      <trans-unit id="mssql.sqlDataPlane.showStatus">
+        <source xml:lang="en">Show SQL Data Plane Status</source>
+        <target state="new">Show SQL Data Plane Status</target>
       </trans-unit>
       <trans-unit id="mssql.format.showParseErrorNotification">
         <source xml:lang="en">Show a notification when Preview Formatter cannot fully parse the T-SQL being formatted.</source>
@@ -13258,7 +13312,7 @@ You can also click the 'Open in New Tab' button to view your query results in th
       </trans-unit>
       <trans-unit id="mssql.results.showBatchMessages">
         <source xml:lang="en">[Optional] Show batch start and completion messages, including 'Started executing query at...' and 'Commands completed successfully'.</source>
-        <target state="new">[Optional] Show batch start and completion messages, including 'Started executing query at...' and 'Commands completed successfully'.</target>
+        <target state="translated">[オプション] バッチの開始と完了のメッセージ (例: '...にクエリの実行を開始しました' や 'コマンドが正常に完了しました') を表示します。</target>
       </trans-unit>
       <trans-unit id="mssql.connection.profileName">
         <source xml:lang="en">[Optional] Specify a custom name for this connection profile to easily browse and search in the command palette of Visual Studio Code.</source>
