@@ -2428,7 +2428,7 @@ Dadurch werden sowohl der Container als auch seine Verbindung aus VS Code entfer
       </trans-unit>
       <trans-unit id="++CODE++9f3caf9137006097dc46f53a5532c3ca91cbaf4a45dc05251e73d904a37b6b3f">
         <source xml:lang="en">Copy as...</source>
-        <target state="translated">Kopieren als...</target>
+        <target state="new">Copy as...</target>
       </trans-unit>
       <trans-unit id="++CODE++d2b6ebb67aeb8ede651aa24682be64c81d2e0a970c297908b470e55fd14c0bcc">
         <source xml:lang="en">Copy code and open webpage</source>
@@ -2517,7 +2517,7 @@ Dadurch werden sowohl der Container als auch seine Verbindung aus VS Code entfer
       </trans-unit>
       <trans-unit id="++CODE++2f8ae7d0e784eed8f3eddb9e69ab86082813b39e7e7d7200de5e66cd261dee36">
         <source xml:lang="en">Copying as an IN clause requires selecting exactly one column.</source>
-        <target state="translated">Zum Kopieren als IN-Klausel muss genau eine Spalte ausgewählt werden.</target>
+        <target state="new">Copying as an IN clause requires selecting exactly one column.</target>
       </trans-unit>
       <trans-unit id="++CODE++76ed55852b66d19d1756277312208fcad6a988622d291a320d248cec88f8c3d9">
         <source xml:lang="en">Copying results canceled</source>
@@ -13312,7 +13312,7 @@ Sie können auch auf die Schaltfläche „In neuer Registerkarte öffnen“ klic
       </trans-unit>
       <trans-unit id="mssql.results.showBatchMessages">
         <source xml:lang="en">[Optional] Show batch start and completion messages, including 'Started executing query at...' and 'Commands completed successfully'.</source>
-        <target state="translated">[Optional] Batchstart- und Vervollständigungsmeldungen anzeigen, einschließlich „Ausführung der Abfrage gestartet um...“. und „Befehle erfolgreich abgeschlossen“.</target>
+        <target state="new">[Optional] Show batch start and completion messages, including 'Started executing query at...' and 'Commands completed successfully'.</target>
       </trans-unit>
       <trans-unit id="mssql.connection.profileName">
         <source xml:lang="en">[Optional] Specify a custom name for this connection profile to easily browse and search in the command palette of Visual Studio Code.</source>
