@@ -18,8 +18,10 @@ import {
 } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridTransforms";
 import {
     FLUENT_RESULT_GRID_DEFAULT_FROZEN_COLUMN_INDEX,
+    getFluentResultGridCurrentViewState,
     getFluentResultGridInitialFrozenColumnIndex,
     normalizeFluentResultGridFrozenColumnIndex,
+    restoreFluentResultGridColumnWidths,
     stabilizeFluentResultGridColumnInfo,
 } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridState";
 import { isFluentResultGridHostCommand } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridCommandUtils";
@@ -49,6 +51,11 @@ import {
     isFluentResultGridAppendSelectionEvent,
     isFluentResultGridSecondaryButtonEvent,
 } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridCellRangeSelector";
+import { FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_WIDTH } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridConstants";
+import {
+    createFluentResultGridRowNumberColumn,
+    getFluentResultGridRowNumberContent,
+} from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridRowNumber";
 
 function cell(value: string | null): DbCellValue {
     return {
@@ -87,6 +94,25 @@ function keyboardEvent(
 
 suite("Fluent Result Grid", () => {
     suite("columns", () => {
+        test("allows the row number column to be widened", () => {
+            const rowNumberColumn = createFluentResultGridRowNumberColumn();
+
+            expect(rowNumberColumn, "row-number column").to.exist;
+            expect(rowNumberColumn).to.include({
+                width: FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_WIDTH,
+                minWidth: FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_WIDTH,
+                resizable: true,
+            });
+            expect(rowNumberColumn).to.not.have.property("maxWidth");
+        });
+
+        test("shows the full row number in a tooltip", () => {
+            const content = getFluentResultGridRowNumberContent("10000");
+
+            expect(content.textContent).to.equal("10000");
+            expect(content.title).to.equal("10000");
+        });
+
         test("retains column definitions when a result update contains the same schema", () => {
             const first = stabilizeFluentResultGridColumnInfo(undefined, [column("name")]);
             const repeatedSchema = stabilizeFluentResultGridColumnInfo(first, [column("name")]);
@@ -151,6 +177,34 @@ suite("Fluent Result Grid", () => {
     });
 
     suite("state helpers", () => {
+        test("persists and restores the row number column width", () => {
+            const currentColumns = [
+                { ...createFluentResultGridRowNumberColumn(), width: 80 },
+                { id: "0", field: "0", width: 160 },
+            ];
+            const grid = {
+                getColumns: () => currentColumns,
+                getOptions: () => ({}),
+                getSelectionModel: () => undefined,
+            } as unknown as SlickGrid;
+
+            const viewState = getFluentResultGridCurrentViewState({
+                grid,
+                frozenColumnIndex: FLUENT_RESULT_GRID_DEFAULT_FROZEN_COLUMN_INDEX,
+            });
+            const restoredColumns = restoreFluentResultGridColumnWidths(
+                [createFluentResultGridRowNumberColumn(), { id: "0", field: "0", width: 120 }],
+                {
+                    columnWidths: [160],
+                    rowNumberColumnWidth: viewState.rowNumberColumnWidth,
+                },
+            );
+
+            expect(viewState.rowNumberColumnWidth).to.equal(80);
+            expect(restoredColumns[0].width).to.equal(80);
+            expect(restoredColumns[1].width).to.equal(160);
+        });
+
         test("uses the optional freeze-first-column default only when no saved state exists", () => {
             expect(getFluentResultGridInitialFrozenColumnIndex(undefined, false)).to.equal(0);
             expect(getFluentResultGridInitialFrozenColumnIndex(undefined, true)).to.equal(1);
