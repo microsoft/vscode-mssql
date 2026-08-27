@@ -39,6 +39,7 @@ import {
     DataPlaneConfigReader,
     SqlBackendFactory,
     normalizeBackendKind,
+    SqlBackendKind,
 } from "../../src/services/sqlDataPlane/backendFactory";
 import { SqlDataPlaneService } from "../../src/services/sqlDataPlane/sqlDataPlaneService";
 import { FakeBackend } from "../../src/services/sqlDataPlane/fakeBackend";
@@ -72,7 +73,7 @@ interface TestFactoryHooks {
 }
 
 function testFactory(
-    kind: "fake" | "ts-native",
+    kind: SqlBackendKind,
     hooks: TestFactoryHooks,
     staticOverrides?: Parameters<typeof capabilitySet>[0],
 ): SqlBackendFactory {
@@ -377,6 +378,20 @@ suite("SQL Data Plane backend registry (FOUND-1)", () => {
         expect(summary.normalizedBackend).to.equal("fake");
         expect((summary.entries as unknown[]).length).to.equal(1);
         expect(hooks.createCalls).to.equal(0);
+    });
+
+    test("an invalid configured backend reports unknown availability, never another provider's", async () => {
+        const hooks: TestFactoryHooks = { createCalls: 0 };
+        const config = new TestConfig();
+        config.set("mssql.sqlDataPlane.backend", "sts2-local");
+        const service = makeService(config, testFactory("sts2-local", hooks));
+        await service.service();
+        expect(service.availability().state).to.equal("available");
+
+        config.set("mssql.sqlDataPlane.backend", "not-a-backend");
+        expect(service.availability()).to.deep.equal({ state: "unknown" });
+        expect(service.statusSummary().normalizedBackend).to.equal("INVALID(not-a-backend)");
+        await service.dispose();
     });
 
     test("multi-local coexistence with per-session provider binding", async () => {

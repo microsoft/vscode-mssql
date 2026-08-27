@@ -585,7 +585,10 @@ export class SqlDataPlaneService {
     // -----------------------------------------------------------------------
 
     availability(): DataPlaneAvailability {
-        const entry = this.entries.get(this.tryDefaultKind() ?? "sts2-local");
+        // An invalid configured backend must not borrow another provider's
+        // availability; statusSummary already reports it as INVALID(...).
+        const kind = this.tryDefaultKind();
+        const entry = kind ? this.entries.get(kind) : undefined;
         return entry?.service?.availability ?? { state: "unknown" };
     }
 
