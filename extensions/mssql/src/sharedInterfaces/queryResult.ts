@@ -287,6 +287,7 @@ export interface GridViewState {
     hiddenColumnIds?: string[];
     frozenColumnIndex?: number;
     selection?: ISlickRange[];
+    rowNumberColumnWidth?: number;
 }
 
 export interface GetGridViewStateParams {

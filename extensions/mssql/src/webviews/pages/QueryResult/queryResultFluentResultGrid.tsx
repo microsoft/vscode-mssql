@@ -457,6 +457,7 @@ function getGridViewStateSignature(state: FluentResultGridState): string {
         hiddenColumnIds: state.hiddenColumnIds ?? [],
         frozenColumnIndex: state.frozenColumnIndex,
         selection: state.selection ?? [],
+        rowNumberColumnWidth: state.rowNumberColumnWidth,
     });
 }
 
@@ -647,6 +648,7 @@ const QueryResultFluentResultGrid = forwardRef<ResultGridHandle, ResultGridProps
                         hiddenColumnIds: state.hiddenColumnIds,
                         frozenColumnIndex: state.frozenColumnIndex,
                         selection: state.selection,
+                        rowNumberColumnWidth: state.rowNumberColumnWidth,
                     },
                 });
             }
