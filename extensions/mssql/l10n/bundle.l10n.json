@@ -2335,6 +2335,15 @@
             "{2} is the display name of the alternative SQL data plane provider"
         ]
     },
+    "The metadata cache is not enabled. Enable mssql.metadataCache.enabled and reload the window.": "The metadata cache is not enabled. Enable mssql.metadataCache.enabled and reload the window.",
+    "MSSQL metadata cache cleared.": "MSSQL metadata cache cleared.",
+    "The metadata cache has no entries to clear.": "The metadata cache has no entries to clear.",
+    "Clear cached metadata for a connection": "Clear cached metadata for a connection",
+    "captured {0}/{0} is the UTC timestamp when the metadata cache entry was captured": {
+        "message": "captured {0}",
+        "comment": ["{0} is the UTC timestamp when the metadata cache entry was captured"]
+    },
+    "MSSQL metadata cache entry cleared.": "MSSQL metadata cache entry cleared.",
     "Close": "Close",
     "Apply": "Apply",
     "Next": "Next",

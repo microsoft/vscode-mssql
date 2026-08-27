@@ -1,0 +1,834 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+/**
+ * Metadata catalog service (B5): hydration over a scripted data plane
+ * (H1–H3 + FK), SoA snapshot reads (resolveName exact/defaultSchema/
+ * ambiguous + case-sensitive policy, prefix search, columns), deterministic
+ * schema-context projection (byte-identical, budget degradation, privacy
+ * gate, FK one-hop), DDL sniff → refresh, honest section failure
+ * (columns failed ⇒ partial, never empty-ready), and OE v2 details
+ * (key-constraint names/kinds in key order, reverse FK column pairs).
+ */
+
+import { expect } from "chai";
+import { FakeBackend, FakeScript } from "../../src/services/sqlDataPlane/fakeBackend";
+import { CatalogBuilder } from "../../src/services/metadata/catalogModel";
+import { leadingKeyword } from "../../src/sql/leadingKeyword";
+import {
+    DataPlaneMetadataSessionSource,
+    MetadataService,
+    typeDisplay,
+} from "../../src/services/metadata/metadataService";
+
+function sysScripts(overrides?: {
+    columnsFail?: boolean;
+    descriptionsFail?: boolean;
+}): FakeScript[] {
+    return [
+        overrides?.descriptionsFail
+            ? {
+                  // H7 — its SQL avoids every other matcher substring
+                  // (COL_NAME instead of a sys.columns join) on purpose.
+                  match: (t) => t.includes("extended_properties"),
+                  events: [
+                      { type: "message", kind: "error", text: "permission denied" },
+                      { type: "complete", status: "failed" },
+                  ],
+              }
+            : {
+                  match: (t) => t.includes("extended_properties"),
+                  events: [
+                      {
+                          type: "resultSet",
+                          columns: ["major_id", "minor_id", "column_name", "description"],
+                          rows: [
+                              [101, 0, null, "Order header rows."],
+                              [101, 2, "CustomerId", "References the customer."],
+                              // Column dropped since the property was set:
+                              // COL_NAME yields NULL — the row must be skipped.
+                              [101, 9, null, "orphaned column property"],
+                              [103, 0, null, "Read view over orders."],
+                          ],
+                      },
+                      { type: "complete", status: "succeeded" },
+                  ],
+              },
+        {
+            match: (t) => t.includes("SERVERPROPERTY"),
+            events: [
+                {
+                    type: "resultSet",
+                    columns: ["engine_edition", "default_schema", "collation_name"],
+                    rows: [[5, "dbo", "SQL_Latin1_General_CP1_CI_AS"]],
+                },
+                { type: "complete", status: "succeeded" },
+            ],
+        },
+        {
+            // H4 + H5B contain "sys.columns" too — they must match before H3.
+            match: (t) => t.includes("is_primary_key"),
+            events: [
+                {
+                    type: "resultSet",
+                    columns: [
+                        "object_id",
+                        "name",
+                        "index_name",
+                        "is_primary_key",
+                        "is_unique_constraint",
+                    ],
+                    // Bit columns arrive as boolean OR 0/1 depending on the
+                    // wire; both forms appear here on purpose. The unique
+                    // constraint's key order (Name before CustomerId)
+                    // deliberately differs from column_id order.
+                    rows: [
+                        [101, "OrderId", "PK_Orders", true, false],
+                        [102, "CustomerId", "PK_Customers", 1, 0],
+                        [102, "Name", "UQ_Customers_Name", false, true],
+                        [102, "CustomerId", "UQ_Customers_Name", 0, 1],
+                    ],
+                },
+                { type: "complete", status: "succeeded" },
+            ],
+        },
+        {
+            match: (t) => t.includes("foreign_key_columns"),
+            events: [
+                {
+                    type: "resultSet",
+                    columns: ["constraint_object_id", "parent_column", "referenced_column"],
+                    rows: [[900, "CustomerId", "CustomerId"]],
+                },
+                { type: "complete", status: "succeeded" },
+            ],
+        },
+        {
+            match: (t) => t.includes("sys.parameters"),
+            events: [
+                {
+                    type: "resultSet",
+                    columns: [
+                        "object_id",
+                        "parameter_id",
+                        "name",
+                        "type_name",
+                        "max_length",
+                        "precision",
+                        "scale",
+                        "is_output",
+                    ],
+                    rows: [
+                        [105, 1, "@CustomerId", "int", 4, 10, 0, false],
+                        [105, 2, "@Total", "decimal", 9, 18, 2, true],
+                    ],
+                },
+                { type: "complete", status: "succeeded" },
+            ],
+        },
+        {
+            match: (t) => t.includes("sys.schemas"),
+            events: [
+                {
+                    type: "resultSet",
+                    columns: ["schema_id", "name"],
+                    rows: [
+                        [1, "dbo"],
+                        [2, "sales"],
+                    ],
+                },
+                { type: "complete", status: "succeeded" },
+            ],
+        },
+        {
+            // digest — BEFORE H2: CHEAP_DIGEST contains "FROM sys.objects o
+            // WHERE" too, so ordering it after H2 makes it dead (digest
+            // queries silently receive H2's object rows — a latent fixture
+            // bug fixed alongside digest v2).
+            match: (t) => t.includes("CHECKSUM_AGG"),
+            events: [
+                {
+                    type: "resultSet",
+                    columns: ["current_db", "object_count", "object_hash"],
+                    rows: [["Db1", 4, 12345]],
+                },
+                { type: "complete", status: "succeeded" },
+            ],
+        },
+        {
+            match: (t) => t.includes("FROM sys.objects o WHERE"),
+            events: [
+                {
+                    type: "resultSet",
+                    columns: ["object_id", "schema_id", "name", "type", "modify_date"],
+                    rows: [
+                        [101, 1, "Orders", "U", "2026-01-01T00:00:00"],
+                        [102, 1, "Customers", "U", "2026-01-01T00:00:00"],
+                        [103, 1, "OrdersView", "V", "2026-01-01T00:00:00"],
+                        [104, 2, "Orders", "U", "2026-01-01T00:00:00"],
+                        [105, 1, "GetOrders", "P", "2026-01-01T00:00:00"],
+                    ],
+                },
+                { type: "complete", status: "succeeded" },
+            ],
+        },
+        overrides?.columnsFail
+            ? {
+                  match: (t) => t.includes("sys.columns"),
+                  events: [
+                      { type: "message", kind: "error", text: "permission denied" },
+                      { type: "complete", status: "failed" },
+                  ],
+              }
+            : {
+                  match: (t) => t.includes("sys.columns"),
+                  events: [
+                      {
+                          type: "resultSet",
+                          columns: [
+                              "object_id",
+                              "column_id",
+                              "name",
+                              "type_name",
+                              "max_length",
+                              "precision",
+                              "scale",
+                              "is_nullable",
+                              "is_identity",
+                              "is_computed",
+                          ],
+                          // Bit columns arrive as boolean OR 0/1 depending on
+                          // the wire; both forms appear here on purpose.
+                          rows: [
+                              [101, 1, "OrderId", "int", 4, 10, 0, false, true, false],
+                              [101, 2, "CustomerId", "int", 4, 10, 0, true, false, false],
+                              [101, 3, "Total", "decimal", 9, 18, 2, true, 0, 1],
+                              [102, 1, "CustomerId", "int", 4, 10, 0, false, 1, 0],
+                              [102, 2, "Name", "nvarchar", 200, 0, 0, false, false, false],
+                          ],
+                      },
+                      { type: "complete", status: "succeeded" },
+                  ],
+              },
+        {
+            match: (t) => t.includes("sys.foreign_keys"),
+            events: [
+                {
+                    type: "resultSet",
+                    columns: ["object_id", "name", "parent_object_id", "referenced_object_id"],
+                    rows: [[900, "FK_Orders_Customers", 101, 102]],
+                },
+                { type: "complete", status: "succeeded" },
+            ],
+        },
+    ];
+}
+
+suite("Metadata SQL keyword detection", () => {
+    test("skips whitespace and nested comments before the first keyword", () => {
+        expect(
+            leadingKeyword("  -- comment\n/* outer /* nested */ done */ CREATE TABLE t(i int)"),
+        ).to.equal("CREATE");
+        expect(leadingKeyword("\n\nupdate t set x=1")).to.equal("UPDATE");
+        expect(leadingKeyword("/* only a comment */")).to.equal(undefined);
+    });
+});
+
+async function serviceOver(scripts: FakeScript[]) {
+    const backend = new FakeBackend({ scripts });
+    const source = new DataPlaneMetadataSessionSource(backend, {
+        profile: { profileFingerprint: "fp", server: "srv", authKind: "sql", user: "u" },
+        applicationName: "test",
+    });
+    const service = new MetadataService(source, { pollSeconds: 0 });
+    return { service, source };
+}
+
+const KEY = { serverFingerprint: "sha256:test", database: "Db1" };
+
+suite("Metadata catalog (B5)", () => {
+    test("typeDisplay renders SQL type shapes", () => {
+        expect(typeDisplay("nvarchar", 200, 0, 0)).to.equal("nvarchar(100)");
+        expect(typeDisplay("nvarchar", -1, 0, 0)).to.equal("nvarchar(max)");
+        expect(typeDisplay("decimal", 9, 18, 2)).to.equal("decimal(18,2)");
+        expect(typeDisplay("int", 4, 10, 0)).to.equal("int");
+        expect(typeDisplay("datetime2", 8, 27, 7)).to.equal("datetime2(7)");
+    });
+
+    test("hydration: schemas/objects/columns/FKs land; snapshot reads serve", async () => {
+        const { service } = await serviceOver(sysScripts());
+        const statuses: string[] = [];
+        const handle = service.acquire(KEY, (s) => statuses.push(s.readiness));
+        await handle.refresh();
+        const snapshot = handle.current()!;
+        expect(handle.status().readiness).to.equal("ready");
+        expect(snapshot.stats).to.deep.include({ schemas: 2, objects: 5, columns: 5 });
+        expect(snapshot.listSchemas().map((s) => s.name)).to.deep.equal(["dbo", "sales"]);
+        expect(snapshot.getObject(101)!.schema).to.equal("dbo");
+        expect(snapshot.getColumns(101).map((c) => `${c.name}:${c.typeDisplay}`)).to.deep.equal([
+            "OrderId:int",
+            "CustomerId:int",
+            "Total:decimal(18,2)",
+        ]);
+        expect(snapshot.getForeignKeysFrom(101)[0].toObjectId).to.equal(102);
+        expect(statuses[0]).to.equal("loading");
+        handle.dispose();
+        service.dispose();
+    });
+
+    test("hydration richness (B6): env facts, PK columns, FK column pairs, parameters", async () => {
+        const { service } = await serviceOver(sysScripts());
+        const handle = service.acquire(KEY);
+        await handle.refresh();
+        const snapshot = handle.current()!;
+        expect(handle.status().mode).to.equal("full");
+        expect(snapshot.engineEdition).to.equal(5);
+        expect(snapshot.defaultSchema).to.equal("dbo");
+        expect(snapshot.caseSensitive).to.equal(false);
+        expect(snapshot.getPrimaryKeyColumns(101)).to.deep.equal(["OrderId"]);
+        const fkDetails = snapshot.getForeignKeyDetailsFrom(101);
+        expect(fkDetails).to.have.length(1);
+        expect(fkDetails[0].columns).to.deep.equal([
+            { fromColumn: "CustomerId", toColumn: "CustomerId" },
+        ]);
+        expect(
+            snapshot.getParameters(105).map((p) => `${p.name}:${p.typeDisplay}:${p.isOutput}`),
+        ).to.deep.equal(["@CustomerId:int:false", "@Total:decimal(18,2):true"]);
+        handle.dispose();
+        service.dispose();
+    });
+
+    test("key constraints (OE v2): PK names + columns in key order via getKeyConstraints", async () => {
+        const { service } = await serviceOver(sysScripts());
+        const handle = service.acquire(KEY);
+        await handle.refresh();
+        const snapshot = handle.current()!;
+        expect(snapshot.getKeyConstraints(101)).to.deep.equal([
+            { name: "PK_Orders", kind: "primaryKey", columns: ["OrderId"] },
+        ]);
+        // Key-ordinal order is preserved (Name before CustomerId), not
+        // column_id order.
+        expect(snapshot.getKeyConstraints(102)).to.deep.equal([
+            { name: "PK_Customers", kind: "primaryKey", columns: ["CustomerId"] },
+            {
+                name: "UQ_Customers_Name",
+                kind: "uniqueConstraint",
+                columns: ["Name", "CustomerId"],
+            },
+        ]);
+        handle.dispose();
+        service.dispose();
+    });
+
+    test("key constraints (OE v2): unique-constraint columns are never PK-marked", async () => {
+        const { service } = await serviceOver(sysScripts());
+        const handle = service.acquire(KEY);
+        await handle.refresh();
+        const snapshot = handle.current()!;
+        // UQ_Customers_Name covers Name and CustomerId; the PK column set
+        // stays exactly the is_primary_key rows — no Name, no duplicate.
+        expect(snapshot.getPrimaryKeyColumns(102)).to.deep.equal(["CustomerId"]);
+        const kinds = snapshot.getKeyConstraints(102).map((c) => c.kind);
+        expect(kinds).to.deep.equal(["primaryKey", "uniqueConstraint"]);
+        handle.dispose();
+        service.dispose();
+    });
+
+    test("reverse FK details (OE v2): getForeignKeyDetailsTo serves column pairs", async () => {
+        const { service } = await serviceOver(sysScripts());
+        const handle = service.acquire(KEY);
+        await handle.refresh();
+        const snapshot = handle.current()!;
+        // FK 900 is Orders(101) → Customers(102); Customers sees the reverse
+        // edge with the same per-constraint column pairs.
+        expect(snapshot.getForeignKeyDetailsTo(102)).to.deep.equal([
+            {
+                fromObjectId: 101,
+                toObjectId: 102,
+                name: "FK_Orders_Customers",
+                constraintObjectId: 900,
+                columns: [{ fromColumn: "CustomerId", toColumn: "CustomerId" }],
+            },
+        ]);
+        handle.dispose();
+        service.dispose();
+    });
+
+    test("key/FK details: objects without constraints or referencing FKs return []", async () => {
+        const { service } = await serviceOver(sysScripts());
+        const handle = service.acquire(KEY);
+        await handle.refresh();
+        const snapshot = handle.current()!;
+        expect(snapshot.getKeyConstraints(103)).to.deep.equal([]);
+        expect(snapshot.getKeyConstraints(9999)).to.deep.equal([]);
+        expect(snapshot.getForeignKeyDetailsTo(101)).to.deep.equal([]);
+        expect(snapshot.getForeignKeyDetailsTo(9999)).to.deep.equal([]);
+        handle.dispose();
+        service.dispose();
+    });
+
+    test("H3 identity/computed flags reach snapshot columns", async () => {
+        const { service } = await serviceOver(sysScripts());
+        const handle = service.acquire(KEY);
+        await handle.refresh();
+        const snapshot = handle.current()!;
+
+        // Snapshot surface: flags set only when true (absent = unknown/false),
+        // parsed from both boolean and 0/1 bit wire forms.
+        const orders = snapshot.getColumns(101);
+        expect(orders[0]).to.deep.equal({
+            ordinal: 0,
+            name: "OrderId",
+            typeDisplay: "int",
+            nullable: false,
+            isIdentity: true,
+            // SV-R1: column_id is retained (fixture H3 rows carry it).
+            columnId: 1,
+        });
+        expect(orders[1]).to.not.have.property("isIdentity");
+        expect(orders[1]).to.not.have.property("isComputed");
+        expect(orders[2].isComputed).to.equal(true); // 0/1 wire form
+        expect(orders[2].isIdentity).to.equal(undefined);
+        expect(snapshot.getColumns(102)[0].isIdentity).to.equal(true); // 1/0 wire form
+
+        handle.dispose();
+        service.dispose();
+    });
+
+    test("resolveName: exact, defaultSchema preference, ambiguity policy, prefix search", async () => {
+        const { service } = await serviceOver(sysScripts());
+        const handle = service.acquire(KEY);
+        await handle.refresh();
+        const snapshot = handle.current()!;
+        expect(snapshot.resolveName(["sales", "Orders"])).to.deep.include({
+            kind: "resolved",
+            objectId: 104,
+        });
+        expect(snapshot.resolveName(["orders"])).to.deep.include({
+            kind: "resolved",
+            objectId: 101,
+            confidence: "defaultSchema",
+        });
+        expect(snapshot.resolveName(["Missing"]).kind).to.equal("notFound");
+        expect(snapshot.search("or").map((o) => `${o.schema}.${o.name}`)).to.deep.equal([
+            "dbo.Orders",
+            "sales.Orders",
+            "dbo.OrdersView",
+        ]);
+        handle.dispose();
+        service.dispose();
+    });
+
+    test("case-sensitive catalogs: folded-only match never resolves silently", () => {
+        const builder = new CatalogBuilder();
+        builder.caseSensitive = true;
+        builder.addSchema(1, "dbo");
+        builder.addObject(1, 1, "Orders", "table");
+        builder.addObject(2, 1, "ORDERS", "table");
+        const snapshot = builder.build(1, { schemas: "ready", objects: "ready" });
+        // Exact raw match resolves (dbo.Orders and dbo.ORDERS are distinct
+        // CS objects); the folded-only lookup is the ambiguous one.
+        expect(snapshot.resolveName(["Orders"]).kind).to.equal("resolved");
+        expect(snapshot.resolveName(["oRdErS"]).kind).to.equal("ambiguous");
+        const builder2 = new CatalogBuilder();
+        builder2.caseSensitive = true;
+        builder2.addSchema(1, "dbo");
+        builder2.addObject(1, 1, "Orders", "table");
+        const snap2 = builder2.build(1, { schemas: "ready", objects: "ready" });
+        expect(snap2.resolveName(["Orders"]).kind).to.equal("resolved");
+        expect(snap2.resolveName(["orders"]).kind).to.equal("notFound");
+    });
+
+    test("schema context: byte-identical; budgets degrade fidelity deterministically", async () => {
+        const { service } = await serviceOver(sysScripts());
+        const handle = service.acquire(KEY);
+        await handle.refresh();
+        const request = {
+            budget: "balanced" as const,
+            privacy: { destination: "local" as const, allowObjectNames: true },
+        };
+        const a = handle.buildSchemaContext(request);
+        expect(a.text).to.equal(handle.buildSchemaContext(request).text);
+        expect(a.text).to.include("dbo.Orders (table): OrderId int");
+        expect(a.truncated).to.equal(false);
+        const tight = handle.buildSchemaContext({ ...request, budget: { maxChars: 60 } });
+        expect(tight.charCount).to.be.at.most(60);
+        expect(tight.truncated).to.equal(true);
+        handle.dispose();
+        service.dispose();
+    });
+
+    test("schema context: focus + FK one-hop pulls the referenced table in", async () => {
+        const { service } = await serviceOver(sysScripts());
+        const handle = service.acquire(KEY);
+        await handle.refresh();
+        const result = handle.buildSchemaContext({
+            budget: "balanced",
+            focus: { nameHints: ["dbo.Orders"] },
+            privacy: { destination: "local", allowObjectNames: true },
+        });
+        expect(result.text).to.include("dbo.Orders");
+        expect(result.text).to.include("dbo.Customers");
+        expect(result.text).to.not.include("sales.Orders");
+        handle.dispose();
+        service.dispose();
+    });
+
+    test("privacy gate: remoteLm without allowObjectNames degrades to empty", async () => {
+        const { service } = await serviceOver(sysScripts());
+        const handle = service.acquire(KEY);
+        await handle.refresh();
+        const result = handle.buildSchemaContext({
+            budget: "unlimited",
+            privacy: { destination: "remoteLm", allowObjectNames: false },
+        });
+        expect(result.degraded).to.equal("privacyPolicy");
+        expect(result.text).to.equal("");
+        handle.dispose();
+        service.dispose();
+    });
+
+    test("DDL sniff: successful CREATE re-hydrates (generation bump); non-DDL/failed do not", async () => {
+        const { service } = await serviceOver(sysScripts());
+        const handle = service.acquire(KEY);
+        await handle.refresh();
+        const before = handle.status().generation;
+        handle.notifyExecutedBatch({ text: "CREATE TABLE t(i int)", succeeded: true });
+        await new Promise((r) => setTimeout(r, 25));
+        expect(handle.status().generation).to.be.greaterThan(before);
+        const gen = handle.status().generation;
+        handle.notifyExecutedBatch({ text: "select 1", succeeded: true });
+        handle.notifyExecutedBatch({ text: "DROP TABLE t", succeeded: false });
+        await new Promise((r) => setTimeout(r, 25));
+        expect(handle.status().generation).to.equal(gen);
+        handle.dispose();
+        service.dispose();
+    });
+
+    test("section failure honesty: columns fail ⇒ 'failed' + partial, objects still ready", async () => {
+        const { service } = await serviceOver(sysScripts({ columnsFail: true }));
+        const handle = service.acquire(KEY);
+        await handle.refresh();
+        const snapshot = handle.current()!;
+        expect(handle.status().readiness).to.equal("ready");
+        expect(handle.status().mode).to.equal("partial");
+        expect(snapshot.readiness.columns).to.equal("failed");
+        expect(snapshot.readiness.objects).to.equal("ready");
+        expect(snapshot.getColumns(101)).to.deep.equal([]);
+        handle.dispose();
+        service.dispose();
+    });
+
+    test("dedicated session source reuses an open session and reopens after loss", async () => {
+        const backend = new FakeBackend({ scripts: sysScripts() });
+        const source = new DataPlaneMetadataSessionSource(backend, {
+            profile: { profileFingerprint: "fp", server: "srv", authKind: "sql", user: "u" },
+            applicationName: "test",
+        });
+        const first = await source.open();
+        expect(await source.open()).to.equal(first);
+        await first.close();
+        const second = await source.open();
+        expect(second).to.not.equal(first);
+        source.dispose();
+    });
+});
+
+suite("Metadata catalog H7 descriptions (B11)", () => {
+    test("hydration: object + column MS_Description reach the snapshot; orphans dropped", async () => {
+        const { service } = await serviceOver(sysScripts());
+        const handle = service.acquire(KEY);
+        await handle.refresh();
+        const snapshot = handle.current()!;
+        expect(handle.status().mode).to.equal("full");
+        expect(snapshot.readiness.descriptions).to.equal("ready");
+        expect(snapshot.getDescription(101)).to.equal("Order header rows.");
+        expect(snapshot.getDescription(101, "CustomerId")).to.equal("References the customer.");
+        expect(snapshot.getDescription(103)).to.equal("Read view over orders.");
+        // minor_id 9 had no surviving column (COL_NAME NULL) — skipped, and
+        // it must not bleed into the object-level slot.
+        expect(snapshot.getDescription(101)).to.not.equal("orphaned column property");
+        // Absent descriptions stay absent (no pretend-empty strings).
+        expect(snapshot.getDescription(102)).to.equal(undefined);
+        expect(snapshot.getDescription(101, "OrderId")).to.equal(undefined);
+        expect(snapshot.getDescription(9999)).to.equal(undefined);
+        handle.dispose();
+        service.dispose();
+    });
+
+    test("column description lookup folds case on CI catalogs only", async () => {
+        const { service } = await serviceOver(sysScripts());
+        const handle = service.acquire(KEY);
+        await handle.refresh();
+        const snapshot = handle.current()!;
+        expect(snapshot.getDescription(101, "customerid")).to.equal("References the customer.");
+
+        const cs = new CatalogBuilder();
+        cs.caseSensitive = true;
+        cs.addSchema(1, "dbo");
+        cs.addObject(1, 1, "T", "table");
+        cs.addDescription(1, "col doc", "Name");
+        const csSnapshot = cs.build(1, {
+            schemas: "ready",
+            objects: "ready",
+            descriptions: "ready",
+        });
+        expect(csSnapshot.getDescription(1, "Name")).to.equal("col doc");
+        expect(csSnapshot.getDescription(1, "name")).to.equal(undefined);
+        handle.dispose();
+        service.dispose();
+    });
+
+    test("builder drops descriptions for unknown objects (H7 raced a DDL)", () => {
+        const builder = new CatalogBuilder();
+        builder.addSchema(1, "dbo");
+        builder.addObject(1, 1, "T", "table");
+        builder.addDescription(42, "for an object H2 never saw");
+        builder.addDescription(1, "kept");
+        const snapshot = builder.build(1, {
+            schemas: "ready",
+            objects: "ready",
+            descriptions: "ready",
+        });
+        expect(snapshot.getDescription(1)).to.equal("kept");
+        expect(snapshot.getDescription(42)).to.equal(undefined);
+    });
+
+    test("section failure honesty: H7 fails ⇒ 'descriptions' failed + partial, never pretend-empty", async () => {
+        const { service } = await serviceOver(sysScripts({ descriptionsFail: true }));
+        const handle = service.acquire(KEY);
+        await handle.refresh();
+        const snapshot = handle.current()!;
+        expect(handle.status().readiness).to.equal("ready");
+        expect(handle.status().mode).to.equal("partial");
+        expect(snapshot.readiness.descriptions).to.equal("failed");
+        expect(snapshot.readiness.objects).to.equal("ready");
+        expect(snapshot.getDescription(101)).to.equal(undefined);
+        handle.dispose();
+        service.dispose();
+    });
+
+    test("privacy gate: descriptions NEVER enter the schema-context projection", async () => {
+        const { service } = await serviceOver(sysScripts());
+        const handle = service.acquire(KEY);
+        await handle.refresh();
+        const result = handle.buildSchemaContext({
+            budget: "unlimited",
+            privacy: { destination: "local", allowObjectNames: true },
+        });
+        expect(result.text).to.include("dbo.Orders");
+        expect(result.text).to.not.include("Order header rows.");
+        expect(result.text).to.not.include("References the customer.");
+        handle.dispose();
+        service.dispose();
+    });
+});
+
+suite("Metadata catalog module definitions (B12 lazy reads)", () => {
+    const VIEW_TEXT = "CREATE VIEW dbo.OrdersView\r\nAS\r\nSELECT OrderId FROM dbo.Orders;";
+
+    /** sys scripts + per-object sys.sql_modules responders with counters. */
+    function moduleScripts() {
+        const counts = { view: 0, encrypted: 0, missing: 0, failing: 0 };
+        const scripts: FakeScript[] = [
+            {
+                match: (t) => {
+                    const hit = t.includes("sys.sql_modules") && t.includes("= 103;");
+                    if (hit) {
+                        counts.view++;
+                    }
+                    return hit;
+                },
+                events: [
+                    {
+                        type: "resultSet",
+                        columns: ["definition", "is_encrypted"],
+                        rows: [[VIEW_TEXT, false]],
+                    },
+                    { type: "complete", status: "succeeded" },
+                ],
+            },
+            {
+                match: (t) => {
+                    const hit = t.includes("sys.sql_modules") && t.includes("= 105;");
+                    if (hit) {
+                        counts.encrypted++;
+                    }
+                    return hit;
+                },
+                events: [
+                    {
+                        type: "resultSet",
+                        columns: ["definition", "is_encrypted"],
+                        rows: [[null, 1]],
+                    },
+                    { type: "complete", status: "succeeded" },
+                ],
+            },
+            {
+                match: (t) => {
+                    const hit = t.includes("sys.sql_modules") && t.includes("= 104;");
+                    if (hit) {
+                        counts.missing++;
+                    }
+                    return hit;
+                },
+                events: [
+                    {
+                        type: "resultSet",
+                        columns: ["definition", "is_encrypted"],
+                        rows: [],
+                    },
+                    { type: "complete", status: "succeeded" },
+                ],
+            },
+            {
+                match: (t) => {
+                    const hit = t.includes("sys.sql_modules") && t.includes("= 999;");
+                    if (hit) {
+                        counts.failing++;
+                    }
+                    return hit;
+                },
+                events: [
+                    { type: "message", kind: "error", text: "deadlock victim" },
+                    { type: "complete", status: "failed" },
+                ],
+            },
+            ...sysScripts(),
+        ];
+        return { scripts, counts };
+    }
+
+    test("lazy read returns the stored text and caches per generation", async () => {
+        const { scripts, counts } = moduleScripts();
+        const { service } = await serviceOver(scripts);
+        const handle = service.acquire(KEY);
+        await handle.refresh();
+        const first = await handle.getModuleDefinition(103);
+        expect(first.text).to.equal(VIEW_TEXT);
+        expect(first.unavailableReason).to.equal(undefined);
+        expect(first.generation).to.equal(handle.status().generation);
+        const second = await handle.getModuleDefinition(103);
+        expect(second.text).to.equal(VIEW_TEXT);
+        expect(counts.view, "second read must be served from the cache").to.equal(1);
+        handle.dispose();
+        service.dispose();
+    });
+
+    test("encrypted module: NULL definition + IsEncrypted ⇒ honest 'encrypted'", async () => {
+        const { scripts } = moduleScripts();
+        const { service } = await serviceOver(scripts);
+        const handle = service.acquire(KEY);
+        await handle.refresh();
+        const result = await handle.getModuleDefinition(105);
+        expect(result.text).to.equal(undefined);
+        expect(result.unavailableReason).to.equal("encrypted");
+        handle.dispose();
+        service.dispose();
+    });
+
+    test("row filtered by catalog visibility ⇒ honest 'permission'", async () => {
+        const { scripts } = moduleScripts();
+        const { service } = await serviceOver(scripts);
+        const handle = service.acquire(KEY);
+        await handle.refresh();
+        const result = await handle.getModuleDefinition(104);
+        expect(result.unavailableReason).to.equal("permission");
+        handle.dispose();
+        service.dispose();
+    });
+
+    test("query failure ⇒ 'notLoaded' and NOT cached (retries re-query)", async () => {
+        const { scripts, counts } = moduleScripts();
+        const { service } = await serviceOver(scripts);
+        const handle = service.acquire(KEY);
+        await handle.refresh();
+        const first = await handle.getModuleDefinition(999);
+        expect(first.unavailableReason).to.equal("notLoaded");
+        const second = await handle.getModuleDefinition(999);
+        expect(second.unavailableReason).to.equal("notLoaded");
+        expect(counts.failing, "failures must not be cached").to.equal(2);
+        handle.dispose();
+        service.dispose();
+    });
+
+    test("cache invalidates on a new generation (refresh re-queries)", async () => {
+        const { scripts, counts } = moduleScripts();
+        const { service } = await serviceOver(scripts);
+        const handle = service.acquire(KEY);
+        await handle.refresh();
+        await handle.getModuleDefinition(103);
+        await handle.refresh(); // generation bump clears the lazy cache
+        const again = await handle.getModuleDefinition(103);
+        expect(again.text).to.equal(VIEW_TEXT);
+        expect(counts.view).to.equal(2);
+        handle.dispose();
+        service.dispose();
+    });
+
+    test("lazy reads serialize with hydration on the single-query session", async () => {
+        const { scripts, counts } = moduleScripts();
+        const { service } = await serviceOver(scripts);
+        const handle = service.acquire(KEY);
+        await handle.refresh();
+        // Fire a refresh and a lazy read CONCURRENTLY: the session allows one
+        // active query, so both must complete without a Busy failure.
+        const refreshing = handle.refresh();
+        const reading = handle.getModuleDefinition(103);
+        const [, result] = await Promise.all([refreshing, reading]);
+        expect(handle.status().readiness).to.equal("ready");
+        expect(result.text).to.equal(VIEW_TEXT);
+        expect(counts.view).to.be.greaterThan(0);
+        handle.dispose();
+        service.dispose();
+    });
+
+    test("concurrent reads for the SAME object dedupe to one query", async () => {
+        const { scripts, counts } = moduleScripts();
+        const { service } = await serviceOver(scripts);
+        const handle = service.acquire(KEY);
+        await handle.refresh();
+        const [a, b] = await Promise.all([
+            handle.getModuleDefinition(103),
+            handle.getModuleDefinition(103),
+        ]);
+        expect(a.text).to.equal(VIEW_TEXT);
+        expect(b.text).to.equal(VIEW_TEXT);
+        expect(counts.view).to.equal(1);
+        handle.dispose();
+        service.dispose();
+    });
+
+    test("referenced-side FK details now carry column pairs (B11 finding)", async () => {
+        const { service } = await serviceOver(sysScripts());
+        const handle = service.acquire(KEY);
+        await handle.refresh();
+        const edges = handle.current()!.getForeignKeyDetailsTo(102);
+        expect(edges.length).to.equal(1);
+        expect(edges[0].columns).to.deep.equal([
+            { fromColumn: "CustomerId", toColumn: "CustomerId" },
+        ]);
+        handle.dispose();
+        service.dispose();
+    });
+
+    test("pinned key constraints serve names/kinds in key order (scripting F2)", async () => {
+        const { service } = await serviceOver(sysScripts());
+        const handle = service.acquire(KEY);
+        await handle.refresh();
+        const constraints = handle.current()!.getKeyConstraints(102);
+        expect(constraints).to.deep.equal([
+            { name: "PK_Customers", kind: "primaryKey", columns: ["CustomerId"] },
+            {
+                name: "UQ_Customers_Name",
+                kind: "uniqueConstraint",
+                columns: ["Name", "CustomerId"],
+            },
+        ]);
+        handle.dispose();
+        service.dispose();
+    });
+});

@@ -796,6 +796,16 @@ export class SqlDataPlaneService {
             );
         }
         const registry = this;
+        const checkRequirements = (params: OpenSessionParams): CapabilityCheck =>
+            evaluateRequirements(registry.effectiveSet(entry), registry.requirementsFor(params));
+        const throwUnsupported = (check: CapabilityCheck): never => {
+            throw new SqlDataPlaneError(
+                DataPlaneErrorCodes.capabilityUnsupported,
+                check.reason ?? "required capabilities not supported by the selected backend",
+                false,
+                { backend: { kind: entry.factory.kind } },
+            );
+        };
         return {
             get availability() {
                 return service.availability;
@@ -806,9 +816,28 @@ export class SqlDataPlaneService {
             get backendInfo() {
                 return service.backendInfo;
             },
-            canOpen: (params) => service.canOpen(params),
+            canOpen: async (params) => {
+                const check = checkRequirements(params);
+                return check.ok ? service.canOpen(params) : check;
+            },
             openSession: async (params) => {
-                const session = await service.openSession(params);
+                // service()/serviceForProfile() are public consumer surfaces,
+                // not raw-backend escape hatches. Enforce the same registry
+                // tripwire as SqlDataPlaneService.openSession before the
+                // provider can resolve credentials, then retain the shared
+                // Azure SQL serverless-wake behavior for direct view users
+                // such as MetadataStore.
+                const check = checkRequirements(params);
+                if (!check.ok) {
+                    throwUnsupported(check);
+                }
+                const providerCheck = await service.canOpen(params);
+                if (!providerCheck.ok) {
+                    throwUnsupported(providerCheck);
+                }
+                const session = await openWithServerlessWake(params.profile, () =>
+                    service.openSession(params),
+                );
                 registry.registerSession(entry, session);
                 return session;
             },

@@ -512,6 +512,38 @@ suite("SQL Data Plane backend registry (FOUND-1)", () => {
         expect(hooks.createCalls).to.equal(0, "factory.create must not run");
         expect(passwordCalls).to.equal(0, "passwordProvider must not run");
         expect(tokenCalls).to.equal(0, "tokenProvider must not run");
+
+        // MetadataStore consumes a remembered provider view directly through
+        // serviceForProfile(). The view must preserve the same capability
+        // tripwire instead of becoming a raw-backend escape hatch.
+        const view = await service.serviceForProfile(integratedProfile.profileFingerprint);
+        thrown = undefined;
+        try {
+            await view.openSession({
+                profile: integratedProfile,
+                applicationName: "metadata-test",
+                auth: {
+                    passwordProvider: async () => {
+                        passwordCalls++;
+                        return "secret";
+                    },
+                    tokenProvider: async () => {
+                        tokenCalls++;
+                        return "token";
+                    },
+                },
+            });
+        } catch (error) {
+            thrown = error as SqlDataPlaneError;
+        }
+        expect(thrown?.code).to.equal(DataPlaneErrorCodes.capabilityUnsupported);
+        expect(hooks.createCalls).to.equal(
+            1,
+            "service view startup occurs before open requirements",
+        );
+        expect(passwordCalls).to.equal(0, "view passwordProvider must not run");
+        expect(tokenCalls).to.equal(0, "view tokenProvider must not run");
+        await service.dispose();
     });
 
     test("explicit requiredCapabilities are enforced with alternatives", async () => {
