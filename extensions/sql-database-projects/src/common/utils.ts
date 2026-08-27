@@ -15,7 +15,7 @@ import which = require("which");
 import { promises as fs } from "fs";
 import { ISqlProject, SqlTargetPlatform } from "../sqldbproj";
 import { DatabaseEngineEdition, DeploymentScenario, SystemDatabase } from "./enums";
-import { dataWorkspaceExtensionId, mssqlExtensionId } from "./extensionIds";
+import { mssqlExtensionId } from "./extensionIds";
 
 /**
  * Consolidates on the error message string
@@ -294,8 +294,8 @@ export function getSqlProjectsInWorkspace(): Promise<vscode.Uri[]> {
 }
 
 export function getDataWorkspaceExtensionApi(): dataworkspace.IExtension {
-    const extension = vscode.extensions.getExtension(dataWorkspaceExtensionId)!;
-    return extension.exports;
+    const extension = vscode.extensions.getExtension(mssqlExtensionId)!;
+    return extension.exports.dataWorkspace;
 }
 
 export type IDacFxService = vscodeMssql.IDacFxService;

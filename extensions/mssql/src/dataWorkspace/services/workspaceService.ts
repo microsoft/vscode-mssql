@@ -6,13 +6,14 @@
 import * as vscode from "vscode";
 import * as dataworkspace from "dataworkspace";
 import * as path from "path";
-import * as constants from "../common/constants";
 import { glob } from "glob";
 import { IWorkspaceService } from "../common/interfaces";
+import { getErrorMessage } from "../common/utils";
 import { ProjectProviderRegistry } from "../common/projectProviderRegistry";
 import Logger from "../common/logger";
 import { TelemetryReporter, TelemetryViews, TelemetryActions } from "../common/telemetry";
 import { Deferred } from "../common/promise";
+import { DataWorkspace as locConstants } from "../../constants/locConstants";
 
 const WorkspaceConfigurationName = "dataworkspace";
 const ExcludedProjectsConfigurationName = "excludedProjects";
@@ -100,7 +101,7 @@ export class WorkspaceService implements IWorkspaceService {
             if (previousProjects.includes(projectFile.path)) {
                 projectsAlreadyOpen.push(projectFile.fsPath);
                 void vscode.window.showInformationMessage(
-                    constants.ProjectAlreadyOpened(projectFile.fsPath),
+                    locConstants.ProjectAlreadyOpened(projectFile.fsPath),
                 );
             } else {
                 newProjectAdded = true;
@@ -169,7 +170,7 @@ export class WorkspaceService implements IWorkspaceService {
         }
 
         if (this.openedProjects === undefined) {
-            throw new Error(constants.openedProjectsUndefinedAfterRefresh);
+            throw new Error(locConstants.openedProjectsUndefinedAfterRefresh);
         }
 
         // remove excluded projects specified in workspace file
@@ -303,7 +304,7 @@ export class WorkspaceService implements IWorkspaceService {
             this._onDidWorkspaceProjectsChange.fire();
             return projectFile;
         } else {
-            throw new Error(constants.ProviderNotFoundForProjectTypeError(projectTypeId));
+            throw new Error(locConstants.ProviderNotFoundForProjectTypeError(projectTypeId));
         }
     }
 
@@ -314,7 +315,7 @@ export class WorkspaceService implements IWorkspaceService {
         );
         const opts = {
             location: vscode.ProgressLocation.Notification,
-            title: constants.gitCloneMessage(url),
+            title: locConstants.gitCloneMessage(url),
             cancellable: true,
         };
 
@@ -333,7 +334,7 @@ export class WorkspaceService implements IWorkspaceService {
             const repoProjects = await this.getAllProjectsInFolder(vscode.Uri.file(repositoryPath));
             await this.addProjectsToWorkspace(repoProjects);
         } catch (e) {
-            void vscode.window.showErrorMessage(constants.gitCloneError);
+            void vscode.window.showErrorMessage(locConstants.gitCloneError);
             console.error(e);
         }
     }
@@ -405,7 +406,7 @@ export class WorkspaceService implements IWorkspaceService {
                 }
             }
         } catch (err) {
-            Logger.error(constants.ExtensionActivationError(extension.id, err));
+            Logger.error(locConstants.ExtensionActivationError(extension.id, getErrorMessage(err)));
         }
 
         if (

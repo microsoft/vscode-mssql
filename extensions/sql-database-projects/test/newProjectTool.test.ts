@@ -22,7 +22,7 @@ suite("NewProjectTool: New project tool tests", function (): void {
         };
         sandbox
             .stub(vscode.extensions, "getExtension")
-            .returns(<any>{ exports: dataWorkspaceMock });
+            .returns(<any>{ exports: { dataWorkspace: dataWorkspaceMock } });
     });
 
     suiteTeardown(async function (): Promise<void> {
