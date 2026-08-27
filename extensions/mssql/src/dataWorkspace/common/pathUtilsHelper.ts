@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as constants from "./constants";
 import * as os from "os";
+import { DataWorkspace as locConstants } from "../../constants/locConstants";
 
 const WINDOWS_INVALID_FILE_CHARS = /[\\/:\*\?"<>\|]/g;
 
@@ -69,36 +69,36 @@ export function isValidBasename(fileName?: string): boolean {
 export function isValidBasenameErrorMessage(fileName?: string): string | undefined {
     const invalidFileChars = isWindows ? WINDOWS_INVALID_FILE_CHARS : UNIX_INVALID_FILE_CHARS;
     if (!fileName) {
-        return constants.undefinedFilenameErrorMessage;
+        return locConstants.undefinedFilenameErrorMessage;
     }
 
     if (isWindows && fileName[fileName.length - 1] === ".") {
-        return constants.filenameEndingIsPeriodErrorMessage; // Windows: file cannot end with a "."
+        return locConstants.filenameEndingIsPeriodErrorMessage; // Windows: file cannot end with a "."
     }
 
     if (!fileName || fileName.length === 0 || /^\s+$/.test(fileName)) {
-        return constants.whitespaceFilenameErrorMessage; // require a name that is not just whitespace
+        return locConstants.whitespaceFilenameErrorMessage; // require a name that is not just whitespace
     }
 
     invalidFileChars.lastIndex = 0;
     if (invalidFileChars.test(fileName)) {
-        return constants.invalidFileCharsErrorMessage; // check for certain invalid file characters
+        return locConstants.invalidFileCharsErrorMessage; // check for certain invalid file characters
     }
 
     if (isWindows && WINDOWS_FORBIDDEN_NAMES.test(fileName)) {
-        return constants.reservedWindowsFilenameErrorMessage; // check for certain invalid file names
+        return locConstants.reservedWindowsFilenameErrorMessage; // check for certain invalid file names
     }
 
     if (fileName === "." || fileName === "..") {
-        return constants.reservedValueErrorMessage; // check for reserved values
+        return locConstants.reservedValueErrorMessage; // check for reserved values
     }
 
     if (isWindows && fileName.length !== fileName.trim().length) {
-        return constants.trailingWhitespaceErrorMessage; // Windows: file cannot start or end with a whitespace
+        return locConstants.trailingWhitespaceErrorMessage; // Windows: file cannot start or end with a whitespace
     }
 
     if (fileName.length > 255) {
-        return constants.tooLongFilenameErrorMessage; // most file systems do not allow files > 255 length
+        return locConstants.tooLongFilenameErrorMessage; // most file systems do not allow files > 255 length
     }
 
     return undefined;

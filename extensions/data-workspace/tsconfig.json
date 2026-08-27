@@ -1,5 +1,8 @@
 {
     "extends": "../tsconfig.base.json",
-    "include": ["src", "test", "../mssql/typings/vscode-mssql.d.ts"],
+    "compilerOptions": {
+        "types": ["node"]
+    },
+    "include": ["src"],
     "exclude": ["node_modules", "out"]
 }

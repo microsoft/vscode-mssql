@@ -37,7 +37,8 @@
     "activationEvents": [
         "onUri",
         "onCommand:mssql.loadCompletionExtension",
-        "onNotebook:jupyter-notebook"
+        "onNotebook:jupyter-notebook",
+        "onView:dataworkspace.views.main"
     ],
     "main": "./dist/extension",
     "l10n": "./l10n",
