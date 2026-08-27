@@ -39,6 +39,7 @@ import {
     initializeUriOwnershipCoordinator,
 } from "./uriOwnership/uriOwnershipInitialization";
 import { registerSqlToolsMcpServer } from "./sqlToolsMcp/registerSqlToolsMcpServer";
+import { registerSqlDataPlane } from "./services/sqlDataPlane/sqlDataPlaneService";
 import { CredentialStore, ICredentialStore } from "./credentialstore/credentialstore";
 import { ConnectionConfig, IConnectionConfig } from "./connectionconfig/connectionconfig";
 import { IConnectionStore, ConnectionStore } from "./models/connectionStore";
@@ -137,6 +138,7 @@ class MssqlActivation {
 
         // Exposed for testing purposes
         vscode.commands.registerCommand("mssql.getControllerForTests", () => controller);
+        registerSqlDataPlane(context);
         await controller.activate();
 
         initializeUriOwnershipCoordinator(uriOwnershipCoordinator, controller.connectionManager);
