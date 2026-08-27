@@ -5,7 +5,7 @@
 
 /**
  * GENERATED — do not edit. Source of truth:
- * perftest/packages/observability-contracts (npm run generate, then vendor).
+ * tools/perftest/packages/observability-contracts (npm run generate, then vendor).
  * Registry obs-contract/1.
  */
 
@@ -14,26 +14,35 @@
 export type TimingClass = "sameProcessMonotonic" | "epochAligned" | "derived";
 export type EventKind = "marker" | "webviewMark" | "event" | "metric" | "richMetric" | "spanFamily";
 export type MarkerPhase = "begin" | "end" | "instant";
+
 export interface EventTypeEntry {
+    /** Exact canonical name (exclusive with prefix). */
     name?: string;
+    /** Prefix for dynamically-named families (exclusive with name). */
     prefix?: string;
     kind: EventKind;
     phase?: MarkerPhase;
+    /** Explicit pairing — suffix conventions vary and are never guessed. */
     pairsWith?: string;
     feature: string;
     processRoles: string[];
     timingClass: TimingClass;
+    /** May a duration derived from this event ever be measurement-eligible? */
     measurementEligible: boolean;
+    /** attr name -> classification id (see classifications.json). */
     attrs: Record<string, string>;
+    /** Honesty flag: the attr list is known-partial while the registry matures. */
     attrsComplete: boolean;
     notes?: string;
     deprecated?: boolean;
 }
+
 export interface MetricNameEntry {
     name: string;
     feature: string;
     derivedFrom: string[];
 }
+
 export interface Registry {
     schemaVersion: string;
     events: EventTypeEntry[];
@@ -3524,7 +3533,7 @@ export const OBS_CONTRACT: Registry = {
             ],
         },
         {
-            name: "mssql.queryResults.spatial.render.firstPaint",
+            name: "mssql.queryResults.spatial.render.toFirstPaint",
             feature: "queryResults",
             derivedFrom: [
                 "mssql.queryResults.spatial.render.begin",
@@ -3600,8 +3609,6 @@ export const OBS_CONTRACT: Registry = {
 export function loadRegistry(): Registry {
     return OBS_CONTRACT;
 }
-
-// Name validation
 
 export interface NameMatch {
     known: boolean;
@@ -3680,6 +3687,13 @@ export interface EligibilityInput {
      * inherits the weakest input plane and requires provenance).
      */
     hasDerivation?: boolean;
+    /** Eligibility already computed for every declared derivation input. */
+    inputs?: Array<
+        Pick<
+            MetricEligibility,
+            "measurementEligible" | "ciGatingEligible" | "diagnosticOnly" | "timePlane" | "reason"
+        >
+    >;
 }
 
 const MEASUREMENT_SOURCES = new Set(["marker", "productTimer", "manual"]);
@@ -3689,7 +3703,8 @@ const MEASUREMENT_SOURCES = new Set(["marker", "productTimer", "manual"]);
  * in-proc self-test both call this so the rules cannot drift.
  *
  * Honesty rules (design §12.2 + peer-review terminology split):
- *  - only marker/product-timer sources can be measurement-eligible;
+ *  - only marker/product-timer sources and orchestrator-clock `manual` timings
+ *    can be measurement-eligible;
  *  - epoch-aligned durations are diagnostic-only ("calibrated" is reserved
  *    for the harness's clock-calibrated cross-process plane);
  *  - diagnostic/calibration passes never produce measurement metrics;
@@ -3701,6 +3716,7 @@ const MEASUREMENT_SOURCES = new Set(["marker", "productTimer", "manual"]);
 export function deriveEligibility(input: EligibilityInput): MetricEligibility {
     const reasons: string[] = [];
     let measurement = true;
+    let effectiveTimePlane = input.timePlane;
 
     const derivedWithProvenance = input.source === "derived" && input.hasDerivation === true;
     if (!MEASUREMENT_SOURCES.has(input.source) && !derivedWithProvenance) {
@@ -3711,7 +3727,23 @@ export function deriveEligibility(input: EligibilityInput): MetricEligibility {
                 : `source '${input.source}' is diagnostic`,
         );
     }
-    if (input.timePlane === "epoch") {
+    if (derivedWithProvenance) {
+        if (!input.inputs || input.inputs.length === 0) {
+            measurement = false;
+            reasons.push("derived metric has no resolved input eligibility");
+        } else {
+            const weakest = [...input.inputs].sort(
+                (a, b) => timePlaneRank(b.timePlane) - timePlaneRank(a.timePlane),
+            )[0]!;
+            effectiveTimePlane = weakest.timePlane;
+            const ineligible = input.inputs.filter((candidate) => !candidate.measurementEligible);
+            if (ineligible.length > 0) {
+                measurement = false;
+                reasons.push(`derived input is diagnostic-only (${ineligible[0]!.reason})`);
+            }
+        }
+    }
+    if (effectiveTimePlane === "epoch") {
         measurement = false;
         reasons.push("epoch-aligned timing is diagnostic-only");
     }
@@ -3734,13 +3766,16 @@ export function deriveEligibility(input: EligibilityInput): MetricEligibility {
 
     if (measurement) {
         reasons.push(
-            input.timePlane === "monotonic"
+            effectiveTimePlane === "monotonic"
                 ? `same-process monotonic from source '${input.source}'`
-                : `${input.timePlane} plane from source '${input.source}'`,
+                : `${effectiveTimePlane} plane from source '${input.source}'`,
         );
     }
 
-    const ciGating = measurement && input.environment === "controlledHarness";
+    const ciGating =
+        measurement &&
+        input.environment === "controlledHarness" &&
+        (!derivedWithProvenance || input.inputs!.every((candidate) => candidate.ciGatingEligible));
     const exploratory = measurement && input.environment === "interactiveHost";
     if (measurement && !ciGating) {
         reasons.push(
@@ -3755,12 +3790,16 @@ export function deriveEligibility(input: EligibilityInput): MetricEligibility {
         ciGatingEligible: ciGating,
         exploratory,
         diagnosticOnly: !measurement,
-        timePlane: input.timePlane,
+        timePlane: effectiveTimePlane,
         source: input.source,
         passType: input.passType,
         environment: input.environment,
         reason: reasons.join("; "),
     };
+}
+
+function timePlaneRank(timePlane: TimePlane): number {
+    return { monotonic: 0, calibrated: 1, derived: 2, epoch: 3 }[timePlane];
 }
 
 // Trace Identity V1 — the cross-repo correlation contract. Identities can be
@@ -3854,7 +3893,7 @@ export function lintCorrelation(
     let correlatable = 0;
     let orphans = 0;
     for (const event of events) {
-        if (!event.type.startsWith("mssql.") || CORRELATION_EXEMPT.test(event.type)) {
+        if (!explainEventName(event.type, reg).known || CORRELATION_EXEMPT.test(event.type)) {
             continue;
         }
         correlatable++;
@@ -3895,10 +3934,14 @@ export function lintCorrelation(
             });
         }
     }
-    // Dynamic span families: rpc./webview./sts. pair on .begin/.end suffix.
+    // Dynamic span families come from the registry and pair on .begin/.end.
+    const spanFamilies = reg.events.filter(
+        (entry): entry is EventTypeEntry & { prefix: string } =>
+            entry.kind === "spanFamily" && typeof entry.prefix === "string",
+    );
     const familyBase = new Map<string, { begins: number; ends: number }>();
     for (const [type, count] of counts) {
-        if (!/^(rpc\.|webview\.|sts\.)/.test(type)) {
+        if (!spanFamilies.some((entry) => type.startsWith(entry.prefix))) {
             continue;
         }
         if (type.endsWith(".begin")) {
@@ -3958,7 +4001,10 @@ export function lintCorrelation(
     // --- epoch-aligned + scenario window ------------------------------------
     let epochAlignedCount = 0;
     for (const event of events) {
-        if (event.type.startsWith("sts.") || event.tags?.includes("stsDiag")) {
+        if (
+            explainEventName(event.type, reg).entry?.timingClass === "epochAligned" ||
+            event.tags?.includes("stsDiag")
+        ) {
             epochAlignedCount++;
         }
     }

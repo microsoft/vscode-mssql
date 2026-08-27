@@ -13,6 +13,7 @@
 import { expect } from "chai";
 import { CapabilityCheck } from "../../src/services/sqlDataPlane/api";
 import {
+    CapabilityFallbackPresentation,
     FallbackInteraction,
     formatCapabilitySuggestion,
     resolveCapabilityFallback,
@@ -26,17 +27,17 @@ const FAILED_CHECK: CapabilityCheck = {
 };
 
 class RecordingInteraction implements FallbackInteraction {
-    prompts: { message: string; actions: readonly string[] }[] = [];
-    notifications: string[] = [];
-    promptAnswer: string | undefined;
+    prompts: CapabilityFallbackPresentation[] = [];
+    notifications: CapabilityFallbackPresentation[] = [];
+    promptAnswer = false;
 
-    async prompt(message: string, actions: readonly string[]): Promise<string | undefined> {
-        this.prompts.push({ message, actions });
+    async prompt(presentation: CapabilityFallbackPresentation): Promise<boolean> {
+        this.prompts.push(presentation);
         return this.promptAnswer;
     }
 
-    notify(message: string): void {
-        this.notifications.push(message);
+    notify(presentation: CapabilityFallbackPresentation): void {
+        this.notifications.push(presentation);
     }
 }
 
@@ -62,20 +63,21 @@ function options(
 suite("SQL Data Plane capability fallback (TSQ2-9)", () => {
     test("prompt: user accepts the alternative", async () => {
         const interaction = new RecordingInteraction();
-        interaction.promptAnswer = "Open with SQL Tools Service (STS v2)";
+        interaction.promptAnswer = true;
         const decision = await resolveCapabilityFallback(options("prompt", interaction));
         expect(decision).to.deep.equal({
             kind: "useAlternative",
             alternative: "sts2-local",
         });
-        expect(interaction.prompts[0].message).to.contain("auth.integrated");
-        expect(interaction.prompts[0].message).to.contain("Native TypeScript");
+        expect(interaction.prompts[0].missingCapabilities).to.contain("auth.integrated");
+        expect(interaction.prompts[0].currentDisplayName).to.contain("Native TypeScript");
+        expect(interaction.prompts[0].alternativeDisplayName).to.contain("SQL Tools Service");
         expect(interaction.notifications).to.deep.equal([]);
     });
 
     test("prompt: dismissal aborts (never switches behind the user's back)", async () => {
         const interaction = new RecordingInteraction();
-        interaction.promptAnswer = undefined;
+        interaction.promptAnswer = false;
         const decision = await resolveCapabilityFallback(options("prompt", interaction));
         expect(decision.kind).to.equal("abort");
     });
@@ -90,7 +92,9 @@ suite("SQL Data Plane capability fallback (TSQ2-9)", () => {
         });
         expect(interaction.prompts).to.deep.equal([]);
         expect(interaction.notifications.length).to.equal(1);
-        expect(interaction.notifications[0]).to.contain("SQL Tools Service (STS v2)");
+        expect(interaction.notifications[0].alternativeDisplayName).to.equal(
+            "SQL Tools Service (STS v2)",
+        );
     });
 
     test("off: surfaces the typed error, never switches", async () => {

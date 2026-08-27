@@ -7,7 +7,7 @@
  * Diagnostics core: the single emission path for all product instrumentation.
  * One event model, pluggable sinks, different gates:
  *
- *   PerfModeSink     — PERF_MODE=1 harness capture (exact legacy wire format)
+ *   PerfModeSink     — PERF_MODE=1 harness capture (established wire format)
  *   LiveTailSink     — bounded ring feeding the Debug Console live view
  *   SessionDiagSink  — user-enabled local Session Diag store (JSONL segments)
  *
@@ -26,7 +26,7 @@ import {
     DiagStatus,
     DiagTimingClass,
     GapRecord,
-} from "../sharedInterfaces/debugConsole";
+} from "../sharedInterfaces/diagnostics";
 import { CAPTURE_POLICIES, classifyPayload } from "./redaction";
 
 export interface RawField {
@@ -72,6 +72,9 @@ export interface DiagSpan {
     fail(error: unknown): void;
 }
 
+// The SQL Data Plane codes and most Entra names are reserved for later
+// feature extractions. Keeping the closed allowlist here avoids broadening
+// error metadata when those producers arrive.
 const SAFE_ERROR_CODES = new Set([
     "SqlDataPlane.InvalidRequest",
     "SqlDataPlane.Busy",
@@ -128,12 +131,14 @@ export function newTraceId(hint?: string): string {
     return `trace_${(hint ?? "act").replace(/[^a-z0-9]/gi, "").slice(0, 12)}_${Date.now().toString(36)}_${traceCounter.toString(36)}`;
 }
 
-class DiagnosticsCore {
+export class DiagnosticsCore {
     private sinks: DiagnosticSink[] = [];
     private seq = 0;
     private eventCounter = 0;
     public readonly sessionId: string;
-    private policy: CapturePolicy = CAPTURE_POLICIES.off;
+    // Store capture starts off, but active non-store sinks receive the default
+    // redacted envelope promised by setCaptureMode("off").
+    private policy: CapturePolicy = CAPTURE_POLICIES.redacted;
     private storePolicy: CapturePolicy = CAPTURE_POLICIES.off;
     private policyRevertTimer: NodeJS.Timeout | undefined;
     /** Ambient trace for synchronous scopes; async work passes traceId explicitly. */
@@ -152,6 +157,7 @@ class DiagnosticsCore {
     private rootTrace: string | undefined;
     private rootTraceStartedMs = 0;
     private static readonly ROOT_WINDOW_MS = 120_000;
+    // OE/command/userAction families are reserved for later feature PRs.
     private static readonly ROOT_BEGINNERS: RegExp[] = [
         /^mssql\.command\.invoked$/,
         /^mssql\.query\.submit$/,
@@ -170,16 +176,22 @@ class DiagnosticsCore {
     // --- sinks ---------------------------------------------------------------
 
     public addSink(sink: DiagnosticSink): void {
+        if (this.sinks.some((candidate) => candidate === sink)) {
+            return;
+        }
+        this.removeSink(sink.id);
         this.sinks.push(sink);
     }
 
     public removeSink(id: string): void {
-        const sink = this.sinks.find((s) => s.id === id);
+        const removed = this.sinks.filter((sink) => sink.id === id);
         this.sinks = this.sinks.filter((s) => s.id !== id);
-        try {
-            sink?.dispose?.();
-        } catch {
-            // sink failures never propagate
+        for (const sink of removed) {
+            try {
+                sink.dispose?.();
+            } catch {
+                // sink failures never propagate
+            }
         }
     }
 
@@ -283,7 +295,10 @@ class DiagnosticsCore {
             this.policyRevertTimer = undefined;
         }
         if (mode === "full") {
-            const durationMs = Math.min(options?.durationMs ?? 15 * 60_000, 60 * 60_000);
+            const requestedDurationMs = options?.durationMs ?? 15 * 60_000;
+            const durationMs = Number.isFinite(requestedDurationMs)
+                ? Math.max(1_000, Math.min(requestedDurationMs, 60 * 60_000))
+                : 15 * 60_000;
             const expires = Date.now() + durationMs;
             this.storePolicy = CAPTURE_POLICIES.full(options?.reason ?? "elevated", expires);
             this.policyRevertTimer = setTimeout(() => {
@@ -309,8 +324,11 @@ class DiagnosticsCore {
         }
     }
 
-    public onCaptureModeChanged(listener: (mode: CaptureMode) => void): void {
+    public onCaptureModeChanged(listener: (mode: CaptureMode) => void): () => void {
         this.listeners.push(listener);
+        return () => {
+            this.listeners = this.listeners.filter((candidate) => candidate !== listener);
+        };
     }
 
     // --- trace context ---------------------------------------------------------
@@ -469,6 +487,7 @@ class DiagnosticsCore {
             type: `${input.type}.begin`,
         });
         const core = this;
+        let completed = false;
         const richBlock = (): DiagEvent["perf"] | undefined => {
             if (!core.richModeEnabled) {
                 return undefined;
@@ -489,6 +508,10 @@ class DiagnosticsCore {
         return {
             traceId,
             end(status?: DiagStatus, fields?: Record<string, RawField>): void {
+                if (completed) {
+                    return;
+                }
+                completed = true;
                 const durationMs = Number(process.hrtime.bigint() - startMono) / 1e6;
                 const perf = richBlock();
                 core.emit({
@@ -505,6 +528,10 @@ class DiagnosticsCore {
                 });
             },
             fail(error: unknown): void {
+                if (completed) {
+                    return;
+                }
+                completed = true;
                 const durationMs = Number(process.hrtime.bigint() - startMono) / 1e6;
                 core.emit({
                     ...input,
@@ -513,10 +540,11 @@ class DiagnosticsCore {
                     type: `${input.type}.end`,
                     status: "error",
                     durationMs: Number(durationMs.toFixed(2)),
+                    timingClass: "officialSameProcess",
                     fields: {
                         ...input.fields,
-                        error: {
-                            raw: error instanceof Error ? error.message : String(error),
+                        errorClass: {
+                            raw: diagnosticErrorClass(error),
                             cls: "diagnostic.metadata",
                         },
                     },

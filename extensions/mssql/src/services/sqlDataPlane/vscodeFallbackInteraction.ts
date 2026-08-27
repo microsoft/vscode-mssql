@@ -12,14 +12,29 @@
  */
 
 import * as vscode from "vscode";
+import * as LocConstants from "../../constants/locConstants";
 import { FallbackInteraction } from "./providerSuggestions";
 
 export function vscodeFallbackInteraction(): FallbackInteraction {
     return {
         // Modal: this decision blocks the connection, so it must be deliberate.
         // A non-modal toast can be dismissed/missed, which would abort the open.
-        prompt: (message, actions) =>
-            Promise.resolve(vscode.window.showWarningMessage(message, { modal: true }, ...actions)),
-        notify: (message) => void vscode.window.showInformationMessage(message),
+        prompt: async ({ missingCapabilities, currentDisplayName, alternativeDisplayName }) => {
+            const action = LocConstants.SqlDataPlane.openWithProvider(alternativeDisplayName);
+            const message = LocConstants.SqlDataPlane.fallbackPrompt(
+                missingCapabilities,
+                currentDisplayName,
+            );
+            const choice = await vscode.window.showWarningMessage(message, { modal: true }, action);
+            return choice === action;
+        },
+        notify: ({ missingCapabilities, currentDisplayName, alternativeDisplayName }) =>
+            void vscode.window.showInformationMessage(
+                LocConstants.SqlDataPlane.fallbackNotification(
+                    missingCapabilities,
+                    currentDisplayName,
+                    alternativeDisplayName,
+                ),
+            ),
     };
 }

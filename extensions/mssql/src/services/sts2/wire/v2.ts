@@ -162,39 +162,27 @@ export interface V2QueryExecuteResult {
 /** High-water ack (per-page `pageSeq` also accepted by the service). */
 export interface V2QueryAckParams {
     queryId: string;
+    resultSetId?: number;
     throughPageSeq?: number;
     pageSeq?: number;
 }
 
 // ---------------------------------------------------------------------------
-// Notifications (tolerant parsing: driver JSON casing may vary)
+// Notifications (pinned to the STS2 camelCase wire contract)
 // ---------------------------------------------------------------------------
 
 export interface V2WireColumn {
     name?: string;
-    Name?: string;
     /** The service serializes the engine type name as `type` (D-0018). */
     type?: string;
-    Type?: string;
-    engineType?: string;
-    EngineType?: string;
     nullable?: boolean | null;
-    Nullable?: boolean | null;
     precision?: number | null;
-    Precision?: number | null;
     scale?: number | null;
-    Scale?: number | null;
     length?: number | null;
-    Length?: number | null;
     collation?: string | null;
-    Collation?: string | null;
     spatial?: {
         kind?: "geometry" | "geography" | string;
         encoding?: "wkb-v1" | string;
-    } | null;
-    Spatial?: {
-        Kind?: "geometry" | "geography" | string;
-        Encoding?: "wkb-v1" | string;
     } | null;
 }
 
@@ -203,9 +191,8 @@ export function wireColumnSpatial(
     column: V2WireColumn,
 ): { kind: "geometry" | "geography"; encoding: "wkb-v1" } | undefined {
     const compact = column.spatial;
-    const pascal = column.Spatial;
-    const kind = compact?.kind ?? pascal?.Kind;
-    const encoding = compact?.encoding ?? pascal?.Encoding;
+    const kind = compact?.kind;
+    const encoding = compact?.encoding;
     return (kind === "geometry" || kind === "geography") && encoding === "wkb-v1"
         ? { kind, encoding }
         : undefined;
@@ -297,33 +284,30 @@ export interface V2FatalNotification {
 // --- helpers ----------------------------------------------------------------
 
 export function wireColumnName(column: V2WireColumn): string {
-    return column.name ?? column.Name ?? "";
+    return column.name ?? "";
 }
 
 export function wireColumnType(column: V2WireColumn): string | undefined {
-    // The service field is `type` (DriverEffectRunner.SerializeColumns);
-    // engineType variants kept for tolerant-reader compatibility. Before the
-    // `type` fallback landed, sqlType was silently undefined on the STS2 path.
-    return column.engineType ?? column.EngineType ?? column.type ?? column.Type;
+    return column.type;
 }
 
 export function wireColumnNullable(column: V2WireColumn): boolean | undefined {
-    const value = column.nullable ?? column.Nullable;
+    const value = column.nullable;
     return value === null ? undefined : value;
 }
 
 export function wireColumnPrecision(column: V2WireColumn): number | undefined {
-    const value = column.precision ?? column.Precision;
+    const value = column.precision;
     return value === null || value === undefined ? undefined : value;
 }
 
 export function wireColumnScale(column: V2WireColumn): number | undefined {
-    const value = column.scale ?? column.Scale;
+    const value = column.scale;
     return value === null || value === undefined ? undefined : value;
 }
 
 export function wireColumnLength(column: V2WireColumn): number | undefined {
-    const value = column.length ?? column.Length;
+    const value = column.length;
     return value === null || value === undefined ? undefined : value;
 }
 
@@ -342,4 +326,10 @@ export function totalRowsAffected(value: number | number[] | null | undefined): 
 /** Stable Sts2.* identity from a JSON-RPC error object. */
 export function sts2ErrorCode(error: unknown): string | undefined {
     return (error as { data?: { code?: string } } | undefined)?.data?.code;
+}
+
+/** JSON-RPC envelope code (distinct from stable `error.data.code`). */
+export function jsonRpcErrorCode(error: unknown): number | undefined {
+    const code = (error as { code?: unknown } | undefined)?.code;
+    return typeof code === "number" ? code : undefined;
 }

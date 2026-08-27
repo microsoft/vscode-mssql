@@ -269,7 +269,7 @@ export default class MainController implements vscode.Disposable {
         const self = this;
         this._context.subscriptions.push(
             vscode.commands.registerCommand(command, () => {
-                Perf.marker("mssql.command.invoked", "instant", { command });
+                Perf.marker("mssql.command.invoked", "instant", { commandId: command });
                 self._event.emit(command);
             }),
         );
@@ -282,7 +282,7 @@ export default class MainController implements vscode.Disposable {
         const self = this;
         this._context.subscriptions.push(
             vscode.commands.registerCommand(command, (args: any) => {
-                Perf.marker("mssql.command.invoked", "instant", { command });
+                Perf.marker("mssql.command.invoked", "instant", { commandId: command });
                 self._event.emit(command, args);
             }),
         );

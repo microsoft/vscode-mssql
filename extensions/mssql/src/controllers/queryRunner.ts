@@ -58,6 +58,7 @@ import * as os from "os";
 import { Deferred } from "../protocol";
 import { sendActionEvent, startActivity } from "extension-toolkit/vscode";
 import { Perf } from "../perf/perfTelemetry";
+import { diagnosticErrorClass } from "../diagnostics/diagnosticsCore";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { SelectionSummary } from "../sharedInterfaces/queryResult";
 import { bucketizeRowCount, getInMemoryGridDataProcessingThreshold } from "../queryResult/utils";
@@ -372,12 +373,14 @@ export default class QueryRunner {
                     );
                 }
             }, Constants.stsImmediateActivityTimeout);
+            this.markQuerySubmitted();
             await this._client.sendRequest(QueryExecuteStatementRequest.type, optionsParams);
             this._startEmitter.fire(this.uri);
             runStatementRequestCompleted = true;
             runStatementActivity?.end(ActivityStatus.Succeeded);
         } catch (error) {
             runStatementRequestCompleted = true;
+            this.markQuerySubmissionFailed(error);
             this._handleQueryCleanup(undefined, error);
             this._startFailedEmitter.fire(getErrorMessage(error));
             runStatementActivity?.endFailed(error, false);
@@ -445,13 +448,14 @@ export default class QueryRunner {
                     );
                 }
             }, Constants.stsImmediateActivityTimeout);
-            Perf.marker("mssql.query.submit", "begin");
+            this.markQuerySubmitted();
             await this._client.sendRequest(QueryExecuteRequest.type, executeOptions);
             this._startEmitter.fire(this.uri);
             runQueryRequestCompleted = true;
             runQueryActivity?.end(ActivityStatus.Succeeded);
         } catch (error) {
             runQueryRequestCompleted = true;
+            this.markQuerySubmissionFailed(error);
             this._handleQueryCleanup(undefined, error);
             this._startFailedEmitter.fire(getErrorMessage(error));
             runQueryActivity?.endFailed(error, false);
@@ -503,12 +507,14 @@ export default class QueryRunner {
                     );
                 }
             }, Constants.stsImmediateActivityTimeout);
+            this.markQuerySubmitted();
             await this._client.sendRequest(QueryExecuteStringRequest.type, executeParams);
             this._startEmitter.fire(this.uri);
             runQueryRequestCompleted = true;
             runQueryActivity?.end(ActivityStatus.Succeeded);
         } catch (error) {
             runQueryRequestCompleted = true;
+            this.markQuerySubmissionFailed(error);
             this._handleQueryCleanup(undefined, error);
             this._startFailedEmitter.fire(getErrorMessage(error));
             runQueryActivity?.endFailed(error, false);
@@ -530,6 +536,17 @@ export default class QueryRunner {
         QueryRunner.addRunningQuery(this._ownerUri);
 
         this.registerNotificationUri(this._ownerUri);
+    }
+
+    private markQuerySubmitted(): void {
+        Perf.marker("mssql.query.submit", "begin");
+    }
+
+    private markQuerySubmissionFailed(error: unknown): void {
+        Perf.marker("mssql.query.complete", "end", {
+            hasError: true,
+            errorClass: diagnosticErrorClass(error),
+        });
     }
 
     // handle the result of the notification

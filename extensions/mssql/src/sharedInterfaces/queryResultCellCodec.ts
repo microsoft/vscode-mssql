@@ -535,10 +535,10 @@ function spatialUnavailableText(cell: SpatialCellUnavailableV1): string {
 
 function bytesToSqlHex(bytes: Uint8Array): string {
     const digits = "0123456789ABCDEF";
-    const output = new Array<string>(bytes.byteLength * 2 + 1);
+    const output = new Array<string>(bytes.byteLength + 1);
     output[0] = "0x";
     for (let i = 0; i < bytes.byteLength; i++) {
-        output[i * 2 + 1] = digits[bytes[i] >> 4] + digits[bytes[i] & 0x0f];
+        output[i + 1] = digits[bytes[i] >> 4] + digits[bytes[i] & 0x0f];
     }
     return output.join("");
 }

@@ -4280,3 +4280,203 @@ export class SpatialBasemap {
         "Spatial map layer consent cleared. Online layers will ask again before their next use.",
     );
 }
+
+/** Strings for the Projects workspace surface (src/dataWorkspace). */
+export class DataWorkspace {
+    public static ExtensionActivationError = (extensionId: string, error: string): string => {
+        return l10n.t(
+            "Failed to load the project provider extension '{0}'. Error message: {1}",
+            extensionId,
+            error,
+        );
+    };
+    public static UnknownProjectsError = (projectFiles: string[]): string => {
+        return l10n.t(
+            "No provider was found for the following projects: {0}",
+            projectFiles.join(os.EOL),
+        );
+    };
+    public static SelectProjectFileActionName = l10n.t("Select");
+    public static AllProjectTypes = l10n.t("All Project Types");
+    public static ProviderNotFoundForProjectTypeError = (projectType: string): string => {
+        return l10n.t("No provider was found for project type with id: '{0}'", projectType);
+    };
+    public static projectFailedToLoad = (project: string, error: string) => {
+        return l10n.t(
+            "Project '{0}' failed to load: {1}  To view more details, [open the developer console](command:workbench.action.toggleDevTools).",
+            project,
+            error,
+        );
+    };
+    public static fileDoesNotExist = (name: string): string => {
+        return l10n.t("File '{0}' doesn't exist", name);
+    };
+    public static projectNameNull = l10n.t("Project name is null");
+    public static noPreviousData = (tableName: string): string => {
+        return l10n.t(
+            "Prior {0} for the current project will appear here, please run to see the results.",
+            tableName,
+        );
+    };
+    public static gitCloneMessage = (url: string): string => {
+        return l10n.t("Cloning git repository '{0}'...", url);
+    };
+    public static gitCloneError = l10n.t(
+        "Error during git clone. View git output for more details",
+    );
+    public static openedProjectsUndefinedAfterRefresh = l10n.t(
+        "List of opened projects should not be undefined after refresh from disk.",
+    );
+    public static dragAndDropNotSupported = l10n.t(
+        "This project type does not support drag and drop.",
+    );
+    public static onlyMovingOneFileIsSupported = l10n.t(
+        "Only moving one file at a time is supported.",
+    );
+    public static noProjectProvidingExtensionsInstalled = l10n.t(
+        "No database project extensions are installed. Please install a database project extension to use this feature.",
+    );
+    // UI
+    public static OkButtonText = l10n.t("OK");
+    public static BrowseButtonText = l10n.t("Browse");
+    public static BrowseEllipsis = l10n.t("Browse...");
+    public static OpenButtonText = l10n.t("Open");
+    public static CreateButtonText = l10n.t("Create");
+    public static Select = l10n.t("Select");
+    // New Project Dialog
+    public static NewProjectDialogTitle = l10n.t("Create new database project");
+    public static TypeTitle = l10n.t("Type");
+    public static ProjectNameTitle = l10n.t("Name");
+    public static ProjectNamePlaceholder = l10n.t("Enter project name");
+    public static EnterProjectName = l10n.t("Enter Project Name");
+    public static ProjectLocationTitle = l10n.t("Location");
+    public static ProjectLocationPlaceholder = l10n.t("Select location to create project");
+    public static ProjectParentDirectoryNotExistError = (location: string): string => {
+        return l10n.t(
+            "The selected project location '{0}' does not exist or is not a directory.",
+            location,
+        );
+    };
+    public static ProjectDirectoryAlreadyExistError = (
+        projectName: string,
+        location: string,
+    ): string => {
+        return l10n.t(
+            "There is already a directory named '{0}' in the selected location: '{1}'.",
+            projectName,
+            location,
+        );
+    };
+    public static ProjectDirectoryAlreadyExistErrorShort = (projectName: string) => {
+        return l10n.t(
+            "Directory '{0}' already exists in the selected location, please choose another",
+            projectName,
+        );
+    };
+    public static SelectProjectType = l10n.t("Select Database Project Type");
+    public static SelectProjectLocation = l10n.t("Select Project Location");
+    public static NameCannotBeEmpty = l10n.t("Name cannot be empty");
+    public static TargetPlatform = l10n.t("Target Platform");
+    public static SdkStyleProject = l10n.t("SDK-style project");
+    public static LearnMore = l10n.t("Learn More");
+    public static YesRecommended = l10n.t("Yes (Recommended)");
+    public static No = l10n.t("No");
+    public static Yes = l10n.t("Yes");
+    public static SdkLearnMorePlaceholder = l10n.t(
+        'Click "Learn More" button for more information about SDK-style projects',
+    );
+    public static Default = l10n.t("Default");
+    public static SelectTargetPlatform = l10n.t("Select Target Platform");
+    public static LocalDevInfo = (target: string) =>
+        l10n.t(
+            'Click "Learn more" button for more information about local development experience to {0}',
+            target,
+        );
+    public static undefinedFilenameErrorMessage = l10n.t("Undefined name");
+    public static filenameEndingIsPeriodErrorMessage = l10n.t("File name cannot end with a period");
+    public static whitespaceFilenameErrorMessage = l10n.t("File name cannot be whitespace");
+    public static invalidFileCharsErrorMessage = l10n.t("Invalid file characters");
+    public static reservedWindowsFilenameErrorMessage = l10n.t(
+        "This file name is reserved for use by Windows. Choose another name and try again",
+    );
+    public static reservedValueErrorMessage = l10n.t(
+        "Reserved file name. Choose another name and try again",
+    );
+    public static trailingWhitespaceErrorMessage = l10n.t(
+        "File name cannot start or end with whitespace",
+    );
+    public static tooLongFilenameErrorMessage = l10n.t("File name cannot be over 255 characters");
+    public static confirmCreateProjectWithBuildTaskDialogName = l10n.t(
+        "Do you want to configure SQL project build as the default build configuration for this folder?",
+    );
+    //Open Existing Dialog
+    public static OpenExistingDialogTitle = l10n.t("Open Existing Project");
+    public static FileNotExistError = (fileType: string, filePath: string): string => {
+        return l10n.t(
+            "The selected {0} file '{1}' does not exist or is not a file.",
+            fileType,
+            filePath,
+        );
+    };
+    public static CloneParentDirectoryNotExistError = (location: string): string => {
+        return l10n.t(
+            "The selected clone path '{0}' does not exist or is not a directory.",
+            location,
+        );
+    };
+    public static Project = l10n.t("Project");
+    public static LocationSelectorTitle = l10n.t("Location");
+    public static ProjectFilePlaceholder = l10n.t("Select project file");
+    public static WorkspacePlaceholder = (workspaceFileExtension: string) =>
+        l10n.t("Select workspace ({0}) file", workspaceFileExtension);
+    public static ProjectAlreadyOpened = (path: string): string => {
+        return l10n.t("Project '{0}' is already opened.", path);
+    };
+    public static Local = l10n.t("Local");
+    public static RemoteGitRepo = l10n.t("Remote git repository");
+    public static GitRepoUrlTitle = l10n.t("Git repository URL");
+    public static GitRepoUrlPlaceholder = l10n.t("Enter remote git repository URL");
+    public static LocalClonePathTitle = l10n.t("Local clone path");
+    public static LocalClonePathPlaceholder = l10n.t("Select location to clone repository locally");
+    public static ProjectFileTitle = l10n.t("Project file");
+    // Dashboard dialog
+    public static Refresh = l10n.t("Refresh");
+}
+
+export class SqlDataPlane {
+    public static openWithProvider = (alternativeDisplayName: string): string =>
+        l10n.t({
+            message: "Open with {0}",
+            args: [alternativeDisplayName],
+            comment: ["{0} is the display name of the alternative SQL data plane provider"],
+        });
+
+    public static fallbackPrompt = (
+        missingCapabilities: string,
+        currentDisplayName: string,
+    ): string =>
+        l10n.t({
+            message: "This connection requires {0}, which {1} does not support.",
+            args: [missingCapabilities, currentDisplayName],
+            comment: [
+                "{0} is a list of required capabilities",
+                "{1} is the display name of the current SQL data plane provider",
+            ],
+        });
+
+    public static fallbackNotification = (
+        missingCapabilities: string,
+        currentDisplayName: string,
+        alternativeDisplayName: string,
+    ): string =>
+        l10n.t({
+            message:
+                "This connection requires {0}, which {1} does not support. Connected with {2} instead.",
+            args: [missingCapabilities, currentDisplayName, alternativeDisplayName],
+            comment: [
+                "{0} is a list of required capabilities",
+                "{1} is the display name of the current SQL data plane provider",
+                "{2} is the display name of the alternative SQL data plane provider",
+            ],
+        });
+}

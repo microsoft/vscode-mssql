@@ -8,13 +8,13 @@ import { IExtension } from "dataworkspace";
 import { WorkspaceService } from "../services/workspaceService";
 import { defaultProjectSaveLocation } from "./projectLocationHelper";
 import { createNewProjectWithQuickpick } from "../dialogs/newProjectQuickpick";
+import { DataWorkspace as locConstants } from "../../constants/locConstants";
 import {
     isValidBasename,
     isValidBasenameErrorMessage,
     isValidFilenameCharacter,
     sanitizeStringForFilename,
 } from "./pathUtilsHelper";
-import { noProjectProvidingExtensionsInstalled } from "./constants";
 
 export class DataWorkspaceExtension implements IExtension {
     constructor(private workspaceService: WorkspaceService) {}
@@ -45,7 +45,7 @@ export class DataWorkspaceExtension implements IExtension {
 
     openSpecificProjectNewProjectDialog(): Promise<vscode.Uri | undefined> {
         if (!this.workspaceService.isProjectProviderAvailable) {
-            void vscode.window.showErrorMessage(noProjectProvidingExtensionsInstalled);
+            void vscode.window.showErrorMessage(locConstants.noProjectProvidingExtensionsInstalled);
             return Promise.resolve(undefined);
         }
 

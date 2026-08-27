@@ -1466,6 +1466,10 @@ export default class ConnectionManager {
 
         credentials = await this.prepareConnectionInfo(credentials, connectionActivity);
 
+        // Measure the actual connection attempt. Credential/Entra preparation
+        // may prompt, throw, or be cancelled and must not leave an orphan begin.
+        Perf.marker("mssql.connection.begin", "begin");
+
         // Check if the connection is one that we can check for pause status (i.e., a Azure SQL database using Entra MFA auth)
         const isPauseAwareConnection =
             shouldHandleErrors && canCheckDatabasePauseStatus(credentials);
@@ -1523,6 +1527,10 @@ export default class ConnectionManager {
             initRequestCompleted = true;
         } catch (error) {
             initRequestCompleted = true;
+            Perf.marker("mssql.connection.failed", "instant", {
+                error: true,
+                reason: "requestRejected",
+            });
             this.removeActiveConnection(fileUri);
             connectionCompletePromise.reject(error);
             this._uriToConnectionCompleteParamsMap.delete(connectParams.ownerUri);
@@ -1548,6 +1556,10 @@ export default class ConnectionManager {
          */
         if (!initResponse) {
             const initialConnectionError = new Error("Failed to initiate connection");
+            Perf.marker("mssql.connection.failed", "instant", {
+                error: true,
+                reason: "emptyResponse",
+            });
             this.removeActiveConnection(fileUri);
             connectionCompletePromise.reject(initialConnectionError);
             this._uriToConnectionCompleteParamsMap.delete(connectParams.ownerUri);
@@ -1563,7 +1575,7 @@ export default class ConnectionManager {
             connectionInitiated: "true",
         });
 
-        const result = await connectionCompletePromise.promise;
+        const result = await this.awaitConnectionCompletion(connectionCompletePromise.promise);
 
         connectionInfo.connecting = false;
 
@@ -1599,6 +1611,10 @@ export default class ConnectionManager {
                 ) {
                     connectionActivity.update({ retryConnection: "true" });
                     connectionActivity.end(ActivityStatus.Retrying);
+                    Perf.marker("mssql.connection.failed", "instant", {
+                        error: true,
+                        reason: "serverlessRetry",
+                    });
 
                     return await this.connect(fileUri, connectionInfo.credentials, {
                         shouldHandleErrors,
@@ -1620,6 +1636,10 @@ export default class ConnectionManager {
                 });
                 if (errorHandlingResult.isHandled) {
                     connectionActivity.end(ActivityStatus.Retrying);
+                    Perf.marker("mssql.connection.failed", "instant", {
+                        error: true,
+                        reason: "credentialRetry",
+                    });
                     return await this.connect(fileUri, errorHandlingResult.updatedCredentials, {
                         connectionSource: connectionSource,
                     });
@@ -1631,10 +1651,9 @@ export default class ConnectionManager {
             connectionInfo.messages = result.messages;
             connectionInfo.connecting = false;
 
-            // Balanced connection lifecycle: begin → ready | failed, with the
-            // error number as classification (message stays out of the marker).
-            Perf.marker("mssql.connection.failed", "end", {
+            Perf.marker("mssql.connection.failed", "instant", {
                 error: true,
+                reason: result.errorNumber !== undefined ? "sqlError" : "unknown",
                 ...(result.errorNumber !== undefined ? { errorNumber: result.errorNumber } : {}),
             });
 
@@ -1817,6 +1836,26 @@ export default class ConnectionManager {
 
     /**
      * Handles the steps to take on a successful connection.
+     * Waits for the connection/complete notification. The only code that rejects
+     * this deferred is cancelConnection ("Connection cancelled"), which would
+     * otherwise leave the mssql.connection.begin perf interval without a
+     * terminal marker; close it with a failure marker before rethrowing.
+     */
+    private async awaitConnectionCompletion(
+        completion: Promise<ConnectionContracts.ConnectionCompleteParams>,
+    ): Promise<ConnectionContracts.ConnectionCompleteParams> {
+        try {
+            return await completion;
+        } catch (error) {
+            Perf.marker("mssql.connection.failed", "instant", {
+                error: true,
+                reason: "cancelled",
+            });
+            throw error;
+        }
+    }
+
+    /**
      * @param fileUri uri of the file the connection is for
      * @param connectionInfo the connection info object to update
      * @param result the result of the connection

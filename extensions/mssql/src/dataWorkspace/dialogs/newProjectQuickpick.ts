@@ -10,6 +10,7 @@ import { directoryExist, showInfoMessageWithLearnMoreLink } from "../common/util
 import { defaultProjectSaveLocation } from "../common/projectLocationHelper";
 import { WorkspaceService } from "../services/workspaceService";
 import { isValidBasenameErrorMessage } from "../common/pathUtilsHelper";
+import { DataWorkspace as locConstants } from "../../constants/locConstants";
 
 /**
  * Create flow for a New Project using only VS Code-native APIs such as QuickPick
@@ -42,7 +43,7 @@ export async function createNewProjectWithQuickpick(
 
     // 1. Prompt for project type
     const projectType = await vscode.window.showQuickPick(projectTypes, {
-        title: constants.SelectProjectType,
+        title: locConstants.SelectProjectType,
         ignoreFocusOut: true,
     });
     if (!projectType) {
@@ -51,7 +52,7 @@ export async function createNewProjectWithQuickpick(
 
     // 2. Prompt for project name
     const projectName = await vscode.window.showInputBox({
-        title: constants.EnterProjectName,
+        title: locConstants.EnterProjectName,
         validateInput: (value) => {
             return isValidBasenameErrorMessage(value);
         },
@@ -77,7 +78,7 @@ export async function createNewProjectWithQuickpick(
     // 3. Prompt for Project location
     // We validate that the folder doesn't already exist, and if it does keep prompting them to pick a new one
     let projectLocation = "";
-    let browseProjectLocationTitle = constants.SelectProjectLocation;
+    let browseProjectLocationTitle = locConstants.SelectProjectLocation;
     while (true) {
         const browseProjectLocation = await vscode.window.showQuickPick(
             browseProjectLocationOptions,
@@ -95,13 +96,13 @@ export async function createNewProjectWithQuickpick(
                 canSelectFiles: false,
                 canSelectFolders: true,
                 canSelectMany: false,
-                openLabel: constants.Select,
-                title: constants.SelectProjectLocation,
+                openLabel: locConstants.Select,
+                title: locConstants.SelectProjectLocation,
                 defaultUri: defaultProjectSaveLoc,
             });
             if (!locations) {
                 // User cancelled out of open dialog - let them choose location again
-                browseProjectLocationTitle = constants.SelectProjectLocation;
+                browseProjectLocationTitle = locConstants.SelectProjectLocation;
                 continue;
             }
             projectLocation = locations[0].fsPath;
@@ -114,7 +115,8 @@ export async function createNewProjectWithQuickpick(
             break;
         }
         // Otherwise show the browse quick pick again with the title updated with the error
-        browseProjectLocationTitle = constants.ProjectDirectoryAlreadyExistErrorShort(projectName);
+        browseProjectLocationTitle =
+            locConstants.ProjectDirectoryAlreadyExistErrorShort(projectName);
         continue;
     }
 
@@ -139,12 +141,12 @@ export async function createNewProjectWithQuickpick(
             // add default next to the default target platform
             targetPlatforms.unshift({
                 label: projectType.defaultTargetPlatform,
-                description: constants.Default,
+                description: locConstants.Default,
             });
         }
 
         const selectedTargetPlatform = await vscode.window.showQuickPick(targetPlatforms, {
-            title: constants.SelectTargetPlatform,
+            title: locConstants.SelectTargetPlatform,
             ignoreFocusOut: true,
         });
         if (!selectedTargetPlatform) {
@@ -160,11 +162,11 @@ export async function createNewProjectWithQuickpick(
         // 5. SDK-style project or not
         const sdkLearnMoreButton: vscode.QuickInputButton = {
             iconPath: new vscode.ThemeIcon("link-external"),
-            tooltip: constants.LearnMore,
+            tooltip: locConstants.LearnMore,
         };
         const quickPick = vscode.window.createQuickPick();
-        quickPick.items = [{ label: constants.YesRecommended }, { label: constants.No }];
-        quickPick.title = constants.SdkStyleProject;
+        quickPick.items = [{ label: locConstants.YesRecommended }, { label: locConstants.No }];
+        quickPick.title = locConstants.SdkStyleProject;
         quickPick.ignoreFocusOut = true;
         const disposables: vscode.Disposable[] = [];
 
@@ -172,7 +174,7 @@ export async function createNewProjectWithQuickpick(
             if (projectType.sdkLearnMoreUrl) {
                 // add button to open sdkLearnMoreUrl if it was provided
                 quickPick.buttons = [sdkLearnMoreButton];
-                quickPick.placeholder = constants.SdkLearnMorePlaceholder;
+                quickPick.placeholder = locConstants.SdkLearnMorePlaceholder;
             }
 
             let sdkStylePromise = new Promise<boolean | undefined>((resolve) => {
@@ -181,7 +183,7 @@ export async function createNewProjectWithQuickpick(
                         resolve(undefined);
                     }),
                     quickPick.onDidChangeSelection((item) => {
-                        resolve(item[0].label === constants.YesRecommended);
+                        resolve(item[0].label === locConstants.YesRecommended);
                     }),
                 );
 
@@ -210,10 +212,13 @@ export async function createNewProjectWithQuickpick(
     }
 
     // 8. Configure Sql project default build or not
-    let configureDefaultBuild = await vscode.window.showQuickPick([constants.Yes, constants.No], {
-        title: constants.confirmCreateProjectWithBuildTaskDialogName,
-        ignoreFocusOut: true,
-    });
+    let configureDefaultBuild = await vscode.window.showQuickPick(
+        [locConstants.Yes, locConstants.No],
+        {
+            title: locConstants.confirmCreateProjectWithBuildTaskDialogName,
+            ignoreFocusOut: true,
+        },
+    );
 
     if (!configureDefaultBuild) {
         // User cancelled
@@ -225,14 +230,14 @@ export async function createNewProjectWithQuickpick(
         projectType.id,
         targetPlatform,
         sdkStyle,
-        configureDefaultBuild === constants.Yes,
+        configureDefaultBuild === locConstants.Yes,
     );
 
     // Add info message with 'learn more' button if project type has a link
     // for user to learn more about the project type
     if (projectType.learnMoreUrl && projectType.defaultTargetPlatform) {
         void showInfoMessageWithLearnMoreLink(
-            constants.LocalDevInfo(projectType.defaultTargetPlatform),
+            locConstants.LocalDevInfo(projectType.defaultTargetPlatform),
             projectType.learnMoreUrl,
         );
     }

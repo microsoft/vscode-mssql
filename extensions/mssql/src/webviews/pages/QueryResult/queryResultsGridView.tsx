@@ -192,6 +192,10 @@ export const QueryResultsGridView = ({
         }
     }, [gridList, isExecuting, uri]);
     useEffect(() => {
+        if (isExecuting === true) {
+            lastPerfMarkKey.current = undefined;
+            return;
+        }
         if (isExecuting !== false || gridList.length === 0) {
             return;
         }

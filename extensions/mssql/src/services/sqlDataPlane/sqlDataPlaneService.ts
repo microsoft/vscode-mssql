@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 /**
- * SQL Data Plane composition root v2 (web addendum §3.2, TSQ2 addendum §3.5):
+ * SQL Data Plane composition root v2 (web addendum §3.2):
  * an activation-owned registry that supports multiple concurrently active
  * LOCAL providers, per-session provider binding, live default changes for
  * future sessions, passive status, and explicit lifecycle ownership.
@@ -68,21 +68,6 @@ import {
 import { FakeBackend, FAKE_CAPABILITIES } from "./fakeBackend";
 import { openWithServerlessWake } from "./serverlessWake";
 import { Sts2Backend, Sts2Rpc, DEFAULT_DEADLINES, Sts2Deadlines } from "../sts2/sts2Backend";
-// Pure parsing module (driver-port types only — no tedious in this graph).
-import {
-    TS_NATIVE_OVERRIDES_SETTING,
-    TsNativeOverrides,
-    parseTsNativeOverrides,
-} from "../tsNative/overrides";
-// Observability lives in the ACTIVATION bundle, not the lazy provider chunk:
-// the chunk bundles its own sink-less copy of diagnosticsCore, so an observer
-// built inside it emits into a dead diag singleton (no session-journal
-// events). Building the observer here binds it to the real diag substrate and
-// injecting it into the chunk restores every sqlDataPlane.tsNative.* event.
-// observability.ts keeps its engine/api imports type-only, so this pulls NO
-// tedious (and no engine runtime) into activation — packaging tests enforce it.
-import { createDiagEngineObserver } from "../tsNative/observability";
-import type { EngineObserver } from "../tsNative/queryEngine";
 
 // ---------------------------------------------------------------------------
 // Settings
@@ -145,10 +130,7 @@ class ServiceClientRpc implements Sts2Rpc {
 
     onNotification(method: string, handler: (params: unknown) => void): { dispose(): void } {
         const type = new NotificationType<unknown>(method);
-        this.client.onNotification(type, handler);
-        // The language client keeps handlers for its lifetime; per-handler
-        // disposal is not exposed — the backend subscribes once.
-        return { dispose: () => undefined };
+        return this.client.onNotification(type, handler);
     }
 }
 
@@ -255,150 +237,6 @@ function fakeFactory(providerVersion: string): SqlBackendFactory {
     };
 }
 
-const TS_NATIVE_MIN_NODE_MAJOR = 22; // tedious 20 engines
-
-/**
- * ts-native factory (TSQ2 §4.2, D6): the provider ships as the dedicated
- * lazy chunk dist/tsNativeProvider.js (tedious inside). Loading happens on
- * FIRST create(), via a computed-path require so esbuild never inlines the
- * chunk into the activation bundle. Unit tests exercise the compiled
- * out/-tree sibling instead.
- */
-function tsNativeFactory(providerVersion: string): SqlBackendFactory {
-    return {
-        kind: "ts-native",
-        displayName: "Native TypeScript (tedious)",
-        realmClass: "local",
-        identity: {
-            kind: "ts-native",
-            implementation: "ts-native",
-            transport: "inprocess",
-            driver: "tedious",
-            deployment: "extension-local",
-            realmId: "local",
-            providerVersion,
-        },
-        // Conservative honest statement (TSQ2 §8.1): never optimistic; the
-        // gaps are the capability catalog, not a surprise list.
-        staticCapabilities: capabilitySet({
-            "auth.sqlLogin": supported("static"),
-            "auth.entraToken": supported("static"),
-            "auth.integrated": unsupported("static", "driver.noIntegratedAuth"),
-            "auth.hostDelegated": unsupported("static", "localDeployment"),
-            "connect.tcp": supported("static"),
-            "connect.routeAlias": unsupported("static", "localDeployment"),
-            "connect.localdb": unsupported("static", "driver.tcpOnly"),
-            "connect.tds8Strict": conditional("static", "strictModeUnvalidated"),
-            "exec.streamingRows": supported("static"),
-            "exec.multipleResultSets": supported("static"),
-            "exec.oneActiveQuery": supported("static"),
-            "exec.cancel": supported("static"),
-            "exec.dispose": supported("static"),
-            "exec.queryTimeout": supported("static"),
-            "exec.compactRows": supported("static"),
-            "exec.maxCellBytes": supported("static"),
-            "exec.pageRows": supported("static"),
-            "exec.pageBytes": supported("static"),
-            "exec.windowPages": supported("static", "exact", { limit: 4, unit: "pages" }),
-            "types.typedCells": supported("static"),
-            // TDS 7.4 down-converts vector to identity-less varchar — the
-            // provider never guesses from text shape (§6.8).
-            "types.vectorBinaryV1": unsupported("static", "driver.noWireTypeIdentity"),
-            "types.spatialWkbV1": supported("static"),
-            "types.decimalExact": unsupported("static", "driver.decimalToDouble"),
-            "types.datetimeOffsetOriginal": unsupported("static", "driver.offsetDiscarded"),
-            "types.largeValueStreaming": unsupported("static", "driver.plpBuffering"),
-            "types.jsonNative": unsupported("static", "driver.noJsonType"),
-            "messages.verbatim": supported("static"),
-            "messages.rowsAffectedStructured": supported("static"),
-            "plan.xmlResult": unsupported("static", "notExposed"),
-            "plan.estimated": supported("static"),
-            "plan.actual": supported("static"),
-            "metadata.catalogSql": supported("static"),
-            "metadata.endpoints": unsupported("static", "notImplemented"),
-            "diag.supportCapsule": unsupported("static", "notImplemented"),
-            "diag.captureControl": unsupported("static", "notImplemented"),
-            "diag.replayDescriptor": supported("static"),
-            "diag.resumeAfterDisconnect": unsupported("static", "notSupported"),
-        }),
-        fingerprintSettings: [...TIMEOUT_SETTINGS, TS_NATIVE_OVERRIDES_SETTING],
-        create: async (context: SqlBackendFactoryContext): Promise<ISqlConnectionService> => {
-            const nodeMajor = Number(process.versions.node.split(".")[0]);
-            if (!Number.isInteger(nodeMajor) || nodeMajor < TS_NATIVE_MIN_NODE_MAJOR) {
-                throw new SqlDataPlaneError(
-                    DataPlaneErrorCodes.unavailable,
-                    `ts-native requires Node >= ${TS_NATIVE_MIN_NODE_MAJOR} (host has ${process.versions.node})`,
-                    false,
-                );
-            }
-            const overrides = parseTsNativeOverrides(
-                context.config.get<unknown>(TS_NATIVE_OVERRIDES_SETTING, undefined),
-            );
-            const provider = loadTsNativeProvider();
-            return provider.createBackend({
-                // Bound to the activation-bundle diag singleton (the one with
-                // registered sinks) — see the import note above.
-                observer: createDiagEngineObserver(),
-                deadlines: {
-                    openMs: context.config.get<number>(
-                        "mssql.sqlDataPlane.timeouts.openMs",
-                        30_000,
-                    ),
-                    cancelAckMs: context.config.get<number>(
-                        "mssql.sqlDataPlane.timeouts.cancelAckMs",
-                        10_000,
-                    ),
-                    closeMs: context.config.get<number>(
-                        "mssql.sqlDataPlane.timeouts.closeMs",
-                        15_000,
-                    ),
-                    disposeDrainMs: context.config.get<number>(
-                        "mssql.sqlDataPlane.timeouts.disposeDrainMs",
-                        10_000,
-                    ),
-                },
-                overrides,
-            });
-        },
-    };
-}
-
-interface TsNativeProviderExports {
-    createBackend(options?: {
-        deadlines?: Partial<Record<string, number>>;
-        overrides?: TsNativeOverrides;
-        observer?: EngineObserver;
-    }): ISqlConnectionService;
-    driverVersion: string;
-}
-
-function loadTsNativeProvider(): TsNativeProviderExports {
-    // Computed paths: esbuild must NOT statically resolve these (the chunk
-    // stays out of the activation bundle). Runtime layouts:
-    //  - bundled: __dirname = <ext>/dist            → dist/tsNativeProvider.js
-    //  - tsc/out: __dirname = out/src/services/sqlDataPlane
-    //             → out/src/services/tsNative/providerEntry.js
-
-    const path = require("path") as typeof import("path");
-    const candidates = [
-        path.join(__dirname, "tsNativeProvider.js"),
-        path.join(__dirname, "..", "tsNative", "providerEntry.js"),
-    ];
-    let lastError: unknown;
-    for (const candidate of candidates) {
-        try {
-            return require(candidate) as TsNativeProviderExports;
-        } catch (error) {
-            lastError = error;
-        }
-    }
-    throw new SqlDataPlaneError(
-        DataPlaneErrorCodes.unavailable,
-        `ts-native provider bundle not found (${lastError instanceof Error ? lastError.message : "unknown"})`,
-        false,
-    );
-}
-
 // ---------------------------------------------------------------------------
 // Registry
 // ---------------------------------------------------------------------------
@@ -445,15 +283,17 @@ export class SqlDataPlaneService {
      * override always wins over the remembered choice.
      */
     private readonly rememberedFallback = new Map<string, SqlBackendKind>();
+    /** Explicit factory injection is the only supported test-backend opt-in. */
+    private readonly allowTestBackends: boolean;
 
     constructor(
         private readonly config: DataPlaneConfigReader = vscodeConfigReader(),
         factories?: readonly SqlBackendFactory[],
         private readonly providerVersion: string = "dev",
     ) {
+        this.allowTestBackends = factories !== undefined;
         for (const factory of factories ?? [
             sts2LocalFactory(providerVersion),
-            tsNativeFactory(providerVersion),
             fakeFactory(providerVersion),
         ]) {
             this.registerFactory(factory);
@@ -472,9 +312,8 @@ export class SqlDataPlaneService {
     }
 
     /**
-     * Register an additional provider factory (the ts-native module
-     * self-registers through this — the registry has no static import of the
-     * provider bundle). Duplicate kinds are a programming error.
+     * Register an additional provider factory without coupling the registry to
+     * its implementation. Duplicate kinds are a programming error.
      */
     registerFactory(factory: SqlBackendFactory): void {
         if (this.entries.has(factory.kind)) {
@@ -504,6 +343,13 @@ export class SqlDataPlaneService {
             throw new SqlDataPlaneError(
                 DataPlaneErrorCodes.invalidRequest,
                 `unknown mssql.sqlDataPlane.backend value: ${raw}`,
+            );
+        }
+        const entry = this.entries.get(kind);
+        if (entry?.factory.realmClass === "test" && !this.allowTestBackends) {
+            throw new SqlDataPlaneError(
+                DataPlaneErrorCodes.invalidRequest,
+                `test backend cannot be configured as the runtime default: ${raw}`,
             );
         }
         return kind;
@@ -538,24 +384,57 @@ export class SqlDataPlaneService {
         }
         if (!entry.startup) {
             entry.state = "starting";
-            entry.startup = entry.factory
-                .create({ config: this.config, providerVersion: this.providerVersion })
-                .then((service) => {
+            let startup: Promise<ISqlConnectionService>;
+            startup = Promise.resolve()
+                .then(() =>
+                    entry.factory.create({
+                        config: this.config,
+                        providerVersion: this.providerVersion,
+                    }),
+                )
+                .then(async (service) => {
+                    // A dispose/recompose may retire this single flight while
+                    // factory.create() is still running. Never let its late
+                    // result resurrect a disposed or stale entry.
+                    if (this.disposed || entry.startup !== startup) {
+                        await this.disposeService(service);
+                        throw new SqlDataPlaneError(
+                            DataPlaneErrorCodes.unavailable,
+                            "backend startup was superseded by disposal or configuration change",
+                            true,
+                            { backend: { kind } },
+                        );
+                    }
                     entry.service = service;
                     entry.state = "running";
                     delete entry.lastError;
                     return service;
                 })
                 .catch((error: unknown) => {
-                    // Failed startup is retryable: clear the single flight.
-                    entry.startup = undefined;
-                    entry.state = "failed";
-                    entry.lastError = toErrorInfo(error, kind);
+                    // Only the CURRENT single flight may mutate the entry.
+                    // A retired promise must not overwrite newer state.
+                    if (entry.startup === startup) {
+                        entry.startup = undefined;
+                        entry.state = "failed";
+                        entry.lastError = toErrorInfo(error, kind);
+                    }
                     throw error;
                 });
+            entry.startup = startup;
         }
-        await entry.startup;
-        return (entry.view ??= this.makeView(this.requireEntry(kind)));
+        const startup = entry.startup;
+        await startup;
+        this.assertNotDisposed();
+        const current = this.requireEntry(kind);
+        if (current.startup !== startup || !current.service) {
+            throw new SqlDataPlaneError(
+                DataPlaneErrorCodes.unavailable,
+                "backend startup was superseded by disposal or configuration change",
+                true,
+                { backend: { kind } },
+            );
+        }
+        return (current.view ??= this.makeView(current));
     }
 
     // -----------------------------------------------------------------------
@@ -706,7 +585,10 @@ export class SqlDataPlaneService {
     // -----------------------------------------------------------------------
 
     availability(): DataPlaneAvailability {
-        const entry = this.entries.get(this.tryDefaultKind() ?? "sts2-local");
+        // An invalid configured backend must not borrow another provider's
+        // availability; statusSummary already reports it as INVALID(...).
+        const kind = this.tryDefaultKind();
+        const entry = kind ? this.entries.get(kind) : undefined;
         return entry?.service?.availability ?? { state: "unknown" };
     }
 
@@ -994,17 +876,24 @@ export class SqlDataPlaneService {
         if (entry.state !== "failed") {
             entry.state = "disposed";
         }
-        const disposable = service as unknown as { dispose?: () => void | Promise<void> };
-        if (service && typeof disposable.dispose === "function") {
-            await Promise.race([
-                Promise.resolve(disposable.dispose()).catch(() => undefined),
-                new Promise((resolve) => {
-                    const timer = setTimeout(resolve, DISPOSE_TIMEOUT_MS);
-                    // Never keep the host alive just for the dispose bound.
-                    (timer as { unref?: () => void }).unref?.();
-                }),
-            ]);
+        if (service) {
+            await this.disposeService(service);
         }
+    }
+
+    private async disposeService(service: ISqlConnectionService): Promise<void> {
+        const disposable = service as unknown as { dispose?: () => void | Promise<void> };
+        if (typeof disposable.dispose !== "function") {
+            return;
+        }
+        await Promise.race([
+            Promise.resolve(disposable.dispose()).catch(() => undefined),
+            new Promise((resolve) => {
+                const timer = setTimeout(resolve, DISPOSE_TIMEOUT_MS);
+                // Never keep the host alive just for the dispose bound.
+                (timer as { unref?: () => void }).unref?.();
+            }),
+        ]);
     }
 
     private assertNotDisposed(): void {
@@ -1022,21 +911,26 @@ function toErrorInfo(error: unknown, kind: SqlBackendKind): SqlDataPlaneErrorInf
     if (error instanceof SqlDataPlaneError) {
         return {
             code: error.code,
-            message: error.message,
+            message: error.code,
             retryable: error.retryable,
             backend: { kind },
         };
     }
     return {
         code: DataPlaneErrorCodes.providerInternal,
-        message: error instanceof Error ? error.message : String(error),
+        message: "Provider startup failed.",
         retryable: true,
         backend: { kind },
     };
 }
 
 export function registerSqlDataPlane(context: vscode.ExtensionContext): void {
-    const service = SqlDataPlaneService.get();
+    instance ??= new SqlDataPlaneService(
+        vscodeConfigReader(),
+        undefined,
+        String(context.extension.packageJSON.version ?? "unknown"),
+    );
+    const service = instance;
     service.attachConfigWatcher();
     context.subscriptions.push({
         dispose: () => void service.dispose(),

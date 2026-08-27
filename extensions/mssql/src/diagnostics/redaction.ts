@@ -20,7 +20,7 @@ import {
     CapturePolicy,
     ClassifiedValue,
     DataClassification,
-} from "../sharedInterfaces/debugConsole";
+} from "../sharedInterfaces/diagnostics";
 
 /** Per-process salt so digests are stable within a session but not rainbow-table bait. */
 const SESSION_SALT = randomBytes(16).toString("hex");
@@ -48,7 +48,6 @@ const DIGEST_PREFIX: Partial<Record<DataClassification, string>> = {
     "model.prompt": "prompt",
     "model.response": "resp",
 };
-
 /** Classifications that are safe to store as plain text in every mode. */
 const ALWAYS_PLAIN: ReadonlySet<DataClassification> = new Set([
     "public",
@@ -99,16 +98,26 @@ export function classify(
     cls: DataClassification,
     policy: CapturePolicy,
 ): ClassifiedValue {
-    // Non-sensitive primitives pass through untouched (numbers/booleans carry
-    // no text payload risk for metadata classes).
+    // Non-sensitive classifications pass through, with the same hard string
+    // bound used by full-mode plaintext below.
     if (ALWAYS_PLAIN.has(cls)) {
-        return { v: toPrimitive(raw), cls, handling: "plain" };
+        const primitive = toPrimitive(raw);
+        if (typeof primitive === "string" && primitive.length > MAX_PLAIN_LENGTH) {
+            return {
+                v: primitive.slice(0, MAX_PLAIN_LENGTH),
+                cls,
+                handling: "truncated",
+                len: primitive.length,
+            };
+        }
+        return { v: primitive, cls, handling: "plain" };
     }
     const text = raw === null || raw === undefined ? "" : String(raw);
 
     if (NEVER_PLAIN.has(cls)) {
-        // Opaque token only — length concealed, not reversible, not a raw hash
-        // of the secret alone (salted).
+        // This hard safety rule intentionally precedes policy.mode === "off":
+        // secret-like values are always replaced by an opaque, session-salted
+        // token and are never retained as plaintext or a raw hash.
         return { cls, handling: "tokenized", digest: digestValue("tok", text) };
     }
     if (policy.mode === "off") {
@@ -186,8 +195,7 @@ export function classifyPayload(
     return { payload, maxClassification: max, redactedFields: redacted };
 }
 
-// Exported for the vendored central-contract equality test (cls-rank/1):
-// the central store's cls_rank column is defined as the index in THIS array.
+// Stable ordering reserved for the later central diagnostics-store contract.
 export const RANK_ORDER: DataClassification[] = [
     "public",
     "system.metadata",

@@ -39,6 +39,7 @@ import {
     DataPlaneConfigReader,
     SqlBackendFactory,
     normalizeBackendKind,
+    SqlBackendKind,
 } from "../../src/services/sqlDataPlane/backendFactory";
 import { SqlDataPlaneService } from "../../src/services/sqlDataPlane/sqlDataPlaneService";
 import { FakeBackend } from "../../src/services/sqlDataPlane/fakeBackend";
@@ -66,12 +67,13 @@ class TestConfig implements DataPlaneConfigReader {
 
 interface TestFactoryHooks {
     createCalls: number;
+    disposeCalls?: number;
     failNextCreate?: Error;
     deferCreate?: Promise<void>;
 }
 
 function testFactory(
-    kind: "fake" | "ts-native",
+    kind: SqlBackendKind,
     hooks: TestFactoryHooks,
     staticOverrides?: Parameters<typeof capabilitySet>[0],
 ): SqlBackendFactory {
@@ -104,7 +106,11 @@ function testFactory(
                 delete hooks.failNextCreate;
                 throw error;
             }
-            return new FakeBackend({});
+            const backend = new FakeBackend({}) as FakeBackend & { dispose(): void };
+            backend.dispose = () => {
+                hooks.disposeCalls = (hooks.disposeCalls ?? 0) + 1;
+            };
+            return backend;
         },
     };
 }
@@ -261,6 +267,16 @@ suite("SQL Data Plane backend registry (FOUND-1)", () => {
         );
     });
 
+    test("a test-realm backend cannot be selected as the production default", () => {
+        const config = new TestConfig();
+        config.set("mssql.sqlDataPlane.backend", "fake");
+        const service = new SqlDataPlaneService(config);
+
+        expect(() => service.defaultBackendKind()).to.throw(
+            /test backend cannot be configured as the runtime default/,
+        );
+    });
+
     test("single-flight startup; failed startup is retryable", async () => {
         const hooks: TestFactoryHooks = { createCalls: 0 };
         let releaseCreate!: () => void;
@@ -296,6 +312,62 @@ suite("SQL Data Plane backend registry (FOUND-1)", () => {
         expect(failing.createCalls).to.equal(2);
     });
 
+    test("dispose during startup retires and disposes the late-created backend", async () => {
+        const hooks: TestFactoryHooks = { createCalls: 0, disposeCalls: 0 };
+        let releaseCreate!: () => void;
+        hooks.deferCreate = new Promise((resolve) => (releaseCreate = resolve));
+        const config = new TestConfig();
+        config.set("mssql.sqlDataPlane.backend", "fake");
+        const service = makeService(config, testFactory("fake", hooks));
+
+        const starting = service.service();
+        await Promise.resolve();
+        expect(hooks.createCalls).to.equal(1);
+        await service.dispose();
+        releaseCreate();
+
+        let rejected = false;
+        try {
+            await starting;
+        } catch {
+            rejected = true;
+        }
+        expect(rejected).to.equal(true);
+        expect(hooks.disposeCalls).to.equal(1);
+        expect(service.entrySnapshots()[0].state).to.equal("disposed");
+    });
+
+    test("config change during startup cannot resurrect the stale backend", async () => {
+        const hooks: TestFactoryHooks = { createCalls: 0, disposeCalls: 0 };
+        let releaseCreate!: () => void;
+        hooks.deferCreate = new Promise((resolve) => (releaseCreate = resolve));
+        const config = new TestConfig();
+        config.set("mssql.sqlDataPlane.backend", "fake");
+        config.set("test.fake.knob", 1);
+        const service = makeService(config, testFactory("fake", hooks));
+
+        const staleStartup = service.service();
+        await Promise.resolve();
+        config.set("test.fake.knob", 2);
+        service.handleConfigurationChanged();
+        releaseCreate();
+
+        let rejected = false;
+        try {
+            await staleStartup;
+        } catch {
+            rejected = true;
+        }
+        expect(rejected).to.equal(true);
+        expect(hooks.disposeCalls).to.equal(1);
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        expect(service.entrySnapshots()[0].state).to.equal("idle");
+
+        await service.service();
+        expect(hooks.createCalls).to.equal(2);
+        await service.dispose();
+    });
+
     test("passive status constructs nothing", () => {
         const hooks: TestFactoryHooks = { createCalls: 0 };
         const config = new TestConfig();
@@ -306,6 +378,20 @@ suite("SQL Data Plane backend registry (FOUND-1)", () => {
         expect(summary.normalizedBackend).to.equal("fake");
         expect((summary.entries as unknown[]).length).to.equal(1);
         expect(hooks.createCalls).to.equal(0);
+    });
+
+    test("an invalid configured backend reports unknown availability, never another provider's", async () => {
+        const hooks: TestFactoryHooks = { createCalls: 0 };
+        const config = new TestConfig();
+        config.set("mssql.sqlDataPlane.backend", "sts2-local");
+        const service = makeService(config, testFactory("sts2-local", hooks));
+        await service.service();
+        expect(service.availability().state).to.equal("available");
+
+        config.set("mssql.sqlDataPlane.backend", "not-a-backend");
+        expect(service.availability()).to.deep.equal({ state: "unknown" });
+        expect(service.statusSummary().normalizedBackend).to.equal("INVALID(not-a-backend)");
+        await service.dispose();
     });
 
     test("multi-local coexistence with per-session provider binding", async () => {

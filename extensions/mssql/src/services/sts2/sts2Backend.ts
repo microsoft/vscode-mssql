@@ -24,7 +24,6 @@
  * profile's auth object exists only inside openSession's request closure.
  */
 
-import { diag } from "../../diagnostics/diagnosticsCore";
 import {
     CancelAck,
     CompactPage,
@@ -47,6 +46,7 @@ import {
     SessionState,
     SessionStateChange,
     SqlBackendCapabilities,
+    CloseOptions,
     SqlDataPlaneError,
     TruncatedCellEncoding,
     packBitmap,
@@ -54,6 +54,7 @@ import {
 import {
     STS2_ERROR_CODES,
     STS2_METHODS,
+    jsonRpcErrorCode,
     sts2ErrorCode,
     totalRowsAffected,
     V2CompleteNotification,
@@ -63,6 +64,7 @@ import {
     V2InitializeResult,
     V2MessageNotification,
     V2QueryExecuteResult,
+    V2QueryAckParams,
     V2ResultSetNotification,
     V2RowsNotification,
     V2TruncatedCell,
@@ -90,6 +92,39 @@ export interface Sts2Rpc {
     sendNotification(method: string, params: unknown): void;
     onNotification(method: string, handler: (params: unknown) => void): { dispose(): void };
 }
+
+export type Sts2DiagnosticStatus = "ok" | "warning" | "error";
+export type Sts2DiagnosticValue = string | number | boolean;
+
+export interface Sts2DiagnosticEvent {
+    readonly type: string;
+    readonly status: Sts2DiagnosticStatus;
+    readonly fields?: Readonly<Record<string, Sts2DiagnosticValue>>;
+}
+
+export interface Sts2DiagnosticSpan {
+    end(status: Sts2DiagnosticStatus, fields?: Readonly<Record<string, Sts2DiagnosticValue>>): void;
+}
+
+/**
+ * Optional, payload-free observer boundary. The STS2 binding emits protocol
+ * metadata only; SQL text, row values, credentials, tokens, server names, and
+ * raw provider errors are never accepted by this contract.
+ */
+export interface Sts2DiagnosticObserver {
+    emit(event: Sts2DiagnosticEvent): void;
+    startSpan(event: Omit<Sts2DiagnosticEvent, "status">): Sts2DiagnosticSpan;
+}
+
+const NOOP_DIAGNOSTICS: Sts2DiagnosticObserver = {
+    emit: () => undefined,
+    startSpan: () => ({ end: () => undefined }),
+};
+
+const MAX_ORPHAN_QUERY_IDS = 64;
+const MAX_ORPHAN_EVENTS_PER_QUERY = 32;
+const MAX_RETIRED_QUERY_IDS = 256;
+type BufferedQueryNotification = readonly [method: string, params: unknown];
 
 export interface Sts2Deadlines {
     openMs: number;
@@ -207,12 +242,16 @@ export class Sts2Backend implements ISqlConnectionService {
      * Notifications can race the execute response dispatch; unknown queryIds
      * buffer briefly until the execute result registers the lane.
      */
-    private orphanBuffer = new Map<string, unknown[][]>();
+    private orphanBuffer = new Map<string, BufferedQueryNotification[]>();
+    /** Recently terminal query ids: late wire notifications are dropped, not re-buffered. */
+    private retiredQueryIds = new Set<string>();
     private notificationSubs: Array<{ dispose(): void }> = [];
+    private disposed = false;
 
     constructor(
         private readonly rpc: Sts2Rpc,
         readonly deadlines: Sts2Deadlines = DEFAULT_DEADLINES,
+        readonly diagnostics: Sts2DiagnosticObserver = NOOP_DIAGNOSTICS,
     ) {}
 
     /** True when initialize negotiated compact row pages (QO-5). */
@@ -250,6 +289,9 @@ export class Sts2Backend implements ISqlConnectionService {
      * fails honestly and stays retryable.
      */
     async start(): Promise<DataPlaneAvailability> {
+        if (this.disposed) {
+            return this.availability;
+        }
         if (!this.starting) {
             this.starting = this.doStart().finally(() => {
                 this.starting = undefined;
@@ -289,18 +331,15 @@ export class Sts2Backend implements ISqlConnectionService {
                 error instanceof SqlDataPlaneError &&
                 error.code === DataPlaneErrorCodes.clientTimeout;
             const code = sts2ErrorCode(error);
-            const message = error instanceof Error ? error.message : String(error);
-            const notEnabled =
-                !timedOut &&
-                (/method not found|unhandled method/i.test(message) || code === undefined);
+            const notEnabled = !timedOut && jsonRpcErrorCode(error) === -32601;
             this.availability = {
                 state: "unavailable",
                 backend: this.backendInfo.kind,
                 reason: timedOut
-                    ? `v2/initialize timed out after ${this.deadlines.initializeMs}ms (service busy or wedged)`
+                    ? `v2/initialize timed out after ${this.deadlines.initializeMs}ms (service busy, wedged, or STS v2 not enabled)`
                     : notEnabled
                       ? "notEnabledOnService (launch STS with --enable-sts2)"
-                      : `${code ?? "error"}: ${message}`,
+                      : `initializeFailed (${code ?? "unknown"})`,
                 retryable: true,
             };
         }
@@ -321,10 +360,14 @@ export class Sts2Backend implements ISqlConnectionService {
                 const query = this.queries.get(params.queryId);
                 if (query) {
                     deliver(query, params);
+                } else if (this.retiredQueryIds.has(params.queryId)) {
+                    this.diagnostics.emit({
+                        type: "sqlDataPlane.protocolViolation",
+                        status: "warning",
+                        fields: { observation: "notification after query retirement", method },
+                    });
                 } else {
-                    const buffered = this.orphanBuffer.get(params.queryId) ?? [];
-                    buffered.push([method, params]);
-                    this.orphanBuffer.set(params.queryId, buffered);
+                    this.bufferOrphan(params.queryId, method, params);
                 }
             });
         this.notificationSubs.push(
@@ -343,6 +386,7 @@ export class Sts2Backend implements ISqlConnectionService {
     }
 
     registerQuery(query: Sts2Query): void {
+        this.retiredQueryIds.delete(query.backendId);
         this.queries.set(query.backendId, query);
         // Drain anything that arrived before the execute result dispatched.
         const buffered = this.orphanBuffer.get(query.backendId);
@@ -370,24 +414,72 @@ export class Sts2Backend implements ISqlConnectionService {
     unregisterQuery(backendId: string): void {
         this.queries.delete(backendId);
         this.orphanBuffer.delete(backendId);
+        if (backendId) {
+            this.retiredQueryIds.delete(backendId);
+            this.retiredQueryIds.add(backendId);
+            if (this.retiredQueryIds.size > MAX_RETIRED_QUERY_IDS) {
+                const oldest = this.retiredQueryIds.values().next().value as string | undefined;
+                if (oldest !== undefined) {
+                    this.retiredQueryIds.delete(oldest);
+                }
+            }
+        }
     }
 
-    private onFatal(reason: string): void {
+    private bufferOrphan(queryId: string, method: string, params: unknown): void {
+        if (!queryId) {
+            this.diagnostics.emit({
+                type: "sqlDataPlane.protocolViolation",
+                status: "warning",
+                fields: { observation: "notification missing query id", method },
+            });
+            return;
+        }
+        let buffered = this.orphanBuffer.get(queryId);
+        if (!buffered) {
+            if (this.orphanBuffer.size >= MAX_ORPHAN_QUERY_IDS) {
+                const oldest = this.orphanBuffer.keys().next().value as string | undefined;
+                if (oldest !== undefined) {
+                    this.orphanBuffer.delete(oldest);
+                }
+                this.diagnostics.emit({
+                    type: "sqlDataPlane.protocolViolation",
+                    status: "warning",
+                    fields: { observation: "orphan query buffer limit reached" },
+                });
+            }
+            buffered = [];
+            this.orphanBuffer.set(queryId, buffered);
+        }
+        if (buffered.length >= MAX_ORPHAN_EVENTS_PER_QUERY) {
+            this.diagnostics.emit({
+                type: "sqlDataPlane.protocolViolation",
+                status: "warning",
+                fields: { observation: "orphan event buffer limit reached", method },
+            });
+            return;
+        }
+        buffered.push([method, params]);
+    }
+
+    private onFatal(_reason: string): void {
+        const safeReason = "transportFatal";
         this.availability = {
             state: "unavailable",
             backend: this.backendInfo.kind,
-            reason,
+            reason: safeReason,
             retryable: true,
         };
         this.availabilityEmitter.fire(this.availability);
         for (const session of [...this.sessions.values()]) {
-            session.markLost(reason);
+            session.markLost(safeReason);
         }
-        diag.emit({
-            feature: "sqlDataPlane",
+        this.diagnostics.emit({
             type: "sqlDataPlane.fatal",
             status: "error",
-            fields: { reason: { raw: reason, cls: "diagnostic.metadata" } },
+            // Fatal text originates outside this binding and can contain
+            // connection details. Report only the stable event category.
+            fields: { reasonCode: "transportFatal" },
         });
     }
 
@@ -430,13 +522,11 @@ export class Sts2Backend implements ISqlConnectionService {
                 : params.profile.authKind === "aad" || params.profile.authKind === "bearer"
                   ? "accessToken"
                   : "integrated";
-        const span = diag.startSpan({
-            feature: "sqlDataPlane",
-            kind: "request",
+        const span = this.diagnostics.startSpan({
             type: "sqlDataPlane.openSession",
             fields: {
-                backend: { raw: this.backendInfo.kind, cls: "diagnostic.metadata" },
-                authKind: { raw: requestedAuthKind, cls: "diagnostic.metadata" },
+                backend: this.backendInfo.kind,
+                authKind: requestedAuthKind,
             },
         });
         try {
@@ -490,19 +580,11 @@ export class Sts2Backend implements ISqlConnectionService {
         } catch (error) {
             const mapped = mapOpenError(error);
             span.end("error", {
-                errorCode: { raw: mapped.code, cls: "diagnostic.metadata" },
-                backendCode: {
-                    raw: mapped.backend?.code ?? "unknown",
-                    cls: "diagnostic.metadata",
-                },
-                retryable: { raw: mapped.retryable, cls: "diagnostic.metadata" },
+                errorCode: mapped.code,
+                backendCode: mapped.backend?.code ?? "unknown",
+                retryable: mapped.retryable,
                 ...(mapped.server?.number !== undefined
-                    ? {
-                          serverErrorNumber: {
-                              raw: mapped.server.number,
-                              cls: "diagnostic.metadata" as const,
-                          },
-                      }
+                    ? { serverErrorNumber: mapped.server.number }
                     : {}),
             });
             throw mapped;
@@ -517,10 +599,10 @@ export class Sts2Backend implements ISqlConnectionService {
                     user: params.profile.user,
                     password: (await params.auth?.passwordProvider?.()) ?? "",
                 };
-            } catch (error) {
+            } catch {
                 throw new SqlDataPlaneError(
                     DataPlaneErrorCodes.auth,
-                    error instanceof Error ? error.message : "SQL credential lookup failed.",
+                    "SQL credential lookup failed.",
                     false,
                     { backend: { kind: "sts2-jsonrpc" } },
                 );
@@ -530,10 +612,10 @@ export class Sts2Backend implements ISqlConnectionService {
             let token: string | undefined;
             try {
                 token = await params.auth?.tokenProvider?.();
-            } catch (error) {
+            } catch {
                 throw new SqlDataPlaneError(
                     DataPlaneErrorCodes.auth,
-                    error instanceof Error ? error.message : "SQL access-token acquisition failed.",
+                    "SQL access-token acquisition failed.",
                     false,
                     { backend: { kind: "sts2-jsonrpc" } },
                 );
@@ -561,7 +643,42 @@ export class Sts2Backend implements ISqlConnectionService {
             availability: this.availability,
             openSessions: this.sessions.size,
             activeQueries: this.queries.size,
+            bufferedOrphanQueries: this.orphanBuffer.size,
+            bufferedOrphanEvents: [...this.orphanBuffer.values()].reduce(
+                (total, events) => total + events.length,
+                0,
+            ),
+            retiredQueryIds: this.retiredQueryIds.size,
         };
+    }
+
+    async dispose(): Promise<void> {
+        if (this.disposed) {
+            return;
+        }
+        this.disposed = true;
+
+        // Stop accepting wire notifications before draining sessions. The
+        // connection.close requests still use the request channel and every
+        // active query settles locally if its close terminal cannot arrive.
+        for (const subscription of this.notificationSubs.splice(0)) {
+            subscription.dispose();
+        }
+
+        await Promise.allSettled(
+            [...this.sessions.values()].map((session) => session.closeForBackendDispose()),
+        );
+        this.sessions.clear();
+        this.queries.clear();
+        this.orphanBuffer.clear();
+        this.retiredQueryIds.clear();
+        this.availability = {
+            state: "unavailable",
+            backend: this.backendInfo.kind,
+            reason: "disposed",
+            retryable: false,
+        };
+        this.availabilityEmitter.fire(this.availability);
     }
 }
 
@@ -570,20 +687,29 @@ function mapOpenError(error: unknown): SqlDataPlaneError {
         return error;
     }
     const code = sts2ErrorCode(error);
-    const message = error instanceof Error ? error.message : String(error);
     if (code === STS2_ERROR_CODES.connectionFailedAuth) {
-        return new SqlDataPlaneError(DataPlaneErrorCodes.auth, message, false, {
-            backend: { kind: "sts2-jsonrpc", code },
-        });
+        return new SqlDataPlaneError(
+            DataPlaneErrorCodes.auth,
+            "SQL authentication failed.",
+            false,
+            {
+                backend: { kind: "sts2-jsonrpc", code },
+            },
+        );
     }
     if (code === STS2_ERROR_CODES.busy) {
-        return new SqlDataPlaneError(DataPlaneErrorCodes.busy, message, true, {
+        return new SqlDataPlaneError(DataPlaneErrorCodes.busy, "SQL data plane is busy.", true, {
             backend: { kind: "sts2-jsonrpc", code },
         });
     }
-    return new SqlDataPlaneError(DataPlaneErrorCodes.unavailable, message, true, {
-        backend: { kind: "sts2-jsonrpc", ...(code ? { code } : {}) },
-    });
+    return new SqlDataPlaneError(
+        DataPlaneErrorCodes.unavailable,
+        "SQL Tools Service v2 is unavailable.",
+        true,
+        {
+            backend: { kind: "sts2-jsonrpc", ...(code ? { code } : {}) },
+        },
+    );
 }
 
 function remainingDeadlineMs(deadlineAt: number): number {
@@ -701,7 +827,18 @@ export class Sts2Session implements ISqlSession {
         this.backend.removeSession(this.sessionId);
     }
 
-    async close(): Promise<void> {
+    async close(_opts?: CloseOptions): Promise<void> {
+        await this.closeInternal("canceled");
+    }
+
+    /** Backend-owned shutdown means transport loss, not a user cancellation. */
+    async closeForBackendDispose(): Promise<void> {
+        await this.closeInternal("connectionLost");
+    }
+
+    private async closeInternal(
+        fallbackStatus: Extract<QueryCompletionStatus, "canceled" | "connectionLost">,
+    ): Promise<void> {
         if (this.state === "closed" || this.state === "closing") {
             return;
         }
@@ -717,7 +854,12 @@ export class Sts2Session implements ISqlSession {
         } catch {
             // Bounded close: proceed to closed; the active query synthesizes.
         }
-        this.activeQuery?.synthesizeTerminal("connectionLost", "session closed");
+        this.activeQuery?.synthesizeTerminal(
+            fallbackStatus,
+            fallbackStatus === "canceled"
+                ? "session closed before cancel terminal"
+                : "backend disposed",
+        );
         this.transition("closed", "closed");
         this.backend.removeSession(this.sessionId);
     }
@@ -805,13 +947,9 @@ export class Sts2Query {
         };
         // Adapter execute span: construct -> terminal. Protocol metadata only
         // (ids/counts/status) — SQL text never rides the diag substrate.
-        const executeSpan = diag.startSpan({
-            feature: "sqlDataPlane",
-            kind: "span",
+        const executeSpan = this.backend.diagnostics.startSpan({
             type: "sqlDataPlane.execute",
-            fields: {
-                clientQueryId: { raw: this.clientQueryId, cls: "diagnostic.metadata" },
-            },
+            fields: { clientQueryId: this.clientQueryId },
         });
         void completion.then((summary) => {
             executeSpan.end(
@@ -821,23 +959,17 @@ export class Sts2Query {
                       ? "error"
                       : "warning",
                 {
-                    status: { raw: summary.status, cls: "diagnostic.metadata" },
-                    resultSets: { raw: this.resultSets, cls: "diagnostic.metadata" },
-                    rows: { raw: this.totalRows, cls: "diagnostic.metadata" },
-                    errors: { raw: this.errors, cls: "diagnostic.metadata" },
-                    canceled: { raw: this.cancelRequested, cls: "diagnostic.metadata" },
+                    status: summary.status,
+                    resultSets: this.resultSets,
+                    rows: this.totalRows,
+                    errors: this.errors,
+                    canceled: this.cancelRequested,
                     // Binding row-pipeline aggregates (QO-2): what the
                     // extension-side page path cost for this query.
-                    pages: { raw: this.pagesSeen, cls: "diagnostic.metadata" },
-                    wireApproxBytes: { raw: this.wireApproxBytes, cls: "diagnostic.metadata" },
-                    convertMsTotal: {
-                        raw: Math.round(this.convertMsTotal * 100) / 100,
-                        cls: "diagnostic.metadata",
-                    },
-                    sinkWaitMsTotal: {
-                        raw: Math.round(this.sinkWaitMsTotal * 100) / 100,
-                        cls: "diagnostic.metadata",
-                    },
+                    pages: this.pagesSeen,
+                    wireApproxBytes: this.wireApproxBytes,
+                    convertMsTotal: Math.round(this.convertMsTotal * 100) / 100,
+                    sinkWaitMsTotal: Math.round(this.sinkWaitMsTotal * 100) / 100,
                 },
             );
         });
@@ -1088,11 +1220,12 @@ export class Sts2Query {
             this.sinkWaitMsTotal += performance.now() - sinkStartedAt;
             if (!this.terminalSent && ackOrdinal > this.highestAckedPageSeq) {
                 this.highestAckedPageSeq = ackOrdinal;
-                this.rpc.sendNotification(STS2_METHODS.queryAck, {
+                const ack: V2QueryAckParams = {
                     queryId: this.backendId,
                     resultSetId: params.resultSetId,
                     throughPageSeq: ackOrdinal,
-                });
+                };
+                this.rpc.sendNotification(STS2_METHODS.queryAck, ack);
             }
         });
     }
@@ -1121,13 +1254,12 @@ export class Sts2Query {
     onWireComplete(params: V2CompleteNotification): void {
         if (this.terminalSent) {
             // Duplicate terminal: diag + drop (§8.3).
-            diag.emit({
-                feature: "sqlDataPlane",
+            this.backend.diagnostics.emit({
                 type: "sqlDataPlane.protocolViolation",
                 status: "warning",
                 fields: {
-                    expectation: { raw: "one terminal", cls: "diagnostic.metadata" },
-                    observation: { raw: "duplicate complete", cls: "diagnostic.metadata" },
+                    expectation: "one terminal",
+                    observation: "duplicate complete",
                 },
             });
             return;
@@ -1166,9 +1298,13 @@ export class Sts2Query {
             ...(params.error
                 ? {
                       error: {
-                          code: params.error.code ?? STS2_ERROR_CODES.queryFailedServer,
+                          code: DataPlaneErrorCodes.queryFailed,
                           message: params.error.message ?? "query failed",
                           retryable: false,
+                          backend: {
+                              kind: "sts2-jsonrpc",
+                              code: params.error.code ?? STS2_ERROR_CODES.queryFailedServer,
+                          },
                           ...(params.error.server ? { server: params.error.server } : {}),
                       },
                   }
@@ -1185,9 +1321,12 @@ export class Sts2Query {
             // A user can cancel immediately after execute() returns, before the execute
             // response assigns the server query id. Never send the empty placeholder: wait
             // for this query's own id within the existing cancel-ack deadline.
-            const queryId =
-                this.backendId ||
-                (await withDeadline(this.handle.backendQueryId, remainingDeadlineMs(deadlineAt)));
+            const queryId = await this.queryIdForControl(deadlineAt);
+            if (!queryId) {
+                // Execute was rejected/aborted before the service owned a
+                // query. There is nothing to cancel and no ack to wait for.
+                return { acknowledged: true };
+            }
             await withDeadline(
                 this.rpc.sendRequest(STS2_METHODS.queryCancel, { queryId }),
                 remainingDeadlineMs(deadlineAt),
@@ -1203,6 +1342,24 @@ export class Sts2Query {
                 reason: error instanceof Error ? error.message : String(error),
             };
         }
+    }
+
+    private async queryIdForControl(deadlineAt: number): Promise<string | undefined> {
+        if (this.backendId) {
+            return this.backendId;
+        }
+        const acceptance = await withDeadline(
+            this.handle.accepted,
+            remainingDeadlineMs(deadlineAt),
+        );
+        if (acceptance.status !== "accepted") {
+            return undefined;
+        }
+        return (
+            acceptance.backendQueryId ??
+            this.backendId ??
+            (await withDeadline(this.handle.backendQueryId, remainingDeadlineMs(deadlineAt)))
+        );
     }
 
     private armCancelCompletionDeadline(): void {
@@ -1221,9 +1378,10 @@ export class Sts2Query {
     private async disposeQuery(): Promise<void> {
         const deadlineAt = Date.now() + this.backend.deadlines.disposeDrainMs;
         try {
-            const queryId =
-                this.backendId ||
-                (await withDeadline(this.handle.backendQueryId, remainingDeadlineMs(deadlineAt)));
+            const queryId = await this.queryIdForControl(deadlineAt);
+            if (!queryId) {
+                return;
+            }
             await withDeadline(
                 this.rpc.sendRequest(STS2_METHODS.queryDispose, { queryId }),
                 remainingDeadlineMs(deadlineAt),
@@ -1244,13 +1402,12 @@ export class Sts2Query {
             return;
         }
         if (viaDiag) {
-            diag.emit({
-                feature: "sqlDataPlane",
+            this.backend.diagnostics.emit({
                 type: "sqlDataPlane.deadline",
                 status: "warning",
                 fields: {
-                    operation: { raw: "queryTerminal", cls: "diagnostic.metadata" },
-                    reason: { raw: reason, cls: "diagnostic.metadata" },
+                    operation: "queryTerminal",
+                    reason,
                 },
             });
         }
@@ -1286,13 +1443,12 @@ export class Sts2Query {
     }
 
     private protocolViolation(observation: string): void {
-        diag.emit({
-            feature: "sqlDataPlane",
+        this.backend.diagnostics.emit({
             type: "sqlDataPlane.protocolViolation",
             status: "error",
             fields: {
-                observation: { raw: observation, cls: "diagnostic.metadata" },
-                backend: { raw: "sts2-jsonrpc", cls: "diagnostic.metadata" },
+                observation,
+                backend: "sts2-jsonrpc",
             },
         });
         // Best-effort backend cancel; the partial grid is not truth (§8.6).
@@ -1319,9 +1475,7 @@ export class Sts2Query {
             return;
         }
         this.terminalSent = true;
-        if (this.cancelDeadlineTimer) {
-            clearTimeout(this.cancelDeadlineTimer);
-        }
+        this.clearCancelDeadline();
         this.enqueue(async () => {
             try {
                 await this.sink.onComplete(summary);
@@ -1332,18 +1486,22 @@ export class Sts2Query {
         });
     }
 
+    private clearCancelDeadline(): void {
+        if (this.cancelDeadlineTimer) {
+            clearTimeout(this.cancelDeadlineTimer);
+            this.cancelDeadlineTimer = undefined;
+        }
+    }
+
     /** True when events must be dropped (after terminal). */
     private terminalGuard(what: string): boolean {
         if (!this.terminalSent) {
             return false;
         }
-        diag.emit({
-            feature: "sqlDataPlane",
+        this.backend.diagnostics.emit({
             type: "sqlDataPlane.protocolViolation",
             status: "warning",
-            fields: {
-                observation: { raw: `${what} after terminal`, cls: "diagnostic.metadata" },
-            },
+            fields: { observation: `${what} after terminal` },
         });
         return true;
     }
@@ -1358,6 +1516,7 @@ export class Sts2Query {
                 // Sink failure: local fail, stop delivering (doc 03 §4.4).
                 if (!this.terminalSent) {
                     this.terminalSent = true;
+                    this.clearCancelDeadline();
                     this.completionResolve({
                         clientQueryId: this.clientQueryId,
                         status: "failed",

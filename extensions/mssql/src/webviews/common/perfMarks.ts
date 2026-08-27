@@ -4,10 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 /**
- * Webview-side perf marks (harness design §17.5). Disabled by default: marks
- * are emitted only after the extension controller sends PerfEnableNotification,
- * which it does only under PERF_MODE=1. Outside perf mode every call here is
- * an inert boolean check.
+ * Webview-side perf marks. Disabled by default: marks are sent to the
+ * extension only after the controller sends PerfEnableNotification, which it
+ * does only under PERF_MODE=1. Outside perf mode the cost is bounded and
+ * local: perfMark captures its clocks and queues at most MAX_PENDING marks,
+ * perfMarkAfterNextPaint schedules two rAF callbacks plus one 500 ms timer,
+ * and no RPC is ever sent.
  */
 
 import type { WebviewRpc } from "./rpc";
@@ -86,7 +88,7 @@ export function perfMark(
 
 /**
  * Record a mark after the next paint has committed (double
- * requestAnimationFrame, design §17.5) — the honest "visually complete"
+ * requestAnimationFrame) — the honest "visually complete"
  * moment. Runs unconditionally so pre-enablement marks still carry
  * paint-accurate timestamps; the cost is two coalesced rAF callbacks on
  * completion events only.
@@ -103,19 +105,19 @@ export function perfMarkAfterNextPaintComputed(
     name: string,
     attrs: () => { [key: string]: string | number | boolean | null } | undefined,
 ): void {
-    // Hidden/backgrounded webviews get their rAF throttled to a standstill
-    // (VS Code suspends hidden views) — the 500ms fallback keeps the mark
-    // honest-ish (attr says so) instead of silently absent (BOOT-4: warmup
-    // reps lost editorInteractive entirely to this).
-    let done = false;
-    const emit = (throttled: boolean) => {
-        if (done) {
+    // Hidden/backgrounded VS Code webviews can suspend rAF indefinitely. The
+    // intentional delay is a bounded fallback, not startup synchronisation:
+    // it preserves a marked (and honestly labelled) endpoint instead of
+    // silently invalidating the performance repetition.
+    let completed = false;
+    const emit = (rafThrottled: boolean) => {
+        if (completed) {
             return;
         }
-        done = true;
+        completed = true;
         clearTimeout(fallback);
         const computed = attrs();
-        perfMark(name, throttled ? { ...(computed ?? {}), rafThrottled: true } : computed);
+        perfMark(name, rafThrottled ? { ...(computed ?? {}), rafThrottled: true } : computed);
     };
     const fallback = setTimeout(() => emit(true), 500);
     requestAnimationFrame(() => {

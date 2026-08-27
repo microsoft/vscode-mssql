@@ -494,6 +494,44 @@ export function isTruncatedCellEncoding(raw: unknown): raw is TruncatedCellEncod
     );
 }
 
+type TypedScalarCellTag =
+    | "int64"
+    | "decimal"
+    | "double"
+    | "datetime2"
+    | "datetimeoffset"
+    | "time"
+    | "guid"
+    | "binary"
+    | "provider";
+
+interface TypedScalarCellEncoding {
+    $t: TypedScalarCellTag;
+    v: string;
+}
+
+/** Lossless/ambiguous scalar wrapper emitted by STS2 WireValueEncoder. */
+function isTypedScalarCellEncoding(raw: unknown): raw is TypedScalarCellEncoding {
+    if (raw === null || typeof raw !== "object") {
+        return false;
+    }
+    const value = raw as { $t?: unknown; v?: unknown };
+    return (
+        typeof value.v === "string" &&
+        [
+            "int64",
+            "decimal",
+            "double",
+            "datetime2",
+            "datetimeoffset",
+            "time",
+            "guid",
+            "binary",
+            "provider",
+        ].includes(String(value.$t))
+    );
+}
+
 /**
  * Compact wire-faithful page encoding (addendum §3.3): full CellValue
  * materialization is LAZY (window-serve/serialize time). Bindings may deliver
@@ -697,13 +735,38 @@ export function decodeCell(
             ? { kind: "xml", value: raw.v, truncated }
             : { kind: "string", value: raw.v, truncated };
     }
+    // STS2 wraps values that JSON cannot represent without loss or ambiguity.
+    // The wrapper is authoritative and must be decoded before a type-hint
+    // fallback can stringify it as "[object Object]".
+    if (isTypedScalarCellEncoding(raw)) {
+        switch (raw.$t) {
+            case "int64":
+            case "decimal":
+            case "double":
+                return { kind: "number", value: raw.v, exact: true };
+            case "datetime2":
+            case "datetimeoffset":
+                return { kind: "datetime", display: raw.v, iso: raw.v };
+            case "time":
+                return { kind: "datetime", display: raw.v };
+            case "binary":
+                return { kind: "binary", base64: raw.v };
+            case "guid":
+            case "provider":
+                return { kind: "string", value: raw.v };
+        }
+    }
     switch (hint) {
         case "number":
             return typeof raw === "number"
                 ? { kind: "number", value: raw, exact: true }
                 : { kind: "number", value: String(raw), exact: true };
         case "number:approx":
-            return { kind: "number", value: String(raw), exact: false };
+            // STS2 emits bigint JSON numbers only inside JavaScript's safe
+            // integer range; unsafe integers and decimals use exact wrappers.
+            return typeof raw === "number"
+                ? { kind: "number", value: raw, exact: true }
+                : { kind: "number", value: String(raw), exact: false };
         case "boolean":
             return { kind: "boolean", value: raw === true || raw === 1 || raw === "1" };
         case "datetime":

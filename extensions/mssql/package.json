@@ -38,7 +38,8 @@
         "onUri",
         "onCustomEditor:mssql.queryStudio",
         "onCommand:mssql.loadCompletionExtension",
-        "onNotebook:jupyter-notebook"
+        "onNotebook:jupyter-notebook",
+        "onView:dataworkspace.views.main"
     ],
     "main": "./dist/extension",
     "l10n": "./l10n",
@@ -2446,11 +2447,6 @@
                 "category": "MS SQL"
             },
             {
-                "command": "mssql.sqlDataPlane.showStatus",
-                "title": "Show SQL Data-Plane Status",
-                "category": "MS SQL"
-            },
-            {
                 "command": "mssql.sqlDataPlane.pickDocumentBackend",
                 "title": "Query Studio: Select SQL Provider for This Document",
                 "category": "MS SQL"
@@ -2778,6 +2774,12 @@
                 "command": "mssql.openInMssqlExtensionFromAzureResources",
                 "title": "%mssql.openInMssqlExtensionFromAzureResources%",
                 "category": "MS SQL"
+            },
+            {
+                "command": "mssql.sqlDataPlane.showStatus",
+                "title": "%mssql.sqlDataPlane.showStatus%",
+                "category": "MS SQL",
+                "enablement": "config.mssql.sqlDataPlane.enabled"
             }
         ],
         "keybindings": [
@@ -2831,6 +2833,41 @@
                     "type": "boolean",
                     "default": false,
                     "description": "%mssql.enableExperimentalFeatures.description%",
+                    "scope": "application"
+                },
+                "mssql.sqlDataPlane.timeouts.openMs": {
+                    "type": "number",
+                    "minimum": 1,
+                    "default": 30000,
+                    "markdownDescription": "%mssql.sqlDataPlane.timeouts.openMs.description%",
+                    "scope": "application"
+                },
+                "mssql.sqlDataPlane.timeouts.cancelAckMs": {
+                    "type": "number",
+                    "minimum": 1,
+                    "default": 10000,
+                    "markdownDescription": "%mssql.sqlDataPlane.timeouts.cancelAckMs.description%",
+                    "scope": "application"
+                },
+                "mssql.sqlDataPlane.timeouts.closeMs": {
+                    "type": "number",
+                    "minimum": 1,
+                    "default": 15000,
+                    "markdownDescription": "%mssql.sqlDataPlane.timeouts.closeMs.description%",
+                    "scope": "application"
+                },
+                "mssql.sqlDataPlane.timeouts.disposeDrainMs": {
+                    "type": "number",
+                    "minimum": 1,
+                    "default": 10000,
+                    "markdownDescription": "%mssql.sqlDataPlane.timeouts.disposeDrainMs.description%",
+                    "scope": "application"
+                },
+                "mssql.sqlDataPlane.timeouts.initializeMs": {
+                    "type": "number",
+                    "minimum": 1,
+                    "default": 20000,
+                    "markdownDescription": "%mssql.sqlDataPlane.timeouts.initializeMs.description%",
                     "scope": "application"
                 },
                 "mssql.preview.betaResultsGrid": {
