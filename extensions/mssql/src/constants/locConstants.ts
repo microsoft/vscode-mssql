@@ -4237,3 +4237,41 @@ export class SqlMoveToSchema {
     public static sqlprojUpdateFailed = (message: string): string =>
         l10n.t("Failed to update the .sqlproj after moving the file: {0}", message);
 }
+
+export class SqlDataPlane {
+    public static openWithProvider = (alternativeDisplayName: string): string =>
+        l10n.t({
+            message: "Open with {0}",
+            args: [alternativeDisplayName],
+            comment: ["{0} is the display name of the alternative SQL data plane provider"],
+        });
+
+    public static fallbackPrompt = (
+        missingCapabilities: string,
+        currentDisplayName: string,
+    ): string =>
+        l10n.t({
+            message: "This connection requires {0}, which {1} does not support.",
+            args: [missingCapabilities, currentDisplayName],
+            comment: [
+                "{0} is a list of required capabilities",
+                "{1} is the display name of the current SQL data plane provider",
+            ],
+        });
+
+    public static fallbackNotification = (
+        missingCapabilities: string,
+        currentDisplayName: string,
+        alternativeDisplayName: string,
+    ): string =>
+        l10n.t({
+            message:
+                "This connection requires {0}, which {1} does not support. Connected with {2} instead.",
+            args: [missingCapabilities, currentDisplayName, alternativeDisplayName],
+            comment: [
+                "{0} is a list of required capabilities",
+                "{1} is the display name of the current SQL data plane provider",
+                "{2} is the display name of the alternative SQL data plane provider",
+            ],
+        });
+}

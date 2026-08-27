@@ -24,11 +24,18 @@ export type CapabilityFallbackPolicy = "prompt" | "auto" | "off";
 
 export const CAPABILITY_FALLBACK_SETTING = "mssql.sqlDataPlane.capabilityFallback";
 
+/** Semantic values rendered by the host interaction in the active locale. */
+export interface CapabilityFallbackPresentation {
+    missingCapabilities: string;
+    currentDisplayName: string;
+    alternativeDisplayName: string;
+}
+
 /** vscode-free interaction port (window.* in production, recorder in tests). */
 export interface FallbackInteraction {
-    /** Returns the chosen action label or undefined (dismissed). */
-    prompt(message: string, actions: readonly string[]): Promise<string | undefined>;
-    notify(message: string): void;
+    /** Returns true when the localized alternative action was selected. */
+    prompt(presentation: CapabilityFallbackPresentation): Promise<boolean>;
+    notify(presentation: CapabilityFallbackPresentation): void;
 }
 
 export interface FallbackDecision {
@@ -72,21 +79,18 @@ export async function resolveCapabilityFallback(options: {
     const currentName = displayNameFor(currentKind);
     const alternativeName = displayNameFor(alternative);
     const missing = describeMissingCapabilities(check);
+    const presentation: CapabilityFallbackPresentation = {
+        missingCapabilities: missing,
+        currentDisplayName: currentName,
+        alternativeDisplayName: alternativeName,
+    };
     if (policy === "auto") {
         // Visible, never silent (TSQ2 §8.2): one notification names the
         // ACTUAL provider; diagnostics carry the same fact via backendKind.
-        interaction.notify(
-            `This connection requires ${missing}, which ${currentName} does not support. ` +
-                `Connected with ${alternativeName} instead.`,
-        );
+        interaction.notify(presentation);
         return { kind: "useAlternative", alternative, automatic: true };
     }
-    const action = `Open with ${alternativeName}`;
-    const choice = await interaction.prompt(
-        `This connection requires ${missing}, which ${currentName} does not support.`,
-        [action],
-    );
-    if (choice === action) {
+    if (await interaction.prompt(presentation)) {
         return { kind: "useAlternative", alternative };
     }
     return { kind: "abort" };

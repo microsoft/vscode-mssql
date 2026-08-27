@@ -81,12 +81,12 @@ function recorder(pick: boolean) {
     const prompts: string[] = [];
     const notes: string[] = [];
     const interaction: FallbackInteraction = {
-        prompt: async (message, actions) => {
-            prompts.push(message);
-            return pick ? actions[0] : undefined;
+        prompt: async (presentation) => {
+            prompts.push(presentation.missingCapabilities);
+            return pick;
         },
-        notify: (message) => {
-            notes.push(message);
+        notify: (presentation) => {
+            notes.push(presentation.alternativeDisplayName);
         },
     };
     return { interaction, prompts, notes };

@@ -2258,6 +2258,25 @@
     "Failed to move file to the new schema folder: {0}": "Failed to move file to the new schema folder: {0}",
     "The move was rejected or could not be completed.": "The move was rejected or could not be completed.",
     "Failed to update the .sqlproj after moving the file: {0}": "Failed to update the .sqlproj after moving the file: {0}",
+    "Open with {0}/{0} is the display name of the alternative SQL data plane provider": {
+        "message": "Open with {0}",
+        "comment": ["{0} is the display name of the alternative SQL data plane provider"]
+    },
+    "This connection requires {0}, which {1} does not support./{0} is a list of required capabilities{1} is the display name of the current SQL data plane provider": {
+        "message": "This connection requires {0}, which {1} does not support.",
+        "comment": [
+            "{0} is a list of required capabilities",
+            "{1} is the display name of the current SQL data plane provider"
+        ]
+    },
+    "This connection requires {0}, which {1} does not support. Connected with {2} instead./{0} is a list of required capabilities{1} is the display name of the current SQL data plane provider{2} is the display name of the alternative SQL data plane provider": {
+        "message": "This connection requires {0}, which {1} does not support. Connected with {2} instead.",
+        "comment": [
+            "{0} is a list of required capabilities",
+            "{1} is the display name of the current SQL data plane provider",
+            "{2} is the display name of the alternative SQL data plane provider"
+        ]
+    },
     "Close": "Close",
     "Apply": "Apply",
     "Next": "Next",
