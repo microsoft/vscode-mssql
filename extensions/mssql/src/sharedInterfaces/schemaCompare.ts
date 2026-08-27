@@ -46,7 +46,7 @@ export interface SchemaCompareWebViewState {
     applySucceeded: boolean;
     applyFailed: boolean;
     isIncludeExcludeAllOperationInProgress: boolean;
-    activeServers: { [connectionId: string]: SchemaCompareServer };
+    connections: { [connectionId: string]: SchemaCompareServer };
     databases: FormItemOptions[];
     databaseListConnectionId: string;
     isDatabaseListLoading: boolean;

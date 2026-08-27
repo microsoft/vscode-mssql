@@ -55,6 +55,12 @@ const useStyles = makeStyles({
         flexDirection: "row",
     },
 
+    connectionSelectionRow: {
+        display: "flex",
+        flexDirection: "row",
+        marginBottom: "8px",
+    },
+
     databaseSelectionRow: {
         display: "flex",
         alignItems: "center",
@@ -121,7 +127,7 @@ const SchemaSelectorDrawer = (props: Props) => {
     const sourceEndpointInfo = useSchemaCompareSelector((s) => s.sourceEndpointInfo);
     const targetEndpointInfo = useSchemaCompareSelector((s) => s.targetEndpointInfo);
     const auxiliaryEndpointInfo = useSchemaCompareSelector((s) => s.auxiliaryEndpointInfo);
-    const activeServers = useSchemaCompareSelector((s) => s.activeServers);
+    const connections = useSchemaCompareSelector((s) => s.connections);
     const databases = useSchemaCompareSelector((s) => s.databases);
     const databaseListConnectionId = useSchemaCompareSelector((s) => s.databaseListConnectionId);
     const isDatabaseListLoading = useSchemaCompareSelector((s) => s.isDatabaseListLoading);
@@ -152,6 +158,12 @@ const SchemaSelectorDrawer = (props: Props) => {
     const showDatabaseSpinner =
         Boolean(serverConnectionUri) && (!databaseStateMatchesSelection || isDatabaseListLoading);
     const displayedDatabaseError = databaseStateMatchesSelection ? databaseListError : "";
+    const connectionOptions = Object.entries(connections)
+        .map(([connectionId, connection]) => ({
+            value: connectionId,
+            text: connection.profileName || connection.server,
+        }))
+        .sort((connA, connB) => connA.text.localeCompare(connB.text));
     const databaseGroups = new Map<string, typeof displayedDatabases>();
     for (const database of displayedDatabases) {
         const groupName = database.groupName ?? "";
@@ -281,7 +293,7 @@ const SchemaSelectorDrawer = (props: Props) => {
 
     const handleDatabaseServerSelected = (option: SearchableDropdownOptions) => {
         if (option.value) {
-            const connectionDatabaseName = activeServers[option.value]?.database ?? "";
+            const connectionDatabaseName = connections[option.value]?.database ?? "";
             setServerConnectionUri(option.value);
             setServerName(option.text ?? option.value);
             setDatabaseName(connectionDatabaseName);
@@ -353,22 +365,17 @@ const SchemaSelectorDrawer = (props: Props) => {
 
                 {schemaType === "database" && (
                     <>
-                        <Label>{loc.schemaCompare.server}</Label>
-                        <div className={classes.positionItemsHorizontally}>
+                        <Label>{loc.schemaCompare.connection}</Label>
+                        <div className={classes.connectionSelectionRow}>
                             <SearchableDropdown
                                 style={{ width: "300px" }}
-                                options={Object.keys(activeServers).map((connectionUri) => ({
-                                    value: connectionUri,
-                                    text:
-                                        activeServers[connectionUri].profileName ||
-                                        activeServers[connectionUri].server,
-                                }))}
+                                options={connectionOptions}
                                 selectedOption={{
                                     value: serverConnectionUri,
                                     text: serverName,
                                 }}
                                 onSelect={handleDatabaseServerSelected}
-                                ariaLabel={loc.schemaCompare.server}
+                                ariaLabel={loc.schemaCompare.connection}
                                 showPlaceholder
                             />
                         </div>

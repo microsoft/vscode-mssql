@@ -197,7 +197,7 @@ suite("SchemaCompareWebViewController Tests", () => {
             applySucceeded: false,
             applyFailed: false,
             isIncludeExcludeAllOperationInProgress: false,
-            activeServers: {},
+            connections: {},
             databases: [],
             databaseListConnectionId: "",
             isDatabaseListLoading: false,
@@ -1091,7 +1091,7 @@ suite("SchemaCompareWebViewController Tests", () => {
             {},
         );
 
-        expect(actualResult.activeServers["saved-connection-id"]).to.deep.equal({
+        expect(actualResult.connections["saved-connection-id"]).to.deep.equal({
             profileName: "Saved connection",
             server: "saved-server",
             database: "saved-database",
@@ -1104,8 +1104,8 @@ suite("SchemaCompareWebViewController Tests", () => {
             {},
         );
 
-        expect(actualResult.activeServers).not.to.have.property("conn_uri");
-        expect(actualResult.activeServers).to.deep.equal({});
+        expect(actualResult.connections).not.to.have.property("conn_uri");
+        expect(actualResult.connections).to.deep.equal({});
     });
 
     test("listActiveServers reducer - lists a saved profile exactly once regardless of active-connection count", async () => {
@@ -1122,7 +1122,7 @@ suite("SchemaCompareWebViewController Tests", () => {
             {},
         );
 
-        expect(actualResult.activeServers).to.deep.equal({
+        expect(actualResult.connections).to.deep.equal({
             "saved-connection-id": {
                 profileName: "Saved connection",
                 server: "saved-server",
@@ -1130,7 +1130,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         });
     });
 
-    test("listActiveServers reducer - multiple saved profiles each appear in activeServers under their own ID", async () => {
+    test("listActiveServers reducer - multiple saved profiles each appear in connections under their own ID", async () => {
         const firstSavedConnection = {
             id: "first-saved-id",
             profileName: "First saved connection",
@@ -1154,17 +1154,17 @@ suite("SchemaCompareWebViewController Tests", () => {
             {},
         );
 
-        expect(actualResult.activeServers).to.have.property("first-saved-id");
-        expect(actualResult.activeServers).to.have.property("second-saved-id");
-        expect(actualResult.activeServers["first-saved-id"].profileName).to.equal(
+        expect(actualResult.connections).to.have.property("first-saved-id");
+        expect(actualResult.connections).to.have.property("second-saved-id");
+        expect(actualResult.connections["first-saved-id"].profileName).to.equal(
             "First saved connection",
         );
-        expect(actualResult.activeServers["second-saved-id"].profileName).to.equal(
+        expect(actualResult.connections["second-saved-id"].profileName).to.equal(
             "Second saved connection",
         );
     });
 
-    test("listActiveServers reducer - saved connection without ID uses server_database as its activeServers key", async () => {
+    test("listActiveServers reducer - saved connection without ID uses server_database as its connections key", async () => {
         const savedConnection = {
             id: "",
             profileName: "Saved connection",
@@ -1183,8 +1183,8 @@ suite("SchemaCompareWebViewController Tests", () => {
         );
 
         // Profile with no ID appears under server_database composite key
-        expect(actualResult.activeServers).to.have.property("shared-server_saved-database");
-        expect(actualResult.activeServers["shared-server_saved-database"]).to.deep.equal({
+        expect(actualResult.connections).to.have.property("shared-server_saved-database");
+        expect(actualResult.connections["shared-server_saved-database"]).to.deep.equal({
             profileName: "Saved connection",
             server: "shared-server",
             database: "saved-database",
@@ -1336,7 +1336,7 @@ suite("SchemaCompareWebViewController Tests", () => {
             return false;
         });
         const state = structuredClone(mockInitialState);
-        state.activeServers = {
+        state.connections = {
             [savedConnection.id]: {
                 profileName: savedConnection.profileName,
                 server: savedConnection.server,
@@ -1435,7 +1435,7 @@ suite("SchemaCompareWebViewController Tests", () => {
             score: utils.MatchScore.Id,
         });
         const state = structuredClone(mockInitialState);
-        state.activeServers = {
+        state.connections = {
             "saved-connection-id": {
                 profileName: "Saved connection",
                 server: "saved-server",
@@ -1648,7 +1648,7 @@ suite("SchemaCompareWebViewController Tests", () => {
             return true;
         });
         const state = structuredClone(mockInitialState);
-        state.activeServers = {
+        state.connections = {
             "saved-connection-id": {
                 profileName: "Saved connection",
                 server: "saved-server",

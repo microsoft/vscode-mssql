@@ -94,7 +94,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 applySucceeded: false,
                 applyFailed: false,
                 isIncludeExcludeAllOperationInProgress: false,
-                activeServers: {},
+                connections: {},
                 databases: [],
                 databaseListConnectionId: "",
                 isDatabaseListLoading: false,
@@ -147,7 +147,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
 
         this.registerDisposable(
             this.connectionMgr.onConnectionsChanged(async () => {
-                this.state.activeServers = await this.getAvailableServersList();
+                this.state.connections = await this.getAvailableServersList();
                 this.updateState();
             }),
         );
@@ -499,9 +499,9 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
 
         this.registerReducer("listActiveServers", async (state) => {
             this.logger.debug(`Listing SQL connections - OperationId: ${this.operationId}`);
-            const activeServers = await this.getAvailableServersList();
+            const connections = await this.getAvailableServersList();
 
-            const serverCount = Object.keys(activeServers).length;
+            const serverCount = Object.keys(connections).length;
             this.logger.debug(
                 `Found ${serverCount} SQL connection(s) - OperationId: ${this.operationId}`,
             );
@@ -510,7 +510,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 serverCount: serverCount.toString(),
             });
 
-            state.activeServers = activeServers;
+            state.connections = connections;
             this.updateState(state);
 
             return state;
@@ -520,7 +520,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             const requestGeneration = ++this.databaseListRequestGeneration;
             const connectionDatabaseName =
                 payload.connectionDatabaseName ??
-                state.activeServers[payload.connectionUri]?.database ??
+                state.connections[payload.connectionUri]?.database ??
                 "";
             const databaseCacheKey =
                 this.connectionUris.get(payload.connectionUri) ?? payload.connectionUri;
@@ -2293,7 +2293,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
     private async getAvailableServersList(): Promise<{
         [connectionId: string]: SchemaCompareServer;
     }> {
-        const activeServers: { [connectionId: string]: SchemaCompareServer } = {};
+        const connections: { [connectionId: string]: SchemaCompareServer } = {};
         this.connectionUris.clear();
 
         try {
@@ -2302,7 +2302,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 const profile = connection as IConnectionProfile;
                 const connectionId = profile.id || `${profile.server}_${profile.database || ""}`;
 
-                activeServers[connectionId] = {
+                connections[connectionId] = {
                     profileName: profile.profileName || getConnectionDisplayName(profile),
                     server: profile.server,
                     ...(profile.database ? { database: profile.database } : {}),
@@ -2314,7 +2314,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             );
         }
 
-        return activeServers;
+        return connections;
     }
 
     private includeConnectionDatabase(

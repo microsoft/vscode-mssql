@@ -2259,7 +2259,7 @@ export class LocConstants {
             applyFailedRunAgain: l10n.t(
                 "Apply failed. Fix the error and retry, or run Schema Compare again.",
             ),
-            server: l10n.t("Server"),
+            connection: l10n.t("Connection"),
             database: l10n.t("Database"),
             defaultUserName: l10n.t("default"),
             folderStructure: l10n.t("Folder Structure"),
