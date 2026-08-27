@@ -17,6 +17,8 @@ import {
 import ServerProvider from "../../src/languageservice/server";
 import SqlToolsServiceClient, {
     configureSqlDataPlaneLaunchArgs,
+    MINIMUM_STS2_SERVICE_VERSION,
+    supportsSqlDataPlaneLaunch,
 } from "../../src/languageservice/serviceclient";
 import DotnetRuntimeProvider from "../../src/languageservice/dotnetRuntimeProvider";
 import { PlatformInformation, Runtime } from "../../src/models/platform";
@@ -563,12 +565,27 @@ suite("Service Client tests", () => {
             expect(args).to.deep.equal(["--parallel-message-processing"]);
         });
 
-        test("enables the STS v2 lane when the preview is enabled", () => {
+        test("enables the STS v2 lane when the preview and compatible service are enabled", () => {
             const args = ["--parallel-message-processing"];
 
-            configureSqlDataPlaneLaunchArgs(args, true);
+            configureSqlDataPlaneLaunchArgs(args, true, MINIMUM_STS2_SERVICE_VERSION);
 
             expect(args).to.deep.equal(["--parallel-message-processing", "--enable-sts2"]);
+        });
+
+        test("does not pass the STS v2 flag to an older service that would reject it", () => {
+            const args = ["--parallel-message-processing"];
+
+            configureSqlDataPlaneLaunchArgs(args, true, "6.0.20260810.1");
+
+            expect(args).to.deep.equal(["--parallel-message-processing"]);
+        });
+
+        test("compares generated STS versions numerically", () => {
+            expect(supportsSqlDataPlaneLaunch("6.0.20260825.2")).to.equal(true);
+            expect(supportsSqlDataPlaneLaunch("6.0.20260825.10")).to.equal(true);
+            expect(supportsSqlDataPlaneLaunch("6.0.20260825.1")).to.equal(false);
+            expect(supportsSqlDataPlaneLaunch("not-a-version")).to.equal(false);
         });
     });
 

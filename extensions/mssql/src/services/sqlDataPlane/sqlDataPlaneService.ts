@@ -283,12 +283,15 @@ export class SqlDataPlaneService {
      * override always wins over the remembered choice.
      */
     private readonly rememberedFallback = new Map<string, SqlBackendKind>();
+    /** Explicit factory injection is the only supported test-backend opt-in. */
+    private readonly allowTestBackends: boolean;
 
     constructor(
         private readonly config: DataPlaneConfigReader = vscodeConfigReader(),
         factories?: readonly SqlBackendFactory[],
         private readonly providerVersion: string = "dev",
     ) {
+        this.allowTestBackends = factories !== undefined;
         for (const factory of factories ?? [
             sts2LocalFactory(providerVersion),
             fakeFactory(providerVersion),
@@ -342,6 +345,13 @@ export class SqlDataPlaneService {
                 `unknown mssql.sqlDataPlane.backend value: ${raw}`,
             );
         }
+        const entry = this.entries.get(kind);
+        if (entry?.factory.realmClass === "test" && !this.allowTestBackends) {
+            throw new SqlDataPlaneError(
+                DataPlaneErrorCodes.invalidRequest,
+                `test backend cannot be configured as the runtime default: ${raw}`,
+            );
+        }
         return kind;
     }
 
@@ -374,24 +384,57 @@ export class SqlDataPlaneService {
         }
         if (!entry.startup) {
             entry.state = "starting";
-            entry.startup = entry.factory
-                .create({ config: this.config, providerVersion: this.providerVersion })
-                .then((service) => {
+            let startup: Promise<ISqlConnectionService>;
+            startup = Promise.resolve()
+                .then(() =>
+                    entry.factory.create({
+                        config: this.config,
+                        providerVersion: this.providerVersion,
+                    }),
+                )
+                .then(async (service) => {
+                    // A dispose/recompose may retire this single flight while
+                    // factory.create() is still running. Never let its late
+                    // result resurrect a disposed or stale entry.
+                    if (this.disposed || entry.startup !== startup) {
+                        await this.disposeService(service);
+                        throw new SqlDataPlaneError(
+                            DataPlaneErrorCodes.unavailable,
+                            "backend startup was superseded by disposal or configuration change",
+                            true,
+                            { backend: { kind } },
+                        );
+                    }
                     entry.service = service;
                     entry.state = "running";
                     delete entry.lastError;
                     return service;
                 })
                 .catch((error: unknown) => {
-                    // Failed startup is retryable: clear the single flight.
-                    entry.startup = undefined;
-                    entry.state = "failed";
-                    entry.lastError = toErrorInfo(error, kind);
+                    // Only the CURRENT single flight may mutate the entry.
+                    // A retired promise must not overwrite newer state.
+                    if (entry.startup === startup) {
+                        entry.startup = undefined;
+                        entry.state = "failed";
+                        entry.lastError = toErrorInfo(error, kind);
+                    }
                     throw error;
                 });
+            entry.startup = startup;
         }
-        await entry.startup;
-        return (entry.view ??= this.makeView(this.requireEntry(kind)));
+        const startup = entry.startup;
+        await startup;
+        this.assertNotDisposed();
+        const current = this.requireEntry(kind);
+        if (current.startup !== startup || !current.service) {
+            throw new SqlDataPlaneError(
+                DataPlaneErrorCodes.unavailable,
+                "backend startup was superseded by disposal or configuration change",
+                true,
+                { backend: { kind } },
+            );
+        }
+        return (current.view ??= this.makeView(current));
     }
 
     // -----------------------------------------------------------------------
@@ -830,17 +873,24 @@ export class SqlDataPlaneService {
         if (entry.state !== "failed") {
             entry.state = "disposed";
         }
-        const disposable = service as unknown as { dispose?: () => void | Promise<void> };
-        if (service && typeof disposable.dispose === "function") {
-            await Promise.race([
-                Promise.resolve(disposable.dispose()).catch(() => undefined),
-                new Promise((resolve) => {
-                    const timer = setTimeout(resolve, DISPOSE_TIMEOUT_MS);
-                    // Never keep the host alive just for the dispose bound.
-                    (timer as { unref?: () => void }).unref?.();
-                }),
-            ]);
+        if (service) {
+            await this.disposeService(service);
         }
+    }
+
+    private async disposeService(service: ISqlConnectionService): Promise<void> {
+        const disposable = service as unknown as { dispose?: () => void | Promise<void> };
+        if (typeof disposable.dispose !== "function") {
+            return;
+        }
+        await Promise.race([
+            Promise.resolve(disposable.dispose()).catch(() => undefined),
+            new Promise((resolve) => {
+                const timer = setTimeout(resolve, DISPOSE_TIMEOUT_MS);
+                // Never keep the host alive just for the dispose bound.
+                (timer as { unref?: () => void }).unref?.();
+            }),
+        ]);
     }
 
     private assertNotDisposed(): void {

@@ -1761,7 +1761,7 @@
             },
             {
                 "command": "mssql.sqlDataPlane.showStatus",
-                "title": "Show SQL Data Plane Status",
+                "title": "%mssql.sqlDataPlane.showStatus%",
                 "category": "MS SQL",
                 "enablement": "config.mssql.sqlDataPlane.enabled"
             }
@@ -1816,7 +1816,62 @@
                 "mssql.sqlDataPlane.enabled": {
                     "type": "boolean",
                     "default": false,
-                    "markdownDescription": "Enable the experimental, STS v2-backed SQL Data Plane for preview consumers. Reload the window after changing this setting. Existing query, connection, language service, and Object Explorer behavior remains unchanged.",
+                    "markdownDescription": "%mssql.sqlDataPlane.enabled.description%",
+                    "scope": "application"
+                },
+                "mssql.sqlDataPlane.backend": {
+                    "type": "string",
+                    "enum": [
+                        "sts2-local"
+                    ],
+                    "default": "sts2-local",
+                    "markdownDescription": "%mssql.sqlDataPlane.backend.description%",
+                    "scope": "application"
+                },
+                "mssql.sqlDataPlane.capabilityFallback": {
+                    "type": "string",
+                    "enum": [
+                        "prompt",
+                        "auto",
+                        "off"
+                    ],
+                    "default": "prompt",
+                    "markdownDescription": "%mssql.sqlDataPlane.capabilityFallback.description%",
+                    "scope": "application"
+                },
+                "mssql.sqlDataPlane.timeouts.openMs": {
+                    "type": "number",
+                    "minimum": 1,
+                    "default": 30000,
+                    "markdownDescription": "%mssql.sqlDataPlane.timeouts.openMs.description%",
+                    "scope": "application"
+                },
+                "mssql.sqlDataPlane.timeouts.cancelAckMs": {
+                    "type": "number",
+                    "minimum": 1,
+                    "default": 10000,
+                    "markdownDescription": "%mssql.sqlDataPlane.timeouts.cancelAckMs.description%",
+                    "scope": "application"
+                },
+                "mssql.sqlDataPlane.timeouts.closeMs": {
+                    "type": "number",
+                    "minimum": 1,
+                    "default": 15000,
+                    "markdownDescription": "%mssql.sqlDataPlane.timeouts.closeMs.description%",
+                    "scope": "application"
+                },
+                "mssql.sqlDataPlane.timeouts.disposeDrainMs": {
+                    "type": "number",
+                    "minimum": 1,
+                    "default": 10000,
+                    "markdownDescription": "%mssql.sqlDataPlane.timeouts.disposeDrainMs.description%",
+                    "scope": "application"
+                },
+                "mssql.sqlDataPlane.timeouts.initializeMs": {
+                    "type": "number",
+                    "minimum": 1,
+                    "default": 20000,
+                    "markdownDescription": "%mssql.sqlDataPlane.timeouts.initializeMs.description%",
                     "scope": "application"
                 },
                 "mssql.preview.betaResultsGrid": {

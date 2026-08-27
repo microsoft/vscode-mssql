@@ -51,7 +51,7 @@ class ScriptedRpc implements Sts2Rpc {
         this.requests.push({ method, params });
         const responder = this.responders.get(method);
         if (!responder) {
-            throw Object.assign(new Error(`Unhandled method ${method}`), {});
+            throw Object.assign(new Error(`Unhandled method ${method}`), { code: -32601 });
         }
         return (await responder(params)) as R;
     }
@@ -81,12 +81,16 @@ class RecordingSink implements IQueryEventSink {
     readonly messages: ServerMessage[] = [];
     summary: QueryCompleteSummary | undefined;
     pageDelayMs = 0;
+    rowsError: Error | undefined;
     onResultSetStarted(meta: ResultSetMetadata): void {
         this.metas.push(meta);
         this.sequence.push(`start:${meta.columns.map((c) => c.name).join(",")}`);
     }
     async onRowsPage(page: RowsPage): Promise<void> {
         this.sequence.push(`rows:${page.rowOffset}+${page.rowCount}`);
+        if (this.rowsError) {
+            throw this.rowsError;
+        }
         if (this.pageDelayMs) {
             await new Promise((r) => setTimeout(r, this.pageDelayMs));
         }
@@ -145,6 +149,16 @@ suite("STS2 binding conformance (scripted wire)", () => {
         expect((availability as { reason: string }).reason).to.include("notEnabledOnService");
     });
 
+    test("initialize failure without JSON-RPC MethodNotFound is not misclassified as disabled", async () => {
+        const rpc = new ScriptedRpc();
+        rpc.responders.set(STS2_METHODS.initialize, () => {
+            throw new Error("transport unavailable");
+        });
+        const availability = await new Sts2Backend(rpc).start();
+        expect(availability.state).to.equal("unavailable");
+        expect((availability as { reason: string }).reason).to.equal("initializeFailed (unknown)");
+    });
+
     test("a wedged initialize FAILS within its deadline and stays retryable", async () => {
         const rpc = new ScriptedRpc();
         // A responder that never settles — the wedged-service case that left
@@ -179,8 +193,8 @@ suite("STS2 binding conformance (scripted wire)", () => {
             queryId: "q-1",
             resultSetId: 0,
             columns: [
-                { name: "n", engineType: "int" },
-                { name: "s", engineType: "nvarchar" },
+                { name: "n", type: "int" },
+                { name: "s", type: "nvarchar" },
             ],
         });
         rpc.push(STS2_METHODS.queryRows, {
@@ -217,6 +231,31 @@ suite("STS2 binding conformance (scripted wire)", () => {
         const page = sink.pages[0];
         expect(page.compact.typeHints).to.deep.equal(["number", "string"]);
         expect(page.compact.nullBitmap).to.be.a("string");
+    });
+
+    test("wire query error keeps the domain code stable and preserves backend/server detail", async () => {
+        const rpc = standardRpc();
+        const sink = new RecordingSink();
+        const { handle } = await openAndExecute(rpc, sink);
+        rpc.push(STS2_METHODS.queryComplete, {
+            queryId: "q-1",
+            status: "error",
+            rowsAffected: null,
+            error: {
+                code: "Sts2.QueryFailed.Server",
+                message: "invalid object name",
+                server: { number: 208, severity: 16, state: 1, line: 1 },
+            },
+        });
+
+        const summary = await handle.completion;
+        expect(summary.error).to.deep.equal({
+            code: "SqlDataPlane.QueryFailed",
+            message: "invalid object name",
+            retryable: false,
+            backend: { kind: "sts2-jsonrpc", code: "Sts2.QueryFailed.Server" },
+            server: { number: 208, severity: 16, state: 1, line: 1 },
+        });
     });
 
     test("complete carrying a DIFFERENT database fires onDidChangeDatabase (backend truth)", async () => {
@@ -260,7 +299,7 @@ suite("STS2 binding conformance (scripted wire)", () => {
         rpc.push(STS2_METHODS.queryResultSet, {
             queryId: "q-1",
             resultSetId: 0,
-            columns: [{ name: "n", engineType: "int" }],
+            columns: [{ name: "n", type: "int" }],
         });
         rpc.push(STS2_METHODS.queryRows, {
             queryId: "q-1",
@@ -293,7 +332,7 @@ suite("STS2 binding conformance (scripted wire)", () => {
             rpc.push(STS2_METHODS.queryResultSet, {
                 queryId: "q-1",
                 resultSetId: set,
-                columns: [{ name: "n", engineType: "int" }],
+                columns: [{ name: "n", type: "int" }],
             });
             rpc.push(STS2_METHODS.queryRows, {
                 queryId: "q-1",
@@ -326,8 +365,8 @@ suite("STS2 binding conformance (scripted wire)", () => {
             queryId: "q-1",
             resultSetId: 0,
             columns: [
-                { name: "n", engineType: "int" },
-                { name: "s", engineType: "nvarchar" },
+                { name: "n", type: "int" },
+                { name: "s", type: "nvarchar" },
             ],
         });
         rpc.push(STS2_METHODS.queryRows, {
@@ -401,7 +440,7 @@ suite("STS2 binding conformance (scripted wire)", () => {
         rpc.push(STS2_METHODS.queryResultSet, {
             queryId: "q-1",
             resultSetId: 0,
-            columns: [{ name: "n", engineType: "int" }],
+            columns: [{ name: "n", type: "int" }],
         });
         rpc.push(STS2_METHODS.queryRows, {
             queryId: "q-1",
@@ -457,6 +496,49 @@ suite("STS2 binding conformance (scripted wire)", () => {
         expect(summary.error?.message).to.include("no terminal within");
     });
 
+    test("sink failure after cancel clears the armed completion deadline", async () => {
+        const rpc = standardRpc();
+        const events: Sts2DiagnosticEvent[] = [];
+        const observer: Sts2DiagnosticObserver = {
+            emit: (event) => events.push(event),
+            startSpan: () => ({ end: () => undefined }),
+        };
+        const sink = new RecordingSink();
+        sink.rowsError = new Error("sink failed");
+        const backend = new Sts2Backend(
+            rpc,
+            { ...DEFAULT_DEADLINES, completeAfterCancelMs: 20 },
+            observer,
+        );
+        await backend.start();
+        const session = await backend.openSession({
+            profile: PROFILE,
+            applicationName: "test",
+            auth: { passwordProvider: async () => "pw-canary-x" },
+        });
+        const handle = session.execute("select 1", {}, sink);
+        await new Promise((resolve) => setTimeout(resolve, 5));
+        await handle.cancel();
+        rpc.push(STS2_METHODS.queryResultSet, {
+            queryId: "q-1",
+            resultSetId: 0,
+            columns: [{ name: "n", type: "int" }],
+        });
+        rpc.push(STS2_METHODS.queryRows, {
+            queryId: "q-1",
+            resultSetId: 0,
+            pageSeq: 0,
+            rowOffset: 0,
+            rows: [[1]],
+        });
+
+        const summary = await handle.completion;
+        expect(summary.status).to.equal("failed");
+        expect(summary.error?.code).to.equal("SqlDataPlane.Client.SinkError");
+        await new Promise((resolve) => setTimeout(resolve, 30));
+        expect(events.some((event) => event.type === "sqlDataPlane.deadline")).to.equal(false);
+    });
+
     test("cancel waits for the execute response instead of sending an empty query id", async () => {
         const rpc = standardRpc();
         let resolveExecute!: (value: { queryId: string }) => void;
@@ -485,6 +567,31 @@ suite("STS2 binding conformance (scripted wire)", () => {
         expect((await cancel).acknowledged).to.equal(true);
         const request = rpc.requests.find((r) => r.method === STS2_METHODS.queryCancel);
         expect(request?.params).to.deep.equal({ queryId: "q-late" });
+    });
+
+    test("cancel settles immediately when execute rejects before assigning a query id", async () => {
+        const rpc = standardRpc();
+        rpc.responders.set(STS2_METHODS.queryExecute, () => {
+            throw Object.assign(new Error("rejected"), {
+                data: { code: "Sts2.QueryFailed.Server" },
+            });
+        });
+        const sink = new RecordingSink();
+        const backend = new Sts2Backend(rpc, { ...DEFAULT_DEADLINES, cancelAckMs: 1_000 });
+        await backend.start();
+        const session = await backend.openSession({
+            profile: PROFILE,
+            applicationName: "test",
+            auth: { passwordProvider: async () => "pw-canary-x" },
+        });
+        const handle = session.execute("invalid", {}, sink);
+
+        const ack = await handle.cancel();
+        expect(ack).to.deep.equal({ acknowledged: true });
+        expect(
+            rpc.requests.some((request) => request.method === STS2_METHODS.queryCancel),
+        ).to.equal(false);
+        expect((await handle.completion).status).to.equal("failed");
     });
 
     test("dispose settles the completion even when the wire stays silent (D-0011 drain)", async () => {
@@ -545,6 +652,19 @@ suite("STS2 binding conformance (scripted wire)", () => {
             method: STS2_METHODS.connectionClose,
             params: { connectionId: "conn-1" },
         });
+    });
+
+    test("backend disposal settles an active query as connectionLost", async () => {
+        const rpc = standardRpc();
+        const sink = new RecordingSink();
+        const { backend, handle } = await openAndExecute(rpc, sink);
+
+        await backend.dispose();
+
+        const summary = await handle.completion;
+        expect(summary.status).to.equal("connectionLost");
+        expect(summary.synthesized).to.equal(true);
+        expect(summary.error?.code).to.equal("SqlDataPlane.Unavailable");
     });
 
     test("open failure maps Sts2.ConnectionFailed.Auth → SqlDataPlane.Auth; secrets never in the error", async () => {
@@ -695,7 +815,7 @@ suite("STS2 binding conformance (scripted wire)", () => {
                 rpc.push(STS2_METHODS.queryResultSet, {
                     queryId: "q-1",
                     resultSetId: 0,
-                    columns: [{ name: "n", engineType: "int" }],
+                    columns: [{ name: "n", type: "int" }],
                 });
                 rpc.push(STS2_METHODS.queryComplete, {
                     queryId: "q-1",
@@ -713,6 +833,152 @@ suite("STS2 binding conformance (scripted wire)", () => {
         expect(sink.sequence[0]).to.equal("start:n");
     });
 
+    test("orphan buffering is bounded by query ids and events per id", async () => {
+        const rpc = standardRpc();
+        const events: Sts2DiagnosticEvent[] = [];
+        const observer: Sts2DiagnosticObserver = {
+            emit: (event) => events.push(event),
+            startSpan: () => ({ end: () => undefined }),
+        };
+        const backend = new Sts2Backend(rpc, DEFAULT_DEADLINES, observer);
+        await backend.start();
+
+        for (let i = 0; i < 100; i++) {
+            rpc.push(STS2_METHODS.queryMessage, {
+                queryId: `unknown-${i}`,
+                messageClass: "info",
+                text: "ignored",
+            });
+        }
+        for (let i = 0; i < 100; i++) {
+            rpc.push(STS2_METHODS.queryMessage, {
+                queryId: "event-overflow",
+                messageClass: "info",
+                text: "ignored",
+            });
+        }
+
+        const status = backend.status() as {
+            bufferedOrphanQueries: number;
+            bufferedOrphanEvents: number;
+        };
+        expect(status.bufferedOrphanQueries).to.be.at.most(64);
+        expect(status.bufferedOrphanEvents).to.be.at.most(64 * 32);
+        expect(
+            events.some(
+                (event) => event.fields?.observation === "orphan query buffer limit reached",
+            ),
+        ).to.equal(true);
+        expect(
+            events.some(
+                (event) => event.fields?.observation === "orphan event buffer limit reached",
+            ),
+        ).to.equal(true);
+    });
+
+    test("notifications arriving after a synthesized terminal are dropped, not orphaned", async () => {
+        const rpc = standardRpc();
+        const events: Sts2DiagnosticEvent[] = [];
+        const observer: Sts2DiagnosticObserver = {
+            emit: (event) => events.push(event),
+            startSpan: () => ({ end: () => undefined }),
+        };
+        const backend = new Sts2Backend(
+            rpc,
+            { ...DEFAULT_DEADLINES, completeAfterCancelMs: 20 },
+            observer,
+        );
+        await backend.start();
+        const session = await backend.openSession({
+            profile: PROFILE,
+            applicationName: "test",
+            auth: { passwordProvider: async () => "pw-canary-x" },
+        });
+        const handle = session.execute("select 1", {}, new RecordingSink());
+        await new Promise((resolve) => setTimeout(resolve, 5));
+        await handle.cancel();
+        expect((await handle.completion).status).to.equal("canceled");
+
+        rpc.push(STS2_METHODS.queryMessage, {
+            queryId: "q-1",
+            messageClass: "info",
+            text: "late",
+        });
+
+        expect(backend.status()).to.deep.include({
+            activeQueries: 0,
+            bufferedOrphanQueries: 0,
+            bufferedOrphanEvents: 0,
+        });
+        expect(
+            events.some(
+                (event) => event.fields?.observation === "notification after query retirement",
+            ),
+        ).to.equal(true);
+    });
+
+    test("real STS2 typed scalar wrappers decode end to end without object stringification", async () => {
+        const rpc = standardRpc();
+        const sink = new RecordingSink();
+        const { handle } = await openAndExecute(rpc, sink);
+        rpc.push(STS2_METHODS.queryResultSet, {
+            queryId: "q-1",
+            resultSetId: 0,
+            columns: [
+                { name: "big", type: "bigint" },
+                { name: "amount", type: "decimal" },
+                { name: "at", type: "datetimeoffset" },
+                { name: "payload", type: "varbinary" },
+                { name: "id", type: "uniqueidentifier" },
+            ],
+        });
+        rpc.push(STS2_METHODS.queryRows, {
+            queryId: "q-1",
+            resultSetId: 0,
+            pageSeq: 0,
+            rowOffset: 0,
+            rows: [
+                [
+                    { $t: "int64", v: "9223372036854775807" },
+                    { $t: "decimal", v: "12.50" },
+                    { $t: "datetimeoffset", v: "2026-06-12T00:00:00+00:00" },
+                    { $t: "binary", v: "3q2+7w==" },
+                    { $t: "guid", v: "ef3aa10c-a8f4-4c43-88ea-73ea15c03245" },
+                ],
+            ],
+        });
+        rpc.push(STS2_METHODS.queryComplete, {
+            queryId: "q-1",
+            status: "succeeded",
+            rowsAffected: null,
+        });
+        await handle.completion;
+
+        const page = sink.pages[0].compact;
+        expect(decodeCell(page, 0, 0, 5)).to.deep.include({
+            kind: "number",
+            value: "9223372036854775807",
+            exact: true,
+        });
+        expect(decodeCell(page, 0, 1, 5)).to.deep.include({
+            kind: "number",
+            value: "12.50",
+            exact: true,
+        });
+        expect(decodeCell(page, 0, 2, 5)).to.deep.include({
+            kind: "datetime",
+            display: "2026-06-12T00:00:00+00:00",
+        });
+        expect(decodeCell(page, 0, 3, 5)).to.deep.equal({
+            kind: "binary",
+            base64: "3q2+7w==",
+        });
+        expect(decodeCell(page, 0, 4, 5)).to.deep.include({
+            kind: "string",
+            value: "ef3aa10c-a8f4-4c43-88ea-73ea15c03245",
+        });
+    });
+
     test("truncated string cell decodes to CellValue.truncated (prefix + digest, never '[object Object]')", async () => {
         const rpc = standardRpc();
         const sink = new RecordingSink();
@@ -720,7 +986,7 @@ suite("STS2 binding conformance (scripted wire)", () => {
         rpc.push(STS2_METHODS.queryResultSet, {
             queryId: "q-1",
             resultSetId: 0,
-            columns: [{ name: "doc", engineType: "nvarchar" }],
+            columns: [{ name: "doc", type: "nvarchar" }],
         });
         rpc.push(STS2_METHODS.queryRows, {
             queryId: "q-1",
@@ -760,7 +1026,7 @@ suite("STS2 binding conformance (scripted wire)", () => {
         rpc.push(STS2_METHODS.queryResultSet, {
             queryId: "q-1",
             resultSetId: 0,
-            columns: [{ name: "payload", engineType: "varbinary" }],
+            columns: [{ name: "payload", type: "varbinary" }],
         });
         rpc.push(STS2_METHODS.queryRows, {
             queryId: "q-1",
@@ -911,14 +1177,34 @@ suite("STS2 binding conformance (scripted wire)", () => {
         expect(capabilityOf(await new Sts2Backend(stringy).start())).to.equal(false);
     });
 
-    test("close cancels the active query's future honestly and is idempotent", async () => {
+    test("service-real close ordering delivers the wire canceled terminal before the reply", async () => {
+        const rpc = standardRpc();
+        rpc.responders.set(STS2_METHODS.connectionClose, () => {
+            rpc.push(STS2_METHODS.queryComplete, {
+                queryId: "q-1",
+                status: "canceled",
+                rowsAffected: null,
+            });
+            return {};
+        });
+        const sink = new RecordingSink();
+        const { session, handle } = await openAndExecute(rpc, sink);
+        await session.close();
+        const summary = await handle.completion;
+        expect(summary.status).to.equal("canceled");
+        expect(summary.synthesized).to.not.equal(true);
+        expect(session.state).to.equal("closed");
+    });
+
+    test("close synthesizes canceled when a nonconforming service replies without a terminal", async () => {
         const rpc = standardRpc();
         const sink = new RecordingSink();
         const { session, handle } = await openAndExecute(rpc, sink);
         await session.close();
         await session.close();
         const summary = await handle.completion;
-        expect(summary.status).to.equal("connectionLost");
+        expect(summary.status).to.equal("canceled");
+        expect(summary.synthesized).to.equal(true);
         expect(session.state).to.equal("closed");
     });
 });
@@ -1194,10 +1480,9 @@ suite("STS2 binding: vector encoding negotiation and column typing", () => {
         expect(sink.metas[0].columns[0].vector).to.deep.equal({ transport: "binary-v1" });
     });
 
-    test("wireColumnType falls back to the service's `type` field (sqlType no longer silently undefined)", async () => {
-        // The service serializes the engine type as `type` (D-0018); before
-        // the fallback landed, sqlType was silently undefined on the STS2
-        // path because only engineType/EngineType were read.
+    test("wire column parsing is pinned to the service's camelCase contract", async () => {
+        // DriverEffectRunner.SerializeColumns emits `type`/`length` and the
+        // other camelCase fields pinned by wire/v2.ts.
         const rpc = standardRpc();
         const sink = new RecordingSink();
         const { handle } = await openAndExecute(rpc, sink);
@@ -1206,7 +1491,7 @@ suite("STS2 binding: vector encoding negotiation and column typing", () => {
             resultSetId: 0,
             columns: [
                 { name: "n", type: "int" },
-                { name: "s", Type: "nvarchar", Length: 200 },
+                { name: "s", type: "nvarchar", length: 200 },
                 { name: "d", type: "decimal", precision: 18, scale: 4 },
             ],
         });
@@ -1249,11 +1534,11 @@ suite("STS2 binding: vector encoding negotiation and column typing", () => {
             queryId: "q-1",
             resultSetId: 0,
             columns: [
-                { name: "ts", engineType: "timestamp" },
-                { name: "rv", engineType: "rowversion" },
-                { name: "dt", engineType: "datetime2" },
-                { name: "t", engineType: "time" },
-                { name: "sdt", engineType: "smalldatetime" },
+                { name: "ts", type: "timestamp" },
+                { name: "rv", type: "rowversion" },
+                { name: "dt", type: "datetime2" },
+                { name: "t", type: "time" },
+                { name: "sdt", type: "smalldatetime" },
             ],
         });
         rpc.push(STS2_METHODS.queryRows, {

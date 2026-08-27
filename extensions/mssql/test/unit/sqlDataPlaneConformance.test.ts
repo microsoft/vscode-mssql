@@ -404,4 +404,52 @@ suite("SQL Data Plane cell model", () => {
         expect(decodeCell(page, 0, 2, 4).kind).to.equal("datetime");
         expect(cellDisplay(decodeCell(page, 0, 3, 4))).to.equal("abc");
     });
+
+    test("decodeCell preserves STS2 typed scalar wrappers", () => {
+        const page = {
+            values: [
+                [
+                    { $t: "int64", v: "9223372036854775807" },
+                    { $t: "decimal", v: "12.50" },
+                    { $t: "datetimeoffset", v: "2026-06-12T00:00:00+00:00" },
+                    { $t: "binary", v: "3q2+7w==" },
+                    { $t: "guid", v: "ef3aa10c-a8f4-4c43-88ea-73ea15c03245" },
+                ],
+            ],
+            typeHints: ["number:approx", "number:approx", "datetime", "binary", "string"],
+        };
+
+        expect(decodeCell(page, 0, 0, 5)).to.deep.equal({
+            kind: "number",
+            value: "9223372036854775807",
+            exact: true,
+        });
+        expect(decodeCell(page, 0, 1, 5)).to.deep.equal({
+            kind: "number",
+            value: "12.50",
+            exact: true,
+        });
+        expect(decodeCell(page, 0, 2, 5)).to.deep.equal({
+            kind: "datetime",
+            display: "2026-06-12T00:00:00+00:00",
+            iso: "2026-06-12T00:00:00+00:00",
+        });
+        expect(decodeCell(page, 0, 3, 5)).to.deep.equal({
+            kind: "binary",
+            base64: "3q2+7w==",
+        });
+        expect(decodeCell(page, 0, 4, 5)).to.deep.equal({
+            kind: "string",
+            value: "ef3aa10c-a8f4-4c43-88ea-73ea15c03245",
+        });
+
+        expect(
+            decodeCell(
+                { values: [[9_007_199_254_740_991]], typeHints: ["number:approx"] },
+                0,
+                0,
+                1,
+            ),
+        ).to.deep.equal({ kind: "number", value: 9_007_199_254_740_991, exact: true });
+    });
 });

@@ -39,6 +39,7 @@ import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { PreviewFeature, previewService } from "../previews/previewService";
 import { getRuntimeConfigPath, ServiceExecutable } from "./serviceExecutablePaths";
+import { config } from "../configurations/config";
 
 const STS_OVERRIDE_ENV_VAR = "MSSQL_SQLTOOLSSERVICE";
 const SERVICE_LAUNCH_TELEMETRY_VIEW = TelemetryViews.ServiceClient;
@@ -51,9 +52,32 @@ type ServiceLaunchType =
     | "portableDownloaded"
     | "platformDownloaded";
 
-/** Add the STS v2 lane flag without changing the default service launch. */
-export function configureSqlDataPlaneLaunchArgs(args: string[], enabled: boolean): void {
-    if (enabled) {
+/** First SQL Tools Service build that accepts `--enable-sts2`. */
+export const MINIMUM_STS2_SERVICE_VERSION = "6.0.20260825.2";
+
+/** Numeric dotted-version comparison for the generated STS release versions. */
+export function supportsSqlDataPlaneLaunch(serviceVersion: string): boolean {
+    const current = serviceVersion.split(".").map(Number);
+    const required = MINIMUM_STS2_SERVICE_VERSION.split(".").map(Number);
+    if (current.some((part) => !Number.isSafeInteger(part) || part < 0)) {
+        return false;
+    }
+    for (let i = 0; i < Math.max(current.length, required.length); i++) {
+        const delta = (current[i] ?? 0) - (required[i] ?? 0);
+        if (delta !== 0) {
+            return delta > 0;
+        }
+    }
+    return true;
+}
+
+/** Add the STS v2 lane flag only when the bundled service understands it. */
+export function configureSqlDataPlaneLaunchArgs(
+    args: string[],
+    enabled: boolean,
+    serviceVersion = config.service.version,
+): void {
+    if (enabled && supportsSqlDataPlaneLaunch(serviceVersion)) {
         args.push("--enable-sts2");
     }
 }

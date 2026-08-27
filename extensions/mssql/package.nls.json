@@ -365,5 +365,14 @@
     "mssql.notebooks.createNotebook": "New SQL Notebook",
     "mssql.notebooks.changeDatabase": "Change Notebook Database",
     "mssql.notebooks.changeConnection": "Change Notebook Connection",
-    "mssql.notebooks.copyCellMessages": "Copy Cell Messages"
+    "mssql.notebooks.copyCellMessages": "Copy Cell Messages",
+    "mssql.sqlDataPlane.showStatus": "Show SQL Data Plane Status",
+    "mssql.sqlDataPlane.enabled.description": "Enable the experimental, STS v2-backed SQL Data Plane for preview consumers. Requires SQL Tools Service 6.0.20260825.2 or later; older bundled services are launched without the STS v2 lane. Reload the window after changing this setting. Existing query, connection, language service, and Object Explorer behavior remains unchanged.",
+    "mssql.sqlDataPlane.backend.description": "Select the SQL Data Plane backend. Only the local STS v2 backend is available in this preview.",
+    "mssql.sqlDataPlane.capabilityFallback.description": "Choose how to handle a backend that lacks a required capability: ask before using an alternative (`prompt`), use an alternative automatically (`auto`), or fail without switching (`off`).",
+    "mssql.sqlDataPlane.timeouts.openMs.description": "Maximum time in milliseconds to wait for an STS v2 connection to open.",
+    "mssql.sqlDataPlane.timeouts.cancelAckMs.description": "Maximum time in milliseconds to wait for STS v2 to acknowledge a query cancellation.",
+    "mssql.sqlDataPlane.timeouts.closeMs.description": "Maximum time in milliseconds to wait for an STS v2 connection to close.",
+    "mssql.sqlDataPlane.timeouts.disposeDrainMs.description": "Maximum time in milliseconds to wait for an STS v2 query disposal to produce its terminal event.",
+    "mssql.sqlDataPlane.timeouts.initializeMs.description": "Maximum time in milliseconds to wait for the STS v2 initialization handshake."
 }
