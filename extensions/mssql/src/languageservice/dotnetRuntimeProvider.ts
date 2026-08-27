@@ -26,6 +26,20 @@ export default class DotnetRuntimeProvider {
      * @throws If no runtime can be resolved.
      */
     public async acquireDotnetRuntime(runtimeConfigPath: string): Promise<string> {
+        // Perf-harness escape hatch: fresh perf profiles have no runtime
+        // acquisition extension, so the orchestrator supplies a dotnet path
+        // directly. Inert unless PERF_MODE=1 (set only by the perf harness).
+        if (process.env.PERF_MODE === "1" && process.env.PERF_DOTNET_PATH) {
+            try {
+                await fs.access(process.env.PERF_DOTNET_PATH);
+                this._logger.debug(
+                    "Using PERF_DOTNET_PATH runtime: " + process.env.PERF_DOTNET_PATH,
+                );
+                return process.env.PERF_DOTNET_PATH;
+            } catch (err) {
+                this._logger.error("PERF_DOTNET_PATH is not accessible", getErrorMessage(err));
+            }
+        }
         try {
             const runtimeRequirement = await this.getRuntimeRequirement(runtimeConfigPath);
             const extension = vscode.extensions.getExtension(Constants.dotnetRuntimeExtensionId);
