@@ -1129,7 +1129,7 @@ This will remove both the container and its connection from VS Code.</source>
       </trans-unit>
       <trans-unit id="++CODE++24908cc5593d5d8ea1f67ad6b873dd49a8a045f441e35de15d8041d2caccfa93">
         <source xml:lang="en">Bulk Actions</source>
-        <target state="translated">一括処理</target>
+        <target state="translated">一括アクション</target>
       </trans-unit>
       <trans-unit id="++CODE++6f52d618fb243f0ae137c3c850eb0bda8b347766a553b613fc210f6eb6bb5c97">
         <source xml:lang="en">Bulk-logged</source>
@@ -2428,7 +2428,7 @@ This will remove both the container and its connection from VS Code.</source>
       </trans-unit>
       <trans-unit id="++CODE++9f3caf9137006097dc46f53a5532c3ca91cbaf4a45dc05251e73d904a37b6b3f">
         <source xml:lang="en">Copy as...</source>
-        <target state="new">Copy as...</target>
+        <target state="translated">名前を付けてコピー...</target>
       </trans-unit>
       <trans-unit id="++CODE++d2b6ebb67aeb8ede651aa24682be64c81d2e0a970c297908b470e55fd14c0bcc">
         <source xml:lang="en">Copy code and open webpage</source>
@@ -2517,7 +2517,7 @@ This will remove both the container and its connection from VS Code.</source>
       </trans-unit>
       <trans-unit id="++CODE++2f8ae7d0e784eed8f3eddb9e69ab86082813b39e7e7d7200de5e66cd261dee36">
         <source xml:lang="en">Copying as an IN clause requires selecting exactly one column.</source>
-        <target state="new">Copying as an IN clause requires selecting exactly one column.</target>
+        <target state="translated">IN 句としてコピーするには、1 列だけを選択する必要があります。</target>
       </trans-unit>
       <trans-unit id="++CODE++76ed55852b66d19d1756277312208fcad6a988622d291a320d248cec88f8c3d9">
         <source xml:lang="en">Copying results canceled</source>
@@ -13312,7 +13312,7 @@ You can also click the 'Open in New Tab' button to view your query results in th
       </trans-unit>
       <trans-unit id="mssql.results.showBatchMessages">
         <source xml:lang="en">[Optional] Show batch start and completion messages, including 'Started executing query at...' and 'Commands completed successfully'.</source>
-        <target state="new">[Optional] Show batch start and completion messages, including 'Started executing query at...' and 'Commands completed successfully'.</target>
+        <target state="translated">[オプション] バッチの開始と完了のメッセージ (例: '...にクエリの実行を開始しました' や 'コマンドが正常に完了しました') を表示します。</target>
       </trans-unit>
       <trans-unit id="mssql.connection.profileName">
         <source xml:lang="en">[Optional] Specify a custom name for this connection profile to easily browse and search in the command palette of Visual Studio Code.</source>
