@@ -4834,6 +4834,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++2f8ae7d0e784eed8f3eddb9e69ab86082813b39e7e7d7200de5e66cd261dee36" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Copying as an IN clause requires selecting exactly one column.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Чтобы скопировать в виде предложения IN, нужно выбрать ровно один столбец.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++2f95c7d9dd257b91376a5bd75a57121de6f9b0cabcb2dbc09591aed6c206ee43" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Browse forvpath]]></Val>
@@ -11764,15 +11773,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++7644dd0a33ff475c31116e369646b3410ca1463eb32dd1aabf3569f79cc02b4e" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Copy As]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Копировать как]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++765a301a99c7eee94fb83e4719d18340210f77b71528783b41061a2a9d555e3e" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to generate script. Please check the logs for more details.]]></Val>
@@ -15558,6 +15558,15 @@
           <Val><![CDATA[Query {0}:  Query cost (relative to the script):  {1}%]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Запрос {0}: стоимость запроса (по отношению к сценарию): {1}%]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++9f3caf9137006097dc46f53a5532c3ca91cbaf4a45dc05251e73d904a37b6b3f" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Copy as...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Копировать как...]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -27606,6 +27615,15 @@
           <Val><![CDATA[When enabled, saved query result exports are opened after export. Excel exports open with the system file handler; text exports open in VS Code.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Если включено, экспортированные результаты сохраненных запросов открываются сразу после экспорта. Экспортированные файлы Excel открываются системным обработчиком файлов, а текстовые — в VS Code.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.results.showBatchMessages" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[[Optional]5D; Show batch start and completion messages, including 'Started executing query at...' and 'Commands completed successfully'.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[[Необязательно]5D; Отображать сообщения о начале и завершении пакетной обработки, включая «Выполнение запроса началось в...» и «Команды успешно выполнены».]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
