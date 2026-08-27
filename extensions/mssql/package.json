@@ -1758,6 +1758,12 @@
                 "command": "mssql.openInMssqlExtensionFromAzureResources",
                 "title": "%mssql.openInMssqlExtensionFromAzureResources%",
                 "category": "MS SQL"
+            },
+            {
+                "command": "mssql.sqlDataPlane.showStatus",
+                "title": "Show SQL Data Plane Status",
+                "category": "MS SQL",
+                "enablement": "config.mssql.sqlDataPlane.enabled"
             }
         ],
         "keybindings": [
@@ -1805,6 +1811,12 @@
                     "type": "boolean",
                     "default": false,
                     "description": "%mssql.enableExperimentalFeatures.description%",
+                    "scope": "application"
+                },
+                "mssql.sqlDataPlane.enabled": {
+                    "type": "boolean",
+                    "default": false,
+                    "markdownDescription": "Enable the experimental, STS v2-backed SQL Data Plane for preview consumers. Reload the window after changing this setting. Existing query, connection, language service, and Object Explorer behavior remains unchanged.",
                     "scope": "application"
                 },
                 "mssql.preview.betaResultsGrid": {

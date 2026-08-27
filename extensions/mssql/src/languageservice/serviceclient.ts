@@ -51,6 +51,13 @@ type ServiceLaunchType =
     | "portableDownloaded"
     | "platformDownloaded";
 
+/** Add the STS v2 lane flag without changing the default service launch. */
+export function configureSqlDataPlaneLaunchArgs(args: string[], enabled: boolean): void {
+    if (enabled) {
+        args.push("--enable-sts2");
+    }
+}
+
 /**
  * Handle Language Service client errors
  * @class LanguageClientErrorHandler
@@ -687,6 +694,12 @@ export default class SqlToolsServiceClient {
 
         // Enable parallel message processing to improve performance
         args.push("--parallel-message-processing");
+        // STS v2 shares the existing stdio transport and stays completely
+        // disabled unless the experimental SQL Data Plane is enabled.
+        configureSqlDataPlaneLaunchArgs(
+            args,
+            vscode.workspace.getConfiguration().get<boolean>("mssql.sqlDataPlane.enabled", false),
+        );
         args.push("--parallel-message-processing-limit");
         args.push(String(100));
 

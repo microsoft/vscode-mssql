@@ -15,7 +15,9 @@ import {
     ServiceClient as ServiceClientLoc,
 } from "../../src/constants/locConstants";
 import ServerProvider from "../../src/languageservice/server";
-import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
+import SqlToolsServiceClient, {
+    configureSqlDataPlaneLaunchArgs,
+} from "../../src/languageservice/serviceclient";
 import DotnetRuntimeProvider from "../../src/languageservice/dotnetRuntimeProvider";
 import { PlatformInformation, Runtime } from "../../src/models/platform";
 import StatusView from "../../src/views/statusView";
@@ -549,6 +551,24 @@ suite("Service Client tests", () => {
             } catch (error) {
                 expect((error as Error).message).to.equal("runtime missing");
             }
+        });
+    });
+
+    suite("SQL Data Plane launch arguments", () => {
+        test("does not enable STS v2 by default", () => {
+            const args = ["--parallel-message-processing"];
+
+            configureSqlDataPlaneLaunchArgs(args, false);
+
+            expect(args).to.deep.equal(["--parallel-message-processing"]);
+        });
+
+        test("enables the STS v2 lane when the preview is enabled", () => {
+            const args = ["--parallel-message-processing"];
+
+            configureSqlDataPlaneLaunchArgs(args, true);
+
+            expect(args).to.deep.equal(["--parallel-message-processing", "--enable-sts2"]);
         });
     });
 
