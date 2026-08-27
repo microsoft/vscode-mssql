@@ -12,6 +12,7 @@
 
 import * as path from "path";
 import * as vscode from "vscode";
+import * as LocConstants from "../constants/locConstants";
 import { CaptureMode, ProvenanceSummary } from "../sharedInterfaces/debugConsole";
 import { diag } from "./diagnosticsCore";
 import { richStats } from "./richCollection";
@@ -24,10 +25,17 @@ const SETTING_MAX_SESSIONS = "mssql.sessionDiag.maxSessions";
 const SETTING_MAX_AGE_DAYS = "mssql.sessionDiag.maxAgeDays";
 const SETTING_RICH = "mssql.debugConsole.richCollection";
 const ENV_RICH = "MSSQL_COLLECT_ALL_THE_DATA";
+/**
+ * Retention lists, stats and deletes whole session directories. It must never
+ * run inside activate() (this manager is constructed before the first
+ * activation marker), so it is deferred off the activation path.
+ */
+const RETENTION_DELAY_MS = 15_000;
 
 export class DiagnosticsManager implements vscode.Disposable {
     private storeSink: SessionDiagSink | undefined;
     private statusItem: vscode.StatusBarItem | undefined;
+    private retentionTimer: NodeJS.Timeout | undefined;
     public readonly store: SessionStore;
     public readonly provenance: ProvenanceSummary;
 
@@ -137,13 +145,19 @@ export class DiagnosticsManager implements vscode.Disposable {
     }
 
     private enableCapture(mode: CaptureMode): void {
-        diag.setCaptureMode(mode);
+        // An active time-bounded elevation survives a settings edit: it ends
+        // on its own deadline (with an elevation.expired event), never
+        // silently through a configuration-change replay. An explicit disable
+        // still wins (disableCapture).
+        if (diag.captureMode !== "full") {
+            diag.setCaptureMode(mode);
+        }
         if (!this.storeSink) {
             try {
                 this.storeSink = new SessionDiagSink(
                     this.store.storeRoot,
                     diag.sessionId,
-                    mode,
+                    diag.captureMode,
                     diag.capturePolicy.policyId,
                     this.provenance,
                 );
@@ -151,20 +165,37 @@ export class DiagnosticsManager implements vscode.Disposable {
                 diag.emit({
                     feature: "sessionDiag",
                     type: "sessionDiag.enabled",
-                    fields: { captureMode: { raw: mode, cls: "diagnostic.metadata" } },
+                    fields: { captureMode: { raw: diag.captureMode, cls: "diagnostic.metadata" } },
                 });
-                const config = vscode.workspace.getConfiguration();
-                this.store.enforceRetention(
-                    config.get<number>(SETTING_MAX_SESSIONS, 10),
-                    config.get<number>(SETTING_MAX_AGE_DAYS, 14),
-                    config.get<number>("mssql.sessionDiag.maxTotalMB", 512) * 1024 * 1024,
-                );
+                this.scheduleRetention();
             } catch {
                 // Store unavailable: capture stays off; product unaffected.
                 this.storeSink = undefined;
             }
         }
         this.updateStatusItem();
+    }
+
+    /** Deferred, unref'd, best-effort; protects only the current session. */
+    private scheduleRetention(): void {
+        if (this.retentionTimer) {
+            return;
+        }
+        this.retentionTimer = setTimeout(() => {
+            this.retentionTimer = undefined;
+            try {
+                const config = vscode.workspace.getConfiguration();
+                this.store.enforceRetention(
+                    config.get<number>(SETTING_MAX_SESSIONS, 10),
+                    config.get<number>(SETTING_MAX_AGE_DAYS, 14),
+                    config.get<number>("mssql.sessionDiag.maxTotalMB", 512) * 1024 * 1024,
+                    diag.sessionId,
+                );
+            } catch {
+                // retention is best effort; surfaced by the next listing
+            }
+        }, RETENTION_DELAY_MS);
+        this.retentionTimer.unref?.();
     }
 
     private disableCapture(): void {
@@ -195,15 +226,16 @@ export class DiagnosticsManager implements vscode.Disposable {
         });
         register("mssql.sessionDiag.clear", async () => {
             const sessions = this.store.listLocalSessions();
+            const deleteAll = LocConstants.SessionDiag.deleteAll;
             const choice = await vscode.window.showWarningMessage(
-                `Delete ${sessions.length} locally stored diagnostic session(s)? The current session keeps recording if capture is on.`,
+                LocConstants.SessionDiag.clearConfirm(sessions.length),
                 { modal: true },
-                "Delete all",
+                deleteAll,
             );
-            if (choice === "Delete all") {
+            if (choice === deleteAll) {
                 const { removed } = this.store.clearAll(diag.sessionId);
                 void vscode.window.showInformationMessage(
-                    `Removed ${removed} diagnostic session(s).`,
+                    LocConstants.SessionDiag.removedSessions(removed),
                 );
             }
         });
@@ -212,20 +244,23 @@ export class DiagnosticsManager implements vscode.Disposable {
         });
         register("mssql.sessionDiag.elevateCapture", async () => {
             const reason = await vscode.window.showInputBox({
-                prompt: "Reason for elevated (full) capture — recorded in the session log",
-                placeHolder: "e.g. reproducing bug #1234",
+                prompt: LocConstants.SessionDiag.elevateReasonPrompt,
+                placeHolder: LocConstants.SessionDiag.elevateReasonPlaceholder,
             });
             if (!reason) {
                 return;
             }
             const duration = await vscode.window.showQuickPick(
-                ["5 minutes", "15 minutes", "30 minutes"],
-                { title: "Elevated capture duration (auto-reverts)" },
+                [5, 15, 30].map((minutes) => ({
+                    label: LocConstants.SessionDiag.minutes(minutes),
+                    minutes,
+                })),
+                { title: LocConstants.SessionDiag.elevateDurationTitle },
             );
             if (!duration) {
                 return;
             }
-            const minutes = Number(duration.split(" ")[0]);
+            const minutes = duration.minutes;
             this.applyCaptureMode("full", { reason, durationMinutes: minutes });
             diag.emit({
                 feature: "sessionDiag",
@@ -254,26 +289,24 @@ export class DiagnosticsManager implements vscode.Disposable {
                 vscode.StatusBarAlignment.Right,
                 90,
             );
-            this.statusItem.name = "MSSQL Session Diagnostics";
+            this.statusItem.name = LocConstants.SessionDiag.statusName;
             this.statusItem.command = "mssql.openDebugConsole";
             this.context.subscriptions.push(this.statusItem);
         }
         const mode = diag.captureMode;
         if (mode === "off") {
-            this.statusItem.text = "$(circle-slash) MSSQL Diag";
-            this.statusItem.tooltip =
-                "MSSQL session diagnostics: capture off. Click to open the Debug Console.";
+            this.statusItem.text = LocConstants.SessionDiag.statusOff;
+            this.statusItem.tooltip = LocConstants.SessionDiag.statusOffTooltip;
             this.statusItem.backgroundColor = undefined;
         } else if (mode === "full") {
-            this.statusItem.text = "$(record) MSSQL Diag: FULL";
-            this.statusItem.tooltip =
-                "Elevated (full) capture is active and time-bounded. Click to open the Debug Console.";
+            this.statusItem.text = LocConstants.SessionDiag.statusFull;
+            this.statusItem.tooltip = LocConstants.SessionDiag.statusFullTooltip;
             this.statusItem.backgroundColor = new vscode.ThemeColor(
                 "statusBarItem.warningBackground",
             );
         } else {
-            this.statusItem.text = `$(shield) MSSQL Diag: ${mode}`;
-            this.statusItem.tooltip = `MSSQL session diagnostics capturing (${mode}, local only). Click to open the Debug Console.`;
+            this.statusItem.text = LocConstants.SessionDiag.statusMode(mode);
+            this.statusItem.tooltip = LocConstants.SessionDiag.statusModeTooltip(mode);
             this.statusItem.backgroundColor = undefined;
         }
         this.statusItem.show();
@@ -289,6 +322,10 @@ export class DiagnosticsManager implements vscode.Disposable {
     }
 
     public dispose(): void {
+        if (this.retentionTimer) {
+            clearTimeout(this.retentionTimer);
+            this.retentionTimer = undefined;
+        }
         if (this.storeSink) {
             diag.removeSink(this.storeSink.id);
             this.storeSink = undefined;

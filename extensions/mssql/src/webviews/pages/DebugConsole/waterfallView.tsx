@@ -28,7 +28,7 @@ import {
     WaterfallActivity,
     WaterfallModel,
 } from "../../../sharedInterfaces/debugConsole";
-import { formatDuration, PROCESS_COLOR, PROCESS_LABEL, StatusPill } from "./common";
+import { activatable, formatDuration, PROCESS_COLOR, PROCESS_LABEL, StatusPill } from "./common";
 
 export const LANE_ORDER: Array<DiagProcess | "userAction" | "driver"> = [
     "userAction",
@@ -298,6 +298,11 @@ function WfChart({
 
     const visibleSpan = fullSpan * (windowFrac.end - windowFrac.start);
     const windowStartMs = windowFrac.start * fullSpan;
+    // Only bars intersecting the visible window (plus a margin) are rendered:
+    // scrolling a zoomed chart re-renders the on-screen slice, not every bar.
+    const margin = visibleSpan * 0.5;
+    const renderFrom = model.startEpochMs + windowStartMs - margin;
+    const renderTo = model.startEpochMs + windowStartMs + visibleSpan + margin;
     const decimals = visibleSpan < 200 ? 4 : visibleSpan < 2000 ? 3 : 2;
     const ticks = [0, 0.25, 0.5, 0.75, 1].map((f) => ({
         left: f * 100,
@@ -357,6 +362,12 @@ function WfChart({
                                     key={lane.lane}
                                     style={{ height: lane.height }}>
                                     {lane.activities.map((activity) => {
+                                        if (
+                                            activity.endEpochMs < renderFrom ||
+                                            activity.startEpochMs > renderTo
+                                        ) {
+                                            return null;
+                                        }
                                         const left =
                                             ((activity.startEpochMs - model.startEpochMs) /
                                                 fullSpan) *
@@ -516,7 +527,11 @@ function WfEventTable({
             <div className="dc-toolbar ph-subbar" style={{ marginBottom: 0 }}>
                 <b>Event details</b>
                 <span className="dc-muted" style={{ fontSize: 11 }}>
-                    {ordered.length} bar(s) · click = select + inspect · double-click = zoom to bar
+                    {ordered.length} bar(s)
+                    {model.activityCap
+                        ? ` (longest ${model.activityCap.shown} of ${model.activityCap.total})`
+                        : ""}{" "}
+                    · click/Enter = select + inspect · double-click = zoom to bar
                 </span>
             </div>
             <div className="dc-table-wrap ph-fill-scroll ph-noselect" style={{ border: "none" }}>
@@ -544,6 +559,7 @@ function WfEventTable({
                             <tr
                                 key={activity.id}
                                 className={selectedBar === activity.id ? "selected" : ""}
+                                {...activatable(() => onSelect(activity.id))}
                                 onClick={() => onSelect(activity.id)}
                                 onDoubleClick={() => {
                                     onSelect(activity.id);

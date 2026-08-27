@@ -23,6 +23,47 @@ import {
 
 const MAX_QUERY_LIMIT = 2000;
 const SESSION_ID_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9._-]{0,127}$/;
+/** Bounded read for boundary checks in validateStore (one event line fits comfortably). */
+const VALIDATE_HEAD_BYTES = 64 * 1024;
+/** Sidecar with per-session action aggregates so History never reloads whole journals. */
+const HISTORY_SUMMARY_FILE = "history-summary.json";
+const HISTORY_SUMMARY_SCHEMA = "mssql.diag.historySummary/1";
+
+/** Per-session aggregate consumed by the History page (cheap to compute once, tiny to store). */
+export interface SessionHistorySummary {
+    schemaVersion: typeof HISTORY_SUMMARY_SCHEMA;
+    events: number;
+    errors: number;
+    actions: Array<{
+        label: string;
+        feature: string;
+        status: string;
+        durationMs?: number;
+    }>;
+}
+
+function readHead(file: string, bytes: number): string {
+    const fd = fs.openSync(file, "r");
+    try {
+        const buffer = Buffer.alloc(bytes);
+        const read = fs.readSync(fd, buffer, 0, bytes, 0);
+        return buffer.toString("utf8", 0, read);
+    } finally {
+        fs.closeSync(fd);
+    }
+}
+
+function readTail(file: string, size: number, bytes: number): string {
+    const fd = fs.openSync(file, "r");
+    try {
+        const length = Math.min(bytes, size);
+        const buffer = Buffer.alloc(length);
+        const read = fs.readSync(fd, buffer, 0, length, size - length);
+        return buffer.toString("utf8", 0, read);
+    } finally {
+        fs.closeSync(fd);
+    }
+}
 
 function isSessionManifest(value: unknown, directoryName: string): value is SessionManifest {
     if (typeof value !== "object" || value === null) {
@@ -74,6 +115,10 @@ function isDiagEvent(value: unknown): value is DiagEvent {
         Number.isFinite(event.seq) &&
         typeof event.epochMs === "number" &&
         Number.isFinite(event.epochMs) &&
+        // monotonicNs feeds BigInt() in analysis; a non-digit string would throw
+        // there and fail the whole waterfall, so refuse it at the boundary.
+        (event.monotonicNs === undefined ||
+            (typeof event.monotonicNs === "string" && /^\d+$/.test(event.monotonicNs))) &&
         typeof event.process === "string" &&
         typeof event.feature === "string" &&
         typeof event.kind === "string" &&
@@ -154,10 +199,13 @@ export class SessionStore {
             if (manifest.sessionId === live.sessionId) {
                 continue;
             }
+            // A manifest that is still "active" but is not the current session
+            // was never closed (crash, kill, OS shutdown): say so.
+            const interrupted = manifest.status === "active";
             sources.push({
                 id: `store:${manifest.sessionId}`,
                 kind: "localSession",
-                label: `Session ${formatSessionLabel(manifest.createdUtc)}`,
+                label: `Session ${formatSessionLabel(manifest.createdUtc)}${interrupted ? " (interrupted)" : ""}`,
                 readonly: true,
                 createdUtc: manifest.createdUtc,
                 eventCount: manifest.eventCount,
@@ -317,17 +365,30 @@ export class SessionStore {
 
     // --- retention -----------------------------------------------------------------
 
-    public enforceRetention(maxSessions: number, maxAgeDays: number, maxTotalBytes?: number): void {
+    /**
+     * Retention. Only the CURRENT session (`currentSessionId`) is protected:
+     * a manifest left "active" by a crash, kill, or OS shutdown (only close()
+     * ever writes "closed") counts against the budget like any other, so the
+     * store's count/age/size bounds hold for interrupted sessions too.
+     */
+    public enforceRetention(
+        maxSessions: number,
+        maxAgeDays: number,
+        maxTotalBytes?: number,
+        currentSessionId?: string,
+    ): void {
         const sessions = this.listLocalSessions();
         const cutoff = Date.now() - maxAgeDays * 86_400_000;
+        const protectedSession = (s: { manifest: SessionManifest }) =>
+            currentSessionId !== undefined && s.manifest.sessionId === currentSessionId;
         const doomed = new Set(
             sessions.filter(
                 (s, index) =>
-                    s.manifest.status !== "active" &&
+                    !protectedSession(s) &&
                     (index >= maxSessions || Date.parse(s.manifest.createdUtc) < cutoff),
             ),
         );
-        // Size budget: evict oldest closed sessions until the store fits.
+        // Size budget: evict oldest sessions until the store fits.
         // The JSONL journal must never become a disk dragon under the desk.
         if (maxTotalBytes !== undefined && maxTotalBytes > 0) {
             let total = sessions
@@ -335,7 +396,7 @@ export class SessionStore {
                 .reduce((sum, s) => sum + this.sessionSizeBytes(s), 0);
             for (let i = sessions.length - 1; i >= 0 && total > maxTotalBytes; i--) {
                 const session = sessions[i];
-                if (doomed.has(session) || session.manifest.status === "active") {
+                if (doomed.has(session) || protectedSession(session)) {
                     continue;
                 }
                 total -= this.sessionSizeBytes(session);
@@ -372,6 +433,13 @@ export class SessionStore {
      * Store integrity check: every persisted session's manifest must agree
      * with what is actually on disk. Findings are strings a user can act on;
      * an empty list means the store is clean.
+     *
+     * Bounded: this runs on the extension-host thread on every Health page
+     * open, so it never reads whole journals. Every segment is checked by
+     * size and by bounded reads of its first and last bytes (the boundary
+     * seq and the trailing newline); only the LAST segment of a session —
+     * the one an interrupted write can leave torn — gets a full line count,
+     * and that file is capped by SEGMENT_MAX_EVENTS at write time.
      */
     public validateStore(): { sessions: number; totalBytes: number; issues: string[] } {
         const issues: string[] = [];
@@ -380,7 +448,7 @@ export class SessionStore {
         for (const { manifest, dir } of sessions) {
             const label = manifest.sessionId;
             totalBytes += this.sessionSizeBytes({ manifest, dir });
-            for (const segment of manifest.segments) {
+            for (const [index, segment] of manifest.segments.entries()) {
                 if (
                     typeof segment.file !== "string" ||
                     path.basename(segment.file) !== segment.file ||
@@ -399,25 +467,39 @@ export class SessionStore {
                     continue;
                 }
                 try {
-                    const content = fs.readFileSync(file, "utf8");
-                    if (content.length > 0 && !content.endsWith("\n")) {
+                    const size = fs.statSync(file).size;
+                    if (size === 0 && segment.events > 0) {
+                        issues.push(
+                            `${label}: ${segment.file} is empty, manifest says ${segment.events} event(s)`,
+                        );
+                        continue;
+                    }
+                    if (size > 0 && readTail(file, size, 1) !== "\n") {
                         issues.push(
                             `${label}: ${segment.file} has a partial trailing line (interrupted write)`,
                         );
                     }
-                    const lines = content.split("\n").filter((l) => l.length > 0);
-                    if (lines.length !== segment.events) {
-                        issues.push(
-                            `${label}: ${segment.file} has ${lines.length} line(s), manifest says ${segment.events}`,
-                        );
-                    }
-                    // Seq sanity on the boundaries (full parse stays lazy).
-                    try {
-                        const first = JSON.parse(lines[0] ?? "{}") as { seq?: number };
-                        if (segment.firstSeq > 0 && first.seq !== segment.firstSeq) {
+                    const trailing = index === manifest.segments.length - 1;
+                    if (trailing) {
+                        const content = fs.readFileSync(file, "utf8");
+                        const lines = content.split("\n").filter((l) => l.length > 0);
+                        if (lines.length !== segment.events) {
                             issues.push(
-                                `${label}: ${segment.file} first seq ${first.seq} != manifest ${segment.firstSeq}`,
+                                `${label}: ${segment.file} has ${lines.length} line(s), manifest says ${segment.events}`,
                             );
+                        }
+                    }
+                    // Seq sanity on the first line (bounded read, never the whole file).
+                    try {
+                        const head = readHead(file, VALIDATE_HEAD_BYTES);
+                        const firstLine = head.split("\n")[0] ?? "";
+                        if (firstLine.length > 0 && firstLine.length < VALIDATE_HEAD_BYTES) {
+                            const first = JSON.parse(firstLine) as { seq?: number };
+                            if (segment.firstSeq > 0 && first.seq !== segment.firstSeq) {
+                                issues.push(
+                                    `${label}: ${segment.file} first seq ${first.seq} != manifest ${segment.firstSeq}`,
+                                );
+                            }
                         }
                     } catch {
                         issues.push(`${label}: ${segment.file} first line is not valid JSON`);
@@ -439,6 +521,48 @@ export class SessionStore {
         return { sessions: sessions.length, totalBytes, issues };
     }
 
+    /**
+     * History aggregate for a stored session. Computed from the journal once
+     * and persisted as a sidecar next to the manifest (closed sessions only —
+     * an interrupted-but-final session is also stable, only the CURRENT
+     * session keeps changing and is never cached). The journal itself is not
+     * retained in memory: History no longer pays the full-session load.
+     */
+    public historySummaryFor(
+        sessionId: string,
+        compute: (events: DiagEvent[]) => SessionHistorySummary,
+        options?: { cacheable: boolean },
+    ): SessionHistorySummary {
+        if (!SESSION_ID_PATTERN.test(sessionId)) {
+            return { schemaVersion: HISTORY_SUMMARY_SCHEMA, events: 0, errors: 0, actions: [] };
+        }
+        const sessionDir = path.join(this.storeRoot, "sessions", sessionId);
+        const sidecar = path.join(sessionDir, HISTORY_SUMMARY_FILE);
+        const cacheable = options?.cacheable ?? true;
+        if (cacheable) {
+            try {
+                const parsed: unknown = JSON.parse(fs.readFileSync(sidecar, "utf8"));
+                if (isHistorySummary(parsed)) {
+                    return parsed;
+                }
+            } catch {
+                // no sidecar yet (or unreadable): compute below
+            }
+        }
+        // Use the cache only if the session is already loaded; otherwise read
+        // the journal transiently without evicting the query cache.
+        const events = this.cache.get(sessionId) ?? this.loadSessionEvents(sessionId);
+        const summary = compute(events);
+        if (cacheable) {
+            try {
+                fs.writeFileSync(sidecar, JSON.stringify(summary), "utf8");
+            } catch {
+                // sidecar is an optimization; the summary is still returned
+            }
+        }
+        return summary;
+    }
+
     public clearAll(exceptSessionId?: string): { removed: number } {
         let removed = 0;
         for (const session of this.listLocalSessions()) {
@@ -455,6 +579,28 @@ export class SessionStore {
         this.cache.clear();
         return { removed };
     }
+}
+
+function isHistorySummary(value: unknown): value is SessionHistorySummary {
+    if (typeof value !== "object" || value === null) {
+        return false;
+    }
+    const summary = value as Partial<SessionHistorySummary>;
+    return (
+        summary.schemaVersion === HISTORY_SUMMARY_SCHEMA &&
+        typeof summary.events === "number" &&
+        typeof summary.errors === "number" &&
+        Array.isArray(summary.actions) &&
+        summary.actions.every(
+            (action) =>
+                typeof action === "object" &&
+                action !== null &&
+                typeof action.label === "string" &&
+                typeof action.feature === "string" &&
+                typeof action.status === "string" &&
+                (action.durationMs === undefined || typeof action.durationMs === "number"),
+        )
+    );
 }
 
 /** Search covers digests (grouping keys) but never redacted plaintext. */

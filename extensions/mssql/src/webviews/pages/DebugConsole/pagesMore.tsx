@@ -12,19 +12,23 @@ import {
     DcGetSqlActivityRequest,
     DcQueryEventsRequest,
     DiagEvent,
-    SqlActivityRow,
+    SqlActivityResult,
     DcGetHealthRequest,
     DiagHealthSnapshot,
 } from "../../../sharedInterfaces/debugConsole";
 import { Sparkline } from "./charts";
 import {
+    activatable,
+    describeError,
     EmptyState,
     formatDuration,
     formatTime,
     Kpi,
     PageHeader,
     RedactedField,
+    RpcError,
     StatusPill,
+    useRpcQuery,
 } from "./common";
 import { useDc } from "./state";
 
@@ -44,22 +48,26 @@ export function GatedPage({ title, body }: { title: string; body: string }) {
 // ---------------------------------------------------------------------------
 
 function useFeatureEvents(features: string[]): DiagEvent[] {
-    const { rpc, activeSourceId, dataVersion } = useDc();
-    const [events, setEvents] = useState<DiagEvent[]>([]);
-    useEffect(() => {
-        void rpc
-            .sendRequest(DcQueryEventsRequest.type, {
+    const { rpc, activeSourceId, dataVersion, setNotice } = useDc();
+    const { data, error } = useRpcQuery(
+        () =>
+            rpc.sendRequest(DcQueryEventsRequest.type, {
                 sourceId: activeSourceId,
                 features,
                 limit: 2000,
-            })
-            .then((result) =>
-                setEvents(result.rows.filter((row): row is DiagEvent => row.kind !== "gap")),
-            );
+            }),
         // features array is a constant literal per page
-        // eslint-disable-next-line
-    }, [rpc, activeSourceId, dataVersion]);
-    return events;
+        [rpc, activeSourceId, dataVersion],
+    );
+    useEffect(() => {
+        if (error) {
+            setNotice(`Feature page query failed: ${error}`);
+        }
+    }, [error, setNotice]);
+    return useMemo(
+        () => (data?.rows ?? []).filter((row): row is DiagEvent => row.kind !== "gap"),
+        [data],
+    );
 }
 
 interface Occurrence {
@@ -144,6 +152,11 @@ function OccurrenceTable({
                     {occurrences.map((occurrence, index) => (
                         <tr
                             key={index}
+                            {...(occurrence.traceId
+                                ? activatable(() =>
+                                      navigate({ page: "waterfall", traceId: occurrence.traceId }),
+                                  )
+                                : {})}
                             onClick={() =>
                                 occurrence.traceId
                                     ? navigate({ page: "waterfall", traceId: occurrence.traceId })
@@ -206,15 +219,28 @@ function occurrenceKpis(occurrences: Occurrence[]): {
 
 export function SqlActivityPage() {
     const { rpc, activeSourceId, dataVersion } = useDc();
-    const [rows, setRows] = useState<SqlActivityRow[]>([]);
-    const [selected, setSelected] = useState<SqlActivityRow | undefined>(undefined);
+    const {
+        data: activity,
+        error: activityError,
+        refresh: reloadActivity,
+    } = useRpcQuery<SqlActivityResult>(
+        () => rpc.sendRequest(DcGetSqlActivityRequest.type, { sourceId: activeSourceId }),
+        [rpc, activeSourceId, dataVersion],
+    );
+    const rows = activity?.rows ?? [];
+    const total = activity?.total ?? 0;
+    // Select by identity, not object reference: rows are re-fetched every second while live.
+    const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
+    const selected = rows.find((row) => row.sourceEventId === selectedId);
 
-    useEffect(() => {
-        void rpc
-            .sendRequest(DcGetSqlActivityRequest.type, { sourceId: activeSourceId })
-            .then(setRows);
-    }, [rpc, activeSourceId, dataVersion]);
-
+    if (activityError) {
+        return (
+            <>
+                <PageHeader title="SQL Activity" />
+                <RpcError error={activityError} retry={reloadActivity} />
+            </>
+        );
+    }
     if (rows.length === 0) {
         return (
             <>
@@ -232,7 +258,15 @@ export function SqlActivityPage() {
         <>
             <PageHeader title="SQL Activity" />
             <div className="dc-kpis">
-                <Kpi label="Commands" value={rows.length} />
+                <Kpi
+                    label="Commands"
+                    value={total.toLocaleString()}
+                    note={
+                        rows.length < total
+                            ? `newest ${rows.length.toLocaleString()} shown`
+                            : undefined
+                    }
+                />
                 <Kpi label="Total duration" value={formatDuration(totalMs)} />
                 <Kpi label="Logical reads" value={reads.toLocaleString()} />
                 <Kpi
@@ -256,9 +290,14 @@ export function SqlActivityPage() {
                         <tbody>
                             {rows.map((row, index) => (
                                 <tr
-                                    key={index}
-                                    className={selected === row ? "selected" : ""}
-                                    onClick={() => setSelected(row)}>
+                                    key={row.sourceEventId ?? index}
+                                    className={
+                                        selectedId !== undefined && selectedId === row.sourceEventId
+                                            ? "selected"
+                                            : ""
+                                    }
+                                    {...activatable(() => setSelectedId(row.sourceEventId))}
+                                    onClick={() => setSelectedId(row.sourceEventId)}>
                                     <td className="dc-mono">{formatTime(row.epochMs)}</td>
                                     <td className="dc-mono">{row.eventName}</td>
                                     <td className="num dc-mono">
@@ -536,15 +575,16 @@ export function ExportsPage() {
                 <button
                     className="dc-btn primary"
                     onClick={() => {
-                        void rpc
-                            .sendRequest(DcExportRequest.type, { sourceId: activeSourceId })
-                            .then((result) => {
+                        rpc.sendRequest(DcExportRequest.type, { sourceId: activeSourceId }).then(
+                            (result) => {
                                 setLast(
                                     result.error
                                         ? `Export ${result.error}`
                                         : `Exported ${result.events} events (${result.redactions} redactions) → ${result.path}`,
                                 );
-                            });
+                            },
+                            (error: unknown) => setLast(`Export failed: ${describeError(error)}`),
+                        );
                     }}>
                     ⇩ Export events (redacted JSONL)
                 </button>
@@ -561,11 +601,11 @@ export function ExportsPage() {
 /** Sink + store health: a sink may degrade, but never silently (Chunk 2). */
 function DiagHealthCard() {
     const { rpc } = useDc();
-    const [health, setHealth] = useState<DiagHealthSnapshot | undefined>(undefined);
-    const refresh = () => {
-        void rpc.sendRequest(DcGetHealthRequest.type).then(setHealth);
-    };
-    useEffect(refresh, [rpc]);
+    const {
+        data: health,
+        error: healthError,
+        refresh,
+    } = useRpcQuery<DiagHealthSnapshot>(() => rpc.sendRequest(DcGetHealthRequest.type), [rpc]);
     return (
         <div className="dc-card">
             <div className="dc-card-title">
@@ -576,7 +616,9 @@ function DiagHealthCard() {
                     </button>
                 </span>
             </div>
-            {!health ? (
+            {healthError ? (
+                <RpcError error={healthError} retry={refresh} />
+            ) : !health ? (
                 <span className="dc-muted">Loading…</span>
             ) : (
                 <>

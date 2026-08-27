@@ -33,6 +33,29 @@ interface StsDiagWireEvent {
 
 let server: http.Server | undefined;
 const MAX_BODY_BYTES = 4 * 1024 * 1024;
+/**
+ * Defense in depth on what the service is trusted to send: every scalar is
+ * classified diagnostic.metadata (plain in the journal, forwarded to the
+ * harness wire), so the bound on shape lives here, not only in the emitter.
+ */
+const MAX_FIELDS = 32;
+const MAX_FIELD_CHARS = 256;
+const MAX_KEY_CHARS = 64;
+const MAX_TYPE_CHARS = 128;
+/** Feature buckets the STS emitter is contracted to use (StsDiag.cs callers). */
+const STS_FEATURES: ReadonlySet<string> = new Set([
+    "rpc",
+    "sqlDriver",
+    "objectExplorer",
+    "connection",
+    "query",
+    "system",
+]);
+
+/** True while the loopback listener is accepting STS batches. */
+export function isStsDiagListenerActive(): boolean {
+    return server !== undefined;
+}
 
 export async function startStsDiagListener(): Promise<void> {
     if (server) {
@@ -115,33 +138,69 @@ export function stopStsDiagListener(): void {
 }
 
 function ingest(event: StsDiagWireEvent): void {
-    if (typeof event.type !== "string" || typeof event.epochMs !== "number") {
+    if (
+        typeof event.type !== "string" ||
+        typeof event.epochMs !== "number" ||
+        !Number.isFinite(event.epochMs)
+    ) {
         return;
     }
     const fields: Record<string, { raw: unknown; cls: DataClassification }> = {};
-    for (const [key, value] of Object.entries(event.fields ?? {})) {
-        if (
-            typeof value === "string" ||
-            typeof value === "number" ||
+    let truncated = 0;
+    let dropped = 0;
+    for (const [rawKey, value] of Object.entries(event.fields ?? {})) {
+        if (Object.keys(fields).length >= MAX_FIELDS) {
+            dropped++;
+            continue;
+        }
+        const key = rawKey.slice(0, MAX_KEY_CHARS);
+        if (typeof value === "string") {
+            // STS emitter contract: protocol metadata only (methods, counts,
+            // durations, type names) — bounded here regardless.
+            if (value.length > MAX_FIELD_CHARS) {
+                truncated++;
+                fields[key] = { raw: value.slice(0, MAX_FIELD_CHARS), cls: "diagnostic.metadata" };
+            } else {
+                fields[key] = { raw: value, cls: "diagnostic.metadata" };
+            }
+        } else if (
+            (typeof value === "number" && Number.isFinite(value)) ||
             typeof value === "boolean" ||
             value === null
         ) {
-            // STS emitter contract: protocol metadata only (methods, counts,
-            // durations, type names) — classified accordingly.
             fields[key] = { raw: value, cls: "diagnostic.metadata" };
         }
     }
+    if (truncated > 0) {
+        fields["stsDiag.truncatedFields"] = { raw: truncated, cls: "diagnostic.metadata" };
+    }
+    if (dropped > 0) {
+        fields["stsDiag.droppedFields"] = { raw: dropped, cls: "diagnostic.metadata" };
+    }
+    const startEpochMs =
+        typeof event.startEpochMs === "number" && Number.isFinite(event.startEpochMs)
+            ? event.startEpochMs
+            : event.epochMs;
+    const durationMs =
+        typeof event.durationMs === "number" && Number.isFinite(event.durationMs)
+            ? event.durationMs
+            : undefined;
     diag.emit({
-        feature: event.feature === "sqlDriver" ? "sqlDriver" : (event.feature ?? "rpc"),
+        // Unknown feature buckets collapse to "sts" instead of minting
+        // arbitrary feature names from the wire.
+        feature:
+            typeof event.feature === "string" && STS_FEATURES.has(event.feature)
+                ? event.feature
+                : "sts",
         kind: event.kind === "span" ? "span" : "event",
-        type: event.type,
+        type: event.type.slice(0, MAX_TYPE_CHARS),
         status: event.status === "error" ? "error" : event.status === "warning" ? "warning" : "ok",
         process: "sqlToolsService",
-        ...(event.pid !== undefined ? { pid: event.pid } : {}),
+        ...(typeof event.pid === "number" && Number.isFinite(event.pid) ? { pid: event.pid } : {}),
         // Anchor at span START so waterfall placement is correct; duration
         // carries the extent. (Analysis treats own-duration events as bars.)
-        epochMs: event.startEpochMs ?? event.epochMs,
-        ...(event.durationMs !== undefined ? { durationMs: event.durationMs } : {}),
+        epochMs: startEpochMs,
+        ...(durationMs !== undefined ? { durationMs } : {}),
         timingClass: "epochAlignedDiagnostic",
         ...(Object.keys(fields).length > 0 ? { fields } : {}),
         tags: ["stsDiag"],

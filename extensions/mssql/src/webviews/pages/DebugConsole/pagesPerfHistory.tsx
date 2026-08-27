@@ -18,7 +18,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
-import { WaterfallModel, SqlActivityRow } from "../../../sharedInterfaces/debugConsole";
+import { WaterfallModel, SqlActivityResult } from "../../../sharedInterfaces/debugConsole";
 import {
     PerfHistorySource,
     PerfIndexProgress,
@@ -49,7 +49,15 @@ import {
     ScenarioGroupBy,
 } from "../../../sharedInterfaces/perfHistory";
 import { DeltaBars, Histogram, TrendChart } from "./charts";
-import { EmptyState, formatDuration, Kpi, PageHeader, RedactedField } from "./common";
+import {
+    activatable,
+    describeError,
+    EmptyState,
+    formatDuration,
+    Kpi,
+    PageHeader,
+    RedactedField,
+} from "./common";
 import { useDc } from "./state";
 import { WaterfallView } from "./waterfallView";
 
@@ -124,7 +132,7 @@ function shortRunId(runId: string): string {
 type PhTab = "summary" | "analysis";
 
 export function PerfHistoryPage() {
-    const { rpc, dataVersion } = useDc();
+    const { rpc, dataVersion, setNotice } = useDc();
     const [tab, setTab] = useState<PhTab>("summary");
     const [sources, setSources] = useState<PerfHistorySource[]>([]);
     const [sourceId, setSourceId] = useState("default");
@@ -136,8 +144,10 @@ export function PerfHistoryPage() {
     const [focusScenarioId, setFocusScenarioId] = useState<string | undefined>(undefined);
 
     const refreshSources = useCallback(() => {
-        void rpc.sendRequest(PhListSourcesRequest.type).then(setSources);
-    }, [rpc]);
+        rpc.sendRequest(PhListSourcesRequest.type).then(setSources, (error: unknown) =>
+            setNotice(`Perf history sources: ${describeError(error)}`),
+        );
+    }, [rpc, setNotice]);
 
     useEffect(() => {
         refreshSources();
@@ -153,21 +163,29 @@ export function PerfHistoryPage() {
 
     const addSource = useCallback(
         (kind: PerfSourceKind) => {
-            void rpc.sendRequest(PhAddSourceRequest.type, { kind }).then((outcome) => {
-                setSources(outcome.sources);
-                if (outcome.addedId) {
-                    setSourceId(outcome.addedId);
-                    setSelectedRunIds([]);
-                    setBaselineRunId(undefined);
-                }
-            });
+            rpc.sendRequest(PhAddSourceRequest.type, { kind }).then(
+                (outcome) => {
+                    setSources(outcome.sources);
+                    if (outcome.addedId) {
+                        setSourceId(outcome.addedId);
+                        setSelectedRunIds([]);
+                        setBaselineRunId(undefined);
+                    } else if (outcome.error && outcome.error !== "cancelled") {
+                        setNotice(`Add source failed: ${outcome.error}`);
+                    }
+                },
+                (error: unknown) => setNotice(`Add source failed: ${describeError(error)}`),
+            );
         },
-        [rpc],
+        [rpc, setNotice],
     );
 
     const rescan = useCallback(() => {
-        void rpc.sendRequest(PhRescanRequest.type, { sourceId }).then(() => refreshSources());
-    }, [rpc, sourceId, refreshSources]);
+        rpc.sendRequest(PhRescanRequest.type, { sourceId }).then(
+            () => refreshSources(),
+            (error: unknown) => setNotice(`Rescan failed: ${describeError(error)}`),
+        );
+    }, [rpc, sourceId, refreshSources, setNotice]);
 
     const drillIn = useCallback((runId: string, scenarioId?: string) => {
         setSelectedRunIds([runId]);
@@ -252,14 +270,23 @@ function SummaryTab(props: {
     onRescan: () => void;
     onDrill: (runId: string, scenarioId?: string) => void;
 }) {
-    const { rpc } = useDc();
+    const { rpc, setNotice } = useDc();
     const [summary, setSummary] = useState<PerfRunsSummary | undefined>(undefined);
 
     useEffect(() => {
-        void rpc
-            .sendRequest(PhGetSummaryRequest.type, { sourceId: props.sourceId })
-            .then(setSummary);
-    }, [rpc, props.sourceId, props.dataVersion]);
+        let stale = false;
+        rpc.sendRequest(PhGetSummaryRequest.type, { sourceId: props.sourceId }).then(
+            (summary) => {
+                if (!stale) setSummary(summary);
+            },
+            (error: unknown) => {
+                if (!stale) setNotice(`History summary: ${describeError(error)}`);
+            },
+        );
+        return () => {
+            stale = true;
+        };
+    }, [rpc, props.sourceId, props.dataVersion, setNotice]);
 
     if (!summary) {
         return <PageHeader title="" sub="Loading history…" />;
@@ -416,6 +443,7 @@ function SummaryTab(props: {
                                 <div
                                     key={index}
                                     className="ph-attn-row"
+                                    {...activatable(() => props.onDrill(row.runId, row.scenarioId))}
                                     onClick={() => props.onDrill(row.runId, row.scenarioId)}>
                                     <VerdictPill
                                         verdict={
@@ -484,6 +512,7 @@ function SourcesPanel(props: {
                             <tr
                                 key={source.id}
                                 className={source.id === props.sourceId ? "selected" : ""}
+                                {...activatable(() => props.onPickSource(source.id))}
                                 onClick={() => props.onPickSource(source.id)}
                                 title={source.statusMessage ?? source.path}>
                                 <td>
@@ -556,7 +585,7 @@ function AnalysisTab(props: {
     focusScenarioId: string | undefined;
     setFocusScenarioId: (id: string | undefined) => void;
 }) {
-    const { rpc } = useDc();
+    const { rpc, setNotice } = useDc();
     const {
         sourceId,
         selectedRunIds,
@@ -614,38 +643,58 @@ function AnalysisTab(props: {
             setMemberRows([]);
             return;
         }
-        void rpc
-            .sendRequest(PhQueryScenariosRequest.type, {
-                sourceId,
-                runIds: selectedRunIds,
-                ...(baselineRunId ? { baselineRunId } : {}),
-                metric,
-                groupBy: "scenario",
-            })
-            .then((rows) =>
-                setMemberRows(rows.filter((r) => r.scenarioId && members.includes(r.scenarioId))),
-            );
-    }, [rpc, sourceId, selectedRunIds, baselineRunId, metric, focusGroup]);
+        let stale = false;
+        rpc.sendRequest(PhQueryScenariosRequest.type, {
+            sourceId,
+            runIds: selectedRunIds,
+            ...(baselineRunId ? { baselineRunId } : {}),
+            metric,
+            groupBy: "scenario",
+        }).then(
+            (rows) => {
+                if (!stale) {
+                    setMemberRows(
+                        rows.filter((r) => r.scenarioId && members.includes(r.scenarioId)),
+                    );
+                }
+            },
+            (error: unknown) => {
+                if (!stale) setNotice(`Group members: ${describeError(error)}`);
+            },
+        );
+        return () => {
+            stale = true;
+        };
+    }, [rpc, sourceId, selectedRunIds, baselineRunId, metric, focusGroup, setNotice]);
 
-    // Load runs.
+    // Load runs. Stale-guarded: a slow response for an older filter/source
+    // never overwrites a newer one.
     useEffect(() => {
-        void rpc
-            .sendRequest(PhQueryRunsRequest.type, {
-                sourceId,
-                limit: 500,
-                ...(runText ? { text: runText } : {}),
-                ...(runVerdicts.length > 0 ? { verdicts: runVerdicts } : {}),
-                ...(sinceUtc ? { sinceUtc } : {}),
-            })
-            .then((paged) => {
+        let stale = false;
+        rpc.sendRequest(PhQueryRunsRequest.type, {
+            sourceId,
+            limit: 500,
+            ...(runText ? { text: runText } : {}),
+            ...(runVerdicts.length > 0 ? { verdicts: runVerdicts } : {}),
+            ...(sinceUtc ? { sinceUtc } : {}),
+        }).then(
+            (paged) => {
+                if (stale) return;
                 setRuns(paged.rows);
                 setRunTotals({ total: paged.total, totalInSource: paged.totalInSource });
                 // Default selection: newest run.
                 if (selectedRunIds.length === 0 && paged.rows.length > 0) {
                     setSelectedRunIds([paged.rows[0].runId]);
                 }
-            });
-    }, [rpc, sourceId, runText, runVerdicts, sinceUtc, props.dataVersion]);
+            },
+            (error: unknown) => {
+                if (!stale) setNotice(`Runs: ${describeError(error)}`);
+            },
+        );
+        return () => {
+            stale = true;
+        };
+    }, [rpc, sourceId, runText, runVerdicts, sinceUtc, props.dataVersion, setNotice]);
 
     // Load scenario aggregates for the selection.
     useEffect(() => {
@@ -653,19 +702,20 @@ function AnalysisTab(props: {
             setScenarios([]);
             return;
         }
-        void rpc
-            .sendRequest(PhQueryScenariosRequest.type, {
-                sourceId,
-                runIds: selectedRunIds,
-                ...(baselineRunId ? { baselineRunId } : {}),
-                metric,
-                groupBy,
-                ...(scenarioText ? { text: scenarioText } : {}),
-                ...(scenarioVerdicts.length > 0 ? { verdicts: scenarioVerdicts } : {}),
-                ...(suite ? { suite } : {}),
-                ...(artifactKind ? { artifactKind } : {}),
-            })
-            .then((rows) => {
+        let stale = false;
+        rpc.sendRequest(PhQueryScenariosRequest.type, {
+            sourceId,
+            runIds: selectedRunIds,
+            ...(baselineRunId ? { baselineRunId } : {}),
+            metric,
+            groupBy,
+            ...(scenarioText ? { text: scenarioText } : {}),
+            ...(scenarioVerdicts.length > 0 ? { verdicts: scenarioVerdicts } : {}),
+            ...(suite ? { suite } : {}),
+            ...(artifactKind ? { artifactKind } : {}),
+        }).then(
+            (rows) => {
+                if (stale) return;
                 setScenarios(rows);
                 if (
                     focusScenarioId &&
@@ -677,7 +727,14 @@ function AnalysisTab(props: {
                 if (!focusScenarioId && rows.length > 0) {
                     setFocusScenarioId(rows[0].scenarioId);
                 }
-            });
+            },
+            (error: unknown) => {
+                if (!stale) setNotice(`Scenarios: ${describeError(error)}`);
+            },
+        );
+        return () => {
+            stale = true;
+        };
     }, [
         rpc,
         sourceId,
@@ -690,6 +747,7 @@ function AnalysisTab(props: {
         suite,
         artifactKind,
         props.dataVersion,
+        setNotice,
     ]);
 
     // Load details + series for the focused scenario.
@@ -700,22 +758,45 @@ function AnalysisTab(props: {
             setSeries([]);
             return;
         }
-        void rpc
-            .sendRequest(PhScenarioDetailsRequest.type, {
-                sourceId,
-                runId: primaryRunId,
-                scenarioId: focusScenarioId,
-                ...(baselineRunId ? { baselineRunId } : {}),
-            })
-            .then(setDetails);
-        void rpc
-            .sendRequest(PhMetricSeriesRequest.type, {
-                sourceId,
-                scenarioId: focusScenarioId,
-                metric,
-            })
-            .then(setSeries);
-    }, [rpc, sourceId, primaryRunId, focusScenarioId, metric, baselineRunId, props.dataVersion]);
+        let stale = false;
+        rpc.sendRequest(PhScenarioDetailsRequest.type, {
+            sourceId,
+            runId: primaryRunId,
+            scenarioId: focusScenarioId,
+            ...(baselineRunId ? { baselineRunId } : {}),
+        }).then(
+            (details) => {
+                if (!stale) setDetails(details);
+            },
+            (error: unknown) => {
+                if (!stale) setNotice(`Scenario details: ${describeError(error)}`);
+            },
+        );
+        rpc.sendRequest(PhMetricSeriesRequest.type, {
+            sourceId,
+            scenarioId: focusScenarioId,
+            metric,
+        }).then(
+            (series) => {
+                if (!stale) setSeries(series);
+            },
+            (error: unknown) => {
+                if (!stale) setNotice(`Metric series: ${describeError(error)}`);
+            },
+        );
+        return () => {
+            stale = true;
+        };
+    }, [
+        rpc,
+        sourceId,
+        primaryRunId,
+        focusScenarioId,
+        metric,
+        baselineRunId,
+        props.dataVersion,
+        setNotice,
+    ]);
 
     const suites = useMemo(
         () => [...new Set(scenarios.map((s) => s.suite).filter(Boolean))].sort() as string[],
@@ -754,12 +835,18 @@ function AnalysisTab(props: {
     };
 
     const deleteRun = (runId: string) => {
-        void rpc.sendRequest(PhDeleteRunRequest.type, { sourceId, runId }).then((outcome) => {
-            if (outcome.ok) {
-                setSelectedRunIds(selectedRunIds.filter((id) => id !== runId));
-                setRuns((current) => current.filter((r) => r.runId !== runId));
-            }
-        });
+        rpc.sendRequest(PhDeleteRunRequest.type, { sourceId, runId }).then(
+            (outcome) => {
+                if (outcome.ok) {
+                    setSelectedRunIds(selectedRunIds.filter((id) => id !== runId));
+                    setRuns((current) => current.filter((r) => r.runId !== runId));
+                } else if (outcome.error && outcome.error !== "cancelled") {
+                    // A confirmed delete that failed must never look like success.
+                    setNotice(`Delete run '${runId}' failed: ${outcome.error}`);
+                }
+            },
+            (error: unknown) => setNotice(`Delete run failed: ${describeError(error)}`),
+        );
     };
 
     const activeChips: Array<{ label: string; clear: () => void }> = [
@@ -1057,13 +1144,15 @@ function AnalysisTab(props: {
                                             <span
                                                 className="dc-chip"
                                                 key={index}
+                                                {...activatable(chip.clear)}
                                                 onClick={chip.clear}>
                                                 {chip.label} ×
                                             </span>
                                         ))}
-                                        <span
-                                            className="dc-muted"
-                                            style={{ cursor: "pointer", fontSize: 11 }}
+                                        <button
+                                            type="button"
+                                            className="dc-link dc-muted"
+                                            style={{ fontSize: 11 }}
                                             onClick={() => {
                                                 setScenarioText("");
                                                 setScenarioVerdicts([]);
@@ -1072,7 +1161,7 @@ function AnalysisTab(props: {
                                                 setTimePreset("all");
                                             }}>
                                             Clear all
-                                        </span>
+                                        </button>
                                     </div>
                                 ) : null}
                                 <ScenarioTable
@@ -1220,7 +1309,10 @@ function RunsTable(props: {
         if (top < el.scrollTop || top > el.scrollTop + el.clientHeight - RUN_ROW_HEIGHT * 2) {
             el.scrollTop = Math.max(0, top - el.clientHeight / 3);
         }
-    }, [props.focusRunId, props.runs]);
+        // Only the focus target: `runs` is replaced every second while live, and
+        // re-running on it yanked the scroll position back each tick.
+        // eslint-disable-next-line
+    }, [props.focusRunId]);
 
     return (
         <div
@@ -1277,6 +1369,14 @@ function RunsTable(props: {
                             key={run.runId}
                             style={{ height: RUN_ROW_HEIGHT }}
                             className={props.selectedRunIds.includes(run.runId) ? "selected" : ""}
+                            tabIndex={0}
+                            role="button"
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter" || e.key === " ") {
+                                    e.preventDefault();
+                                    props.onToggle(run.runId, e.ctrlKey || e.metaKey, e.shiftKey);
+                                }
+                            }}
                             onClick={(e) =>
                                 props.onToggle(run.runId, e.ctrlKey || e.metaKey, e.shiftKey)
                             }>
@@ -1405,6 +1505,7 @@ function ScenarioTable(props: {
                                     ? "selected"
                                     : ""
                             }
+                            {...activatable(() => props.onFocus(row))}
                             onClick={() => props.onFocus(row)}>
                             <td className="dc-mono">
                                 {row.key}
@@ -1829,7 +1930,7 @@ function WaterfallTab(props: {
     scenarioId: string;
     details: PerfScenarioDetails | undefined;
 }) {
-    const { rpc } = useDc();
+    const { rpc, setNotice } = useDc();
     const reps = (props.details?.reps ?? []).filter((rep) => rep.hasMarkers);
     const [repId, setRepId] = useState<number | undefined>(undefined);
     const [model, setModel] = useState<WaterfallModel | undefined>(undefined);
@@ -1840,15 +1941,24 @@ function WaterfallTab(props: {
             setModel(undefined);
             return;
         }
-        void rpc
-            .sendRequest(PhGetWaterfallRequest.type, {
-                sourceId: props.sourceId,
-                runId: props.runId,
-                scenarioId: props.scenarioId,
-                repId: effectiveRep,
-            })
-            .then(setModel);
-    }, [rpc, props.sourceId, props.runId, props.scenarioId, effectiveRep]);
+        let stale = false;
+        rpc.sendRequest(PhGetWaterfallRequest.type, {
+            sourceId: props.sourceId,
+            runId: props.runId,
+            scenarioId: props.scenarioId,
+            repId: effectiveRep,
+        }).then(
+            (model) => {
+                if (!stale) setModel(model);
+            },
+            (error: unknown) => {
+                if (!stale) setNotice(`Waterfall: ${describeError(error)}`);
+            },
+        );
+        return () => {
+            stale = true;
+        };
+    }, [rpc, props.sourceId, props.runId, props.scenarioId, effectiveRep, setNotice]);
 
     if (reps.length === 0) {
         return <span className="dc-muted">No reps with captured markers.</span>;
@@ -1881,29 +1991,38 @@ function SqlTab(props: {
     scenarioId: string;
     details: PerfScenarioDetails | undefined;
 }) {
-    const { rpc } = useDc();
-    const [rows, setRows] = useState<SqlActivityRow[] | undefined>(undefined);
+    const { rpc, setNotice } = useDc();
+    const [rows, setRows] = useState<SqlActivityResult | undefined>(undefined);
     const repWithSql = (props.details?.artifacts ?? []).find((a) => a.kind === "sqlActivity");
 
     useEffect(() => {
         if (!repWithSql) {
-            setRows([]);
+            setRows({ rows: [], total: 0 });
             return;
         }
-        void rpc
-            .sendRequest(PhGetSqlActivityRequest.type, {
-                sourceId: props.sourceId,
-                runId: props.runId,
-                scenarioId: props.scenarioId,
-                repId: repWithSql.repId ?? 0,
-            })
-            .then(setRows);
-    }, [rpc, props.sourceId, props.runId, props.scenarioId, repWithSql?.path]);
+        let stale = false;
+        rpc.sendRequest(PhGetSqlActivityRequest.type, {
+            sourceId: props.sourceId,
+            runId: props.runId,
+            scenarioId: props.scenarioId,
+            repId: repWithSql.repId ?? 0,
+        }).then(
+            (result) => {
+                if (!stale) setRows(result);
+            },
+            (error: unknown) => {
+                if (!stale) setNotice(`SQL activity: ${describeError(error)}`);
+            },
+        );
+        return () => {
+            stale = true;
+        };
+    }, [rpc, props.sourceId, props.runId, props.scenarioId, repWithSql?.path, setNotice]);
 
     if (!rows) {
         return <span className="dc-muted">Loading SQL activity…</span>;
     }
-    if (rows.length === 0) {
+    if (rows.rows.length === 0) {
         return <span className="dc-muted">No SQL activity captured for this scenario.</span>;
     }
     return (
@@ -1919,7 +2038,7 @@ function SqlTab(props: {
                 </tr>
             </thead>
             <tbody>
-                {rows.slice(0, 200).map((row, index) => (
+                {rows.rows.slice(0, 200).map((row, index) => (
                     <tr key={index}>
                         <td className="dc-mono">{row.eventName}</td>
                         <td className="num dc-mono">{formatDuration(row.durationMs)}</td>
@@ -1947,7 +2066,7 @@ function DiagnosticsTab(props: {
     scenarioId: string;
     details: PerfScenarioDetails | undefined;
 }) {
-    const { rpc } = useDc();
+    const { rpc, setNotice } = useDc();
     const reps = (props.details?.reps ?? []).filter((rep) => rep.hasMarkers);
     const [repId, setRepId] = useState<number | undefined>(undefined);
     const [rich, setRich] = useState<PerfRichDiagnostics | undefined>(undefined);
@@ -1958,15 +2077,24 @@ function DiagnosticsTab(props: {
             setRich(undefined);
             return;
         }
-        void rpc
-            .sendRequest(PhGetRichDiagnosticsRequest.type, {
-                sourceId: props.sourceId,
-                runId: props.runId,
-                scenarioId: props.scenarioId,
-                repId: effectiveRep,
-            })
-            .then(setRich);
-    }, [rpc, props.sourceId, props.runId, props.scenarioId, effectiveRep]);
+        let stale = false;
+        rpc.sendRequest(PhGetRichDiagnosticsRequest.type, {
+            sourceId: props.sourceId,
+            runId: props.runId,
+            scenarioId: props.scenarioId,
+            repId: effectiveRep,
+        }).then(
+            (rich) => {
+                if (!stale) setRich(rich);
+            },
+            (error: unknown) => {
+                if (!stale) setNotice(`Rich diagnostics: ${describeError(error)}`);
+            },
+        );
+        return () => {
+            stale = true;
+        };
+    }, [rpc, props.sourceId, props.runId, props.scenarioId, effectiveRep, setNotice]);
 
     if (reps.length === 0) {
         return <span className="dc-muted">No reps with captured markers.</span>;
@@ -2266,22 +2394,34 @@ function DumpTab(props: {
     scenarioId: string;
     details: PerfScenarioDetails | undefined;
 }) {
-    const { rpc } = useDc();
+    const { rpc, setNotice } = useDc();
     const [file, setFile] = useState<"summary" | "result" | "markersHead">("result");
-    const [repId, setRepId] = useState(0);
+    const [repId, setRepId] = useState<number | undefined>(undefined);
     const [dump, setDump] = useState<{ text: string; truncated: boolean; path: string }>();
+    // Reps are 0-based (rep-00 is real); default to the first rep the run has.
+    const repIds = (props.details?.reps ?? []).map((rep) => rep.repId);
+    const effectiveRepId = repId !== undefined && repIds.includes(repId) ? repId : (repIds[0] ?? 0);
 
     useEffect(() => {
-        void rpc
-            .sendRequest(PhGetDumpRequest.type, {
-                sourceId: props.sourceId,
-                runId: props.runId,
-                scenarioId: props.scenarioId,
-                repId,
-                file,
-            })
-            .then(setDump);
-    }, [rpc, props.sourceId, props.runId, props.scenarioId, repId, file]);
+        let stale = false;
+        rpc.sendRequest(PhGetDumpRequest.type, {
+            sourceId: props.sourceId,
+            runId: props.runId,
+            scenarioId: props.scenarioId,
+            repId: effectiveRepId,
+            file,
+        }).then(
+            (result) => {
+                if (!stale) setDump(result);
+            },
+            (error: unknown) => {
+                if (!stale) setNotice(`Dump: ${describeError(error)}`);
+            },
+        );
+        return () => {
+            stale = true;
+        };
+    }, [rpc, props.sourceId, props.runId, props.scenarioId, effectiveRepId, file, setNotice]);
 
     return (
         <div>
@@ -2292,7 +2432,9 @@ function DumpTab(props: {
                     <option value="markersHead">markers.jsonl (head)</option>
                 </select>
                 {file !== "summary" ? (
-                    <select value={repId} onChange={(e) => setRepId(Number(e.target.value))}>
+                    <select
+                        value={effectiveRepId}
+                        onChange={(e) => setRepId(Number(e.target.value))}>
                         {(props.details?.reps ?? [{ repId: 0 }]).map((rep) => (
                             <option key={rep.repId} value={rep.repId}>
                                 rep {rep.repId}
@@ -2323,25 +2465,39 @@ function CompareTab(props: {
     scenarioId: string;
     details: PerfScenarioDetails | undefined;
 }) {
-    const { rpc } = useDc();
+    const { rpc, setNotice } = useDc();
     const reps = (props.details?.reps ?? []).filter((r) => !r.warmup);
     const [repA, setRepA] = useState<number | undefined>(undefined);
-    const [repB, setRepB] = useState(1);
+    const [repB, setRepB] = useState<number | undefined>(undefined);
     const [result, setResult] = useState<PerfRepCompareResult | undefined>(undefined);
-    const effectiveRepA = repA ?? reps.find((r) => r.status === "passed")?.repId ?? 1;
+    // Reps are 0-based. Default both sides to this run's first passed rep;
+    // the baseline's rep list is offered from the same numbering (the harness
+    // numbers reps identically across runs of one config).
+    const effectiveRepA = repA ?? reps.find((r) => r.status === "passed")?.repId ?? 0;
+    const effectiveRepB = repB ?? effectiveRepA;
+    const baselineRepIds = reps.length > 0 ? reps.map((r) => r.repId) : [0];
 
     useEffect(() => {
         setResult(undefined);
-        void rpc
-            .sendRequest(PhCompareRepsRequest.type, {
-                sourceId: props.sourceId,
-                scenarioId: props.scenarioId,
-                runA: props.runId,
-                repA: effectiveRepA,
-                runB: props.baselineRunId,
-                repB,
-            })
-            .then(setResult);
+        let stale = false;
+        rpc.sendRequest(PhCompareRepsRequest.type, {
+            sourceId: props.sourceId,
+            scenarioId: props.scenarioId,
+            runA: props.runId,
+            repA: effectiveRepA,
+            runB: props.baselineRunId,
+            repB: effectiveRepB,
+        }).then(
+            (compared) => {
+                if (!stale) setResult(compared);
+            },
+            (error: unknown) => {
+                if (!stale) setNotice(`Compare: ${describeError(error)}`);
+            },
+        );
+        return () => {
+            stale = true;
+        };
     }, [
         rpc,
         props.sourceId,
@@ -2349,7 +2505,8 @@ function CompareTab(props: {
         props.runId,
         props.baselineRunId,
         effectiveRepA,
-        repB,
+        effectiveRepB,
+        setNotice,
     ]);
 
     return (
@@ -2364,8 +2521,8 @@ function CompareTab(props: {
                     ))}
                 </select>
                 <span className="dc-muted">vs baseline rep</span>
-                <select value={repB} onChange={(e) => setRepB(Number(e.target.value))}>
-                    {[0, 1, 2, 3, 4].map((repId) => (
+                <select value={effectiveRepB} onChange={(e) => setRepB(Number(e.target.value))}>
+                    {baselineRepIds.map((repId) => (
                         <option key={repId} value={repId}>
                             #{repId}
                         </option>

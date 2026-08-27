@@ -107,4 +107,40 @@ suite("STS diagnostics listener", () => {
         expect(await post(url!, `Bearer ${token}`, oversized)).to.equal(413);
         expect(received).to.have.length(1);
     });
+
+    test("bounds what the service is trusted to send: field count, string length, feature bucket", async () => {
+        const received: DiagEvent[] = [];
+        const sink: DiagnosticSink = {
+            id: "sts-listener-test",
+            tryWrite: (event) => received.push(event),
+        };
+        diag.addSink(sink);
+        await startStsDiagListener();
+        const url = process.env["STS_DIAG_URL"]!;
+        const token = process.env["STS_DIAG_TOKEN"]!;
+
+        const fields: Record<string, unknown> = { text: "y".repeat(10_000) };
+        for (let i = 0; i < 40; i++) {
+            fields[`f${i}`] = i;
+        }
+        const wireEvent = {
+            type: "sts.unknown.thing",
+            feature: "somethingElse",
+            kind: "event",
+            epochMs: 1_000,
+            fields,
+        };
+        expect(await post(url, `Bearer ${token}`, `${JSON.stringify(wireEvent)}\n`)).to.equal(200);
+        await eventually(() => received.length === 1);
+
+        const payload = received[0].payload ?? {};
+        // Unknown feature buckets collapse to "sts" instead of minting names from the wire.
+        expect(received[0].feature).to.equal("sts");
+        // Strings are bounded and the truncation is accounted, not silent.
+        expect(String(payload["text"].v)).to.have.length(256);
+        expect(payload["stsDiag.truncatedFields"].v).to.equal(1);
+        // 32 wire fields kept (+2 accounting fields); the rest are counted as dropped.
+        expect(payload["stsDiag.droppedFields"].v).to.equal(9);
+        expect(Object.keys(payload)).to.have.length(34);
+    });
 });

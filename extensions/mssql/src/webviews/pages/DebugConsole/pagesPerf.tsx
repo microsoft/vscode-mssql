@@ -7,10 +7,17 @@
  *  store. Harness/self-test run history lives in the Perf Test History page
  *  (pagesPerfHistory.tsx). */
 
-import { useEffect, useState } from "react";
 import { DcGetHistoryRequest, HistorySummary } from "../../../sharedInterfaces/debugConsole";
 import { TrendChart } from "./charts";
-import { EmptyState, formatDuration, Kpi, PageHeader } from "./common";
+import {
+    activatable,
+    EmptyState,
+    formatDuration,
+    Kpi,
+    PageHeader,
+    RpcError,
+    useRpcQuery,
+} from "./common";
 import { useDc } from "./state";
 
 // ---------------------------------------------------------------------------
@@ -27,12 +34,23 @@ export function HistoryPage() {
         captureMode,
         setCaptureMode,
     } = useDc();
-    const [history, setHistory] = useState<HistorySummary | undefined>(undefined);
+    const {
+        data: history,
+        error: historyError,
+        refresh: reloadHistory,
+    } = useRpcQuery<HistorySummary>(
+        () => rpc.sendRequest(DcGetHistoryRequest.type),
+        [rpc, dataVersion],
+    );
 
-    useEffect(() => {
-        void rpc.sendRequest(DcGetHistoryRequest.type).then(setHistory);
-    }, [rpc, dataVersion]);
-
+    if (historyError) {
+        return (
+            <>
+                <PageHeader title="History" />
+                <RpcError error={historyError} retry={reloadHistory} />
+            </>
+        );
+    }
     if (!history) {
         return <PageHeader title="History" sub="Loading…" />;
     }
@@ -113,9 +131,12 @@ export function HistoryPage() {
                             {[...history.sessions].reverse().map((session) => (
                                 <tr
                                     key={session.sourceId}
+                                    {...activatable(() => {
+                                        setActiveSourceId(session.sourceId);
+                                        navigate({ page: "trace" });
+                                    })}
                                     onClick={() => {
                                         setActiveSourceId(session.sourceId);
-
                                         navigate({ page: "trace" });
                                     }}>
                                     <td>

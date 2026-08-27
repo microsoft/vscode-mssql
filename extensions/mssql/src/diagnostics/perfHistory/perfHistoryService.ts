@@ -13,6 +13,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
+import * as LocConstants from "../../constants/locConstants";
 import {
     PagedRuns,
     PerfDumpQuery,
@@ -36,10 +37,10 @@ import {
     PerfSourceKind,
     PerfWaterfallQuery,
 } from "../../sharedInterfaces/perfHistory";
-import { SqlActivityRow, WaterfallModel } from "../../sharedInterfaces/debugConsole";
+import { SqlActivityResult, WaterfallModel } from "../../sharedInterfaces/debugConsole";
 import { buildWaterfall, sqlActivityRows } from "../analysis";
-import { importPerfRep } from "../perfRunImport";
-import { DirectoryHistoryProvider } from "./directoryProvider";
+import { importPerfRep, readJsonlBounded } from "../perfRunImport";
+import { DirectoryHistoryProvider, percentile } from "./directoryProvider";
 import { loadRegistry as loadObsRegistry } from "../../sharedInterfaces/observabilityContract.generated";
 
 const STATE_KEY = "mssql.perfHistory.sources";
@@ -91,11 +92,17 @@ export class PerfHistoryService {
         if (!descriptor || (descriptor.kind !== "directory" && descriptor.kind !== "bundle")) {
             return undefined;
         }
-        const provider = new DirectoryHistoryProvider(sourceId, descriptor.path, (progress) => {
-            const payload: PerfIndexProgress = { sourceId, ...progress };
-            this.progressBySource.set(sourceId, payload);
-            this.onProgress(payload);
-        });
+        const provider = new DirectoryHistoryProvider(
+            sourceId,
+            descriptor.path,
+            (progress) => {
+                const payload: PerfIndexProgress = { sourceId, ...progress };
+                this.progressBySource.set(sourceId, payload);
+                this.onProgress(payload);
+            },
+            // Bundles are read-only imports: never write an index into them.
+            { persistIndex: descriptor.kind !== "bundle" },
+        );
         this.providers.set(sourceId, provider);
         return provider;
     }
@@ -179,15 +186,15 @@ export class PerfHistoryService {
                       canSelectFiles: true,
                       canSelectFolders: false,
                       filters: { "SQLite database": ["db", "sqlite", "sqlite3"] },
-                      title: "Connect a perftest SQLite store (read-only preview)",
+                      title: LocConstants.DebugConsole.addSqliteTitle,
                   }
                 : {
                       canSelectFiles: false,
                       canSelectFolders: true,
                       title:
                           kind === "bundle"
-                              ? "Import a perf-runs bundle directory (read-only)"
-                              : "Open a perf-runs directory",
+                              ? LocConstants.DebugConsole.addBundleTitle
+                              : LocConstants.DebugConsole.addDirectoryTitle,
                   },
         );
         if (!picked || picked.length === 0) {
@@ -307,21 +314,24 @@ export class PerfHistoryService {
             ? provider.allRunRows().sort((a, b) => a.createdUtc.localeCompare(b.createdUtc))
             : [];
         const latest = rows[rows.length - 1];
-        const previous = rows.length > 1 ? rows[rows.length - 2] : undefined;
         const failedReps = rows.reduce((sum, r) => sum + r.failedReps, 0);
         const invalidReps = rows.reduce((sum, r) => sum + r.invalidReps, 0);
+        // Latest-run scenario rows carry each scenario's delta vs ITS OWN
+        // baseline (the closest earlier run that has that scenario). The KPI
+        // is the median of those — never a pooled run-wide median across two
+        // runs whose scenario mix may differ.
+        const scenarioRows =
+            provider && latest ? provider.queryScenarios({ sourceId, runIds: [latest.runId] }) : [];
+        const scenarioDeltas = scenarioRows
+            .map((row) => row.deltaPct)
+            .filter((delta): delta is number => delta !== undefined)
+            .sort((a, b) => a - b);
         const deltaVsPrevPct =
-            latest?.wallP50Ms !== undefined &&
-            previous?.wallP50Ms !== undefined &&
-            previous.wallP50Ms !== 0
-                ? Number(
-                      (
-                          ((latest.wallP50Ms - previous.wallP50Ms) / previous.wallP50Ms) *
-                          100
-                      ).toFixed(1),
-                  )
+            scenarioDeltas.length > 0
+                ? Number(percentile(scenarioDeltas, 50)!.toFixed(1))
                 : undefined;
-        // Trend: run-wide wallclock aggregates.
+        // Trend: run-wide wallclock aggregates (the UI labels them as such —
+        // a run's scenario mix can change between runs).
         const trend: PerfMetricSeriesPoint[] = rows
             .filter((r) => r.wallP50Ms !== undefined)
             .slice(-40)
@@ -337,10 +347,6 @@ export class PerfHistoryService {
         let latestSlower: PerfRunsSummary["latestSlower"];
         let needsAttention: PerfNeedsAttentionRow[] = [];
         if (provider && latest) {
-            const scenarioRows = provider.queryScenarios({
-                sourceId,
-                runIds: [latest.runId],
-            });
             for (const row of scenarioRows) {
                 const suite = row.suite ?? "Other";
                 const entry = suiteHealth.get(suite) ?? { ok: 0, total: 0 };
@@ -372,9 +378,13 @@ export class PerfHistoryService {
                         createdUtc: latest.createdUtc,
                     });
                 }
+                // Same thresholds as quickCompareVerdict: >10% AND >50 ms.
                 if (
                     row.deltaPct !== undefined &&
                     row.deltaPct > 10 &&
+                    row.p50Ms !== undefined &&
+                    row.baselineP50Ms !== undefined &&
+                    row.p50Ms - row.baselineP50Ms > 50 &&
                     row.scenarioId &&
                     (latestSlower === undefined || row.deltaPct > latestSlower.deltaPct)
                 ) {
@@ -438,10 +448,10 @@ export class PerfHistoryService {
         return traceId ? buildWaterfall(events, traceId) : undefined;
     }
 
-    public async sqlActivity(query: PerfWaterfallQuery): Promise<SqlActivityRow[]> {
+    public async sqlActivity(query: PerfWaterfallQuery): Promise<SqlActivityResult> {
         const provider = await this.ensureIndexed(query.sourceId);
         if (!provider) {
-            return [];
+            return { rows: [], total: 0 };
         }
         const repDir = provider.repDir(query.runId, query.scenarioId, query.repId);
         const events = importPerfRep(repDir, `${query.runId}_${query.scenarioId}`);
@@ -468,44 +478,29 @@ export class PerfHistoryService {
         }
         const snapshots: PerfRichSnapshot[] = [];
         const spanDeltas: PerfRichSpanDelta[] = [];
-        try {
-            for (const line of fs.readFileSync(markersPath, "utf8").split("\n")) {
-                const trimmed = line.trim();
-                if (!trimmed) continue;
-                let marker: {
-                    name?: string;
-                    timestampUnixNs?: string;
-                    attrs?: Record<string, unknown>;
-                };
-                try {
-                    marker = JSON.parse(trimmed);
-                } catch {
-                    continue;
-                }
-                const attrs = marker.attrs ?? {};
-                if (marker.name === "system.rich.snapshot") {
-                    const metrics: Record<string, number> = {};
-                    for (const [key, value] of Object.entries(attrs)) {
-                        if (typeof value === "number") {
-                            metrics[key] = value;
-                        }
+        // Bounded read; one bad line is skipped, never the whole rep.
+        for (const marker of parseMarkerLines(readJsonlBounded(markersPath).lines)) {
+            const attrs = marker.attrs;
+            if (marker.name === "system.rich.snapshot") {
+                const metrics: Record<string, number> = {};
+                for (const [key, value] of Object.entries(attrs)) {
+                    if (typeof value === "number") {
+                        metrics[key] = value;
                     }
-                    snapshots.push({
-                        epochMs: Number(BigInt(marker.timestampUnixNs ?? "0") / 1_000_000n),
-                        metrics,
-                    });
-                } else if (typeof attrs["perf_heapDeltaKB"] === "number") {
-                    spanDeltas.push({
-                        type: marker.name ?? "?",
-                        ...(typeof attrs["durationMs"] === "number"
-                            ? { durationMs: attrs["durationMs"] }
-                            : {}),
-                        heapDeltaKB: attrs["perf_heapDeltaKB"],
-                    });
                 }
+                snapshots.push({
+                    epochMs: Number(BigInt(marker.timestampUnixNs) / 1_000_000n),
+                    metrics,
+                });
+            } else if (typeof attrs["perf_heapDeltaKB"] === "number") {
+                spanDeltas.push({
+                    type: marker.name,
+                    ...(typeof attrs["durationMs"] === "number"
+                        ? { durationMs: attrs["durationMs"] }
+                        : {}),
+                    heapDeltaKB: attrs["perf_heapDeltaKB"],
+                });
             }
-        } catch {
-            return empty;
         }
         spanDeltas.sort((a, b) => Math.abs(b.heapDeltaKB ?? 0) - Math.abs(a.heapDeltaKB ?? 0));
         return {
@@ -555,22 +550,19 @@ export class PerfHistoryService {
                     provider.repDir(runId, query.scenarioId, repId),
                     "markers.jsonl",
                 );
-                const markers: Array<{
-                    name: string;
-                    phase: string;
-                    timestampUnixNs: string;
-                    attrs?: Record<string, unknown>;
-                }> = [];
-                for (const line of fs.readFileSync(file, "utf8").split("\n")) {
-                    const trimmed = line.trim();
-                    if (!trimmed || trimmed.length > 512 * 1024) {
-                        continue;
-                    }
-                    try {
-                        markers.push(JSON.parse(trimmed));
-                    } catch {
-                        // refused line — the import path already accounts these
-                    }
+                const bounded = readJsonlBounded(file);
+                if (bounded.refusedReason) {
+                    notes.push(
+                        `${runId} rep ${repId}: markers.jsonl refused (${bounded.refusedReason})`,
+                    );
+                    return [];
+                }
+                const markers = parseMarkerLines(bounded.lines);
+                const refused = bounded.refusedLines + (bounded.lines.length - markers.length);
+                if (refused > 0) {
+                    notes.push(
+                        `${runId} rep ${repId}: ${refused} malformed/oversized marker line(s) ignored`,
+                    );
                 }
                 return markers;
             } catch (error) {
@@ -734,7 +726,12 @@ export class PerfHistoryService {
                 let text = buffer.toString("utf8");
                 if (query.file !== "markersHead" && !truncated) {
                     try {
-                        text = JSON.stringify(JSON.parse(text), null, 2);
+                        const parsed: unknown = JSON.parse(text);
+                        text = JSON.stringify(
+                            query.file === "result" ? redactResultDump(parsed) : parsed,
+                            null,
+                            2,
+                        );
                     } catch {
                         // keep raw
                     }
@@ -751,6 +748,78 @@ export class PerfHistoryService {
             };
         }
     }
+}
+
+interface ParsedMarker {
+    name: string;
+    phase: string;
+    timestampUnixNs: string;
+    attrs: Record<string, unknown>;
+}
+
+/**
+ * Parse marker lines, keeping only well-shaped objects (name + numeric
+ * timestampUnixNs string). A `null`, number, or string line must never throw
+ * out of an RPC; it is simply not a marker.
+ */
+export function parseMarkerLines(lines: string[]): ParsedMarker[] {
+    const markers: ParsedMarker[] = [];
+    for (const line of lines) {
+        let parsed: unknown;
+        try {
+            parsed = JSON.parse(line);
+        } catch {
+            continue;
+        }
+        if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+            continue;
+        }
+        const candidate = parsed as Partial<ParsedMarker>;
+        if (
+            typeof candidate.name !== "string" ||
+            typeof candidate.timestampUnixNs !== "string" ||
+            !/^\d+$/.test(candidate.timestampUnixNs)
+        ) {
+            continue;
+        }
+        markers.push({
+            name: candidate.name,
+            phase: typeof candidate.phase === "string" ? candidate.phase : "",
+            timestampUnixNs: candidate.timestampUnixNs,
+            attrs:
+                typeof candidate.attrs === "object" && candidate.attrs !== null
+                    ? (candidate.attrs as Record<string, unknown>)
+                    : {},
+        });
+    }
+    return markers;
+}
+
+/**
+ * The result.json dump is shown verbatim in the webview; drop the two fields
+ * that identify the machine (hostname) or carry local paths (error stacks).
+ * Local-only display, but they add nothing to a perf investigation.
+ */
+export function redactResultDump(parsed: unknown): unknown {
+    if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+        return parsed;
+    }
+    const result = { ...(parsed as Record<string, unknown>) };
+    if (typeof result.environment === "object" && result.environment !== null) {
+        const environment = { ...(result.environment as Record<string, unknown>) };
+        if ("machineId" in environment) {
+            environment.machineId = "[redacted]";
+        }
+        result.environment = environment;
+    }
+    if (Array.isArray(result.errors)) {
+        result.errors = result.errors.map((error) =>
+            typeof error === "object" && error !== null && "stack" in error
+                ? { ...(error as Record<string, unknown>), stack: "[redacted]" }
+                : error,
+        );
+    }
+    return result;
 }
 
 /** SQLite magic sniff — honest capability detection, no native driver. */

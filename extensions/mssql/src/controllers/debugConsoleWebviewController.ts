@@ -12,6 +12,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
+import * as LocConstants from "../constants/locConstants";
 import {
     DcGetHistoryRequest,
     HistoryActionTrend,
@@ -53,7 +54,9 @@ import { diag } from "../diagnostics/diagnosticsCore";
 import { DiagnosticsManager } from "../diagnostics/diagnosticsManager";
 import { PerfHistoryService } from "../diagnostics/perfHistory/perfHistoryService";
 import { importPerfMetrics, importPerfRun } from "../diagnostics/perfRunImport";
+import { SessionHistorySummary } from "../diagnostics/sessionStore";
 import { LiveTailSink } from "../diagnostics/sinks";
+import { isStsDiagListenerActive } from "../diagnostics/stsDiagListener";
 import { lintCorrelation } from "../sharedInterfaces/observabilityContract.generated";
 import {
     PhAddSourceRequest,
@@ -111,7 +114,7 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
                 ...(initialPage !== undefined ? { initialPage } : {}),
             },
             {
-                title: "MSSQL Debug Console",
+                title: LocConstants.DebugConsole.panelTitle,
                 viewColumn: vscode.ViewColumn.Active,
                 iconPath: {
                     dark: vscode.Uri.joinPath(
@@ -228,12 +231,13 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
         );
         this.onRequest(PhDeleteRunRequest.type, async ({ sourceId, runId }) => {
             // Destructive: removes the run directory from disk. Confirm once.
+            const deleteRun = LocConstants.DebugConsole.deleteRun;
             const choice = await vscode.window.showWarningMessage(
-                `Delete perf run '${runId}'? This removes the run directory and its artifacts from disk.`,
+                LocConstants.DebugConsole.deleteRunConfirm(runId),
                 { modal: true },
-                "Delete run",
+                deleteRun,
             );
-            if (choice !== "Delete run") {
+            if (choice !== deleteRun) {
                 return { ok: false, error: "cancelled" };
             }
             return this.perfHistory.deleteRun(sourceId, runId);
@@ -440,7 +444,7 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
             const picked = await vscode.window.showOpenDialog({
                 canSelectFolders: true,
                 canSelectFiles: false,
-                title: "Select a perftest run directory (perf-runs/<runId>)",
+                title: LocConstants.DebugConsole.importRunTitle,
             });
             if (!picked || picked.length === 0) {
                 return undefined;
@@ -448,9 +452,7 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
             const runDir = picked[0].fsPath;
             const imported = importPerfRun(runDir);
             if (!imported) {
-                void vscode.window.showWarningMessage(
-                    "No harness markers found in the selected directory.",
-                );
+                void vscode.window.showWarningMessage(LocConstants.DebugConsole.noMarkersFound);
                 return undefined;
             }
             this.perfRunCounter++;
@@ -462,12 +464,11 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
             return this.listSources();
         });
 
-        this.onRequest(DcGetPerfSummaryRequest.type, async (request) => {
-            const root =
-                request.perfRunsRoot ??
-                vscode.workspace
-                    .getConfiguration()
-                    .get<string>("mssql.debugConsole.perfRunsRoot", "");
+        this.onRequest(DcGetPerfSummaryRequest.type, async () => {
+            // The root is host-owned configuration; the webview never names paths.
+            const root = vscode.workspace
+                .getConfiguration()
+                .get<string>("mssql.debugConsole.perfRunsRoot", "");
             const imported = root ? importPerfMetrics(root) : { samples: [], runs: [] };
             return {
                 scenarios: [...new Set(imported.samples.map((s) => s.scenarioId))].sort(),
@@ -495,24 +496,23 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
                 createdUtc: string,
                 live: boolean,
                 captureMode: HistorySessionRow["captureMode"],
-                events: DiagEvent[],
+                summary: SessionHistorySummary,
                 gaps: number,
             ) => {
-                const actions = userActions(events);
-                const errors = events.filter((e) => e.status === "error").length;
+                const actions = summary.actions;
                 sessions.push({
                     sourceId,
                     hostSessionId,
                     label,
                     createdUtc,
                     live,
-                    events: events.length,
-                    errors,
+                    events: summary.events,
+                    errors: summary.errors,
                     gaps,
                     captureMode,
                     actionCount: actions.length,
                 });
-                totalEvents += events.length;
+                totalEvents += summary.events;
                 totalActions += actions.length;
                 // Per-action-label medians for cross-session trends.
                 const byLabel = new Map<
@@ -549,7 +549,9 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
                 }
             };
 
-            // Stored sessions (newest first, bounded), then the live session.
+            // Stored sessions (newest first, bounded): per-session aggregates
+            // come from a sidecar computed once per session — History never
+            // reloads whole journals into memory. Then the live session.
             for (const { manifest } of this.diagnostics.store.listLocalSessions().slice(0, 15)) {
                 if (manifest.sessionId === diag.sessionId) continue;
                 const sourceId = `store:${manifest.sessionId}`;
@@ -560,7 +562,7 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
                     manifest.createdUtc,
                     false,
                     manifest.captureMode,
-                    this.diagnostics.store.eventsForSource(sourceId),
+                    this.diagnostics.store.historySummaryFor(manifest.sessionId, historySummaryOf),
                     manifest.gapCount,
                 );
             }
@@ -571,7 +573,7 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
                 new Date().toISOString(),
                 true,
                 diag.captureMode,
-                this.liveArchive,
+                historySummaryOf(this.liveArchive),
                 this.liveGaps.length,
             );
             sessions.sort((a, b) => a.createdUtc.localeCompare(b.createdUtc));
@@ -592,9 +594,22 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
             if (events.length === 0) {
                 return { events: 0, redactions: 0, error: "No events to export" };
             }
+            // Honest label: an elevated (full) source is not redacted.
+            const fullCapture =
+                sourceId === this.liveSourceId
+                    ? diag.captureMode === "full"
+                    : this.diagnostics.store
+                          .listLocalSessions()
+                          .some(
+                              (s) =>
+                                  `store:${s.manifest.sessionId}` === sourceId &&
+                                  s.manifest.captureMode === "full",
+                          );
             const target = await vscode.window.showSaveDialog({
-                title: "Export diagnostic events (redacted JSONL)",
-                filters: { "JSON Lines": ["jsonl"] },
+                title: fullCapture
+                    ? LocConstants.DebugConsole.exportTitleFull
+                    : LocConstants.DebugConsole.exportTitle,
+                filters: { [LocConstants.DebugConsole.jsonLinesFilter]: ["jsonl"] },
                 defaultUri: vscode.Uri.file(
                     path.join(
                         this.diagnostics.store.storeRoot,
@@ -630,7 +645,23 @@ export class DebugConsoleWebviewController extends WebviewPanelController<
     }
 }
 
+/** History aggregate of one session's events (the sidecar body). */
+function historySummaryOf(events: DiagEvent[]): SessionHistorySummary {
+    return {
+        schemaVersion: "mssql.diag.historySummary/1",
+        events: events.length,
+        errors: events.filter((e) => e.status === "error").length,
+        actions: userActions(events).map((action) => ({
+            label: action.label,
+            feature: action.feature,
+            status: action.status,
+            ...(action.durationMs !== undefined ? { durationMs: action.durationMs } : {}),
+        })),
+    };
+}
+
 let activeConsole: DebugConsoleWebviewController | undefined;
+let stsRestartNoticeShown = false;
 
 export function registerDebugConsole(
     context: vscode.ExtensionContext,
@@ -641,6 +672,24 @@ export function registerDebugConsole(
         // that page — a fresh console gets it as initial state, an open one
         // is steered via dc/navigate before being revealed.
         vscode.commands.registerCommand("mssql.openDebugConsole", (route?: { page?: DcPageId }) => {
+            // Always registered; the gate lives here so a setting flipped
+            // after activation never yields "command not found".
+            if (
+                !vscode.workspace
+                    .getConfiguration()
+                    .get<boolean>("mssql.debugConsole.enabled", false)
+            ) {
+                void vscode.window.showInformationMessage(
+                    LocConstants.DebugConsole.enableSettingFirst,
+                );
+                return;
+            }
+            if (!isStsDiagListenerActive() && !stsRestartNoticeShown) {
+                // Enabled after activation: the STS lane needs the listener
+                // that only starts before the service spawns.
+                stsRestartNoticeShown = true;
+                void vscode.window.showInformationMessage(LocConstants.DebugConsole.restartForSts);
+            }
             const page = route?.page;
             if (activeConsole && !activeConsole.disposed) {
                 if (page !== undefined) {

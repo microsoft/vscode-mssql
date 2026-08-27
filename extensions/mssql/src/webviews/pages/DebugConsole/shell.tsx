@@ -7,6 +7,7 @@
 
 import { useEffect, useState } from "react";
 import { DcExportRequest } from "../../../sharedInterfaces/debugConsole";
+import { describeError } from "./common";
 import { DcPage, useDc } from "./state";
 import { OverviewPage, TracePage, WaterfallPage } from "./pagesCore";
 import {
@@ -136,6 +137,8 @@ function TopBar() {
         rpc,
         refreshSources,
         navigate,
+        notice,
+        setNotice,
     } = useDc();
     const [showCapture, setShowCapture] = useState(false);
     const [countdown, setCountdown] = useState("");
@@ -248,10 +251,31 @@ function TopBar() {
             <button
                 className="dc-btn primary"
                 onClick={() => {
-                    void rpc.sendRequest(DcExportRequest.type, { sourceId: activeSourceId });
+                    rpc.sendRequest(DcExportRequest.type, { sourceId: activeSourceId }).then(
+                        (result) =>
+                            setNotice(
+                                result.error
+                                    ? result.error === "cancelled"
+                                        ? undefined
+                                        : `Export ${result.error}`
+                                    : `Exported ${result.events} events → ${result.path}`,
+                            ),
+                        (error: unknown) => setNotice(`Export failed: ${describeError(error)}`),
+                    );
                 }}>
                 ⇩ Export
             </button>
+            {notice ? (
+                <div className="dc-notice" role="status">
+                    <span>{notice}</span>
+                    <button
+                        className="dc-btn"
+                        aria-label="Dismiss"
+                        onClick={() => setNotice(undefined)}>
+                        ×
+                    </button>
+                </div>
+            ) : null}
             {showCapture ? <CapturePopover onClose={() => setShowCapture(false)} /> : null}
         </div>
     );

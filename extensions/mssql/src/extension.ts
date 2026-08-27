@@ -67,9 +67,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<MssqlE
     // session store captures the complete activation lifecycle.
     const diagnosticsManager = new DiagnosticsManager(context);
     context.subscriptions.push(diagnosticsManager);
-    if (vscode.workspace.getConfiguration().get<boolean>("mssql.debugConsole.enabled", false)) {
-        registerDebugConsole(context, diagnosticsManager);
-    }
+    // Always registered: package.json enables the command live from the
+    // setting, so an unregistered command would surface as "command not
+    // found" the moment a user flips it. The handler gates on the setting.
+    registerDebugConsole(context, diagnosticsManager);
 
     Perf.setActivationState("activating");
     Perf.marker("mssql.activate.begin", "begin");

@@ -2335,6 +2335,51 @@
             "{2} is the display name of the alternative SQL data plane provider"
         ]
     },
+    "Delete all": "Delete all",
+    "Delete {0} locally stored diagnostic session(s)? The current session keeps recording if capture is on./{0} is the number of locally stored diagnostic sessions": {
+        "message": "Delete {0} locally stored diagnostic session(s)? The current session keeps recording if capture is on.",
+        "comment": ["{0} is the number of locally stored diagnostic sessions"]
+    },
+    "Removed {0} diagnostic session(s)./{0} is the number of removed diagnostic sessions": {
+        "message": "Removed {0} diagnostic session(s).",
+        "comment": ["{0} is the number of removed diagnostic sessions"]
+    },
+    "Reason for elevated (full) capture — recorded in the session log": "Reason for elevated (full) capture — recorded in the session log",
+    "e.g. reproducing bug #1234": "e.g. reproducing bug #1234",
+    "Elevated capture duration (auto-reverts)": "Elevated capture duration (auto-reverts)",
+    "{0} minutes/{0} is a number of minutes": {
+        "message": "{0} minutes",
+        "comment": ["{0} is a number of minutes"]
+    },
+    "MSSQL Session Diagnostics": "MSSQL Session Diagnostics",
+    "$(circle-slash) MSSQL Diag": "$(circle-slash) MSSQL Diag",
+    "MSSQL session diagnostics: capture off. Click to open the Debug Console.": "MSSQL session diagnostics: capture off. Click to open the Debug Console.",
+    "$(record) MSSQL Diag: FULL": "$(record) MSSQL Diag: FULL",
+    "Elevated (full) capture is active and time-bounded. Click to open the Debug Console.": "Elevated (full) capture is active and time-bounded. Click to open the Debug Console.",
+    "$(shield) MSSQL Diag: {0}/{0} is the capture mode (redacted or digest)": {
+        "message": "$(shield) MSSQL Diag: {0}",
+        "comment": ["{0} is the capture mode (redacted or digest)"]
+    },
+    "MSSQL session diagnostics capturing ({0}, local only). Click to open the Debug Console./{0} is the capture mode (redacted or digest)": {
+        "message": "MSSQL session diagnostics capturing ({0}, local only). Click to open the Debug Console.",
+        "comment": ["{0} is the capture mode (redacted or digest)"]
+    },
+    "MSSQL Debug Console": "MSSQL Debug Console",
+    "Enable the mssql.debugConsole.enabled setting to use the MSSQL Debug Console.": "Enable the mssql.debugConsole.enabled setting to use the MSSQL Debug Console.",
+    "Restart VS Code so SQL Tools Service diagnostics are included in the Debug Console.": "Restart VS Code so SQL Tools Service diagnostics are included in the Debug Console.",
+    "Delete run": "Delete run",
+    "Delete perf run '{0}'? This removes the run directory and its artifacts from disk./{0} is the perf run id": {
+        "message": "Delete perf run '{0}'? This removes the run directory and its artifacts from disk.",
+        "comment": ["{0} is the perf run id"]
+    },
+    "Select a perftest run directory (perf-runs/<runId>)": "Select a perftest run directory (perf-runs/<runId>)",
+    "No harness markers found in the selected directory.": "No harness markers found in the selected directory.",
+    "Export diagnostic events (redacted JSONL)": "Export diagnostic events (redacted JSONL)",
+    "Export diagnostic events (JSONL — full capture, may contain SQL text)": "Export diagnostic events (JSONL — full capture, may contain SQL text)",
+    "JSON Lines": "JSON Lines",
+    "Connect a perftest SQLite store (read-only preview)": "Connect a perftest SQLite store (read-only preview)",
+    "Import a perf-runs bundle directory (read-only)": "Import a perf-runs bundle directory (read-only)",
+    "Open a perf-runs directory": "Open a perf-runs directory",
     "Close": "Close",
     "Apply": "Apply",
     "Next": "Next",

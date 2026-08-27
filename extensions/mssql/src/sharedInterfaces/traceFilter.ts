@@ -7,7 +7,7 @@
  * Consolidated Trace filter expressions (completions-style live capture):
  *
  *   dur>1000      duration greater than 1000ms   (also dur>=, dur<, dur<=, 1.5s)
- *   proc:sts      process (sts|extension|webview|sql|driver|harness|system)
+ *   proc:sts      process (sts|extension|webview|sql|harness|system)
  *   feat:query    feature bucket
  *   status:error  status
  *   type:submit   free text (joins the text search)
@@ -40,7 +40,6 @@ const PROCESS_ALIASES: Record<string, DiagProcess> = {
     renderer: "renderer",
     sql: "sqlServer",
     sqlserver: "sqlServer",
-    driver: "harness",
     harness: "harness",
     system: "system",
 };

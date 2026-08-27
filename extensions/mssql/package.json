@@ -3293,6 +3293,12 @@
                     "default": false,
                     "markdownDescription": "%mssql.debugConsole.richCollection.description%",
                     "scope": "application"
+                },
+                "mssql.debugConsole.richSnapshotHeartbeat": {
+                    "type": "boolean",
+                    "default": false,
+                    "markdownDescription": "%mssql.debugConsole.richSnapshotHeartbeat.description%",
+                    "scope": "application"
                 }
             }
         },

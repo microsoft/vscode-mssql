@@ -283,6 +283,8 @@ export interface WaterfallModel {
     activities: WaterfallActivity[];
     /** Ordered critical-path step summaries; empty when not computable. */
     criticalPath: Array<{ label: string; durationMs: number; note?: string }>;
+    /** Present when the host kept only the longest `shown` of `total` activities. */
+    activityCap?: { shown: number; total: number };
     calibrationNote?: string;
 }
 
@@ -413,6 +415,12 @@ export interface SqlActivityRow {
     sourceEventId?: string;
 }
 
+/** Newest rows up to the host cap, plus the honest total in the source. */
+export interface SqlActivityResult {
+    rows: SqlActivityRow[];
+    total: number;
+}
+
 // ---------------------------------------------------------------------------
 // RPC types (extension host <-> Debug Console webview)
 // ---------------------------------------------------------------------------
@@ -461,7 +469,7 @@ export namespace DcListTracesRequest {
     );
 }
 export namespace DcGetSqlActivityRequest {
-    export const type = new RequestType<{ sourceId: string }, SqlActivityRow[], void>(
+    export const type = new RequestType<{ sourceId: string }, SqlActivityResult, void>(
         "dc/getSqlActivity",
     );
 }
@@ -485,10 +493,9 @@ export namespace DcSetCaptureModeRequest {
 export namespace DcImportPerfRunRequest {
     export const type = new RequestType<void, DebugSource[] | undefined, void>("dc/importPerfRun");
 }
+/** Reads the configured perf-runs root only — the webview never supplies filesystem paths. */
 export namespace DcGetPerfSummaryRequest {
-    export const type = new RequestType<{ perfRunsRoot?: string }, PerfSummary, void>(
-        "dc/getPerfSummary",
-    );
+    export const type = new RequestType<void, PerfSummary, void>("dc/getPerfSummary");
 }
 // --- Evidence durability (Chunk 2) -----------------------------------------
 

@@ -32,6 +32,11 @@ import {
     PerfValidationRow,
     RunVerdict,
 } from "../../sharedInterfaces/perfHistory";
+import { failureReasonOf, isWarmupRep, readWarmupRepetitions, repIdFrom } from "../perfRunImport";
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+}
 
 const INDEX_FILE = ".dc-history-index.json";
 const INDEX_VERSION = 2;
@@ -99,12 +104,21 @@ export function suiteFor(scenarioId: string): string {
 
 // --- pure aggregation helpers (unit-tested) -------------------------------------
 
+/**
+ * Linear-interpolation quantile — the same definition as the perftest CLI
+ * (`regression/statistics.ts` quantile), so in-product medians match
+ * `perftest history` for even sample counts.
+ */
 export function percentile(sorted: number[], p: number): number | undefined {
     if (sorted.length === 0) {
         return undefined;
     }
-    const index = Math.min(sorted.length - 1, Math.ceil((p / 100) * sorted.length) - 1);
-    return sorted[Math.max(0, index)];
+    const pos = (sorted.length - 1) * (p / 100);
+    const base = Math.floor(pos);
+    const rest = pos - base;
+    const lower = sorted[base];
+    const upper = sorted[Math.min(base + 1, sorted.length - 1)];
+    return lower + rest * (upper - lower);
 }
 
 export function officialSamples(scenario: IndexedScenario, metric: string): number[] {
@@ -148,6 +162,8 @@ export function runVerdict(row: {
 export function quickCompareVerdict(
     samples: number[],
     baselineSamples: number[],
+    /** Absolute floor in the metric's unit (50 ms for wallclock; 0 for other metrics). */
+    absoluteFloor = 50,
 ): { verdict: "regression" | "improved" | "ok" | "inconclusive"; reason: string } | undefined {
     if (baselineSamples.length === 0) {
         return undefined;
@@ -169,9 +185,15 @@ export function quickCompareVerdict(
             reason: `noisy: IQR is ${(spreadRatio * 100).toFixed(0)}% of the median — rerun or check the flake ledger`,
         };
     }
+    if (basP50 === 0) {
+        return {
+            verdict: "inconclusive",
+            reason: "baseline median is 0 — a percent change is undefined",
+        };
+    }
     const deltaMs = p50 - basP50;
-    const deltaPct = basP50 !== 0 ? (deltaMs / basP50) * 100 : 0;
-    if (Math.abs(deltaPct) > 10 && Math.abs(deltaMs) > 50) {
+    const deltaPct = (deltaMs / basP50) * 100;
+    if (Math.abs(deltaPct) > 10 && Math.abs(deltaMs) > absoluteFloor) {
         return deltaMs > 0
             ? {
                   verdict: "regression",
@@ -232,7 +254,11 @@ export function scenarioRowFrom(
         ...(baselineP50 !== undefined ? { baselineP50Ms: Number(baselineP50.toFixed(1)) } : {}),
         ...(deltaPct !== undefined ? { deltaPct } : {}),
         ...(() => {
-            const quick = quickCompareVerdict(samples, baselineSamples);
+            const quick = quickCompareVerdict(
+                samples,
+                baselineSamples,
+                metric === "scenario.wallclock" ? 50 : 0,
+            );
             return quick ? { quickCompare: quick } : {};
         })(),
         artifactKinds,
@@ -305,6 +331,7 @@ export class DirectoryHistoryProvider {
         public readonly sourceId: string,
         public readonly root: string,
         private readonly onProgress?: (progress: IndexProgress) => void,
+        private readonly options: { persistIndex?: boolean } = {},
     ) {}
 
     // --- index lifecycle -------------------------------------------------------
@@ -329,6 +356,9 @@ export class DirectoryHistoryProvider {
     }
 
     private persistIndex(): void {
+        if (this.options.persistIndex === false) {
+            return; // read-only sources (bundles) are never written into
+        }
         try {
             fs.writeFileSync(this.indexPath(), JSON.stringify(this.index), "utf8");
         } catch {
@@ -475,10 +505,16 @@ export class DirectoryHistoryProvider {
             scenarios?: Record<string, { skipped?: boolean; reason?: string }>;
         } = {};
         try {
-            summary = JSON.parse(fs.readFileSync(path.join(runDir, "summary.json"), "utf8"));
+            const parsed: unknown = JSON.parse(
+                fs.readFileSync(path.join(runDir, "summary.json"), "utf8"),
+            );
+            if (isRecord(parsed)) {
+                summary = parsed;
+            }
         } catch {
             // keep unknown status
         }
+        const warmupRepetitions = readWarmupRepetitions(runDir);
         const scenarios: Record<string, IndexedScenario> = {};
         let repTotal = 0;
         let failedReps = 0;
@@ -503,15 +539,22 @@ export class DirectoryHistoryProvider {
                         official: boolean;
                     }>;
                     failureReason?: string;
+                    errors?: Array<{ message?: string }>;
                     validations?: Array<{ status: string }>;
                     git?: Array<{ name?: string; repo?: string; sha?: string; dirty?: boolean }>;
                 } = {};
                 try {
-                    result = JSON.parse(fs.readFileSync(path.join(repDir, "result.json"), "utf8"));
+                    const parsed: unknown = JSON.parse(
+                        fs.readFileSync(path.join(repDir, "result.json"), "utf8"),
+                    );
+                    if (!isRecord(parsed)) {
+                        continue; // valid JSON, wrong shape: not countable
+                    }
+                    result = parsed as typeof result;
                 } catch {
                     continue; // rep without result.json: not countable
                 }
-                const repId = result.repId ?? Number(repName.replace(/^rep-/, "")) ?? reps.length;
+                const repId = repIdFrom(repName, result) ?? reps.length;
                 const official: Record<string, number> = {};
                 const diagnostic: Record<string, number> = {};
                 for (const metric of result.metrics ?? []) {
@@ -525,14 +568,15 @@ export class DirectoryHistoryProvider {
                     }
                 }
                 const status = result.status ?? "unknown";
-                const warmup = result.warmup === true;
+                const warmup = isWarmupRep(result, repId, warmupRepetitions);
+                const failureReason = failureReasonOf(result);
                 reps.push({
                     repId,
                     status,
                     warmup,
                     official,
                     diagnostic,
-                    ...(result.failureReason ? { failureReason: result.failureReason } : {}),
+                    ...(failureReason ? { failureReason } : {}),
                 });
                 repTotal++;
                 if (status === "failed") failedReps++;
@@ -673,11 +717,12 @@ export class DirectoryHistoryProvider {
         return this.index.runs[runId]?.scenarios[scenarioId];
     }
 
-    /** Baseline scenario: pinned run, else the closest EARLIER run having it. */
+    /** Baseline scenario: pinned run, else the closest EARLIER run having samples for `metric`. */
     private baselineScenario(
         scenarioId: string,
         selectedRunIds: string[],
         pinnedRunId?: string,
+        metric = "scenario.wallclock",
     ): IndexedScenario | undefined {
         if (pinnedRunId) {
             return this.scenarioOf(pinnedRunId, scenarioId);
@@ -687,7 +732,7 @@ export class DirectoryHistoryProvider {
         const earliestSelected = ordered.findIndex((id) => selected.has(id));
         for (let i = earliestSelected - 1; i >= 0; i--) {
             const candidate = this.scenarioOf(ordered[i], scenarioId);
-            if (candidate && officialSamples(candidate, "scenario.wallclock").length > 0) {
+            if (candidate && officialSamples(candidate, metric).length > 0) {
                 return candidate;
             }
         }
@@ -718,7 +763,7 @@ export class DirectoryHistoryProvider {
                 scenarioId,
                 perRun,
                 metric,
-                this.baselineScenario(scenarioId, runIds, query.baselineRunId),
+                this.baselineScenario(scenarioId, runIds, query.baselineRunId, metric),
             ),
         );
         // Filters.
@@ -782,6 +827,7 @@ export class DirectoryHistoryProvider {
         this.loadPersistedIndex();
         const scenario = this.scenarioOf(query.runId, query.scenarioId);
         const repsDir = path.join(this.root, query.runId, "scenarios", query.scenarioId, "reps");
+        const warmupRepetitions = readWarmupRepetitions(path.join(this.root, query.runId));
         const reps: PerfRepRow[] = [];
         const validations: PerfValidationRow[] = [];
         const artifacts: PerfArtifactRef[] = [];
@@ -802,14 +848,22 @@ export class DirectoryHistoryProvider {
                         eligibility?: PerfMetricEligibility;
                     }>;
                     failureReason?: string;
+                    errors?: Array<{ message?: string }>;
                     validations?: Array<{ name: string; status: string; message?: string }>;
                 };
-                const repId = result.repId ?? Number(repName.replace(/^rep-/, ""));
+                if (!isRecord(result)) {
+                    continue;
+                }
+                const repId = repIdFrom(repName, result);
+                if (repId === undefined) {
+                    continue;
+                }
                 const hasMarkers = fs.existsSync(path.join(repDir, "markers.jsonl"));
+                const failureReason = failureReasonOf(result);
                 reps.push({
                     repId,
                     status: result.status ?? "unknown",
-                    warmup: result.warmup === true,
+                    warmup: isWarmupRep(result, repId, warmupRepetitions),
                     metrics: (result.metrics ?? [])
                         .filter((m) => typeof m.value === "number")
                         .map((m) => ({
@@ -819,7 +873,7 @@ export class DirectoryHistoryProvider {
                             official: m.official === true,
                             ...(m.eligibility ? { eligibility: m.eligibility } : {}),
                         })),
-                    ...(result.failureReason ? { failureReason: result.failureReason } : {}),
+                    ...(failureReason ? { failureReason } : {}),
                     hasMarkers,
                 });
                 for (const validation of result.validations ?? []) {
@@ -908,11 +962,14 @@ export class DirectoryHistoryProvider {
                 (a, b) => Number(b.official) - Number(a.official) || a.name.localeCompare(b.name),
             );
         }
-        // Run-level provenance: summary facts + import findings, so a
-        // dazzling chart with bad provenance looks visibly suspect.
+        // Run-level provenance: summary facts + every failed validation
+        // (requiredMarkersPresent, clockCalibration, markerSinkClean,
+        // success:*, collector:* …), so a dazzling chart with bad provenance
+        // looks visibly suspect. Bounded.
         const importWarnings = validations
-            .filter((v) => v.status !== "passed" && v.name.includes("import"))
-            .map((v) => v.message ?? v.name);
+            .filter((v) => v.status !== "passed")
+            .map((v) => v.message ?? v.name)
+            .slice(0, 10);
         let summary: { passType?: string; environmentHash?: string; status?: string } = {};
         try {
             summary = JSON.parse(
@@ -943,17 +1000,31 @@ export class DirectoryHistoryProvider {
 
     /**
      * Delete one run: remove the directory from disk and evict it from the
-     * index (persisted). Refuses run ids that are not direct children of the
-     * root — no path tricks.
+     * index (persisted). Only an INDEXED run is deletable — a plain child
+     * directory of a misconfigured root is not — and symlinked/junction
+     * children are refused, matching what the scan indexes.
      */
     public deleteRun(runId: string): { ok: boolean; error?: string } {
         if (!/^[^/\\]+$/.test(runId) || runId.startsWith(".")) {
             return { ok: false, error: `invalid run id '${runId}'` };
         }
         this.loadPersistedIndex();
+        if (!this.index.runs[runId]) {
+            return { ok: false, error: `'${runId}' is not an indexed run in this source` };
+        }
         const runDir = path.join(this.root, runId);
         try {
-            if (fs.existsSync(runDir)) {
+            let exists = false;
+            try {
+                const stat = fs.lstatSync(runDir);
+                if (stat.isSymbolicLink()) {
+                    return { ok: false, error: `'${runId}' is a link, not a run directory` };
+                }
+                exists = stat.isDirectory();
+            } catch {
+                exists = false;
+            }
+            if (exists) {
                 fs.rmSync(runDir, { recursive: true, force: true });
             }
             delete this.index.runs[runId];

@@ -7,8 +7,18 @@
     <trans-unit id="++CODE++fd3bd9305a1a7d5dfd79fa21b626163609a8f298aab892396554e74842a84f9b">
       <source xml:lang="en">$(check) Copied messages</source>
     </trans-unit>
+    <trans-unit id="++CODE++002a52e58bd2b182607946d3aa69a7120d78fa2207f38665b3b3770d13d410b8">
+      <source xml:lang="en">$(circle-slash) MSSQL Diag</source>
+    </trans-unit>
     <trans-unit id="++CODE++18b63db64aa0aff55a9f4784ad62abdc2b70cedb95b5e89d5551996cc9bd25ac">
       <source xml:lang="en">$(plug)  Connect to MSSQL</source>
+    </trans-unit>
+    <trans-unit id="++CODE++966ee31d7caf28da79217666784a2f212b92a2fcee784dddc60e5d3db55123c0">
+      <source xml:lang="en">$(record) MSSQL Diag: FULL</source>
+    </trans-unit>
+    <trans-unit id="++CODE++99bd15f804b37de76ce3bef95d2c846b7887fa416ebb56d4505b10aa909595c1">
+      <source xml:lang="en">$(shield) MSSQL Diag: {0}</source>
+      <note>{0} is the capture mode (redacted or digest)</note>
     </trans-unit>
     <trans-unit id="++CODE++7ab8e89a60b445298b22409ca4e3a36b6032cd1f4b770cd638e11e0ebf23fabd">
       <source xml:lang="en">&apos;mssql.newEditorConnectionBehavior&apos; is set to &apos;defaultConnection&apos;, but &apos;mssql.defaultConnectionId&apos; is not configured. New editors will fall back to transferring the active connection.</source>
@@ -1485,6 +1495,9 @@
     <trans-unit id="++CODE++1a2303ede07493acc7caaa7c737f3c52bcc9cf04372be19ed1b0af6b9f2c791e">
       <source xml:lang="en">Connect</source>
     </trans-unit>
+    <trans-unit id="++CODE++4686f9e24a594fd3db91f440e287f25a6ccc61d501fd963ef7bf783e8b219f5b">
+      <source xml:lang="en">Connect a perftest SQLite store (read-only preview)</source>
+    </trans-unit>
     <trans-unit id="++CODE++0e65cf5077295cb9c747c8444e19e9f9c8c5b82d37158c24cf1ece7c84dd746b">
       <source xml:lang="en">Connect and manage database connections</source>
     </trans-unit>
@@ -2278,17 +2291,31 @@
     <trans-unit id="++CODE++43654c6556c7d0fca93516d81791b323c7746bb3becdcb8800aa9f31300fe30c">
       <source xml:lang="en">Delete Row</source>
     </trans-unit>
+    <trans-unit id="++CODE++978111835dfadd7a1327db1cd6613b6109d92a0dfe4c627f64eaeae6056bff21">
+      <source xml:lang="en">Delete all</source>
+    </trans-unit>
     <trans-unit id="++CODE++3e12474b79fc61d3695fc46a2588df801c380eccc6edc9cb20dd223f4e9ed76e">
       <source xml:lang="en">Delete backup and restore history</source>
     </trans-unit>
     <trans-unit id="++CODE++5fc8c270921fb866e4aa1b9356162c9f6d09f36b054ef907670ae5a323a5c194">
       <source xml:lang="en">Delete filter</source>
     </trans-unit>
+    <trans-unit id="++CODE++ace55b7363965e6086d58602f0aeea9543bb3d510682a2165ccc655e904e0354">
+      <source xml:lang="en">Delete perf run &apos;{0}&apos;? This removes the run directory and its artifacts from disk.</source>
+      <note>{0} is the perf run id</note>
+    </trans-unit>
     <trans-unit id="++CODE++9dc9a5899540822ee3afbe7a96c94c9ed4d62c6bd038568abcfb99bd3c9d23e8">
       <source xml:lang="en">Delete reusable filter?</source>
     </trans-unit>
+    <trans-unit id="++CODE++70aeaeeb13befdc5a767bbba284d13b4b1867f245651ee7777f9d10737eead31">
+      <source xml:lang="en">Delete run</source>
+    </trans-unit>
     <trans-unit id="++CODE++ce719226a83119822d8c5e6c1981ecfe801b8324890fce617664184849c24491">
       <source xml:lang="en">Delete saved connection</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3630c5437c97610ad5f2ad06b6e0063ac44aeeb7c9b140f5faca4adf2c60ddbd">
+      <source xml:lang="en">Delete {0} locally stored diagnostic session(s)? The current session keeps recording if capture is on.</source>
+      <note>{0} is the number of locally stored diagnostic sessions</note>
     </trans-unit>
     <trans-unit id="++CODE++bd14bb5ac76069fd6986a3c7ddfae7081104904eef01f76793939696ec76917e">
       <source xml:lang="en">Delete {0} rows</source>
@@ -2599,6 +2626,12 @@
       <source xml:lang="en">Elapsed time: {0}</source>
       <note>{0} is the task elapsed time</note>
     </trans-unit>
+    <trans-unit id="++CODE++3397bfd771545f1ad2cbf3ebecb4496ed9bea7d68ee3b5ad3799aa640030a42f">
+      <source xml:lang="en">Elevated (full) capture is active and time-bounded. Click to open the Debug Console.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++31454898fb5d76942853db1f60ad91011d720eed17e47d241b55647d69ad8706">
+      <source xml:lang="en">Elevated capture duration (auto-reverts)</source>
+    </trans-unit>
     <trans-unit id="++CODE++1e71b5c8f3211f1f01b27341d3ddc6a2ad651800264b495c12b50867f998662c">
       <source xml:lang="en">Enable &apos;Trust Server Certificate&apos;</source>
     </trans-unit>
@@ -2632,6 +2665,9 @@
     </trans-unit>
     <trans-unit id="++CODE++fb0bb2387237028dc70c4153c6f199ba4dcf1d78c143ac148621a822e41d2f04">
       <source xml:lang="en">Enable or disable SQLCMD mode for the active SQL document</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ead5838e5a9021a7eef25e274d10f00cfe725a9967cd08d2f34148969947976d">
+      <source xml:lang="en">Enable the mssql.debugConsole.enabled setting to use the MSSQL Debug Console.</source>
     </trans-unit>
     <trans-unit id="++CODE++3fa5ae9b74f834209a906cfae8b88c904769f06a491fbefc81d5a19a01483ad5">
       <source xml:lang="en">Enable {0}</source>
@@ -3147,6 +3183,12 @@
     </trans-unit>
     <trans-unit id="++CODE++5be15d5b5b4cc52954f9556226d71e11e6615cc61f77411094cb407fb0327ff1">
       <source xml:lang="en">Export all results to an Excel file</source>
+    </trans-unit>
+    <trans-unit id="++CODE++aba80ed2027e13263ff0faa15db72f095ae86e2c174a8b97d2e195248022d662">
+      <source xml:lang="en">Export diagnostic events (JSONL — full capture, may contain SQL text)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ea2cb9bc4036dfd4c39f2b3603e9eedad69f550f2cd4474074e3c2926b99520a">
+      <source xml:lang="en">Export diagnostic events (redacted JSONL)</source>
     </trans-unit>
     <trans-unit id="++CODE++db58c9165373339af3f704ec69490c93458bb6a0c870a7dca79c243948cc02e1">
       <source xml:lang="en">Export the schema and data from a SQL database to a .bacpac file</source>
@@ -4152,6 +4194,9 @@
     <trans-unit id="++CODE++004f8760d5d76c5e1465f93ee7c48c0dd97666347f270fbbc9d31bbc56482a6d">
       <source xml:lang="en">Import a .bacpac file to a new or empty database</source>
     </trans-unit>
+    <trans-unit id="++CODE++71f7ef144b3a5a73abbebab0983517ea57926da915fde5d3685ad2275552573f">
+      <source xml:lang="en">Import a perf-runs bundle directory (read-only)</source>
+    </trans-unit>
     <trans-unit id="++CODE++e06eac7e7960029aa3e9849f6e1d9316e9bf7f143c1fb634dd0a2b3391e373f1">
       <source xml:lang="en">Import anyway</source>
     </trans-unit>
@@ -4328,6 +4373,9 @@
     </trans-unit>
     <trans-unit id="++CODE++db1a21a0bc2ef8fbe13ac4cf044e8c9116d29137d5ed8b916ab63dcb2d4290df">
       <source xml:lang="en">JSON</source>
+    </trans-unit>
+    <trans-unit id="++CODE++74163645b1b5bc4c8eecb0fc8aab578ca3ecd3f9b1d92fb85206e045ffcc29a6">
+      <source xml:lang="en">JSON Lines</source>
     </trans-unit>
     <trans-unit id="++CODE++b91185f63fbbc17c093e3d2b7a50b755ba38d0e3a2bf1c82e079236e0624c673">
       <source xml:lang="en">Join the discussions</source>
@@ -4717,6 +4765,9 @@
     <trans-unit id="++CODE++ac71b6a015738ee5338790cb940cf29b65310494e9c98aba9894dac78b05e4ca">
       <source xml:lang="en">MSSQL - VS Code walkthrough</source>
     </trans-unit>
+    <trans-unit id="++CODE++91c3d5038b80c9a3d275b150ad82941ee90fb88bf95faa8efa1fa24af35249a1">
+      <source xml:lang="en">MSSQL Debug Console</source>
+    </trans-unit>
     <trans-unit id="++CODE++9f67971ab8a605f2aedf0b33a5fce37d2b135aef48f886231da5d8163aa488a6">
       <source xml:lang="en">MSSQL Feedback</source>
     </trans-unit>
@@ -4727,8 +4778,18 @@
       <source xml:lang="en">MSSQL Notebook connected to {0}</source>
       <note>{0} is the connection label</note>
     </trans-unit>
+    <trans-unit id="++CODE++62a15a4e694e0e9fb2a2407755e5ab1baaf27de4a0044ddebfb96dba72369c63">
+      <source xml:lang="en">MSSQL Session Diagnostics</source>
+    </trans-unit>
     <trans-unit id="++CODE++f7fc6e80cfc472d01f0cbe63665cda3c32d6d6ef2539b7e7cb27b1f22709a050">
       <source xml:lang="en">MSSQL extension icon</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7bf071a6ae441b7d94fd81e380b5ae634f9009e022e8fc2640ed0bf31dbb6627">
+      <source xml:lang="en">MSSQL session diagnostics capturing ({0}, local only). Click to open the Debug Console.</source>
+      <note>{0} is the capture mode (redacted or digest)</note>
+    </trans-unit>
+    <trans-unit id="++CODE++838c66f47acf167f770796e13ea80318d9e5d1ab0ddfc727ad26267fe83bf940">
+      <source xml:lang="en">MSSQL session diagnostics: capture off. Click to open the Debug Console.</source>
     </trans-unit>
     <trans-unit id="++CODE++a8b9a3bc6f9dfdfe260d58469e1cd0c1b8f15a879688815a0c0fb89ece9916bc">
       <source xml:lang="en">MSSQL: Click to change connection</source>
@@ -5271,6 +5332,9 @@
     <trans-unit id="++CODE++0b6ccfdcffbebddf187dbda4178da2bd0a4889bdb715df0d62ea75774aebfad4">
       <source xml:lang="en">No filter is currently active</source>
     </trans-unit>
+    <trans-unit id="++CODE++039da3f8e6e2c085314868632cb24a762da3513ea620f51d5cd25dee2699dba9">
+      <source xml:lang="en">No harness markers found in the selected directory.</source>
+    </trans-unit>
     <trans-unit id="++CODE++6c351c116cc7feeaf5724426f891c890b4f7d9cb8baab5f2ec1d6c512cc016b6">
       <source xml:lang="en">No items</source>
     </trans-unit>
@@ -5588,6 +5652,9 @@
     </trans-unit>
     <trans-unit id="++CODE++36eaf70bf802c56bb84c14fb713ba56b41a28ba07a5a6cdab3fedd21146ff274">
       <source xml:lang="en">Open a new bug</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2b1004d060800d1c4dacdeb9f86c00b83db5b48e88f9b6a09a9a15fbca714f86">
+      <source xml:lang="en">Open a perf-runs directory</source>
     </trans-unit>
     <trans-unit id="++CODE++0ff35606d4c615fdb3160459aad9f61192a9321945983e2559c2175dd96b3f8f">
       <source xml:lang="en">Open column menu</source>
@@ -6153,6 +6220,9 @@
     <trans-unit id="++CODE++3c311675a5c2bf9cd3b95e78f5c957399730d791fae923def53395a43f131d1f">
       <source xml:lang="en">Readying container for connections...</source>
     </trans-unit>
+    <trans-unit id="++CODE++8a80b1d53b5bbf9ca48c886b0c5defb1205801ca264c6b06de6cd5c6389a2086">
+      <source xml:lang="en">Reason for elevated (full) capture — recorded in the session log</source>
+    </trans-unit>
     <trans-unit id="++CODE++6aafab6eae72092eb7c25ffb6f34dab1a3eb70f1ef79e6e159f0fe540ca6b675">
       <source xml:lang="en">Receive natural language explanations to help developers unfamiliar with T-SQL understand code</source>
     </trans-unit>
@@ -6262,6 +6332,10 @@
       <source xml:lang="en">Remove {0}</source>
       <note>{0} is the object type</note>
     </trans-unit>
+    <trans-unit id="++CODE++b12c68bdd1c3d15918f555ba5951f083a38bf5182cceee2b20a33a5790dd0797">
+      <source xml:lang="en">Removed {0} diagnostic session(s).</source>
+      <note>{0} is the number of removed diagnostic sessions</note>
+    </trans-unit>
     <trans-unit id="++CODE++3064d79a295cefe4b384b8fe5cb29fd6b06d7eb1ad94b8895f4148039d06b330">
       <source xml:lang="en">Rename</source>
     </trans-unit>
@@ -6344,6 +6418,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e89b30aa1dc30a6ad8c34610689bede83b3ef645a24c3a84a0990826687fb735">
       <source xml:lang="en">Resources</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4c276fff6c05d1a53cc22b2bfee6d62071bca2c4659fdfc6e5e8199876c0400a">
+      <source xml:lang="en">Restart VS Code so SQL Tools Service diagnostics are included in the Debug Console.</source>
     </trans-unit>
     <trans-unit id="++CODE++a76e13b9839270eb73ed11417f7d8acca55df0ad52065799361631d0fff74f27">
       <source xml:lang="en">Restore</source>
@@ -6971,6 +7048,9 @@
     </trans-unit>
     <trans-unit id="++CODE++cf093e7e2e997d1c42be65be5bd833c01393db39c48aa6dcf3bfc1675a4a83d0">
       <source xml:lang="en">Select a maintenance window</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4104035c2513040af69ffad69ac52b08618608f8ac78df463e20e5b840a48e77">
+      <source xml:lang="en">Select a perftest run directory (perf-runs/&lt;runId&gt;)</source>
     </trans-unit>
     <trans-unit id="++CODE++a54be20a16dd8a5a2524e93c5127f2965bd47dc3ee2f00eed80390be902e3f74">
       <source xml:lang="en">Select a profiler template</source>
@@ -8656,6 +8736,9 @@
     <trans-unit id="++CODE++9213fe0ba9ab011cd201be662e521ffae88e0c1824e6ee49dd9d525fd3f115ce">
       <source xml:lang="en">e.g. My tables</source>
     </trans-unit>
+    <trans-unit id="++CODE++e25ef28ae3e4801c970e449d6cdde9a7735883dad445f8f77538db3f24d612d5">
+      <source xml:lang="en">e.g. reproducing bug #1234</source>
+    </trans-unit>
     <trans-unit id="++CODE++c6072170d758e5358d717360829bd1f9b1603b355b5f7fe375d1aabdca7a20de">
       <source xml:lang="en">encrypt</source>
     </trans-unit>
@@ -8864,6 +8947,10 @@
     <trans-unit id="++CODE++4960928686dec57850ef0fde437021e4bec60d6d0fcc3e196448bb01c88d3920">
       <source xml:lang="en">{0} issues</source>
       <note>{0} is the number of issues</note>
+    </trans-unit>
+    <trans-unit id="++CODE++2e39ee748df53ec4f2cfc15f5579d4fe23c8b379a219e1988778380c09c6b38e">
+      <source xml:lang="en">{0} minutes</source>
+      <note>{0} is a number of minutes</note>
     </trans-unit>
     <trans-unit id="++CODE++929b85deaa0b29d7b7adb8318824ecfabb9cf7c9d0a056b0d0fe0827cdd9f141">
       <source xml:lang="en">{0} must define one or more key fields to be used with Data API builder</source>
@@ -9220,6 +9307,9 @@
     </trans-unit>
     <trans-unit id="mssql.deviceCode.description">
       <source xml:lang="en">Allows users to sign in to input-constrained devices.</source>
+    </trans-unit>
+    <trans-unit id="mssql.debugConsole.richSnapshotHeartbeat.description">
+      <source xml:lang="en">Also journal a system.rich.snapshot counter event every 2 seconds while rich collection is on. Off by default because the heartbeat is noisy; per-span rich deltas do not need it.</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.Tooltip.alwaysEncryptedLabel">
       <source xml:lang="en">Always Encrypted</source>

@@ -389,5 +389,6 @@
     "mssql.sessionDiag.maxTotalMB.description": "Maximum total size in MB for the local diagnostic session store. The oldest closed sessions are removed first when capture starts and the budget is exceeded.",
     "mssql.debugConsole.enabled.description": "Enable the experimental local MSSQL Debug Console diagnostics viewer. Restart VS Code after changing this setting.",
     "mssql.debugConsole.perfRunsRoot.description": "Optional path to a perftest perf-runs directory used as the default Perf Test History source.",
-    "mssql.debugConsole.richCollection.description": "Collect CPU, memory, event-loop lag, and per-span diagnostic counters while capture is active. Off adds no rich-collection overhead."
+    "mssql.debugConsole.richCollection.description": "Collect CPU, memory, event-loop lag, and per-span diagnostic counters while capture is active. Off adds no rich-collection overhead.",
+    "mssql.debugConsole.richSnapshotHeartbeat.description": "Also journal a system.rich.snapshot counter event every 2 seconds while rich collection is on. Off by default because the heartbeat is noisy; per-span rich deltas do not need it."
 }
