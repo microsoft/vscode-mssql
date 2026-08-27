@@ -7390,11 +7390,6 @@ Fehler:
         <source xml:lang="en">Open the recommended index script in a new query editor</source>
         <target state="translated">Das empfohlene Indexskript in einem neuen Abfrage-Editor öffnen</target>
       </trans-unit>
-      <trans-unit id="++CODE++4c969acf8c9571fca86e1043a4d93465d243866dcbe158d57747e9e5b6a0f0a1">
-        <source xml:lang="en">Open with {0}</source>
-        <note>{0} is the display name of the alternative SQL data plane provider</note>
-        <target state="new">Open with {0}</target>
-      </trans-unit>
       <trans-unit id="++CODE++3a8e07b84d53ba502ae8ee669003537bdbbe321d6c8c6fb6cbd63019cb3d400e">
         <source xml:lang="en">Opening Publish Script. This may take a while...</source>
         <target state="translated">Veröffentlichungsskript wird geöffnet. Dies dauert möglicherweise einige Zeit...</target>
@@ -10492,19 +10487,6 @@ Sind Sie sicher, dass Sie den Vorgang fortsetzen?</target>
         <source xml:lang="en">This connection does not have a display name in Azure Data Studio.</source>
         <target state="translated">Diese Verbindung hat keinen Anzeigenamen in Azure Data Studio.</target>
       </trans-unit>
-      <trans-unit id="++CODE++329810295b47ce5776d407fc4e50a37485233d7dd613d772d86a0ce05d79dc9a">
-        <source xml:lang="en">This connection requires {0}, which {1} does not support.</source>
-        <note>{0} is a list of required capabilities
-{1} is the display name of the current SQL data plane provider</note>
-        <target state="new">This connection requires {0}, which {1} does not support.</target>
-      </trans-unit>
-      <trans-unit id="++CODE++b0c89663acc98614cd8dfa3215e2f5e2a3692b5a8c97f64835b8b1dc2ec13668">
-        <source xml:lang="en">This connection requires {0}, which {1} does not support. Connected with {2} instead.</source>
-        <note>{0} is a list of required capabilities
-{1} is the display name of the current SQL data plane provider
-{2} is the display name of the alternative SQL data plane provider</note>
-        <target state="new">This connection requires {0}, which {1} does not support. Connected with {2} instead.</target>
-      </trans-unit>
       <trans-unit id="++CODE++ba00b52adf9dcec97ed54898b307de1328526c8df30c80a9a17dc41f6c39a926">
         <source xml:lang="en">This connection's group has not been selected, so this connection will be imported to the root.</source>
         <target state="translated">Die Gruppe dieser Verbindung wurde nicht ausgewählt, daher wird diese Verbindung in den Stammordner importiert.</target>
@@ -12194,10 +12176,6 @@ Sind Sie sicher, dass Sie den Vorgang fortsetzen?</target>
         <source xml:lang="en">Choose how result grid columns are automatically sized (headers + data, data only, or disable auto sizing).</source>
         <target state="translated">Wählen Sie aus, wie die automatische Anpassung der Spaltengröße im Ergebnisraster erfolgen soll (Überschriften und Daten, nur Daten oder automatische Größenanpassung deaktivieren).</target>
       </trans-unit>
-      <trans-unit id="mssql.sqlDataPlane.capabilityFallback.description">
-        <source xml:lang="en">Choose how to handle a backend that lacks a required capability: ask before using an alternative (`prompt`), use an alternative automatically (`auto`), or fail without switching (`off`).</source>
-        <target state="new">Choose how to handle a backend that lacks a required capability: ask before using an alternative (`prompt`), use an alternative automatically (`auto`), or fail without switching (`off`).</target>
-      </trans-unit>
       <trans-unit id="mssql.chooseAuthMethod">
         <source xml:lang="en">Chooses which Authentication method to use</source>
         <target state="translated">Wählt die zu verwendende Authentifizierungsmethode aus.</target>
@@ -12496,10 +12474,6 @@ Nachdem Sie Ihre Änderungen vorgenommen haben, klicken Sie auf die Schaltfläch
         <source xml:lang="en">Enable expand/collapse buttons in Schema Designer table nodes when tables have more than 10 columns</source>
         <target state="translated">Aktivieren von Schaltflächen zum Erweitern/Reduzieren in Schema-Designer-Tabellenknoten, wenn Tabellen mehr als 10 Spalten aufweisen</target>
       </trans-unit>
-      <trans-unit id="mssql.sqlDataPlane.enabled.description">
-        <source xml:lang="en">Enable the experimental, STS v2-backed SQL Data Plane for preview consumers. Requires SQL Tools Service 6.0.20260825.2 or later; older bundled services are launched without the STS v2 lane. Reload the window after changing this setting. Existing query, connection, language service, and Object Explorer behavior remains unchanged.</source>
-        <target state="new">Enable the experimental, STS v2-backed SQL Data Plane for preview consumers. Requires SQL Tools Service 6.0.20260825.2 or later; older bundled services are launched without the STS v2 lane. Reload the window after changing this setting. Existing query, connection, language service, and Object Explorer behavior remains unchanged.</target>
-      </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.enabledLabel">
         <source xml:lang="en">Enabled</source>
         <target state="translated">Aktiviert</target>
@@ -12640,29 +12614,9 @@ Sie können eine Verbindung mit einer Datenbank herstellen, indem Sie Ihre Verbi
         <source xml:lang="en">Maximum size of text and ntext data returned from a SELECT statement</source>
         <target state="translated">Maximale Größe von text- und ntext-Daten, die von einer SELECT-Anweisung zurückgegeben werden</target>
       </trans-unit>
-      <trans-unit id="mssql.sqlDataPlane.timeouts.cancelAckMs.description">
-        <source xml:lang="en">Maximum time in milliseconds to wait for STS v2 to acknowledge a query cancellation.</source>
-        <target state="new">Maximum time in milliseconds to wait for STS v2 to acknowledge a query cancellation.</target>
-      </trans-unit>
-      <trans-unit id="mssql.sqlDataPlane.timeouts.closeMs.description">
-        <source xml:lang="en">Maximum time in milliseconds to wait for an STS v2 connection to close.</source>
-        <target state="new">Maximum time in milliseconds to wait for an STS v2 connection to close.</target>
-      </trans-unit>
-      <trans-unit id="mssql.sqlDataPlane.timeouts.openMs.description">
-        <source xml:lang="en">Maximum time in milliseconds to wait for an STS v2 connection to open.</source>
-        <target state="new">Maximum time in milliseconds to wait for an STS v2 connection to open.</target>
-      </trans-unit>
-      <trans-unit id="mssql.sqlDataPlane.timeouts.disposeDrainMs.description">
-        <source xml:lang="en">Maximum time in milliseconds to wait for an STS v2 query disposal to produce its terminal event.</source>
-        <target state="new">Maximum time in milliseconds to wait for an STS v2 query disposal to produce its terminal event.</target>
-      </trans-unit>
       <trans-unit id="mssql.intelliSense.completionTimeoutMilliseconds">
         <source xml:lang="en">Maximum time in milliseconds to wait for one IntelliSense completion operation before it times out. This does not change the SQL command timeout.</source>
         <target state="translated">Maximale Wartezeit in Millisekunden für einen IntelliSense-Vervollständigungsvorgang, bevor ein Timeout auftritt. Dadurch wird das SQL-Befehlstimeout nicht geändert.</target>
-      </trans-unit>
-      <trans-unit id="mssql.sqlDataPlane.timeouts.initializeMs.description">
-        <source xml:lang="en">Maximum time in milliseconds to wait for the STS v2 initialization handshake.</source>
-        <target state="new">Maximum time in milliseconds to wait for the STS v2 initialization handshake.</target>
       </trans-unit>
       <trans-unit id="mssql.openAzureDataStudioMigration">
         <source xml:lang="en">Migrate from Azure Data Studio</source>
@@ -12922,10 +12876,6 @@ Klicken Sie zunächst auf die Filterschaltfläche neben den meisten Ordnern in d
         <source xml:lang="en">Select Top 1000</source>
         <target state="translated">Oberste 1000 auswählen</target>
       </trans-unit>
-      <trans-unit id="mssql.sqlDataPlane.backend.description">
-        <source xml:lang="en">Select the SQL Data Plane backend. Only the local STS v2 backend is available in this preview.</source>
-        <target state="new">Select the SQL Data Plane backend. Only the local STS v2 backend is available in this preview.</target>
-      </trans-unit>
       <trans-unit id="mssql.selectedAzureSubscriptions">
         <source xml:lang="en">Selected Azure subscriptions for browsing and managing servers and databases</source>
         <target state="translated">Ausgewählte Azure-Abonnements zum Durchsuchen und Verwalten von Servern und Datenbanken</target>
@@ -12985,10 +12935,6 @@ Klicken Sie zunächst auf die Filterschaltfläche neben den meisten Ordnern in d
       <trans-unit id="mssql.persistQueryResultTabs">
         <source xml:lang="en">Should query result selections and scroll positions be saved when switching tabs (may impact performance)</source>
         <target state="translated">Gibt an, ob beim Wechsel zwischen Registerkarten Ergebnisauswahlen und Scrollpositionen gespeichert werden sollen (kann die Leistung beeinträchtigen).</target>
-      </trans-unit>
-      <trans-unit id="mssql.sqlDataPlane.showStatus">
-        <source xml:lang="en">Show SQL Data Plane Status</source>
-        <target state="new">Show SQL Data Plane Status</target>
       </trans-unit>
       <trans-unit id="mssql.format.showParseErrorNotification">
         <source xml:lang="en">Show a notification when Preview Formatter cannot fully parse the T-SQL being formatted.</source>
