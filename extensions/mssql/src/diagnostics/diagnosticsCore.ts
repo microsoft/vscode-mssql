@@ -147,6 +147,7 @@ export class DiagnosticsCore {
     private entityTraces = new Map<string, string>();
     private listeners: Array<(mode: CaptureMode) => void> = [];
     private sinkListeners = new Set<(active: boolean) => void>();
+    private lastNotifiedSinkState = false;
     /**
      * Root-action auto-correlation for normal use: a root-begin event (query
      * submit, connection begin, OE expand, command begin) opens a trace that
@@ -180,12 +181,20 @@ export class DiagnosticsCore {
         if (this.sinks.some((candidate) => candidate === sink)) {
             return;
         }
-        this.removeSink(sink.id);
+        // Replacement is one operation: detach the old instance WITHOUT an
+        // intermediate inactive notification, then notify once (which is a
+        // no-op when the overall state did not change).
+        this.detachSink(sink.id);
         this.sinks.push(sink);
         this.notifySinkStateChanged();
     }
 
     public removeSink(id: string): void {
+        this.detachSink(id);
+        this.notifySinkStateChanged();
+    }
+
+    private detachSink(id: string): void {
         const removed = this.sinks.filter((sink) => sink.id === id);
         this.sinks = this.sinks.filter((s) => s.id !== id);
         for (const sink of removed) {
@@ -194,9 +203,6 @@ export class DiagnosticsCore {
             } catch {
                 // sink failures never propagate
             }
-        }
-        if (removed.length > 0) {
-            this.notifySinkStateChanged();
         }
     }
 
@@ -248,8 +254,13 @@ export class DiagnosticsCore {
         return () => this.sinkListeners.delete(listener);
     }
 
+    /** Listeners hear TRANSITIONS only (inactive→active, active→inactive), never churn. */
     private notifySinkStateChanged(): void {
         const active = this.anySinkActive;
+        if (active === this.lastNotifiedSinkState) {
+            return;
+        }
+        this.lastNotifiedSinkState = active;
         for (const listener of this.sinkListeners) {
             try {
                 listener(active);

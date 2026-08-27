@@ -124,6 +124,11 @@ suite("Core observability", () => {
 
         core.addSink(sink);
         core.addSink(sink);
+        // A second sink and a same-id replacement by a DIFFERENT instance are
+        // not transitions: listeners must not see churn (no [.., false, true]).
+        core.addSink({ id: "other", tryWrite: () => undefined });
+        core.addSink({ id: "observed", tryWrite: () => undefined });
+        core.removeSink("other");
         core.removeSink(sink.id);
         unsubscribe();
         core.addSink({ id: "after-unsubscribe", tryWrite: () => undefined });
