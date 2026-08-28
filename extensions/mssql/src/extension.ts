@@ -49,8 +49,7 @@ import { IAccountStore, AccountStore } from "./azure/accountStore";
 import { registerPerfApi } from "./perf/perfApi";
 import { Perf } from "./perf/perfTelemetry";
 import { diagnosticErrorClass } from "./diagnostics/diagnosticsCore";
-
-const sqlDatabaseProjectsExtensionId = "ms-mssql.sql-database-projects-vscode";
+import { sqlDatabaseProjectsExtensionId } from "./constants/constants";
 
 /** exported for testing purposes only */
 export let controller: MainController = undefined;
@@ -117,7 +116,7 @@ class MssqlActivation {
         const context = this._contextService.context;
         initializeTelemetryReporter(context.extension.packageJSON.aiKey);
 
-        // Create the coordinator early so other SQL extensions can request its internal API.
+        // Create the coordinator early so uriOwnershipApi is available for export.
         uriOwnershipCoordinator = createUriOwnershipCoordinator(context);
 
         controller = this._instantiationService.createInstance(MainController, context);
@@ -200,6 +199,7 @@ class MssqlActivation {
 
         return {
             connectionSharing: controller.connectionSharingService,
+            uriOwnershipApi: uriOwnershipCoordinator.uriOwnershipApi,
         };
     }
 

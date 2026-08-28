@@ -21,6 +21,9 @@ declare module "vscode-mssql" {
     export interface IExtension {
         /** APIs for working with user-approved mssql connections. */
         readonly connectionSharing: IConnectionSharingService;
+
+        /** APIs for coordinating URI ownership with other database extensions. */
+        readonly uriOwnershipApi: UriOwnershipApi;
     }
 
     /**

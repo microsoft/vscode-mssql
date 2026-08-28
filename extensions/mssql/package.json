@@ -198,8 +198,7 @@
     },
     "contributes": {
         "vscode-sql-common-features": {
-            "uriOwnershipApi": true,
-            "uriOwnershipApiCommand": "mssql.uriOwnership.getApi"
+            "uriOwnershipApi": true
         },
         "mcpServerDefinitionProviders": [
             {

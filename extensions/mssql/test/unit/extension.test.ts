@@ -104,8 +104,11 @@ suite("Extension API Tests", () => {
         }
     });
 
-    test("only exports the connection sharing API", () => {
-        expect(Object.keys(vscodeMssql)).to.deep.equal(["connectionSharing"]);
+    test("only exports the supported public APIs", () => {
+        expect(Object.keys(vscodeMssql)).to.deep.equal(["connectionSharing", "uriOwnershipApi"]);
         expect(vscodeMssql.connectionSharing).to.equal(mainController.connectionSharingService);
+        expect(vscodeMssql.uriOwnershipApi).to.equal(
+            Extension.uriOwnershipCoordinator.uriOwnershipApi,
+        );
     });
 });
