@@ -166,7 +166,9 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
                     );
 
                     if (response !== LocalizedConstants.ConnectionSharing.Clear) {
-                        this._logger.info("User canceled clearing connection sharing permissions.");
+                        this._logger.debug(
+                            "User canceled clearing connection sharing permissions.",
+                        );
                         return;
                     }
                     await this.setApprovedExtensions({});
@@ -246,16 +248,16 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
         const currentPermission = await this.getExtensionPermission(extensionId);
 
         if (currentPermission === "approved") {
-            this._logger.info(`Connection sharing already approved for extension: ${extensionId}`);
+            this._logger.debug(`Connection sharing already approved for extension: ${extensionId}`);
             return true;
         }
 
         if (currentPermission === "denied") {
-            this._logger.info(`Connection sharing denied for extension: ${extensionId}`);
+            this._logger.debug(`Connection sharing denied for extension: ${extensionId}`);
             return false;
         }
 
-        this._logger.info(
+        this._logger.debug(
             `No existing permission for extension: ${extensionId}, requesting approval`,
         );
 
@@ -267,7 +269,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
         );
 
         if (!userChoice) {
-            this._logger.info(
+            this._logger.debug(
                 `User canceled connection sharing request for extension: ${extensionId}`,
             );
             return false;
@@ -729,7 +731,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
         extensionId?: string,
     ): Promise<ExtensionPermission | undefined> {
         this.recordConnectionSharingApiCall("editConnectionSharingPermissions", extensionId);
-        this._logger.info(
+        this._logger.debug(
             `Editing connection sharing permissions for extension: ${extensionId ?? "not specified"}`,
         );
         if (!extensionId) {
@@ -800,7 +802,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
 
         const newApproval: ExtensionPermission = newPermission.detail as ExtensionPermission;
         await this.updateExtensionPermission(extensionId, newApproval);
-        this._logger.info(
+        this._logger.debug(
             `Updated permission for extension "${extensionDisplayName}" (${extensionId}) to: ${newApproval}`,
         );
         return newApproval;

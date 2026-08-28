@@ -705,7 +705,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                 return;
             }
 
-            this.logger.info("Progress", progress);
+            this.logger.debug("Progress", progress);
 
             try {
                 void this.sendNotification(

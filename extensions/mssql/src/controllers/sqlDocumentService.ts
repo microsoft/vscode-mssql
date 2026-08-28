@@ -161,7 +161,7 @@ export default class SqlDocumentService implements vscode.Disposable {
             connectionStrategy = ConnectionStrategy.PromptForConnection;
         }
 
-        this._logger.info("Opening new query", {
+        this._logger.debug("Opening new query", {
             strategy: connectionStrategy,
             nodeType,
             hasConnectionInfo: Boolean(sourceNode?.connectionProfile),
@@ -186,7 +186,7 @@ export default class SqlDocumentService implements vscode.Disposable {
         }
 
         const newEditorUri = getUriKey(newEditor.document.uri);
-        this._logger.info("Created new query editor", { uri: newEditorUri });
+        this._logger.debug("Created new query editor", { uri: newEditorUri });
 
         const connectionResult = this._connectionMgr.getConnectionInfo(newEditorUri);
 
@@ -244,7 +244,7 @@ export default class SqlDocumentService implements vscode.Disposable {
 
         // While not strictly necessary, we check the document signature to avoid false positives in case of multiple SQL documents.
         if (getDocumentSignature(activeUntitledDocument) === getDocumentSignature(newDocument)) {
-            this._logger.info("Transferring document state during save", {
+            this._logger.debug("Transferring document state during save", {
                 oldUri: getUriKey(activeUntitledDocument?.uri),
                 newUri: getUriKey(event.document.uri),
             });
@@ -269,7 +269,7 @@ export default class SqlDocumentService implements vscode.Disposable {
             if (!this._connectionMgr?.isConnected(oldUri)) {
                 continue;
             }
-            this._logger.info("Transferring document state during rename", { oldUri, newUri });
+            this._logger.debug("Transferring document state during rename", { oldUri, newUri });
             this._uriBeingRenamedOrSaved.add(oldUri);
             this._newUriFromRenameOrSave.add(newUri);
             await this.updateUri(oldUri, newUri);
@@ -408,7 +408,7 @@ export default class SqlDocumentService implements vscode.Disposable {
         if (behavior === Constants.NewEditorConnectionBehavior.DefaultConnection) {
             const defaultProfile = await this.getDefaultConnectionProfile();
             if (defaultProfile) {
-                this._logger.info("Auto-connecting opened SQL document from default connection", {
+                this._logger.debug("Auto-connecting opened SQL document from default connection", {
                     uri: docUri,
                 });
                 await this._connectionMgr.connect(docUri, Utils.deepClone(defaultProfile));
@@ -422,7 +422,7 @@ export default class SqlDocumentService implements vscode.Disposable {
             return;
         }
 
-        this._logger.info("Auto-connecting opened SQL document from last active connection", {
+        this._logger.debug("Auto-connecting opened SQL document from last active connection", {
             uri: docUri,
         });
         await this._connectionMgr.connect(docUri, Utils.deepClone(this._lastActiveConnectionInfo));
@@ -582,7 +582,7 @@ export default class SqlDocumentService implements vscode.Disposable {
             connectionConfig?.connectionInfo &&
             this._connectionMgr
         ) {
-            this._logger.info("Connecting new query document", { uri: documentKey });
+            this._logger.debug("Connecting new query document", { uri: documentKey });
             const connectionResult = await this._connectionMgr.connect(
                 documentKey,
                 connectionConfig.connectionInfo,
