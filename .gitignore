@@ -2,7 +2,10 @@
 out
 dist
 BuildDirectory
-extensions/sql-database-projects/BuildDirectory/*
+!extensions/mssql/BuildDirectory/
+extensions/mssql/BuildDirectory/*
+!extensions/mssql/BuildDirectory/SystemDacpacs/
+!extensions/mssql/BuildDirectory/SystemDacpacs/**
 
 # Dependencies
 node_modules
