@@ -264,11 +264,34 @@ export class VsCodeAzureHelper {
             account = typeof account === "string" ? await this.getAccountById(account) : account;
 
             const auth: VSCodeAzureSubscriptionProvider = VsCodeAzureHelper.getProvider();
+            const accountSignedIn = await auth.isSignedIn(undefined, account);
+
+            if (!accountSignedIn) {
+                const homeTenantId = this.getHomeTenantIdForAccount(account);
+                if (!homeTenantId) {
+                    azureHelperLogger.warn(
+                        "Tenant discovery cannot offer home-tenant sign-in because the account ID does not contain a tenant ID.",
+                    );
+                    return [];
+                }
+
+                return [
+                    {
+                        tenantId: homeTenantId,
+                        displayName: homeTenantId,
+                        account,
+                    },
+                ];
+            }
+
             const tenants = [...(await auth.getTenants(account))]; // spread operator to create a new array since sort() mutates the array
 
             return tenants.sort((a, b) => a.displayName.localeCompare(b.displayName));
         } catch (error) {
-            azureHelperLogger.error("Error fetching tenants for account", getErrorMessage(error));
+            azureHelperLogger.error(
+                "Tenant discovery failed while fetching tenants for account",
+                getErrorMessage(error),
+            );
             return [];
         }
     }

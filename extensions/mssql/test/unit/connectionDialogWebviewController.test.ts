@@ -808,6 +808,53 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 expect(azureAutoLoad.calledOnce).to.be.true;
                 expect(fabricLoad.notCalled).to.be.true;
             });
+
+            test("reloads all tenants after signing into a signed-out tenant", async () => {
+                sandbox
+                    .stub(AzureHelpers.VsCodeAzureHelper, "getAccountById")
+                    .resolves(mockAccounts.signedInAccount);
+                sandbox
+                    .stub(AzureHelpers.VsCodeAzureHelper, "getTenantsForAccount")
+                    .resolves(mockTenants.slice(0, 2));
+                sandbox
+                    .stub(AzureHelpers.VsCodeAzureHelper, "getHomeTenantIdForAccount")
+                    .returns(mockTenants[0].tenantId);
+
+                const provider = sandbox.createStubInstance(VSCodeAzureSubscriptionProvider);
+                provider.signIn.resolves(true);
+                provider.isSignedIn.resolves(true);
+                sandbox.stub(AzureHelpers.VsCodeAzureHelper, "getProvider").returns(provider);
+                sandbox.stub(controller["_azureBrowseProvider"], "loadCollections").resolves();
+                sandbox.stub(controller["_azureBrowseProvider"], "autoLoadContents").resolves();
+
+                const selectedTenant = mockTenants[0];
+                controller.state.selectedAccountId = mockAccounts.signedInAccount.id;
+                controller.state.selectedInputMode = ConnectionInputMode.AzureBrowse;
+                controller.state.azureTenants = [
+                    {
+                        id: selectedTenant.tenantId,
+                        name: selectedTenant.tenantId,
+                        isSignedIn: false,
+                    },
+                ];
+
+                await controller["_reducerHandlers"].get("setSelectedTenantId")(controller.state, {
+                    tenantId: selectedTenant.tenantId,
+                });
+
+                expect(controller.state.azureTenants).to.deep.equal(
+                    mockTenants.slice(0, 2).map((tenant) => ({
+                        id: tenant.tenantId,
+                        name: tenant.displayName,
+                        isSignedIn: true,
+                    })),
+                );
+                expect(controller.state.selectedTenantId).to.equal(selectedTenant.tenantId);
+                expect(provider.signIn).to.have.been.calledWith(
+                    undefined,
+                    mockAccounts.signedInAccount,
+                );
+            });
         });
 
         suite("signIntoAzureForBrowse", () => {
