@@ -58,7 +58,12 @@ import SqlDocumentService, { ConnectionStrategy } from "./sqlDocumentService";
 import { sendActionEvent, sendErrorEvent, VscodeHttpClient } from "extension-toolkit/vscode";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { TableDesignerService } from "../services/tableDesignerService";
-import { getPreviewConfigKey, PreviewFeature, previewService } from "../previews/previewService";
+import {
+    getPreviewConfigKey,
+    PrivatePreviewFeature,
+    PreviewFeature,
+    previewService,
+} from "../previews/previewService";
 import { TableDesignerWebviewController } from "../tableDesigner/tableDesignerWebviewController";
 import { uriOwnershipCoordinator } from "../extension";
 import { ConnectionDialogWebviewController } from "../connectionconfig/connectionDialogWebviewController";
@@ -1165,27 +1170,39 @@ export default class MainController implements vscode.Disposable {
      */
     private initializeMetadataStore(): void {
         const metadataStoreService = MetadataStoreService.get();
+        const sqlDataPlaneEnabled = () =>
+            previewService.isPrivatePreviewEnabled(PrivatePreviewFeature.SqlDataPlane);
+        const metadataCacheEnabled = () =>
+            previewService.isPrivatePreviewEnabled(
+                PrivatePreviewFeature.SqlDataPlane,
+                PrivatePreviewFeature.MetadataCache,
+            );
         metadataStoreService.configureHost({
             isActive: () => vscode.window.state.focused,
-            dataPlaneEnabled: () =>
-                vscode.workspace
-                    .getConfiguration("mssql.sqlDataPlane")
-                    .get<boolean>("enabled", false),
+            dataPlaneEnabled: sqlDataPlaneEnabled,
             pollSeconds: () =>
                 vscode.workspace.getConfiguration("mssql.metadata").get<number>("pollSeconds", 60),
         });
 
         const globalStorageUri = this._context.globalStorageUri as vscode.Uri | undefined;
         if (globalStorageUri) {
-            const readSettings = () =>
-                readMetadataCacheSettings((key, defaultValue) =>
+            const extensionVersion = this._context.extension?.packageJSON?.version;
+            const readSettings = () => {
+                const configured = readMetadataCacheSettings((key, defaultValue) =>
                     vscode.workspace.getConfiguration("mssql.metadataCache").get(key, defaultValue),
                 );
+                const enabled = metadataCacheEnabled();
+                return {
+                    ...configured,
+                    enabled: configured.enabled && enabled,
+                    offlineMode: configured.offlineMode && enabled,
+                };
+            };
             metadataStoreService.configureCache({
                 cacheRootPath: vscode.Uri.joinPath(globalStorageUri, "metadata-cache").fsPath,
                 settings: readSettings,
                 producer: {
-                    extensionVersion: this._context.extension?.packageJSON?.version as string,
+                    ...(typeof extensionVersion === "string" ? { extensionVersion } : {}),
                     appVersion: vscode.version,
                 },
             });
@@ -1205,75 +1222,89 @@ export default class MainController implements vscode.Disposable {
             }
         }
 
-        this._context.subscriptions.push(
-            metadataStoreService,
-            vscode.commands.registerCommand("mssql.metadataCache.showStatus", async () => {
-                const document = await vscode.workspace.openTextDocument({
-                    language: "json",
-                    content: JSON.stringify(metadataStoreService.store().status(), undefined, 2),
-                });
-                await vscode.window.showTextDocument(document, { preview: true });
-            }),
-            vscode.commands.registerCommand("mssql.metadataCache.clearAll", async () => {
-                const coordinator = metadataStoreService.cache();
-                if (!coordinator) {
+        this._context.subscriptions.push(metadataStoreService);
+
+        if (metadataCacheEnabled()) {
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand("mssql.metadataCache.showStatus", async () => {
+                    const document = await vscode.workspace.openTextDocument({
+                        language: "json",
+                        content: JSON.stringify(
+                            metadataStoreService.store().status(),
+                            undefined,
+                            2,
+                        ),
+                    });
+                    await vscode.window.showTextDocument(document, { preview: true });
+                }),
+                vscode.commands.registerCommand("mssql.metadataCache.clearAll", async () => {
+                    const coordinator = metadataStoreService.cache();
+                    if (!coordinator) {
+                        void vscode.window.showInformationMessage(
+                            LocalizedConstants.MetadataCache.notEnabled,
+                        );
+                        return;
+                    }
+                    await coordinator.clearAll();
                     void vscode.window.showInformationMessage(
-                        LocalizedConstants.MetadataCache.notEnabled,
+                        LocalizedConstants.MetadataCache.cleared,
                     );
-                    return;
-                }
-                await coordinator.clearAll();
-                void vscode.window.showInformationMessage(LocalizedConstants.MetadataCache.cleared);
-            }),
-            vscode.commands.registerCommand("mssql.metadataCache.clearForConnection", async () => {
-                const coordinator = metadataStoreService.cache();
-                if (!coordinator) {
-                    void vscode.window.showInformationMessage(
-                        LocalizedConstants.MetadataCache.notEnabled,
-                    );
-                    return;
-                }
-                const entries = await coordinator.listEntries();
-                if (entries.length === 0) {
-                    void vscode.window.showInformationMessage(
-                        LocalizedConstants.MetadataCache.noEntries,
-                    );
-                    return;
-                }
-                const picked = await vscode.window.showQuickPick(
-                    entries.map((entry) => ({
-                        label: entry.key.database,
-                        description: `${entry.key.serverFingerprint.slice(0, 12)}… · ${LocalizedConstants.MetadataCache.capturedAt(entry.capturedAtUtc)}`,
-                        entry,
-                    })),
-                    { title: LocalizedConstants.MetadataCache.clearForConnectionTitle },
-                );
-                if (!picked) {
-                    return;
-                }
-                await coordinator.clearForConnection(picked.entry.key);
-                void vscode.window.showInformationMessage(
-                    LocalizedConstants.MetadataCache.entryCleared,
-                );
-            }),
-            vscode.commands.registerCommand("mssql.metadataCache.enableOfflineMode", () =>
-                vscode.workspace
-                    .getConfiguration("mssql.metadataCache")
-                    .update("offlineMode", true, vscode.ConfigurationTarget.Global),
-            ),
-            vscode.commands.registerCommand("mssql.metadataCache.disableOfflineMode", () =>
-                vscode.workspace
-                    .getConfiguration("mssql.metadataCache")
-                    .update("offlineMode", false, vscode.ConfigurationTarget.Global),
-            ),
-        );
+                }),
+                vscode.commands.registerCommand(
+                    "mssql.metadataCache.clearForConnection",
+                    async () => {
+                        const coordinator = metadataStoreService.cache();
+                        if (!coordinator) {
+                            void vscode.window.showInformationMessage(
+                                LocalizedConstants.MetadataCache.notEnabled,
+                            );
+                            return;
+                        }
+                        const entries = await coordinator.listEntries();
+                        if (entries.length === 0) {
+                            void vscode.window.showInformationMessage(
+                                LocalizedConstants.MetadataCache.noEntries,
+                            );
+                            return;
+                        }
+                        const picked = await vscode.window.showQuickPick(
+                            entries.map((entry) => ({
+                                label: entry.key.database,
+                                description: `${entry.key.serverFingerprint.slice(0, 12)}… · ${LocalizedConstants.MetadataCache.capturedAt(entry.capturedAtUtc)}`,
+                                entry,
+                            })),
+                            { title: LocalizedConstants.MetadataCache.clearForConnectionTitle },
+                        );
+                        if (!picked) {
+                            return;
+                        }
+                        await coordinator.clearForConnection(picked.entry.key);
+                        void vscode.window.showInformationMessage(
+                            LocalizedConstants.MetadataCache.entryCleared,
+                        );
+                    },
+                ),
+                vscode.commands.registerCommand("mssql.metadataCache.enableOfflineMode", () =>
+                    vscode.workspace
+                        .getConfiguration("mssql.metadataCache")
+                        .update("offlineMode", true, vscode.ConfigurationTarget.Global),
+                ),
+                vscode.commands.registerCommand("mssql.metadataCache.disableOfflineMode", () =>
+                    vscode.workspace
+                        .getConfiguration("mssql.metadataCache")
+                        .update("offlineMode", false, vscode.ConfigurationTarget.Global),
+                ),
+            );
+        }
 
         if (Perf.enabled) {
             this._context.subscriptions.push(
                 vscode.commands.registerCommand("mssql.perf.metadataCacheWarmAcquire", async () => {
                     const coordinator = metadataStoreService.cache();
                     if (!coordinator) {
-                        throw new Error("metadata cache disabled (mssql.metadataCache.enabled)");
+                        throw new Error(
+                            "metadata cache disabled (requires mssql.enableExperimentalFeatures, mssql.sqlDataPlane.enabled, and mssql.metadataCache.enabled)",
+                        );
                     }
                     const profiles =
                         vscode.workspace

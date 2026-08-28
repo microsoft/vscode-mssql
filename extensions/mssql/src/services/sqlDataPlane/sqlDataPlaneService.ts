@@ -23,6 +23,7 @@
 import * as vscode from "vscode";
 import { RequestType, NotificationType } from "vscode-languageclient";
 import SqlToolsServiceClient from "../../languageservice/serviceclient";
+import { PrivatePreviewFeature, previewService } from "../../previews/previewService";
 import {
     CapabilityCheck,
     DataPlaneAvailability,
@@ -74,6 +75,7 @@ import { Sts2Backend, Sts2Rpc, DEFAULT_DEADLINES, Sts2Deadlines } from "../sts2/
 // ---------------------------------------------------------------------------
 
 const SETTING_ENABLED = "mssql.sqlDataPlane.enabled";
+const SETTING_EXPERIMENTAL_FEATURES = "mssql.enableExperimentalFeatures";
 const SETTING_BACKEND = "mssql.sqlDataPlane.backend";
 const TIMEOUT_SETTINGS = [
     "mssql.sqlDataPlane.timeouts.openMs",
@@ -332,7 +334,10 @@ export class SqlDataPlaneService {
     }
 
     get enabled(): boolean {
-        return this.config.get<boolean>(SETTING_ENABLED, false);
+        return (
+            this.config.get<boolean>(SETTING_EXPERIMENTAL_FEATURES, false) &&
+            this.config.get<boolean>(SETTING_ENABLED, false)
+        );
     }
 
     /** The configured default kind for FUTURE sessions (alias-normalized). */
@@ -964,15 +969,21 @@ export function registerSqlDataPlane(context: vscode.ExtensionContext): void {
     context.subscriptions.push({
         dispose: () => void service.dispose(),
     });
-    context.subscriptions.push(
-        vscode.commands.registerCommand("mssql.sqlDataPlane.showStatus", async () => {
-            // PASSIVE (D5): never constructs a backend or resolves credentials.
-            const summary = JSON.stringify(SqlDataPlaneService.get().statusSummary(), undefined, 2);
-            const doc = await vscode.workspace.openTextDocument({
-                language: "json",
-                content: summary,
-            });
-            await vscode.window.showTextDocument(doc, { preview: true });
-        }),
-    );
+    if (previewService.isPrivatePreviewEnabled(PrivatePreviewFeature.SqlDataPlane)) {
+        context.subscriptions.push(
+            vscode.commands.registerCommand("mssql.sqlDataPlane.showStatus", async () => {
+                // PASSIVE (D5): never constructs a backend or resolves credentials.
+                const summary = JSON.stringify(
+                    SqlDataPlaneService.get().statusSummary(),
+                    undefined,
+                    2,
+                );
+                const doc = await vscode.workspace.openTextDocument({
+                    language: "json",
+                    content: summary,
+                });
+                await vscode.window.showTextDocument(doc, { preview: true });
+            }),
+        );
+    }
 }

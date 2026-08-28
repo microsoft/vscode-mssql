@@ -981,6 +981,30 @@
                     "when": "false"
                 },
                 {
+                    "command": "mssql.sqlDataPlane.showStatus",
+                    "when": "config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled"
+                },
+                {
+                    "command": "mssql.metadataCache.showStatus",
+                    "when": "config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.metadataCache.enabled"
+                },
+                {
+                    "command": "mssql.metadataCache.clearAll",
+                    "when": "config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.metadataCache.enabled"
+                },
+                {
+                    "command": "mssql.metadataCache.clearForConnection",
+                    "when": "config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.metadataCache.enabled"
+                },
+                {
+                    "command": "mssql.metadataCache.enableOfflineMode",
+                    "when": "config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.metadataCache.enabled && !config.mssql.metadataCache.offlineMode"
+                },
+                {
+                    "command": "mssql.metadataCache.disableOfflineMode",
+                    "when": "config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.metadataCache.enabled && config.mssql.metadataCache.offlineMode"
+                },
+                {
                     "command": "mssql.connectWithUriOwnership",
                     "when": "false"
                 },
@@ -1764,37 +1788,37 @@
                 "command": "mssql.sqlDataPlane.showStatus",
                 "title": "%mssql.sqlDataPlane.showStatus%",
                 "category": "MS SQL",
-                "enablement": "config.mssql.sqlDataPlane.enabled"
+                "enablement": "config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled"
             },
             {
                 "command": "mssql.metadataCache.showStatus",
                 "title": "%mssql.metadataCache.showStatus%",
                 "category": "MS SQL",
-                "enablement": "config.mssql.metadataCache.enabled"
+                "enablement": "config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.metadataCache.enabled"
             },
             {
                 "command": "mssql.metadataCache.clearAll",
                 "title": "%mssql.metadataCache.clearAll%",
                 "category": "MS SQL",
-                "enablement": "config.mssql.metadataCache.enabled"
+                "enablement": "config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.metadataCache.enabled"
             },
             {
                 "command": "mssql.metadataCache.clearForConnection",
                 "title": "%mssql.metadataCache.clearForConnection%",
                 "category": "MS SQL",
-                "enablement": "config.mssql.metadataCache.enabled"
+                "enablement": "config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.metadataCache.enabled"
             },
             {
                 "command": "mssql.metadataCache.enableOfflineMode",
                 "title": "%mssql.metadataCache.enableOfflineMode%",
                 "category": "MS SQL",
-                "enablement": "config.mssql.metadataCache.enabled && !config.mssql.metadataCache.offlineMode"
+                "enablement": "config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.metadataCache.enabled && !config.mssql.metadataCache.offlineMode"
             },
             {
                 "command": "mssql.metadataCache.disableOfflineMode",
                 "title": "%mssql.metadataCache.disableOfflineMode%",
                 "category": "MS SQL",
-                "enablement": "config.mssql.metadataCache.enabled && config.mssql.metadataCache.offlineMode"
+                "enablement": "config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.metadataCache.enabled && config.mssql.metadataCache.offlineMode"
             }
         ],
         "keybindings": [

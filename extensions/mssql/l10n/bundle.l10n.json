@@ -2344,7 +2344,7 @@
         "comment": ["{0} is the UTC timestamp when the metadata cache entry was captured"]
     },
     "MSSQL metadata cache entry cleared.": "MSSQL metadata cache entry cleared.",
-    "Metadata requires mssql.sqlDataPlane.enabled to be enabled.": "Metadata requires mssql.sqlDataPlane.enabled to be enabled.",
+    "Metadata requires mssql.enableExperimentalFeatures and mssql.sqlDataPlane.enabled to be enabled.": "Metadata requires mssql.enableExperimentalFeatures and mssql.sqlDataPlane.enabled to be enabled.",
     "Close": "Close",
     "Apply": "Apply",
     "Next": "Next",

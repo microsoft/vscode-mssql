@@ -4456,6 +4456,6 @@ export class MetadataCache {
 
 export class Metadata {
     public static dataPlaneRequired = l10n.t(
-        "Metadata requires mssql.sqlDataPlane.enabled to be enabled.",
+        "Metadata requires mssql.enableExperimentalFeatures and mssql.sqlDataPlane.enabled to be enabled.",
     );
 }

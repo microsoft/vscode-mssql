@@ -1,0 +1,92 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+import { expect } from "chai";
+import * as fs from "fs";
+import * as path from "path";
+
+const SQL_DATA_PLANE_GATE =
+    "config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled";
+const METADATA_CACHE_GATE = `${SQL_DATA_PLANE_GATE} && config.mssql.metadataCache.enabled`;
+
+interface CommandContribution {
+    command: string;
+    enablement?: string;
+}
+
+interface CommandPaletteContribution {
+    command: string;
+    when?: string;
+}
+
+interface ExtensionPackageJson {
+    contributes: {
+        commands: CommandContribution[];
+        menus: { commandPalette: CommandPaletteContribution[] };
+        configuration: {
+            properties: Record<string, { default?: unknown }>;
+        };
+    };
+}
+
+suite("Private preview manifest", () => {
+    const packageJson = JSON.parse(
+        fs.readFileSync(path.join(__dirname, "..", "..", "..", "package.json"), "utf8"),
+    ) as ExtensionPackageJson;
+
+    test("keeps the umbrella and current private-preview features off by default", () => {
+        const settings = packageJson.contributes.configuration.properties;
+
+        expect(settings["mssql.enableExperimentalFeatures"]?.default).to.equal(false);
+        expect(settings["mssql.sqlDataPlane.enabled"]?.default).to.equal(false);
+        expect(settings["mssql.metadataCache.enabled"]?.default).to.equal(false);
+    });
+
+    test("requires the umbrella before the SQL Data Plane status command is visible", () => {
+        expect(command("mssql.sqlDataPlane.showStatus").enablement).to.equal(SQL_DATA_PLANE_GATE);
+        expect(commandPalette("mssql.sqlDataPlane.showStatus").when).to.equal(SQL_DATA_PLANE_GATE);
+    });
+
+    test("requires the complete dependency path for metadata cache commands", () => {
+        for (const commandId of [
+            "mssql.metadataCache.showStatus",
+            "mssql.metadataCache.clearAll",
+            "mssql.metadataCache.clearForConnection",
+        ]) {
+            expect(command(commandId).enablement).to.equal(METADATA_CACHE_GATE);
+            expect(commandPalette(commandId).when).to.equal(METADATA_CACHE_GATE);
+        }
+
+        expect(command("mssql.metadataCache.enableOfflineMode").enablement).to.equal(
+            `${METADATA_CACHE_GATE} && !config.mssql.metadataCache.offlineMode`,
+        );
+        expect(commandPalette("mssql.metadataCache.enableOfflineMode").when).to.equal(
+            `${METADATA_CACHE_GATE} && !config.mssql.metadataCache.offlineMode`,
+        );
+        expect(command("mssql.metadataCache.disableOfflineMode").enablement).to.equal(
+            `${METADATA_CACHE_GATE} && config.mssql.metadataCache.offlineMode`,
+        );
+        expect(commandPalette("mssql.metadataCache.disableOfflineMode").when).to.equal(
+            `${METADATA_CACHE_GATE} && config.mssql.metadataCache.offlineMode`,
+        );
+    });
+
+    function command(commandId: string): CommandContribution {
+        const contribution = packageJson.contributes.commands.find(
+            (candidate) => candidate.command === commandId,
+        );
+        expect(contribution, `missing command contribution ${commandId}`).to.not.be.undefined;
+        return contribution!;
+    }
+
+    function commandPalette(commandId: string): CommandPaletteContribution {
+        const contribution = packageJson.contributes.menus.commandPalette.find(
+            (candidate) => candidate.command === commandId,
+        );
+        expect(contribution, `missing commandPalette contribution ${commandId}`).to.not.be
+            .undefined;
+        return contribution!;
+    }
+});

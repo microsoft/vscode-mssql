@@ -25,7 +25,10 @@ import { MetadataStore } from "./metadataStore";
 export interface MetadataCacheInit {
     /** e.g. <globalStorage>/metadata-cache — the cache root directory. */
     readonly cacheRootPath: string;
-    /** Live settings read (config changes flow without restart). */
+    /**
+     * Live policy settings read. Enabling the cache itself still requires a
+     * reload because the coordinator is created only during store composition.
+     */
     readonly settings: () => MetadataCacheSettings;
     readonly producer?: {
         readonly extensionVersion?: string;

@@ -17,6 +17,17 @@ export enum PreviewFeature {
     UseVscodeAccountsForEntraMFA = "useVscodeAccountsForEntraMFA",
 }
 
+/**
+ * Refactor features that are still in private preview. Unlike the legacy
+ * `PreviewFeature` overrides above, these are strict sub-flags: the global
+ * `mssql.enableExperimentalFeatures` umbrella and every requested feature
+ * setting must be enabled.
+ */
+export enum PrivatePreviewFeature {
+    SqlDataPlane = "mssql.sqlDataPlane.enabled",
+    MetadataCache = "mssql.metadataCache.enabled",
+}
+
 export const CONFIG_PREVIEW_PREFIX = "mssql.preview.";
 
 export function getPreviewConfigKey(feature: PreviewFeature): string {
@@ -77,6 +88,23 @@ export class PreviewFeaturesService {
         return (
             vscode.workspace.getConfiguration("mssql").get<boolean>("enableExperimentalFeatures") ??
             false
+        );
+    }
+
+    /**
+     * Returns whether a private-preview feature path is enabled.
+     *
+     * Private-preview flags are hierarchical and never override the global
+     * umbrella. Passing multiple settings expresses prerequisites, for example
+     * metadata cache requires both SQL Data Plane and metadata cache flags.
+     */
+    public isPrivatePreviewEnabled(...requiredFeatures: PrivatePreviewFeature[]): boolean {
+        return (
+            this.experimentalFeaturesEnabled &&
+            requiredFeatures.every(
+                (feature) =>
+                    vscode.workspace.getConfiguration().get<boolean>(feature, false) ?? false,
+            )
         );
     }
 
