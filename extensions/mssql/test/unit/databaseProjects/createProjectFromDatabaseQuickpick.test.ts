@@ -17,6 +17,7 @@ import { createTestUtils, mockConnectionInfo, TestUtils } from "./dialogTestUtil
 import { promises as fs } from "fs";
 import { ImportDataModel } from "../../../src/databaseProjects/models/api/import";
 import { createTestFile, deleteGeneratedTestFolder, generateTestFolderPath } from "./testUtils";
+import { SqlProjects } from "../../../src/constants/locConstants";
 
 let testUtils: TestUtils;
 let sandbox: sinon.SinonSandbox;
@@ -181,18 +182,18 @@ suite("Create Project From Database Quickpick", () => {
         //user chooses project name
         sandbox.stub(vscode.window, "showInputBox").resolves("TestProject");
         // user chooses to browse for folder
-        quickPickStub.onSecondCall().resolves(constants.browseEllipsisWithIcon as any);
+        quickPickStub.onSecondCall().resolves(SqlProjects.browseEllipsisWithIcon as any);
         // user doesn't choose any folder when prompted and exits the showOpenDialog
         let openDialogStub = sandbox
             .stub(vscode.window, "showOpenDialog")
             .withArgs(sinon.match.any)
             .resolves(undefined);
         // user chooses to browse for folder
-        quickPickStub.onThirdCall().resolves(constants.browseEllipsisWithIcon as any);
+        quickPickStub.onThirdCall().resolves(SqlProjects.browseEllipsisWithIcon as any);
         // user doesn't choose any folder when prompted and exits the showOpenDialog
         openDialogStub.onSecondCall().resolves(undefined);
         // user chooses to browse for folder
-        quickPickStub.onCall(3).resolves(constants.browseEllipsisWithIcon as any);
+        quickPickStub.onCall(3).resolves(SqlProjects.browseEllipsisWithIcon as any);
         // user doesn't choose any folder when prompted and exits the showOpenDialog
         openDialogStub.onSecondCall().resolves(undefined);
         //user chooses to exit
@@ -226,14 +227,14 @@ suite("Create Project From Database Quickpick", () => {
         //user chooses project name
         sandbox.stub(vscode.window, "showInputBox").resolves("TestProject");
         // user chooses to browse for folder
-        quickPickStub.onSecondCall().resolves(constants.browseEllipsisWithIcon as any);
+        quickPickStub.onSecondCall().resolves(SqlProjects.browseEllipsisWithIcon as any);
         // user doesn't choose any folder when prompted and exits the showOpenDialog
         let openDialogStub = sandbox
             .stub(vscode.window, "showOpenDialog")
             .withArgs(sinon.match.any)
             .resolves(undefined);
         // user chooses to browse for folder again
-        quickPickStub.onThirdCall().resolves(constants.browseEllipsisWithIcon as any);
+        quickPickStub.onThirdCall().resolves(SqlProjects.browseEllipsisWithIcon as any);
         // user chooses folder- stub out folder to be chosen (showOpenDialog)
         openDialogStub.onSecondCall().resolves([vscode.Uri.file(projectFilePath)]);
         //user chooses to exit when prompted for folder structure
@@ -311,7 +312,7 @@ suite("Create Project From Database Quickpick", () => {
         // user chooses a folder
         quickPickStub.onSecondCall().resolves(projectFilePath as any);
         //user chooses Object type when prompted for folder structure
-        quickPickStub.onThirdCall().resolves(constants.objectType as any);
+        quickPickStub.onThirdCall().resolves(SqlProjects.objectType as any);
         //user chooses to exit when prompted for include permissions
         quickPickStub.onCall(3).resolves(undefined);
 
@@ -345,9 +346,9 @@ suite("Create Project From Database Quickpick", () => {
         // user chooses a folder
         quickPickStub.onSecondCall().resolves(projectFilePath as any);
         //user chooses Object type when prompted for folder structure
-        quickPickStub.onThirdCall().resolves(constants.objectType as any);
+        quickPickStub.onThirdCall().resolves(SqlProjects.objectType as any);
         //user chooses No when prompted for include permissions
-        quickPickStub.onCall(3).resolves(constants.noStringDefault as any);
+        quickPickStub.onCall(3).resolves(SqlProjects.noStringDefault as any);
         //user chooses to exit when prompted for sdk style project
         sandbox.stub(quickpickHelper, "getSDKStyleProjectInfo").resolves(undefined);
 
@@ -381,9 +382,9 @@ suite("Create Project From Database Quickpick", () => {
         // user chooses a folder
         quickPickStub.onSecondCall().resolves(projectFilePath as any);
         //user chooses Object type when prompted for folder structure
-        quickPickStub.onThirdCall().resolves(constants.objectType as any);
+        quickPickStub.onThirdCall().resolves(SqlProjects.objectType as any);
         //user chooses No when prompted for include permissions
-        quickPickStub.onCall(3).resolves(constants.noStringDefault as any);
+        quickPickStub.onCall(3).resolves(SqlProjects.noStringDefault as any);
         //user chooses sdk style project to be true
         sandbox.stub(quickpickHelper, "getSDKStyleProjectInfo").resolves(true);
 

@@ -28,11 +28,7 @@ const PROJECT_CONFIG = {
     mssql: {
         projectPath: "extensions/mssql",
         xliffName: "vscode-mssql",
-        sourceFiles: [
-            "src/constants/locConstants.ts",
-            "src/webviews/common/locConstants.ts",
-            "src/databaseProjects/common/constants.ts",
-        ],
+        sourceFiles: ["src/constants/locConstants.ts", "src/webviews/common/locConstants.ts"],
     },
     "sql-database-projects": {
         projectPath: "extensions/sql-database-projects",

@@ -5,6 +5,7 @@
 
 import * as constants from "../common/constants";
 import * as vscode from "vscode";
+import { SqlProjects } from "../../constants/locConstants";
 
 /**
  * Function created out of createProjectFromDatabaseQuickpick for testing purposes
@@ -16,17 +17,17 @@ export async function getSDKStyleProjectInfo(): Promise<boolean | undefined> {
     let sdkStyle;
     const sdkLearnMoreButton: vscode.QuickInputButton = {
         iconPath: new vscode.ThemeIcon("link-external"),
-        tooltip: constants.learnMore,
+        tooltip: SqlProjects.learnMore,
     };
     const quickPick = vscode.window.createQuickPick();
-    quickPick.items = [{ label: constants.YesRecommended }, { label: constants.noString }];
-    quickPick.title = constants.sdkStyleProject;
+    quickPick.items = [{ label: SqlProjects.YesRecommended }, { label: SqlProjects.noString }];
+    quickPick.title = SqlProjects.sdkStyleProject;
     quickPick.ignoreFocusOut = true;
     const disposables: vscode.Disposable[] = [];
 
     try {
         quickPick.buttons = [sdkLearnMoreButton];
-        quickPick.placeholder = constants.SdkLearnMorePlaceholder;
+        quickPick.placeholder = SqlProjects.SdkLearnMorePlaceholder;
 
         const sdkStylePromise = new Promise<boolean | undefined>((resolve) => {
             disposables.push(
@@ -34,7 +35,7 @@ export async function getSDKStyleProjectInfo(): Promise<boolean | undefined> {
                     resolve(undefined);
                 }),
                 quickPick.onDidChangeSelection((item) => {
-                    resolve(item[0].label === constants.YesRecommended);
+                    resolve(item[0].label === SqlProjects.YesRecommended);
                 }),
             );
 

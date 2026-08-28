@@ -23,6 +23,7 @@ import { SqlDatabaseProjectProvider } from "../projectProvider/projectProvider";
 import { ItemType } from "../sqldbproj";
 import { FileNode } from "../models/tree/fileFolderTreeItem";
 import { VscodeHttpClient } from "extension-toolkit/vscode";
+import { SqlProjects } from "../../constants/locConstants";
 
 /**
  * The main controller class that initializes the extension
@@ -31,7 +32,7 @@ export default class MainController implements vscode.Disposable {
     protected projectsController: ProjectsController;
     protected netcoreTool: NetCoreTool;
     private _outputChannel: vscode.OutputChannel = vscode.window.createOutputChannel(
-        constants.projectsOutputChannel,
+        SqlProjects.projectsOutputChannel,
     );
 
     public constructor(private context: vscode.ExtensionContext) {

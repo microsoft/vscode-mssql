@@ -3,10 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { l10n } from "vscode";
 import * as path from "path";
 import { SqlTargetPlatform } from "../sqldbproj";
-import * as utils from "./utils";
 
 //#region file extensions
 export const dataSourcesFileName = "datasources.json";
@@ -31,63 +29,17 @@ export const dotnet = "dotnet";
 export const build = "build";
 export const restore = "restore";
 export const runCodeAnalysisParam = "/p:RunSqlCodeAnalysis=true";
-export const checkoutOutputMessage = l10n.t("Check output pane for more details");
 
 //#endregion
 
 //#region Project Provider
 export const emptySqlDatabaseProjectTypeId = "EmptySqlDbProj";
-export const emptyProjectTypeDisplayName = l10n.t("SQL Server Database");
-export const emptyProjectTypeDescription = l10n.t(
-    "Develop and publish schemas for SQL Server databases starting from an empty project",
-);
 
 export const edgeSqlDatabaseProjectTypeId = "SqlDbEdgeProj";
-export const edgeProjectTypeDisplayName = l10n.t("Azure SQL Edge Database");
-export const edgeProjectTypeDescription = l10n.t(
-    "Start with the core pieces to develop and publish schemas for Azure SQL Edge Database",
-);
 
 export const emptySqlDatabaseSdkProjectTypeId = "EmptySqlDbSdkProj";
-export const emptySdkProjectTypeDisplayName = l10n.t("SQL Database (SDK)");
-export const emptySdkProjectTypeDescription = l10n.t(
-    "Develop and publish schemas for SQL databases with Microsoft.Build.Sql, starting from an empty SDK-style project.",
-);
 
 export const emptyAzureDbSqlDatabaseProjectTypeId = "EmptyAzureSqlDbProj";
-export const emptyAzureDbProjectTypeDisplayName = l10n.t("Azure SQL Database");
-export const emptyAzureDbProjectTypeDescription = l10n.t(
-    "Develop and publish schemas for Azure SQL Database starting from an empty project",
-);
-
-//#endregion
-
-//#region Dashboard
-export const addItemAction = l10n.t("Add Item");
-export const schemaCompareAction = l10n.t("Schema Compare");
-export const buildAction = l10n.t("Build");
-export const publishAction = l10n.t("Publish");
-export const changeTargetPlatformAction = l10n.t("Change Target Platform");
-
-export const Status = l10n.t("Status");
-export const Time = l10n.t("Time");
-export const Date = l10n.t("Date");
-export const TargetPlatform = l10n.t("Target Platform");
-export const TargetServer = l10n.t("Target Server");
-export const TargetDatabase = l10n.t("Target Database");
-export const BuildHistory = l10n.t("Build History");
-export const PublishHistory = l10n.t("Publish History");
-
-export const Success = l10n.t("Success");
-export const Failed = l10n.t("Failed");
-export const InProgress = l10n.t("In progress");
-
-export const hr = l10n.t("hr");
-export const min = l10n.t("min");
-export const sec = l10n.t("sec");
-export const msec = l10n.t("msec");
-
-export const at = l10n.t("at");
 
 //#endregion
 
@@ -104,544 +56,21 @@ export const refreshDataWorkspaceCommand = "dataworkspace.refresh";
 //#endregion
 
 //#region UI Strings
-export const databaseReferencesNodeName = l10n.t("Database References");
-export const sqlcmdVariablesNodeName = l10n.t("SQLCMD Variables");
-export const sqlConnectionStringFriendly = l10n.t("SQL connection string");
-export const yesString = l10n.t("Yes");
-export const openEulaString = l10n.t("Open License Agreement");
-export const noString = l10n.t("No");
-export const noStringDefault = l10n.t("No (default)");
-export const okString = l10n.t("Ok");
-export const selectString = l10n.t("Select");
-export const selectFileString = l10n.t("Select File");
-export const dacpacFiles = l10n.t("dacpac Files");
-export const publishSettingsFiles = l10n.t("Publish Settings File");
-export const file = l10n.t("File");
-export const flat = l10n.t("Flat");
-export const objectType = l10n.t("Object Type");
-export const schema = l10n.t("Schema");
-export const schemaObjectType = l10n.t("Schema/Object Type");
-export const defaultProjectNameStarter = l10n.t("DatabaseProject");
-export const location = l10n.t("Location");
-export const reloadProject = l10n.t("Would you like to reload your database project?");
-export const learnMore = l10n.t("Learn More");
+
 export const sdkLearnMoreUrl = "https://aka.ms/sqlprojsdk";
 export const documentationUrl = "https://aka.ms/sqlprojects";
 export const azureDevOpsLink =
     "https://docs.microsoft.com/azure/azure-sql/database/local-dev-experience-overview?view=azuresql";
-export function newObjectNamePrompt(objectType: string) {
-    return l10n.t("New {0} name:", objectType);
-}
-export function deleteConfirmation(toDelete: string) {
-    return l10n.t("Are you sure you want to delete {0}?", toDelete);
-}
-export function deleteConfirmationContents(toDelete: string) {
-    return l10n.t("Are you sure you want to delete {0} and all of its contents?", toDelete);
-}
-export function deleteReferenceConfirmation(toDelete: string) {
-    return l10n.t("Are you sure you want to delete the reference to {0}?", toDelete);
-}
-export function deleteSqlCmdVariableConfirmation(toDelete: string) {
-    return l10n.t("Are you sure you want to delete the SQLCMD Variable '{0}'?", toDelete);
-}
-export function selectTargetPlatform(currentTargetPlatform: string) {
-    return l10n.t(
-        "Current target platform: {0}. Select new target platform",
-        currentTargetPlatform,
-    );
-}
-export function currentTargetPlatform(projectName: string, currentTargetPlatform: string) {
-    return l10n.t(
-        "Target platform of the project {0} is now {1}",
-        projectName,
-        currentTargetPlatform,
-    );
-}
-export function projectUpdatedToSdkStyle(projectName: string) {
-    return l10n.t(
-        "The project {0} has been updated to be an SDK-style project. Click 'Learn More' for details on the Microsoft.Build.Sql SDK and ways to simplify the project file.",
-        projectName,
-    );
-}
-export function convertToSdkStyleConfirmation(projectName: string) {
-    return l10n.t(
-        "The project '{0}' will not be fully compatible with SSDT after conversion. A backup copy of the project file will be created in the project folder prior to conversion. More information is available at https://aka.ms/sqlprojsdk. Continue with converting to SDK-style project?",
-        projectName,
-    );
-}
-export function updatedToSdkStyleError(projectName: string) {
-    return l10n.t(
-        "Converting the project {0} to SDK-style was unsuccessful. Changes to the .sqlproj have been rolled back.",
-        projectName,
-    );
-}
-export const enterNewName = l10n.t("Enter new name");
-export const addProjectGuidLabel = l10n.t("Add ProjectGuid");
+
 export const nullProjectGuid = "{00000000-0000-0000-0000-000000000000}";
-export function missingProjectGuids(count: number, projectNames: string[]): string {
-    if (count === 1) {
-        return l10n.t(
-            "Project '{0}' is missing a ProjectGuid. A unique ProjectGuid helps identify the project for cross-project references. Would you like one to be added?",
-            projectNames[0],
-        );
-    }
-    return l10n.t(
-        "{0} projects in this workspace are missing a ProjectGuid. A unique ProjectGuid helps identify projects for cross-project references. Would you like one to be added to each project?\n\nProjects:\n{1}",
-        count,
-        projectNames.map((n) => `'${n}'`).join(", "),
-    );
-}
+
 //#endregion
 
 export const illegalSqlCmdChars = ["$", "@", "#", '"', "'", "-"];
 export const reservedProjectFolders = ["Properties", "SQLCMD Variables", "Database References"];
 
-//#region Publish dialog strings
-export const publishDialogName = l10n.t("Publish project");
-export const publish = l10n.t("Publish");
-export const cancelButtonText = l10n.t("Cancel");
-export const databaseNameLabel = l10n.t("Database");
-export const targetConnectionLabel = l10n.t("Connection");
-export const dataSourceRadioButtonLabel = l10n.t("Data sources");
-export const connectionRadioButtonLabel = l10n.t("Connections");
-export const dataSourceDropdownTitle = l10n.t("Data source");
-export const noDataSourcesText = l10n.t("No data sources in this project");
-export const loadProfilePlaceholderText = l10n.t("Load profile...");
-export const profileReadError = (err: any) =>
-    l10n.t("Error loading the publish profile. {0}", utils.getErrorMessage(err));
-export const sqlCmdVariables = l10n.t("SQLCMD Variables");
-export const sqlCmdVariableColumn = l10n.t("Name");
-export const sqlCmdValueColumn = l10n.t("Value");
-export const revertSqlCmdVarsButtonTitle = l10n.t("Revert values to project defaults");
-export const profile = l10n.t("Profile");
-export const selectConnection = l10n.t("Select connection");
-export const server = l10n.t("Server");
-export const defaultUser = l10n.t("default");
-export const selectProfileToUse = l10n.t("Select publish profile to load");
-export const selectProfile = l10n.t("Select Profile");
-export const saveProfileAsButtonText = l10n.t("Save As...");
-export const save = l10n.t("Save");
-export const dontUseProfile = l10n.t("Don't use profile");
-export const browseForProfileWithIcon = `$(folder) ${l10n.t("Browse for profile")}`;
-export const chooseSqlcmdVarsToModify = l10n.t("Choose SQLCMD variables to modify");
-export const enterNewValueForVar = (varName: string) =>
-    l10n.t("Enter new default value for variable '{0}'", varName);
-export const enterNewSqlCmdVariableName = l10n.t("Enter new SQLCMD Variable name");
-export const enterNewSqlCmdVariableDefaultValue = (varName: string) =>
-    l10n.t("Enter default value for SQLCMD variable '{0}'", varName);
-export const addSqlCmdVariableWithoutDefaultValue = (varName: string) =>
-    l10n.t("Add SQLCMD variable '{0}' to project without default value?", varName);
-export const sqlcmdVariableAlreadyExists = l10n.t(
-    "A SQLCMD Variable with the same name already exists in this project",
-);
-export const resetAllVars = l10n.t("Reset all variables");
-export const createNew = l10n.t("Create New");
-export const enterNewDatabaseName = l10n.t("Enter new database name");
-export const newText = l10n.t("New");
-export const selectDatabase = l10n.t("Select database");
-export const done = l10n.t("Done");
-export const nameMustNotBeEmpty = l10n.t("Name must not be empty");
-export const versionMustNotBeEmpty = l10n.t("Version must not be empty");
-
-//#endregion
-
-//#region Publish Dialog options
-export const AdvancedOptionsButton = l10n.t("Advanced...");
-export const AdvancedPublishOptions = l10n.t("Advanced Publish Options");
-export const PublishOptions = l10n.t("Publish Options");
-export const ExcludeObjectTypeTab = l10n.t("Exclude Object Types");
-export const ResetButton: string = l10n.t("Reset");
-export const OptionDescription: string = l10n.t("Option Description");
-export const OptionName: string = l10n.t("Option Name");
-export const OptionInclude: string = l10n.t("Include");
-export function OptionNotFoundWarningMessage(label: string) {
-    return l10n.t("label: {0} does not exist in the options value name lookup", label);
-}
-
-//#endregion
-
-//#region Add Database Reference dialog strings
-export const addDatabaseReferenceDialogName = l10n.t("Add database reference");
-export const addDatabaseReferenceOkButtonText = l10n.t("Add reference");
-export const referenceRadioButtonsGroupTitle = l10n.t("Referenced Database Type");
-export const projectLabel = l10n.t("Project (.sqlproj)");
-export const systemDatabase = l10n.t("System database");
-export const dacpacText = l10n.t("Data-tier application (.dacpac)");
-export const nupkgText = l10n.t("Published data-tier application (.nupkg)");
-export const nupkgNamePlaceholder = l10n.t("NuGet package name");
-export const version = l10n.t("Version");
-export const versionPlaceholder = l10n.t("NuGet package version");
-export const selectDacpac = l10n.t("Select .dacpac");
-export const sameDatabase = l10n.t("Same database");
-export const differentDbSameServer = l10n.t("Different database, same server");
-export const differentDbDifferentServer = l10n.t("Different database, different server");
-export const systemDbLocationDropdownValues = [differentDbSameServer];
-export const locationDropdownValues = [
-    sameDatabase,
-    differentDbSameServer,
-    differentDbDifferentServer,
-];
-export const databaseName = l10n.t("Database name");
-export const databaseVariable = l10n.t("Database variable");
-export const serverName = l10n.t("Server name");
-export const serverVariable = l10n.t("Server variable");
-export const suppressMissingDependenciesErrors = l10n.t(
-    "Suppress errors caused by unresolved references in the referenced project",
-);
-export const exampleUsage = l10n.t("Example Usage");
-export const enterSystemDbName = l10n.t("Enter a database name for this system database");
-export const databaseNameRequiredVariableOptional = l10n.t(
-    "A database name is required. The database variable is optional.",
-);
-export const databaseNameServerNameVariableRequired = l10n.t(
-    "A database name, server name, and server variable are required. The database variable is optional",
-);
 export const otherServer = "OtherServer";
 export const otherSeverVariable = "OtherServer";
-export const databaseProject = l10n.t("Database project");
-export const dacpacMustBeOnSameDrive = l10n.t(
-    "Dacpac references need to be located on the same drive as the project file.",
-);
-export const dacpacNotOnSameDrive = (projectLocation: string): string => {
-    return l10n.t(
-        "Dacpac references need to be located on the same drive as the project file. The project file is located at {0}",
-        projectLocation,
-    );
-};
-export const referencedDatabaseType = l10n.t("Referenced Database type");
-export const excludeFolderNotSupported = l10n.t("Excluding folders is not yet supported");
-export const unhandledDeleteType = (itemType: string): string => {
-    return l10n.t("Unhandled item type during delete: '{0}", itemType);
-};
-export const unhandledExcludeType = (itemType: string): string => {
-    return l10n.t("Unhandled item type during exclude: '{0}", itemType);
-};
-export const artifactReference = l10n.t("Artifact Reference");
-export const packageReference = l10n.t("Package Reference");
-export const referenceTypeRadioButtonsGroupTitle = l10n.t("Reference Type");
-
-//#endregion
-
-//#region Create Project From Database dialog strings
-export const createProjectFromDatabaseDialogName = l10n.t("Create project from database");
-export const createProjectDialogOkButtonText = l10n.t("Create");
-export const sourceDatabase = l10n.t("Source database");
-export const targetProject = l10n.t("Target project");
-export const createProjectSettings = l10n.t("Settings");
-export const projectNameLabel = l10n.t("Name");
-export const projectNamePlaceholderText = l10n.t("Enter project name");
-export const projectLocationLabel = l10n.t("Location");
-export const projectLocationPlaceholderText = l10n.t("Select location to create project");
-export const browseButtonText = l10n.t("Browse folder");
-export const selectFolderStructure = l10n.t("Select folder structure");
-export const folderStructureLabel = l10n.t("Folder structure");
-export const includePermissionsLabel = l10n.t("Include permissions");
-export const includePermissionsInProject = l10n.t("Include permissions in project");
-export const browseEllipsisWithIcon = `$(folder) ${l10n.t("Browse...")}`;
-export const selectProjectLocation = l10n.t("Select project location");
-export const sdkStyleProject = l10n.t("SDK-style project");
-export const YesRecommended = l10n.t("Yes (Recommended)");
-export const SdkLearnMorePlaceholder = l10n.t(
-    'Click "Learn More" button for more information about SDK-style projects',
-);
-export const ProjectParentDirectoryNotExistError = (location: string): string => {
-    return l10n.t(
-        "The selected project location '{0}' does not exist or is not a directory.",
-        location,
-    );
-};
-export const ProjectDirectoryAlreadyExistError = (
-    projectName: string,
-    location: string,
-): string => {
-    return l10n.t(
-        "There is already a directory named '{0}' in the selected location: '{1}'.",
-        projectName,
-        location,
-    );
-};
-export const confirmCreateProjectWithBuildTaskDialogName = l10n.t(
-    "Do you want to configure SQL project build as the default build configuration for this folder?",
-);
-export const buildTaskName = l10n.t("Build");
-export const buildWithCodeAnalysisTaskName = l10n.t("Build with Code Analysis");
-export const restoreTaskName = l10n.t("Restore NuGet packages");
-
-//#endregion
-
-//#region Update Project From Database dialog strings
-export const updateProjectFromDatabaseDialogName = l10n.t("Update project from database");
-export const updateText = l10n.t("Update");
-export const noSqlProjFile = l10n.t("The selected project file does not exist");
-export const noSchemaCompareExtension = l10n.t(
-    "The Schema Compare extension must be installed to a update a project from a database.",
-);
-export const projectToUpdatePlaceholderText = l10n.t("Select project file");
-export const updateAction = l10n.t("Update action");
-export const compareActionRadioButtonLabel = l10n.t("View changes in Schema Compare");
-export const updateActionRadioButtonLabel = l10n.t("Apply all changes");
-export const actionLabel = l10n.t("Action");
-export const applyConfirmation: string = l10n.t(
-    "Are you sure you want to update the target project?",
-);
-export const selectProjectFile: string = l10n.t("Select project file");
-
-//#endregion
-
-//#region Update project from database
-export const applySuccess = l10n.t("Project was successfully updated.");
-export const equalComparison = l10n.t("The project is already up to date with the database.");
-export function applyError(errorMessage: string): string {
-    return l10n.t("There was an error updating the project: {0}", errorMessage);
-}
-export function updatingProjectFromDatabase(projectName: string, databaseName: string): string {
-    return l10n.t("Updating {0} from {1}...", projectName, databaseName);
-}
-
-//#endregion
-
-//#region Error messages
-export function errorPrefix(errorMessage: string): string {
-    return l10n.t("Error: {0}", errorMessage);
-}
-export function compareErrorMessage(errorMessage: string): string {
-    return l10n.t("Schema Compare failed: {0}", errorMessage ? errorMessage : "Unknown");
-}
-export const multipleSqlProjFiles = l10n.t(
-    "Multiple .sqlproj files selected; please select only one.",
-);
-export const noSqlProjFiles = l10n.t("No .sqlproj file selected; please select one.");
-export const noDataSourcesFile = l10n.t("No {0} found", dataSourcesFileName);
-export const missingVersion = l10n.t("Missing 'version' entry in {0}", dataSourcesFileName);
-export const unrecognizedDataSourcesVersion = l10n.t("Unrecognized version: ");
-export const unknownDataSourceType = l10n.t("Unknown data source type: ");
-export const invalidSqlConnectionString = l10n.t("Invalid SQL connection string");
-export const extractTargetRequired = l10n.t(
-    "Target information for extract is required to create database project.",
-);
-export const schemaCompareNotInstalled = l10n.t(
-    "Schema compare extension installation is required to run schema compare",
-);
-export const buildFailedCannotStartSchemaCompare = l10n.t(
-    "Schema compare could not start because build failed",
-);
-export function projectNeedsUpdatingForCrossPlat(projectName: string) {
-    return l10n.t(
-        "The targets, references, and system database references need to be updated to build the project '{0}'.",
-        projectName,
-    );
-}
-export function updateProjectForCrossPlatform(projectName: string) {
-    return l10n.t(
-        "{0} If the project was created in SSDT, it will continue to work in both tools. Do you want to update the project?",
-        projectNeedsUpdatingForCrossPlat(projectName),
-    );
-}
-export function updateProjectForCrossPlatformShort(projectName: string) {
-    return l10n.t("Update {0} for cross-platform support?", projectName);
-}
-export function updateProjectDatabaseReferencesForCrossPlatform(projectName: string) {
-    return l10n.t(
-        "The system database references need to be updated to build the project '{0}'. If the project was created in SSDT, it will continue to work in both tools. Do you want to update the project?",
-        projectName,
-    );
-}
-export const databaseReferenceTypeRequired = l10n.t(
-    "Database reference type is required for adding a reference to a database",
-);
-export const systemDatabaseReferenceRequired = l10n.t(
-    "System database selection is required for adding a reference to a system database",
-);
-export const dacpacFileLocationRequired = l10n.t(
-    "Dacpac file location is required for adding a reference to a database",
-);
-export const databaseLocationRequired = l10n.t(
-    "Database location is required for adding a reference to a database",
-);
-export const databaseNameRequired = l10n.t(
-    "Database name is required for adding a reference to a different database",
-);
-export const invalidDataSchemaProvider = l10n.t("Invalid DSP in .sqlproj file");
-export const invalidDatabaseReference = l10n.t("Invalid database reference in .sqlproj file");
-export const databaseSelectionRequired = l10n.t(
-    "Database selection is required to create a project from a database",
-);
-export const databaseReferenceAlreadyExists = l10n.t(
-    "A reference to this database already exists in this project",
-);
-export const outsideFolderPath = l10n.t(
-    "Items with absolute path outside project folder are not supported. Please make sure the paths in the project file are relative to project folder.",
-);
-export const parentTreeItemUnknown = l10n.t("Cannot access parent of provided tree item");
-export const prePostDeployCount = l10n.t(
-    "To successfully build, update the project to have one pre-deployment script and/or one post-deployment script",
-);
-export const invalidProjectReload = l10n.t(
-    "Cannot access provided database project. Only valid, open database projects can be reloaded.",
-);
-export const externalStreamingJobValidationPassed = l10n.t(
-    "Validation of external streaming job passed.",
-);
-export const errorRetrievingBuildFiles = l10n.t(
-    "Could not build project. Error retrieving files needed to build.",
-);
-
-export function projectAlreadyOpened(path: string) {
-    return l10n.t("Project '{0}' is already opened.", path);
-}
-export function projectAlreadyExists(name: string, path: string) {
-    return l10n.t("A project named {0} already exists in {1}.", name, path);
-}
-export function noFileExist(fileName: string) {
-    return l10n.t("File {0} doesn't exist", fileName);
-}
-export function fileOrFolderDoesNotExist(name: string) {
-    return l10n.t("File or directory '{0}' doesn't exist", name);
-}
-export function cannotResolvePath(path: string) {
-    return l10n.t("Cannot resolve path {0}", path);
-}
-export function fileAlreadyExists(filename: string) {
-    return l10n.t(
-        "A file with the name '{0}' already exists on disk at this location. Please choose another name.",
-        filename,
-    );
-}
-export function folderAlreadyExists(filename: string) {
-    return l10n.t(
-        "A folder with the name '{0}' already exists on disk at this location. Please choose another name.",
-        filename,
-    );
-}
-export function folderAlreadyExistsChooseNewLocation(filename: string) {
-    return l10n.t(
-        "A folder with the name '{0}' already exists on disk at this location. Please choose another location.",
-        filename,
-    );
-}
-export function invalidInput(input: string) {
-    return l10n.t("Invalid input: {0}", input);
-}
-export function invalidProjectPropertyValueInSqlProj(propertyName: string) {
-    return l10n.t("Invalid value specified for the property '{0}' in .sqlproj file", propertyName);
-}
-export function invalidProjectPropertyValueProvided(propertyName: string) {
-    return l10n.t("Project property value '{0} is invalid", propertyName);
-}
-export function unableToCreatePublishConnection(input: string) {
-    return l10n.t("Unable to construct connection: {0}", input);
-}
-export function circularProjectReference(project1: string, project2: string) {
-    return l10n.t("Circular reference from project {0} to project {1}", project1, project2);
-}
-export function errorFindingBuildFilesLocation(err: any) {
-    return l10n.t("Error finding build files location: {0}", utils.getErrorMessage(err));
-}
-export function projBuildFailed(errorMessage: string) {
-    return l10n.t("Build failed. Check output pane for more details. {0}", errorMessage);
-}
-/**
- * @param errorMessage omitted when dotnet reported the failure itself, since the details are
- * already in the task terminal.
- */
-export function projRestoreFailed(errorMessage?: string) {
-    const message = l10n.t(
-        "Restore NuGet packages failed. Check the terminal output for more details.",
-    );
-    return errorMessage ? `${message} ${errorMessage}` : message;
-}
-export function unexpectedProjectContext(uri: string) {
-    return l10n.t(
-        "Unable to establish project context.  Command invoked from unexpected location: {0}",
-        uri,
-    );
-}
-export function unableToPerformAction(action: string, uri: string, error?: string) {
-    return l10n.t("Unable to locate '{0}' target: '{1}'. {2}", action, uri, error);
-}
-export function unableToFindObject(path: string, objType: string) {
-    return l10n.t("Unable to find {1} with path '{0}'", path, objType);
-}
-export function deployScriptExists(scriptType: string) {
-    return l10n.t(
-        "A {0} script already exists. The new script will not be included in build.",
-        scriptType,
-    );
-}
-export function cantAddCircularProjectReference(project: string) {
-    return l10n.t(
-        "A reference to project '{0}' cannot be added. Adding this project as a reference would cause a circular dependency",
-        project,
-    );
-}
-export function unableToFindSqlCmdVariable(variableName: string) {
-    return l10n.t("Unable to find SQLCMD variable '{0}'", variableName);
-}
-export function unableToFindDatabaseReference(reference: string) {
-    return l10n.t("Unable to find database reference {0}", reference);
-}
-export function invalidGuid(guid: string) {
-    return l10n.t("Specified GUID is invalid: {0}", guid);
-}
-export function invalidTargetPlatform(targetPlatform: string, supportedTargetPlatforms: string[]) {
-    return l10n.t(
-        "Invalid target platform: {0}. Supported target platforms: {1}",
-        targetPlatform,
-        supportedTargetPlatforms.toString(),
-    );
-}
-export function errorReadingProject(section: string, path: string, error?: string) {
-    return l10n.t("Error trying to read {0} of project '{1}'. {2}", section, path, error);
-}
-export function errorAddingDatabaseReference(referenceName: string, error: string) {
-    return l10n.t("Error adding database reference to {0}. Error: {1}", referenceName, error);
-}
-export function errorNotSupportedInVsCode(actionDescription: string) {
-    return l10n.t(
-        "Error: {0} is not currently supported in SQL Database Projects for VS Code.",
-        actionDescription,
-    );
-}
-export function sqlcmdVariableNameCannotContainWhitespace(name: string) {
-    return l10n.t("SQLCMD variable name '{0}' cannot contain whitespace", name);
-}
-export function sqlcmdVariableNameCannotContainIllegalChars(name: string) {
-    return l10n.t(
-        "SQLCMD variable name '{0}' cannot contain any of the following characters: {1}",
-        name,
-        illegalSqlCmdChars.join(", "),
-    );
-}
-
-//#endregion
-
-// Action types
-export const deleteAction = l10n.t("Delete");
-export const excludeAction = l10n.t("Exclude");
-
-// Project tree object types
-export const fileObject = l10n.t("file");
-export const folderObject = l10n.t("folder");
-
-//#region Project script types
-export const folderFriendlyName = l10n.t("Folder");
-export const scriptFriendlyName = l10n.t("Script");
-export const tableFriendlyName = l10n.t("Table");
-export const viewFriendlyName = l10n.t("View");
-export const storedProcedureFriendlyName = l10n.t("Stored Procedure");
-export const tableValuedFunctionFriendlyName = l10n.t("Table-Valued Function");
-export const triggerFriendlyName = l10n.t("Trigger");
-export const databaseTriggerFriendlyName = l10n.t("Database Trigger");
-export const schemaFriendlyName = l10n.t("Schema");
-export const dataSourceFriendlyName = l10n.t("Data Source");
-export const fileFormatFriendlyName = l10n.t("File Format");
-export const externalStreamFriendlyName = l10n.t("External Stream");
-export const externalStreamingJobFriendlyName = l10n.t("External Streaming Job");
-export const sequenceFriendlyName = l10n.t("Sequence");
-export const preDeployScriptFriendlyName = l10n.t("Script.PreDeployment");
-export const postDeployScriptFriendlyName = l10n.t("Script.PostDeployment");
-export const publishProfileFriendlyName = l10n.t("Publish Profile");
-export const tasksJsonFriendlyName = l10n.t("Tasks.json");
 
 //#region Default folder paths for item types
 // Maps item types to their default folder locations when created at project root
@@ -660,27 +89,6 @@ export const defaultSchemaName = "dbo";
 //#region Extension settings
 export const autoCreateFoldersSetting = "sqlDatabaseProjects.autoCreateFolders";
 //#endregion
-
-//#endregion
-
-//#region Build
-export const DotnetInstallationConfirmation: string = l10n.t(
-    "The .NET SDK cannot be located. Project build will not work. Please install .NET 8 SDK or higher or update the .NET SDK location in settings if already installed.",
-);
-export function NetCoreSupportedVersionInstallationConfirmation(installedVersion: string) {
-    return l10n.t(
-        "Currently installed .NET SDK version is {0}, which is not supported. Project build will not work. Please install .NET 8 SDK or higher or update the .NET SDK supported version location in settings if already installed.",
-        installedVersion,
-    );
-}
-export const UpdateDotnetLocation: string = l10n.t("Update Location");
-export const projectsOutputChannel = l10n.t("Database Projects");
-
-//#endregion
-
-// Prompt buttons
-export const Install: string = l10n.t("Install");
-export const DoNotAskAgain: string = l10n.t("Don't Ask Again");
 
 //#region SqlProj file XML names
 export const ItemGroup = "ItemGroup";
@@ -731,17 +139,6 @@ export const Configuration = "Configuration";
 export const Platform = "Platform";
 export const AnyCPU = "AnyCPU";
 
-export const BuildElements = l10n.t("Build Elements");
-export const FolderElements = l10n.t("Folder Elements");
-export const PreDeployElements = l10n.t("PreDeploy Elements");
-export const PostDeployElements = l10n.t("PostDeploy Elements");
-export const NoneElements = l10n.t("None Elements");
-export const ImportElements = l10n.t("Import Elements");
-export const ProjectReferenceNameElement = l10n.t("Project reference name element");
-export const ProjectReferenceElement = l10n.t("Project reference");
-export const DacpacReferenceElement = l10n.t("Dacpac reference");
-export const PublishProfileElements = l10n.t("Publish profile elements");
-
 //#endregion
 
 export function defaultOutputPath(configuration: string) {
@@ -770,7 +167,6 @@ export const encryptSetting = "Encrypt";
 export const trustServerCertificateSetting = "Trust Server Certificate";
 export const hostnameInCertificateSetting = "Host Name in Certificate";
 
-export const azureAddAccount = l10n.t("Add an Account...");
 //#endregion
 
 //#region Tree item types
@@ -806,8 +202,6 @@ export function differentDbSameServerExampleUsage(db: string) {
 export function differentDbDifferentServerExampleUsage(server: string, db: string) {
     return `SELECT * FROM [${server}].[${db}].[Schema1].[Table1]`;
 }
-//#endregion
-
 //#region Target platforms
 export const targetPlatformToVersion: Map<string, string> = new Map<string, string>([
     // Note: the values here must match values from Microsoft.Data.Tools.Schema.SchemaModel.SqlPlatformNames
@@ -866,67 +260,8 @@ export const mssqlEnableExperimentalFeaturesKey = "enableExperimentalFeatures";
 
 //#endregion
 
-//#region httpClient
-export const downloadError = l10n.t("Download error");
-export const downloadProgress = l10n.t("Download progress");
-export const downloading = l10n.t("Downloading");
-
-//#endregion
-
-//#region buildHelper
-export function nugetDownloadFailedHelp(buildDirPath: string): string {
-    return l10n.t(
-        "Unable to reach nuget.org. If you are behind a proxy or in an offline environment, you can manually place the required DLL files in the build directory: {0}",
-        buildDirPath,
-    );
-}
-
-export function downloadingNuget(nuget: string) {
-    return l10n.t("Downloading {0} nuget to get build DLLs ", nuget);
-}
-export function downloadingFromTo(from: string, to: string) {
-    return l10n.t("Downloading from {0} to {1}", from, to);
-}
-export function extractingDacFxDlls(location: string) {
-    return l10n.t("Extracting DacFx build DLLs to {0}", location);
-}
-export function errorDownloading(url: string, error: string) {
-    return l10n.t("Error downloading {0}. Error: {1}", url, error);
-}
-export function errorExtracting(path: string, error: string) {
-    return l10n.t("Error extracting files from {0}. Error: {1}", path, error);
-}
-
-//#endregion
-
-//#region move
-export const onlyMoveFilesFoldersSupported = l10n.t("Only moving files and folders are supported");
-export const movingFilesBetweenProjectsNotSupported = l10n.t(
-    "Moving files between projects is not supported",
-);
-export function errorMovingFile(source: string, destination: string, error: string) {
-    return l10n.t("Error when moving file from {0} to {1}. Error: {2}", source, destination, error);
-}
-export function moveConfirmationPrompt(source: string, destination: string) {
-    return l10n.t("Are you sure you want to move {0} to {1}?", source, destination);
-}
-export const move = l10n.t("Move");
-export function errorRenamingFile(source: string, destination: string, error: string) {
-    return l10n.t(
-        "Error when renaming file from {0} to {1}. Error: {2}",
-        source,
-        destination,
-        error,
-    );
-}
-export const unhandledMoveNode = l10n.t("Unhandled node type for move");
-
-//#endregion
-
 //#region tasks.json
-export const updatingExistingTasksJson = l10n.t(
-    "A SQL Projects build task has been added to the existing tasks.json file.",
-);
+
 export const netCoreBuildArg = "/p:NetCoreBuild=true";
 export const systemDacpacsLocationArgPrefix = "/p:SystemDacpacsLocation=";
 export const netCoreTargetsPathArgPrefix = "/p:NETCoreTargetsPath=";
@@ -938,36 +273,5 @@ export const sqlprojBuildTaskLabelPrefix = "sqlproj: Build";
 export function getSqlProjectBuildTaskLabel(projectName: string): string {
     return `${sqlprojBuildTaskLabelPrefix} ${projectName}`;
 }
-export function getSqlProjectBuildTaskDetail(projectName: string): string {
-    return l10n.t("Builds the {0} SQL project", projectName);
-}
-export function tasksJsonUpdateError(error: string): string {
-    return l10n.t("Error updating existing tasks.json: {0}", error);
-}
-export const tasksJsonInvalidTasksArrayError = l10n.t(
-    "Invalid format in tasks.json: expected 'tasks' to be an array. Please fix the tasks.json file and try again.",
-);
 
 //#endregion
-
-export function loc0ErroredOut1(arg0: string | number | boolean, arg1: string | number | boolean) {
-    return l10n.t("\t>>> {0}   … errored out: {1}", arg0, arg1);
-}
-
-export function loc0ExitedWithCode1(
-    arg0: string | number | boolean,
-    arg1: string | number | boolean,
-) {
-    return l10n.t("    >>> {0}    … exited with code: {1}", arg0, arg1);
-}
-
-export function loc0ExitedWithSignal1(
-    arg0: string | number | boolean,
-    arg1: string | number | boolean | null,
-) {
-    return l10n.t("    >>> {0}   … exited with signal: {1}", arg0, arg1);
-}
-
-export const stdout = l10n.t("    stdout: ");
-
-export const stderr = l10n.t("    stderr: ");

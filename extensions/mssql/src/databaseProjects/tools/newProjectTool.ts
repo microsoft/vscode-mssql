@@ -7,8 +7,8 @@ import * as vscode from "vscode";
 import * as fs from "fs";
 import * as path from "path";
 import * as os from "os";
-import * as constants from "../common/constants";
 import * as utils from "../common/utils";
+import { SqlProjects } from "../../constants/locConstants";
 
 /**
  * Returns the default location to save a new database project
@@ -23,7 +23,7 @@ export function defaultProjectSaveLocation(): vscode.Uri | undefined {
  * the suggestion if a project of that name already exists in the default save location
  */
 export function defaultProjectNameNewProj(): string {
-    return defaultProjectName(constants.defaultProjectNameStarter, 1);
+    return defaultProjectName(SqlProjects.defaultProjectNameStarter, 1);
 }
 
 /**
@@ -37,7 +37,7 @@ export function defaultProjectNameFromDb(dbName: string | undefined): string {
         return "";
     }
 
-    const projectNameStarter = constants.defaultProjectNameStarter + dbName;
+    const projectNameStarter = SqlProjects.defaultProjectNameStarter + dbName;
     const defaultLocation = defaultProjectSaveLocation() ?? vscode.Uri.file(os.homedir());
     const projectPath: string = path.join(defaultLocation.fsPath, projectNameStarter);
     if (!fs.existsSync(projectPath)) {
@@ -65,5 +65,5 @@ function defaultProjectName(nameStarter: string, counter: number): string {
         }
         counter++;
     }
-    return constants.defaultProjectNameStarter + counter;
+    return SqlProjects.defaultProjectNameStarter + counter;
 }

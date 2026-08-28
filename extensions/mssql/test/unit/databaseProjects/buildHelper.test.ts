@@ -15,6 +15,7 @@ import { TestContext, createContext } from "./testContext";
 import { ProjectType } from "vscode-mssql";
 import * as constants from "../../../src/databaseProjects/common/constants";
 import * as utils from "../../../src/databaseProjects/common/utils";
+import { SqlProjects } from "../../../src/constants/locConstants";
 
 suite("BuildHelper: Build Helper tests", function (): void {
     let sandbox: sinon.SinonSandbox;
@@ -207,7 +208,7 @@ suite("BuildHelper: Build Helper tests", function (): void {
             "Error message should contain the build directory path so the user knows where to place DLLs",
         );
         expect(shownMessage).to.equal(
-            constants.nugetDownloadFailedHelp(buildDir),
+            SqlProjects.nugetDownloadFailedHelp(buildDir),
             "Error message should match nugetDownloadFailedHelp constant exactly",
         );
     });
@@ -258,7 +259,7 @@ suite("BuildHelper: Build Helper tests", function (): void {
             "Extraction error should be shown directly so the user sees the real cause",
         );
         expect(shownMessage).to.not.equal(
-            constants.nugetDownloadFailedHelp(buildDir),
+            SqlProjects.nugetDownloadFailedHelp(buildDir),
             "nugetDownloadFailedHelp (proxy/offline advice) must NOT be shown for extraction failures",
         );
     });

@@ -5,7 +5,8 @@
 
 import * as cp from "promisify-child-process";
 import * as vscode from "vscode";
-import { loc0ExitedWithCode1, loc0ExitedWithSignal1, stderr, stdout } from "../common/constants";
+import { SqlProjects } from "../../constants/locConstants";
+
 export interface ShellCommandOptions {
     workingDirectory?: string;
     additionalEnvironmentVariables?: NodeJS.ProcessEnv;
@@ -55,19 +56,23 @@ export class ShellExecutionHelper {
             // Add listeners to print stdout and stderr and exit code
             void child.on("exit", (code: number | null, signal: string | null) => {
                 if (code !== null) {
-                    this._outputChannel.appendLine(loc0ExitedWithCode1(cmdOutputMessage, code));
+                    this._outputChannel.appendLine(
+                        SqlProjects.loc0ExitedWithCode1(cmdOutputMessage, code),
+                    );
                 } else {
-                    this._outputChannel.appendLine(loc0ExitedWithSignal1(cmdOutputMessage, signal));
+                    this._outputChannel.appendLine(
+                        SqlProjects.loc0ExitedWithSignal1(cmdOutputMessage, signal),
+                    );
                 }
             });
 
             child.stdout!.on("data", (data: string | Buffer) => {
                 stdoutData.push(data.toString());
-                ShellExecutionHelper.outputDataChunk(this._outputChannel, data, stdout);
+                ShellExecutionHelper.outputDataChunk(this._outputChannel, data, SqlProjects.stdout);
             });
 
             child.stderr!.on("data", (data: string | Buffer) => {
-                ShellExecutionHelper.outputDataChunk(this._outputChannel, data, stderr);
+                ShellExecutionHelper.outputDataChunk(this._outputChannel, data, SqlProjects.stderr);
             });
 
             await child;

@@ -33,6 +33,7 @@ import {
     FileProjectEntry,
     SqlProjectReferenceProjectEntry,
 } from "../../../src/databaseProjects/models/projectEntry";
+import { SqlProjects } from "../../../src/constants/locConstants";
 
 let testContext: TestContext;
 const templatesPath = testUtils.getTemplatesRootPath();
@@ -146,7 +147,7 @@ suite("ProjectsController", function (): void {
                     "File should be successfully added",
                 );
                 await projController.addItemPrompt(project, "", { itemType: ItemType.script });
-                const msg = constants.fileAlreadyExists(tableName);
+                const msg = SqlProjects.fileAlreadyExists(tableName);
                 expect(spy.calledOnce, "showErrorMessage should have been called exactly once").to
                     .be.true;
                 expect(spy.calledWith(msg)).to.be.true; // showErrorMessage not called with expected message '${msg}' Actual '${spy.getCall(0).args[0]}'
@@ -783,7 +784,7 @@ suite("ProjectsController", function (): void {
 
                 // Assert: notification was shown
                 expect(
-                    showInfoSpy.calledWith(constants.updatingExistingTasksJson),
+                    showInfoSpy.calledWith(SqlProjects.updatingExistingTasksJson),
                     "Should show notification when updating existing tasks.json",
                 ).to.be.true;
             });
@@ -804,7 +805,7 @@ suite("ProjectsController", function (): void {
                     showErrorMessageSpy.calledOnce,
                     "showErrorMessage should have been called exactly once",
                 ).to.be.true;
-                const msg = constants.folderAlreadyExists(folderName);
+                const msg = SqlProjects.folderAlreadyExists(folderName);
                 expect(showErrorMessageSpy.calledWith(msg)).to.be.true; // showErrorMessage not called with expected message '${msg}' Actual '${showErrorMessageSpy.getCall(0).args[0]}'
                 expect(project.folders.length).to.equal(
                     beforeFileCount,
@@ -909,7 +910,7 @@ suite("ProjectsController", function (): void {
                 const projController = new ProjectsController(testContext.outputChannel);
                 sandbox
                     .stub(vscode.window, "showWarningMessage")
-                    .returns(<any>Promise.resolve(constants.yesString));
+                    .returns(<any>Promise.resolve(SqlProjects.yesString));
 
                 // add dacpac reference
                 await proj.addDatabaseReference({
@@ -936,7 +937,7 @@ suite("ProjectsController", function (): void {
                 );
 
                 const databaseReferenceNodeChildren = projTreeRoot.children.find(
-                    (x) => x.friendlyName === constants.databaseReferencesNodeName,
+                    (x) => x.friendlyName === SqlProjects.databaseReferencesNodeName,
                 )?.children;
                 await projController.delete(
                     createWorkspaceTreeItem(
@@ -1327,7 +1328,7 @@ suite("ProjectsController", function (): void {
                 expect(executeTaskStub.calledOnce, "a task should have been executed").to.be.true;
                 const task = executeTaskStub.firstCall.args[0] as vscode.Task;
                 expect(task.name, "task should be labelled as a restore").to.equal(
-                    constants.restoreTaskName,
+                    SqlProjects.restoreTaskName,
                 );
 
                 const execution = task.execution as vscode.ProcessExecution;
@@ -1357,7 +1358,7 @@ suite("ProjectsController", function (): void {
                     "a failed restore should be surfaced to the user",
                 ).to.be.true;
                 expect(showErrorMessageSpy.firstCall.args[0]).to.equal(
-                    constants.projRestoreFailed(),
+                    SqlProjects.projRestoreFailed(),
                 );
             });
         });
@@ -1505,7 +1506,7 @@ suite("ProjectsController", function (): void {
 
             await projController.generateScriptList(testFolderPath);
             expect(spy.calledOnce, "showErrorMessage should have been called").to.be.true;
-            const msg = constants.cannotResolvePath(testFolderPath);
+            const msg = SqlProjects.cannotResolvePath(testFolderPath);
             expect(spy.calledWith(msg)).to.be.true; // showErrorMessage not called with expected message '${msg}' Actual '${spy.getCall(0).args[0]}'
         });
 
@@ -1735,7 +1736,7 @@ suite("ProjectsController", function (): void {
             const spy = sandbox.spy(vscode.window, "showErrorMessage");
             sandbox
                 .stub(vscode.window, "showWarningMessage")
-                .returns(<any>Promise.resolve(constants.move));
+                .returns(<any>Promise.resolve(SqlProjects.move));
 
             let proj = await testUtils.createTestProject(
                 this.test,
@@ -1774,7 +1775,7 @@ suite("ProjectsController", function (): void {
             const spy = sandbox.spy(vscode.window, "showErrorMessage");
             sandbox
                 .stub(vscode.window, "showWarningMessage")
-                .returns(<any>Promise.resolve(constants.move));
+                .returns(<any>Promise.resolve(SqlProjects.move));
 
             let proj = await testUtils.createTestProject(
                 this.test,
@@ -1809,7 +1810,7 @@ suite("ProjectsController", function (): void {
             const spy = sandbox.spy(vscode.window, "showErrorMessage");
             sandbox
                 .stub(vscode.window, "showWarningMessage")
-                .returns(<any>Promise.resolve(constants.move));
+                .returns(<any>Promise.resolve(SqlProjects.move));
 
             let proj = await testUtils.createTestProject(
                 this.test,
@@ -1869,7 +1870,7 @@ suite("ProjectsController", function (): void {
                 spy.calledOnce,
                 "showErrorMessage should have been called exactly once when trying to move a sqlcmd variable",
             ).to.be.true;
-            expect(spy.calledWith(constants.onlyMoveFilesFoldersSupported)).to.be.true; // showErrorMessage not called with expected message '${constants.onlyMoveFilesFoldersSupported}' Actual '${spy.getCall(0).args[0]}'
+            expect(spy.calledWith(SqlProjects.onlyMoveFilesFoldersSupported)).to.be.true; // showErrorMessage not called with expected message '${constants.onlyMoveFilesFoldersSupported}' Actual '${spy.getCall(0).args[0]}'
             spy.restore();
 
             // try moving a database reference
@@ -1886,7 +1887,7 @@ suite("ProjectsController", function (): void {
                 spy.calledOnce,
                 "showErrorMessage should have been called exactly once when trying to move a database reference",
             ).to.be.true;
-            expect(spy.calledWith(constants.onlyMoveFilesFoldersSupported)).to.be.true; // showErrorMessage not called with expected message '${constants.onlyMoveFilesFoldersSupported}' Actual '${spy.getCall(0).args[0]}'
+            expect(spy.calledWith(SqlProjects.onlyMoveFilesFoldersSupported)).to.be.true; // showErrorMessage not called with expected message '${constants.onlyMoveFilesFoldersSupported}' Actual '${spy.getCall(0).args[0]}'
             spy.restore();
         });
 
@@ -1894,7 +1895,7 @@ suite("ProjectsController", function (): void {
             const spy = sandbox.spy(vscode.window, "showErrorMessage");
             sandbox
                 .stub(vscode.window, "showWarningMessage")
-                .returns(<any>Promise.resolve(constants.move));
+                .returns(<any>Promise.resolve(SqlProjects.move));
 
             let proj1 = await testUtils.createTestProject(
                 this.test,
@@ -1923,7 +1924,7 @@ suite("ProjectsController", function (): void {
             );
 
             expect(spy.called, "showErrorMessage should have been called").to.be.true;
-            expect(spy.calledWith(constants.movingFilesBetweenProjectsNotSupported)).to.be.true; // showErrorMessage not called with expected message '${constants.movingFilesBetweenProjectsNotSupported}' Actual '${spy.getCall(0).args[0]}'
+            expect(spy.calledWith(SqlProjects.movingFilesBetweenProjectsNotSupported)).to.be.true; // showErrorMessage not called with expected message '${constants.movingFilesBetweenProjectsNotSupported}' Actual '${spy.getCall(0).args[0]}'
 
             // verify script1.sql was not moved
             proj1 = await Project.openProject(proj1.projectFilePath);
@@ -1937,7 +1938,7 @@ suite("ProjectsController", function (): void {
             const errorSpy = sandbox.spy(vscode.window, "showErrorMessage");
             sandbox
                 .stub(vscode.window, "showWarningMessage")
-                .returns(<any>Promise.resolve(constants.move));
+                .returns(<any>Promise.resolve(SqlProjects.move));
 
             // Create a test project with the default name "TestProject"
             let proj = await testUtils.createTestProject(
@@ -2155,7 +2156,7 @@ suite("ProjectsController", function (): void {
             await projController.delete(
                 createWorkspaceTreeItem(
                     projRoot.children.find(
-                        (x) => x.friendlyName === constants.sqlcmdVariablesNodeName,
+                        (x) => x.friendlyName === SqlProjects.sqlcmdVariablesNodeName,
                     )!.children[0] /* LowerFolder */,
                 ),
             );
@@ -2170,7 +2171,7 @@ suite("ProjectsController", function (): void {
             await projController.delete(
                 createWorkspaceTreeItem(
                     projRoot.children.find(
-                        (x) => x.friendlyName === constants.sqlcmdVariablesNodeName,
+                        (x) => x.friendlyName === SqlProjects.sqlcmdVariablesNodeName,
                     )!.children[0],
                 ),
             );
@@ -2204,7 +2205,7 @@ suite("ProjectsController", function (): void {
             await projController.addSqlCmdVariable(
                 createWorkspaceTreeItem(
                     projRoot.children.find(
-                        (x) => x.friendlyName === constants.sqlcmdVariablesNodeName,
+                        (x) => x.friendlyName === SqlProjects.sqlcmdVariablesNodeName,
                     )!,
                 ),
             );
@@ -2222,7 +2223,7 @@ suite("ProjectsController", function (): void {
             await projController.addSqlCmdVariable(
                 createWorkspaceTreeItem(
                     projRoot.children.find(
-                        (x) => x.friendlyName === constants.sqlcmdVariablesNodeName,
+                        (x) => x.friendlyName === SqlProjects.sqlcmdVariablesNodeName,
                     )!,
                 ),
             );
@@ -2255,11 +2256,11 @@ suite("ProjectsController", function (): void {
             inputBoxStub.onFirstCall().resolves("newVariable");
             inputBoxStub.onSecondCall().resolves(undefined);
             const infoMessageStub = sandbox.stub(vscode.window, "showInformationMessage");
-            infoMessageStub.onFirstCall().returns(<any>Promise.resolve(constants.noString));
+            infoMessageStub.onFirstCall().returns(<any>Promise.resolve(SqlProjects.noString));
             await projController.addSqlCmdVariable(
                 createWorkspaceTreeItem(
                     projRoot.children.find(
-                        (x) => x.friendlyName === constants.sqlcmdVariablesNodeName,
+                        (x) => x.friendlyName === SqlProjects.sqlcmdVariablesNodeName,
                     )!,
                 ),
             );
@@ -2274,11 +2275,11 @@ suite("ProjectsController", function (): void {
             inputBoxStub.reset();
             inputBoxStub.onFirstCall().resolves("newVariable");
             inputBoxStub.onSecondCall().resolves(undefined);
-            infoMessageStub.onSecondCall().returns(<any>Promise.resolve(constants.yesString));
+            infoMessageStub.onSecondCall().returns(<any>Promise.resolve(SqlProjects.yesString));
             await projController.addSqlCmdVariable(
                 createWorkspaceTreeItem(
                     projRoot.children.find(
-                        (x) => x.friendlyName === constants.sqlcmdVariablesNodeName,
+                        (x) => x.friendlyName === SqlProjects.sqlcmdVariablesNodeName,
                     )!,
                 ),
             );
@@ -2314,7 +2315,7 @@ suite("ProjectsController", function (): void {
             const inputBoxStub = sandbox.stub(vscode.window, "showInputBox");
             inputBoxStub.resolves("");
             const sqlcmdVarToUpdate = projRoot.children.find(
-                (x) => x.friendlyName === constants.sqlcmdVariablesNodeName,
+                (x) => x.friendlyName === SqlProjects.sqlcmdVariablesNodeName,
             )!.children[0];
             const originalValue = project.sqlCmdVariables.get(sqlcmdVarToUpdate.friendlyName);
             await projController.editSqlCmdVariable(createWorkspaceTreeItem(sqlcmdVarToUpdate));
@@ -2471,7 +2472,7 @@ async function setupDeleteExcludeTest(
     const projTreeRoot = new ProjectRootTreeItem(proj);
     sandbox
         .stub(vscode.window, "showWarningMessage")
-        .returns(<any>Promise.resolve(constants.yesString));
+        .returns(<any>Promise.resolve(SqlProjects.yesString));
 
     // confirm setup
     expect(proj.sqlObjectScripts.length, "number of file entries").to.equal(3);

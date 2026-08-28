@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { promises as fs } from "fs";
-import * as constants from "../../common/constants";
+import { SqlProjects } from "../../../constants/locConstants";
 
 /**
  * Abstract class for a datasource in a project
@@ -37,13 +37,13 @@ export async function load(dataSourcesFilePath: string): Promise<DataSource[]> {
         fileContents = await fs.readFile(dataSourcesFilePath);
     } catch {
         // TODO: differentiate between file not existing and other types of failures; need to know whether to prompt to create new
-        throw new NoDataSourcesFileError(constants.noDataSourcesFile);
+        throw new NoDataSourcesFileError(SqlProjects.noDataSourcesFile);
     }
 
     const rawJsonContents = JSON.parse(fileContents.toString());
 
     if (rawJsonContents.version === undefined) {
-        throw new Error(constants.missingVersion);
+        throw new Error(SqlProjects.missingVersion);
     }
 
     const output: DataSource[] = [];
@@ -59,7 +59,7 @@ export async function load(dataSourcesFilePath: string): Promise<DataSource[]> {
 
             break;
         default:
-            throw new Error(constants.unrecognizedDataSourcesVersion + rawJsonContents.version);
+            throw new Error(SqlProjects.unrecognizedDataSourcesVersion + rawJsonContents.version);
     }
 
     return output;

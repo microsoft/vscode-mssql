@@ -28,12 +28,6 @@ export const workspaceTargets = [
         packageName: "sql-database-projects-vscode",
         directory: "extensions/sql-database-projects",
         scripts: ["build", "watch", "lint", "package"],
-        dependencies: {
-            build: ["extension-toolkit"],
-            watch: ["extension-toolkit"],
-            lint: ["extension-toolkit"],
-            package: [{ target: "extension-toolkit", action: "build" }],
-        },
     },
     {
         target: "data-workspace",

@@ -16,6 +16,7 @@ import { promises as fs } from "fs";
 import { ISqlProject, SqlTargetPlatform } from "../sqldbproj";
 import { DatabaseEngineEdition, DeploymentScenario, SystemDatabase } from "./enums";
 import { getDataWorkspaceApi, getMssqlInternalApi } from "../serviceLocator";
+import { SqlProjects } from "../../constants/locConstants";
 
 /**
  * Consolidates on the error message string
@@ -40,9 +41,9 @@ export async function showErrorMessageWithOutputChannel(
 ): Promise<void> {
     const result = await vscode.window.showErrorMessage(
         errorMessageFunc(getErrorMessage(error)),
-        constants.checkoutOutputMessage,
+        SqlProjects.checkoutOutputMessage,
     );
-    if (result === constants.checkoutOutputMessage) {
+    if (result === SqlProjects.checkoutOutputMessage) {
         outputChannel.show();
     }
 }
@@ -64,7 +65,7 @@ export function trimUri(innerUri: vscode.Uri, outerUri: vscode.Uri): string {
         outerParts.length > 0 &&
         innerParts[0].toLowerCase() !== outerParts[0].toLowerCase()
     ) {
-        throw new Error(constants.outsideFolderPath);
+        throw new Error(SqlProjects.outsideFolderPath);
     }
 
     while (
@@ -263,12 +264,12 @@ export function validateSqlCmdVariableName(name: string | undefined): string | n
 
     // can't contain whitespace
     if (!cleanedName || cleanedName.trim() === "" || cleanedName.includes(" ")) {
-        return constants.sqlcmdVariableNameCannotContainWhitespace(name ?? "");
+        return SqlProjects.sqlcmdVariableNameCannotContainWhitespace(name ?? "");
     }
 
     // can't contain these characters
     if (constants.illegalSqlCmdChars.some((c) => cleanedName?.includes(c))) {
-        return constants.sqlcmdVariableNameCannotContainIllegalChars(name ?? "");
+        return SqlProjects.sqlcmdVariableNameCannotContainIllegalChars(name ?? "");
     }
 
     // TODO: tsql parsing to check if it's a reserved keyword or invalid tsql https://github.com/microsoft/azuredatastudio/issues/12204
@@ -426,24 +427,24 @@ export function timeConversion(duration: number): string {
     const msInHour = 1000 * 60 * 60;
     const hours = Math.trunc(duration / msInHour);
     if (hours > 0) {
-        portions.push(`${hours} ${constants.hr}`);
+        portions.push(`${hours} ${SqlProjects.hr}`);
         duration = duration - hours * msInHour;
     }
 
     const msInMinute = 1000 * 60;
     const minutes = Math.trunc(duration / msInMinute);
     if (minutes > 0) {
-        portions.push(`${minutes} ${constants.min}`);
+        portions.push(`${minutes} ${SqlProjects.min}`);
         duration = duration - minutes * msInMinute;
     }
 
     const seconds = Math.trunc(duration / 1000);
     if (seconds > 0) {
-        portions.push(`${seconds} ${constants.sec}`);
+        portions.push(`${seconds} ${SqlProjects.sec}`);
     }
 
     if (hours === 0 && minutes === 0 && seconds === 0) {
-        portions.push(`${duration} ${constants.msec}`);
+        portions.push(`${duration} ${SqlProjects.msec}`);
     }
 
     return portions.join(", ");
@@ -676,7 +677,7 @@ export async function ensureFileExists(absoluteFilePath: string, contents?: stri
         } catch (error) {
             if (error.code === "EEXIST") {
                 // Throw specialized error, if file already exists
-                throw new Error(constants.fileAlreadyExists(path.parse(absoluteFilePath).name));
+                throw new Error(SqlProjects.fileAlreadyExists(path.parse(absoluteFilePath).name));
             }
 
             throw error;
@@ -684,14 +685,14 @@ export async function ensureFileExists(absoluteFilePath: string, contents?: stri
     } else {
         // If no contents were provided, then check that file already exists
         if (!(await exists(absoluteFilePath))) {
-            throw new Error(constants.noFileExist(absoluteFilePath));
+            throw new Error(SqlProjects.noFileExist(absoluteFilePath));
         }
     }
 }
 
 export function throwIfFailed(result: vscodeMssql.ResultStatus): void {
     if (!result.success) {
-        throw new Error(constants.errorPrefix(result.errorMessage));
+        throw new Error(SqlProjects.errorPrefix(result.errorMessage));
     }
 }
 
@@ -718,7 +719,7 @@ export function createSqlProjectBuildTask(options: SqlProjectBuildTaskOptions): 
             kind: constants.build,
             isDefault: options.isDefault,
         },
-        detail: constants.getSqlProjectBuildTaskDetail(options.projectName),
+        detail: SqlProjects.getSqlProjectBuildTaskDetail(options.projectName),
     };
 }
 

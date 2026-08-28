@@ -22,6 +22,7 @@ import {
 import { Project } from "../models/project";
 import { TelemetryActions, TelemetryReporter, TelemetryViews } from "../common/telemetry";
 import { ProjectType, SystemDbReferenceType } from "../common/enums";
+import { SqlProjects } from "../../constants/locConstants";
 
 /**
  * Create flow for adding a database reference using only VS Code-native APIs such as QuickPick
@@ -37,16 +38,16 @@ export async function addDatabaseReferenceQuickpick(
     // Only show project option if we have at least one other project in the workspace
     const referencedDatabaseTypes =
         otherProjectsInWorkspace.length > 0
-            ? [constants.projectLabel, constants.systemDatabase, constants.dacpacText]
-            : [constants.systemDatabase, constants.dacpacText];
+            ? [SqlProjects.projectLabel, SqlProjects.systemDatabase, SqlProjects.dacpacText]
+            : [SqlProjects.systemDatabase, SqlProjects.dacpacText];
 
     // only add nupkg database reference option if project is SDK-style
     if (project.sqlProjStyle === ProjectType.SdkStyle) {
-        referencedDatabaseTypes.push(constants.nupkgText);
+        referencedDatabaseTypes.push(SqlProjects.nupkgText);
     }
 
     const referencedDatabaseType = await vscode.window.showQuickPick(referencedDatabaseTypes, {
-        title: constants.referencedDatabaseType,
+        title: SqlProjects.referencedDatabaseType,
         ignoreFocusOut: true,
     });
     if (!referencedDatabaseType) {
@@ -55,13 +56,13 @@ export async function addDatabaseReferenceQuickpick(
     }
 
     switch (referencedDatabaseType) {
-        case constants.projectLabel:
+        case SqlProjects.projectLabel:
             return addProjectReference(otherProjectsInWorkspace);
-        case constants.systemDatabase:
+        case SqlProjects.systemDatabase:
             return addSystemDatabaseReference(project);
-        case constants.dacpacText:
+        case SqlProjects.dacpacText:
             return addDacpacReference(project);
-        case constants.nupkgText:
+        case SqlProjects.nupkgText:
             return addNupkgReference();
         default:
             console.log(`Unknown referenced database type ${referencedDatabaseType}`);
@@ -83,7 +84,7 @@ async function addProjectReference(
         });
 
     const selectedProject = await vscode.window.showQuickPick(otherProjectQuickpickItems, {
-        title: constants.databaseProject,
+        title: SqlProjects.databaseProject,
         ignoreFocusOut: true,
     });
     if (!selectedProject) {
@@ -124,7 +125,7 @@ async function addProjectReference(
         TelemetryViews.ProjectTree,
         TelemetryActions.addDatabaseReference,
     )
-        .withAdditionalProperties({ referencedDatabaseType: constants.projectLabel })
+        .withAdditionalProperties({ referencedDatabaseType: SqlProjects.projectLabel })
         .send();
 
     return referenceSettings;
@@ -137,7 +138,7 @@ async function addSystemDatabaseReference(
     // 2. Prompt System DB
 
     const selectedSystemDb = await vscode.window.showQuickPick(getSystemDbOptions(project), {
-        title: constants.systemDatabase,
+        title: SqlProjects.systemDatabase,
         ignoreFocusOut: true,
     });
     if (!selectedSystemDb) {
@@ -167,7 +168,7 @@ async function addSystemDatabaseReference(
         TelemetryViews.ProjectTree,
         TelemetryActions.addDatabaseReference,
     )
-        .withAdditionalProperties({ referencedDatabaseType: constants.systemDatabase })
+        .withAdditionalProperties({ referencedDatabaseType: SqlProjects.systemDatabase })
         .send();
 
     return {
@@ -192,11 +193,11 @@ async function addDacpacReference(project: Project): Promise<IDacpacReferenceSet
     let dacPacLocation;
     while (!dacPacLocation) {
         const browseSelected = await vscode.window.showQuickPick(
-            [constants.browseEllipsisWithIcon],
+            [SqlProjects.browseEllipsisWithIcon],
             {
-                title: constants.selectDacpac,
+                title: SqlProjects.selectDacpac,
                 ignoreFocusOut: true,
-                placeHolder: constants.dacpacMustBeOnSameDrive,
+                placeHolder: SqlProjects.dacpacMustBeOnSameDrive,
             },
         );
         if (!browseSelected) {
@@ -214,7 +215,7 @@ async function addDacpacReference(project: Project): Promise<IDacpacReferenceSet
         const dacpacDrive = path.parse(dacPacLocation.fsPath).root;
         if (projectDrive !== dacpacDrive) {
             void vscode.window.showErrorMessage(
-                constants.dacpacNotOnSameDrive(project.projectFilePath),
+                SqlProjects.dacpacNotOnSameDrive(project.projectFilePath),
             );
 
             // set dacPacLocation to undefined so that the browse quickpick will show again
@@ -248,7 +249,7 @@ async function addDacpacReference(project: Project): Promise<IDacpacReferenceSet
         TelemetryViews.ProjectTree,
         TelemetryActions.addDatabaseReference,
     )
-        .withAdditionalProperties({ referencedDatabaseType: constants.dacpacText })
+        .withAdditionalProperties({ referencedDatabaseType: SqlProjects.dacpacText })
         .send();
 
     return referenceSettings;
@@ -265,10 +266,10 @@ async function addNupkgReference(): Promise<INugetPackageReferenceSettings | und
 
     // 3. Prompt for NuGet package name
     const nupkgName = await vscode.window.showInputBox({
-        title: constants.nupkgText,
-        placeHolder: constants.nupkgNamePlaceholder,
+        title: SqlProjects.nupkgText,
+        placeHolder: SqlProjects.nupkgNamePlaceholder,
         validateInput: (value) => {
-            return value ? undefined : constants.nameMustNotBeEmpty;
+            return value ? undefined : SqlProjects.nameMustNotBeEmpty;
         },
         ignoreFocusOut: true,
     });
@@ -280,10 +281,10 @@ async function addNupkgReference(): Promise<INugetPackageReferenceSettings | und
 
     // 4. Prompt for NuGet package version
     const nupkgVersion = await vscode.window.showInputBox({
-        title: constants.version,
-        placeHolder: constants.versionPlaceholder,
+        title: SqlProjects.version,
+        placeHolder: SqlProjects.versionPlaceholder,
         validateInput: (value) => {
-            return value ? undefined : constants.versionMustNotBeEmpty;
+            return value ? undefined : SqlProjects.versionMustNotBeEmpty;
         },
         ignoreFocusOut: true,
     });
@@ -317,25 +318,25 @@ async function addNupkgReference(): Promise<INugetPackageReferenceSettings | und
         TelemetryViews.ProjectTree,
         TelemetryActions.addDatabaseReference,
     )
-        .withAdditionalProperties({ referencedDatabaseType: constants.nupkgText })
+        .withAdditionalProperties({ referencedDatabaseType: SqlProjects.nupkgText })
         .send();
 
     return referenceSettings;
 }
 
 async function promptLocation(): Promise<string | undefined> {
-    return vscode.window.showQuickPick(constants.locationDropdownValues, {
-        title: constants.location,
+    return vscode.window.showQuickPick(SqlProjects.locationDropdownValues, {
+        title: SqlProjects.location,
         ignoreFocusOut: true,
     });
 }
 
 async function promptDbName(defaultValue: string): Promise<string | undefined> {
     return vscode.window.showInputBox({
-        title: constants.databaseName,
+        title: SqlProjects.databaseName,
         value: defaultValue,
         validateInput: (value) => {
-            return value ? undefined : constants.nameMustNotBeEmpty;
+            return value ? undefined : SqlProjects.nameMustNotBeEmpty;
         },
         ignoreFocusOut: true,
     });
@@ -344,7 +345,7 @@ async function promptDbName(defaultValue: string): Promise<string | undefined> {
 async function promptDbVar(defaultValue: string): Promise<string> {
     return (
         (await vscode.window.showInputBox({
-            title: constants.databaseVariable,
+            title: SqlProjects.databaseVariable,
             value: defaultValue,
             validateInput: (value: string) => {
                 return validateSqlCmdVariableName(value) ?? "";
@@ -356,10 +357,10 @@ async function promptDbVar(defaultValue: string): Promise<string> {
 
 async function promptServerName(): Promise<string | undefined> {
     return vscode.window.showInputBox({
-        title: constants.serverName,
+        title: SqlProjects.serverName,
         value: constants.otherServer,
         validateInput: (value) => {
-            return value ? undefined : constants.nameMustNotBeEmpty;
+            return value ? undefined : SqlProjects.nameMustNotBeEmpty;
         },
         ignoreFocusOut: true,
     });
@@ -368,7 +369,7 @@ async function promptServerName(): Promise<string | undefined> {
 async function promptServerVar(): Promise<string> {
     return (
         (await vscode.window.showInputBox({
-            title: constants.serverVariable,
+            title: SqlProjects.serverVariable,
             value: constants.otherSeverVariable,
             validateInput: (value: string) => {
                 return validateSqlCmdVariableName(value) ?? "";
@@ -380,10 +381,10 @@ async function promptServerVar(): Promise<string> {
 
 async function promptSuppressUnresolvedRefErrors(): Promise<boolean> {
     const selectedOption = await vscode.window.showQuickPick(
-        [constants.noStringDefault, constants.yesString],
-        { title: constants.suppressMissingDependenciesErrors, ignoreFocusOut: true },
+        [SqlProjects.noStringDefault, SqlProjects.yesString],
+        { title: SqlProjects.suppressMissingDependenciesErrors, ignoreFocusOut: true },
     );
-    return selectedOption === constants.yesString ? true : false;
+    return selectedOption === SqlProjects.yesString ? true : false;
 }
 
 async function promptDbServerValues(
@@ -393,7 +394,7 @@ async function promptDbServerValues(
     const ret: DbServerValues = {};
 
     // Only prompt db values if the location is on a different db/server
-    if (location !== constants.sameDatabase) {
+    if (location !== SqlProjects.sameDatabase) {
         // 4. Prompt database name
         const dbName = await promptDbName(defaultDbName);
         if (!dbName) {
@@ -409,7 +410,7 @@ async function promptDbServerValues(
     }
 
     // Only prompt server values if location is different server
-    if (location === constants.differentDbDifferentServer) {
+    if (location === SqlProjects.differentDbDifferentServer) {
         // 5. Prompt server name
         const serverName = await promptServerName();
         if (!serverName) {
@@ -433,8 +434,8 @@ async function promptReferenceType(project: Project): Promise<SystemDbReferenceT
     let referenceType = SystemDbReferenceType.ArtifactReference;
     if (project.sqlProjStyle === ProjectType.SdkStyle) {
         const referenceTypeString = await vscode.window.showQuickPick(
-            [constants.packageReference, constants.artifactReference],
-            { title: constants.referenceTypeRadioButtonsGroupTitle, ignoreFocusOut: true },
+            [SqlProjects.packageReference, SqlProjects.artifactReference],
+            { title: SqlProjects.referenceTypeRadioButtonsGroupTitle, ignoreFocusOut: true },
         );
 
         if (referenceTypeString === undefined) {
@@ -443,7 +444,7 @@ async function promptReferenceType(project: Project): Promise<SystemDbReferenceT
         }
 
         referenceType =
-            referenceTypeString === constants.packageReference
+            referenceTypeString === SqlProjects.packageReference
                 ? SystemDbReferenceType.PackageReference
                 : SystemDbReferenceType.ArtifactReference;
     }
@@ -473,8 +474,8 @@ async function promptDacpacLocation(): Promise<vscode.Uri[] | undefined> {
         defaultUri: vscode.workspace.workspaceFolders
             ? (vscode.workspace.workspaceFolders as vscode.WorkspaceFolder[])[0].uri
             : undefined,
-        openLabel: constants.selectString,
-        title: constants.selectDacpac,
-        filters: { [constants.dacpacFiles]: ["dacpac"] },
+        openLabel: SqlProjects.selectString,
+        title: SqlProjects.selectDacpac,
+        filters: { [SqlProjects.dacpacFiles]: ["dacpac"] },
     });
 }

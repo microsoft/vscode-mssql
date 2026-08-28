@@ -10,11 +10,10 @@ import * as mssqlVscode from "vscode-mssql";
 import * as baselines from "./baselines/baselines";
 import * as testUtils from "./testUtils";
 import * as utils from "../../../src/databaseProjects/common/utils";
-import * as constants from "../../../src/databaseProjects/common/constants";
-
 import { UpdateProjectFromDatabaseWithQuickpick } from "../../../src/databaseProjects/dialogs/updateProjectFromDatabaseQuickpick";
 import { UpdateProjectAction } from "../../../src/databaseProjects/models/api/updateProject";
 import { mockDacFxResult } from "./testContext";
+import { SqlProjects } from "../../../src/constants/locConstants";
 
 let sandbox: sinon.SinonSandbox;
 
@@ -136,7 +135,7 @@ suite("Update Project From Database Quickpicks", () => {
         // Call 1 -> action selection (Update)
         const showQP = sandbox.stub(vscode.window, "showQuickPick");
         showQP.onCall(0).resolves(projectFilePath as any);
-        showQP.onCall(1).resolves(constants.updateActionRadioButtonLabel as any);
+        showQP.onCall(1).resolves(SqlProjects.updateActionRadioButtonLabel as any);
 
         // Capture the model produced by the callback
         let capturedModel: any;
@@ -225,7 +224,7 @@ suite("Update Project From Database Quickpicks", () => {
 
         // Stub QuickPick - should only be called once for action selection (not for project selection)
         const showQP = sandbox.stub(vscode.window, "showQuickPick");
-        showQP.onCall(0).resolves(constants.compareActionRadioButtonLabel as any); // Only action selection
+        showQP.onCall(0).resolves(SqlProjects.compareActionRadioButtonLabel as any); // Only action selection
 
         // Spy on getSqlProjectsInWorkspace to ensure it's NOT called when project path is provided
         const getProjectsSpy = sandbox.stub(utils, "getSqlProjectsInWorkspace");
@@ -292,7 +291,7 @@ suite("Update Project From Database Quickpicks", () => {
         // Stub QuickPick - should be called twice (project selection and action selection)
         const showQP = sandbox.stub(vscode.window, "showQuickPick");
         showQP.onCall(0).resolves(workspaceProjectPath as any); // Project selection
-        showQP.onCall(1).resolves(constants.updateActionRadioButtonLabel as any); // Action selection
+        showQP.onCall(1).resolves(SqlProjects.updateActionRadioButtonLabel as any); // Action selection
 
         // Capture the model produced by the callback
         let capturedModel: any;

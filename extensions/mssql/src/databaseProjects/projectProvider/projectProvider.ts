@@ -13,6 +13,7 @@ import { SqlDatabaseProjectTreeViewProvider } from "../controllers/databaseProje
 import { ProjectsController } from "../controllers/projectController";
 import { Project } from "../models/project";
 import { BaseProjectTreeItem } from "../models/tree/baseTreeItem";
+import { SqlProjects } from "../../constants/locConstants";
 
 export class SqlDatabaseProjectProvider
     implements dataworkspace.IProjectProvider, sqldbproj.IExtension
@@ -61,8 +62,8 @@ export class SqlDatabaseProjectProvider
             {
                 id: constants.emptyAzureDbSqlDatabaseProjectTypeId,
                 projectFileExtension: constants.sqlprojExtension.replace(/\./g, ""),
-                displayName: constants.emptyAzureDbProjectTypeDisplayName,
-                description: constants.emptyAzureDbProjectTypeDescription,
+                displayName: SqlProjects.emptyAzureDbProjectTypeDisplayName,
+                description: SqlProjects.emptyAzureDbProjectTypeDescription,
                 targetPlatforms: Array.from(constants.targetPlatformToVersion.keys()),
                 defaultTargetPlatform: sqldbproj.SqlTargetPlatform.sqlAzure,
                 icon: IconPathHelper.azureSqlDbProject,
@@ -73,8 +74,8 @@ export class SqlDatabaseProjectProvider
             {
                 id: constants.emptySqlDatabaseProjectTypeId,
                 projectFileExtension: constants.sqlprojExtension.replace(/\./g, ""),
-                displayName: constants.emptyProjectTypeDisplayName,
-                description: constants.emptyProjectTypeDescription,
+                displayName: SqlProjects.emptyProjectTypeDisplayName,
+                description: SqlProjects.emptyProjectTypeDescription,
                 icon: IconPathHelper.colorfulSqlProject,
                 targetPlatforms: Array.from(constants.targetPlatformToVersion.keys()),
                 defaultTargetPlatform: constants.defaultTargetPlatform,
@@ -143,35 +144,35 @@ export class SqlDatabaseProjectProvider
         | dataworkspace.IProjectActionGroup
     )[] {
         const addItemAction: dataworkspace.IProjectAction = {
-            id: constants.addItemAction,
+            id: SqlProjects.addItemAction,
             icon: IconPathHelper.add,
             run: (treeItem: dataworkspace.WorkspaceTreeItem) =>
                 this.projectController.addItemPromptFromNode(treeItem),
         };
 
         const schemaCompareAction: dataworkspace.IProjectAction = {
-            id: constants.schemaCompareAction,
+            id: SqlProjects.schemaCompareAction,
             icon: IconPathHelper.schemaCompare,
             run: (treeItem: dataworkspace.WorkspaceTreeItem) =>
                 this.projectController.schemaCompare(treeItem),
         };
 
         const buildAction: dataworkspace.IProjectAction = {
-            id: constants.buildAction,
+            id: SqlProjects.buildAction,
             icon: IconPathHelper.build,
             run: (treeItem: dataworkspace.WorkspaceTreeItem) =>
                 this.projectController.buildProject(treeItem),
         };
 
         const publishAction: dataworkspace.IProjectAction = {
-            id: constants.publishAction,
+            id: SqlProjects.publishAction,
             icon: IconPathHelper.publish,
             run: (treeItem: dataworkspace.WorkspaceTreeItem) =>
                 this.projectController.publishProject(treeItem),
         };
 
         const changeTargetPlatformAction: dataworkspace.IProjectAction = {
-            id: constants.changeTargetPlatformAction,
+            id: SqlProjects.changeTargetPlatformAction,
             icon: IconPathHelper.targetPlatform,
             run: (treeItem: dataworkspace.WorkspaceTreeItem) =>
                 this.projectController.changeTargetPlatform(treeItem),

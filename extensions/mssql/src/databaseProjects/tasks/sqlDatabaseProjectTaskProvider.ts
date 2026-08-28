@@ -10,6 +10,7 @@ import * as utils from "../common/utils";
 import { Project } from "../models/project";
 import { ProjectType } from "../common/typeHelper";
 import { BuildHelper } from "../tools/buildHelper";
+import { SqlProjects } from "../../constants/locConstants";
 
 /**
  * Extends to vscode.TaskDefinition to add task definition properties.
@@ -207,8 +208,8 @@ export class SqlDatabaseProjectTaskProvider implements vscode.TaskProvider {
 
         // Construct the task name
         const taskName = runCodeAnalysis
-            ? `${definition.fileDisplayName} - ${constants.buildWithCodeAnalysisTaskName}`
-            : `${definition.fileDisplayName} - ${constants.buildTaskName}`;
+            ? `${definition.fileDisplayName} - ${SqlProjects.buildWithCodeAnalysisTaskName}`
+            : `${definition.fileDisplayName} - ${SqlProjects.buildTaskName}`;
 
         // Build the argument list instead of a single shell command string
         const args: string[] = [constants.build, definition.filePath, ...buildArgs];

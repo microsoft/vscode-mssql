@@ -7,6 +7,7 @@ import { AuthenticationType } from "../../common/enums";
 import { DataSource } from "./dataSources";
 import { DataSourceJson } from "./dataSourceJson";
 import * as constants from "../../common/constants";
+import { SqlProjects } from "../../../constants/locConstants";
 
 /**
  * Contains information about a SQL connection string data source`
@@ -24,7 +25,7 @@ export class SqlConnectionDataSource extends DataSource {
     }
 
     public get typeFriendlyName(): string {
-        return constants.sqlConnectionStringFriendly;
+        return SqlProjects.sqlConnectionStringFriendly;
     }
 
     public get server(): string {
@@ -87,7 +88,7 @@ export class SqlConnectionDataSource extends DataSource {
             const split = component.split("=");
 
             if (split.length !== 2) {
-                throw new Error(constants.invalidSqlConnectionString);
+                throw new Error(SqlProjects.invalidSqlConnectionString);
             }
 
             this.connectionStringComponents[split[0].toLocaleLowerCase()] = split[1];

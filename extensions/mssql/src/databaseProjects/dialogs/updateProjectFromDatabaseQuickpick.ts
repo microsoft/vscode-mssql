@@ -11,6 +11,7 @@ import { getSqlProjectsInWorkspace, getVscodeMssqlApi } from "../common/utils";
 import type { IConnectionInfo } from "vscode-mssql";
 import { Project } from "../models/project";
 import { UpdateProjectDataModel, UpdateProjectAction } from "../models/api/updateProject";
+import { SqlProjects } from "../../constants/locConstants";
 
 /**
  * Create flow for update Project from existing database using only VS Code-native APIs such as QuickPick
@@ -57,7 +58,7 @@ export async function UpdateProjectFromDatabaseWithQuickpick(
         );
 
         const dbSelection = await vscode.window.showQuickPick(dbs, {
-            title: constants.selectDatabase,
+            title: SqlProjects.selectDatabase,
             ignoreFocusOut: true,
         });
         if (!dbSelection) {
@@ -71,7 +72,7 @@ export async function UpdateProjectFromDatabaseWithQuickpick(
     if (!projectFilePath) {
         // Get workspace projects
         const workspaceProjects = await getSqlProjectsInWorkspace();
-        const projectOptions: string[] = [constants.browseEllipsisWithIcon];
+        const projectOptions: string[] = [SqlProjects.browseEllipsisWithIcon];
 
         // Add workspace projects to the list
         workspaceProjects.forEach((projectUri) => {
@@ -79,7 +80,7 @@ export async function UpdateProjectFromDatabaseWithQuickpick(
         });
 
         const projectSelection = await vscode.window.showQuickPick(projectOptions, {
-            title: constants.selectProjectFile,
+            title: SqlProjects.selectProjectFile,
             ignoreFocusOut: true,
         });
 
@@ -88,14 +89,14 @@ export async function UpdateProjectFromDatabaseWithQuickpick(
             return undefined;
         }
 
-        if (projectSelection === constants.browseEllipsisWithIcon) {
+        if (projectSelection === SqlProjects.browseEllipsisWithIcon) {
             // Show file browser
             const projectFileUri = await vscode.window.showOpenDialog({
                 canSelectFiles: true,
                 canSelectFolders: false,
                 canSelectMany: false,
-                openLabel: constants.selectString,
-                title: constants.selectProjectFile,
+                openLabel: SqlProjects.selectString,
+                title: SqlProjects.selectProjectFile,
                 filters: {
                     "SQL Projects": ["sqlproj"],
                 },
@@ -116,9 +117,9 @@ export async function UpdateProjectFromDatabaseWithQuickpick(
 
     //Prompt 3: Select the action
     const actionSelection = await vscode.window.showQuickPick(
-        [constants.compareActionRadioButtonLabel, constants.updateActionRadioButtonLabel],
+        [SqlProjects.compareActionRadioButtonLabel, SqlProjects.updateActionRadioButtonLabel],
         {
-            title: constants.actionLabel,
+            title: SqlProjects.actionLabel,
             ignoreFocusOut: true,
         },
     );
@@ -129,7 +130,7 @@ export async function UpdateProjectFromDatabaseWithQuickpick(
 
     // Map the selected action to the enum
     const selectedAction =
-        actionSelection === constants.compareActionRadioButtonLabel
+        actionSelection === SqlProjects.compareActionRadioButtonLabel
             ? UpdateProjectAction.Compare
             : UpdateProjectAction.Update;
 

@@ -19,6 +19,7 @@ import { ImportDataModel } from "../models/api/import";
 import { mapExtractTargetEnum } from "./utils";
 
 import { getSDKStyleProjectInfo } from "./quickpickHelper";
+import { SqlProjects } from "../../constants/locConstants";
 
 /**
  * Create flow for a New Project using only VS Code-native APIs such as QuickPick
@@ -82,7 +83,7 @@ export async function createNewProjectFromDatabaseWithQuickpick(
 
     // 2. Select database
     const selectedDatabase = await vscode.window.showQuickPick(dbs, {
-        title: constants.selectDatabase,
+        title: SqlProjects.selectDatabase,
         ignoreFocusOut: true,
     });
     if (!selectedDatabase) {
@@ -92,7 +93,7 @@ export async function createNewProjectFromDatabaseWithQuickpick(
 
     // 3. Prompt for project name
     const projectName = await vscode.window.showInputBox({
-        title: constants.projectNamePlaceholderText,
+        title: SqlProjects.projectNamePlaceholderText,
         value: defaultProjectNameFromDb(sanitizeStringForFilename(selectedDatabase)),
         validateInput: (value) => {
             return isValidBasenameErrorMessage(value);
@@ -105,13 +106,13 @@ export async function createNewProjectFromDatabaseWithQuickpick(
 
     // 4. Prompt for Project location
     const defaultProjectSaveLoc = defaultProjectSaveLocation();
-    const browseProjectLocationOptions: string[] = [constants.browseEllipsisWithIcon];
+    const browseProjectLocationOptions: string[] = [SqlProjects.browseEllipsisWithIcon];
     if (defaultProjectSaveLoc) {
         browseProjectLocationOptions.push(defaultProjectSaveLoc.fsPath);
     }
     // We validate that the folder doesn't already exist, and if it does keep prompting them to pick a new one
     let projectLocation = "";
-    let browseProjectLocationTitle = constants.projectLocationPlaceholderText;
+    let browseProjectLocationTitle = SqlProjects.projectLocationPlaceholderText;
     while (true) {
         const browseProjectLocation = await vscode.window.showQuickPick(
             browseProjectLocationOptions,
@@ -121,18 +122,18 @@ export async function createNewProjectFromDatabaseWithQuickpick(
             // User cancelled
             return undefined;
         }
-        if (browseProjectLocation === constants.browseEllipsisWithIcon) {
+        if (browseProjectLocation === SqlProjects.browseEllipsisWithIcon) {
             const locations = await vscode.window.showOpenDialog({
                 canSelectFiles: false,
                 canSelectFolders: true,
                 canSelectMany: false,
-                openLabel: constants.selectString,
-                title: constants.selectProjectLocation,
+                openLabel: SqlProjects.selectString,
+                title: SqlProjects.selectProjectLocation,
                 defaultUri: defaultProjectSaveLoc,
             });
             if (!locations) {
                 // User cancelled out of open dialog - let them choose location again
-                browseProjectLocationTitle = constants.projectLocationPlaceholderText;
+                browseProjectLocationTitle = SqlProjects.projectLocationPlaceholderText;
                 continue;
             }
             projectLocation = locations[0].fsPath;
@@ -145,20 +146,20 @@ export async function createNewProjectFromDatabaseWithQuickpick(
             break;
         }
         // Otherwise show the browse quick pick again with the title updated with the error
-        browseProjectLocationTitle = constants.folderAlreadyExistsChooseNewLocation(projectName);
+        browseProjectLocationTitle = SqlProjects.folderAlreadyExistsChooseNewLocation(projectName);
         continue;
     }
 
     // 5: Prompt for folder structure
     const folderStructure = await vscode.window.showQuickPick(
         [
-            constants.schemaObjectType,
-            constants.file,
-            constants.flat,
-            constants.objectType,
-            constants.schema,
+            SqlProjects.schemaObjectType,
+            SqlProjects.file,
+            SqlProjects.flat,
+            SqlProjects.objectType,
+            SqlProjects.schema,
         ],
-        { title: constants.selectFolderStructure, ignoreFocusOut: true },
+        { title: SqlProjects.selectFolderStructure, ignoreFocusOut: true },
     );
     if (!folderStructure) {
         // User cancelled
@@ -167,8 +168,8 @@ export async function createNewProjectFromDatabaseWithQuickpick(
 
     // 6. Include permissions or not
     const includePermissionsResult = await vscode.window.showQuickPick(
-        [constants.noStringDefault, constants.yesString],
-        { title: constants.includePermissionsInProject, ignoreFocusOut: true },
+        [SqlProjects.noStringDefault, SqlProjects.yesString],
+        { title: SqlProjects.includePermissionsInProject, ignoreFocusOut: true },
     );
 
     if (!includePermissionsResult) {
@@ -176,7 +177,7 @@ export async function createNewProjectFromDatabaseWithQuickpick(
         return undefined;
     }
 
-    const includePermissions = includePermissionsResult === constants.yesString;
+    const includePermissions = includePermissionsResult === SqlProjects.yesString;
 
     // 7. SDK-style project or not
     let sdkStyle = await getSDKStyleProjectInfo();
@@ -188,8 +189,8 @@ export async function createNewProjectFromDatabaseWithQuickpick(
 
     // 8. Configure Sql project default build or not
     const configureDefaultBuild = await vscode.window.showQuickPick(
-        [constants.yesString, constants.noString],
-        { title: constants.confirmCreateProjectWithBuildTaskDialogName, ignoreFocusOut: false },
+        [SqlProjects.yesString, SqlProjects.noString],
+        { title: SqlProjects.confirmCreateProjectWithBuildTaskDialogName, ignoreFocusOut: false },
     );
 
     if (!configureDefaultBuild) {
@@ -206,7 +207,7 @@ export async function createNewProjectFromDatabaseWithQuickpick(
         extractTarget: mapExtractTargetEnum(folderStructure),
         sdkStyle: sdkStyle,
         includePermissions: includePermissions,
-        configureDefaultBuild: configureDefaultBuild === constants.yesString,
+        configureDefaultBuild: configureDefaultBuild === SqlProjects.yesString,
     } as ImportDataModel;
 
     // 9. Create the project using the callback

@@ -33,6 +33,7 @@ import {
     DacpacReferenceProjectEntry,
 } from "../../../src/databaseProjects/models/projectEntry";
 import { ProjectType, SystemDatabase, SystemDbReferenceType } from "vscode-mssql";
+import { SqlProjects } from "../../../src/constants/locConstants";
 
 suite("Project: sqlproj content operations", function (): void {
     suiteSetup(async function (): Promise<void> {
@@ -146,7 +147,7 @@ suite("Project: sqlproj content operations", function (): void {
 
     test("Should throw warning message while reading Project with more than 1 pre-deploy script from sqlproj", async function (): Promise<void> {
         const stub = sinon.stub(window, "showWarningMessage") as sinon.SinonStub;
-        stub.resolves(constants.okString);
+        stub.resolves(SqlProjects.okString);
 
         const projFilePath = await testUtils.createTestSqlProjFile(
             this.test,
@@ -157,8 +158,8 @@ suite("Project: sqlproj content operations", function (): void {
         expect(stub.calledOnce, "showWarningMessage should have been called exactly once").to.be
             .true;
         expect(
-            stub.calledWith(constants.prePostDeployCount),
-            `showWarningMessage not called with expected message '${constants.prePostDeployCount}' Actual '${stub.getCall(0).args[0]}'`,
+            stub.calledWith(SqlProjects.prePostDeployCount),
+            `showWarningMessage not called with expected message '${SqlProjects.prePostDeployCount}' Actual '${stub.getCall(0).args[0]}'`,
         ).to.be.true;
 
         expect(project.preDeployScripts.length).to.equal(2);
@@ -344,8 +345,8 @@ suite("Project: sqlproj content operations", function (): void {
             "showInformationMessage should have been called once after adding extra pre-deployment script",
         ).to.be.true;
         expect(
-            stub.calledWith(constants.deployScriptExists(constants.PreDeploy)),
-            `showInformationMessage not called with expected message '${constants.deployScriptExists(constants.PreDeploy)}'; actual: '${stub.firstCall.args[0]}'`,
+            stub.calledWith(SqlProjects.deployScriptExists(constants.PreDeploy)),
+            `showInformationMessage not called with expected message '${SqlProjects.deployScriptExists(constants.PreDeploy)}'; actual: '${stub.firstCall.args[0]}'`,
         ).to.be.true;
 
         stub.resetHistory();
@@ -360,8 +361,8 @@ suite("Project: sqlproj content operations", function (): void {
             "showInformationMessage should have been called once after adding extra post-deployment script",
         ).to.be.true;
         expect(
-            stub.calledWith(constants.deployScriptExists(constants.PostDeploy)),
-            `showInformationMessage not called with expected message '${constants.deployScriptExists(constants.PostDeploy)}' Actual '${stub.getCall(0).args[0]}'`,
+            stub.calledWith(SqlProjects.deployScriptExists(constants.PostDeploy)),
+            `showInformationMessage not called with expected message '${SqlProjects.deployScriptExists(constants.PostDeploy)}' Actual '${stub.getCall(0).args[0]}'`,
         ).to.be.true;
     });
 
@@ -1360,7 +1361,7 @@ suite("Project: database references", function (): void {
         // try to add reference to test.dacpac again
         await testUtils.shouldThrowSpecificError(
             async () => await project.addDatabaseReference(dacpacReference),
-            constants.databaseReferenceAlreadyExists,
+            SqlProjects.databaseReferenceAlreadyExists,
         );
         expect(
             project.databaseReferences.length,
@@ -1400,7 +1401,7 @@ suite("Project: database references", function (): void {
         // try to add reference to master again
         await testUtils.shouldThrowSpecificError(
             async () => await project.addSystemDatabaseReference(systemDbReference),
-            constants.databaseReferenceAlreadyExists,
+            SqlProjects.databaseReferenceAlreadyExists,
         );
         expect(
             project.databaseReferences.length,
@@ -1440,7 +1441,7 @@ suite("Project: database references", function (): void {
         // try to add reference to testProject again
         await testUtils.shouldThrowSpecificError(
             async () => await project.addProjectReference(projectReference),
-            constants.databaseReferenceAlreadyExists,
+            SqlProjects.databaseReferenceAlreadyExists,
         );
         expect(
             project.databaseReferences.length,
@@ -1479,7 +1480,7 @@ suite("Project: database references", function (): void {
         // try to add reference to testPackage again
         await testUtils.shouldThrowSpecificError(
             async () => await project.addNugetPackageReference(nupkgReference),
-            constants.databaseReferenceAlreadyExists,
+            SqlProjects.databaseReferenceAlreadyExists,
         );
         expect(
             project.databaseReferences.length,
@@ -1520,7 +1521,7 @@ suite("Project: database references", function (): void {
         projectReference.projectRelativePath = Uri.file("testFolder\\testProject.sqlproj");
         await testUtils.shouldThrowSpecificError(
             async () => await project.addProjectReference(projectReference),
-            constants.databaseReferenceAlreadyExists,
+            SqlProjects.databaseReferenceAlreadyExists,
         );
         expect(
             project.databaseReferences.length,
@@ -1847,12 +1848,12 @@ suite("Project: properties", function (): void {
 
         await testUtils.shouldThrowSpecificError(
             async () => await project.addDatabaseSource(semicolon),
-            constants.invalidProjectPropertyValueProvided(semicolon),
+            SqlProjects.invalidProjectPropertyValueProvided(semicolon),
         );
 
         await testUtils.shouldThrowSpecificError(
             async () => await project.removeDatabaseSource(semicolon),
-            constants.invalidProjectPropertyValueProvided(semicolon),
+            SqlProjects.invalidProjectPropertyValueProvided(semicolon),
         );
     });
 
@@ -1866,7 +1867,7 @@ suite("Project: properties", function (): void {
         const ensureGuid2 = sandbox.stub(project2, "ensureValidProjectGuid").resolves();
 
         const showInfoStub = sandbox.stub(window, "showInformationMessage") as sinon.SinonStub;
-        showInfoStub.resolves(constants.addProjectGuidLabel);
+        showInfoStub.resolves(SqlProjects.addProjectGuidLabel);
 
         await Project.checkPromptProjectGuidStatus([project1, project2]);
 
@@ -1875,7 +1876,7 @@ suite("Project: properties", function (): void {
             .be.true;
         expect(
             showInfoStub.calledWith(
-                constants.missingProjectGuids(2, [
+                SqlProjects.missingProjectGuids(2, [
                     project1.projectFileName,
                     project2.projectFileName,
                 ]),
@@ -1904,7 +1905,7 @@ suite("Project: properties", function (): void {
             .resolves({ success: true });
 
         (sandbox.stub(window, "showInformationMessage") as sinon.SinonStub).resolves(
-            constants.addProjectGuidLabel,
+            SqlProjects.addProjectGuidLabel,
         );
 
         await Project.checkPromptProjectGuidStatus([project]);
@@ -1928,7 +1929,7 @@ suite("Project: properties", function (): void {
         Object.assign(project, { _projectGuid: constants.nullProjectGuid });
 
         (sandbox.stub(window, "showInformationMessage") as sinon.SinonStub).resolves(
-            constants.noString,
+            SqlProjects.noString,
         );
 
         await Project.checkPromptProjectGuidStatus([project]);
@@ -1971,7 +1972,9 @@ suite("Project: round trip updates", function (): void {
     });
 
     test("Should not update project and no backup file should be created when prompt to update project is rejected", async function (): Promise<void> {
-        (sinon.stub(window, "showWarningMessage") as sinon.SinonStub).resolves(constants.noString);
+        (sinon.stub(window, "showWarningMessage") as sinon.SinonStub).resolves(
+            SqlProjects.noString,
+        );
         // setup test files
         const folderPath = await testUtils.generateTestFolderPath(this.test);
         const sqlProjPath = await testUtils.createTestSqlProjFile(

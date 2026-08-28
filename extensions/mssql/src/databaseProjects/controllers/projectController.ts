@@ -46,6 +46,7 @@ import { FileProjectEntry, SqlProjectReferenceProjectEntry } from "../models/pro
 import { UpdateProjectAction, UpdateProjectDataModel } from "../models/api/updateProject";
 import { SqlCmdVariableTreeItem } from "../models/tree/sqlcmdVariableTreeItem";
 import { DeploymentScenario, ExtractTarget, ProjectType, TaskExecutionMode } from "../common/enums";
+import { SqlProjects } from "../../constants/locConstants";
 
 export type AddDatabaseReferenceSettings =
     | ISystemDatabaseReferenceSettings
@@ -96,7 +97,7 @@ export class ProjectsController {
                 creationParams.projectGuid,
             )
         ) {
-            throw new Error(constants.invalidGuid(creationParams.projectGuid));
+            throw new Error(SqlProjects.invalidGuid(creationParams.projectGuid));
         }
 
         if (
@@ -104,7 +105,7 @@ export class ProjectsController {
             !constants.targetPlatformToVersion.get(creationParams.targetPlatform)
         ) {
             throw new Error(
-                constants.invalidTargetPlatform(
+                SqlProjects.invalidTargetPlatform(
                     creationParams.targetPlatform,
                     Array.from(constants.targetPlatformToVersion.keys()),
                 ),
@@ -134,7 +135,7 @@ export class ProjectsController {
 
         if (await utils.exists(newProjFilePath)) {
             throw new Error(
-                constants.projectAlreadyExists(newProjFileName, path.parse(newProjFilePath).dir),
+                SqlProjects.projectAlreadyExists(newProjFileName, path.parse(newProjFilePath).dir),
             );
         }
 
@@ -279,7 +280,7 @@ export class ProjectsController {
                     !Array.isArray(existingTasksJson.tasks)
                 ) {
                     // This error is caught below — project creation still succeeds, only the tasks.json update is skipped
-                    throw new Error(constants.tasksJsonInvalidTasksArrayError);
+                    throw new Error(SqlProjects.tasksJsonInvalidTasksArrayError);
                 }
 
                 // Initialize tasks array if it doesn't exist yet
@@ -312,12 +313,14 @@ export class ProjectsController {
                     );
 
                     // Show notification to user
-                    void vscode.window.showInformationMessage(constants.updatingExistingTasksJson);
+                    void vscode.window.showInformationMessage(
+                        SqlProjects.updatingExistingTasksJson,
+                    );
                 }
             } catch (error) {
                 // If parsing fails, log error and notify user with option to view output
                 const errorMessage = utils.getErrorMessage(error);
-                this._outputChannel.appendLine(constants.tasksJsonUpdateError(errorMessage));
+                this._outputChannel.appendLine(SqlProjects.tasksJsonUpdateError(errorMessage));
 
                 TelemetryReporter.createErrorEvent(
                     TelemetryViews.ProjectController,
@@ -331,7 +334,7 @@ export class ProjectsController {
                     .send();
 
                 void utils.showErrorMessageWithOutputChannel(
-                    constants.tasksJsonUpdateError,
+                    SqlProjects.tasksJsonUpdateError,
                     errorMessage,
                     this._outputChannel,
                 );
@@ -454,7 +457,7 @@ export class ProjectsController {
             const result = await this.buildHelper.createBuildDirFolder(this._outputChannel);
 
             if (!result) {
-                void vscode.window.showErrorMessage(constants.errorRetrievingBuildFiles);
+                void vscode.window.showErrorMessage(SqlProjects.errorRetrievingBuildFiles);
                 return "";
             }
         }
@@ -479,7 +482,7 @@ export class ProjectsController {
             if (!crossPlatCompatible) {
                 // user rejected updating for cross-plat
                 void vscode.window.showErrorMessage(
-                    constants.projectNeedsUpdatingForCrossPlat(project.projectFileName),
+                    SqlProjects.projectNeedsUpdatingForCrossPlat(project.projectFileName),
                 );
                 return "";
             }
@@ -529,7 +532,7 @@ export class ProjectsController {
                 // DotNetErrors already get shown by the netCoreTool so just show this one in the console
                 console.error(message);
             } else {
-                void vscode.window.showErrorMessage(constants.projBuildFailed(message));
+                void vscode.window.showErrorMessage(SqlProjects.projBuildFailed(message));
             }
             return "";
         }
@@ -556,7 +559,7 @@ export class ProjectsController {
             await this.netCoreTool.verifyNetCoreInstallation();
 
             const exitCode = await this.runTaskToCompletion(
-                this.createDotnetTask(project, constants.restoreTaskName, [
+                this.createDotnetTask(project, SqlProjects.restoreTaskName, [
                     constants.restore,
                     utils.getNonQuotedPath(project.projectFilePath),
                 ]),
@@ -575,7 +578,7 @@ export class ProjectsController {
                     .withAdditionalMeasurements({ duration })
                     .send();
 
-                void vscode.window.showErrorMessage(constants.projRestoreFailed());
+                void vscode.window.showErrorMessage(SqlProjects.projRestoreFailed());
                 return;
             }
 
@@ -601,7 +604,7 @@ export class ProjectsController {
                 // DotNetErrors already get shown by the netCoreTool so just show this one in the console
                 console.error(message);
             } else {
-                void vscode.window.showErrorMessage(constants.projRestoreFailed(message));
+                void vscode.window.showErrorMessage(SqlProjects.projRestoreFailed(message));
             }
         }
     }
@@ -619,8 +622,8 @@ export class ProjectsController {
         buildArguments: string[],
     ): Promise<vscode.Task> {
         const label = codeAnalysis
-            ? constants.buildWithCodeAnalysisTaskName
-            : constants.buildTaskName;
+            ? SqlProjects.buildWithCodeAnalysisTaskName
+            : SqlProjects.buildTaskName;
 
         // Create an array of arguments instead of a single command string
         const args: string[] = [constants.build, utils.getNonQuotedPath(project.projectFilePath)];
@@ -735,18 +738,18 @@ export class ProjectsController {
                         undefined,
                     );
                 } catch {
-                    throw new Error(constants.buildFailedCannotStartSchemaCompare);
+                    throw new Error(SqlProjects.buildFailedCannotStartSchemaCompare);
                 }
             } else {
-                throw new Error(constants.schemaCompareNotInstalled);
+                throw new Error(SqlProjects.schemaCompareNotInstalled);
             }
         } catch (err) {
             const props: Record<string, string> = {};
             const message = utils.getErrorMessage(err);
 
             if (
-                message === constants.buildFailedCannotStartSchemaCompare ||
-                message === constants.schemaCompareNotInstalled
+                message === SqlProjects.buildFailedCannotStartSchemaCompare ||
+                message === SqlProjects.schemaCompareNotInstalled
             ) {
                 props.errorMessage = message;
             }
@@ -776,7 +779,7 @@ export class ProjectsController {
         const relativePathToParent = this.getRelativePath(projectRelativeUri, treeNode.element);
         const absolutePathToParent = path.join(project.projectFolderPath, relativePathToParent);
         const newFolderName = await this.promptForNewObjectName(
-            new templates.ProjectScriptType(ItemType.folder, constants.folderFriendlyName, ""),
+            new templates.ProjectScriptType(ItemType.folder, SqlProjects.folderFriendlyName, ""),
             project,
             absolutePathToParent,
         );
@@ -796,7 +799,9 @@ export class ProjectsController {
                 folderExists ||
                 this.isReservedFolder(absoluteFolderPath, project.projectFolderPath)
             ) {
-                throw new Error(constants.folderAlreadyExists(path.parse(absoluteFolderPath).name));
+                throw new Error(
+                    SqlProjects.folderAlreadyExists(path.parse(absoluteFolderPath).name),
+                );
             }
 
             await project.addFolder(relativeFolderPath);
@@ -835,7 +840,7 @@ export class ProjectsController {
             : `${suggestedName}${counter}`;
 
         const itemObjectName = await vscode.window.showInputBox({
-            prompt: constants.newObjectNamePrompt(itemType.friendlyName),
+            prompt: SqlProjects.newObjectNamePrompt(itemType.friendlyName),
             value: suggestedValue,
             validateInput: (value) => {
                 return utils.isValidBasenameErrorMessage(value);
@@ -1114,7 +1119,7 @@ export class ProjectsController {
 
         const itemType = templates.get(itemTypeName);
         const isItemTypePublishProfile =
-            itemTypeName === constants.publishProfileFriendlyName ||
+            itemTypeName === SqlProjects.publishProfileFriendlyName ||
             itemTypeName === ItemType.publishProfile;
         // The schema of the folder the command came from, so the generated script matches where
         // the file lands instead of always defaulting to dbo.
@@ -1229,8 +1234,8 @@ export class ProjectsController {
             canSelectFiles: true,
             canSelectFolders: false,
             canSelectMany: false,
-            openLabel: constants.selectString,
-            title: constants.selectFileString,
+            openLabel: SqlProjects.selectString,
+            title: SqlProjects.selectFileString,
         });
 
         if (!uris) {
@@ -1283,7 +1288,7 @@ export class ProjectsController {
                     await project.excludeNoneItem(node.entryKey);
                     break;
                 default:
-                    throw new Error(constants.unhandledExcludeType(node.type));
+                    throw new Error(SqlProjects.unhandledExcludeType(node.type));
             }
         } else {
             TelemetryReporter.sendErrorEvent(
@@ -1291,8 +1296,8 @@ export class ProjectsController {
                 TelemetryActions.excludeFromProject,
             );
             void vscode.window.showErrorMessage(
-                constants.unableToPerformAction(
-                    constants.excludeAction,
+                SqlProjects.unableToPerformAction(
+                    SqlProjects.excludeAction,
                     node.relativeProjectUri.path,
                 ),
             );
@@ -1307,22 +1312,22 @@ export class ProjectsController {
 
         let confirmationPrompt;
         if (node instanceof DatabaseReferenceTreeItem) {
-            confirmationPrompt = constants.deleteReferenceConfirmation(node.friendlyName);
+            confirmationPrompt = SqlProjects.deleteReferenceConfirmation(node.friendlyName);
         } else if (node instanceof SqlCmdVariableTreeItem) {
-            confirmationPrompt = constants.deleteSqlCmdVariableConfirmation(node.friendlyName);
+            confirmationPrompt = SqlProjects.deleteSqlCmdVariableConfirmation(node.friendlyName);
         } else if (node instanceof FolderNode) {
-            confirmationPrompt = constants.deleteConfirmationContents(node.friendlyName);
+            confirmationPrompt = SqlProjects.deleteConfirmationContents(node.friendlyName);
         } else {
-            confirmationPrompt = constants.deleteConfirmation(node.friendlyName);
+            confirmationPrompt = SqlProjects.deleteConfirmation(node.friendlyName);
         }
 
         const response = await vscode.window.showWarningMessage(
             confirmationPrompt,
             { modal: true },
-            constants.yesString,
+            SqlProjects.yesString,
         );
 
-        if (response !== constants.yesString) {
+        if (response !== SqlProjects.yesString) {
             return;
         }
 
@@ -1354,7 +1359,7 @@ export class ProjectsController {
                         await project.deleteNoneItem(node.entryKey);
                         break;
                     default:
-                        throw new Error(constants.unhandledDeleteType(node.type));
+                        throw new Error(SqlProjects.unhandledDeleteType(node.type));
                 }
             }
             TelemetryReporter.createActionEvent(
@@ -1374,8 +1379,8 @@ export class ProjectsController {
                 .send();
 
             void vscode.window.showErrorMessage(
-                constants.unableToPerformAction(
-                    constants.deleteAction,
+                SqlProjects.unableToPerformAction(
+                    SqlProjects.deleteAction,
                     node.relativeProjectUri.path,
                     utils.getErrorMessage(err),
                 ),
@@ -1394,13 +1399,13 @@ export class ProjectsController {
         // need to use quickpick because input box isn't supported in treeviews
         // https://github.com/microsoft/vscode/issues/117502 and https://github.com/microsoft/vscode/issues/97190
         const newFileName = await vscode.window.showInputBox({
-            title: constants.enterNewName,
+            title: SqlProjects.enterNewName,
             value: originalName,
             valueSelection: [0, path.basename(originalName, originalExt).length],
             ignoreFocusOut: true,
             validateInput: async (newName) => {
                 return (await this.fileAlreadyExists(newName, originalAbsolutePath))
-                    ? constants.fileAlreadyExists(newName)
+                    ? SqlProjects.fileAlreadyExists(newName)
                     : undefined;
             },
         });
@@ -1420,7 +1425,7 @@ export class ProjectsController {
         } else {
             TelemetryReporter.sendErrorEvent(TelemetryViews.ProjectTree, TelemetryActions.rename);
             void vscode.window.showErrorMessage(
-                constants.errorRenamingFile(node.entryKey!, newFilePath, result?.errorMessage),
+                SqlProjects.errorRenamingFile(node.entryKey!, newFilePath, result?.errorMessage),
             );
         }
 
@@ -1442,7 +1447,7 @@ export class ProjectsController {
         const originalValue = project.sqlCmdVariables.get(variableName);
 
         const newValue = await vscode.window.showInputBox({
-            title: constants.enterNewValueForVar(variableName),
+            title: SqlProjects.enterNewValueForVar(variableName),
             value: originalValue,
             ignoreFocusOut: true,
         });
@@ -1463,11 +1468,11 @@ export class ProjectsController {
         const project = await this.getProjectFromContext(context);
 
         const variableName = await vscode.window.showInputBox({
-            title: constants.enterNewSqlCmdVariableName,
+            title: SqlProjects.enterNewSqlCmdVariableName,
             ignoreFocusOut: true,
             validateInput: (value) => {
                 return project.sqlCmdVariables.has(value)
-                    ? constants.sqlcmdVariableAlreadyExists
+                    ? SqlProjects.sqlcmdVariableAlreadyExists
                     : undefined;
             },
         });
@@ -1477,19 +1482,19 @@ export class ProjectsController {
         }
 
         let defaultValue = await vscode.window.showInputBox({
-            title: constants.enterNewSqlCmdVariableDefaultValue(variableName),
+            title: SqlProjects.enterNewSqlCmdVariableDefaultValue(variableName),
             ignoreFocusOut: true,
         });
 
         if (!defaultValue) {
             // prompt asking if they want to add to add a sqlcmd variable without a default value
             const result = await vscode.window.showInformationMessage(
-                constants.addSqlCmdVariableWithoutDefaultValue(variableName),
-                constants.yesString,
-                constants.noString,
+                SqlProjects.addSqlCmdVariableWithoutDefaultValue(variableName),
+                SqlProjects.yesString,
+                SqlProjects.noString,
             );
 
-            if (result === constants.noString) {
+            if (result === SqlProjects.noString) {
                 return;
             } else {
                 defaultValue = "";
@@ -1572,12 +1577,12 @@ export class ProjectsController {
 
             projFileWatcher.onDidChange(async () => {
                 const result = await vscode.window.showInformationMessage(
-                    constants.reloadProject,
-                    constants.yesString,
-                    constants.noString,
+                    SqlProjects.reloadProject,
+                    SqlProjects.yesString,
+                    SqlProjects.noString,
                 );
 
-                if (result === constants.yesString) {
+                if (result === SqlProjects.yesString) {
                     return this.reloadProject(context);
                 }
             });
@@ -1629,7 +1634,7 @@ export class ProjectsController {
             await project.readProjFile();
             this.refreshProjectsTree(context);
         } else {
-            throw new Error(constants.invalidProjectReload);
+            throw new Error(SqlProjects.invalidProjectReload);
         }
     }
 
@@ -1648,7 +1653,7 @@ export class ProjectsController {
                 }),
                 {
                     canPickMany: false,
-                    placeHolder: constants.selectTargetPlatform(
+                    placeHolder: SqlProjects.selectTargetPlatform(
                         constants.getTargetPlatformFromVersion(project.getProjectTargetVersion()),
                     ),
                 },
@@ -1660,7 +1665,7 @@ export class ProjectsController {
                 constants.targetPlatformToVersion.get(selectedTargetPlatform)!,
             );
             void vscode.window.showInformationMessage(
-                constants.currentTargetPlatform(
+                SqlProjects.currentTargetPlatform(
                     project.projectFileName,
                     constants.getTargetPlatformFromVersion(project.getProjectTargetVersion()),
                 ),
@@ -1728,7 +1733,7 @@ export class ProjectsController {
                         (<SqlProjectReferenceProjectEntry>r).projectName === project.projectFileName
                     ) {
                         void vscode.window.showErrorMessage(
-                            constants.cantAddCircularProjectReference(
+                            SqlProjects.cantAddCircularProjectReference(
                                 referencedProject?.projectFileName!,
                             ),
                         );
@@ -1799,7 +1804,7 @@ export class ProjectsController {
 
         if (result.success) {
             void vscode.window.showInformationMessage(
-                constants.externalStreamingJobValidationPassed,
+                SqlProjects.externalStreamingJobValidationPassed,
             );
         } else {
             void vscode.window.showErrorMessage(result.errorMessage);
@@ -1844,7 +1849,7 @@ export class ProjectsController {
         if (context instanceof BaseProjectTreeItem) {
             return Project.openProject(context.projectFileUri.fsPath);
         } else {
-            throw new Error(constants.unexpectedProjectContext(JSON.stringify(context)));
+            throw new Error(SqlProjects.unexpectedProjectContext(JSON.stringify(context)));
         }
     }
 
@@ -2013,7 +2018,7 @@ export class ProjectsController {
             if (await utils.exists(absolutePath + constants.sqlFileExtension)) {
                 absolutePath += constants.sqlFileExtension;
             } else {
-                void vscode.window.showErrorMessage(constants.cannotResolvePath(absolutePath));
+                void vscode.window.showErrorMessage(SqlProjects.cannotResolvePath(absolutePath));
                 return fileList;
             }
         }
@@ -2123,16 +2128,16 @@ export class ProjectsController {
         } else if (model.action === UpdateProjectAction.Update) {
             await vscode.window
                 .showWarningMessage(
-                    constants.applyConfirmation,
+                    SqlProjects.applyConfirmation,
                     { modal: true },
-                    constants.yesString,
+                    SqlProjects.yesString,
                 )
                 .then(async (result) => {
-                    if (result === constants.yesString) {
+                    if (result === SqlProjects.yesString) {
                         await vscode.window.withProgress(
                             {
                                 location: vscode.ProgressLocation.Notification,
-                                title: constants.updatingProjectFromDatabase(
+                                title: SqlProjects.updatingProjectFromDatabase(
                                     path.basename(model.targetEndpointInfo.projectFilePath),
                                     model.sourceEndpointInfo.databaseName,
                                 ),
@@ -2206,7 +2211,7 @@ export class ProjectsController {
                 })
                 .send();
             await vscode.window.showErrorMessage(
-                constants.compareErrorMessage(comparisonResult?.errorMessage),
+                SqlProjects.compareErrorMessage(comparisonResult?.errorMessage),
             );
             return;
         }
@@ -2222,7 +2227,7 @@ export class ProjectsController {
             .send();
 
         if (comparisonResult.areEqual) {
-            void vscode.window.showInformationMessage(constants.equalComparison);
+            void vscode.window.showInformationMessage(SqlProjects.equalComparison);
             return;
         }
 
@@ -2234,9 +2239,9 @@ export class ProjectsController {
         );
 
         if (publishResult.success) {
-            void vscode.window.showInformationMessage(constants.applySuccess);
+            void vscode.window.showInformationMessage(SqlProjects.applySuccess);
         } else {
-            void vscode.window.showErrorMessage(constants.applyError(publishResult.errorMessage));
+            void vscode.window.showErrorMessage(SqlProjects.applyError(publishResult.errorMessage));
         }
     }
 
@@ -2370,7 +2375,7 @@ export class ProjectsController {
             !sourceFileNode ||
             !(sourceFileNode instanceof FileNode || sourceFileNode instanceof FolderNode)
         ) {
-            void vscode.window.showErrorMessage(constants.onlyMoveFilesFoldersSupported);
+            void vscode.window.showErrorMessage(SqlProjects.onlyMoveFilesFoldersSupported);
             return;
         }
 
@@ -2381,7 +2386,7 @@ export class ProjectsController {
 
         // TODO: handle moving between different projects
         if (projectUri.fsPath !== target.element.projectFileUri.fsPath) {
-            void vscode.window.showErrorMessage(constants.movingFilesBetweenProjectsNotSupported);
+            void vscode.window.showErrorMessage(SqlProjects.movingFilesBetweenProjectsNotSupported);
             return;
         }
 
@@ -2411,14 +2416,14 @@ export class ProjectsController {
         }
 
         const result = await vscode.window.showWarningMessage(
-            constants.moveConfirmationPrompt(
+            SqlProjects.moveConfirmationPrompt(
                 path.basename(sourceFileNode.fileSystemUri.fsPath),
                 path.basename(folderPath),
             ),
             { modal: true },
-            constants.move,
+            SqlProjects.move,
         );
-        if (result !== constants.move) {
+        if (result !== SqlProjects.move) {
             return;
         }
 
@@ -2430,7 +2435,7 @@ export class ProjectsController {
         } else {
             TelemetryReporter.sendErrorEvent(TelemetryViews.ProjectTree, TelemetryActions.move);
             void vscode.window.showErrorMessage(
-                constants.errorMovingFile(
+                SqlProjects.errorMovingFile(
                     sourceFileNode.fileSystemUri.fsPath,
                     newPath,
                     utils.getErrorMessage(moveResult?.errorMessage),

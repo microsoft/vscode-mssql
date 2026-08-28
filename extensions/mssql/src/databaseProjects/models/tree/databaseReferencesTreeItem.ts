@@ -11,6 +11,7 @@ import { BaseProjectTreeItem } from "./baseTreeItem";
 import { IconPathHelper } from "../../common/iconHelper";
 import { IDatabaseReferenceProjectEntry } from "../../sqldbproj";
 import { SqlProjectReferenceProjectEntry } from "../projectEntry";
+import { SqlProjects } from "../../../constants/locConstants";
 
 /**
  * Folder for containing references nodes in the tree
@@ -30,7 +31,7 @@ export class DatabaseReferencesTreeItem extends BaseProjectTreeItem {
         databaseReferences: IDatabaseReferenceProjectEntry[],
     ) {
         super(
-            vscode.Uri.file(path.join(projectNodeName, constants.databaseReferencesNodeName)),
+            vscode.Uri.file(path.join(projectNodeName, SqlProjects.databaseReferencesNodeName)),
             sqlprojUri,
         );
         this.construct(databaseReferences);

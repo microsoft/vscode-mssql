@@ -3,10 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as constants from "../common/constants";
 import { ExtractTarget } from "../common/enums";
 import { IUserDatabaseReferenceSettings } from "../models/IDatabaseReferenceSettings";
 import { removeSqlCmdVariableFormatting } from "../common/utils";
+import { SqlProjects } from "../../constants/locConstants";
 
 /**
  * Function to map folder structure string to enum
@@ -16,21 +16,21 @@ import { removeSqlCmdVariableFormatting } from "../common/utils";
 export function mapExtractTargetEnum(inputTarget: string): ExtractTarget {
     if (inputTarget) {
         switch (inputTarget) {
-            case constants.file:
+            case SqlProjects.file:
                 return ExtractTarget.file;
-            case constants.flat:
+            case SqlProjects.flat:
                 return ExtractTarget.flat;
-            case constants.objectType:
+            case SqlProjects.objectType:
                 return ExtractTarget.objectType;
-            case constants.schema:
+            case SqlProjects.schema:
                 return ExtractTarget.schema;
-            case constants.schemaObjectType:
+            case SqlProjects.schemaObjectType:
                 return ExtractTarget.schemaObjectType;
             default:
-                throw new Error(constants.invalidInput(inputTarget));
+                throw new Error(SqlProjects.invalidInput(inputTarget));
         }
     } else {
-        throw new Error(constants.extractTargetRequired);
+        throw new Error(SqlProjects.extractTargetRequired);
     }
 }
 

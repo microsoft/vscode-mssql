@@ -7,11 +7,11 @@ import { expect } from "chai";
 import * as path from "path";
 import * as os from "os";
 import { promises as fs } from "fs";
-import * as constants from "../../../src/databaseProjects/common/constants";
 import * as utils from "../../../src/databaseProjects/common/utils";
 
 import { createDummyFileStructure, deleteGeneratedTestFolder } from "./testUtils";
 import { Uri } from "vscode";
+import { SqlProjects } from "../../../src/constants/locConstants";
 
 suite("Tests to verify utils functions", function (): void {
     test("Should determine existence of files/folders", async () => {
@@ -102,42 +102,42 @@ suite("Tests to verify utils functions", function (): void {
 
         // whitespace
         expect(utils.validateSqlCmdVariableName("")).to.equal(
-            constants.sqlcmdVariableNameCannotContainWhitespace(""),
+            SqlProjects.sqlcmdVariableNameCannotContainWhitespace(""),
         );
         expect(utils.validateSqlCmdVariableName(" ")).to.equal(
-            constants.sqlcmdVariableNameCannotContainWhitespace(" "),
+            SqlProjects.sqlcmdVariableNameCannotContainWhitespace(" "),
         );
         expect(utils.validateSqlCmdVariableName("     ")).to.equal(
-            constants.sqlcmdVariableNameCannotContainWhitespace("     "),
+            SqlProjects.sqlcmdVariableNameCannotContainWhitespace("     "),
         );
         expect(utils.validateSqlCmdVariableName("test abc")).to.equal(
-            constants.sqlcmdVariableNameCannotContainWhitespace("test abc"),
+            SqlProjects.sqlcmdVariableNameCannotContainWhitespace("test abc"),
         );
         expect(utils.validateSqlCmdVariableName("	")).to.equal(
-            constants.sqlcmdVariableNameCannotContainWhitespace("	"),
+            SqlProjects.sqlcmdVariableNameCannotContainWhitespace("	"),
         );
 
         // invalid characters
         expect(utils.validateSqlCmdVariableName("$($test")).to.equal(
-            constants.sqlcmdVariableNameCannotContainIllegalChars("$($test"),
+            SqlProjects.sqlcmdVariableNameCannotContainIllegalChars("$($test"),
         );
         expect(utils.validateSqlCmdVariableName("$test")).to.equal(
-            constants.sqlcmdVariableNameCannotContainIllegalChars("$test"),
+            SqlProjects.sqlcmdVariableNameCannotContainIllegalChars("$test"),
         );
         expect(utils.validateSqlCmdVariableName("test@")).to.equal(
-            constants.sqlcmdVariableNameCannotContainIllegalChars("test@"),
+            SqlProjects.sqlcmdVariableNameCannotContainIllegalChars("test@"),
         );
         expect(utils.validateSqlCmdVariableName("test#")).to.equal(
-            constants.sqlcmdVariableNameCannotContainIllegalChars("test#"),
+            SqlProjects.sqlcmdVariableNameCannotContainIllegalChars("test#"),
         );
         expect(utils.validateSqlCmdVariableName('test"')).to.equal(
-            constants.sqlcmdVariableNameCannotContainIllegalChars('test"'),
+            SqlProjects.sqlcmdVariableNameCannotContainIllegalChars('test"'),
         );
         expect(utils.validateSqlCmdVariableName("test'")).to.equal(
-            constants.sqlcmdVariableNameCannotContainIllegalChars("test'"),
+            SqlProjects.sqlcmdVariableNameCannotContainIllegalChars("test'"),
         );
         expect(utils.validateSqlCmdVariableName("test-1")).to.equal(
-            constants.sqlcmdVariableNameCannotContainIllegalChars("test-1"),
+            SqlProjects.sqlcmdVariableNameCannotContainIllegalChars("test-1"),
         );
     });
 

@@ -16,7 +16,6 @@ import {
     ExternalStreamingJob,
     sqlprojExtension,
     CollapseProjectNodesKey,
-    errorPrefix,
 } from "../../common/constants";
 import { IconPathHelper } from "../../common/iconHelper";
 import { FileProjectEntry } from "../projectEntry";
@@ -24,6 +23,7 @@ import { EntryType } from "../../sqldbproj";
 import { DBProjectConfigurationKey } from "../../tools/netcoreTool";
 import { SqlCmdVariablesTreeItem } from "./sqlcmdVariableTreeItem";
 import { ProjectType } from "../../common/enums";
+import { SqlProjects } from "../../../constants/locConstants";
 
 /**
  * TreeNode root that represents an entire project
@@ -214,7 +214,7 @@ export class ProjectRootTreeItem extends BaseProjectTreeItem {
                 // even if there's no <Folder Include="MySchema"> entry.
                 // Project tree unit tests need to explicitly include parent folders because they bypass DacFx's logic, or they'll hit this error.
                 throw new Error(
-                    errorPrefix(
+                    SqlProjects.errorPrefix(
                         `All parent nodes for ${relativePathParts} should have already been added.`,
                     ),
                 );

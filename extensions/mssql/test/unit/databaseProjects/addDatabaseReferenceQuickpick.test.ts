@@ -19,6 +19,7 @@ import {
 } from "../../../src/databaseProjects/models/IDatabaseReferenceSettings";
 import { Project } from "../../../src/databaseProjects/models/project";
 import { ProjectType, SystemDbReferenceType } from "vscode-mssql";
+import { SqlProjects } from "../../../src/constants/locConstants";
 
 // ---------------------------------------------------------------------------
 // Test constants
@@ -99,7 +100,7 @@ suite("addDatabaseReferenceQuickpick", function (): void {
             );
 
             const items = showQuickPick.firstCall.args[0] as unknown as string[];
-            expect(items).to.not.include(constants.nupkgText);
+            expect(items).to.not.include(SqlProjects.nupkgText);
         });
 
         test("Includes nupkg option for SDK-style project", async function (): Promise<void> {
@@ -113,7 +114,7 @@ suite("addDatabaseReferenceQuickpick", function (): void {
             );
 
             const items = showQuickPick.firstCall.args[0] as unknown as string[];
-            expect(items).to.include(constants.nupkgText);
+            expect(items).to.include(SqlProjects.nupkgText);
         });
 
         test("Does not show project option when no other projects are in the workspace", async function (): Promise<void> {
@@ -125,7 +126,7 @@ suite("addDatabaseReferenceQuickpick", function (): void {
             await addDatabaseReferenceQuickpick(makeProject({}));
 
             const items = showQuickPick.firstCall.args[0] as unknown as string[];
-            expect(items).to.not.include(constants.projectLabel);
+            expect(items).to.not.include(SqlProjects.projectLabel);
         });
 
         test("Shows project option when other projects exist in the workspace", async function (): Promise<void> {
@@ -139,7 +140,7 @@ suite("addDatabaseReferenceQuickpick", function (): void {
             await addDatabaseReferenceQuickpick(makeProject({}));
 
             const items = showQuickPick.firstCall.args[0] as unknown as string[];
-            expect(items).to.include(constants.projectLabel);
+            expect(items).to.include(SqlProjects.projectLabel);
         });
     });
 
@@ -152,7 +153,7 @@ suite("addDatabaseReferenceQuickpick", function (): void {
             sandbox.stub(utils, GetSqlProjectsInWorkspace).resolves([]);
             const showQuickPick: sinon.SinonStub = sandbox.stub(vscode.window, ShowQuickPick);
             // Step 1: pick reference type → systemDatabase
-            showQuickPick.onFirstCall().resolves(constants.systemDatabase);
+            showQuickPick.onFirstCall().resolves(SqlProjects.systemDatabase);
             // Step 2: pick system db → cancel
             showQuickPick.onSecondCall().resolves(undefined);
 
@@ -163,9 +164,9 @@ suite("addDatabaseReferenceQuickpick", function (): void {
         test("Returns ISystemDatabaseReferenceSettings for legacy project with master db", async function (): Promise<void> {
             sandbox.stub(utils, GetSqlProjectsInWorkspace).resolves([]);
             const showQuickPick: sinon.SinonStub = sandbox.stub(vscode.window, ShowQuickPick);
-            showQuickPick.onFirstCall().resolves(constants.systemDatabase); // type
+            showQuickPick.onFirstCall().resolves(SqlProjects.systemDatabase); // type
             showQuickPick.onSecondCall().resolves(constants.master); // system db
-            showQuickPick.onThirdCall().resolves(constants.noStringDefault); // suppress errors
+            showQuickPick.onThirdCall().resolves(SqlProjects.noStringDefault); // suppress errors
 
             sandbox.stub(vscode.window, ShowInputBox).resolves("master"); // db name
 
@@ -180,9 +181,9 @@ suite("addDatabaseReferenceQuickpick", function (): void {
         test("Sets suppressMissingDependenciesErrors to true when user picks Yes", async function (): Promise<void> {
             sandbox.stub(utils, GetSqlProjectsInWorkspace).resolves([]);
             const showQuickPick: sinon.SinonStub = sandbox.stub(vscode.window, ShowQuickPick);
-            showQuickPick.onFirstCall().resolves(constants.systemDatabase);
+            showQuickPick.onFirstCall().resolves(SqlProjects.systemDatabase);
             showQuickPick.onSecondCall().resolves(constants.master);
-            showQuickPick.onThirdCall().resolves(constants.yesString); // suppress errors = yes
+            showQuickPick.onThirdCall().resolves(SqlProjects.yesString); // suppress errors = yes
 
             sandbox.stub(vscode.window, ShowInputBox).resolves("master");
 
@@ -195,10 +196,10 @@ suite("addDatabaseReferenceQuickpick", function (): void {
         test("Uses ArtifactReference for SDK-style project when Artifact Reference is picked", async function (): Promise<void> {
             sandbox.stub(utils, GetSqlProjectsInWorkspace).resolves([]);
             const showQuickPick: sinon.SinonStub = sandbox.stub(vscode.window, ShowQuickPick);
-            showQuickPick.onFirstCall().resolves(constants.systemDatabase);
+            showQuickPick.onFirstCall().resolves(SqlProjects.systemDatabase);
             showQuickPick.onSecondCall().resolves(constants.master);
-            showQuickPick.onThirdCall().resolves(constants.artifactReference); // reference type
-            showQuickPick.onCall(3).resolves(constants.noStringDefault); // suppress errors
+            showQuickPick.onThirdCall().resolves(SqlProjects.artifactReference); // reference type
+            showQuickPick.onCall(3).resolves(SqlProjects.noStringDefault); // suppress errors
 
             sandbox.stub(vscode.window, ShowInputBox).resolves("master");
 
@@ -214,10 +215,10 @@ suite("addDatabaseReferenceQuickpick", function (): void {
         test("Uses PackageReference for SDK-style project when Package Reference is picked", async function (): Promise<void> {
             sandbox.stub(utils, GetSqlProjectsInWorkspace).resolves([]);
             const showQuickPick: sinon.SinonStub = sandbox.stub(vscode.window, ShowQuickPick);
-            showQuickPick.onFirstCall().resolves(constants.systemDatabase);
+            showQuickPick.onFirstCall().resolves(SqlProjects.systemDatabase);
             showQuickPick.onSecondCall().resolves(constants.master);
-            showQuickPick.onThirdCall().resolves(constants.packageReference); // reference type
-            showQuickPick.onCall(3).resolves(constants.noStringDefault); // suppress errors
+            showQuickPick.onThirdCall().resolves(SqlProjects.packageReference); // reference type
+            showQuickPick.onCall(3).resolves(SqlProjects.noStringDefault); // suppress errors
 
             sandbox.stub(vscode.window, ShowInputBox).resolves("master");
 
@@ -233,7 +234,7 @@ suite("addDatabaseReferenceQuickpick", function (): void {
         test("getSystemDbOptions returns only master for Azure target version", async function (): Promise<void> {
             sandbox.stub(utils, GetSqlProjectsInWorkspace).resolves([]);
             const showQuickPick: sinon.SinonStub = sandbox.stub(vscode.window, ShowQuickPick);
-            showQuickPick.onFirstCall().resolves(constants.systemDatabase);
+            showQuickPick.onFirstCall().resolves(SqlProjects.systemDatabase);
             showQuickPick.onSecondCall().resolves(undefined); // cancel after options shown
 
             await addDatabaseReferenceQuickpick(makeProject({ targetVersion: "SqlAzureV12" }));
@@ -245,7 +246,7 @@ suite("addDatabaseReferenceQuickpick", function (): void {
         test("getSystemDbOptions returns master and msdb for non-Azure target version", async function (): Promise<void> {
             sandbox.stub(utils, GetSqlProjectsInWorkspace).resolves([]);
             const showQuickPick: sinon.SinonStub = sandbox.stub(vscode.window, ShowQuickPick);
-            showQuickPick.onFirstCall().resolves(constants.systemDatabase);
+            showQuickPick.onFirstCall().resolves(SqlProjects.systemDatabase);
             showQuickPick.onSecondCall().resolves(undefined); // cancel after options shown
 
             await addDatabaseReferenceQuickpick(makeProject({ targetVersion: "SqlServer2022" }));
@@ -263,7 +264,7 @@ suite("addDatabaseReferenceQuickpick", function (): void {
         test("Returns undefined when user cancels project selection", async function (): Promise<void> {
             sandbox.stub(utils, GetSqlProjectsInWorkspace).resolves([otherProjectUri]);
             const showQuickPick: sinon.SinonStub = sandbox.stub(vscode.window, ShowQuickPick);
-            showQuickPick.onFirstCall().resolves(constants.projectLabel); // type
+            showQuickPick.onFirstCall().resolves(SqlProjects.projectLabel); // type
             showQuickPick.onSecondCall().resolves(undefined); // project → cancel
 
             const result = await addDatabaseReferenceQuickpick(makeProject({}));
@@ -273,10 +274,10 @@ suite("addDatabaseReferenceQuickpick", function (): void {
         test("Returns IProjectReferenceSettings for same-database location", async function (): Promise<void> {
             sandbox.stub(utils, GetSqlProjectsInWorkspace).resolves([otherProjectUri]);
             const showQuickPick: sinon.SinonStub = sandbox.stub(vscode.window, ShowQuickPick);
-            showQuickPick.onFirstCall().resolves(constants.projectLabel);
+            showQuickPick.onFirstCall().resolves(SqlProjects.projectLabel);
             showQuickPick.onSecondCall().resolves({ label: "OtherProj", uri: otherProjectUri });
-            showQuickPick.onThirdCall().resolves(constants.sameDatabase); // location
-            showQuickPick.onCall(3).resolves(constants.noStringDefault); // suppress errors
+            showQuickPick.onThirdCall().resolves(SqlProjects.sameDatabase); // location
+            showQuickPick.onCall(3).resolves(SqlProjects.noStringDefault); // suppress errors
 
             const result = await addDatabaseReferenceQuickpick(makeProject({}));
             const projResult = result as IProjectReferenceSettings;
@@ -289,10 +290,10 @@ suite("addDatabaseReferenceQuickpick", function (): void {
         test("Returns IProjectReferenceSettings with db and server vars for different-server location", async function (): Promise<void> {
             sandbox.stub(utils, GetSqlProjectsInWorkspace).resolves([otherProjectUri]);
             const showQuickPick: sinon.SinonStub = sandbox.stub(vscode.window, ShowQuickPick);
-            showQuickPick.onFirstCall().resolves(constants.projectLabel);
+            showQuickPick.onFirstCall().resolves(SqlProjects.projectLabel);
             showQuickPick.onSecondCall().resolves({ label: "OtherProj", uri: otherProjectUri });
-            showQuickPick.onThirdCall().resolves(constants.differentDbDifferentServer);
-            showQuickPick.onCall(3).resolves(constants.noStringDefault); // suppress errors
+            showQuickPick.onThirdCall().resolves(SqlProjects.differentDbDifferentServer);
+            showQuickPick.onCall(3).resolves(SqlProjects.noStringDefault); // suppress errors
 
             const showInputBox = sandbox.stub(vscode.window, ShowInputBox);
             showInputBox.onFirstCall().resolves("OtherProjDB"); // db name
@@ -317,7 +318,7 @@ suite("addDatabaseReferenceQuickpick", function (): void {
         test("Returns undefined when user cancels location selection", async function (): Promise<void> {
             sandbox.stub(utils, GetSqlProjectsInWorkspace).resolves([]);
             const showQuickPick: sinon.SinonStub = sandbox.stub(vscode.window, ShowQuickPick);
-            showQuickPick.onFirstCall().resolves(constants.dacpacText);
+            showQuickPick.onFirstCall().resolves(SqlProjects.dacpacText);
             showQuickPick.onSecondCall().resolves(undefined); // location → cancel
 
             const result = await addDatabaseReferenceQuickpick(makeProject({}));
@@ -336,9 +337,9 @@ suite("addDatabaseReferenceQuickpick", function (): void {
 
             sandbox.stub(utils, GetSqlProjectsInWorkspace).resolves([]);
             const showQuickPick: sinon.SinonStub = sandbox.stub(vscode.window, ShowQuickPick);
-            showQuickPick.onFirstCall().resolves(constants.dacpacText);
-            showQuickPick.onSecondCall().resolves(constants.sameDatabase);
-            showQuickPick.onThirdCall().resolves(constants.browseEllipsisWithIcon); // browse
+            showQuickPick.onFirstCall().resolves(SqlProjects.dacpacText);
+            showQuickPick.onSecondCall().resolves(SqlProjects.sameDatabase);
+            showQuickPick.onThirdCall().resolves(SqlProjects.browseEllipsisWithIcon); // browse
             showQuickPick.onCall(3).resolves(undefined); // second browse prompt → cancel
 
             const showOpenDialog = sandbox.stub(vscode.window, ShowOpenDialog).resolves([
@@ -362,10 +363,10 @@ suite("addDatabaseReferenceQuickpick", function (): void {
 
             sandbox.stub(utils, GetSqlProjectsInWorkspace).resolves([]);
             const showQuickPick: sinon.SinonStub = sandbox.stub(vscode.window, ShowQuickPick);
-            showQuickPick.onFirstCall().resolves(constants.dacpacText);
-            showQuickPick.onSecondCall().resolves(constants.sameDatabase);
-            showQuickPick.onThirdCall().resolves(constants.browseEllipsisWithIcon);
-            showQuickPick.onCall(3).resolves(constants.noStringDefault); // suppress errors
+            showQuickPick.onFirstCall().resolves(SqlProjects.dacpacText);
+            showQuickPick.onSecondCall().resolves(SqlProjects.sameDatabase);
+            showQuickPick.onThirdCall().resolves(SqlProjects.browseEllipsisWithIcon);
+            showQuickPick.onCall(3).resolves(SqlProjects.noStringDefault); // suppress errors
 
             sandbox.stub(vscode.window, ShowOpenDialog).resolves([dacpacUri]);
 
@@ -388,8 +389,8 @@ suite("addDatabaseReferenceQuickpick", function (): void {
         test("Returns undefined when user cancels package name input", async function (): Promise<void> {
             sandbox.stub(utils, GetSqlProjectsInWorkspace).resolves([]);
             const showQuickPick: sinon.SinonStub = sandbox.stub(vscode.window, ShowQuickPick);
-            showQuickPick.onFirstCall().resolves(constants.nupkgText);
-            showQuickPick.onSecondCall().resolves(constants.sameDatabase);
+            showQuickPick.onFirstCall().resolves(SqlProjects.nupkgText);
+            showQuickPick.onSecondCall().resolves(SqlProjects.sameDatabase);
 
             sandbox.stub(vscode.window, ShowInputBox).resolves(undefined); // pkg name → cancel
 
@@ -402,9 +403,9 @@ suite("addDatabaseReferenceQuickpick", function (): void {
         test("Returns INugetPackageReferenceSettings for happy path with same-database location", async function (): Promise<void> {
             sandbox.stub(utils, GetSqlProjectsInWorkspace).resolves([]);
             const showQuickPick: sinon.SinonStub = sandbox.stub(vscode.window, ShowQuickPick);
-            showQuickPick.onFirstCall().resolves(constants.nupkgText);
-            showQuickPick.onSecondCall().resolves(constants.sameDatabase); // location
-            showQuickPick.onThirdCall().resolves(constants.noStringDefault); // suppress errors
+            showQuickPick.onFirstCall().resolves(SqlProjects.nupkgText);
+            showQuickPick.onSecondCall().resolves(SqlProjects.sameDatabase); // location
+            showQuickPick.onThirdCall().resolves(SqlProjects.noStringDefault); // suppress errors
 
             const showInputBox = sandbox.stub(vscode.window, ShowInputBox);
             showInputBox.onFirstCall().resolves("MyPackage"); // pkg name

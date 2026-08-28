@@ -9,17 +9,10 @@ import * as os from "os";
 import * as path from "path";
 import * as semver from "semver";
 import * as vscode from "vscode";
-import {
-    DoNotAskAgain,
-    Install,
-    DotnetInstallationConfirmation,
-    NetCoreSupportedVersionInstallationConfirmation,
-    UpdateDotnetLocation,
-    loc0ErroredOut1,
-    microsoftBuildSqlVersionKey,
-} from "../common/constants";
+import { microsoftBuildSqlVersionKey } from "../common/constants";
 import * as utils from "../common/utils";
 import { ShellCommandOptions, ShellExecutionHelper } from "./shellExecutionHelper";
+import { SqlProjects } from "../../constants/locConstants";
 
 export const DBProjectConfigurationKey = "sqlDatabaseProjects";
 export const NetCoreInstallLocationKey = "netCoreSDKLocation";
@@ -111,28 +104,30 @@ export class NetCoreTool extends ShellExecutionHelper {
         let result;
         if (this.netCoreInstallState === netCoreInstallState.netCoreNotPresent) {
             result = await vscode.window.showErrorMessage(
-                DotnetInstallationConfirmation,
-                UpdateDotnetLocation,
-                Install,
-                DoNotAskAgain,
+                SqlProjects.DotnetInstallationConfirmation,
+                SqlProjects.UpdateDotnetLocation,
+                SqlProjects.Install,
+                SqlProjects.DoNotAskAgain,
             );
         } else {
             result = await vscode.window.showErrorMessage(
-                NetCoreSupportedVersionInstallationConfirmation(this.netCoreSdkInstalledVersion!),
-                UpdateDotnetLocation,
-                Install,
-                DoNotAskAgain,
+                SqlProjects.NetCoreSupportedVersionInstallationConfirmation(
+                    this.netCoreSdkInstalledVersion!,
+                ),
+                SqlProjects.UpdateDotnetLocation,
+                SqlProjects.Install,
+                SqlProjects.DoNotAskAgain,
             );
         }
 
-        if (result === UpdateDotnetLocation) {
+        if (result === SqlProjects.UpdateDotnetLocation) {
             //open settings
             await vscode.commands.executeCommand("workbench.action.openGlobalSettings");
-        } else if (result === Install) {
+        } else if (result === SqlProjects.Install) {
             //open install link
             const dotnetSdkUrl = "https://aka.ms/sqlprojects-dotnet";
             await vscode.env.openExternal(vscode.Uri.parse(dotnetSdkUrl));
-        } else if (result === DoNotAskAgain) {
+        } else if (result === SqlProjects.DoNotAskAgain) {
             const config = vscode.workspace.getConfiguration(DBProjectConfigurationKey);
             await config.update(NetCoreDoNotAskAgainKey, true, vscode.ConfigurationTarget.Global);
         }
@@ -284,7 +279,10 @@ export class NetCoreTool extends ShellExecutionHelper {
             return await this.runStreamedCommand(dotnetPath, args, options);
         } catch (error) {
             this._outputChannel.append(
-                loc0ErroredOut1([dotnetPath, ...args].join(" "), utils.getErrorMessage(error)),
+                SqlProjects.loc0ErroredOut1(
+                    [dotnetPath, ...args].join(" "),
+                    utils.getErrorMessage(error),
+                ),
             ); //errors are localized in our code where emitted, other errors are pass through from external components that are not easily localized
             throw error;
         }
@@ -298,10 +296,10 @@ export class NetCoreTool extends ShellExecutionHelper {
     public async verifyNetCoreInstallation(skipVersionSupportedCheck = false): Promise<void> {
         if (!(await this.findOrInstallNetCore(skipVersionSupportedCheck))) {
             if (this.netCoreInstallState === netCoreInstallState.netCoreNotPresent) {
-                throw new DotNetError(DotnetInstallationConfirmation);
+                throw new DotNetError(SqlProjects.DotnetInstallationConfirmation);
             } else {
                 throw new DotNetError(
-                    NetCoreSupportedVersionInstallationConfirmation(
+                    SqlProjects.NetCoreSupportedVersionInstallationConfirmation(
                         this.netCoreSdkInstalledVersion!,
                     ),
                 );

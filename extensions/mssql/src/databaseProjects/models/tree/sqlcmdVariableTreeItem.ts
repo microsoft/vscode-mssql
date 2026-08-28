@@ -9,6 +9,7 @@ import * as constants from "../../common/constants";
 
 import { BaseProjectTreeItem } from "./baseTreeItem";
 import { IconPathHelper } from "../../common/iconHelper";
+import { SqlProjects } from "../../../constants/locConstants";
 
 /**
  * Folder for containing SQLCMD variable nodes in the tree
@@ -28,7 +29,7 @@ export class SqlCmdVariablesTreeItem extends BaseProjectTreeItem {
         sqlCmdVariables: Map<string, string>,
     ) {
         super(
-            vscode.Uri.file(path.join(projectNodeName, constants.sqlcmdVariablesNodeName)),
+            vscode.Uri.file(path.join(projectNodeName, SqlProjects.sqlcmdVariablesNodeName)),
             sqlprojUri,
         );
 

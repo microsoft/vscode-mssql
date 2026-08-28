@@ -12,6 +12,7 @@ import * as constants from "../common/constants";
 import { VscodeHttpClient } from "extension-toolkit/vscode";
 import { getMicrosoftBuildSqlVersion } from "./netcoreTool";
 import { ProjectType } from "../common/enums";
+import { SqlProjects } from "../../constants/locConstants";
 
 const buildDirectory = "BuildDirectory";
 
@@ -134,7 +135,7 @@ export class BuildHelper {
             return true;
         }
 
-        outputChannel.appendLine(constants.downloadingNuget(fullNugetName));
+        outputChannel.appendLine(SqlProjects.downloadingNuget(fullNugetName));
 
         const nugetUrl = `https://www.nuget.org/api/v2/package/${nugetName}/${nugetVersion}`;
         const extractedFolderPath = path.join(this.extensionDir, buildDirectory, nugetName);
@@ -150,7 +151,7 @@ export class BuildHelper {
             const errorMessage = utils.getErrorMessage(e);
             if (e instanceof NugetDownloadError) {
                 // Network / connectivity failure — show the proxy/offline help text so users can resolve configuration issues.
-                const helpMessage = constants.nugetDownloadFailedHelp(this.extensionBuildDir);
+                const helpMessage = SqlProjects.nugetDownloadFailedHelp(this.extensionBuildDir);
                 outputChannel.appendLine(`${errorMessage}\n${helpMessage}`);
                 void vscode.window.showErrorMessage(helpMessage);
             } else {
@@ -194,14 +195,14 @@ export class BuildHelper {
     ): Promise<void> {
         try {
             const httpClient = new VscodeHttpClient();
-            outputChannel.appendLine(constants.downloadingFromTo(downloadUrl, nugetPath));
+            outputChannel.appendLine(SqlProjects.downloadingFromTo(downloadUrl, nugetPath));
             let printThreshold = 10;
             const result = await httpClient.downloadToPath(downloadUrl, nugetPath, {
                 onProgress: (progress) => {
                     if (progress.downloadedBytes === 0) {
                         if (progress.totalBytes !== undefined) {
                             outputChannel.appendLine(
-                                `${constants.downloading} ${downloadUrl} (0 / ${(progress.totalBytes / (1024 * 1024)).toFixed(2)} MB)`,
+                                `${SqlProjects.downloading} ${downloadUrl} (0 / ${(progress.totalBytes / (1024 * 1024)).toFixed(2)} MB)`,
                             );
                         }
                         return;
@@ -213,7 +214,7 @@ export class BuildHelper {
                         progress.percentage >= printThreshold
                     ) {
                         outputChannel.appendLine(
-                            `${constants.downloadProgress} (${(progress.downloadedBytes / (1024 * 1024)).toFixed(2)} / ${(progress.totalBytes / (1024 * 1024)).toFixed(2)} MB)`,
+                            `${SqlProjects.downloadProgress} (${(progress.downloadedBytes / (1024 * 1024)).toFixed(2)} / ${(progress.totalBytes / (1024 * 1024)).toFixed(2)} MB)`,
                         );
                         printThreshold += 10;
                     }
@@ -223,9 +224,9 @@ export class BuildHelper {
                 throw new Error(`HTTP ${result.status}`);
             }
         } catch (e) {
-            outputChannel.appendLine(`${constants.downloadError}: ${utils.getErrorMessage(e)}`);
+            outputChannel.appendLine(`${SqlProjects.downloadError}: ${utils.getErrorMessage(e)}`);
             throw new NugetDownloadError(
-                constants.errorDownloading(downloadUrl, utils.getErrorMessage(e)),
+                SqlProjects.errorDownloading(downloadUrl, utils.getErrorMessage(e)),
             );
         }
 
@@ -233,7 +234,7 @@ export class BuildHelper {
             await extractZip(nugetPath, { dir: extractFolderPath });
         } catch (e) {
             throw new NugetExtractionError(
-                constants.errorExtracting(nugetPath, utils.getErrorMessage(e)),
+                SqlProjects.errorExtracting(nugetPath, utils.getErrorMessage(e)),
             );
         }
     }

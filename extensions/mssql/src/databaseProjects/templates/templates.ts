@@ -8,6 +8,7 @@ import { promises as fs } from "fs";
 import { ItemType } from "../sqldbproj";
 import * as constants from "../common/constants";
 import { getMicrosoftBuildSqlVersion } from "../tools/netcoreTool";
+import { SqlProjects } from "../../constants/locConstants";
 
 export let newSqlProjectTemplate: string;
 export let newSdkSqlProjectTemplate: string;
@@ -87,97 +88,97 @@ export async function loadTemplates(templateFolderPath: string) {
         ),
         loadObjectTypeInfo(
             ItemType.script,
-            constants.scriptFriendlyName,
+            SqlProjects.scriptFriendlyName,
             templateFolderPath,
             "newTsqlScriptTemplate.sql",
         ),
         loadObjectTypeInfo(
             ItemType.table,
-            constants.tableFriendlyName,
+            SqlProjects.tableFriendlyName,
             templateFolderPath,
             "newTsqlTableTemplate.sql",
         ),
         loadObjectTypeInfo(
             ItemType.view,
-            constants.viewFriendlyName,
+            SqlProjects.viewFriendlyName,
             templateFolderPath,
             "newTsqlViewTemplate.sql",
         ),
         loadObjectTypeInfo(
             ItemType.storedProcedure,
-            constants.storedProcedureFriendlyName,
+            SqlProjects.storedProcedureFriendlyName,
             templateFolderPath,
             "newTsqlStoredProcedureTemplate.sql",
         ),
         loadObjectTypeInfo(
             ItemType.tableValuedFunction,
-            constants.tableValuedFunctionFriendlyName,
+            SqlProjects.tableValuedFunctionFriendlyName,
             templateFolderPath,
             "newTsqlTableValuedFunctionTemplate.sql",
         ),
         loadObjectTypeInfo(
             ItemType.schema,
-            constants.schemaFriendlyName,
+            SqlProjects.schemaFriendlyName,
             templateFolderPath,
             "newTsqlSchemaTemplate.sql",
         ),
         loadObjectTypeInfo(
             ItemType.preDeployScript,
-            constants.preDeployScriptFriendlyName,
+            SqlProjects.preDeployScriptFriendlyName,
             templateFolderPath,
             "newTsqlPreDeployScriptTemplate.sql",
         ),
         loadObjectTypeInfo(
             ItemType.postDeployScript,
-            constants.postDeployScriptFriendlyName,
+            SqlProjects.postDeployScriptFriendlyName,
             templateFolderPath,
             "newTsqlPostDeployScriptTemplate.sql",
         ),
         loadObjectTypeInfo(
             ItemType.dataSource,
-            constants.dataSourceFriendlyName,
+            SqlProjects.dataSourceFriendlyName,
             templateFolderPath,
             "newTsqlDataSourceTemplate.sql",
         ),
         loadObjectTypeInfo(
             ItemType.fileFormat,
-            constants.fileFormatFriendlyName,
+            SqlProjects.fileFormatFriendlyName,
             templateFolderPath,
             "newTsqlFileFormatTemplate.sql",
         ),
         loadObjectTypeInfo(
             ItemType.externalStream,
-            constants.externalStreamFriendlyName,
+            SqlProjects.externalStreamFriendlyName,
             templateFolderPath,
             "newTsqlExternalStreamTemplate.sql",
         ),
         loadObjectTypeInfo(
             ItemType.externalStreamingJob,
-            constants.externalStreamingJobFriendlyName,
+            SqlProjects.externalStreamingJobFriendlyName,
             templateFolderPath,
             "newTsqlExternalStreamingJobTemplate.sql",
         ),
         loadObjectTypeInfo(
             ItemType.publishProfile,
-            constants.publishProfileFriendlyName,
+            SqlProjects.publishProfileFriendlyName,
             templateFolderPath,
             "newPublishProfileTemplate.publish.xml",
         ),
         loadObjectTypeInfo(
             ItemType.trigger,
-            constants.triggerFriendlyName,
+            SqlProjects.triggerFriendlyName,
             templateFolderPath,
             "newTsqlTriggerTemplate.sql",
         ),
         loadObjectTypeInfo(
             ItemType.databaseTrigger,
-            constants.databaseTriggerFriendlyName,
+            SqlProjects.databaseTriggerFriendlyName,
             templateFolderPath,
             "newTsqlDatabaseTriggerTemplate.sql",
         ),
         loadObjectTypeInfo(
             ItemType.sequence,
-            constants.sequenceFriendlyName,
+            SqlProjects.sequenceFriendlyName,
             templateFolderPath,
             "newTsqlSequenceTemplate.sql",
         ),

@@ -40,6 +40,7 @@ import {
 } from "./tree/fileFolderTreeItem";
 import { GetScriptsResult, GetFoldersResult } from "../common/typeHelper";
 import { ProjectType, SystemDatabase } from "../common/enums";
+import { SqlProjects } from "../../constants/locConstants";
 
 /**
  * Represents the configuration based on the Configuration property in the sqlproj
@@ -259,15 +260,15 @@ export class Project implements ISqlProject {
         }
 
         const projectNames = uniqueProjects.map((p) => p.projectFileName);
-        const message = constants.missingProjectGuids(uniqueProjects.length, projectNames);
+        const message = SqlProjects.missingProjectGuids(uniqueProjects.length, projectNames);
 
         const result = await window.showInformationMessage(
             message,
-            constants.addProjectGuidLabel,
-            constants.noString,
+            SqlProjects.addProjectGuidLabel,
+            SqlProjects.noString,
         );
 
-        if (result === constants.addProjectGuidLabel) {
+        if (result === SqlProjects.addProjectGuidLabel) {
             for (const project of uniqueProjects) {
                 // Re-check at fix time: a project may have received a valid GUID between
                 // when the prompt was queued and when the user accepted (e.g. a reload
@@ -300,25 +301,25 @@ export class Project implements ISqlProject {
 
         if (blockingPrompt) {
             const result = await window.showWarningMessage(
-                constants.updateProjectForCrossPlatform(project.projectFileName),
+                SqlProjects.updateProjectForCrossPlatform(project.projectFileName),
                 { modal: true },
-                constants.yesString,
-                constants.noString,
+                SqlProjects.yesString,
+                SqlProjects.noString,
             );
 
-            if (result === constants.yesString) {
+            if (result === SqlProjects.yesString) {
                 await project.updateProjectForCrossPlatform();
             }
         } else {
             // use "void" with a .then() to not block the UI thread while prompting the user
             void window
                 .showErrorMessage(
-                    constants.updateProjectForCrossPlatform(project.projectFileName),
-                    constants.yesString,
-                    constants.noString,
+                    SqlProjects.updateProjectForCrossPlatform(project.projectFileName),
+                    SqlProjects.yesString,
+                    SqlProjects.noString,
                 )
                 .then(async (result) => {
-                    if (result === constants.yesString) {
+                    if (result === SqlProjects.yesString) {
                         try {
                             await project.updateProjectForCrossPlatform();
                         } catch (error) {
@@ -404,8 +405,8 @@ export class Project implements ISqlProject {
 
         if (!sqlcmdVariablesResult.success && sqlcmdVariablesResult.errorMessage) {
             throw new Error(
-                constants.errorReadingProject(
-                    constants.sqlCmdVariables,
+                SqlProjects.errorReadingProject(
+                    SqlProjects.sqlCmdVariables,
                     this.projectFilePath,
                     sqlcmdVariablesResult.errorMessage,
                 ),
@@ -495,7 +496,7 @@ export class Project implements ISqlProject {
         }
 
         if (preDeploymentScriptEntries.length > 1 && warnIfMultiple) {
-            void window.showWarningMessage(constants.prePostDeployCount, constants.okString);
+            void window.showWarningMessage(SqlProjects.prePostDeployCount, SqlProjects.okString);
         }
 
         this._preDeployScripts = preDeploymentScriptEntries;
@@ -519,7 +520,7 @@ export class Project implements ISqlProject {
         }
 
         if (postDeploymentScriptEntries.length > 1 && warnIfMultiple) {
-            void window.showWarningMessage(constants.prePostDeployCount, constants.okString);
+            void window.showWarningMessage(SqlProjects.prePostDeployCount, SqlProjects.okString);
         }
 
         this._postDeployScripts = postDeploymentScriptEntries;
@@ -835,7 +836,7 @@ export class Project implements ISqlProject {
     public async addPreDeploymentScript(relativePath: string): Promise<void> {
         if (this.preDeployScripts.length > 0) {
             void vscode.window.showInformationMessage(
-                constants.deployScriptExists(constants.PreDeploy),
+                SqlProjects.deployScriptExists(constants.PreDeploy),
             );
         }
 
@@ -879,7 +880,7 @@ export class Project implements ISqlProject {
     public async addPostDeploymentScript(relativePath: string): Promise<void> {
         if (this.postDeployScripts.length > 0) {
             void vscode.window.showInformationMessage(
-                constants.deployScriptExists(constants.PostDeploy),
+                SqlProjects.deployScriptExists(constants.PostDeploy),
             );
         }
 
@@ -1000,7 +1001,7 @@ export class Project implements ISqlProject {
     public async addExistingItem(filePath: string): Promise<FileProjectEntry> {
         const exists = await utils.exists(filePath);
         if (!exists) {
-            throw new Error(constants.noFileExist(filePath));
+            throw new Error(SqlProjects.noFileExist(filePath));
         }
 
         const normalizedRelativeFilePath = utils.convertSlashesForSqlProj(
@@ -1068,7 +1069,7 @@ export class Project implements ISqlProject {
 
         // make sure version is valid
         if (!Array.from(constants.targetPlatformToVersion.values()).includes(version)) {
-            throw new Error(constants.invalidDataSchemaProvider);
+            throw new Error(SqlProjects.invalidDataSchemaProvider);
         }
 
         return version;
@@ -1097,7 +1098,7 @@ export class Project implements ISqlProject {
                 (r) => r.referenceName === settings.databaseVariableLiteralValue,
             )
         ) {
-            throw new Error(constants.databaseReferenceAlreadyExists);
+            throw new Error(SqlProjects.databaseReferenceAlreadyExists);
         }
 
         let result, sqlProjService;
@@ -1114,7 +1115,7 @@ export class Project implements ISqlProject {
 
         if (!result.success && result.errorMessage) {
             throw new Error(
-                constants.errorAddingDatabaseReference(
+                SqlProjects.errorAddingDatabaseReference(
                     utils.systemDatabaseToString(settings.systemDb),
                     result.errorMessage,
                 ),
@@ -1154,7 +1155,7 @@ export class Project implements ISqlProject {
     ): Promise<void> {
         // check if reference to this database already exists
         if (this.databaseReferenceExists(reference)) {
-            throw new Error(constants.databaseReferenceAlreadyExists);
+            throw new Error(SqlProjects.databaseReferenceAlreadyExists);
         }
 
         // create database variable
@@ -1217,7 +1218,7 @@ export class Project implements ISqlProject {
 
         if (!result.success && result.errorMessage) {
             throw new Error(
-                constants.errorAddingDatabaseReference(referenceName, result.errorMessage),
+                SqlProjects.errorAddingDatabaseReference(referenceName, result.errorMessage),
             );
         }
 
@@ -1300,7 +1301,7 @@ export class Project implements ISqlProject {
      */
     public async addDatabaseSource(databaseSource: string): Promise<void> {
         if (databaseSource.includes(";")) {
-            throw Error(constants.invalidProjectPropertyValueProvided(";"));
+            throw Error(SqlProjects.invalidProjectPropertyValueProvided(";"));
         }
 
         const sources: string[] = this.getDatabaseSourceValues();
@@ -1328,7 +1329,7 @@ export class Project implements ISqlProject {
      */
     public async removeDatabaseSource(databaseSource: string): Promise<void> {
         if (databaseSource.includes(";")) {
-            throw Error(constants.invalidProjectPropertyValueProvided(";"));
+            throw Error(SqlProjects.invalidProjectPropertyValueProvided(";"));
         }
 
         const sources: string[] = this.getDatabaseSourceValues();
@@ -1428,7 +1429,7 @@ export class Project implements ISqlProject {
                 destinationRelativePath,
             );
         } else {
-            result = { success: false, errorMessage: constants.unhandledMoveNode };
+            result = { success: false, errorMessage: SqlProjects.unhandledMoveNode };
         }
 
         return result;
