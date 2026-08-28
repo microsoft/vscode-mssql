@@ -21,6 +21,10 @@ import { initializeDatabaseProjectsServices } from "../../../src/databaseProject
 
 let serviceInitialization: Promise<void> | undefined;
 
+// The first project suite activates MSSQL and starts SQL Tools Service, which can exceed the
+// general unit-test timeout on slower CI agents. Subsequent suites reuse the same promise.
+export const sqlToolsServiceInitializationTimeoutMs = 120_000;
+
 export function initializeTestServices(): Promise<void> {
     serviceInitialization ??= (async () => {
         const extension = vscode.extensions.getExtension("ms-mssql.mssql");

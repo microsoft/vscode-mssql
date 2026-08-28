@@ -41,6 +41,7 @@ let sandbox: sinon.SinonSandbox;
 
 suite("ProjectsController", function (): void {
     suiteSetup(async function (): Promise<void> {
+        this.timeout(testUtils.sqlToolsServiceInitializationTimeoutMs);
         await testUtils.initializeTestServices();
         await templates.loadTemplates(templatesPath);
         await baselines.loadBaselines();

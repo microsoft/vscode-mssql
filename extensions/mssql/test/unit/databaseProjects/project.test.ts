@@ -37,6 +37,7 @@ import { SqlProjects } from "../../../src/constants/locConstants";
 
 suite("Project: sqlproj content operations", function (): void {
     suiteSetup(async function (): Promise<void> {
+        this.timeout(testUtils.sqlToolsServiceInitializationTimeoutMs);
         await testUtils.initializeTestServices();
         await baselines.loadBaselines();
         await templates.loadTemplates(testUtils.getTemplatesRootPath());
@@ -471,6 +472,7 @@ suite("Project: sqlproj content operations", function (): void {
 
 suite("Project: sdk style project content operations", function (): void {
     suiteSetup(async function (): Promise<void> {
+        this.timeout(testUtils.sqlToolsServiceInitializationTimeoutMs);
         await testUtils.initializeTestServices();
         await baselines.loadBaselines();
     });
@@ -757,6 +759,7 @@ suite("Project: sdk style project content operations", function (): void {
 
 suite("Project: database references", function (): void {
     suiteSetup(async function (): Promise<void> {
+        this.timeout(testUtils.sqlToolsServiceInitializationTimeoutMs);
         await testUtils.initializeTestServices();
         await baselines.loadBaselines();
     });
@@ -1607,6 +1610,7 @@ suite("Project: database references", function (): void {
 
 suite("Project: add SQLCMD Variables", function (): void {
     suiteSetup(async function (): Promise<void> {
+        this.timeout(testUtils.sqlToolsServiceInitializationTimeoutMs);
         await testUtils.initializeTestServices();
         await baselines.loadBaselines();
     });
@@ -1649,6 +1653,7 @@ suite("Project: add SQLCMD Variables", function (): void {
 
 suite("Project: publish profiles", function (): void {
     suiteSetup(async function (): Promise<void> {
+        this.timeout(testUtils.sqlToolsServiceInitializationTimeoutMs);
         await testUtils.initializeTestServices();
         await baselines.loadBaselines();
     });
@@ -1682,6 +1687,7 @@ suite("Project: properties", function (): void {
     let sandbox: sinon.SinonSandbox;
 
     suiteSetup(async function (): Promise<void> {
+        this.timeout(testUtils.sqlToolsServiceInitializationTimeoutMs);
         await testUtils.initializeTestServices();
         await baselines.loadBaselines();
         await templates.loadTemplates(testUtils.getTemplatesRootPath());
@@ -1943,6 +1949,7 @@ suite("Project: properties", function (): void {
 
 suite("Project: round trip updates", function (): void {
     suiteSetup(async function (): Promise<void> {
+        this.timeout(testUtils.sqlToolsServiceInitializationTimeoutMs);
         await testUtils.initializeTestServices();
         await baselines.loadBaselines();
     });
