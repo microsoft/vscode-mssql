@@ -1793,11 +1793,11 @@ Dadurch werden sowohl der Container als auch seine Verbindung aus VS Code entfer
       </trans-unit>
       <trans-unit id="++CODE++b2038796cc82692ba0c9cbbe3a19c54c677bff6216a35fb3345ca939957ced9a">
         <source xml:lang="en">Click "Learn More" button for more information about SDK-style projects</source>
-        <target state="new">Click "Learn More" button for more information about SDK-style projects</target>
+        <target state="translated">Klicken Sie auf die Schaltfläche „Weitere Informationen“, um weitere Informationen zu Projekten im SDK-Stil zu erhalten.</target>
       </trans-unit>
       <trans-unit id="++CODE++2e2838f3ed9e160a6a76e5e98377f1c3fd91c9a37587b2206cd6b41543ce0d21">
         <source xml:lang="en">Click "Learn more" button for more information about local development experience to {0}</source>
-        <target state="new">Click "Learn more" button for more information about local development experience to {0}</target>
+        <target state="translated">Klicken Sie auf die Schaltfläche „Weitere Informationen“, um weitere Informationen zur lokalen Entwicklungserfahrung bezüglich {0} zu erfahren</target>
       </trans-unit>
       <trans-unit id="++CODE++4e0d71f8a0b3fdc5cdaba4028072ad8cf788bac47864232a1988ac9453453a36">
         <source xml:lang="en">Click to cancel loading summary</source>
@@ -1833,7 +1833,7 @@ Dadurch werden sowohl der Container als auch seine Verbindung aus VS Code entfer
       </trans-unit>
       <trans-unit id="++CODE++1b766c528b25b99b2639efd01ddb11d6571480dc7adc8411b49c45c9167da4a3">
         <source xml:lang="en">Cloning git repository '{0}'...</source>
-        <target state="new">Cloning git repository '{0}'...</target>
+        <target state="translated">Das Git-Repository „{0}“ wird geklont...</target>
       </trans-unit>
       <trans-unit id="++CODE++7d9eb7acb13e24625c404401d8e88b2350e32162455885f18276cf802f7701ed">
         <source xml:lang="en">Close</source>
@@ -2869,7 +2869,7 @@ Dadurch werden sowohl der Container als auch seine Verbindung aus VS Code entfer
       </trans-unit>
       <trans-unit id="++CODE++b325e98228f146b279c4ce780a9e0cedbb59737395726a3a51ea2c5569b425a6">
         <source xml:lang="en">Create new database project</source>
-        <target state="new">Create new database project</target>
+        <target state="translated">Neues Datenbankprojekt erstellen</target>
       </trans-unit>
       <trans-unit id="++CODE++7ec04ea2bc2ba275e7471e9e6ec9ed4764f7c069d84e751a4652cb5bd3cba6b7">
         <source xml:lang="en">Create new firewall rule for {0}</source>
@@ -3460,7 +3460,7 @@ Dadurch werden sowohl der Container als auch seine Verbindung aus VS Code entfer
       </trans-unit>
       <trans-unit id="++CODE++a5ae618cb3167a304d3c5c6c4ab64a1e6370431b7d8d18093ce828c7735f5300">
         <source xml:lang="en">Directory '{0}' already exists in the selected location, please choose another</source>
-        <target state="new">Directory '{0}' already exists in the selected location, please choose another</target>
+        <target state="translated">Das Verzeichnis "{0}" ist bereits am ausgewählten Speicherort vorhanden, wählen Sie ein anderes aus</target>
       </trans-unit>
       <trans-unit id="++CODE++33df1f7746d428f19493d14c875c60ddc71befd7377ba92d4fc578bc3529b993">
         <source xml:lang="en">Directory not found</source>
@@ -3570,7 +3570,7 @@ Dadurch werden sowohl der Container als auch seine Verbindung aus VS Code entfer
       </trans-unit>
       <trans-unit id="++CODE++cb997dad2c497f2da09a062a52ab0e4a22bc9372cafb01a7bbfd2b3942628e63">
         <source xml:lang="en">Do you want to configure SQL project build as the default build configuration for this folder?</source>
-        <target state="new">Do you want to configure SQL project build as the default build configuration for this folder?</target>
+        <target state="translated">Möchten Sie den SQL-Projektbuild als Standardbuildkonfiguration für diesen Ordner konfigurieren?</target>
       </trans-unit>
       <trans-unit id="++CODE++3c96c6d1388e41b0724659fa022b1843dea4a84d175a1d571bf72382fc0c3581">
         <source xml:lang="en">Do you want to enable 'Trust server certificate' on this connection and retry?</source>
@@ -3996,11 +3996,11 @@ Dadurch werden sowohl der Container als auch seine Verbindung aus VS Code entfer
       </trans-unit>
       <trans-unit id="++CODE++d7caaddcb1559a9c6e14134143691acc8adabe992567bed4226ff812667142b2">
         <source xml:lang="en">Enter project name</source>
-        <target state="new">Enter project name</target>
+        <target state="translated">Projektnamen eingeben</target>
       </trans-unit>
       <trans-unit id="++CODE++02d4e79350a06158de9d2f10a6c61ff555481526142dd96aec5aff940bba298d">
         <source xml:lang="en">Enter remote git repository URL</source>
-        <target state="new">Enter remote git repository URL</target>
+        <target state="translated">URL des Git-Remoterepositorys eingeben</target>
       </trans-unit>
       <trans-unit id="++CODE++aae46441eaafc59419fdc91d2a14f13e534b533fecd19a1b47833c18862731fe">
         <source xml:lang="en">Enter resource group name</source>
@@ -4109,7 +4109,7 @@ Dadurch werden sowohl der Container als auch seine Verbindung aus VS Code entfer
       </trans-unit>
       <trans-unit id="++CODE++051c2e5dc459d609983ac6e5df61edbb18bbdaf94dcb3889f284ea09d0135ebb">
         <source xml:lang="en">Error during git clone. View git output for more details</source>
-        <target state="new">Error during git clone. View git output for more details</target>
+        <target state="translated">Fehler beim Git-Klonen. Weitere Details finden Sie in der Git-Ausgabe</target>
       </trans-unit>
       <trans-unit id="++CODE++5724db21756ce9913cd865a6ee16467d2f4a297733e3024ef079c97972be981c">
         <source xml:lang="en">Error extracting files from {0}. Error: {1}</source>
@@ -4947,7 +4947,7 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++a68ab76025d92362fc73dc8c8b31f961e7dcfb30771d019e2242becce106b19f">
         <source xml:lang="en">Failed to load the project provider extension '{0}'. Error message: {1}</source>
-        <target state="new">Failed to load the project provider extension '{0}'. Error message: {1}</target>
+        <target state="translated">Fehler beim Laden der Projektanbietererweiterung "{0}". Fehlermeldung: {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++b93e0a97fce96dfc718e10b11f3d87cd992eaaf44707ea040271b2ca47843a9f">
         <source xml:lang="en">Failed to move file to the new schema folder: {0}</source>
@@ -5174,7 +5174,7 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++9cdb4da34cf303d675f00bb4074b9a66c482e814bab96be22c6db5790bdb5f99">
         <source xml:lang="en">File '{0}' doesn't exist</source>
-        <target state="new">File '{0}' doesn't exist</target>
+        <target state="translated">Die Datei "{0}" ist nicht vorhanden</target>
       </trans-unit>
       <trans-unit id="++CODE++31931e62a8801e325b804a8294c1fe6b3fbdc62f18681f8f026f141510e20b91">
         <source xml:lang="en">File (Read-Only)</source>
@@ -5206,19 +5206,19 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++743a2236d1a76d25d339b730eaf23e16075ac75d93f880b0a1f22811581f6dab">
         <source xml:lang="en">File name cannot be over 255 characters</source>
-        <target state="new">File name cannot be over 255 characters</target>
+        <target state="translated">Der Dateiname darf nicht mehr als 255 Zeichen umfassen</target>
       </trans-unit>
       <trans-unit id="++CODE++407d7103e0302f8d5a2db233c6acaeb9802af4fd4386d2b4640b66f8496519b2">
         <source xml:lang="en">File name cannot be whitespace</source>
-        <target state="new">File name cannot be whitespace</target>
+        <target state="translated">Der Dateiname darf nicht aus Leerzeichen bestehen.</target>
       </trans-unit>
       <trans-unit id="++CODE++b4a674a796656b801a531abacedb26b51632121b4ee1954164593bb7868dddd0">
         <source xml:lang="en">File name cannot end with a period</source>
-        <target state="new">File name cannot end with a period</target>
+        <target state="translated">Der Dateiname darf nicht mit einem Punkt enden.</target>
       </trans-unit>
       <trans-unit id="++CODE++7c06f736aa55b5fe2f16aca769fe9b7647f2b6797c4b7e7629c38be458c69dc2">
         <source xml:lang="en">File name cannot start or end with whitespace</source>
-        <target state="new">File name cannot start or end with whitespace</target>
+        <target state="translated">Der Dateiname darf nicht mit einem Leerzeichen beginnen oder enden</target>
       </trans-unit>
       <trans-unit id="++CODE++6f68fab010563e4334d34ad75407ae64b42cb41c2516e861be7100f3b0ef36a2">
         <source xml:lang="en">File name is required</source>
@@ -6315,7 +6315,7 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++acede15b0f2842335d351129cc42de3c07c067fef8a6300a03b41943fcf75fbe">
         <source xml:lang="en">List of opened projects should not be undefined after refresh from disk.</source>
-        <target state="new">List of opened projects should not be undefined after refresh from disk.</target>
+        <target state="translated">Die Liste der geöffneten Projekte sollte nach der Aktualisierung vom Datenträger nicht undefiniert sein.</target>
       </trans-unit>
       <trans-unit id="++CODE++6369f67786ac3f6d5ed439f3eea6ab7cf1f8acfa25ba69c73b658225f5e7ce51">
         <source xml:lang="en">List schemas for connection '{0}' (ID: {1})?</source>
@@ -6593,7 +6593,7 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++8c31e6e7223097e2e4847773c47a4efab6aaf79deeecc92a7759891c74976dde">
         <source xml:lang="en">Local</source>
-        <target state="new">Local</target>
+        <target state="translated">Lokal</target>
       </trans-unit>
       <trans-unit id="++CODE++67b84cd4159ae33eb03a5cc9398bc77383d9ab5e73a5faf7189b775384dc09a1">
         <source xml:lang="en">Local Container Deployment</source>
@@ -7088,7 +7088,7 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++9615c8137b02c86108999710ddc924d44c2c40df671c8aa746e15448bde4a572">
         <source xml:lang="en">Name cannot be empty</source>
-        <target state="new">Name cannot be empty</target>
+        <target state="translated">Das Namensfeld darf nicht leer bleiben.</target>
       </trans-unit>
       <trans-unit id="++CODE++b82c5cef7aaff3d8d682ade902e1ed86c30c2206d3291b70c464bca8b9632e1e">
         <source xml:lang="en">Name for the Docker container running DAB</source>
@@ -7410,7 +7410,7 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++c12d4f1601e03c6b7157d7d282f575e2cea570a558f3e5fb4d56eb254d3e26c2">
         <source xml:lang="en">No database project extensions are installed. Please install a database project extension to use this feature.</source>
-        <target state="new">No database project extensions are installed. Please install a database project extension to use this feature.</target>
+        <target state="translated">Es sind keine Datenbankprojekterweiterungen installiert. Installieren Sie eine Datenbankprojekterweiterung, um dieses Feature zu verwenden.</target>
       </trans-unit>
       <trans-unit id="++CODE++979ea4dd600dbdf9f324b9fcc58626178a88362bea00d193ca63b85c5496599f">
         <source xml:lang="en">No database selected.</source>
@@ -7509,11 +7509,11 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++3a874feeee6e2e2e7d08d96c53e2ed3f68e63a7a162ed6613d8934c32642ee1a">
         <source xml:lang="en">No provider was found for project type with id: '{0}'</source>
-        <target state="new">No provider was found for project type with id: '{0}'</target>
+        <target state="translated">Für den Projekttyp mit der ID "{0}" wurde kein Anbieter gefunden</target>
       </trans-unit>
       <trans-unit id="++CODE++cf34d3ee7de6fe08d706a22899bdb22aacfb37a03185c2938b399c04d77ecd3a">
         <source xml:lang="en">No provider was found for the following projects: {0}</source>
-        <target state="new">No provider was found for the following projects: {0}</target>
+        <target state="translated">Für die folgenden Projekte wurde kein Anbieter gefunden: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++07fa58bdd9de910a1e070b49104fd2eb37a4665f9cae70f35a28130d6fb1cf10">
         <source xml:lang="en">No query set</source>
@@ -7840,7 +7840,7 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++f44967525bfc9deeea7a8e027342c9e8a4aceea83e75ebec12cd41d09323b78b">
         <source xml:lang="en">Only moving one file at a time is supported.</source>
-        <target state="new">Only moving one file at a time is supported.</target>
+        <target state="translated">Es kann immer nur eine Datei auf einmal verschoben werden.</target>
       </trans-unit>
       <trans-unit id="++CODE++ed077f3d8125d60dca1979c7133601bd187d47c73ed9975028f677e49e709942">
         <source xml:lang="en">Open</source>
@@ -8341,7 +8341,7 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++da5243d6f1aa8f123f458da43ca5ac9c77b12c129981777115e374593d024a60">
         <source xml:lang="en">Prior {0} for the current project will appear here, please run to see the results.</source>
-        <target state="new">Prior {0} for the current project will appear here, please run to see the results.</target>
+        <target state="translated">Vorherige "{0}" für das aktuelle Projekt werden hier angezeigt. Führen Sie die Ausführung aus, um die Ergebnisse anzuzeigen.</target>
       </trans-unit>
       <trans-unit id="++CODE++e4b88de23274e99ca98b822e9f304564c85d96333a5d35bb218b95654a03c7ab">
         <source xml:lang="en">Prisma</source>
@@ -8423,15 +8423,15 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++985959785319747668373cc6dee294b11db782b03cdd90a2851fbdc0637c6b7b">
         <source xml:lang="en">Project</source>
-        <target state="new">Project</target>
+        <target state="translated">Projekt</target>
       </trans-unit>
       <trans-unit id="++CODE++30b914c73723e762b49e4881afeb6d40c0b686ef8fafb04e37786e67eb9d5b25">
         <source xml:lang="en">Project '{0}' failed to load: {1}  To view more details, [open the developer console](command:workbench.action.toggleDevTools).</source>
-        <target state="new">Project '{0}' failed to load: {1}  To view more details, [open the developer console](command:workbench.action.toggleDevTools).</target>
+        <target state="translated">Projekt '{0}' konnte nicht geladen werden: {1}  Um weitere Details zu sehen, [öffnen Sie die Entwicklerkonsole](command:workbench.action.toggleDevTools).</target>
       </trans-unit>
       <trans-unit id="++CODE++1c4e927c1250569dd8129c93e41fd1c39ede59048b2df1d88d2d4071d258c4d6">
         <source xml:lang="en">Project '{0}' is already opened.</source>
-        <target state="new">Project '{0}' is already opened.</target>
+        <target state="translated">Das Projekt "{0}" ist bereits geöffnet.</target>
       </trans-unit>
       <trans-unit id="++CODE++e04042289bd986941675cd4a9ada3b0d0a6f8c2eb75f5b833381d60fdec4186c">
         <source xml:lang="en">Project '{0}' is missing a ProjectGuid. A unique ProjectGuid helps identify the project for cross-project references. Would you like one to be added?</source>
@@ -8447,7 +8447,7 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++5f602181909669feb4167d88e524dca92f44ff64cc3cd8f1594f9d7fb2e77949">
         <source xml:lang="en">Project name is null</source>
-        <target state="new">Project name is null</target>
+        <target state="translated">Projektname ist Null</target>
       </trans-unit>
       <trans-unit id="++CODE++598020cc5bef4d8e71624bce32a6ff261c0c68f3c58e433381e2babc192b0909">
         <source xml:lang="en">Project property value '{0} is invalid</source>
@@ -8934,7 +8934,7 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++5565e8940ff05902b27ae49ba192e6e41f7bff254ddb7d8cb70a1b2b926b749b">
         <source xml:lang="en">Reserved file name. Choose another name and try again</source>
-        <target state="new">Reserved file name. Choose another name and try again</target>
+        <target state="translated">Reservierter Dateiname. Wählen Sie einen anderen Namen aus, und versuchen Sie es noch mal.</target>
       </trans-unit>
       <trans-unit id="++CODE++daee7606b339f3c339076fe2c9f372a3ff40c8ee896005d829c7481b64ca5303">
         <source xml:lang="en">Reset</source>
@@ -9245,7 +9245,7 @@ Abfrage: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++4870950395d377ccb78a99509d402224e9dde215522464fe53d7423a5e6ac8b2">
         <source xml:lang="en">SDK-style project</source>
-        <target state="new">SDK-style project</target>
+        <target state="translated">Projekte im SDK-Stil</target>
       </trans-unit>
       <trans-unit id="++CODE++a7056a455639d1c7deec82ee787db24a0c1878e2792b4597709f0facf7cc7b35">
         <source xml:lang="en">SQL</source>
@@ -9774,7 +9774,7 @@ Abfrage: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++f26145b7cf23b6b4844b0c44ec7c3b39e14b66694d7950f4ea05d7910e3a5d0c">
         <source xml:lang="en">Select Database Project Type</source>
-        <target state="new">Select Database Project Type</target>
+        <target state="translated">Datenbankprojekttyp auswählen</target>
       </trans-unit>
       <trans-unit id="++CODE++79f376f90b59c3bc990ce225ac8c8fdd6093ae81003f60c53bc6aa3939e47988">
         <source xml:lang="en">Select File</source>
@@ -9997,11 +9997,11 @@ Abfrage: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++bd9232839fa94544d3f5c54b315124fe19ab3cfc7231b534878e9141bad87b6a">
         <source xml:lang="en">Select location to clone repository locally</source>
-        <target state="new">Select location to clone repository locally</target>
+        <target state="translated">Speicherort zum lokalen Klonen des Repositorys auswählen</target>
       </trans-unit>
       <trans-unit id="++CODE++fd5457462a525b84645a21f9405208b152ef6428ed5a46e093bb9d66c12034b2">
         <source xml:lang="en">Select location to create project</source>
-        <target state="new">Select location to create project</target>
+        <target state="translated">Speicherort zum Erstellen des Projekts auswählen</target>
       </trans-unit>
       <trans-unit id="++CODE++154f133b3d7ef488e01090c00b0104ba7bf48bf4368e2ad71333fd3d863fb270">
         <source xml:lang="en">Select new permission for extension: '{0}'</source>
@@ -10030,7 +10030,7 @@ Abfrage: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++04783dd07ecff6e5427ee1c5a910ac2a86339fb73039dd9dc63dbf1e780099b5">
         <source xml:lang="en">Select project file</source>
-        <target state="new">Select project file</target>
+        <target state="translated">Projektdatei auswählen</target>
       </trans-unit>
       <trans-unit id="++CODE++1cca62dfe797128d872da26655c932ca5c53e11a3fcd3cb84cd494f46953242b">
         <source xml:lang="en">Select project location</source>
@@ -10078,7 +10078,7 @@ Abfrage: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++0a0a9fb70a52c005820d8d028ed61e2c9eef5a6094c76f39258543413765dc44">
         <source xml:lang="en">Select workspace ({0}) file</source>
-        <target state="new">Select workspace ({0}) file</target>
+        <target state="translated">Arbeitsbereichsdatei auswählen ({0})</target>
       </trans-unit>
       <trans-unit id="++CODE++57fd7a0cf33f2666eede69e44f8857159653f2f28e4fd7482a5e16d4af628d2a">
         <source xml:lang="en">Selected</source>
@@ -10957,7 +10957,7 @@ Abfrage: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++a02c7e318355e7b0f54fa18f348b0da15dd4d5b5d37faaa01bb76e6d2c0726f5">
         <source xml:lang="en">Target Platform</source>
-        <target state="new">Target Platform</target>
+        <target state="translated">Zielplattform</target>
       </trans-unit>
       <trans-unit id="++CODE++573be5f6ae7984546f35b61a448a9c9b486b111d82439332d2eee42ab6be94e1">
         <source xml:lang="en">Target Server</source>
@@ -11238,7 +11238,7 @@ Sind Sie sicher, dass Sie den Vorgang fortsetzen?</target>
       </trans-unit>
       <trans-unit id="++CODE++dcc368e5cecae7f8a0551b1a10f920940276c11de668e2c7e38cd72bfc755563">
         <source xml:lang="en">The selected clone path '{0}' does not exist or is not a directory.</source>
-        <target state="new">The selected clone path '{0}' does not exist or is not a directory.</target>
+        <target state="translated">Der ausgewählte Klonpfad "{0}" ist nicht vorhanden oder kein Verzeichnis.</target>
       </trans-unit>
       <trans-unit id="++CODE++e0e95ce8d59c3985439194900fd3997b4d86e45ed92f82a44ac0c897018d7fb1">
         <source xml:lang="en">The selected file is not a valid XEL file.</source>
@@ -11272,11 +11272,11 @@ Sind Sie sicher, dass Sie den Vorgang fortsetzen?</target>
       </trans-unit>
       <trans-unit id="++CODE++f5c77dbf7dd2b64ae0c90a6d971c1482713147f48a6e43c10f9f30fa63f51bdb">
         <source xml:lang="en">The selected project location '{0}' does not exist or is not a directory.</source>
-        <target state="new">The selected project location '{0}' does not exist or is not a directory.</target>
+        <target state="translated">Der ausgewählte Projektspeicherort "{0}" ist nicht vorhanden oder kein Verzeichnis.</target>
       </trans-unit>
       <trans-unit id="++CODE++30dc10f2e5d6502d78b8e778df18e5f010e5ec3fa432d4e92c526d86a84375e0">
         <source xml:lang="en">The selected {0} file '{1}' does not exist or is not a file.</source>
-        <target state="new">The selected {0} file '{1}' does not exist or is not a file.</target>
+        <target state="translated">Die ausgewählte {0}-Datei "{1}" ist nicht vorhanden oder keine Datei.</target>
       </trans-unit>
       <trans-unit id="++CODE++13c88dccbc0c16d34702d4b664c78552a13156f154731119eaaa1dfc41be428d">
         <source xml:lang="en">The system database references need to be updated to build the project '{0}'. If the project was created in SSDT, it will continue to work in both tools. Do you want to update the project?</source>
@@ -11303,7 +11303,7 @@ Sind Sie sicher, dass Sie den Vorgang fortsetzen?</target>
       </trans-unit>
       <trans-unit id="++CODE++733d73b219fd9a1e4009ee7a3bc2e771e41099d295ccf8c230e04f68ba8606ee">
         <source xml:lang="en">There is already a directory named '{0}' in the selected location: '{1}'.</source>
-        <target state="new">There is already a directory named '{0}' in the selected location: '{1}'.</target>
+        <target state="translated">Es ist bereits ein Verzeichnis mit dem Namen "{0}" am ausgewählten Speicherort vorhanden: "{1}".</target>
       </trans-unit>
       <trans-unit id="++CODE++1a7dce1f7d58b78f71a31ac2a4451b08304b7426c9609ec2b348c9002e866c68">
         <source xml:lang="en">There is no query text to execute. Enter a query or select non-empty query text.</source>
@@ -11344,7 +11344,7 @@ Sind Sie sicher, dass Sie den Vorgang fortsetzen?</target>
       </trans-unit>
       <trans-unit id="++CODE++cb4eade41a7e9bf4aecf7539c5167bf881e1dac0fd35c216a8fbf4b1b4d3fa84">
         <source xml:lang="en">This file name is reserved for use by Windows. Choose another name and try again</source>
-        <target state="new">This file name is reserved for use by Windows. Choose another name and try again</target>
+        <target state="translated">Dieser Dateiname ist für Windows reserviert. Wählen Sie einen anderen Namen, und versuchen Sie es noch mal.</target>
       </trans-unit>
       <trans-unit id="++CODE++28e2aa59c50b2de24bda79539297a180c3ea379c3aa11b5af049a2cf66375999">
         <source xml:lang="en">This message couldn't be processed. If this issue persists, please check the logs and open an issue on GitHub.</source>
@@ -12158,7 +12158,7 @@ Sind Sie sicher, dass Sie den Vorgang fortsetzen?</target>
       </trans-unit>
       <trans-unit id="++CODE++09fcc635009af0dd74b8ac70ac160e92cdd8bb5dc609c8be5f4e2a1f5ae82cdf">
         <source xml:lang="en">Yes (Recommended)</source>
-        <target state="new">Yes (Recommended)</target>
+        <target state="translated">Ja (empfohlen)</target>
       </trans-unit>
       <trans-unit id="++CODE++4d58bf5bfe0aaf73306cc05df7a5ae7b1d136a347c493464f66e04cbf46c957d">
         <source xml:lang="en">You are about to deploy to an existing database. This operation will make permanent changes to the database schema and may result in data loss. Do you want to continue?</source>
