@@ -79,7 +79,10 @@ import { CodeAnalysisWebViewController } from "../codeAnalysis/codeAnalysisWebVi
 import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
 import { CopilotService } from "../services/copilotService";
 import * as Prompts from "../copilot/prompts";
-import { CreateSessionResult } from "../objectExplorer/objectExplorerService";
+import {
+    CancelableLoadingNode,
+    CreateSessionResult,
+} from "../objectExplorer/objectExplorerService";
 import { SqlCodeLensProvider } from "../queryResult/sqlCodeLensProvider";
 import { ConnectionSharingService } from "../connectionSharing/connectionSharingService";
 import { SqlNotebookController } from "../notebooks/sqlNotebookController";
@@ -295,6 +298,13 @@ export default class MainController implements vscode.Disposable {
             this._event.on(Constants.cmdCancelConnect, () => {
                 void this.runAndLogErrors(this.onCancelConnect());
             });
+            this.registerCommandWithArgs(Constants.cmdCancelContainerOperation);
+            this._event.on(
+                Constants.cmdCancelContainerOperation,
+                (loadingNode: CancelableLoadingNode) => {
+                    loadingNode.cancellationTokenSource.cancel();
+                },
+            );
             this.registerCommand(Constants.cmdRunQuery);
             this._event.on(Constants.cmdRunQuery, () => this.onRunQueryCommand());
             this.registerCommand(Constants.cmdRunQueryWithUriOwnership);

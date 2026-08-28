@@ -907,6 +907,11 @@
                     "group": "9_MSSQL_container@3"
                 },
                 {
+                    "command": "mssql.cancelContainerOperation",
+                    "when": "view == objectExplorer && viewItem == cancelContainerOperation",
+                    "group": "inline@1"
+                },
+                {
                     "command": "mssql.openBackgroundTask",
                     "when": "view == backgroundTasks && viewItem =~ /\\bactionable=true\\b/",
                     "group": "MS_SQL@1"
@@ -944,6 +949,10 @@
                 },
                 {
                     "command": "mssql.viewBackgroundTaskLogs",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.cancelContainerOperation",
                     "when": "false"
                 },
                 {
@@ -1706,6 +1715,12 @@
                 "command": "mssql.startContainer",
                 "title": "%mssql.startContainer%",
                 "category": "MS SQL"
+            },
+            {
+                "command": "mssql.cancelContainerOperation",
+                "title": "%mssql.cancelContainerOperation%",
+                "category": "MS SQL",
+                "icon": "$(close)"
             },
             {
                 "command": "mssql.openChangelog",

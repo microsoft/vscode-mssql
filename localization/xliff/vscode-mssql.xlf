@@ -9980,6 +9980,9 @@
     <trans-unit id="mssql.buildDataApi">
       <source xml:lang="en">Build Data API...</source>
     </trans-unit>
+    <trans-unit id="mssql.cancelContainerOperation">
+      <source xml:lang="en">Cancel</source>
+    </trans-unit>
     <trans-unit id="mssql.cancelConnect">
       <source xml:lang="en">Cancel Connection (MSSQL)</source>
     </trans-unit>

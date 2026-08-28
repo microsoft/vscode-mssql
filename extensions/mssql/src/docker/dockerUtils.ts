@@ -180,7 +180,11 @@ export interface ContainerLogMonitor {
     dispose: () => void;
     getLogs: () => string | undefined;
     includes: (text: string) => boolean;
-    waitForMatch: (text: string, timeoutMs: number) => Promise<boolean>;
+    waitForMatch: (
+        text: string,
+        timeoutMs: number,
+        cancellationToken?: vscode.CancellationToken,
+    ) => Promise<boolean>;
 }
 
 export interface StartContainerLogMonitorOptions {
@@ -243,12 +247,32 @@ export async function startContainerLogMonitor(
             return logs.length > 0 ? logs : undefined;
         },
         includes: (text: string) => bufferedLogs.includes(text),
-        waitForMatch: (text: string, timeoutMs: number) => {
+        waitForMatch: (
+            text: string,
+            timeoutMs: number,
+            cancellationToken?: vscode.CancellationToken,
+        ) => {
             if (bufferedLogs.includes(text)) {
                 return Promise.resolve(true);
             }
 
+            if (cancellationToken?.isCancellationRequested) {
+                return Promise.resolve(false);
+            }
+
             return new Promise<boolean>((resolve, reject) => {
+                let cancellationListener: vscode.Disposable | undefined;
+
+                const cleanup = () => {
+                    clearTimeout(timeoutHandle);
+                    cancellationListener?.dispose();
+                    stdoutStream.removeListener("data", onData);
+                    stderrStream.removeListener("data", onData);
+                    rawLogsStream.removeListener("error", onError);
+                    rawLogsStream.removeListener("end", onEnd);
+                    rawLogsStream.removeListener("close", onEnd);
+                };
+
                 const onData = () => {
                     if (bufferedLogs.includes(text)) {
                         cleanupAndResolve(true);
@@ -256,24 +280,14 @@ export async function startContainerLogMonitor(
                 };
 
                 const onError = (error: Error) => {
-                    clearTimeout(timeoutHandle);
-                    stdoutStream.removeListener("data", onData);
-                    stderrStream.removeListener("data", onData);
-                    rawLogsStream.removeListener("error", onError);
-                    rawLogsStream.removeListener("end", onEnd);
-                    rawLogsStream.removeListener("close", onEnd);
+                    cleanup();
                     reject(error);
                 };
 
                 const onEnd = () => cleanupAndResolve(false);
 
                 const cleanupAndResolve = (result: boolean) => {
-                    clearTimeout(timeoutHandle);
-                    stdoutStream.removeListener("data", onData);
-                    stderrStream.removeListener("data", onData);
-                    rawLogsStream.removeListener("error", onError);
-                    rawLogsStream.removeListener("end", onEnd);
-                    rawLogsStream.removeListener("close", onEnd);
+                    cleanup();
                     resolve(result);
                 };
 
@@ -284,6 +298,9 @@ export async function startContainerLogMonitor(
                 rawLogsStream.on("error", onError);
                 rawLogsStream.on("end", onEnd);
                 rawLogsStream.on("close", onEnd);
+                cancellationListener = cancellationToken?.onCancellationRequested(() =>
+                    cleanupAndResolve(false),
+                );
             });
         },
     };
@@ -615,6 +632,7 @@ export async function isDockerContainerRunning(name: string): Promise<boolean> {
 export async function startDocker(
     node?: ConnectionNode,
     objectExplorerService?: ObjectExplorerService,
+    cancellationTokenSource?: vscode.CancellationTokenSource,
 ): Promise<DockerCommandParams> {
     try {
         await execDockerCommand(COMMANDS.CHECK_DOCKER_RUNNING());
@@ -637,7 +655,7 @@ export async function startDocker(
     }
     if (node && objectExplorerService) {
         node.loadingLabel = LocalContainers.startingDockerLoadingLabel;
-        await objectExplorerService.setLoadingUiForNode(node);
+        await objectExplorerService.setLoadingUiForNode(node, cancellationTokenSource);
     }
     let dockerDesktopPath = "";
     if (platform() === Platform.Windows) {
@@ -661,26 +679,58 @@ export async function startDocker(
 
     try {
         dockerLogger.info("Waiting for Docker to start...");
-        await execDockerCommand(startCommand);
+        let startCancellationListener: vscode.Disposable | undefined;
+        let dockerStartCanceled: boolean;
+        try {
+            dockerStartCanceled = await Promise.race([
+                execDockerCommand(startCommand).then(() => false),
+                new Promise<boolean>((resolve) => {
+                    startCancellationListener =
+                        cancellationTokenSource?.token.onCancellationRequested(() => resolve(true));
+                }),
+            ]);
+        } finally {
+            startCancellationListener?.dispose();
+        }
+
+        if (dockerStartCanceled || cancellationTokenSource?.token.isCancellationRequested) {
+            return { success: false, canceled: true };
+        }
 
         let attempts = 0;
         const maxAttempts = 30;
         const interval = 2000;
 
         return await new Promise((resolve) => {
+            let cancellationListener: vscode.Disposable | undefined;
+            let completed = false;
+            const complete = (result: DockerCommandParams) => {
+                if (completed) {
+                    return;
+                }
+                completed = true;
+                clearInterval(checkDocker);
+                cancellationListener?.dispose();
+                resolve(result);
+            };
+
             const checkDocker = setInterval(async () => {
                 try {
                     await execDockerCommand(COMMANDS.CHECK_DOCKER_RUNNING());
-                    clearInterval(checkDocker);
+                    if (completed) {
+                        return;
+                    }
                     dockerLogger.info("Docker started successfully.");
                     sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.StartDocker, {
                         dockerStartedThroughExtension: "true",
                     });
-                    resolve({ success: true });
+                    complete({ success: true });
                 } catch (e) {
+                    if (completed) {
+                        return;
+                    }
                     if (++attempts >= maxAttempts) {
-                        clearInterval(checkDocker);
-                        resolve({
+                        complete({
                             success: false,
                             error: LocalContainers.dockerFailedToStartWithinTimeout,
                             fullErrorText: getErrorMessage(e),
@@ -688,6 +738,12 @@ export async function startDocker(
                     }
                 }
             }, interval);
+            cancellationListener = cancellationTokenSource?.token.onCancellationRequested(() =>
+                complete({ success: false, canceled: true }),
+            );
+            if (cancellationTokenSource?.token.isCancellationRequested) {
+                cancellationListener?.dispose();
+            }
         });
     } catch (e) {
         return {
@@ -831,10 +887,17 @@ export async function prepareForDockerContainerCommand(
     containerName: string,
     containerNode: ConnectionNode,
     objectExplorerService: ObjectExplorerService,
+    cancellationTokenSource?: vscode.CancellationTokenSource,
 ): Promise<DockerCommandParams> {
-    const startDockerResult = await startDocker(containerNode, objectExplorerService);
+    const startDockerResult = await startDocker(
+        containerNode,
+        objectExplorerService,
+        cancellationTokenSource,
+    );
     if (!startDockerResult.success) {
-        vscode.window.showErrorMessage(startDockerResult.error);
+        if (!startDockerResult.canceled) {
+            vscode.window.showErrorMessage(startDockerResult.error);
+        }
         return startDockerResult;
     }
 
