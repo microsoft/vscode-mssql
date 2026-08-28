@@ -92,11 +92,8 @@ export function initializeTelemetryReporter(
 const SKIP_FUNCTIONS = new Set([
     "captureCallStack",
     "sendActionEvent",
-    "sendActionEventWithOptions",
     "sendErrorEvent",
-    "sendErrorEventWithOptions",
     "startActivity",
-    "startActivityWithOptions",
     "update",
     "end",
     "endFailed",
@@ -144,40 +141,12 @@ export function captureCallStack(): string {
 }
 
 /**
- * Sends a telemetry event to the telemetry reporter
- * @param telemetryView View in which the event occurred
- * @param telemetryAction Action that was being performed when the event occurred
- * @param additionalProps Additional properties to include
- * @param additionalMeasurements Additional measurements to include
- * @param connectionInfo connectionInfo for the event
- * @param serverInfo serverInfo for the event
- * @param includeCallStack Whether to capture and include the call stack. Defaults to false
- */
-export function sendActionEvent(
-    telemetryView: string,
-    telemetryAction: string,
-    additionalProps: TelemetryEventProperties | { [key: string]: string } = {},
-    additionalMeasurements: TelemetryEventMeasures | { [key: string]: number } = {},
-    connectionInfo?: ConnectionInfo,
-    serverInfo?: ServerInfo,
-    includeCallStack: boolean = false,
-): void {
-    sendActionEventWithOptions(telemetryView, telemetryAction, {
-        additionalProps,
-        additionalMeasurements,
-        connectionInfo,
-        serverInfo,
-        includeCallStack,
-    });
-}
-
-/**
  * Sends an action event to the telemetry reporter using named options.
  * @param telemetryView View in which the event occurred.
  * @param telemetryAction Action that was being performed when the event occurred.
  * @param options Optional event properties, measurements, connection metadata, and call stack behavior.
  */
-export function sendActionEventWithOptions(
+export function sendActionEvent(
     telemetryView: string,
     telemetryAction: string,
     {
@@ -207,52 +176,12 @@ export function sendActionEventWithOptions(
 }
 
 /**
- * Sends an error event to the telemetry reporter
- * @param telemetryView View in which the error occurred
- * @param telemetryAction Action that was being performed when the error occurred
- * @param error Error that occurred
- * @param includeErrorMessage Whether to include the error message in the telemetry event. Defaults to false
- * @param errorCode Error code for the error
- * @param errorType Error type for the error
- * @param additionalProps Additional properties to include in the telemetry event
- * @param additionalMeasurements Additional measurements to include in the telemetry event
- * @param connectionInfo connectionInfo for the error
- * @param serverInfo serverInfo for the error
- * @param includeCallStack Whether to capture and include the call stack. Defaults to true
- */
-export function sendErrorEvent(
-    telemetryView: string,
-    telemetryAction: string,
-    error: Error | undefined,
-    includeErrorMessage: boolean = false,
-    errorCode?: string,
-    errorType?: string,
-    additionalProps: TelemetryEventProperties | { [key: string]: string } = {},
-    additionalMeasurements: TelemetryEventMeasures | { [key: string]: number } = {},
-    connectionInfo?: ConnectionInfo,
-    serverInfo?: ServerInfo,
-    includeCallStack: boolean = true,
-): void {
-    sendErrorEventWithOptions(telemetryView, telemetryAction, {
-        error,
-        includeErrorMessage,
-        errorCode,
-        errorType,
-        additionalProps,
-        additionalMeasurements,
-        connectionInfo,
-        serverInfo,
-        includeCallStack,
-    });
-}
-
-/**
  * Sends an error event to the telemetry reporter using named options.
  * @param telemetryView View in which the error occurred.
  * @param telemetryAction Action that was being performed when the error occurred.
  * @param options Optional error details, event data, connection metadata, and call stack behavior.
  */
-export function sendErrorEventWithOptions(
+export function sendErrorEvent(
     telemetryView: string,
     telemetryAction: string,
     {
@@ -292,26 +221,6 @@ export function sendErrorEventWithOptions(
     errorEvent.send();
 }
 
-export function startActivity(
-    telemetryView: string,
-    telemetryAction: string,
-    correlationId?: string,
-    startActivityAdditionalProps: TelemetryEventProperties = {},
-    startActivityAdditionalMeasurements: TelemetryEventMeasures = {},
-    connectionInfo?: ConnectionInfo,
-    serverInfo?: ServerInfo,
-    includeCallStack: boolean = false,
-): ActivityObject {
-    return startActivityWithOptions(telemetryView, telemetryAction, {
-        correlationId,
-        additionalProps: startActivityAdditionalProps,
-        additionalMeasurements: startActivityAdditionalMeasurements,
-        connectionInfo,
-        serverInfo,
-        includeCallStack,
-    });
-}
-
 /**
  * Starts a telemetry activity using named options.
  * @param telemetryView View in which the activity occurs.
@@ -319,7 +228,7 @@ export function startActivity(
  * @param options Optional correlation ID, event data, connection metadata, and call stack behavior.
  * @returns An object used to update and complete the activity.
  */
-export function startActivityWithOptions(
+export function startActivity(
     telemetryView: string,
     telemetryAction: string,
     {
@@ -339,20 +248,18 @@ export function startActivityWithOptions(
     // Capture call stack if requested
     const callStack = includeCallStack ? captureCallStack() : undefined;
 
-    sendActionEvent(
-        telemetryView,
-        telemetryAction,
-        {
+    sendActionEvent(telemetryView, telemetryAction, {
+        additionalProps: {
             ...startActivityAdditionalProps,
             ...(callStack && { callStack }),
         },
-        {
+        additionalMeasurements: {
             ...startActivityAdditionalMeasurements,
             startTime: Math.round(startTime),
         },
         connectionInfo,
         serverInfo,
-    );
+    });
 
     const activityUpdateAdditionalPropsBase: TelemetryEventProperties = {
         correlationId,
@@ -370,23 +277,21 @@ export function startActivityWithOptions(
         serverInfo?: ServerInfo,
     ): void {
         const updateCallStack = includeCallStack ? captureCallStack() : undefined;
-        sendActionEvent(
-            telemetryView,
-            telemetryAction,
-            {
+        sendActionEvent(telemetryView, telemetryAction, {
+            additionalProps: {
                 ...activityUpdateAdditionalPropsBase,
                 ...additionalProps,
                 activityStatus: "Pending",
                 ...(updateCallStack && { callStack: updateCallStack }),
             },
-            {
+            additionalMeasurements: {
                 ...activityUpdateAdditionalMeasurementsBase,
                 ...additionalMeasurements,
                 timeElapsedMs: Math.round(performance.now() - startTime),
             },
             connectionInfo,
             serverInfo,
-        );
+        });
     }
 
     function end(
@@ -397,23 +302,21 @@ export function startActivityWithOptions(
         serverInfo?: ServerInfo,
     ) {
         const endCallStack = includeCallStack ? captureCallStack() : undefined;
-        sendActionEvent(
-            telemetryView,
-            telemetryAction,
-            {
+        sendActionEvent(telemetryView, telemetryAction, {
+            additionalProps: {
                 ...activityUpdateAdditionalPropsBase,
                 ...additionalProps,
                 activityStatus: activityStatus,
                 ...(endCallStack && { callStack: endCallStack }),
             },
-            {
+            additionalMeasurements: {
                 ...activityUpdateAdditionalMeasurementsBase,
                 ...additionalMeasurements,
                 durationMs: Math.round(performance.now() - startTime),
             },
             connectionInfo,
             serverInfo,
-        );
+        });
     }
 
     function endFailed(
@@ -428,27 +331,25 @@ export function startActivityWithOptions(
     ) {
         includeErrorMessage = includeErrorMessage ?? false; // Default to false if undefined
         const endFailedCallStack = includeCallStack ? captureCallStack() : undefined;
-        sendErrorEvent(
-            telemetryView,
-            telemetryAction,
+        sendErrorEvent(telemetryView, telemetryAction, {
             error,
             includeErrorMessage,
             errorCode,
             errorType,
-            {
+            additionalProps: {
                 ...activityUpdateAdditionalPropsBase,
                 ...additionalProps,
                 activityStatus: "Failed",
                 ...(endFailedCallStack && { callStack: endFailedCallStack }),
             },
-            {
+            additionalMeasurements: {
                 ...activityUpdateAdditionalMeasurementsBase,
                 ...additionalMeasurements,
                 durationMs: Math.round(performance.now() - startTime),
             },
             connectionInfo,
             serverInfo,
-        );
+        });
     }
 
     return {

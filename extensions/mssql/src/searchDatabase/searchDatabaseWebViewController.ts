@@ -179,9 +179,11 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
         const endActivity = startActivity(
             TelemetryViews.SearchDatabase,
             TelemetryActions.Initialize,
-            this._operationId,
             {
-                operationId: this._operationId,
+                correlationId: this._operationId,
+                additionalProps: {
+                    operationId: this._operationId,
+                },
             },
         );
 
@@ -307,8 +309,10 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
             this.logVerbose(`Using cached metadata for ${this.state.selectedDatabase}`);
 
             sendActionEvent(TelemetryViews.SearchDatabase, TelemetryActions.LoadMetadata, {
-                operationId: this._operationId,
-                source: "cache",
+                additionalProps: {
+                    operationId: this._operationId,
+                    source: "cache",
+                },
             });
 
             // Restore schema state from cached metadata
@@ -327,10 +331,12 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
         const endActivity = startActivity(
             TelemetryViews.SearchDatabase,
             TelemetryActions.LoadMetadata,
-            uuid(),
             {
-                operationId: this._operationId,
-                source: "server",
+                correlationId: uuid(),
+                additionalProps: {
+                    operationId: this._operationId,
+                    source: "server",
+                },
             },
         );
 
@@ -543,11 +549,13 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
             this.applyFiltersAndSearch();
 
             sendActionEvent(TelemetryViews.SearchDatabase, TelemetryActions.Search, {
-                operationId: this._operationId,
-                resultCount: state.totalResultCount.toString(),
-                hasSearchPrefix: (
-                    this.parseSearchPrefix(payload.searchTerm).typeFilter !== undefined
-                ).toString(),
+                additionalProps: {
+                    operationId: this._operationId,
+                    resultCount: state.totalResultCount.toString(),
+                    hasSearchPrefix: (
+                        this.parseSearchPrefix(payload.searchTerm).typeFilter !== undefined
+                    ).toString(),
+                },
             });
 
             return state;
@@ -569,8 +577,7 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
                 const endActivity = startActivity(
                     TelemetryViews.SearchDatabase,
                     TelemetryActions.SetDatabase,
-                    uuid(),
-                    { operationId: this._operationId },
+                    { correlationId: uuid(), additionalProps: { operationId: this._operationId } },
                 );
 
                 const previousDatabase = state.selectedDatabase;
@@ -691,8 +698,10 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
             );
 
             sendActionEvent(TelemetryViews.SearchDatabase, TelemetryActions.CopyObjectName, {
-                operationId: this._operationId,
-                objectType: payload.object.metadataTypeName,
+                additionalProps: {
+                    operationId: this._operationId,
+                    objectType: payload.object.metadataTypeName,
+                },
             });
 
             return state;
@@ -736,8 +745,7 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.SearchDatabase,
                 TelemetryActions.RefreshResults,
-                uuid(),
-                { operationId: this._operationId },
+                { correlationId: uuid(), additionalProps: { operationId: this._operationId } },
             );
 
             // Reset filters and search to initial state
@@ -839,16 +847,14 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
      * Generate and open a script for the specified object
      */
     private async scriptObject(object: SearchResultItem, scriptType: ScriptType): Promise<void> {
-        const endActivity = startActivity(
-            TelemetryViews.SearchDatabase,
-            TelemetryActions.Script,
-            uuid(),
-            {
+        const endActivity = startActivity(TelemetryViews.SearchDatabase, TelemetryActions.Script, {
+            correlationId: uuid(),
+            additionalProps: {
                 operationId: this._operationId,
                 scriptType: scriptType,
                 objectType: object.metadataTypeName,
             },
-        );
+        });
 
         try {
             this.logVerbose(
@@ -937,10 +943,12 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
         const endActivity = startActivity(
             TelemetryViews.SearchDatabase,
             TelemetryActions.EditData,
-            uuid(),
             {
-                operationId: this._operationId,
-                objectType: object.metadataTypeName,
+                correlationId: uuid(),
+                additionalProps: {
+                    operationId: this._operationId,
+                    objectType: object.metadataTypeName,
+                },
             },
         );
 
@@ -996,10 +1004,12 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
         const endActivity = startActivity(
             TelemetryViews.SearchDatabase,
             TelemetryActions.ModifyTable,
-            uuid(),
             {
-                operationId: this._operationId,
-                objectType: object.metadataTypeName,
+                correlationId: uuid(),
+                additionalProps: {
+                    operationId: this._operationId,
+                    objectType: object.metadataTypeName,
+                },
             },
         );
 

@@ -125,10 +125,7 @@ export class AzureDataStudioMigrationWebviewController extends WebviewPanelContr
                 sendErrorEvent(
                     TelemetryViews.AzureDataStudioMigration,
                     TelemetryActions.Initialize,
-                    err,
-                    true, // includeErrorMessage
-                    undefined, // errorCode,
-                    "catchAll", // errorType
+                    { error: err, includeErrorMessage: true, errorType: "catchAll" },
                 );
                 this.initialized.reject(getErrorMessage(err));
             });
@@ -155,7 +152,9 @@ export class AzureDataStudioMigrationWebviewController extends WebviewPanelContr
             if (selectedPath) {
                 await this.loadSettingsFromFile(selectedPath);
                 sendActionEvent(TelemetryViews.AzureDataStudioMigration, TelemetryActions.Open, {
-                    action: "browseConfig",
+                    additionalProps: {
+                        action: "browseConfig",
+                    },
                 });
             }
             return selectedPath;
@@ -449,16 +448,18 @@ export class AzureDataStudioMigrationWebviewController extends WebviewPanelContr
         const activity = startActivity(
             TelemetryViews.AzureDataStudioMigration,
             TelemetryActions.ImportConfig,
-            undefined, // correlationId
-            undefined,
             {
-                connectionCount: selectedConnections.length,
-                groupCount: selectedGroups.size,
-                incompleteConnectionCount: selectedConnections.filter(
-                    (conn) => conn.status === MigrationStatus.NeedsAttention,
-                ).length,
-                settingsCount:
-                    state.importSettings && state.settings.length > 0 ? state.settings.length : 0,
+                additionalMeasurements: {
+                    connectionCount: selectedConnections.length,
+                    groupCount: selectedGroups.size,
+                    incompleteConnectionCount: selectedConnections.filter(
+                        (conn) => conn.status === MigrationStatus.NeedsAttention,
+                    ).length,
+                    settingsCount:
+                        state.importSettings && state.settings.length > 0
+                            ? state.settings.length
+                            : 0,
+                },
             },
         );
 
@@ -532,11 +533,12 @@ export class AzureDataStudioMigrationWebviewController extends WebviewPanelContr
                         sendErrorEvent(
                             TelemetryViews.AzureDataStudioMigration,
                             TelemetryActions.ImportConfig,
-                            err,
-                            true, // includeErrorMessage
-                            undefined, // errorCode
-                            "updateSettingError", // errorType
-                            { settingKey: setting.key },
+                            {
+                                error: err,
+                                includeErrorMessage: true,
+                                errorType: "updateSettingError",
+                                additionalProps: { settingKey: setting.key },
+                            },
                         );
                     }
                 }
@@ -694,18 +696,17 @@ export class AzureDataStudioMigrationWebviewController extends WebviewPanelContr
             sendErrorEvent(
                 TelemetryViews.ConnectionDialog,
                 TelemetryActions.LoadAzureAccountsForEntraAuth,
-                error,
-                false, // includeErrorMessage
-                undefined, // errorCode
-                undefined, // errorType
-                undefined, // additionalProperties
                 {
-                    accountCount: azureAccounts.length,
-                    undefinedAccountCount: azureAccounts.filter((x) => x === undefined).length,
-                    undefinedDisplayInfoCount: azureAccounts.filter(
-                        (x) => x !== undefined && x.displayInfo === undefined,
-                    ).length,
-                }, // additionalMeasurements
+                    error,
+                    includeErrorMessage: false,
+                    additionalMeasurements: {
+                        accountCount: azureAccounts.length,
+                        undefinedAccountCount: azureAccounts.filter((x) => x === undefined).length,
+                        undefinedDisplayInfoCount: azureAccounts.filter(
+                            (x) => x !== undefined && x.displayInfo === undefined,
+                        ).length,
+                    },
+                },
             );
         }
 

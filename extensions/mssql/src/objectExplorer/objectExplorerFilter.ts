@@ -80,8 +80,10 @@ export class ObjectExplorerFilter {
     ): Promise<vscodeMssql.NodeFilter[] | undefined> {
         const correlationId = randomUUID();
         sendActionEvent(TelemetryViews.ObjectExplorerFilter, TelemetryActions.Open, {
-            nodeType: treeNode.nodeType,
-            correlationId,
+            additionalProps: {
+                nodeType: treeNode.nodeType,
+                correlationId,
+            },
         });
         if (!this._filterWebviewController || this._filterWebviewController.isDisposed) {
             this._filterWebviewController = new ObjectExplorerFilterWebviewController(context, {
@@ -119,12 +121,14 @@ export class ObjectExplorerFilter {
                             TelemetryViews.ObjectExplorerFilter,
                             TelemetryActions.Submit,
                             {
-                                nodeType: treeNode.nodeType,
-                                correlationId,
-                                filters: JSON.stringify(e.map((e) => e.name)),
-                            },
-                            {
-                                filterCount: e.length,
+                                additionalProps: {
+                                    nodeType: treeNode.nodeType,
+                                    correlationId,
+                                    filters: JSON.stringify(e.map((e) => e.name)),
+                                },
+                                additionalMeasurements: {
+                                    filterCount: e.length,
+                                },
                             },
                         );
                     }
@@ -134,8 +138,10 @@ export class ObjectExplorerFilter {
             disposables.push(
                 this._filterWebviewController.onCancel(() => {
                     sendActionEvent(TelemetryViews.ObjectExplorerFilter, TelemetryActions.Cancel, {
-                        nodeType: treeNode.nodeType,
-                        correlationId,
+                        additionalProps: {
+                            nodeType: treeNode.nodeType,
+                            correlationId,
+                        },
                     });
                     complete(undefined);
                 }),
@@ -143,8 +149,10 @@ export class ObjectExplorerFilter {
             disposables.push(
                 this._filterWebviewController.onDisposed(() => {
                     sendActionEvent(TelemetryViews.ObjectExplorerFilter, TelemetryActions.Cancel, {
-                        nodeType: treeNode.nodeType,
-                        correlationId,
+                        additionalProps: {
+                            nodeType: treeNode.nodeType,
+                            correlationId,
+                        },
                     });
                     complete(undefined);
                 }),

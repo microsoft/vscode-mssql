@@ -99,7 +99,7 @@ export class ConnectionGroupWebviewController extends WebviewPanelController<
                 sendActionEvent(
                     TelemetryViews.ConnectionGroup,
                     TelemetryActions.SaveConnectionGroup,
-                    { newOrEdit: this.connectionGroupToEdit ? "edit" : "new" },
+                    { additionalProps: { newOrEdit: this.connectionGroupToEdit ? "edit" : "new" } },
                 );
 
                 this.dialogResult.resolve(true);
@@ -109,11 +109,11 @@ export class ConnectionGroupWebviewController extends WebviewPanelController<
                 sendErrorEvent(
                     TelemetryViews.ConnectionGroup,
                     TelemetryActions.SaveConnectionGroup,
-                    err,
-                    true, // includeErrorMessage
-                    undefined, // errorCode
-                    undefined, // errorType
-                    { newOrEdit: this.connectionGroupToEdit ? "edit" : "new" },
+                    {
+                        error: err,
+                        includeErrorMessage: true,
+                        additionalProps: { newOrEdit: this.connectionGroupToEdit ? "edit" : "new" },
+                    },
                 );
             }
 
@@ -160,21 +160,20 @@ export async function createConnectionGroup(
     try {
         await connectionManager.connectionStore.connectionConfig.addGroup(addedGroup);
         sendActionEvent(telemetryView, TelemetryActions.SaveConnectionGroup, {
-            newOrEdit: "new",
+            additionalProps: {
+                newOrEdit: "new",
+            },
         });
     } catch (err) {
         const errorMessage = getErrorMessage(err);
-        sendErrorEvent(
-            telemetryView,
-            TelemetryActions.SaveConnectionGroup,
-            err,
-            false, // includeErrorMessage
-            undefined, // errorCode
-            err.Name, // errorType
-            {
+        sendErrorEvent(telemetryView, TelemetryActions.SaveConnectionGroup, {
+            error: err,
+            includeErrorMessage: false,
+            errorType: err.Name,
+            additionalProps: {
                 failure: err.Name,
             },
-        );
+        });
         return errorMessage;
     }
 

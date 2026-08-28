@@ -134,8 +134,10 @@ suite("Service Client tests", () => {
         expect(sendActionEvent).to.have.been.calledWithExactly(
             TelemetryViews.QueryEditor,
             TelemetryActions.FormatCode,
-            event.params.properties,
-            event.params.measures,
+            {
+                additionalProps: event.params.properties,
+                additionalMeasurements: event.params.measures,
+            },
         );
     });
 
@@ -149,8 +151,6 @@ suite("Service Client tests", () => {
         expect(sendActionEvent).to.have.been.calledWithExactly(
             TelemetryViews.QueryEditor,
             TelemetryActions.PeekDefinitionRequested,
-            {},
-            {},
         );
     });
 

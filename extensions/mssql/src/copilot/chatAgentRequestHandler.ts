@@ -81,9 +81,11 @@ export const createSqlAgentRequestHandler = (
         const activity = startActivity(
             TelemetryViews.MssqlCopilot,
             TelemetryActions.StartConversation,
-            correlationId,
             {
-                correlationId: correlationId,
+                correlationId,
+                additionalProps: {
+                    correlationId: correlationId,
+                },
             },
         );
 
@@ -546,15 +548,11 @@ export const createSqlAgentRequestHandler = (
         logger.debug("in processToolCalls");
 
         if (sqlTools.length === 0) {
-            sendErrorEvent(
-                TelemetryViews.MssqlCopilot,
-                TelemetryActions.Error,
-                new Error("No tools to process."),
-                true,
-                undefined,
-                undefined,
-                { correlationId: correlationId },
-            );
+            sendErrorEvent(TelemetryViews.MssqlCopilot, TelemetryActions.Error, {
+                error: new Error("No tools to process."),
+                includeErrorMessage: true,
+                additionalProps: { correlationId: correlationId },
+            });
 
             logger.error("No tools to process.");
             throw new Error(loc.noToolsToProcess);
@@ -585,18 +583,14 @@ export const createSqlAgentRequestHandler = (
                 logger.error(`Tool call failed or timed out:`, error);
 
                 // Log telemetry for the unhandled error
-                sendErrorEvent(
-                    TelemetryViews.MssqlCopilot,
-                    TelemetryActions.Error,
-                    error instanceof Error ? error : new Error("Unknown tool call error"),
-                    true,
-                    undefined,
-                    undefined,
-                    {
+                sendErrorEvent(TelemetryViews.MssqlCopilot, TelemetryActions.Error, {
+                    error: error instanceof Error ? error : new Error("Unknown tool call error"),
+                    includeErrorMessage: true,
+                    additionalProps: {
                         correlationId: correlationId,
                         toolName: toolCall?.tool?.functionName || "Unknown",
                     },
-                );
+                });
 
                 // Gracefully warn the user in markdown
                 stream.markdown(`⚠️ ${loc.messageCouldNotBeProcessed}\n${copilotFeedbackUrl}`);
@@ -907,19 +901,15 @@ export const createSqlAgentRequestHandler = (
         try {
             sqlToolParameters = JSON.stringify(part.input);
         } catch (err) {
-            sendErrorEvent(
-                TelemetryViews.MssqlCopilot,
-                TelemetryActions.Error,
-                new Error(
+            sendErrorEvent(TelemetryViews.MssqlCopilot, TelemetryActions.Error, {
+                error: new Error(
                     `Got invalid tool use parameters: "${JSON.stringify(part.input)}". (${getErrorMessage(err)})`,
                 ),
-                false,
-                undefined,
-                undefined,
-                {
+                includeErrorMessage: false,
+                additionalProps: {
                     correlationId: correlationId,
                 },
-            );
+            });
 
             logger.error(
                 `Got invalid tool use parameters: "${JSON.stringify(part.input)}". (${getErrorMessage(err)})`,
@@ -936,9 +926,11 @@ export const createSqlAgentRequestHandler = (
         }
 
         sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.ToolCall, {
-            toolName: tool.functionName,
-            toolDescription: tool.functionDescription,
-            correlationId: correlationId,
+            additionalProps: {
+                toolName: tool.functionName,
+                toolDescription: tool.functionDescription,
+                correlationId: correlationId,
+            },
         });
 
         logger.debug("Finished processing tool call.");
@@ -964,17 +956,15 @@ export const createSqlAgentRequestHandler = (
 
         const errorMessage = errorMessages[err.code] || loc.unexpectedError;
 
-        sendErrorEvent(
-            TelemetryViews.MssqlCopilot,
-            TelemetryActions.Error,
-            new Error(getErrorMessage(err)),
-            false,
-            err.code || "Unknown",
-            err.name || "Unknown",
-            {
+        sendErrorEvent(TelemetryViews.MssqlCopilot, TelemetryActions.Error, {
+            error: new Error(getErrorMessage(err)),
+            includeErrorMessage: false,
+            errorCode: err.code || "Unknown",
+            errorType: err.name || "Unknown",
+            additionalProps: {
                 correlationId: correlationId,
             },
-        );
+        });
 
         stream.markdown(errorMessage);
     }
@@ -1051,17 +1041,13 @@ export const createSqlAgentRequestHandler = (
                 stack: err.stack,
             });
 
-            sendErrorEvent(
-                TelemetryViews.MssqlCopilot,
-                TelemetryActions.Error,
-                new Error(`An error occurred with: ${getErrorMessage(err)}`),
-                false,
-                undefined,
-                undefined,
-                {
+            sendErrorEvent(TelemetryViews.MssqlCopilot, TelemetryActions.Error, {
+                error: new Error(`An error occurred with: ${getErrorMessage(err)}`),
+                includeErrorMessage: false,
+                additionalProps: {
                     correlationId: correlationId,
                 },
-            );
+            });
 
             logger.error(`Unhandled Error: ${getErrorMessage(err)}`);
 
@@ -1069,17 +1055,13 @@ export const createSqlAgentRequestHandler = (
         } else {
             logger.error("Unknown Error Type:", getErrorMessage(err));
 
-            sendErrorEvent(
-                TelemetryViews.MssqlCopilot,
-                TelemetryActions.Error,
-                new Error(`Unknown Error Type: ${getErrorMessage(err)}`),
-                false,
-                undefined,
-                undefined,
-                {
+            sendErrorEvent(TelemetryViews.MssqlCopilot, TelemetryActions.Error, {
+                error: new Error(`Unknown Error Type: ${getErrorMessage(err)}`),
+                includeErrorMessage: false,
+                additionalProps: {
                     correlationId: correlationId,
                 },
-            );
+            });
 
             stream.markdown(loc.unknownErrorOccurred);
         }

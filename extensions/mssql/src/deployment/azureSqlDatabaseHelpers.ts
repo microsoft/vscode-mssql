@@ -222,8 +222,10 @@ export async function initializeAzureSqlDatabaseState(
     sendActionEvent(
         TelemetryViews.AzureSqlDatabase,
         TelemetryActions.StartAzureSqlDatabaseDeployment,
-        {},
-        { azureSqlDatabaseInitTimeInMs: Date.now() - startTime },
+        {
+            additionalProps: {},
+            additionalMeasurements: { azureSqlDatabaseInitTimeInMs: Date.now() - startTime },
+        },
     );
 
     return state;
@@ -371,9 +373,11 @@ export function registerAzureSqlDatabaseReducers(
                 sendActionEvent(
                     TelemetryViews.AzureSqlDatabase,
                     TelemetryActions.ProvisionAzureSqlDatabase,
-                    {},
                     {
-                        provisionDatabaseLoadTimeInMs: Date.now() - startTime,
+                        additionalProps: {},
+                        additionalMeasurements: {
+                            provisionDatabaseLoadTimeInMs: Date.now() - startTime,
+                        },
                     },
                 );
 
@@ -387,8 +391,7 @@ export function registerAzureSqlDatabaseReducers(
                 sendErrorEvent(
                     TelemetryViews.AzureSqlDatabase,
                     TelemetryActions.ProvisionAzureSqlDatabase,
-                    error as Error,
-                    false,
+                    { error: error as Error, includeErrorMessage: false },
                 );
             }
 
@@ -690,8 +693,10 @@ export function sendAzureSqlDatabaseCloseEventTelemetry(state: asd.AzureSqlDatab
         TelemetryViews.AzureSqlDatabase,
         TelemetryActions.FinishAzureSqlDatabaseDeployment,
         {
-            errorMessage: state.errorMessage || "",
-            provisionState: state.provisionLoadState,
+            additionalProps: {
+                errorMessage: state.errorMessage || "",
+                provisionState: state.provisionLoadState,
+            },
         },
     );
 }
@@ -778,8 +783,10 @@ export async function connectToAzureSqlDatabase(
                 sendErrorEvent(
                     TelemetryViews.AzureSqlDatabase,
                     TelemetryActions.ConnectToAzureSqlDatabase,
-                    new Error(AzureSqlDatabase.connectionFailed),
-                    false,
+                    {
+                        error: new Error(AzureSqlDatabase.connectionFailed),
+                        includeErrorMessage: false,
+                    },
                 );
                 updateAzureSqlDatabaseState(deploymentController, state);
                 return;
@@ -801,8 +808,10 @@ export async function connectToAzureSqlDatabase(
                     sendErrorEvent(
                         TelemetryViews.AzureSqlDatabase,
                         TelemetryActions.ConnectToAzureSqlDatabase,
-                        new Error("Failed to detect client IP for firewall rule"),
-                        false,
+                        {
+                            error: new Error("Failed to detect client IP for firewall rule"),
+                            includeErrorMessage: false,
+                        },
                     );
                     updateAzureSqlDatabaseState(deploymentController, state);
                     return;
@@ -837,8 +846,10 @@ export async function connectToAzureSqlDatabase(
                     sendErrorEvent(
                         TelemetryViews.AzureSqlDatabase,
                         TelemetryActions.ConnectToAzureSqlDatabase,
-                        new Error(`Firewall rule creation failed: ${errorMsg}`),
-                        false,
+                        {
+                            error: new Error(`Firewall rule creation failed: ${errorMsg}`),
+                            includeErrorMessage: false,
+                        },
                     );
                     updateAzureSqlDatabaseState(deploymentController, state);
                     return;
@@ -862,9 +873,11 @@ export async function connectToAzureSqlDatabase(
         sendActionEvent(
             TelemetryViews.AzureSqlDatabase,
             TelemetryActions.ConnectToAzureSqlDatabase,
-            {},
             {
-                connectToDatabaseLoadTimeInMs: Date.now() - startTime,
+                additionalProps: {},
+                additionalMeasurements: {
+                    connectToDatabaseLoadTimeInMs: Date.now() - startTime,
+                },
             },
         );
 
@@ -875,8 +888,7 @@ export async function connectToAzureSqlDatabase(
         sendErrorEvent(
             TelemetryViews.AzureSqlDatabase,
             TelemetryActions.ConnectToAzureSqlDatabase,
-            err as Error,
-            false,
+            { error: err as Error, includeErrorMessage: false },
         );
     }
 

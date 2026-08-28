@@ -395,12 +395,14 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             sendErrorEvent(
                 TelemetryViews.SchemaCompare,
                 TelemetryActions.GetDatabaseProjectScriptFiles,
-                new Error(`Failed to get project script files: ${getErrorMessage(error)}`),
-                true,
-                undefined,
-                undefined,
                 {
-                    operationId: this.operationId,
+                    error: new Error(
+                        `Failed to get project script files: ${getErrorMessage(error)}`,
+                    ),
+                    includeErrorMessage: true,
+                    additionalProps: {
+                        operationId: this.operationId,
+                    },
                 },
             );
         }
@@ -441,12 +443,14 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             sendErrorEvent(
                 TelemetryViews.SchemaCompare,
                 TelemetryActions.GetDatabaseProjectSchemaProvider,
-                new Error(`Failed to get database schema provider: ${getErrorMessage(error)}`),
-                true,
-                undefined,
-                undefined,
                 {
-                    operationId: this.operationId,
+                    error: new Error(
+                        `Failed to get database schema provider: ${getErrorMessage(error)}`,
+                    ),
+                    includeErrorMessage: true,
+                    additionalProps: {
+                        operationId: this.operationId,
+                    },
                 },
             );
         }
@@ -471,9 +475,11 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.SchemaCompare,
                 TelemetryActions.SqlProjectInstalledVerification,
-                generateOperationId(),
                 {
-                    operationId: this.operationId,
+                    correlationId: generateOperationId(),
+                    additionalProps: {
+                        operationId: this.operationId,
+                    },
                 },
             );
 
@@ -529,8 +535,10 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 `Found ${serverCount} active SQL server connection(s) - OperationId: ${this.operationId}`,
             );
             sendActionEvent(TelemetryViews.SchemaCompare, TelemetryActions.ListingActiveServers, {
-                operationId: this.operationId,
-                serverCount: serverCount.toString(),
+                additionalProps: {
+                    operationId: this.operationId,
+                    serverCount: serverCount.toString(),
+                },
             });
 
             state.activeServers = activeServers;
@@ -547,9 +555,11 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.SchemaCompare,
                 TelemetryActions.ListingDatabasesForActiveServer,
-                generateOperationId(),
                 {
-                    operationId: this.operationId,
+                    correlationId: generateOperationId(),
+                    additionalProps: {
+                        operationId: this.operationId,
+                    },
                 },
             );
 
@@ -597,7 +607,9 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 TelemetryViews.SchemaCompare,
                 TelemetryActions.AddNewConnectionDialogOpened,
                 {
-                    operationId: this.operationId,
+                    additionalProps: {
+                        operationId: this.operationId,
+                    },
                 },
             );
 
@@ -857,9 +869,11 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.SchemaCompare,
                 TelemetryActions.OptionsChanged,
-                generateOperationId(),
                 {
-                    operationId: this.operationId,
+                    correlationId: generateOperationId(),
+                    additionalProps: {
+                        operationId: this.operationId,
+                    },
                 },
             );
 
@@ -973,20 +987,22 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.SchemaCompare,
                 TelemetryActions.Switch,
-                generateOperationId(),
                 {
-                    startTime: startTime.toString(),
-                    operationId: this.operationId,
-                    oldSourceType: payload.newSourceEndpointInfo
-                        ? getSchemaCompareEndpointTypeString(
-                              payload.newSourceEndpointInfo.endpointType,
-                          )
-                        : "None",
-                    oldTargetType: payload.newTargetEndpointInfo
-                        ? getSchemaCompareEndpointTypeString(
-                              payload.newTargetEndpointInfo.endpointType,
-                          )
-                        : "None",
+                    correlationId: generateOperationId(),
+                    additionalProps: {
+                        startTime: startTime.toString(),
+                        operationId: this.operationId,
+                        oldSourceType: payload.newSourceEndpointInfo
+                            ? getSchemaCompareEndpointTypeString(
+                                  payload.newSourceEndpointInfo.endpointType,
+                              )
+                            : "None",
+                        oldTargetType: payload.newTargetEndpointInfo
+                            ? getSchemaCompareEndpointTypeString(
+                                  payload.newTargetEndpointInfo.endpointType,
+                              )
+                            : "None",
+                    },
                 },
             );
 
@@ -1051,18 +1067,20 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.SchemaCompare,
                 TelemetryActions.GenerateScript,
-                generateOperationId(),
                 {
-                    startTime: startTime.toString(),
-                    operationId: this.operationId,
-                    sourceType: getSchemaCompareEndpointTypeString(
-                        state.sourceEndpointInfo?.endpointType,
-                    ),
-                    targetType: getSchemaCompareEndpointTypeString(
-                        state.targetEndpointInfo?.endpointType,
-                    ),
-                    hasTargetServerName: (!!payload?.targetServerName).toString(),
-                    hasTargetDatabaseName: (!!payload?.targetDatabaseName).toString(),
+                    correlationId: generateOperationId(),
+                    additionalProps: {
+                        startTime: startTime.toString(),
+                        operationId: this.operationId,
+                        sourceType: getSchemaCompareEndpointTypeString(
+                            state.sourceEndpointInfo?.endpointType,
+                        ),
+                        targetType: getSchemaCompareEndpointTypeString(
+                            state.targetEndpointInfo?.endpointType,
+                        ),
+                        hasTargetServerName: (!!payload?.targetServerName).toString(),
+                        hasTargetDatabaseName: (!!payload?.targetDatabaseName).toString(),
+                    },
                 },
             );
 
@@ -1157,16 +1175,18 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.SchemaCompare,
                 TelemetryActions.Publish,
-                generateOperationId(),
                 {
-                    startTime: startTime.toString(),
-                    operationId: this.operationId,
-                    sourceType: getSchemaCompareEndpointTypeString(
-                        state.sourceEndpointInfo.endpointType,
-                    ),
-                    targetType: getSchemaCompareEndpointTypeString(
-                        state.targetEndpointInfo.endpointType,
-                    ),
+                    correlationId: generateOperationId(),
+                    additionalProps: {
+                        startTime: startTime.toString(),
+                        operationId: this.operationId,
+                        sourceType: getSchemaCompareEndpointTypeString(
+                            state.sourceEndpointInfo.endpointType,
+                        ),
+                        targetType: getSchemaCompareEndpointTypeString(
+                            state.targetEndpointInfo.endpointType,
+                        ),
+                    },
                 },
             );
 
@@ -1378,10 +1398,12 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.SchemaCompare,
                 TelemetryActions.PublishDatabaseChanges,
-                generateOperationId(),
                 {
-                    startTime: startTime.toString(),
-                    operationId: this.operationId,
+                    correlationId: generateOperationId(),
+                    additionalProps: {
+                        startTime: startTime.toString(),
+                        operationId: this.operationId,
+                    },
                 },
             );
 
@@ -1452,10 +1474,12 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.SchemaCompare,
                 TelemetryActions.PublishProjectChanges,
-                generateOperationId(),
                 {
-                    startTime: startTime.toString(),
-                    operationId: this.operationId,
+                    correlationId: generateOperationId(),
+                    additionalProps: {
+                        startTime: startTime.toString(),
+                        operationId: this.operationId,
+                    },
                 },
             );
 
@@ -1524,10 +1548,12 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.SchemaCompare,
                 TelemetryActions.ResetOptions,
-                generateOperationId(),
                 {
-                    startTime: startTime.toString(),
-                    operationId: this.operationId,
+                    correlationId: generateOperationId(),
+                    additionalProps: {
+                        startTime: startTime.toString(),
+                        operationId: this.operationId,
+                    },
                 },
             );
 
@@ -1569,15 +1595,17 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.SchemaCompare,
                 TelemetryActions.IncludeExcludeNode,
-                generateOperationId(),
                 {
-                    startTime: startTime.toString(),
-                    operationId: this.operationId,
-                    requestType: payload.includeRequest ? "Include" : "Exclude",
-                    diffEntryType: payload.diffEntry.name,
-                    diffActionType: this.getSchemaUpdateActionString(
-                        payload.diffEntry.updateAction,
-                    ),
+                    correlationId: generateOperationId(),
+                    additionalProps: {
+                        startTime: startTime.toString(),
+                        operationId: this.operationId,
+                        requestType: payload.includeRequest ? "Include" : "Exclude",
+                        diffEntryType: payload.diffEntry.name,
+                        diffActionType: this.getSchemaUpdateActionString(
+                            payload.diffEntry.updateAction,
+                        ),
+                    },
                 },
             );
 
@@ -1785,14 +1813,16 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.SchemaCompare,
                 TelemetryActions.IncludeExcludeAllNodes,
-                generateOperationId(),
                 {
-                    startTime: startTime.toString(),
-                    operationId: this.operationId,
-                    requestType: payload.includeRequest ? "Include all" : "Exclude all",
-                    totalDifferences: (
-                        state.schemaCompareResult?.differences?.length || 0
-                    ).toString(),
+                    correlationId: generateOperationId(),
+                    additionalProps: {
+                        startTime: startTime.toString(),
+                        operationId: this.operationId,
+                        requestType: payload.includeRequest ? "Include all" : "Exclude all",
+                        totalDifferences: (
+                            state.schemaCompareResult?.differences?.length || 0
+                        ).toString(),
+                    },
                 },
             );
 
@@ -1934,10 +1964,12 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.SchemaCompare,
                 TelemetryActions.OpenScmp,
-                generateOperationId(),
                 {
-                    startTime: startTime.toString(),
-                    operationId: this.operationId,
+                    correlationId: generateOperationId(),
+                    additionalProps: {
+                        startTime: startTime.toString(),
+                        operationId: this.operationId,
+                    },
                 },
             );
 
@@ -2109,16 +2141,18 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.SchemaCompare,
                 TelemetryActions.SaveScmp,
-                generateOperationId(),
                 {
-                    startTime: startTime.toString(),
-                    operationId: this.operationId,
-                    sourceType: getSchemaCompareEndpointTypeString(
-                        state.sourceEndpointInfo?.endpointType,
-                    ),
-                    targetType: getSchemaCompareEndpointTypeString(
-                        state.targetEndpointInfo?.endpointType,
-                    ),
+                    correlationId: generateOperationId(),
+                    additionalProps: {
+                        startTime: startTime.toString(),
+                        operationId: this.operationId,
+                        sourceType: getSchemaCompareEndpointTypeString(
+                            state.sourceEndpointInfo?.endpointType,
+                        ),
+                        targetType: getSchemaCompareEndpointTypeString(
+                            state.targetEndpointInfo?.endpointType,
+                        ),
+                    },
                 },
             );
 
@@ -2179,16 +2213,18 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.SchemaCompare,
                 TelemetryActions.Cancel,
-                generateOperationId(),
                 {
-                    startTime: startTime.toString(),
-                    operationId: this.operationId,
-                    sourceType: getSchemaCompareEndpointTypeString(
-                        state.sourceEndpointInfo?.endpointType,
-                    ),
-                    targetType: getSchemaCompareEndpointTypeString(
-                        state.targetEndpointInfo?.endpointType,
-                    ),
+                    correlationId: generateOperationId(),
+                    additionalProps: {
+                        startTime: startTime.toString(),
+                        operationId: this.operationId,
+                        sourceType: getSchemaCompareEndpointTypeString(
+                            state.sourceEndpointInfo?.endpointType,
+                        ),
+                        targetType: getSchemaCompareEndpointTypeString(
+                            state.targetEndpointInfo?.endpointType,
+                        ),
+                    },
                 },
             );
 
@@ -2424,11 +2460,9 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         this.updateState(state);
 
         const startTime = Date.now();
-        const endActivity = startActivity(
-            TelemetryViews.SchemaCompare,
-            TelemetryActions.Compare,
-            generateOperationId(),
-            {
+        const endActivity = startActivity(TelemetryViews.SchemaCompare, TelemetryActions.Compare, {
+            correlationId: generateOperationId(),
+            additionalProps: {
                 startTime: startTime.toString(),
                 operationId: this.operationId,
                 sourceType: getSchemaCompareEndpointTypeString(
@@ -2439,7 +2473,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 ),
                 triggerSource: triggerSource,
             },
-        );
+        });
 
         if (payload.sourceEndpointInfo.endpointType === SchemaCompareEndpointType.Project) {
             this.logger.debug(

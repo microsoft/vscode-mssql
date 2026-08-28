@@ -274,7 +274,9 @@ export class QueryResultWebviewController extends WebviewViewController<
                     TelemetryViews.General,
                     TelemetryActions.OpenQueryResultsInTabByDefaultPrompt,
                     {
-                        response: telemResponse,
+                        additionalProps: {
+                            response: telemResponse,
+                        },
                     },
                 );
 
@@ -375,12 +377,10 @@ export class QueryResultWebviewController extends WebviewViewController<
         } catch (e) {
             // If the webview was disposed or timed out before it became ready, clean up the
             // panel controller entry so callers are not blocked indefinitely.
-            sendErrorEvent(
-                TelemetryViews.QueryResult,
-                TelemetryActions.CreatePanelController,
-                e instanceof Error ? e : new Error(String(e)),
-                true, // includeErrorMessage
-            );
+            sendErrorEvent(TelemetryViews.QueryResult, TelemetryActions.CreatePanelController, {
+                error: e instanceof Error ? e : new Error(String(e)),
+                includeErrorMessage: true,
+            });
             this._queryResultWebviewPanelControllerMap.delete(uri);
             controller.panel.dispose();
             void vscode.window.showErrorMessage(
@@ -654,12 +654,10 @@ export class QueryResultWebviewController extends WebviewViewController<
             // This should never happen
 
             const error = new Error(`No query result state found for uri ${uri}`);
-            sendErrorEvent(
-                TelemetryViews.QueryResult,
-                TelemetryActions.GetQueryResultState,
-                new Error(`No query result state found for uri`),
-                false, // includeErrorMessage
-            );
+            sendErrorEvent(TelemetryViews.QueryResult, TelemetryActions.GetQueryResultState, {
+                error: new Error(`No query result state found for uri`),
+                includeErrorMessage: false,
+            });
 
             throw error;
         }

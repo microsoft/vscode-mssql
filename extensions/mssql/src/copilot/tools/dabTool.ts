@@ -119,16 +119,14 @@ export class DabTool extends ToolBase<DabToolParams> {
             measurements?: Record<string, number>;
         }) => {
             try {
-                sendActionEvent(
-                    TelemetryViews.MssqlCopilot,
-                    TelemetryActions.DabTool,
-                    {
+                sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.DabTool, {
+                    additionalProps: {
                         operation: params.operation,
                         success: String(params.success),
                         ...(params.reason ? { reason: params.reason } : {}),
                     },
-                    params.measurements ?? {},
-                );
+                    additionalMeasurements: params.measurements ?? {},
+                });
             } catch {
                 // Telemetry must never block tool execution.
             }

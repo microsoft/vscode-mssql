@@ -141,15 +141,17 @@ suite("UserSurvey Tests", () => {
             TelemetryViews.UserSurvey,
             TelemetryActions.SurveySubmit,
             {
-                surveyId: "nps",
-                q1: "answer1",
-                q2: "answer2",
-                experimentalFeaturesEnabled: "false",
-                surveySource: "testSource",
-                previewFeatureOverrides: JSON.stringify(previewOverrides),
-            },
-            {
-                q3: 3,
+                additionalProps: {
+                    surveyId: "nps",
+                    q1: "answer1",
+                    q2: "answer2",
+                    experimentalFeaturesEnabled: "false",
+                    surveySource: "testSource",
+                    previewFeatureOverrides: JSON.stringify(previewOverrides),
+                },
+                additionalMeasurements: {
+                    q3: 3,
+                },
             },
         );
     });

@@ -607,11 +607,13 @@ suite("MainController Tests", function () {
                 TelemetryViews.SchemaDesigner,
                 TelemetryActions.Open,
                 {
-                    entryPoint: "schemaDesignerToolbar",
-                    scenario: "schemaDesigner",
-                    mode: "agent",
-                    success: "false",
-                    reason: "noActiveDesigner",
+                    additionalProps: {
+                        entryPoint: "schemaDesignerToolbar",
+                        scenario: "schemaDesigner",
+                        mode: "agent",
+                        success: "false",
+                        reason: "noActiveDesigner",
+                    },
                 },
             );
         });
@@ -690,10 +692,12 @@ suite("MainController Tests", function () {
                 TelemetryViews.SchemaDesigner,
                 TelemetryActions.Open,
                 {
-                    entryPoint: "dabToolbar",
-                    scenario: "dab",
-                    mode: "agent",
-                    success: "true",
+                    additionalProps: {
+                        entryPoint: "dabToolbar",
+                        scenario: "dab",
+                        mode: "agent",
+                        success: "true",
+                    },
                 },
             );
         });
@@ -839,8 +843,10 @@ suite("MainController Tests", function () {
                 TelemetryViews.General,
                 TelemetryActions.MigrateEditorConnectionBehavior,
                 {
-                    migratedValue: Constants.NewEditorConnectionBehavior.TransferActive,
-                    scope: "global",
+                    additionalProps: {
+                        migratedValue: Constants.NewEditorConnectionBehavior.TransferActive,
+                        scope: "global",
+                    },
                 },
             );
             expect(sendErrorEvent).to.not.have.been.called;
@@ -866,7 +872,12 @@ suite("MainController Tests", function () {
             expect(sendActionEvent).to.have.been.calledOnceWith(
                 TelemetryViews.General,
                 TelemetryActions.MigrateEditorConnectionBehavior,
-                { migratedValue: Constants.NewEditorConnectionBehavior.None, scope: "global" },
+                {
+                    additionalProps: {
+                        migratedValue: Constants.NewEditorConnectionBehavior.None,
+                        scope: "global",
+                    },
+                },
             );
         });
 
@@ -897,8 +908,10 @@ suite("MainController Tests", function () {
                 TelemetryViews.General,
                 TelemetryActions.MigrateEditorConnectionBehavior,
                 {
-                    migratedValue: Constants.NewEditorConnectionBehavior.TransferActive,
-                    scope: "workspace",
+                    additionalProps: {
+                        migratedValue: Constants.NewEditorConnectionBehavior.TransferActive,
+                        scope: "workspace",
+                    },
                 },
             );
         });
@@ -935,14 +948,21 @@ suite("MainController Tests", function () {
                 TelemetryViews.General,
                 TelemetryActions.MigrateEditorConnectionBehavior,
                 {
-                    migratedValue: Constants.NewEditorConnectionBehavior.TransferActive,
-                    scope: "global",
+                    additionalProps: {
+                        migratedValue: Constants.NewEditorConnectionBehavior.TransferActive,
+                        scope: "global",
+                    },
                 },
             );
             expect(sendActionEvent.secondCall).to.have.been.calledWith(
                 TelemetryViews.General,
                 TelemetryActions.MigrateEditorConnectionBehavior,
-                { migratedValue: Constants.NewEditorConnectionBehavior.None, scope: "workspace" },
+                {
+                    additionalProps: {
+                        migratedValue: Constants.NewEditorConnectionBehavior.None,
+                        scope: "workspace",
+                    },
+                },
             );
         });
 

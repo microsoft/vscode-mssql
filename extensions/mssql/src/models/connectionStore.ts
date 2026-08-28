@@ -276,8 +276,10 @@ export class ConnectionStore {
         savedCredential = await this._credentialStore.readCredential(credentialId);
         if (savedCredential && savedCredential.password) {
             sendActionEvent(TelemetryViews.Connection, TelemetryActions.LookupPassword, {
-                isNewFormat: true.toString(),
-                passwordFound: true.toString(),
+                additionalProps: {
+                    isNewFormat: true.toString(),
+                    passwordFound: true.toString(),
+                },
             });
             return savedCredential.password;
         }
@@ -295,8 +297,10 @@ export class ConnectionStore {
         const legacyCredential = await this._credentialStore.readCredential(legacyCredentialId);
         if (legacyCredential && legacyCredential.password) {
             sendActionEvent(TelemetryViews.Connection, TelemetryActions.LookupPassword, {
-                isNewFormat: false.toString(),
-                passwordFound: true.toString(),
+                additionalProps: {
+                    isNewFormat: false.toString(),
+                    passwordFound: true.toString(),
+                },
             });
             return legacyCredential.password;
         }
@@ -304,7 +308,9 @@ export class ConnectionStore {
         // Send telemetry event if password was not found for connections with savePassword enabled
         if (profile?.savePassword) {
             sendActionEvent(TelemetryViews.Connection, TelemetryActions.LookupPassword, {
-                passwordFound: false.toString(),
+                additionalProps: {
+                    passwordFound: false.toString(),
+                },
             });
         }
         return undefined;

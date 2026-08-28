@@ -73,7 +73,9 @@ export class CodeAnalysisWebViewController extends WebviewPanelController<
 
         // Send telemetry for dialog opened
         sendActionEvent(TelemetryViews.SqlProjects, TelemetryActions.CodeAnalysisDialogOpened, {
-            operationId: this._operationId,
+            additionalProps: {
+                operationId: this._operationId,
+            },
         });
 
         this.registerRpcHandlers();
@@ -86,8 +88,12 @@ export class CodeAnalysisWebViewController extends WebviewPanelController<
      * Sends a telemetry error event scoped to this dialog's operationId.
      */
     private sendError(action: TelemetryActions, error: Error): void {
-        sendErrorEvent(TelemetryViews.SqlProjects, action, error, false, undefined, undefined, {
-            operationId: this._operationId,
+        sendErrorEvent(TelemetryViews.SqlProjects, action, {
+            error,
+            includeErrorMessage: false,
+            additionalProps: {
+                operationId: this._operationId,
+            },
         });
     }
 
@@ -153,7 +159,7 @@ export class CodeAnalysisWebViewController extends WebviewPanelController<
                 sendActionEvent(
                     TelemetryViews.SqlProjects,
                     TelemetryActions.CodeAnalysisRulesSaved,
-                    additionalProps,
+                    { additionalProps },
                 );
                 if (payload.enableCodeAnalysisOnBuild !== state.enableCodeAnalysisOnBuild) {
                     sendActionEvent(
@@ -161,7 +167,7 @@ export class CodeAnalysisWebViewController extends WebviewPanelController<
                         payload.enableCodeAnalysisOnBuild
                             ? TelemetryActions.CodeAnalysisEnabledOnBuild
                             : TelemetryActions.CodeAnalysisDisabledOnBuild,
-                        { operationId: this._operationId },
+                        { additionalProps: { operationId: this._operationId } },
                     );
                 }
                 if (payload.closeAfterSave) {
@@ -313,11 +319,15 @@ export class CodeAnalysisWebViewController extends WebviewPanelController<
             this.updateState();
 
             sendActionEvent(TelemetryViews.SqlProjects, TelemetryActions.CodeAnalysisRulesLoaded, {
-                operationId: this._operationId,
-                ruleCount: dacfxStaticRules.length.toString(),
-                categoryCount: new Set(
-                    dacfxStaticRules.filter((rule) => rule.category).map((rule) => rule.category),
-                ).size.toString(),
+                additionalProps: {
+                    operationId: this._operationId,
+                    ruleCount: dacfxStaticRules.length.toString(),
+                    categoryCount: new Set(
+                        dacfxStaticRules
+                            .filter((rule) => rule.category)
+                            .map((rule) => rule.category),
+                    ).size.toString(),
+                },
             });
         } catch (error) {
             this.state.isLoading = false;

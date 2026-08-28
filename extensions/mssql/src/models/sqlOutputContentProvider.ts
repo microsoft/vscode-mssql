@@ -578,7 +578,9 @@ export class SqlOutputContentProvider {
                 this.updateWebviewState(queryRunner.uri, resultWebviewState);
                 this.revealQueryResult(queryRunner.uri, "throw");
                 sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.OpenQueryResult, {
-                    defaultLocation: isOpenQueryResultsInTabByDefaultEnabled() ? "tab" : "pane",
+                    additionalProps: {
+                        defaultLocation: isOpenQueryResultsInTabByDefaultEnabled() ? "tab" : "pane",
+                    },
                 });
             });
 

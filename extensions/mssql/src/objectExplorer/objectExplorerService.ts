@@ -202,11 +202,12 @@ export class ObjectExplorerService {
         const expandActivity = startActivity(
             TelemetryViews.ObjectExplorer,
             TelemetryActions.ExpandNode,
-            undefined,
             {
-                nodeType: node.nodeType,
-                nodeSubType: node.nodeSubType,
-                isRefresh: node.shouldRefresh.toString(),
+                additionalProps: {
+                    nodeType: node.nodeType,
+                    nodeSubType: node.nodeSubType,
+                    isRefresh: node.shouldRefresh.toString(),
+                },
             },
         );
         this._logger.trace(`expandNode start: ${getNodeDescriptor(node)}`);
@@ -463,9 +464,10 @@ export class ObjectExplorerService {
         const getConnectionActivity = startActivity(
             TelemetryViews.ObjectExplorer,
             TelemetryActions.ExpandNode,
-            undefined,
             {
-                nodeType: "root",
+                additionalProps: {
+                    nodeType: "root",
+                },
             },
         );
 
@@ -806,11 +808,11 @@ export class ObjectExplorerService {
         const createSessionActivity = startActivity(
             TelemetryViews.ObjectExplorer,
             TelemetryActions.CreateSession,
-            undefined,
             {
-                connectionType: connectionInfo?.authenticationType ?? "newConnection",
+                additionalProps: {
+                    connectionType: connectionInfo?.authenticationType ?? "newConnection",
+                },
             },
-            undefined,
         );
 
         const connectionProfile = await this.prepareConnectionProfile(connectionInfo);
@@ -949,14 +951,10 @@ export class ObjectExplorerService {
         if (!connectionProfile) {
             const connectionUI = this._connectionManager.connectionUI;
             connectionUI.openConnectionDialog();
-            sendActionEvent(
-                TelemetryViews.ObjectExplorer,
-                TelemetryActions.CreateConnection,
-                undefined,
-                undefined,
-                connectionInfo as IConnectionProfile,
-                this._connectionManager.getServerInfo(connectionInfo),
-            );
+            sendActionEvent(TelemetryViews.ObjectExplorer, TelemetryActions.CreateConnection, {
+                connectionInfo: connectionInfo as IConnectionProfile,
+                serverInfo: this._connectionManager.getServerInfo(connectionInfo),
+            });
         }
 
         if (!connectionProfile) {
