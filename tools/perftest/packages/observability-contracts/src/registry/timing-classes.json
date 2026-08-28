@@ -1,0 +1,21 @@
+{
+    "schemaVersion": "obs-contract/1",
+    "description": "Timing planes. A duration's plane travels with it everywhere (metric, bar, export row); planes are never mixed silently.",
+    "timingClasses": {
+        "sameProcessMonotonic": {
+            "meaning": "Both endpoints from one process's monotonic clock.",
+            "rendering": "solid bar",
+            "eligibility": "may feed measurement-eligible metrics"
+        },
+        "epochAligned": {
+            "meaning": "Endpoints aligned by wall clock across processes (e.g. STS spans in an extension-anchored waterfall).",
+            "rendering": "hatched bar, labeled 'aligned diagnostic'",
+            "eligibility": "diagnostic-only, always"
+        },
+        "derived": {
+            "meaning": "Computed from other metrics via a declared derivation formula.",
+            "rendering": "table value with derivation provenance",
+            "eligibility": "inherits the weakest input plane; requires a derivation block"
+        }
+    }
+}

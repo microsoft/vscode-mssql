@@ -395,7 +395,7 @@ suite("ConnectionSharingService Tests", () => {
         });
 
         test("does not show the notification for internal consumers", async () => {
-            const internalExtensionId = Constants.sqlDatabaseProjectsExtensionId;
+            const internalExtensionId = "ms-mssql.sql-notebook-controller";
             secretStorage.get.resolves(JSON.stringify({ [internalExtensionId]: "approved" }));
             getExtensionStub.withArgs(internalExtensionId).returns({
                 id: internalExtensionId,

@@ -1,0 +1,312 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://mssql-perf.local/schemas/perf-config.schema.json",
+    "title": "MSSQL VS Code Perf Config",
+    "type": "object",
+    "additionalProperties": true,
+    "required": [
+        "schemaVersion",
+        "passType",
+        "repetitions",
+        "warmupRepetitions",
+        "scenarios",
+        "vscode",
+        "sql",
+        "environment",
+        "diagnostics",
+        "store",
+        "regression",
+        "output"
+    ],
+    "properties": {
+        "schemaVersion": {
+            "const": 2
+        },
+        "runId": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+        },
+        "passType": {
+            "enum": ["measurement", "diagnostic", "calibration"]
+        },
+        "repetitions": {
+            "type": "integer",
+            "minimum": 1
+        },
+        "warmupRepetitions": {
+            "type": "integer",
+            "minimum": 0
+        },
+        "scenarios": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "type": "string"
+            }
+        },
+        "vscode": {
+            "type": "object",
+            "additionalProperties": true,
+            "required": ["version", "launchMode", "extensions"],
+            "properties": {
+                "version": {
+                    "type": "string"
+                },
+                "quality": {
+                    "type": "string"
+                },
+                "launchMode": {
+                    "enum": ["directSpawn", "testElectron"]
+                },
+                "profileMode": {
+                    "enum": ["fresh", "warmed", "reuse", "scenarioDefault"]
+                },
+                "workspaceRoot": {
+                    "type": "string"
+                },
+                "extensions": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["id", "source", "path"],
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "source": {
+                                "enum": ["vsix", "developmentPath", "marketplace"]
+                            },
+                            "path": {
+                                "type": "string"
+                            },
+                            "version": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "extraArgs": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "env": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "sql": {
+            "type": "object",
+            "additionalProperties": true,
+            "required": ["provider", "snapshot", "cacheMode", "connectionProfile"],
+            "properties": {
+                "provider": {
+                    "enum": ["dockerCompose", "testcontainers", "external"]
+                },
+                "composeFile": {
+                    "type": "string"
+                },
+                "service": {
+                    "type": "string"
+                },
+                "imageDigest": {
+                    "type": "string"
+                },
+                "snapshot": {
+                    "type": "string"
+                },
+                "cacheMode": {
+                    "enum": ["warm", "coldDb", "coldOs", "unknown"]
+                },
+                "connectionProfile": {
+                    "type": "string"
+                },
+                "provisionSeed": {
+                    "type": "boolean"
+                },
+                "connectionStringEnv": {
+                    "type": "string",
+                    "minLength": 1
+                }
+            }
+        },
+        "environment": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+                "requireIdle": {
+                    "type": "boolean"
+                },
+                "idleCpuPctMax": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "pinCpuAffinity": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                },
+                "requireAcPower": {
+                    "type": "boolean"
+                },
+                "fixCpuFrequency": {
+                    "enum": ["off", "warn", "required"]
+                }
+            }
+        },
+        "diagnostics": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "markers": {
+                    "type": "boolean"
+                },
+                "processSampler": {
+                    "type": "boolean"
+                },
+                "otel": {
+                    "enum": ["off", "minimal", "full"]
+                },
+                "sqlServerXEvents": {
+                    "type": "boolean"
+                },
+                "startupProfile": {
+                    "type": "boolean"
+                },
+                "cdp": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "extHostProfile": {
+                            "type": "boolean"
+                        },
+                        "rendererTrace": {
+                            "type": "boolean"
+                        },
+                        "rendererProfile": {
+                            "type": "boolean"
+                        }
+                    }
+                },
+                "dotnetCounters": {
+                    "type": "boolean"
+                },
+                "dotnetTrace": {
+                    "type": "boolean"
+                },
+                "dotnetTraceProfile": {
+                    "enum": ["cpu", "gc-verbose", "gc-collect"]
+                },
+                "dotnetTraceDurationSeconds": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 3600
+                },
+                "wprEtw": {
+                    "type": "boolean"
+                },
+                "vscodeDiag": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "logs": {
+                            "type": "boolean"
+                        },
+                        "status": {
+                            "type": "boolean"
+                        }
+                    }
+                },
+                "stsEnvelopeJournal": {
+                    "type": "boolean"
+                },
+                "captureSqlText": {
+                    "type": "boolean"
+                },
+                "heapSnapshots": {
+                    "type": "boolean"
+                },
+                "gcDump": {
+                    "type": "boolean"
+                },
+                "recipe": {
+                    "enum": ["light", "ui-rendering", "service", "sql", "memory", "full"]
+                }
+            }
+        },
+        "store": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["type"],
+            "properties": {
+                "type": {
+                    "enum": ["sqlite", "none"]
+                },
+                "path": {
+                    "type": "string"
+                }
+            }
+        },
+        "regression": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+                "baseline": {
+                    "type": "string"
+                },
+                "failOnRegression": {
+                    "type": "boolean"
+                },
+                "thresholds": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "default": {
+                            "$ref": "#/$defs/thresholdSpec"
+                        },
+                        "metrics": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "$ref": "#/$defs/thresholdSpec"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "output": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["dir", "keepArtifacts"],
+            "properties": {
+                "dir": {
+                    "type": "string"
+                },
+                "keepArtifacts": {
+                    "enum": ["always", "on-regression", "on-failure", "never"]
+                }
+            }
+        }
+    },
+    "$defs": {
+        "thresholdSpec": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "pct": { "type": "number", "minimum": 0 },
+                "absMs": { "type": "number", "minimum": 0 },
+                "minSamples": { "type": "integer", "minimum": 1 },
+                "maxCv": { "type": "number", "minimum": 0 },
+                "test": { "type": "string" },
+                "pValue": { "type": "number", "minimum": 0, "maximum": 1 }
+            }
+        }
+    }
+}
