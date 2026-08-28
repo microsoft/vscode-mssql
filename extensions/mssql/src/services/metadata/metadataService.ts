@@ -191,10 +191,14 @@ const H3_COLUMNS =
     "ORDER BY c.object_id, c.column_id;";
 // H5 (SV-R1): + referential-action DESC strings (never the numeric values —
 // addendum §5.5: the catalog's 0/1 and the legacy OnAction 0/1 are SWAPPED).
+// Disabled constraints are excluded (not enforced). UNTRUSTED constraints
+// (is_not_trusted = 1: created WITH NOCHECK or re-enabled without WITH
+// CHECK) are kept — the engine still enforces them for every new write, so
+// they are real relationships for joins, the visualizer, and scripting.
 const H5_FOREIGN_KEYS =
     "SELECT fk.object_id, fk.name, fk.parent_object_id, fk.referenced_object_id, " +
     "fk.delete_referential_action_desc, fk.update_referential_action_desc " +
-    "FROM sys.foreign_keys fk WHERE fk.is_ms_shipped = 0 AND fk.is_disabled = 0 AND fk.is_not_trusted = 0 ORDER BY fk.object_id;";
+    "FROM sys.foreign_keys fk WHERE fk.is_ms_shipped = 0 AND fk.is_disabled = 0 ORDER BY fk.object_id;";
 const H0_ENV =
     "SELECT CAST(SERVERPROPERTY('EngineEdition') AS int) AS engine_edition, " +
     "COALESCE(CAST(SCHEMA_NAME() AS sysname), 'dbo') AS default_schema, " +

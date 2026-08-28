@@ -66,11 +66,19 @@ export function profilePrincipal(
  * Query Studio open-from-context path so ids always agree.
  */
 export function stableProfileId(stored: StoredConnectionProfile): string {
+    if (stored.id) {
+        return stored.id;
+    }
     const principal = profilePrincipal(stored) ?? stored.accountId?.trim() ?? "";
-    return (
-        stored.id ??
-        `${profileServerEndpoint(stored)}|${stored.database ?? ""}|${principal}|${stored.tenantId ?? ""}|${stored.authenticationType ?? ""}`
-    );
+    // JSON-encode the tuple: every field may legally contain any separator
+    // character, so a positional join would let distinct profiles collide.
+    return JSON.stringify([
+        profileServerEndpoint(stored),
+        stored.database ?? "",
+        principal,
+        stored.tenantId ?? "",
+        stored.authenticationType ?? "",
+    ]);
 }
 
 /** Credential-store seam (ConnectionStore.lookupPassword). */
