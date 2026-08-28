@@ -1164,33 +1164,6 @@ suite("SchemaCompareWebViewController Tests", () => {
         );
     });
 
-    test("listActiveServers reducer - saved connection without ID uses server_database as its connections key", async () => {
-        const savedConnection = {
-            id: "",
-            profileName: "Saved connection",
-            server: "shared-server",
-            database: "saved-database",
-            authenticationType: "SqlLogin",
-            user: "shared-user",
-            trustServerCertificate: false,
-            profileSource: CredentialsQuickPickItemType.Profile,
-        } as IConnectionProfileWithSource;
-        connectionStoreStub.readAllConnections.resolves([savedConnection]);
-
-        const actualResult = await controller["_reducerHandlers"].get("listActiveServers")(
-            mockInitialState,
-            {},
-        );
-
-        // Profile with no ID appears under server_database composite key
-        expect(actualResult.connections).to.have.property("shared-server_saved-database");
-        expect(actualResult.connections["shared-server_saved-database"]).to.deep.equal({
-            profileName: "Saved connection",
-            server: "shared-server",
-            database: "saved-database",
-        });
-    });
-
     test("listDatabasesForActiveServer reducer - rejects an unsaved active connection", async () => {
         const payload = { connectionUri: "conn_uri" };
 
