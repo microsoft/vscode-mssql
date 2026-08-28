@@ -1110,6 +1110,8 @@ suite("ConnectionDialogWebviewController Tests", () => {
 
         test("loadConnectionAsNewDraft", async () => {
             controller.state.formMessage = { message: "Sample error" };
+            connectionManager.connect.resolves(true);
+            connectionManager.listDatabases.resolves(["SavedDatabase", "OtherDatabase"]);
 
             const testConnection = {
                 id: "existing-profile-id",
@@ -1137,6 +1139,8 @@ suite("ConnectionDialogWebviewController Tests", () => {
             expect(controller.state.editingConnectionDisplayName).to.be.undefined;
             expect(controller.state.formMessage).to.be.undefined;
             expect(controller.state.readyToConnect).to.be.true;
+            expect(controller.state.connectionProfile.database).to.equal("SavedDatabase");
+            expect(connectionManager.connect).to.have.been.called;
 
             // Ensure source object wasn't mutated
             expect(testConnection.id).to.equal("existing-profile-id");
