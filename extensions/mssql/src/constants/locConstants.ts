@@ -4453,3 +4453,9 @@ export class MetadataCache {
         });
     public static entryCleared = l10n.t("MSSQL metadata cache entry cleared.");
 }
+
+export class Metadata {
+    public static dataPlaneRequired = l10n.t(
+        "Metadata requires mssql.sqlDataPlane.enabled to be enabled.",
+    );
+}

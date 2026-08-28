@@ -4826,6 +4826,9 @@
       <source xml:lang="en">Messages ({0})</source>
       <note>{0} is the keyboard shortcut for the messages tab</note>
     </trans-unit>
+    <trans-unit id="++CODE++dbc30ffb74c36ea44697ac39224d8bf8dff43307deef7b8a8228cf855f8612fc">
+      <source xml:lang="en">Metadata requires mssql.sqlDataPlane.enabled to be enabled.</source>
+    </trans-unit>
     <trans-unit id="++CODE++2d275a74912cca2e02e6d41f9cae3a75ceef3ed0ef734eff3710e10eb7112228">
       <source xml:lang="en">Metric</source>
     </trans-unit>

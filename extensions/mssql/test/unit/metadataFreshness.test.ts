@@ -434,6 +434,34 @@ suite("Metadata freshness policy (CACHE-0)", () => {
         });
         expect(stale.freshness).to.be.oneOf(["stale", "validated"]);
         expect(stale.generation).to.equal(generation + 1);
+
+        let addedListener: EventListenerOrEventListenerObject | undefined;
+        let removedListener: EventListenerOrEventListenerObject | undefined;
+        const signal = {
+            aborted: false,
+            addEventListener: (
+                type: string,
+                listener: EventListenerOrEventListenerObject,
+            ): void => {
+                expect(type).to.equal("abort");
+                addedListener = listener;
+            },
+            removeEventListener: (
+                type: string,
+                listener: EventListenerOrEventListenerObject,
+            ): void => {
+                expect(type).to.equal("abort");
+                removedListener = listener;
+            },
+        } as AbortSignal;
+        const live = await service.ensureFresh({
+            mode: "requireLive",
+            reason: "scripting",
+            signal,
+        });
+        expect(live.freshness).to.equal("live");
+        expect(addedListener).to.not.equal(undefined);
+        expect(removedListener).to.equal(addedListener);
         service.dispose();
     });
 });

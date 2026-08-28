@@ -16,6 +16,7 @@
  */
 
 import { SqlDataPlaneService } from "../sqlDataPlane/sqlDataPlaneService";
+import * as locConstants from "../../constants/locConstants";
 import { MetadataCacheCoordinator } from "./cache/metadataCacheCoordinator";
 import { MetadataCacheSettings } from "./cache/metadataCacheSettings";
 import { MetadataCacheStore, NodeFsLike } from "./cache/metadataCacheStore";
@@ -97,9 +98,7 @@ export class MetadataStoreService {
             this.storeInstance = new MetadataStore(
                 (profileFingerprint) => {
                     if (this.hostInit?.dataPlaneEnabled?.() === false) {
-                        throw new Error(
-                            "Metadata requires mssql.sqlDataPlane.enabled to be enabled",
-                        );
+                        throw new Error(locConstants.Metadata.dataPlaneRequired);
                     }
                     return SqlDataPlaneService.get().serviceForProfile(profileFingerprint);
                 },

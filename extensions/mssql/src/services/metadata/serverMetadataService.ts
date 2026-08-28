@@ -231,11 +231,16 @@ export class ServerMetadataService {
             }
             return new Promise((resolve) => {
                 let settled = false;
+                let abortListener: (() => void) | undefined;
                 const settle = (value: "done" | "timeout") => {
                     if (!settled) {
                         settled = true;
                         if (timer !== undefined) {
                             clearTimeout(timer);
+                        }
+                        if (abortListener) {
+                            policy.signal?.removeEventListener("abort", abortListener);
+                            abortListener = undefined;
                         }
                         resolve(value);
                     }
@@ -247,10 +252,9 @@ export class ServerMetadataService {
                 (timer as { unref?: () => void } | undefined)?.unref?.();
                 if (policy.signal?.aborted) {
                     settle("timeout");
-                } else {
-                    policy.signal?.addEventListener("abort", () => settle("timeout"), {
-                        once: true,
-                    });
+                } else if (policy.signal) {
+                    abortListener = () => settle("timeout");
+                    policy.signal.addEventListener("abort", abortListener, { once: true });
                 }
                 work.then(
                     () => settle("done"),
