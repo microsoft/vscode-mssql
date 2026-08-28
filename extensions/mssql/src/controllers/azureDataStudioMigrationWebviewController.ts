@@ -464,7 +464,7 @@ export class AzureDataStudioMigrationWebviewController extends WebviewPanelContr
         );
 
         try {
-            activity.update({ step: "1_importingGroups" });
+            activity.update({ additionalProps: { step: "1_importingGroups" } });
 
             const validGroupIds = new Set<string>([
                 ...this._existingGroupIds.keys(),
@@ -484,7 +484,7 @@ export class AzureDataStudioMigrationWebviewController extends WebviewPanelContr
                 await this.connectionConfig.addGroup(groupToAdd);
             }
 
-            activity.update({ step: "2_importingConnections" });
+            activity.update({ additionalProps: { step: "2_importingConnections" } });
 
             for (const connection of selectedConnections) {
                 const connectionToAdd: interfaces.IConnectionProfile = {
@@ -513,7 +513,7 @@ export class AzureDataStudioMigrationWebviewController extends WebviewPanelContr
 
             let settingCount = 0;
             if (state.importSettings && state.settings.length > 0) {
-                activity.update({ step: "3_importingSettings" });
+                activity.update({ additionalProps: { step: "3_importingSettings" } });
 
                 const config = vscode.workspace.getConfiguration();
 

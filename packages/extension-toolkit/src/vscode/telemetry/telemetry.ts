@@ -14,19 +14,8 @@ import TelemetryReporter, {
 export interface ActivityObject {
     startTime: number;
     correlationId: string;
-    update(
-        additionalProperties?: TelemetryEventProperties,
-        additionalMeasurements?: TelemetryEventMeasures,
-        connectionInfo?: ConnectionInfo,
-        serverInfo?: ServerInfo,
-    ): void;
-    end(
-        activityStatus: string,
-        additionalProperties?: TelemetryEventProperties,
-        additionalMeasurements?: TelemetryEventMeasures,
-        connectionInfo?: ConnectionInfo,
-        serverInfo?: ServerInfo,
-    ): void;
+    update(options?: TelemetryEventOptions): void;
+    end(activityStatus: string, options?: TelemetryEventOptions): void;
     endFailed(
         error?: Error,
         includeErrorMessage?: boolean,
@@ -270,12 +259,12 @@ export function startActivity(
         ...startActivityAdditionalMeasurements,
     };
 
-    function update(
-        additionalProps: TelemetryEventProperties = {},
-        additionalMeasurements: TelemetryEventMeasures = {},
-        connectionInfo?: ConnectionInfo,
-        serverInfo?: ServerInfo,
-    ): void {
+    function update({
+        additionalProps = {},
+        additionalMeasurements = {},
+        connectionInfo,
+        serverInfo,
+    }: TelemetryEventOptions = {}): void {
         const updateCallStack = includeCallStack ? captureCallStack() : undefined;
         sendActionEvent(telemetryView, telemetryAction, {
             additionalProps: {
@@ -296,11 +285,13 @@ export function startActivity(
 
     function end(
         activityStatus: string,
-        additionalProps: TelemetryEventProperties = {},
-        additionalMeasurements: TelemetryEventMeasures = {},
-        connectionInfo?: ConnectionInfo,
-        serverInfo?: ServerInfo,
-    ) {
+        {
+            additionalProps = {},
+            additionalMeasurements = {},
+            connectionInfo,
+            serverInfo,
+        }: TelemetryEventOptions = {},
+    ): void {
         const endCallStack = includeCallStack ? captureCallStack() : undefined;
         sendActionEvent(telemetryView, telemetryAction, {
             additionalProps: {
@@ -328,8 +319,8 @@ export function startActivity(
         additionalMeasurements?: TelemetryEventMeasures,
         connectionInfo?: ConnectionInfo,
         serverInfo?: ServerInfo,
-    ) {
-        includeErrorMessage = includeErrorMessage ?? false; // Default to false if undefined
+    ): void {
+        includeErrorMessage = includeErrorMessage ?? false;
         const endFailedCallStack = includeCallStack ? captureCallStack() : undefined;
         sendErrorEvent(telemetryView, telemetryAction, {
             error,

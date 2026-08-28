@@ -203,8 +203,10 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                 updatedSchema: payload.updatedSchema,
                 sessionId: this._sessionId,
             });
-            definitionActivity.end(ActivityStatus.Succeeded, undefined, {
-                tableCount: payload.updatedSchema.tables.length,
+            definitionActivity.end(ActivityStatus.Succeeded, {
+                additionalMeasurements: {
+                    tableCount: payload.updatedSchema.tables.length,
+                },
             });
             this.updateCacheItem(payload.updatedSchema);
             return script;
@@ -230,19 +232,18 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                     report,
                 };
 
-                reportActivity.end(
-                    ActivityStatus.Succeeded,
-                    {
+                reportActivity.end(ActivityStatus.Succeeded, {
+                    additionalProps: {
                         hasSchemaChanged: result.report?.hasSchemaChanged?.toString(),
                         possibleDataLoss: result.report?.dacReport?.possibleDataLoss?.toString(),
                         requireTableRecreation:
                             result.report.dacReport?.requireTableRecreation?.toString(),
                         hasWarnings: result.report?.dacReport?.hasWarnings?.toString(),
                     },
-                    {
+                    additionalMeasurements: {
                         tableCount: payload.updatedSchema?.tables?.length,
                     },
-                );
+                });
 
                 return result;
             } catch (error) {
@@ -262,8 +263,10 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                 await this.schemaDesignerService.publishSession({
                     sessionId: this._sessionId,
                 });
-                publishActivity.end(ActivityStatus.Succeeded, undefined, {
-                    tableCount: payload.schema?.tables?.length,
+                publishActivity.end(ActivityStatus.Succeeded, {
+                    additionalMeasurements: {
+                        tableCount: payload.schema?.tables?.length,
+                    },
                 });
                 if (this.schemaDesignerDetails) {
                     this.schemaDesignerDetails.schema = payload.schema;
@@ -408,13 +411,11 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                         const result = await this.schemaDesignerService.generateScript({
                             sessionId: this._sessionId,
                         });
-                        generateScriptActivity.end(
-                            ActivityStatus.Succeeded,
-                            undefined,
-                            result?.script
+                        generateScriptActivity.end(ActivityStatus.Succeeded, {
+                            additionalMeasurements: result?.script
                                 ? { scriptLength: result?.script?.length }
                                 : { scriptLength: 0 },
-                        );
+                        });
                         let connectionCredentials: IConnectionInfo | undefined;
                         // Open the document in the editor with the connection
                         if (this.treeNode) {
@@ -674,8 +675,10 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
 
             this.schemaDesignerDetails = sessionResponse;
             this._sessionId = sessionResponse.sessionId;
-            schemaDesignerInitActivity.end(ActivityStatus.Succeeded, undefined, {
-                tableCount: sessionResponse?.schema?.tables?.length,
+            schemaDesignerInitActivity.end(ActivityStatus.Succeeded, {
+                additionalMeasurements: {
+                    tableCount: sessionResponse?.schema?.tables?.length,
+                },
             });
             return sessionResponse;
         } catch (error) {

@@ -317,8 +317,10 @@ export class ObjectExplorerService {
                         ),
                     );
                     this._treeNodeToChildrenMap.set(node, children);
-                    expandActivity.end(ActivityStatus.Succeeded, undefined, {
-                        childrenCount: children.length,
+                    expandActivity.end(ActivityStatus.Succeeded, {
+                        additionalMeasurements: {
+                            childrenCount: children.length,
+                        },
                     });
                     return children;
                 }
@@ -484,8 +486,10 @@ export class ObjectExplorerService {
             this._logger.debug(
                 "No saved connections or groups found. Showing add connection node.",
             );
-            getConnectionActivity.end(ActivityStatus.Succeeded, undefined, {
-                childrenCount: 0,
+            getConnectionActivity.end(ActivityStatus.Succeeded, {
+                additionalMeasurements: {
+                    childrenCount: 0,
+                },
             });
             return this.getAddConnectionNodes();
         }
@@ -581,8 +585,10 @@ export class ObjectExplorerService {
 
         const result = [...this._rootTreeNodeArray];
 
-        getConnectionActivity.end(ActivityStatus.Succeeded, undefined, {
-            nodeCount: result.length,
+        getConnectionActivity.end(ActivityStatus.Succeeded, {
+            additionalMeasurements: {
+                nodeCount: result.length,
+            },
         });
         return result;
     }
@@ -888,7 +894,9 @@ export class ObjectExplorerService {
                     connectionProfile,
                 );
                 createSessionActivity.end(ActivityStatus.Succeeded, {
-                    connectionType: connectionProfile.authenticationType,
+                    additionalProps: {
+                        connectionType: connectionProfile.authenticationType,
+                    },
                 });
                 finalizeSession();
                 return successResponse;
@@ -1120,14 +1128,14 @@ export class ObjectExplorerService {
         telemetryActivty: ActivityObject,
     ): Promise<boolean> {
         if (failureResponse.errorNumber) {
-            telemetryActivty.update(
-                {
+            telemetryActivty.update({
+                additionalProps: {
                     connectionType: connectionProfile.authenticationType,
                 },
-                {
+                additionalMeasurements: {
                     errorNumber: failureResponse.errorNumber,
                 },
-            );
+            });
         }
 
         const errorHandlingResult = await this._connectionManager.handleConnectionErrors(
@@ -1136,9 +1144,11 @@ export class ObjectExplorerService {
         );
 
         telemetryActivty.update({
-            connectionType: connectionProfile.authenticationType,
-            errorHandled: errorHandlingResult.errorHandled,
-            isFixed: errorHandlingResult.errorHandled ? "true" : "false",
+            additionalProps: {
+                connectionType: connectionProfile.authenticationType,
+                errorHandled: errorHandlingResult.errorHandled,
+                isFixed: errorHandlingResult.errorHandled ? "true" : "false",
+            },
         });
 
         if (errorHandlingResult.isHandled) {

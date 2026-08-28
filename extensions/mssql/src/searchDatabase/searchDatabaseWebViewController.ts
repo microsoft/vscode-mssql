@@ -205,7 +205,9 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
         this.updateState();
 
         endActivity.end(ActivityStatus.Succeeded, {
-            operationId: this._operationId,
+            additionalProps: {
+                operationId: this._operationId,
+            },
         });
     }
 
@@ -384,9 +386,11 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
             this.applyFiltersAndSearch();
 
             endActivity.end(ActivityStatus.Succeeded, {
-                operationId: this._operationId,
-                objectCount: metadata.length.toString(),
-                schemaCount: uniqueSchemas.length.toString(),
+                additionalProps: {
+                    operationId: this._operationId,
+                    objectCount: metadata.length.toString(),
+                    schemaCount: uniqueSchemas.length.toString(),
+                },
             });
         } catch (error) {
             const errorMessage = getErrorMessage(error);
@@ -596,7 +600,9 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
                     await this.loadMetadata();
 
                     endActivity.end(ActivityStatus.Succeeded, {
-                        operationId: this._operationId,
+                        additionalProps: {
+                            operationId: this._operationId,
+                        },
                     });
                 } catch (error) {
                     this.logError(`Error switching database: ${getErrorMessage(error)}`);
@@ -767,7 +773,9 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
                 await this.loadMetadata();
 
                 endActivity.end(ActivityStatus.Succeeded, {
-                    operationId: this._operationId,
+                    additionalProps: {
+                        operationId: this._operationId,
+                    },
                 });
             } catch (error) {
                 this.logError(`Error refreshing results: ${getErrorMessage(error)}`);
@@ -912,9 +920,11 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
             }
 
             endActivity.end(ActivityStatus.Succeeded, {
-                operationId: this._operationId,
-                scriptType: scriptType,
-                objectType: object.metadataTypeName,
+                additionalProps: {
+                    operationId: this._operationId,
+                    scriptType: scriptType,
+                    objectType: object.metadataTypeName,
+                },
             });
         } catch (error) {
             this.logError(`Error scripting object '${object.fullName}': ${getErrorMessage(error)}`);
@@ -979,7 +989,9 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
             await vscode.commands.executeCommand(Constants.cmdTableExplorer, syntheticNode);
 
             endActivity.end(ActivityStatus.Succeeded, {
-                operationId: this._operationId,
+                additionalProps: {
+                    operationId: this._operationId,
+                },
             });
         } catch (error) {
             this.logError(`Error opening Edit Data: ${getErrorMessage(error)}`);
@@ -1046,7 +1058,9 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
             await vscode.commands.executeCommand(Constants.cmdEditTable, syntheticNode);
 
             endActivity.end(ActivityStatus.Succeeded, {
-                operationId: this._operationId,
+                additionalProps: {
+                    operationId: this._operationId,
+                },
             });
         } catch (error) {
             this.logError(`Error opening Modify Table: ${getErrorMessage(error)}`);

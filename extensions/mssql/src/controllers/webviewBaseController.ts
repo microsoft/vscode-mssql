@@ -328,7 +328,9 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
                     `Load stats for ${this._sourceFile}` + "\n" + `Total time: ${timeToLoad} ms`,
                 );
                 this._endLoadActivity.end(ActivityStatus.Succeeded, {
-                    type: this._sourceFile,
+                    additionalProps: {
+                        type: this._sourceFile,
+                    },
                 });
                 this._isFirstLoad = false;
             }

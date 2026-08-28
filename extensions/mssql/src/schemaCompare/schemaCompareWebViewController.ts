@@ -495,13 +495,17 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                     await extension.activate();
 
                     endActivity.update({
-                        message: "SQL Database Projects extension activated",
+                        additionalProps: {
+                            message: "SQL Database Projects extension activated",
+                        },
                     });
                 }
 
                 endActivity.end(ActivityStatus.Succeeded, {
-                    operationId: this.operationId,
-                    isSqlProjectExtensionInstalled: "true",
+                    additionalProps: {
+                        operationId: this.operationId,
+                        isSqlProjectExtensionInstalled: "true",
+                    },
                 });
 
                 this.logger.debug(
@@ -514,8 +518,10 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 );
 
                 endActivity.end(ActivityStatus.Succeeded, {
-                    operationId: this.operationId,
-                    isSqlProjectExtensionInstalled: "false",
+                    additionalProps: {
+                        operationId: this.operationId,
+                        isSqlProjectExtensionInstalled: "false",
+                    },
                 });
 
                 state.isSqlProjectExtensionInstalled = false;
@@ -571,8 +577,10 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 );
 
                 endActivity.end(ActivityStatus.Succeeded, {
-                    operationId: this.operationId,
-                    databaseCount: databases.length.toString(),
+                    additionalProps: {
+                        operationId: this.operationId,
+                        databaseCount: databases.length.toString(),
+                    },
                 });
             } catch (error) {
                 this.logger.error(
@@ -899,8 +907,10 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                             );
 
                             endActivity.update({
-                                operationId: this.operationId,
-                                message: "User chose to run comparison with new options",
+                                additionalProps: {
+                                    operationId: this.operationId,
+                                    message: "User chose to run comparison with new options",
+                                },
                             });
 
                             const payload = {
@@ -912,8 +922,10 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                             await this.schemaCompare(payload, state);
 
                             endActivity.end(ActivityStatus.Succeeded, {
-                                operationId: this.operationId,
-                                message: "Comparison run with new options",
+                                additionalProps: {
+                                    operationId: this.operationId,
+                                    message: "Comparison run with new options",
+                                },
                             });
                         } else {
                             this.logger.debug(
@@ -921,8 +933,10 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                             );
 
                             endActivity.end(ActivityStatus.Succeeded, {
-                                operationId: this.operationId,
-                                message: "User chose not to run comparison",
+                                additionalProps: {
+                                    operationId: this.operationId,
+                                    message: "User chose not to run comparison",
+                                },
                             });
                         }
                     });
@@ -930,8 +944,10 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 this.logger.debug(`No options were changed - OperationId: ${this.operationId}`);
 
                 endActivity.end(ActivityStatus.Succeeded, {
-                    operationId: this.operationId,
-                    message: "No options were changed",
+                    additionalProps: {
+                        operationId: this.operationId,
+                        message: "No options were changed",
+                    },
                 });
             }
 
@@ -1027,10 +1043,12 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
 
             this.logger.debug(`Successfully switched endpoints - OperationId: ${this.operationId}`);
             endActivity.end(ActivityStatus.Succeeded, {
-                elapsedTime: (Date.now() - startTime).toString(),
-                operationId: this.operationId,
-                newSourceType: sourceType,
-                newTargetType: targetType,
+                additionalProps: {
+                    elapsedTime: (Date.now() - startTime).toString(),
+                    operationId: this.operationId,
+                    newSourceType: sourceType,
+                    newTargetType: targetType,
+                },
             });
 
             return state;
@@ -1150,8 +1168,10 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             }
 
             endActivity.end(ActivityStatus.Succeeded, {
-                elapsedTime: (Date.now() - startTime).toString(),
-                operationId: this.operationId,
+                additionalProps: {
+                    elapsedTime: (Date.now() - startTime).toString(),
+                    operationId: this.operationId,
+                },
             });
 
             this.logger.debug(
@@ -1203,14 +1223,16 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 );
 
                 endActivity.end(ActivityStatus.Canceled, {
-                    elapsedTime: (Date.now() - startTime).toString(),
-                    operationId: this.operationId,
-                    sourceType: getSchemaCompareEndpointTypeString(
-                        state.sourceEndpointInfo.endpointType,
-                    ),
-                    targetType: getSchemaCompareEndpointTypeString(
-                        state.targetEndpointInfo.endpointType,
-                    ),
+                    additionalProps: {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                        sourceType: getSchemaCompareEndpointTypeString(
+                            state.sourceEndpointInfo.endpointType,
+                        ),
+                        targetType: getSchemaCompareEndpointTypeString(
+                            state.targetEndpointInfo.endpointType,
+                        ),
+                    },
                 });
 
                 return state;
@@ -1236,8 +1258,10 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                     numDiffsChanged: actionCounts[SchemaUpdateAction.Change],
                 };
                 endActivity.update({
-                    operationId: this.operationId,
-                    updateActionSummary: JSON.stringify(updateActionBreakdown),
+                    additionalProps: {
+                        operationId: this.operationId,
+                        updateActionSummary: JSON.stringify(updateActionBreakdown),
+                    },
                 });
             }
 
@@ -1260,8 +1284,10 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                         );
 
                         endActivity.update({
-                            publishType: "Database",
-                            OperationId: this.operationId,
+                            additionalProps: {
+                                publishType: "Database",
+                                OperationId: this.operationId,
+                            },
                         });
 
                         publishResult = await publishDatabaseChanges(
@@ -1272,11 +1298,13 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                         );
 
                         endActivity.end(ActivityStatus.Succeeded, {
-                            elapsedTime: (Date.now() - startTime).toString(),
-                            operationId: this.operationId,
-                            targetType: getSchemaCompareEndpointTypeString(
-                                state.targetEndpointInfo.endpointType,
-                            ),
+                            additionalProps: {
+                                elapsedTime: (Date.now() - startTime).toString(),
+                                operationId: this.operationId,
+                                targetType: getSchemaCompareEndpointTypeString(
+                                    state.targetEndpointInfo.endpointType,
+                                ),
+                            },
                         });
                         break;
 
@@ -1285,8 +1313,10 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                             `Publishing changes to project ${state.targetEndpointInfo.projectFilePath} - OperationId: ${this.operationId}`,
                         );
                         endActivity.update({
-                            publishType: "Project",
-                            OperationId: this.operationId,
+                            additionalProps: {
+                                publishType: "Project",
+                                OperationId: this.operationId,
+                            },
                         });
 
                         publishResult = await publishProjectChanges(
@@ -1300,11 +1330,13 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                         );
 
                         endActivity.end(ActivityStatus.Succeeded, {
-                            elapsedTime: (Date.now() - startTime).toString(),
-                            operationId: this.operationId,
-                            targetType: getSchemaCompareEndpointTypeString(
-                                state.targetEndpointInfo.endpointType,
-                            ),
+                            additionalProps: {
+                                elapsedTime: (Date.now() - startTime).toString(),
+                                operationId: this.operationId,
+                                targetType: getSchemaCompareEndpointTypeString(
+                                    state.targetEndpointInfo.endpointType,
+                                ),
+                            },
                         });
                         break;
 
@@ -1377,11 +1409,13 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             void UserSurvey.getInstance().promptUserForNPSFeedback(SCHEMA_COMPARE_VIEW_ID);
 
             endActivity.end(ActivityStatus.Succeeded, {
-                endTime: Date.now().toString(),
-                operationId: this.operationId,
-                targetType: getSchemaCompareEndpointTypeString(
-                    state.targetEndpointInfo.endpointType,
-                ),
+                additionalProps: {
+                    endTime: Date.now().toString(),
+                    operationId: this.operationId,
+                    targetType: getSchemaCompareEndpointTypeString(
+                        state.targetEndpointInfo.endpointType,
+                    ),
+                },
             });
 
             state.isApplyInProgress = false;
@@ -1421,8 +1455,10 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                     );
 
                     endActivity.end(ActivityStatus.Succeeded, {
-                        elapsedTime: (Date.now() - startTime).toString(),
-                        operationId: this.operationId,
+                        additionalProps: {
+                            elapsedTime: (Date.now() - startTime).toString(),
+                            operationId: this.operationId,
+                        },
                     });
                 } else {
                     this.logger.error(
@@ -1496,8 +1532,10 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                     );
 
                     endActivity.end(ActivityStatus.Succeeded, {
-                        elapsedTime: (Date.now() - startTime).toString(),
-                        operationId: this.operationId,
+                        additionalProps: {
+                            elapsedTime: (Date.now() - startTime).toString(),
+                            operationId: this.operationId,
+                        },
                     });
                 } else {
                     this.logger.error(
@@ -1561,8 +1599,10 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             this.logger.debug(`Reset options to defaults - OperationId: ${this.operationId}`);
 
             endActivity.end(ActivityStatus.Succeeded, {
-                elapsedTime: (Date.now() - startTime).toString(),
-                operationId: this.operationId,
+                additionalProps: {
+                    elapsedTime: (Date.now() - startTime).toString(),
+                    operationId: this.operationId,
+                },
             });
 
             return state;
@@ -1636,11 +1676,13 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 }
 
                 endActivity.end(ActivityStatus.Succeeded, {
-                    elapsedTime: (Date.now() - startTime).toString(),
-                    operationId: this.operationId,
-                    affectedDependenciesCount: (
-                        result.affectedDependencies?.length || 0
-                    ).toString(),
+                    additionalProps: {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                        affectedDependenciesCount: (
+                            result.affectedDependencies?.length || 0
+                        ).toString(),
+                    },
                 });
 
                 state.schemaCompareIncludeExcludeResult = result;
@@ -1871,11 +1913,13 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                     const excludedCount = count - includedCount;
 
                     endActivity.end(ActivityStatus.Succeeded, {
-                        elapsedTime: (Date.now() - startTime).toString(),
-                        operationId: this.operationId,
-                        differenceCount: count.toString(),
-                        includedCount: includedCount.toString(),
-                        excludedCount: excludedCount.toString(),
+                        additionalProps: {
+                            elapsedTime: (Date.now() - startTime).toString(),
+                            operationId: this.operationId,
+                            differenceCount: count.toString(),
+                            includedCount: includedCount.toString(),
+                            excludedCount: excludedCount.toString(),
+                        },
                     });
 
                     this.logger.debug(
@@ -2088,14 +2132,16 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             );
 
             endActivity.end(ActivityStatus.Succeeded, {
-                operationId: this.operationId,
-                elapsedTime: (Date.now() - startTime).toString(),
-                sourceType: getSchemaCompareEndpointTypeString(
-                    state.sourceEndpointInfo.endpointType,
-                ),
-                targetType: getSchemaCompareEndpointTypeString(
-                    state.targetEndpointInfo.endpointType,
-                ),
+                additionalProps: {
+                    operationId: this.operationId,
+                    elapsedTime: (Date.now() - startTime).toString(),
+                    sourceType: getSchemaCompareEndpointTypeString(
+                        state.sourceEndpointInfo.endpointType,
+                    ),
+                    targetType: getSchemaCompareEndpointTypeString(
+                        state.targetEndpointInfo.endpointType,
+                    ),
+                },
             });
 
             state.schemaCompareOpenScmpResult = result;
@@ -2196,8 +2242,10 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             }
 
             endActivity.end(ActivityStatus.Succeeded, {
-                operationId: this.operationId,
-                elapsedTime: (Date.now() - startTime).toString(),
+                additionalProps: {
+                    operationId: this.operationId,
+                    elapsedTime: (Date.now() - startTime).toString(),
+                },
             });
 
             state.saveScmpResultStatus = result;
@@ -2258,8 +2306,10 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                     `Successfully cancelled schema comparison operation - OperationId: ${this.operationId}`,
                 );
                 endActivity.end(ActivityStatus.Succeeded, {
-                    elapsedTime: (Date.now() - startTime).toString(),
-                    operationId: this.operationId,
+                    additionalProps: {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                    },
                 });
 
                 state.isComparisonInProgress = false;
@@ -2504,8 +2554,10 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         }
 
         endActivity.update({
-            operationId: this.operationId,
-            generalOptionsConfig: JSON.stringify(booleanOptionsAsStrings),
+            additionalProps: {
+                operationId: this.operationId,
+                generalOptionsConfig: JSON.stringify(booleanOptionsAsStrings),
+            },
         });
 
         const objectTypesDictionary =
@@ -2532,8 +2584,10 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         });
 
         endActivity.update({
-            operationId: this.operationId,
-            includeObjectTypesConfig: JSON.stringify(includedObjectTypesTelemetryDictionary),
+            additionalProps: {
+                operationId: this.operationId,
+                includeObjectTypesConfig: JSON.stringify(includedObjectTypesTelemetryDictionary),
+            },
         });
 
         this.logger.info(`Executing schema comparison with operation ID: ${this.operationId}`);
@@ -2577,16 +2631,20 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             }
         }
         endActivity.update({
-            operationId: this.operationId,
-            compareObjectTypeSummary: JSON.stringify(stringifiedFrequencies),
+            additionalProps: {
+                operationId: this.operationId,
+                compareObjectTypeSummary: JSON.stringify(stringifiedFrequencies),
+            },
         });
 
         this.logger.info(
             `Schema comparison completed successfully with ${result.differences?.length || 0} differences found - OperationId: ${this.operationId}`,
         );
         endActivity.end(ActivityStatus.Succeeded, {
-            elapsedTime: (Date.now() - startTime).toString(),
-            operationId: this.operationId,
+            additionalProps: {
+                elapsedTime: (Date.now() - startTime).toString(),
+                operationId: this.operationId,
+            },
         });
 
         const finalDifferences = this.getAllObjectTypeDifferences(result);

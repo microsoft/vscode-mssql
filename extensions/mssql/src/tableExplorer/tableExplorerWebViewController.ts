@@ -217,8 +217,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 `Table explorer initialized successfully - OperationId: ${this.operationId}`,
             );
             endActivity.end(ActivityStatus.Succeeded, {
-                elapsedTime: (Date.now() - startTime).toString(),
-                operationId: this.operationId,
+                additionalProps: {
+                    elapsedTime: (Date.now() - startTime).toString(),
+                    operationId: this.operationId,
+                },
             });
         } catch (error) {
             this.logger.error(
@@ -453,8 +455,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 );
 
                 endActivity.end(ActivityStatus.Succeeded, {
-                    elapsedTime: (Date.now() - startTime).toString(),
-                    operationId: this.operationId,
+                    additionalProps: {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                    },
                 });
             } catch (error) {
                 this.logger.error(
@@ -537,9 +541,11 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 this.updateState();
 
                 endActivity.end(ActivityStatus.Succeeded, {
-                    elapsedTime: (Date.now() - startTime).toString(),
-                    operationId: this.operationId,
-                    rowsLoaded: subsetResult.rowCount.toString(),
+                    additionalProps: {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                        rowsLoaded: subsetResult.rowCount.toString(),
+                    },
                 });
             } catch (error) {
                 state.loadStatus = ApiStatus.Error;
@@ -619,8 +625,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 await this.regenerateScriptIfVisible(state);
 
                 endActivity.end(ActivityStatus.Succeeded, {
-                    elapsedTime: (Date.now() - startTime).toString(),
-                    operationId: this.operationId,
+                    additionalProps: {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                    },
                 });
             } catch (error) {
                 this.logger.error(
@@ -741,8 +749,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 await this.regenerateScriptIfVisible(state);
 
                 endActivity.end(ActivityStatus.Succeeded, {
-                    elapsedTime: (Date.now() - startTime).toString(),
-                    operationId: this.operationId,
+                    additionalProps: {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                    },
                 });
             } catch (error) {
                 this.logger.error(
@@ -851,8 +861,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 await this.regenerateScriptIfVisible(state);
 
                 endActivity.end(ActivityStatus.Succeeded, {
-                    elapsedTime: (Date.now() - startTime).toString(),
-                    operationId: this.operationId,
+                    additionalProps: {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                    },
                 });
             } catch (error) {
                 this.logger.error(
@@ -1014,8 +1026,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 await this.regenerateScriptIfVisible(state);
 
                 endActivity.end(ActivityStatus.Succeeded, {
-                    elapsedTime: (Date.now() - startTime).toString(),
-                    operationId: this.operationId,
+                    additionalProps: {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                    },
                 });
             } catch (error) {
                 this.logger.error(
@@ -1147,8 +1161,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 await this.regenerateScriptIfVisible(state);
 
                 endActivity.end(ActivityStatus.Succeeded, {
-                    elapsedTime: (Date.now() - startTime).toString(),
-                    operationId: this.operationId,
+                    additionalProps: {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                    },
                 });
             } catch (error) {
                 this.logger.error(
@@ -1221,9 +1237,11 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 );
 
                 endActivity.end(ActivityStatus.Succeeded, {
-                    elapsedTime: (Date.now() - startTime).toString(),
-                    operationId: this.operationId,
-                    scriptCount: scriptResult.scripts?.length.toString() || "0",
+                    additionalProps: {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                        scriptCount: scriptResult.scripts?.length.toString() || "0",
+                    },
                 });
             } catch (error) {
                 this.logger.error(
@@ -1413,10 +1431,12 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                         );
 
                         endActivity.end(ActivityStatus.Succeeded, {
-                            elapsedTime: (Date.now() - startTime).toString(),
-                            operationId: this.operationId,
-                            format: payload.format,
-                            rowCount: rows.length.toString(),
+                            additionalProps: {
+                                elapsedTime: (Date.now() - startTime).toString(),
+                                operationId: this.operationId,
+                                format: payload.format,
+                                rowCount: rows.length.toString(),
+                            },
                         });
                     } else {
                         throw new Error(result.messages || "Serialization failed");
@@ -1492,10 +1512,12 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             if (!payload.queryString || !payload.queryString.trim()) {
                 this.logger.debug("Empty query string provided, skipping custom query");
                 endActivity.end(ActivityStatus.Succeeded, {
-                    elapsedTime: (Date.now() - startTime).toString(),
-                    operationId: this.operationId,
-                    cancelled: "true",
-                    ...filterTelemetry,
+                    additionalProps: {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                        cancelled: "true",
+                        ...filterTelemetry,
+                    },
                 });
                 return state;
             }
@@ -1521,10 +1543,12 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             if (this.hasPendingChanges(state) && !(await this.promptDiscardPendingChanges())) {
                 this.logger.debug("User cancelled custom query due to pending changes");
                 endActivity.end(ActivityStatus.Succeeded, {
-                    elapsedTime: (Date.now() - startTime).toString(),
-                    operationId: this.operationId,
-                    cancelled: "true",
-                    ...filterTelemetry,
+                    additionalProps: {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                        cancelled: "true",
+                        ...filterTelemetry,
+                    },
                 });
                 return state;
             }
@@ -1564,9 +1588,11 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 );
 
                 endActivity.end(ActivityStatus.Succeeded, {
-                    elapsedTime: (Date.now() - startTime).toString(),
-                    operationId: this.operationId,
-                    ...filterTelemetry,
+                    additionalProps: {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                        ...filterTelemetry,
+                    },
                 });
             } catch (error) {
                 this.logger.error(
@@ -1620,8 +1646,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 );
 
                 endActivity.end(ActivityStatus.Succeeded, {
-                    elapsedTime: (Date.now() - startTime).toString(),
-                    operationId: this.operationId,
+                    additionalProps: {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                    },
                 });
             } catch (error) {
                 this.logger.error(
@@ -1681,8 +1709,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 );
 
                 endActivity.end(ActivityStatus.Succeeded, {
-                    elapsedTime: (Date.now() - startTime).toString(),
-                    operationId: this.operationId,
+                    additionalProps: {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                    },
                 });
             } catch (error) {
                 this.logger.error(

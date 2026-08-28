@@ -1534,7 +1534,9 @@ export default class ConnectionManager {
             setTimeout(() => {
                 if (!initRequestCompleted) {
                     connectionActivity.update({
-                        longRunningIntialization: "true",
+                        additionalProps: {
+                            longRunningIntialization: "true",
+                        },
                     });
                 }
             }, Constants.stsImmediateActivityTimeout);
@@ -1582,7 +1584,9 @@ export default class ConnectionManager {
         }
 
         connectionActivity.update({
-            connectionInitiated: "true",
+            additionalProps: {
+                connectionInitiated: "true",
+            },
         });
 
         const result = await connectionCompletePromise.promise;
@@ -1598,13 +1602,10 @@ export default class ConnectionManager {
              */
 
             await this.handleConnectionSuccess(fileUri, connectionInfo, result);
-            connectionActivity.end(
-                ActivityStatus.Succeeded,
-                undefined,
-                undefined,
-                connectionInfo?.credentials,
-                result?.serverInfo,
-            );
+            connectionActivity.end(ActivityStatus.Succeeded, {
+                connectionInfo: connectionInfo?.credentials,
+                serverInfo: result?.serverInfo,
+            });
             return true;
         } else {
             let errorType = "";
@@ -1619,7 +1620,7 @@ export default class ConnectionManager {
                         serverlessStatusPromise,
                     )
                 ) {
-                    connectionActivity.update({ retryConnection: "true" });
+                    connectionActivity.update({ additionalProps: { retryConnection: "true" } });
                     connectionActivity.end(ActivityStatus.Retrying);
 
                     return await this.connect(fileUri, connectionInfo.credentials, {
@@ -1638,7 +1639,9 @@ export default class ConnectionManager {
 
                 errorType = errorHandlingResult?.errorHandled;
                 connectionActivity.update({
-                    retryConnection: errorHandlingResult?.isHandled ? "true" : "false",
+                    additionalProps: {
+                        retryConnection: errorHandlingResult?.isHandled ? "true" : "false",
+                    },
                 });
                 if (errorHandlingResult.isHandled) {
                     connectionActivity.end(ActivityStatus.Retrying);
@@ -1825,7 +1828,9 @@ export default class ConnectionManager {
         }
 
         telemetryActivity?.update({
-            connectionPrepared: "true",
+            additionalProps: {
+                connectionPrepared: "true",
+            },
         });
         return credentials;
     }

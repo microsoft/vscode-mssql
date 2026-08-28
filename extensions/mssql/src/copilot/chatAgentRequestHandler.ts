@@ -300,8 +300,11 @@ export const createSqlAgentRequestHandler = (
                 );
 
                 activity.update({
-                    correlationId: correlationId,
-                    message: "No connection URI found. Sending prompt to default language model.",
+                    additionalProps: {
+                        correlationId: correlationId,
+                        message:
+                            "No connection URI found. Sending prompt to default language model.",
+                    },
                 });
 
                 // Handle chat commands first
@@ -403,9 +406,11 @@ export const createSqlAgentRequestHandler = (
                     "Failed to start conversation. Sending prompt to default language model.",
                 );
                 activity.update({
-                    correlationId: correlationId,
-                    message:
-                        "Failed to start conversation. Sending prompt to default language model.",
+                    additionalProps: {
+                        correlationId: correlationId,
+                        message:
+                            "Failed to start conversation. Sending prompt to default language model.",
+                    },
                 });
 
                 await sendToDefaultLanguageModel(
@@ -459,7 +464,9 @@ export const createSqlAgentRequestHandler = (
                     case MessageType.Complete:
                         logger.debug("Processing complete message...");
                         activity.end(ActivityStatus.Succeeded, {
-                            correlationId: correlationId,
+                            additionalProps: {
+                                correlationId: correlationId,
+                            },
                         });
 
                         continuePollingMessages = false; // Stop polling
@@ -1002,15 +1009,19 @@ export const createSqlAgentRequestHandler = (
             if (replyText) {
                 logger.debug("Received response from default language model.");
                 activity.end(ActivityStatus.Succeeded, {
-                    correlationId: correlationId,
-                    message: "The default language model succeeded.",
+                    additionalProps: {
+                        correlationId: correlationId,
+                        message: "The default language model succeeded.",
+                    },
                 });
                 stream.markdown(replyText);
             } else {
                 logger.warn("No output from the default language model.");
                 activity.end(ActivityStatus.Succeeded, {
-                    correlationId: correlationId,
-                    message: "The default language model did not return any output.",
+                    additionalProps: {
+                        correlationId: correlationId,
+                        message: "The default language model did not return any output.",
+                    },
                 });
                 stream.markdown(loc.languageModelDidNotReturnAnyOutput);
             }
