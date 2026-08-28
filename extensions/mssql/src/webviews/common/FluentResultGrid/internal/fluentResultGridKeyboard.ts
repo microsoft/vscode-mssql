@@ -115,7 +115,11 @@ export function getFluentResultGridKeyboardAction(
 
     if (
         eventMatchesCommandShortcut(event, keyBindings, FluentResultGridCommand.SelectAll) ||
-        (isFluentResultGridMetaOrCtrlKeyPressed(event) && event.code === "KeyA")
+        (isFluentResultGridMetaOrCtrlKeyPressed(event) &&
+            !(event.metaKey && event.ctrlKey) &&
+            !event.altKey &&
+            !event.shiftKey &&
+            event.code === "KeyA")
     ) {
         return { kind: "command", commandId: FluentResultGridCommand.SelectAll };
     }
@@ -128,6 +132,7 @@ export function getFluentResultGridKeyboardAction(
         ) ||
         (event.shiftKey &&
             !isFluentResultGridMetaOrCtrlKeyPressed(event) &&
+            !event.altKey &&
             event.code === "ArrowLeft")
     ) {
         return { kind: "command", commandId: FluentResultGridCommand.ExpandSelectionLeft };
@@ -141,6 +146,7 @@ export function getFluentResultGridKeyboardAction(
         ) ||
         (event.shiftKey &&
             !isFluentResultGridMetaOrCtrlKeyPressed(event) &&
+            !event.altKey &&
             event.code === "ArrowRight")
     ) {
         return { kind: "command", commandId: FluentResultGridCommand.ExpandSelectionRight };
@@ -154,6 +160,7 @@ export function getFluentResultGridKeyboardAction(
         ) ||
         (event.shiftKey &&
             !isFluentResultGridMetaOrCtrlKeyPressed(event) &&
+            !event.altKey &&
             event.code === "ArrowUp")
     ) {
         return { kind: "command", commandId: FluentResultGridCommand.ExpandSelectionUp };
@@ -167,6 +174,7 @@ export function getFluentResultGridKeyboardAction(
         ) ||
         (event.shiftKey &&
             !isFluentResultGridMetaOrCtrlKeyPressed(event) &&
+            !event.altKey &&
             event.code === "ArrowDown")
     ) {
         return { kind: "command", commandId: FluentResultGridCommand.ExpandSelectionDown };
@@ -174,7 +182,10 @@ export function getFluentResultGridKeyboardAction(
 
     if (
         eventMatchesCommandShortcut(event, keyBindings, FluentResultGridCommand.OpenColumnMenu) ||
-        (event.shiftKey && event.code === "F10") ||
+        (event.shiftKey &&
+            !isFluentResultGridMetaOrCtrlKeyPressed(event) &&
+            !event.altKey &&
+            event.code === "F10") ||
         event.code === "ContextMenu"
     ) {
         return { kind: "openColumnMenu" };
@@ -195,11 +206,21 @@ export function getFluentResultGridKeyboardAction(
         }
     }
 
-    if (event.shiftKey && event.code === "Tab") {
+    if (
+        event.shiftKey &&
+        !isFluentResultGridMetaOrCtrlKeyPressed(event) &&
+        !event.altKey &&
+        event.code === "Tab"
+    ) {
         return { kind: "moveFocus", forward: false };
     }
 
-    if (!event.shiftKey && event.code === "Tab") {
+    if (
+        !event.shiftKey &&
+        !isFluentResultGridMetaOrCtrlKeyPressed(event) &&
+        !event.altKey &&
+        event.code === "Tab"
+    ) {
         return { kind: "moveFocus", forward: true };
     }
 

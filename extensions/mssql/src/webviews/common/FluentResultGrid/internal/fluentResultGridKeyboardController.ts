@@ -21,10 +21,13 @@ import type {
     FluentResultGridKeyBindingMap,
 } from "../types/fluentResultGridCommands";
 import { FluentResultGridCommand } from "../types/fluentResultGridCommandIds";
-import { FLUENT_RESULT_GRID_FIRST_DATA_CELL_INDEX } from "./fluentResultGridConstants";
 import type { ReactGridInstanceWithSharedService } from "./fluentResultGridControllerTypes";
 import { isEditableFluentResultGridKeyboardTarget } from "./fluentResultGridDomUtils";
 import { getFluentResultGridKeyboardAction } from "./fluentResultGridKeyboard";
+import {
+    getFluentResultGridDataColumnIndex,
+    getFluentResultGridRowEdgeCell,
+} from "./fluentResultGridSelection";
 
 export interface FluentResultGridKeyboardController {
     focusGrid: () => void;
@@ -201,10 +204,18 @@ export function useFluentResultGridKeyboardController({
 
         const active = grid.getActiveCell();
         const row = active?.row ?? 0;
-        const cell = Math.max(
-            active?.cell ?? FLUENT_RESULT_GRID_FIRST_DATA_CELL_INDEX,
-            FLUENT_RESULT_GRID_FIRST_DATA_CELL_INDEX,
-        );
+        const columns = grid.getColumns();
+        const activeColumn = active ? columns[active.cell] : undefined;
+        const cell =
+            activeColumn &&
+            !activeColumn.hidden &&
+            getFluentResultGridDataColumnIndex(activeColumn) !== undefined
+                ? active!.cell
+                : getFluentResultGridRowEdgeCell(columns, false);
+        if (cell === undefined) {
+            containerRef.current?.focus();
+            return;
+        }
         (grid as SlickGrid & { tabbingDirection?: number }).tabbingDirection = 1;
         grid.gotoCell(row, cell, false);
     }, [containerRef, reactGridRef]);
