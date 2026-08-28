@@ -255,6 +255,9 @@ suite("Metadata catalog (B5)", () => {
         expect(typeDisplay("decimal", 9, 18, 2)).to.equal("decimal(18,2)");
         expect(typeDisplay("int", 4, 10, 0)).to.equal("int");
         expect(typeDisplay("datetime2", 8, 27, 7)).to.equal("datetime2(7)");
+        expect(typeDisplay("PhoneNumber", 40, 0, 0, "Contact Info", true)).to.equal(
+            "[Contact Info].[PhoneNumber]",
+        );
     });
 
     test("hydration: schemas/objects/columns/FKs land; snapshot reads serve", async () => {
@@ -441,6 +444,21 @@ suite("Metadata catalog (B5)", () => {
         expect(snap2.resolveName(["orders"]).kind).to.equal("notFound");
     });
 
+    test("builder drops FK edges whose metadata-visible endpoints cannot both resolve", () => {
+        const builder = new CatalogBuilder();
+        builder.addSchema(1, "dbo");
+        builder.addObject(1, 1, "Visible", "table");
+        builder.addForeignKey(1, 999, "FK_ToInvisible", 10);
+        builder.addForeignKey(999, 1, "FK_FromInvisible", 11);
+        const snapshot = builder.build(1, {
+            schemas: "ready",
+            objects: "ready",
+            foreignKeys: "ready",
+        });
+        expect(snapshot.getForeignKeysFrom(1)).to.deep.equal([]);
+        expect(snapshot.getForeignKeysTo(1)).to.deep.equal([]);
+    });
+
     test("schema context: byte-identical; budgets degrade fidelity deterministically", async () => {
         const { service } = await serviceOver(sysScripts());
         const handle = service.acquire(KEY);
@@ -490,18 +508,20 @@ suite("Metadata catalog (B5)", () => {
         service.dispose();
     });
 
-    test("DDL sniff: successful CREATE re-hydrates (generation bump); non-DDL/failed do not", async () => {
+    test("DDL sniff: a burst collapses to one active + one follow-up hydration", async () => {
         const { service } = await serviceOver(sysScripts());
         const handle = service.acquire(KEY);
         await handle.refresh();
         const before = handle.status().generation;
-        handle.notifyExecutedBatch({ text: "CREATE TABLE t(i int)", succeeded: true });
-        await new Promise((r) => setTimeout(r, 25));
-        expect(handle.status().generation).to.be.greaterThan(before);
+        for (let i = 0; i < 10; i++) {
+            handle.notifyExecutedBatch({ text: `CREATE TABLE t${i}(i int)`, succeeded: true });
+        }
+        await new Promise((r) => setTimeout(r, 100));
+        expect(handle.status().generation).to.equal(before + 2);
         const gen = handle.status().generation;
         handle.notifyExecutedBatch({ text: "select 1", succeeded: true });
         handle.notifyExecutedBatch({ text: "DROP TABLE t", succeeded: false });
-        await new Promise((r) => setTimeout(r, 25));
+        await new Promise((r) => setTimeout(r, 50));
         expect(handle.status().generation).to.equal(gen);
         handle.dispose();
         service.dispose();
@@ -532,6 +552,57 @@ suite("Metadata catalog (B5)", () => {
         await first.close();
         const second = await source.open();
         expect(second).to.not.equal(first);
+        source.dispose();
+    });
+
+    test("dedicated session source cannot publish or reopen a session after disposal", async () => {
+        const backend = new FakeBackend({ scripts: sysScripts(), openDelayMs: 20 });
+        const source = new DataPlaneMetadataSessionSource(backend, {
+            profile: { profileFingerprint: "fp", server: "srv", authKind: "sql", user: "u" },
+            applicationName: "test",
+        });
+        const opening = source.open();
+        source.dispose();
+        let openingError: unknown;
+        try {
+            await opening;
+        } catch (error) {
+            openingError = error;
+        }
+        expect(String(openingError)).to.match(/disposed during open/);
+        expect(backend.sessions).to.have.length(1);
+        expect(backend.sessions[0].state).to.equal("closed");
+        let reopenError: unknown;
+        try {
+            await source.open();
+        } catch (error) {
+            reopenError = error;
+        }
+        expect(String(reopenError)).to.match(/disposed/);
+        expect(backend.sessions).to.have.length(1);
+    });
+
+    test("recycle during open rejects the abandoned session without clobbering its replacement", async () => {
+        const backend = new FakeBackend({ scripts: sysScripts(), openDelayMs: 20 });
+        const source = new DataPlaneMetadataSessionSource(backend, {
+            profile: { profileFingerprint: "fp", server: "srv", authKind: "sql", user: "u" },
+            applicationName: "test",
+        });
+        const abandoned = source.open();
+        source.recycle();
+        const replacement = source.open();
+        let abandonedError: unknown;
+        try {
+            await abandoned;
+        } catch (error) {
+            abandonedError = error;
+        }
+        expect(String(abandonedError)).to.match(/recycled during open/);
+        const live = await replacement;
+        expect(backend.sessions).to.have.length(2);
+        expect(backend.sessions[0].state).to.equal("closed");
+        expect(live.state).to.equal("open");
+        expect(await source.open()).to.equal(live);
         source.dispose();
     });
 });
@@ -751,6 +822,18 @@ suite("Metadata catalog module definitions (B12 lazy reads)", () => {
         const second = await handle.getModuleDefinition(999);
         expect(second.unavailableReason).to.equal("notLoaded");
         expect(counts.failing, "failures must not be cached").to.equal(2);
+        handle.dispose();
+        service.dispose();
+    });
+
+    test("unsafe numeric module ids are rejected without interpolating SQL", async () => {
+        const { scripts, counts } = moduleScripts();
+        const { service } = await serviceOver(scripts);
+        const handle = service.acquire(KEY);
+        await handle.refresh();
+        const result = await handle.getModuleDefinition(Number.MAX_SAFE_INTEGER + 1);
+        expect(result.unavailableReason).to.equal("notLoaded");
+        expect(counts.view + counts.encrypted + counts.missing + counts.failing).to.equal(0);
         handle.dispose();
         service.dispose();
     });

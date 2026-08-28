@@ -219,6 +219,7 @@ export interface RehydrateOptions {
     readonly generation: number;
     readonly readiness: Partial<Record<CatalogSection, SectionState>>;
     readonly mode: "full" | "lite" | "partial";
+    readonly capturedAtUtc: string;
 }
 
 export type PayloadValidationResult =
@@ -365,10 +366,48 @@ export function serializeSnapshot(
         fkColumnFromIds: [...view.fkColumnFromIds],
         fkColumnToIds: [...view.fkColumnToIds],
     };
-    if (options?.includeDescriptions === true) {
+    const withoutDefinitions = stripColumnDefinitions(payload);
+    return options?.includeDescriptions === true
+        ? withoutDefinitions
+        : stripDescriptions(withoutDefinitions);
+}
+
+/**
+ * Default/computed expressions are SQL text and can contain credentials,
+ * identifiers, email addresses, or business logic. They remain available
+ * in live snapshots but are never persisted by cache payload v1.
+ */
+export function stripColumnDefinitions(payload: CatalogCachePayloadV1): CatalogCachePayloadV1 {
+    const hasDefinitions =
+        payload.columnDefaultDefinitionSyms.some((sym) => sym >= 0) ||
+        payload.columnComputedDefinitionSyms.some((sym) => sym >= 0);
+    if (!hasDefinitions) {
         return payload;
     }
-    return stripDescriptions(payload);
+    const stripped = {
+        ...payload,
+        strings: [...payload.strings],
+        columnDefaultDefinitionSyms: payload.columnDefaultDefinitionSyms.map(() => -1),
+        columnComputedDefinitionSyms: payload.columnComputedDefinitionSyms.map(() => -1),
+    } as { -readonly [K in keyof CatalogCachePayloadV1]: CatalogCachePayloadV1[K] };
+    const used = new Set<number>();
+    for (const field of INCLUDED_SYM_FIELDS) {
+        for (const sym of stripped[field]) {
+            if (sym >= 0) {
+                used.add(sym);
+            }
+        }
+    }
+    for (const sym of stripped.descriptionColumnSyms ?? []) {
+        if (sym >= 0) {
+            used.add(sym);
+        }
+    }
+    for (const sym of stripped.descriptionValueSyms ?? []) {
+        used.add(sym);
+    }
+    stripped.strings = stripped.strings.map((value, sym) => (used.has(sym) ? value : ""));
+    return stripped;
 }
 
 /**
@@ -792,6 +831,52 @@ export function validatePayload(
             }
         }
     }
+    const uniqueCount = (values: readonly number[]): number => new Set(values).size;
+    if (uniqueCount(payload.schemaIds) !== payload.schemaIds.length) {
+        return reject("duplicate:schemaIds");
+    }
+    if (uniqueCount(payload.objectIds) !== payload.objectIds.length) {
+        return reject("duplicate:objectIds");
+    }
+    const schemaIds = new Set(payload.schemaIds);
+    if (payload.objectSchemaIds.some((schemaId) => !schemaIds.has(schemaId))) {
+        return reject("unresolved:objectSchemaIds");
+    }
+    const objectIds = new Set(payload.objectIds);
+    if (
+        payload.fkFrom.some((objectId) => !objectIds.has(objectId)) ||
+        payload.fkTo.some((objectId) => !objectIds.has(objectId))
+    ) {
+        return reject("unresolved:foreignKeys");
+    }
+    const knownForeignKeyConstraintIds = payload.fkConstraintIds.filter(
+        (constraintId) => constraintId >= 0,
+    );
+    const foreignKeyConstraintIds = new Set(knownForeignKeyConstraintIds);
+    if (foreignKeyConstraintIds.size !== knownForeignKeyConstraintIds.length) {
+        return reject("duplicate:foreignKeyConstraintIds");
+    }
+    if (
+        payload.fkColumnConstraintIds.some(
+            (constraintId) => !foreignKeyConstraintIds.has(constraintId),
+        )
+    ) {
+        return reject("unresolved:foreignKeyColumns");
+    }
+    const groupedOwners = (owners: readonly number[]): boolean => {
+        for (let i = 1; i < owners.length; i++) {
+            if (owners[i] < owners[i - 1]) {
+                return false;
+            }
+        }
+        return true;
+    };
+    if (!groupedOwners(payload.columnOwner)) {
+        return reject("ownerOrder:columnOwner");
+    }
+    if (!groupedOwners(payload.paramOwner)) {
+        return reject("ownerOrder:paramOwner");
+    }
     return { ok: true, payload };
 }
 
@@ -912,6 +997,7 @@ export function rehydrateSnapshot(
         options.generation,
         options.readiness,
         options.mode,
+        options.capturedAtUtc,
     );
     snapshot.setContentHashOnce(computeContentHash(payload));
     return snapshot;

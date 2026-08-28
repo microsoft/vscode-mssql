@@ -9,7 +9,7 @@
  *   poll; refocus resumes with an IMMEDIATE tick.
  * - H-3.2: consecutive no-change polls stretch the per-entry cadence toward
  *   the cap; user execution against the database resets it to base.
- * - H-3.3: serverless/auto-pause engine editions (5/8/11/12) poll AT the
+ * - H-3.3: serverless/auto-pause engine editions (5/11) poll AT the
  *   cap from the first scheduled digest.
  * - H-3.4: the store-wide semaphore caps concurrent digest validations
  *   across entries (default 2); intervals carry ±10% jitter (pure bounds).
@@ -23,6 +23,7 @@ import { FakeBackend, FakeScript } from "../../src/services/sqlDataPlane/fakeBac
 import { ISqlSession, QueryHandle } from "../../src/services/sqlDataPlane/api";
 import {
     DEFAULT_POLL_BACKOFF_MULTIPLIERS,
+    isAutoPauseEngineEdition,
     jitteredPollDelayMs,
     MetadataService,
     MetadataSessionSource,
@@ -45,10 +46,12 @@ function deferred(): Deferred {
 }
 
 interface FixtureOptions {
-    /** H0 engine edition (3 = on-prem default; 5/8/11/12 = serverless family). */
+    /** H0 engine edition (3 = on-prem default; 5/11 = auto-pause family). */
     edition?: number;
     /** Live DB_NAME() answer for the digest identity rider (H-5). */
     currentDb?: () => string;
+    catalogCaseSensitive?: boolean;
+    canonicalDb?: string;
     counters: { digest: number };
 }
 
@@ -60,8 +63,22 @@ function baseScripts(opts: FixtureOptions): FakeScript[] {
             events: [
                 {
                     type: "resultSet",
-                    columns: ["engine_edition", "default_schema", "collation_name"],
-                    rows: [[opts.edition ?? 3, "dbo", "SQL_Latin1_General_CP1_CI_AS"]],
+                    columns: [
+                        "engine_edition",
+                        "default_schema",
+                        "collation_name",
+                        "catalog_case_sensitive",
+                        "current_db",
+                    ],
+                    rows: [
+                        [
+                            opts.edition ?? 3,
+                            "dbo",
+                            "SQL_Latin1_General_CP1_CI_AS",
+                            opts.catalogCaseSensitive ?? false,
+                            opts.canonicalDb ?? null,
+                        ],
+                    ],
                 },
                 { type: "complete", status: "succeeded" },
             ],
@@ -172,6 +189,10 @@ function makeService(
 }
 
 suite("Metadata poll governance (CACHE-5)", () => {
+    test("H-3.3 auto-pause classification excludes MI, Edge, dedicated Synapse, and Fabric", () => {
+        expect([5, 11].filter(isAutoPauseEngineEdition)).to.deep.equal([5, 11]);
+        expect([3, 6, 8, 9, 12].filter(isAutoPauseEngineEdition)).to.deep.equal([]);
+    });
     test("H-3.4 jitter bounds (pure): 60s→120s→300s ladder stays within ±10%", () => {
         const M = DEFAULT_POLL_BACKOFF_MULTIPLIERS;
         expect(jitteredPollDelayMs(60_000, M, 0, () => 0)).to.equal(54_000);
@@ -360,6 +381,16 @@ suite("Metadata poll governance (CACHE-5)", () => {
         expect(clean.freshness).to.equal("validated");
         expect(drifts).to.have.length(0);
 
+        currentDb = "db1";
+        await sleep(5);
+        const caseOnly = await handle.ensureFresh({
+            mode: "requireValidated",
+            reason: "oeBrowse",
+            validationTtlMs: 1,
+        });
+        expect(caseOnly.freshness).to.equal("validated");
+        expect(drifts).to.have.length(0);
+
         currentDb = "Db1_Renamed";
         await sleep(5); // step past the 1ms TTL
         const drifted = await handle.ensureFresh({
@@ -403,6 +434,32 @@ suite("Metadata poll governance (CACHE-5)", () => {
 
         // Entry status carries the latched verdict for status surfaces.
         expect(handle.status().validation?.staleReason).to.equal("accessChanged");
+        handle.dispose();
+        service.dispose();
+    });
+
+    test("identity rider uses catalog collation case semantics", async () => {
+        const counters = { digest: 0 };
+        const drifts: { expected: string; actual: string }[] = [];
+        const { service } = makeService(
+            {
+                counters,
+                canonicalDb: "Db1",
+                catalogCaseSensitive: true,
+                currentDb: () => "db1",
+            },
+            { onIdentityDrift: (drift) => drifts.push(drift) },
+        );
+        const handle = service.acquire(KEY);
+        await handle.refresh();
+        await sleep(5);
+        const result = await handle.ensureFresh({
+            mode: "requireValidated",
+            reason: "oeBrowse",
+            validationTtlMs: 1,
+        });
+        expect(result.validation?.staleReason).to.equal("accessChanged");
+        expect(drifts).to.deep.equal([{ expected: "Db1", actual: "db1" }]);
         handle.dispose();
         service.dispose();
     });

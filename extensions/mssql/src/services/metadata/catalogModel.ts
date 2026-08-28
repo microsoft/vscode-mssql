@@ -299,6 +299,9 @@ export function ordinalCompare(a: string, b: string): number {
 export class CatalogBuilder {
     private strings: string[] = [];
     private stringIndex = new Map<string, number>();
+    /** O(1) object lookup while streaming dependent rows. */
+    private objectIndexById = new Map<number, number>();
+    private foreignKeyConstraintIds = new Set<number>();
 
     // schema table
     schemaIds: number[] = [];
@@ -414,6 +417,10 @@ export class CatalogBuilder {
         kind: ObjectKind,
         modifyDate?: string,
     ): void {
+        if (this.objectIndexById.has(objectId)) {
+            return;
+        }
+        this.objectIndexById.set(objectId, this.objectIds.length);
         this.objectIds.push(objectId);
         this.objectSchemaIds.push(schemaId);
         this.objectNameSyms.push(this.intern(name));
@@ -431,7 +438,7 @@ export class CatalogBuilder {
         columnId = -1,
         detail?: AddColumnDetail,
     ): void {
-        const objectIndex = this.objectIds.indexOf(objectId);
+        const objectIndex = this.objectIndexById.get(objectId) ?? -1;
         if (objectIndex < 0) {
             return; // column for unknown object: dropped (H3 raced a DDL)
         }
@@ -488,10 +495,18 @@ export class CatalogBuilder {
         onDelete: FkActionState = "UNKNOWN",
         onUpdate: FkActionState = "UNKNOWN",
     ): void {
+        // Restricted metadata visibility can expose an FK row whose other
+        // endpoint is invisible. Such an edge cannot be resolved safely.
+        if (!this.objectIndexById.has(fromObjectId) || !this.objectIndexById.has(toObjectId)) {
+            return;
+        }
         this.fkFrom.push(fromObjectId);
         this.fkTo.push(toObjectId);
         this.fkNameSyms.push(this.intern(name));
         this.fkConstraintIds.push(constraintId);
+        if (constraintId >= 0) {
+            this.foreignKeyConstraintIds.add(constraintId);
+        }
         this.fkOnDeleteActions.push(onDelete);
         this.fkOnUpdateActions.push(onUpdate);
     }
@@ -504,6 +519,9 @@ export class CatalogBuilder {
         fromColumnId = -1,
         toColumnId = -1,
     ): void {
+        if (!this.foreignKeyConstraintIds.has(constraintId)) {
+            return;
+        }
         this.fkColumnConstraintIds.push(constraintId);
         this.fkColumnFromSyms.push(this.intern(fromColumn));
         this.fkColumnToSyms.push(this.intern(toColumn));
@@ -513,7 +531,7 @@ export class CatalogBuilder {
     }
 
     markPrimaryKeyColumn(objectId: number, columnName: string): void {
-        const objectIndex = this.objectIds.indexOf(objectId);
+        const objectIndex = this.objectIndexById.get(objectId) ?? -1;
         if (objectIndex < 0) {
             return; // key for unknown object: dropped (H4 raced a DDL)
         }
@@ -527,7 +545,7 @@ export class CatalogBuilder {
         kind: KeyConstraintKind,
         columnName: string,
     ): void {
-        const objectIndex = this.objectIds.indexOf(objectId);
+        const objectIndex = this.objectIndexById.get(objectId) ?? -1;
         if (objectIndex < 0) {
             return; // constraint for unknown object: dropped (H4 raced a DDL)
         }
@@ -544,7 +562,7 @@ export class CatalogBuilder {
         typeDisplay: string,
         isOutput: boolean,
     ): void {
-        const objectIndex = this.objectIds.indexOf(objectId);
+        const objectIndex = this.objectIndexById.get(objectId) ?? -1;
         if (objectIndex < 0) {
             return; // parameter for unknown object: dropped (H6 raced a DDL)
         }
@@ -556,7 +574,7 @@ export class CatalogBuilder {
     }
 
     addDescription(objectId: number, value: string, columnName?: string): void {
-        const objectIndex = this.objectIds.indexOf(objectId);
+        const objectIndex = this.objectIndexById.get(objectId) ?? -1;
         if (objectIndex < 0) {
             return; // description for unknown object: dropped (H7 raced a DDL)
         }
@@ -584,8 +602,9 @@ export class CatalogBuilder {
         generation: number,
         readiness: Partial<Record<CatalogSection, SectionState>>,
         mode: "full" | "lite" | "partial" = "full",
+        capturedAtUtc: string = new Date().toISOString(),
     ): CatalogSnapshot {
-        return new CatalogSnapshot(this, generation, readiness, mode);
+        return new CatalogSnapshot(this, generation, readiness, mode, capturedAtUtc);
     }
 
     get stringTable(): readonly string[] {
@@ -632,6 +651,7 @@ export class CatalogSnapshot {
     private pkColumnsByObjectIndex = new Map<number, string[]>();
     private keyConstraintsByObjectIndex = new Map<number, KeyConstraintInfo[]>();
     private fkColumnsByConstraint = new Map<number, FkColumnPair[]>();
+    private fkDegreeByObjectId = new Map<number, number>();
     private schemaNameById = new Map<number, string>();
     /** object table index → { object-level description, per-column map } (H7). */
     private descriptionsByObjectIndex = new Map<
@@ -644,9 +664,10 @@ export class CatalogSnapshot {
         generation: number,
         readiness: Partial<Record<CatalogSection, SectionState>>,
         mode: "full" | "lite" | "partial",
+        capturedAtUtc: string,
     ) {
         this.generation = generation;
-        this.capturedAtUtc = new Date().toISOString();
+        this.capturedAtUtc = capturedAtUtc;
         this.mode = mode;
         const full = {} as Record<CatalogSection, SectionState>;
         for (const section of ALL_SECTIONS) {
@@ -724,6 +745,12 @@ export class CatalogSnapshot {
             }
             pairs.push(pair);
             this.fkColumnsByConstraint.set(constraintId, pairs);
+        }
+        for (let i = 0; i < b.fkFrom.length; i++) {
+            const from = b.fkFrom[i];
+            const to = b.fkTo[i];
+            this.fkDegreeByObjectId.set(from, (this.fkDegreeByObjectId.get(from) ?? 0) + 1);
+            this.fkDegreeByObjectId.set(to, (this.fkDegreeByObjectId.get(to) ?? 0) + 1);
         }
         this.paramRanges = new Array(b.objectIds.length).fill(null).map(() => [0, 0]);
         let paramCursor = 0;
@@ -1030,6 +1057,11 @@ export class CatalogSnapshot {
             }
         }
         return edges;
+    }
+
+    /** Precomputed FK degree used by schema-context ranking. */
+    getForeignKeyDegree(objectId: number): number {
+        return this.fkDegreeByObjectId.get(objectId) ?? 0;
     }
 
     /** Environment facts from H0 (undefined when the env probe failed). */
@@ -1357,14 +1389,13 @@ export function buildSchemaContext(
     const all = snapshot
         .listObjects(undefined, ["table", "view", "tableFunction"])
         .filter((o) => !focused || seeds.has(o.objectId));
-    const degree = (id: number) =>
-        snapshot.getForeignKeysFrom(id).length + snapshot.getForeignKeysTo(id).length;
     all.sort((a, z) => {
         const seedDelta = Number(seeds.has(z.objectId)) - Number(seeds.has(a.objectId));
         if (seedDelta !== 0) {
             return seedDelta;
         }
-        const degreeDelta = degree(z.objectId) - degree(a.objectId);
+        const degreeDelta =
+            snapshot.getForeignKeyDegree(z.objectId) - snapshot.getForeignKeyDegree(a.objectId);
         if (degreeDelta !== 0) {
             return degreeDelta;
         }
@@ -1391,31 +1422,44 @@ export function buildSchemaContext(
 
     // Included objects render sorted (schema asc, name asc) regardless of
     // selection rank — §10.2 step 6.
-    let included = all.slice();
-    let tier: Array<(o: ObjectInfo) => string> = [renderFull, renderNames, renderBare];
+    let included: ObjectInfo[] = [];
+    const tiers: Array<(o: ObjectInfo) => string> = [renderFull, renderNames, renderBare];
     let text = "";
     let truncated = false;
     let columnsElided = 0;
 
-    const compose = (objects: ObjectInfo[], render: (o: ObjectInfo) => string) =>
+    const compose = (objects: ObjectInfo[], rendered: ReadonlyMap<number, string>) =>
         objects
             .slice()
             .sort((a, z) => ordinalCompare(a.schema, z.schema) || ordinalCompare(a.name, z.name))
-            .map(render)
+            .map((object) => rendered.get(object.objectId)!)
             .join("\n");
 
-    outer: for (let t = 0; t < tier.length; t++) {
-        for (let count = included.length; count > 0; count--) {
-            const candidate = compose(included.slice(0, count), tier[t]);
-            if (candidate.length <= maxChars) {
-                text = candidate;
-                truncated = count < all.length || t > 0;
-                columnsElided = t >= 2 ? included.slice(0, count).length : 0;
-                included = included.slice(0, count);
-                break outer;
+    // Rendering length is independent of the final schema/name ordering.
+    // Render each object once per fidelity tier and select the longest
+    // importance-ranked prefix whose cumulative length fits the budget.
+    for (let t = 0; t < tiers.length; t++) {
+        const rendered = new Map<number, string>();
+        let length = 0;
+        let count = 0;
+        for (const object of all) {
+            const line = tiers[t](object);
+            rendered.set(object.objectId, line);
+            const nextLength = length + (count === 0 ? 0 : 1) + line.length;
+            if (nextLength > maxChars) {
+                break;
             }
+            length = nextLength;
+            count++;
         }
-        if (t === tier.length - 1) {
+        if (count > 0 || all.length === 0) {
+            included = all.slice(0, count);
+            text = compose(included, rendered);
+            truncated = count < all.length || t > 0;
+            columnsElided = t >= 2 ? count : 0;
+            break;
+        }
+        if (t === tiers.length - 1) {
             included = [];
             truncated = true;
         }

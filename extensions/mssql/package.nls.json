@@ -380,7 +380,7 @@
     "mssql.sqlDataPlane.timeouts.closeMs.description": "Maximum time in milliseconds to wait for an STS v2 connection to close.",
     "mssql.sqlDataPlane.timeouts.disposeDrainMs.description": "Maximum time in milliseconds to wait for an STS v2 query disposal to produce its terminal event.",
     "mssql.sqlDataPlane.timeouts.initializeMs.description": "Maximum time in milliseconds to wait for the STS v2 initialization handshake.",
-    "mssql.metadataCache.enabled.description": "Persist structural metadata catalog snapshots locally for metadata-backed preview features. Snapshots contain schemas, objects, columns, and keys, but never descriptions, module definitions, query results, credentials, or other secrets. Reload the window after changing this setting.",
+    "mssql.metadataCache.enabled.description": "Persist structural metadata catalog snapshots locally for metadata-backed preview features. Snapshots contain schemas, objects, columns, and keys, but never descriptions, default or computed SQL definitions, module definitions, query results, credentials, or other secrets. Reload the window after changing this setting.",
     "mssql.metadataCache.maxAgeDays.description": "Evict persisted metadata snapshots older than this many days.",
     "mssql.metadataCache.maxBytes.description": "Maximum total size in bytes for persisted metadata snapshots. Least-recently-used entries are evicted first.",
     "mssql.metadataCache.offlineMode.description": "Serve metadata only from persisted snapshots without contacting the server. Status surfaces disclose snapshot age, and operations requiring fresh metadata refuse stale or unavailable data.",

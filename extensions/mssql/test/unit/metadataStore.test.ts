@@ -440,8 +440,95 @@ suite("MetadataStore (B15)", () => {
         const third = await store.acquireDatabase(prepared, "DbA");
         expect(store.status().databases[0].refCount).to.equal(1);
         expect(backend.sessions).to.have.length(1); // reused, not reopened
+        await third.auxiliary.ensureSection(third.auxiliary.sectionKeys()[0]);
+        expect(backend.sessions).to.have.length(2); // dedicated lazy-aux lane
         third.dispose();
         store.dispose();
+        expect(backend.sessions.every((session) => session.state === "closed")).to.equal(true);
+    });
+
+    test("same-key concurrent acquisitions create exactly one database and server engine", async () => {
+        const databaseBackend = new FakeBackend({
+            scripts: catalogScripts("T"),
+            openDelayMs: 20,
+        });
+        const databaseStore = new MetadataStore(async () => databaseBackend, {
+            pollSeconds: 0,
+            idleTtlMs: 60_000,
+        });
+        const prepared = prepareConnection(INTEGRATED, NO_SECRETS);
+        const databaseLeases = await Promise.all(
+            Array.from({ length: 8 }, () => databaseStore.acquireDatabase(prepared, "DbA")),
+        );
+        await databaseLeases[0].refresh();
+        expect(databaseStore.status().databases).to.have.length(1);
+        expect(databaseStore.status().databases[0].refCount).to.equal(8);
+        expect(databaseBackend.sessions).to.have.length(1);
+        expect(new Set(databaseLeases.map((lease) => lease.current())).size).to.equal(1);
+        for (const lease of databaseLeases) {
+            lease.dispose();
+        }
+        databaseStore.dispose();
+        expect(databaseBackend.sessions[0].state).to.equal("closed");
+
+        const serverBackend = new FakeBackend({
+            openDelayMs: 20,
+            scripts: [
+                {
+                    match: (text) => text.includes("sys.databases"),
+                    events: [
+                        {
+                            type: "resultSet",
+                            columns: [
+                                "database_id",
+                                "name",
+                                "state_desc",
+                                "is_read_only",
+                                "user_access_desc",
+                                "compatibility_level",
+                                "has_dbaccess",
+                            ],
+                            rows: [[5, "AppDb", "ONLINE", false, "MULTI_USER", 160, 1]],
+                        },
+                        { type: "complete", status: "succeeded" },
+                    ],
+                },
+            ],
+        });
+        const serverStore = new MetadataStore(async () => serverBackend, { pollSeconds: 0 });
+        const serverLeases = await Promise.all(
+            Array.from({ length: 8 }, () => serverStore.acquireServer(prepared)),
+        );
+        await serverLeases[0].refresh();
+        expect(serverStore.status().servers).to.have.length(1);
+        expect(serverStore.status().servers[0].refCount).to.equal(8);
+        expect(serverBackend.sessions).to.have.length(1);
+        for (const lease of serverLeases) {
+            lease.dispose();
+        }
+        serverStore.dispose();
+        expect(serverBackend.sessions[0].state).to.equal("closed");
+    });
+
+    test("dispose during single-flight creation cannot publish a late entry", async () => {
+        const backend = new FakeBackend({ scripts: catalogScripts("T") });
+        let release!: () => void;
+        const gate = new Promise<void>((resolve) => (release = resolve));
+        const store = new MetadataStore(async () => {
+            await gate;
+            return backend;
+        });
+        const prepared = prepareConnection(INTEGRATED, NO_SECRETS);
+        const acquisitions = [
+            store.acquireDatabase(prepared, "DbA"),
+            store.acquireDatabase(prepared, "DbA"),
+        ];
+        store.dispose();
+        release();
+        const results = await Promise.allSettled(acquisitions);
+        expect(results.every((result) => result.status === "rejected")).to.equal(true);
+        expect(store.status().databases).to.deep.equal([]);
+        expect(backend.sessions).to.deep.equal([]);
     });
 
     test("idle TTL disposes the engine; LRU cap evicts oldest idle first", async () => {

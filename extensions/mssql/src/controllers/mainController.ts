@@ -27,7 +27,14 @@ import { AccountSignInTreeNode } from "../objectExplorer/nodes/accountSignInTree
 import { ConnectTreeNode } from "../objectExplorer/nodes/connectTreeNode";
 import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
 import { readMetadataCacheSettings } from "../services/metadata/cache/metadataCacheSettings";
+import { MetadataStore } from "../services/metadata/metadataStore";
 import { MetadataStoreService } from "../services/metadata/metadataStoreService";
+import {
+    prepareConnection,
+    ProfileSecretSource,
+    StoredConnectionProfile,
+} from "../services/metadata/profileAuthAdapter";
+import { SqlDataPlaneService } from "../services/sqlDataPlane/sqlDataPlaneService";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import CodeAdapter from "../prompts/adapter";
@@ -267,6 +274,7 @@ export default class MainController implements vscode.Disposable {
      */
     public async deactivate(): Promise<void> {
         this._logger.debug("Extension de-activated.");
+        await MetadataStoreService.get().flush();
         await this.onDisconnect();
         this._shortcutsConfigurationController?.dispose();
         this._shortcutsConfigurationController = undefined;
@@ -1159,6 +1167,10 @@ export default class MainController implements vscode.Disposable {
         const metadataStoreService = MetadataStoreService.get();
         metadataStoreService.configureHost({
             isActive: () => vscode.window.state.focused,
+            dataPlaneEnabled: () =>
+                vscode.workspace
+                    .getConfiguration("mssql.sqlDataPlane")
+                    .get<boolean>("enabled", false),
             pollSeconds: () =>
                 vscode.workspace.getConfiguration("mssql.metadata").get<number>("pollSeconds", 60),
         });
@@ -1255,6 +1267,96 @@ export default class MainController implements vscode.Disposable {
                     .update("offlineMode", false, vscode.ConfigurationTarget.Global),
             ),
         );
+
+        if (Perf.enabled) {
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand("mssql.perf.metadataCacheWarmAcquire", async () => {
+                    const coordinator = metadataStoreService.cache();
+                    if (!coordinator) {
+                        throw new Error("metadata cache disabled (mssql.metadataCache.enabled)");
+                    }
+                    const profiles =
+                        vscode.workspace
+                            .getConfiguration("mssql")
+                            .get<StoredConnectionProfile[]>("connections") ?? [];
+                    const stored = profiles[0];
+                    if (!stored?.server) {
+                        throw new Error("no saved connection profile for the probe");
+                    }
+                    const prepared = prepareConnection(
+                        stored,
+                        this._connectionMgr.connectionStore as unknown as ProfileSecretSource,
+                    );
+                    const database = stored.database ?? "";
+                    const key = { serverFingerprint: prepared.serverFingerprint, database };
+                    const dataPlane = () =>
+                        SqlDataPlaneService.get().serviceForProfile(
+                            prepared.profileRef.profileFingerprint,
+                        );
+
+                    await coordinator.clearForConnection(key);
+                    const coldStore = new MetadataStore(dataPlane, {
+                        pollSeconds: 0,
+                        cache: { coordinator },
+                    });
+                    const coldLease = await coldStore.acquireDatabase(prepared, database);
+                    try {
+                        const cold = await coldLease.ensureFresh({
+                            mode: "allowStale",
+                            reason: "startupWarm",
+                            timeoutMs: 60_000,
+                        });
+                        if (!cold.snapshot) {
+                            throw new Error("cold acquire produced no snapshot");
+                        }
+                        const saved = await coordinator.saveNow(key, cold.snapshot);
+                        if (saved.result !== "saved" && saved.result !== "manifestOnly") {
+                            throw new Error(`save-back failed: ${saved.result}`);
+                        }
+
+                        Perf.marker("mssql.metadata.cache.warmAcquire.begin", "begin");
+                        const warmStore = new MetadataStore(dataPlane, {
+                            pollSeconds: 0,
+                            cache: { coordinator, offlineMode: () => true },
+                        });
+                        const warmLease = await warmStore.acquireDatabase(prepared, database);
+                        try {
+                            const warm = await warmLease.ensureFresh({
+                                mode: "offlineSnapshot",
+                                reason: "startupWarm",
+                            });
+                            const status = warmStore.status();
+                            if (status.cache?.loadedFromDisk !== 1) {
+                                throw new Error("warm acquire did not load from disk");
+                            }
+                            if (!warm.snapshot) {
+                                throw new Error("warm acquire produced no snapshot");
+                            }
+                            if (status.databases[0]?.source !== "disk") {
+                                throw new Error(
+                                    `warm snapshot source is ${status.databases[0]?.source ?? "unknown"}, not disk`,
+                                );
+                            }
+                            Perf.marker("mssql.metadata.cache.warmAcquire.end", "end", {
+                                objects: warm.snapshot.stats.objects,
+                                waitedMs: Math.round(warm.waitedMs),
+                            });
+                            return {
+                                coldObjects: cold.snapshot.stats.objects,
+                                warmObjects: warm.snapshot.stats.objects,
+                                warmWaitedMs: warm.waitedMs,
+                            };
+                        } finally {
+                            warmLease.dispose();
+                            warmStore.dispose();
+                        }
+                    } finally {
+                        coldLease.dispose();
+                        coldStore.dispose();
+                    }
+                }),
+            );
+        }
     }
 
     private async loadTokenCache(): Promise<void> {

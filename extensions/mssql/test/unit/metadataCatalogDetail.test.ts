@@ -323,6 +323,7 @@ suite("Metadata exact detail (SV-R1, visualizer addendum §5)", () => {
         });
 
         const udt = snapshot.getColumns(202)[0];
+        expect(udt.typeDisplay).to.equal("[app].[CustomerCodeType]");
         expect(udt.detail!.typeName).to.equal("CustomerCodeType");
         expect(udt.detail!.typeSchema).to.equal("app");
         expect(udt.detail!.baseTypeName).to.equal("nvarchar");
@@ -397,8 +398,18 @@ suite("Metadata exact detail (SV-R1, visualizer addendum §5)", () => {
             generation: snapshot.generation,
             readiness: snapshot.readiness,
             mode: snapshot.mode,
+            capturedAtUtc: snapshot.capturedAtUtc,
         });
-        expect(rehydrated.getColumns(201)).to.deep.equal(snapshot.getColumns(201));
+        const expectedColumns = snapshot.getColumns(201).map((column) => {
+            if (!column.detail) {
+                return column;
+            }
+            const detail = { ...column.detail };
+            delete detail.default;
+            delete detail.computed;
+            return { ...column, detail };
+        });
+        expect(rehydrated.getColumns(201)).to.deep.equal(expectedColumns);
         expect(rehydrated.getColumns(202)).to.deep.equal(snapshot.getColumns(202));
         expect(rehydrated.getForeignKeysFrom(201)).to.deep.equal(snapshot.getForeignKeysFrom(201));
         expect(rehydrated.getForeignKeyDetailsFrom(201)).to.deep.equal(

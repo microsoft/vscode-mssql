@@ -43,14 +43,10 @@ import {
     computeContentHash,
     rehydrateSnapshot,
     serializeSnapshot,
+    stripColumnDefinitions,
     stripDescriptions,
 } from "./metadataCacheCodec";
-import {
-    CACHE_CODEC,
-    CACHE_FORMAT_VERSION,
-    CACHE_PAYLOAD_FILE,
-    CatalogCacheManifest,
-} from "./metadataCacheManifest";
+import { CACHE_CODEC, CACHE_FORMAT_VERSION, CatalogCacheManifest } from "./metadataCacheManifest";
 import {
     CacheEntryKey,
     CacheEntryListing,
@@ -60,6 +56,8 @@ import {
     MetadataCacheStore,
 } from "./metadataCacheStore";
 import { MetadataCacheSettings } from "./metadataCacheSettings";
+
+const MAX_FUTURE_CLOCK_SKEW_MS = 5 * 60_000;
 
 export type CacheLoadResult =
     | {
@@ -137,7 +135,7 @@ export class MetadataCacheCoordinator {
         if (!settings.enabled) {
             return this.miss(key, "disabled");
         }
-        const read = await this.store.readEntry(key);
+        const read = await this.store.readEntry(key, { maxEntryBytes: settings.maxEntryBytes });
         if (read.kind === "miss") {
             return this.miss(key, read.reason);
         }
@@ -147,7 +145,7 @@ export class MetadataCacheCoordinator {
         // readiness; force excluded/absent sections to "absent".
         const readiness: Partial<Record<CatalogSection, SectionState>> = { ...manifest.readiness };
         let policyIntersected = manifest.privacy.policyId !== settings.policyId;
-        let payload: CatalogCachePayloadV1 = read.payload;
+        let payload: CatalogCachePayloadV1 = stripColumnDefinitions(read.payload);
         const payloadHasDescriptions = payload.descriptionOwner !== undefined;
         const descriptionsAllowed = settings.persistDescriptions;
         if (!descriptionsAllowed || !payloadHasDescriptions) {
@@ -173,6 +171,7 @@ export class MetadataCacheCoordinator {
             generation: manifest.capture.publishedGeneration,
             readiness,
             mode: manifest.mode,
+            capturedAtUtc: manifest.capture.capturedAtUtc,
         });
         const ageMs = Math.max(0, this.now() - Date.parse(manifest.capture.capturedAtUtc));
         this.emit("metadataCache.load", key, {
@@ -291,6 +290,7 @@ export class MetadataCacheCoordinator {
             if (
                 Number.isFinite(currentCaptured) &&
                 Number.isFinite(ourCaptured) &&
+                currentCaptured <= this.now() + MAX_FUTURE_CLOCK_SKEW_MS &&
                 currentCaptured > ourCaptured &&
                 current.capture.publishedGeneration >= snapshot.generation
             ) {
@@ -300,7 +300,8 @@ export class MetadataCacheCoordinator {
             // the validation block; the steady state is a tiny write.
             if (
                 current.payload.contentHash === contentHash &&
-                current.privacy.policyId === settings.policyId
+                current.privacy.policyId === settings.policyId &&
+                (await this.store.payloadExists(key, current))
             ) {
                 const bumped: CatalogCacheManifest = { ...current, validation };
                 const rewrite = await this.store.rewriteManifest(key, bumped);
@@ -322,6 +323,7 @@ export class MetadataCacheCoordinator {
             payloadJson,
             (payloadInfo) =>
                 this.buildManifest(key, snapshot, settings, writerId, contentHash, validation, {
+                    file: payloadInfo.file,
                     sha256: payloadInfo.sha256,
                     payloadBytes: payloadInfo.payloadBytes,
                     uncompressedBytes: payloadInfo.uncompressedBytes,
@@ -337,7 +339,11 @@ export class MetadataCacheCoordinator {
         // H-4.5: one post-save re-read; if the manifest is not ours another
         // window won the race — benign, emit raceLost, do not retry.
         const after = await this.store.readManifest(key);
-        if (!after || after.writerId !== writerId) {
+        if (
+            !after ||
+            after.writerId !== writerId ||
+            !(await this.store.payloadMatchesManifest(key, after))
+        ) {
             this.emit("metadataCache.raceLost", key, {});
             const race: CacheSaveOutcome = { result: "raceLost", contentHash };
             return outcome.payloadBytes === undefined
@@ -369,7 +375,12 @@ export class MetadataCacheCoordinator {
         writerId: string,
         contentHash: string,
         validation: CatalogCacheManifest["validation"],
-        payloadInfo: { sha256: string; payloadBytes: number; uncompressedBytes: number },
+        payloadInfo: {
+            file: string;
+            sha256: string;
+            payloadBytes: number;
+            uncompressedBytes: number;
+        },
     ): CatalogCacheManifest {
         const environment = snapshot.codecView.environment;
         // C-5 save direction: excluded sections are marked absent, never
@@ -430,6 +441,7 @@ export class MetadataCacheCoordinator {
             },
             privacy: {
                 includesDescriptions: settings.persistDescriptions,
+                includesColumnDefinitions: false,
                 // NEVER true in v1 — module definitions are not in the
                 // payload regardless of the setting (C-5.3).
                 includesModuleDefinitions: false,
@@ -437,7 +449,7 @@ export class MetadataCacheCoordinator {
                 policyId: settings.policyId,
             },
             payload: {
-                file: CACHE_PAYLOAD_FILE,
+                file: payloadInfo.file,
                 sha256: payloadInfo.sha256,
                 contentHash,
             },

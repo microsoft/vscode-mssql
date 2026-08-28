@@ -9751,7 +9751,7 @@
       <source xml:lang="en">Pause Query History Capture</source>
     </trans-unit>
     <trans-unit id="mssql.metadataCache.enabled.description">
-      <source xml:lang="en">Persist structural metadata catalog snapshots locally for metadata-backed preview features. Snapshots contain schemas, objects, columns, and keys, but never descriptions, module definitions, query results, credentials, or other secrets. Reload the window after changing this setting.</source>
+      <source xml:lang="en">Persist structural metadata catalog snapshots locally for metadata-backed preview features. Snapshots contain schemas, objects, columns, and keys, but never descriptions, default or computed SQL definitions, module definitions, query results, credentials, or other secrets. Reload the window after changing this setting.</source>
     </trans-unit>
     <trans-unit id="mssql.query.playCompletionSound.description">
       <source xml:lang="en">Play a sound after a query finishes executing.</source>

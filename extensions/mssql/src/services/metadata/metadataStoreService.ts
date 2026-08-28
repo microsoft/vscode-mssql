@@ -41,6 +41,7 @@ export interface MetadataCacheInit {
 export interface MetadataHostInit {
     readonly isActive?: () => boolean;
     readonly pollSeconds?: () => number;
+    readonly dataPlaneEnabled?: () => boolean;
 }
 
 export class MetadataStoreService {
@@ -94,8 +95,14 @@ export class MetadataStoreService {
                 });
             }
             this.storeInstance = new MetadataStore(
-                (profileFingerprint) =>
-                    SqlDataPlaneService.get().serviceForProfile(profileFingerprint),
+                (profileFingerprint) => {
+                    if (this.hostInit?.dataPlaneEnabled?.() === false) {
+                        throw new Error(
+                            "Metadata requires mssql.sqlDataPlane.enabled to be enabled",
+                        );
+                    }
+                    return SqlDataPlaneService.get().serviceForProfile(profileFingerprint);
+                },
                 {
                     ...(this.hostInit?.pollSeconds
                         ? { pollSeconds: this.hostInit.pollSeconds() }
@@ -131,6 +138,11 @@ export class MetadataStoreService {
         if (this.coordinator) {
             await this.coordinator.runMaintenance();
         }
+    }
+
+    /** Persist pending debounced snapshots before extension deactivation. */
+    async flush(): Promise<void> {
+        await this.coordinator?.flush();
     }
 
     dispose(): void {

@@ -13,7 +13,7 @@
  *   <root>/v1/index.json
  *   <root>/v1/servers/<sfp>/...                      (server catalog, later)
  *   <root>/v1/databases/<sfp>/<dbh>/manifest.json
- *   <root>/v1/databases/<sfp>/<dbh>/catalog.json.gz
+ *   <root>/v1/databases/<sfp>/<dbh>/catalog.<sha256>.json.gz
  *
  * databaseHash (C-10, exact recipe):
  *   "dbh_" + b64url(sha256(serverFingerprint + "\u0000" + exactDatabaseName)).slice(0, 22)
@@ -27,7 +27,9 @@
  * backoff on EPERM/EBUSY/EACCES (Windows antivirus/indexer reality);
  * manifest renames LAST. Readers trust only sha256-verified payloads —
  * every readable state is a complete old entry, a complete new entry, or a
- * clean quarantined miss; never partial data, never a throw.
+ * clean quarantined miss; never partial data, never a throw. Superseded
+ * payloads are retired after manifest publication; age-gated maintenance
+ * reaps abandoned payload/temp/quarantine files without racing a writer.
  *
  * index.json (C-10): quick status/eviction metadata, rebuilt by scanning
  * manifests whenever corrupt or missing — never by trusting payload files
@@ -72,7 +74,7 @@ export interface FsLike {
     /** Immediate child names; empty array when the directory is missing. */
     readdir(path: string): Promise<string[]>;
     /** undefined when the path does not exist. */
-    stat(path: string): Promise<{ readonly size: number } | undefined>;
+    stat(path: string): Promise<{ readonly size: number; readonly mtimeMs?: number } | undefined>;
 }
 
 /** Real implementation over node fs/promises. */
@@ -117,11 +119,13 @@ export class NodeFsLike implements FsLike {
         }
     }
 
-    async stat(path: string): Promise<{ readonly size: number } | undefined> {
+    async stat(
+        path: string,
+    ): Promise<{ readonly size: number; readonly mtimeMs?: number } | undefined> {
         const fs = await import("fs/promises");
         try {
             const stats = await fs.stat(path);
-            return { size: stats.size };
+            return { size: stats.size, mtimeMs: stats.mtimeMs };
         } catch {
             return undefined;
         }
@@ -235,6 +239,9 @@ export interface MetadataCacheStoreOptions {
 
 const MANIFEST_FILE = "manifest.json";
 const PAYLOAD_FILE = "catalog.json.gz";
+const HARD_MAX_COMPRESSED_BYTES = 33_554_432;
+const HARD_MAX_UNCOMPRESSED_BYTES = 268_435_456;
+const ORPHAN_GRACE_MS = 10 * 60_000;
 const INDEX_ACCESS_DEBOUNCE_MS = 60_000;
 const RENAME_RETRY_CODES = new Set(["EPERM", "EBUSY", "EACCES"]);
 
@@ -311,10 +318,44 @@ export class MetadataCacheStore {
         return validated.ok ? validated.manifest : undefined;
     }
 
-    async readEntry(key: CacheEntryKey): Promise<CacheReadResult> {
+    async payloadExists(key: CacheEntryKey, manifest: CatalogCacheManifest): Promise<boolean> {
+        try {
+            const stats = await this.fs.stat(`${this.entryDir(key)}/${manifest.payload.file}`);
+            return stats?.size === manifest.stats.payloadBytes;
+        } catch {
+            return false;
+        }
+    }
+
+    async payloadMatchesManifest(
+        key: CacheEntryKey,
+        manifest: CatalogCacheManifest,
+    ): Promise<boolean> {
+        try {
+            const bytes = await this.fs.readFile(`${this.entryDir(key)}/${manifest.payload.file}`);
+            return (
+                bytes.length === manifest.stats.payloadBytes &&
+                createHash("sha256").update(bytes).digest("hex") === manifest.payload.sha256
+            );
+        } catch {
+            return false;
+        }
+    }
+
+    async readEntry(
+        key: CacheEntryKey,
+        options?: { readonly maxEntryBytes?: number },
+    ): Promise<CacheReadResult> {
+        return this.readEntryCore(key, options, 1);
+    }
+
+    private async readEntryCore(
+        key: CacheEntryKey,
+        options: { readonly maxEntryBytes?: number } | undefined,
+        manifestRaceRetries: number,
+    ): Promise<CacheReadResult> {
         const dir = this.entryDir(key);
         const manifestPath = `${dir}/${MANIFEST_FILE}`;
-        const payloadPath = `${dir}/${PAYLOAD_FILE}`;
         let manifestBytes: Uint8Array;
         try {
             manifestBytes = await this.fs.readFile(manifestPath);
@@ -335,36 +376,94 @@ export class MetadataCacheStore {
             return { kind: "miss", reason: validated.reason };
         }
         const manifest = validated.manifest;
+        const payloadPath = `${dir}/${manifest.payload.file}`;
+        const compressedLimit = Math.min(
+            options?.maxEntryBytes ?? HARD_MAX_COMPRESSED_BYTES,
+            HARD_MAX_COMPRESSED_BYTES,
+        );
+        let payloadStat: { readonly size: number } | undefined;
+        try {
+            payloadStat = await this.fs.stat(payloadPath);
+        } catch {
+            return { kind: "miss", reason: "corrupt" };
+        }
+        if (!payloadStat) {
+            await this.removeQuietly(manifestPath);
+            this.emitEvent("metadataCache.corrupt", {
+                ...this.keyFields(key),
+                errorClass: { raw: "payloadMissing", cls: "diagnostic.metadata" },
+            });
+            return { kind: "miss", reason: "payloadMissing" };
+        }
+        if (
+            payloadStat.size !== manifest.stats.payloadBytes ||
+            payloadStat.size > compressedLimit
+        ) {
+            await this.quarantineEntry(key, "payloadSize", manifest.payload.file);
+            return { kind: "miss", reason: "corrupt" };
+        }
         let payloadGz: Uint8Array;
         try {
             payloadGz = await this.fs.readFile(payloadPath);
         } catch {
-            return { kind: "miss", reason: "payloadMissing" };
+            this.emitEvent("metadataCache.corrupt", {
+                ...this.keyFields(key),
+                errorClass: { raw: "payloadReadFailed", cls: "diagnostic.metadata" },
+            });
+            return { kind: "miss", reason: "corrupt" };
+        }
+        // Re-check after the read to close the ordinary stat/read race.
+        if (payloadGz.length !== payloadStat.size) {
+            await this.quarantineEntry(key, "payloadSizeChanged", manifest.payload.file);
+            return { kind: "miss", reason: "corrupt" };
         }
         const sha = createHash("sha256").update(payloadGz).digest("hex");
         if (sha !== manifest.payload.sha256) {
-            await this.quarantineEntry(key, "shaMismatch");
+            // A content-addressed reader can race a manifest replacement.
+            // Re-read once: quarantine only if the same manifest still owns
+            // this payload; otherwise retry against the winner.
+            const latest = await this.readManifest(key);
+            if (manifestRaceRetries > 0 && latest && latest.writerId !== manifest.writerId) {
+                return this.readEntryCore(key, options, manifestRaceRetries - 1);
+            }
+            await this.quarantineEntry(key, "shaMismatch", manifest.payload.file);
             return { kind: "miss", reason: "shaMismatch" };
+        }
+        const declaredUncompressed = manifest.stats.uncompressedBytes;
+        if (
+            declaredUncompressed === undefined ||
+            !Number.isSafeInteger(declaredUncompressed) ||
+            declaredUncompressed < 0 ||
+            declaredUncompressed > HARD_MAX_UNCOMPRESSED_BYTES
+        ) {
+            await this.quarantineEntry(key, "uncompressedSize", manifest.payload.file);
+            return { kind: "miss", reason: "corrupt" };
         }
         let payloadJson: string;
         try {
-            payloadJson = (await gunzipAsync(Buffer.from(payloadGz))).toString("utf8");
+            const uncompressed = await gunzipAsync(Buffer.from(payloadGz), {
+                maxOutputLength: declaredUncompressed,
+            });
+            if (uncompressed.length !== declaredUncompressed) {
+                throw new Error("uncompressed size mismatch");
+            }
+            payloadJson = uncompressed.toString("utf8");
         } catch {
-            await this.quarantineEntry(key, "gunzipFailed");
+            await this.quarantineEntry(key, "gunzipFailed", manifest.payload.file);
             return { kind: "miss", reason: "corrupt" };
         }
         let payloadValue: unknown;
         try {
             payloadValue = JSON.parse(payloadJson);
         } catch {
-            await this.quarantineEntry(key, "payloadUnparsable");
+            await this.quarantineEntry(key, "payloadUnparsable", manifest.payload.file);
             return { kind: "miss", reason: "corrupt" };
         }
         const payload = validatePayload(payloadValue, {
             descriptionsExpected: manifest.privacy.includesDescriptions,
         });
         if (!payload.ok) {
-            await this.quarantineEntry(key, "payloadShape");
+            await this.quarantineEntry(key, "payloadShape", manifest.payload.file);
             return { kind: "miss", reason: "shape" };
         }
         await this.touchAccess(manifest);
@@ -382,14 +481,18 @@ export class MetadataCacheStore {
      * the manifest is deleted (manifest-first discipline — an entry without
      * a manifest is inert garbage). All best-effort; never throws.
      */
-    private async quarantineEntry(key: CacheEntryKey, why: string): Promise<void> {
+    private async quarantineEntry(
+        key: CacheEntryKey,
+        why: string,
+        payloadFile = PAYLOAD_FILE,
+    ): Promise<void> {
         const dir = this.entryDir(key);
         try {
             await this.fs.unlink(`${dir}/${MANIFEST_FILE}`);
         } catch {
             /* best-effort */
         }
-        const payloadPath = `${dir}/${PAYLOAD_FILE}`;
+        const payloadPath = `${dir}/${payloadFile}`;
         try {
             await this.fs.rename(payloadPath, `${payloadPath}.quarantine`);
         } catch {
@@ -417,6 +520,7 @@ export class MetadataCacheStore {
         key: CacheEntryKey,
         payloadJson: string,
         manifestFor: (payloadInfo: {
+            readonly file: string;
             readonly sha256: string;
             readonly payloadBytes: number;
             readonly uncompressedBytes: number;
@@ -432,11 +536,14 @@ export class MetadataCacheStore {
         if (options?.maxEntryBytes !== undefined && gz.length > options.maxEntryBytes) {
             return { ok: false, skipped: "entryTooLarge", payloadBytes: gz.length };
         }
-        const dir = this.entryDir(key);
-        const payloadPath = `${dir}/${PAYLOAD_FILE}`;
-        const manifestPath = `${dir}/${MANIFEST_FILE}`;
         const sha256 = createHash("sha256").update(gz).digest("hex");
+        const payloadFile = `catalog.${sha256}.json.gz`;
+        const dir = this.entryDir(key);
+        const payloadPath = `${dir}/${payloadFile}`;
+        const manifestPath = `${dir}/${MANIFEST_FILE}`;
+        const previous = await this.readManifest(key);
         const manifest = manifestFor({
+            file: payloadFile,
             sha256,
             payloadBytes: gz.length,
             uncompressedBytes: Buffer.byteLength(payloadJson, "utf8"),
@@ -456,6 +563,13 @@ export class MetadataCacheStore {
         const manifestOutcome = await this.writeManifestFile(manifestPath, manifest);
         if (manifestOutcome.ok === false) {
             return { ok: false, errorClass: manifestOutcome.errorClass, payloadBytes: gz.length };
+        }
+        if (previous && previous.payload.file !== payloadFile) {
+            // The new manifest is now authoritative. Removing only the file
+            // named by the manifest observed before this write is safe even
+            // with competing windows; an interleaved winner uses a distinct
+            // content-addressed name and the coordinator detects raceLost.
+            await this.removeQuietly(`${dir}/${previous.payload.file}`);
         }
         await this.upsertIndexEntry(manifest, gz.length);
         return { ok: true, sha256, payloadBytes: gz.length };
@@ -756,20 +870,50 @@ export class MetadataCacheStore {
         const survivors: ScannedEntry[] = [];
         // 1) corrupt/unsupported first — useless bytes, free wins.
         for (const entry of scanned) {
-            if (!entry.manifest) {
-                await this.removeEntryFiles(entry);
+            const manifest = entry.manifest;
+            if (!manifest || !entry.files.includes(manifest.payload.file)) {
+                // A different window may be between its payload and
+                // manifest rename. Only reap manifest-less/corrupt entries
+                // once every file is comfortably older than a normal save.
+                if (await this.allFilesPastOrphanGrace(entry)) {
+                    await this.removeEntryFiles(entry);
+                    removedCorrupt++;
+                    this.emitEvictEvent(entry, "corrupt");
+                }
+                continue;
+            }
+
+            // Retire old content-addressed payloads, quarantine files, and
+            // abandoned temp files without racing an active writer.
+            let removedLeftover = false;
+            for (const file of entry.files) {
+                if (
+                    file !== MANIFEST_FILE &&
+                    file !== manifest.payload.file &&
+                    (await this.filePastOrphanGrace(entry.dir, file))
+                ) {
+                    await this.removeQuietly(`${entry.dir}/${file}`);
+                    await this.throttle();
+                    removedLeftover = true;
+                }
+            }
+            if (removedLeftover) {
                 removedCorrupt++;
                 this.emitEvictEvent(entry, "corrupt");
-            } else {
-                survivors.push(entry);
             }
+            survivors.push(entry);
         }
         // 2) age.
         const maxAgeMs = limits.maxAgeDays * 86_400_000;
         const aged: ScannedEntry[] = [];
         for (const entry of survivors) {
             const capturedMs = Date.parse(entry.manifest!.capture.capturedAtUtc);
-            if (Number.isFinite(capturedMs) && this.now() - capturedMs > maxAgeMs) {
+            const validatedMs = Date.parse(entry.manifest!.validation.lastValidatedAtUtc ?? "");
+            const effectiveAgeMs = Math.max(
+                Number.isFinite(capturedMs) ? capturedMs : 0,
+                Number.isFinite(validatedMs) ? validatedMs : 0,
+            );
+            if (effectiveAgeMs > 0 && this.now() - effectiveAgeMs > maxAgeMs) {
                 await this.removeEntryFiles(entry);
                 removedAged++;
                 this.emitEvictEvent(entry, "age");
@@ -834,6 +978,29 @@ export class MetadataCacheStore {
         }
     }
 
+    private async filePastOrphanGrace(dir: string, file: string): Promise<boolean> {
+        try {
+            const stat = await this.fs.stat(`${dir}/${file}`);
+            if (!stat) {
+                return true;
+            }
+            // Test doubles predating mtime support are treated as already
+            // quiescent; the production adapter always provides mtimeMs.
+            return stat.mtimeMs === undefined || this.now() - stat.mtimeMs >= ORPHAN_GRACE_MS;
+        } catch {
+            return false;
+        }
+    }
+
+    private async allFilesPastOrphanGrace(entry: ScannedEntry): Promise<boolean> {
+        for (const file of entry.files) {
+            if (!(await this.filePastOrphanGrace(entry.dir, file))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     // -- scanning ----------------------------------------------------------------
 
     private async scanEntries(): Promise<ScannedEntry[]> {
@@ -854,7 +1021,7 @@ export class MetadataCacheStore {
                     manifest = validated?.ok ? validated.manifest : undefined;
                 }
                 const scanned: ScannedEntry = { dir, dbhSegment, files };
-                if (manifest) {
+                if (manifest && files.includes(manifest.payload.file)) {
                     scanned.manifest = manifest;
                 }
                 entries.push(scanned);

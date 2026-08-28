@@ -6,6 +6,7 @@
 import { expect } from "chai";
 import { DEFAULT_METADATA_CACHE_SETTINGS } from "../../src/services/metadata/cache/metadataCacheSettings";
 import { MetadataStoreService } from "../../src/services/metadata/metadataStoreService";
+import { prepareConnection } from "../../src/services/metadata/profileAuthAdapter";
 
 suite("MetadataStoreService composition", () => {
     let service: MetadataStoreService;
@@ -36,5 +37,25 @@ suite("MetadataStoreService composition", () => {
 
         expect(service.cache()).to.not.equal(undefined);
         expect(service.store().status().cache).to.deep.equal({ enabled: true, loadedFromDisk: 0 });
+    });
+
+    test("rejects metadata acquisition before starting a disabled SQL Data Plane", async () => {
+        service.configureHost({ dataPlaneEnabled: () => false, pollSeconds: () => 0 });
+        const prepared = prepareConnection(
+            { server: "test", authenticationType: "Integrated" },
+            {
+                lookupPassword: async () => {
+                    throw new Error("integrated auth must not request a password");
+                },
+            },
+        );
+        let failure: unknown;
+        try {
+            await service.store().acquireDatabase(prepared, "Db1");
+        } catch (error) {
+            failure = error;
+        }
+        expect(String(failure)).to.include("mssql.sqlDataPlane.enabled");
+        expect(service.store().status().databases).to.deep.equal([]);
     });
 });
