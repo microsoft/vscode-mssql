@@ -78,14 +78,10 @@ export class ProjectController {
         }
     }
 
-    /**
-     * Gets the path to the BuildDirectory folder from the SQL Database Projects extension
-     */
+    /** Gets the path to the BuildDirectory owned by the MSSQL runtime. */
     private getBuildDirPath(): string {
-        // Use the SQL Database Projects extension's BuildDirectory which contains the required build DLLs and targets
         const extensionPath =
-            vscode.extensions.getExtension(constants.sqlDatabaseProjectsExtensionId)
-                ?.extensionPath ?? "";
+            vscode.extensions.getExtension(constants.extensionId)?.extensionPath ?? "";
         return path.join(extensionPath, "BuildDirectory");
     }
 
