@@ -20,14 +20,17 @@ interface UriOwnershipApi {
 interface CoordinatingExtensionInfo {
     extensionId: string;
     displayName: string;
+    apiCommand?: string;
 }
 
 interface SqlExtensionCommonFeaturesContribution {
     uriOwnershipApi?: boolean;
+    uriOwnershipApiCommand?: string;
 }
 
 export interface UriOwnershipConfig {
     hideUiContextKey: string;
+    apiCommand?: string;
     hasCoordinatingExtensionsContextKey?: string;
     ownsUri?: (uri: string) => boolean;
     onDidChangeOwnership?: vscode.Event<void>;
@@ -57,6 +60,7 @@ function discoverCoordinatingExtensions(selfExtensionId: string): CoordinatingEx
             coordinatingExtensions.push({
                 extensionId: extension.id,
                 displayName: extension.packageJSON?.displayName || extension.id,
+                apiCommand: commonFeatures.uriOwnershipApiCommand,
             });
         }
     }
@@ -112,6 +116,12 @@ export class UriOwnershipCoordinator {
             },
             onDidChangeUriOwnership: this._uriOwnershipChangedEmitter.event,
         };
+
+        if (config.apiCommand) {
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(config.apiCommand, () => this.uriOwnershipApi),
+            );
+        }
 
         this.onCoordinatingOwnershipChanged = this._coordinatingOwnershipChangedEmitter.event;
 
@@ -200,25 +210,36 @@ export class UriOwnershipCoordinator {
                 continue;
             }
 
-            if (!extension.isActive) {
-                extension.activate().then(
-                    (exports) => {
-                        this._registerCoordinatingExtensionApi(extInfo.extensionId, exports);
-                    },
-                    (err) => {
-                        logger.error(
-                            `Error activating coordinating extension ${extInfo.extensionId}: ${getErrorMessage(err)}`,
-                        );
-                    },
-                );
-            } else {
+            if (extension.isActive && !extInfo.apiCommand) {
                 this._registerCoordinatingExtensionApi(extInfo.extensionId, extension.exports);
+            } else {
+                void this._activateAndRegisterCoordinatingExtension(extInfo, extension);
             }
         }
     }
 
+    private async _activateAndRegisterCoordinatingExtension(
+        extInfo: CoordinatingExtensionInfo,
+        extension: vscode.Extension<unknown>,
+    ): Promise<void> {
+        try {
+            const exports = extension.isActive ? extension.exports : await extension.activate();
+            const api = extInfo.apiCommand
+                ? await vscode.commands.executeCommand<UriOwnershipApi>(extInfo.apiCommand)
+                : undefined;
+            this._registerCoordinatingExtensionApi(extInfo.extensionId, api ?? exports);
+        } catch (err) {
+            logger.error(
+                `Error loading URI ownership API from ${extInfo.extensionId}: ${getErrorMessage(err)}`,
+            );
+        }
+    }
+
     private _registerCoordinatingExtensionApi(extensionId: string, exports: unknown): void {
-        const api = (exports as { uriOwnershipApi?: UriOwnershipApi })?.uriOwnershipApi;
+        const api =
+            (exports as UriOwnershipApi | undefined)?.ownsUri !== undefined
+                ? (exports as UriOwnershipApi)
+                : (exports as { uriOwnershipApi?: UriOwnershipApi })?.uriOwnershipApi;
         if (api) {
             this._coordinatingExtensionApis.set(extensionId, api);
 
@@ -276,8 +297,10 @@ export class UriOwnershipCoordinator {
         for (const extInfo of newExtensions) {
             if (!this._coordinatingExtensionApis.has(extInfo.extensionId)) {
                 const extension = vscode.extensions.getExtension(extInfo.extensionId);
-                if (extension?.isActive) {
+                if (extension?.isActive && !extInfo.apiCommand) {
                     this._registerCoordinatingExtensionApi(extInfo.extensionId, extension.exports);
+                } else if (extension) {
+                    void this._activateAndRegisterCoordinatingExtension(extInfo, extension);
                 }
             }
         }

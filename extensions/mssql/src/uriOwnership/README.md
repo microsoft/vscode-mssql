@@ -1,7 +1,7 @@
 # URI Ownership Coordination
 
-> [!WARNING]
-> **Deprecated:** The exported MSSQL `uriOwnershipApi` will be retired and will not be available in a future release. Existing integrations will continue to work until then, but extension authors should remove this dependency and avoid adopting it for new integrations.
+URI ownership is an internal extension-to-extension protocol. It is intentionally not part of the
+public `vscode-mssql` API.
 
 URI ownership coordination enables multiple SQL extensions (MSSQL, PostgreSQL, MySQL, etc.) to coexist in VS Code while only one extension owns and shows query UI for a given SQL file.
 
@@ -22,7 +22,8 @@ Add this to your extension's `package.json`:
     "displayName": "SQL Server (mssql)",
     "contributes": {
         "vscode-sql-common-features": {
-            "uriOwnershipApi": true
+            "uriOwnershipApi": true,
+            "uriOwnershipApiCommand": "yourext.uriOwnership.getApi"
         }
     }
 }
@@ -39,17 +40,17 @@ import { UriOwnershipCoordinator } from "./uriOwnershipCore";
 export function activate(context: vscode.ExtensionContext) {
     const coordinator = new UriOwnershipCoordinator(context, {
         hideUiContextKey: "yourext.hideUIElements",
+        apiCommand: "yourext.uriOwnership.getApi",
         ownsUri: (uri) => connectionManager.isConnected(uri) || connectionManager.isConnecting(uri),
         onDidChangeOwnership: connectionManager.onConnectionsChanged,
         releaseUri: (uri) => connectionManager.disconnect(uri),
     });
-
-    // Export the API for other extensions to consume
-    return {
-        uriOwnershipApi: coordinator.uriOwnershipApi,
-    };
 }
 ```
+
+The coordinator registers the command and returns the API only to participating extensions.
+Consumers that have not yet declared `uriOwnershipApiCommand` are supported temporarily through
+the legacy extension-export shape.
 
 ### 3. Use context key in package.json for UI visibility
 
@@ -100,7 +101,7 @@ new UriOwnershipCoordinator(context: vscode.ExtensionContext, config: UriOwnersh
 
 #### Properties
 
-- `uriOwnershipApi: UriOwnershipApi` - The API to expose to other extensions
+- `uriOwnershipApi: UriOwnershipApi` - The API returned by the internal command
 - `onCoordinatingOwnershipChanged: vscode.Event<void>` - Event when ownership changes
 
 ### UriOwnershipConfig
@@ -115,6 +116,9 @@ If your connection manager isn't available at activation time, you can omit `own
 interface UriOwnershipConfig {
     /** Context key to set when another extension owns the active URI */
     hideUiContextKey: string;
+
+    /** Internal command used by participating SQL extensions to request this API */
+    apiCommand?: string;
 
     /** Optional localized default warning message factory */
     fileOwnedByOtherExtensionMessage?: (owningExtensionDisplayName: string) => string;
@@ -134,7 +138,7 @@ interface UriOwnershipConfig {
 
 1. **Discovery**: On activation, the coordinator scans all installed extensions for the `vscode-sql-common-features` contribution in their `package.json`.
 
-2. **API Exchange**: The coordinator activates discovered extensions and retrieves their `uriOwnershipApi` from their exports.
+2. **API Exchange**: The coordinator activates discovered extensions and requests their API through the contributed command. Legacy exports remain a consumer-side fallback during migration.
 
 3. **Event Listening**: When a coordinating extension's ownership changes, all other extensions are notified via `onCoordinatingOwnershipChanged`.
 

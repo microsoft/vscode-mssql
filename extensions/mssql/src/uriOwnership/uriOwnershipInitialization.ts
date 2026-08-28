@@ -10,6 +10,7 @@ import { UriOwnershipCoordinator } from "./uriOwnershipCore";
 const HIDE_UI_ELEMENTS_CONTEXT_VARIABLE = "mssql.hideUIElements";
 const HAS_COORDINATING_EXTENSIONS_CONTEXT_VARIABLE =
     "mssql.hasCoordinatingExtensionsWithUriOwnership";
+const URI_OWNERSHIP_API_COMMAND = "mssql.uriOwnership.getApi";
 
 export function createUriOwnershipCoordinator(
     context: vscode.ExtensionContext,
@@ -17,6 +18,7 @@ export function createUriOwnershipCoordinator(
     return new UriOwnershipCoordinator(context, {
         hideUiContextKey: HIDE_UI_ELEMENTS_CONTEXT_VARIABLE,
         hasCoordinatingExtensionsContextKey: HAS_COORDINATING_EXTENSIONS_CONTEXT_VARIABLE,
+        apiCommand: URI_OWNERSHIP_API_COMMAND,
     });
 }
 

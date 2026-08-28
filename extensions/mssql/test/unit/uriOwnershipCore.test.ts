@@ -41,6 +41,7 @@ suite("UriOwnershipCoordinator Tests", () => {
         displayName?: string;
         active?: boolean;
         contributesUriOwnershipApi?: boolean;
+        apiCommand?: string;
         ownsUri?: (uri: vscode.Uri) => boolean;
     }): {
         extension: vscode.Extension<unknown>;
@@ -75,6 +76,7 @@ suite("UriOwnershipCoordinator Tests", () => {
                     ? {
                           "vscode-sql-common-features": {
                               uriOwnershipApi: true,
+                              uriOwnershipApiCommand: options.apiCommand,
                           },
                       }
                     : {},
@@ -190,6 +192,54 @@ suite("UriOwnershipCoordinator Tests", () => {
         coordinator.uriOwnershipApi.onDidChangeUriOwnership(ownershipChangedListener);
         ownershipChanged.fire();
         expect(ownershipChangedListener).to.have.been.called;
+    });
+
+    test("registers its URI ownership API behind an internal command", () => {
+        const registerCommand = sandbox
+            .stub(vscode.commands, "registerCommand")
+            .returns(new vscode.Disposable(() => {}));
+
+        const coordinator = new UriOwnershipCoordinator(createContext(), {
+            hideUiContextKey: "mssql.hideUIElements",
+            apiCommand: "mssql.uriOwnership.getApi",
+        });
+
+        expect(registerCommand).to.have.been.calledWith(
+            "mssql.uriOwnership.getApi",
+            sinon.match.func,
+        );
+        const commandHandler = registerCommand.firstCall.args[1] as () => unknown;
+        expect(commandHandler()).to.equal(coordinator.uriOwnershipApi);
+    });
+
+    test("loads a coordinating URI ownership API through its contributed command", async () => {
+        const uri = vscode.Uri.parse("file:///tmp/owned.sql");
+        const coordinating = createCoordinatingExtension({
+            id: "ext.pgsql",
+            displayName: "PostgreSQL",
+            active: true,
+            apiCommand: "pgsql.uriOwnership.getApi",
+            ownsUri: (ownedUri) => ownedUri.toString() === uri.toString(),
+        });
+        const legacyExports = coordinating.extension.exports as {
+            uriOwnershipApi: unknown;
+        };
+        executeCommandStub.callsFake((command: string) =>
+            Promise.resolve(
+                command === "pgsql.uriOwnership.getApi" ? legacyExports.uriOwnershipApi : undefined,
+            ),
+        );
+        extensionsAll = [coordinating.extension];
+        extensionById.set(coordinating.extension.id, coordinating.extension);
+
+        const coordinator = new UriOwnershipCoordinator(createContext(), {
+            hideUiContextKey: "mssql.hideUIElements",
+        });
+        await Promise.resolve();
+        await Promise.resolve();
+
+        expect(executeCommandStub).to.have.been.calledWith("pgsql.uriOwnership.getApi");
+        expect(coordinator.isOwnedByCoordinatingExtension(uri)).to.equal(true);
     });
 
     test("initialize only applies the first deferred configuration", () => {
