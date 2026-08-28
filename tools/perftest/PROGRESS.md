@@ -602,7 +602,7 @@ yet built/verified - continuing there.
   query-ish, bounded-looking but real). CONCLUSION: the RSS growth is mostly
   V8 code-space + unpressured heap expansion, NOT a classic data-structure
   leak; two small named retainers to watch (\_QueryHistoryNode, per-cycle
-  Objects); STS managed-heap growth flagged for PerfView follow-up. _**
+  Objects); STS managed-heap growth flagged for PerfView follow-up. \_**
 - M14.1 started: charts.ts written (deterministic inline-SVG histogram/trend
   w/ CI band+R2+n/horizontal bars/cross-process waterfall with
   monotonic-vs-epoch plane distinction + calibration jitter in the legend;

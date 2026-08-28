@@ -23,6 +23,7 @@ import {
     SchemaUpdateAction,
     TaskExecutionMode,
 } from "../enums";
+import { FormItemOptions } from "./form";
 
 export {
     ExtractTarget,
@@ -31,6 +32,13 @@ export {
     SchemaUpdateAction,
     TaskExecutionMode,
 };
+
+export interface SchemaCompareServer {
+    profileName: string;
+    server: string;
+    database?: string;
+}
+
 export interface SchemaCompareWebViewState {
     isSqlProjectExtensionInstalled: boolean;
     isComparisonInProgress: boolean;
@@ -38,8 +46,11 @@ export interface SchemaCompareWebViewState {
     applySucceeded: boolean;
     applyFailed: boolean;
     isIncludeExcludeAllOperationInProgress: boolean;
-    activeServers: { [connectionUri: string]: { profileName: string; server: string } };
-    databases: string[];
+    connections: { [connectionId: string]: SchemaCompareServer };
+    databases: FormItemOptions[];
+    databaseListConnectionId: string;
+    isDatabaseListLoading: boolean;
+    databaseListError: string;
     defaultDeploymentOptionsResult: SchemaCompareOptionsResult;
     auxiliaryEndpointInfo: SchemaCompareEndpointInfo;
     intermediaryOptionsResult: SchemaCompareOptionsResult;
@@ -59,8 +70,6 @@ export interface SchemaCompareWebViewState {
     schemaCompareOpenScmpResult: SchemaCompareOpenScmpResult;
     saveScmpResultStatus: ResultStatus;
     cancelResultStatus: ResultStatus;
-    waitingForNewConnection: boolean;
-    pendingConnectionEndpointType: "source" | "target" | null;
 }
 
 export interface SchemaCompareReducers {
@@ -68,9 +77,10 @@ export interface SchemaCompareReducers {
 
     listActiveServers: {};
 
-    listDatabasesForActiveServer: { connectionUri: string };
-
-    openAddNewConnectionDialog: { endpointType: "source" | "target" };
+    listDatabasesForActiveServer: {
+        connectionUri: string;
+        connectionDatabaseName?: string;
+    };
 
     selectFile: {
         endpoint: SchemaCompareEndpointInfo;
@@ -161,9 +171,7 @@ export interface SchemaCompareContextProps extends CoreRPCs {
 
     listActiveServers: () => void;
 
-    listDatabasesForActiveServer: (connectionUri: string) => void;
-
-    openAddNewConnectionDialog: (endpointType: "source" | "target") => void;
+    listDatabasesForActiveServer: (connectionUri: string, connectionDatabaseName?: string) => void;
 
     selectFile: (
         endpoint: SchemaCompareEndpointInfo,

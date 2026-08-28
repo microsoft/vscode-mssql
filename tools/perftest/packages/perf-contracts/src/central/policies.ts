@@ -49,7 +49,12 @@ export type DataClassification =
     | "unknown";
 
 export type RedactionHandling =
-    "plain" | "redacted" | "digest" | "tokenized" | "truncated" | "omitted";
+    | "plain"
+    | "redacted"
+    | "digest"
+    | "tokenized"
+    | "truncated"
+    | "omitted";
 
 /** A payload field after capture-policy application (structural copy). */
 export interface ClassifiedValueShape {
@@ -115,7 +120,10 @@ export type PolicyAction = "keep" | "digest" | "drop" | "refuse";
 export type CentralSourceKind = "perfRun" | "diagSession" | "featureTrace";
 
 export type UploadPolicyId =
-    "team-default.v1" | "team-names.v1" | "elevated-support.v1" | "ci-official.v1";
+    | "team-default.v1"
+    | "team-names.v1"
+    | "elevated-support.v1"
+    | "ci-official.v1";
 
 export interface UploadPolicy {
     policyId: UploadPolicyId;

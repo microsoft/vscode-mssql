@@ -16,7 +16,11 @@ import type {
 } from "@mssqlperf/contracts";
 
 export type ScenarioMaturity =
-    "exploratory" | "diagnostic" | "measurementCandidate" | "ciGating" | "releaseGate";
+    | "exploratory"
+    | "diagnostic"
+    | "measurementCandidate"
+    | "ciGating"
+    | "releaseGate";
 
 export interface RegisteredScenario {
     spec: ScenarioSpec;
