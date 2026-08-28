@@ -550,11 +550,13 @@ export class SqlProjectsService implements mssql.ISqlProjectsService {
         projectUri: string,
         path: string,
         destinationPath: string,
+        metadataOnly?: boolean,
     ): Promise<mssql.ResultStatus> {
         const params: mssql.MoveItemParams = {
             projectUri: projectUri,
             destinationPath: destinationPath,
             path: path,
+            metadataOnly,
         };
         return this._client.sendRequest(contracts.MoveSqlObjectScriptRequest.type, params);
     }

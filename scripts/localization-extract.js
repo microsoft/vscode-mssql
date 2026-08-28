@@ -12,21 +12,31 @@ const logger = require("./terminal-logger");
 const { writeJsonAndFormat, writeAndFormat } = require("./file-utils");
 
 const execFileAsync = promisify(execFile);
+const rootPath = path.resolve(__dirname, "..");
 
 /**
- * Extension configuration mapping
- * Maps extension directory names to their XLIFF file names and localization source files.
+ * Project configuration mapping.
+ * Maps project names to their paths, XLIFF file names, and localization source files.
  */
-const EXTENSION_CONFIG = {
+const PROJECT_CONFIG = {
+    "extension-toolkit": {
+        projectPath: "packages/extension-toolkit",
+        xliffName: "extension-toolkit",
+        sourceFiles: ["src/base/localization/locConstants.ts"],
+        includePackageLocalization: false,
+    },
     mssql: {
+        projectPath: "extensions/mssql",
         xliffName: "vscode-mssql",
         sourceFiles: ["src/constants/locConstants.ts", "src/webviews/common/locConstants.ts"],
     },
     "sql-database-projects": {
+        projectPath: "extensions/sql-database-projects",
         xliffName: "sql-database-projects",
-        sourceFiles: ["src/common/constants.ts"],
+        sourceFiles: [],
     },
     "data-workspace": {
+        projectPath: "extensions/data-workspace",
         xliffName: "data-workspace",
         sourceFiles: [],
     },
@@ -49,13 +59,13 @@ async function getL10nJsonFromFileContents(fileContents) {
 }
 
 /**
- * Reads configured localization source files for an extension and extracts their content.
- * @param {string} extensionPath - Path to the extension directory
- * @param {string[]} sourceFiles - Localization source files relative to the extension directory
+ * Reads configured localization source files for a project and extracts their content.
+ * @param {string} projectPath - Path to the project directory
+ * @param {string[]} sourceFiles - Localization source files relative to the project directory
  * @param {(filePath: string) => Promise<string> | string} readSourceFile - Reads a source file
  * @returns {Promise<Object>} L10n JSON object containing localization data
  */
-async function getL10nJson(extensionPath, sourceFiles, readSourceFile = fs.readFile) {
+async function getL10nJson(projectPath, sourceFiles, readSourceFile = fs.readFile) {
     logger.step("Reading localization source files...");
 
     try {
@@ -66,7 +76,7 @@ async function getL10nJson(extensionPath, sourceFiles, readSourceFile = fs.readF
 
         for (const file of sourceFiles) {
             try {
-                const filePath = path.resolve(extensionPath, file);
+                const filePath = path.resolve(projectPath, file);
                 const content = await readSourceFile(filePath, "utf8");
 
                 if (content) {
@@ -89,31 +99,35 @@ async function getL10nJson(extensionPath, sourceFiles, readSourceFile = fs.readF
     }
 }
 
-function getExtensionPath(extensionDir) {
-    return path.resolve("extensions", extensionDir);
+function getProjectPath(projectName) {
+    return path.resolve(rootPath, PROJECT_CONFIG[projectName].projectPath);
 }
 
 async function readSourceFileFromGitIndex(filePath) {
-    const relativePath = path.relative(process.cwd(), filePath).replace(/\\/g, "/");
+    const relativePath = path.relative(rootPath, filePath).replace(/\\/g, "/");
     const { stdout } = await execFileAsync("git", ["show", `:${relativePath}`], {
+        cwd: rootPath,
         encoding: "utf8",
         maxBuffer: 10 * 1024 * 1024,
     });
     return stdout;
 }
 
-async function writeLocalizationOutputs(extensionDir, xliffName, packageJSON, bundleJSON) {
+async function writeLocalizationOutputs(projectName, xliffName, packageJSON, bundleJSON) {
     const map = new Map();
-    map.set("package", packageJSON);
+    if (packageJSON) {
+        map.set("package", packageJSON);
+    }
     map.set("bundle", bundleJSON);
 
-    const extensionPath = path.resolve("extensions", extensionDir);
-    const extensionL10nDir = path.join(extensionPath, "l10n");
-    await fs.mkdir(extensionL10nDir, { recursive: true });
-    await fs.mkdir("localization/xliff", { recursive: true });
+    const projectPath = getProjectPath(projectName);
+    const projectL10nDir = path.join(projectPath, "l10n");
+    await fs.mkdir(projectL10nDir, { recursive: true });
+    const xliffDir = path.join(rootPath, "localization", "xliff");
+    await fs.mkdir(xliffDir, { recursive: true });
 
     logger.step("Writing bundle localization file...");
-    const bundlePath = path.join(extensionL10nDir, "bundle.l10n.json");
+    const bundlePath = path.join(projectL10nDir, "bundle.l10n.json");
     const formatted1 = await writeJsonAndFormat(bundlePath, bundleJSON);
     if (formatted1) {
         logger.success(`Created and formatted ${bundlePath}`);
@@ -123,7 +137,7 @@ async function writeLocalizationOutputs(extensionDir, xliffName, packageJSON, bu
 
     logger.step("Generating XLIFF file for translation...");
     const stringXLIFF = vscodel10n.getL10nXlf(map);
-    const xliffPath = `localization/xliff/${xliffName}.xlf`;
+    const xliffPath = path.join(xliffDir, `${xliffName}.xlf`);
     const formatted2 = await writeAndFormat(
         xliffPath,
         stringXLIFF,
@@ -140,65 +154,63 @@ async function writeLocalizationOutputs(extensionDir, xliffName, packageJSON, bu
 }
 
 /**
- * Extracts localization strings for a single extension
- * @param {string} extensionDir - Extension directory name
+ * Extracts localization strings for a single project.
+ * @param {string} projectName - Configured project name
  * @param {string} xliffName - Name for the XLIFF file
  */
-async function extractLocalizationForExtension(extensionDir, xliffName, options = {}) {
-    logger.header(`Processing Extension: ${extensionDir}`);
+async function extractLocalizationForExtension(projectName, xliffName, options = {}) {
+    logger.header(`Processing Project: ${projectName}`);
 
-    const extensionPath = getExtensionPath(extensionDir);
+    const config = PROJECT_CONFIG[projectName];
+    const projectPath = getProjectPath(projectName);
     const readSourceFile = options.staged ? readSourceFileFromGitIndex : fs.readFile;
 
     try {
-        const bundleJSON = await getL10nJson(
-            extensionPath,
-            EXTENSION_CONFIG[extensionDir].sourceFiles,
-            readSourceFile,
-        );
-
-        logger.step("Loading package localization data...");
+        const bundleJSON = await getL10nJson(projectPath, config.sourceFiles, readSourceFile);
 
         let packageJSON;
-        try {
-            const packageNlsPath = path.join(extensionPath, "package.nls.json");
-            const packageNlsContent = await readSourceFile(packageNlsPath, "utf8");
-            packageJSON = JSON.parse(packageNlsContent);
-            logger.success("Loaded package.nls.json");
-        } catch (error) {
-            logger.warning(`Could not load package.nls.json: ${error.message}`);
-            packageJSON = {};
+        if (config.includePackageLocalization !== false) {
+            logger.step("Loading package localization data...");
+            try {
+                const packageNlsPath = path.join(projectPath, "package.nls.json");
+                const packageNlsContent = await readSourceFile(packageNlsPath, "utf8");
+                packageJSON = JSON.parse(packageNlsContent);
+                logger.success("Loaded package.nls.json");
+            } catch (error) {
+                logger.warning(`Could not load package.nls.json: ${error.message}`);
+                packageJSON = {};
+            }
         }
 
-        await writeLocalizationOutputs(extensionDir, xliffName, packageJSON, bundleJSON);
+        await writeLocalizationOutputs(projectName, xliffName, packageJSON, bundleJSON);
 
-        logger.success(`Localization extraction for ${extensionDir} completed successfully!`);
+        logger.success(`Localization extraction for ${projectName} completed successfully!`);
         logger.newline();
     } catch (error) {
-        logger.error(`Localization extraction for ${extensionDir} failed: ${error.message}`);
+        logger.error(`Localization extraction for ${projectName} failed: ${error.message}`);
         throw error;
     }
 }
 
 /**
- * Extracts localization strings from all configured extensions
+ * Extracts localization strings from all configured projects.
  * Generates English language l10n and XLIFF files for translation in the root localization directory
  */
 async function extractLocalizationStrings(options = {}) {
-    logger.header("Localization String Extraction - All Extensions");
+    logger.header("Localization String Extraction - All Projects");
     logger.step("Starting localization string extraction process");
     logger.newline();
 
     try {
-        const extensions = Object.entries(EXTENSION_CONFIG);
+        const projects = Object.entries(PROJECT_CONFIG);
 
-        for (const [extensionDir, config] of extensions) {
-            await extractLocalizationForExtension(extensionDir, config.xliffName, options);
+        for (const [projectName, config] of projects) {
+            await extractLocalizationForExtension(projectName, config.xliffName, options);
         }
 
-        logger.header("All Extensions Processed Successfully");
+        logger.header("All Projects Processed Successfully");
         logger.success(
-            `Extracted localization for ${extensions.length} extension(s) to root localization/`,
+            `Extracted localization for ${projects.length} project(s) to root localization/`,
         );
     } catch (error) {
         logger.error(`Localization extraction failed: ${error.message}`);
@@ -213,22 +225,22 @@ module.exports = {
 };
 
 if (require.main === module) {
-    // Check if a specific extension is requested via command line args
+    // Check if a specific project is requested via command line args
     const args = process.argv.slice(2);
     const staged = args.includes("--staged");
-    const specificExtension = args.find((arg) => !arg.startsWith("--"));
+    const specificProject = args.find((arg) => !arg.startsWith("--"));
 
-    if (specificExtension) {
-        // Extract for specific extension
-        const config = EXTENSION_CONFIG[specificExtension];
+    if (specificProject) {
+        // Extract for a specific project
+        const config = PROJECT_CONFIG[specificProject];
         if (!config) {
             logger.error(
-                `Unknown extension: ${specificExtension}. Available extensions: ${Object.keys(EXTENSION_CONFIG).join(", ")}`,
+                `Unknown project: ${specificProject}. Available projects: ${Object.keys(PROJECT_CONFIG).join(", ")}`,
             );
             process.exit(1);
         }
 
-        extractLocalizationForExtension(specificExtension, config.xliffName, { staged })
+        extractLocalizationForExtension(specificProject, config.xliffName, { staged })
             .then(() => {
                 logger.success("Script completed successfully!");
                 process.exit(0);

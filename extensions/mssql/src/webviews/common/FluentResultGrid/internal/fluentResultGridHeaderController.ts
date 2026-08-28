@@ -24,8 +24,43 @@ import {
     FLUENT_RESULT_GRID_FIRST_DATA_CELL_INDEX,
     FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_ID,
 } from "./fluentResultGridConstants";
+import {
+    getFluentResultGridRangesAfterHeaderClick,
+    getFluentResultGridRangesForVisibleColumns,
+} from "./fluentResultGridSelection";
 import type { FluentResultGridActiveDataColumn } from "./fluentResultGridControllerTypes";
 import type { FluentResultGridDataRow } from "./fluentResultGridDataView";
+
+function updateFluentResultGridHeaderButtonState({
+    headerNode,
+    columnId,
+    filters,
+    sort,
+}: {
+    headerNode: HTMLElement | null | undefined;
+    columnId: string;
+    filters: ColumnFilterMap;
+    sort: { columnId: string; direction: SortProperties } | undefined;
+}): void {
+    const filterButton = headerNode?.querySelector<HTMLButtonElement>(".slick-header-filterbutton");
+    const sortButton = headerNode?.querySelector<HTMLButtonElement>(".slick-header-sortbutton");
+    const filterValues = filters[columnId]?.filterValues ?? [];
+    filterButton?.classList.toggle("filtered", filterValues.length > 0);
+
+    sortButton?.classList.remove("sorted-asc", "sorted-desc");
+    if (sort?.columnId === columnId) {
+        if (sort.direction === "ASC") {
+            sortButton?.classList.add("sorted-asc");
+        } else if (sort.direction === "DESC") {
+            sortButton?.classList.add("sorted-desc");
+        }
+    }
+}
+
+export function isFluentResultGridResizeHandleEvent(eventData: MouseEvent | undefined): boolean {
+    const eventTarget = eventData?.target as Element | null;
+    return !!eventTarget?.closest?.(".slick-resizable-handle");
+}
 
 export function updateFluentResultGridHeaderButtonStates({
     grid,
@@ -42,22 +77,12 @@ export function updateFluentResultGridHeaderButtonStates({
             continue;
         }
 
-        const headerNode = grid.getHeaderColumn(grid.getColumnIndex(column.id));
-        const filterButton = headerNode?.querySelector<HTMLButtonElement>(
-            ".slick-header-filterbutton",
-        );
-        const sortButton = headerNode?.querySelector<HTMLButtonElement>(".slick-header-sortbutton");
-        const filterValues = filters[columnId]?.filterValues ?? [];
-        filterButton?.classList.toggle("filtered", filterValues.length > 0);
-
-        sortButton?.classList.remove("sorted-asc", "sorted-desc");
-        if (sort?.columnId === columnId) {
-            if (sort.direction === "ASC") {
-                sortButton?.classList.add("sorted-asc");
-            } else if (sort.direction === "DESC") {
-                sortButton?.classList.add("sorted-desc");
-            }
-        }
+        updateFluentResultGridHeaderButtonState({
+            headerNode: grid.getHeaderColumn(grid.getColumnIndex(column.id)),
+            columnId,
+            filters,
+            sort,
+        });
     }
 }
 
@@ -87,7 +112,7 @@ export function useFluentResultGridHeaderController({
     openFilterMenuForColumn,
     openOverlay,
     resultSetSummary,
-    selectRange,
+    selectRangesAndActivate,
     sortStateRef,
     strings,
     toggleSortForColumn,
@@ -106,7 +131,12 @@ export function useFluentResultGridHeaderController({
     ) => Promise<void>;
     openOverlay: FluentResultGridProviderContextValue["openOverlay"];
     resultSetSummary: ResultSetSummary;
-    selectRange: (grid: SlickGrid, range: SlickRange) => void;
+    selectRangesAndActivate: (
+        grid: SlickGrid,
+        ranges: SlickRange[],
+        row: number,
+        cell: number,
+    ) => void;
     sortStateRef: MutableRefObject<{ columnId: string; direction: SortProperties } | undefined>;
     strings: FluentResultGridStrings;
     toggleSortForColumn: (
@@ -114,17 +144,6 @@ export function useFluentResultGridHeaderController({
         column: Column<FluentResultGridDataRow>,
     ) => Promise<void>;
 }): FluentResultGridHeaderController {
-    const updateHeaderButtonStates = useCallback(
-        (grid: SlickGrid) => {
-            updateFluentResultGridHeaderButtonStates({
-                grid,
-                filters: filterStateRef.current,
-                sort: sortStateRef.current,
-            });
-        },
-        [filterStateRef, sortStateRef],
-    );
-
     const openHeaderContextMenuForColumn = useCallback(
         (grid: SlickGrid, column: Column<FluentResultGridDataRow>, x: number, y: number) => {
             const columnId = column.id?.toString();
@@ -222,11 +241,20 @@ export function useFluentResultGridHeaderController({
             }
 
             node.tabIndex = -1;
+            const columnId = column.id?.toString();
+            if (!columnId) {
+                return;
+            }
             if (node.classList.contains("slick-header-with-filter")) {
                 node.classList.remove("slick-header-sortable", "slick-header-column-sorted");
                 node.querySelector(".slick-sort-indicator")?.remove();
                 node.querySelector(".slick-sort-indicator-numbered")?.remove();
-                updateHeaderButtonStates(grid);
+                updateFluentResultGridHeaderButtonState({
+                    headerNode: node,
+                    columnId,
+                    filters: filterStateRef.current,
+                    sort: sortStateRef.current,
+                });
                 return;
             }
 
@@ -277,9 +305,20 @@ export function useFluentResultGridHeaderController({
                 await openFilterMenuForColumn(grid, column);
             });
             node.insertBefore(filterButton, resizableHandle);
-            updateHeaderButtonStates(grid);
+            updateFluentResultGridHeaderButtonState({
+                headerNode: node,
+                columnId,
+                filters: filterStateRef.current,
+                sort: sortStateRef.current,
+            });
         },
-        [openFilterMenuForColumn, strings.commands, toggleSortForColumn, updateHeaderButtonStates],
+        [
+            filterStateRef,
+            openFilterMenuForColumn,
+            sortStateRef,
+            strings.commands,
+            toggleSortForColumn,
+        ],
     );
 
     const handleBeforeHeaderCellDestroy = useCallback((event: CustomEvent) => {
@@ -295,6 +334,11 @@ export function useFluentResultGridHeaderController({
 
     const handleHeaderClick = useCallback(
         (event: CustomEvent) => {
+            const eventData = event.detail?.eventData as MouseEvent | undefined;
+            if (isFluentResultGridResizeHandleEvent(eventData)) {
+                return;
+            }
+
             closeOverlay();
             const args = event.detail?.args;
             const grid = args?.grid as SlickGrid | undefined;
@@ -305,21 +349,49 @@ export function useFluentResultGridHeaderController({
 
             const columnIndex = grid.getColumnIndex(column.id);
             const lastRow = grid.getDataLength() - 1;
-            const lastCell = grid.getColumns().length - 1;
+            const firstVisibleRow = grid.getViewport()?.top ?? 0;
+            const firstDataCell =
+                grid.getColumns()[0]?.id === FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_ID
+                    ? FLUENT_RESULT_GRID_FIRST_DATA_CELL_INDEX
+                    : 0;
 
+            // The corner cell above the row numbers always selects the whole grid.
             if (column.id === FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_ID) {
-                selectRange(
-                    grid,
-                    new SlickRange(0, FLUENT_RESULT_GRID_FIRST_DATA_CELL_INDEX, lastRow, lastCell),
+                const ranges = getFluentResultGridRangesForVisibleColumns(
+                    grid.getColumns(),
+                    0,
+                    lastRow,
                 );
+                if (ranges.length === 0) {
+                    return;
+                }
+
+                selectRangesAndActivate(grid, ranges, firstVisibleRow, ranges[0].fromCell);
                 return;
             }
 
-            if (columnIndex >= FLUENT_RESULT_GRID_FIRST_DATA_CELL_INDEX) {
-                selectRange(grid, new SlickRange(0, columnIndex, lastRow, columnIndex));
+            if (columnIndex < firstDataCell) {
+                return;
             }
+
+            const ranges = getFluentResultGridRangesAfterHeaderClick(
+                grid.getSelectionModel()?.getSelectedRanges() ?? [],
+                columnIndex,
+                grid.getActiveCell(),
+                {
+                    ctrlKey: eventData?.ctrlKey,
+                    metaKey: eventData?.metaKey,
+                    shiftKey: eventData?.shiftKey,
+                },
+                grid.getDataLength(),
+                firstDataCell,
+            );
+
+            // Anchor the next Shift+click on the column that was just clicked, the way the
+            // production grid does.
+            selectRangesAndActivate(grid, ranges, firstVisibleRow, columnIndex);
         },
-        [closeOverlay, selectRange],
+        [closeOverlay, selectRangesAndActivate],
     );
 
     return {

@@ -1,0 +1,38 @@
+{
+    "schemaVersion": "obs-contract/1",
+    "description": "Field-level data classification taxonomy. Every attribute in the event registry must reference one of these ids. Policy is stronger than capture settings: settings request capture, classification decides what is permitted.",
+    "classifications": {
+        "secret": {
+            "examples": ["passwords", "tokens", "connection strings"],
+            "defaultBehavior": "never stored, never displayed, never exported — regardless of capture mode"
+        },
+        "userSql": {
+            "examples": ["SQL text", "batch fragments"],
+            "defaultBehavior": "digest by default; plaintext only under governed elevated capture, local-only"
+        },
+        "resultData": {
+            "examples": ["row cells", "grid contents"],
+            "defaultBehavior": "never captured by default; digest/governed only"
+        },
+        "providerText": {
+            "examples": ["SQL Server messages", "exception text"],
+            "defaultBehavior": "sanitized safe code/enum by default — provider messages can embed SQL text and values and get NO error-string loophole"
+        },
+        "identifierSensitive": {
+            "examples": ["server/database/object names", "file paths"],
+            "defaultBehavior": "digest or redact unless explicitly safe"
+        },
+        "structuralMetadata": {
+            "examples": ["row counts", "durations", "method names", "statuses"],
+            "defaultBehavior": "stored normally"
+        },
+        "diagnosticMetric": {
+            "examples": ["heap bytes", "CPU deltas", "queue depth"],
+            "defaultBehavior": "stored normally, bounded labels"
+        },
+        "safeEnum": {
+            "examples": ["failure reason codes", "phase names", "verdicts"],
+            "defaultBehavior": "stored normally — MUST be a closed enum, never free text"
+        }
+    }
+}

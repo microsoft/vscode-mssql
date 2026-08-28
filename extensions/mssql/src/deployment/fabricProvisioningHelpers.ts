@@ -16,6 +16,7 @@ import {
 } from "../sharedInterfaces/fabric";
 import * as fp from "../sharedInterfaces/fabricProvisioning";
 import {
+    findFirstFavoriteOption,
     FormItemActionButton,
     FormItemOptions,
     FormItemSpec,
@@ -93,9 +94,6 @@ export async function initializeFabricProvisioningState(
             },
         },
     );
-
-    // Load workspaces
-    void getWorkspaces(deploymentController);
 
     return state;
 }
@@ -214,6 +212,7 @@ export function setFabricProvisioningFormComponents(
             required: true,
             type: FormItemType.SearchableDropdown,
             options: [],
+            favoriteOptionIds: [],
             isAdvancedOption: false,
             placeholder: Fabric.selectAWorkspace,
             searchBoxPlaceholder: Fabric.searchWorkspaces,
@@ -267,6 +266,7 @@ export function setFabricProvisioningFormComponents(
             required: true,
             type: FormItemType.Dropdown,
             options: tenantOptions,
+            favoriteOptionIds: [],
             placeholder: ConnectionDialog.selectATenant,
             validate: (_state: fp.FabricProvisioningState, value: string) => ({
                 isValid: !!value,
@@ -361,7 +361,9 @@ export async function loadComponentsAfterSignIn(
             !tenantOptions.find((t) => t.value === state.formState.tenantId)
         ) {
             // if expected tenantId is not in the list of tenants, set it to the first tenant
-            state.formState.tenantId = getDefaultTenantId(state.formState.accountId, tenants);
+            state.formState.tenantId =
+                findFirstFavoriteOption(tenantOptions, tenantComponent.favoriteOptionIds)?.value ??
+                getDefaultTenantId(state.formState.accountId, tenants);
             const errors = await deploymentController.validateDeploymentForm("tenantId");
             if (errors.length) {
                 state.formErrors.push("tenantId");
@@ -386,7 +388,9 @@ export async function reloadFabricComponents(
             displayName: tenant.displayName,
             value: tenant.tenantId,
         }));
-        state.formState.tenantId = getDefaultTenantId(accountId, tenants);
+        state.formState.tenantId =
+            findFirstFavoriteOption(tenantOptions, state.formComponents.tenantId.favoriteOptionIds)
+                ?.value ?? getDefaultTenantId(accountId, tenants);
         state.formComponents.tenantId.options = tenantOptions;
     }
     state.userGroupIds = [];
@@ -437,7 +441,13 @@ export async function getWorkspaces(
         // Handle workspace state updates
         const workspaceOptions = getWorkspaceOptions(state);
         state.formComponents.workspace.options = workspaceOptions;
-        state.formState.workspace = workspaceOptions.length > 0 ? workspaceOptions[0].value : "";
+        state.formState.workspace =
+            findFirstFavoriteOption(
+                workspaceOptions,
+                state.formComponents.workspace.favoriteOptionIds,
+            )?.value ??
+            workspaceOptions[0]?.value ??
+            "";
         updateFabricProvisioningState(deploymentController, state);
         sendActionEvent(TelemetryViews.FabricProvisioning, TelemetryActions.GetWorkspaces, {
             additionalProps: {},
@@ -704,6 +714,21 @@ export async function connectToDatabase(deploymentController: DeploymentWebviewC
             );
         await deploymentController.mainController.createObjectExplorerSession(profile);
         state.connectionLoadState = ApiStatus.Loaded;
+
+        // Capture the connection string (without the password) so the webview can
+        // surface it in the "Connect to Database" card.
+        try {
+            state.connectionString =
+                await deploymentController.mainController.connectionManager.getConnectionString(
+                    deploymentController.mainController.connectionManager.createConnectionDetails(
+                        databaseConnectionProfile,
+                    ),
+                    false /* includePassword */,
+                    false /* includeApplicationName */,
+                );
+        } catch {
+            state.connectionString = "";
+        }
 
         sendActionEvent(
             TelemetryViews.FabricProvisioning,

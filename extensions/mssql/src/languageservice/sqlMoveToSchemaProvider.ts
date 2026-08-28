@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as path from "path";
 import * as vscode from "vscode";
 import { SqlMoveToSchema as loc, msgYes } from "../constants/locConstants";
 import { cmdMoveToSchema } from "../constants/constants";
@@ -11,6 +12,7 @@ import {
     ListProjectSchemasRequest,
     SqlMoveToSchemaParams,
     SqlMoveToSchemaRequest,
+    SqlMoveToSchemaResponse,
     SqlSymbolRenameTextEdit,
 } from "../models/contracts/languageService";
 import {
@@ -21,8 +23,49 @@ import {
     extractSchemaFromLinePrefix,
     getSqlIdentifierRange,
     isInSqlProject,
+    RefactorLogTarget,
     resolveRefactorLogTarget,
 } from "./refactorLog";
+import { SqlProjectsService } from "../services/sqlProjectsService";
+import { getLogger } from "../models/logger";
+
+const logger = getLogger("SqlMoveToSchemaProvider");
+
+/**
+ * Maps DacFx element type names (`<Type Name="SqlTable" .../>` in DacFx's SchemaModel/SqlModel.xml,
+ * lowercased) to their conventional SSDT folder names.
+ * Surfaced by STS via `SchemaLevelRefactorType()` in TSqlModelMetadataProvider.cs.
+ */
+const stsElementTypeToFolderMap: Readonly<Record<string, string>> = {
+    sqltable: "Tables",
+    sqlview: "Views",
+    sqlprocedure: "StoredProcedures",
+    sqlinlinefunction: "Functions",
+    sqlscalarfunction: "Functions",
+    sqltablevaluefunction: "Functions",
+    sqldmltrigger: "Triggers",
+    sqltrigger: "Triggers",
+    sqlsequence: "Sequences",
+};
+
+/** Outcome of attempting to relocate the definition file to its new schema folder. */
+const enum FileMoveResult {
+    Moved = "moved",
+    /** No move was attempted; the file stays where it is (not an error). */
+    Skipped = "skipped",
+    /** The move failed; an error has already been shown to the user. */
+    Failed = "failed",
+}
+
+/** Resolved source/destination for relocating a definition file into its new schema folder. */
+interface SchemaFolderMovePlan {
+    sourceUri: vscode.Uri;
+    /** Current project-relative path, e.g. `dbo/Tables/table1.sql`. */
+    relPath: string;
+    /** Destination project-relative path, e.g. `sss/Tables/table1.sql`. */
+    newRelPath: string;
+    newAbsUri: vscode.Uri;
+}
 
 /**
  * Surfaces a "Move to Schema..." action under the editor's **Refactor...** menu for SQL files in a
@@ -34,6 +77,13 @@ import {
  */
 export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
     public static readonly providedCodeActionKinds = [vscode.CodeActionKind.Refactor];
+
+    private readonly _sqlProjectsService: SqlProjectsService;
+
+    constructor(sqlProjectsService?: SqlProjectsService) {
+        this._sqlProjectsService =
+            sqlProjectsService ?? new SqlProjectsService(SqlToolsServerClient.instance);
+    }
 
     /**
      * Registers the provider and its backing command. Returns disposables for the caller to track.
@@ -136,32 +186,130 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
             return; // user cancelled
         }
 
-        await this.applyMove(document, position, selected.label);
+        await this.applyMove(document, position, selected.label, schemas);
     }
 
     /**
-     * Sends the move request to STS, builds the WorkspaceEdit (code edits + refactorlog),
-     * and shows VS Code's refactor preview (Apply / Discard).
+     * Runs the move end to end: asks STS for the script edits, applies them through VS Code's
+     * refactor preview, then relocates the definition file and updates the `.sqlproj`.
      */
     private async applyMove(
         document: vscode.TextDocument,
         position: vscode.Position,
         targetSchema: string,
+        schemas: string[],
     ): Promise<void> {
-        let refactorTarget;
+        // 1. Resolve the .refactorlog target for the project that owns this document.
+        const refactorTarget = await this.resolveTarget(document);
+        if (!refactorTarget) {
+            return;
+        }
+
+        // 2. Ask the language service for the script edits, confirming with the user first if
+        //    the target schema already contains an object with this name.
+        const response = await this.requestSchemaMove(
+            document,
+            position,
+            targetSchema,
+            refactorTarget,
+        );
+        if (!response) {
+            return;
+        }
+
+        // 3. Work out where the definition file should end up, before the preview so the skip
+        //    conditions are known up front. `undefined` means the file stays put and only the
+        //    scripts change.
+        const plan = this.planSchemaFolderMove(
+            document,
+            refactorTarget,
+            targetSchema,
+            schemas,
+            response.definitionFileUri,
+            response.elementType,
+        );
+
+        // 4. Apply the script edits (and the .refactorlog write) via the refactor preview.
+        const { workspaceEdit, tempUri } = await this.buildPreviewEdit(
+            response,
+            refactorTarget,
+            targetSchema,
+        );
         try {
-            refactorTarget = await resolveRefactorLogTarget(document);
+            const applied = await vscode.workspace.applyEdit(workspaceEdit, {
+                isRefactoring: true,
+            });
+            if (!applied) {
+                // `applyEdit` returns false when the user clicks Discard in the refactor preview,
+                // which is a deliberate action — not an error worth surfacing to the user.
+                logger.debug("Move to Schema edits were not applied (discarded or rejected).");
+                return;
+            }
+
+            // 5. Relocate the definition file into its new schema folder and update the .sqlproj.
+            const moveResult = plan
+                ? await this.moveFileToNewSchemaFolder(refactorTarget, plan)
+                : FileMoveResult.Skipped;
+
+            // 6. Refresh the project tree to reflect the SQL text edits, .sqlproj changes, and (when the file moved) the new file location.
+            if (moveResult === FileMoveResult.Moved) {
+                // Best-effort: the data-workspace extension activates on its own view and
+                // commands, so `dataworkspace.refresh` may not be registered yet. A failed
+                // refresh must not surface as a command error after a successful refactor.
+                try {
+                    await vscode.commands.executeCommand("dataworkspace.refresh");
+                } catch (err) {
+                    logger.debug(`Could not refresh the project tree: ${err}`);
+                }
+            }
+        } finally {
+            if (tempUri) {
+                // Always clean up the temp file after the preview closes (Apply or Discard).
+                await vscode.workspace.fs.delete(tempUri, { useTrash: false }).then(
+                    () => undefined,
+                    () => undefined,
+                );
+            }
+        }
+    }
+
+    /**
+     * Resolves the `.refactorlog` target for the document's project, surfacing any failure.
+     *
+     * @returns the target, or `undefined` when it could not be resolved.
+     */
+    private async resolveTarget(
+        document: vscode.TextDocument,
+    ): Promise<RefactorLogTarget | undefined> {
+        try {
+            const refactorTarget = await resolveRefactorLogTarget(document);
+            if (!refactorTarget) {
+                void vscode.window.showErrorMessage(loc.moveToSchemaOnlyInProjectFiles);
+                return undefined;
+            }
+            return refactorTarget;
         } catch (err) {
             void vscode.window.showErrorMessage(
                 loc.resolveRefactorLogFailed(err instanceof Error ? err.message : String(err)),
             );
-            return;
+            return undefined;
         }
-        if (!refactorTarget) {
-            void vscode.window.showErrorMessage(loc.moveToSchemaOnlyInProjectFiles);
-            return;
-        }
+    }
 
+    /**
+     * Asks STS for the edits that move the symbol at `position` into `targetSchema`. When the
+     * target schema already contains an object with the same name, STS flags a warning and the
+     * user is asked to confirm before continuing.
+     *
+     * @returns the response, or `undefined` when there is nothing to move, the request failed,
+     * or the user declined the warning.
+     */
+    private async requestSchemaMove(
+        document: vscode.TextDocument,
+        position: vscode.Position,
+        targetSchema: string,
+        refactorTarget: RefactorLogTarget,
+    ): Promise<SqlMoveToSchemaResponse | undefined> {
         const params: SqlMoveToSchemaParams = {
             textDocument: { uri: document.uri.toString() },
             position: { line: position.line, character: position.character },
@@ -169,7 +317,7 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
             existingRefactorLogContent: refactorTarget.existingContent,
         };
 
-        let response;
+        let response: SqlMoveToSchemaResponse;
         try {
             response = await SqlToolsServerClient.instance.sendRequest(
                 SqlMoveToSchemaRequest.type,
@@ -179,15 +327,14 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
             void vscode.window.showErrorMessage(
                 loc.moveToSchemaRequestFailed(err instanceof Error ? err.message : String(err)),
             );
-            return;
+            return undefined;
         }
 
         if (!response || !response.changes || Object.keys(response.changes).length === 0) {
             void vscode.window.showInformationMessage(loc.noMovableSymbolAtCursor);
-            return;
+            return undefined;
         }
 
-        // Warn if an object with the same name already exists in the target schema.
         if (response.message && response.isWarning) {
             const choice = await vscode.window.showWarningMessage(
                 response.message,
@@ -195,10 +342,25 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
                 msgYes,
             );
             if (choice !== msgYes) {
-                return; // user declined — do nothing silently
+                return undefined; // user declined — do nothing silently
             }
         }
 
+        return response;
+    }
+
+    /**
+     * Builds the `WorkspaceEdit` holding the script edits and the `.refactorlog` write, along
+     * with the edit that forces VS Code to open the refactor preview.
+     *
+     * @returns the edit, and the temp file URI to clean up once the preview closes (if one was
+     * created).
+     */
+    private async buildPreviewEdit(
+        response: SqlMoveToSchemaResponse,
+        refactorTarget: RefactorLogTarget,
+        targetSchema: string,
+    ): Promise<{ workspaceEdit: vscode.WorkspaceEdit; tempUri: vscode.Uri | undefined }> {
         const changes = response.changes as Record<string, SqlSymbolRenameTextEdit[]>;
         const label = loc.previewLabel(targetSchema);
 
@@ -217,21 +379,143 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
             tempUri = await addTempFileAsPreviewTrigger(workspaceEdit, refactorTarget, label);
         }
 
+        return { workspaceEdit, tempUri };
+    }
+
+    /**
+     * Moves the `.sql` file that defines the object into the folder for its new schema, and
+     * updates the `.sqlproj` to match. For example: `dbo/Tables/table1.sql` → `sss/Tables/table1.sql`.
+     */
+    private async moveFileToNewSchemaFolder(
+        refactorTarget: RefactorLogTarget,
+        plan: SchemaFolderMovePlan,
+    ): Promise<FileMoveResult> {
+        if (!(await this.moveDefinitionFile(plan.sourceUri, plan.newAbsUri))) {
+            return FileMoveResult.Failed;
+        }
+
+        // VS Code has already moved the file on disk; ask STS to update only the .sqlproj
+        // metadata (remove old <Build Include>, add new one) without touching the filesystem.
         try {
-            const applied = await vscode.workspace.applyEdit(workspaceEdit, {
-                isRefactoring: true,
-            });
-            if (!applied) {
-                void vscode.window.showErrorMessage(loc.applyEditFailed);
-            }
-        } finally {
-            if (tempUri) {
-                // Always clean up the temp file after the preview closes (Apply or Discard).
-                await vscode.workspace.fs.delete(tempUri, { useTrash: false }).then(
-                    () => undefined,
-                    () => undefined,
+            const result = await this._sqlProjectsService.moveSqlObjectScript(
+                refactorTarget.sqlprojUri.fsPath,
+                plan.relPath,
+                plan.newRelPath,
+                true, // metadataOnly
+            );
+            if (!result?.success) {
+                void vscode.window.showErrorMessage(
+                    loc.sqlprojUpdateFailed(result?.errorMessage || ""),
                 );
             }
+        } catch (err) {
+            void vscode.window.showErrorMessage(
+                loc.sqlprojUpdateFailed(err instanceof Error ? err.message : String(err)),
+            );
         }
+
+        return FileMoveResult.Moved;
+    }
+
+    /**
+     * Works out where the definition file should end up, without touching disk or the `.sqlproj`.
+     *
+     * @returns the move plan, or `undefined` when no move should be attempted (file outside the
+     * project, not laid out by schema, or already at the destination).
+     */
+    private planSchemaFolderMove(
+        triggerDocument: vscode.TextDocument,
+        refactorTarget: RefactorLogTarget,
+        targetSchema: string,
+        schemas: string[],
+        definitionFileUri: string | null | undefined,
+        elementType: string | null | undefined,
+    ): SchemaFolderMovePlan | undefined {
+        // Source file and target folder come from the STS response; both fall back when absent.
+        // See SqlMoveToSchemaResponse in models/contracts/languageService.ts for a payload example.
+        const sourceUri = definitionFileUri
+            ? vscode.Uri.parse(definitionFileUri)
+            : triggerDocument.uri;
+        const detectedFolder = elementType
+            ? stsElementTypeToFolderMap[elementType.toLowerCase()]
+            : undefined;
+
+        // vscode.Uri.path is always forward-slash on every platform, so path.posix APIs work
+        // correctly here without any OS path-separator handling.
+        const projDirUriPath = path.posix.dirname(refactorTarget.sqlprojUri.path);
+        const relPath = path.posix.relative(projDirUriPath, sourceUri.path);
+        if (relPath.startsWith("..")) {
+            // Source file is not inside the project directory — skip.
+            return undefined;
+        }
+
+        // "dbo/Tables/table1.sql" -> ["dbo", "Tables", "table1.sql"]
+        const segments = relPath.split("/").filter(Boolean);
+        const fileName = segments[segments.length - 1];
+        const hasSchemaPrefix = segments.length >= 2;
+        const currentSchemaLower = hasSchemaPrefix ? segments[0].toLowerCase() : undefined;
+
+        // Prefer the folder implied by the object's type (SqlTable -> "Tables"); otherwise keep
+        // the file's existing intermediate folders.
+        const innerSegments = detectedFolder
+            ? [detectedFolder]
+            : hasSchemaPrefix
+              ? segments.slice(1, -1)
+              : [];
+
+        if (!hasSchemaPrefix && !detectedFolder) {
+            // File is at the project root and object type is unknown — skip file move.
+            return undefined;
+        }
+
+        if (hasSchemaPrefix && !schemas.some((s) => s.toLowerCase() === currentSchemaLower)) {
+            // Top-level folder is not a known project schema — skip to avoid moving
+            // non-schema-organised files (e.g. misc/tables/x.sql) unexpectedly.
+            return undefined;
+        }
+
+        // Build the new relative path and skip if the file is already at the destination.
+        const newRelPath = [targetSchema, ...innerSegments, fileName].join("/");
+        if (relPath === newRelPath) {
+            return undefined;
+        }
+
+        const projectRootUri = vscode.Uri.joinPath(refactorTarget.sqlprojUri, "..");
+        const newAbsUri = vscode.Uri.joinPath(
+            projectRootUri,
+            targetSchema,
+            ...innerSegments,
+            fileName,
+        );
+
+        return { sourceUri, relPath, newRelPath, newAbsUri };
+    }
+
+    /**
+     * Moves the definition file to its new location, creating any missing folders along the way.
+     * Shows an error and returns `false` if the move does not go through.
+     */
+    private async moveDefinitionFile(
+        sourceUri: vscode.Uri,
+        newAbsUri: vscode.Uri,
+    ): Promise<boolean> {
+        const moveEdit = new vscode.WorkspaceEdit();
+        moveEdit.renameFile(sourceUri, newAbsUri, { overwrite: false });
+        let moveApplied: boolean;
+        try {
+            moveApplied = await vscode.workspace.applyEdit(moveEdit);
+        } catch (err) {
+            void vscode.window.showErrorMessage(
+                loc.moveFileFailed(err instanceof Error ? err.message : String(err)),
+            );
+            return false;
+        }
+        if (!moveApplied) {
+            // `applyEdit` resolves to a bare `false` with no reason attached, so fall back to a
+            // generic explanation rather than interpolating an empty string.
+            void vscode.window.showErrorMessage(loc.moveFileFailed(loc.moveFileRejected));
+            return false;
+        }
+        return true;
     }
 }

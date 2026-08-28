@@ -1,5 +1,7 @@
 # URI Ownership Coordination
 
+The exported MSSQL `uriOwnershipApi` is a supported extension-to-extension coordination API.
+
 URI ownership coordination enables multiple SQL extensions (MSSQL, PostgreSQL, MySQL, etc.) to coexist in VS Code while only one extension owns and shows query UI for a given SQL file.
 
 ## What It Handles

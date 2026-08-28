@@ -54,6 +54,8 @@ export enum TelemetryViews {
 }
 
 export enum TelemetryActions {
+    ConnectionSharingApiCalled = "ConnectionSharingApiCalled",
+    ConnectionSharingRetirementToast = "ConnectionSharingRetirementToast",
     GetDatabaseProjectScriptFiles = "GetDatabaseProjectScriptFiles",
     GetDatabaseProjectSchemaProvider = "GetDatabaseProjectSchemaProvider",
     ListingDatabasesForActiveServer = "ListingDatabasesForActiveServer",
@@ -62,7 +64,6 @@ export enum TelemetryActions {
     PublishProjectChanges = "PublishProjectChanges",
     PublishDatabaseChanges = "PublishDatabaseChanges",
     BuildProject = "BuildProject",
-    AddNewConnectionDialogOpened = "AddNewConnectionDialogOpened",
     ListingActiveServers = "ListingActiveServers",
     SqlProjectInstalledVerification = "SqlProjectInstalledVerification",
     Compare = "Compare",
@@ -86,6 +87,7 @@ export enum TelemetryActions {
     NewQuery = "NewQuery",
     RunQuery = "RunQuery",
     QueryExecutionCompleted = "QueryExecutionCompleted",
+    QueryCompletionSoundPlayback = "QueryCompletionSoundPlayback",
     RunResultPaneAction = "RunResultPaneAction",
     CreateConnection = "CreateConnection",
     CreateConnectionResult = "CreateConnectionResult",
@@ -116,6 +118,7 @@ export enum TelemetryActions {
     CopyHeaders = "CopyHeaders",
     OpenQueryResultsInTabByDefaultPrompt = "OpenQueryResultsInTabByDefaultPrompt",
     OpenQueryResult = "OpenQueryResult",
+    ToggleResultsGridMode = "ToggleResultsGridMode",
     Restore = "Restore",
     LoadConnection = "LoadConnection",
     LoadConnectionProperties = "LoadConnectionProperties",

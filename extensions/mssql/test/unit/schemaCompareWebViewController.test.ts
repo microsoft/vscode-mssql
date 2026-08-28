@@ -9,6 +9,7 @@ import { expect } from "chai";
 import * as chai from "chai";
 import * as vscode from "vscode";
 import * as mssql from "vscode-mssql";
+import * as utils from "../../src/models/utils";
 
 chai.use(sinonChai);
 
@@ -25,9 +26,15 @@ import { SchemaCompareWebViewState } from "../../src/sharedInterfaces/schemaComp
 import * as scUtils from "../../src/schemaCompare/schemaCompareUtils";
 import { UserSurvey } from "../../src/nps/userSurvey";
 import { IconUtils } from "../../src/utils/iconUtils";
-import { IConnectionProfile } from "../../src/models/interfaces";
+import {
+    CredentialsQuickPickItemType,
+    IConnectionProfile,
+    IConnectionProfileWithSource,
+} from "../../src/models/interfaces";
 import { AzureAuthType } from "../../src/models/contracts/azure";
 import { SchemaCompareService } from "../../src/services/schemaCompareService";
+import { ConnectionStore } from "../../src/models/connectionStore";
+import * as locConstants from "../../src/constants/locConstants";
 
 suite("SchemaCompareWebViewController Tests", () => {
     let controller: SchemaCompareWebViewController;
@@ -35,10 +42,12 @@ suite("SchemaCompareWebViewController Tests", () => {
     let mockContext: vscode.ExtensionContext;
     let treeNode: TreeNodeInfo;
     let mockConnectionInfo: ConnectionInfo;
+    let activeConnections: { [fileUri: string]: ConnectionInfo };
     let mockServerConnInfo: mssql.IConnectionInfo;
     let mockInitialState: SchemaCompareWebViewState;
     let schemaCompareService: mssql.ISchemaCompareService;
     let connectionManagerStub: sinon.SinonStubbedInstance<ConnectionManager>;
+    let connectionStoreStub: sinon.SinonStubbedInstance<ConnectionStore>;
     let connectionChangedEmitter: vscode.EventEmitter<void>;
     const schemaCompareWebViewTitle = "Schema Compare";
     const operationId = "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE";
@@ -188,8 +197,11 @@ suite("SchemaCompareWebViewController Tests", () => {
             applySucceeded: false,
             applyFailed: false,
             isIncludeExcludeAllOperationInProgress: false,
-            activeServers: {},
+            connections: {},
             databases: [],
+            databaseListConnectionId: "",
+            isDatabaseListLoading: false,
+            databaseListError: "",
             defaultDeploymentOptionsResult: deploymentOptionsResultMock,
             intermediaryOptionsResult: undefined,
             endpointsSwitched: false,
@@ -215,8 +227,6 @@ suite("SchemaCompareWebViewController Tests", () => {
             schemaCompareOpenScmpResult: undefined,
             saveScmpResultStatus: undefined,
             cancelResultStatus: undefined,
-            waitingForNewConnection: false,
-            pendingConnectionEndpointType: null,
         };
 
         mockContext = {
@@ -307,11 +317,31 @@ suite("SchemaCompareWebViewController Tests", () => {
         schemaCompareService = sandbox.createStubInstance(SchemaCompareService);
 
         connectionManagerStub = sandbox.createStubInstance(ConnectionManager);
+        connectionStoreStub = sandbox.createStubInstance(ConnectionStore);
+        connectionStoreStub.readAllConnections.resolves([]);
+        sandbox.stub(connectionManagerStub, "connectionStore").get(() => connectionStoreStub);
         connectionChangedEmitter = new vscode.EventEmitter<void>();
         Object.defineProperty(connectionManagerStub, "onConnectionsChanged", {
             value: connectionChangedEmitter.event,
         });
-        connectionManagerStub.getUriForConnection.returns("localhost,1433_undefined_sa_undefined");
+        // Reflect activeConnections in getUriForConnection lookups rather than returning a constant.
+        // Match requires both the profile ID and the server to match so that editing a saved
+        // connection's server does not accidentally reuse a stale URI.
+        connectionManagerStub.getUriForConnection.callsFake((profile: IConnectionProfile) => {
+            const profileId = (profile as IConnectionProfile).id;
+            return Object.keys(activeConnections).find((uri) => {
+                const creds = activeConnections[uri].credentials as IConnectionProfile;
+                if (profileId && creds.id === profileId) {
+                    return creds.server === profile.server;
+                }
+                return !profileId && creds.server === profile.server;
+            });
+        });
+        // Default: no saved profile matched; individual tests override this where a specific profile matters
+        connectionManagerStub.findMatchingProfile.resolves({
+            profile: undefined,
+            score: utils.MatchScore.NotMatch,
+        });
 
         mockServerConnInfo = {
             server: "server1",
@@ -322,10 +352,12 @@ suite("SchemaCompareWebViewController Tests", () => {
             credentials: mockServerConnInfo,
         } as unknown as ConnectionInfo;
 
-        sandbox.stub(connectionManagerStub, "activeConnections").get(() => ({
+        activeConnections = {
             conn_uri: mockConnectionInfo,
-        }));
+        };
+        sandbox.stub(connectionManagerStub, "activeConnections").get(() => activeConnections);
 
+        connectionManagerStub.isConnected.withArgs("conn_uri").returns(true);
         connectionManagerStub.listDatabases.resolves(["db1", "db2"]);
 
         generateOperationIdStub = sandbox.stub(scUtils, "generateOperationId").returns(operationId);
@@ -579,10 +611,14 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         const compareStub = sandbox.stub(scUtils, "compare").resolves(expectedCompareResultMock);
 
+        const databaseTargetEndpoint = {
+            ...targetEndpointInfo,
+            connectionDetails: undefined,
+        };
         const payload = {
             deploymentOptions,
             sourceEndpointInfo,
-            targetEndpointInfo,
+            targetEndpointInfo: databaseTargetEndpoint,
         };
 
         const result = await controller["_reducerHandlers"].get("compare")(
@@ -591,11 +627,14 @@ suite("SchemaCompareWebViewController Tests", () => {
         );
 
         expect(
-            compareStub.firstCall.args,
-            "compare should be called with correct arguments",
-        ).to.deep.equal([operationId, TaskExecutionMode.execute, payload, schemaCompareService]);
-
-        expect(compareStub, "compare should be called once").to.have.been.calledOnce;
+            compareStub,
+            "compare should use the active connection owner URI without connection details",
+        ).to.have.been.calledWith(
+            operationId,
+            TaskExecutionMode.execute,
+            payload,
+            schemaCompareService,
+        );
 
         expect(result.schemaCompareResult, "compare should return expected result").to.deep.equal(
             expectedCompareResultMock,
@@ -846,7 +885,7 @@ suite("SchemaCompareWebViewController Tests", () => {
     });
 
     test("openScmp reducer - with Azure MFA connection without accountId - populates accountId from saved profile", async () => {
-        // Setup Azure MFA endpoint info without accountId
+        // Setup Azure MFA endpoint info without accountId in connectionDetails
         const azureMfaTargetEndpointInfo = {
             endpointType: 0,
             packageFilePath: "",
@@ -859,7 +898,7 @@ suite("SchemaCompareWebViewController Tests", () => {
                     server: "azure-server.database.windows.net",
                     database: "testdb",
                     authenticationType: "AzureMFA",
-                    accountId: undefined, // Missing accountId - this is what we're testing
+                    accountId: undefined, // Missing accountId — findMatchingProfile supplies it
                     user: "user@domain.com",
                     email: "user@domain.com",
                 },
@@ -892,18 +931,26 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         const openScmpStub = sandbox.stub(scUtils, "openScmp").resolves(expectedResultMock);
 
-        // Stub connectionManager methods
-        connectionManagerStub.getUriForScmpConnection.returns(undefined); // No existing connection
-        connectionManagerStub.connect.resolves(true);
+        // The saved profile for this Azure MFA connection already has accountId resolved
+        const azureSavedProfile: IConnectionProfile = {
+            server: "azure-server.database.windows.net",
+            database: "testdb",
+            authenticationType: "AzureMFA",
+            user: "user@domain.com",
+            accountId: "test-account-id-12345",
+            id: "azure-profile-id",
+            profileName: "Azure MFA Profile",
+        } as unknown as IConnectionProfile;
 
-        // Configure the ensureAccountIdForAzureMfa stub to populate accountId
-        const ensureAccountIdStub =
-            connectionManagerStub.ensureAccountIdForAzureMfa as sinon.SinonStub;
-        ensureAccountIdStub.callsFake(async (connInfo) => {
-            // Simulate what the real method does - populate accountId from saved profile
-            connInfo.accountId = "test-account-id-12345";
-            return true;
+        // Override findMatchingProfile to return the saved profile with accountId
+        connectionManagerStub.findMatchingProfile.resolves({
+            profile: azureSavedProfile,
+            score: utils.MatchScore.Id,
         });
+
+        // No existing SCMP connection — constructEndpointInfo will open a new one
+        connectionManagerStub.getUriForScmpConnection.returns(undefined);
+        connectionManagerStub.connect.resolves(true);
 
         const payload = {};
 
@@ -915,17 +962,18 @@ suite("SchemaCompareWebViewController Tests", () => {
         expect(showOpenDialogForScmpStub).to.have.been.calledOnce;
         expect(openScmpStub).to.have.been.calledOnce;
 
-        // Verify the helper was called to populate missing accountId
-        expect(ensureAccountIdStub).to.have.been.calledOnce;
+        // Verify findMatchingProfile was called to resolve the saved profile (and its accountId)
+        expect(connectionManagerStub.findMatchingProfile).to.have.been.called;
 
-        // Verify connect was called with accountId populated
-        const connectCallArgs = connectionManagerStub.connect.firstCall.args;
-        expect(connectCallArgs[1].accountId).to.equal("test-account-id-12345");
+        // Verify connect was called with credentials that include the accountId from the saved profile
+        expect(connectionManagerStub.connect).to.have.been.calledWithMatch(
+            sinon.match.string,
+            sinon.match({ accountId: "test-account-id-12345" }),
+        );
 
         expect(actualResult.schemaCompareOpenScmpResult).to.deep.equal(expectedResultMock);
 
         openScmpStub.restore();
-        ensureAccountIdStub.restore();
     });
 
     test("saveScmp reducer - when called - completes successfully", async () => {
@@ -1027,35 +1075,572 @@ suite("SchemaCompareWebViewController Tests", () => {
         );
     });
 
-    test("listActiveServers reducer - when called - returns: {conn_uri: {profileName: 'profile1', server: 'server1'}}", async () => {
-        const payload = {};
+    test("listActiveServers reducer - includes inactive saved connections", async () => {
+        const savedConnection = {
+            id: "saved-connection-id",
+            profileName: "Saved connection",
+            server: "saved-server",
+            database: "saved-database",
+            profileSource: CredentialsQuickPickItemType.Profile,
+        } as IConnectionProfileWithSource;
+        connectionStoreStub.readAllConnections.resolves([savedConnection]);
+        connectionManagerStub.getUriForConnection.withArgs(savedConnection).returns(undefined);
 
         const actualResult = await controller["_reducerHandlers"].get("listActiveServers")(
             mockInitialState,
-            payload,
+            {},
         );
 
-        const expectedResult = { conn_uri: { profileName: "profile1", server: "server1" } };
-
-        expect(
-            actualResult.activeServers,
-            "listActiveServers should return: {conn_uri: {profileName: 'profile1', server: 'server1'}}",
-        ).to.deep.equal(expectedResult);
+        expect(actualResult.connections["saved-connection-id"]).to.deep.equal({
+            profileName: "Saved connection",
+            server: "saved-server",
+            database: "saved-database",
+        });
     });
 
-    test("listDatabasesForActiveServer reducer - when called - returns: ['db1', 'db2']", async () => {
+    test("listActiveServers reducer - excludes active but unsaved connections", async () => {
+        const actualResult = await controller["_reducerHandlers"].get("listActiveServers")(
+            mockInitialState,
+            {},
+        );
+
+        expect(actualResult.connections).not.to.have.property("conn_uri");
+        expect(actualResult.connections).to.deep.equal({});
+    });
+
+    test("listActiveServers reducer - lists a saved profile exactly once regardless of active-connection count", async () => {
+        const savedConnection = {
+            id: "saved-connection-id",
+            profileName: "Saved connection",
+            server: "saved-server",
+            profileSource: CredentialsQuickPickItemType.Profile,
+        } as IConnectionProfileWithSource;
+        connectionStoreStub.readAllConnections.resolves([savedConnection]);
+
+        const actualResult = await controller["_reducerHandlers"].get("listActiveServers")(
+            mockInitialState,
+            {},
+        );
+
+        expect(actualResult.connections).to.deep.equal({
+            "saved-connection-id": {
+                profileName: "Saved connection",
+                server: "saved-server",
+            },
+        });
+    });
+
+    test("listActiveServers reducer - multiple saved profiles each appear in connections under their own ID", async () => {
+        const firstSavedConnection = {
+            id: "first-saved-id",
+            profileName: "First saved connection",
+            server: "shared-server",
+            authenticationType: "SqlLogin",
+            user: "shared-user",
+            profileSource: CredentialsQuickPickItemType.Profile,
+        } as IConnectionProfileWithSource;
+        const secondSavedConnection = {
+            ...firstSavedConnection,
+            id: "second-saved-id",
+            profileName: "Second saved connection",
+        };
+        connectionStoreStub.readAllConnections.resolves([
+            firstSavedConnection,
+            secondSavedConnection,
+        ]);
+
+        const actualResult = await controller["_reducerHandlers"].get("listActiveServers")(
+            mockInitialState,
+            {},
+        );
+
+        expect(actualResult.connections).to.have.property("first-saved-id");
+        expect(actualResult.connections).to.have.property("second-saved-id");
+        expect(actualResult.connections["first-saved-id"].profileName).to.equal(
+            "First saved connection",
+        );
+        expect(actualResult.connections["second-saved-id"].profileName).to.equal(
+            "Second saved connection",
+        );
+    });
+
+    test("listDatabasesForActiveServer reducer - rejects an unsaved active connection", async () => {
         const payload = { connectionUri: "conn_uri" };
 
         const actualResult = await controller["_reducerHandlers"].get(
             "listDatabasesForActiveServer",
         )(mockInitialState, payload);
 
-        const expectedResult = ["db1", "db2"];
+        expect(actualResult.databases).to.deep.equal([]);
+        expect(actualResult.isDatabaseListLoading).to.be.false;
+        expect(actualResult.databaseListError).to.contain("conn_uri");
+        expect(connectionManagerStub.listDatabases).not.to.have.been.called;
+    });
 
-        expect(
-            actualResult.databases,
-            "listActiveServers should return ['db1', 'db2']",
-        ).to.deep.equal(expectedResult);
+    test("listDatabasesForActiveServer reducer - immediately replaces old databases with the configured database while loading", async () => {
+        const savedConnection = {
+            id: "conn_uri",
+            profileName: "Saved connection",
+            server: "server1",
+            profileSource: CredentialsQuickPickItemType.Profile,
+        } as IConnectionProfileWithSource;
+        connectionStoreStub.readAllConnections.resolves([savedConnection]);
+        mockConnectionInfo.credentials = savedConnection;
+        let resolveDatabases!: (databases: string[]) => void;
+        connectionManagerStub.listDatabases.returns(
+            new Promise<string[]>((resolve) => {
+                resolveDatabases = resolve;
+            }),
+        );
+        const state = structuredClone(mockInitialState);
+        state.databases = [
+            {
+                displayName: "old-database",
+                value: "old-database",
+                groupName: locConstants.ConnectionDialog.userDatabasesGroup,
+            },
+        ];
+        state.databaseListConnectionId = "old-connection";
+
+        const request = controller["_reducerHandlers"].get("listDatabasesForActiveServer")(state, {
+            connectionUri: "conn_uri",
+            connectionDatabaseName: "configured-database",
+        });
+        await new Promise<void>((resolve) => setImmediate(resolve));
+
+        expect(state.databaseListConnectionId).to.equal("conn_uri");
+        expect(state.databases.map((database) => database.value)).to.deep.equal([
+            "configured-database",
+        ]);
+        expect(state.isDatabaseListLoading).to.be.true;
+        expect(state.databaseListError).to.equal("");
+
+        resolveDatabases(["db1"]);
+        await request;
+
+        expect(state.databases.map((database) => database.value)).to.deep.equal([
+            "configured-database",
+            "db1",
+        ]);
+        expect(state.isDatabaseListLoading).to.be.false;
+    });
+
+    test("listDatabasesForActiveServer reducer - groups, sorts, and caches database options per connection", async () => {
+        const serverA = {
+            id: "server-a-uri",
+            profileName: "Server A",
+            server: "server-a",
+            profileSource: CredentialsQuickPickItemType.Profile,
+        } as IConnectionProfileWithSource;
+        const serverB = {
+            id: "server-b-uri",
+            profileName: "Server B",
+            server: "server-b",
+            profileSource: CredentialsQuickPickItemType.Profile,
+        } as IConnectionProfileWithSource;
+        const serverAConnection = new ConnectionInfo();
+        serverAConnection.credentials = serverA;
+        const serverBConnection = new ConnectionInfo();
+        serverBConnection.credentials = serverB;
+        connectionStoreStub.readAllConnections.resolves([serverA, serverB]);
+        activeConnections = {
+            "server-a-uri": serverAConnection,
+            "server-b-uri": serverBConnection,
+        };
+        connectionManagerStub.isConnected.withArgs("server-a-uri").returns(true);
+        connectionManagerStub.isConnected.withArgs("server-b-uri").returns(true);
+        const serverAListDatabases = connectionManagerStub.listDatabases.withArgs("server-a-uri");
+        serverAListDatabases
+            .onFirstCall()
+            .resolves(["tempdb", "z-database", "master", "a-database"]);
+        serverAListDatabases.onSecondCall().rejects(new Error("Database cache was not used"));
+        connectionManagerStub.listDatabases.withArgs("server-b-uri").resolves(["b-database"]);
+        const state = structuredClone(mockInitialState);
+        const listDatabases = controller["_reducerHandlers"].get("listDatabasesForActiveServer");
+
+        await listDatabases(state, { connectionUri: "server-a-uri" });
+        await listDatabases(state, { connectionUri: "server-b-uri" });
+        const cachedResult = await listDatabases(state, { connectionUri: "server-a-uri" });
+
+        expect(connectionManagerStub.listDatabases).to.have.been.calledWith("server-b-uri");
+        expect(cachedResult.databases).to.deep.equal([
+            {
+                displayName: "a-database",
+                value: "a-database",
+                groupName: locConstants.ConnectionDialog.userDatabasesGroup,
+            },
+            {
+                displayName: "z-database",
+                value: "z-database",
+                groupName: locConstants.ConnectionDialog.userDatabasesGroup,
+            },
+            {
+                displayName: "master",
+                value: "master",
+                groupName: locConstants.ConnectionDialog.systemDatabasesGroup,
+            },
+            {
+                displayName: "tempdb",
+                value: "tempdb",
+                groupName: locConstants.ConnectionDialog.systemDatabasesGroup,
+            },
+        ]);
+        expect(cachedResult.databaseListConnectionId).to.equal("server-a-uri");
+        expect(cachedResult.isDatabaseListLoading).to.be.false;
+    });
+
+    test("listDatabasesForActiveServer reducer - exposes connection failures and retains the configured database", async () => {
+        const savedConnection = {
+            id: "saved-connection-id",
+            profileName: "Saved connection",
+            server: "saved-server",
+            database: "configured-database",
+            profileSource: CredentialsQuickPickItemType.Profile,
+        } as IConnectionProfileWithSource;
+        connectionStoreStub.readAllConnections.resolves([savedConnection]);
+        let failedConnectionUri = "";
+        connectionManagerStub.connect.callsFake(async (fileUri) => {
+            failedConnectionUri = fileUri;
+            const failedConnection = new ConnectionInfo();
+            failedConnection.credentials = savedConnection;
+            failedConnection.errorMessage = "Login failed";
+            activeConnections[fileUri] = failedConnection;
+            connectionManagerStub.getConnectionInfo.withArgs(fileUri).returns(failedConnection);
+            return false;
+        });
+        const state = structuredClone(mockInitialState);
+        state.connections = {
+            [savedConnection.id]: {
+                profileName: savedConnection.profileName,
+                server: savedConnection.server,
+                database: savedConnection.database,
+            },
+        };
+
+        const result = await controller["_reducerHandlers"].get("listDatabasesForActiveServer")(
+            state,
+            { connectionUri: savedConnection.id },
+        );
+
+        expect(result.databases.map((database) => database.value)).to.deep.equal([
+            "configured-database",
+        ]);
+        expect(result.isDatabaseListLoading).to.be.false;
+        expect(result.databaseListError).to.equal("Login failed");
+        expect(activeConnections).not.to.have.property(failedConnectionUri);
+    });
+
+    test("listDatabasesForActiveServer reducer - stale request cannot overwrite newer databases", async () => {
+        let resolveFirstDatabases!: (databases: string[]) => void;
+        const serverA = {
+            id: "server-a-uri",
+            profileName: "Server A",
+            server: "server-a",
+            profileSource: CredentialsQuickPickItemType.Profile,
+        } as IConnectionProfileWithSource;
+        const serverB = {
+            id: "server-b-uri",
+            profileName: "Server B",
+            server: "server-b",
+            profileSource: CredentialsQuickPickItemType.Profile,
+        } as IConnectionProfileWithSource;
+        const serverAConnection = new ConnectionInfo();
+        serverAConnection.credentials = serverA;
+        const serverBConnection = new ConnectionInfo();
+        serverBConnection.credentials = serverB;
+        connectionStoreStub.readAllConnections.resolves([serverA, serverB]);
+        activeConnections = {
+            "server-a-uri": serverAConnection,
+            "server-b-uri": serverBConnection,
+        };
+        connectionManagerStub.isConnected.withArgs("server-a-uri").returns(true);
+        connectionManagerStub.isConnected.withArgs("server-b-uri").returns(true);
+        connectionManagerStub.listDatabases.withArgs("server-a-uri").returns(
+            new Promise<string[]>((resolve) => {
+                resolveFirstDatabases = resolve;
+            }),
+        );
+        connectionManagerStub.listDatabases.withArgs("server-b-uri").resolves(["b-database"]);
+        const state = structuredClone(mockInitialState);
+        const listDatabases = controller["_reducerHandlers"].get("listDatabasesForActiveServer");
+
+        const firstRequest = listDatabases(state, { connectionUri: "server-a-uri" });
+        await new Promise<void>((resolve) => setImmediate(resolve));
+
+        const secondResult = await listDatabases(state, {
+            connectionUri: "server-b-uri",
+        });
+        expect(secondResult.databases.map((database) => database.value)).to.deep.equal([
+            "b-database",
+        ]);
+
+        resolveFirstDatabases(["a-database"]);
+        await firstRequest;
+
+        expect(state.databases.map((database) => database.value)).to.deep.equal(["b-database"]);
+        expect(controller["databaseListCache"].has("server-a-uri")).to.be.false;
+    });
+
+    test("listDatabasesForActiveServer reducer - connects an inactive saved connection", async () => {
+        const savedConnection = {
+            id: "saved-connection-id",
+            profileName: "Saved connection",
+            server: "saved-server",
+            profileSource: CredentialsQuickPickItemType.Profile,
+        } as IConnectionProfileWithSource;
+        connectionStoreStub.readAllConnections.resolves([savedConnection]);
+        const savedConnectionInfo = new ConnectionInfo();
+        savedConnectionInfo.credentials = savedConnection;
+        // Capture the generated URI that connectToServer passes to connect
+        let capturedUri: string;
+        connectionManagerStub.connect.callsFake(async (uri: string) => {
+            capturedUri = uri;
+            activeConnections[uri] = savedConnectionInfo;
+            return true;
+        });
+        connectionManagerStub.isConnected.callsFake(
+            (connectionUri) => connectionUri === "conn_uri" || connectionUri in activeConnections,
+        );
+        // confirmSelectedDatabase calls getConnectionInfo then findMatchingProfile
+        connectionManagerStub.getConnectionInfo.returns(savedConnectionInfo);
+        connectionManagerStub.findMatchingProfile.resolves({
+            profile: savedConnection as unknown as IConnectionProfile,
+            score: utils.MatchScore.Id,
+        });
+        const state = structuredClone(mockInitialState);
+        state.connections = {
+            "saved-connection-id": {
+                profileName: "Saved connection",
+                server: "saved-server",
+            },
+        };
+
+        const actualResult = await controller["_reducerHandlers"].get(
+            "listDatabasesForActiveServer",
+        )(state, { connectionUri: "saved-connection-id" });
+
+        // connect is called with the generated adhoc URI and the saved profile
+        expect(connectionManagerStub.connect).to.have.been.calledWithMatch(
+            sinon.match.string,
+            sinon.match({ id: savedConnection.id }),
+        );
+        expect(connectionManagerStub.listDatabases).to.have.been.calledWith(capturedUri);
+        expect(actualResult.databases.map((database) => database.value)).to.deep.equal([
+            "db1",
+            "db2",
+        ]);
+        controller["connectionUris"].clear();
+        const confirmedResult = await controller["_reducerHandlers"].get("confirmSelectedDatabase")(
+            actualResult,
+            {
+                endpointType: "source",
+                serverConnectionUri: "saved-connection-id",
+                databaseName: "db1",
+            },
+        );
+
+        expect(confirmedResult.sourceEndpointInfo.ownerUri).to.equal(capturedUri);
+        expect(confirmedResult.sourceEndpointInfo.connectionId).to.equal("saved-connection-id");
+        expect(confirmedResult.sourceEndpointInfo.databaseName).to.equal("db1");
+        expect(confirmedResult.sourceEndpointInfo.connectionDetails).to.be.undefined;
+    });
+
+    test("confirmSelectedDatabase reducer - reports a missing saved connection", async () => {
+        const showErrorMessage = sandbox
+            .stub(vscode.window, "showErrorMessage")
+            .resolves(undefined);
+
+        const result = await controller["_reducerHandlers"].get("confirmSelectedDatabase")(
+            structuredClone(mockInitialState),
+            {
+                endpointType: "source",
+                serverConnectionUri: "missing-connection-id",
+                databaseName: "db1",
+            },
+        );
+
+        expect(showErrorMessage).to.have.been.calledWith(
+            locConstants.SchemaCompare.connectionFailed(
+                locConstants.SchemaCompare.savedConnectionNotFound("missing-connection-id"),
+            ),
+        );
+        expect(result.sourceEndpointInfo).to.deep.equal(mockInitialState.sourceEndpointInfo);
+    });
+
+    test("listDatabasesForActiveServer reducer - reconnects an edited saved connection", async () => {
+        const originalConnection = {
+            id: "saved-connection-id",
+            profileName: "Saved connection",
+            server: "old-server",
+            authenticationType: "SqlLogin",
+            user: "old-user",
+            profileSource: CredentialsQuickPickItemType.Profile,
+        } as IConnectionProfileWithSource;
+        const editedConnection = {
+            ...originalConnection,
+            server: "new-server",
+            user: "new-user",
+        };
+        const originalConnectionInfo = new ConnectionInfo();
+        originalConnectionInfo.credentials = originalConnection;
+        activeConnections = {
+            "old-connection-uri": originalConnectionInfo,
+        };
+        connectionStoreStub.readAllConnections.onFirstCall().resolves([originalConnection]);
+        connectionStoreStub.readAllConnections.onSecondCall().resolves([editedConnection]);
+        connectionManagerStub.isConnected.callsFake(
+            (connectionUri) => connectionUri in activeConnections,
+        );
+        // Capture the generated URI for the new connection
+        let capturedUri: string;
+        connectionManagerStub.connect.callsFake(async (uri: string) => {
+            capturedUri = uri;
+            const editedConnectionInfo = new ConnectionInfo();
+            editedConnectionInfo.credentials = editedConnection;
+            activeConnections[uri] = editedConnectionInfo;
+            return true;
+        });
+        const state = structuredClone(mockInitialState);
+
+        await controller["_reducerHandlers"].get("listActiveServers")(state, {});
+        const actualResult = await controller["_reducerHandlers"].get(
+            "listDatabasesForActiveServer",
+        )(state, { connectionUri: "saved-connection-id" });
+
+        // connect is called with a generated URI and the edited profile
+        expect(connectionManagerStub.connect).to.have.been.calledWithMatch(
+            sinon.match.string,
+            sinon.match({ server: editedConnection.server, user: editedConnection.user }),
+        );
+        expect(connectionManagerStub.listDatabases).to.have.been.calledWith(capturedUri);
+        expect(connectionManagerStub.listDatabases).not.to.have.been.calledWith(
+            "old-connection-uri",
+        );
+        expect(actualResult.databases.map((database) => database.value)).to.deep.equal([
+            "db1",
+            "db2",
+        ]);
+    });
+
+    test("listDatabasesForActiveServer reducer - reconnects saved endpoint after URI refresh", async () => {
+        const savedConnection = {
+            id: "saved-connection-id",
+            profileName: "Saved connection",
+            server: "saved-server",
+            profileSource: CredentialsQuickPickItemType.Profile,
+        } as IConnectionProfileWithSource;
+        const savedConnectionInfo = new ConnectionInfo();
+        savedConnectionInfo.credentials = savedConnection;
+        // Capture each URI that connectToServer generates for its connect call
+        const capturedUris: string[] = [];
+        connectionStoreStub.readAllConnections.resolves([savedConnection]);
+        connectionManagerStub.connect.callsFake(async (uri: string) => {
+            capturedUris.push(uri);
+            activeConnections[uri] = savedConnectionInfo;
+            return true;
+        });
+        connectionManagerStub.isConnected.callsFake(
+            (connectionUri) => connectionUri in activeConnections,
+        );
+        // confirmSelectedDatabase needs getConnectionInfo and findMatchingProfile
+        connectionManagerStub.getConnectionInfo.returns(savedConnectionInfo);
+        connectionManagerStub.findMatchingProfile.resolves({
+            profile: savedConnection as unknown as IConnectionProfile,
+            score: utils.MatchScore.Id,
+        });
+        const state = structuredClone(mockInitialState);
+        controller.state = state;
+        await controller["_reducerHandlers"].get("listActiveServers")(state, {});
+
+        await controller["_reducerHandlers"].get("listDatabasesForActiveServer")(state, {
+            connectionUri: savedConnection.id,
+        });
+        const confirmedResult = await controller["_reducerHandlers"].get("confirmSelectedDatabase")(
+            state,
+            {
+                endpointType: "source",
+                serverConnectionUri: savedConnection.id,
+                databaseName: "db1",
+            },
+        );
+
+        const firstUri = capturedUris[0];
+        expect(confirmedResult.sourceEndpointInfo.ownerUri).to.equal(firstUri);
+        expect(confirmedResult.sourceEndpointInfo.connectionId).to.equal(savedConnection.id);
+
+        delete activeConnections[firstUri];
+        connectionChangedEmitter.fire();
+        await new Promise<void>((resolve) => setImmediate(resolve));
+
+        const reopenedResult = await controller["_reducerHandlers"].get(
+            "listDatabasesForActiveServer",
+        )(state, {
+            connectionUri: confirmedResult.sourceEndpointInfo.connectionId,
+        });
+
+        const secondUri = capturedUris[1];
+        expect(connectionManagerStub.connect).to.have.been.calledWithMatch(
+            sinon.match.string,
+            sinon.match({ id: savedConnection.id }),
+        );
+        expect(connectionManagerStub.listDatabases).to.have.been.calledWith(secondUri);
+        expect(reopenedResult.databases.map((database) => database.value)).to.deep.equal([
+            "db1",
+            "db2",
+        ]);
+    });
+
+    test("listDatabasesForActiveServer reducer - retry uses new connected URI instead of stale failed URI", async () => {
+        const savedConnection = {
+            id: "saved-connection-id",
+            profileName: "Saved connection",
+            server: "saved-server",
+            profileSource: CredentialsQuickPickItemType.Profile,
+        } as IConnectionProfileWithSource;
+        const failedConnection = new ConnectionInfo();
+        failedConnection.credentials = savedConnection;
+        failedConnection.errorMessage = "Login failed";
+        activeConnections = {
+            "failed-connection-uri": failedConnection,
+        };
+        connectionStoreStub.readAllConnections.resolves([savedConnection]);
+        // getUriForConnection returns the stale failed URI; isConnected returns false for it
+        connectionManagerStub.getUriForConnection.returns("failed-connection-uri");
+        connectionManagerStub.isConnected.callsFake(
+            (connectionUri) =>
+                connectionUri in activeConnections &&
+                !activeConnections[connectionUri].errorMessage,
+        );
+        // Capture the generated URI that connectToServer uses for the new connection
+        let capturedUri: string;
+        connectionManagerStub.connect.callsFake(async (uri: string) => {
+            capturedUri = uri;
+            const successfulConnection = new ConnectionInfo();
+            successfulConnection.credentials = { ...savedConnection };
+            activeConnections[uri] = successfulConnection;
+            return true;
+        });
+        const state = structuredClone(mockInitialState);
+        state.connections = {
+            "saved-connection-id": {
+                profileName: "Saved connection",
+                server: "saved-server",
+            },
+        };
+
+        const actualResult = await controller["_reducerHandlers"].get(
+            "listDatabasesForActiveServer",
+        )(state, { connectionUri: "saved-connection-id" });
+
+        // listDatabases is called with the new generated URI, not the stale failed one
+        expect(connectionManagerStub.listDatabases).to.have.been.calledWith(capturedUri);
+        expect(connectionManagerStub.listDatabases).not.to.have.been.calledWith(
+            "failed-connection-uri",
+        );
+        expect(actualResult.databases.map((database) => database.value)).to.deep.equal([
+            "db1",
+            "db2",
+        ]);
     });
 
     test("selectFile reducer - when called - returns correct auxiliary endpoint info", async () => {
@@ -1848,10 +2433,6 @@ suite("SchemaCompareWebViewController Tests", () => {
             .stub(scUtils, "publishDatabaseChanges")
             .resolves({ success: true, errorMessage: "" });
 
-        sandbox
-            .stub(vscode.window, "showWarningMessage")
-            .resolves("Yes" as unknown as vscode.MessageItem);
-
         sandbox.stub(UserSurvey, "getInstance").returns({
             promptUserForNPSFeedback: sandbox.stub().resolves(),
         } as unknown as UserSurvey);
@@ -1878,10 +2459,6 @@ suite("SchemaCompareWebViewController Tests", () => {
             .stub(scUtils, "publishDatabaseChanges")
             .resolves({ success: false, errorMessage: "Apply failed" });
 
-        sandbox
-            .stub(vscode.window, "showWarningMessage")
-            .resolves("Yes" as unknown as vscode.MessageItem);
-
         const state = { ...mockInitialState, targetEndpointInfo };
         const payload = { targetServerName: "localhost,1433", targetDatabaseName: "master" };
 
@@ -1899,30 +2476,5 @@ suite("SchemaCompareWebViewController Tests", () => {
             result.schemaCompareResult,
             "schemaCompareResult should be cleared on failure to force re-compare and prevent stale script generation",
         ).to.be.undefined;
-    });
-
-    test("publishChanges reducer - user cancels confirmation - STS not called and state unchanged", async () => {
-        const publishDatabaseChangesStub = sandbox.stub(scUtils, "publishDatabaseChanges");
-
-        sandbox.stub(vscode.window, "showWarningMessage").resolves(undefined);
-
-        const state = { ...mockInitialState, targetEndpointInfo };
-        const payload = { targetServerName: "localhost,1433", targetDatabaseName: "master" };
-
-        const result = await controller["_reducerHandlers"].get("publishChanges")(state, payload);
-
-        expect(
-            publishDatabaseChangesStub,
-            "publishDatabaseChanges should NOT be called when user cancels",
-        ).to.not.have.been.called;
-        expect(result.isApplyInProgress, "isApplyInProgress should remain false when cancelled").to
-            .be.false;
-        expect(result.applySucceeded, "applySucceeded should remain false when cancelled").to.be
-            .false;
-        expect(result.applyFailed, "applyFailed should remain false when cancelled").to.be.false;
-        expect(
-            result.schemaCompareResult,
-            "schemaCompareResult should be unchanged when cancelled",
-        ).to.deep.equal(mockInitialState.schemaCompareResult);
     });
 });

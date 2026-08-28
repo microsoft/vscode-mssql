@@ -5,7 +5,7 @@ export const workspaceTargets = [
         aliases: ["extension-toolkit", "toolkit"],
         packageName: "extension-toolkit",
         directory: "packages/extension-toolkit",
-        scripts: ["build", "watch", "lint"],
+        scripts: ["build", "watch", "test", "lint"],
     },
     {
         target: "mssql",
@@ -27,14 +27,7 @@ export const workspaceTargets = [
         aliases: ["sql-database-projects", "sqlproj"],
         packageName: "sql-database-projects-vscode",
         directory: "extensions/sql-database-projects",
-        scripts: ["build", "watch", "test", "lint", "package"],
-        dependencies: {
-            build: ["extension-toolkit"],
-            watch: ["extension-toolkit"],
-            test: [{ target: "extension-toolkit", action: "build" }],
-            lint: ["extension-toolkit"],
-            package: [{ target: "extension-toolkit", action: "build" }],
-        },
+        scripts: ["build", "watch", "lint", "package"],
     },
     {
         target: "data-workspace",
@@ -42,14 +35,7 @@ export const workspaceTargets = [
         aliases: ["data-workspace", "dataworkspace"],
         packageName: "data-workspace-vscode",
         directory: "extensions/data-workspace",
-        scripts: ["build", "watch", "test", "lint", "package"],
-        dependencies: {
-            build: ["extension-toolkit"],
-            watch: ["extension-toolkit"],
-            test: [{ target: "extension-toolkit", action: "build" }],
-            lint: ["extension-toolkit"],
-            package: [{ target: "extension-toolkit", action: "build" }],
-        },
+        scripts: ["build", "watch", "lint", "package"],
     },
     {
         target: "database-management-keymap",

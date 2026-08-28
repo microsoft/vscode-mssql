@@ -19,6 +19,8 @@ import {
     type Message,
 } from "vscode-languageclient";
 import * as Utils from "../models/utils";
+import { Perf } from "../perf/perfTelemetry";
+import { diagnosticErrorClass } from "../diagnostics/diagnosticsCore";
 import { getLogger } from "../models/logger";
 import * as Constants from "../constants/constants";
 import ServerProvider from "./server";
@@ -39,6 +41,7 @@ import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { PreviewFeature, previewService } from "../previews/previewService";
 import { getRuntimeConfigPath, ServiceExecutable } from "./serviceExecutablePaths";
+import { config } from "../configurations/config";
 
 const STS_OVERRIDE_ENV_VAR = "MSSQL_SQLTOOLSSERVICE";
 const SERVICE_LAUNCH_TELEMETRY_VIEW = TelemetryViews.ServiceClient;
@@ -50,6 +53,36 @@ type ServiceLaunchType =
     | "portableInstalled"
     | "portableDownloaded"
     | "platformDownloaded";
+
+/** First SQL Tools Service build that accepts `--enable-sts2`. */
+export const MINIMUM_STS2_SERVICE_VERSION = "6.0.20260825.2";
+
+/** Numeric dotted-version comparison for the generated STS release versions. */
+export function supportsSqlDataPlaneLaunch(serviceVersion: string): boolean {
+    const current = serviceVersion.split(".").map(Number);
+    const required = MINIMUM_STS2_SERVICE_VERSION.split(".").map(Number);
+    if (current.some((part) => !Number.isSafeInteger(part) || part < 0)) {
+        return false;
+    }
+    for (let i = 0; i < Math.max(current.length, required.length); i++) {
+        const delta = (current[i] ?? 0) - (required[i] ?? 0);
+        if (delta !== 0) {
+            return delta > 0;
+        }
+    }
+    return true;
+}
+
+/** Add the STS v2 lane flag only when the bundled service understands it. */
+export function configureSqlDataPlaneLaunchArgs(
+    args: string[],
+    enabled: boolean,
+    serviceVersion = config.service.version,
+): void {
+    if (enabled && supportsSqlDataPlaneLaunch(serviceVersion)) {
+        args.push("--enable-sts2");
+    }
+}
 
 /**
  * Handle Language Service client errors
@@ -385,7 +418,20 @@ export default class SqlToolsServiceClient {
 
         if (context !== undefined) {
             // Create the language clients and start them.
-            await this.client.start();
+            Perf.marker("mssql.sts.spawn.begin", "begin");
+            try {
+                await this.client.start();
+            } catch (error) {
+                Perf.marker("mssql.sts.spawn.end", "end", {
+                    error: true,
+                    errorClass: diagnosticErrorClass(error),
+                });
+                throw error;
+            }
+            const stsPid = this.client.serverProcess?.pid;
+            Perf.setStsPid(stsPid);
+            Perf.marker("mssql.sts.spawn.end", "end", { pid: stsPid ?? null });
+            Perf.marker("mssql.sts.ready", "instant", { pid: stsPid ?? null });
             await this._resourceClient.start();
 
             // Push the disposable to the context's subscriptions so that the
@@ -680,6 +726,12 @@ export default class SqlToolsServiceClient {
 
         // Enable parallel message processing to improve performance
         args.push("--parallel-message-processing");
+        // STS v2 shares the existing stdio transport and stays completely
+        // disabled unless the experimental SQL Data Plane is enabled.
+        configureSqlDataPlaneLaunchArgs(
+            args,
+            vscode.workspace.getConfiguration().get<boolean>("mssql.sqlDataPlane.enabled", false),
+        );
         args.push("--parallel-message-processing-limit");
         args.push(String(100));
 

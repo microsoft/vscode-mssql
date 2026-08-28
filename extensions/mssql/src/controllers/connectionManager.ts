@@ -7,7 +7,7 @@ import * as vscode from "vscode";
 import { NotificationHandler, RequestType } from "vscode-languageclient";
 import { ConnectionDetails, IConnectionInfo, IServerInfo, IToken } from "vscode-mssql";
 import { AccountService } from "../azure/accountService";
-import { AccountStore } from "../azure/accountStore";
+import { AccountStore, IAccountStore } from "../azure/accountStore";
 import { AzureController } from "../azure/azureController";
 import { MsalAzureController } from "../azure/msal/msalAzureController";
 import { getCloudId, getCloudProviderSettings } from "../azure/providerSettings";
@@ -23,12 +23,12 @@ import {
 } from "../azure/vscodeEntraMfaUtils";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
-import { CredentialStore } from "../credentialstore/credentialstore";
+import { CredentialStore, ICredentialStore } from "../credentialstore/credentialstore";
 import { FirewallService } from "../firewall/firewallService";
 import SqlToolsServerClient from "../languageservice/serviceclient";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import { ConnectionProfile } from "../models/connectionProfile";
-import { ConnectionStore } from "../models/connectionStore";
+import { ConnectionStore, IConnectionStore } from "../models/connectionStore";
 import {
     IAccount,
     RequestSecurityTokenParams,
@@ -50,7 +50,9 @@ import { IPrompter, IQuestion, QuestionTypes } from "../prompts/question";
 import { Deferred } from "../protocol";
 import { ConnectionUI } from "../views/connectionUI";
 import StatusView from "../views/statusView";
+import { IInstantiationService } from "extension-toolkit/base";
 import { sendActionEvent, sendErrorEvent, startActivity } from "extension-toolkit/vscode";
+import { Perf } from "../perf/perfTelemetry";
 import {
     ActivityObject,
     ActivityStatus,
@@ -165,12 +167,13 @@ export default class ConnectionManager {
         private context: vscode.ExtensionContext,
         statusView: StatusView,
         prompter: IPrompter,
+        @IConnectionStore private readonly _connectionStore: ConnectionStore,
+        @ICredentialStore private readonly _credentialStore: CredentialStore,
+        @IAccountStore private readonly _accountStore: AccountStore,
+        @IInstantiationService private readonly _instantiationService: IInstantiationService,
         private _logger?: ILogger,
         private _client?: SqlToolsServerClient,
-        private _connectionStore?: ConnectionStore,
-        private _credentialStore?: CredentialStore,
         private _connectionUI?: ConnectionUI,
-        private _accountStore?: AccountStore,
     ) {
         this._statusView = statusView;
         this._connections = {};
@@ -189,27 +192,20 @@ export default class ConnectionManager {
 
         this._entraLogger = logger.withPrefix("Entra Auth");
 
-        if (!this._credentialStore) {
-            this._credentialStore = new CredentialStore(context);
-        }
-
-        if (!this._connectionStore) {
-            this._connectionStore = new ConnectionStore(context, this._credentialStore);
-        }
-
-        if (!this._accountStore) {
-            this._accountStore = new AccountStore(context);
-        }
-
-        if (!this._connectionUI) {
-            this._connectionUI = new ConnectionUI(this, this._accountStore, prompter);
-        }
-
         if (!this.azureController) {
             this.azureController = new MsalAzureController(
                 context,
                 prompter,
                 this._credentialStore,
+            );
+        }
+
+        if (!this._connectionUI) {
+            this._connectionUI = this._instantiationService.createInstance(
+                ConnectionUI,
+                this.azureController,
+                prompter,
+                () => this.onDisconnect(),
             );
         }
 
@@ -219,7 +215,7 @@ export default class ConnectionManager {
             this._accountStore,
             this.azureController,
         );
-        this._firewallService = new FirewallService(this._accountService);
+        this._firewallService = new FirewallService();
 
         this._changePasswordService = new ChangePasswordService(this.client, this.context);
 
@@ -302,28 +298,14 @@ export default class ConnectionManager {
      * Exposed for testing purposes
      */
     public get connectionStore(): ConnectionStore {
-        return this._connectionStore!;
-    }
-
-    /**
-     * Exposed for testing purposes
-     */
-    public set connectionStore(value: ConnectionStore) {
-        this._connectionStore = value;
+        return this._connectionStore;
     }
 
     /**
      * Exposed for testing purposes
      */
     public get accountStore(): AccountStore {
-        return this._accountStore!;
-    }
-
-    /**
-     * Exposed for testing purposes
-     */
-    public set accountStore(value: AccountStore) {
-        this._accountStore = value;
+        return this._accountStore;
     }
 
     /**
@@ -1444,6 +1426,12 @@ export default class ConnectionManager {
         return "";
     }
 
+    private normalizeServerName(credentials: IConnectionInfo): void {
+        if (credentials.server?.endsWith(",")) {
+            credentials.server = credentials.server.slice(0, -1);
+        }
+    }
+
     /**
      * Creates a new connection with provided credentials.
      * @param fileUri file URI for the connection. If not provided, a new URI will be generated.
@@ -1462,6 +1450,8 @@ export default class ConnectionManager {
             serverlessWakeFailedAttempts?: number;
         } = {},
     ): Promise<boolean> {
+        this.normalizeServerName(credentials);
+
         const {
             shouldHandleErrors = true,
             connectionSource = "",
@@ -1487,6 +1477,10 @@ export default class ConnectionManager {
         }
 
         credentials = await this.prepareConnectionInfo(credentials, connectionActivity);
+
+        // Measure the actual connection attempt. Credential/Entra preparation
+        // may prompt, throw, or be cancelled and must not leave an orphan begin.
+        Perf.marker("mssql.connection.begin", "begin");
 
         // Check if the connection is one that we can check for pause status (i.e., a Azure SQL database using Entra MFA auth)
         const isPauseAwareConnection =
@@ -1547,6 +1541,10 @@ export default class ConnectionManager {
             initRequestCompleted = true;
         } catch (error) {
             initRequestCompleted = true;
+            Perf.marker("mssql.connection.failed", "instant", {
+                error: true,
+                reason: "requestRejected",
+            });
             this.removeActiveConnection(fileUri);
             connectionCompletePromise.reject(error);
             this._uriToConnectionCompleteParamsMap.delete(connectParams.ownerUri);
@@ -1572,6 +1570,10 @@ export default class ConnectionManager {
          */
         if (!initResponse) {
             const initialConnectionError = new Error("Failed to initiate connection");
+            Perf.marker("mssql.connection.failed", "instant", {
+                error: true,
+                reason: "emptyResponse",
+            });
             this.removeActiveConnection(fileUri);
             connectionCompletePromise.reject(initialConnectionError);
             this._uriToConnectionCompleteParamsMap.delete(connectParams.ownerUri);
@@ -1589,7 +1591,7 @@ export default class ConnectionManager {
             },
         });
 
-        const result = await connectionCompletePromise.promise;
+        const result = await this.awaitConnectionCompletion(connectionCompletePromise.promise);
 
         connectionInfo.connecting = false;
 
@@ -1622,6 +1624,10 @@ export default class ConnectionManager {
                 ) {
                     connectionActivity.update({ additionalProps: { retryConnection: "true" } });
                     connectionActivity.end(ActivityStatus.Retrying);
+                    Perf.marker("mssql.connection.failed", "instant", {
+                        error: true,
+                        reason: "serverlessRetry",
+                    });
 
                     return await this.connect(fileUri, connectionInfo.credentials, {
                         shouldHandleErrors,
@@ -1645,6 +1651,10 @@ export default class ConnectionManager {
                 });
                 if (errorHandlingResult.isHandled) {
                     connectionActivity.end(ActivityStatus.Retrying);
+                    Perf.marker("mssql.connection.failed", "instant", {
+                        error: true,
+                        reason: "credentialRetry",
+                    });
                     return await this.connect(fileUri, errorHandlingResult.updatedCredentials, {
                         connectionSource: connectionSource,
                     });
@@ -1655,6 +1665,12 @@ export default class ConnectionManager {
             connectionInfo.errorMessage = result.errorMessage;
             connectionInfo.messages = result.messages;
             connectionInfo.connecting = false;
+
+            Perf.marker("mssql.connection.failed", "instant", {
+                error: true,
+                reason: result.errorNumber !== undefined ? "sqlError" : "unknown",
+                ...(result.errorNumber !== undefined ? { errorNumber: result.errorNumber } : {}),
+            });
 
             this.statusView.setConnectionError(fileUri, connectionInfo.credentials, result);
             this._logger.error(
@@ -1837,6 +1853,26 @@ export default class ConnectionManager {
 
     /**
      * Handles the steps to take on a successful connection.
+     * Waits for the connection/complete notification. The only code that rejects
+     * this deferred is cancelConnection ("Connection cancelled"), which would
+     * otherwise leave the mssql.connection.begin perf interval without a
+     * terminal marker; close it with a failure marker before rethrowing.
+     */
+    private async awaitConnectionCompletion(
+        completion: Promise<ConnectionContracts.ConnectionCompleteParams>,
+    ): Promise<ConnectionContracts.ConnectionCompleteParams> {
+        try {
+            return await completion;
+        } catch (error) {
+            Perf.marker("mssql.connection.failed", "instant", {
+                error: true,
+                reason: "cancelled",
+            });
+            throw error;
+        }
+    }
+
+    /**
      * @param fileUri uri of the file the connection is for
      * @param connectionInfo the connection info object to update
      * @param result the result of the connection
@@ -1890,6 +1926,7 @@ export default class ConnectionManager {
             connection: connectionInfo,
             fileUri: fileUri,
         });
+        Perf.marker("mssql.connection.ready", "end");
 
         this._logger.info(
             LocalizedConstants.msgConnectedServerInfo(

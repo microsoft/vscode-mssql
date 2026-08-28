@@ -23,6 +23,7 @@ import {
     Title3,
     Tooltip,
     makeStyles,
+    mergeClasses,
     shorthands,
 } from "@fluentui/react-components";
 import {
@@ -422,7 +423,10 @@ export const AzureDataStudioMigrationPage = () => {
                             </Title3>
                             <Body1
                                 as="p"
-                                className={`${classes.summaryText} ${classes.headerSubtitle}`}>
+                                className={mergeClasses(
+                                    classes.summaryText,
+                                    classes.headerSubtitle,
+                                )}>
                                 {LocMigration.subtitle}
                             </Body1>
                         </div>
@@ -588,7 +592,10 @@ export const AzureDataStudioMigrationPage = () => {
                                                         />
                                                     </TableHeaderCell>
                                                     <TableHeaderCell
-                                                        className={`${classes.narrowColumn} ${classes.statusColumnHeader}`}>
+                                                        className={mergeClasses(
+                                                            classes.narrowColumn,
+                                                            classes.statusColumnHeader,
+                                                        )}>
                                                         {LocMigration.connectionStatusColumn}
                                                     </TableHeaderCell>
                                                     <TableHeaderCell
@@ -631,7 +638,10 @@ export const AzureDataStudioMigrationPage = () => {
                                                                 )}
                                                             </TableCell>
                                                             <TableCell
-                                                                className={`${classes.narrowColumn} ${classes.statusColumnHeader}`}>
+                                                                className={mergeClasses(
+                                                                    classes.narrowColumn,
+                                                                    classes.statusColumnHeader,
+                                                                )}>
                                                                 {renderStatusIcon(
                                                                     group.status,
                                                                     group.statusMessage,
@@ -732,7 +742,10 @@ export const AzureDataStudioMigrationPage = () => {
                                                         />
                                                     </TableHeaderCell>
                                                     <TableHeaderCell
-                                                        className={`${classes.narrowColumn} ${classes.statusColumnHeader}`}>
+                                                        className={mergeClasses(
+                                                            classes.narrowColumn,
+                                                            classes.statusColumnHeader,
+                                                        )}>
                                                         {LocMigration.connectionStatusColumn}
                                                     </TableHeaderCell>
                                                     <TableHeaderCell className={classes.nameColumn}>

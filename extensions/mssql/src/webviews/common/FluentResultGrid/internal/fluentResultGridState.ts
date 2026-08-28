@@ -13,12 +13,25 @@ import type { FluentResultGridState } from "../types/fluentResultGridState";
 import {
     FLUENT_RESULT_GRID_DEFAULT_COLUMN_WIDTH,
     FLUENT_RESULT_GRID_DEFAULT_FONT_SIZE,
+    FLUENT_RESULT_GRID_FIRST_DATA_CELL_INDEX,
     FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_ID,
 } from "./fluentResultGridConstants";
 import type { FluentResultGridDataRow } from "./fluentResultGridDataView";
 import { getFluentResultGridDataSelectionsFromRanges } from "./fluentResultGridSelection";
 
 export const FLUENT_RESULT_GRID_DEFAULT_FROZEN_COLUMN_INDEX = 0;
+
+export function getFluentResultGridInitialFrozenColumnIndex(
+    savedFrozenColumnIndex: number | undefined,
+    freezeFirstColumnByDefault: boolean,
+): number {
+    return (
+        savedFrozenColumnIndex ??
+        (freezeFirstColumnByDefault
+            ? FLUENT_RESULT_GRID_FIRST_DATA_CELL_INDEX
+            : FLUENT_RESULT_GRID_DEFAULT_FROZEN_COLUMN_INDEX)
+    );
+}
 
 export function normalizeFluentResultGridRowPadding(rowPadding: number | null | undefined): number {
     return typeof rowPadding === "number" && Number.isFinite(rowPadding)
@@ -61,6 +74,19 @@ export function createFluentResultGridColumnSignature(columnInfo: readonly IDbCo
         .join("|");
 }
 
+export interface FluentResultGridColumnInfoSnapshot {
+    signature: string;
+    value: IDbColumn[];
+}
+
+export function stabilizeFluentResultGridColumnInfo(
+    current: FluentResultGridColumnInfoSnapshot | undefined,
+    columnInfo: IDbColumn[],
+): FluentResultGridColumnInfoSnapshot {
+    const signature = createFluentResultGridColumnSignature(columnInfo);
+    return current?.signature === signature ? current : { signature, value: columnInfo };
+}
+
 export function createFluentResultGridIdentitySignature({
     gridId,
     resultSetSummary,
@@ -92,6 +118,22 @@ export function getFluentResultGridCurrentColumnWidths(
     return columnWidths.map((width) => width ?? FLUENT_RESULT_GRID_DEFAULT_COLUMN_WIDTH);
 }
 
+export function restoreFluentResultGridColumnWidths(
+    columns: Column<FluentResultGridDataRow>[],
+    state: Pick<FluentResultGridState, "columnWidths" | "rowNumberColumnWidth"> | undefined,
+): Column<FluentResultGridDataRow>[] {
+    return columns.map((column) => {
+        if (column.id === FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_ID) {
+            const width = state?.rowNumberColumnWidth;
+            return typeof width === "number" ? { ...column, width } : column;
+        }
+
+        const columnIndex = Number(column.field);
+        const width = state?.columnWidths?.[columnIndex];
+        return typeof width === "number" ? { ...column, width } : column;
+    });
+}
+
 function isFluentResultGridStateDataColumn(column: Column<FluentResultGridDataRow>): boolean {
     return column.id !== FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_ID && !column.excludeFromGridMenu;
 }
@@ -109,6 +151,9 @@ export function getFluentResultGridCurrentViewState({
         ? allColumns
         : (grid.getColumns() as Column<FluentResultGridDataRow>[]);
     const selectedRanges = grid.getSelectionModel()?.getSelectedRanges() ?? [];
+    const rowNumberColumnWidth = grid
+        .getColumns()
+        .find((column) => column.id === FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_ID)?.width;
 
     return {
         hiddenColumnIds: columnsForState
@@ -119,7 +164,8 @@ export function getFluentResultGridCurrentViewState({
             grid.getOptions().frozenColumn ?? frozenColumnIndex,
             columnsForState.length,
         ),
-        selection: getFluentResultGridDataSelectionsFromRanges(selectedRanges),
+        selection: getFluentResultGridDataSelectionsFromRanges(selectedRanges, grid.getColumns()),
+        rowNumberColumnWidth,
     };
 }
 

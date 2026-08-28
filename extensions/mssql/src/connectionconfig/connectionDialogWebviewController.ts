@@ -51,11 +51,7 @@ import { generateConnectionComponents, groupAdvancedOptions } from "./formCompon
 import { FormWebviewController } from "../forms/formWebviewController";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import { Deferred } from "../protocol";
-import {
-    cmdOpenAzureDataStudioMigration,
-    defaultDatabase,
-    systemDatabases,
-} from "../constants/constants";
+import { cmdOpenAzureDataStudioMigration, defaultDatabase } from "../constants/constants";
 import * as AzureConstants from "../azure/constants";
 import { AddFirewallRuleState } from "../sharedInterfaces/addFirewallRule";
 import * as Utils from "../models/utils";
@@ -89,6 +85,7 @@ import {
     BrowseProviderHost,
     FabricBrowseProvider,
 } from "./browseProvider";
+import { buildDatabaseOptions } from "../utils/databaseUtils";
 
 export const CLEAR_TOKEN_CACHE = "clearTokenCache";
 export const SIGN_IN_TO_AZURE = "signInToAzure";
@@ -262,12 +259,12 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         );
 
         // Display intitial UI since it may take a moment for the connection to load
-        // due to fetching Azure account and tenant info
+        // due to fetching Azure account info
         this.loadEmptyConnection();
         await this.updateItemVisibility();
         this.updateState();
 
-        // Load VS Code Entra accounts and tenants in the background after the initial render
+        // Load VS Code Entra accounts in the background after the initial render
         if (useVscodeAccounts) {
             void this.loadVscodeEntraDataAsync();
         } else {
@@ -705,7 +702,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             try {
                 const signInResult = await VsCodeAzureHelper.signIn(true /* forceSignInPrompt */);
 
-                state.azureAccounts = (await VsCodeAzureHelper.getAccounts()).map(
+                state.azureAccounts = (await VsCodeAzureHelper.getAccounts(false)).map(
                     (a) =>
                         ({
                             id: a.id,
@@ -741,6 +738,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             const newlyAddedAccountId = state.azureAccounts.find(
                 (a) => !existingAccountIds.includes(a.id),
             )?.id;
+
             if (newlyAddedAccountId && newlyAddedAccountId !== state.selectedAccountId) {
                 state.selectedAccountId = newlyAddedAccountId;
                 state.azureTenants = [];
@@ -761,6 +759,27 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     state.selectedTenantId,
                 );
                 await provider.autoLoadContents(state);
+            }
+
+            // If they signed in with a new account and they're using VS Code accounts for EntraMFA auth,
+            // then add it to the MFA auth account list and select it.
+            if (
+                newlyAddedAccountId &&
+                previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)
+            ) {
+                const accountComponent = this.getFormComponent(state, "accountId");
+
+                if (accountComponent) {
+                    accountComponent.loadStatus = { status: ApiStatus.Loading };
+                }
+
+                this.updateState(state);
+
+                await this.loadVscodeEntraDataAsync();
+
+                state.connectionProfile.accountId = newlyAddedAccountId;
+                this.updateState(state);
+                await this.handleAzureMFAEdits("accountId");
             }
 
             return state;
@@ -1445,12 +1464,13 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     }
 
     private combineServerAndPort(connection: IConnectionDialogProfile): void {
-        if (connection.port !== undefined) {
+        const port = String(connection.port ?? "").trim();
+        if (port) {
             if (connection.server && !connection.server.includes(",")) {
-                connection.server = `${connection.server},${connection.port}`;
+                connection.server = `${connection.server},${port}`;
             }
-            connection.port = undefined;
         }
+        connection.port = undefined;
     }
 
     private async testConnectionStep(
@@ -1538,25 +1558,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     }
 
     private buildDatabaseOptions(dbs: string[]): FormItemOptions[] {
-        const collator = new Intl.Collator(undefined, { sensitivity: "base" });
-        const userDbs = dbs
-            .filter((db) => !systemDatabases.includes(db.toLowerCase()))
-            .sort((a, b) => collator.compare(a, b));
-        const sysDbs = dbs
-            .filter((db) => systemDatabases.includes(db.toLowerCase()))
-            .sort((a, b) => collator.compare(a, b));
-        return [
-            ...userDbs.map((db) => ({
-                displayName: db,
-                value: db,
-                groupName: LocalizedConstants.ConnectionDialog.userDatabasesGroup,
-            })),
-            ...sysDbs.map((db) => ({
-                displayName: db,
-                value: db,
-                groupName: LocalizedConstants.ConnectionDialog.systemDatabasesGroup,
-            })),
-        ];
+        return buildDatabaseOptions(dbs, {
+            userDatabases: LocalizedConstants.ConnectionDialog.userDatabasesGroup,
+            systemDatabases: LocalizedConstants.ConnectionDialog.systemDatabasesGroup,
+        });
     }
 
     private buildDatabaseFetchKey(): string {
@@ -1960,9 +1965,9 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     //#region Azure helpers
 
     /**
-     * Loads VS Code Entra accounts and tenants for all accounts in the background
+     * Loads VS Code Entra accounts in the background. Tenant options are loaded on demand.
      */
-    private async loadVscodeEntraDataAsync(): Promise<void> {
+    public async loadVscodeEntraDataAsync(): Promise<void> {
         this._entraDataLoaded = new Deferred<void>();
         this._cachedEntraAccounts = undefined;
         this._cachedEntraTenants.clear();
@@ -1974,18 +1979,6 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             if (accountComponent) {
                 accountComponent.options = accountOptions;
             }
-
-            await Promise.all(
-                accountOptions.map(async (account) => {
-                    try {
-                        await this.getEntraMfaTenantOptions(account.value);
-                    } catch (err) {
-                        this.logger.error(
-                            `Error loading tenants for account '${account.value}': ${getErrorMessage(err)}`,
-                        );
-                    }
-                }),
-            );
 
             this._entraDataLoaded.resolve();
         } catch (err) {
@@ -2103,8 +2096,6 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                         return;
                     }
 
-                    // Invalidate cache and re-load all accounts + tenants
-                    this.clearEntraAccountCache();
                     accountsComponent.loadStatus = { status: ApiStatus.Loading };
                     this.updateState();
 
@@ -2363,7 +2354,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             state.loadingAzureAccountsStatus = ApiStatus.Loading;
             this.updateState(state);
 
-            state.azureAccounts = (await VsCodeAzureHelper.getAccounts()).map((a) => {
+            state.azureAccounts = (await VsCodeAzureHelper.getAccounts(false)).map((a) => {
                 return {
                     id: a.id,
                     name: a.label,

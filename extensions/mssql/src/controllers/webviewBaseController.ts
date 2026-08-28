@@ -51,8 +51,8 @@ import { Deferred } from "../protocol";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import { getLocalizationFileContentsCached } from "./localizationCache";
-
-export const WEBVIEW_INIT_TIMEOUT_MS = 5_000;
+import { Perf } from "../perf/perfTelemetry";
+import { PerfEnableNotification, PerfWebviewMarkNotification } from "../sharedInterfaces/perf";
 
 class WebviewControllerMessageReader extends AbstractMessageReader implements MessageReader {
     private _onData: Emitter<Message>;
@@ -120,7 +120,6 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
      */
     private _webviewReady: Deferred<void> = new Deferred<void>();
     private _isWebviewReady: boolean = false;
-    private _webviewReadyTimeoutHandle: ReturnType<typeof setTimeout> | undefined;
 
     private _state: State;
     private _isFirstLoad: boolean = true;
@@ -167,6 +166,37 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
                 this._connectionWriter.dispose();
             },
         });
+
+        // Perf-harness webview mark bridge (PERF_MODE only): forward webview
+        // marks to the perf sink, and tell the webview marks are wanted once
+        // it is ready. Inert outside perf mode. The enable notification is
+        // re-sent on a short schedule because "webview ready" can precede the
+        // app's handler registration; the webview queues marks (with original
+        // timestamps) until one of the sends lands.
+        if (Perf.enabled) {
+            this.connection.onNotification(PerfWebviewMarkNotification.type, (mark) => {
+                Perf.webviewMark(mark, this._sourceFile);
+            });
+            // Unconditional schedule (not gated on whenWebviewReady, which can
+            // time out on cold first loads): sends to a not-yet-ready webview
+            // are dropped harmlessly, and the webview queues marks with their
+            // original timestamps until one enable lands.
+            for (const delayMs of [500, 2000, 5000, 15000, 30000]) {
+                const timer = setTimeout(() => {
+                    if (!this._isDisposed) {
+                        try {
+                            void this.connection.sendNotification(
+                                PerfEnableNotification.type,
+                                undefined,
+                            );
+                        } catch {
+                            // disposed between check and send; ignore
+                        }
+                    }
+                }, delayMs);
+                this._disposables.push({ dispose: () => clearTimeout(timer) });
+            }
+        }
     }
 
     /**
@@ -179,6 +209,27 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
             this._connectionReader.updateWebview(webview);
             this._connectionWriter.updateWebview(webview);
         }
+    }
+
+    /**
+     * Reloads the current webview with a different bundle entry point while preserving the
+     * controller and its state. If the webview has not been resolved yet, the selected entry point
+     * is used when it is first created.
+     */
+    protected reloadWebview(sourceFile: string): void {
+        if (sourceFile === this._sourceFile) {
+            return;
+        }
+
+        this._sourceFile = sourceFile;
+        const webview = this._getWebview();
+        if (!webview) {
+            return;
+        }
+
+        this._loadStartTime = Date.now();
+        this.updateConnectionWebview(webview);
+        webview.html = this._getHtmlTemplate();
     }
 
     protected initializeBase() {
@@ -314,15 +365,10 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
             const timeToLoad = timeStamp - this._loadStartTime;
             if (this._isFirstLoad) {
                 /**
-                 * This notification is sent from the webview when it has finished loading. We use
-                 * this to track when the webview is ready to receive messages.
+                 * This notification is sent from the webview when it has finished loading.
+                 * We use this to track when the webview is ready to receive messages.
                  */
-                this._isWebviewReady = true;
-                if (this._webviewReadyTimeoutHandle !== undefined) {
-                    clearTimeout(this._webviewReadyTimeoutHandle);
-                    this._webviewReadyTimeoutHandle = undefined;
-                }
-                this._webviewReady.resolve();
+                this.markWebviewReady();
 
                 this.logger.trace(
                     `Load stats for ${this._sourceFile}` + "\n" + `Total time: ${timeToLoad} ms`,
@@ -330,6 +376,10 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
                 this._endLoadActivity.end(ActivityStatus.Succeeded, {
                     additionalProps: {
                         type: this._sourceFile,
+                    },
+                    additionalMeasurements: {
+                        timeToLoad,
+                        ...(message.stages ?? {}),
                     },
                 });
                 this._isFirstLoad = false;
@@ -594,38 +644,28 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
         this._onDisposed.fire();
         this._disposables.forEach((d) => d.dispose());
         this._isDisposed = true;
-        if (this._webviewReadyTimeoutHandle !== undefined) {
-            clearTimeout(this._webviewReadyTimeoutHandle);
-            this._webviewReadyTimeoutHandle = undefined;
-        }
         this._webviewReady.reject(new Error(LocalizedConstants.Webview.webviewDisposedBeforeReady));
     }
 
     /**
      * Waits for the webview to become ready. This is useful for ensuring that the webview is ready to receive messages before sending any.
-     * @param timeoutMs Optional timeout in milliseconds to wait for the webview to become ready. Defaults to 5 seconds.
-     * @returns A promise that resolves when the webview is ready or rejects if there is an error or timeout.
+     * @returns A promise that resolves when the webview is ready or rejects if the webview is disposed first.
      */
-    public whenWebviewReady(timeoutMs: number = WEBVIEW_INIT_TIMEOUT_MS): Promise<void> {
+    public whenWebviewReady(): Promise<void> {
         if (this._isWebviewReady) {
             return Promise.resolve();
         }
 
-        if (this._webviewReadyTimeoutHandle === undefined) {
-            this._webviewReadyTimeoutHandle = setTimeout(() => {
-                this._webviewReadyTimeoutHandle = undefined;
-                this._webviewReady.reject(
-                    new Error(
-                        LocalizedConstants.Webview.webviewNotReadyTimeout(
-                            this._sourceFile,
-                            timeoutMs,
-                        ),
-                    ),
-                );
-            }, timeoutMs);
+        return this._webviewReady.promise;
+    }
+
+    private markWebviewReady(): void {
+        if (this._isWebviewReady) {
+            return;
         }
 
-        return this._webviewReady.promise;
+        this._isWebviewReady = true;
+        this._webviewReady.resolve();
     }
 
     private readKeyBindingsConfig(): Record<string, string> {

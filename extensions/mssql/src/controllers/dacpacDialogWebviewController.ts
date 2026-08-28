@@ -116,12 +116,12 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
         // List databases request handler
         this.onRequest(
             dacpacDialog.ListDatabasesWebviewRequest.type,
-            async (params: { ownerUri: string }) => {
+            async (params: { ownerUri: string; connectionDatabaseName?: string }) => {
                 if (!params.ownerUri || params.ownerUri.trim() === "") {
                     this.logger.error("Cannot list databases: ownerUri is empty");
                     return { databases: [] };
                 }
-                return await this.listDatabases(params.ownerUri);
+                return await this.listDatabases(params.ownerUri, params.connectionDatabaseName);
             },
         );
 
@@ -598,9 +598,8 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
      */
     private async listDatabases(
         ownerUri: string,
+        connectionDatabaseName?: string,
     ): Promise<{ databases: string[]; errorMessage?: string }> {
-        const stateDatabaseName = this.state.databaseName;
-
         let errorMessage: string | undefined;
         try {
             const databaseNames = await this.connectionManager.listDatabases(ownerUri);
@@ -609,13 +608,13 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
             const userDatabases = (databaseNames || []).filter((db) => !isSystemDatabase(db));
 
             if (userDatabases.length > 0) {
-                // Ensure the state database is in the list if set
+                // Ensure the selected connection's database is in the list if set
                 if (
-                    stateDatabaseName &&
-                    !isSystemDatabase(stateDatabaseName) &&
-                    !userDatabases.includes(stateDatabaseName)
+                    connectionDatabaseName &&
+                    !isSystemDatabase(connectionDatabaseName) &&
+                    !userDatabases.includes(connectionDatabaseName)
                 ) {
-                    userDatabases.unshift(stateDatabaseName);
+                    userDatabases.unshift(connectionDatabaseName);
                 }
                 return { databases: userDatabases };
             }
@@ -631,10 +630,10 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
         }
 
         // Fallback: if the database list is empty or the request failed,
-        // use the database name from the initial state (set via ObjectExplorerUtils.getDatabaseName)
-        if (stateDatabaseName && !isSystemDatabase(stateDatabaseName)) {
+        // use the database name from the selected connection.
+        if (connectionDatabaseName && !isSystemDatabase(connectionDatabaseName)) {
             return {
-                databases: [stateDatabaseName],
+                databases: [connectionDatabaseName],
                 errorMessage,
             };
         }

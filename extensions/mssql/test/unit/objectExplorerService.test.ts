@@ -83,10 +83,12 @@ suite("OE Service Tests", () => {
             sandbox = sinon.createSandbox();
             mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
             mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
+            mockConnectionStore.readAllConnections.resolves([]);
+            mockConnectionStore.readAllConnectionGroups.resolves([createMockRootConnectionGroup()]);
             mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
             stubLogger(sandbox);
 
-            mockConnectionManager.connectionStore = mockConnectionStore;
+            sandbox.stub(mockConnectionManager, "connectionStore").get(() => mockConnectionStore);
             mockConnectionManager.client = mockClient;
 
             objectExplorerService = new ObjectExplorerService(mockConnectionManager, () => {});
@@ -211,7 +213,7 @@ suite("OE Service Tests", () => {
             mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
             mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
             mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
-            mockConnectionManager.connectionStore = mockConnectionStore;
+            sandbox.stub(mockConnectionManager, "connectionStore").get(() => mockConnectionStore);
             mockConnectionManager.client = mockClient;
             mockConnectionStore.readAllConnections.resolves([]);
             mockConnectionStore.readAllConnectionGroups.resolves([createMockRootConnectionGroup()]);
@@ -1084,6 +1086,11 @@ suite("OE Service Tests", () => {
             mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
             mockAccountStore = sandbox.createStubInstance(AccountStore);
 
+            const mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
+            mockConnectionStore.readAllConnectionGroups.resolves([createMockRootConnectionGroup()]);
+            mockConnectionStore.readAllConnections.resolves([]);
+            sandbox.stub(mockConnectionManager, "connectionStore").get(() => mockConnectionStore);
+
             mockConnectionManager.client = mockClient;
             (mockConnectionManager as any)._connectionUI = mockConnectionUI;
             (mockConnectionManager as any)._firewallService = mockFirewallService;
@@ -1312,8 +1319,10 @@ suite("OE Service Tests", () => {
             mockConnectionUI = sandbox.createStubInstance(ConnectionUI);
             mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
             mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
+            mockConnectionStore.readAllConnections.resolves([]);
+            mockConnectionStore.readAllConnectionGroups.resolves([createMockRootConnectionGroup()]);
 
-            mockConnectionManager.connectionStore = mockConnectionStore;
+            sandbox.stub(mockConnectionManager, "connectionStore").get(() => mockConnectionStore);
             mockConnectionManager.client = mockClient;
             (mockConnectionManager as any)._connectionUI = mockConnectionUI;
 
@@ -1504,6 +1513,13 @@ suite("OE Service Tests", () => {
             const mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
             stubLogger(sandbox);
             mockConnectionManager.client = mockClient;
+
+            const mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
+            mockConnectionStore.readAllConnectionGroups.resolves([createMockRootConnectionGroup()]);
+            mockConnectionStore.readAllConnections.resolves([]);
+
+            sandbox.stub(mockConnectionManager, "connectionStore").get(() => mockConnectionStore);
+
             objectExplorerService = new ObjectExplorerService(mockConnectionManager, () => {});
             objectExplorerService.initialized.resolve();
         });
@@ -1565,10 +1581,11 @@ suite("OE Service Tests", () => {
 
             mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
             mockConnectionStore.readAllConnections.resolves([]);
+            mockConnectionStore.readAllConnectionGroups.resolves([createMockRootConnectionGroup()]);
 
             const mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
             mockConnectionManager.client = mockClient;
-            mockConnectionManager.connectionStore = mockConnectionStore;
+            sandbox.stub(mockConnectionManager, "connectionStore").get(() => mockConnectionStore);
 
             endStub = sandbox.stub();
             endFailedStub = sandbox.stub();
@@ -2244,12 +2261,14 @@ suite("OE Service Tests", () => {
         let startActivityStub: sinon.SinonStub;
         let objectExplorerService: ObjectExplorerService;
 
-        setup(() => {
+        setup(async () => {
             sandbox = sinon.createSandbox();
             mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
             mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
             mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
-            mockConnectionManager.connectionStore = mockConnectionStore;
+            mockConnectionStore.readAllConnections.resolves([]);
+            mockConnectionStore.readAllConnectionGroups.resolves([createMockRootConnectionGroup()]);
+            sandbox.stub(mockConnectionManager, "connectionStore").get(() => mockConnectionStore);
             mockConnectionManager.client = mockClient;
 
             endStub = sandbox.stub();
@@ -2263,6 +2282,14 @@ suite("OE Service Tests", () => {
             });
             stubLogger(sandbox);
             objectExplorerService = new ObjectExplorerService(mockConnectionManager, () => {});
+            // Wait for the constructor's fire-and-forget initialize() (which calls
+            // getRootNodes) to settle before tests override the connection store stubs.
+            await objectExplorerService.initialized;
+            // Clear telemetry call history recorded by the setup-time initialize() so
+            // tests observe only the calls they make themselves.
+            startActivityStub.resetHistory();
+            endStub.resetHistory();
+            endFailedStub.resetHistory();
         });
 
         teardown(() => {
@@ -2549,9 +2576,11 @@ suite("OE Service Tests", () => {
             mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
             mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
             mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
+            mockConnectionStore.readAllConnections.resolves([]);
+            mockConnectionStore.readAllConnectionGroups.resolves([createMockRootConnectionGroup()]);
 
             mockConnectionManager.client = mockClient;
-            mockConnectionManager.connectionStore = mockConnectionStore;
+            sandbox.stub(mockConnectionManager, "connectionStore").get(() => mockConnectionStore);
             mockConnectionUI = sandbox.createStubInstance(ConnectionUI);
             sandbox.stub(mockConnectionManager, "connectionUI").get(() => mockConnectionUI);
             mockAccountStore = sandbox.createStubInstance(AccountStore);
@@ -2791,7 +2820,14 @@ suite("OE Service Tests", () => {
                 sandbox = sinon.createSandbox();
                 messageBoxes = stubMessageBoxes(sandbox);
                 mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
-                mockConnectionManager.connectionStore = sandbox.createStubInstance(ConnectionStore);
+                const entraMockConnectionStore = sandbox.createStubInstance(ConnectionStore);
+                entraMockConnectionStore.readAllConnections.resolves([]);
+                entraMockConnectionStore.readAllConnectionGroups.resolves([
+                    createMockRootConnectionGroup(),
+                ]);
+                sandbox
+                    .stub(mockConnectionManager, "connectionStore")
+                    .get(() => entraMockConnectionStore);
                 mockConnectionManager.client = sandbox.createStubInstance(SqlToolsServiceClient);
 
                 stubLogger(sandbox);

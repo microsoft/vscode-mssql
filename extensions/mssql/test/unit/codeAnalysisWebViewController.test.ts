@@ -19,7 +19,8 @@ import {
     GetProjectPropertiesResult,
 } from "vscode-mssql";
 import { CodeAnalysisRuleSeverity } from "../../src/enums";
-import { SqlCodeAnalysisRule } from "../../src/sharedInterfaces/codeAnalysis";
+import { customRulesCategory, SqlCodeAnalysisRule } from "../../src/sharedInterfaces/codeAnalysis";
+import { DialogMessageSpec } from "../../src/sharedInterfaces/dialogMessage";
 import { stubTelemetry, stubWebviewPanel } from "./utils";
 import { SqlProjectsService } from "../../src/services/sqlProjectsService";
 
@@ -34,6 +35,7 @@ const mockRules: CodeAnalysisRuleInfo[] = [
         category: "Design",
         severity: "Error",
         ruleScope: "Element",
+        isBuiltIn: true,
     },
     {
         ruleId: "SR0002",
@@ -43,6 +45,7 @@ const mockRules: CodeAnalysisRuleInfo[] = [
         category: "Performance",
         severity: "None",
         ruleScope: "Model",
+        isBuiltIn: true,
     },
     {
         ruleId: "SR0003",
@@ -52,6 +55,7 @@ const mockRules: CodeAnalysisRuleInfo[] = [
         category: "Naming",
         severity: "Warning",
         ruleScope: "Model",
+        isBuiltIn: true,
     },
 ];
 
@@ -72,6 +76,7 @@ function toSqlCodeAnalysisRule(rule: CodeAnalysisRuleInfo): SqlCodeAnalysisRule 
         severity,
         enabled: severity !== CodeAnalysisRuleSeverity.Disabled,
         ruleScope: rule.ruleScope,
+        isBuiltIn: rule.isBuiltIn,
     };
 }
 
@@ -125,7 +130,10 @@ suite("CodeAnalysisWebViewController Tests", () => {
     function getInternalController() {
         return controller as unknown as {
             loadRules: () => Promise<void>;
-            fetchRulesFromDacFx: () => Promise<SqlCodeAnalysisRule[]>;
+            fetchRulesFromDacFx: () => Promise<{
+                rules: SqlCodeAnalysisRule[];
+                warning?: DialogMessageSpec;
+            }>;
             _reducerHandlers: Map<
                 string,
                 (state: unknown, payload: unknown) => Promise<unknown> | unknown
@@ -250,7 +258,7 @@ suite("CodeAnalysisWebViewController Tests", () => {
 
     test("fetchRulesFromDacFx maps Error/None/Warning severities and sets enabled correctly", async () => {
         createController();
-        const rules = await getInternalController().fetchRulesFromDacFx();
+        const { rules } = await getInternalController().fetchRulesFromDacFx();
 
         const [errorRule, disabledRule, defaultRule] = rules;
 
@@ -590,5 +598,104 @@ suite("CodeAnalysisWebViewController Tests", () => {
             controller.state.message?.message,
             "message should contain the properties error text",
         ).to.contain("Failed to get project properties");
+    });
+
+    suite("custom analyzer rules", () => {
+        const customRule: CodeAnalysisRuleInfo = {
+            ruleId: "ErikEJ.SqlRules.ER0001",
+            shortRuleId: "ER0001",
+            displayName: "Avoid WAITFOR DELAY",
+            description: "desc",
+            category: "Performance",
+            severity: "Warning",
+            ruleScope: "Element",
+            isBuiltIn: false,
+        };
+
+        test("passes the project file path so STS can discover custom rules", async () => {
+            createController("c:/work/MyProject.sqlproj");
+            await getInternalController().loadRules();
+
+            expect(
+                dacFxServiceStub.getCodeAnalysisRules,
+                "project path should be forwarded to the rules request",
+            ).to.have.been.calledWith("c:/work/MyProject.sqlproj");
+        });
+
+        test("surfaces the STS warning as a non-blocking warning banner", async () => {
+            createController();
+            dacFxServiceStub.getCodeAnalysisRules.resolves({
+                success: true,
+                errorMessage: undefined,
+                rules: mockRules,
+                warning: "Custom rules unavailable — run dotnet restore first.",
+            } as GetCodeAnalysisRulesResult);
+
+            await getInternalController().loadRules();
+
+            expect(
+                controller.state.message?.intent,
+                "message intent should be warning for a non-fatal rules warning",
+            ).to.equal("warning");
+            expect(
+                controller.state.message?.message,
+                "message should contain the STS warning text",
+            ).to.contain("run dotnet restore first");
+            expect(
+                controller.state.rules,
+                "built-in rules should still load alongside the warning",
+            ).to.have.length(mockRules.length);
+        });
+
+        test("prefers the override-load failure over the STS warning", async () => {
+            createController();
+            dacFxServiceStub.getCodeAnalysisRules.resolves({
+                success: true,
+                errorMessage: undefined,
+                rules: mockRules,
+                warning: "Custom rules unavailable — run dotnet restore first.",
+            } as GetCodeAnalysisRulesResult);
+            sqlProjectsServiceStub.getProjectProperties.resolves({
+                success: false,
+                errorMessage: "Failed to get project properties",
+            } as GetProjectPropertiesResult);
+
+            await getInternalController().loadRules();
+
+            expect(
+                controller.state.message?.message,
+                "the actionable override failure should win the banner",
+            ).to.contain("Failed to get project properties");
+        });
+
+        test("groups an uncategorized custom rule under the custom-rules category", async () => {
+            createController();
+            dacFxServiceStub.getCodeAnalysisRules.resolves({
+                success: true,
+                errorMessage: undefined,
+                rules: [{ ...customRule, category: "" }],
+            } as GetCodeAnalysisRulesResult);
+
+            await getInternalController().loadRules();
+
+            const rule = controller.state.rules[0];
+            expect(rule.category, "uncategorized custom rule should fall back").to.equal(
+                customRulesCategory,
+            );
+            expect(rule.isBuiltIn, "custom rule should not be marked built-in").to.be.false;
+        });
+
+        test("keeps the declared category of a custom rule", async () => {
+            createController();
+            dacFxServiceStub.getCodeAnalysisRules.resolves({
+                success: true,
+                errorMessage: undefined,
+                rules: [customRule],
+            } as GetCodeAnalysisRulesResult);
+
+            await getInternalController().loadRules();
+
+            expect(controller.state.rules[0].category).to.equal("Performance");
+        });
     });
 });

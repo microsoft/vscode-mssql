@@ -5,7 +5,6 @@
 
 declare module "vscode-mssql" {
     import * as vscode from "vscode";
-    import { RequestType } from "vscode-languageclient";
 
     /**
      * Covers defining what the vscode-mssql extension exports to other extensions
@@ -18,126 +17,13 @@ declare module "vscode-mssql" {
         name = "ms-mssql.mssql",
     }
 
-    /**
-     * The APIs provided by Mssql extension
-     */
+    /** The API provided to other extensions by the mssql extension. */
     export interface IExtension {
-        /**
-         * Path to the root of the SQL Tools Service folder
-         */
-        readonly sqlToolsServicePath: string;
+        /** APIs for working with user-approved mssql connections. */
+        readonly connectionSharing: IConnectionSharingService;
 
-        /**
-         * Service for accessing DacFx functionality
-         */
-        readonly dacFx: IDacFxService;
-
-        /**
-         * Service for accessing SchemaCompare functionality
-         */
-        readonly schemaCompare: ISchemaCompareService;
-
-        /**
-         * Service for accessing SQL Projects file functionality
-         */
-        readonly sqlProjects: ISqlProjectsService;
-
-        /**
-         * Service for accessing Azure Account functionality
-         */
-        readonly azureAccountService: IAzureAccountService;
-
-        /**
-         * Service for accessing Azure Resources functionality
-         */
-        readonly azureResourceService: IAzureResourceService;
-
-        /**
-         * Prompts the user to select an existing connection or create a new one, and then returns the result
-         * @param ignoreFocusOut Whether the quickpick prompt ignores focus out (default false)
-         */
-        promptForConnection(ignoreFocusOut?: boolean): Promise<IConnectionInfo | undefined>;
-
-        /**
-         * Attempts to create a new connection for the given connection info. An error is thrown and displayed
-         * to the user if an error occurs while connecting.
-         * Warning: setting the saveConnection to true will save a new connection profile each time this is called.
-         * Make sure to use that parameter only when you want to actually save a new profile.
-         * @param connectionInfo The connection info
-         * @param saveConnection Save the connection profile if sets to true
-         * @returns The URI associated with this connection
-         */
-        connect(connectionInfo: IConnectionInfo, saveConnection?: boolean): Promise<string>;
-
-        /**
-         * Prompts the user to add firewall rule if connection failed with a firewall error.
-         * @param connectionUri The URI of the connection to add firewall rule to.
-         * @param connectionInfo The connection info
-         * @returns True if firewall rule added
-         */
-        promptForFirewallRule(
-            connectionUri: string,
-            connectionInfo: IConnectionInfo,
-        ): Promise<boolean>;
-
-        /**
-         * Lists the databases for a given connection. Must be given an already-opened connection to succeed.
-         * @param connectionUri The URI of the connection to list the databases for.
-         * @returns The list of database names
-         */
-        listDatabases(connectionUri: string): Promise<string[]>;
-
-        /**
-         * Gets the database name for the node - which is the database name of the connection for a server node, the database name
-         * for nodes at or under a database node or a default value if it's neither of those.
-         * @param node The node to get the database name of
-         * @returns The database name
-         */
-        getDatabaseNameFromTreeNode(node: ITreeNodeInfo): string;
-
-        /**
-         * Get the connection string for the provided connection Uri or connection details.
-         * @param connectionUriOrDetails Either the connection Uri for the connection or the connection details for the connection is required.
-         * @param includePassword (optional) if password should be included in connection string.
-         * @param includeApplicationName (optional) if application name should be included in connection string.
-         * @returns connection string for the connection
-         */
-        getConnectionString(
-            connectionUriOrDetails: string | ConnectionDetails,
-            includePassword?: boolean,
-            includeApplicationName?: boolean,
-        ): Promise<string>;
-
-        /**
-         * Set connection details for the provided connection info
-         * Able to use this for getConnectionString requests to STS that require ConnectionDetails type
-         * @param connectionInfo connection info of the connection
-         * @returns connection details credentials for the connection
-         */
-        createConnectionDetails(connectionInfo: IConnectionInfo): ConnectionDetails;
-
-        /**
-         * Send a request to the SQL Tools Server client
-         * @param requestType The type of the request
-         * @param params The params to pass with the request
-         * @returns A promise object for when the request receives a response
-         */
-        sendRequest<P, R, E, R0>(requestType: RequestType<P, R, E, R0>, params?: P): Promise<R>;
-
-        /**
-         * Get the server info for a connection
-         * @param connectionInfo connection info of the connection
-         * @returns server information
-         */
-        getServerInfo(connectionInfo: IConnectionInfo): IServerInfo;
-        /**
-         * APIs for working with mssql connections
-         */
-        connectionSharing: IConnectionSharingService;
-        /**
-         * APIs for coordinating URI ownership with other database extensions
-         */
-        uriOwnershipApi: UriOwnershipApi;
+        /** APIs for coordinating URI ownership with other database extensions. */
+        readonly uriOwnershipApi: UriOwnershipApi;
     }
 
     /**
@@ -585,7 +471,7 @@ declare module "vscode-mssql" {
             deploymentOptions?: DeploymentOptions,
         ): Thenable<ResultStatus>;
         getDeploymentOptions(scenario: DeploymentScenario): Thenable<GetDeploymentOptionsResult>;
-        getCodeAnalysisRules(): Thenable<GetCodeAnalysisRulesResult>;
+        getCodeAnalysisRules(projectUri?: string): Thenable<GetCodeAnalysisRulesResult>;
     }
 
     /**
@@ -923,11 +809,14 @@ declare module "vscode-mssql" {
          * @param projectUri Absolute path of the project, including .sqlproj
          * @param path Path of the script, including .sql, relative to the .sqlproj
          * @param destinationPath Destination path of the file or folder, relative to the .sqlproj
+         * @param metadataOnly When true, only updates the .sqlproj metadata without moving the
+         * physical file on disk. Use this when the caller has already moved the file.
          */
         moveSqlObjectScript(
             projectUri: string,
             path: string,
             destinationPath: string,
+            metadataOnly?: boolean,
         ): Promise<ResultStatus>;
 
         /**
@@ -1459,7 +1348,9 @@ declare module "vscode-mssql" {
         defaultDeploymentOptions: DeploymentOptions;
     }
 
-    export interface GetCodeAnalysisRulesParams {}
+    export interface GetCodeAnalysisRulesParams {
+        projectUri?: string;
+    }
 
     export interface CodeAnalysisRuleInfo {
         ruleId: string;
@@ -1469,10 +1360,12 @@ declare module "vscode-mssql" {
         category: string;
         severity: string;
         ruleScope: string;
+        isBuiltIn: boolean;
     }
 
     export interface GetCodeAnalysisRulesResult extends ResultStatus {
         rules: CodeAnalysisRuleInfo[];
+        warning?: string;
     }
 
     export interface CodeAnalysisRuleOverride {
@@ -1563,6 +1456,7 @@ declare module "vscode-mssql" {
         serverName: string;
         databaseName: string;
         ownerUri: string;
+        connectionId?: string;
         connectionDetails: SchemaCompareConnectionInfo;
         connectionName?: string;
         projectFilePath: string;
@@ -1841,6 +1735,11 @@ declare module "vscode-mssql" {
          * Destination path of the file or folder, relative to the .sqlproj
          */
         destinationPath: string;
+        /**
+         * When true, only updates the .sqlproj metadata without moving the physical file on disk.
+         * Use this when the caller has already moved the file (e.g. via VS Code's WorkspaceEdit API).
+         */
+        metadataOnly?: boolean;
     }
 
     export interface SetDatabaseSourceParams extends SqlProjectParams {
@@ -2017,6 +1916,9 @@ declare module "vscode-mssql" {
     //#endregion
 
     export interface ITreeNodeInfo extends vscode.TreeItem {
+        /**
+         * TODO(api-retirement): Remove this public API after dependent extensions have migrated.
+         */
         readonly connectionProfile: IConnectionInfo;
         nodeType: string;
         metadata: ObjectMetadata;
@@ -2772,6 +2674,9 @@ declare module "vscode-mssql" {
         parentTypeName?: string;
     }
 
+    /**
+     * TODO(api-retirement): Remove this public API after dependent extensions have migrated.
+     */
     export interface UriOwnershipApi {
         ownsUri(uri: vscode.Uri): boolean;
         onDidChangeUriOwnership: vscode.Event<void>;
@@ -2794,6 +2699,7 @@ declare module "vscode-mssql" {
     /**
      * Interface for connection sharing service
      * This service allows external extensions to use connections established by the mssql extension.
+     * TODO(api-retirement): Remove this public API after dependent extensions have migrated.
      */
     export interface IConnectionSharingService {
         /**

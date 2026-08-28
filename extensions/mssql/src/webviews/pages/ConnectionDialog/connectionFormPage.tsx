@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useContext } from "react";
-import { makeStyles } from "@fluentui/react-components";
+import { fieldClassNames, makeStyles } from "@fluentui/react-components";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { useConnectionDialogSelector } from "./connectionDialogSelector";
 import { FormField } from "../../common/forms/form.component";
@@ -14,6 +14,9 @@ import {
     ConnectionDialogWebviewState,
     IConnectionDialogProfile,
 } from "../../../sharedInterfaces/connectionDialog";
+
+const PORT_INPUT_WIDTH = "72px"; // Width of the port input box. Narrow since it only holds a port number
+const DEFAULT_PORT_PLACEHOLDER = "1433";
 
 const useStyles = makeStyles({
     serverPortRow: {
@@ -33,10 +36,13 @@ const useStyles = makeStyles({
     portField: {
         flexShrink: 0,
     },
+    portFieldLayout: {
+        [`& .${fieldClassNames.validationMessage}`]: {
+            gridColumnStart: 2,
+            width: PORT_INPUT_WIDTH,
+        },
+    },
 });
-
-const PORT_INPUT_WIDTH = "72px"; // Width of the port input box. Narrow since it only holds a port number
-const DEFAULT_PORT_PLACEHOLDER = "1433";
 
 export const ConnectionFormPage = () => {
     const styles = useStyles();
@@ -99,6 +105,7 @@ export const ConnectionFormPage = () => {
                                 </div>
                                 <div className={styles.portField}>
                                     {renderFormField(portComponent, mainOptions.length, {
+                                        fieldClassName: styles.portFieldLayout,
                                         componentProps: {
                                             placeholder: DEFAULT_PORT_PLACEHOLDER,
                                             style: {

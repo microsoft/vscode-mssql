@@ -1,7 +1,7 @@
 {
     "name": "mssql",
     "displayName": "SQL Server (mssql)",
-    "version": "1.45.0",
+    "version": "1.46.0",
     "description": "Design and optimize schemas for SQL Server, Azure SQL, and SQL Database in Fabric using a modern, lightweight extension built for developers",
     "publisher": "ms-mssql",
     "preview": false,
@@ -37,7 +37,8 @@
     "activationEvents": [
         "onUri",
         "onCommand:mssql.loadCompletionExtension",
-        "onNotebook:jupyter-notebook"
+        "onNotebook:jupyter-notebook",
+        "onView:dataworkspace.views.main"
     ],
     "main": "./dist/extension",
     "l10n": "./l10n",
@@ -93,6 +94,7 @@
         "@types/azdata": "^1.46.6",
         "@types/chai": "^5.2.2",
         "@types/dockerode": "^3.3.44",
+        "@types/fs-extra": "^5.0.0",
         "@types/jquery": "^3.3.31",
         "@types/lockfile": "^1.0.2",
         "@types/lodash": "^4.17.21",
@@ -104,9 +106,9 @@
         "@types/sinon": "^10.0.12",
         "@types/sinon-chai": "^4.0.0",
         "@types/tmp": "0.0.28",
-        "@types/tunnel": "0.0.1",
         "@types/vscode": "1.101.0",
         "@types/vscode-webview": "^1.57.5",
+        "@types/which": "^3.0.4",
         "@types/xmldom": "^0.1.34",
         "@typescript/native-preview": "^7.0.0-dev.20260507.1",
         "@vscode/l10n": "^0.0.18",
@@ -156,14 +158,16 @@
         "@microsoft/vscode-azext-azureauth": "^5.1.1",
         "@microsoft/vscode-azureresources-api": "^3.1.1",
         "@xmldom/xmldom": "^0.9.10",
-        "axios": "^1.18.0",
         "dockerode": "^4.0.9",
         "dotenv": "^16.4.5",
         "error-ex": "^1.3.0",
         "extension-toolkit": "file:../../packages/extension-toolkit",
+        "extract-zip": "^2.0.1",
         "figures": "^1.4.0",
         "find-remove": "5.1.1",
         "fix-path": "^5.0.0",
+        "fs-extra": "^5.0.0",
+        "glob": "^13.0.6",
         "has-proto": "^1.2.0",
         "jquery": "^3.4.1",
         "lockfile": "1.0.4",
@@ -171,15 +175,16 @@
         "opener": "1.5.2",
         "plist": "^3.0.6",
         "pretty-data": "^0.40.0",
+        "promisify-child-process": "^3.1.1",
         "semver": "^7.7.4",
         "shallow-equal": "^3.1.0",
         "strip-json-comments": "^5.0.1",
-        "tar": "^7.5.20",
+        "tar": "^7.5.21",
         "tmp": "^0.2.7",
-        "tunnel": "0.0.6",
         "vscode-jsonrpc": "^9.0.0",
         "vscode-languageclient": "10.0.0",
         "xml-formatter": "^3.6.7",
+        "which": "^6.0.1",
         "yallist": "^5.0.0",
         "yauzl": "^3.3.1"
     },
@@ -214,7 +219,7 @@
                 {
                     "id": "queryResult",
                     "title": "%extension.queryResult%",
-                    "icon": "media/SignIn.svg"
+                    "icon": "media/queryResultView.svg"
                 }
             ]
         },
@@ -224,7 +229,8 @@
                     "type": "webview",
                     "id": "queryResult",
                     "name": "%extension.queryResult%",
-                    "when": "!config.mssql.openQueryResultsInTabByDefault"
+                    "when": "!config.mssql.openQueryResultsInTabByDefault",
+                    "icon": "media/queryResultView.svg"
                 }
             ],
             "objectExplorer": [
@@ -334,8 +340,7 @@
                 "displayName": "SQL Server Execution Plan",
                 "selector": [
                     {
-                        "filenamePattern": "*.sqlplan",
-                        "language": "sqlplan"
+                        "filenamePattern": "*.sqlplan"
                     }
                 ],
                 "priority": "default"
@@ -1213,7 +1218,10 @@
                 "command": "mssql.revealQueryResult",
                 "title": "%mssql.revealQueryResult%",
                 "category": "MS SQL",
-                "icon": "$(table)"
+                "icon": {
+                    "dark": "media/queryResultView_dark.svg",
+                    "light": "media/queryResultView_light.svg"
+                }
             },
             {
                 "command": "mssql.toggleQueryResultPanel",
@@ -1758,6 +1766,12 @@
                 "command": "mssql.openInMssqlExtensionFromAzureResources",
                 "title": "%mssql.openInMssqlExtensionFromAzureResources%",
                 "category": "MS SQL"
+            },
+            {
+                "command": "mssql.sqlDataPlane.showStatus",
+                "title": "%mssql.sqlDataPlane.showStatus%",
+                "category": "MS SQL",
+                "enablement": "config.mssql.sqlDataPlane.enabled"
             }
         ],
         "keybindings": [
@@ -1807,10 +1821,77 @@
                     "description": "%mssql.enableExperimentalFeatures.description%",
                     "scope": "application"
                 },
-                "mssql.preview.betaResultsGrid": {
+                "mssql.sqlDataPlane.enabled": {
                     "type": "boolean",
                     "default": false,
+                    "markdownDescription": "%mssql.sqlDataPlane.enabled.description%",
+                    "scope": "application"
+                },
+                "mssql.sqlDataPlane.backend": {
+                    "type": "string",
+                    "enum": [
+                        "sts2-local"
+                    ],
+                    "default": "sts2-local",
+                    "markdownDescription": "%mssql.sqlDataPlane.backend.description%",
+                    "scope": "application"
+                },
+                "mssql.sqlDataPlane.capabilityFallback": {
+                    "type": "string",
+                    "enum": [
+                        "prompt",
+                        "auto",
+                        "off"
+                    ],
+                    "default": "prompt",
+                    "markdownDescription": "%mssql.sqlDataPlane.capabilityFallback.description%",
+                    "scope": "application"
+                },
+                "mssql.sqlDataPlane.timeouts.openMs": {
+                    "type": "number",
+                    "minimum": 1,
+                    "default": 30000,
+                    "markdownDescription": "%mssql.sqlDataPlane.timeouts.openMs.description%",
+                    "scope": "application"
+                },
+                "mssql.sqlDataPlane.timeouts.cancelAckMs": {
+                    "type": "number",
+                    "minimum": 1,
+                    "default": 10000,
+                    "markdownDescription": "%mssql.sqlDataPlane.timeouts.cancelAckMs.description%",
+                    "scope": "application"
+                },
+                "mssql.sqlDataPlane.timeouts.closeMs": {
+                    "type": "number",
+                    "minimum": 1,
+                    "default": 15000,
+                    "markdownDescription": "%mssql.sqlDataPlane.timeouts.closeMs.description%",
+                    "scope": "application"
+                },
+                "mssql.sqlDataPlane.timeouts.disposeDrainMs": {
+                    "type": "number",
+                    "minimum": 1,
+                    "default": 10000,
+                    "markdownDescription": "%mssql.sqlDataPlane.timeouts.disposeDrainMs.description%",
+                    "scope": "application"
+                },
+                "mssql.sqlDataPlane.timeouts.initializeMs": {
+                    "type": "number",
+                    "minimum": 1,
+                    "default": 20000,
+                    "markdownDescription": "%mssql.sqlDataPlane.timeouts.initializeMs.description%",
+                    "scope": "application"
+                },
+                "mssql.preview.betaResultsGrid": {
+                    "type": "boolean",
+                    "default": true,
                     "description": "%mssql.preview.betaResultsGrid.description%",
+                    "scope": "application"
+                },
+                "mssql.preview.betaExecutionPlan": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "%mssql.preview.betaExecutionPlan.description%",
                     "scope": "application"
                 },
                 "mssql.preview.useVscodeAccountsForEntraMFA": {
@@ -1827,6 +1908,18 @@
                     "default": false,
                     "description": "%mssql.openQueryResultsInTabByDefault.description%",
                     "scope": "application"
+                },
+                "mssql.query.playCompletionSound": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "%mssql.query.playCompletionSound.description%",
+                    "scope": "window"
+                },
+                "mssql.query.completionSoundFile": {
+                    "type": "string",
+                    "default": "",
+                    "description": "%mssql.query.completionSoundFile.description%",
+                    "scope": "window"
                 },
                 "mssql.openQueryResultsInTabByDefaultDoNotShowPrompt": {
                     "type": "boolean",
@@ -2386,6 +2479,12 @@
                     "default": false,
                     "scope": "resource"
                 },
+                "mssql.results.showBatchMessages": {
+                    "type": "boolean",
+                    "description": "%mssql.results.showBatchMessages%",
+                    "default": true,
+                    "scope": "resource"
+                },
                 "mssql.splitPaneSelection": {
                     "type": "string",
                     "description": "%mssql.splitPaneSelection%",
@@ -2411,6 +2510,12 @@
                 "mssql.statusBar.enableConnectionColor": {
                     "type": "boolean",
                     "description": "%mssql.statusBar.enableConnectionColor%",
+                    "default": true,
+                    "scope": "window"
+                },
+                "mssql.statusBar.showQueryExecutionStatus": {
+                    "type": "boolean",
+                    "description": "%mssql.statusBar.showQueryExecutionStatus.description%",
                     "default": true,
                     "scope": "window"
                 },
@@ -2700,6 +2805,14 @@
                     "description": "%mssql.intelliSense.enableIntelliSense%",
                     "scope": "window"
                 },
+                "mssql.intelliSense.completionTimeoutMilliseconds": {
+                    "type": "integer",
+                    "default": 2000,
+                    "minimum": 500,
+                    "maximum": 30000,
+                    "description": "%mssql.intelliSense.completionTimeoutMilliseconds%",
+                    "scope": "window"
+                },
                 "mssql.intelliSense.enableErrorChecking": {
                     "type": "boolean",
                     "default": true,
@@ -2798,6 +2911,11 @@
                     "type": "boolean",
                     "default": false,
                     "description": "%mssql.resultsGrid.alternatingRowColors%"
+                },
+                "mssql.resultsGrid.freezeFirstColumnByDefault": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "%mssql.resultsGrid.freezeFirstColumnByDefault%"
                 },
                 "mssql.resultsGrid.showGridLines": {
                     "type": "string",

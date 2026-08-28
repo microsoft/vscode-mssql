@@ -4,21 +4,27 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import * as vscodeMssql from "vscode-mssql";
-import { InstantiationServiceBuilder } from "extension-toolkit/base";
+import {
+    IInstantiationService,
+    InstantiationServiceBuilder,
+    ServiceDescriptor,
+} from "extension-toolkit/base";
 import {
     ExtensionContextService,
     IExtensionContextService,
+    initializeExtensionToolkit,
     initializeTelemetryReporter,
     sendActionEvent,
     telemetryReporter,
 } from "extension-toolkit/vscode";
 import MainController from "./controllers/mainController";
-import { ConnectionDetails, IConnectionInfo, IExtension } from "vscode-mssql";
-import * as utils from "./models/utils";
-import { ObjectExplorerUtils } from "./objectExplorer/objectExplorerUtils";
+import { IExtension } from "vscode-mssql";
 import SqlToolsServerClient from "./languageservice/serviceclient";
-import { RequestType } from "vscode-languageclient";
+import { createMssqlInternalApi } from "./controllers/internalApiFactory";
+import { registerDataWorkspace } from "./dataWorkspace/dataWorkspaceRegistration";
+import { ProjectProviderRegistry } from "./dataWorkspace/common/projectProviderRegistry";
+import { registerDatabaseProjects } from "./databaseProjects/extension";
+import { initializeDatabaseProjectsServices } from "./databaseProjects/serviceLocator";
 import {
     createSqlAgentRequestHandler,
     ISqlChatResult,
@@ -35,6 +41,15 @@ import {
     initializeUriOwnershipCoordinator,
 } from "./uriOwnership/uriOwnershipInitialization";
 import { registerSqlToolsMcpServer } from "./sqlToolsMcp/registerSqlToolsMcpServer";
+import { registerSqlDataPlane } from "./services/sqlDataPlane/sqlDataPlaneService";
+import { CredentialStore, ICredentialStore } from "./credentialstore/credentialstore";
+import { ConnectionConfig, IConnectionConfig } from "./connectionconfig/connectionconfig";
+import { IConnectionStore, ConnectionStore } from "./models/connectionStore";
+import { IAccountStore, AccountStore } from "./azure/accountStore";
+import { registerPerfApi } from "./perf/perfApi";
+import { Perf } from "./perf/perfTelemetry";
+import { diagnosticErrorClass } from "./diagnostics/diagnosticsCore";
+import { sqlDatabaseProjectsExtensionId } from "./constants/constants";
 
 /** exported for testing purposes only */
 export let controller: MainController = undefined;
@@ -43,15 +58,34 @@ export let uriOwnershipCoordinator: UriOwnershipCoordinator = undefined;
 let activation: MssqlActivation | undefined;
 
 export async function activate(context: vscode.ExtensionContext): Promise<IExtension> {
-    const builder = new InstantiationServiceBuilder();
+    initializeExtensionToolkit();
+    Perf.setActivationState("activating");
+    Perf.marker("mssql.activate.begin", "begin");
 
-    builder.define(IExtensionContextService, new ExtensionContextService(context));
+    try {
+        const builder = new InstantiationServiceBuilder();
 
-    const instantiationService = builder.seal();
-    context.subscriptions.push(instantiationService);
+        builder.define(IExtensionContextService, new ExtensionContextService(context));
+        builder.define(ICredentialStore, new ServiceDescriptor(CredentialStore));
+        builder.define(IConnectionConfig, new ServiceDescriptor(ConnectionConfig));
+        builder.define(IConnectionStore, new ServiceDescriptor(ConnectionStore));
+        builder.define(IAccountStore, new ServiceDescriptor(AccountStore));
 
-    activation = instantiationService.createInstance(MssqlActivation);
-    return activation.activate();
+        const instantiationService = builder.seal();
+        context.subscriptions.push(instantiationService);
+
+        activation = instantiationService.createInstance(MssqlActivation);
+        return await activation.activate();
+    } catch (error) {
+        Perf.setActivationState("failed");
+        Perf.marker("mssql.activate.end", "end", {
+            failed: true,
+            error: true,
+            errorClass: diagnosticErrorClass(error),
+        });
+        Perf.flush();
+        throw error;
+    }
 }
 
 // this method is called when your extension is deactivated
@@ -75,16 +109,17 @@ export async function getController(): Promise<MainController> {
 class MssqlActivation {
     constructor(
         @IExtensionContextService private readonly _contextService: IExtensionContextService,
+        @IInstantiationService private readonly _instantiationService: IInstantiationService,
     ) {}
 
     async activate(): Promise<IExtension> {
         const context = this._contextService.context;
         initializeTelemetryReporter(context.extension.packageJSON.aiKey);
 
-        // Create coordinator early so uriOwnershipApi is available for export
+        // Create the coordinator early so uriOwnershipApi is available for export.
         uriOwnershipCoordinator = createUriOwnershipCoordinator(context);
 
-        controller = new MainController(context);
+        controller = this._instantiationService.createInstance(MainController, context);
         context.subscriptions.push(controller);
         context.subscriptions.push(telemetryReporter);
 
@@ -103,6 +138,7 @@ class MssqlActivation {
 
         // Exposed for testing purposes
         vscode.commands.registerCommand("mssql.getControllerForTests", () => controller);
+        registerSqlDataPlane(context);
         await controller.activate();
 
         initializeUriOwnershipCoordinator(uriOwnershipCoordinator, controller.connectionManager);
@@ -147,132 +183,26 @@ class MssqlActivation {
 
         await ChangelogWebviewController.showChangelogOnExtensionUpdate(context);
 
+        const dataWorkspaceApi = registerDataWorkspace(context);
+        const sqlProjectsShell = vscode.extensions.getExtension(sqlDatabaseProjectsExtensionId);
+        if (dataWorkspaceApi && sqlProjectsShell?.packageJSON.mssqlRuntime === true) {
+            initializeDatabaseProjectsServices(
+                createMssqlInternalApi(controller),
+                dataWorkspaceApi,
+            );
+            const provider = await registerDatabaseProjects(context);
+            context.subscriptions.push(
+                ProjectProviderRegistry.registerProvider(provider, sqlDatabaseProjectsExtensionId),
+            );
+        }
+
+        registerPerfApi(context);
+        Perf.setActivationState("activated");
+        Perf.marker("mssql.activate.end", "end");
+        Perf.flush();
+
         return {
-            sqlToolsServicePath: SqlToolsServerClient.instance.sqlToolsServicePath,
-            promptForConnection: async (ignoreFocusOut?: boolean) => {
-                const connectionProfileList =
-                    await controller.connectionManager.connectionStore.getPickListItems();
-                return controller.connectionManager.connectionUI.promptForConnection(
-                    connectionProfileList,
-                    ignoreFocusOut,
-                );
-            },
-            connect: async (connectionInfo: IConnectionInfo, saveConnection?: boolean) => {
-                const uri = utils.generateQueryUri().toString();
-                // First wait for initial connection request to succeed
-                const requestSucceeded = await controller.connect(
-                    uri,
-                    connectionInfo,
-                    saveConnection,
-                    "extensionApi",
-                );
-                if (!requestSucceeded) {
-                    throw new Error(
-                        `Connection request for ${JSON.stringify(connectionInfo)} failed`,
-                    );
-                }
-                return uri;
-            },
-            listDatabases: (connectionUri: string) => {
-                return controller.connectionManager.listDatabases(connectionUri);
-            },
-            getDatabaseNameFromTreeNode: (node: vscodeMssql.ITreeNodeInfo) => {
-                return ObjectExplorerUtils.getDatabaseName(node);
-            },
-            dacFx: controller.dacFxService,
-            schemaCompare: controller.schemaCompareService,
-            sqlProjects: controller.sqlProjectsService,
-            getConnectionString: (
-                connectionUriOrDetails: string | ConnectionDetails,
-                includePassword?: boolean,
-                includeApplicationName?: boolean,
-            ) => {
-                return controller.connectionManager.getConnectionString(
-                    connectionUriOrDetails,
-                    includePassword,
-                    includeApplicationName,
-                );
-            },
-            promptForFirewallRule: async (connectionUri: string, credentials: IConnectionInfo) => {
-                const connectionInfo =
-                    controller.connectionManager.getConnectionInfo(connectionUri);
-                if (!connectionInfo) {
-                    throw new Error(
-                        `Could not find connection info for connection URI: ${connectionUri}`,
-                    );
-                }
-                return controller.connectionManager.handleFirewallError(
-                    credentials,
-                    connectionInfo.errorMessage,
-                );
-            },
-            azureAccountService: controller.azureAccountService,
-            azureResourceService: controller.azureResourceService,
-            createConnectionDetails: (connectionInfo: IConnectionInfo) => {
-                return controller.connectionManager.createConnectionDetails(connectionInfo);
-            },
-            sendRequest: async <P, R, E>(requestType: RequestType<P, R, E>, params?: P) => {
-                return await controller.connectionManager.sendRequest(requestType, params);
-            },
-            getServerInfo: (connectionInfo: IConnectionInfo) => {
-                return controller.connectionManager.getServerInfo(connectionInfo);
-            },
-            connectionSharing: {
-                getActiveEditorConnectionId: (extensionId: string) => {
-                    return controller.connectionSharingService.getActiveEditorConnectionId(
-                        extensionId,
-                    );
-                },
-                getActiveDatabase: (extensionId: string) => {
-                    return controller.connectionSharingService.getActiveDatabase(extensionId);
-                },
-                getDatabaseForConnectionId: (extensionId: string, connectionId: string) => {
-                    return controller.connectionSharingService.getDatabaseForConnectionId(
-                        extensionId,
-                        connectionId,
-                    );
-                },
-                connect: async (extensionId: string, connectionId: string): Promise<string> => {
-                    return controller.connectionSharingService.connect(extensionId, connectionId);
-                },
-                disconnect: (connectionUri: string): void => {
-                    return controller.connectionSharingService.disconnect(connectionUri);
-                },
-                isConnected: (connectionUri: string): boolean => {
-                    return controller.connectionSharingService.isConnected(connectionUri);
-                },
-                executeSimpleQuery: (
-                    connectionUri: string,
-                    queryString: string,
-                ): Promise<vscodeMssql.SimpleExecuteResult> => {
-                    return controller.connectionSharingService.executeSimpleQuery(
-                        connectionUri,
-                        queryString,
-                    );
-                },
-                getServerInfo: (connectionUri: string): vscodeMssql.IServerInfo => {
-                    return controller.connectionSharingService.getServerInfo(connectionUri);
-                },
-                listDatabases: (connectionUri: string): Promise<string[]> => {
-                    return controller.connectionSharingService.listDatabases(connectionUri);
-                },
-                scriptObject: (connectionUri, operation, scriptingObject) => {
-                    return controller.connectionSharingService.scriptObject(
-                        connectionUri,
-                        operation,
-                        scriptingObject,
-                    );
-                },
-                getConnectionString: (
-                    extensionId: string,
-                    connectionId: string,
-                ): Promise<string> => {
-                    return controller.connectionSharingService.getConnectionString(
-                        extensionId,
-                        connectionId,
-                    );
-                },
-            } as vscodeMssql.IConnectionSharingService,
+            connectionSharing: controller.connectionSharingService,
             uriOwnershipApi: uriOwnershipCoordinator.uriOwnershipApi,
         };
     }
