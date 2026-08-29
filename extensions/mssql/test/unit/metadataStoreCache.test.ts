@@ -394,7 +394,7 @@ suite("MetadataStore cache integration (CACHE-3)", () => {
         store.dispose();
     });
 
-    test("store: offline mode serves the disk snapshot with NO background refresh", async () => {
+    test("store: offline mode gates resolver, hydrate, poll, refresh, freshness, and auxiliary work", async () => {
         const { coordinator } = makeCache();
         const prepared = prepareConnection(PROFILE, NO_SECRETS);
         const key = { serverFingerprint: prepared.serverFingerprint, database: "DbA" };
@@ -402,18 +402,70 @@ suite("MetadataStore cache integration (CACHE-3)", () => {
             "saved",
         );
 
-        const backend = new FakeBackend({ scripts: catalogScripts("LiveTable") });
-        const store = new MetadataStore(async () => backend, {
-            pollSeconds: 0,
-            cache: { coordinator, offlineMode: () => true },
+        let queryCount = 0;
+        const backend = new FakeBackend({
+            scripts: [
+                {
+                    match: () => {
+                        queryCount++;
+                        return false;
+                    },
+                    events: [],
+                },
+                ...catalogScripts("LiveTable"),
+            ],
         });
+        let resolverCalls = 0;
+        let offline = true;
+        const store = new MetadataStore(
+            async () => {
+                resolverCalls++;
+                return backend;
+            },
+            {
+                pollSeconds: 0.01,
+                cache: { coordinator, offlineMode: () => offline },
+            },
+        );
         const lease = await store.acquireDatabase(prepared, "DbA");
         await sleep(60);
         expect(lease.status().generation).to.equal(42);
         expect(lease.current()!.listObjects()[0].name).to.equal("DiskTable");
         expect(store.status().databases[0].source).to.equal("disk");
-        // No metadata session was ever opened.
+        await lease.refresh();
+        await lease.ensureFresh({ mode: "requireLive", reason: "oeBrowse" });
+        await lease.auxiliary.ensureSection(lease.auxiliary.sectionKeys()[0]);
+        // A hit performs no backend resolution, session open, or query work.
+        expect(resolverCalls).to.equal(0);
         expect(backend.sessions.length).to.equal(0);
+        expect(queryCount).to.equal(0);
+
+        // A miss is equally cache-only while offline.
+        const miss = await store.acquireDatabase(prepared, "NoCache");
+        await sleep(30);
+        expect(miss.current()).to.equal(undefined);
+        expect(resolverCalls).to.equal(0);
+        expect(backend.sessions.length).to.equal(0);
+        expect(queryCount).to.equal(0);
+
+        // Go online once, hydrate, then switch back offline. Existing poll
+        // timers and the already-resolved session must not leak new work.
+        offline = false;
+        await miss.refresh();
+        expect(miss.status().readiness).to.equal("ready");
+        expect(resolverCalls).to.equal(1);
+        expect(backend.sessions.length).to.equal(1);
+        const onlineQueries = queryCount;
+        offline = true;
+        await miss.refresh();
+        await miss.ensureFresh({ mode: "requireValidated", reason: "completion" });
+        await miss.auxiliary.ensureSection(miss.auxiliary.sectionKeys()[0]);
+        await sleep(40);
+        expect(resolverCalls).to.equal(1);
+        expect(backend.sessions.length).to.equal(1);
+        expect(queryCount).to.equal(onlineQueries);
+
+        miss.dispose();
         lease.dispose();
         store.dispose();
     });

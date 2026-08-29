@@ -391,7 +391,12 @@ export class CatalogBuilder {
 
     engineEdition: number | undefined;
 
-    caseSensitive = false;
+    /**
+     * Catalog identifier comparison rule. Undefined means the H0 environment
+     * probe did not establish the rule; name resolution then fails closed by
+     * requiring exact spelling instead of assuming case-insensitive matching.
+     */
+    caseSensitive: boolean | undefined;
     collationName: string | undefined;
     defaultSchema = "dbo";
 
@@ -826,7 +831,7 @@ export class CatalogSnapshot {
     get codecView(): CatalogCodecView {
         const environment: CatalogEnvironment = {
             defaultSchema: this.b.defaultSchema,
-            caseSensitive: this.b.caseSensitive,
+            ...(this.b.caseSensitive !== undefined ? { caseSensitive: this.b.caseSensitive } : {}),
         };
         if (this.b.engineEdition !== undefined) {
             environment.engineEdition = this.b.engineEdition;
@@ -1073,7 +1078,7 @@ export class CatalogSnapshot {
         return this.b.defaultSchema;
     }
 
-    get caseSensitive(): boolean {
+    get caseSensitive(): boolean | undefined {
         return this.b.caseSensitive;
     }
 
@@ -1149,7 +1154,7 @@ export class CatalogSnapshot {
             return entry.object;
         }
         const exact = entry.byColumn.get(column);
-        if (exact !== undefined || this.b.caseSensitive) {
+        if (exact !== undefined || this.b.caseSensitive !== false) {
             return exact;
         }
         const folded = column.toLowerCase();
@@ -1220,9 +1225,10 @@ export class CatalogSnapshot {
         for (const entry of this.searchIndexRange(foldedName)) {
             const info = this.objectAt(entry.index);
             if (schemaPart) {
-                const schemaMatches = this.b.caseSensitive
-                    ? info.schema === schemaPart
-                    : info.schema.toLowerCase() === schemaPart.toLowerCase();
+                const schemaMatches =
+                    this.b.caseSensitive !== false
+                        ? info.schema === schemaPart
+                        : info.schema.toLowerCase() === schemaPart.toLowerCase();
                 if (!schemaMatches) {
                     continue;
                 }
@@ -1232,7 +1238,7 @@ export class CatalogSnapshot {
         if (candidates.length === 0) {
             return { kind: "notFound" };
         }
-        if (this.b.caseSensitive) {
+        if (this.b.caseSensitive !== false) {
             const raw = candidates.filter(
                 (index) => this.strings[this.b.objectNameSyms[index]] === namePart,
             );
@@ -1243,7 +1249,7 @@ export class CatalogSnapshot {
                     confidence: schemaPart ? "exact" : "defaultSchema",
                 };
             }
-            if (raw.length > 1 || candidates.length > 1) {
+            if (raw.length > 1 || (this.b.caseSensitive === true && candidates.length > 1)) {
                 return {
                     kind: "ambiguous",
                     candidates: candidates.map((index) => this.b.objectIds[index]),

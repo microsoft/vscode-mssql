@@ -578,6 +578,14 @@ export class MetadataService {
              */
             validationLimiter?: MetadataValidationLimiter;
             /**
+             * Live network authorization. When false, hydration, validation,
+             * polling, lazy definitions, and retry timers must do no session
+             * or query work; disk snapshots remain readable.
+             */
+            isNetworkAllowed?: () => boolean;
+            /** Initial H0 identity mismatch before any catalog publication. */
+            onIdentityMismatch?: (drift: { expected: string; actual: string }) => void;
+            /**
              * H-5: fired EXACTLY ONCE per identity-drift episode when the
              * digest identity rider proves the physical database no longer
              * matches key.database. The store wires this to its
@@ -611,10 +619,12 @@ export class MetadataService {
         if (onStatus) {
             entry.listeners.add(onStatus);
         }
-        if (entry.status === "absent" || entry.status === "failed") {
+        if (this.networkAllowed() && (entry.status === "absent" || entry.status === "failed")) {
             void this.hydrate(entry);
         }
-        this.startPolling(entry);
+        if (this.networkAllowed()) {
+            this.startPolling(entry);
+        }
 
         const service = this;
         return {
@@ -891,11 +901,17 @@ export class MetadataService {
         if (inFlight !== undefined) {
             return inFlight;
         }
+        if (!this.networkAllowed()) {
+            return { unavailableReason: "notLoaded", generation: entry.generation };
+        }
         const read = this.runExclusive(
             entry,
             async (): Promise<ModuleDefinitionResult> => {
                 const generation = entry.generation;
                 try {
+                    if (!this.networkAllowed()) {
+                        return { unavailableReason: "notLoaded", generation };
+                    }
                     const session = await this.sessions.open();
                     const rows = await this.rows(
                         session,
@@ -951,7 +967,8 @@ export class MetadataService {
      * one in-flight pass collapse into at most one follow-up pass.
      */
     private async hydrate(entry: CatalogEntry, force = false): Promise<void> {
-        if (this.disposed) {
+        if (this.disposed || !this.networkAllowed()) {
+            this.clearNetworkTimers(entry);
             return;
         }
         const watchdog = {
@@ -1007,7 +1024,7 @@ export class MetadataService {
     }
 
     private async hydrateCore(entry: CatalogEntry): Promise<void> {
-        if (this.disposed) {
+        if (this.disposed || !this.networkAllowed()) {
             return;
         }
         // Epoch capture (H-2): if the lane watchdog abandons this run, the
@@ -1025,17 +1042,23 @@ export class MetadataService {
             },
         });
         try {
+            if (!this.networkAllowed()) {
+                return;
+            }
             const session = await this.sessions.open();
             const builder = new CatalogBuilder();
 
-            // H0 environment (best-effort; defaults survive a failed probe)
+            // H0 environment is best-effort for comparison semantics, but an
+            // observed database identity is fail-closed before H1/publication.
+            let canonicalDatabase: string | undefined;
+            let catalogCaseSensitive: boolean | undefined;
             try {
                 const envRows = await this.rows(session, H0_ENV, "metadata:H0");
                 const env = envRows[0];
                 if (env) {
                     const collation =
                         env[2] === null || env[2] === undefined ? undefined : String(env[2]);
-                    const catalogCaseSensitive =
+                    catalogCaseSensitive =
                         env[3] === true || env[3] === 1
                             ? true
                             : env[3] === false || env[3] === 0
@@ -1043,8 +1066,7 @@ export class MetadataService {
                               : collation
                                 ? collationIsCaseSensitive(collation)
                                 : undefined;
-                    entry.catalogCaseSensitive = catalogCaseSensitive;
-                    entry.canonicalDatabase =
+                    canonicalDatabase =
                         env[4] === null || env[4] === undefined ? undefined : String(env[4]);
                     builder.setEnvironment({
                         engineEdition: Number.isFinite(Number(env[0])) ? Number(env[0]) : undefined,
@@ -1054,8 +1076,22 @@ export class MetadataService {
                     });
                 }
             } catch {
-                // Environment probe is an enhancement; hydration proceeds.
+                // Unknown comparison semantics stay exact-only in the model.
             }
+            if (
+                entry.key.database &&
+                canonicalDatabase !== undefined &&
+                !this.databaseNamesMatch(
+                    entry.key.database,
+                    canonicalDatabase,
+                    catalogCaseSensitive,
+                )
+            ) {
+                this.latchInitialIdentityMismatch(entry, canonicalDatabase);
+                throw new Error("Metadata database identity mismatch");
+            }
+            entry.catalogCaseSensitive = catalogCaseSensitive;
+            entry.canonicalDatabase = canonicalDatabase;
 
             // H1 schemas
             for (const row of await this.rows(session, H1_SCHEMAS, "metadata:H1")) {
@@ -1383,7 +1419,13 @@ export class MetadataService {
      * already caps in-flight attempts at one.
      */
     private scheduleFailedRetry(entry: CatalogEntry): void {
-        if (this.disposed || !entry.snapshot || entry.refCount <= 0 || entry.retryTimer) {
+        if (
+            this.disposed ||
+            !this.networkAllowed() ||
+            !entry.snapshot ||
+            entry.refCount <= 0 ||
+            entry.retryTimer
+        ) {
             return;
         }
         const backoff = this.options.retryBackoffMs ?? [5_000, 30_000, 120_000];
@@ -1396,6 +1438,7 @@ export class MetadataService {
             entry.retryTimer = undefined;
             if (
                 !this.disposed &&
+                this.networkAllowed() &&
                 entry.status === "failed" &&
                 !entry.hydrating &&
                 entry.refCount > 0
@@ -1414,6 +1457,9 @@ export class MetadataService {
      * outlasts its timeout race still converges on the new generation.
      */
     private validateEntry(entry: CatalogEntry): Promise<MetadataValidationSummary> {
+        if (!this.networkAllowed()) {
+            return Promise.resolve({ tier: "none", result: "notChecked" });
+        }
         if (entry.validationInFlight) {
             return entry.validationInFlight;
         }
@@ -1461,6 +1507,9 @@ export class MetadataService {
                     this.runExclusive(
                         entry,
                         async () => {
+                            if (!this.networkAllowed()) {
+                                throw new Error("Metadata network access disabled");
+                            }
                             const session = await this.sessions.open();
                             const rows = await this.rows(session, CHEAP_DIGEST, "metadata:digest");
                             // Row shape: [current_db, object_count, object_hash];
@@ -1555,7 +1604,12 @@ export class MetadataService {
      * T1 validation (the summary machinery is shared with ensureFresh).
      */
     private async checkDigest(entry: CatalogEntry): Promise<void> {
-        if (entry.status !== "ready" || entry.hydrating || entry.identityDrift) {
+        if (
+            !this.networkAllowed() ||
+            entry.status !== "ready" ||
+            entry.hydrating ||
+            entry.identityDrift
+        ) {
             return;
         }
         try {
@@ -1576,9 +1630,27 @@ export class MetadataService {
     private databaseIdentityMatches(entry: CatalogEntry, actual: string): boolean {
         const expected = entry.canonicalDatabase ?? entry.key.database;
         const caseSensitive = entry.catalogCaseSensitive ?? entry.snapshot?.caseSensitive;
+        return this.databaseNamesMatch(expected, actual, caseSensitive);
+    }
+
+    private databaseNamesMatch(
+        expected: string,
+        actual: string,
+        caseSensitive: boolean | undefined,
+    ): boolean {
         return caseSensitive === false
             ? actual.toUpperCase() === expected.toUpperCase()
             : actual === expected;
+    }
+
+    private latchInitialIdentityMismatch(entry: CatalogEntry, actual: string): void {
+        if (!entry.identityDrift) {
+            this.options.onIdentityMismatch?.({ expected: entry.key.database, actual });
+        }
+        entry.identityDrift = true;
+        entry.lastValidatedAtMs = undefined;
+        entry.sessionWedged = true;
+        this.clearNetworkTimers(entry);
     }
 
     /**
@@ -1702,6 +1774,16 @@ export class MetadataService {
         policy: MetadataFreshnessPolicy,
         startedAt: number,
     ): Promise<FreshCatalogResult> {
+        if (!this.networkAllowed()) {
+            this.clearNetworkTimers(entry);
+            return this.makeFresh(
+                entry,
+                startedAt,
+                entry.snapshot,
+                "offline",
+                entry.snapshot ? "stale" : "unavailable",
+            );
+        }
         switch (policy.mode) {
             case "allowStale": {
                 if (entry.snapshot) {
@@ -1863,11 +1945,16 @@ export class MetadataService {
         }
         return new Promise((resolve) => {
             let settled = false;
+            let abortListener: (() => void) | undefined;
             const settle = (value: "done" | "timeout") => {
                 if (!settled) {
                     settled = true;
                     if (timer !== undefined) {
                         clearTimeout(timer);
+                    }
+                    if (abortListener) {
+                        signal?.removeEventListener("abort", abortListener);
+                        abortListener = undefined;
                     }
                     resolve(value);
                 }
@@ -1881,7 +1968,8 @@ export class MetadataService {
                 if (signal.aborted) {
                     settle("timeout");
                 } else {
-                    signal.addEventListener("abort", () => settle("timeout"), { once: true });
+                    abortListener = () => settle("timeout");
+                    signal.addEventListener("abort", abortListener, { once: true });
                 }
             }
             work.then(
@@ -1921,7 +2009,7 @@ export class MetadataService {
     }
 
     private startPolling(entry: CatalogEntry): void {
-        if (this.pollBaseMs() === undefined) {
+        if (!this.networkAllowed() || this.pollBaseMs() === undefined) {
             return;
         }
         this.schedulePoll(entry);
@@ -1932,6 +2020,7 @@ export class MetadataService {
         const base = this.pollBaseMs();
         if (
             base === undefined ||
+            !this.networkAllowed() ||
             entry.pollTimer !== undefined ||
             entry.identityDrift ||
             entry.refCount <= 0 ||
@@ -1952,7 +2041,12 @@ export class MetadataService {
     }
 
     private async pollTick(entry: CatalogEntry): Promise<void> {
-        if (entry.refCount <= 0 || entry.identityDrift || this.pollsSuspended) {
+        if (
+            !this.networkAllowed() ||
+            entry.refCount <= 0 ||
+            entry.identityDrift ||
+            this.pollsSuspended
+        ) {
             return; // stopped/suspended — resume or re-acquire reschedules
         }
         try {
@@ -1981,6 +2075,21 @@ export class MetadataService {
             entry.pollTimer = undefined;
         }
         this.schedulePoll(entry);
+    }
+
+    private networkAllowed(): boolean {
+        return this.options.isNetworkAllowed?.() !== false;
+    }
+
+    private clearNetworkTimers(entry: CatalogEntry): void {
+        if (entry.pollTimer) {
+            clearTimeout(entry.pollTimer);
+            entry.pollTimer = undefined;
+        }
+        if (entry.retryTimer) {
+            clearTimeout(entry.retryTimer);
+            entry.retryTimer = undefined;
+        }
     }
 
     private hostActive(): boolean {

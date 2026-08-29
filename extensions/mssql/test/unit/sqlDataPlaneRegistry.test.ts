@@ -68,6 +68,8 @@ class TestConfig implements DataPlaneConfigReader {
 interface TestFactoryHooks {
     createCalls: number;
     disposeCalls?: number;
+    openSessionCalls?: number;
+    providerCanOpen?: { ok: boolean; reason?: string };
     failNextCreate?: Error;
     deferCreate?: Promise<void>;
 }
@@ -110,6 +112,14 @@ function testFactory(
             backend.dispose = () => {
                 hooks.disposeCalls = (hooks.disposeCalls ?? 0) + 1;
             };
+            const openSession = backend.openSession.bind(backend);
+            backend.openSession = async (params) => {
+                hooks.openSessionCalls = (hooks.openSessionCalls ?? 0) + 1;
+                return openSession(params);
+            };
+            if (hooks.providerCanOpen) {
+                backend.canOpen = async () => hooks.providerCanOpen!;
+            }
             return backend;
         },
     };
@@ -310,6 +320,42 @@ suite("SQL Data Plane backend registry (FOUND-1)", () => {
 
         await service2.service(); // retry succeeds
         expect(failing.createCalls).to.equal(2);
+    });
+
+    test("provider availability refusal is retryable unavailable and never attempts open", async () => {
+        const hooks: TestFactoryHooks = {
+            createCalls: 0,
+            providerCanOpen: { ok: false, reason: "temporarily unavailable" },
+        };
+        const config = new TestConfig();
+        config.set("mssql.sqlDataPlane.backend", "fake");
+        const service = makeService(config, testFactory("fake", hooks));
+
+        let error: SqlDataPlaneError | undefined;
+        try {
+            await service.openSession({ profile: PROFILE, applicationName: "test" });
+        } catch (caught) {
+            error = caught as SqlDataPlaneError;
+        }
+
+        expect(error?.code).to.equal(DataPlaneErrorCodes.unavailable);
+        expect(error?.retryable).to.equal(true);
+        expect(hooks.openSessionCalls ?? 0).to.equal(0);
+        await service.dispose();
+    });
+
+    test("top-level open delegates through the public view exactly once", async () => {
+        const hooks: TestFactoryHooks = { createCalls: 0 };
+        const config = new TestConfig();
+        config.set("mssql.sqlDataPlane.backend", "fake");
+        const service = makeService(config, testFactory("fake", hooks));
+
+        const session = await service.openSession({ profile: PROFILE, applicationName: "test" });
+        expect(hooks.openSessionCalls).to.equal(1);
+        expect(service.entrySnapshots()[0].activeSessionCount).to.equal(1);
+
+        await session.dispose();
+        await service.dispose();
     });
 
     test("dispose during startup retires and disposes the late-created backend", async () => {

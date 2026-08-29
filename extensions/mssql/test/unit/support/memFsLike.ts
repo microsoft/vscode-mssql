@@ -11,7 +11,15 @@
 
 import { FsLike } from "../../../src/services/metadata/cache/metadataCacheStore";
 
-export type FsOp = "read" | "write" | "rename" | "unlink" | "mkdirp" | "readdir" | "stat";
+export type FsOp =
+    | "read"
+    | "write"
+    | "writeExclusive"
+    | "rename"
+    | "unlink"
+    | "mkdirp"
+    | "readdir"
+    | "stat";
 
 export class MemFs implements FsLike {
     files = new Map<string, Buffer>();
@@ -44,6 +52,16 @@ export class MemFs implements FsLike {
         await this.hook("write", path);
         this.files.set(path, Buffer.from(data));
         this.mtimes.set(path, Date.now());
+    }
+
+    async writeFileExclusive(path: string, data: Uint8Array): Promise<boolean> {
+        await this.hook("writeExclusive", path);
+        if (this.files.has(path)) {
+            return false;
+        }
+        this.files.set(path, Buffer.from(data));
+        this.mtimes.set(path, Date.now());
+        return true;
     }
 
     async rename(fromPath: string, toPath: string): Promise<void> {

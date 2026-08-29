@@ -71,6 +71,13 @@ interface CatalogState {
     errorMessage: string | undefined;
 }
 
+export interface ServerMetadataServiceOptions {
+    /** Session/query watchdog for a server catalog hydration (default 15s). */
+    readonly hydrationTimeoutMs?: number;
+    /** Live network authorization shared with the store/cache offline gate. */
+    readonly isNetworkAllowed?: () => boolean;
+}
+
 export class ServerMetadataService {
     private state: CatalogState = {
         readiness: "absent",
@@ -80,6 +87,9 @@ export class ServerMetadataService {
         errorMessage: undefined,
     };
     private hydrating: Promise<void> | undefined;
+    private opEpoch = 0;
+    private sessionWedged = false;
+    private disposed = false;
     private lastHydratedAtMs: number | undefined;
     private listeners = new Set<() => void>();
     /** Lazy server-scoped sections (B23) — same session source, one change stream. */
@@ -89,6 +99,7 @@ export class ServerMetadataService {
     constructor(
         private readonly sessions: MetadataSessionSource,
         auxSessions: MetadataSessionSource = sessions,
+        private readonly options: ServerMetadataServiceOptions = {},
     ) {
         // Dedicated aux source in production (store passes one): the
         // metadata lane is one-active-query, and a lazy section fetch must
@@ -97,6 +108,7 @@ export class ServerMetadataService {
             auxSessions,
             SERVER_AUX_SECTIONS,
             "metadataStore:aux",
+            { isNetworkAllowed: options.isNetworkAllowed },
         );
         this.auxSubscription = this.auxiliary.onDidChange(() => this.notify());
     }
@@ -141,6 +153,9 @@ export class ServerMetadataService {
 
     /** Hydrate if absent/failed; coalesces concurrent calls. */
     ensureHydrated(): Promise<void> {
+        if (!this.networkAllowed()) {
+            return Promise.resolve();
+        }
         if (this.state.readiness === "ready" || this.state.readiness === "loading") {
             return this.hydrating ?? Promise.resolve();
         }
@@ -148,17 +163,28 @@ export class ServerMetadataService {
     }
 
     refresh(): Promise<void> {
+        if (this.disposed || !this.networkAllowed()) {
+            return Promise.resolve();
+        }
         if (this.hydrating) {
             return this.hydrating;
         }
-        const run = this.hydrateCore().finally(() => {
+        if (this.sessionWedged) {
+            this.sessionWedged = false;
+            this.sessions.recycle?.();
+        }
+        const epoch = this.opEpoch;
+        const run = this.withHydrationWatchdog(this.hydrateCore(epoch), epoch).finally(() => {
             this.hydrating = undefined;
         });
         this.hydrating = run;
         return run;
     }
 
-    private async hydrateCore(): Promise<void> {
+    private async hydrateCore(epoch: number): Promise<void> {
+        if (this.disposed || !this.networkAllowed()) {
+            return;
+        }
         this.state = { ...this.state, readiness: "loading" };
         this.notify();
         const span = diag.startSpan({
@@ -170,8 +196,17 @@ export class ServerMetadataService {
             },
         });
         try {
+            if (!this.networkAllowed()) {
+                return;
+            }
             const session = await this.sessions.open();
             const rows = await runMetadataQuery(session, SERVER_DATABASES, "metadataStore:server");
+            if (this.disposed || this.opEpoch !== epoch) {
+                span.end("error", {
+                    errorClass: { raw: "abandoned", cls: "diagnostic.metadata" },
+                });
+                return;
+            }
             const databases = rows.map((row) => toDatabaseInfo(row));
             this.state = {
                 readiness: "ready",
@@ -185,6 +220,12 @@ export class ServerMetadataService {
                 databases: { raw: databases.length, cls: "diagnostic.metadata" },
             });
         } catch (error) {
+            if (this.disposed || this.opEpoch !== epoch) {
+                span.end("error", {
+                    errorClass: { raw: "abandoned", cls: "diagnostic.metadata" },
+                });
+                return;
+            }
             // Failure keeps any previous generation's list out of the state:
             // a failed catalog must not masquerade as a (stale) ready one.
             this.state = {
@@ -199,6 +240,48 @@ export class ServerMetadataService {
             });
         }
         this.notify();
+    }
+
+    private withHydrationWatchdog(work: Promise<void>, epoch: number): Promise<void> {
+        const timeoutMs = this.options.hydrationTimeoutMs ?? 15_000;
+        if (timeoutMs <= 0) {
+            return work;
+        }
+        return new Promise((resolve) => {
+            let settled = false;
+            const finish = () => {
+                if (!settled) {
+                    settled = true;
+                    clearTimeout(timer);
+                    resolve();
+                }
+            };
+            const timer = setTimeout(() => {
+                if (settled) {
+                    return;
+                }
+                settled = true;
+                if (!this.disposed && this.opEpoch === epoch) {
+                    this.opEpoch++;
+                    this.sessionWedged = true;
+                    this.state = {
+                        readiness: "failed",
+                        generation: this.state.generation,
+                        databases: undefined,
+                        serverInfo: this.state.serverInfo,
+                        errorMessage: "laneTimeout",
+                    };
+                    this.notify();
+                }
+                resolve();
+            }, timeoutMs);
+            (timer as { unref?: () => void }).unref?.();
+            work.then(finish, finish);
+        });
+    }
+
+    private networkAllowed(): boolean {
+        return this.options.isNetworkAllowed?.() !== false;
     }
 
     /**
@@ -222,6 +305,9 @@ export class ServerMetadataService {
         });
         const hydratedWithin = (ttlMs: number): boolean =>
             this.lastHydratedAtMs !== undefined && Date.now() - this.lastHydratedAtMs <= ttlMs;
+        if (!this.networkAllowed()) {
+            return result(this.state.databases ? "stale" : "unavailable");
+        }
         const race = (work: Promise<void>): Promise<"done" | "timeout"> => {
             if (policy.timeoutMs === undefined && !policy.signal) {
                 return work.then(
@@ -302,6 +388,8 @@ export class ServerMetadataService {
     }
 
     dispose(): void {
+        this.disposed = true;
+        this.opEpoch++;
         this.auxSubscription.dispose();
         this.auxiliary.dispose();
         this.listeners.clear();

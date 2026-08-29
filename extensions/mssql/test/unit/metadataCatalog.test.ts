@@ -444,6 +444,25 @@ suite("Metadata catalog (B5)", () => {
         expect(snap2.resolveName(["orders"]).kind).to.equal("notFound");
     });
 
+    test("unknown case semantics fail closed to exact-only matching", () => {
+        const builder = new CatalogBuilder();
+        builder.addSchema(1, "dbo");
+        builder.addObject(1, 1, "Orders", "table");
+        builder.addObject(2, 1, "ORDERS", "table");
+        const snapshot = builder.build(1, { schemas: "ready", objects: "ready" });
+
+        expect(snapshot.caseSensitive).to.equal(undefined);
+        expect(snapshot.resolveName(["Orders"])).to.deep.include({
+            kind: "resolved",
+            objectId: 1,
+        });
+        expect(snapshot.resolveName(["ORDERS"])).to.deep.include({
+            kind: "resolved",
+            objectId: 2,
+        });
+        expect(snapshot.resolveName(["orders"]).kind).to.equal("notFound");
+    });
+
     test("builder drops FK edges whose metadata-visible endpoints cannot both resolve", () => {
         const builder = new CatalogBuilder();
         builder.addSchema(1, "dbo");

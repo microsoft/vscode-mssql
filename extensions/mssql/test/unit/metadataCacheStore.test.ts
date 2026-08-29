@@ -404,6 +404,38 @@ suite("Metadata cache store (CACHE-2): paths and read protocol", () => {
         }
     });
 
+    test("a valid entry copied into another key directory is rejected before publication", async () => {
+        const fs = new MemFs();
+        const { coordinator } = makeCoordinator(fs, testSettings());
+        expect((await coordinator.saveNow(KEY, buildSnapshot({ variant: "A" }))).result).to.equal(
+            "saved",
+        );
+        const other: CacheEntryKey = { serverFingerprint: SFP, database: "OtherDb" };
+        const from = `${entryDir(KEY)}/`;
+        const to = `${entryDir(other)}/`;
+        for (const [path, bytes] of [...fs.files.entries()]) {
+            if (path.startsWith(from)) {
+                fs.files.set(`${to}${path.slice(from.length)}`, Buffer.from(bytes));
+            }
+        }
+
+        expect(expectMiss(await coordinator.load(other))).to.equal("keyMismatch");
+        expect(fs.files.has(manifestPathOf(other))).to.equal(false);
+    });
+
+    test("valid compressed bytes with a false logical contentHash are rejected", async () => {
+        const fs = new MemFs();
+        const { coordinator } = makeCoordinator(fs, testSettings());
+        expect((await coordinator.saveNow(KEY, buildSnapshot())).result).to.equal("saved");
+        tamperManifest(fs, KEY, (manifest) => {
+            (manifest["payload"] as Record<string, unknown>)["contentHash"] =
+                "csh_aaaaaaaaaaaaaaaaaaaaaa";
+        });
+
+        expect(expectMiss(await coordinator.load(KEY))).to.equal("corrupt");
+        expect(fs.files.has(manifestPathOf(KEY))).to.equal(false);
+    });
+
     test("corrupt gzip ⇒ clean miss, no throw (sha valid over the corrupt bytes)", async () => {
         const fs = new MemFs();
         const { coordinator } = makeCoordinator(fs, testSettings());
@@ -616,40 +648,31 @@ suite("Metadata cache store (CACHE-2): torn-write matrix (T-A9)", () => {
 // ---------------------------------------------------------------------------
 
 suite("Metadata cache store (CACHE-2): two-writer race (T-A17)", () => {
-    test("interleaved saves: exactly one valid winner; loser emits raceLost", async () => {
+    test("reverse-order saves serialize compare+commit and reject the older capture", async () => {
         const fs = new MemFs();
         const settings = testSettings();
         const key: CacheEntryKey = { serverFingerprint: SFP, database: "RaceDb" };
-        const manifestPath = manifestPathOf(key);
         const a = makeCoordinator(fs, settings, { pid: 111 });
         const b = makeCoordinator(fs, settings, { pid: 222 });
         const snapshotA = buildSnapshot({ generation: 1, variant: "A" });
         await sleep(5);
         const snapshotB = buildSnapshot({ generation: 2, variant: "B" });
 
-        // Interleave: block writer A between its manifest rename and its
-        // H-4.5 post-save re-read; let B run to completion in that window.
-        let manifestRenames = 0;
-        let armed = false;
+        // Block the older writer before it can acquire the cross-window lock.
+        // The newer writer publishes first; when the older writer resumes it
+        // must compare against that authority and skip instead of installing.
+        let blockFirstLock = true;
         let signalBlocked: () => void;
         const aBlocked = new Promise<void>((resolve) => (signalBlocked = resolve));
         let releaseA: () => void;
         const released = new Promise<void>((resolve) => (releaseA = resolve));
         fs.beforeOp = async (op, path) => {
-            if (op === "rename" && path.startsWith(`${manifestPath}.`)) {
-                manifestRenames++;
-                if (manifestRenames === 1) {
-                    armed = true; // writer A just published its manifest
-                }
-                return;
-            }
-            if (op === "read" && path === manifestPath && armed) {
-                armed = false; // this is A's post-save re-read
+            if (op === "writeExclusive" && path.endsWith("/.publication.lock") && blockFirstLock) {
+                blockFirstLock = false;
                 signalBlocked();
                 await released;
             }
         };
-        const capture = captureEvents();
         try {
             const pendingA = a.coordinator.saveNow(key, snapshotA);
             await aBlocked;
@@ -657,16 +680,61 @@ suite("Metadata cache store (CACHE-2): two-writer race (T-A17)", () => {
             expect(outcomeB.result).to.equal("saved");
             releaseA!();
             const outcomeA = await pendingA;
-            expect(outcomeA.result).to.equal("raceLost");
-            expect(capture.events.some((e) => e.type === "metadataCache.raceLost")).to.equal(true);
-            // Exactly one valid winner: B's complete entry.
+            expect(outcomeA.result).to.equal("skipped");
+            expect(outcomeA.skipped).to.equal("newerExists");
             fs.beforeOp = undefined;
             const loaded = expectHit(await b.coordinator.load(key));
             expect(loaded.manifest.writerId.startsWith("222:")).to.equal(true);
             expect(loaded.snapshot.contentHash).to.equal(outcomeB.contentHash);
         } finally {
             fs.beforeOp = undefined;
-            capture.dispose();
+        }
+    });
+
+    test("a delayed manifest-only writer cannot resurrect its old payload after a full write", async () => {
+        const fs = new MemFs();
+        const settings = testSettings();
+        const key: CacheEntryKey = { serverFingerprint: SFP, database: "ManifestRaceDb" };
+        const a = makeCoordinator(fs, settings, { pid: 111 });
+        const b = makeCoordinator(fs, settings, { pid: 222 });
+        expect(
+            (await a.coordinator.saveNow(key, buildSnapshot({ generation: 1, variant: "old" })))
+                .result,
+        ).to.equal("saved");
+        await sleep(5);
+        const delayedSame = buildSnapshot({ generation: 2, variant: "old" });
+        await sleep(5);
+        const newerFull = buildSnapshot({ generation: 1, variant: "new" });
+
+        let blockFirstLock = true;
+        let signalBlocked: () => void;
+        const blocked = new Promise<void>((resolve) => (signalBlocked = resolve));
+        let release: () => void;
+        const released = new Promise<void>((resolve) => (release = resolve));
+        fs.beforeOp = async (op, path) => {
+            if (op === "writeExclusive" && path.endsWith("/.publication.lock") && blockFirstLock) {
+                blockFirstLock = false;
+                signalBlocked();
+                await released;
+            }
+        };
+        try {
+            const delayed = a.coordinator.saveNow(key, delayedSame);
+            await blocked;
+            const full = await b.coordinator.saveNow(key, newerFull);
+            expect(full.result).to.equal("saved");
+            release!();
+            const old = await delayed;
+            expect(old.result).to.equal("skipped");
+            expect(old.skipped).to.equal("newerExists");
+            fs.beforeOp = undefined;
+            const loaded = expectHit(await b.coordinator.load(key));
+            expect(loaded.snapshot.contentHash).to.equal(full.contentHash);
+            expect(
+                loaded.snapshot.getColumns(101).some((column) => column.name === "Extra_new"),
+            ).to.equal(true);
+        } finally {
+            fs.beforeOp = undefined;
         }
     });
 });

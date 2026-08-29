@@ -38,7 +38,7 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 /** Minimal H-series scripts for one user table (H4/H5B before H3 — the
  *  "sys.columns" substring matches those first; H7 uses COL_NAME so it
  *  collides with nothing). */
-function catalogScripts(tableName: string): FakeScript[] {
+function catalogScripts(tableName: string, currentDatabase?: string): FakeScript[] {
     return [
         {
             match: (t) => t.includes("extended_properties"),
@@ -57,7 +57,9 @@ function catalogScripts(tableName: string): FakeScript[] {
                 {
                     type: "resultSet",
                     columns: ["engine_edition", "default_schema", "collation_name"],
-                    rows: [[5, "dbo", "SQL_Latin1_General_CP1_CI_AS"]],
+                    rows: [
+                        [5, "dbo", "SQL_Latin1_General_CP1_CI_AS", false, currentDatabase ?? null],
+                    ],
                 },
                 { type: "complete", status: "succeeded" },
             ],
@@ -426,6 +428,7 @@ suite("MetadataStore (B15)", () => {
 
         const first = await store.acquireDatabase(prepared, "DbA");
         const second = await store.acquireDatabase(prepared, "DbA");
+        await first.refresh();
         expect(store.status().databases).to.have.length(1);
         expect(backend.sessions).to.have.length(1); // one dedicated session
 
@@ -510,25 +513,31 @@ suite("MetadataStore (B15)", () => {
         expect(serverBackend.sessions[0].state).to.equal("closed");
     });
 
-    test("dispose during single-flight creation cannot publish a late entry", async () => {
+    test("dispose during lazy provider resolution cannot open a late session", async () => {
         const backend = new FakeBackend({ scripts: catalogScripts("T") });
+        let resolutions = 0;
         let release!: () => void;
         const gate = new Promise<void>((resolve) => (release = resolve));
         const store = new MetadataStore(async () => {
+            resolutions++;
             await gate;
             return backend;
         });
         const prepared = prepareConnection(INTEGRATED, NO_SECRETS);
-        const acquisitions = [
+        const leases = await Promise.all([
             store.acquireDatabase(prepared, "DbA"),
             store.acquireDatabase(prepared, "DbA"),
-        ];
+        ]);
+        await Promise.resolve();
+        expect(resolutions).to.equal(1);
         store.dispose();
         release();
-        const results = await Promise.allSettled(acquisitions);
-        expect(results.every((result) => result.status === "rejected")).to.equal(true);
+        await sleep(10);
         expect(store.status().databases).to.deep.equal([]);
         expect(backend.sessions).to.deep.equal([]);
+        for (const lease of leases) {
+            lease.dispose();
+        }
     });
 
     test("idle TTL disposes the engine; LRU cap evicts oldest idle first", async () => {
@@ -625,9 +634,9 @@ suite("MetadataStore (B15)", () => {
         failStore.dispose();
     });
 
-    test("key-correctness tripwire: backend ignoring the database is counted", async () => {
+    test("H0 identity mismatch fails closed and the next refresh recycles the session", async () => {
         const backend = new FakeBackend({
-            scripts: catalogScripts("T"),
+            scripts: catalogScripts("T", "WrongDb"),
             database: "WrongDb",
         });
         const service = new DatabaseIgnoringService(backend);
@@ -635,7 +644,10 @@ suite("MetadataStore (B15)", () => {
         const prepared = prepareConnection({ ...INTEGRATED, database: undefined }, NO_SECRETS);
         const lease = await store.acquireDatabase(prepared, "DbX");
         await lease.refresh().catch(() => undefined);
+        await lease.refresh().catch(() => undefined);
         expect(store.status().keyCorrectnessViolations).to.be.greaterThan(0);
+        expect(lease.current()).to.equal(undefined);
+        expect(backend.sessions.length).to.be.greaterThan(1);
         lease.dispose();
         store.dispose();
     });

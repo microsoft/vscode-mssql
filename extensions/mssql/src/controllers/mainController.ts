@@ -1270,7 +1270,10 @@ export default class MainController implements vscode.Disposable {
                         const picked = await vscode.window.showQuickPick(
                             entries.map((entry) => ({
                                 label: entry.key.database,
-                                description: `${entry.key.serverFingerprint.slice(0, 12)}… · ${LocalizedConstants.MetadataCache.capturedAt(entry.capturedAtUtc)}`,
+                                description: LocalizedConstants.MetadataCache.capturedAt(
+                                    entry.capturedAtUtc,
+                                ),
+                                detail: `${entry.key.serverFingerprint.slice(0, 12)}…`,
                                 entry,
                             })),
                             { title: LocalizedConstants.MetadataCache.clearForConnectionTitle },

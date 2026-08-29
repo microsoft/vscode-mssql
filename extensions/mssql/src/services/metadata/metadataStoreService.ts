@@ -106,6 +106,11 @@ export class MetadataStoreService {
                     return SqlDataPlaneService.get().serviceForProfile(profileFingerprint);
                 },
                 {
+                    assertAcquisitionAllowed: () => {
+                        if (this.hostInit?.dataPlaneEnabled?.() === false) {
+                            throw new Error(locConstants.Metadata.dataPlaneRequired);
+                        }
+                    },
                     ...(this.hostInit?.pollSeconds
                         ? { pollSeconds: this.hostInit.pollSeconds() }
                         : {}),

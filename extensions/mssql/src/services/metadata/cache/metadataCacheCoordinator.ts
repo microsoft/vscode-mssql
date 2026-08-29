@@ -282,90 +282,96 @@ export class MetadataCacheCoordinator {
             validationTier: "fullRefresh",
         };
 
-        const current = await this.store.readManifest(key);
-        if (current) {
-            // H-4.4 fairness guard: never clobber a strictly newer capture.
-            const currentCaptured = Date.parse(current.capture.capturedAtUtc);
-            const ourCaptured = Date.parse(snapshot.capturedAtUtc);
-            if (
-                Number.isFinite(currentCaptured) &&
-                Number.isFinite(ourCaptured) &&
-                currentCaptured <= this.now() + MAX_FUTURE_CLOCK_SKEW_MS &&
-                currentCaptured > ourCaptured &&
-                current.capture.publishedGeneration >= snapshot.generation
-            ) {
-                return this.saveSkipped(key, snapshot, "newerExists");
-            }
-            // §5.5: refresh confirmed no change ⇒ manifest-only rewrite of
-            // the validation block; the steady state is a tiny write.
-            if (
-                current.payload.contentHash === contentHash &&
-                current.privacy.policyId === settings.policyId &&
-                (await this.store.payloadExists(key, current))
-            ) {
-                const bumped: CatalogCacheManifest = { ...current, validation };
-                const rewrite = await this.store.rewriteManifest(key, bumped);
-                if (!rewrite.ok) {
-                    return this.saveFailed(key, snapshot, rewrite.errorClass ?? "ioError");
+        return this.store.withEntryLock(key, async () => {
+            const current = await this.store.readManifest(key);
+            if (current) {
+                // Cross-window authority is based on the globally comparable
+                // capture instant, never process-local generation. Equal-instant
+                // competing payloads use content hash as a deterministic tie-break.
+                const currentCaptured = Date.parse(current.capture.capturedAtUtc);
+                const ourCaptured = Date.parse(snapshot.capturedAtUtc);
+                if (
+                    current.payload.contentHash !== contentHash &&
+                    Number.isFinite(currentCaptured) &&
+                    Number.isFinite(ourCaptured) &&
+                    currentCaptured <= this.now() + MAX_FUTURE_CLOCK_SKEW_MS &&
+                    (currentCaptured > ourCaptured ||
+                        (currentCaptured === ourCaptured &&
+                            current.payload.contentHash >= contentHash))
+                ) {
+                    return this.saveSkipped(key, snapshot, "newerExists");
                 }
-                this.emitSave(key, snapshot, {
-                    result: { raw: "manifestOnly", cls: "diagnostic.metadata" },
-                    durationMs: { raw: this.now() - startedAt, cls: "diagnostic.metadata" },
-                });
-                return { result: "manifestOnly", contentHash };
+                // §5.5: refresh confirmed no change ⇒ manifest-only rewrite of
+                // the validation block; the steady state is a tiny write.
+                if (
+                    current.payload.contentHash === contentHash &&
+                    current.privacy.policyId === settings.policyId &&
+                    (await this.store.payloadMatchesManifest(key, current))
+                ) {
+                    const bumped: CatalogCacheManifest = { ...current, validation };
+                    const rewrite = await this.store.rewriteManifest(key, bumped);
+                    if (!rewrite.ok) {
+                        return this.saveFailed(key, snapshot, rewrite.errorClass ?? "ioError");
+                    }
+                    this.emitSave(key, snapshot, {
+                        result: { raw: "manifestOnly", cls: "diagnostic.metadata" },
+                        durationMs: { raw: this.now() - startedAt, cls: "diagnostic.metadata" },
+                    });
+                    return { result: "manifestOnly", contentHash };
+                }
             }
-        }
 
-        const writerId = this.newWriterId();
-        const payloadJson = canonicalPayloadJson(payload);
-        const outcome = await this.store.writeEntry(
-            key,
-            payloadJson,
-            (payloadInfo) =>
-                this.buildManifest(key, snapshot, settings, writerId, contentHash, validation, {
-                    file: payloadInfo.file,
-                    sha256: payloadInfo.sha256,
-                    payloadBytes: payloadInfo.payloadBytes,
-                    uncompressedBytes: payloadInfo.uncompressedBytes,
-                }),
-            { maxEntryBytes: settings.maxEntryBytes },
-        );
-        if (outcome.skipped === "entryTooLarge") {
-            return this.saveSkipped(key, snapshot, "entryTooLarge", outcome.payloadBytes);
-        }
-        if (!outcome.ok) {
-            return this.saveFailed(key, snapshot, outcome.errorClass ?? "ioError");
-        }
-        // H-4.5: one post-save re-read; if the manifest is not ours another
-        // window won the race — benign, emit raceLost, do not retry.
-        const after = await this.store.readManifest(key);
-        if (
-            !after ||
-            after.writerId !== writerId ||
-            !(await this.store.payloadMatchesManifest(key, after))
-        ) {
-            this.emit("metadataCache.raceLost", key, {});
-            const race: CacheSaveOutcome = { result: "raceLost", contentHash };
+            const writerId = this.newWriterId();
+            const payloadJson = canonicalPayloadJson(payload);
+            const outcome = await this.store.writeEntry(
+                key,
+                payloadJson,
+                (payloadInfo) =>
+                    this.buildManifest(key, snapshot, settings, writerId, contentHash, validation, {
+                        file: payloadInfo.file,
+                        sha256: payloadInfo.sha256,
+                        payloadBytes: payloadInfo.payloadBytes,
+                        uncompressedBytes: payloadInfo.uncompressedBytes,
+                    }),
+                { maxEntryBytes: settings.maxEntryBytes },
+            );
+            if (outcome.skipped === "entryTooLarge") {
+                return this.saveSkipped(key, snapshot, "entryTooLarge", outcome.payloadBytes);
+            }
+            if (!outcome.ok) {
+                return this.saveFailed(key, snapshot, outcome.errorClass ?? "ioError");
+            }
+            // H-4.5: one post-save re-read; if the manifest is not ours another
+            // window won the race — benign, emit raceLost, do not retry.
+            const after = await this.store.readManifest(key);
+            if (
+                !after ||
+                after.writerId !== writerId ||
+                !(await this.store.payloadMatchesManifest(key, after))
+            ) {
+                this.emit("metadataCache.raceLost", key, {});
+                const race: CacheSaveOutcome = { result: "raceLost", contentHash };
+                return outcome.payloadBytes === undefined
+                    ? race
+                    : { ...race, payloadBytes: outcome.payloadBytes };
+            }
+            this.emitSave(key, snapshot, {
+                result: { raw: "saved", cls: "diagnostic.metadata" },
+                payloadBytes: { raw: outcome.payloadBytes ?? 0, cls: "diagnostic.metadata" },
+                durationMs: { raw: this.now() - startedAt, cls: "diagnostic.metadata" },
+            });
+            if (this.evictAfterSave) {
+                // H-10: hygiene after saves — async, throttled inside the store,
+                // never awaited on the save path.
+                void this.store
+                    .runEviction({ maxAgeDays: settings.maxAgeDays, maxBytes: settings.maxBytes })
+                    .catch(() => undefined);
+            }
+            const saved: CacheSaveOutcome = { result: "saved", contentHash };
             return outcome.payloadBytes === undefined
-                ? race
-                : { ...race, payloadBytes: outcome.payloadBytes };
-        }
-        this.emitSave(key, snapshot, {
-            result: { raw: "saved", cls: "diagnostic.metadata" },
-            payloadBytes: { raw: outcome.payloadBytes ?? 0, cls: "diagnostic.metadata" },
-            durationMs: { raw: this.now() - startedAt, cls: "diagnostic.metadata" },
+                ? saved
+                : { ...saved, payloadBytes: outcome.payloadBytes };
         });
-        if (this.evictAfterSave) {
-            // H-10: hygiene after saves — async, throttled inside the store,
-            // never awaited on the save path.
-            void this.store
-                .runEviction({ maxAgeDays: settings.maxAgeDays, maxBytes: settings.maxBytes })
-                .catch(() => undefined);
-        }
-        const saved: CacheSaveOutcome = { result: "saved", contentHash };
-        return outcome.payloadBytes === undefined
-            ? saved
-            : { ...saved, payloadBytes: outcome.payloadBytes };
     }
 
     private buildManifest(

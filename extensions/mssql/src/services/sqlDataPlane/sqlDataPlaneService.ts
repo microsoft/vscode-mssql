@@ -519,7 +519,9 @@ export class SqlDataPlaneService {
         // Azure serverless auto-pause: eligible profiles get an ARM status
         // check in parallel with the open and a bounded silent retry while
         // the database reports Paused/Pausing/Resuming (classic-path parity).
-        return openWithServerlessWake(params.profile, () => service.openSession(params));
+        // The public service view owns serverless wake/retry. Delegating once
+        // keeps the policy bounded instead of nesting two wake loops.
+        return service.openSession(params);
     }
 
     /**
@@ -811,6 +813,14 @@ export class SqlDataPlaneService {
                 { backend: { kind: entry.factory.kind } },
             );
         };
+        const throwUnavailable = (check: CapabilityCheck): never => {
+            throw new SqlDataPlaneError(
+                DataPlaneErrorCodes.unavailable,
+                check.reason ?? "selected backend is unavailable",
+                true,
+                { backend: { kind: entry.factory.kind } },
+            );
+        };
         return {
             get availability() {
                 return service.availability;
@@ -838,7 +848,7 @@ export class SqlDataPlaneService {
                 }
                 const providerCheck = await service.canOpen(params);
                 if (!providerCheck.ok) {
-                    throwUnsupported(providerCheck);
+                    throwUnavailable(providerCheck);
                 }
                 const session = await openWithServerlessWake(params.profile, () =>
                     service.openSession(params),

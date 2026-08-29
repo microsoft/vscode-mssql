@@ -979,7 +979,9 @@ export function adoptPayload(payload: CatalogCachePayloadV1): CatalogBuilder {
     builder.engineEdition = payload.environment.engineEdition;
     builder.defaultSchema = payload.environment.defaultSchema ?? "dbo";
     builder.collationName = payload.environment.collationName;
-    builder.caseSensitive = payload.environment.caseSensitive ?? false;
+    if (payload.environment.caseSensitive !== undefined) {
+        builder.caseSensitive = payload.environment.caseSensitive;
+    }
     return builder;
 }
 

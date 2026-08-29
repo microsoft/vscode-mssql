@@ -34,7 +34,10 @@
  * index.json (C-10): quick status/eviction metadata, rebuilt by scanning
  * manifests whenever corrupt or missing — never by trusting payload files
  * without manifests. lastAccessUtc updates on load, persisted with a ≥60s
- * debounce.
+ * debounce. Cross-window access/LRU updates are intentionally approximate:
+ * whole-file replacements may lose an access tick, but manifests remain the
+ * authority for entry identity/content and every maintenance rebuild repairs
+ * membership and byte totals.
  *
  * Eviction (base §15.2 + H-10): corrupt/unsupported entries first, then max
  * age, then total-bytes LRU. Async and throttled (≤1 fs-op burst per 25ms),
@@ -48,7 +51,7 @@ import { createHash } from "crypto";
 import { gunzip as gunzipCb, gzip as gzipCb } from "zlib";
 import { promisify } from "util";
 import { diag, RawField } from "../../../diagnostics/diagnosticsCore";
-import { CatalogCachePayloadV1, validatePayload } from "./metadataCacheCodec";
+import { CatalogCachePayloadV1, computeContentHash, validatePayload } from "./metadataCacheCodec";
 import { CatalogCacheManifest, validateManifest } from "./metadataCacheManifest";
 
 const gzipAsync = promisify(gzipCb);
@@ -66,6 +69,8 @@ export interface FsLike {
      * atomic protocol (base §9.1 steps 2–3/6–7).
      */
     writeFileSynced(path: string, data: Uint8Array): Promise<void>;
+    /** Atomic create; false only when the path already exists. */
+    writeFileExclusive(path: string, data: Uint8Array): Promise<boolean>;
     /** Atomic same-directory replace (MoveFileExW REPLACE_EXISTING on win). */
     rename(fromPath: string, toPath: string): Promise<void>;
     unlink(path: string): Promise<void>;
@@ -92,6 +97,24 @@ export class NodeFsLike implements FsLike {
             await handle.sync();
         } finally {
             await handle.close();
+        }
+    }
+
+    async writeFileExclusive(path: string, data: Uint8Array): Promise<boolean> {
+        const fs = await import("fs/promises");
+        let handle: Awaited<ReturnType<typeof fs.open>> | undefined;
+        try {
+            handle = await fs.open(path, "wx");
+            await handle.writeFile(data);
+            await handle.sync();
+            return true;
+        } catch (error) {
+            if ((error as { code?: string }).code === "EEXIST") {
+                return false;
+            }
+            throw error;
+        } finally {
+            await handle?.close();
         }
     }
 
@@ -172,6 +195,7 @@ export type CacheMissReason =
     | "codec"
     | "modelVersion"
     | "payloadMissing"
+    | "keyMismatch"
     | "shaMismatch"
     | "corrupt";
 
@@ -243,6 +267,8 @@ const HARD_MAX_COMPRESSED_BYTES = 33_554_432;
 const HARD_MAX_UNCOMPRESSED_BYTES = 268_435_456;
 const ORPHAN_GRACE_MS = 10 * 60_000;
 const INDEX_ACCESS_DEBOUNCE_MS = 60_000;
+const PUBLICATION_LOCK_STALE_MS = 30_000;
+const PUBLICATION_LOCK_ATTEMPTS = 200;
 const RENAME_RETRY_CODES = new Set(["EPERM", "EBUSY", "EACCES"]);
 
 const defaultSleep = (ms: number): Promise<void> =>
@@ -315,7 +341,19 @@ export class MetadataCacheStore {
             return undefined;
         }
         const validated = validateManifest(parsed);
-        return validated.ok ? validated.manifest : undefined;
+        return validated.ok && this.manifestMatchesKey(key, validated.manifest)
+            ? validated.manifest
+            : undefined;
+    }
+
+    private manifestMatchesKey(key: CacheEntryKey, manifest: CatalogCacheManifest): boolean {
+        return (
+            manifest.key.serverFingerprint === key.serverFingerprint &&
+            manifest.key.databaseHash ===
+                computeDatabaseHash(key.serverFingerprint, key.database) &&
+            (manifest.key.databaseExact === undefined ||
+                manifest.key.databaseExact === key.database)
+        );
     }
 
     async payloadExists(key: CacheEntryKey, manifest: CatalogCacheManifest): Promise<boolean> {
@@ -332,10 +370,12 @@ export class MetadataCacheStore {
         manifest: CatalogCacheManifest,
     ): Promise<boolean> {
         try {
-            const bytes = await this.fs.readFile(`${this.entryDir(key)}/${manifest.payload.file}`);
+            const result = await this.readEntry(key);
             return (
-                bytes.length === manifest.stats.payloadBytes &&
-                createHash("sha256").update(bytes).digest("hex") === manifest.payload.sha256
+                result.kind === "hit" &&
+                result.manifest.writerId === manifest.writerId &&
+                result.manifest.payload.sha256 === manifest.payload.sha256 &&
+                result.manifest.payload.contentHash === manifest.payload.contentHash
             );
         } catch {
             return false;
@@ -376,6 +416,10 @@ export class MetadataCacheStore {
             return { kind: "miss", reason: validated.reason };
         }
         const manifest = validated.manifest;
+        if (!this.manifestMatchesKey(key, manifest)) {
+            await this.quarantineEntry(key, "keyMismatch", manifest.payload.file);
+            return { kind: "miss", reason: "keyMismatch" };
+        }
         const payloadPath = `${dir}/${manifest.payload.file}`;
         const compressedLimit = Math.min(
             options?.maxEntryBytes ?? HARD_MAX_COMPRESSED_BYTES,
@@ -466,6 +510,10 @@ export class MetadataCacheStore {
             await this.quarantineEntry(key, "payloadShape", manifest.payload.file);
             return { kind: "miss", reason: "shape" };
         }
+        if (computeContentHash(payload.payload) !== manifest.payload.contentHash) {
+            await this.quarantineEntry(key, "contentHashMismatch", manifest.payload.file);
+            return { kind: "miss", reason: "corrupt" };
+        }
         await this.touchAccess(manifest);
         return {
             kind: "hit",
@@ -509,6 +557,43 @@ export class MetadataCacheStore {
     }
 
     // -- write protocol (base §9.1 + H-4) ---------------------------------------
+
+    /**
+     * Serialize compare + publication for one key across extension-host
+     * processes. The lock is an exclusive-create file with stale recovery;
+     * callers must keep the critical section bounded to cache I/O.
+     */
+    async withEntryLock<T>(key: CacheEntryKey, work: () => Promise<T>): Promise<T> {
+        const dir = this.entryDir(key);
+        await this.fs.mkdirp(dir);
+        return this.withFileLock(`${dir}/.publication.lock`, work);
+    }
+
+    private async withFileLock<T>(lockPath: string, work: () => Promise<T>): Promise<T> {
+        for (let attempt = 0; attempt < PUBLICATION_LOCK_ATTEMPTS; attempt++) {
+            const acquired = await this.fs.writeFileExclusive(
+                lockPath,
+                Buffer.from(`${process.pid}:${this.now()}`, "utf8"),
+            );
+            if (acquired) {
+                try {
+                    return await work();
+                } finally {
+                    await this.removeQuietly(lockPath);
+                }
+            }
+            const stat = await this.fs.stat(lockPath);
+            if (
+                stat?.mtimeMs !== undefined &&
+                this.now() - stat.mtimeMs >= PUBLICATION_LOCK_STALE_MS
+            ) {
+                await this.removeQuietly(lockPath);
+                continue;
+            }
+            await this.sleep(10 + Math.floor(this.random() * 20));
+        }
+        throw new Error("Metadata cache publication lock timeout");
+    }
 
     /**
      * Full entry write: gzip payload → temp+fsync → sha → rename payload →
