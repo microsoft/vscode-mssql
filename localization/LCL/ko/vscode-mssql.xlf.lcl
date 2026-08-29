@@ -5293,6 +5293,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++329810295b47ce5776d407fc4e50a37485233d7dd613d772d86a0ce05d79dc9a" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[This connection requires {0}, which {1} does not support.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[이 연결에는 {0}이(가) 필요하지만, 현재 SQL 데이터 평면 공급자인 {1}은(는) 지원하지 않습니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++329f218a3e5212fcaa1558fed9984172c9a456980d1c8015ea761b5a017d19b4" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to get tenant '{0}' for account '{1}'.]]></Val>
@@ -7782,6 +7791,15 @@
           <Val><![CDATA[Close Find]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[찾기 닫기]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++4c969acf8c9571fca86e1043a4d93465d243866dcbe158d57747e9e5b6a0f0a1" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Open with {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0}(으)로 열기]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -17457,6 +17475,15 @@
           <Val><![CDATA[Script as Create]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Create로 스크립트]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++b0c89663acc98614cd8dfa3215e2f5e2a3692b5a8c97f64835b8b1dc2ec13668" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[This connection requires {0}, which {1} does not support. Connected with {2} instead.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[이 연결에는 {0}이(가) 필요하지만, 현재 SQL 데이터 평면 공급자인 {1}은(는) 지원하지 않습니다. 대신 {2}에 연결했습니다.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -28536,6 +28563,87 @@
           <Val><![CDATA[[Optional]5D; Configuration options for which column new result panes should open in]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[[옵션]5D; 새 결과 창이 열리는 열의 구성 옵션]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.sqlDataPlane.backend.description" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Select the SQL Data Plane backend. Only the local STS v2 backend is available in this preview.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[SQL 데이터 평면 백엔드를 선택합니다. 이 미리 보기에서는 로컬 STS v2 백엔드만 사용할 수 있습니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.sqlDataPlane.capabilityFallback.description" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Choose how to handle a backend that lacks a required capability: ask before using an alternative (`prompt`), use an alternative automatically (`auto`), or fail without switching (`off`).]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[필요한 기능이 없는 백엔드를 처리하는 방법을 선택합니다. 대안을 사용하기 전에 묻기('prompt'), 대안을 자동으로 사용하기('auto'), 또는 전환하지 않고 실패하기('off')입니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.sqlDataPlane.enabled.description" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enable the experimental, STS v2-backed SQL Data Plane for preview consumers. Requires SQL Tools Service 6.0.20260825.2 or later; older bundled services are launched without the STS v2 lane. Reload the window after changing this setting. Existing query, connection, language service, and Object Explorer behavior remains unchanged.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[미리 보기 사용자를 위해 실험적인 STS v2 기반 SQL 데이터 평면을 사용하도록 설정하세요. SQL Tools Service 6.0.20260825.2 이상이 필요합니다. 이전에 포함된 서비스는 STS v2 경로 없이 시작됩니다. 이 설정을 변경한 후 창을 다시 로드합니다. 기존 쿼리, 연결, 언어 서비스 및 개체 탐색기 동작은 그대로 유지됩니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.sqlDataPlane.showStatus" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Show SQL Data Plane Status]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[SQL 데이터 평면 상태 보기]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.sqlDataPlane.timeouts.cancelAckMs.description" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Maximum time in milliseconds to wait for STS v2 to acknowledge a query cancellation.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[STS v2가 쿼리 취소를 확인할 때까지 기다릴 최대 시간(밀리초)입니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.sqlDataPlane.timeouts.closeMs.description" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Maximum time in milliseconds to wait for an STS v2 connection to close.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[STS v2 연결이 닫힐 때까지 기다릴 최대 시간(밀리초)입니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.sqlDataPlane.timeouts.disposeDrainMs.description" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Maximum time in milliseconds to wait for an STS v2 query disposal to produce its terminal event.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[STS v2 쿼리 해제가 종료 이벤트를 생성할 때까지 기다릴 최대 시간(밀리초)입니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.sqlDataPlane.timeouts.initializeMs.description" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Maximum time in milliseconds to wait for the STS v2 initialization handshake.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[STS v2 초기화 핸드셰이크를 기다릴 최대 시간(밀리초)입니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.sqlDataPlane.timeouts.openMs.description" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Maximum time in milliseconds to wait for an STS v2 connection to open.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[STS v2 연결이 열릴 때까지 기다릴 최대 시간(밀리초)입니다.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
