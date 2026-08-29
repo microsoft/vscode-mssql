@@ -155,6 +155,7 @@ suite("Service Client tests", () => {
         expect(sendActionEvent).to.have.been.calledWithExactly(
             TelemetryViews.QueryEditor,
             TelemetryActions.PeekDefinitionRequested,
+            { additionalProps: {}, additionalMeasurements: {} },
         );
     });
 

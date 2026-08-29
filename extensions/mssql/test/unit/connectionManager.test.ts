@@ -668,7 +668,13 @@ suite("ConnectionManager Tests", () => {
                 TelemetryActions.RefreshTokenNotification,
                 {
                     error: sinon.match.instanceOf(Error),
-                    additionalProps: { reason: "serviceClientUnavailable" },
+                    includeErrorMessage: true,
+                    errorCode: "serviceClientUnavailable",
+                    additionalProps: { useVscodeAccountsForEntraMFA: "false" },
+                    additionalMeasurements: {
+                        currentTimestamp: sinon.match.number,
+                        refreshedTokenExpirationTimestamp: sinon.match.number,
+                    },
                 },
             );
             expect(sendNotificationStub).to.not.have.been.called;

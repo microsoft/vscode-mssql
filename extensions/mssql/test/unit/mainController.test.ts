@@ -1167,11 +1167,11 @@ suite("MainController Tests", function () {
             expect(sendErrorEvent).to.have.been.calledOnceWith(
                 TelemetryViews.General,
                 TelemetryActions.MigrateEditorConnectionBehavior,
-                writeError,
-                false,
-                undefined,
-                undefined,
-                { scope: "global" },
+                {
+                    error: writeError,
+                    includeErrorMessage: false,
+                    additionalProps: { scope: "global" },
+                },
             );
         });
 
