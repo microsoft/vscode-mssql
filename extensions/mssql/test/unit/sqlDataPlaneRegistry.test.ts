@@ -574,6 +574,13 @@ suite("SQL Data Plane backend registry (FOUND-1)", () => {
         // serviceForProfile(). The view must preserve the same capability
         // tripwire instead of becoming a raw-backend escape hatch.
         const view = await service.serviceForProfile(integratedProfile.profileFingerprint);
+        const viewCheck = await view.canOpen({
+            profile: integratedProfile,
+            applicationName: "metadata-test",
+        });
+        expect(viewCheck.ok).to.equal(false);
+        expect(viewCheck.missing).to.deep.equal(["auth.integrated"]);
+        expect(viewCheck.alternatives).to.deep.equal(["fake"]);
         thrown = undefined;
         try {
             await view.openSession({

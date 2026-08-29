@@ -807,8 +807,15 @@ export class SqlDataPlaneService {
             );
         }
         const registry = this;
-        const checkRequirements = (params: OpenSessionParams): CapabilityCheck =>
-            evaluateRequirements(registry.effectiveSet(entry), registry.requirementsFor(params));
+        const checkRequirements = (params: OpenSessionParams): CapabilityCheck => {
+            const requirements = registry.requirementsFor(params);
+            const check = evaluateRequirements(registry.effectiveSet(entry), requirements);
+            if (check.ok) {
+                return check;
+            }
+            const alternatives = registry.kindsSatisfying(requirements, entry.factory.kind);
+            return alternatives.length > 0 ? { ...check, alternatives } : check;
+        };
         const throwUnsupported = (check: CapabilityCheck): never => {
             throw new SqlDataPlaneError(
                 DataPlaneErrorCodes.capabilityUnsupported,
