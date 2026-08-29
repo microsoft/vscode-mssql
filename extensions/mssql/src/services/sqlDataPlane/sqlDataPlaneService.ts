@@ -23,7 +23,11 @@
 import * as vscode from "vscode";
 import { RequestType, NotificationType } from "vscode-languageclient";
 import SqlToolsServiceClient from "../../languageservice/serviceclient";
-import { PrivatePreviewFeature, previewService } from "../../previews/previewService";
+import {
+    PrivatePreviewContextKey,
+    PrivatePreviewFeature,
+    previewService,
+} from "../../previews/previewService";
 import {
     CapabilityCheck,
     DataPlaneAvailability,
@@ -979,7 +983,15 @@ export function registerSqlDataPlane(context: vscode.ExtensionContext): void {
     context.subscriptions.push({
         dispose: () => void service.dispose(),
     });
-    if (previewService.isPrivatePreviewEnabled(PrivatePreviewFeature.SqlDataPlane)) {
+    const activeAtActivation = previewService.isPrivatePreviewEnabled(
+        PrivatePreviewFeature.SqlDataPlane,
+    );
+    void vscode.commands.executeCommand(
+        "setContext",
+        PrivatePreviewContextKey.SqlDataPlaneActive,
+        activeAtActivation,
+    );
+    if (activeAtActivation) {
         context.subscriptions.push(
             vscode.commands.registerCommand("mssql.sqlDataPlane.showStatus", async () => {
                 // PASSIVE (D5): never constructs a backend or resolves credentials.

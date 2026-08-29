@@ -60,6 +60,7 @@ import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry"
 import { TableDesignerService } from "../services/tableDesignerService";
 import {
     getPreviewConfigKey,
+    PrivatePreviewContextKey,
     PrivatePreviewFeature,
     PreviewFeature,
     previewService,
@@ -1177,6 +1178,12 @@ export default class MainController implements vscode.Disposable {
                 PrivatePreviewFeature.SqlDataPlane,
                 PrivatePreviewFeature.MetadataCache,
             );
+        const metadataCacheActiveAtActivation = metadataCacheEnabled();
+        void vscode.commands.executeCommand(
+            "setContext",
+            PrivatePreviewContextKey.MetadataCacheActive,
+            metadataCacheActiveAtActivation,
+        );
         metadataStoreService.configureHost({
             isActive: () => vscode.window.state.focused,
             dataPlaneEnabled: sqlDataPlaneEnabled,
@@ -1224,7 +1231,7 @@ export default class MainController implements vscode.Disposable {
 
         this._context.subscriptions.push(metadataStoreService);
 
-        if (metadataCacheEnabled()) {
+        if (metadataCacheActiveAtActivation) {
             this._context.subscriptions.push(
                 vscode.commands.registerCommand("mssql.metadataCache.showStatus", async () => {
                     const document = await vscode.workspace.openTextDocument({

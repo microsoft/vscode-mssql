@@ -8,8 +8,9 @@ import * as fs from "fs";
 import * as path from "path";
 
 const SQL_DATA_PLANE_GATE =
-    "config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled";
-const METADATA_CACHE_GATE = `${SQL_DATA_PLANE_GATE} && config.mssql.metadataCache.enabled`;
+    "mssql.privatePreview.sqlDataPlaneActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled";
+const METADATA_CACHE_GATE =
+    "mssql.privatePreview.metadataCacheActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.metadataCache.enabled";
 
 interface CommandContribution {
     command: string;
@@ -44,12 +45,12 @@ suite("Private preview manifest", () => {
         expect(settings["mssql.metadataCache.enabled"]?.default).to.equal(false);
     });
 
-    test("requires the umbrella before the SQL Data Plane status command is visible", () => {
+    test("requires the activation snapshot and umbrella before SQL Data Plane UI is visible", () => {
         expect(command("mssql.sqlDataPlane.showStatus").enablement).to.equal(SQL_DATA_PLANE_GATE);
         expect(commandPalette("mssql.sqlDataPlane.showStatus").when).to.equal(SQL_DATA_PLANE_GATE);
     });
 
-    test("requires the complete dependency path for metadata cache commands", () => {
+    test("requires the activation snapshot and complete path for metadata cache commands", () => {
         for (const commandId of [
             "mssql.metadataCache.showStatus",
             "mssql.metadataCache.clearAll",

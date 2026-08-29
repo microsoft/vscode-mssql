@@ -121,7 +121,8 @@ describe("Query Studio backend A/B registration (TSQ2-12)", () => {
     function fixtureOf(entry: NonNullable<typeof sts2>): string | undefined {
         return (
             entry.spec.setup?.find((step) => step.type === "openDocument") as
-                { type: "openDocument"; path: string } | undefined
+                | { type: "openDocument"; path: string }
+                | undefined
         )?.path;
     }
 

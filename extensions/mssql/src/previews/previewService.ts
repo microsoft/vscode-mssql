@@ -28,6 +28,16 @@ export enum PrivatePreviewFeature {
     MetadataCache = "mssql.metadataCache.enabled",
 }
 
+/**
+ * Activation snapshots used by contributed UI. Configuration keys update
+ * immediately, even for reload-required settings, so UI gates also require
+ * these context keys to avoid exposing commands before their handlers exist.
+ */
+export enum PrivatePreviewContextKey {
+    SqlDataPlaneActive = "mssql.privatePreview.sqlDataPlaneActive",
+    MetadataCacheActive = "mssql.privatePreview.metadataCacheActive",
+}
+
 export const CONFIG_PREVIEW_PREFIX = "mssql.preview.";
 
 export function getPreviewConfigKey(feature: PreviewFeature): string {

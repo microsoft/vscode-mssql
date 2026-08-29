@@ -877,7 +877,8 @@ async function mssqlDisconnect(ctx: EngineContext): Promise<void> {
     }
     const uri = editor.document.uri.toString();
     const controller = (await vscode.commands.executeCommand("mssql.getControllerForTests")) as
-        { connectionManager?: { disconnect(fileUri: string): Promise<boolean> } } | undefined;
+        | { connectionManager?: { disconnect(fileUri: string): Promise<boolean> } }
+        | undefined;
     if (!controller?.connectionManager) {
         throw new Error("mssql.getControllerForTests returned no controller");
     }
@@ -995,7 +996,8 @@ async function queryStudioConnect(
     let last: { connected?: boolean; error?: string } | undefined;
     for (;;) {
         last = (await vscode.commands.executeCommand("mssql.perf.queryStudioConnect")) as
-            { connected?: boolean; error?: string } | undefined;
+            | { connected?: boolean; error?: string }
+            | undefined;
         if (last?.connected === true) {
             break;
         }
@@ -1043,7 +1045,8 @@ async function queryStudioTerminalState(
 ): Promise<{ phase?: string; errorCount?: number; error?: string } | undefined> {
     for (;;) {
         const state = (await vscode.commands.executeCommand("mssql.perf.queryStudioState")) as
-            { phase?: string; errorCount?: number; error?: string } | undefined;
+            | { phase?: string; errorCount?: number; error?: string }
+            | undefined;
         const phase = state?.phase;
         if (phase && phase !== "executing" && phase !== "cancelRequested") {
             return state;
@@ -1151,7 +1154,8 @@ async function createDriverOeSession(
         throw new Error(`No connection profile '${profileName}' for Object Explorer`);
     }
     const controller = (await vscode.commands.executeCommand("mssql.getControllerForTests")) as
-        { _objectExplorerProvider?: DriverOeSeam } | undefined;
+        | { _objectExplorerProvider?: DriverOeSeam }
+        | undefined;
     const provider = controller?._objectExplorerProvider;
     if (!provider) {
         throw new Error("object explorer provider unavailable");
@@ -1195,7 +1199,8 @@ async function designerOpen(
         throw new Error(`No connection profile '${profileName}' for designerOpen`);
     }
     const controller = (await vscode.commands.executeCommand("mssql.getControllerForTests")) as
-        { _objectExplorerProvider?: DriverOeSeam } | undefined;
+        | { _objectExplorerProvider?: DriverOeSeam }
+        | undefined;
     const provider = controller?._objectExplorerProvider;
     if (!provider) {
         throw new Error("object explorer provider unavailable");
