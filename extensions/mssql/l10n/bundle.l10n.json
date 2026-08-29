@@ -3386,6 +3386,29 @@
         ]
     },
     "Data API builder Configuration": "Data API builder Configuration",
+    "Validation": "Validation",
+    "Errors: {0}/{0} is the number of DAB validation errors": {
+        "message": "Errors: {0}",
+        "comment": ["{0} is the number of DAB validation errors"]
+    },
+    "Warnings: {0}/{0} is the number of DAB validation warnings": {
+        "message": "Warnings: {0}",
+        "comment": ["{0} is the number of DAB validation warnings"]
+    },
+    "Line {0}, column {1}/{0} is a line number in the DAB config{1} is a column number in the DAB config": {
+        "message": "Line {0}, column {1}",
+        "comment": [
+            "{0} is a line number in the DAB config",
+            "{1} is a column number in the DAB config"
+        ]
+    },
+    "The DAB configuration is valid.": "The DAB configuration is valid.",
+    "DAB validation is unavailable": "DAB validation is unavailable",
+    "No .NET runtime was found. Set the DAB .NET path in settings, then retry setup.": "No .NET runtime was found. Set the DAB .NET path in settings, then retry setup.",
+    "The DAB CLI could not be installed.": "The DAB CLI could not be installed.",
+    "Open Settings": "Open Settings",
+    "Retry setup": "Retry setup",
+    "View logs": "View logs",
     "API Type": "API Type",
     "REST API": "REST API",
     "GraphQL": "GraphQL",
@@ -3476,6 +3499,8 @@
     "Customize column access": "Customize column access",
     "Entity name used in API routes": "Entity name used in API routes",
     "View Config": "View Config",
+    "Reset DAB configuration?": "Reset DAB configuration?",
+    "This replaces the current DAB configuration with defaults generated from the current database schema.": "This replaces the current DAB configuration with defaults generated from the current database schema.",
     "At least one API type must be selected.": "At least one API type must be selected.",
     "Select at least one logical key column before applying or deploying this exposed table or view.": "Select at least one logical key column before applying or deploying this exposed table or view.",
     "Authentication not supported": "Authentication not supported",

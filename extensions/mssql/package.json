@@ -1807,6 +1807,12 @@
                     "description": "%mssql.enableExperimentalFeatures.description%",
                     "scope": "application"
                 },
+                "mssql.dab.dotnetPath": {
+                    "type": "string",
+                    "default": "",
+                    "description": "%mssql.dab.dotnetPath.description%",
+                    "scope": "application"
+                },
                 "mssql.preview.betaResultsGrid": {
                     "type": "boolean",
                     "default": true,

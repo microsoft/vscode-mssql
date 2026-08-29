@@ -20,7 +20,6 @@ import { ReducerRequest } from "../../src/sharedInterfaces/webview";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import MainController from "../../src/controllers/mainController";
 import * as copilotUtils from "../../src/copilot/copilotUtils";
-import { DefaultSqlPortNumber } from "../../src/constants/constants";
 import {
     observeWebviewReady,
     stubExtensionContext,
@@ -1033,21 +1032,20 @@ suite("SchemaDesignerWebviewController tests", () => {
                 expect(parsedConfig).to.have.property("entities");
             });
 
-            test("should include transformed connection string in generated config", async () => {
+            test("should not expose the connection string in generated config", async () => {
                 createController();
 
                 const handler = requestHandlers.get(Dab.GenerateConfigRequest.type.method);
                 const result = await handler({ config: mockDabConfig });
 
                 const parsedConfig = JSON.parse(result.configContent);
-                // localhost is transformed to host.docker.internal for Docker container access,
-                // with the default SQL Server port appended when not specified
                 expect(parsedConfig["data-source"]["connection-string"]).to.equal(
-                    `Server=host.docker.internal,${DefaultSqlPortNumber};Database=testdb;`,
+                    "@env('MSSQL_DAB_CONNECTION')",
                 );
+                expect(result.configContent).not.to.include(connectionString);
             });
 
-            test("should use host port in transformed connection string when SQL Server is containerized", async () => {
+            test("should not expose a container connection string", async () => {
                 sandbox.stub(treeNode, "connectionProfile").get(
                     () =>
                         ({
@@ -1065,11 +1063,11 @@ suite("SchemaDesignerWebviewController tests", () => {
 
                 const parsedConfig = JSON.parse(result.configContent);
                 expect(parsedConfig["data-source"]["connection-string"]).to.equal(
-                    `Server=host.docker.internal,${DefaultSqlPortNumber};Database=testdb;`,
+                    "@env('MSSQL_DAB_CONNECTION')",
                 );
             });
 
-            test("should not transform non-localhost connection string", async () => {
+            test("should not expose a remote connection string", async () => {
                 const remoteConnectionString =
                     "Server=myserver.database.windows.net;Database=testdb;";
 
@@ -1090,16 +1088,18 @@ suite("SchemaDesignerWebviewController tests", () => {
 
                 const parsedConfig = JSON.parse(result.configContent);
                 expect(parsedConfig["data-source"]["connection-string"]).to.equal(
-                    remoteConnectionString,
+                    "@env('MSSQL_DAB_CONNECTION')",
                 );
+                expect(result.configContent).not.to.include(remoteConnectionString);
             });
         });
 
         suite("Cached config handlers", () => {
-            test("should register GetCachedConfigRequest and CacheConfigNotification handlers", () => {
+            test("should register persisted and cached config handlers", () => {
                 createController();
 
                 expect(requestHandlers.has(Dab.GetCachedConfigRequest.type.method)).to.be.true;
+                expect(requestHandlers.has(Dab.PersistConfigRequest.type.method)).to.be.true;
                 expect(notificationHandlers.has(Dab.CacheConfigNotification.type.method)).to.be
                     .true;
             });
@@ -1115,6 +1115,19 @@ suite("SchemaDesignerWebviewController tests", () => {
                 await cacheHandler({ config: mockDabConfig });
                 const result = await getHandler(undefined);
 
+                expect(result.config).to.deep.equal(mockDabConfig);
+            });
+
+            test("should persist and return DAB config", async () => {
+                createController();
+
+                const persistHandler = requestHandlers.get(Dab.PersistConfigRequest.type.method);
+                const getHandler = requestHandlers.get(Dab.GetCachedConfigRequest.type.method);
+
+                const persistResult = await persistHandler({ config: mockDabConfig });
+                const result = await getHandler(undefined);
+
+                expect(persistResult).to.deep.equal({ success: true });
                 expect(result.config).to.deep.equal(mockDabConfig);
             });
         });

@@ -356,40 +356,41 @@ suite("DabService Tests", () => {
         });
     });
 
-    suite("generateConfig - Docker connection string transformation", () => {
+    suite("generateConfig - secret-safe connection reference", () => {
         function getConnectionStringFromConfig(configContent: string): string {
             const parsed = JSON.parse(configContent);
             return parsed["data-source"]?.["connection-string"] ?? "";
         }
 
-        test("should transform localhost to host.docker.internal in generated config", () => {
+        test("should use an environment reference for localhost connections", () => {
             const result = dabService.generateConfig(createTestConfig(), {
                 connectionString: "Server=localhost,1433;Database=TestDb;",
             });
             expect(result.success).to.be.true;
             const connStr = getConnectionStringFromConfig(result.configContent);
-            expect(connStr).to.include("host.docker.internal,1433");
-            expect(connStr).to.not.include("localhost");
+            expect(connStr).to.equal("@env('MSSQL_DAB_CONNECTION')");
+            expect(result.configContent).not.to.include("localhost");
         });
 
-        test("should transform with container name in generated config", () => {
+        test("should not expose a container connection string", () => {
             const result = dabService.generateConfig(createTestConfig(), {
                 connectionString: "Server=localhost,1433;Database=TestDb;",
                 sqlServerContainerName: "my-sql",
             });
             expect(result.success).to.be.true;
             const connStr = getConnectionStringFromConfig(result.configContent);
-            expect(connStr).to.include("host.docker.internal,1433");
-            expect(connStr).to.not.include("my-sql");
+            expect(connStr).to.equal("@env('MSSQL_DAB_CONNECTION')");
+            expect(result.configContent).not.to.include("my-sql");
         });
 
-        test("should not transform remote server in generated config", () => {
+        test("should not expose a remote connection string", () => {
             const result = dabService.generateConfig(createTestConfig(), {
                 connectionString: "Server=prod-server.example.com;Database=TestDb;",
             });
             expect(result.success).to.be.true;
             const connStr = getConnectionStringFromConfig(result.configContent);
-            expect(connStr).to.include("prod-server.example.com");
+            expect(connStr).to.equal("@env('MSSQL_DAB_CONNECTION')");
+            expect(result.configContent).not.to.include("prod-server.example.com");
         });
     });
 
@@ -458,7 +459,7 @@ suite("DabService Tests", () => {
         });
 
         test("should run startContainer step successfully with valid params", async () => {
-            sandbox
+            const startContainer = sandbox
                 .stub(dabContainer, "startDabDockerContainer")
                 .resolves({ success: true, port: 5000 });
 
@@ -476,6 +477,7 @@ suite("DabService Tests", () => {
 
             expect(result.success).to.be.true;
             expect(result.apiUrl).to.equal("http://localhost:5000");
+            expect(startContainer.firstCall.args[3]).to.include("host.docker.internal,1433");
         });
 
         test("should return error when startContainer is called without params", async () => {

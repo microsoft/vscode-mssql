@@ -32,6 +32,8 @@ import {
     getSchemaDesignerDefinitionOutput,
     SchemaDesignerDefinitionOutput,
 } from "../sharedInterfaces/schemaDesignerDefinitionOutput";
+import { DabConfigGlobalStateStore } from "../dab/dabConfigGlobalStateStore";
+import { DabCliService } from "../dab/dabCliService";
 function isExpandCollapseButtonsEnabled(): boolean {
     return vscode.workspace
         .getConfiguration()
@@ -94,6 +96,8 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
     private _serverName: string | undefined;
     private _sqlServerContainerName: string | undefined;
     private _dabService = new DabService();
+    private _dabConfigStore: DabConfigGlobalStateStore | undefined;
+    private _dabCliService: DabCliService;
     private _progressListener:
         | ((progress: SchemaDesigner.SchemaDesignerProgressNotificationParams) => void)
         | undefined;
@@ -118,6 +122,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
         private connectionUri?: string,
         isReadOnly: boolean = false,
         cacheKey?: string,
+        dabConnectionId?: string,
     ) {
         super(
             context,
@@ -152,6 +157,14 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
         );
 
         this._key = cacheKey ?? `${this.connectionString}-${this.databaseName}`;
+        this._dabCliService = new DabCliService(context, this.logger.withPrefix("DAB CLI"));
+        if (dabConnectionId) {
+            this._dabConfigStore = new DabConfigGlobalStateStore(
+                context.globalState,
+                dabConnectionId,
+                databaseName,
+            );
+        }
         this._serverName = this.resolveServerName();
         this._sqlServerContainerName = this.resolveSqlServerContainerName();
 
@@ -493,12 +506,58 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
 
         this.onRequest(Dab.GetCachedConfigRequest.type, async () => {
             return {
-                config: this.schemaDesignerCache.get(this._key)?.dabConfig,
+                config:
+                    this._dabConfigStore?.get() ??
+                    this.schemaDesignerCache.get(this._key)?.dabConfig,
             };
+        });
+
+        this.onRequest(Dab.GetDabCliSetupRequest.type, async () => {
+            const current = this._dabCliService.getSetupState();
+            if (current.status !== "notStarted") {
+                return this._dabCliService.ensureInstalled();
+            }
+            return vscode.window.withProgress(
+                {
+                    location: vscode.ProgressLocation.Notification,
+                    title: `Installing Data API builder CLI ${Dab.DAB_CLI_VERSION}...`,
+                    cancellable: false,
+                },
+                () => this._dabCliService.ensureInstalled(),
+            );
+        });
+
+        this.onRequest(Dab.RetryDabCliSetupRequest.type, async () => {
+            return vscode.window.withProgress(
+                {
+                    location: vscode.ProgressLocation.Notification,
+                    title: `Installing Data API builder CLI ${Dab.DAB_CLI_VERSION}...`,
+                    cancellable: false,
+                },
+                () => this._dabCliService.ensureInstalled(true),
+            );
+        });
+
+        this.onRequest(Dab.ValidateConfigRequest.type, async (payload) => {
+            return this._dabCliService.validateConfig(payload.configContent, this.connectionString);
+        });
+
+        this.onNotification(Dab.OpenDabDotnetSettingsNotification.type, async () => {
+            await vscode.commands.executeCommand(
+                "workbench.action.openSettings",
+                "mssql.dab.dotnetPath",
+            );
+        });
+
+        this.onRequest(Dab.PersistConfigRequest.type, async (payload) => {
+            this.updateCacheItem(undefined, undefined, payload.config);
+            await this._dabConfigStore?.set(payload.config);
+            return { success: true };
         });
 
         this.onNotification(Dab.CacheConfigNotification.type, async (payload) => {
             this.updateCacheItem(undefined, undefined, payload.config);
+            await this._dabConfigStore?.set(payload.config);
         });
 
         this.onNotification(Dab.OpenConfigInEditorNotification.type, async (payload) => {

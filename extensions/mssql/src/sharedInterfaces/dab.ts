@@ -626,6 +626,70 @@ export namespace Dab {
         );
     }
 
+    export const DAB_CLI_VERSION = "2.1.0-rc";
+
+    export type DabCliSetupStatus =
+        | "notStarted"
+        | "installing"
+        | "ready"
+        | "missingRuntime"
+        | "installationFailed";
+
+    export interface DabCliSetupState {
+        status: DabCliSetupStatus;
+        version: string;
+        reason?: string;
+        logs?: string;
+    }
+
+    export namespace GetDabCliSetupRequest {
+        export const type = new RequestType<void, DabCliSetupState, void>("dab/cli/getSetup");
+    }
+
+    export namespace RetryDabCliSetupRequest {
+        export const type = new RequestType<void, DabCliSetupState, void>("dab/cli/retrySetup");
+    }
+
+    export interface DabValidationDiagnostic {
+        severity: "error" | "warning";
+        message: string;
+        line?: number;
+        column?: number;
+    }
+
+    export interface ValidateConfigParams {
+        configContent: string;
+    }
+
+    export type ValidateConfigResponse =
+        | { status: "valid"; diagnostics: DabValidationDiagnostic[] }
+        | { status: "invalid"; diagnostics: DabValidationDiagnostic[] }
+        | { status: "blocked"; setup: DabCliSetupState };
+
+    export namespace ValidateConfigRequest {
+        export const type = new RequestType<ValidateConfigParams, ValidateConfigResponse, void>(
+            "dab/cli/validateConfig",
+        );
+    }
+
+    export namespace OpenDabDotnetSettingsNotification {
+        export const type = new NotificationType<void>("dab/cli/openDotnetSettings");
+    }
+
+    export interface PersistConfigParams {
+        config: DabConfig;
+    }
+
+    export interface PersistConfigResponse {
+        success: boolean;
+    }
+
+    export namespace PersistConfigRequest {
+        export const type = new RequestType<PersistConfigParams, PersistConfigResponse, void>(
+            "dab/persistConfig",
+        );
+    }
+
     export interface CacheConfigParams {
         config: DabConfig;
     }

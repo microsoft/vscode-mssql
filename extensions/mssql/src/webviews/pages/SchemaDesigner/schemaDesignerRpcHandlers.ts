@@ -2515,7 +2515,7 @@ export function registerSchemaDesignerDabToolHandlers(params: {
     waitForInitialization: () => Promise<boolean>;
     getCurrentDabConfig: () => Dab.DabConfig | null;
     getCurrentSourceObjects: () => Dab.DabSourceObject[];
-    commitDabConfig: (config: Dab.DabConfig) => void;
+    commitDabConfig: (config: Dab.DabConfig, options?: { recordHistory?: boolean }) => void;
 }) {
     const {
         extensionRpc,
@@ -2539,7 +2539,7 @@ export function registerSchemaDesignerDabToolHandlers(params: {
         const syncedSnapshot = Dab.syncConfigWithSources(baseSnapshot, sourceObjects);
 
         if (syncedSnapshot.changed) {
-            commitDabConfig(syncedSnapshot.config);
+            commitDabConfig(syncedSnapshot.config, { recordHistory: false });
         }
 
         const summary = buildDabSummary(syncedSnapshot.config);
@@ -2602,10 +2602,11 @@ export function registerSchemaDesignerDabToolHandlers(params: {
             };
         }
 
-        const baseSnapshot = Dab.syncConfigWithSources(
+        const syncedBaseSnapshot = Dab.syncConfigWithSources(
             getCurrentDabConfig(),
             getCurrentSourceObjects(),
-        ).config;
+        );
+        const baseSnapshot = syncedBaseSnapshot.config;
         const version = await computeDabVersion(baseSnapshot);
 
         if (request.expectedVersion !== version) {
@@ -2626,6 +2627,10 @@ export function registerSchemaDesignerDabToolHandlers(params: {
                     : {}),
                 ...(staleState.config ? { config: staleState.config } : {}),
             };
+        }
+
+        if (syncedBaseSnapshot.changed) {
+            commitDabConfig(baseSnapshot, { recordHistory: false });
         }
 
         const workingSnapshot = cloneDabConfig(baseSnapshot);

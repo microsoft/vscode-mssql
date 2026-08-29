@@ -2118,6 +2118,9 @@
     <trans-unit id="++CODE++edb45df4d9dc81d0ba51ac48d83da35e32f4a62efc89a3d227df9e1794fee394">
       <source xml:lang="en">DAB container logs</source>
     </trans-unit>
+    <trans-unit id="++CODE++367cad4abdca44b3be1f1220deec12e53ea066ef8a13df3507f9f18ef0172a62">
+      <source xml:lang="en">DAB validation is unavailable</source>
+    </trans-unit>
     <trans-unit id="++CODE++8f56b52b4f497c14810f52351db46c7f638c38f1a321f5bdfb38a3fb817f0ad9">
       <source xml:lang="en">DACPAC deployed successfully</source>
     </trans-unit>
@@ -2961,6 +2964,10 @@
     <trans-unit id="++CODE++beab8d6b59ef40883dd9887fd21f67e4716b5d4581461c3eae2825e09b698ad0">
       <source xml:lang="en">Error: {0}</source>
       <note>{0} is the error message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++f6c8e71b5564465ba12dad2d35ed10ee15384b3e72786b0b4e6053d3b775be04">
+      <source xml:lang="en">Errors: {0}</source>
+      <note>{0} is the number of DAB validation errors</note>
     </trans-unit>
     <trans-unit id="++CODE++037c968467aa3fd7c059c7d0b57e3460aa332f30db816efcd98943724a1d8db0">
       <source xml:lang="en">Escape</source>
@@ -4395,6 +4402,11 @@
       <source xml:lang="en">Line {0}</source>
       <note>{0} is the line number</note>
     </trans-unit>
+    <trans-unit id="++CODE++099d357ae7444f2e6d359422179f02684366bc89c9dbe7eeacf57b8bbe3fcef1">
+      <source xml:lang="en">Line {0}, column {1}</source>
+      <note>{0} is a line number in the DAB config
+{1} is a column number in the DAB config</note>
+    </trans-unit>
     <trans-unit id="++CODE++e2a627b4134a5455218d4018fec6393c005ed0097d63e533d50ea350a1eab6c2">
       <source xml:lang="en">Link copied to clipboard</source>
     </trans-unit>
@@ -5107,6 +5119,9 @@
     <trans-unit id="++CODE++1ea442a134b2a184bd5d40104401f2a37fbc09ccf3f4bc9da161c6099be3691d">
       <source xml:lang="en">No</source>
     </trans-unit>
+    <trans-unit id="++CODE++43d012fc73db247872debdaaa4c99cccdb50d8bc604ff4116c678a65aa08c93f">
+      <source xml:lang="en">No .NET runtime was found. Set the DAB .NET path in settings, then retry setup.</source>
+    </trans-unit>
     <trans-unit id="++CODE++4e43f09881e3742e225d5e39243fa725d8dd7e9a9d64f05c7c814a12a0b32935">
       <source xml:lang="en">No Action</source>
     </trans-unit>
@@ -5571,6 +5586,9 @@
     </trans-unit>
     <trans-unit id="++CODE++2c1ff609e9acedfcd56ba1c75b3cc704ce0c59afafb9f280e75d37376028e9cd">
       <source xml:lang="en">Open SQL editor and connect</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3f940108cb1ecd9c0090da0b51b45f9fe673f00b22c7ffe3d013319b97456674">
+      <source xml:lang="en">Open Settings</source>
     </trans-unit>
     <trans-unit id="++CODE++458f7bdeed472d6583d8b0e14f2535e896f301136ee1ea3c63fdbf0845407225">
       <source xml:lang="en">Open XML</source>
@@ -6287,6 +6305,9 @@
     <trans-unit id="++CODE++daee7606b339f3c339076fe2c9f372a3ff40c8ee896005d829c7481b64ca5303">
       <source xml:lang="en">Reset</source>
     </trans-unit>
+    <trans-unit id="++CODE++3db74f2a8f6102d4675b34a023b195df9cebec8b629b14fa62d57849a49bb7cc">
+      <source xml:lang="en">Reset DAB configuration?</source>
+    </trans-unit>
     <trans-unit id="++CODE++37ba78770ece89995a12bcd4cc2a30a8fe4e5338f09c5a6534ccbc4f272825de">
       <source xml:lang="en">Reset to Defaults?</source>
     </trans-unit>
@@ -6388,6 +6409,9 @@
     </trans-unit>
     <trans-unit id="++CODE++942087cc2d41e01304b7195558d093d10c72af8e838c7556d6a02d471ee71852">
       <source xml:lang="en">Retry</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8e0872049de9bf62da051fb04069085cf79335c17b28aa17f9fe7d60fd8c230f">
+      <source xml:lang="en">Retry setup</source>
     </trans-unit>
     <trans-unit id="++CODE++5bd5c339ebe498309ce5a1daa054527532d3a64a93065f801c9e913f722877c2">
       <source xml:lang="en">Reusable Filters</source>
@@ -7748,6 +7772,12 @@
     <trans-unit id="++CODE++c2deec07495a278190de83a0820519064e332fc00b050c4fd053bae70c44da8e">
       <source xml:lang="en">The Application (Client) ID of your Microsoft Entra app registration.</source>
     </trans-unit>
+    <trans-unit id="++CODE++0c94a69972871a40bd44e629099d87785ff940c82f2341d72dc3b52497d728fb">
+      <source xml:lang="en">The DAB CLI could not be installed.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4252677f1255efbd05ee9d2865c4632acc84023a233bee1a2ecbe2adf958d33d">
+      <source xml:lang="en">The DAB configuration is valid.</source>
+    </trans-unit>
     <trans-unit id="++CODE++b0ccb68c36737cb5ef6c7a74871ab7845533f64d89c74dd7db735bb555c401e1">
       <source xml:lang="en">The Query Profiler now supports SQL database in Microsoft Fabric connections, with new Azure SQL Database templates including {code-snippet-0} for lightweight T-SQL profiling.</source>
     </trans-unit>
@@ -7916,6 +7946,9 @@
     </trans-unit>
     <trans-unit id="++CODE++461401ab1ef5eb94c409a7d6de3ad223b3733f4a8823944fc070fcfdf5ebed6b">
       <source xml:lang="en">This operation analyzed the input file structure to generate the preview below for up to the first 50 rows.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8fdc17f8788862ad108a27ac7d4b344f7dab13ca11a7574f0dfb7707017053a0">
+      <source xml:lang="en">This replaces the current DAB configuration with defaults generated from the current database schema.</source>
     </trans-unit>
     <trans-unit id="++CODE++cbc6ae36d1aec69e8b4ab32b18eac65c87ac1ded2fe8e3c342df068fb83be36d">
       <source xml:lang="en">This server only supports Microsoft Entra ID authentication.</source>
@@ -8272,6 +8305,9 @@
       <source xml:lang="en">Using {0} to process your request...</source>
       <note>{0} is the model name that will be processing the request</note>
     </trans-unit>
+    <trans-unit id="++CODE++68e1ca575295bb5604fea711b5d2eff44006ce4bd985481083a76b71fce0daef">
+      <source xml:lang="en">Validation</source>
+    </trans-unit>
     <trans-unit id="++CODE++23a86f5a2daebf62665f27e6c911523cf8c7fa74b48dd330ca058d0285defb0c">
       <source xml:lang="en">Validation failed</source>
     </trans-unit>
@@ -8325,6 +8361,9 @@
     </trans-unit>
     <trans-unit id="++CODE++12237266cc8c3c0b0f99735d579480d2b1077668f1a68df8ad88c92a12e982e5">
       <source xml:lang="en">View known issues</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9ec41ffd7797fa24b61fd5ce33629033da9efcf352c40e98597b7dd84b054119">
+      <source xml:lang="en">View logs</source>
     </trans-unit>
     <trans-unit id="++CODE++ff01d2362e483ddaca44f0e7f02d280bef382c1a3209776e5a11ca21acf2cea4">
       <source xml:lang="en">View mssql for Visual Studio Code release notes?</source>
@@ -8382,6 +8421,10 @@
     </trans-unit>
     <trans-unit id="++CODE++4d7371c8931fdd0178f7cbdabd1fd8260039a824a5c0912e880840b4d841f41e">
       <source xml:lang="en">Warnings detected. Please review the changes.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++862674b244425ffb8a957cdec46392ec9ab01871b33e8ebb82181c76612593f8">
+      <source xml:lang="en">Warnings: {0}</source>
+      <note>{0} is the number of DAB validation warnings</note>
     </trans-unit>
     <trans-unit id="++CODE++d7e723ab8286a6853d1f6fc0a59d215824e9ab149d391667863d3d3d46e91ad6">
       <source xml:lang="en">Watch demo</source>
@@ -9590,6 +9633,9 @@
     </trans-unit>
     <trans-unit id="mssql.openInMssqlExtensionFromAzureResources">
       <source xml:lang="en">Open in MSSQL extension</source>
+    </trans-unit>
+    <trans-unit id="mssql.dab.dotnetPath.description">
+      <source xml:lang="en">Path to the dotnet executable used by Data API builder validation and local CLI deployments.</source>
     </trans-unit>
     <trans-unit id="mssql.pauseQueryHistoryCapture">
       <source xml:lang="en">Pause Query History Capture</source>

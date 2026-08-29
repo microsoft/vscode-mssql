@@ -127,6 +127,7 @@ suite("DAB Container", () => {
                 "test-dab-container",
                 5000,
                 configFilePath,
+                "Server=host.docker.internal;Password=secret",
             );
 
             expect(createContainerStub).to.have.been.calledOnce;
@@ -142,6 +143,9 @@ suite("DAB Container", () => {
             expect(createOptions.HostConfig.PortBindings).to.deep.equal({
                 "5000/tcp": [{ HostIp: "127.0.0.1", HostPort: "5000" }],
             });
+            expect(createOptions.Env).to.deep.equal([
+                "MSSQL_DAB_CONNECTION=Server=host.docker.internal;Password=secret",
+            ]);
         } finally {
             // Cleanup temp files
             fs.unlinkSync(configFilePath);

@@ -80,7 +80,7 @@ export type DefinitionTabIdentifier<TCustomTabId extends string = never> =
 
 export interface DefinitionPanelCustomTab<TId extends string = string> {
     id: TId;
-    label: string;
+    label: ReactNode;
     content: ReactNode;
     headerActions?: ReactNode;
 }

@@ -106,15 +106,16 @@ suite("DabConfigFileBuilder Tests", () => {
                 expect(parsed["data-source"]["database-type"]).to.equal("mssql");
             });
 
-            test("should include the connection string from connectionInfo", () => {
+            test("should reference the connection environment variable without exposing secrets", () => {
                 const connectionInfo: Dab.DabConnectionInfo = {
                     connectionString: "Server=myserver;Database=mydb;",
                 };
                 const result = builder.build(createTestConfig(), connectionInfo);
                 const parsed = JSON.parse(result);
                 expect(parsed["data-source"]["connection-string"]).to.equal(
-                    "Server=myserver;Database=mydb;",
+                    "@env('MSSQL_DAB_CONNECTION')",
                 );
+                expect(result).not.to.include("Server=myserver;Database=mydb;");
             });
 
             test("should include all top-level sections", () => {
@@ -610,6 +611,7 @@ suite("DabConfigFileBuilder Tests", () => {
                 const parsed = JSON.parse(result);
 
                 expect(parsed.entities["Users"].mcp).to.deep.equal({
+                    "custom-tool": false,
                     "dml-tools": true,
                 });
             });

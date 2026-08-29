@@ -9,6 +9,7 @@ import { DockerCommandParams } from "../sharedInterfaces/localContainers";
 import { LocalContainers } from "../constants/locConstants";
 import { getErrorMessage } from "../utils/utils";
 import { Dab } from "../sharedInterfaces/dab";
+import { DAB_CONNECTION_ENVIRONMENT_VARIABLE } from "./dabConfigFileBuilder";
 import type Dockerode from "dockerode";
 import { getDockerodeClient } from "../docker/dockerodeClient";
 import {
@@ -143,6 +144,7 @@ export async function startDabDockerContainer(
     containerName: string,
     port: number,
     configFilePath: string,
+    connectionString?: string,
 ): Promise<DockerCommandParams> {
     try {
         dockerLogger.info(
@@ -167,6 +169,9 @@ export async function startDabDockerContainer(
                 },
                 ExtraHosts: ["host.docker.internal:host-gateway"],
             },
+            ...(connectionString
+                ? { Env: [`${DAB_CONNECTION_ENVIRONMENT_VARIABLE}=${connectionString}`] }
+                : {}),
         };
 
         const container = await dockerClient.createContainer(createContainerOptions);

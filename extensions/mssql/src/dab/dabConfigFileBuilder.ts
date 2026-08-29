@@ -6,7 +6,8 @@
 import { Dab } from "../sharedInterfaces/dab";
 
 const DAB_SCHEMA_URL =
-    "https://github.com/Azure/data-api-builder/releases/latest/download/dab.draft.schema.json";
+    "https://github.com/Azure/data-api-builder/releases/download/v2.1.0-rc/dab.draft.schema.json";
+export const DAB_CONNECTION_ENVIRONMENT_VARIABLE = "MSSQL_DAB_CONNECTION";
 
 interface DabOutputConfig {
     $schema: string;
@@ -101,13 +102,16 @@ export class DabConfigFileBuilder {
      */
     private buildDabConfigFile(
         config: Dab.DabConfig,
-        connectionInfo: Dab.DabConnectionInfo,
+        _connectionInfo: Dab.DabConnectionInfo,
     ): DabOutputConfig {
         return {
             $schema: DAB_SCHEMA_URL,
             "data-source": {
                 "database-type": "mssql",
-                "connection-string": connectionInfo.connectionString,
+                // The preview, persisted config, and temporary validation file must never contain
+                // connection credentials. The extension supplies the value only to the launched
+                // DAB process/container environment.
+                "connection-string": `@env('${DAB_CONNECTION_ENVIRONMENT_VARIABLE}')`,
             },
             runtime: this.buildRuntimeSection(config.apiTypes),
             entities: this.buildEntitiesSection(
@@ -455,9 +459,12 @@ export class DabConfigFileBuilder {
 
         return {
             "dml-tools": Dab.isEntityMcpDmlToolsEnabled(entity),
-            ...(entity.sourceType === Dab.EntitySourceType.StoredProcedure
-                ? { "custom-tool": Dab.isEntityMcpCustomToolEnabled(entity) }
-                : {}),
+            // 2.1.0-rc's schema condition treats an omitted custom-tool property as matching
+            // the stored-procedure-only branch. Emit false explicitly for tables/views.
+            "custom-tool":
+                entity.sourceType === Dab.EntitySourceType.StoredProcedure
+                    ? Dab.isEntityMcpCustomToolEnabled(entity)
+                    : false,
         };
     }
 }

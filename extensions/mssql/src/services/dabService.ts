@@ -78,8 +78,10 @@ export class DabService implements Dab.IDabService {
     ): Promise<Dab.RunDeploymentStepResponse> {
         // Generate config content if needed for startContainer step
         let configContent: string | undefined;
+        let deploymentConnectionString: string | undefined;
         if (step === Dab.DabDeploymentStepOrder.startContainer && config && connectionInfo) {
-            const configResponse = this.generateConfig(config, connectionInfo);
+            const transformedConnectionInfo = this.transformConnectionInfoForDocker(connectionInfo);
+            const configResponse = this.generateConfig(config, transformedConnectionInfo);
             if (!configResponse.success) {
                 return {
                     success: false,
@@ -87,9 +89,10 @@ export class DabService implements Dab.IDabService {
                 };
             }
             configContent = configResponse.configContent;
+            deploymentConnectionString = transformedConnectionInfo.connectionString;
         }
 
-        return this.executeDeploymentStep(step, params, configContent);
+        return this.executeDeploymentStep(step, params, configContent, deploymentConnectionString);
     }
 
     /**
@@ -165,6 +168,7 @@ export class DabService implements Dab.IDabService {
         step: Dab.DabDeploymentStepOrder,
         params?: Dab.DabDeploymentParams,
         configContent?: string,
+        connectionString?: string,
     ): Promise<Dab.RunDeploymentStepResponse> {
         let result: Dab.RunDeploymentStepResponse;
 
@@ -202,6 +206,7 @@ export class DabService implements Dab.IDabService {
                         params.containerName,
                         params.port,
                         configFilePath,
+                        connectionString,
                     );
 
                     if (containerResult.success) {

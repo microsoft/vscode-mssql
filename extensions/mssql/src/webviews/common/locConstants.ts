@@ -1922,6 +1922,39 @@ export class LocConstants {
 
             // DAB (Data API builder) strings
             dabTitle: l10n.t("Data API builder Configuration"),
+            dabValidation: l10n.t("Validation"),
+            dabErrorCount: (count: number) =>
+                l10n.t({
+                    message: "Errors: {0}",
+                    args: [count],
+                    comment: ["{0} is the number of DAB validation errors"],
+                }),
+            dabWarningCount: (count: number) =>
+                l10n.t({
+                    message: "Warnings: {0}",
+                    args: [count],
+                    comment: ["{0} is the number of DAB validation warnings"],
+                }),
+            dabValidationError: l10n.t("Error"),
+            dabValidationWarning: l10n.t("Warning"),
+            dabValidationLocation: (line: number, column: number) =>
+                l10n.t({
+                    message: "Line {0}, column {1}",
+                    args: [line, column],
+                    comment: [
+                        "{0} is a line number in the DAB config",
+                        "{1} is a column number in the DAB config",
+                    ],
+                }),
+            dabConfigValid: l10n.t("The DAB configuration is valid."),
+            dabValidationUnavailable: l10n.t("DAB validation is unavailable"),
+            dabMissingDotnetRuntime: l10n.t(
+                "No .NET runtime was found. Set the DAB .NET path in settings, then retry setup.",
+            ),
+            dabCliInstallFailed: l10n.t("The DAB CLI could not be installed."),
+            dabOpenSettings: l10n.t("Open Settings"),
+            dabRetrySetup: l10n.t("Retry setup"),
+            dabViewLogs: l10n.t("View logs"),
             apiType: l10n.t("API Type"),
             restApi: l10n.t("REST API"),
             graphql: l10n.t("GraphQL"),
@@ -2076,6 +2109,11 @@ export class LocConstants {
             customizeColumnAccess: l10n.t("Customize column access"),
             entityNameDescription: l10n.t("Entity name used in API routes"),
             viewConfig: l10n.t("View Config"),
+            resetDabConfig: l10n.t("Reset"),
+            resetDabConfigTitle: l10n.t("Reset DAB configuration?"),
+            resetDabConfigMessage: l10n.t(
+                "This replaces the current DAB configuration with defaults generated from the current database schema.",
+            ),
             deploy: l10n.t("Deploy"),
             dabDeploymentNotSupported: l10n.t(
                 "Local container deployment is currently only supported with SQL Authentication connections.",

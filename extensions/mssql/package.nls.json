@@ -277,6 +277,7 @@
     "mssql.clearFilters": "Clear Filters",
     "mssql.openExecutionPlanFile": "Open Execution Plan File",
     "mssql.enableExperimentalFeatures.description": "Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.",
+    "mssql.dab.dotnetPath.description": "Path to the dotnet executable used by Data API builder validation and local CLI deployments.",
     "mssql.legacySetting.deprecationMessage": "This setting will be removed in a future release.",
     "mssql.openQueryResultsInTabByDefault.description": "Automatically display query results in a new tab instead of the query pane.",
     "mssql.openQueryResultsInTabByDefaultDoNotShowPrompt.description": "Do not show prompts to display query results in a new tab.",

@@ -77,6 +77,7 @@ export const DabPage = ({ activeView, onNavigateToSchema }: DabPageProps) => {
         syncDabConfigWithSchema,
         isInitialized,
         isDabDeploymentSupported,
+        dabValidationState,
     } = useDabContext();
     const isDabTabActive = activeView === SchemaDesigner.SchemaDesignerActiveView.Dab;
     const hasUnsupportedDataTypes =
@@ -89,6 +90,7 @@ export const DabPage = ({ activeView, onNavigateToSchema }: DabPageProps) => {
     const definitionsPanelRef = useRef<DabDefinitionsPanelRef>(
         undefined as unknown as DabDefinitionsPanelRef,
     );
+    const previousSettledValidationStatus = useRef<"valid" | "invalid" | undefined>(undefined);
 
     // Initialize DAB config when schema is first initialized
     useEffect(() => {
@@ -104,6 +106,20 @@ export const DabPage = ({ activeView, onNavigateToSchema }: DabPageProps) => {
             syncDabConfigWithSchema();
         }
     }, [activeView]);
+
+    useEffect(() => {
+        if (dabValidationState.status !== "valid" && dabValidationState.status !== "invalid") {
+            return;
+        }
+
+        if (
+            previousSettledValidationStatus.current === "valid" &&
+            dabValidationState.status === "invalid"
+        ) {
+            definitionsPanelRef.current?.openPanel("validation");
+        }
+        previousSettledValidationStatus.current = dabValidationState.status;
+    }, [dabValidationState.status]);
 
     const isSchemaLoading = !isInitialized;
     const isDabConfigLoading = isInitialized && !dabConfig;
@@ -134,7 +150,7 @@ export const DabPage = ({ activeView, onNavigateToSchema }: DabPageProps) => {
                         <DabToolbar
                             showDiscovery={canShowDiscovery}
                             onNavigateToSchema={onNavigateToSchema}
-                            onViewConfig={() => definitionsPanelRef.current?.openPanel()}
+                            onViewConfig={() => definitionsPanelRef.current?.openPanel("script")}
                             entityFilters={entityFilters}
                             setEntityFilters={setEntityFilters}
                         />

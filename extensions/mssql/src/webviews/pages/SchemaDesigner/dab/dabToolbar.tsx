@@ -7,6 +7,12 @@ import {
     Button,
     Checkbox,
     CounterBadge,
+    Dialog,
+    DialogActions,
+    DialogBody,
+    DialogContent,
+    DialogSurface,
+    DialogTitle,
     Divider,
     Input,
     makeStyles,
@@ -21,6 +27,9 @@ import {
 } from "@fluentui/react-components";
 import {
     ArrowLeft16Regular as ArrowLeftIcon,
+    ArrowCounterclockwise16Regular as ResetIcon,
+    ArrowRedo16Regular as RedoIcon,
+    ArrowUndo16Regular as UndoIcon,
     Dismiss12Regular,
     Dismiss16Regular,
     Eye16Regular as EyeIcon,
@@ -316,10 +325,16 @@ export function DabToolbar({
         dabTextFilter,
         setDabTextFilter,
         openDabDeploymentDialog,
+        canUndoDabConfig,
+        canRedoDabConfig,
+        undoDabConfig,
+        redoDabConfig,
+        resetDabConfig,
     } = context;
 
     const [showApiTypeWarning, setShowApiTypeWarning] = useState(false);
     const [filterOpen, setFilterOpen] = useState(false);
+    const [resetDialogOpen, setResetDialogOpen] = useState(false);
     const warningTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
     const schemaListRef = useRef<HTMLDivElement | null>(null);
 
@@ -461,399 +476,472 @@ export function DabToolbar({
     };
 
     return (
-        <div className={classes.toolbarContainer}>
-            {/* Header row with title and action buttons */}
-            <div className={classes.headerRow}>
-                <div className={classes.titleSection}>
-                    <Button
-                        appearance="subtle"
-                        size="small"
-                        icon={<ArrowLeftIcon />}
-                        onClick={onNavigateToSchema}>
-                        {locConstants.schemaDesigner.backToSchema}
-                    </Button>
-                    <Divider vertical style={{ height: "20px" }} />
-                    <Text className={classes.title}>{locConstants.schemaDesigner.dabTitle}</Text>
-                </div>
-                <div className={classes.actionsSection}>
-                    <SchemaDesignerWebviewCopilotChatEntry
-                        scenario="dab"
-                        entryPoint="dabToolbar"
-                        discoveryTitle={locConstants.schemaDesigner.dabCopilotDiscoveryTitle}
-                        discoveryBody={locConstants.schemaDesigner.dabCopilotDiscoveryBody}
-                        showDiscovery={showDiscovery}
-                    />
-                    <Button
-                        appearance="subtle"
-                        icon={<EyeIcon />}
-                        size="small"
-                        title={locConstants.schemaDesigner.viewConfig}
-                        onClick={onViewConfig}>
-                        {locConstants.schemaDesigner.viewConfig}
-                    </Button>
-                    {isDeployDisabled ? (
-                        <Tooltip content={getDeployTooltip()} relationship="label">
-                            <span>
-                                <Button
-                                    appearance="primary"
-                                    icon={<PlayIcon />}
-                                    size="small"
-                                    disabled>
-                                    {locConstants.schemaDesigner.deploy}
-                                </Button>
-                            </span>
-                        </Tooltip>
-                    ) : (
+        <>
+            <Dialog
+                open={resetDialogOpen}
+                modalType="alert"
+                onOpenChange={(_, data) => setResetDialogOpen(data.open)}>
+                <DialogSurface>
+                    <DialogBody>
+                        <DialogTitle>{locConstants.schemaDesigner.resetDabConfigTitle}</DialogTitle>
+                        <DialogContent>
+                            {locConstants.schemaDesigner.resetDabConfigMessage}
+                        </DialogContent>
+                        <DialogActions>
+                            <Button
+                                appearance="secondary"
+                                onClick={() => setResetDialogOpen(false)}>
+                                {locConstants.common.cancel}
+                            </Button>
+                            <Button
+                                appearance="primary"
+                                onClick={() => {
+                                    resetDabConfig();
+                                    setResetDialogOpen(false);
+                                }}>
+                                {locConstants.schemaDesigner.resetDabConfig}
+                            </Button>
+                        </DialogActions>
+                    </DialogBody>
+                </DialogSurface>
+            </Dialog>
+            <div className={classes.toolbarContainer}>
+                {/* Header row with title and action buttons */}
+                <div className={classes.headerRow}>
+                    <div className={classes.titleSection}>
                         <Button
-                            appearance="primary"
-                            icon={<PlayIcon />}
+                            appearance="subtle"
                             size="small"
-                            onClick={openDabDeploymentDialog}>
-                            {locConstants.schemaDesigner.deploy}
+                            icon={<ArrowLeftIcon />}
+                            onClick={onNavigateToSchema}>
+                            {locConstants.schemaDesigner.backToSchema}
                         </Button>
-                    )}
-                </div>
-            </div>
-
-            {/* Entity controls: API types, search, filters, and count share one toolbar row. */}
-            <div className={classes.entityControlsRow}>
-                <div className={classes.apiTypeGroup}>
-                    <Text className={classes.apiTypeLabel}>
-                        {locConstants.schemaDesigner.apiType}
-                    </Text>
-                    <div className={classes.apiTypeCheckboxes}>
-                        {apiTypeOptions.map(({ type, label }) => {
-                            const isSelected = dabConfig.apiTypes.includes(type);
-                            return (
-                                <Checkbox
-                                    key={type}
-                                    label={
-                                        <span className={classes.apiTypeLabelContent}>
-                                            {label}
-                                            <DabCountPill>
-                                                {apiTypeCounts[type]}/{supportedEntities.length}
-                                            </DabCountPill>
-                                        </span>
-                                    }
-                                    checked={isSelected}
-                                    onChange={(_, data) => {
-                                        const updated = data.checked
-                                            ? [...dabConfig.apiTypes, type]
-                                            : dabConfig.apiTypes.filter((t) => t !== type);
-                                        if (updated.length === 0) {
-                                            showMinApiTypeWarning();
-                                            return;
-                                        }
-                                        updateDabApiTypes(updated);
-                                    }}
-                                />
-                            );
-                        })}
-                    </div>
-                    {showApiTypeWarning && (
-                        <Text className={classes.apiTypeWarning} role="status" aria-live="polite">
-                            {locConstants.schemaDesigner.atLeastOneApiTypeRequired}
+                        <Divider vertical style={{ height: "20px" }} />
+                        <Text className={classes.title}>
+                            {locConstants.schemaDesigner.dabTitle}
                         </Text>
-                    )}
-                </div>
-                <div className={classes.filterControls}>
-                    <Input
-                        className={classes.searchInput}
-                        size="small"
-                        placeholder={locConstants.schemaDesigner.filterEntities}
-                        aria-label={locConstants.schemaDesigner.filterEntities}
-                        value={dabTextFilter}
-                        onChange={(_, data) => setDabTextFilter(data.value)}
-                        contentBefore={<Search16Regular />}
-                        contentAfter={
-                            dabTextFilter ? (
-                                <Button
-                                    appearance="transparent"
-                                    icon={<Dismiss16Regular />}
-                                    size="small"
-                                    aria-label={locConstants.common.clear}
-                                    onClick={() => setDabTextFilter("")}
-                                    style={{ minWidth: "auto", padding: 0 }}
-                                />
-                            ) : undefined
-                        }
-                    />
-                    <Popover
-                        withArrow
-                        positioning="below-start"
-                        open={filterOpen}
-                        onOpenChange={(_, data) => setFilterOpen(data.open)}>
-                        <PopoverTrigger disableButtonEnhancement>
+                    </div>
+                    <div className={classes.actionsSection}>
+                        <SchemaDesignerWebviewCopilotChatEntry
+                            scenario="dab"
+                            entryPoint="dabToolbar"
+                            discoveryTitle={locConstants.schemaDesigner.dabCopilotDiscoveryTitle}
+                            discoveryBody={locConstants.schemaDesigner.dabCopilotDiscoveryBody}
+                            showDiscovery={showDiscovery}
+                        />
+                        <Tooltip content={locConstants.schemaDesigner.undo} relationship="label">
                             <Button
                                 appearance="subtle"
-                                icon={<Filter16Regular />}
-                                className={mergeClasses(
-                                    hasActiveFilters && classes.filterButtonActive,
-                                )}>
-                                {locConstants.schemaDesigner.filter(0)}
-                                {hasActiveFilters && (
-                                    <CounterBadge
-                                        className={classes.filterButtonBadge}
+                                icon={<UndoIcon />}
+                                size="small"
+                                aria-label={locConstants.schemaDesigner.undo}
+                                disabled={!canUndoDabConfig}
+                                onClick={undoDabConfig}
+                            />
+                        </Tooltip>
+                        <Tooltip content={locConstants.schemaDesigner.redo} relationship="label">
+                            <Button
+                                appearance="subtle"
+                                icon={<RedoIcon />}
+                                size="small"
+                                aria-label={locConstants.schemaDesigner.redo}
+                                disabled={!canRedoDabConfig}
+                                onClick={redoDabConfig}
+                            />
+                        </Tooltip>
+                        <Button
+                            appearance="subtle"
+                            icon={<ResetIcon />}
+                            size="small"
+                            onClick={() => setResetDialogOpen(true)}>
+                            {locConstants.schemaDesigner.resetDabConfig}
+                        </Button>
+                        <Button
+                            appearance="subtle"
+                            icon={<EyeIcon />}
+                            size="small"
+                            title={locConstants.schemaDesigner.viewConfig}
+                            onClick={onViewConfig}>
+                            {locConstants.schemaDesigner.viewConfig}
+                        </Button>
+                        {isDeployDisabled ? (
+                            <Tooltip content={getDeployTooltip()} relationship="label">
+                                <span>
+                                    <Button
+                                        appearance="primary"
+                                        icon={<PlayIcon />}
                                         size="small"
-                                        count={activeFilterCount}
-                                        color="brand"
-                                    />
-                                )}
+                                        disabled>
+                                        {locConstants.schemaDesigner.deploy}
+                                    </Button>
+                                </span>
+                            </Tooltip>
+                        ) : (
+                            <Button
+                                appearance="primary"
+                                icon={<PlayIcon />}
+                                size="small"
+                                onClick={openDabDeploymentDialog}>
+                                {locConstants.schemaDesigner.deploy}
                             </Button>
-                        </PopoverTrigger>
-                        <PopoverSurface className={classes.filterSurface}>
-                            <div className={classes.filterPopupHeader}>
-                                <Text className={classes.filterPopupTitle}>
-                                    {locConstants.schemaDesigner.filterEntitiesTitle}
-                                </Text>
+                        )}
+                    </div>
+                </div>
+
+                {/* Entity controls: API types, search, filters, and count share one toolbar row. */}
+                <div className={classes.entityControlsRow}>
+                    <div className={classes.apiTypeGroup}>
+                        <Text className={classes.apiTypeLabel}>
+                            {locConstants.schemaDesigner.apiType}
+                        </Text>
+                        <div className={classes.apiTypeCheckboxes}>
+                            {apiTypeOptions.map(({ type, label }) => {
+                                const isSelected = dabConfig.apiTypes.includes(type);
+                                return (
+                                    <Checkbox
+                                        key={type}
+                                        label={
+                                            <span className={classes.apiTypeLabelContent}>
+                                                {label}
+                                                <DabCountPill>
+                                                    {apiTypeCounts[type]}/{supportedEntities.length}
+                                                </DabCountPill>
+                                            </span>
+                                        }
+                                        checked={isSelected}
+                                        onChange={(_, data) => {
+                                            const updated = data.checked
+                                                ? [...dabConfig.apiTypes, type]
+                                                : dabConfig.apiTypes.filter((t) => t !== type);
+                                            if (updated.length === 0) {
+                                                showMinApiTypeWarning();
+                                                return;
+                                            }
+                                            updateDabApiTypes(updated);
+                                        }}
+                                    />
+                                );
+                            })}
+                        </div>
+                        {showApiTypeWarning && (
+                            <Text
+                                className={classes.apiTypeWarning}
+                                role="status"
+                                aria-live="polite">
+                                {locConstants.schemaDesigner.atLeastOneApiTypeRequired}
+                            </Text>
+                        )}
+                    </div>
+                    <div className={classes.filterControls}>
+                        <Input
+                            className={classes.searchInput}
+                            size="small"
+                            placeholder={locConstants.schemaDesigner.filterEntities}
+                            aria-label={locConstants.schemaDesigner.filterEntities}
+                            value={dabTextFilter}
+                            onChange={(_, data) => setDabTextFilter(data.value)}
+                            contentBefore={<Search16Regular />}
+                            contentAfter={
+                                dabTextFilter ? (
+                                    <Button
+                                        appearance="transparent"
+                                        icon={<Dismiss16Regular />}
+                                        size="small"
+                                        aria-label={locConstants.common.clear}
+                                        onClick={() => setDabTextFilter("")}
+                                        style={{ minWidth: "auto", padding: 0 }}
+                                    />
+                                ) : undefined
+                            }
+                        />
+                        <Popover
+                            withArrow
+                            positioning="below-start"
+                            open={filterOpen}
+                            onOpenChange={(_, data) => setFilterOpen(data.open)}>
+                            <PopoverTrigger disableButtonEnhancement>
                                 <Button
                                     appearance="subtle"
-                                    size="small"
-                                    icon={<Dismiss12Regular />}
-                                    className={classes.closeButton}
-                                    aria-label={locConstants.common.close}
-                                    onClick={() => setFilterOpen(false)}
-                                />
-                            </div>
-                            <div className={classes.filterDivider} />
-                            <div className={classes.filterPopupBody}>
-                                <div className={classes.filterSection}>
-                                    <Text className={classes.filterSectionTitle}>
-                                        {locConstants.schemaDesigner.status}
+                                    icon={<Filter16Regular />}
+                                    className={mergeClasses(
+                                        hasActiveFilters && classes.filterButtonActive,
+                                    )}>
+                                    {locConstants.schemaDesigner.filter(0)}
+                                    {hasActiveFilters && (
+                                        <CounterBadge
+                                            className={classes.filterButtonBadge}
+                                            size="small"
+                                            count={activeFilterCount}
+                                            color="brand"
+                                        />
+                                    )}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverSurface className={classes.filterSurface}>
+                                <div className={classes.filterPopupHeader}>
+                                    <Text className={classes.filterPopupTitle}>
+                                        {locConstants.schemaDesigner.filterEntitiesTitle}
                                     </Text>
-                                    <SegmentedControl<DabEntityStatusFilter>
-                                        value={entityFilters.status}
-                                        options={statusFilterOptions}
-                                        onValueChange={(status) =>
-                                            setEntityFilters((prev) => ({
-                                                ...prev,
-                                                status,
-                                            }))
-                                        }
-                                        className={classes.statusSegmented}
-                                        buttonClassName={classes.statusSegmentButton}
-                                        ariaLabel={locConstants.schemaDesigner.status}
+                                    <Button
+                                        appearance="subtle"
+                                        size="small"
+                                        icon={<Dismiss12Regular />}
+                                        className={classes.closeButton}
+                                        aria-label={locConstants.common.close}
+                                        onClick={() => setFilterOpen(false)}
                                     />
                                 </div>
-                                <div className={classes.filterSection}>
-                                    <Text className={classes.filterSectionTitle}>
-                                        {locConstants.schemaDesigner.schema}
-                                    </Text>
-                                    <div
-                                        ref={schemaListRef}
-                                        className={classes.schemaList}
-                                        style={{
-                                            height: `${schemaFilterListHeight}px`,
-                                        }}>
-                                        <div className={classes.schemaSelectAllRow}>
-                                            <Checkbox
-                                                className={classes.schemaCheckbox}
-                                                checked={schemaFilterState}
-                                                onChange={() =>
-                                                    setEntityFilters((prev) => ({
-                                                        ...prev,
-                                                        schemas: [],
-                                                    }))
-                                                }
-                                                label={locConstants.schemaDesigner.allSchemas}
-                                            />
-                                            <span className={classes.schemaCount}>
-                                                {schemaOptions.length}
-                                            </span>
-                                        </div>
+                                <div className={classes.filterDivider} />
+                                <div className={classes.filterPopupBody}>
+                                    <div className={classes.filterSection}>
+                                        <Text className={classes.filterSectionTitle}>
+                                            {locConstants.schemaDesigner.status}
+                                        </Text>
+                                        <SegmentedControl<DabEntityStatusFilter>
+                                            value={entityFilters.status}
+                                            options={statusFilterOptions}
+                                            onValueChange={(status) =>
+                                                setEntityFilters((prev) => ({
+                                                    ...prev,
+                                                    status,
+                                                }))
+                                            }
+                                            className={classes.statusSegmented}
+                                            buttonClassName={classes.statusSegmentButton}
+                                            ariaLabel={locConstants.schemaDesigner.status}
+                                        />
+                                    </div>
+                                    <div className={classes.filterSection}>
+                                        <Text className={classes.filterSectionTitle}>
+                                            {locConstants.schemaDesigner.schema}
+                                        </Text>
                                         <div
-                                            className={classes.schemaListContent}
+                                            ref={schemaListRef}
+                                            className={classes.schemaList}
                                             style={{
-                                                height: `${schemaVirtualizer.getTotalSize()}px`,
+                                                height: `${schemaFilterListHeight}px`,
                                             }}>
-                                            {schemaVirtualizer
-                                                .getVirtualItems()
-                                                .map((virtualItem) => {
-                                                    const option = schemaOptions[virtualItem.index];
-                                                    if (!option) {
-                                                        return undefined;
+                                            <div className={classes.schemaSelectAllRow}>
+                                                <Checkbox
+                                                    className={classes.schemaCheckbox}
+                                                    checked={schemaFilterState}
+                                                    onChange={() =>
+                                                        setEntityFilters((prev) => ({
+                                                            ...prev,
+                                                            schemas: [],
+                                                        }))
                                                     }
+                                                    label={locConstants.schemaDesigner.allSchemas}
+                                                />
+                                                <span className={classes.schemaCount}>
+                                                    {schemaOptions.length}
+                                                </span>
+                                            </div>
+                                            <div
+                                                className={classes.schemaListContent}
+                                                style={{
+                                                    height: `${schemaVirtualizer.getTotalSize()}px`,
+                                                }}>
+                                                {schemaVirtualizer
+                                                    .getVirtualItems()
+                                                    .map((virtualItem) => {
+                                                        const option =
+                                                            schemaOptions[virtualItem.index];
+                                                        if (!option) {
+                                                            return undefined;
+                                                        }
 
-                                                    return (
-                                                        <div
-                                                            className={classes.schemaOption}
-                                                            key={option.key}
-                                                            style={{
-                                                                height: `${virtualItem.size}px`,
-                                                                transform: `translateY(${virtualItem.start}px)`,
-                                                            }}>
-                                                            <Checkbox
-                                                                className={classes.schemaCheckbox}
-                                                                checked={entityFilters.schemas.includes(
-                                                                    option.key,
-                                                                )}
-                                                                onChange={() =>
-                                                                    toggleSchemaFilter(option.key)
-                                                                }
-                                                                label={
-                                                                    <span
-                                                                        className={
-                                                                            classes.schemaName
-                                                                        }>
-                                                                        {option.schemaName}
-                                                                    </span>
-                                                                }
-                                                            />
-                                                            <span className={classes.schemaCount}>
-                                                                {option.count}
-                                                            </span>
-                                                        </div>
-                                                    );
-                                                })}
+                                                        return (
+                                                            <div
+                                                                className={classes.schemaOption}
+                                                                key={option.key}
+                                                                style={{
+                                                                    height: `${virtualItem.size}px`,
+                                                                    transform: `translateY(${virtualItem.start}px)`,
+                                                                }}>
+                                                                <Checkbox
+                                                                    className={
+                                                                        classes.schemaCheckbox
+                                                                    }
+                                                                    checked={entityFilters.schemas.includes(
+                                                                        option.key,
+                                                                    )}
+                                                                    onChange={() =>
+                                                                        toggleSchemaFilter(
+                                                                            option.key,
+                                                                        )
+                                                                    }
+                                                                    label={
+                                                                        <span
+                                                                            className={
+                                                                                classes.schemaName
+                                                                            }>
+                                                                            {option.schemaName}
+                                                                        </span>
+                                                                    }
+                                                                />
+                                                                <span
+                                                                    className={classes.schemaCount}>
+                                                                    {option.count}
+                                                                </span>
+                                                            </div>
+                                                        );
+                                                    })}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className={classes.filterSection}>
+                                        <Text className={classes.filterSectionTitle}>
+                                            {locConstants.schemaDesigner.objectType}
+                                        </Text>
+                                        <div className={classes.filterChipRow}>
+                                            {sourceTypeOptions.map((sourceType) => (
+                                                <ToggleButton
+                                                    key={sourceType}
+                                                    shape="circular"
+                                                    size="small"
+                                                    className={mergeClasses(
+                                                        classes.filterChip,
+                                                        entityFilters.sourceTypes.includes(
+                                                            sourceType,
+                                                        ) && classes.filterChipSelected,
+                                                    )}
+                                                    checked={entityFilters.sourceTypes.includes(
+                                                        sourceType,
+                                                    )}
+                                                    onClick={() =>
+                                                        toggleSourceTypeFilter(sourceType)
+                                                    }>
+                                                    {sourceTypeLabels[sourceType]}
+                                                </ToggleButton>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className={classes.filterSection}>
+                                        <Text className={classes.filterSectionTitle}>
+                                            {locConstants.schemaDesigner.exposedVia}
+                                        </Text>
+                                        <div className={classes.filterChipRow}>
+                                            {[
+                                                {
+                                                    value: Dab.ApiType.Rest,
+                                                    label: locConstants.schemaDesigner.rest,
+                                                },
+                                                {
+                                                    value: Dab.ApiType.GraphQL,
+                                                    label: locConstants.schemaDesigner.graphql,
+                                                },
+                                                {
+                                                    value: Dab.ApiType.Mcp,
+                                                    label: locConstants.schemaDesigner.mcp,
+                                                },
+                                                {
+                                                    value: "none" as const,
+                                                    label: locConstants.schemaDesigner.notExposed,
+                                                },
+                                            ].map((option) => (
+                                                <ToggleButton
+                                                    key={option.value}
+                                                    shape="circular"
+                                                    size="small"
+                                                    className={mergeClasses(
+                                                        classes.filterChip,
+                                                        entityFilters.apiTypes.includes(
+                                                            option.value,
+                                                        ) && classes.filterChipSelected,
+                                                    )}
+                                                    checked={entityFilters.apiTypes.includes(
+                                                        option.value,
+                                                    )}
+                                                    onClick={() =>
+                                                        setEntityFilters((prev) => ({
+                                                            ...prev,
+                                                            apiTypes: toggleDabEntityFilterValue(
+                                                                prev.apiTypes,
+                                                                option.value,
+                                                            ),
+                                                        }))
+                                                    }>
+                                                    {option.label}
+                                                </ToggleButton>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className={classes.filterSection}>
+                                        <Text className={classes.filterSectionTitle}>
+                                            {locConstants.schemaDesigner.authMode}
+                                        </Text>
+                                        <div className={classes.filterChipRow}>
+                                            {[
+                                                {
+                                                    value: DabEntityAuthFilter.Anonymous,
+                                                    label: locConstants.schemaDesigner.anonymous,
+                                                },
+                                                {
+                                                    value: DabEntityAuthFilter.Authenticated,
+                                                    label: locConstants.schemaDesigner
+                                                        .authenticated,
+                                                },
+                                                {
+                                                    value: DabEntityAuthFilter.None,
+                                                    label: locConstants.schemaDesigner
+                                                        .noPermissions,
+                                                },
+                                            ].map((option) => (
+                                                <ToggleButton
+                                                    key={option.value}
+                                                    shape="circular"
+                                                    size="small"
+                                                    className={mergeClasses(
+                                                        classes.filterChip,
+                                                        entityFilters.authTypes.includes(
+                                                            option.value,
+                                                        ) && classes.filterChipSelected,
+                                                    )}
+                                                    checked={entityFilters.authTypes.includes(
+                                                        option.value,
+                                                    )}
+                                                    onClick={() =>
+                                                        setEntityFilters((prev) => ({
+                                                            ...prev,
+                                                            authTypes: toggleDabEntityFilterValue(
+                                                                prev.authTypes,
+                                                                option.value,
+                                                            ),
+                                                        }))
+                                                    }>
+                                                    {option.label}
+                                                </ToggleButton>
+                                            ))}
                                         </div>
                                     </div>
                                 </div>
-                                <div className={classes.filterSection}>
-                                    <Text className={classes.filterSectionTitle}>
-                                        {locConstants.schemaDesigner.objectType}
-                                    </Text>
-                                    <div className={classes.filterChipRow}>
-                                        {sourceTypeOptions.map((sourceType) => (
-                                            <ToggleButton
-                                                key={sourceType}
-                                                shape="circular"
-                                                size="small"
-                                                className={mergeClasses(
-                                                    classes.filterChip,
-                                                    entityFilters.sourceTypes.includes(
-                                                        sourceType,
-                                                    ) && classes.filterChipSelected,
-                                                )}
-                                                checked={entityFilters.sourceTypes.includes(
-                                                    sourceType,
-                                                )}
-                                                onClick={() => toggleSourceTypeFilter(sourceType)}>
-                                                {sourceTypeLabels[sourceType]}
-                                            </ToggleButton>
-                                        ))}
-                                    </div>
+                                <div className={classes.filterDivider} />
+                                <div className={classes.filterFooter}>
+                                    <Button
+                                        size="small"
+                                        appearance="outline"
+                                        className={classes.filterFooterButton}
+                                        disabled={!hasActiveFilters}
+                                        onClick={clearFilters}>
+                                        {locConstants.schemaDesigner.clearAllFilters}
+                                    </Button>
+                                    <Button
+                                        size="small"
+                                        appearance="primary"
+                                        className={classes.filterFooterButton}
+                                        onClick={() => setFilterOpen(false)}>
+                                        {locConstants.schemaDesigner.applyFilter}
+                                    </Button>
                                 </div>
-                                <div className={classes.filterSection}>
-                                    <Text className={classes.filterSectionTitle}>
-                                        {locConstants.schemaDesigner.exposedVia}
-                                    </Text>
-                                    <div className={classes.filterChipRow}>
-                                        {[
-                                            {
-                                                value: Dab.ApiType.Rest,
-                                                label: locConstants.schemaDesigner.rest,
-                                            },
-                                            {
-                                                value: Dab.ApiType.GraphQL,
-                                                label: locConstants.schemaDesigner.graphql,
-                                            },
-                                            {
-                                                value: Dab.ApiType.Mcp,
-                                                label: locConstants.schemaDesigner.mcp,
-                                            },
-                                            {
-                                                value: "none" as const,
-                                                label: locConstants.schemaDesigner.notExposed,
-                                            },
-                                        ].map((option) => (
-                                            <ToggleButton
-                                                key={option.value}
-                                                shape="circular"
-                                                size="small"
-                                                className={mergeClasses(
-                                                    classes.filterChip,
-                                                    entityFilters.apiTypes.includes(option.value) &&
-                                                        classes.filterChipSelected,
-                                                )}
-                                                checked={entityFilters.apiTypes.includes(
-                                                    option.value,
-                                                )}
-                                                onClick={() =>
-                                                    setEntityFilters((prev) => ({
-                                                        ...prev,
-                                                        apiTypes: toggleDabEntityFilterValue(
-                                                            prev.apiTypes,
-                                                            option.value,
-                                                        ),
-                                                    }))
-                                                }>
-                                                {option.label}
-                                            </ToggleButton>
-                                        ))}
-                                    </div>
-                                </div>
-                                <div className={classes.filterSection}>
-                                    <Text className={classes.filterSectionTitle}>
-                                        {locConstants.schemaDesigner.authMode}
-                                    </Text>
-                                    <div className={classes.filterChipRow}>
-                                        {[
-                                            {
-                                                value: DabEntityAuthFilter.Anonymous,
-                                                label: locConstants.schemaDesigner.anonymous,
-                                            },
-                                            {
-                                                value: DabEntityAuthFilter.Authenticated,
-                                                label: locConstants.schemaDesigner.authenticated,
-                                            },
-                                            {
-                                                value: DabEntityAuthFilter.None,
-                                                label: locConstants.schemaDesigner.noPermissions,
-                                            },
-                                        ].map((option) => (
-                                            <ToggleButton
-                                                key={option.value}
-                                                shape="circular"
-                                                size="small"
-                                                className={mergeClasses(
-                                                    classes.filterChip,
-                                                    entityFilters.authTypes.includes(
-                                                        option.value,
-                                                    ) && classes.filterChipSelected,
-                                                )}
-                                                checked={entityFilters.authTypes.includes(
-                                                    option.value,
-                                                )}
-                                                onClick={() =>
-                                                    setEntityFilters((prev) => ({
-                                                        ...prev,
-                                                        authTypes: toggleDabEntityFilterValue(
-                                                            prev.authTypes,
-                                                            option.value,
-                                                        ),
-                                                    }))
-                                                }>
-                                                {option.label}
-                                            </ToggleButton>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                            <div className={classes.filterDivider} />
-                            <div className={classes.filterFooter}>
-                                <Button
-                                    size="small"
-                                    appearance="outline"
-                                    className={classes.filterFooterButton}
-                                    disabled={!hasActiveFilters}
-                                    onClick={clearFilters}>
-                                    {locConstants.schemaDesigner.clearAllFilters}
-                                </Button>
-                                <Button
-                                    size="small"
-                                    appearance="primary"
-                                    className={classes.filterFooterButton}
-                                    onClick={() => setFilterOpen(false)}>
-                                    {locConstants.schemaDesigner.applyFilter}
-                                </Button>
-                            </div>
-                        </PopoverSurface>
-                    </Popover>
+                            </PopoverSurface>
+                        </Popover>
+                    </div>
+                    <Text className={classes.enabledCount} aria-live="polite">
+                        {locConstants.schemaDesigner.nOfMEnabled(enabledCount, totalCount)}
+                    </Text>
                 </div>
-                <Text className={classes.enabledCount} aria-live="polite">
-                    {locConstants.schemaDesigner.nOfMEnabled(enabledCount, totalCount)}
-                </Text>
             </div>
-        </div>
+        </>
     );
 }

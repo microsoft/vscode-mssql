@@ -113,9 +113,11 @@ suite("DabTool Tests", () => {
         let currentDabConfig = params.dabConfig ?? null;
         const isInitializedRef = { current: params.initialized ?? true };
         const requestHandlers = new Map<string, (request: any) => Promise<any>>();
-        const commitSpy = sandbox.spy((config: Dab.DabConfig) => {
-            currentDabConfig = config;
-        });
+        const commitSpy = sandbox.spy(
+            (config: Dab.DabConfig, _options?: { recordHistory?: boolean }) => {
+                currentDabConfig = config;
+            },
+        );
         const waitForInitialization =
             params.waitForInitialization ?? sandbox.stub().resolves(params.initialized ?? true);
 
@@ -895,6 +897,7 @@ suite("DabTool Tests", () => {
             expect(state.config?.entities.map((e) => e.id).sort()).to.deep.equal(["t1", "t2"]);
             expect(state.config?.entities.find((e) => e.id === "t1")?.tableName).to.equal("Users");
             expect(harness.commitSpy.calledOnce).to.equal(true);
+            expect(harness.commitSpy.firstCall.args[1]).to.deep.equal({ recordHistory: false });
         });
 
         test("get_state auto-downgrades to summary when entityCount > 150", async () => {

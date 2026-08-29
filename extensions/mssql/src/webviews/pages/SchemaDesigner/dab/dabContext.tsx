@@ -5,10 +5,12 @@
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { Dab } from "../../../../sharedInterfaces/dab";
+import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { registerSchemaDesignerDabToolHandlers } from "../schemaDesignerRpcHandlers";
 import { useSchemaDesignerSelector } from "../schemaDesignerSelector";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
+import { DabConfigHistory } from "./dabConfigHistory";
 
 interface DabContextProps {
     isInitialized: boolean;
@@ -19,6 +21,11 @@ interface DabContextProps {
     dabConfig: Dab.DabConfig | null;
     initializeDabConfig: () => void;
     syncDabConfigWithSchema: () => void;
+    canUndoDabConfig: boolean;
+    canRedoDabConfig: boolean;
+    undoDabConfig: () => void;
+    redoDabConfig: () => void;
+    resetDabConfig: () => void;
     updateDabApiTypes: (apiTypes: Dab.ApiType[]) => void;
     toggleDabEntity: (entityId: string, isEnabled: boolean) => void;
     toggleDabEntityAction: (entityId: string, action: Dab.EntityAction, isEnabled: boolean) => void;
@@ -28,6 +35,10 @@ interface DabContextProps {
     dabTextFilter: string;
     setDabTextFilter: (text: string) => void;
     dabConfigTextFileContent: string;
+    dabCliSetupState: Dab.DabCliSetupState;
+    dabValidationState: DabValidationState;
+    retryDabCliSetup: () => void;
+    openDabDotnetSettings: () => void;
     openDabConfigInEditor: (configContent: string) => void;
     addDabConfigToWorkspace: (configContent: string) => void;
     dabDeploymentState: Dab.DabDeploymentState;
@@ -46,6 +57,12 @@ interface DabContextProps {
     currentFilteredTables: string[];
 }
 
+export type DabValidationState =
+    | { status: "idle" | "validating"; diagnostics: Dab.DabValidationDiagnostic[] }
+    | { status: "valid"; diagnostics: Dab.DabValidationDiagnostic[] }
+    | { status: "invalid"; diagnostics: Dab.DabValidationDiagnostic[] }
+    | { status: "blocked"; diagnostics: []; setup: Dab.DabCliSetupState };
+
 const DabContext = createContext<DabContextProps | undefined>(undefined);
 
 interface DabProviderProps {
@@ -59,11 +76,22 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
     const isDabDeploymentSupported =
         useSchemaDesignerSelector((s) => s?.isDabDeploymentSupported) ?? false;
     const currentFilteredTables = useSchemaDesignerSelector((s) => s?.currentFilteredTables) ?? [];
+    const activeView = useSchemaDesignerSelector((s) => s?.activeView);
 
     const [dabConfig, setDabConfig] = useState<Dab.DabConfig | null>(null);
     const [dabSourceObjects, setDabSourceObjects] = useState<Dab.DabSourceObject[]>([]);
     const [dabTextFilter, setDabTextFilter] = useState<string>("");
     const [dabConfigTextFileContent, setDabConfigTextFileContent] = useState<string>("");
+    const [dabCliSetupState, setDabCliSetupState] = useState<Dab.DabCliSetupState>({
+        status: "notStarted",
+        version: Dab.DAB_CLI_VERSION,
+    });
+    const [dabValidationState, setDabValidationState] = useState<DabValidationState>({
+        status: "idle",
+        diagnostics: [],
+    });
+    const [canUndoDabConfig, setCanUndoDabConfig] = useState(false);
+    const [canRedoDabConfig, setCanRedoDabConfig] = useState(false);
     const [dabDeploymentState, setDabDeploymentState] = useState<Dab.DabDeploymentState>(
         Dab.createDefaultDeploymentState(),
     );
@@ -71,6 +99,10 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
     const dabConfigRef = useRef<Dab.DabConfig | null>(dabConfig);
     const extractSchemaRef = useRef<() => ReturnType<typeof extractSchema>>(extractSchema);
     const dabSourceObjectsRef = useRef<Dab.DabSourceObject[]>(dabSourceObjects);
+    const historyRef = useRef(new DabConfigHistory());
+    const persistenceQueueRef = useRef<Promise<void>>(Promise.resolve());
+    const validationSequenceRef = useRef(0);
+    const hasRequestedDabCliSetupRef = useRef(false);
 
     useEffect(() => {
         dabConfigRef.current = dabConfig;
@@ -84,6 +116,64 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
         dabSourceObjectsRef.current = dabSourceObjects;
     }, [dabSourceObjects]);
 
+    const updateHistoryState = useCallback(() => {
+        setCanUndoDabConfig(historyRef.current.canUndo);
+        setCanRedoDabConfig(historyRef.current.canRedo);
+    }, []);
+
+    const persistDabConfig = useCallback(
+        (config: Dab.DabConfig) => {
+            persistenceQueueRef.current = persistenceQueueRef.current
+                .catch(() => undefined)
+                .then(async () => {
+                    await extensionRpc.sendRequest(Dab.PersistConfigRequest.type, { config });
+                })
+                .catch((error) => {
+                    extensionRpc.log.error("Failed to persist DAB config", error);
+                });
+        },
+        [extensionRpc],
+    );
+
+    const setInitialDabConfig = useCallback(
+        (config: Dab.DabConfig, shouldPersist: boolean) => {
+            historyRef.current.clear();
+            dabConfigRef.current = config;
+            setDabConfig(config);
+            updateHistoryState();
+            if (shouldPersist) {
+                persistDabConfig(config);
+            }
+        },
+        [persistDabConfig, updateHistoryState],
+    );
+
+    const commitDabConfig = useCallback(
+        (config: Dab.DabConfig) => {
+            const previous = dabConfigRef.current;
+            if (!previous || !historyRef.current.push(previous, config)) {
+                return;
+            }
+
+            dabConfigRef.current = config;
+            setDabConfig(config);
+            updateHistoryState();
+            persistDabConfig(config);
+        },
+        [persistDabConfig, updateHistoryState],
+    );
+
+    const replaceDabConfigWithoutHistory = useCallback(
+        (config: Dab.DabConfig) => {
+            historyRef.current.clear();
+            dabConfigRef.current = config;
+            setDabConfig(config);
+            updateHistoryState();
+            persistDabConfig(config);
+        },
+        [persistDabConfig, updateHistoryState],
+    );
+
     useEffect(() => {
         registerSchemaDesignerDabToolHandlers({
             extensionRpc,
@@ -96,12 +186,15 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                     .tables.map((table) => Dab.createSourceObjectFromTable(table)),
                 ...dabSourceObjectsRef.current,
             ],
-            commitDabConfig: (config) => {
-                dabConfigRef.current = config;
-                setDabConfig(config);
+            commitDabConfig: (config, options) => {
+                if (options?.recordHistory === false) {
+                    replaceDabConfigWithoutHistory(config);
+                } else {
+                    commitDabConfig(config);
+                }
             },
         });
-    }, [extensionRpc, waitForInitialization]);
+    }, [commitDabConfig, extensionRpc, replaceDabConfigWithoutHistory, waitForInitialization]);
 
     const initializeDabConfig = useCallback(() => {
         void Promise.all([
@@ -120,17 +213,18 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                 const baseConfig =
                     response.config ?? Dab.createDefaultConfigFromSources(sourceObjects);
                 const synced = Dab.syncConfigWithSources(baseConfig, sourceObjects);
-                setDabConfig(synced.config);
+                setInitialDabConfig(synced.config, !response.config || synced.changed);
             })
             .catch((error) => {
-                extensionRpc.log.error("Failed to initialize DAB config from cache", error);
+                extensionRpc.log.error("Failed to initialize persisted DAB config", error);
                 const schema = extractSchema();
-                setDabConfig(Dab.createDefaultConfig(schema.tables));
+                setInitialDabConfig(Dab.createDefaultConfig(schema.tables), true);
             });
-    }, [extensionRpc, extractSchema]);
+    }, [extensionRpc, extractSchema, setInitialDabConfig]);
 
     const syncDabConfigWithSchema = useCallback(() => {
-        if (!dabConfig) {
+        const currentConfig = dabConfigRef.current;
+        if (!currentConfig) {
             return;
         }
 
@@ -139,65 +233,72 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
             ...schema.tables.map((table) => Dab.createSourceObjectFromTable(table)),
             ...dabSourceObjects,
         ];
-        const synced = Dab.syncConfigWithSources(dabConfig, sourceObjects);
+        const synced = Dab.syncConfigWithSources(currentConfig, sourceObjects);
         if (synced.changed) {
-            setDabConfig(synced.config);
+            replaceDabConfigWithoutHistory(synced.config);
         }
-    }, [dabConfig, dabSourceObjects, extractSchema]);
+    }, [dabSourceObjects, extractSchema, replaceDabConfigWithoutHistory]);
 
-    const updateDabApiTypes = useCallback((apiTypes: Dab.ApiType[]) => {
-        setDabConfig((prev) => {
-            if (!prev) {
-                return prev;
+    const mutateDabConfig = useCallback(
+        (mutator: (config: Dab.DabConfig) => Dab.DabConfig) => {
+            const current = dabConfigRef.current;
+            if (!current) {
+                return;
             }
-            return {
-                ...prev,
-                apiTypes,
-            };
-        });
-    }, []);
+            commitDabConfig(mutator(current));
+        },
+        [commitDabConfig],
+    );
 
-    const toggleDabEntity = useCallback((entityId: string, isEnabled: boolean) => {
-        setDabConfig((prev) => {
-            if (!prev) {
-                return prev;
-            }
-            return {
-                ...prev,
-                entities: prev.entities.map((entity) => {
-                    if (entity.id !== entityId) {
-                        return entity;
-                    }
+    const updateDabApiTypes = useCallback(
+        (apiTypes: Dab.ApiType[]) => {
+            mutateDabConfig((prev) => {
+                return {
+                    ...prev,
+                    apiTypes,
+                };
+            });
+        },
+        [mutateDabConfig],
+    );
 
-                    return {
-                        ...entity,
-                        isEnabled,
-                        advancedSettings: {
-                            ...entity.advancedSettings,
-                            restEnabled: isEnabled,
-                            graphQLEnabled: isEnabled,
-                            mcpEnabled: isEnabled,
-                            mcpDmlToolsEnabled: isEnabled,
-                            ...(entity.sourceType === Dab.EntitySourceType.StoredProcedure
-                                ? {
-                                      exposeAsMcpCustomTool: false,
-                                      mcpCustomToolEnabled: false,
-                                  }
-                                : {}),
-                        },
-                    };
-                }),
-            };
-        });
-    }, []);
+    const toggleDabEntity = useCallback(
+        (entityId: string, isEnabled: boolean) => {
+            mutateDabConfig((prev) => {
+                return {
+                    ...prev,
+                    entities: prev.entities.map((entity) => {
+                        if (entity.id !== entityId) {
+                            return entity;
+                        }
+
+                        return {
+                            ...entity,
+                            isEnabled,
+                            advancedSettings: {
+                                ...entity.advancedSettings,
+                                restEnabled: isEnabled,
+                                graphQLEnabled: isEnabled,
+                                mcpEnabled: isEnabled,
+                                mcpDmlToolsEnabled: isEnabled,
+                                ...(entity.sourceType === Dab.EntitySourceType.StoredProcedure
+                                    ? {
+                                          exposeAsMcpCustomTool: false,
+                                          mcpCustomToolEnabled: false,
+                                      }
+                                    : {}),
+                            },
+                        };
+                    }),
+                };
+            });
+        },
+        [mutateDabConfig],
+    );
 
     const toggleDabEntityAction = useCallback(
         (entityId: string, action: Dab.EntityAction, isEnabled: boolean) => {
-            setDabConfig((prev) => {
-                if (!prev) {
-                    return prev;
-                }
-
+            mutateDabConfig((prev) => {
                 let didChange = false;
                 const entities = prev.entities.map((e) => {
                     if (e.id !== entityId) {
@@ -239,16 +340,12 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                 };
             });
         },
-        [],
+        [mutateDabConfig],
     );
 
     const toggleDabColumnExposure = useCallback(
         (entityId: string, columnId: string, isExposed: boolean) => {
-            setDabConfig((prev) => {
-                if (!prev) {
-                    return prev;
-                }
-
+            mutateDabConfig((prev) => {
                 return {
                     ...prev,
                     entities: prev.entities.map((entity) =>
@@ -264,15 +361,12 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                 };
             });
         },
-        [],
+        [mutateDabConfig],
     );
 
     const updateDabEntitySettings = useCallback(
         (entityId: string, settings: Dab.EntityAdvancedSettings) => {
-            setDabConfig((prev) => {
-                if (!prev) {
-                    return prev;
-                }
+            mutateDabConfig((prev) => {
                 return {
                     ...prev,
                     entities: prev.entities.map((e) =>
@@ -281,33 +375,100 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                 };
             });
         },
-        [],
+        [mutateDabConfig],
     );
 
-    const updateDabEntityConfig = useCallback((updatedEntity: Dab.DabEntityConfig) => {
-        setDabConfig((prev) => {
-            if (!prev) {
-                return prev;
+    const updateDabEntityConfig = useCallback(
+        (updatedEntity: Dab.DabEntityConfig) => {
+            mutateDabConfig((prev) => {
+                return {
+                    ...prev,
+                    entities: prev.entities.map((entity) =>
+                        entity.id === updatedEntity.id ? updatedEntity : entity,
+                    ),
+                };
+            });
+        },
+        [mutateDabConfig],
+    );
+
+    const undoDabConfig = useCallback(() => {
+        const current = dabConfigRef.current;
+        if (!current) {
+            return;
+        }
+        const previous = historyRef.current.undo(current);
+        if (!previous) {
+            return;
+        }
+        dabConfigRef.current = previous;
+        setDabConfig(previous);
+        updateHistoryState();
+        persistDabConfig(previous);
+    }, [persistDabConfig, updateHistoryState]);
+
+    const redoDabConfig = useCallback(() => {
+        const current = dabConfigRef.current;
+        if (!current) {
+            return;
+        }
+        const next = historyRef.current.redo(current);
+        if (!next) {
+            return;
+        }
+        dabConfigRef.current = next;
+        setDabConfig(next);
+        updateHistoryState();
+        persistDabConfig(next);
+    }, [persistDabConfig, updateHistoryState]);
+
+    const resetDabConfig = useCallback(() => {
+        const sourceObjects = [
+            ...extractSchemaRef
+                .current()
+                .tables.map((table) => Dab.createSourceObjectFromTable(table)),
+            ...dabSourceObjectsRef.current,
+        ];
+        commitDabConfig(Dab.createDefaultConfigFromSources(sourceObjects));
+    }, [commitDabConfig]);
+
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (
+                activeView !== SchemaDesigner.SchemaDesignerActiveView.Dab ||
+                (!event.ctrlKey && !event.metaKey) ||
+                event.altKey
+            ) {
+                return;
             }
 
-            return {
-                ...prev,
-                entities: prev.entities.map((entity) =>
-                    entity.id === updatedEntity.id ? updatedEntity : entity,
-                ),
-            };
-        });
-    }, []);
+            const target = event.target as HTMLElement | null;
+            if (
+                target?.tagName === "INPUT" ||
+                target?.tagName === "TEXTAREA" ||
+                target?.isContentEditable
+            ) {
+                return;
+            }
+
+            const key = event.key.toLocaleLowerCase();
+            if (key === "z") {
+                event.preventDefault();
+                event.shiftKey ? redoDabConfig() : undoDabConfig();
+            } else if (key === "y") {
+                event.preventDefault();
+                redoDabConfig();
+            }
+        };
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [activeView, redoDabConfig, undoDabConfig]);
 
     // Auto-generate text config whenever dabConfig changes
     useEffect(() => {
         if (!dabConfig) {
             return;
         }
-
-        void extensionRpc.sendNotification(Dab.CacheConfigNotification.type, {
-            config: dabConfig,
-        });
 
         void extensionRpc
             .sendRequest(Dab.GenerateConfigRequest.type, { config: dabConfig })
@@ -322,6 +483,114 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                 extensionRpc.log.error("Failed to generate DAB config", error);
             });
     }, [dabConfig, extensionRpc]);
+
+    useEffect(() => {
+        if (
+            activeView !== SchemaDesigner.SchemaDesignerActiveView.Dab ||
+            !isInitialized ||
+            hasRequestedDabCliSetupRef.current
+        ) {
+            return;
+        }
+
+        hasRequestedDabCliSetupRef.current = true;
+        setDabCliSetupState({ status: "installing", version: Dab.DAB_CLI_VERSION });
+        void extensionRpc
+            .sendRequest(Dab.GetDabCliSetupRequest.type)
+            .then((setup) => {
+                setDabCliSetupState(setup);
+                if (setup.status !== "ready") {
+                    setDabValidationState({ status: "blocked", diagnostics: [], setup });
+                }
+            })
+            .catch((error) => {
+                const setup: Dab.DabCliSetupState = {
+                    status: "installationFailed",
+                    version: Dab.DAB_CLI_VERSION,
+                    reason: error instanceof Error ? error.message : String(error),
+                };
+                setDabCliSetupState(setup);
+                setDabValidationState({ status: "blocked", diagnostics: [], setup });
+            });
+    }, [activeView, extensionRpc, isInitialized]);
+
+    useEffect(() => {
+        if (!dabConfigTextFileContent || dabCliSetupState.status !== "ready") {
+            return;
+        }
+
+        const sequence = ++validationSequenceRef.current;
+        const timeout = window.setTimeout(() => {
+            setDabValidationState((current) => ({
+                status: "validating",
+                diagnostics: current.diagnostics,
+            }));
+            void extensionRpc
+                .sendRequest(Dab.ValidateConfigRequest.type, {
+                    configContent: dabConfigTextFileContent,
+                })
+                .then((result) => {
+                    if (sequence !== validationSequenceRef.current) {
+                        return;
+                    }
+                    if (result.status === "blocked") {
+                        setDabCliSetupState(result.setup);
+                        setDabValidationState({
+                            status: "blocked",
+                            diagnostics: [],
+                            setup: result.setup,
+                        });
+                    } else {
+                        setDabValidationState(result);
+                    }
+                })
+                .catch((error) => {
+                    if (sequence !== validationSequenceRef.current) {
+                        return;
+                    }
+                    setDabValidationState({
+                        status: "invalid",
+                        diagnostics: [
+                            {
+                                severity: "error",
+                                message: error instanceof Error ? error.message : String(error),
+                            },
+                        ],
+                    });
+                });
+        }, 600);
+
+        return () => {
+            window.clearTimeout(timeout);
+            validationSequenceRef.current++;
+        };
+    }, [dabCliSetupState.status, dabConfigTextFileContent, extensionRpc]);
+
+    const retryDabCliSetup = useCallback(() => {
+        setDabCliSetupState({ status: "installing", version: Dab.DAB_CLI_VERSION });
+        setDabValidationState({ status: "idle", diagnostics: [] });
+        void extensionRpc
+            .sendRequest(Dab.RetryDabCliSetupRequest.type)
+            .then((setup) => {
+                setDabCliSetupState(setup);
+                if (setup.status !== "ready") {
+                    setDabValidationState({ status: "blocked", diagnostics: [], setup });
+                }
+            })
+            .catch((error) => {
+                const setup: Dab.DabCliSetupState = {
+                    status: "installationFailed",
+                    version: Dab.DAB_CLI_VERSION,
+                    reason: error instanceof Error ? error.message : String(error),
+                };
+                setDabCliSetupState(setup);
+                setDabValidationState({ status: "blocked", diagnostics: [], setup });
+            });
+    }, [extensionRpc]);
+
+    const openDabDotnetSettings = useCallback(() => {
+        void extensionRpc.sendNotification(Dab.OpenDabDotnetSettingsNotification.type);
+    }, [extensionRpc]);
 
     const copyToClipboard = useCallback(
         (text: string, copyTextType: Dab.CopyTextType) => {
@@ -556,6 +825,11 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                 dabConfig,
                 initializeDabConfig,
                 syncDabConfigWithSchema,
+                canUndoDabConfig,
+                canRedoDabConfig,
+                undoDabConfig,
+                redoDabConfig,
+                resetDabConfig,
                 updateDabApiTypes,
                 toggleDabEntity,
                 toggleDabEntityAction,
@@ -565,6 +839,10 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                 dabTextFilter,
                 setDabTextFilter,
                 dabConfigTextFileContent,
+                dabCliSetupState,
+                dabValidationState,
+                retryDabCliSetup,
+                openDabDotnetSettings,
                 openDabConfigInEditor,
                 addDabConfigToWorkspace,
                 dabDeploymentState,
