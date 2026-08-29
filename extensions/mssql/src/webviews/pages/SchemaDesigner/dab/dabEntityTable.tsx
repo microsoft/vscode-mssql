@@ -100,7 +100,7 @@ type FlatRow =
           entity: Dab.DabEntityConfig;
       };
 
-type SettingsInitialTab = "identity" | "permissions" | "rest" | "graphql" | "mcp" | "schema";
+type SettingsInitialSection = "identity" | "permissions" | "rest" | "graphql" | "mcp" | "schema";
 
 // ── Helpers ──
 
@@ -198,7 +198,7 @@ function highlightText(text: string, searchText: string, highlightClassName: str
 // ── Styles ──
 
 const ROW_HEIGHT = 32;
-const VIRTUAL_OVERSCAN = 10;
+const VIRTUAL_OVERSCAN = 30;
 
 const useStyles = makeStyles({
     container: {
@@ -499,9 +499,9 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
         createDefaultExpandedRows(dabConfig),
     );
     const [settingsEntityId, setSettingsEntityId] = useState<string | undefined>(undefined);
-    const [settingsInitialTab, setSettingsInitialTab] = useState<SettingsInitialTab | undefined>(
-        undefined,
-    );
+    const [settingsInitialSection, setSettingsInitialSection] = useState<
+        SettingsInitialSection | undefined
+    >(undefined);
     const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
     const settingsButtonRefs = useRef<Map<string, HTMLElement | null>>(new Map());
     const pendingSettingsFocusEntityIdRef = useRef<string | undefined>(undefined);
@@ -739,17 +739,20 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
     const closeSettingsDialog = useCallback(
         (entityId?: string) => {
             setSettingsEntityId(undefined);
-            setSettingsInitialTab(undefined);
+            setSettingsInitialSection(undefined);
             restoreSettingsTriggerFocus(entityId ?? pendingSettingsFocusEntityIdRef.current);
         },
         [restoreSettingsTriggerFocus],
     );
 
-    const openSettingsDialog = useCallback((entityId: string, initialTab?: SettingsInitialTab) => {
-        pendingSettingsFocusEntityIdRef.current = entityId;
-        setSettingsInitialTab(initialTab);
-        setSettingsEntityId(entityId);
-    }, []);
+    const openSettingsDialog = useCallback(
+        (entityId: string, initialSection?: SettingsInitialSection) => {
+            pendingSettingsFocusEntityIdRef.current = entityId;
+            setSettingsInitialSection(initialSection);
+            setSettingsEntityId(entityId);
+        },
+        [],
+    );
 
     const getIncludeCheckboxState = useCallback(
         (entities: Dab.DabEntityConfig[]): boolean | "mixed" => {
@@ -1190,7 +1193,7 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
                 [Dab.ApiType.GraphQL]: "GQL",
                 [Dab.ApiType.Mcp]: locConstants.schemaDesigner.mcp,
             };
-            const tabs: Record<Dab.ApiType, SettingsInitialTab> = {
+            const sections: Record<Dab.ApiType, SettingsInitialSection> = {
                 [Dab.ApiType.Rest]: "rest",
                 [Dab.ApiType.GraphQL]: "graphql",
                 [Dab.ApiType.Mcp]: "mcp",
@@ -1207,7 +1210,7 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
                                 classes.pillButton,
                                 getDabApiTypePillClassName(apiType),
                             )}
-                            onClick={() => openSettingsDialog(row.entity.id, tabs[apiType])}>
+                            onClick={() => openSettingsDialog(row.entity.id, sections[apiType])}>
                             {labels[apiType]}
                         </Button>
                     ))}
@@ -1476,12 +1479,13 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
             }),
         ],
     );
-    const rows = getRows();
+    const rows = useMemo(() => getRows(), [getRows]);
     const rowVirtualizer = useVirtualizer({
         count: rows.length,
         getScrollElement: () => scrollContainerRef.current,
         estimateSize: () => ROW_HEIGHT,
         overscan: VIRTUAL_OVERSCAN,
+        useFlushSync: false,
     });
     const virtualRows = rowVirtualizer.getVirtualItems();
 
@@ -1588,7 +1592,7 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
                     isRestEnabled={dabConfig.apiTypes.includes(Dab.ApiType.Rest)}
                     isGraphQLEnabled={dabConfig.apiTypes.includes(Dab.ApiType.GraphQL)}
                     isMcpEnabled={dabConfig.apiTypes.includes(Dab.ApiType.Mcp)}
-                    initialTab={settingsInitialTab}
+                    initialSection={settingsInitialSection}
                     onEnableApiType={(apiType) =>
                         updateDabApiTypes(Array.from(new Set([...dabConfig.apiTypes, apiType])))
                     }

@@ -2103,6 +2103,9 @@
     <trans-unit id="++CODE++51ca74e23be7acf03bd1740c2091cbf8a1124e81866eb6ed6b2e937136cb5f67">
       <source xml:lang="en">Customize column access</source>
     </trans-unit>
+    <trans-unit id="++CODE++bbf15d3d65d70f80283cf7adfe4537ecd273144eb51643167de4c12967f470e7">
+      <source xml:lang="en">Customize columns</source>
+    </trans-unit>
     <trans-unit id="++CODE++c525ed2944e05f661b7bc658ddccb355cd47a8daab5629ce4310c575aa58e2a1">
       <source xml:lang="en">Customize keyboard shortcuts</source>
     </trans-unit>
@@ -2506,6 +2509,9 @@
     </trans-unit>
     <trans-unit id="++CODE++831c69f02fd7c9c62450695c18f11c56b34ae3ababb1670737507a5cc01404b4">
       <source xml:lang="en">Don&apos;t show this again</source>
+    </trans-unit>
+    <trans-unit id="++CODE++11a6767d5674c7e45f7e00dc525762275b3a48491ad6045427d2609cc496c516">
+      <source xml:lang="en">Done</source>
     </trans-unit>
     <trans-unit id="++CODE++eb47b4eaa66b7f7140d56ad3570f642b5917fc2bb404d5d88b4a968198b02999">
       <source xml:lang="en">Don’t show again for this extension</source>
@@ -3712,6 +3718,9 @@
     </trans-unit>
     <trans-unit id="++CODE++b69848561e02841b68dcbfadcbba33ea9008d49fb44c61fd4e670bc3fa3b9968">
       <source xml:lang="en">Filter changes</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1a6f33ce99a271f6bf6f94ed11bc223cd8a7fc7e5594d15119cfe82f465cb514">
+      <source xml:lang="en">Filter columns...</source>
     </trans-unit>
     <trans-unit id="++CODE++25f7c9810f4a804cfb8dd52d53afff3e995a0e03165362b827f6eb301d685327">
       <source xml:lang="en">Filter entities</source>
@@ -5170,6 +5179,9 @@
     </trans-unit>
     <trans-unit id="++CODE++294bba553d6958c3b25354a196e6bdb356fc76d4053754eb434c38618f9fff38">
       <source xml:lang="en">No code analysis rules available.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++aced1f6eb816646c06bf8c07537b988d6170549fb090727e92423ce063207afd">
+      <source xml:lang="en">No columns match the current filter.</source>
     </trans-unit>
     <trans-unit id="++CODE++92b96197f4ff0a723964fe779267ba475892eb8f744fe5482fd3c6bc752892a3">
       <source xml:lang="en">No columns were discovered for this entity.</source>
@@ -8211,9 +8223,6 @@
     <trans-unit id="++CODE++6fa7eeedfe2d3774f7d0d8fbb044c15710f171f58174bf7435ab1757e92d0c27">
       <source xml:lang="en">Use {0} to create a new connection.</source>
       <note>{0} is the connect command</note>
-    </trans-unit>
-    <trans-unit id="++CODE++f5e86af62d403420feae11b58a68c8df237889fb279d6a28cc08e11566ad5161">
-      <source xml:lang="en">Used in API routes and responses</source>
     </trans-unit>
     <trans-unit id="++CODE++b512d97e7cbf97c273e4db073bbb547aa65a84589227f8f3d9e4a72b9372a24d">
       <source xml:lang="en">User</source>

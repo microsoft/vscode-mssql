@@ -21,14 +21,13 @@ import {
     OverlayDrawer,
     Radio,
     RadioGroup,
-    Tab,
-    TabList,
     Text,
     Textarea,
     tokens,
+    useArrowNavigationGroup,
 } from "@fluentui/react-components";
-import { Dismiss24Regular, Table16Regular } from "@fluentui/react-icons";
-import { KeyboardEvent, useEffect, useMemo, useRef, useState } from "react";
+import { Dismiss24Regular, Search16Regular, Table16Regular } from "@fluentui/react-icons";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Dab } from "../../../../sharedInterfaces/dab";
 import { locConstants } from "../../../common/locConstants";
@@ -37,15 +36,26 @@ import { ViewIcon16Regular } from "../../../common/icons/view";
 
 const useStyles = makeStyles({
     drawer: {
-        width: "900px",
+        width: "960px",
         maxWidth: "calc(100vw - 32px)",
         backgroundColor: "var(--vscode-editor-background)",
         display: "flex",
         flexDirection: "column",
+        fontFamily: "var(--vscode-font-family)",
+        fontSize: tokens.fontSizeBase300,
+        "& input, & textarea, & button": {
+            fontFamily: "var(--vscode-font-family)",
+        },
+        "& .fui-Field__label, & .fui-Checkbox__label, & .fui-Radio__label, & .fui-Button, & .fui-Input__input, & .fui-Textarea__textarea":
+            {
+                fontSize: "13px",
+                lineHeight: "18px",
+            },
     },
     drawerHeader: {
         backgroundColor: "var(--vscode-editorWidget-background, var(--vscode-editor-background))",
         borderBottom: "1px solid var(--vscode-editorGroup-border)",
+        padding: "16px 24px",
     },
     drawerBody: {
         flex: 1,
@@ -57,19 +67,17 @@ const useStyles = makeStyles({
         boxSizing: "border-box",
     },
     settingsLayout: {
-        display: "grid",
-        gridTemplateColumns: "150px minmax(0, 1fr)",
-        columnGap: "18px",
-        alignItems: "start",
+        display: "flex",
+        flexDirection: "column",
         height: "100%",
         minHeight: 0,
-        padding: "0 18px 18px 0",
+        padding: "0 24px 24px",
         boxSizing: "border-box",
     },
     headerTitleContent: {
         display: "flex",
         flexDirection: "column",
-        rowGap: "4px",
+        rowGap: "6px",
     },
     headerObjectRow: {
         display: "flex",
@@ -77,63 +85,104 @@ const useStyles = makeStyles({
         columnGap: "6px",
     },
     headerObjectName: {
-        fontSize: tokens.fontSizeBase300,
-        fontWeight: tokens.fontWeightSemibold,
-        color: tokens.colorNeutralForeground1,
-        fontFamily: tokens.fontFamilyMonospace,
+        fontSize: "13px",
+        fontWeight: tokens.fontWeightRegular,
+        color: tokens.colorNeutralForeground3,
     },
     headerSubtitle: {
-        fontSize: tokens.fontSizeBase200,
-        color: tokens.colorNeutralForeground3,
-        fontWeight: tokens.fontWeightRegular,
+        fontSize: tokens.fontSizeBase400,
+        lineHeight: tokens.lineHeightBase400,
+        color: tokens.colorNeutralForeground1,
+        fontWeight: tokens.fontWeightSemibold,
     },
     sourceIcon: {
         color: tokens.colorNeutralForeground3,
         flexShrink: 0,
     },
-    tabs: {
-        zIndex: 3,
-        alignSelf: "start",
-        height: "100%",
-        minHeight: 0,
-        padding: "12px 8px",
-        overflow: "hidden",
-        backgroundColor: "var(--vscode-editorWidget-background, var(--vscode-editor-background))",
-        borderRight: `1px solid ${tokens.colorNeutralStroke2}`,
-    },
-    tabPanel: {
+    settingsContent: {
         display: "flex",
         flexDirection: "column",
-        rowGap: "22px",
         minWidth: 0,
         height: "100%",
         minHeight: 0,
         overflowY: "auto",
+        overflowX: "hidden",
         scrollPaddingBottom: "96px",
-        paddingTop: "18px",
+        paddingTop: "24px",
         paddingBottom: "96px",
         boxSizing: "border-box",
     },
     section: {
         display: "flex",
         flexDirection: "column",
-        rowGap: "10px",
+        rowGap: "14px",
+        paddingBottom: "28px",
+    },
+    sectionWithDivider: {
+        marginLeft: "-24px",
+        marginRight: "-24px",
+        paddingLeft: "24px",
+        paddingRight: "24px",
+        paddingTop: "28px",
+        borderTop: `1px solid ${tokens.colorNeutralStroke2}`,
+    },
+    sectionHeading: {
+        display: "flex",
+        alignItems: "center",
+        minWidth: 0,
     },
     sectionTitle: {
         fontSize: tokens.fontSizeBase300,
+        lineHeight: tokens.lineHeightBase300,
         fontWeight: tokens.fontWeightSemibold,
         color: tokens.colorNeutralForeground1,
     },
     sectionBody: {
         display: "flex",
         flexDirection: "column",
-        rowGap: "10px",
+        rowGap: "14px",
+    },
+    identityFields: {
+        display: "flex",
+        flexDirection: "column",
+        rowGap: "18px",
+    },
+    identityFieldRow: {
+        display: "grid",
+        gridTemplateColumns: "180px minmax(0, 1fr)",
+        columnGap: "24px",
+        alignItems: "start",
+        "@media (max-width: 720px)": {
+            gridTemplateColumns: "1fr",
+            rowGap: "6px",
+        },
+    },
+    identityFieldLabel: {
+        display: "flex",
+        flexDirection: "column",
+        rowGap: "2px",
+        paddingTop: "5px",
+    },
+    identityLabelText: {
+        color: tokens.colorNeutralForeground1,
+        fontSize: "13px",
+        lineHeight: "18px",
+        fontWeight: tokens.fontWeightSemibold,
+    },
+    requiredIndicator: {
+        color: tokens.colorPaletteRedForeground1,
+    },
+    identityControl: {
+        minWidth: 0,
     },
     twoColumnGrid: {
         display: "grid",
         gridTemplateColumns: "1fr 1fr",
-        columnGap: "10px",
-        rowGap: "10px",
+        columnGap: "16px",
+        rowGap: "14px",
+        "@media (max-width: 720px)": {
+            gridTemplateColumns: "1fr",
+        },
     },
     disabledMessageBar: {
         border: `1px solid ${tokens.colorPaletteYellowBorder2}`,
@@ -150,7 +199,7 @@ const useStyles = makeStyles({
         color: tokens.colorNeutralForeground2,
     },
     fieldHint: {
-        color: tokens.colorNeutralForeground4,
+        color: tokens.colorNeutralForeground3,
         fontSize: tokens.fontSizeBase200,
         lineHeight: tokens.lineHeightBase200,
     },
@@ -159,30 +208,80 @@ const useStyles = makeStyles({
         flexDirection: "column",
         rowGap: "8px",
         padding: "10px 12px",
-        borderRadius: "4px",
-        border: `1px solid ${tokens.colorNeutralStroke2}`,
-        backgroundColor: "var(--vscode-editorWidget-background, transparent)",
+        border: `1px solid ${tokens.colorNeutralStroke3}`,
+        borderRadius: tokens.borderRadiusMedium,
+        backgroundColor: tokens.colorNeutralBackground2,
+    },
+    permissionRoles: {
+        display: "flex",
+        flexDirection: "column",
+        rowGap: "10px",
+    },
+    roleToggle: {
+        alignItems: "center",
+        "& .fui-Checkbox__label": {
+            fontWeight: tokens.fontWeightSemibold,
+        },
     },
     roleHeader: {
         display: "flex",
         alignItems: "center",
-        justifyContent: "space-between",
         columnGap: "8px",
+    },
+    roleDetails: {
+        display: "flex",
+        flexDirection: "column",
+        rowGap: "8px",
+        paddingLeft: "28px",
+    },
+    permissionMainRow: {
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: "12px",
+        "@media (max-width: 700px)": {
+            alignItems: "flex-end",
+            flexWrap: "wrap",
+        },
+    },
+    permissionRow: {
+        display: "grid",
+        gridTemplateColumns: "72px minmax(0, 1fr)",
+        alignItems: "center",
+        columnGap: "12px",
+        minHeight: "28px",
+        flex: 1,
+        "@media (max-width: 620px)": {
+            gridTemplateColumns: "1fr",
+            rowGap: "6px",
+        },
+    },
+    permissionRowLabel: {
+        color: tokens.colorNeutralForeground1,
+        fontSize: "13px",
+        lineHeight: "18px",
+        fontWeight: tokens.fontWeightSemibold,
     },
     actionRow: {
         display: "flex",
         flexWrap: "wrap",
-        gap: "8px 12px",
-        paddingLeft: "24px",
+        gap: "8px 16px",
     },
     permissionGrid: {
         display: "flex",
         flexDirection: "column",
         maxHeight: "220px",
         overflowY: "auto",
-        border: `1px solid ${tokens.colorNeutralStroke2}`,
-        borderRadius: "4px",
-        marginLeft: "24px",
+        borderTop: `1px solid ${tokens.colorNeutralStroke2}`,
+        borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
+    },
+    permissionCustomization: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "8px",
+    },
+    columnFilter: {
+        width: "min(320px, 100%)",
     },
     permissionGridHeader: {
         display: "grid",
@@ -190,7 +289,7 @@ const useStyles = makeStyles({
         position: "sticky",
         top: 0,
         zIndex: 1,
-        backgroundColor: "var(--vscode-editorWidget-background, var(--vscode-editor-background))",
+        backgroundColor: tokens.colorNeutralBackground3,
         borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
         color: tokens.colorNeutralForeground3,
         fontSize: tokens.fontSizeBase200,
@@ -206,6 +305,7 @@ const useStyles = makeStyles({
         alignItems: "center",
         minHeight: "34px",
         borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
+        backgroundColor: tokens.colorNeutralBackground2,
     },
     permissionGridBody: {
         position: "relative",
@@ -216,18 +316,15 @@ const useStyles = makeStyles({
         padding: "5px 8px",
     },
     permissionGridNameCell: {
-        fontFamily: tokens.fontFamilyMonospace,
         color: tokens.colorNeutralForeground1,
         overflow: "hidden",
         textOverflow: "ellipsis",
         whiteSpace: "nowrap",
     },
-    columnAccessSummary: {
+    columnCustomizeAction: {
         display: "flex",
         alignItems: "center",
-        justifyContent: "space-between",
-        gap: "8px",
-        paddingLeft: "24px",
+        justifyContent: "flex-end",
     },
     methodGroup: {
         display: "flex",
@@ -242,8 +339,8 @@ const useStyles = makeStyles({
     metadataViewport: {
         maxHeight: "300px",
         overflowY: "auto",
-        border: `1px solid ${tokens.colorNeutralStroke2}`,
-        borderRadius: "4px",
+        borderTop: `1px solid ${tokens.colorNeutralStroke2}`,
+        borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
         boxSizing: "border-box",
     },
     metadataGridHeader: {
@@ -251,7 +348,7 @@ const useStyles = makeStyles({
         position: "sticky",
         top: 0,
         zIndex: 1,
-        backgroundColor: "var(--vscode-editorWidget-background, var(--vscode-editor-background))",
+        backgroundColor: tokens.colorNeutralBackground3,
         borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
         fontSize: tokens.fontSizeBase200,
         color: tokens.colorNeutralForeground3,
@@ -270,6 +367,7 @@ const useStyles = makeStyles({
         alignItems: "center",
         borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
         fontSize: tokens.fontSizeBase200,
+        backgroundColor: tokens.colorNeutralBackground1,
     },
     columnMetadataGrid: {
         gridTemplateColumns:
@@ -283,7 +381,7 @@ const useStyles = makeStyles({
     },
     metadataGridCell: {
         minWidth: 0,
-        padding: "6px 8px",
+        padding: "7px 8px",
         outline: "none",
         "&:focus-visible": {
             outline: "1px solid var(--vscode-focusBorder)",
@@ -304,12 +402,10 @@ const useStyles = makeStyles({
         verticalAlign: "middle",
     },
     tableNameCell: {
-        fontFamily: tokens.fontFamilyMonospace,
         color: tokens.colorNeutralForeground1,
         whiteSpace: "nowrap",
     },
     tableTypeCell: {
-        fontFamily: tokens.fontFamilyMonospace,
         color: tokens.colorNeutralForeground3,
         whiteSpace: "nowrap",
     },
@@ -326,14 +422,15 @@ const useStyles = makeStyles({
     },
     drawerFooter: {
         alignSelf: "stretch",
+        justifyContent: "flex-end",
         columnGap: "12px",
-        paddingTop: "12px",
+        padding: "12px 24px",
         marginTop: 0,
         backgroundColor: "var(--vscode-editorWidget-background, var(--vscode-editor-background))",
         borderTop: "1px solid var(--vscode-editorGroup-border)",
     },
     actionButton: {
-        minWidth: "132px",
+        minWidth: "112px",
         whiteSpace: "nowrap",
     },
     deepLinkFocus: {
@@ -343,11 +440,12 @@ const useStyles = makeStyles({
     },
 });
 
-type DabSettingsTab = "identity" | "permissions" | "rest" | "graphql" | "mcp" | "schema";
+type DabSettingsSection = "identity" | "permissions" | "rest" | "graphql" | "mcp" | "schema";
 type MetadataGridKind = "columns" | "parameters";
 
 const COLUMN_METADATA_GRID_COLUMN_COUNT = 5;
 const PARAMETER_METADATA_GRID_COLUMN_COUNT = 5;
+const COLUMN_GRID_OVERSCAN = 20;
 const TABLE_PERMISSION_ACTIONS = [
     Dab.EntityAction.Create,
     Dab.EntityAction.Read,
@@ -355,22 +453,13 @@ const TABLE_PERMISSION_ACTIONS = [
     Dab.EntityAction.Delete,
 ] as const;
 
-const SETTINGS_TABS: DabSettingsTab[] = [
-    "identity",
-    "permissions",
-    "rest",
-    "graphql",
-    "mcp",
-    "schema",
-];
-
 interface DabEntitySettingsDialogProps {
     entity: Dab.DabEntityConfig;
     existingEntityNames: string[];
     isRestEnabled: boolean;
     isGraphQLEnabled: boolean;
     isMcpEnabled: boolean;
-    initialTab?: DabSettingsTab;
+    initialSection?: DabSettingsSection;
     open: boolean;
     onOpenChange: (open: boolean) => void;
     onApply: (entity: Dab.DabEntityConfig) => void;
@@ -407,81 +496,117 @@ function PermissionColumnAccessGrid({
     onChange,
 }: PermissionColumnAccessGridProps) {
     const scrollRef = useRef<HTMLDivElement | null>(null);
+    const [columnFilter, setColumnFilter] = useState("");
+    const filteredColumns = useMemo(() => {
+        const normalizedFilter = columnFilter.trim().toLocaleLowerCase();
+        if (!normalizedFilter) {
+            return columns;
+        }
+        return columns.filter((column) =>
+            column.name.toLocaleLowerCase().includes(normalizedFilter),
+        );
+    }, [columnFilter, columns]);
     const virtualizer = useVirtualizer({
-        count: columns.length,
+        count: filteredColumns.length,
         getScrollElement: () => scrollRef.current,
+        getItemKey: (index) => filteredColumns[index]?.id ?? index,
         estimateSize: () => 34,
-        overscan: 8,
+        overscan: COLUMN_GRID_OVERSCAN,
+        useFlushSync: false,
     });
 
     return (
-        <div className={classes.permissionGrid} role="grid" ref={scrollRef}>
-            <div className={classes.permissionGridHeader} role="row">
-                <div className={classes.permissionGridCell} role="columnheader">
-                    {locConstants.schemaDesigner.columnName}
-                </div>
-                {TABLE_PERMISSION_ACTIONS.map((action) => (
-                    <div key={action} className={classes.permissionGridCell} role="columnheader">
-                        {getActionLabel(action)}
-                    </div>
-                ))}
-            </div>
-            <div
-                className={classes.permissionGridBody}
-                style={{ height: `${virtualizer.getTotalSize()}px` }}>
-                {virtualizer.getVirtualItems().map((virtualRow) => {
-                    const column = columns[virtualRow.index];
-                    const isLogicalKey = Dab.isLogicalKeyColumn(entity, column);
-                    return (
-                        <div
-                            className={classes.permissionGridRow}
-                            role="row"
-                            key={column.id}
-                            style={{
-                                height: `${virtualRow.size}px`,
-                                transform: `translateY(${virtualRow.start}px)`,
-                            }}>
-                            <div
-                                className={`${classes.permissionGridCell} ${classes.permissionGridNameCell}`}
-                                role="gridcell"
-                                title={column.name}>
-                                {column.name}
-                            </div>
-                            {TABLE_PERMISSION_ACTIONS.map((action) => {
-                                const actionEnabled = actions.includes(action);
-                                const checked =
-                                    actionEnabled &&
-                                    (isLogicalKey ||
-                                        getPermissionActionFields(permission, action).some(
-                                            (field) =>
-                                                Dab.normalizeDabIdentifier(field) ===
-                                                Dab.normalizeDabIdentifier(column.name),
-                                        ));
-                                return (
-                                    <div
-                                        key={action}
-                                        className={classes.permissionGridCell}
-                                        role="gridcell">
-                                        <Checkbox
-                                            checked={checked}
-                                            disabled={!actionEnabled || isLogicalKey}
-                                            onChange={(_, data) =>
-                                                onChange(
-                                                    role,
-                                                    column,
-                                                    action,
-                                                    data.checked === true,
-                                                )
-                                            }
-                                            aria-label={`${role} ${action} ${column.name}`}
-                                        />
-                                    </div>
-                                );
-                            })}
+        <div className={classes.permissionCustomization}>
+            <Input
+                className={classes.columnFilter}
+                size="small"
+                value={columnFilter}
+                placeholder={locConstants.schemaDesigner.filterColumns}
+                aria-label={locConstants.schemaDesigner.filterColumns}
+                contentBefore={<Search16Regular />}
+                onChange={(_, data) => setColumnFilter(data.value)}
+            />
+            {filteredColumns.length === 0 ? (
+                <Text className={classes.emptyMetadata}>
+                    {locConstants.schemaDesigner.noColumnsMatchFilter}
+                </Text>
+            ) : (
+                <div
+                    className={classes.permissionGrid}
+                    role="grid"
+                    ref={scrollRef}
+                    aria-rowcount={filteredColumns.length + 1}>
+                    <div className={classes.permissionGridHeader} role="row">
+                        <div className={classes.permissionGridCell} role="columnheader">
+                            {locConstants.schemaDesigner.columnName}
                         </div>
-                    );
-                })}
-            </div>
+                        {TABLE_PERMISSION_ACTIONS.map((action) => (
+                            <div
+                                key={action}
+                                className={classes.permissionGridCell}
+                                role="columnheader">
+                                {getActionLabel(action)}
+                            </div>
+                        ))}
+                    </div>
+                    <div
+                        className={classes.permissionGridBody}
+                        style={{ height: `${virtualizer.getTotalSize()}px` }}>
+                        {virtualizer.getVirtualItems().map((virtualRow) => {
+                            const column = filteredColumns[virtualRow.index];
+                            const isLogicalKey = Dab.isLogicalKeyColumn(entity, column);
+                            return (
+                                <div
+                                    className={classes.permissionGridRow}
+                                    role="row"
+                                    key={column.id}
+                                    style={{
+                                        height: `${virtualRow.size}px`,
+                                        transform: `translateY(${virtualRow.start}px)`,
+                                    }}>
+                                    <div
+                                        className={`${classes.permissionGridCell} ${classes.permissionGridNameCell}`}
+                                        role="gridcell"
+                                        title={column.name}>
+                                        {column.name}
+                                    </div>
+                                    {TABLE_PERMISSION_ACTIONS.map((action) => {
+                                        const actionEnabled = actions.includes(action);
+                                        const checked =
+                                            actionEnabled &&
+                                            (isLogicalKey ||
+                                                getPermissionActionFields(permission, action).some(
+                                                    (field) =>
+                                                        Dab.normalizeDabIdentifier(field) ===
+                                                        Dab.normalizeDabIdentifier(column.name),
+                                                ));
+                                        return (
+                                            <div
+                                                key={action}
+                                                className={classes.permissionGridCell}
+                                                role="gridcell">
+                                                <Checkbox
+                                                    checked={checked}
+                                                    disabled={!actionEnabled || isLogicalKey}
+                                                    onChange={(_, data) =>
+                                                        onChange(
+                                                            role,
+                                                            column,
+                                                            action,
+                                                            data.checked === true,
+                                                        )
+                                                    }
+                                                    aria-label={`${role} ${action} ${column.name}`}
+                                                />
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
@@ -582,17 +707,18 @@ export function DabEntitySettingsDialog({
     isRestEnabled,
     isGraphQLEnabled,
     isMcpEnabled,
-    initialTab,
+    initialSection,
     open,
     onOpenChange,
     onApply,
     onEnableApiType,
 }: DabEntitySettingsDialogProps) {
     const classes = useStyles();
+    const metadataKeyboardNavAttr = useArrowNavigationGroup({ axis: "grid" });
     const [localEntity, setLocalEntity] = useState<Dab.DabEntityConfig>(() =>
         cloneEntityForEditing(entity),
     );
-    const [activeTab, setActiveTab] = useState<DabSettingsTab>("identity");
+    const [columnFilter, setColumnFilter] = useState("");
     const [expandedColumnAccessRoles, setExpandedColumnAccessRoles] = useState<
         Set<Dab.AuthorizationRole>
     >(new Set());
@@ -606,7 +732,7 @@ export function DabEntitySettingsDialog({
     const schemaSectionRef = useRef<HTMLDivElement | null>(null);
     const deepLinkFocusRef = useRef<HTMLElement | null>(null);
 
-    const getSectionElement = (value: DabSettingsTab): HTMLElement | null => {
+    const getSectionElement = (value: DabSettingsSection): HTMLElement | null => {
         switch (value) {
             case "identity":
                 return identitySectionRef.current;
@@ -623,7 +749,7 @@ export function DabEntitySettingsDialog({
         }
     };
 
-    const focusSectionControl = (value: DabSettingsTab) => {
+    const focusSectionControl = (value: DabSettingsSection) => {
         const section = getSectionElement(value);
         const focusTarget = section?.querySelector<HTMLElement>(
             [
@@ -657,7 +783,7 @@ export function DabEntitySettingsDialog({
         );
     };
 
-    const scrollToSelectedTab = (value: DabSettingsTab, behavior: ScrollBehavior = "smooth") => {
+    const scrollToSection = (value: DabSettingsSection, behavior: ScrollBehavior = "smooth") => {
         window.setTimeout(() => {
             const drawerBody = drawerBodyRef.current;
             const section = getSectionElement(value);
@@ -674,15 +800,11 @@ export function DabEntitySettingsDialog({
         }, 0);
     };
 
-    const handleTabSelect = (value: DabSettingsTab) => {
-        setActiveTab(value);
-        scrollToSelectedTab(value);
-    };
-
     useEffect(() => {
         if (open) {
             const editingEntity = cloneEntityForEditing(entity);
             setLocalEntity(editingEntity);
+            setColumnFilter("");
             setExpandedColumnAccessRoles(
                 new Set(
                     Dab.getEntityPermissions(editingEntity)
@@ -690,33 +812,9 @@ export function DabEntitySettingsDialog({
                         .map((permission) => permission.role),
                 ),
             );
-            const tab = initialTab ?? "identity";
-            setActiveTab(tab);
-            scrollToSelectedTab(tab, "auto");
+            scrollToSection(initialSection ?? "identity", "auto");
         }
-    }, [entity, initialTab, open]);
-
-    useEffect(() => {
-        const drawerBody = drawerBodyRef.current;
-        if (!open || !drawerBody) {
-            return;
-        }
-
-        const handleScroll = () => {
-            let currentTab: DabSettingsTab = "identity";
-            for (const tab of SETTINGS_TABS) {
-                const section = getSectionElement(tab);
-                if (section && section.offsetTop - 48 <= drawerBody.scrollTop) {
-                    currentTab = tab;
-                }
-            }
-            setActiveTab(currentTab);
-        };
-
-        handleScroll();
-        drawerBody.addEventListener("scroll", handleScroll, { passive: true });
-        return () => drawerBody.removeEventListener("scroll", handleScroll);
-    }, [open]);
+    }, [entity, initialSection, open]);
 
     const settings = localEntity.advancedSettings;
     const isStoredProcedure = localEntity.sourceType === Dab.EntitySourceType.StoredProcedure;
@@ -740,11 +838,22 @@ export function DabEntitySettingsDialog({
     const isEntityMcpEnabled = Dab.isEntityMcpEnabled(localEntity);
     const permissions = useMemo(() => Dab.getEntityPermissions(localEntity), [localEntity]);
     const parameters = localEntity.parameters ?? [];
+    const filteredColumns = useMemo(() => {
+        const normalizedFilter = columnFilter.trim().toLocaleLowerCase();
+        if (!normalizedFilter) {
+            return localEntity.columns;
+        }
+        return localEntity.columns.filter((column) =>
+            column.name.toLocaleLowerCase().includes(normalizedFilter),
+        );
+    }, [columnFilter, localEntity.columns]);
     const columnVirtualizer = useVirtualizer({
-        count: localEntity.columns.length,
+        count: filteredColumns.length,
         getScrollElement: () => metadataScrollRef.current,
+        getItemKey: (index) => filteredColumns[index]?.id ?? index,
         estimateSize: () => 41,
-        overscan: 8,
+        overscan: COLUMN_GRID_OVERSCAN,
+        useFlushSync: false,
     });
     const parameterVirtualizer = useVirtualizer({
         count: parameters.length,
@@ -754,132 +863,20 @@ export function DabEntitySettingsDialog({
     });
     const isLocallyExposed = Dab.isEntityExposed(localEntity);
 
-    const focusMetadataCell = (kind: MetadataGridKind, rowIndex: number, columnIndex: number) => {
-        const rowCount = kind === "columns" ? localEntity.columns.length : parameters.length;
-        const columnCount =
-            kind === "columns"
-                ? COLUMN_METADATA_GRID_COLUMN_COUNT
-                : PARAMETER_METADATA_GRID_COLUMN_COUNT;
-        const nextRow = Math.min(Math.max(rowIndex, 0), Math.max(rowCount - 1, 0));
-        const nextColumn = Math.min(Math.max(columnIndex, 0), columnCount - 1);
-        const virtualizer = kind === "columns" ? columnVirtualizer : parameterVirtualizer;
-        virtualizer.scrollToIndex(nextRow, { align: "auto" });
-
-        requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-                metadataScrollRef.current
-                    ?.querySelector<HTMLElement>(
-                        `[data-dab-metadata-kind="${kind}"][data-dab-row-index="${nextRow}"][data-dab-column-index="${nextColumn}"]`,
-                    )
-                    ?.focus();
-            });
-        });
-    };
-
-    const focusCellControl = (cell: HTMLElement) => {
-        cell.querySelector<HTMLElement>(
-            [
-                "input:not([disabled])",
-                "textarea:not([disabled])",
-                "button:not([disabled])",
-                "[role='checkbox']:not([aria-disabled='true'])",
-                "[role='radio']:not([aria-disabled='true'])",
-            ].join(","),
-        )?.focus();
-    };
-
-    const handleMetadataGridKeyDown = (
-        event: KeyboardEvent<HTMLElement>,
-        kind: MetadataGridKind,
-        rowCount: number,
-        columnCount: number,
-    ) => {
-        const target = event.target as HTMLElement;
-        const cell = target.closest<HTMLElement>("[data-dab-metadata-cell]");
-        if (!cell) {
-            return;
-        }
-
-        const rowIndex = Number(cell.dataset.dabRowIndex);
-        const columnIndex = Number(cell.dataset.dabColumnIndex);
-        if (!Number.isFinite(rowIndex) || !Number.isFinite(columnIndex)) {
-            return;
-        }
-
-        const isTextInput =
-            target instanceof HTMLInputElement ||
-            target instanceof HTMLTextAreaElement ||
-            target.isContentEditable;
-        const key = event.key;
-
-        if (isTextInput && key !== "ArrowUp" && key !== "ArrowDown" && key !== "Escape") {
-            return;
-        }
-
-        let nextRow = rowIndex;
-        let nextColumn = columnIndex;
-        switch (key) {
-            case "ArrowDown":
-                nextRow += 1;
-                break;
-            case "ArrowUp":
-                nextRow -= 1;
-                break;
-            case "ArrowRight":
-                nextColumn += 1;
-                break;
-            case "ArrowLeft":
-                nextColumn -= 1;
-                break;
-            case "Home":
-                nextColumn = 0;
-                break;
-            case "End":
-                nextColumn = columnCount - 1;
-                break;
-            case "PageDown":
-                nextRow += 8;
-                break;
-            case "PageUp":
-                nextRow -= 8;
-                break;
-            case "Enter":
-                if (target === cell) {
-                    event.preventDefault();
-                    focusCellControl(cell);
-                }
-                return;
-            case "Escape":
-                if (target !== cell) {
-                    event.preventDefault();
-                    cell.focus();
-                }
-                return;
-            default:
-                return;
-        }
-
-        event.preventDefault();
-        focusMetadataCell(
-            kind,
-            Math.min(Math.max(nextRow, 0), Math.max(rowCount - 1, 0)),
-            Math.min(Math.max(nextColumn, 0), columnCount - 1),
-        );
-    };
-
     const getMetadataCellProps = (
         kind: MetadataGridKind,
         rowIndex: number,
         columnIndex: number,
-    ) => ({
-        role: "gridcell",
-        tabIndex: 0,
-        "data-dab-metadata-cell": true,
-        "data-dab-metadata-kind": kind,
-        "data-dab-row-index": rowIndex,
-        "data-dab-column-index": columnIndex,
-        "aria-colindex": columnIndex + 1,
-    });
+    ) => {
+        const containsInteractiveControl =
+            kind === "columns" ? columnIndex === 0 || columnIndex >= 3 : columnIndex >= 2;
+        return {
+            role: "gridcell",
+            tabIndex: containsInteractiveControl ? undefined : 0,
+            "data-dab-row-index": rowIndex,
+            "aria-colindex": columnIndex + 1,
+        };
+    };
 
     const normalizedExistingEntityNames = useMemo(
         () => new Set(existingEntityNames.map(Dab.normalizeDabIdentifier)),
@@ -1166,7 +1163,9 @@ export function DabEntitySettingsDialog({
     };
 
     const renderSectionTitle = (title: string) => (
-        <Text className={classes.sectionTitle}>{title}</Text>
+        <div className={classes.sectionHeading}>
+            <Text className={classes.sectionTitle}>{title}</Text>
+        </div>
     );
 
     const renderInfoLabel = (label: string, infoText: string) => (
@@ -1205,96 +1204,91 @@ export function DabEntitySettingsDialog({
             role === Dab.AuthorizationRole.Anonymous
                 ? locConstants.schemaDesigner.anonymous
                 : locConstants.schemaDesigner.authenticated;
+        const roleDescription =
+            role === Dab.AuthorizationRole.Anonymous
+                ? locConstants.schemaDesigner.anonymousDescription
+                : locConstants.schemaDesigner.authenticatedDescription;
         const allowedActions = getAllowedActions(localEntity.sourceType);
-        const allSelected = enabled && allowedActions.every((action) => actions.includes(action));
-        const toggleAllForRole = () => {
-            const updatedPermissions = permissions.map((p) =>
-                p.role === role
-                    ? {
-                          ...p,
-                          actions: allSelected ? [] : [...allowedActions],
-                          fieldAccess: allSelected ? undefined : p.fieldAccess,
-                      }
-                    : p,
-            );
-            updatePermissions(updatedPermissions);
-        };
         const showColumnAccess =
             enabled && !isStoredProcedure && localEntity.columns.length > 0 && permission;
-        const hasCustomColumnAccess = (permission?.fieldAccess?.length ?? 0) > 0;
-        const isColumnAccessExpanded = expandedColumnAccessRoles.has(role) || hasCustomColumnAccess;
-        const roleColumnAccessLabel = hasCustomColumnAccess
-            ? locConstants.schemaDesigner.customizeColumnAccess
-            : locConstants.schemaDesigner.includeAllColumns;
+        const isColumnAccessExpanded = expandedColumnAccessRoles.has(role);
+        const toggleColumnAccess = () =>
+            setExpandedColumnAccessRoles((prev) => {
+                const next = new Set(prev);
+                if (next.has(role)) {
+                    next.delete(role);
+                } else {
+                    next.add(role);
+                }
+                return next;
+            });
 
         return (
             <div className={classes.roleCard} key={role}>
                 <div className={classes.roleHeader}>
                     <Checkbox
+                        className={classes.roleToggle}
                         checked={enabled}
-                        label={roleLabel}
+                        label={renderInfoLabel(roleLabel, roleDescription)}
                         onChange={(_, data) => updateRoleEnabled(role, data.checked === true)}
                     />
-                    <Button
-                        appearance="outline"
-                        size="small"
-                        onClick={toggleAllForRole}
-                        aria-label={
-                            allSelected ? locConstants.common.none : locConstants.schemaDesigner.all
-                        }>
-                        {allSelected ? locConstants.common.none : locConstants.schemaDesigner.all}
-                    </Button>
                 </div>
                 {enabled && (
-                    <div className={classes.actionRow}>
-                        {allowedActions.map((action) => (
-                            <Checkbox
-                                key={action}
-                                checked={actions.includes(action)}
-                                label={getActionLabel(action)}
-                                onChange={(_, data) =>
-                                    updateRoleAction(role, action, data.checked === true)
-                                }
-                            />
-                        ))}
-                    </div>
-                )}
-                {showColumnAccess && (
-                    <>
-                        <div className={classes.columnAccessSummary}>
-                            <Text className={classes.fieldHint}>{roleColumnAccessLabel}</Text>
-                            <Button
-                                appearance="outline"
-                                size="small"
-                                onClick={() =>
-                                    setExpandedColumnAccessRoles((prev) => {
-                                        const next = new Set(prev);
-                                        if (next.has(role) && !hasCustomColumnAccess) {
-                                            next.delete(role);
-                                        } else {
-                                            next.add(role);
-                                        }
-                                        return next;
-                                    })
-                                }>
-                                {isColumnAccessExpanded && !hasCustomColumnAccess
-                                    ? locConstants.common.collapse
-                                    : locConstants.schemaDesigner.customizeColumnAccess}
-                            </Button>
+                    <div className={classes.roleDetails}>
+                        <div className={classes.permissionMainRow}>
+                            <div className={classes.permissionRow}>
+                                <Text className={classes.permissionRowLabel}>
+                                    {locConstants.schemaDesigner.allowedActions}
+                                </Text>
+                                <div className={classes.actionRow}>
+                                    {allowedActions.map((action) => (
+                                        <Checkbox
+                                            key={action}
+                                            checked={actions.includes(action)}
+                                            label={getActionLabel(action)}
+                                            onChange={(_, data) =>
+                                                updateRoleAction(
+                                                    role,
+                                                    action,
+                                                    data.checked === true,
+                                                )
+                                            }
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+                            {showColumnAccess && !isColumnAccessExpanded && (
+                                <Button
+                                    appearance="outline"
+                                    size="small"
+                                    onClick={toggleColumnAccess}>
+                                    {locConstants.schemaDesigner.customizeColumns}
+                                </Button>
+                            )}
                         </div>
-                        {isColumnAccessExpanded && (
-                            <PermissionColumnAccessGrid
-                                classes={classes}
-                                role={role}
-                                permission={permission}
-                                actions={actions}
-                                columns={localEntity.columns}
-                                entity={localEntity}
-                                getPermissionActionFields={getPermissionActionFields}
-                                onChange={updateRoleColumnAction}
-                            />
+                        {showColumnAccess && isColumnAccessExpanded && (
+                            <>
+                                <PermissionColumnAccessGrid
+                                    classes={classes}
+                                    role={role}
+                                    permission={permission}
+                                    actions={actions}
+                                    columns={localEntity.columns}
+                                    entity={localEntity}
+                                    getPermissionActionFields={getPermissionActionFields}
+                                    onChange={updateRoleColumnAction}
+                                />
+                                <div className={classes.columnCustomizeAction}>
+                                    <Button
+                                        appearance="outline"
+                                        size="small"
+                                        onClick={toggleColumnAccess}>
+                                        {locConstants.schemaDesigner.done}
+                                    </Button>
+                                </div>
+                            </>
                         )}
-                    </>
+                    </div>
                 )}
             </div>
         );
@@ -1306,7 +1300,7 @@ export function DabEntitySettingsDialog({
         }
 
         return (
-            <section className={classes.section}>
+            <section className={`${classes.section} ${classes.sectionWithDivider}`}>
                 {renderSectionTitle(locConstants.schemaDesigner.columns)}
                 {missingLogicalKeyValidationMessage && (
                     <MessageBar intent="error" layout="multiline" shape="rounded">
@@ -1318,148 +1312,175 @@ export function DabEntitySettingsDialog({
                         {locConstants.schemaDesigner.noColumnsDiscovered}
                     </Text>
                 ) : (
-                    <div
-                        className={classes.metadataViewport}
-                        ref={metadataScrollRef}
-                        role="grid"
-                        aria-rowcount={localEntity.columns.length + 1}
-                        aria-colcount={COLUMN_METADATA_GRID_COLUMN_COUNT}
-                        onKeyDown={(event) =>
-                            handleMetadataGridKeyDown(
-                                event,
-                                "columns",
-                                localEntity.columns.length,
-                                COLUMN_METADATA_GRID_COLUMN_COUNT,
-                            )
-                        }>
-                        <div
-                            role="row"
-                            aria-rowindex={1}
-                            className={`${classes.metadataGridHeader} ${classes.columnMetadataGrid}`}>
+                    <>
+                        <Input
+                            className={classes.columnFilter}
+                            size="small"
+                            value={columnFilter}
+                            placeholder={locConstants.schemaDesigner.filterColumns}
+                            aria-label={locConstants.schemaDesigner.filterColumns}
+                            contentBefore={<Search16Regular />}
+                            onChange={(_, data) => setColumnFilter(data.value)}
+                        />
+                        {filteredColumns.length === 0 ? (
+                            <Text className={classes.emptyMetadata}>
+                                {locConstants.schemaDesigner.noColumnsMatchFilter}
+                            </Text>
+                        ) : (
                             <div
-                                role="columnheader"
-                                aria-colindex={1}
-                                className={classes.metadataGridCell}>
-                                {locConstants.schemaDesigner.key}
-                            </div>
-                            <div
-                                role="columnheader"
-                                aria-colindex={2}
-                                className={classes.metadataGridCell}>
-                                {locConstants.schemaDesigner.entityName}
-                            </div>
-                            <div
-                                role="columnheader"
-                                aria-colindex={3}
-                                className={classes.metadataGridCell}>
-                                {locConstants.schemaDesigner.dataType}
-                            </div>
-                            <div
-                                role="columnheader"
-                                aria-colindex={4}
-                                className={classes.metadataGridCell}>
-                                {locConstants.schemaDesigner.alias}
-                            </div>
-                            <div
-                                role="columnheader"
-                                aria-colindex={5}
-                                className={classes.metadataGridCell}>
-                                {locConstants.schemaDesigner.description}
-                            </div>
-                        </div>
-                        <div
-                            className={classes.metadataGridBody}
-                            style={{ height: `${columnVirtualizer.getTotalSize()}px` }}>
-                            {columnVirtualizer.getVirtualItems().map((virtualRow) => {
-                                const column = localEntity.columns[virtualRow.index];
-                                const field = Dab.getFieldForColumn(localEntity, column.name);
-                                const isLogicalKey = Dab.isLogicalKeyColumn(localEntity, column);
-                                return (
+                                {...metadataKeyboardNavAttr}
+                                className={classes.metadataViewport}
+                                ref={metadataScrollRef}
+                                role="grid"
+                                aria-rowcount={filteredColumns.length + 1}
+                                aria-colcount={COLUMN_METADATA_GRID_COLUMN_COUNT}>
+                                <div
+                                    role="row"
+                                    aria-rowindex={1}
+                                    className={`${classes.metadataGridHeader} ${classes.columnMetadataGrid}`}>
                                     <div
-                                        key={column.id}
-                                        role="row"
-                                        aria-rowindex={virtualRow.index + 2}
-                                        className={`${classes.metadataGridRow} ${classes.columnMetadataGrid}`}
-                                        style={{
-                                            height: `${virtualRow.size}px`,
-                                            transform: `translateY(${virtualRow.start}px)`,
-                                        }}>
-                                        <div
-                                            {...getMetadataCellProps(
-                                                "columns",
-                                                virtualRow.index,
-                                                0,
-                                            )}
-                                            className={classes.metadataGridCell}>
-                                            <Checkbox
-                                                checked={isLogicalKey}
-                                                onChange={(_, data) =>
-                                                    updateField(column, {
-                                                        isPrimaryKey: data.checked === true,
-                                                    })
-                                                }
-                                                aria-label={locConstants.schemaDesigner.logicalKey}
-                                            />
-                                        </div>
-                                        <div
-                                            {...getMetadataCellProps(
-                                                "columns",
-                                                virtualRow.index,
-                                                1,
-                                            )}
-                                            className={`${classes.metadataGridCell} ${classes.tableNameCell}`}>
-                                            {column.name}
-                                        </div>
-                                        <div
-                                            {...getMetadataCellProps(
-                                                "columns",
-                                                virtualRow.index,
-                                                2,
-                                            )}
-                                            className={`${classes.metadataGridCell} ${classes.tableTypeCell}`}>
-                                            {column.dataType}
-                                        </div>
-                                        <div
-                                            {...getMetadataCellProps(
-                                                "columns",
-                                                virtualRow.index,
-                                                3,
-                                            )}
-                                            className={classes.metadataGridCell}>
-                                            <Input
-                                                className={classes.compactInput}
-                                                size="small"
-                                                value={field?.alias ?? ""}
-                                                onChange={(_, data) =>
-                                                    updateField(column, {
-                                                        alias: data.value || undefined,
-                                                    })
-                                                }
-                                            />
-                                        </div>
-                                        <div
-                                            {...getMetadataCellProps(
-                                                "columns",
-                                                virtualRow.index,
-                                                4,
-                                            )}
-                                            className={classes.metadataGridCell}>
-                                            <Input
-                                                className={classes.compactInput}
-                                                size="small"
-                                                value={field?.description ?? ""}
-                                                onChange={(_, data) =>
-                                                    updateField(column, {
-                                                        description: data.value || undefined,
-                                                    })
-                                                }
-                                            />
-                                        </div>
+                                        role="columnheader"
+                                        aria-colindex={1}
+                                        className={classes.metadataGridCell}>
+                                        {locConstants.schemaDesigner.key}
                                     </div>
-                                );
-                            })}
-                        </div>
-                    </div>
+                                    <div
+                                        role="columnheader"
+                                        aria-colindex={2}
+                                        className={classes.metadataGridCell}>
+                                        {locConstants.schemaDesigner.entityName}
+                                    </div>
+                                    <div
+                                        role="columnheader"
+                                        aria-colindex={3}
+                                        className={classes.metadataGridCell}>
+                                        {locConstants.schemaDesigner.dataType}
+                                    </div>
+                                    <div
+                                        role="columnheader"
+                                        aria-colindex={4}
+                                        className={classes.metadataGridCell}>
+                                        {locConstants.schemaDesigner.alias}
+                                    </div>
+                                    <div
+                                        role="columnheader"
+                                        aria-colindex={5}
+                                        className={classes.metadataGridCell}>
+                                        {locConstants.schemaDesigner.description}
+                                    </div>
+                                </div>
+                                <div
+                                    className={classes.metadataGridBody}
+                                    style={{ height: `${columnVirtualizer.getTotalSize()}px` }}>
+                                    {columnVirtualizer.getVirtualItems().map((virtualRow) => {
+                                        const column = filteredColumns[virtualRow.index];
+                                        const field = Dab.getFieldForColumn(
+                                            localEntity,
+                                            column.name,
+                                        );
+                                        const isLogicalKey = Dab.isLogicalKeyColumn(
+                                            localEntity,
+                                            column,
+                                        );
+                                        return (
+                                            <div
+                                                key={column.id}
+                                                role="row"
+                                                aria-rowindex={virtualRow.index + 2}
+                                                className={`${classes.metadataGridRow} ${classes.columnMetadataGrid}`}
+                                                style={{
+                                                    height: `${virtualRow.size}px`,
+                                                    transform: `translateY(${virtualRow.start}px)`,
+                                                }}>
+                                                <div
+                                                    {...getMetadataCellProps(
+                                                        "columns",
+                                                        virtualRow.index,
+                                                        0,
+                                                    )}
+                                                    className={classes.metadataGridCell}>
+                                                    <Checkbox
+                                                        checked={isLogicalKey}
+                                                        onKeyDown={(event) => {
+                                                            if (event.key === "Enter") {
+                                                                event.preventDefault();
+                                                                updateField(column, {
+                                                                    isPrimaryKey: !isLogicalKey,
+                                                                });
+                                                            }
+                                                        }}
+                                                        onChange={(_, data) =>
+                                                            updateField(column, {
+                                                                isPrimaryKey: data.checked === true,
+                                                            })
+                                                        }
+                                                        aria-label={
+                                                            locConstants.schemaDesigner.logicalKey
+                                                        }
+                                                    />
+                                                </div>
+                                                <div
+                                                    {...getMetadataCellProps(
+                                                        "columns",
+                                                        virtualRow.index,
+                                                        1,
+                                                    )}
+                                                    className={`${classes.metadataGridCell} ${classes.tableNameCell}`}>
+                                                    {column.name}
+                                                </div>
+                                                <div
+                                                    {...getMetadataCellProps(
+                                                        "columns",
+                                                        virtualRow.index,
+                                                        2,
+                                                    )}
+                                                    className={`${classes.metadataGridCell} ${classes.tableTypeCell}`}>
+                                                    {column.dataType}
+                                                </div>
+                                                <div
+                                                    {...getMetadataCellProps(
+                                                        "columns",
+                                                        virtualRow.index,
+                                                        3,
+                                                    )}
+                                                    className={classes.metadataGridCell}>
+                                                    <Input
+                                                        className={classes.compactInput}
+                                                        size="small"
+                                                        value={field?.alias ?? ""}
+                                                        onChange={(_, data) =>
+                                                            updateField(column, {
+                                                                alias: data.value || undefined,
+                                                            })
+                                                        }
+                                                    />
+                                                </div>
+                                                <div
+                                                    {...getMetadataCellProps(
+                                                        "columns",
+                                                        virtualRow.index,
+                                                        4,
+                                                    )}
+                                                    className={classes.metadataGridCell}>
+                                                    <Input
+                                                        className={classes.compactInput}
+                                                        size="small"
+                                                        value={field?.description ?? ""}
+                                                        onChange={(_, data) =>
+                                                            updateField(column, {
+                                                                description:
+                                                                    data.value || undefined,
+                                                            })
+                                                        }
+                                                    />
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
+                    </>
                 )}
             </section>
         );
@@ -1471,7 +1492,7 @@ export function DabEntitySettingsDialog({
         }
 
         return (
-            <section className={classes.section}>
+            <section className={`${classes.section} ${classes.sectionWithDivider}`}>
                 {renderSectionTitle(locConstants.schemaDesigner.parameters)}
                 {parameters.length === 0 ? (
                     <Text className={classes.emptyMetadata}>
@@ -1479,19 +1500,12 @@ export function DabEntitySettingsDialog({
                     </Text>
                 ) : (
                     <div
+                        {...metadataKeyboardNavAttr}
                         className={classes.metadataViewport}
                         ref={metadataScrollRef}
                         role="grid"
                         aria-rowcount={parameters.length + 1}
-                        aria-colcount={PARAMETER_METADATA_GRID_COLUMN_COUNT}
-                        onKeyDown={(event) =>
-                            handleMetadataGridKeyDown(
-                                event,
-                                "parameters",
-                                parameters.length,
-                                PARAMETER_METADATA_GRID_COLUMN_COUNT,
-                            )
-                        }>
+                        aria-colcount={PARAMETER_METADATA_GRID_COLUMN_COUNT}>
                         <div
                             role="row"
                             aria-rowindex={1}
@@ -1569,6 +1583,15 @@ export function DabEntitySettingsDialog({
                                             className={classes.metadataGridCell}>
                                             <Checkbox
                                                 checked={parameter.isRequired !== false}
+                                                onKeyDown={(event) => {
+                                                    if (event.key === "Enter") {
+                                                        event.preventDefault();
+                                                        updateParameter(parameter.name, {
+                                                            isRequired:
+                                                                parameter.isRequired === false,
+                                                        });
+                                                    }
+                                                }}
                                                 onChange={(_, data) =>
                                                     updateParameter(parameter.name, {
                                                         isRequired: data.checked === true,
@@ -1731,76 +1754,85 @@ export function DabEntitySettingsDialog({
                         />
                     }>
                     <div className={classes.headerTitleContent}>
+                        <span className={classes.headerSubtitle}>
+                            {locConstants.schemaDesigner.advancedEntityConfiguration}
+                        </span>
                         <div className={classes.headerObjectRow}>
                             {renderSourceIcon()}
                             <span className={classes.headerObjectName}>{sourceObjectName}</span>
                         </div>
-                        <span className={classes.headerSubtitle}>
-                            {locConstants.schemaDesigner.advancedEntityConfiguration}
-                        </span>
                     </div>
                 </DrawerHeaderTitle>
             </DrawerHeader>
             <DrawerBody className={classes.drawerBody}>
                 <div className={classes.settingsLayout}>
-                    <TabList
-                        className={classes.tabs}
-                        vertical
-                        selectedValue={activeTab}
-                        onTabSelect={(_, data) => handleTabSelect(data.value as DabSettingsTab)}>
-                        <Tab value="identity">{locConstants.schemaDesigner.identity}</Tab>
-                        <Tab value="permissions">
-                            {locConstants.schemaDesigner.authorizationRole}
-                        </Tab>
-                        <Tab value="rest">{locConstants.schemaDesigner.rest}</Tab>
-                        <Tab value="graphql">{locConstants.schemaDesigner.graphql}</Tab>
-                        <Tab value="mcp">{locConstants.schemaDesigner.mcp}</Tab>
-                        <Tab value="schema">
-                            {isStoredProcedure
-                                ? locConstants.schemaDesigner.parameters
-                                : locConstants.schemaDesigner.columns}
-                        </Tab>
-                    </TabList>
-                    <div className={classes.tabPanel} ref={drawerBodyRef}>
+                    <div className={classes.settingsContent} ref={drawerBodyRef}>
                         <section ref={identitySectionRef} className={classes.section}>
                             {renderSectionTitle(locConstants.schemaDesigner.identity)}
-                            <div className={classes.sectionBody}>
-                                <Field
-                                    label={locConstants.schemaDesigner.entityName}
-                                    required
-                                    validationState={
-                                        entityNameValidationMessage ? "error" : undefined
-                                    }
-                                    validationMessage={entityNameValidationMessage}>
-                                    <Input
-                                        value={settings.entityName}
-                                        onChange={(_, data) =>
-                                            updateAdvancedSettings({ entityName: data.value })
+                            <div className={classes.identityFields}>
+                                <div className={classes.identityFieldRow}>
+                                    <div className={classes.identityFieldLabel}>
+                                        <Text className={classes.identityLabelText}>
+                                            {locConstants.schemaDesigner.entityName}
+                                            <span
+                                                className={classes.requiredIndicator}
+                                                aria-hidden="true">
+                                                {" *"}
+                                            </span>
+                                        </Text>
+                                    </div>
+                                    <Field
+                                        className={classes.identityControl}
+                                        validationState={
+                                            entityNameValidationMessage ? "error" : undefined
                                         }
-                                    />
-                                </Field>
-                                <Field label={locConstants.schemaDesigner.description}>
-                                    <Textarea
-                                        value={settings.description ?? ""}
-                                        onChange={(_, data) =>
-                                            updateAdvancedSettings({
-                                                description: data.value || undefined,
-                                            })
-                                        }
-                                    />
-                                </Field>
+                                        validationMessage={entityNameValidationMessage}>
+                                        <Input
+                                            required
+                                            aria-label={locConstants.schemaDesigner.entityName}
+                                            value={settings.entityName}
+                                            onChange={(_, data) =>
+                                                updateAdvancedSettings({ entityName: data.value })
+                                            }
+                                        />
+                                    </Field>
+                                </div>
+                                <div className={classes.identityFieldRow}>
+                                    <div className={classes.identityFieldLabel}>
+                                        <Text className={classes.identityLabelText}>
+                                            {locConstants.schemaDesigner.description}
+                                        </Text>
+                                    </div>
+                                    <Field className={classes.identityControl}>
+                                        <Textarea
+                                            aria-label={locConstants.schemaDesigner.description}
+                                            placeholder={locConstants.schemaDesigner.optional}
+                                            resize="vertical"
+                                            value={settings.description ?? ""}
+                                            onChange={(_, data) =>
+                                                updateAdvancedSettings({
+                                                    description: data.value || undefined,
+                                                })
+                                            }
+                                        />
+                                    </Field>
+                                </div>
                             </div>
                         </section>
 
-                        <section ref={permissionsSectionRef} className={classes.section}>
+                        <section
+                            ref={permissionsSectionRef}
+                            className={`${classes.section} ${classes.sectionWithDivider}`}>
                             {renderSectionTitle(locConstants.schemaDesigner.authorizationRole)}
-                            <div className={classes.sectionBody}>
+                            <div className={classes.permissionRoles}>
                                 {renderPermissionRole(Dab.AuthorizationRole.Anonymous)}
                                 {renderPermissionRole(Dab.AuthorizationRole.Authenticated)}
                             </div>
                         </section>
 
-                        <section ref={restSectionRef} className={classes.section}>
+                        <section
+                            ref={restSectionRef}
+                            className={`${classes.section} ${classes.sectionWithDivider}`}>
                             {renderSectionTitle(locConstants.schemaDesigner.rest)}
                             <div className={classes.sectionBody}>
                                 {!isRestEnabled ? (
@@ -1889,7 +1921,9 @@ export function DabEntitySettingsDialog({
                             </div>
                         </section>
 
-                        <section ref={graphQLSectionRef} className={classes.section}>
+                        <section
+                            ref={graphQLSectionRef}
+                            className={`${classes.section} ${classes.sectionWithDivider}`}>
                             {renderSectionTitle(locConstants.schemaDesigner.graphql)}
                             <div className={classes.sectionBody}>
                                 {!isGraphQLEnabled ? (
@@ -2023,7 +2057,9 @@ export function DabEntitySettingsDialog({
                             </div>
                         </section>
 
-                        <section ref={mcpSectionRef} className={classes.section}>
+                        <section
+                            ref={mcpSectionRef}
+                            className={`${classes.section} ${classes.sectionWithDivider}`}>
                             {renderSectionTitle(locConstants.schemaDesigner.mcp)}
                             <div className={classes.sectionBody}>
                                 {!isMcpEnabled ? (
@@ -2039,16 +2075,7 @@ export function DabEntitySettingsDialog({
                                             onChange={(_, data) =>
                                                 updateMcpParentEnabled(data.checked === true)
                                             }
-                                            label={
-                                                isStoredProcedure
-                                                    ? locConstants.schemaDesigner.enableMcpForEntity
-                                                    : renderInfoLabel(
-                                                          locConstants.schemaDesigner
-                                                              .enableMcpForEntity,
-                                                          locConstants.schemaDesigner
-                                                              .mcpDmlToolsHelp,
-                                                      )
-                                            }
+                                            label={locConstants.schemaDesigner.enableMcpForEntity}
                                         />
                                         {isEntityMcpEnabled && isStoredProcedure && (
                                             <div className={classes.sectionBody}>

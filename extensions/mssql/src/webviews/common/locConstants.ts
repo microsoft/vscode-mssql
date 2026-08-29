@@ -2099,7 +2099,6 @@ export class LocConstants {
             identity: l10n.t("Identity"),
             rest: l10n.t("REST"),
             entityName: l10n.t("Entity Name"),
-            entityNameHelp: l10n.t("Used in API routes and responses"),
             authorizationRole: l10n.t("Permissions"),
             authorizationRoleHelp: l10n.t("Define who can access this endpoint"),
             authorizationRoleStoredProcedureHelp: l10n.t(
@@ -2112,6 +2111,9 @@ export class LocConstants {
             authenticated: l10n.t("Authenticated"),
             authenticatedShort: l10n.t("Auth"),
             authenticatedDescription: l10n.t("Requires user authentication"),
+            allowedActions: l10n.t("Actions"),
+            customizeColumns: l10n.t("Customize columns"),
+            done: l10n.t("Done"),
             description: l10n.t("Description"),
             parameters: l10n.t("Parameters"),
             alias: l10n.t("Alias"),
@@ -2124,6 +2126,8 @@ export class LocConstants {
             requiredParameter: l10n.t("Required parameter"),
             optional: l10n.t("Optional"),
             noColumnsDiscovered: l10n.t("No columns were discovered for this entity."),
+            filterColumns: l10n.t("Filter columns..."),
+            noColumnsMatchFilter: l10n.t("No columns match the current filter."),
             noParametersDiscovered: l10n.t(
                 "No parameters were discovered for this stored procedure.",
             ),

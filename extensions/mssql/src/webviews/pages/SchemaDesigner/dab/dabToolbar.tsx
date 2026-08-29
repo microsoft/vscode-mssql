@@ -77,10 +77,20 @@ const useStyles = makeStyles({
         alignItems: "center",
         gap: "8px",
     },
-    apiTypeRow: {
+    entityControlsRow: {
+        display: "flex",
+        alignItems: "center",
+        gap: "14px",
+        width: "100%",
+        minWidth: 0,
+        overflowX: "auto",
+        overflowY: "hidden",
+    },
+    apiTypeGroup: {
         display: "flex",
         alignItems: "center",
         gap: "10px",
+        flexShrink: 0,
     },
     apiTypeLabel: {
         fontSize: "13px",
@@ -99,17 +109,12 @@ const useStyles = makeStyles({
         fontSize: tokens.fontSizeBase200,
         lineHeight: tokens.lineHeightBase200,
     },
-    filterRow: {
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        width: "100%",
-    },
     filterControls: {
         display: "flex",
         alignItems: "center",
         gap: "6px",
         minWidth: 0,
+        flexShrink: 0,
     },
     searchInput: {
         minWidth: "180px",
@@ -274,8 +279,12 @@ const useStyles = makeStyles({
         flex: 1,
     },
     enabledCount: {
+        marginLeft: "auto",
+        paddingLeft: "8px",
         fontSize: "12px",
         color: tokens.colorNeutralForeground3,
+        whiteSpace: "nowrap",
+        flexShrink: 0,
     },
     apiTypeWarning: {
         fontSize: "12px",
@@ -506,47 +515,47 @@ export function DabToolbar({
                 </div>
             </div>
 
-            {/* API Type selection row */}
-            <div className={classes.apiTypeRow}>
-                <Text className={classes.apiTypeLabel}>{locConstants.schemaDesigner.apiType}</Text>
-                <div className={classes.apiTypeCheckboxes}>
-                    {apiTypeOptions.map(({ type, label }) => {
-                        const isSelected = dabConfig.apiTypes.includes(type);
-                        return (
-                            <Checkbox
-                                key={type}
-                                label={
-                                    <span className={classes.apiTypeLabelContent}>
-                                        {label}
-                                        <DabCountPill>
-                                            {apiTypeCounts[type]}/{supportedEntities.length}
-                                        </DabCountPill>
-                                    </span>
-                                }
-                                checked={isSelected}
-                                onChange={(_, data) => {
-                                    const updated = data.checked
-                                        ? [...dabConfig.apiTypes, type]
-                                        : dabConfig.apiTypes.filter((t) => t !== type);
-                                    if (updated.length === 0) {
-                                        showMinApiTypeWarning();
-                                        return;
-                                    }
-                                    updateDabApiTypes(updated);
-                                }}
-                            />
-                        );
-                    })}
-                </div>
-                {showApiTypeWarning && (
-                    <Text className={classes.apiTypeWarning}>
-                        {locConstants.schemaDesigner.atLeastOneApiTypeRequired}
+            {/* Entity controls: API types, search, filters, and count share one toolbar row. */}
+            <div className={classes.entityControlsRow}>
+                <div className={classes.apiTypeGroup}>
+                    <Text className={classes.apiTypeLabel}>
+                        {locConstants.schemaDesigner.apiType}
                     </Text>
-                )}
-            </div>
-
-            {/* Filter row */}
-            <div className={classes.filterRow}>
+                    <div className={classes.apiTypeCheckboxes}>
+                        {apiTypeOptions.map(({ type, label }) => {
+                            const isSelected = dabConfig.apiTypes.includes(type);
+                            return (
+                                <Checkbox
+                                    key={type}
+                                    label={
+                                        <span className={classes.apiTypeLabelContent}>
+                                            {label}
+                                            <DabCountPill>
+                                                {apiTypeCounts[type]}/{supportedEntities.length}
+                                            </DabCountPill>
+                                        </span>
+                                    }
+                                    checked={isSelected}
+                                    onChange={(_, data) => {
+                                        const updated = data.checked
+                                            ? [...dabConfig.apiTypes, type]
+                                            : dabConfig.apiTypes.filter((t) => t !== type);
+                                        if (updated.length === 0) {
+                                            showMinApiTypeWarning();
+                                            return;
+                                        }
+                                        updateDabApiTypes(updated);
+                                    }}
+                                />
+                            );
+                        })}
+                    </div>
+                    {showApiTypeWarning && (
+                        <Text className={classes.apiTypeWarning} role="status" aria-live="polite">
+                            {locConstants.schemaDesigner.atLeastOneApiTypeRequired}
+                        </Text>
+                    )}
+                </div>
                 <div className={classes.filterControls}>
                     <Input
                         className={classes.searchInput}
@@ -841,7 +850,7 @@ export function DabToolbar({
                         </PopoverSurface>
                     </Popover>
                 </div>
-                <Text className={classes.enabledCount}>
+                <Text className={classes.enabledCount} aria-live="polite">
                     {locConstants.schemaDesigner.nOfMEnabled(enabledCount, totalCount)}
                 </Text>
             </div>
