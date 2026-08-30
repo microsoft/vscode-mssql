@@ -56,7 +56,6 @@ packages/*/l10n/bundle.l10n.*.json
 !packages/*/l10n/bundle.l10n.json
 extensions/*/package.nls.*.json
 localization/l10n/
-src/constants/localizedConstants.ts
 
 # Cache and tooling
 .eslintcache
