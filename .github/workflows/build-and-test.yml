@@ -292,7 +292,7 @@ jobs:
         working-directory: ./extensions/mssql
         run: |
           set +e  # Don't exit on errors
-          DISPLAY=:10 npm test -- --coverage
+          DISPLAY=:10 npm test
           UNIT_EXIT_CODE=$?
           echo "mssql_unit_tests_pr_exit_code=$UNIT_EXIT_CODE" >> $GITHUB_ENV
 

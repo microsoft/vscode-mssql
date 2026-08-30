@@ -69,13 +69,10 @@ See [test/unit/AGENTS.md](test/unit/AGENTS.md) for unit testing conventions and 
 ```bash
 # Run these commands from extensions/mssql.
 
-# Full local suite without coverage
+# Full suite with coverage
 npm test
 
-# Full suite with coverage (used by CI)
-npm test -- --coverage
-
-# Targeted test; source paths are mapped to compiled output automatically
+# Targeted test with coverage; source paths are mapped to compiled output automatically
 npm test -- test/unit/utils.test.ts
 ```
 

@@ -23,10 +23,9 @@ const npmCommand = "npm";
 function printUsage() {
     console.log(`Usage:
   npm test
-  npm test -- --coverage
   npm test -- test/unit/<name>.test.ts [more test files]
 
-Source test paths are compiled and mapped to out/test/**/*.test.js automatically.`);
+Tests run with coverage. Source test paths are compiled and mapped to out/test/**/*.test.js automatically.`);
 }
 
 function run(command, args, options = {}) {
@@ -50,17 +49,9 @@ function runNpmScript(script) {
 }
 
 function parseArgs(args) {
-    const options = {
-        coverage: false,
-        files: [],
-    };
+    const files = [];
 
     for (const arg of args) {
-        if (arg === "--coverage") {
-            options.coverage = true;
-            continue;
-        }
-
         if (arg === "--help" || arg === "-h") {
             printUsage();
             process.exit(0);
@@ -70,10 +61,10 @@ function parseArgs(args) {
             throw new Error(`Unknown option: ${arg}`);
         }
 
-        options.files.push(arg);
+        files.push(arg);
     }
 
-    return options;
+    return files;
 }
 
 function resolveExtensionPath(file) {
@@ -130,7 +121,7 @@ function buildTests() {
     runNpmScript("build:extension-bundle");
 }
 
-function runTests(files, coverage) {
+function runTests(files) {
     if (!existsSync(vscodeTestCli)) {
         throw new Error(
             `VS Code test CLI was not found at ${vscodeTestCli}. Run npm install first.`,
@@ -138,7 +129,7 @@ function runTests(files, coverage) {
     }
 
     if (files.length === 0) {
-        run(process.execPath, [vscodeTestCli, ...(coverage ? ["--coverage"] : [])]);
+        run(process.execPath, [vscodeTestCli, "--coverage"]);
         return;
     }
 
@@ -159,7 +150,7 @@ function runTests(files, coverage) {
             vscodeTestCli,
             "--label",
             label,
-            ...(coverage ? ["--coverage"] : []),
+            "--coverage",
             "--run",
             ...labelFiles,
         ]);
@@ -167,11 +158,11 @@ function runTests(files, coverage) {
 }
 
 try {
-    const options = parseArgs(process.argv.slice(2));
-    const compiledTestFiles = [...new Set(options.files.map(toCompiledTestPath))];
+    const files = parseArgs(process.argv.slice(2));
+    const compiledTestFiles = [...new Set(files.map(toCompiledTestPath))];
 
     buildTests();
-    runTests(compiledTestFiles, options.coverage);
+    runTests(compiledTestFiles);
 } catch (error) {
     console.error(error instanceof Error ? error.message : String(error));
     process.exit(1);

@@ -48,4 +48,4 @@
 
 From `extensions/mssql`, use `npm test -- test/unit/<name>.test.ts`. The test runner cleans stale
 output, compiles the tests, maps the source path to `out/test/unit/<name>.test.js`, and launches it
-with VS Code Insiders.
+with coverage in VS Code Insiders.
