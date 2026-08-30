@@ -3730,6 +3730,9 @@
       <Item ItemId=";bundle.++CODE++2447e095bf309befc0891c8154c7e06eb8f02751bf746054d6a5f06837c534a8" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Remote git repository]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Repositório Git remoto]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -4852,6 +4855,9 @@
       <Item ItemId=";bundle.++CODE++2efee9ef97d1a92881c8abdf0997cddbd6cb0e8112a0e80bc426aa485e18a77d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Select Target Platform]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Selecionar Plataforma de Destino]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -5283,6 +5289,15 @@
           <Val><![CDATA[Foreign key '{0}' already exists]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[A chave estrangeira ''{0}'' já existe]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++329810295b47ce5776d407fc4e50a37485233d7dd613d772d86a0ce05d79dc9a" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[This connection requires {0}, which {1} does not support.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Esta conexão requer {0}, que {1} não dá suporte.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6964,6 +6979,9 @@
       <Item ItemId=";bundle.++CODE++44fe2df974d8b80786309f264819c59c4f54ef54e4c1ae57b1dd7983d08b6ba5" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Local clone path]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Caminho do clone local]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -7773,6 +7791,15 @@
           <Val><![CDATA[Close Find]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Fechar pesquisa]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++4c969acf8c9571fca86e1043a4d93465d243866dcbe158d57747e9e5b6a0f0a1" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Open with {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Abrir com {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -12424,6 +12451,9 @@
       <Item ItemId=";bundle.++CODE++7b5bc294b4fd6add2ea2171436746d04440369876e735560480e1a5988d6e589" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Select Project Location]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Selecionar Local do Projeto]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -12988,6 +13018,9 @@
       <Item ItemId=";bundle.++CODE++80c43c38e97b1fd6b4b2eda6132cd4dd155dc65661361224c56dafe6ad3f7a4e" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[All Project Types]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Todos os Tipos de Projeto]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -13903,6 +13936,9 @@
       <Item ItemId=";bundle.++CODE++8b4079e3f24ee61b62917b7334fe2278bdcfbc3f354e431a30e6940c7e702683" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Git repository URL]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[URL do repositório Git]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -16411,6 +16447,9 @@
       <Item ItemId=";bundle.++CODE++a53f76514aa558f0840e1bf4ffdce6620cd71d4304fd0893f6568f82076077b0" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Enter Project Name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Insira o Nome do Projeto]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -17440,6 +17479,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++b0c89663acc98614cd8dfa3215e2f5e2a3692b5a8c97f64835b8b1dc2ec13668" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[This connection requires {0}, which {1} does not support. Connected with {2} instead.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Esta conexão requer {0}, que {1} não dá suporte. Conectado com {2} em vez disso.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++b0c99209b59c6d7ac573d0eacaa18989cc0a4213bc131cd4535072359d746f26" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Paused - click to resume]]></Val>
@@ -17992,6 +18040,9 @@
       <Item ItemId=";bundle.++CODE++b62ade37fba9f194301c45be7fad8d96fb4c6ca233390a8f23d6bfa3a30d0dd6" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Project file]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Arquivo de projeto]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -22318,6 +22369,9 @@
       <Item ItemId=";bundle.++CODE++e101ffec2eeb2888337e5337f00dcbd1abea9e525f9c8d4a0596e20c76f01f97" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Open Existing Project]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Abrir Projeto Existente]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -24475,6 +24529,9 @@
       <Item ItemId=";bundle.++CODE++f7a89265c06e331405917d08589e8be77b8bad0aae048048f4f23f66f20cccf3" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Undefined name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Nome indefinido]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -24706,6 +24763,9 @@
       <Item ItemId=";bundle.++CODE++fa8fe520cd81301517dfb9ce3b0863518554df947341899e49b88b2e3f077c7e" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Invalid file characters]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Caracteres de arquivo inválidos]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -27682,6 +27742,9 @@
       <Item ItemId=";package.mssql.query.completionSoundFile.description" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The path to a custom WAV file to play after a query finishes executing. The bundled default chime is used when the path is empty or invalid, or when the custom file is larger than 400 KB.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[O caminho para um arquivo WAV personalizado a ser reproduzido após a conclusão da execução de uma consulta. O toque padrão incluído é usado quando o caminho está vazio ou inválido ou quando o arquivo personalizado é maior que 400 KB.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -27787,6 +27850,9 @@
       <Item ItemId=";package.mssql.query.playCompletionSound.description" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Play a sound after a query finishes executing.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Reproduza um som depois que uma consulta terminar de ser executada.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -28497,6 +28563,87 @@
           <Val><![CDATA[[Optional]5D; Configuration options for which column new result panes should open in]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[[Opcional]5D; Opções de configuração para as quais a coluna Novos painéis de resultados deve ser aberta]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.sqlDataPlane.backend.description" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Select the SQL Data Plane backend. Only the local STS v2 backend is available in this preview.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Selecione o back-end do Plano de Dados SQL. Somente o back-end local do STS v2 está disponível nesta versão prévia.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.sqlDataPlane.capabilityFallback.description" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Choose how to handle a backend that lacks a required capability: ask before using an alternative (`prompt`), use an alternative automatically (`auto`), or fail without switching (`off`).]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Escolha como lidar com um back-end que não tem uma capacidade necessária: perguntar antes de usar uma alternativa (`prompt`), usar uma alternativa automaticamente (`auto`) ou falhar sem alternar (`off`).]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.sqlDataPlane.enabled.description" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enable the experimental, STS v2-backed SQL Data Plane for preview consumers. Requires SQL Tools Service 6.0.20260825.2 or later; older bundled services are launched without the STS v2 lane. Reload the window after changing this setting. Existing query, connection, language service, and Object Explorer behavior remains unchanged.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Habilite o Plano de Dados SQL experimental, baseado em STS v2-backed, para usuários da versão prévia. Requer o SQL Tools Service 6.0.20260825.2 ou posterior; os serviços incluídos mais antigos são iniciados sem o canal STS v2. Recarregue a janela após alterar essa configuração. O comportamento existente de consulta, conexão, serviço de linguagem e Pesquisador de Objetos permanece inalterado.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.sqlDataPlane.showStatus" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Show SQL Data Plane Status]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Mostrar Status do Plano de Dados SQL]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.sqlDataPlane.timeouts.cancelAckMs.description" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Maximum time in milliseconds to wait for STS v2 to acknowledge a query cancellation.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Tempo máximo, em milissegundos, de espera para que o STS v2 reconheça um cancelamento de consulta.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.sqlDataPlane.timeouts.closeMs.description" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Maximum time in milliseconds to wait for an STS v2 connection to close.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Tempo máximo, em milissegundos, de espera para que uma conexão do STS v2 seja fechada.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.sqlDataPlane.timeouts.disposeDrainMs.description" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Maximum time in milliseconds to wait for an STS v2 query disposal to produce its terminal event.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Tempo máximo, em milissegundos, de espera para que o descarte de uma consulta do STS v2 produza seu evento terminal.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.sqlDataPlane.timeouts.initializeMs.description" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Maximum time in milliseconds to wait for the STS v2 initialization handshake.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Tempo máximo, em milissegundos, de espera para o handshake de inicialização do STS v2.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.sqlDataPlane.timeouts.openMs.description" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Maximum time in milliseconds to wait for an STS v2 connection to open.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Tempo máximo, em milissegundos, de espera para que uma conexão do STS v2 seja aberta.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />

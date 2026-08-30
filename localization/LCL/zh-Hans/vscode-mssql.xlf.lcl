@@ -5293,6 +5293,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++329810295b47ce5776d407fc4e50a37485233d7dd613d772d86a0ce05d79dc9a" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[This connection requires {0}, which {1} does not support.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[此连接需要 {0}，这是 {1} 不支持的。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++329f218a3e5212fcaa1558fed9984172c9a456980d1c8015ea761b5a017d19b4" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to get tenant '{0}' for account '{1}'.]]></Val>
@@ -7782,6 +7791,15 @@
           <Val><![CDATA[Close Find]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[关闭查找]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++4c969acf8c9571fca86e1043a4d93465d243866dcbe158d57747e9e5b6a0f0a1" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Open with {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[使用 {0} 打开]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -17457,6 +17475,15 @@
           <Val><![CDATA[Script as Create]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[撰写为 Create 的脚本]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++b0c89663acc98614cd8dfa3215e2f5e2a3692b5a8c97f64835b8b1dc2ec13668" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[This connection requires {0}, which {1} does not support. Connected with {2} instead.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[此连接需要 {0}，这是 {1} 不支持的。请改用 {2} 进行连接。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -28536,6 +28563,87 @@
           <Val><![CDATA[[Optional]5D; Configuration options for which column new result panes should open in]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[[可选]5D; 用于指示新结果窗格应在哪一列打开的配置选项]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.sqlDataPlane.backend.description" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Select the SQL Data Plane backend. Only the local STS v2 backend is available in this preview.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[选择 SQL 数据平面后端。此预览版仅可使用本地 STS v2 后端。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.sqlDataPlane.capabilityFallback.description" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Choose how to handle a backend that lacks a required capability: ask before using an alternative (`prompt`), use an alternative automatically (`auto`), or fail without switching (`off`).]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[选择如何处理缺少所需功能的后端: 使用替代项(`prompt`)之前询问，自动使用替代项(`auto`)，或失败而不切换(`off`)。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.sqlDataPlane.enabled.description" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enable the experimental, STS v2-backed SQL Data Plane for preview consumers. Requires SQL Tools Service 6.0.20260825.2 or later; older bundled services are launched without the STS v2 lane. Reload the window after changing this setting. Existing query, connection, language service, and Object Explorer behavior remains unchanged.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[为预览版使用者启用实验性 STS v2 支持的 SQL 数据平面。需要 SQL 工具服务 6.0.20260825.2 或更高版本；将在没有 STS v2 通道的情况下启动较旧的捆绑服务。请在更改此设置后重新加载窗口。现有查询、连接、语言服务和对象资源管理器行为保持不变。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.sqlDataPlane.showStatus" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Show SQL Data Plane Status]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[显示 SQL 数据平面状态]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.sqlDataPlane.timeouts.cancelAckMs.description" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Maximum time in milliseconds to wait for STS v2 to acknowledge a query cancellation.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[等待 STS v2 确认查询取消的最长时间(以毫秒为单位)。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.sqlDataPlane.timeouts.closeMs.description" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Maximum time in milliseconds to wait for an STS v2 connection to close.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[等待 STS v2 连接关闭的最长时间(以毫秒为单位)。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.sqlDataPlane.timeouts.disposeDrainMs.description" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Maximum time in milliseconds to wait for an STS v2 query disposal to produce its terminal event.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[等待 STS v2 查询处置生成其终端事件的最长时间(以毫秒为单位)。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.sqlDataPlane.timeouts.initializeMs.description" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Maximum time in milliseconds to wait for the STS v2 initialization handshake.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[等待 STS v2 初始化握手的最长时间(以毫秒为单位)。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.sqlDataPlane.timeouts.openMs.description" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Maximum time in milliseconds to wait for an STS v2 connection to open.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[等待 STS v2 连接打开的最长时间(以毫秒为单位)。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
