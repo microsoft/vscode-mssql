@@ -118,6 +118,22 @@ export function getFluentResultGridCurrentColumnWidths(
     return columnWidths.map((width) => width ?? FLUENT_RESULT_GRID_DEFAULT_COLUMN_WIDTH);
 }
 
+export function restoreFluentResultGridColumnWidths(
+    columns: Column<FluentResultGridDataRow>[],
+    state: Pick<FluentResultGridState, "columnWidths" | "rowNumberColumnWidth"> | undefined,
+): Column<FluentResultGridDataRow>[] {
+    return columns.map((column) => {
+        if (column.id === FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_ID) {
+            const width = state?.rowNumberColumnWidth;
+            return typeof width === "number" ? { ...column, width } : column;
+        }
+
+        const columnIndex = Number(column.field);
+        const width = state?.columnWidths?.[columnIndex];
+        return typeof width === "number" ? { ...column, width } : column;
+    });
+}
+
 function isFluentResultGridStateDataColumn(column: Column<FluentResultGridDataRow>): boolean {
     return column.id !== FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_ID && !column.excludeFromGridMenu;
 }
@@ -135,6 +151,9 @@ export function getFluentResultGridCurrentViewState({
         ? allColumns
         : (grid.getColumns() as Column<FluentResultGridDataRow>[]);
     const selectedRanges = grid.getSelectionModel()?.getSelectedRanges() ?? [];
+    const rowNumberColumnWidth = grid
+        .getColumns()
+        .find((column) => column.id === FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_ID)?.width;
 
     return {
         hiddenColumnIds: columnsForState
@@ -145,7 +164,8 @@ export function getFluentResultGridCurrentViewState({
             grid.getOptions().frozenColumn ?? frozenColumnIndex,
             columnsForState.length,
         ),
-        selection: getFluentResultGridDataSelectionsFromRanges(selectedRanges),
+        selection: getFluentResultGridDataSelectionsFromRanges(selectedRanges, grid.getColumns()),
+        rowNumberColumnWidth,
     };
 }
 

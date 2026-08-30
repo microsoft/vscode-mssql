@@ -21,10 +21,14 @@ import {
     RadioGroup,
     useId,
     Option,
+    OptionGroup,
     SelectionEvents,
     OptionOnSelectData,
+    Spinner,
+    Tooltip,
+    tokens,
 } from "@fluentui/react-components";
-import { Dismiss24Regular, FolderFilled, PlugDisconnectedRegular } from "@fluentui/react-icons";
+import { Dismiss24Regular, ErrorCircle16Regular, FolderFilled } from "@fluentui/react-icons";
 import { schemaCompareContext } from "../SchemaCompareStateProvider";
 import { useSchemaCompareSelector } from "../schemaCompareSelector";
 import { locConstants as loc } from "../../../common/locConstants";
@@ -32,6 +36,10 @@ import {
     SchemaCompareEndpointType,
     ExtractTarget,
 } from "../../../../sharedInterfaces/schemaCompare";
+import {
+    SearchableDropdown,
+    SearchableDropdownOptions,
+} from "../../../common/searchableDropdown.component";
 
 const useStyles = makeStyles({
     drawerWidth: {
@@ -45,6 +53,18 @@ const useStyles = makeStyles({
     positionItemsHorizontally: {
         display: "flex",
         flexDirection: "row",
+    },
+
+    connectionSelectionRow: {
+        display: "flex",
+        flexDirection: "row",
+        marginBottom: "8px",
+    },
+
+    databaseSelectionRow: {
+        display: "flex",
+        alignItems: "center",
+        gap: "8px",
     },
 
     buttonLeftMargin: {
@@ -107,20 +127,25 @@ const SchemaSelectorDrawer = (props: Props) => {
     const sourceEndpointInfo = useSchemaCompareSelector((s) => s.sourceEndpointInfo);
     const targetEndpointInfo = useSchemaCompareSelector((s) => s.targetEndpointInfo);
     const auxiliaryEndpointInfo = useSchemaCompareSelector((s) => s.auxiliaryEndpointInfo);
-    const activeServers = useSchemaCompareSelector((s) => s.activeServers);
+    const connections = useSchemaCompareSelector((s) => s.connections);
     const databases = useSchemaCompareSelector((s) => s.databases);
+    const databaseListConnectionId = useSchemaCompareSelector((s) => s.databaseListConnectionId);
+    const isDatabaseListLoading = useSchemaCompareSelector((s) => s.isDatabaseListLoading);
+    const databaseListError = useSchemaCompareSelector((s) => s.databaseListError);
     const isSqlProjectExtensionInstalled = useSchemaCompareSelector(
         (s) => s.isSqlProjectExtensionInstalled,
     );
 
     const currentEndpoint =
         props.endpointType === "source" ? sourceEndpointInfo : targetEndpointInfo;
+    const currentServerConnectionId =
+        currentEndpoint?.connectionId || currentEndpoint?.ownerUri || "";
 
     const [schemaType, setSchemaType] = useState(
         endpointTypeToString(currentEndpoint?.endpointType || SchemaCompareEndpointType.Database),
     );
     const [disableOkButton, setDisableOkButton] = useState(true);
-    const [serverConnectionUri, setServerConnectionUri] = useState(currentEndpoint?.ownerUri || "");
+    const [serverConnectionUri, setServerConnectionUri] = useState(currentServerConnectionId);
     const [serverName, setServerName] = useState(
         currentEndpoint?.connectionName || currentEndpoint?.serverName || "",
     );
@@ -128,6 +153,30 @@ const SchemaSelectorDrawer = (props: Props) => {
     const [folderStructure, setFolderStructure] = useState(
         extractTargetTypeToString(currentEndpoint?.extractTarget || ExtractTarget.schemaObjectType),
     );
+    const databaseStateMatchesSelection = databaseListConnectionId === serverConnectionUri;
+    const displayedDatabases = databaseStateMatchesSelection ? databases : [];
+    const showDatabaseSpinner =
+        Boolean(serverConnectionUri) && (!databaseStateMatchesSelection || isDatabaseListLoading);
+    const displayedDatabaseError = databaseStateMatchesSelection ? databaseListError : "";
+    const connectionOptions = Object.entries(connections)
+        .map(([connectionId, connection]) => ({
+            value: connectionId,
+            text: connection.profileName || connection.server,
+        }))
+        .sort((connectionA, connectionB) =>
+            connectionA.text.localeCompare(connectionB.text, undefined, {
+                numeric: true,
+                sensitivity: "base",
+            }),
+        );
+    const databaseGroups = new Map<string, typeof displayedDatabases>();
+    for (const database of displayedDatabases) {
+        const groupName = database.groupName ?? "";
+        const group = databaseGroups.get(groupName) ?? [];
+        group.push(database);
+        databaseGroups.set(groupName, group);
+    }
+    const firstDisplayedDatabase = displayedDatabases[0]?.value;
 
     const fileId = useId("file");
     const folderStructureId: string = useId("folderStructure");
@@ -146,21 +195,50 @@ const SchemaSelectorDrawer = (props: Props) => {
     useEffect(() => {
         context.listActiveServers();
 
-        if (currentEndpoint?.ownerUri) {
-            context.listDatabasesForActiveServer(currentEndpoint?.ownerUri);
+        if (currentServerConnectionId) {
+            context.listDatabasesForActiveServer(
+                currentServerConnectionId,
+                currentEndpoint?.databaseName,
+            );
         }
     }, []);
 
     useEffect(() => {
         updateOkButtonState(schemaType);
-    }, [auxiliaryEndpointInfo, serverConnectionUri, databaseName]);
+    }, [
+        auxiliaryEndpointInfo,
+        serverConnectionUri,
+        databaseName,
+        showDatabaseSpinner,
+        displayedDatabaseError,
+    ]);
+
+    useEffect(() => {
+        if (
+            schemaType === "database" &&
+            databaseStateMatchesSelection &&
+            !isDatabaseListLoading &&
+            !databaseListError &&
+            !databaseName &&
+            firstDisplayedDatabase
+        ) {
+            setDatabaseName(firstDisplayedDatabase);
+        }
+    }, [
+        schemaType,
+        databaseStateMatchesSelection,
+        isDatabaseListLoading,
+        databaseListError,
+        databaseName,
+        firstDisplayedDatabase,
+    ]);
 
     // Handle auto-selection of newly created connections
     useEffect(() => {
-        if (currentEndpoint?.ownerUri && currentEndpoint?.databaseName) {
+        if (currentServerConnectionId && currentEndpoint?.databaseName) {
             // Update local state when endpoint info changes (e.g., from auto-selection)
-            if (serverConnectionUri !== currentEndpoint.ownerUri) {
-                setServerConnectionUri(currentEndpoint.ownerUri);
+            if (serverConnectionUri !== currentServerConnectionId) {
+                setServerConnectionUri(currentServerConnectionId);
                 setServerName(currentEndpoint.connectionName || currentEndpoint.serverName || "");
             }
             if (databaseName !== currentEndpoint.databaseName) {
@@ -168,6 +246,7 @@ const SchemaSelectorDrawer = (props: Props) => {
             }
         }
     }, [
+        currentEndpoint?.connectionId,
         currentEndpoint?.ownerUri,
         currentEndpoint?.databaseName,
         currentEndpoint?.connectionName,
@@ -180,7 +259,13 @@ const SchemaSelectorDrawer = (props: Props) => {
             : loc.schemaCompare.selectTarget;
 
     const updateOkButtonState = (type: string) => {
-        if (type === "database" && serverConnectionUri && databaseName) {
+        if (
+            type === "database" &&
+            serverConnectionUri &&
+            databaseName &&
+            !showDatabaseSpinner &&
+            !displayedDatabaseError
+        ) {
             setDisableOkButton(false);
         } else if (
             type === "dacpac" &&
@@ -211,12 +296,13 @@ const SchemaSelectorDrawer = (props: Props) => {
         updateOkButtonState(type);
     };
 
-    const handleDatabaseServerSelected = (_: SelectionEvents, data: OptionOnSelectData) => {
-        if (data.optionValue) {
-            setServerConnectionUri(data.optionValue);
-            setServerName(data.optionText ?? "");
-            setDatabaseName("");
-            context.listDatabasesForActiveServer(data.optionValue);
+    const handleDatabaseServerSelected = (option: SearchableDropdownOptions) => {
+        if (option.value) {
+            const connectionDatabaseName = connections[option.value]?.database ?? "";
+            setServerConnectionUri(option.value);
+            setServerName(option.text ?? option.value);
+            setDatabaseName(connectionDatabaseName);
+            context.listDatabasesForActiveServer(option.value, connectionDatabaseName);
         }
     };
 
@@ -249,7 +335,6 @@ const SchemaSelectorDrawer = (props: Props) => {
     };
 
     let isSqlProjExtensionInstalled = isSqlProjectExtensionInstalled;
-
     return (
         <Drawer
             separator
@@ -285,51 +370,71 @@ const SchemaSelectorDrawer = (props: Props) => {
 
                 {schemaType === "database" && (
                     <>
-                        <Label>{loc.schemaCompare.server}</Label>
-                        <div className={classes.positionItemsHorizontally}>
-                            <Dropdown
-                                className={classes.fileInputWidth}
-                                value={serverName}
-                                selectedOptions={[serverConnectionUri]}
-                                onOptionSelect={(event, data) =>
-                                    handleDatabaseServerSelected(event, data)
-                                }>
-                                {Object.keys(activeServers).map((connUri) => {
-                                    return (
-                                        <Option key={connUri} value={connUri}>
-                                            {activeServers[connUri].profileName ||
-                                                activeServers[connUri].server}
-                                        </Option>
-                                    );
-                                })}
-                            </Dropdown>
-                            <Button
-                                className={classes.buttonLeftMargin}
-                                size="large"
-                                aria-label={loc.schemaCompare.addServerConnection}
-                                icon={<PlugDisconnectedRegular />}
-                                onClick={() => {
-                                    context.openAddNewConnectionDialog(props.endpointType);
+                        <Label>{loc.schemaCompare.connection}</Label>
+                        <div className={classes.connectionSelectionRow}>
+                            <SearchableDropdown
+                                style={{ width: "300px" }}
+                                options={connectionOptions}
+                                selectedOption={{
+                                    value: serverConnectionUri,
+                                    text: serverName,
                                 }}
+                                onSelect={handleDatabaseServerSelected}
+                                ariaLabel={loc.schemaCompare.connection}
+                                placeholder={loc.common.select}
+                                showPlaceholder
                             />
                         </div>
                         <Label>{loc.schemaCompare.database}</Label>
-                        <div>
+                        <div className={classes.databaseSelectionRow}>
                             <Dropdown
                                 className={classes.fileInputWidth}
-                                value={databaseName}
-                                selectedOptions={[databaseName]}
+                                value={
+                                    showDatabaseSpinner && !databaseName
+                                        ? loc.common.loadingWithEllipsis
+                                        : databaseName
+                                }
+                                selectedOptions={databaseName ? [databaseName] : []}
+                                disabled={
+                                    showDatabaseSpinner ||
+                                    Boolean(displayedDatabaseError) ||
+                                    displayedDatabases.length === 0
+                                }
                                 onOptionSelect={(event, data) =>
                                     handleDatabaseSelected(event, data)
                                 }>
-                                {databases.map((db) => {
-                                    return (
-                                        <Option key={db} value={db}>
-                                            {db}
-                                        </Option>
-                                    );
-                                })}
+                                {Array.from(databaseGroups.entries()).map(
+                                    ([groupName, databaseOptions]) => (
+                                        <OptionGroup key={groupName} label={groupName}>
+                                            {databaseOptions.map((database) => (
+                                                <Option key={database.value} value={database.value}>
+                                                    {database.displayName}
+                                                </Option>
+                                            ))}
+                                        </OptionGroup>
+                                    ),
+                                )}
                             </Dropdown>
+                            {showDatabaseSpinner && (
+                                <Spinner
+                                    size="extra-tiny"
+                                    aria-label={loc.common.loadingWithEllipsis}
+                                />
+                            )}
+                            {!showDatabaseSpinner && displayedDatabaseError && (
+                                <Tooltip content={displayedDatabaseError} relationship="label">
+                                    <span
+                                        tabIndex={0}
+                                        role="img"
+                                        aria-label={displayedDatabaseError}>
+                                        <ErrorCircle16Regular
+                                            style={{
+                                                color: tokens.colorPaletteRedForeground1,
+                                            }}
+                                        />
+                                    </span>
+                                </Tooltip>
+                            )}
                         </div>
                     </>
                 )}

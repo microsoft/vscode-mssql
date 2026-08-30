@@ -26,7 +26,6 @@ import type {
 } from "./fluentResultGridControllerTypes";
 import {
     FLUENT_RESULT_GRID_DEFAULT_IN_MEMORY_DATA_PROCESSING_THRESHOLD,
-    FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_ID,
     FLUENT_RESULT_GRID_SCROLL_POSITION_DEBOUNCE_MS,
 } from "./fluentResultGridConstants";
 import {
@@ -47,6 +46,7 @@ import {
     getFluentResultGridStateForEmit,
     normalizeFluentResultGridFrozenColumnIndex,
     normalizeFluentResultGridRowPadding,
+    restoreFluentResultGridColumnWidths,
     stabilizeFluentResultGridColumnInfo,
     type FluentResultGridColumnInfoSnapshot,
 } from "./fluentResultGridState";
@@ -64,6 +64,7 @@ import {
     getFluentResultGridSlickRangesFromDataSelections,
     clearFluentResultGridSelection,
 } from "./fluentResultGridSelection";
+import { getFluentResultGridColumnResizeDoubleClickTarget } from "./fluentResultGridColumnAutosize";
 import { hasActiveFluentResultGridFilters } from "./fluentResultGridTransforms";
 
 const emptyDataset: FluentResultGridDataRow[] = [];
@@ -276,7 +277,7 @@ export function useFluentResultGridController({
         openFilterMenuForColumn: commandController.openFilterMenuForColumn,
         openOverlay,
         resultSetSummary,
-        selectRange: commandController.selectRange,
+        selectRangesAndActivate: commandController.selectRangesAndActivate,
         sortStateRef: dataController.sortStateRef,
         strings,
         toggleSortForColumn: commandController.toggleSortForColumn,
@@ -304,17 +305,17 @@ export function useFluentResultGridController({
             restoredStateRef.current = false;
             try {
                 const shouldAutoSizeColumns = !initialState?.columnWidths?.length;
-                if (initialState?.columnWidths?.length) {
-                    layoutController.cancelAutoSizeColumns();
-                    const restoredColumns = grid.getColumns().map((column) => {
-                        if (column.id === FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_ID) {
-                            return column;
-                        }
-
-                        const columnIndex = Number(column.field);
-                        const width = initialState.columnWidths?.[columnIndex];
-                        return typeof width === "number" ? { ...column, width } : column;
-                    });
+                if (
+                    initialState?.columnWidths?.length ||
+                    typeof initialState?.rowNumberColumnWidth === "number"
+                ) {
+                    if (initialState.columnWidths?.length) {
+                        layoutController.cancelAutoSizeColumns();
+                    }
+                    const restoredColumns = restoreFluentResultGridColumnWidths(
+                        grid.getColumns() as Column<FluentResultGridDataRow>[],
+                        initialState,
+                    );
                     grid.setColumns(restoredColumns);
                 }
 
@@ -357,7 +358,7 @@ export function useFluentResultGridController({
                     const ranges = getFluentResultGridSlickRangesFromDataSelections(
                         initialState.selection,
                         grid.getDataLength(),
-                        restoredColumns.length,
+                        restoredColumns,
                     );
                     grid.getSelectionModel()?.setSelectedRanges(ranges);
 
@@ -437,6 +438,10 @@ export function useFluentResultGridController({
             enableCellNavigation: true,
             enableColumnPicker: false,
             enableColumnReorder: true,
+            // Resolved in handleColumnsResizeDblClick instead: the library's
+            // resize-by-content measures dataView.getItems(), which is empty for this
+            // grid's windowed row store and would collapse the column.
+            enableColumnResizeOnDoubleClick: false,
             enableContextMenu: false,
             enableEmptyDataWarningMessage: false,
             enableExcelCopyBuffer: false,
@@ -559,6 +564,18 @@ export function useFluentResultGridController({
         transformedRowsRef: dataController.transformedRowsRef,
     });
 
+    const handleColumnsResizeDblClick = useCallback(
+        (event: CustomEvent) => {
+            const target = getFluentResultGridColumnResizeDoubleClickTarget(event.detail);
+            if (!target) {
+                return;
+            }
+
+            void layoutController.autoSizeColumnByContent(target.grid, target.columnId);
+        },
+        [layoutController],
+    );
+
     return {
         columns,
         commandContext,
@@ -570,6 +587,8 @@ export function useFluentResultGridController({
         gridOptions,
         handleBeforeHeaderCellDestroy: headerController.handleBeforeHeaderCellDestroy,
         handleClick: commandController.handleClick,
+        handleDblClick: commandController.handleDblClick,
+        handleColumnsResizeDblClick,
         handleCommand: commandController.handleCommand,
         handleContextMenu: commandController.handleContextMenu,
         handleGridContainerBlur: keyboardController.handleGridContainerBlur,

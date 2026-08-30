@@ -51,11 +51,7 @@ import { generateConnectionComponents, groupAdvancedOptions } from "./formCompon
 import { FormWebviewController } from "../forms/formWebviewController";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import { Deferred } from "../protocol";
-import {
-    cmdOpenAzureDataStudioMigration,
-    defaultDatabase,
-    systemDatabases,
-} from "../constants/constants";
+import { cmdOpenAzureDataStudioMigration, defaultDatabase } from "../constants/constants";
 import * as AzureConstants from "../azure/constants";
 import { AddFirewallRuleState } from "../sharedInterfaces/addFirewallRule";
 import * as Utils from "../models/utils";
@@ -89,6 +85,7 @@ import {
     BrowseProviderHost,
     FabricBrowseProvider,
 } from "./browseProvider";
+import { buildDatabaseOptions } from "../utils/databaseUtils";
 
 export const CLEAR_TOKEN_CACHE = "clearTokenCache";
 export const SIGN_IN_TO_AZURE = "signInToAzure";
@@ -1580,25 +1577,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     }
 
     private buildDatabaseOptions(dbs: string[]): FormItemOptions[] {
-        const collator = new Intl.Collator(undefined, { sensitivity: "base" });
-        const userDbs = dbs
-            .filter((db) => !systemDatabases.includes(db.toLowerCase()))
-            .sort((a, b) => collator.compare(a, b));
-        const sysDbs = dbs
-            .filter((db) => systemDatabases.includes(db.toLowerCase()))
-            .sort((a, b) => collator.compare(a, b));
-        return [
-            ...userDbs.map((db) => ({
-                displayName: db,
-                value: db,
-                groupName: LocalizedConstants.ConnectionDialog.userDatabasesGroup,
-            })),
-            ...sysDbs.map((db) => ({
-                displayName: db,
-                value: db,
-                groupName: LocalizedConstants.ConnectionDialog.systemDatabasesGroup,
-            })),
-        ];
+        return buildDatabaseOptions(dbs, {
+            userDatabases: LocalizedConstants.ConnectionDialog.userDatabasesGroup,
+            systemDatabases: LocalizedConstants.ConnectionDialog.systemDatabasesGroup,
+        });
     }
 
     private buildDatabaseFetchKey(): string {

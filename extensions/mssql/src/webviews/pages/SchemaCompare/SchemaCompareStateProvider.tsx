@@ -33,14 +33,13 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
             listActiveServers: function (): void {
                 extensionRpc.action("listActiveServers", {});
             },
-            listDatabasesForActiveServer: function (connectionUri: string): void {
+            listDatabasesForActiveServer: function (
+                connectionUri: string,
+                connectionDatabaseName?: string,
+            ): void {
                 extensionRpc.action("listDatabasesForActiveServer", {
                     connectionUri: connectionUri,
-                });
-            },
-            openAddNewConnectionDialog: function (endpointType: "source" | "target"): void {
-                extensionRpc.action("openAddNewConnectionDialog", {
-                    endpointType: endpointType,
+                    connectionDatabaseName: connectionDatabaseName,
                 });
             },
             selectFile: function (

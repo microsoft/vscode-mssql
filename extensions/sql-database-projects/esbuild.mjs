@@ -13,9 +13,8 @@ const outputFile = path.join(extensionDirectory, "dist/extension.js");
 
 /**
  * Bundle the TypeScript entry point and its runtime dependencies into dist/extension.js so VSCE
- * can package the extension with --no-dependencies. The dataworkspace and vscode-mssql ambient
- * APIs must be imported with `import type`; runtime IDs and enum values live in local TypeScript
- * modules.
+ * can package the extension with --no-dependencies. Runtime behavior lives in vscode-mssql; this
+ * bundle only supplies the activation shell required for this extension's manifest contributions.
  */
 await run(
     ({ isProd }) =>
@@ -25,13 +24,7 @@ await run(
             },
             outdir: path.join(extensionDirectory, "dist"),
             minify: isProd,
-            plugins: [
-                disallowUnresolvedModulesPlugin(outputFile, [
-                    "dataworkspace",
-                    "sqldbproj",
-                    "vscode-mssql",
-                ]),
-            ],
+            plugins: [disallowUnresolvedModulesPlugin(outputFile, [])],
             sourcemap: !isProd,
             tsconfig: path.join(extensionDirectory, "tsconfig.extension.json"),
         }),

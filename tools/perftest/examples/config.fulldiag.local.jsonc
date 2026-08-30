@@ -1,0 +1,62 @@
+// M5: FULL diagnostic pass — every implemented collector at once.
+//   processSampler        CPU/RSS of owned processes
+//   stsEnvelopeJournal    sts2 envelope journal harvest + RPC latencies
+//   cdp.extHostProfile    V8 CPU profile of the extension host (scenario window)
+//   dotnetTrace           EventPipe cpu-sampling trace of STS
+//   wprEtw                system ETW (requires elevation; warns + skips otherwise)
+// All resulting metrics are official:false — diagnostic passes never gate.
+// Run from the perftest repo root:
+//   node packages/perftest-cli/dist/cli.js run --config examples/config.fulldiag.local.jsonc
+{
+    "schemaVersion": 2,
+    "runId": "auto",
+    "passType": "diagnostic",
+    "repetitions": 1,
+    "warmupRepetitions": 0,
+    "scenarios": ["connect-local-container", "query-10k-results"],
+    "vscode": {
+        "version": "stable",
+        "quality": "stable",
+        "launchMode": "directSpawn",
+        "profileMode": "scenarioDefault",
+        "workspaceRoot": "../workspaces/perf",
+        "extensions": [
+            {
+                "id": "ms-mssql.mssql",
+                "source": "developmentPath",
+                "path": "../../../extensions/mssql",
+            },
+            {
+                "id": "perftest.mssql-perf-driver",
+                "source": "developmentPath",
+                "path": "../extensions/mssql-perf-driver",
+            },
+        ],
+        "extraArgs": [],
+        "env": {
+            "STS_ENABLE_STS2": "1",
+        },
+    },
+    "sql": {
+        "provider": "external",
+        "connectionStringEnv": "STS2_SQLSERVER_CONNSTRING",
+        "snapshot": "seed-v1",
+        "cacheMode": "warm",
+        "connectionProfile": "default",
+    },
+    "environment": { "requireIdle": false },
+    "diagnostics": {
+        "markers": true,
+        "processSampler": true,
+        "stsEnvelopeJournal": true,
+        "sqlServerXEvents": true,
+        "captureSqlText": true,
+        "cdp": { "extHostProfile": true, "rendererTrace": true, "rendererProfile": true },
+        "dotnetTrace": true,
+        "wprEtw": true,
+        "otel": "off",
+    },
+    "store": { "type": "sqlite", "path": "../perf.db" },
+    "regression": { "baseline": "none", "failOnRegression": false },
+    "output": { "dir": "../perf-runs", "keepArtifacts": "always" },
+}

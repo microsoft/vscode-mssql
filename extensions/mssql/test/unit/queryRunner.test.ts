@@ -28,6 +28,7 @@ import { ISelectionData } from "../../src/models/interfaces";
 import * as stubs from "./stubs";
 import * as vscode from "vscode";
 import { stubMessageBoxes, stubVscodeWorkspace } from "./utils";
+import { Perf } from "../../src/perf/perfTelemetry";
 
 chai.use(sinonChai);
 const { expect } = chai;
@@ -53,6 +54,7 @@ suite("Query Runner tests", () => {
     let vscodeWorkspace: ReturnType<typeof stubVscodeWorkspace>;
     let showTextDocumentStub: sinon.SinonStub;
     let getConfigurationStub: sinon.SinonStub;
+    let perfMarkerStub: sinon.SinonStub;
 
     function createQueryRunner(
         uri: string = standardUri,
@@ -84,6 +86,7 @@ suite("Query Runner tests", () => {
         getConfigurationStub = sandbox
             .stub(vscode.workspace, "getConfiguration")
             .returns(stubs.createWorkspaceConfiguration({}));
+        perfMarkerStub = sandbox.stub(Perf, "marker");
 
         clipboardWriteTextStub = sandbox.stub().resolves();
         sandbox.stub(vscode.env, "clipboard").value({ writeText: clipboardWriteTextStub });
@@ -133,6 +136,7 @@ suite("Query Runner tests", () => {
         // ... The query runner should indicate that it is running a query and elapsed time should be set to 0
         expect(queryRunner.isExecutingQuery).to.equal(true);
         expect(queryRunner.totalElapsedMilliseconds).to.equal(0);
+        expect(perfMarkerStub).to.have.been.calledWith("mssql.query.submit", "begin");
     });
 
     test("Handles Query Request Error Properly", async () => {
@@ -168,6 +172,12 @@ suite("Query Runner tests", () => {
             expect(testStatusView.executedQuery).to.have.been.called;
             // ... The query runner should not be running a query
             expect(queryRunner.isExecutingQuery).to.equal(false);
+            expect(perfMarkerStub).to.have.been.calledWith("mssql.query.submit", "begin");
+            expect(perfMarkerStub).to.have.been.calledWith(
+                "mssql.query.complete",
+                "end",
+                sinon.match({ hasError: true }),
+            );
         }
     });
 
@@ -194,6 +204,30 @@ suite("Query Runner tests", () => {
         expect(testQueryNotificationHandler.registerRunner).to.have.been.calledWith(
             queryRunner,
             standardUri,
+        );
+        expect(perfMarkerStub).to.have.been.calledWith("mssql.query.submit", "begin");
+    });
+
+    test("Quick Query submission failure closes its performance interval", async () => {
+        const failure = new Error("request failed");
+        testSqlToolsServerClient.sendRequest
+            .withArgs(QueryExecuteContracts.QueryExecuteStringRequest.type, sinon.match.object)
+            .rejects(failure);
+        const queryRunner = createQueryRunner();
+
+        let thrown: unknown;
+        try {
+            await queryRunner.runQueryString("select 1");
+        } catch (error) {
+            thrown = error;
+        }
+
+        expect(thrown).to.equal(failure);
+        expect(perfMarkerStub).to.have.been.calledWith("mssql.query.submit", "begin");
+        expect(perfMarkerStub).to.have.been.calledWith(
+            "mssql.query.complete",
+            "end",
+            sinon.match({ hasError: true, errorClass: "Error" }),
         );
     });
 
@@ -454,6 +488,64 @@ suite("Query Runner tests", () => {
         expect(queryRunner.batchSetMessages[message.message.batchId].length).to.equal(1);
     });
 
+    test("Notification - Message does not cache non-error messages when disabled", () => {
+        const config = stubs.createWorkspaceConfiguration({
+            [Constants.configResultsShowBatchMessages]: false,
+        });
+        getConfigurationStub.returns(config);
+        const message: QueryExecuteContracts.QueryExecuteMessageParams = {
+            message: {
+                batchId: 0,
+                isError: false,
+                message: "Commands completed successfully.",
+                time: new Date().toISOString(),
+            },
+            ownerUri: standardUri,
+        };
+        const queryRunner = createQueryRunner();
+        const messageListener = sandbox.spy();
+        queryRunner.onMessage(messageListener);
+        queryRunner.batchSetMessages[message.message.batchId] = [];
+
+        queryRunner.handleMessage(message);
+
+        expect(queryRunner.batchSetMessages[message.message.batchId]).to.be.empty;
+        expect(messageListener).to.have.been.calledWith(message.message);
+        expect(testStatusView.showRowCount).to.have.been.calledWith(
+            standardUri,
+            message.message.message,
+        );
+        expect(getConfigurationStub).to.have.been.calledWith(Constants.extensionConfigSectionName);
+    });
+
+    test("Notification - Message preserves errors when batch messages are disabled", () => {
+        const config = stubs.createWorkspaceConfiguration({
+            [Constants.configResultsShowBatchMessages]: false,
+        });
+        getConfigurationStub.returns(config);
+        const message: QueryExecuteContracts.QueryExecuteMessageParams = {
+            message: {
+                batchId: 0,
+                isError: true,
+                message: "Incorrect syntax near 'FROM'.",
+                time: new Date().toISOString(),
+            },
+            ownerUri: standardUri,
+        };
+        const queryRunner = createQueryRunner();
+        const messageListener = sandbox.spy();
+        queryRunner.onMessage(messageListener);
+        queryRunner.batchSetMessages[message.message.batchId] = [];
+
+        queryRunner.handleMessage(message);
+
+        expect(queryRunner.batchSetMessages[message.message.batchId]).to.deep.equal([
+            message.message,
+        ]);
+        expect(messageListener).to.have.been.calledWith(message.message);
+        expect(testStatusView.hideRowCount).to.have.been.calledWith(standardUri, true);
+    });
+
     test("Notification - Query complete", () => {
         // Setup:
 
@@ -476,6 +568,10 @@ suite("Query Runner tests", () => {
         // If:
         // ... I have a query runner
         let queryRunner = createQueryRunner();
+        let isFullExecutionComplete = false;
+        queryRunner.onComplete((event) => {
+            isFullExecutionComplete = event.isFullExecutionComplete;
+        });
 
         // ... And I handle a query completion event
         queryRunner.handleQueryComplete(result);
@@ -483,6 +579,20 @@ suite("Query Runner tests", () => {
         // ... The state of the query runner has been updated
         expect(queryRunner.batchSets.length).to.equal(1);
         expect(queryRunner.isExecutingQuery).to.equal(false);
+        expect(isFullExecutionComplete).to.be.true;
+    });
+
+    test("Cleanup is not reported as a full query execution completion", async () => {
+        const queryRunner = createQueryRunner();
+        let isFullExecutionComplete = true;
+        queryRunner.onComplete((event) => {
+            isFullExecutionComplete = event.isFullExecutionComplete;
+        });
+        testSqlToolsServerClient.sendRequest.resolves();
+
+        await queryRunner.dispose();
+
+        expect(isFullExecutionComplete).to.be.false;
     });
 
     test("Notification - Query complete preserves absolute batch selection from service", () => {
@@ -760,6 +870,28 @@ suite("Query Runner tests", () => {
         expect(testSqlToolsServerClient.sendRequest).to.have.been.calledWith(
             QueryExecuteContracts.QueryExecuteStatementRequest.type,
             expectedParams,
+        );
+        expect(perfMarkerStub).to.have.been.calledWith("mssql.query.submit", "begin");
+    });
+
+    test("runStatement submission failure closes its performance interval", async () => {
+        const failure = new Error("request failed");
+        testSqlToolsServerClient.sendRequest.rejects(failure);
+        const queryRunner = createQueryRunner();
+
+        let thrown: unknown;
+        try {
+            await queryRunner.runStatement(1, 1);
+        } catch (error) {
+            thrown = error;
+        }
+
+        expect(thrown).to.equal(failure);
+        expect(perfMarkerStub).to.have.been.calledWith("mssql.query.submit", "begin");
+        expect(perfMarkerStub).to.have.been.calledWith(
+            "mssql.query.complete",
+            "end",
+            sinon.match({ hasError: true, errorClass: "Error" }),
         );
     });
 

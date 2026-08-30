@@ -141,6 +141,7 @@
     "mssql.copyIncludeHeaders": "[Optional] Configuration options for copying results from the Results View",
     "mssql.copyRemoveNewLine": "[Optional] Configuration options for copying multi-line results from the Results View",
     "mssql.showBatchTime": "[Optional] Should execution time be shown for individual batches",
+    "mssql.results.showBatchMessages": "[Optional] Show batch start and completion messages, including 'Started executing query at...' and 'Commands completed successfully'.",
     "mssql.splitPaneSelection": "[Optional] Configuration options for which column new result panes should open in",
     "mssql.preventAutoExecuteScript": "Prevent automatic execution of scripts (e.g., 'Select Top 1000'). When enabled, scripts will not be automatically executed upon generation.",
     "mssql.format.alignColumnDefinitionsInColumns": "**Used when Preview Formatter is disabled.** Should column definitions be aligned?",
@@ -279,6 +280,8 @@
     "mssql.enableExperimentalFeatures.description": "Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.",
     "mssql.legacySetting.deprecationMessage": "This setting will be removed in a future release.",
     "mssql.openQueryResultsInTabByDefault.description": "Automatically display query results in a new tab instead of the query pane.",
+    "mssql.query.playCompletionSound.description": "Play a sound after a query finishes executing.",
+    "mssql.query.completionSoundFile.description": "The path to a custom WAV file to play after a query finishes executing. The bundled default chime is used when the path is empty or invalid, or when the custom file is larger than 400 KB.",
     "mssql.openQueryResultsInTabByDefaultDoNotShowPrompt.description": "Do not show prompts to display query results in a new tab.",
     "mssql.transferActiveEditorConnections.description": "When enabled, automatically transfer the active connection to newly opened SQL files. When disabled, you must explicitly connect to a database for each SQL file.",
     "mssql.transferActiveEditorConnections.deprecationMessage": "This setting is deprecated. Use `mssql.newEditorConnectionBehavior` instead. The extension will automatically migrate this setting on startup.",
@@ -362,5 +365,14 @@
     "mssql.notebooks.createNotebook": "New SQL Notebook",
     "mssql.notebooks.changeDatabase": "Change Notebook Database",
     "mssql.notebooks.changeConnection": "Change Notebook Connection",
-    "mssql.notebooks.copyCellMessages": "Copy Cell Messages"
+    "mssql.notebooks.copyCellMessages": "Copy Cell Messages",
+    "mssql.sqlDataPlane.showStatus": "Show SQL Data Plane Status",
+    "mssql.sqlDataPlane.enabled.description": "Enable the experimental, STS v2-backed SQL Data Plane for preview consumers. Requires SQL Tools Service 6.0.20260825.2 or later; older bundled services are launched without the STS v2 lane. Reload the window after changing this setting. Existing query, connection, language service, and Object Explorer behavior remains unchanged.",
+    "mssql.sqlDataPlane.backend.description": "Select the SQL Data Plane backend. Only the local STS v2 backend is available in this preview.",
+    "mssql.sqlDataPlane.capabilityFallback.description": "Choose how to handle a backend that lacks a required capability: ask before using an alternative (`prompt`), use an alternative automatically (`auto`), or fail without switching (`off`).",
+    "mssql.sqlDataPlane.timeouts.openMs.description": "Maximum time in milliseconds to wait for an STS v2 connection to open.",
+    "mssql.sqlDataPlane.timeouts.cancelAckMs.description": "Maximum time in milliseconds to wait for STS v2 to acknowledge a query cancellation.",
+    "mssql.sqlDataPlane.timeouts.closeMs.description": "Maximum time in milliseconds to wait for an STS v2 connection to close.",
+    "mssql.sqlDataPlane.timeouts.disposeDrainMs.description": "Maximum time in milliseconds to wait for an STS v2 query disposal to produce its terminal event.",
+    "mssql.sqlDataPlane.timeouts.initializeMs.description": "Maximum time in milliseconds to wait for the STS v2 initialization handshake."
 }
