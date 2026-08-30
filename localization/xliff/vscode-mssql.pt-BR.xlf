@@ -528,7 +528,7 @@
       </trans-unit>
       <trans-unit id="++CODE++80c43c38e97b1fd6b4b2eda6132cd4dd155dc65661361224c56dafe6ad3f7a4e">
         <source xml:lang="en">All Project Types</source>
-        <target state="new">All Project Types</target>
+        <target state="translated">Todos os Tipos de Projeto</target>
       </trans-unit>
       <trans-unit id="++CODE++00cf214a7dfb7d94c1e2ff944723bb21250ac45fa4fbf9add906bd3532c56563">
         <source xml:lang="en">All Schemas</source>
@@ -3888,7 +3888,7 @@ Isso removerá tanto o contêiner quanto sua conexão do VS Code.</target>
       </trans-unit>
       <trans-unit id="++CODE++a53f76514aa558f0840e1bf4ffdce6620cd71d4304fd0893f6568f82076077b0">
         <source xml:lang="en">Enter Project Name</source>
-        <target state="new">Enter Project Name</target>
+        <target state="translated">Insira o Nome do Projeto</target>
       </trans-unit>
       <trans-unit id="++CODE++6d7f87fe086633fd289af91d57366580fe05bbb49d442b0b59ce9885a528e352">
         <source xml:lang="en">Enter a database name for this system database</source>
@@ -5695,7 +5695,7 @@ Erro:
       </trans-unit>
       <trans-unit id="++CODE++8b4079e3f24ee61b62917b7334fe2278bdcfbc3f354e431a30e6940c7e702683">
         <source xml:lang="en">Git repository URL</source>
-        <target state="new">Git repository URL</target>
+        <target state="translated">URL do repositório Git</target>
       </trans-unit>
       <trans-unit id="++CODE++4ca83197033d1e5e20827525979b5a9323123783e32732e26731412bc6d59ce7">
         <source xml:lang="en">GitHub Copilot - VS Code walkthrough</source>
@@ -6100,7 +6100,7 @@ Erro:
       </trans-unit>
       <trans-unit id="++CODE++fa8fe520cd81301517dfb9ce3b0863518554df947341899e49b88b2e3f077c7e">
         <source xml:lang="en">Invalid file characters</source>
-        <target state="new">Invalid file characters</target>
+        <target state="translated">Caracteres de arquivo inválidos</target>
       </trans-unit>
       <trans-unit id="++CODE++f23f5034c0f7290a53b9c27d9005cd69d60da06ac62b692fdf5f4d2877faee16">
         <source xml:lang="en">Invalid file extension. Expected .dacpac or .bacpac</source>
@@ -6605,7 +6605,7 @@ Erro:
       </trans-unit>
       <trans-unit id="++CODE++44fe2df974d8b80786309f264819c59c4f54ef54e4c1ae57b1dd7983d08b6ba5">
         <source xml:lang="en">Local clone path</source>
-        <target state="new">Local clone path</target>
+        <target state="translated">Caminho do clone local</target>
       </trans-unit>
       <trans-unit id="++CODE++b64b39db74a66e751069b0400f71efd0fb9a78f49fe418b7f73f9c96b173c105">
         <source xml:lang="en">Local container deployment is currently only supported with SQL Authentication connections.</source>
@@ -7856,7 +7856,7 @@ Erro:
       </trans-unit>
       <trans-unit id="++CODE++e101ffec2eeb2888337e5337f00dcbd1abea9e525f9c8d4a0596e20c76f01f97">
         <source xml:lang="en">Open Existing Project</source>
-        <target state="new">Open Existing Project</target>
+        <target state="translated">Abrir Projeto Existente</target>
       </trans-unit>
       <trans-unit id="++CODE++1e8d18f62f2d2a2fcb2027969e109cad13bcf2a861737f80eabd6774406c8a10">
         <source xml:lang="en">Open File</source>
@@ -7957,7 +7957,7 @@ Erro:
       <trans-unit id="++CODE++4c969acf8c9571fca86e1043a4d93465d243866dcbe158d57747e9e5b6a0f0a1">
         <source xml:lang="en">Open with {0}</source>
         <note>{0} is the display name of the alternative SQL data plane provider</note>
-        <target state="new">Open with {0}</target>
+        <target state="translated">Abrir com {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++3a8e07b84d53ba502ae8ee669003537bdbbe321d6c8c6fb6cbd63019cb3d400e">
         <source xml:lang="en">Opening Publish Script. This may take a while...</source>
@@ -8443,7 +8443,7 @@ Erro:
       </trans-unit>
       <trans-unit id="++CODE++b62ade37fba9f194301c45be7fad8d96fb4c6ca233390a8f23d6bfa3a30d0dd6">
         <source xml:lang="en">Project file</source>
-        <target state="new">Project file</target>
+        <target state="translated">Arquivo de projeto</target>
       </trans-unit>
       <trans-unit id="++CODE++5f602181909669feb4167d88e524dca92f44ff64cc3cd8f1594f9d7fb2e77949">
         <source xml:lang="en">Project name is null</source>
@@ -8824,7 +8824,7 @@ Erro:
       </trans-unit>
       <trans-unit id="++CODE++2447e095bf309befc0891c8154c7e06eb8f02751bf746054d6a5f06837c534a8">
         <source xml:lang="en">Remote git repository</source>
-        <target state="new">Remote git repository</target>
+        <target state="translated">Repositório Git remoto</target>
       </trans-unit>
       <trans-unit id="++CODE++c3812fc4acb861d5182fc2b8155f327f736fbe5e5eb86a7bd7afcb6dc5497282">
         <source xml:lang="en">Remove</source>
@@ -9790,7 +9790,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++7b5bc294b4fd6add2ea2171436746d04440369876e735560480e1a5988d6e589">
         <source xml:lang="en">Select Project Location</source>
-        <target state="new">Select Project Location</target>
+        <target state="translated">Selecionar Local do Projeto</target>
       </trans-unit>
       <trans-unit id="++CODE++498e179dee6c281c74c130a980b58ecfdf8c85a97cf907ed7d820ef06afd8b51">
         <source xml:lang="en">Select Source</source>
@@ -9806,7 +9806,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++2efee9ef97d1a92881c8abdf0997cddbd6cb0e8112a0e80bc426aa485e18a77d">
         <source xml:lang="en">Select Target Platform</source>
-        <target state="new">Select Target Platform</target>
+        <target state="translated">Selecionar Plataforma de Destino</target>
       </trans-unit>
       <trans-unit id="++CODE++b6d420411ce8b91f28e7fc43e45c44a8550af2984463e5dc85541595a0ac37ba">
         <source xml:lang="en">Select Target Schema</source>
@@ -11325,14 +11325,14 @@ Tem certeza de que quer continuar?</target>
         <source xml:lang="en">This connection requires {0}, which {1} does not support.</source>
         <note>{0} is a list of required capabilities
 {1} is the display name of the current SQL data plane provider</note>
-        <target state="new">This connection requires {0}, which {1} does not support.</target>
+        <target state="translated">Esta conexão requer {0}, que {1} não dá suporte.</target>
       </trans-unit>
       <trans-unit id="++CODE++b0c89663acc98614cd8dfa3215e2f5e2a3692b5a8c97f64835b8b1dc2ec13668">
         <source xml:lang="en">This connection requires {0}, which {1} does not support. Connected with {2} instead.</source>
         <note>{0} is a list of required capabilities
 {1} is the display name of the current SQL data plane provider
 {2} is the display name of the alternative SQL data plane provider</note>
-        <target state="new">This connection requires {0}, which {1} does not support. Connected with {2} instead.</target>
+        <target state="translated">Esta conexão requer {0}, que {1} não dá suporte. Conectado com {2} em vez disso.</target>
       </trans-unit>
       <trans-unit id="++CODE++ba00b52adf9dcec97ed54898b307de1328526c8df30c80a9a17dc41f6c39a926">
         <source xml:lang="en">This connection's group has not been selected, so this connection will be imported to the root.</source>
@@ -11638,7 +11638,7 @@ Tem certeza de que quer continuar?</target>
       </trans-unit>
       <trans-unit id="++CODE++f7a89265c06e331405917d08589e8be77b8bad0aae048048f4f23f66f20cccf3">
         <source xml:lang="en">Undefined name</source>
-        <target state="new">Undefined name</target>
+        <target state="translated">Nome indefinido</target>
       </trans-unit>
       <trans-unit id="++CODE++d7d09d502d5422aa5c2aaffacea9601c1011d9035e27986c8b243078a745b061">
         <source xml:lang="en">Understand and document business logic embedded in stored procedures, views, and functions</source>
@@ -13171,7 +13171,7 @@ Projects:
       </trans-unit>
       <trans-unit id="mssql.sqlDataPlane.capabilityFallback.description">
         <source xml:lang="en">Choose how to handle a backend that lacks a required capability: ask before using an alternative (`prompt`), use an alternative automatically (`auto`), or fail without switching (`off`).</source>
-        <target state="new">Choose how to handle a backend that lacks a required capability: ask before using an alternative (`prompt`), use an alternative automatically (`auto`), or fail without switching (`off`).</target>
+        <target state="translated">Escolha como lidar com um back-end que não tem uma capacidade necessária: perguntar antes de usar uma alternativa (`prompt`), usar uma alternativa automaticamente (`auto`) ou falhar sem alternar (`off`).</target>
       </trans-unit>
       <trans-unit id="mssql.chooseAuthMethod">
         <source xml:lang="en">Chooses which Authentication method to use</source>
@@ -13473,7 +13473,7 @@ Quando terminar de fazer suas alterações, clique no botão "Publicar" para env
       </trans-unit>
       <trans-unit id="mssql.sqlDataPlane.enabled.description">
         <source xml:lang="en">Enable the experimental, STS v2-backed SQL Data Plane for preview consumers. Requires SQL Tools Service 6.0.20260825.2 or later; older bundled services are launched without the STS v2 lane. Reload the window after changing this setting. Existing query, connection, language service, and Object Explorer behavior remains unchanged.</source>
-        <target state="new">Enable the experimental, STS v2-backed SQL Data Plane for preview consumers. Requires SQL Tools Service 6.0.20260825.2 or later; older bundled services are launched without the STS v2 lane. Reload the window after changing this setting. Existing query, connection, language service, and Object Explorer behavior remains unchanged.</target>
+        <target state="translated">Habilite o Plano de Dados SQL experimental, baseado em STS v2-backed, para usuários da versão prévia. Requer o SQL Tools Service 6.0.20260825.2 ou posterior; os serviços incluídos mais antigos são iniciados sem o canal STS v2. Recarregue a janela após alterar essa configuração. O comportamento existente de consulta, conexão, serviço de linguagem e Pesquisador de Objetos permanece inalterado.</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.enabledLabel">
         <source xml:lang="en">Enabled</source>
@@ -13617,19 +13617,19 @@ Você pode se conectar a um banco de dados inserindo suas informações de conex
       </trans-unit>
       <trans-unit id="mssql.sqlDataPlane.timeouts.cancelAckMs.description">
         <source xml:lang="en">Maximum time in milliseconds to wait for STS v2 to acknowledge a query cancellation.</source>
-        <target state="new">Maximum time in milliseconds to wait for STS v2 to acknowledge a query cancellation.</target>
+        <target state="translated">Tempo máximo, em milissegundos, de espera para que o STS v2 reconheça um cancelamento de consulta.</target>
       </trans-unit>
       <trans-unit id="mssql.sqlDataPlane.timeouts.closeMs.description">
         <source xml:lang="en">Maximum time in milliseconds to wait for an STS v2 connection to close.</source>
-        <target state="new">Maximum time in milliseconds to wait for an STS v2 connection to close.</target>
+        <target state="translated">Tempo máximo, em milissegundos, de espera para que uma conexão do STS v2 seja fechada.</target>
       </trans-unit>
       <trans-unit id="mssql.sqlDataPlane.timeouts.openMs.description">
         <source xml:lang="en">Maximum time in milliseconds to wait for an STS v2 connection to open.</source>
-        <target state="new">Maximum time in milliseconds to wait for an STS v2 connection to open.</target>
+        <target state="translated">Tempo máximo, em milissegundos, de espera para que uma conexão do STS v2 seja aberta.</target>
       </trans-unit>
       <trans-unit id="mssql.sqlDataPlane.timeouts.disposeDrainMs.description">
         <source xml:lang="en">Maximum time in milliseconds to wait for an STS v2 query disposal to produce its terminal event.</source>
-        <target state="new">Maximum time in milliseconds to wait for an STS v2 query disposal to produce its terminal event.</target>
+        <target state="translated">Tempo máximo, em milissegundos, de espera para que o descarte de uma consulta do STS v2 produza seu evento terminal.</target>
       </trans-unit>
       <trans-unit id="mssql.intelliSense.completionTimeoutMilliseconds">
         <source xml:lang="en">Maximum time in milliseconds to wait for one IntelliSense completion operation before it times out. This does not change the SQL command timeout.</source>
@@ -13637,7 +13637,7 @@ Você pode se conectar a um banco de dados inserindo suas informações de conex
       </trans-unit>
       <trans-unit id="mssql.sqlDataPlane.timeouts.initializeMs.description">
         <source xml:lang="en">Maximum time in milliseconds to wait for the STS v2 initialization handshake.</source>
-        <target state="new">Maximum time in milliseconds to wait for the STS v2 initialization handshake.</target>
+        <target state="translated">Tempo máximo, em milissegundos, de espera para o handshake de inicialização do STS v2.</target>
       </trans-unit>
       <trans-unit id="mssql.openAzureDataStudioMigration">
         <source xml:lang="en">Migrate from Azure Data Studio</source>
@@ -13743,7 +13743,7 @@ Comece clicando no botão de filtro ao lado da maioria das pastas na exibição 
       </trans-unit>
       <trans-unit id="mssql.query.playCompletionSound.description">
         <source xml:lang="en">Play a sound after a query finishes executing.</source>
-        <target state="new">Play a sound after a query finishes executing.</target>
+        <target state="translated">Reproduza um som depois que uma consulta terminar de ser executada.</target>
       </trans-unit>
       <trans-unit id="mssql.preventAutoExecuteScript">
         <source xml:lang="en">Prevent automatic execution of scripts (e.g., 'Select Top 1000'). When enabled, scripts will not be automatically executed upon generation.</source>
@@ -13899,7 +13899,7 @@ Comece clicando no botão de filtro ao lado da maioria das pastas na exibição 
       </trans-unit>
       <trans-unit id="mssql.sqlDataPlane.backend.description">
         <source xml:lang="en">Select the SQL Data Plane backend. Only the local STS v2 backend is available in this preview.</source>
-        <target state="new">Select the SQL Data Plane backend. Only the local STS v2 backend is available in this preview.</target>
+        <target state="translated">Selecione o back-end do Plano de Dados SQL. Somente o back-end local do STS v2 está disponível nesta versão prévia.</target>
       </trans-unit>
       <trans-unit id="mssql.selectedAzureSubscriptions">
         <source xml:lang="en">Selected Azure subscriptions for browsing and managing servers and databases</source>
@@ -13963,7 +13963,7 @@ Comece clicando no botão de filtro ao lado da maioria das pastas na exibição 
       </trans-unit>
       <trans-unit id="mssql.sqlDataPlane.showStatus">
         <source xml:lang="en">Show SQL Data Plane Status</source>
-        <target state="new">Show SQL Data Plane Status</target>
+        <target state="translated">Mostrar Status do Plano de Dados SQL</target>
       </trans-unit>
       <trans-unit id="mssql.format.showParseErrorNotification">
         <source xml:lang="en">Show a notification when Preview Formatter cannot fully parse the T-SQL being formatted.</source>
@@ -14087,7 +14087,7 @@ Comece clicando no botão de filtro ao lado da maioria das pastas na exibição 
       </trans-unit>
       <trans-unit id="mssql.query.completionSoundFile.description">
         <source xml:lang="en">The path to a custom WAV file to play after a query finishes executing. The bundled default chime is used when the path is empty or invalid, or when the custom file is larger than 400 KB.</source>
-        <target state="new">The path to a custom WAV file to play after a query finishes executing. The bundled default chime is used when the path is empty or invalid, or when the custom file is larger than 400 KB.</target>
+        <target state="translated">O caminho para um arquivo WAV personalizado a ser reproduzido após a conclusão da execução de uma consulta. O toque padrão incluído é usado quando o caminho está vazio ou inválido ou quando o arquivo personalizado é maior que 400 KB.</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.expandTimeout">
         <source xml:lang="en">The timeout in seconds for expanding a node in Object Explorer. The default value is 45 seconds.</source>

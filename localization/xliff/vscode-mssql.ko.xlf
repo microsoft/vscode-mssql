@@ -7957,7 +7957,7 @@ Error:
       <trans-unit id="++CODE++4c969acf8c9571fca86e1043a4d93465d243866dcbe158d57747e9e5b6a0f0a1">
         <source xml:lang="en">Open with {0}</source>
         <note>{0} is the display name of the alternative SQL data plane provider</note>
-        <target state="new">Open with {0}</target>
+        <target state="translated">{0}(으)로 열기</target>
       </trans-unit>
       <trans-unit id="++CODE++3a8e07b84d53ba502ae8ee669003537bdbbe321d6c8c6fb6cbd63019cb3d400e">
         <source xml:lang="en">Opening Publish Script. This may take a while...</source>
@@ -11325,14 +11325,14 @@ Are you sure you want to continue?</source>
         <source xml:lang="en">This connection requires {0}, which {1} does not support.</source>
         <note>{0} is a list of required capabilities
 {1} is the display name of the current SQL data plane provider</note>
-        <target state="new">This connection requires {0}, which {1} does not support.</target>
+        <target state="translated">이 연결에는 {0}이(가) 필요하지만, 현재 SQL 데이터 평면 공급자인 {1}은(는) 지원하지 않습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++b0c89663acc98614cd8dfa3215e2f5e2a3692b5a8c97f64835b8b1dc2ec13668">
         <source xml:lang="en">This connection requires {0}, which {1} does not support. Connected with {2} instead.</source>
         <note>{0} is a list of required capabilities
 {1} is the display name of the current SQL data plane provider
 {2} is the display name of the alternative SQL data plane provider</note>
-        <target state="new">This connection requires {0}, which {1} does not support. Connected with {2} instead.</target>
+        <target state="translated">이 연결에는 {0}이(가) 필요하지만, 현재 SQL 데이터 평면 공급자인 {1}은(는) 지원하지 않습니다. 대신 {2}에 연결했습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++ba00b52adf9dcec97ed54898b307de1328526c8df30c80a9a17dc41f6c39a926">
         <source xml:lang="en">This connection's group has not been selected, so this connection will be imported to the root.</source>
@@ -13171,7 +13171,7 @@ Projects:
       </trans-unit>
       <trans-unit id="mssql.sqlDataPlane.capabilityFallback.description">
         <source xml:lang="en">Choose how to handle a backend that lacks a required capability: ask before using an alternative (`prompt`), use an alternative automatically (`auto`), or fail without switching (`off`).</source>
-        <target state="new">Choose how to handle a backend that lacks a required capability: ask before using an alternative (`prompt`), use an alternative automatically (`auto`), or fail without switching (`off`).</target>
+        <target state="translated">필요한 기능이 없는 백엔드를 처리하는 방법을 선택합니다. 대안을 사용하기 전에 묻기('prompt'), 대안을 자동으로 사용하기('auto'), 또는 전환하지 않고 실패하기('off')입니다.</target>
       </trans-unit>
       <trans-unit id="mssql.chooseAuthMethod">
         <source xml:lang="en">Chooses which Authentication method to use</source>
@@ -13473,7 +13473,7 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       </trans-unit>
       <trans-unit id="mssql.sqlDataPlane.enabled.description">
         <source xml:lang="en">Enable the experimental, STS v2-backed SQL Data Plane for preview consumers. Requires SQL Tools Service 6.0.20260825.2 or later; older bundled services are launched without the STS v2 lane. Reload the window after changing this setting. Existing query, connection, language service, and Object Explorer behavior remains unchanged.</source>
-        <target state="new">Enable the experimental, STS v2-backed SQL Data Plane for preview consumers. Requires SQL Tools Service 6.0.20260825.2 or later; older bundled services are launched without the STS v2 lane. Reload the window after changing this setting. Existing query, connection, language service, and Object Explorer behavior remains unchanged.</target>
+        <target state="translated">미리 보기 사용자를 위해 실험적인 STS v2 기반 SQL 데이터 평면을 사용하도록 설정하세요. SQL Tools Service 6.0.20260825.2 이상이 필요합니다. 이전에 포함된 서비스는 STS v2 경로 없이 시작됩니다. 이 설정을 변경한 후 창을 다시 로드합니다. 기존 쿼리, 연결, 언어 서비스 및 개체 탐색기 동작은 그대로 유지됩니다.</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.enabledLabel">
         <source xml:lang="en">Enabled</source>
@@ -13617,19 +13617,19 @@ You can connect to a database by entering your connection information, using a c
       </trans-unit>
       <trans-unit id="mssql.sqlDataPlane.timeouts.cancelAckMs.description">
         <source xml:lang="en">Maximum time in milliseconds to wait for STS v2 to acknowledge a query cancellation.</source>
-        <target state="new">Maximum time in milliseconds to wait for STS v2 to acknowledge a query cancellation.</target>
+        <target state="translated">STS v2가 쿼리 취소를 확인할 때까지 기다릴 최대 시간(밀리초)입니다.</target>
       </trans-unit>
       <trans-unit id="mssql.sqlDataPlane.timeouts.closeMs.description">
         <source xml:lang="en">Maximum time in milliseconds to wait for an STS v2 connection to close.</source>
-        <target state="new">Maximum time in milliseconds to wait for an STS v2 connection to close.</target>
+        <target state="translated">STS v2 연결이 닫힐 때까지 기다릴 최대 시간(밀리초)입니다.</target>
       </trans-unit>
       <trans-unit id="mssql.sqlDataPlane.timeouts.openMs.description">
         <source xml:lang="en">Maximum time in milliseconds to wait for an STS v2 connection to open.</source>
-        <target state="new">Maximum time in milliseconds to wait for an STS v2 connection to open.</target>
+        <target state="translated">STS v2 연결이 열릴 때까지 기다릴 최대 시간(밀리초)입니다.</target>
       </trans-unit>
       <trans-unit id="mssql.sqlDataPlane.timeouts.disposeDrainMs.description">
         <source xml:lang="en">Maximum time in milliseconds to wait for an STS v2 query disposal to produce its terminal event.</source>
-        <target state="new">Maximum time in milliseconds to wait for an STS v2 query disposal to produce its terminal event.</target>
+        <target state="translated">STS v2 쿼리 해제가 종료 이벤트를 생성할 때까지 기다릴 최대 시간(밀리초)입니다.</target>
       </trans-unit>
       <trans-unit id="mssql.intelliSense.completionTimeoutMilliseconds">
         <source xml:lang="en">Maximum time in milliseconds to wait for one IntelliSense completion operation before it times out. This does not change the SQL command timeout.</source>
@@ -13637,7 +13637,7 @@ You can connect to a database by entering your connection information, using a c
       </trans-unit>
       <trans-unit id="mssql.sqlDataPlane.timeouts.initializeMs.description">
         <source xml:lang="en">Maximum time in milliseconds to wait for the STS v2 initialization handshake.</source>
-        <target state="new">Maximum time in milliseconds to wait for the STS v2 initialization handshake.</target>
+        <target state="translated">STS v2 초기화 핸드셰이크를 기다릴 최대 시간(밀리초)입니다.</target>
       </trans-unit>
       <trans-unit id="mssql.openAzureDataStudioMigration">
         <source xml:lang="en">Migrate from Azure Data Studio</source>
@@ -13899,7 +13899,7 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.sqlDataPlane.backend.description">
         <source xml:lang="en">Select the SQL Data Plane backend. Only the local STS v2 backend is available in this preview.</source>
-        <target state="new">Select the SQL Data Plane backend. Only the local STS v2 backend is available in this preview.</target>
+        <target state="translated">SQL 데이터 평면 백엔드를 선택합니다. 이 미리 보기에서는 로컬 STS v2 백엔드만 사용할 수 있습니다.</target>
       </trans-unit>
       <trans-unit id="mssql.selectedAzureSubscriptions">
         <source xml:lang="en">Selected Azure subscriptions for browsing and managing servers and databases</source>
@@ -13963,7 +13963,7 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.sqlDataPlane.showStatus">
         <source xml:lang="en">Show SQL Data Plane Status</source>
-        <target state="new">Show SQL Data Plane Status</target>
+        <target state="translated">SQL 데이터 평면 상태 보기</target>
       </trans-unit>
       <trans-unit id="mssql.format.showParseErrorNotification">
         <source xml:lang="en">Show a notification when Preview Formatter cannot fully parse the T-SQL being formatted.</source>

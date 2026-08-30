@@ -7957,7 +7957,7 @@ Errore:
       <trans-unit id="++CODE++4c969acf8c9571fca86e1043a4d93465d243866dcbe158d57747e9e5b6a0f0a1">
         <source xml:lang="en">Open with {0}</source>
         <note>{0} is the display name of the alternative SQL data plane provider</note>
-        <target state="new">Open with {0}</target>
+        <target state="translated">Apri con {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++3a8e07b84d53ba502ae8ee669003537bdbbe321d6c8c6fb6cbd63019cb3d400e">
         <source xml:lang="en">Opening Publish Script. This may take a while...</source>
@@ -11325,14 +11325,14 @@ Continuare?</target>
         <source xml:lang="en">This connection requires {0}, which {1} does not support.</source>
         <note>{0} is a list of required capabilities
 {1} is the display name of the current SQL data plane provider</note>
-        <target state="new">This connection requires {0}, which {1} does not support.</target>
+        <target state="translated">Questa connessione richiede {0}, che {1} non supporta.</target>
       </trans-unit>
       <trans-unit id="++CODE++b0c89663acc98614cd8dfa3215e2f5e2a3692b5a8c97f64835b8b1dc2ec13668">
         <source xml:lang="en">This connection requires {0}, which {1} does not support. Connected with {2} instead.</source>
         <note>{0} is a list of required capabilities
 {1} is the display name of the current SQL data plane provider
 {2} is the display name of the alternative SQL data plane provider</note>
-        <target state="new">This connection requires {0}, which {1} does not support. Connected with {2} instead.</target>
+        <target state="translated">Questa connessione richiede {0}, che {1} non supporta. Connessione stabilita invece con {2}.</target>
       </trans-unit>
       <trans-unit id="++CODE++ba00b52adf9dcec97ed54898b307de1328526c8df30c80a9a17dc41f6c39a926">
         <source xml:lang="en">This connection's group has not been selected, so this connection will be imported to the root.</source>
@@ -13171,7 +13171,7 @@ Projects:
       </trans-unit>
       <trans-unit id="mssql.sqlDataPlane.capabilityFallback.description">
         <source xml:lang="en">Choose how to handle a backend that lacks a required capability: ask before using an alternative (`prompt`), use an alternative automatically (`auto`), or fail without switching (`off`).</source>
-        <target state="new">Choose how to handle a backend that lacks a required capability: ask before using an alternative (`prompt`), use an alternative automatically (`auto`), or fail without switching (`off`).</target>
+        <target state="translated">Scegliere come gestire un back-end che non dispone di una funzionalità richiesta: chiedere prima di usare un'alternativa ('prompt'), usare un'alternativa automaticamente ('auto'), oppure non procedere senza cambiare ('off').</target>
       </trans-unit>
       <trans-unit id="mssql.chooseAuthMethod">
         <source xml:lang="en">Chooses which Authentication method to use</source>
@@ -13473,7 +13473,7 @@ Una volta completate le modifiche, fai clic sul pulsante 'Pubblica' per inviare 
       </trans-unit>
       <trans-unit id="mssql.sqlDataPlane.enabled.description">
         <source xml:lang="en">Enable the experimental, STS v2-backed SQL Data Plane for preview consumers. Requires SQL Tools Service 6.0.20260825.2 or later; older bundled services are launched without the STS v2 lane. Reload the window after changing this setting. Existing query, connection, language service, and Object Explorer behavior remains unchanged.</source>
-        <target state="new">Enable the experimental, STS v2-backed SQL Data Plane for preview consumers. Requires SQL Tools Service 6.0.20260825.2 or later; older bundled services are launched without the STS v2 lane. Reload the window after changing this setting. Existing query, connection, language service, and Object Explorer behavior remains unchanged.</target>
+        <target state="translated">Abilitare il piano dati SQL sperimentale supportato da STS v2 per gli utenti di anteprima. Richiede SQL Tools Service 6.0.20260825.2 o versione successiva; i servizi inclusi meno recenti vengono avviati senza il percorso STS v2. Ricaricare la finestra dopo aver modificato l'impostazione. Il comportamento esistente di query, connessione, servizio di linguaggio ed Esplora oggetti rimane invariato.</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.enabledLabel">
         <source xml:lang="en">Enabled</source>
@@ -13617,19 +13617,19 @@ Puoi connetterti a un database immettendo le informazioni di connessione, usando
       </trans-unit>
       <trans-unit id="mssql.sqlDataPlane.timeouts.cancelAckMs.description">
         <source xml:lang="en">Maximum time in milliseconds to wait for STS v2 to acknowledge a query cancellation.</source>
-        <target state="new">Maximum time in milliseconds to wait for STS v2 to acknowledge a query cancellation.</target>
+        <target state="translated">Tempo massimo, in millisecondi, di attesa perché STS v2 confermi l'annullamento di una query.</target>
       </trans-unit>
       <trans-unit id="mssql.sqlDataPlane.timeouts.closeMs.description">
         <source xml:lang="en">Maximum time in milliseconds to wait for an STS v2 connection to close.</source>
-        <target state="new">Maximum time in milliseconds to wait for an STS v2 connection to close.</target>
+        <target state="translated">Tempo massimo, in millisecondi, di attesa per la chiusura di una connessione STS v2.</target>
       </trans-unit>
       <trans-unit id="mssql.sqlDataPlane.timeouts.openMs.description">
         <source xml:lang="en">Maximum time in milliseconds to wait for an STS v2 connection to open.</source>
-        <target state="new">Maximum time in milliseconds to wait for an STS v2 connection to open.</target>
+        <target state="translated">Tempo massimo, in millisecondi, di attesa per l'apertura di una connessione STS v2.</target>
       </trans-unit>
       <trans-unit id="mssql.sqlDataPlane.timeouts.disposeDrainMs.description">
         <source xml:lang="en">Maximum time in milliseconds to wait for an STS v2 query disposal to produce its terminal event.</source>
-        <target state="new">Maximum time in milliseconds to wait for an STS v2 query disposal to produce its terminal event.</target>
+        <target state="translated">Tempo massimo, in millisecondi, di attesa affinché il rilascio di una query STS v2 produca l'evento finale.</target>
       </trans-unit>
       <trans-unit id="mssql.intelliSense.completionTimeoutMilliseconds">
         <source xml:lang="en">Maximum time in milliseconds to wait for one IntelliSense completion operation before it times out. This does not change the SQL command timeout.</source>
@@ -13637,7 +13637,7 @@ Puoi connetterti a un database immettendo le informazioni di connessione, usando
       </trans-unit>
       <trans-unit id="mssql.sqlDataPlane.timeouts.initializeMs.description">
         <source xml:lang="en">Maximum time in milliseconds to wait for the STS v2 initialization handshake.</source>
-        <target state="new">Maximum time in milliseconds to wait for the STS v2 initialization handshake.</target>
+        <target state="translated">Tempo massimo, in millisecondi, di attesa dell'handshake di inizializzazione di STS v2.</target>
       </trans-unit>
       <trans-unit id="mssql.openAzureDataStudioMigration">
         <source xml:lang="en">Migrate from Azure Data Studio</source>
@@ -13899,7 +13899,7 @@ Inizia facendo clic sul pulsante Filtro accanto alla maggior parte delle cartell
       </trans-unit>
       <trans-unit id="mssql.sqlDataPlane.backend.description">
         <source xml:lang="en">Select the SQL Data Plane backend. Only the local STS v2 backend is available in this preview.</source>
-        <target state="new">Select the SQL Data Plane backend. Only the local STS v2 backend is available in this preview.</target>
+        <target state="translated">Selezionare il back-end del piano dati SQL. In questa anteprima è disponibile solo il back-end locale STS v2.</target>
       </trans-unit>
       <trans-unit id="mssql.selectedAzureSubscriptions">
         <source xml:lang="en">Selected Azure subscriptions for browsing and managing servers and databases</source>
@@ -13963,7 +13963,7 @@ Inizia facendo clic sul pulsante Filtro accanto alla maggior parte delle cartell
       </trans-unit>
       <trans-unit id="mssql.sqlDataPlane.showStatus">
         <source xml:lang="en">Show SQL Data Plane Status</source>
-        <target state="new">Show SQL Data Plane Status</target>
+        <target state="translated">Mostra stato del piano dati SQL</target>
       </trans-unit>
       <trans-unit id="mssql.format.showParseErrorNotification">
         <source xml:lang="en">Show a notification when Preview Formatter cannot fully parse the T-SQL being formatted.</source>
