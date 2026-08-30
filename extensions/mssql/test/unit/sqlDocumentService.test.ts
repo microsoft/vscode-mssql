@@ -116,7 +116,7 @@ suite("SqlDocumentService Tests", () => {
         const clock = sandbox.useFakeTimers();
         try {
             const openPromise = sqlDocumentService.onDidOpenTextDocument(document);
-            await clock.nextAsync();
+            await clock.tickAsync(500);
             await openPromise;
         } finally {
             clock.restore();
