@@ -3,11 +3,26 @@
 This repository contains multiple VS Code extensions and shared packages. Run commands from the
 repository root unless noted otherwise.
 
+VS Code extensions live in `extensions/`; shared packages such as extension-toolkit live in
+`packages/`.
+
 ## Prerequisites
 
 - Node.js 24 or later
 - npm
 - Visual Studio Code
+
+## Common Workflow
+
+1. Run `npm install` after a fresh clone or when dependencies change.
+2. Run `npm run watch` to watch all targets used by **Run All Extensions**.
+3. Select **Run All Extensions** from VS Code's **Run and Debug** view.
+4. Make changes, then press `Ctrl+R` on Windows or Linux, or `Cmd+R` on macOS, in the Extension
+   Development Host.
+5. Run `npm run lint -- --target <target>` and `npm test -- --target <target>`.
+6. Commit after the checks pass.
+
+## Workspace Commands
 
 List the available workspace targets:
 
@@ -16,8 +31,6 @@ npm run list:targets
 ```
 
 The target list and package scripts are the source of truth for supported actions.
-
-## Workspace Commands
 
 Use `--target` to limit an action to the extension or package you are changing:
 
@@ -38,9 +51,8 @@ Run every configured test target or select one target from the repository root:
 npm test
 npm test -- --target extension-toolkit
 npm test -- --target mssql
+npm test -- --target mssql --grep "Connection"
 ```
-
-Test-runner arguments are passed through to the selected target.
 
 Extension-toolkit uses the
 [Node.js test runner](https://nodejs.org/api/test.html). Refer to its documentation for current
@@ -51,8 +63,8 @@ MSSQL uses
 current filtering and command-line options. MSSQL test commands compile the tests and collect
 coverage.
 
-For MSSQL end-to-end tests, configure the environment using
-`extensions/mssql/test/e2e/.env.example`, then run this command from the repository root:
+For MSSQL end-to-end smoke tests, copy `extensions/mssql/test/e2e/.env.example` to `.env` in the
+same directory and configure a reachable SQL Server. Then run:
 
 ```bash
 npm run smoketest -- --target mssql
@@ -60,17 +72,8 @@ npm run smoketest -- --target mssql
 
 ## Localization
 
-When user-facing MSSQL strings change, run:
+When localization sources change, run the repository-wide extraction:
 
 ```bash
-npm --prefix extensions/mssql run localization
+npm run localization
 ```
-
-## Common Workflow
-
-1. Run `npm install` after a fresh clone or when dependencies change.
-2. Run `npm run watch` in a terminal.
-3. Select **Run All Extensions** from VS Code's **Run and Debug** view.
-4. Make changes, then press `Ctrl+R` in the Extension Development Host to reload them.
-5. Run the relevant tests and lint checks.
-6. Commit after the checks pass.
