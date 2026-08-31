@@ -198,17 +198,20 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             const definitionActivity = startActivity(
                 TelemetryViews.SchemaDesigner,
                 TelemetryActions.GetDefinition,
-                undefined,
                 {
-                    tableCount: payload.updatedSchema.tables.length.toString(),
+                    additionalProps: {
+                        tableCount: payload.updatedSchema.tables.length.toString(),
+                    },
                 },
             );
             const script = await this.schemaDesignerService.getDefinition({
                 updatedSchema: payload.updatedSchema,
                 sessionId: this._sessionId,
             });
-            definitionActivity.end(ActivityStatus.Succeeded, undefined, {
-                tableCount: payload.updatedSchema.tables.length,
+            definitionActivity.end(ActivityStatus.Succeeded, {
+                additionalMeasurements: {
+                    tableCount: payload.updatedSchema.tables.length,
+                },
             });
             this.updateCacheItem(payload.updatedSchema);
             return script;
@@ -218,9 +221,10 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             const reportActivity = startActivity(
                 TelemetryViews.SchemaDesigner,
                 TelemetryActions.GetReport,
-                undefined,
                 {
-                    tableCount: payload.updatedSchema.tables.length.toString(),
+                    additionalProps: {
+                        tableCount: payload.updatedSchema.tables.length.toString(),
+                    },
                 },
             );
             try {
@@ -233,19 +237,18 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                     report,
                 };
 
-                reportActivity.end(
-                    ActivityStatus.Succeeded,
-                    {
+                reportActivity.end(ActivityStatus.Succeeded, {
+                    additionalProps: {
                         hasSchemaChanged: result.report?.hasSchemaChanged?.toString(),
                         possibleDataLoss: result.report?.dacReport?.possibleDataLoss?.toString(),
                         requireTableRecreation:
                             result.report.dacReport?.requireTableRecreation?.toString(),
                         hasWarnings: result.report?.dacReport?.hasWarnings?.toString(),
                     },
-                    {
+                    additionalMeasurements: {
                         tableCount: payload.updatedSchema?.tables?.length,
                     },
-                );
+                });
 
                 return result;
             } catch (error) {
@@ -260,14 +263,15 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             const publishActivity = startActivity(
                 TelemetryViews.SchemaDesigner,
                 TelemetryActions.PublishSession,
-                undefined,
             );
             try {
                 await this.schemaDesignerService.publishSession({
                     sessionId: this._sessionId,
                 });
-                publishActivity.end(ActivityStatus.Succeeded, undefined, {
-                    tableCount: payload.schema?.tables?.length,
+                publishActivity.end(ActivityStatus.Succeeded, {
+                    additionalMeasurements: {
+                        tableCount: payload.schema?.tables?.length,
+                    },
                 });
                 if (this.schemaDesignerDetails) {
                     this.schemaDesignerDetails.schema = payload.schema;
@@ -323,7 +327,9 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             }
 
             sendActionEvent(TelemetryViews.SchemaDesigner, TelemetryActions.ExportToImage, {
-                format: payload?.format,
+                additionalProps: {
+                    format: payload?.format,
+                },
             });
 
             void UserSurvey.getInstance().promptUserForNPSFeedback(SCHEMA_DESIGNER_VIEW_ID);
@@ -398,7 +404,6 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             const generateScriptActivity = startActivity(
                 TelemetryViews.SchemaDesigner,
                 TelemetryActions.GenerateScript,
-                undefined,
             );
             vscode.window.withProgress(
                 {
@@ -411,13 +416,11 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                         const result = await this.schemaDesignerService.generateScript({
                             sessionId: this._sessionId,
                         });
-                        generateScriptActivity.end(
-                            ActivityStatus.Succeeded,
-                            undefined,
-                            result?.script
+                        generateScriptActivity.end(ActivityStatus.Succeeded, {
+                            additionalMeasurements: result?.script
                                 ? { scriptLength: result?.script?.length }
                                 : { scriptLength: 0 },
-                        );
+                        });
                         let connectionCredentials: IConnectionInfo | undefined;
                         // Open the document in the editor with the connection
                         if (this.treeNode) {
@@ -507,7 +510,9 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             });
 
             sendActionEvent(TelemetryViews.SchemaDesigner, TelemetryActions.ExportDabConfig, {
-                language: "json",
+                additionalProps: {
+                    language: "json",
+                },
             });
 
             await vscode.window.showTextDocument(doc);
@@ -518,8 +523,10 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                 await this.addTextToWorkspace(payload.configContent, DAB_CONFIG_FILE_EXTENSION);
 
                 sendActionEvent(TelemetryViews.SchemaDesigner, TelemetryActions.ExportDabConfig, {
-                    language: "json",
-                    target: "workspace",
+                    additionalProps: {
+                        language: "json",
+                        target: "workspace",
+                    },
                 });
             } catch (error) {
                 await vscode.window.showErrorMessage(
@@ -544,7 +551,9 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             }
 
             sendActionEvent(TelemetryViews.SchemaDesigner, TelemetryActions.OpenDabApiUrl, {
-                apiType: payload.apiType ?? "",
+                additionalProps: {
+                    apiType: payload.apiType ?? "",
+                },
             });
 
             try {
@@ -570,7 +579,9 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             }
 
             sendActionEvent(TelemetryViews.SchemaDesigner, TelemetryActions.CopyDabText, {
-                copyTextType: payload.copyTextType,
+                additionalProps: {
+                    copyTextType: payload.copyTextType,
+                },
             });
 
             await vscode.window.showInformationMessage(message);
@@ -581,9 +592,10 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             const deploymentStepActivity = startActivity(
                 TelemetryViews.SchemaDesigner,
                 TelemetryActions.RunDabDeploymentStep,
-                undefined,
                 {
-                    step: payload.step.toString(),
+                    additionalProps: {
+                        step: payload.step.toString(),
+                    },
                 },
             );
             if (!this.resolveIsDabDeploymentSupported()) {
@@ -831,12 +843,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
         const schemaDesignerInitActivity = startActivity(
             TelemetryViews.SchemaDesigner,
             TelemetryActions.Initialize,
-            undefined, // correlationId
-            undefined, // startActivityAdditionalProps
-            undefined, // startActivityAdditionalMeasurements
-            undefined, // connectionInfo
-            undefined, // serverInfo
-            true, // include callstack in telemetry
+            { includeCallStack: true },
         );
         try {
             let sessionResponse: SchemaDesigner.CreateSessionResponse;
@@ -866,8 +873,10 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
 
             this.schemaDesignerDetails = sessionResponse;
             this._sessionId = sessionResponse.sessionId;
-            schemaDesignerInitActivity.end(ActivityStatus.Succeeded, undefined, {
-                tableCount: sessionResponse?.schema?.tables?.length,
+            schemaDesignerInitActivity.end(ActivityStatus.Succeeded, {
+                additionalMeasurements: {
+                    tableCount: sessionResponse?.schema?.tables?.length,
+                },
             });
             return sessionResponse;
         } catch (error) {
@@ -903,7 +912,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                 return;
             }
 
-            this.logger.info("Progress", progress);
+            this.logger.debug("Progress", progress);
 
             try {
                 void this.sendNotification(

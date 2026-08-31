@@ -3525,6 +3525,7 @@ register({
         tags: ["metadata", "cache"],
         profileMode: "warmed",
         userSettings: {
+            "mssql.enableExperimentalFeatures": true,
             "mssql.sqlDataPlane.enabled": true,
             "mssql.metadataCache.enabled": true,
         },

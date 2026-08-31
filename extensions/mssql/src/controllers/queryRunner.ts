@@ -262,12 +262,7 @@ export default class QueryRunner {
         const cancelQueryActivity = startActivity(
             TelemetryViews.QueryEditor,
             TelemetryActions.CancelQuery,
-            undefined, // correlationId
-            undefined, // startActivityAdditionalProps
-            undefined, // startActivityAdditionalMeasurements
-            undefined, // connectionInfo
-            undefined, // serverInfo
-            true, // include callstack in telemetry
+            { includeCallStack: true },
         );
         const cancelParams: QueryCancelParams = { ownerUri: this._ownerUri };
         let cancelRequestCompleted = false;
@@ -343,15 +338,13 @@ export default class QueryRunner {
         const runStatementActivity = startActivity(
             TelemetryViews.QueryEditor,
             TelemetryActions.RunQuery,
-            undefined, // correlationId
             {
-                executionType: "statement",
-                hasExecutionPlan: executionPlanOptions ? "true" : "false",
+                additionalProps: {
+                    executionType: "statement",
+                    hasExecutionPlan: executionPlanOptions ? "true" : "false",
+                },
+                includeCallStack: true,
             },
-            undefined, // startActivityAdditionalMeasurements
-            undefined, // connectionInfo
-            undefined, // serverInfo
-            true, // Include call stack
         );
         let runStatementRequestCompleted = false;
         try {
@@ -417,15 +410,13 @@ export default class QueryRunner {
         const runQueryActivity = startActivity(
             TelemetryViews.QueryEditor,
             TelemetryActions.RunQuery,
-            undefined,
             {
-                executionType: queryType,
-                hasExecutionPlan: executionPlanOptions ? "true" : "false",
+                additionalProps: {
+                    executionType: queryType,
+                    hasExecutionPlan: executionPlanOptions ? "true" : "false",
+                },
+                includeCallStack: true,
             },
-            undefined, // startActivityAdditionalMeasurements
-            undefined, // connectionInfo
-            undefined, // serverInfo
-            true, // Include call stack
         );
 
         let runQueryRequestCompleted = false;
@@ -476,15 +467,13 @@ export default class QueryRunner {
         const runQueryActivity = startActivity(
             TelemetryViews.QueryEditor,
             TelemetryActions.RunQuery,
-            undefined,
             {
-                executionType: "quickQuery",
-                hasExecutionPlan: "false",
+                additionalProps: {
+                    executionType: "quickQuery",
+                    hasExecutionPlan: "false",
+                },
+                includeCallStack: true,
             },
-            undefined,
-            undefined,
-            undefined,
-            true,
         );
 
         let runQueryRequestCompleted = false;
@@ -579,11 +568,7 @@ export default class QueryRunner {
             hasError,
             isFullExecutionComplete: true,
         });
-        sendActionEvent(
-            TelemetryViews.QueryEditor,
-            TelemetryActions.QueryExecutionCompleted,
-            undefined,
-        );
+        sendActionEvent(TelemetryViews.QueryEditor, TelemetryActions.QueryExecutionCompleted);
     }
 
     public handleBatchStart(result: QueryExecuteBatchNotificationParams): void {
@@ -668,11 +653,9 @@ export default class QueryRunner {
         message.time = new Date(message.time).toLocaleTimeString();
         message.rowsAffected = getRowsAffectedFromMessage(message.message);
 
-        if (message.isError || Utils.shouldShowBatchMessages()) {
-            // save the message into the batch summary so it can be restored on view refresh
-            if (message.batchId >= 0 && this._batchSetMessages[message.batchId] !== undefined) {
-                this._batchSetMessages[message.batchId].push(message);
-            }
+        // save the message into the batch summary so it can be restored on view refresh
+        if (message.batchId >= 0 && this._batchSetMessages[message.batchId] !== undefined) {
+            this._batchSetMessages[message.batchId].push(message);
         }
 
         // Send the message so non-display state, such as rows affected, remains current
@@ -751,14 +734,12 @@ export default class QueryRunner {
         const rowsFetchActivity = startActivity(
             TelemetryViews.QueryEditor,
             TelemetryActions.GetResultRowsSubset,
-            undefined, // correlationId
-            undefined, // startActivityAdditionalProps
             {
-                rowCount: bucketizeRowCount(numberOfRows),
+                additionalMeasurements: {
+                    rowCount: bucketizeRowCount(numberOfRows),
+                },
+                includeCallStack: true,
             },
-            undefined, // connectionInfo
-            undefined, // serverInfo
-            true, // Include call stack
         );
         try {
             const rows: QueryExecuteSubsetResult["resultSubset"]["rows"] = [];

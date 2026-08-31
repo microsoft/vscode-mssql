@@ -63,7 +63,7 @@ export class AccountStore implements IAccountStore {
         let accounts =
             this._context.globalState.get<IAccount[]>(Constants.configAzureAccount) ?? [];
 
-        this._logger.info(`Retrieved ${accounts.length} Entra accounts from account store.`);
+        this._logger.debug(`Retrieved ${accounts.length} Entra accounts from account store.`);
         return accounts;
     }
 

@@ -277,14 +277,18 @@ suite("QueryResult Utils Tests", () => {
                 TelemetryViews.QueryResult,
                 TelemetryActions.ToggleResultsGridMode,
                 sinon.match({
-                    correlationId: correlationId,
-                    newMode: "classic",
-                    source: "resultsPaneSwitch",
-                    // The stand-in controller is not a QueryResultWebviewController, so the
-                    // handler reports it as a tab-hosted view.
-                    webviewLocation: "document",
+                    additionalProps: {
+                        correlationId: correlationId,
+                        newMode: "classic",
+                        source: "resultsPaneSwitch",
+                        // The stand-in controller is not a QueryResultWebviewController, so the
+                        // handler reports it as a tab-hosted view.
+                        webviewLocation: "document",
+                    },
+                    additionalMeasurements: sinon.match(
+                        (measurements) => Object.keys(measurements).length === 0,
+                    ),
                 }),
-                sinon.match((measurements) => Object.keys(measurements).length === 0),
             );
         });
 
@@ -328,10 +332,11 @@ suite("QueryResult Utils Tests", () => {
             expect(sendActionEvent).to.have.been.calledWithMatch(
                 sinon.match.any,
                 sinon.match.any,
-                sinon.match.any,
                 sinon.match({
-                    gridCount: 3,
-                    rowCount: queryResultUtils.bucketizeRowCount(1234),
+                    additionalMeasurements: {
+                        gridCount: 3,
+                        rowCount: queryResultUtils.bucketizeRowCount(1234),
+                    },
                 }),
             );
         });
@@ -346,8 +351,11 @@ suite("QueryResult Utils Tests", () => {
             expect(sendActionEvent).to.have.been.calledWithMatch(
                 sinon.match.any,
                 sinon.match.any,
-                sinon.match.any,
-                sinon.match((measurements) => Object.keys(measurements).length === 0),
+                sinon.match({
+                    additionalMeasurements: sinon.match(
+                        (measurements) => Object.keys(measurements).length === 0,
+                    ),
+                }),
             );
         });
     });

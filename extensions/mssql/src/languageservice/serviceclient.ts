@@ -39,7 +39,7 @@ import { getAppDataPath, getEnableConnectionPoolingConfig } from "../azure/utils
 import { serviceName } from "../azure/constants";
 import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-import { PreviewFeature, previewService } from "../previews/previewService";
+import { PrivatePreviewFeature, PreviewFeature, previewService } from "../previews/previewService";
 import { getRuntimeConfigPath, ServiceExecutable } from "./serviceExecutablePaths";
 import { config } from "../configurations/config";
 
@@ -344,20 +344,16 @@ export default class SqlToolsServiceClient {
             logger.error(
                 `Failed to download and launch SQL Tools Service: ${getErrorMessage(err)}`,
             );
-            sendErrorEvent(
-                SERVICE_LAUNCH_TELEMETRY_VIEW,
-                TelemetryActions.ServiceStartFailed,
-                err instanceof Error ? err : new Error(getErrorMessage(err)),
-                false,
-                undefined,
-                undefined,
-                {
+            sendErrorEvent(SERVICE_LAUNCH_TELEMETRY_VIEW, TelemetryActions.ServiceStartFailed, {
+                error: err instanceof Error ? err : new Error(getErrorMessage(err)),
+                includeErrorMessage: false,
+                additionalProps: {
                     launchType: "allLaunchStrategiesFailed",
                     detectedRuntime: platformInfo.runtimeId,
                     platform: platformInfo.platform,
                     architecture: platformInfo.architecture,
                 },
-            );
+            });
             this.showOutputChannelPreservingFocus();
             const displayError = ServiceClient.unableToStartService(getErrorMessage(err));
             // Determine if this is a download failure or a runtime acquisition failure
@@ -550,12 +546,10 @@ export default class SqlToolsServiceClient {
      */
     public handleSqlToolsServiceTelemetryNotification(): NotificationHandler<LanguageServiceContracts.SqlToolsServiceTelemetryParams> {
         return (event: LanguageServiceContracts.SqlToolsServiceTelemetryParams): void => {
-            sendActionEvent(
-                TelemetryViews.QueryEditor,
-                event.params.eventName,
-                event.params.properties ?? {},
-                event.params.measures ?? {},
-            );
+            sendActionEvent(TelemetryViews.QueryEditor, event.params.eventName, {
+                additionalProps: event.params.properties ?? {},
+                additionalMeasurements: event.params.measures ?? {},
+            });
         };
     }
 
@@ -629,11 +623,13 @@ export default class SqlToolsServiceClient {
             `Sending service launch telemetry: launchType=${launchType}, serviceRuntime=${serviceRuntime}, detectedRuntime=${platformInfo?.runtimeId}, platform=${platformInfo?.platform}, architecture=${platformInfo?.architecture}`,
         );
         sendActionEvent(SERVICE_LAUNCH_TELEMETRY_VIEW, TelemetryActions.ServiceStarted, {
-            launchType,
-            serviceRuntime,
-            detectedRuntime: platformInfo?.runtimeId,
-            platform: platformInfo?.platform,
-            architecture: platformInfo?.architecture,
+            additionalProps: {
+                launchType,
+                serviceRuntime,
+                detectedRuntime: platformInfo?.runtimeId,
+                platform: platformInfo?.platform,
+                architecture: platformInfo?.architecture,
+            },
         });
     }
 
@@ -659,10 +655,7 @@ export default class SqlToolsServiceClient {
                 sendErrorEvent(
                     SERVICE_LAUNCH_TELEMETRY_VIEW,
                     TelemetryActions.AcquireDotnetRuntimeFailed,
-                    runtimeError,
-                    true, // include error message
-                    undefined,
-                    undefined,
+                    { error: runtimeError, includeErrorMessage: true },
                 );
                 logger.error(
                     `Failed to acquire .NET runtime for launching service: ${getErrorMessage(runtimeError)}`,
@@ -737,7 +730,7 @@ export default class SqlToolsServiceClient {
         // disabled unless the experimental SQL Data Plane is enabled.
         configureSqlDataPlaneLaunchArgs(
             args,
-            vscode.workspace.getConfiguration().get<boolean>("mssql.sqlDataPlane.enabled", false),
+            previewService.isPrivatePreviewEnabled(PrivatePreviewFeature.SqlDataPlane),
         );
         args.push("--parallel-message-processing-limit");
         args.push(String(100));

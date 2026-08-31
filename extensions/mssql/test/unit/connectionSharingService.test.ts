@@ -243,7 +243,9 @@ suite("ConnectionSharingService Tests", () => {
             expect(sendActionEventStub).to.have.been.calledWith(
                 TelemetryViews.Connection,
                 TelemetryActions.ConnectionSharingRetirementToast,
-                { extensionId: testExtensionId, action: "requestFeature" },
+                {
+                    additionalProps: { extensionId: testExtensionId, action: "requestFeature" },
+                },
             );
             expect(openExternalStub).to.have.been.calledWithMatch(
                 sinon.match(
@@ -301,9 +303,11 @@ suite("ConnectionSharingService Tests", () => {
                 TelemetryViews.Connection,
                 TelemetryActions.ConnectionSharingApiCalled,
                 {
-                    method: "getActiveEditorConnectionId",
-                    authenticationType: "SqlLogin",
-                    extensionId: testExtensionId,
+                    additionalProps: {
+                        method: "getActiveEditorConnectionId",
+                        authenticationType: "SqlLogin",
+                        extensionId: testExtensionId,
+                    },
                 },
             );
         });
@@ -381,7 +385,9 @@ suite("ConnectionSharingService Tests", () => {
             expect(sendActionEventStub).to.have.been.calledWith(
                 TelemetryViews.Connection,
                 TelemetryActions.ConnectionSharingRetirementToast,
-                { extensionId: testExtensionId, action: "doNotShowAgain" },
+                {
+                    additionalProps: { extensionId: testExtensionId, action: "doNotShowAgain" },
+                },
             );
 
             connectionManager.getConnectionInfoFromUri.returns({
@@ -485,9 +491,11 @@ suite("ConnectionSharingService Tests", () => {
                 TelemetryViews.Connection,
                 TelemetryActions.ConnectionSharingApiCalled,
                 {
-                    method: "getActiveEditorConnectionId",
-                    authenticationType: "unknown",
-                    extensionId: testExtensionId,
+                    additionalProps: {
+                        method: "getActiveEditorConnectionId",
+                        authenticationType: "unknown",
+                        extensionId: testExtensionId,
+                    },
                 },
             );
             expect(connectionManager.getConnectionInfoFromUri).not.to.have.been.called;
@@ -925,9 +933,11 @@ suite("ConnectionSharingService Tests", () => {
                 TelemetryViews.Connection,
                 TelemetryActions.ConnectionSharingApiCalled,
                 {
-                    method: "cancelQuery",
-                    authenticationType: "SqlLogin",
-                    extensionId: "unknown",
+                    additionalProps: {
+                        method: "cancelQuery",
+                        authenticationType: "SqlLogin",
+                        extensionId: "unknown",
+                    },
                 },
             );
             expect(client.sendRequest).to.have.been.called;

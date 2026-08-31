@@ -624,6 +624,34 @@ suite("Docker Utilities", () => {
         expect(spawnStub.callCount).to.be.greaterThanOrEqual(3);
     });
 
+    test("startDocker: cancels while waiting for Docker to start", async () => {
+        sandbox.stub(os, "platform").returns(Platform.Linux);
+        const spawnStub = sandbox.stub(childProcess, "spawn");
+        spawnStub.callsFake((command: string, args?: ReadonlyArray<string>) => {
+            if (command === "docker" && args?.[0] === "info") {
+                return createSpawnFailureByErrorProcess(new Error("Docker not running"));
+            }
+            return createSpawnSuccessProcess("Started Docker");
+        });
+        const cancellationTokenSource = new vscode.CancellationTokenSource();
+        const clock = sandbox.useFakeTimers({ shouldClearNativeTimers: true });
+
+        const resultPromise = dockerUtils.startDocker(
+            node,
+            mockObjectExplorerService,
+            cancellationTokenSource,
+        );
+        await clock.tickAsync(10);
+        expect(mockObjectExplorerService.setLoadingUiForNode).to.have.been.calledWith(
+            node,
+            cancellationTokenSource,
+        );
+        cancellationTokenSource.cancel();
+
+        expect(await resultPromise).to.deep.equal({ success: false, canceled: true });
+        cancellationTokenSource.dispose();
+    });
+
     test("startDocker: should fail on unsupported platform", async () => {
         sandbox.stub(os, "platform").returns("fakePlatform" as Platform);
         const spawnStub = sandbox.stub(childProcess, "spawn");

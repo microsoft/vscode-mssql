@@ -488,7 +488,7 @@ suite("Query Runner tests", () => {
         expect(queryRunner.batchSetMessages[message.message.batchId].length).to.equal(1);
     });
 
-    test("Notification - Message does not cache non-error messages when disabled", () => {
+    test("Notification - Message preserves non-error messages when batch messages are disabled", () => {
         const config = stubs.createWorkspaceConfiguration({
             [Constants.configResultsShowBatchMessages]: false,
         });
@@ -497,7 +497,7 @@ suite("Query Runner tests", () => {
             message: {
                 batchId: 0,
                 isError: false,
-                message: "Commands completed successfully.",
+                message: "hello",
                 time: new Date().toISOString(),
             },
             ownerUri: standardUri,
@@ -509,13 +509,14 @@ suite("Query Runner tests", () => {
 
         queryRunner.handleMessage(message);
 
-        expect(queryRunner.batchSetMessages[message.message.batchId]).to.be.empty;
+        expect(queryRunner.batchSetMessages[message.message.batchId]).to.deep.equal([
+            message.message,
+        ]);
         expect(messageListener).to.have.been.calledWith(message.message);
         expect(testStatusView.showRowCount).to.have.been.calledWith(
             standardUri,
             message.message.message,
         );
-        expect(getConfigurationStub).to.have.been.calledWith(Constants.extensionConfigSectionName);
     });
 
     test("Notification - Message preserves errors when batch messages are disabled", () => {
