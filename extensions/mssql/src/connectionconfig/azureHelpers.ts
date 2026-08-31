@@ -1232,18 +1232,17 @@ export async function getAccounts(
         sendErrorEvent(
             TelemetryViews.ConnectionDialog,
             TelemetryActions.LoadAzureAccountsForEntraAuth,
-            error,
-            false, // includeErrorMessage
-            undefined, // errorCode
-            undefined, // errorType
-            undefined, // additionalProperties
             {
-                accountCount: accounts.length,
-                undefinedAccountCount: accounts.filter((x) => x === undefined).length,
-                undefinedDisplayInfoCount: accounts.filter(
-                    (x) => x !== undefined && x.displayInfo === undefined,
-                ).length,
-            }, // additionalMeasurements
+                error,
+                includeErrorMessage: false,
+                additionalMeasurements: {
+                    accountCount: accounts.length,
+                    undefinedAccountCount: accounts.filter((x) => x === undefined).length,
+                    undefinedDisplayInfoCount: accounts.filter(
+                        (x) => x !== undefined && x.displayInfo === undefined,
+                    ).length,
+                },
+            },
         );
 
         return [];
@@ -1281,10 +1280,11 @@ export async function getTenants(
             sendErrorEvent(
                 TelemetryViews.ConnectionDialog,
                 TelemetryActions.LoadAzureTenantsForEntraAuth,
-                new Error(message),
-                true, // includeErrorMessage
-                undefined, // errorCode
-                `missing_${missingProp}`, // errorType
+                {
+                    error: new Error(message),
+                    includeErrorMessage: true,
+                    errorType: `missing_${missingProp}`,
+                },
             );
 
             return [];
@@ -1304,15 +1304,14 @@ export async function getTenants(
         sendErrorEvent(
             TelemetryViews.ConnectionDialog,
             TelemetryActions.LoadAzureTenantsForEntraAuth,
-            error,
-            false, // includeErrorMessage
-            undefined, // errorCode
-            undefined, // errorType
-            undefined, // additionalProperties
             {
-                tenant: tenants.length,
-                undefinedTenantCount: tenants.filter((x) => x === undefined).length,
-            }, // additionalMeasurements
+                error,
+                includeErrorMessage: false,
+                additionalMeasurements: {
+                    tenant: tenants.length,
+                    undefinedTenantCount: tenants.filter((x) => x === undefined).length,
+                },
+            },
         );
 
         return [];

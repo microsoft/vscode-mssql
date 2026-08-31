@@ -151,6 +151,7 @@ export const cmdDeployNewDatabase = "mssql.deployNewDatabase";
 export const cmdStopContainer = "mssql.stopContainer";
 export const cmdDeleteContainer = "mssql.deleteContainer";
 export const cmdStartContainer = "mssql.startContainer";
+export const cmdCancelContainerOperation = "mssql.cancelContainerOperation";
 export const cmdHandleSummaryOperation = "mssql.handleSummaryOperation";
 export const cmdMoveToSchema = "mssql.moveToSchema";
 export const cmdOpenChangelog = "mssql.openChangelog";
@@ -441,8 +442,6 @@ export const DBProjectConfigurationKey = "sqlDatabaseProjects";
 export const sqlDatabaseProjectsExtensionId = "ms-mssql.sql-database-projects-vscode";
 export const internalConnectionSharingExtensionIds: ReadonlySet<string> = new Set([
     extensionId,
-    sqlDatabaseProjectsExtensionId,
-    "ms-mssql.data-workspace-vscode",
     "ms-mssql.sql-notebook-controller",
     "microsoft.schema-compare",
 ]);

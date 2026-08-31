@@ -269,8 +269,10 @@ export class AzureBrowseProvider extends BrowseProvider {
                 `Loaded ${subsForTenant.length} Azure subscriptions for tenant ${tenantId}`,
             );
 
-            telemActivity.end(ActivityStatus.Succeeded, undefined, {
-                subscriptionCount: subsForTenant.length,
+            telemActivity.end(ActivityStatus.Succeeded, {
+                additionalMeasurements: {
+                    subscriptionCount: subsForTenant.length,
+                },
             });
         } catch (error) {
             state.formMessage = { message: LocalizedConstants.errorLoadingAzureSubscriptions };
@@ -325,8 +327,10 @@ export class AzureBrowseProvider extends BrowseProvider {
                 `Loaded ${servers.length} servers for subscription ${azSub.name} (${azSub.subscriptionId})`,
             );
 
-            telemActivity.end(ActivityStatus.Succeeded, undefined, {
-                serverCount: servers.length,
+            telemActivity.end(ActivityStatus.Succeeded, {
+                additionalMeasurements: {
+                    serverCount: servers.length,
+                },
             });
         } catch (error) {
             const errorMessage = getErrorMessage(error);
@@ -523,8 +527,10 @@ export class FabricBrowseProvider extends BrowseProvider {
                 `Loaded ${cachedWorkspaces.length} Fabric workspaces for tenant ${tenantId}`,
             );
 
-            telemActivity.end(ActivityStatus.Succeeded, undefined, {
-                workspaceCount: cachedWorkspaces.length,
+            telemActivity.end(ActivityStatus.Succeeded, {
+                additionalMeasurements: {
+                    workspaceCount: cachedWorkspaces.length,
+                },
             });
         } catch (err) {
             state.formMessage = { message: getErrorMessage(err) };
@@ -618,9 +624,8 @@ export class FabricBrowseProvider extends BrowseProvider {
                 `Loaded ${sqlDbCount} Fabric databases, ${sqlEndpointCount} SQL endpoints, and ${warehouseCount} warehouses for workspace ${workspace.id}`,
             );
 
-            telemActivity.end(
-                ActivityStatus.Succeeded,
-                {
+            telemActivity.end(ActivityStatus.Succeeded, {
+                additionalProps: {
                     sqlDbErrored: String(sqlDbErrored),
                     sqlAnalyticsEndpointErrored: String(sqlEndpointErrored),
                     warehouseErrored: String(
@@ -629,12 +634,12 @@ export class FabricBrowseProvider extends BrowseProvider {
                             (sqlEndpointErrored ? 1 : 0),
                     ),
                 },
-                {
+                additionalMeasurements: {
                     sqlDbCount,
                     sqlAnalyticsEndpointCount: sqlEndpointCount,
                     warehouseCount,
                 },
-            );
+            });
 
             this.host.updateState(state);
         } catch (err) {

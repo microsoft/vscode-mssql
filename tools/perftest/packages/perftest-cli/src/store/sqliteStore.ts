@@ -370,7 +370,8 @@ export class PerfStore {
          LIMIT 1`,
             )
             .get(name, scenarioId ?? "*") as
-            { run_id: string; environment_hash: string } | undefined;
+            | { run_id: string; environment_hash: string }
+            | undefined;
         return row ? { runId: row.run_id, environmentHash: row.environment_hash } : undefined;
     }
 

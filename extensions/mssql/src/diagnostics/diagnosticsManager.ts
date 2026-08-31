@@ -18,6 +18,7 @@ import { diag } from "./diagnosticsCore";
 import { richStats } from "./richCollection";
 import { SessionDiagSink } from "./sinks";
 import { SessionStore } from "./sessionStore";
+import { PrivatePreviewFeature, previewService } from "../previews/previewService";
 
 const SETTING_ENABLED = "mssql.sessionDiag.enabled";
 const SETTING_MODE = "mssql.sessionDiag.captureMode";
@@ -32,6 +33,11 @@ const ENV_RICH = "MSSQL_COLLECT_ALL_THE_DATA";
  */
 const RETENTION_DELAY_MS = 15_000;
 
+export interface DiagnosticsManagerOptions {
+    debugConsoleActiveAtActivation: boolean;
+    sessionDiagnosticsActiveAtActivation: boolean;
+}
+
 export class DiagnosticsManager implements vscode.Disposable {
     private storeSink: SessionDiagSink | undefined;
     private statusItem: vscode.StatusBarItem | undefined;
@@ -39,7 +45,10 @@ export class DiagnosticsManager implements vscode.Disposable {
     public readonly store: SessionStore;
     public readonly provenance: ProvenanceSummary;
 
-    constructor(private readonly context: vscode.ExtensionContext) {
+    constructor(
+        private readonly context: vscode.ExtensionContext,
+        private readonly options: DiagnosticsManagerOptions,
+    ) {
         // Store location is configurable so always-on capture can land traces
         // wherever the user wants (takes effect on restart).
         const configuredStorePath = vscode.workspace
@@ -62,16 +71,24 @@ export class DiagnosticsManager implements vscode.Disposable {
             vscode.workspace.onDidChangeConfiguration((change) => {
                 if (
                     change.affectsConfiguration(SETTING_ENABLED) ||
-                    change.affectsConfiguration(SETTING_MODE)
+                    change.affectsConfiguration(SETTING_MODE) ||
+                    change.affectsConfiguration("mssql.enableExperimentalFeatures")
                 ) {
                     this.applySettings();
                 }
-                if (change.affectsConfiguration(SETTING_RICH)) {
+                if (
+                    change.affectsConfiguration(SETTING_RICH) ||
+                    change.affectsConfiguration("mssql.debugConsole.enabled") ||
+                    change.affectsConfiguration("mssql.enableExperimentalFeatures")
+                ) {
                     this.applyRichSetting();
+                    this.updateStatusItem();
                 }
             }),
         );
-        this.registerCommands();
+        if (this.options.sessionDiagnosticsActiveAtActivation) {
+            this.registerCommands();
+        }
         const removeCaptureModeListener = diag.onCaptureModeChanged((mode) => {
             this.storeSink?.updateCapturePolicy(mode, diag.capturePolicy.policyId);
             this.updateStatusItem();
@@ -85,7 +102,7 @@ export class DiagnosticsManager implements vscode.Disposable {
     private applyRichSetting(): void {
         const fromSetting = vscode.workspace.getConfiguration().get<boolean>(SETTING_RICH, false);
         const fromEnv = process.env[ENV_RICH] === "1";
-        if (fromSetting) {
+        if (fromSetting && this.isDebugConsoleEnabled()) {
             richStats.enable("setting");
         } else {
             richStats.disable("setting");
@@ -97,7 +114,7 @@ export class DiagnosticsManager implements vscode.Disposable {
 
     private applySettings(): void {
         const config = vscode.workspace.getConfiguration();
-        const enabled = config.get<boolean>(SETTING_ENABLED, false);
+        const enabled = this.isSessionDiagnosticsEnabled();
         const mode = config.get<CaptureMode>(SETTING_MODE, "redacted");
         if (enabled && mode !== "off") {
             // Full capture is never enabled from settings alone; it requires
@@ -117,6 +134,10 @@ export class DiagnosticsManager implements vscode.Disposable {
         mode: CaptureMode,
         options?: { reason?: string; durationMinutes?: number },
     ): void {
+        if (!this.isSessionDiagnosticsEnabled()) {
+            this.disableCapture();
+            throw new Error(LocConstants.SessionDiag.privatePreviewRequired);
+        }
         if (mode === "off") {
             this.disableCapture();
             void vscode.workspace
@@ -208,11 +229,35 @@ export class DiagnosticsManager implements vscode.Disposable {
         this.updateStatusItem();
     }
 
+    private isDebugConsoleEnabled(): boolean {
+        return (
+            this.options.debugConsoleActiveAtActivation &&
+            previewService.isPrivatePreviewEnabled(PrivatePreviewFeature.DebugConsole)
+        );
+    }
+
+    private isSessionDiagnosticsEnabled(): boolean {
+        return (
+            this.options.sessionDiagnosticsActiveAtActivation &&
+            previewService.isPrivatePreviewEnabled(PrivatePreviewFeature.SessionDiagnostics)
+        );
+    }
+
     // --- commands ---------------------------------------------------------------
 
     private registerCommands(): void {
         const register = (command: string, handler: (...args: unknown[]) => unknown) =>
-            this.context.subscriptions.push(vscode.commands.registerCommand(command, handler));
+            this.context.subscriptions.push(
+                vscode.commands.registerCommand(command, (...args: unknown[]) => {
+                    if (!this.isSessionDiagnosticsEnabled()) {
+                        void vscode.window.showInformationMessage(
+                            LocConstants.SessionDiag.privatePreviewRequired,
+                        );
+                        return;
+                    }
+                    return handler(...args);
+                }),
+            );
 
         register("mssql.sessionDiag.enable", async () => {
             await vscode.workspace
@@ -276,13 +321,11 @@ export class DiagnosticsManager implements vscode.Disposable {
     }
 
     public updateStatusItem(): void {
-        const consoleEnabled = vscode.workspace
-            .getConfiguration()
-            .get<boolean>("mssql.debugConsole.enabled", false);
-        if (!consoleEnabled) {
+        if (!this.isSessionDiagnosticsEnabled()) {
             this.statusItem?.hide();
             return;
         }
+        const consoleEnabled = this.isDebugConsoleEnabled();
         if (!this.statusItem) {
             this.statusItem = vscode.window.createStatusBarItem(
                 "mssql.sessionDiag",
@@ -290,23 +333,29 @@ export class DiagnosticsManager implements vscode.Disposable {
                 90,
             );
             this.statusItem.name = LocConstants.SessionDiag.statusName;
-            this.statusItem.command = "mssql.openDebugConsole";
             this.context.subscriptions.push(this.statusItem);
         }
+        this.statusItem.command = consoleEnabled ? "mssql.openDebugConsole" : undefined;
         const mode = diag.captureMode;
         if (mode === "off") {
             this.statusItem.text = LocConstants.SessionDiag.statusOff;
-            this.statusItem.tooltip = LocConstants.SessionDiag.statusOffTooltip;
+            this.statusItem.tooltip = consoleEnabled
+                ? LocConstants.SessionDiag.statusOffTooltip
+                : LocConstants.SessionDiag.statusOffTooltipNoConsole;
             this.statusItem.backgroundColor = undefined;
         } else if (mode === "full") {
             this.statusItem.text = LocConstants.SessionDiag.statusFull;
-            this.statusItem.tooltip = LocConstants.SessionDiag.statusFullTooltip;
+            this.statusItem.tooltip = consoleEnabled
+                ? LocConstants.SessionDiag.statusFullTooltip
+                : LocConstants.SessionDiag.statusFullTooltipNoConsole;
             this.statusItem.backgroundColor = new vscode.ThemeColor(
                 "statusBarItem.warningBackground",
             );
         } else {
             this.statusItem.text = LocConstants.SessionDiag.statusMode(mode);
-            this.statusItem.tooltip = LocConstants.SessionDiag.statusModeTooltip(mode);
+            this.statusItem.tooltip = consoleEnabled
+                ? LocConstants.SessionDiag.statusModeTooltip(mode)
+                : LocConstants.SessionDiag.statusModeTooltipNoConsole(mode);
             this.statusItem.backgroundColor = undefined;
         }
         this.statusItem.show();

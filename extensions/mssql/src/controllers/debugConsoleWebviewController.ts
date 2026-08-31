@@ -13,6 +13,7 @@ import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
 import * as LocConstants from "../constants/locConstants";
+import { PrivatePreviewFeature, previewService } from "../previews/previewService";
 import {
     DcGetHistoryRequest,
     HistoryActionTrend,
@@ -672,13 +673,7 @@ export function registerDebugConsole(
         // that page — a fresh console gets it as initial state, an open one
         // is steered via dc/navigate before being revealed.
         vscode.commands.registerCommand("mssql.openDebugConsole", (route?: { page?: DcPageId }) => {
-            // Always registered; the gate lives here so a setting flipped
-            // after activation never yields "command not found".
-            if (
-                !vscode.workspace
-                    .getConfiguration()
-                    .get<boolean>("mssql.debugConsole.enabled", false)
-            ) {
+            if (!previewService.isPrivatePreviewEnabled(PrivatePreviewFeature.DebugConsole)) {
                 void vscode.window.showInformationMessage(
                     LocConstants.DebugConsole.enableSettingFirst,
                 );
@@ -700,6 +695,15 @@ export function registerDebugConsole(
             }
             activeConsole = new DebugConsoleWebviewController(context, diagnostics, page);
             activeConsole.revealToForeground();
+        }),
+        vscode.workspace.onDidChangeConfiguration((change) => {
+            if (
+                (change.affectsConfiguration("mssql.enableExperimentalFeatures") ||
+                    change.affectsConfiguration("mssql.debugConsole.enabled")) &&
+                !previewService.isPrivatePreviewEnabled(PrivatePreviewFeature.DebugConsole)
+            ) {
+                activeConsole?.dispose();
+            }
         }),
     );
 }
