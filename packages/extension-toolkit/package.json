@@ -54,7 +54,8 @@
         "watch": "tsc -watch -p tsconfig.json --preserveWatchOutput",
         "lint": "eslint --quiet --cache ./src ./test",
         "localization": "node ../../scripts/localization-extract.js extension-toolkit",
-        "test": "npm run build && node --test test/*.test.js"
+        "pretest": "npm run build",
+        "test": "node --test"
     },
     "dependencies": {
         "@vscode/extension-telemetry": "1.5.2",
