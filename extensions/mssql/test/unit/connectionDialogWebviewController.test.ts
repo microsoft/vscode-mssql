@@ -49,8 +49,8 @@ import {
     stubGetCapabilitiesRequest,
     stubInstantiationService,
     stubMessageBoxes,
-    stubPreviewService,
     stubTelemetry,
+    stubUseMsalEntraMfaAuthConfig,
     stubUserSurvey,
 } from "./utils";
 import {
@@ -73,7 +73,6 @@ import { FirewallRuleSpec } from "../../src/sharedInterfaces/firewallRule";
 import { FirewallService } from "../../src/firewall/firewallService";
 import { AddFirewallRuleState } from "../../src/sharedInterfaces/addFirewallRule";
 import { deepClone } from "../../src/models/utils";
-import { PreviewFeature } from "../../src/previews/previewService";
 
 chai.use(sinonChai);
 
@@ -865,10 +864,8 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 sandbox.stub(controller["_fabricBrowseProvider"], "autoLoadContents").resolves();
             });
 
-            test("refreshes auth account options and selects the newly added account when the VS Code Entra MFA preview is enabled", async () => {
-                stubPreviewService(sandbox, {
-                    [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
-                });
+            test("refreshes auth account options and selects the newly added account when VS Code Entra authentication is used", async () => {
+                stubUseMsalEntraMfaAuthConfig(sandbox, false);
                 stubVscodeAzureSignIn(sandbox);
                 sandbox
                     .stub(AzureHelpers.VsCodeAzureHelper, "getAccounts")
@@ -908,10 +905,8 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 );
             });
 
-            test("does not alter auth form account options or connectionProfile.accountId when the VS Code Entra MFA preview is disabled", async () => {
-                stubPreviewService(sandbox, {
-                    [PreviewFeature.UseVscodeAccountsForEntraMFA]: false,
-                });
+            test("does not alter auth form account options or connectionProfile.accountId when MSAL Entra MFA authentication is used", async () => {
+                stubUseMsalEntraMfaAuthConfig(sandbox, true);
                 stubVscodeAzureSignIn(sandbox);
                 sandbox
                     .stub(AzureHelpers.VsCodeAzureHelper, "getAccounts")
@@ -945,9 +940,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
             });
 
             test("leaves the existing auth selection unchanged when no new account was added", async () => {
-                stubPreviewService(sandbox, {
-                    [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
-                });
+                stubUseMsalEntraMfaAuthConfig(sandbox, false);
                 stubVscodeAzureSignIn(sandbox);
                 sandbox
                     .stub(AzureHelpers.VsCodeAzureHelper, "getAccounts")
@@ -983,9 +976,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
             });
 
             test("applies the same event-scoped auth synchronization for FabricBrowse", async () => {
-                stubPreviewService(sandbox, {
-                    [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
-                });
+                stubUseMsalEntraMfaAuthConfig(sandbox, false);
                 stubVscodeAzureSignIn(sandbox);
                 sandbox
                     .stub(AzureHelpers.VsCodeAzureHelper, "getAccounts")
@@ -1196,7 +1187,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
         });
 
         test("loadConnection normalizes legacy Entra account ids when VS Code account mode is enabled", async () => {
-            stubPreviewService(sandbox, { [PreviewFeature.UseVscodeAccountsForEntraMFA]: true });
+            stubUseMsalEntraMfaAuthConfig(sandbox, false);
             sandbox
                 .stub(AzureHelpers.VsCodeAzureHelper, "getAccounts")
                 .resolves([mockAccounts.signedInAccount]);
@@ -1228,7 +1219,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
         });
 
         test("does not load tenants for every VS Code account in the background", async () => {
-            stubPreviewService(sandbox, { [PreviewFeature.UseVscodeAccountsForEntraMFA]: true });
+            stubUseMsalEntraMfaAuthConfig(sandbox, false);
             sandbox
                 .stub(AzureHelpers.VsCodeAzureHelper, "getAccounts")
                 .resolves([mockAccounts.signedInAccount, mockAccounts.notSignedInAccount]);
@@ -1534,13 +1525,11 @@ suite("ConnectionDialogWebviewController Tests", () => {
 
         suite("loadFromConnectionString", () => {
             setup(() => {
-                // Pin the preview feature to a deterministic value so the Azure MFA
+                // Pin the authentication mode so the Azure MFA
                 // path uses the stubbed azureAccountService instead of waiting on the
                 // background VS Code Entra data load (`_entraDataLoaded`), which depends
                 // on real `vscode.authentication` APIs and hangs in CI.
-                stubPreviewService(sandbox, {
-                    [PreviewFeature.UseVscodeAccountsForEntraMFA]: false,
-                });
+                stubUseMsalEntraMfaAuthConfig(sandbox, true);
             });
 
             async function runConnectionStringScenario(
@@ -1691,7 +1680,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
 
     test("getAzureActionButtons", async () => {
         // Tests the MSAL path (non-VS-Code-accounts)
-        stubPreviewService(sandbox, { [PreviewFeature.UseVscodeAccountsForEntraMFA]: false });
+        stubUseMsalEntraMfaAuthConfig(sandbox, true);
         controller.state.connectionProfile.authenticationType = AuthenticationType.AzureMFA;
         controller.state.connectionProfile.accountId = "TestEntraAccountId";
 
@@ -2001,7 +1990,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
 
     test("getAzureActionButtons uses VS Code sign-in when VS Code account mode is enabled", async () => {
         loadVscodeEntraDataAsyncStub.restore();
-        stubPreviewService(sandbox, { [PreviewFeature.UseVscodeAccountsForEntraMFA]: true });
+        stubUseMsalEntraMfaAuthConfig(sandbox, false);
 
         sandbox
             .stub(AzureHelpers.VsCodeAzureHelper, "getAccounts")

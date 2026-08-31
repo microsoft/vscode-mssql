@@ -61,7 +61,7 @@ import { getErrorMessage, uuid } from "../utils/utils";
 import { ConnectionConfig } from "../connectionconfig/connectionconfig";
 import { MissingEntraAuthAccountError } from "../azure/vscodeEntraMfaUtils";
 import { AzureSqlDatabaseStatus, VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
-import { PreviewFeature, previewService } from "../previews/previewService";
+import { getUseMsalEntraMfaAuthConfig } from "../azure/utils";
 import { getNodeDescriptor } from "./nodes/nodeUtils";
 
 export class CancelableLoadingNode extends vscode.TreeItem {
@@ -1035,11 +1035,7 @@ export class ObjectExplorerService {
                 if (choice === LocalizedConstants.ObjectExplorer.FailedOEConnectionErrorSignIn) {
                     try {
                         // User chose to sign in to the missing account; try again.
-                        if (
-                            previewService.isFeatureEnabled(
-                                PreviewFeature.UseVscodeAccountsForEntraMFA,
-                            )
-                        ) {
+                        if (!getUseMsalEntraMfaAuthConfig()) {
                             await VsCodeAzureHelper.signIn(true /* forceSignInPrompt */);
                         } else {
                             await this._connectionManager.addAccount();

@@ -14,7 +14,6 @@ export enum PreviewFeature {
     BetaResultsGrid = "betaResultsGrid",
     BetaObjectExplorerFilter = "betaObjectExplorerFilter",
     BetaExecutionPlan = "betaExecutionPlan",
-    UseVscodeAccountsForEntraMFA = "useVscodeAccountsForEntraMFA",
 }
 
 /**

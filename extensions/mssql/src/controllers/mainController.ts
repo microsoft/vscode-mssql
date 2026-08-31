@@ -59,10 +59,8 @@ import { sendActionEvent, sendErrorEvent, VscodeHttpClient } from "extension-too
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { TableDesignerService } from "../services/tableDesignerService";
 import {
-    getPreviewConfigKey,
     PrivatePreviewContextKey,
     PrivatePreviewFeature,
-    PreviewFeature,
     previewService,
 } from "../previews/previewService";
 import { TableDesignerWebviewController } from "../tableDesigner/tableDesignerWebviewController";
@@ -1138,6 +1136,10 @@ export default class MainController implements vscode.Disposable {
                 experimentalFeaturesEnabled: previewService.experimentalFeaturesEnabled.toString(),
                 cloudType: getCloudId(),
                 previewFeatureOverrides: JSON.stringify(previewService.getNonDefaultOverrides()),
+                useMsalEntraMfaAuth: vscode.workspace
+                    .getConfiguration()
+                    .get<boolean>(Constants.configUseMsalEntraMfaAuth, false)
+                    .toString(),
                 newEditorConnectionBehavior: vscode.workspace
                     .getConfiguration()
                     .get<string>(
@@ -3560,7 +3562,7 @@ export default class MainController implements vscode.Disposable {
             Constants.configSovereignCloudEnvironment,
             Constants.configSovereignCloudCustomEnvironment,
             Constants.configCustomEnvironment,
-            getPreviewConfigKey(PreviewFeature.UseVscodeAccountsForEntraMFA),
+            Constants.configUseMsalEntraMfaAuth,
         ];
 
         if (configSettingsRequiringReload.some((setting) => e.affectsConfiguration(setting))) {

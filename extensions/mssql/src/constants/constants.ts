@@ -322,6 +322,7 @@ export const configEnableQueryHistoryFeature = "enableQueryHistoryFeature";
 export const configQueryCompletionSoundEnabled = "query.playCompletionSound";
 export const configQueryCompletionSoundFile = "query.completionSoundFile";
 export const configEnableExperimentalFeatures = "mssql.enableExperimentalFeatures";
+export const configUseMsalEntraMfaAuth = "mssql.useMsalEntraMfaAuth";
 export const configOpenQueryResultsInTabByDefault = "mssql.openQueryResultsInTabByDefault";
 export const configOpenQueryResultsInTabByDefaultDoNotShowPrompt =
     "mssql.openQueryResultsInTabByDefaultDoNotShowPrompt";

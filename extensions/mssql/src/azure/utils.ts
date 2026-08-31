@@ -16,6 +16,7 @@ import * as Constants from "./constants";
 import { TokenCredentialWrapper } from "./credentialWrapper";
 import { getLogger } from "../models/logger";
 import { getErrorMessage } from "../utils/utils";
+import * as ExtensionConstants from "../constants/constants";
 
 const configAzureAD = "azureActiveDirectory";
 const logger = getLogger("AzureUtils");
@@ -91,6 +92,14 @@ export function getEnableConnectionPoolingConfig(): boolean {
         }
     }
     return false; // default setting
+}
+
+export function getUseMsalEntraMfaAuthConfig(): boolean {
+    return (
+        vscode.workspace
+            .getConfiguration()
+            .get<boolean>(ExtensionConstants.configUseMsalEntraMfaAuth, false) ?? false
+    );
 }
 
 export function getAppDataPath(): string {
