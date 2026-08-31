@@ -17,8 +17,7 @@ VS Code extensions live in `extensions/`; shared packages such as extension-tool
 1. Run `npm install` after a fresh clone or when dependencies change.
 2. Run `npm run watch` to watch all targets used by **Run All Extensions**.
 3. Select **Run All Extensions** from VS Code's **Run and Debug** view.
-4. Make changes, then press `Ctrl+R` on Windows or Linux, or `Cmd+R` on macOS, in the Extension
-   Development Host.
+4. Make changes, then reload the Extension Development Host (`Ctrl+R`, or `Cmd+R` on macOS).
 5. Run `npm run lint -- --target <target>` and `npm test -- --target <target>`.
 6. Commit after the checks pass.
 
