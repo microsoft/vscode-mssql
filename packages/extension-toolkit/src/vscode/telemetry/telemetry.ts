@@ -14,19 +14,8 @@ import TelemetryReporter, {
 export interface ActivityObject {
     startTime: number;
     correlationId: string;
-    update(
-        additionalProperties?: TelemetryEventProperties,
-        additionalMeasurements?: TelemetryEventMeasures,
-        connectionInfo?: ConnectionInfo,
-        serverInfo?: ServerInfo,
-    ): void;
-    end(
-        activityStatus: string,
-        additionalProperties?: TelemetryEventProperties,
-        additionalMeasurements?: TelemetryEventMeasures,
-        connectionInfo?: ConnectionInfo,
-        serverInfo?: ServerInfo,
-    ): void;
+    update(options?: TelemetryEventOptions): void;
+    end(activityStatus: string, options?: TelemetryEventOptions): void;
     endFailed(
         error?: Error,
         includeErrorMessage?: boolean,
@@ -37,6 +26,46 @@ export interface ActivityObject {
         connectionInfo?: ConnectionInfo,
         serverInfo?: ServerInfo,
     ): void;
+}
+
+/** Options shared by telemetry events and activities. */
+export interface TelemetryEventOptions {
+    /** Additional properties to include in the telemetry event. */
+    additionalProps?: TelemetryEventProperties | { [key: string]: string };
+    /** Additional measurements to include in the telemetry event. */
+    additionalMeasurements?: TelemetryEventMeasures | { [key: string]: number };
+    /** Connection information to include in the telemetry event. */
+    connectionInfo?: ConnectionInfo;
+    /** Server information to include in the telemetry event. */
+    serverInfo?: ServerInfo;
+}
+
+/** Options for sending an action telemetry event. */
+export interface SendActionEventOptions extends TelemetryEventOptions {
+    /** Whether to capture and include the call stack. Defaults to false. */
+    includeCallStack?: boolean;
+}
+
+/** Options for sending an error telemetry event. */
+export interface SendErrorEventOptions extends TelemetryEventOptions {
+    /** The error associated with the telemetry event. */
+    error?: Error;
+    /** Whether to include the error message in the telemetry event. Defaults to false. */
+    includeErrorMessage?: boolean;
+    /** Error code to include in the telemetry event. */
+    errorCode?: string;
+    /** Error type to include in the telemetry event. */
+    errorType?: string;
+    /** Whether to capture and include the call stack. Defaults to true. */
+    includeCallStack?: boolean;
+}
+
+/** Options for starting a telemetry activity. */
+export interface StartActivityOptions extends TelemetryEventOptions {
+    /** Correlation ID for the activity. A new UUID is generated when omitted. */
+    correlationId?: string;
+    /** Whether to capture and include call stacks for the activity. Defaults to false. */
+    includeCallStack?: boolean;
 }
 
 export let telemetryReporter = new TelemetryReporter(undefined);
@@ -101,23 +130,21 @@ export function captureCallStack(): string {
 }
 
 /**
- * Sends a telemetry event to the telemetry reporter
- * @param telemetryView View in which the event occurred
- * @param telemetryAction Action that was being performed when the event occurred
- * @param additionalProps Additional properties to include
- * @param additionalMeasurements Additional measurements to include
- * @param connectionInfo connectionInfo for the event
- * @param serverInfo serverInfo for the event
- * @param includeCallStack Whether to capture and include the call stack. Defaults to false
+ * Sends an action event to the telemetry reporter using named options.
+ * @param telemetryView View in which the event occurred.
+ * @param telemetryAction Action that was being performed when the event occurred.
+ * @param options Optional event properties, measurements, connection metadata, and call stack behavior.
  */
 export function sendActionEvent(
     telemetryView: string,
     telemetryAction: string,
-    additionalProps: TelemetryEventProperties | { [key: string]: string } = {},
-    additionalMeasurements: TelemetryEventMeasures | { [key: string]: number } = {},
-    connectionInfo?: ConnectionInfo,
-    serverInfo?: ServerInfo,
-    includeCallStack: boolean = false,
+    {
+        additionalProps = {},
+        additionalMeasurements = {},
+        connectionInfo,
+        serverInfo,
+        includeCallStack = false,
+    }: SendActionEventOptions = {},
 ): void {
     const callStack = includeCallStack ? captureCallStack() : undefined;
     let actionEvent = telemetryReporter
@@ -138,31 +165,25 @@ export function sendActionEvent(
 }
 
 /**
- * Sends an error event to the telemetry reporter
- * @param telemetryView View in which the error occurred
- * @param telemetryAction Action that was being performed when the error occurred
- * @param error Error that occurred
- * @param includeErrorMessage Whether to include the error message in the telemetry event. Defaults to false
- * @param errorCode Error code for the error
- * @param errorType Error type for the error
- * @param additionalProps Additional properties to include in the telemetry event
- * @param additionalMeasurements Additional measurements to include in the telemetry event
- * @param connectionInfo connectionInfo for the error
- * @param serverInfo serverInfo for the error
- * @param includeCallStack Whether to capture and include the call stack. Defaults to true
+ * Sends an error event to the telemetry reporter using named options.
+ * @param telemetryView View in which the error occurred.
+ * @param telemetryAction Action that was being performed when the error occurred.
+ * @param options Optional error details, event data, connection metadata, and call stack behavior.
  */
 export function sendErrorEvent(
     telemetryView: string,
     telemetryAction: string,
-    error: Error | undefined,
-    includeErrorMessage: boolean = false,
-    errorCode?: string,
-    errorType?: string,
-    additionalProps: TelemetryEventProperties | { [key: string]: string } = {},
-    additionalMeasurements: TelemetryEventMeasures | { [key: string]: number } = {},
-    connectionInfo?: ConnectionInfo,
-    serverInfo?: ServerInfo,
-    includeCallStack: boolean = true,
+    {
+        error,
+        includeErrorMessage = false,
+        errorCode,
+        errorType,
+        additionalProps = {},
+        additionalMeasurements = {},
+        connectionInfo,
+        serverInfo,
+        includeCallStack = true,
+    }: SendErrorEventOptions = {},
 ): void {
     const callStack = includeCallStack ? captureCallStack() : undefined;
     let errorEvent = telemetryReporter
@@ -189,15 +210,24 @@ export function sendErrorEvent(
     errorEvent.send();
 }
 
+/**
+ * Starts a telemetry activity using named options.
+ * @param telemetryView View in which the activity occurs.
+ * @param telemetryAction Action performed by the activity.
+ * @param options Optional correlation ID, event data, connection metadata, and call stack behavior.
+ * @returns An object used to update and complete the activity.
+ */
 export function startActivity(
     telemetryView: string,
     telemetryAction: string,
-    correlationId?: string,
-    startActivityAdditionalProps: TelemetryEventProperties = {},
-    startActivityAdditionalMeasurements: TelemetryEventMeasures = {},
-    connectionInfo?: ConnectionInfo,
-    serverInfo?: ServerInfo,
-    includeCallStack: boolean = false,
+    {
+        correlationId,
+        additionalProps: startActivityAdditionalProps = {},
+        additionalMeasurements: startActivityAdditionalMeasurements = {},
+        connectionInfo,
+        serverInfo,
+        includeCallStack = false,
+    }: StartActivityOptions = {},
 ): ActivityObject {
     const startTime = performance.now();
     if (!correlationId) {
@@ -207,20 +237,18 @@ export function startActivity(
     // Capture call stack if requested
     const callStack = includeCallStack ? captureCallStack() : undefined;
 
-    sendActionEvent(
-        telemetryView,
-        telemetryAction,
-        {
+    sendActionEvent(telemetryView, telemetryAction, {
+        additionalProps: {
             ...startActivityAdditionalProps,
             ...(callStack && { callStack }),
         },
-        {
+        additionalMeasurements: {
             ...startActivityAdditionalMeasurements,
             startTime: Math.round(startTime),
         },
         connectionInfo,
         serverInfo,
-    );
+    });
 
     const activityUpdateAdditionalPropsBase: TelemetryEventProperties = {
         correlationId,
@@ -231,57 +259,55 @@ export function startActivity(
         ...startActivityAdditionalMeasurements,
     };
 
-    function update(
-        additionalProps: TelemetryEventProperties = {},
-        additionalMeasurements: TelemetryEventMeasures = {},
-        connectionInfo?: ConnectionInfo,
-        serverInfo?: ServerInfo,
-    ): void {
+    function update({
+        additionalProps = {},
+        additionalMeasurements = {},
+        connectionInfo,
+        serverInfo,
+    }: TelemetryEventOptions = {}): void {
         const updateCallStack = includeCallStack ? captureCallStack() : undefined;
-        sendActionEvent(
-            telemetryView,
-            telemetryAction,
-            {
+        sendActionEvent(telemetryView, telemetryAction, {
+            additionalProps: {
                 ...activityUpdateAdditionalPropsBase,
                 ...additionalProps,
                 activityStatus: "Pending",
                 ...(updateCallStack && { callStack: updateCallStack }),
             },
-            {
+            additionalMeasurements: {
                 ...activityUpdateAdditionalMeasurementsBase,
                 ...additionalMeasurements,
                 timeElapsedMs: Math.round(performance.now() - startTime),
             },
             connectionInfo,
             serverInfo,
-        );
+        });
     }
 
     function end(
         activityStatus: string,
-        additionalProps: TelemetryEventProperties = {},
-        additionalMeasurements: TelemetryEventMeasures = {},
-        connectionInfo?: ConnectionInfo,
-        serverInfo?: ServerInfo,
-    ) {
+        {
+            additionalProps = {},
+            additionalMeasurements = {},
+            connectionInfo,
+            serverInfo,
+        }: TelemetryEventOptions = {},
+    ): void {
         const endCallStack = includeCallStack ? captureCallStack() : undefined;
-        sendActionEvent(
-            telemetryView,
-            telemetryAction,
-            {
+        sendActionEvent(telemetryView, telemetryAction, {
+            additionalProps: {
                 ...activityUpdateAdditionalPropsBase,
                 ...additionalProps,
                 activityStatus: activityStatus,
                 ...(endCallStack && { callStack: endCallStack }),
             },
-            {
+            additionalMeasurements: {
                 ...activityUpdateAdditionalMeasurementsBase,
                 ...additionalMeasurements,
                 durationMs: Math.round(performance.now() - startTime),
             },
             connectionInfo,
             serverInfo,
-        );
+        });
     }
 
     function endFailed(
@@ -293,30 +319,28 @@ export function startActivity(
         additionalMeasurements?: TelemetryEventMeasures,
         connectionInfo?: ConnectionInfo,
         serverInfo?: ServerInfo,
-    ) {
-        includeErrorMessage = includeErrorMessage ?? false; // Default to false if undefined
+    ): void {
+        includeErrorMessage = includeErrorMessage ?? false;
         const endFailedCallStack = includeCallStack ? captureCallStack() : undefined;
-        sendErrorEvent(
-            telemetryView,
-            telemetryAction,
+        sendErrorEvent(telemetryView, telemetryAction, {
             error,
             includeErrorMessage,
             errorCode,
             errorType,
-            {
+            additionalProps: {
                 ...activityUpdateAdditionalPropsBase,
                 ...additionalProps,
                 activityStatus: "Failed",
                 ...(endFailedCallStack && { callStack: endFailedCallStack }),
             },
-            {
+            additionalMeasurements: {
                 ...activityUpdateAdditionalMeasurementsBase,
                 ...additionalMeasurements,
                 durationMs: Math.round(performance.now() - startTime),
             },
             connectionInfo,
             serverInfo,
-        );
+        });
     }
 
     return {

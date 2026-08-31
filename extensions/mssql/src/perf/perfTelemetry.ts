@@ -70,6 +70,14 @@ export function featureFor(name: string): string {
     if (name.startsWith("mssql.query")) return "query";
     if (name.startsWith("mssql.resultsGrid")) return "resultsGrid";
     if (name.startsWith("mssql.oe")) return "objectExplorer";
+    if (
+        name.startsWith("metadata.") ||
+        name.startsWith("metadataStore.") ||
+        name.startsWith("metadataCache.") ||
+        name.startsWith("mssql.metadata.")
+    ) {
+        return "metadata";
+    }
     if (name.startsWith("driver.")) return "harness";
     return "system";
 }
@@ -83,6 +91,7 @@ export function featureFor(name: string): string {
 export const PERF_ATTR_CLASSIFICATION: Readonly<Record<string, DataClassification>> = {
     nodePath: "object.name",
     nodeType: "diagnostic.metadata",
+    objects: "diagnostic.metadata",
     objectName: "object.name",
     documentUri: "source.path",
     uri: "source.path",
@@ -98,6 +107,7 @@ export const PERF_ATTR_CLASSIFICATION: Readonly<Record<string, DataClassificatio
     reason: "diagnostic.metadata",
     resultSets: "diagnostic.metadata",
     rowCount: "diagnostic.metadata",
+    waitedMs: "diagnostic.metadata",
 };
 
 /** Parse the harness repetition id without ever emitting NaN/null on the wire. */

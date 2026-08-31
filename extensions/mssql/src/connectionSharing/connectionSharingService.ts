@@ -337,9 +337,11 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
         authenticationType?: string,
     ): void {
         sendActionEvent(TelemetryViews.Connection, TelemetryActions.ConnectionSharingApiCalled, {
-            method: apiName,
-            authenticationType: authenticationType ?? "unknown",
-            extensionId: extensionId ?? "unknown",
+            additionalProps: {
+                method: apiName,
+                authenticationType: authenticationType ?? "unknown",
+                extensionId: extensionId ?? "unknown",
+            },
         });
     }
 
@@ -379,7 +381,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
             sendActionEvent(
                 TelemetryViews.Connection,
                 TelemetryActions.ConnectionSharingRetirementToast,
-                { extensionId, action: "suppressedInternalConsumer" },
+                { additionalProps: { extensionId, action: "suppressedInternalConsumer" } },
             );
             return;
         }
@@ -405,7 +407,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
         sendActionEvent(
             TelemetryViews.Connection,
             TelemetryActions.ConnectionSharingRetirementToast,
-            { extensionId, action: "shown" },
+            { additionalProps: { extensionId, action: "shown" } },
         );
         void Promise.resolve(
             vscode.window.showWarningMessage(
@@ -419,7 +421,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
                     sendActionEvent(
                         TelemetryViews.Connection,
                         TelemetryActions.ConnectionSharingRetirementToast,
-                        { extensionId, action: "requestFeature" },
+                        { additionalProps: { extensionId, action: "requestFeature" } },
                     );
                     await this.suppressConnectionSharingRetirementWarning(extensionId);
                     void vscode.env.openExternal(
@@ -431,14 +433,14 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
                     sendActionEvent(
                         TelemetryViews.Connection,
                         TelemetryActions.ConnectionSharingRetirementToast,
-                        { extensionId, action: "doNotShowAgain" },
+                        { additionalProps: { extensionId, action: "doNotShowAgain" } },
                     );
                     await this.suppressConnectionSharingRetirementWarning(extensionId);
                 } else {
                     sendActionEvent(
                         TelemetryViews.Connection,
                         TelemetryActions.ConnectionSharingRetirementToast,
-                        { extensionId, action: "dismissed" },
+                        { additionalProps: { extensionId, action: "dismissed" } },
                     );
                 }
             })

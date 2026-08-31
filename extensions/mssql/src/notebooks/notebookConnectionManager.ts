@@ -197,8 +197,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
         const activity = startActivity(
             TelemetryViews.SqlNotebooks,
             TelemetryActions.NotebookConnect,
-            undefined,
-            { method: "prompt" },
+            { additionalProps: { method: "prompt" } },
         );
         try {
             const pickListItems = await this.connectionMgr.connectionStore.getPickListItems();
@@ -251,8 +250,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
         const activity = startActivity(
             TelemetryViews.SqlNotebooks,
             TelemetryActions.NotebookConnect,
-            undefined,
-            { method: "objectExplorer" },
+            { additionalProps: { method: "objectExplorer" } },
         );
         try {
             const server = connectionInfo.server;
