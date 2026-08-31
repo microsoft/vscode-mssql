@@ -1011,6 +1011,10 @@ const HONESTY_CASES: readonly HonestyCase[] = [
         sql: "SELECT v.a FROM (VALUES (1, 2), (3, 4)) v(a, b)",
     },
     {
+        name: "derived source with spaced column alias list",
+        sql: "SELECT d.c1 FROM (SELECT OrderID, CustomerID FROM Sales.Orders) AS d (c1, c2)",
+    },
+    {
         name: "SELECT assignment alias",
         sql: "SELECT alias = OrderID FROM Sales.Orders",
     },

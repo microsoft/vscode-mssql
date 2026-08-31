@@ -72,6 +72,9 @@ suite("sqlLanguage sketch parser", () => {
         for (const text of [
             "SELECT v.a FROM (VALUES (1, 2)) v(a, b)",
             "SELECT d.a FROM (SELECT 1, 2) AS d(a, b)",
+            "SELECT v.a FROM (VALUES (1, 2)) v (a, b)",
+            "SELECT d.a FROM (SELECT 1, 2) AS d (a, b)",
+            "SELECT d.a FROM (SELECT 1, 2) AS d\n(a, b)",
         ]) {
             const s = sketch(text);
             expect(s.sources, text).to.have.length(1);

@@ -371,6 +371,25 @@ function parseFromSources(
             const spanStart = b.tok(j)!.start;
             const spanEnd = b.tok(Math.max(j, close - 1))!.end;
             const aliasRead = readAlias(b, close, endExclusive);
+            // A derived/VALUES source can declare a column alias list after
+            // its correlation name: `(VALUES (...)) v(a, b)` — with or
+            // without trivia before the paren. Capture the names (they
+            // rename the exposed columns positionally) and skip the whole
+            // balanced list so its comma cannot start a phantom source.
+            const aliasListOpen = b.next(aliasRead.next, endExclusive);
+            let columnAliases: string[] | undefined;
+            let afterAlias = aliasRead.next;
+            if (aliasRead.alias !== undefined && b.punct(aliasListOpen) === "(") {
+                const aliasListClose = b.skipBalanced(aliasListOpen, endExclusive);
+                columnAliases = [];
+                for (let k = aliasListOpen + 1; k < aliasListClose - 1; k++) {
+                    const namePart = b.isNameToken(k) ? b.namePart(k) : undefined;
+                    if (namePart !== undefined) {
+                        columnAliases.push(namePart);
+                    }
+                }
+                afterAlias = aliasListClose;
+            }
             b.sources.push({
                 scopeId,
                 parts: [],
@@ -378,14 +397,11 @@ function parseFromSources(
                 alias: aliasRead.alias,
                 span: { start: spanStart, end: spanEnd },
                 innerScopeId,
+                ...(columnAliases !== undefined && columnAliases.length > 0
+                    ? { columnAliases }
+                    : {}),
             });
-            // A derived/VALUES source can declare a column alias list after
-            // its correlation name: `(VALUES (...)) v(a, b)`. Skip the whole
-            // balanced list so its comma cannot start a phantom source.
-            j =
-                aliasRead.alias !== undefined && b.punct(aliasRead.next) === "("
-                    ? b.skipBalanced(aliasRead.next, endExclusive)
-                    : aliasRead.next;
+            j = afterAlias;
             expectSource = false;
             continue;
         }

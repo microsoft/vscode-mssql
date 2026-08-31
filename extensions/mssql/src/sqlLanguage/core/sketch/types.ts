@@ -73,6 +73,8 @@ export interface SourceRef {
     readonly span: SketchSpan;
     /** The derived table / TVF body scope, when kind is derived. */
     readonly innerScopeId?: number;
+    /** Correlation column alias list: `(VALUES ...) v(a, b)` renames positionally. */
+    readonly columnAliases?: readonly string[];
 }
 
 export interface QueryScope {

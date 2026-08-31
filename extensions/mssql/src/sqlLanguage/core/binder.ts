@@ -286,6 +286,17 @@ export function bindStatement(input: BindInput): StatementBinding {
                 }));
             case "derived": {
                 const derived = derivedColumns(bound.source.innerScopeId);
+                const aliases = bound.source.columnAliases;
+                if (aliases !== undefined && aliases.length > 0) {
+                    // The correlation list renames (and fully names) the
+                    // exposed columns positionally — VALUES sources gain
+                    // names here that no inner select item can provide.
+                    return aliases.map((name, index) => ({
+                        ...(derived?.[index] ?? {}),
+                        name,
+                        fromLabel: bound.label,
+                    }));
+                }
                 return derived?.map((c) => ({ ...c, fromLabel: bound.label }));
             }
             case "opaque":
