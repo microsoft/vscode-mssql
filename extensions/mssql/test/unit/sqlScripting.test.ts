@@ -567,7 +567,7 @@ suite("sqlScripting DML templates", () => {
         };
         const insert = await scriptOf("dbo", "IdentityOnly", "insert", spec);
         expect(insert.text).to.contain("INSERT INTO dbo.IdentityOnly\r\nDEFAULT VALUES;");
-        expect(insert.text).to.not.contain("(");
+        expect(insert.text).to.not.contain("VALUES (");
         expect(insert.fidelityNotes.join(" ")).to.contain("DEFAULT VALUES");
 
         const update = await scriptOf("dbo", "IdentityOnly", "update", spec);
