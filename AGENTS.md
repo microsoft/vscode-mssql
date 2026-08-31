@@ -24,7 +24,8 @@
   instead of concatenating or parsing translated display text.
 - Keep shared non-display values in the appropriate `constants.ts` only when they represent a
   genuine shared invariant; leave one-off implementation details near their use.
-- Do not hand-edit localization bundles, XLIFF files, or `localizedConstants.ts`.
+- Treat `*.xlf`, `*.xlf.lcl`, `*.l10n.json`, and `localizedConstants.ts` as generated localization
+  output; do not edit or review them directly.
 - Treat a connection ID as its identity. Do not compare or key connections using display
   properties.
 - Use `FluentSlickGrid` rather than importing `SlickgridReact` directly. Use `useVscodeSelector`
