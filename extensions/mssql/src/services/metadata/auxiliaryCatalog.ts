@@ -50,6 +50,11 @@ export interface AuxSectionStatus {
     readonly errorMessage?: string;
 }
 
+export interface AuxiliaryCatalogOptions {
+    /** Live policy gate; false means no resolver/session/query work is allowed. */
+    readonly isNetworkAllowed?: () => boolean;
+}
+
 interface SectionState {
     readiness: AuxSectionReadiness;
     generation: number;
@@ -67,11 +72,14 @@ export class AuxiliaryCatalog {
     private readonly sections = new Map<string, SectionState>();
     private readonly specs = new Map<string, AuxSectionSpec>();
     private listeners = new Set<() => void>();
+    /** All sections share one physical session, which permits one active query. */
+    private sessionLane: Promise<void> = Promise.resolve();
 
     constructor(
         private readonly sessions: MetadataSessionSource,
         specs: readonly AuxSectionSpec[],
         private readonly tag: string,
+        private readonly options: AuxiliaryCatalogOptions = {},
     ) {
         for (const spec of specs) {
             this.specs.set(spec.key, spec);
@@ -145,11 +153,31 @@ export class AuxiliaryCatalog {
         if (state.inFlight) {
             return state.inFlight;
         }
-        const run = this.hydrateSection(spec, state).finally(() => {
-            state.inFlight = undefined;
-        });
+        if (!this.networkAllowed()) {
+            return Promise.resolve();
+        }
+        const run = this.sessionLane
+            .catch(() => undefined)
+            .then(async () => {
+                // The policy is live: a queued section must re-check before
+                // opening the shared session after an online→offline switch.
+                if (this.networkAllowed()) {
+                    await this.hydrateSection(spec, state);
+                }
+            })
+            .finally(() => {
+                state.inFlight = undefined;
+            });
         state.inFlight = run;
+        this.sessionLane = run.then(
+            () => undefined,
+            () => undefined,
+        );
         return run;
+    }
+
+    private networkAllowed(): boolean {
+        return this.options.isNetworkAllowed?.() !== false;
     }
 
     private async hydrateSection(spec: AuxSectionSpec, state: SectionState): Promise<void> {

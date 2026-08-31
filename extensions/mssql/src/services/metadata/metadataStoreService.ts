@@ -16,6 +16,7 @@
  */
 
 import { SqlDataPlaneService } from "../sqlDataPlane/sqlDataPlaneService";
+import * as locConstants from "../../constants/locConstants";
 import { MetadataCacheCoordinator } from "./cache/metadataCacheCoordinator";
 import { MetadataCacheSettings } from "./cache/metadataCacheSettings";
 import { MetadataCacheStore, NodeFsLike } from "./cache/metadataCacheStore";
@@ -24,7 +25,10 @@ import { MetadataStore } from "./metadataStore";
 export interface MetadataCacheInit {
     /** e.g. <globalStorage>/metadata-cache — the cache root directory. */
     readonly cacheRootPath: string;
-    /** Live settings read (config changes flow without restart). */
+    /**
+     * Live policy settings read. Enabling the cache itself still requires a
+     * reload because the coordinator is created only during store composition.
+     */
     readonly settings: () => MetadataCacheSettings;
     readonly producer?: {
         readonly extensionVersion?: string;
@@ -35,13 +39,13 @@ export interface MetadataCacheInit {
 /**
  * Host facts for H-3 poll governance, injected here so the store and its
  * engines stay vscode-free: the activation path passes
- * `isActive: () => vscode.window.state.focused` and a live read of
- * `mssql.metadata.pollSeconds` (internal setting; the engine already
- * accepted pollSeconds — this exposes it).
+ * `isActive: () => vscode.window.state.focused` and the configured
+ * `mssql.metadata.pollSeconds` value captured when the store is composed.
  */
 export interface MetadataHostInit {
     readonly isActive?: () => boolean;
     readonly pollSeconds?: () => number;
+    readonly dataPlaneEnabled?: () => boolean;
 }
 
 export class MetadataStoreService {
@@ -88,16 +92,25 @@ export class MetadataStoreService {
     store(): MetadataStore {
         if (!this.storeInstance) {
             const init = this.cacheInit;
-            if (init) {
+            if (init?.settings().enabled) {
                 const diskStore = new MetadataCacheStore(new NodeFsLike(), init.cacheRootPath);
                 this.coordinator = new MetadataCacheCoordinator(diskStore, init.settings, {
                     ...(init.producer ? { producer: init.producer } : {}),
                 });
             }
             this.storeInstance = new MetadataStore(
-                (profileFingerprint) =>
-                    SqlDataPlaneService.get().serviceForProfile(profileFingerprint),
+                (profileFingerprint) => {
+                    if (this.hostInit?.dataPlaneEnabled?.() === false) {
+                        throw new Error(locConstants.Metadata.dataPlaneRequired);
+                    }
+                    return SqlDataPlaneService.get().serviceForProfile(profileFingerprint);
+                },
                 {
+                    assertAcquisitionAllowed: () => {
+                        if (this.hostInit?.dataPlaneEnabled?.() === false) {
+                            throw new Error(locConstants.Metadata.dataPlaneRequired);
+                        }
+                    },
                     ...(this.hostInit?.pollSeconds
                         ? { pollSeconds: this.hostInit.pollSeconds() }
                         : {}),
@@ -126,9 +139,17 @@ export class MetadataStoreService {
     /** H-10: eviction hygiene, called AFTER activation completes — never
      *  inside mssql.activate timings. */
     async maintenance(): Promise<void> {
-        if (this.storeInstance && this.coordinator) {
+        if (!this.storeInstance && this.cacheInit?.settings().enabled) {
+            this.store();
+        }
+        if (this.coordinator) {
             await this.coordinator.runMaintenance();
         }
+    }
+
+    /** Persist pending debounced snapshots before extension deactivation. */
+    async flush(): Promise<void> {
+        await this.coordinator?.flush();
     }
 
     dispose(): void {

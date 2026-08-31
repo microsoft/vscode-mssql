@@ -27,6 +27,7 @@ import { CATALOG_MODEL_VERSION } from "./metadataCacheCodec";
 export const CACHE_FORMAT_VERSION = 1;
 export const CACHE_CODEC = "json-gzip-v1";
 export const CACHE_PAYLOAD_FILE = "catalog.json.gz";
+const CONTENT_ADDRESSED_PAYLOAD = /^catalog\.[0-9a-f]{64}\.json\.gz$/;
 
 export interface CatalogCacheManifest {
     readonly formatVersion: typeof CACHE_FORMAT_VERSION;
@@ -76,16 +77,18 @@ export interface CatalogCacheManifest {
         readonly columns: number;
         readonly foreignKeys: number;
         readonly payloadBytes: number;
-        readonly uncompressedBytes?: number;
+        readonly uncompressedBytes: number;
     };
     readonly privacy: {
         readonly includesDescriptions: boolean;
+        readonly includesColumnDefinitions: boolean;
         readonly includesModuleDefinitions: boolean;
         readonly includesRowCounts: boolean;
         readonly policyId: string;
     };
     readonly payload: {
-        readonly file: typeof CACHE_PAYLOAD_FILE;
+        /** Legacy fixed name or the current content-addressed name. */
+        readonly file: string;
         /** sha256 (hex) over the COMPRESSED payload file bytes. */
         readonly sha256: string;
         /**
@@ -142,8 +145,8 @@ function isNonEmptyString(value: unknown): value is string {
     return typeof value === "string" && value.length > 0;
 }
 
-function isFiniteNumber(value: unknown): value is number {
-    return typeof value === "number" && Number.isFinite(value);
+function isNonNegativeSafeInteger(value: unknown): value is number {
+    return typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
 }
 
 /**
@@ -184,7 +187,7 @@ export function validateManifest(value: unknown): ManifestValidationResult {
     if (
         !isRecord(capture) ||
         !isNonEmptyString(capture["capturedAtUtc"]) ||
-        !isFiniteNumber(capture["publishedGeneration"]) ||
+        !isNonNegativeSafeInteger(capture["publishedGeneration"]) ||
         typeof capture["source"] !== "string" ||
         !CAPTURE_SOURCES.has(capture["source"])
     ) {
@@ -215,12 +218,12 @@ export function validateManifest(value: unknown): ManifestValidationResult {
     const stats = value["stats"];
     if (
         !isRecord(stats) ||
-        !isFiniteNumber(stats["schemas"]) ||
-        !isFiniteNumber(stats["objects"]) ||
-        !isFiniteNumber(stats["columns"]) ||
-        !isFiniteNumber(stats["foreignKeys"]) ||
-        !isFiniteNumber(stats["payloadBytes"]) ||
-        (stats["uncompressedBytes"] !== undefined && !isFiniteNumber(stats["uncompressedBytes"]))
+        !isNonNegativeSafeInteger(stats["schemas"]) ||
+        !isNonNegativeSafeInteger(stats["objects"]) ||
+        !isNonNegativeSafeInteger(stats["columns"]) ||
+        !isNonNegativeSafeInteger(stats["foreignKeys"]) ||
+        !isNonNegativeSafeInteger(stats["payloadBytes"]) ||
+        !isNonNegativeSafeInteger(stats["uncompressedBytes"])
     ) {
         return fail("shape", "stats");
     }
@@ -228,7 +231,8 @@ export function validateManifest(value: unknown): ManifestValidationResult {
     if (
         !isRecord(privacy) ||
         typeof privacy["includesDescriptions"] !== "boolean" ||
-        typeof privacy["includesModuleDefinitions"] !== "boolean" ||
+        privacy["includesColumnDefinitions"] !== false ||
+        privacy["includesModuleDefinitions"] !== false ||
         typeof privacy["includesRowCounts"] !== "boolean" ||
         !isNonEmptyString(privacy["policyId"])
     ) {
@@ -237,9 +241,13 @@ export function validateManifest(value: unknown): ManifestValidationResult {
     const payload = value["payload"];
     if (
         !isRecord(payload) ||
-        payload["file"] !== CACHE_PAYLOAD_FILE ||
-        !isNonEmptyString(payload["sha256"]) ||
-        !isNonEmptyString(payload["contentHash"])
+        (payload["file"] !== CACHE_PAYLOAD_FILE &&
+            (typeof payload["file"] !== "string" ||
+                !CONTENT_ADDRESSED_PAYLOAD.test(payload["file"]))) ||
+        typeof payload["sha256"] !== "string" ||
+        !/^[0-9a-f]{64}$/.test(payload["sha256"]) ||
+        typeof payload["contentHash"] !== "string" ||
+        !/^csh_[A-Za-z0-9_-]{22}$/.test(payload["contentHash"])
     ) {
         return fail("shape", "payload");
     }

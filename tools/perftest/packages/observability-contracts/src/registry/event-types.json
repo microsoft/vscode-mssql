@@ -1473,7 +1473,8 @@
                 "columnCount": "structuralMetadata",
                 "totalColumns": "structuralMetadata",
                 "requestedCells": "structuralMetadata",
-                "projected": "structuralMetadata"
+                "projected": "structuralMetadata",
+                "purpose": "safeEnum"
             },
             "attrsComplete": true,
             "notes": "Grid viewport window RPC issued from the webview data source with exact row/column projection cardinality (QO-2/QO-6)."
@@ -3198,6 +3199,107 @@
                 "outcome": "safeEnum"
             },
             "notes": "SPA-10: the selected map layer painted (outcome ok) or reached a terminal failure (outcome unavailable). Feature rendering is never blocked by this state."
+        },
+        {
+            "name": "debugConsole.opened",
+            "kind": "event",
+            "phase": "instant",
+            "feature": "diagnostics",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {},
+            "attrsComplete": false
+        },
+        {
+            "name": "sessionDiag.export.end",
+            "kind": "event",
+            "phase": "instant",
+            "feature": "diagnostics",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {},
+            "attrsComplete": false
+        },
+        {
+            "prefix": "docker.",
+            "kind": "spanFamily",
+            "feature": "deployment",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {},
+            "attrsComplete": false,
+            "notes": "Local SQL container lifecycle spans. Image/container identifiers remain governed diagnostic fields and are never measurement dimensions."
+        },
+        {
+            "name": "queryStudio.dbSwitch",
+            "kind": "event",
+            "phase": "instant",
+            "feature": "queryStudio",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {},
+            "attrsComplete": false
+        },
+        {
+            "name": "queryStudio.open.resolve",
+            "kind": "event",
+            "phase": "instant",
+            "feature": "queryStudio",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {},
+            "attrsComplete": false
+        },
+        {
+            "name": "schemaVisualizer.drift",
+            "kind": "event",
+            "phase": "instant",
+            "feature": "schemaVisualizer",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {},
+            "attrsComplete": false
+        },
+        {
+            "name": "schemaVisualizer.open.retry",
+            "kind": "event",
+            "phase": "instant",
+            "feature": "schemaVisualizer",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {},
+            "attrsComplete": false
+        },
+        {
+            "name": "schemaVisualizer.getModel.begin",
+            "kind": "marker",
+            "phase": "begin",
+            "pairsWith": "schemaVisualizer.getModel.end",
+            "feature": "schemaVisualizer",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {},
+            "attrsComplete": false
+        },
+        {
+            "name": "schemaVisualizer.getModel.end",
+            "kind": "marker",
+            "phase": "end",
+            "pairsWith": "schemaVisualizer.getModel.begin",
+            "feature": "schemaVisualizer",
+            "processRoles": ["extensionHost"],
+            "timingClass": "sameProcessMonotonic",
+            "measurementEligible": false,
+            "attrs": {},
+            "attrsComplete": false
         }
     ],
     "metrics": [

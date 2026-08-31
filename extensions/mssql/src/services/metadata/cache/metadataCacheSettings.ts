@@ -77,9 +77,10 @@ function readPositiveNumber(
     accessor: MetadataCacheSettingsAccessor,
     key: string,
     dflt: number,
+    minimum: number,
 ): number {
     const value = accessor(key, dflt);
-    return typeof value === "number" && Number.isFinite(value) && value >= 0 ? value : dflt;
+    return typeof value === "number" && Number.isFinite(value) && value >= minimum ? value : dflt;
 }
 
 /** Read mssql.metadataCache.* through the injected accessor. */
@@ -87,22 +88,17 @@ export function readMetadataCacheSettings(
     accessor: MetadataCacheSettingsAccessor,
 ): MetadataCacheSettings {
     const defaults = DEFAULT_METADATA_CACHE_SETTINGS;
-    const persistDescriptions = readBoolean(
-        accessor,
-        "persistDescriptions",
-        defaults.persistDescriptions,
-    );
-    const persistModuleDefinitions = readBoolean(
-        accessor,
-        "persistModuleDefinitions",
-        defaults.persistModuleDefinitions,
-    );
+    // Payload v1 intentionally has no settings surface for prose or SQL
+    // definitions. Keep both privacy flags closed even if users place
+    // undeclared keys in settings.json.
+    const persistDescriptions = false;
+    const persistModuleDefinitions = false;
     return {
         enabled: readBoolean(accessor, "enabled", defaults.enabled),
-        maxAgeDays: readPositiveNumber(accessor, "maxAgeDays", defaults.maxAgeDays),
-        maxBytes: readPositiveNumber(accessor, "maxBytes", defaults.maxBytes),
-        maxEntryBytes: readPositiveNumber(accessor, "maxEntryBytes", defaults.maxEntryBytes),
-        writeDelayMs: readPositiveNumber(accessor, "writeDelayMs", defaults.writeDelayMs),
+        maxAgeDays: readPositiveNumber(accessor, "maxAgeDays", defaults.maxAgeDays, 1),
+        maxBytes: readPositiveNumber(accessor, "maxBytes", defaults.maxBytes, 1_048_576),
+        maxEntryBytes: defaults.maxEntryBytes,
+        writeDelayMs: defaults.writeDelayMs,
         persistDescriptions,
         persistModuleDefinitions,
         offlineMode: readBoolean(accessor, "offlineMode", defaults.offlineMode),

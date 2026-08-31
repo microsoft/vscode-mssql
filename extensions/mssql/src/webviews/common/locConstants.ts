@@ -2374,7 +2374,6 @@ export class LocConstants {
             ),
             selectSourceSchema: l10n.t("Select Source Schema"),
             selectTargetSchema: l10n.t("Select Target Schema"),
-            addServerConnection: l10n.t("Add Server Connection"),
             noDifferences: l10n.t("No schema differences were found."),
             initializingComparison: l10n.t("Initializing comparison, this might take a while..."),
             applyingChanges: l10n.t("Applying changes, this might take a while..."),
@@ -2384,7 +2383,7 @@ export class LocConstants {
             applyFailedRunAgain: l10n.t(
                 "Apply failed. Fix the error and retry, or run Schema Compare again.",
             ),
-            server: l10n.t("Server"),
+            connection: l10n.t("Connection"),
             database: l10n.t("Database"),
             defaultUserName: l10n.t("default"),
             folderStructure: l10n.t("Folder Structure"),

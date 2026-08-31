@@ -2,6 +2,11 @@
  * Re-vendor: copy the src/central/*.ts files here with this header (see
  * perf-contracts test/centralVendorSync.test.ts, which pins byte equality).
  * Contract central/1.0 — one projection implementation, two writers. */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 /**
  * Central observability store contract (central design §4, review addendum).
  * Everything the two writers share: canonical digests, upload policies,

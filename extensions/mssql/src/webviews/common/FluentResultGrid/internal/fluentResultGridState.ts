@@ -201,7 +201,7 @@ export function getFluentResultGridCurrentViewState({
             grid.getOptions().frozenColumn ?? frozenColumnIndex,
             columnsForState.length,
         ),
-        selection: getFluentResultGridDataSelectionsFromRanges(selectedRanges),
+        selection: getFluentResultGridDataSelectionsFromRanges(selectedRanges, grid.getColumns()),
         rowNumberColumnWidth,
     };
 }

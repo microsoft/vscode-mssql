@@ -148,6 +148,7 @@ suite("central upload service (fake data plane)", () => {
         );
         assert.strictEqual(result.receipt?.outcome, "committed");
         assert.strictEqual(result.receipt?.uploadBatchId, 7);
+        assert.strictEqual(result.receipt?.reasonCode, null);
         assert.strictEqual(staged.length, projection.items.length);
         assert.strictEqual(progress[progress.length - 1], projection.items.length);
         // Literal-encoding discipline on the wire: N-strings, doubled quotes

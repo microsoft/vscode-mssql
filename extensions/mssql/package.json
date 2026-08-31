@@ -95,6 +95,7 @@
         "@types/azdata": "^1.46.6",
         "@types/chai": "^5.2.2",
         "@types/dockerode": "^3.3.44",
+        "@types/fs-extra": "^5.0.0",
         "@types/jquery": "^3.3.31",
         "@types/lockfile": "^1.0.2",
         "@types/lodash": "^4.17.21",
@@ -108,6 +109,7 @@
         "@types/tmp": "0.0.28",
         "@types/vscode": "1.101.0",
         "@types/vscode-webview": "^1.57.5",
+        "@types/which": "^3.0.4",
         "@types/xmldom": "^0.1.34",
         "@typescript/native-preview": "^7.0.0-dev.20260507.1",
         "@vscode/l10n": "^0.0.18",
@@ -163,9 +165,12 @@
         "dotenv": "^16.4.5",
         "error-ex": "^1.3.0",
         "extension-toolkit": "file:../../packages/extension-toolkit",
+        "extract-zip": "^2.0.1",
         "figures": "^1.4.0",
         "find-remove": "5.1.1",
         "fix-path": "^5.0.0",
+        "fs-extra": "^5.0.0",
+        "glob": "^13.0.6",
         "has-proto": "^1.2.0",
         "jquery": "^3.4.1",
         "lockfile": "1.0.4",
@@ -173,6 +178,7 @@
         "opener": "1.5.2",
         "plist": "^3.0.6",
         "pretty-data": "^0.40.0",
+        "promisify-child-process": "^3.1.1",
         "semver": "^7.7.4",
         "shallow-equal": "^3.1.0",
         "strip-json-comments": "^5.0.1",
@@ -181,6 +187,7 @@
         "vscode-jsonrpc": "^9.0.0",
         "vscode-languageclient": "10.0.0",
         "xml-formatter": "^3.6.7",
+        "which": "^6.0.1",
         "yallist": "^5.0.0",
         "yauzl": "^3.3.1",
         "@anthropic-ai/sdk": "^0.91.1",
@@ -1293,30 +1300,6 @@
                     "when": "config.mssql.queryStudio.spatial.basemap.enabled"
                 },
                 {
-                    "command": "mssql.metadataCache.showStatus",
-                    "when": "config.mssql.metadataCache.enabled"
-                },
-                {
-                    "command": "mssql.metadataCache.clearAll",
-                    "when": "config.mssql.metadataCache.enabled"
-                },
-                {
-                    "command": "mssql.metadataCache.clearForConnection",
-                    "when": "config.mssql.metadataCache.enabled"
-                },
-                {
-                    "command": "mssql.metadataCache.enableOfflineMode",
-                    "when": "config.mssql.metadataCache.enabled"
-                },
-                {
-                    "command": "mssql.metadataCache.disableOfflineMode",
-                    "when": "config.mssql.metadataCache.enabled"
-                },
-                {
-                    "command": "mssql.sqlDataPlane.showStatus",
-                    "when": "config.mssql.sqlDataPlane.enabled"
-                },
-                {
                     "command": "mssql.sqlDataPlane.pickDocumentBackend",
                     "when": "config.mssql.sqlDataPlane.enabled && config.mssql.queryStudio.enabled"
                 },
@@ -1528,6 +1511,30 @@
                 {
                     "command": "mssql.runQueryWithUriOwnership",
                     "when": "false"
+                },
+                {
+                    "command": "mssql.sqlDataPlane.showStatus",
+                    "when": "mssql.privatePreview.sqlDataPlaneActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled"
+                },
+                {
+                    "command": "mssql.metadataCache.showStatus",
+                    "when": "mssql.privatePreview.metadataCacheActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.metadataCache.enabled"
+                },
+                {
+                    "command": "mssql.metadataCache.clearAll",
+                    "when": "mssql.privatePreview.metadataCacheActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.metadataCache.enabled"
+                },
+                {
+                    "command": "mssql.metadataCache.clearForConnection",
+                    "when": "mssql.privatePreview.metadataCacheActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.metadataCache.enabled"
+                },
+                {
+                    "command": "mssql.metadataCache.enableOfflineMode",
+                    "when": "mssql.privatePreview.metadataCacheActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.metadataCache.enabled && !config.mssql.metadataCache.offlineMode"
+                },
+                {
+                    "command": "mssql.metadataCache.disableOfflineMode",
+                    "when": "mssql.privatePreview.metadataCacheActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.metadataCache.enabled && config.mssql.metadataCache.offlineMode"
                 },
                 {
                     "command": "mssql.connectWithUriOwnership",
@@ -2474,31 +2481,6 @@
                 "category": "MS SQL"
             },
             {
-                "command": "mssql.metadataCache.showStatus",
-                "title": "Metadata Cache: Show Status",
-                "category": "MS SQL"
-            },
-            {
-                "command": "mssql.metadataCache.clearAll",
-                "title": "Metadata Cache: Clear All",
-                "category": "MS SQL"
-            },
-            {
-                "command": "mssql.metadataCache.clearForConnection",
-                "title": "Metadata Cache: Clear for Connection",
-                "category": "MS SQL"
-            },
-            {
-                "command": "mssql.metadataCache.enableOfflineMode",
-                "title": "Metadata Cache: Enable Offline Mode",
-                "category": "MS SQL"
-            },
-            {
-                "command": "mssql.metadataCache.disableOfflineMode",
-                "title": "Metadata Cache: Disable Offline Mode",
-                "category": "MS SQL"
-            },
-            {
                 "command": "mssql.objectExplorerV2.openClassicObjectExplorer",
                 "title": "Object Explorer v2: Open Classic Object Explorer",
                 "category": "MS SQL"
@@ -2779,7 +2761,37 @@
                 "command": "mssql.sqlDataPlane.showStatus",
                 "title": "%mssql.sqlDataPlane.showStatus%",
                 "category": "MS SQL",
-                "enablement": "config.mssql.sqlDataPlane.enabled"
+                "enablement": "mssql.privatePreview.sqlDataPlaneActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled"
+            },
+            {
+                "command": "mssql.metadataCache.showStatus",
+                "title": "%mssql.metadataCache.showStatus%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.metadataCacheActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.metadataCache.enabled"
+            },
+            {
+                "command": "mssql.metadataCache.clearAll",
+                "title": "%mssql.metadataCache.clearAll%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.metadataCacheActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.metadataCache.enabled"
+            },
+            {
+                "command": "mssql.metadataCache.clearForConnection",
+                "title": "%mssql.metadataCache.clearForConnection%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.metadataCacheActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.metadataCache.enabled"
+            },
+            {
+                "command": "mssql.metadataCache.enableOfflineMode",
+                "title": "%mssql.metadataCache.enableOfflineMode%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.metadataCacheActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.metadataCache.enabled && !config.mssql.metadataCache.offlineMode"
+            },
+            {
+                "command": "mssql.metadataCache.disableOfflineMode",
+                "title": "%mssql.metadataCache.disableOfflineMode%",
+                "category": "MS SQL",
+                "enablement": "mssql.privatePreview.metadataCacheActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.metadataCache.enabled && config.mssql.metadataCache.offlineMode"
             }
         ],
         "keybindings": [
@@ -2868,6 +2880,39 @@
                     "minimum": 1,
                     "default": 20000,
                     "markdownDescription": "%mssql.sqlDataPlane.timeouts.initializeMs.description%",
+                    "scope": "application"
+                },
+                "mssql.metadataCache.enabled": {
+                    "type": "boolean",
+                    "default": false,
+                    "markdownDescription": "%mssql.metadataCache.enabled.description%",
+                    "scope": "application"
+                },
+                "mssql.metadataCache.maxAgeDays": {
+                    "type": "number",
+                    "default": 14,
+                    "minimum": 1,
+                    "markdownDescription": "%mssql.metadataCache.maxAgeDays.description%",
+                    "scope": "application"
+                },
+                "mssql.metadataCache.maxBytes": {
+                    "type": "number",
+                    "default": 268435456,
+                    "minimum": 1048576,
+                    "markdownDescription": "%mssql.metadataCache.maxBytes.description%",
+                    "scope": "application"
+                },
+                "mssql.metadataCache.offlineMode": {
+                    "type": "boolean",
+                    "default": false,
+                    "markdownDescription": "%mssql.metadataCache.offlineMode.description%",
+                    "scope": "application"
+                },
+                "mssql.metadata.pollSeconds": {
+                    "type": "number",
+                    "default": 60,
+                    "minimum": 0,
+                    "markdownDescription": "%mssql.metadata.pollSeconds.description%",
                     "scope": "application"
                 },
                 "mssql.preview.betaResultsGrid": {
@@ -4617,39 +4662,6 @@
                         "Fail with the capability error; never switch providers."
                     ],
                     "markdownDescription": "What to do when the selected SQL data plane provider cannot open a profile (for example Windows integrated authentication on the Native TypeScript provider). Evaluated before any credential is resolved; the fallback is always visible and never re-runs SQL.",
-                    "scope": "application"
-                },
-                "mssql.metadataCache.enabled": {
-                    "type": "boolean",
-                    "default": false,
-                    "markdownDescription": "Persist metadata catalog snapshots locally so reconnects and cold restarts serve completions, AI schema context, and Object Explorer v2 instantly while a live refresh runs in the background. Snapshots contain structural metadata only (schemas, objects, columns, keys) — never descriptions, module definitions, query results, or secrets.",
-                    "scope": "application"
-                },
-                "mssql.metadataCache.maxAgeDays": {
-                    "type": "number",
-                    "default": 14,
-                    "minimum": 1,
-                    "description": "Persisted metadata snapshots older than this are evicted.",
-                    "scope": "application"
-                },
-                "mssql.metadataCache.maxBytes": {
-                    "type": "number",
-                    "default": 268435456,
-                    "minimum": 1048576,
-                    "description": "Total size cap for the persisted metadata cache (least-recently-used entries evicted first).",
-                    "scope": "application"
-                },
-                "mssql.metadata.pollSeconds": {
-                    "type": "number",
-                    "default": 60,
-                    "minimum": 0,
-                    "markdownDescription": "Internal/dogfood: base cadence in seconds for the background metadata drift digest poll (0 disables). Per-database backoff (up to 5× when nothing changes), window-focus suspension, and serverless auto-pause reduction apply on top of this base.",
-                    "scope": "application"
-                },
-                "mssql.metadataCache.offlineMode": {
-                    "type": "boolean",
-                    "default": false,
-                    "markdownDescription": "Serve metadata exclusively from persisted snapshots without contacting the server. Status surfaces always disclose the snapshot's age; strict operations (scripting) refuse or emit an offline banner.",
                     "scope": "application"
                 },
                 "mssql.debugConsole.richSnapshotHeartbeat": {

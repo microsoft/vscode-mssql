@@ -22,7 +22,9 @@ import { IExtension } from "vscode-mssql";
 import SqlToolsServerClient from "./languageservice/serviceclient";
 import { createMssqlInternalApi } from "./controllers/internalApiFactory";
 import { registerDataWorkspace } from "./dataWorkspace/dataWorkspaceRegistration";
-import { IExtension as IDataWorkspaceExtension } from "dataworkspace";
+import { ProjectProviderRegistry } from "./dataWorkspace/common/projectProviderRegistry";
+import { registerDatabaseProjects } from "./databaseProjects/extension";
+import { initializeDatabaseProjectsServices } from "./databaseProjects/serviceLocator";
 import {
     createSqlAgentRequestHandler,
     ISqlChatResult,
@@ -53,9 +55,7 @@ import { IAccountStore, AccountStore } from "./azure/accountStore";
 import { registerPerfApi } from "./perf/perfApi";
 import { Perf } from "./perf/perfTelemetry";
 import { diagnosticErrorClass } from "./diagnostics/diagnosticsCore";
-
-/** The mssql extension API, including the Projects workspace API used by project extensions. */
-export type MssqlExtensionApi = IExtension & { dataWorkspace?: IDataWorkspaceExtension };
+import { sqlDatabaseProjectsExtensionId } from "./constants/constants";
 
 /** exported for testing purposes only */
 export let controller: MainController = undefined;
@@ -63,7 +63,7 @@ export let uriOwnershipCoordinator: UriOwnershipCoordinator = undefined;
 
 let activation: MssqlActivation | undefined;
 
-export async function activate(context: vscode.ExtensionContext): Promise<MssqlExtensionApi> {
+export async function activate(context: vscode.ExtensionContext): Promise<IExtension> {
     initializeExtensionToolkit();
 
     // Install diagnostics before the first activation marker so startup events
@@ -127,7 +127,7 @@ class MssqlActivation {
         @IInstantiationService private readonly _instantiationService: IInstantiationService,
     ) {}
 
-    async activate(): Promise<MssqlExtensionApi> {
+    async activate(): Promise<IExtension> {
         const context = this._contextService.context;
         initializeTelemetryReporter(context.extension.packageJSON.aiKey);
 
@@ -135,7 +135,7 @@ class MssqlActivation {
         registerQueryStudio(context);
         registerSqlDataPlane(context);
 
-        // Create coordinator early so uriOwnershipApi is available for export
+        // Create the coordinator early so uriOwnershipApi is available for export.
         uriOwnershipCoordinator = createUriOwnershipCoordinator(context);
 
         controller = this._instantiationService.createInstance(MainController, context);
@@ -212,21 +212,31 @@ class MssqlActivation {
 
         await ChangelogWebviewController.showChangelogOnExtensionUpdate(context);
 
+        const dataWorkspaceApi = registerDataWorkspace(context);
+        const sqlProjectsShell = vscode.extensions.getExtension(sqlDatabaseProjectsExtensionId);
+        if (dataWorkspaceApi && sqlProjectsShell?.packageJSON.mssqlRuntime === true) {
+            initializeDatabaseProjectsServices(
+                createMssqlInternalApi(controller),
+                dataWorkspaceApi,
+            );
+            const provider = await registerDatabaseProjects(context);
+            context.subscriptions.push(
+                ProjectProviderRegistry.registerProvider(provider, sqlDatabaseProjectsExtensionId),
+            );
+        }
+
         registerPerfApi(context, { getController: () => controller });
 
-        // (Session Diag + Debug Console are initialized at the very top of
-        // activation so startup/activation events are captured, not dropped.)
-
+        // Session diagnostics and the Debug Console are initialized at the very top of
+        // activation so startup/activation events are captured rather than dropped.
         Perf.setActivationState("activated");
         Perf.marker("mssql.activate.end", "end");
         Perf.flush();
 
-        // TODO(api-retirement): Remove this public API after dependent extensions have migrated.
-        const api: MssqlExtensionApi = {
-            ...createMssqlInternalApi(controller, uriOwnershipCoordinator),
-            dataWorkspace: registerDataWorkspace(context),
+        return {
+            connectionSharing: controller.connectionSharingService,
+            uriOwnershipApi: uriOwnershipCoordinator.uriOwnershipApi,
         };
-        return api;
     }
 
     async deactivate(): Promise<void> {

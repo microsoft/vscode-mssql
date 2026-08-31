@@ -66,6 +66,7 @@ import {
     isFluentResultGridAllCellsSelected,
     clearFluentResultGridSelection,
 } from "./fluentResultGridSelection";
+import { getFluentResultGridColumnResizeDoubleClickTarget } from "./fluentResultGridColumnAutosize";
 import { hasActiveFluentResultGridFilters } from "./fluentResultGridTransforms";
 
 const emptyDataset: FluentResultGridDataRow[] = [];
@@ -295,7 +296,7 @@ export function useFluentResultGridController({
         openFilterMenuForColumn: commandController.openFilterMenuForColumn,
         openOverlay,
         resultSetSummary,
-        selectRange: commandController.selectRange,
+        selectRangesAndActivate: commandController.selectRangesAndActivate,
         sortStateRef: dataController.sortStateRef,
         strings,
         toggleSortForColumn: commandController.toggleSortForColumn,
@@ -376,7 +377,7 @@ export function useFluentResultGridController({
                     const ranges = getFluentResultGridSlickRangesFromDataSelections(
                         initialState.selection,
                         grid.getDataLength(),
-                        restoredColumns.length,
+                        restoredColumns,
                     );
                     grid.getSelectionModel()?.setSelectedRanges(ranges);
 
@@ -461,6 +462,10 @@ export function useFluentResultGridController({
             enableCellNavigation: true,
             enableColumnPicker: false,
             enableColumnReorder,
+            // Resolved in handleColumnsResizeDblClick instead: the library's
+            // resize-by-content measures dataView.getItems(), which is empty for this
+            // grid's windowed row store and would collapse the column.
+            enableColumnResizeOnDoubleClick: false,
             enableContextMenu: false,
             enableEmptyDataWarningMessage: false,
             enableExcelCopyBuffer: false,
@@ -613,7 +618,9 @@ export function useFluentResultGridController({
         // restored from view state. Imperative callers still need the same
         // selection-summary contract as a user-initiated change.
         if (alreadySelected && current) {
-            void onSelectionSummaryChange?.(getFluentResultGridDataSelectionsFromRanges([current]));
+            void onSelectionSummaryChange?.(
+                getFluentResultGridDataSelectionsFromRanges([current], grid.getColumns()),
+            );
         }
         return alreadySelected ? "alreadySelected" : "selected";
     }, [commandController.selectAllCells, onSelectionSummaryChange]);
@@ -632,6 +639,18 @@ export function useFluentResultGridController({
         return true;
     }, []);
 
+    const handleColumnsResizeDblClick = useCallback(
+        (event: CustomEvent) => {
+            const target = getFluentResultGridColumnResizeDoubleClickTarget(event.detail);
+            if (!target) {
+                return;
+            }
+
+            void layoutController.autoSizeColumnByContent(target.grid, target.columnId);
+        },
+        [layoutController],
+    );
+
     return {
         columns,
         commandContext,
@@ -646,6 +665,8 @@ export function useFluentResultGridController({
         gridOptions,
         handleBeforeHeaderCellDestroy: headerController.handleBeforeHeaderCellDestroy,
         handleClick: commandController.handleClick,
+        handleDblClick: commandController.handleDblClick,
+        handleColumnsResizeDblClick,
         handleCommand: commandController.handleCommand,
         handleContextMenu: commandController.handleContextMenu,
         handleGridContainerBlur: keyboardController.handleGridContainerBlur,

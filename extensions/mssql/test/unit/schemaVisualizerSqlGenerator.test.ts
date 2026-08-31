@@ -225,10 +225,15 @@ suite("Schema Visualizer SQL generator (SV-R5)", () => {
         const b = new CatalogBuilder();
         b.addSchema(1, "dbo");
         b.addObject(801, 1, "A", "table");
+        b.addObject(999, 1, "Gone", "table");
         b.addColumn(801, "Id", "int", false, false, false, 1, INT_DETAIL);
         b.addForeignKey(801, 999, "FK_A_Gone", 970, "NO_ACTION", "NO_ACTION");
         b.addForeignKeyColumn(970, "Id", "Gone", 1, 1, 1);
-        const model = buildVisualizerModel(b.build(1, READY_ALL, "full"), IDENTITY);
+        const fullModel = buildVisualizerModel(b.build(1, READY_ALL, "full"), IDENTITY);
+        const model = {
+            ...fullModel,
+            tables: fullModel.tables.filter((table) => table.identity.objectId !== 999),
+        };
         const script = generateTableScript(model.tables[0], model);
         expect(script.text).to.not.contain("FK_A_Gone");
         expect(script.warnings.join("\n")).to.contain("references a table outside this model");

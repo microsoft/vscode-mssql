@@ -263,11 +263,17 @@ suite("Schema Visualizer model (SV-R2)", () => {
         b.addSchema(1, "dbo");
         b.addObject(400, 1, "A", "table");
         b.addColumn(400, "Id", "int", false, false, false, 1);
-        // FK to object 999 which raced a DROP and is not in the catalog.
+        // The shared metadata catalog intentionally rejects an FK when either
+        // endpoint is invisible. Build a valid edge, then model the consumer's
+        // raced-DDL/subset view by removing the referenced table afterward.
+        b.addObject(999, 1, "Dropped", "table");
         b.addForeignKey(400, 999, "FK_A_Dropped", 970, "NO_ACTION", "NO_ACTION");
         b.addForeignKeyColumn(970, "Id", "Gone", 1, 1, 1);
         const model = buildVisualizerModel(b.build(1, READY_ALL, "full"), IDENTITY);
-        const projection = projectGraph(model);
+        const projection = projectGraph({
+            ...model,
+            tables: model.tables.filter((table) => table.identity.objectId !== 999),
+        });
         expect(projection.edges).to.deep.equal([]);
         expect(projection.danglingEdges.map((e) => e.id)).to.deep.equal(["fk:970"]);
 

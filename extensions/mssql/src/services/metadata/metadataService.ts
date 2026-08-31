@@ -32,7 +32,7 @@ import {
     ISqlSession,
     OpenSessionParams,
 } from "../sqlDataPlane/api";
-import { leadingKeyword } from "../../sql/batchSplitter";
+import { leadingKeyword } from "../../sql/leadingKeyword";
 import {
     AddColumnDetail,
     buildSchemaContext,
@@ -70,7 +70,7 @@ export interface MetadataStatus {
      */
     readiness: "absent" | "loading" | "ready" | "failed" | "stale";
     generation: number;
-    mode: "full" | "lite" | "partial";
+    mode?: "full" | "lite" | "partial";
     stats?: { schemas: number; objects: number; columns: number; foreignKeys: number };
     /** Most recent T1/full validation outcome, when one has run. */
     validation?: MetadataValidationSummary;
@@ -82,6 +82,8 @@ interface CatalogEntry {
     generation: number;
     status: MetadataStatus["readiness"];
     hydrating: Promise<void> | undefined;
+    /** At most one forced pass queued behind the current hydration. */
+    forcedRefresh: Promise<void> | undefined;
     lastDigest: string | undefined;
     listeners: Set<(status: MetadataStatus) => void>;
     refCount: number;
@@ -128,6 +130,10 @@ interface CatalogEntry {
      * NAME, key-correct by construction) can clear it. Never auto-rekeyed.
      */
     identityDrift: boolean;
+    /** Canonical DB_NAME() captured by H0 for identity comparisons. */
+    canonicalDatabase: string | undefined;
+    /** Catalog collation case rule captured by H0. */
+    catalogCaseSensitive: boolean | undefined;
 }
 
 /** Result of a lazy sys.sql_modules read (B12 scripting/definition). */
@@ -148,13 +154,17 @@ const KIND_BY_TYPE: Record<string, ObjectKind> = {
     IF: "tableFunction",
     TF: "tableFunction",
     SN: "synonym",
+    PC: "procedure",
+    FS: "scalarFunction",
+    FT: "tableFunction",
+    AF: "scalarFunction",
+    X: "procedure",
 };
 
-const H1_SCHEMAS =
-    "SELECT schema_id, name FROM sys.schemas WHERE schema_id < 16384 ORDER BY schema_id;";
+const H1_SCHEMAS = "SELECT schema_id, name FROM sys.schemas ORDER BY schema_id;";
 const H2_OBJECTS =
     "SELECT o.object_id, o.schema_id, o.name, RTRIM(o.type) AS type, CONVERT(varchar(33), o.modify_date, 126) AS modify_date " +
-    "FROM sys.objects o WHERE o.type IN ('U','V','P','FN','IF','TF','SN') AND o.is_ms_shipped = 0 ORDER BY o.object_id;";
+    "FROM sys.objects o WHERE o.type IN ('U','V','P','FN','IF','TF','SN','PC','FS','FT','AF','X') AND o.is_ms_shipped = 0 ORDER BY o.object_id;";
 // H3 (SV-R1 extension, visualizer addendum §5.1–§5.4): retains column_id +
 // exact type facts + default/identity/computed detail. Raw semantics only:
 // max_length stays BYTES (-1 = max); identity seed/increment CONVERT to
@@ -173,21 +183,28 @@ const H3_COLUMNS =
     "CONVERT(nvarchar(64), idc.seed_value) AS identity_seed, CONVERT(nvarchar(64), idc.increment_value) AS identity_increment, " +
     "cc.definition AS computed_definition, cc.is_persisted AS computed_persisted " +
     "FROM sys.columns c JOIN sys.types t ON c.user_type_id = t.user_type_id " +
-    "JOIN sys.objects o ON o.object_id = c.object_id AND o.type IN ('U','V','IF','TF') AND o.is_ms_shipped = 0 " +
+    "JOIN sys.objects o ON o.object_id = c.object_id AND o.type IN ('U','V','IF','TF','FT') AND o.is_ms_shipped = 0 " +
     "LEFT JOIN sys.default_constraints dc ON dc.object_id = c.default_object_id " +
     "LEFT JOIN sys.identity_columns idc ON idc.object_id = c.object_id AND idc.column_id = c.column_id " +
     "LEFT JOIN sys.computed_columns cc ON cc.object_id = c.object_id AND cc.column_id = c.column_id " +
+    "WHERE ISNULL(COLUMNPROPERTY(c.object_id, c.name, 'IsHidden'), 0) = 0 " +
     "ORDER BY c.object_id, c.column_id;";
 // H5 (SV-R1): + referential-action DESC strings (never the numeric values —
 // addendum §5.5: the catalog's 0/1 and the legacy OnAction 0/1 are SWAPPED).
+// Disabled constraints are excluded (not enforced). UNTRUSTED constraints
+// (is_not_trusted = 1: created WITH NOCHECK or re-enabled without WITH
+// CHECK) are kept — the engine still enforces them for every new write, so
+// they are real relationships for joins, the visualizer, and scripting.
 const H5_FOREIGN_KEYS =
     "SELECT fk.object_id, fk.name, fk.parent_object_id, fk.referenced_object_id, " +
     "fk.delete_referential_action_desc, fk.update_referential_action_desc " +
-    "FROM sys.foreign_keys fk WHERE fk.is_ms_shipped = 0 ORDER BY fk.object_id;";
+    "FROM sys.foreign_keys fk WHERE fk.is_ms_shipped = 0 AND fk.is_disabled = 0 ORDER BY fk.object_id;";
 const H0_ENV =
     "SELECT CAST(SERVERPROPERTY('EngineEdition') AS int) AS engine_edition, " +
     "COALESCE(CAST(SCHEMA_NAME() AS sysname), 'dbo') AS default_schema, " +
-    "CAST(DATABASEPROPERTYEX(DB_NAME(), 'Collation') AS nvarchar(128)) AS collation_name;";
+    "CAST(DATABASEPROPERTYEX(DB_NAME(), 'Collation') AS nvarchar(128)) AS collation_name, " +
+    "CASE WHEN N'a' = N'A' COLLATE CATALOG_DEFAULT THEN 0 ELSE 1 END AS catalog_case_sensitive, " +
+    "DB_NAME() AS current_db;";
 const H4_KEYS =
     "SELECT ic.object_id, c.name, i.name AS index_name, i.is_primary_key, i.is_unique_constraint " +
     "FROM sys.indexes i " +
@@ -205,9 +222,10 @@ const H5B_FOREIGN_KEY_COLUMNS =
     "JOIN sys.columns rc ON rc.object_id = fkc.referenced_object_id AND rc.column_id = fkc.referenced_column_id " +
     "ORDER BY fkc.constraint_object_id, fkc.constraint_column_id;";
 const H6_PARAMETERS =
-    "SELECT p.object_id, p.parameter_id, p.name, t.name AS type_name, p.max_length, p.precision, p.scale, p.is_output " +
+    "SELECT p.object_id, p.parameter_id, p.name, t.name AS type_name, p.max_length, p.precision, p.scale, p.is_output, " +
+    "SCHEMA_NAME(t.schema_id) AS type_schema, t.is_user_defined " +
     "FROM sys.parameters p JOIN sys.types t ON p.user_type_id = t.user_type_id " +
-    "JOIN sys.objects o ON o.object_id = p.object_id AND o.type IN ('P','FN','IF','TF') AND o.is_ms_shipped = 0 " +
+    "JOIN sys.objects o ON o.object_id = p.object_id AND o.type IN ('P','FN','IF','TF','PC','FS','FT','AF','X') AND o.is_ms_shipped = 0 " +
     "ORDER BY p.object_id, p.parameter_id;";
 // H7 uses COL_NAME() instead of a sys.columns join ON PURPOSE: FakeScript
 // fixtures match by substring in array order, and "sys.columns" (H3),
@@ -235,7 +253,7 @@ const H7_DESCRIPTIONS =
 const CHEAP_DIGEST =
     "SELECT DB_NAME() AS current_db, COUNT(*) AS object_count, " +
     "ISNULL(CHECKSUM_AGG(CHECKSUM(o.object_id, o.schema_id, CAST(o.name AS varbinary(256)), o.modify_date)), 0) AS object_hash " +
-    "FROM sys.objects o WHERE o.type IN ('U','V','P','FN','IF','TF','SN') AND o.is_ms_shipped = 0;";
+    "FROM sys.objects o WHERE o.type IN ('U','V','P','FN','IF','TF','SN','PC','FS','FT','AF','X') AND o.is_ms_shipped = 0;";
 // LAZY per-object module definition (B12 scripting/definition) — NOT part of
 // the H-series bulk hydration: one targeted query per requested object,
 // cached per generation. Matcher-collision note (see H7): this SQL must
@@ -251,12 +269,16 @@ const MAYBE_DDL = new Set(["EXEC", "EXECUTE"]);
 
 /**
  * Serverless/auto-pause-capable engine editions (H0 fact; addendum H-3.3):
- * 5 = Azure SQL Database, 8 = Managed Instance, 11 = Edge, 12 = Azure
- * Synapse serverless family. Entries on these targets poll at the backoff
+ * 5 = Azure SQL Database and 11 = Synapse serverless SQL pool. Entries on
+ * these auto-pausing targets poll at the backoff
  * CAP so the digest never defeats auto-pause (billable wake-ups); the TTL
  * validation model covers correctness on user activity.
  */
-const SERVERLESS_ENGINE_EDITIONS = new Set([5, 8, 11, 12]);
+const SERVERLESS_ENGINE_EDITIONS = new Set([5, 11]);
+
+export function isAutoPauseEngineEdition(engineEdition: number): boolean {
+    return SERVERLESS_ENGINE_EDITIONS.has(engineEdition);
+}
 
 /** H-3.2 per-entry poll backoff: 60s → 120s → 300s over a 60s base. */
 export const DEFAULT_POLL_BACKOFF_MULTIPLIERS: readonly number[] = [1, 2, 5];
@@ -378,7 +400,13 @@ export function typeDisplay(
     maxLength: number,
     precision: number,
     scale: number,
+    typeSchema?: string,
+    isUserDefined = false,
 ): string {
+    if (isUserDefined) {
+        const quote = (value: string) => `[${value.replace(/\]/g, "]]")}]`;
+        return `${quote(typeSchema ?? "dbo")}.${quote(typeName)}`;
+    }
     const t = typeName.toLowerCase();
     if (["varchar", "char", "varbinary", "binary"].includes(t)) {
         return `${t}(${maxLength < 0 ? "max" : maxLength})`;
@@ -408,27 +436,62 @@ export interface MetadataSessionSource {
 /** Dedicated-session source over the data plane (§8.2). */
 export class DataPlaneMetadataSessionSource implements MetadataSessionSource {
     private session: ISqlSession | undefined;
+    private opening: Promise<ISqlSession> | undefined;
+    private disposed = false;
+    private openEpoch = 0;
     constructor(
         private readonly service: ISqlConnectionService,
         private readonly params: OpenSessionParams,
     ) {}
 
     async open(): Promise<ISqlSession> {
+        if (this.disposed) {
+            throw new Error("Metadata session source disposed");
+        }
         if (this.session && this.session.state === "open") {
             return this.session;
         }
-        this.session = await this.service.openSession({
-            ...this.params,
-            applicationName: "vscode-mssql-metadata",
-        });
-        return this.session;
+        let opening = this.opening;
+        if (!opening) {
+            const epoch = this.openEpoch;
+            opening = (async () => {
+                const session = await this.service.openSession({
+                    ...this.params,
+                    applicationName: "vscode-mssql-metadata",
+                });
+                if (this.disposed || epoch !== this.openEpoch) {
+                    await session.dispose();
+                    throw new Error(
+                        this.disposed
+                            ? "Metadata session source disposed during open"
+                            : "Metadata session source recycled during open",
+                    );
+                }
+                this.session = session;
+                return session;
+            })();
+            this.opening = opening;
+        }
+        try {
+            return await opening;
+        } finally {
+            if (this.opening === opening) {
+                this.opening = undefined;
+            }
+        }
     }
 
     recycle(): void {
-        this.dispose();
+        this.openEpoch++;
+        this.opening = undefined;
+        void this.session?.dispose();
+        this.session = undefined;
     }
 
     dispose(): void {
+        this.disposed = true;
+        this.openEpoch++;
+        this.opening = undefined;
         void this.session?.dispose();
         this.session = undefined;
     }
@@ -451,7 +514,9 @@ export async function runMetadataQuery(
     const sink: IQueryEventSink = {
         onResultSetStarted: () => undefined,
         onRowsPage: (page) => {
-            collected.push(...page.compact.values);
+            for (const row of page.compact.values) {
+                collected.push(row);
+            }
         },
         onMessage: (message) => {
             if (message.kind === "error") {
@@ -479,6 +544,7 @@ export class MetadataService {
     private inactiveSinceMs: number | undefined;
     private pollsSuspended = false;
     private defaultLimiter: MetadataValidationLimiter | undefined;
+    private disposed = false;
 
     constructor(
         private readonly sessions: MetadataSessionSource,
@@ -512,6 +578,14 @@ export class MetadataService {
              */
             validationLimiter?: MetadataValidationLimiter;
             /**
+             * Live network authorization. When false, hydration, validation,
+             * polling, lazy definitions, and retry timers must do no session
+             * or query work; disk snapshots remain readable.
+             */
+            isNetworkAllowed?: () => boolean;
+            /** Initial H0 identity mismatch before any catalog publication. */
+            onIdentityMismatch?: (drift: { expected: string; actual: string }) => void;
+            /**
              * H-5: fired EXACTLY ONCE per identity-drift episode when the
              * digest identity rider proves the physical database no longer
              * matches key.database. The store wires this to its
@@ -537,15 +611,20 @@ export class MetadataService {
         /** Policy-routed freshness decision (cache/drift design §5, §4.2). */
         ensureFresh(policy: MetadataFreshnessPolicy): Promise<FreshCatalogResult>;
     } {
+        if (this.disposed) {
+            throw new Error("MetadataService disposed");
+        }
         const entry = this.getOrCreateEntry(key);
         entry.refCount++;
         if (onStatus) {
             entry.listeners.add(onStatus);
         }
-        if (entry.status === "absent" || entry.status === "failed") {
+        if (this.networkAllowed() && (entry.status === "absent" || entry.status === "failed")) {
             void this.hydrate(entry);
         }
-        this.startPolling(entry);
+        if (this.networkAllowed()) {
+            this.startPolling(entry);
+        }
 
         const service = this;
         return {
@@ -640,6 +719,7 @@ export class MetadataService {
                 generation: 0,
                 status: "absent",
                 hydrating: undefined,
+                forcedRefresh: undefined,
                 lastDigest: undefined,
                 listeners: new Set(),
                 refCount: 0,
@@ -657,6 +737,8 @@ export class MetadataService {
                 pollTimer: undefined,
                 pollBackoffLevel: 0,
                 identityDrift: false,
+                canonicalDatabase: undefined,
+                catalogCaseSensitive: undefined,
             };
             this.entries.set(id, entry);
         }
@@ -695,7 +777,7 @@ export class MetadataService {
         return {
             readiness: entry.status,
             generation: entry.generation,
-            mode: entry.snapshot?.mode ?? "full",
+            ...(entry.snapshot ? { mode: entry.snapshot.mode } : {}),
             ...(entry.snapshot ? { stats: entry.snapshot.stats } : {}),
             ...(entry.lastValidation ? { validation: entry.lastValidation } : {}),
         };
@@ -808,6 +890,9 @@ export class MetadataService {
         entry: CatalogEntry,
         objectId: number,
     ): Promise<ModuleDefinitionResult> {
+        if (!Number.isSafeInteger(objectId)) {
+            return { unavailableReason: "notLoaded", generation: entry.generation };
+        }
         const cached = entry.moduleDefinitions.get(objectId);
         if (cached !== undefined) {
             return cached;
@@ -816,11 +901,17 @@ export class MetadataService {
         if (inFlight !== undefined) {
             return inFlight;
         }
+        if (!this.networkAllowed()) {
+            return { unavailableReason: "notLoaded", generation: entry.generation };
+        }
         const read = this.runExclusive(
             entry,
             async (): Promise<ModuleDefinitionResult> => {
                 const generation = entry.generation;
                 try {
+                    if (!this.networkAllowed()) {
+                        return { unavailableReason: "notLoaded", generation };
+                    }
                     const session = await this.sessions.open();
                     const rows = await this.rows(
                         session,
@@ -872,12 +963,14 @@ export class MetadataService {
     }
 
     /**
-     * Hydrations are SERIALIZED per entry: the dedicated session allows one
-     * active query, so a forced refresh chains AFTER the in-flight run
-     * rather than overlapping it (overlap made both runs race into Busy —
-     * found by the B15 store's concurrent A/B isolation tests).
+     * Hydrations are SERIALIZED per entry. Forced triggers observed during
+     * one in-flight pass collapse into at most one follow-up pass.
      */
     private async hydrate(entry: CatalogEntry, force = false): Promise<void> {
+        if (this.disposed || !this.networkAllowed()) {
+            this.clearNetworkTimers(entry);
+            return;
+        }
         const watchdog = {
             timeoutMs: this.options.hydrationTimeoutMs ?? 60_000,
             opKind: "hydrate",
@@ -886,11 +979,18 @@ export class MetadataService {
             if (!force) {
                 return entry.hydrating;
             }
-            const chained = entry.hydrating
+            // Collapse every forced trigger observed during one pass into a
+            // single follow-up pass. A trigger during that follow-up may
+            // request one further pass, but a DDL burst never queues N runs.
+            entry.forcedRefresh ??= entry.hydrating
                 .catch(() => undefined)
-                .then(() => this.runExclusive(entry, () => this.hydrateCore(entry), watchdog));
-            entry.hydrating = this.containLaneTimeout(entry, chained);
-            return entry.hydrating;
+                .then(async () => {
+                    entry.forcedRefresh = undefined;
+                    if (!this.disposed) {
+                        await this.hydrate(entry);
+                    }
+                });
+            return entry.forcedRefresh;
         }
         // Hydration runs on the session lane too (lazy module reads share
         // the single-active-query session — B12).
@@ -908,6 +1008,9 @@ export class MetadataService {
     private containLaneTimeout(entry: CatalogEntry, run: Promise<void>): Promise<void> {
         const contained = run
             .catch(() => {
+                if (this.disposed) {
+                    return;
+                }
                 entry.status = "failed";
                 this.scheduleFailedRetry(entry);
                 this.notify(entry);
@@ -921,6 +1024,9 @@ export class MetadataService {
     }
 
     private async hydrateCore(entry: CatalogEntry): Promise<void> {
+        if (this.disposed || !this.networkAllowed()) {
+            return;
+        }
         // Epoch capture (H-2): if the lane watchdog abandons this run, the
         // epoch advances and NO completion path below may mutate the entry.
         const epoch = entry.opEpoch;
@@ -936,26 +1042,56 @@ export class MetadataService {
             },
         });
         try {
+            if (!this.networkAllowed()) {
+                return;
+            }
             const session = await this.sessions.open();
             const builder = new CatalogBuilder();
 
-            // H0 environment (best-effort; defaults survive a failed probe)
+            // H0 environment is best-effort for comparison semantics, but an
+            // observed database identity is fail-closed before H1/publication.
+            let canonicalDatabase: string | undefined;
+            let catalogCaseSensitive: boolean | undefined;
             try {
                 const envRows = await this.rows(session, H0_ENV, "metadata:H0");
                 const env = envRows[0];
                 if (env) {
                     const collation =
                         env[2] === null || env[2] === undefined ? undefined : String(env[2]);
+                    catalogCaseSensitive =
+                        env[3] === true || env[3] === 1
+                            ? true
+                            : env[3] === false || env[3] === 0
+                              ? false
+                              : collation
+                                ? collationIsCaseSensitive(collation)
+                                : undefined;
+                    canonicalDatabase =
+                        env[4] === null || env[4] === undefined ? undefined : String(env[4]);
                     builder.setEnvironment({
                         engineEdition: Number.isFinite(Number(env[0])) ? Number(env[0]) : undefined,
                         defaultSchema: env[1] ? String(env[1]) : undefined,
                         collationName: collation,
-                        caseSensitive: collation ? collationIsCaseSensitive(collation) : undefined,
+                        caseSensitive: catalogCaseSensitive,
                     });
                 }
             } catch {
-                // Environment probe is an enhancement; hydration proceeds.
+                // Unknown comparison semantics stay exact-only in the model.
             }
+            if (
+                entry.key.database &&
+                canonicalDatabase !== undefined &&
+                !this.databaseNamesMatch(
+                    entry.key.database,
+                    canonicalDatabase,
+                    catalogCaseSensitive,
+                )
+            ) {
+                this.latchInitialIdentityMismatch(entry, canonicalDatabase);
+                throw new Error("Metadata database identity mismatch");
+            }
+            entry.catalogCaseSensitive = catalogCaseSensitive;
+            entry.canonicalDatabase = canonicalDatabase;
 
             // H1 schemas
             for (const row of await this.rows(session, H1_SCHEMAS, "metadata:H1")) {
@@ -1034,7 +1170,14 @@ export class MetadataService {
                     builder.addColumn(
                         Number(row[0]),
                         String(row[2]),
-                        typeDisplay(String(row[3]), Number(row[4]), Number(row[5]), Number(row[6])),
+                        typeDisplay(
+                            String(row[3]),
+                            Number(row[4]),
+                            Number(row[5]),
+                            Number(row[6]),
+                            row[12] === null || row[12] === undefined ? undefined : String(row[12]),
+                            asBool(row[14]),
+                        ),
                         asBool(row[7]),
                         asBool(row[8]),
                         asBool(row[9]),
@@ -1119,7 +1262,14 @@ export class MetadataService {
                         Number(row[0]),
                         Number(row[1]),
                         name,
-                        typeDisplay(String(row[3]), Number(row[4]), Number(row[5]), Number(row[6])),
+                        typeDisplay(
+                            String(row[3]),
+                            Number(row[4]),
+                            Number(row[5]),
+                            Number(row[6]),
+                            row[8] === null || row[8] === undefined ? undefined : String(row[8]),
+                            row[9] === true || row[9] === 1,
+                        ),
                         row[7] === true || row[7] === 1,
                     );
                 }
@@ -1166,8 +1316,11 @@ export class MetadataService {
                 {
                     schemas: "ready",
                     objects: "ready",
-                    synonyms: "ready",
-                    types: "ready",
+                    // Identity-only synonym rows are useful, but target
+                    // resolution and first-class table/sequence types are a
+                    // later language-service enrichment.
+                    synonyms: "lite",
+                    types: "absent",
                     columns: columnsFailed ? "failed" : "ready",
                     keys: keysFailed ? "failed" : "ready",
                     foreignKeys: fkFailed ? "failed" : "ready",
@@ -1266,7 +1419,13 @@ export class MetadataService {
      * already caps in-flight attempts at one.
      */
     private scheduleFailedRetry(entry: CatalogEntry): void {
-        if (!entry.snapshot || entry.refCount <= 0 || entry.retryTimer) {
+        if (
+            this.disposed ||
+            !this.networkAllowed() ||
+            !entry.snapshot ||
+            entry.refCount <= 0 ||
+            entry.retryTimer
+        ) {
             return;
         }
         const backoff = this.options.retryBackoffMs ?? [5_000, 30_000, 120_000];
@@ -1277,7 +1436,13 @@ export class MetadataService {
         entry.failedAttempts++;
         entry.retryTimer = setTimeout(() => {
             entry.retryTimer = undefined;
-            if (entry.status === "failed" && !entry.hydrating && entry.refCount > 0) {
+            if (
+                !this.disposed &&
+                this.networkAllowed() &&
+                entry.status === "failed" &&
+                !entry.hydrating &&
+                entry.refCount > 0
+            ) {
                 void this.hydrate(entry);
             }
         }, delay);
@@ -1292,6 +1457,9 @@ export class MetadataService {
      * outlasts its timeout race still converges on the new generation.
      */
     private validateEntry(entry: CatalogEntry): Promise<MetadataValidationSummary> {
+        if (!this.networkAllowed()) {
+            return Promise.resolve({ tier: "none", result: "notChecked" });
+        }
         if (entry.validationInFlight) {
             return entry.validationInFlight;
         }
@@ -1339,6 +1507,9 @@ export class MetadataService {
                     this.runExclusive(
                         entry,
                         async () => {
+                            if (!this.networkAllowed()) {
+                                throw new Error("Metadata network access disabled");
+                            }
                             const session = await this.sessions.open();
                             const rows = await this.rows(session, CHEAP_DIGEST, "metadata:digest");
                             // Row shape: [current_db, object_count, object_hash];
@@ -1356,14 +1527,14 @@ export class MetadataService {
                         { timeoutMs: this.options.laneOpTimeoutMs ?? 15_000, opKind: "digest" },
                     ),
                 );
-                // H-5 identity: DB_NAME() must equal key.database BYTE-EXACTLY
-                // (same rule as the key-correctness tripwire). A mismatch is
+                // H-5 identity: compare DB_NAME() to H0's canonical spelling
+                // using the catalog's case rule. A mismatch is
                 // an identity event, not schema drift — latch, stop the poll,
                 // fail strict modes actionably, keep allowStale serving.
                 if (
                     entry.key.database &&
                     probe.currentDb !== undefined &&
-                    probe.currentDb !== entry.key.database
+                    !this.databaseIdentityMatches(entry, probe.currentDb)
                 ) {
                     this.latchIdentityDrift(entry, probe.currentDb);
                     return finish(
@@ -1433,7 +1604,12 @@ export class MetadataService {
      * T1 validation (the summary machinery is shared with ensureFresh).
      */
     private async checkDigest(entry: CatalogEntry): Promise<void> {
-        if (entry.status !== "ready" || entry.hydrating || entry.identityDrift) {
+        if (
+            !this.networkAllowed() ||
+            entry.status !== "ready" ||
+            entry.hydrating ||
+            entry.identityDrift
+        ) {
             return;
         }
         try {
@@ -1449,6 +1625,32 @@ export class MetadataService {
         }
         this.defaultLimiter ??= new MetadataValidationLimiter();
         return this.defaultLimiter;
+    }
+
+    private databaseIdentityMatches(entry: CatalogEntry, actual: string): boolean {
+        const expected = entry.canonicalDatabase ?? entry.key.database;
+        const caseSensitive = entry.catalogCaseSensitive ?? entry.snapshot?.caseSensitive;
+        return this.databaseNamesMatch(expected, actual, caseSensitive);
+    }
+
+    private databaseNamesMatch(
+        expected: string,
+        actual: string,
+        caseSensitive: boolean | undefined,
+    ): boolean {
+        return caseSensitive === false
+            ? actual.toUpperCase() === expected.toUpperCase()
+            : actual === expected;
+    }
+
+    private latchInitialIdentityMismatch(entry: CatalogEntry, actual: string): void {
+        if (!entry.identityDrift) {
+            this.options.onIdentityMismatch?.({ expected: entry.key.database, actual });
+        }
+        entry.identityDrift = true;
+        entry.lastValidatedAtMs = undefined;
+        entry.sessionWedged = true;
+        this.clearNetworkTimers(entry);
     }
 
     /**
@@ -1470,7 +1672,10 @@ export class MetadataService {
             clearTimeout(entry.pollTimer);
             entry.pollTimer = undefined;
         }
-        this.options.onIdentityDrift?.({ expected: entry.key.database, actual });
+        this.options.onIdentityDrift?.({
+            expected: entry.canonicalDatabase ?? entry.key.database,
+            actual,
+        });
     }
 
     /**
@@ -1569,6 +1774,16 @@ export class MetadataService {
         policy: MetadataFreshnessPolicy,
         startedAt: number,
     ): Promise<FreshCatalogResult> {
+        if (!this.networkAllowed()) {
+            this.clearNetworkTimers(entry);
+            return this.makeFresh(
+                entry,
+                startedAt,
+                entry.snapshot,
+                "offline",
+                entry.snapshot ? "stale" : "unavailable",
+            );
+        }
         switch (policy.mode) {
             case "allowStale": {
                 if (entry.snapshot) {
@@ -1730,11 +1945,16 @@ export class MetadataService {
         }
         return new Promise((resolve) => {
             let settled = false;
+            let abortListener: (() => void) | undefined;
             const settle = (value: "done" | "timeout") => {
                 if (!settled) {
                     settled = true;
                     if (timer !== undefined) {
                         clearTimeout(timer);
+                    }
+                    if (abortListener) {
+                        signal?.removeEventListener("abort", abortListener);
+                        abortListener = undefined;
                     }
                     resolve(value);
                 }
@@ -1748,7 +1968,8 @@ export class MetadataService {
                 if (signal.aborted) {
                     settle("timeout");
                 } else {
-                    signal.addEventListener("abort", () => settle("timeout"), { once: true });
+                    abortListener = () => settle("timeout");
+                    signal.addEventListener("abort", abortListener, { once: true });
                 }
             }
             work.then(
@@ -1781,14 +2002,14 @@ export class MetadataService {
     private effectivePollLevel(entry: CatalogEntry): number {
         const maxLevel = this.pollMultipliers().length - 1;
         const edition = entry.snapshot?.engineEdition;
-        if (edition !== undefined && SERVERLESS_ENGINE_EDITIONS.has(edition)) {
+        if (edition !== undefined && isAutoPauseEngineEdition(edition)) {
             return maxLevel;
         }
         return Math.min(entry.pollBackoffLevel, maxLevel);
     }
 
     private startPolling(entry: CatalogEntry): void {
-        if (this.pollBaseMs() === undefined) {
+        if (!this.networkAllowed() || this.pollBaseMs() === undefined) {
             return;
         }
         this.schedulePoll(entry);
@@ -1799,6 +2020,7 @@ export class MetadataService {
         const base = this.pollBaseMs();
         if (
             base === undefined ||
+            !this.networkAllowed() ||
             entry.pollTimer !== undefined ||
             entry.identityDrift ||
             entry.refCount <= 0 ||
@@ -1819,7 +2041,12 @@ export class MetadataService {
     }
 
     private async pollTick(entry: CatalogEntry): Promise<void> {
-        if (entry.refCount <= 0 || entry.identityDrift || this.pollsSuspended) {
+        if (
+            !this.networkAllowed() ||
+            entry.refCount <= 0 ||
+            entry.identityDrift ||
+            this.pollsSuspended
+        ) {
             return; // stopped/suspended — resume or re-acquire reschedules
         }
         try {
@@ -1848,6 +2075,21 @@ export class MetadataService {
             entry.pollTimer = undefined;
         }
         this.schedulePoll(entry);
+    }
+
+    private networkAllowed(): boolean {
+        return this.options.isNetworkAllowed?.() !== false;
+    }
+
+    private clearNetworkTimers(entry: CatalogEntry): void {
+        if (entry.pollTimer) {
+            clearTimeout(entry.pollTimer);
+            entry.pollTimer = undefined;
+        }
+        if (entry.retryTimer) {
+            clearTimeout(entry.retryTimer);
+            entry.retryTimer = undefined;
+        }
     }
 
     private hostActive(): boolean {
@@ -1916,11 +2158,17 @@ export class MetadataService {
     }
 
     dispose(): void {
+        if (this.disposed) {
+            return;
+        }
+        this.disposed = true;
         if (this.focusTimer) {
             clearInterval(this.focusTimer);
             this.focusTimer = undefined;
         }
         for (const entry of this.entries.values()) {
+            entry.opEpoch++;
+            entry.refCount = 0;
             if (entry.retryTimer) {
                 clearTimeout(entry.retryTimer);
                 entry.retryTimer = undefined;
@@ -1929,6 +2177,7 @@ export class MetadataService {
                 clearTimeout(entry.pollTimer);
                 entry.pollTimer = undefined;
             }
+            entry.listeners.clear();
         }
         this.entries.clear();
     }

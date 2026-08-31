@@ -68,6 +68,8 @@ class TestConfig implements DataPlaneConfigReader {
 interface TestFactoryHooks {
     createCalls: number;
     disposeCalls?: number;
+    openSessionCalls?: number;
+    providerCanOpen?: { ok: boolean; reason?: string };
     failNextCreate?: Error;
     deferCreate?: Promise<void>;
 }
@@ -110,6 +112,14 @@ function testFactory(
             backend.dispose = () => {
                 hooks.disposeCalls = (hooks.disposeCalls ?? 0) + 1;
             };
+            const openSession = backend.openSession.bind(backend);
+            backend.openSession = async (params) => {
+                hooks.openSessionCalls = (hooks.openSessionCalls ?? 0) + 1;
+                return openSession(params);
+            };
+            if (hooks.providerCanOpen) {
+                backend.canOpen = async () => hooks.providerCanOpen!;
+            }
             return backend;
         },
     };
@@ -312,6 +322,42 @@ suite("SQL Data Plane backend registry (FOUND-1)", () => {
         expect(failing.createCalls).to.equal(2);
     });
 
+    test("provider availability refusal is retryable unavailable and never attempts open", async () => {
+        const hooks: TestFactoryHooks = {
+            createCalls: 0,
+            providerCanOpen: { ok: false, reason: "temporarily unavailable" },
+        };
+        const config = new TestConfig();
+        config.set("mssql.sqlDataPlane.backend", "fake");
+        const service = makeService(config, testFactory("fake", hooks));
+
+        let error: SqlDataPlaneError | undefined;
+        try {
+            await service.openSession({ profile: PROFILE, applicationName: "test" });
+        } catch (caught) {
+            error = caught as SqlDataPlaneError;
+        }
+
+        expect(error?.code).to.equal(DataPlaneErrorCodes.unavailable);
+        expect(error?.retryable).to.equal(true);
+        expect(hooks.openSessionCalls ?? 0).to.equal(0);
+        await service.dispose();
+    });
+
+    test("top-level open delegates through the public view exactly once", async () => {
+        const hooks: TestFactoryHooks = { createCalls: 0 };
+        const config = new TestConfig();
+        config.set("mssql.sqlDataPlane.backend", "fake");
+        const service = makeService(config, testFactory("fake", hooks));
+
+        const session = await service.openSession({ profile: PROFILE, applicationName: "test" });
+        expect(hooks.openSessionCalls).to.equal(1);
+        expect(service.entrySnapshots()[0].activeSessionCount).to.equal(1);
+
+        await session.dispose();
+        await service.dispose();
+    });
+
     test("dispose during startup retires and disposes the late-created backend", async () => {
         const hooks: TestFactoryHooks = { createCalls: 0, disposeCalls: 0 };
         let releaseCreate!: () => void;
@@ -371,6 +417,7 @@ suite("SQL Data Plane backend registry (FOUND-1)", () => {
     test("passive status constructs nothing", () => {
         const hooks: TestFactoryHooks = { createCalls: 0 };
         const config = new TestConfig();
+        config.set("mssql.enableExperimentalFeatures", true);
         config.set("mssql.sqlDataPlane.enabled", true);
         config.set("mssql.sqlDataPlane.backend", "fake");
         const service = makeService(config, testFactory("fake", hooks));
@@ -378,6 +425,16 @@ suite("SQL Data Plane backend registry (FOUND-1)", () => {
         expect(summary.normalizedBackend).to.equal("fake");
         expect((summary.entries as unknown[]).length).to.equal(1);
         expect(hooks.createCalls).to.equal(0);
+    });
+
+    test("enabled status requires both the experimental umbrella and SQL Data Plane flag", () => {
+        const config = new TestConfig();
+        config.set("mssql.sqlDataPlane.enabled", true);
+        const service = makeService(config, testFactory("fake", { createCalls: 0 }));
+
+        expect(service.enabled).to.equal(false);
+        config.set("mssql.enableExperimentalFeatures", true);
+        expect(service.enabled).to.equal(true);
     });
 
     test("an invalid configured backend reports unknown availability, never another provider's", async () => {
@@ -512,6 +569,45 @@ suite("SQL Data Plane backend registry (FOUND-1)", () => {
         expect(hooks.createCalls).to.equal(0, "factory.create must not run");
         expect(passwordCalls).to.equal(0, "passwordProvider must not run");
         expect(tokenCalls).to.equal(0, "tokenProvider must not run");
+
+        // MetadataStore consumes a remembered provider view directly through
+        // serviceForProfile(). The view must preserve the same capability
+        // tripwire instead of becoming a raw-backend escape hatch.
+        const view = await service.serviceForProfile(integratedProfile.profileFingerprint);
+        const viewCheck = await view.canOpen({
+            profile: integratedProfile,
+            applicationName: "metadata-test",
+        });
+        expect(viewCheck.ok).to.equal(false);
+        expect(viewCheck.missing).to.deep.equal(["auth.integrated"]);
+        expect(viewCheck.alternatives).to.deep.equal(["fake"]);
+        thrown = undefined;
+        try {
+            await view.openSession({
+                profile: integratedProfile,
+                applicationName: "metadata-test",
+                auth: {
+                    passwordProvider: async () => {
+                        passwordCalls++;
+                        return "secret";
+                    },
+                    tokenProvider: async () => {
+                        tokenCalls++;
+                        return "token";
+                    },
+                },
+            });
+        } catch (error) {
+            thrown = error as SqlDataPlaneError;
+        }
+        expect(thrown?.code).to.equal(DataPlaneErrorCodes.capabilityUnsupported);
+        expect(hooks.createCalls).to.equal(
+            1,
+            "service view startup occurs before open requirements",
+        );
+        expect(passwordCalls).to.equal(0, "view passwordProvider must not run");
+        expect(tokenCalls).to.equal(0, "view tokenProvider must not run");
+        await service.dispose();
     });
 
     test("explicit requiredCapabilities are enforced with alternatives", async () => {

@@ -19,7 +19,11 @@
 
 import { expect } from "chai";
 import { FakeBackend } from "../../src/services/sqlDataPlane/fakeBackend";
-import { CatalogSnapshot } from "../../src/services/metadata/catalogModel";
+import {
+    buildSchemaContext,
+    CatalogSnapshot,
+    ordinalCompare,
+} from "../../src/services/metadata/catalogModel";
 import { DatabaseCatalogLease, MetadataStore } from "../../src/services/metadata/metadataStore";
 import {
     prepareConnection,
@@ -80,7 +84,6 @@ suite("MetadataStore scale (B16)", () => {
     });
 
     test("hydration: default 10k catalog reaches ready with exact counts", () => {
-        console.log(`[B16 scale] hydration wall time: ${Math.round(hydrationMs)}ms`);
         const status = lease.status();
         expect(status.readiness).to.equal("ready");
         expect(status.mode).to.equal("full"); // every H-section answered — no partial fallback
@@ -93,12 +96,11 @@ suite("MetadataStore scale (B16)", () => {
         const startedAt = performance.now();
         const all = snapshot.listObjects();
         const elapsed = performance.now() - startedAt;
-        console.log(`[B16 scale] listObjects(${all.length}): ${Math.round(elapsed)}ms`);
         expect(all).to.have.length(expectedCounts().objects);
         for (let i = 1; i < all.length; i++) {
             const order =
-                all[i - 1].schema.localeCompare(all[i].schema) ||
-                all[i - 1].name.localeCompare(all[i].name);
+                ordinalCompare(all[i - 1].schema, all[i].schema) ||
+                ordinalCompare(all[i - 1].name, all[i].name);
             if (order >= 0) {
                 expect.fail(
                     `listObjects out of order at ${i}: ` +
@@ -123,7 +125,6 @@ suite("MetadataStore scale (B16)", () => {
         const startedAt = performance.now();
         const hits = snapshot.search("T0099", 50);
         const elapsed = performance.now() - startedAt;
-        console.log(`[B16 scale] search("T0099", 50): ${Math.round(elapsed)}ms`);
         // T009900..T009999 = 100 prefix matches; the limit caps them at 50.
         expect(hits).to.have.length(50);
         expect(hits.every((o) => o.name.startsWith("T0099"))).to.equal(true);
@@ -138,7 +139,6 @@ suite("MetadataStore scale (B16)", () => {
         const startedAt = performance.now();
         const columns = snapshot.getColumns(resolution.objectId);
         const elapsed = performance.now() - startedAt;
-        console.log(`[B16 scale] getColumns(WideTable): ${Math.round(elapsed)}ms`);
         expect(columns).to.have.length(1_000);
         for (let i = 0; i < columns.length; i++) {
             const expectedName = `C${String(i + 1).padStart(4, "0")}`;
@@ -150,6 +150,21 @@ suite("MetadataStore scale (B16)", () => {
             }
         }
         expect(elapsed).to.be.lessThan(500);
+    });
+
+    test("buildSchemaContext: a bounded request over 10k objects stays linear", () => {
+        const startedAt = performance.now();
+        const context = buildSchemaContext(snapshot, {
+            budget: "balanced",
+            privacy: { destination: "local", allowObjectNames: true },
+        });
+        const elapsed = performance.now() - startedAt;
+        expect(context.charCount).to.be.at.most(8_000);
+        expect(context.objectsIncluded).to.be.greaterThan(0);
+        expect(context.truncated).to.equal(true);
+        // This catches the former repeated sort/render prefix scan (about
+        // 89 seconds at 10k) while leaving ample headroom for shared CI.
+        expect(elapsed).to.be.lessThan(2_000);
     });
 
     test("warm re-acquire: cache hit with no second hydration", async () => {

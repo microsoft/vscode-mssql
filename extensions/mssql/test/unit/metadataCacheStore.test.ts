@@ -29,7 +29,7 @@ import { expect } from "chai";
 import { MemFs } from "./support/memFsLike";
 import { gunzipSync } from "zlib";
 import { diag } from "../../src/diagnostics/diagnosticsCore";
-import { DiagEvent } from "../../src/sharedInterfaces/debugConsole";
+import { DiagEvent } from "../../src/sharedInterfaces/diagnostics";
 import {
     buildSchemaContext,
     CatalogBuilder,
@@ -70,6 +70,8 @@ const CANARY_HOST = "srv-secret-host";
 const CANARY_USER = "user=KarlB";
 const CANARY_TOKEN = "token=eyJhbGciOiJIUzI1NiJ9.canary";
 const CANARY_PROSE = "Order header rows";
+const CANARY_DEFAULT_SQL = "DEFAULT('user=secret@example.internal')";
+const CANARY_COMPUTED_SQL = "([CustomerId] + 8675309)";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -132,7 +134,21 @@ function buildSnapshot(options?: {
     b.addObject(101, 1, "Orders", "table", "2026-01-05T10:00:00");
     b.addObject(103, 1, "Customers", "table", "2026-01-05T10:30:00");
     b.addColumn(101, "OrderId", "int", false, true);
-    b.addColumn(101, "CustomerId", "int", true);
+    b.addColumn(101, "CustomerId", "int", true, false, true, 2, {
+        typeName: "int",
+        typeSchema: "sys",
+        baseTypeName: "int",
+        systemTypeId: 56,
+        userTypeId: 56,
+        isUserDefined: false,
+        isAssemblyType: false,
+        maxLengthBytes: 4,
+        precision: 10,
+        scale: 0,
+        defaultDefinition: CANARY_DEFAULT_SQL,
+        computedDefinition: CANARY_COMPUTED_SQL,
+        computedPersisted: true,
+    });
     if (options?.variant) {
         b.addColumn(101, `Extra_${options.variant}`, "nvarchar(10)", true);
     }
@@ -169,12 +185,21 @@ function manifestPathOf(key: CacheEntryKey): string {
     return `${entryDir(key)}/manifest.json`;
 }
 
-function payloadPathOf(key: CacheEntryKey): string {
-    return `${entryDir(key)}/catalog.json.gz`;
-}
-
 function parseManifestFile(fs: MemFs, key: CacheEntryKey): Record<string, unknown> {
     return JSON.parse(fs.files.get(manifestPathOf(key))!.toString("utf8"));
+}
+
+function payloadPathOf(fs: MemFs, key: CacheEntryKey): string {
+    const manifest = parseManifestFile(fs, key);
+    const file = (manifest["payload"] as Record<string, unknown>)["file"] as string;
+    return `${entryDir(key)}/${file}`;
+}
+
+function isPayloadPath(path: string, key?: CacheEntryKey): boolean {
+    return (
+        (key === undefined || path.startsWith(`${entryDir(key)}/`)) &&
+        /\/catalog\.[0-9a-f]{64}\.json\.gz$/.test(path)
+    );
 }
 
 function tamperManifest(
@@ -247,11 +272,12 @@ async function writeRawEntry(
         },
         privacy: {
             includesDescriptions: false,
+            includesColumnDefinitions: false,
             includesModuleDefinitions: false,
             includesRowCounts: false,
             policyId: "cp1:d0m0",
         },
-        payload: { file: "catalog.json.gz", sha256: info.sha256, contentHash },
+        payload: { file: info.file, sha256: info.sha256, contentHash },
     }));
     expect(outcome.ok).to.equal(true);
     return outcome.payloadBytes!;
@@ -298,6 +324,23 @@ suite("Metadata cache store (CACHE-2): paths and read protocol", () => {
         }
     });
 
+    test("successful replacement retires the previously referenced payload", async () => {
+        const fs = new MemFs();
+        const { coordinator } = makeCoordinator(fs, testSettings());
+        expect(
+            (await coordinator.saveNow(KEY, buildSnapshot({ generation: 1, variant: "old" })))
+                .result,
+        ).to.equal("saved");
+        const oldPayload = payloadPathOf(fs, KEY);
+        await sleep(5);
+        expect(
+            (await coordinator.saveNow(KEY, buildSnapshot({ generation: 2, variant: "new" })))
+                .result,
+        ).to.equal("saved");
+        expect(fs.files.has(oldPayload)).to.equal(false);
+        expect(fs.files.has(payloadPathOf(fs, KEY))).to.equal(true);
+    });
+
     test("databaseHash recipe (C-10): dbh_ prefix, 22 b64url chars, server-fingerprint salt", () => {
         const hash = computeDatabaseHash(SFP, "Db1");
         expect(hash).to.match(/^dbh_[A-Za-z0-9_-]{22}$/);
@@ -336,7 +379,7 @@ suite("Metadata cache store (CACHE-2): paths and read protocol", () => {
             expect(expectMiss(await coordinator.load(KEY))).to.equal(expectedReason);
             // Clean miss: nothing thrown, unsupported files left for the
             // eviction sweep (not destroyed on the read path).
-            expect(fs.files.has(payloadPathOf(KEY))).to.equal(true);
+            expect(fs.files.has(payloadPathOf(fs, KEY))).to.equal(true);
         }
     });
 
@@ -344,8 +387,10 @@ suite("Metadata cache store (CACHE-2): paths and read protocol", () => {
         const fs = new MemFs();
         const { coordinator } = makeCoordinator(fs, testSettings());
         expect((await coordinator.saveNow(KEY, buildSnapshot())).result).to.equal("saved");
-        const payloadPath = payloadPathOf(KEY);
-        fs.files.set(payloadPath, Buffer.concat([fs.files.get(payloadPath)!, Buffer.from([0x21])]));
+        const payloadPath = payloadPathOf(fs, KEY);
+        const tampered = Buffer.from(fs.files.get(payloadPath)!);
+        tampered[tampered.length - 1] ^= 0x01;
+        fs.files.set(payloadPath, tampered);
         const capture = captureEvents();
         try {
             expect(expectMiss(await coordinator.load(KEY))).to.equal("shaMismatch");
@@ -359,12 +404,44 @@ suite("Metadata cache store (CACHE-2): paths and read protocol", () => {
         }
     });
 
+    test("a valid entry copied into another key directory is rejected before publication", async () => {
+        const fs = new MemFs();
+        const { coordinator } = makeCoordinator(fs, testSettings());
+        expect((await coordinator.saveNow(KEY, buildSnapshot({ variant: "A" }))).result).to.equal(
+            "saved",
+        );
+        const other: CacheEntryKey = { serverFingerprint: SFP, database: "OtherDb" };
+        const from = `${entryDir(KEY)}/`;
+        const to = `${entryDir(other)}/`;
+        for (const [path, bytes] of [...fs.files.entries()]) {
+            if (path.startsWith(from)) {
+                fs.files.set(`${to}${path.slice(from.length)}`, Buffer.from(bytes));
+            }
+        }
+
+        expect(expectMiss(await coordinator.load(other))).to.equal("keyMismatch");
+        expect(fs.files.has(manifestPathOf(other))).to.equal(false);
+    });
+
+    test("valid compressed bytes with a false logical contentHash are rejected", async () => {
+        const fs = new MemFs();
+        const { coordinator } = makeCoordinator(fs, testSettings());
+        expect((await coordinator.saveNow(KEY, buildSnapshot())).result).to.equal("saved");
+        tamperManifest(fs, KEY, (manifest) => {
+            (manifest["payload"] as Record<string, unknown>)["contentHash"] =
+                "csh_aaaaaaaaaaaaaaaaaaaaaa";
+        });
+
+        expect(expectMiss(await coordinator.load(KEY))).to.equal("corrupt");
+        expect(fs.files.has(manifestPathOf(KEY))).to.equal(false);
+    });
+
     test("corrupt gzip ⇒ clean miss, no throw (sha valid over the corrupt bytes)", async () => {
         const fs = new MemFs();
         const { coordinator } = makeCoordinator(fs, testSettings());
         expect((await coordinator.saveNow(KEY, buildSnapshot())).result).to.equal("saved");
         const garbage = Buffer.from("this is not gzip at all", "utf8");
-        fs.files.set(payloadPathOf(KEY), garbage);
+        fs.files.set(payloadPathOf(fs, KEY), garbage);
         const { createHash } = await import("crypto");
         tamperManifest(fs, KEY, (manifest) => {
             (manifest["payload"] as Record<string, unknown>)["sha256"] = createHash("sha256")
@@ -374,12 +451,43 @@ suite("Metadata cache store (CACHE-2): paths and read protocol", () => {
         expect(expectMiss(await coordinator.load(KEY))).to.equal("corrupt");
     });
 
+    test("declared uncompressed bound is enforced before gzip expansion", async () => {
+        const fs = new MemFs();
+        const { coordinator } = makeCoordinator(fs, testSettings());
+        expect((await coordinator.saveNow(KEY, buildSnapshot())).result).to.equal("saved");
+        tamperManifest(fs, KEY, (manifest) => {
+            (manifest["stats"] as Record<string, unknown>)["uncompressedBytes"] = 1;
+        });
+        expect(expectMiss(await coordinator.load(KEY))).to.equal("corrupt");
+        expect(fs.files.has(manifestPathOf(KEY))).to.equal(false);
+    });
+
     test("missing entry ⇒ miss 'missing'; disabled settings ⇒ miss 'disabled'", async () => {
         const fs = new MemFs();
         const { coordinator } = makeCoordinator(fs, testSettings());
         expect(expectMiss(await coordinator.load(KEY))).to.equal("missing");
         const { coordinator: disabled } = makeCoordinator(fs, testSettings({ enabled: false }));
         expect(expectMiss(await disabled.load(KEY))).to.equal("disabled");
+    });
+
+    test("missing payload removes the sticky manifest so the next read is a plain miss", async () => {
+        const fs = new MemFs();
+        const { coordinator } = makeCoordinator(fs, testSettings());
+        expect((await coordinator.saveNow(KEY, buildSnapshot())).result).to.equal("saved");
+        fs.files.delete(payloadPathOf(fs, KEY));
+        expect(expectMiss(await coordinator.load(KEY))).to.equal("payloadMissing");
+        expect(fs.files.has(manifestPathOf(KEY))).to.equal(false);
+        expect(expectMiss(await coordinator.load(KEY))).to.equal("missing");
+    });
+
+    test("manifest-only optimization is refused when its payload is missing", async () => {
+        const fs = new MemFs();
+        const { coordinator } = makeCoordinator(fs, testSettings());
+        const snapshot = buildSnapshot({ variant: "same" });
+        expect((await coordinator.saveNow(KEY, snapshot)).result).to.equal("saved");
+        fs.files.delete(payloadPathOf(fs, KEY));
+        expect((await coordinator.saveNow(KEY, snapshot)).result).to.equal("saved");
+        expect(fs.files.has(payloadPathOf(fs, KEY))).to.equal(true);
     });
 });
 
@@ -400,10 +508,9 @@ suite("Metadata cache store (CACHE-2): rename retry (T-A10)", () => {
         const coordinator = new MetadataCacheCoordinator(store, () => testSettings(), {
             evictAfterSave: false,
         });
-        const payloadPath = payloadPathOf(KEY);
         let attempts = 0;
         fs.failRename = (_from, to) => {
-            if (to === payloadPath) {
+            if (isPayloadPath(to)) {
                 attempts++;
                 if (attempts <= 2) {
                     return Object.assign(new Error("EPERM: locked by scanner"), {
@@ -432,7 +539,7 @@ suite("Metadata cache store (CACHE-2): rename retry (T-A10)", () => {
             evictAfterSave: false,
         });
         fs.failRename = (_from, to) =>
-            to === payloadPathOf(KEY)
+            isPayloadPath(to)
                 ? Object.assign(new Error("EIO: disk detached"), { code: "EIO" })
                 : undefined;
         const outcome = await coordinator.saveNow(KEY, buildSnapshot());
@@ -473,7 +580,7 @@ suite("Metadata cache store (CACHE-2): torn-write matrix (T-A9)", () => {
         {
             const { fs, coordinator, oldHash, newSnapshot } = await setupWithOldEntry();
             fs.beforeOp = (op, path) => {
-                if (op === "write" && path.includes("catalog.json.gz.")) {
+                if (op === "write" && path.includes("catalog.") && path.includes(".json.gz.")) {
                     throw new Error("crash: power loss during temp write");
                 }
             };
@@ -485,16 +592,14 @@ suite("Metadata cache store (CACHE-2): torn-write matrix (T-A9)", () => {
         {
             const { fs, coordinator, oldHash, newSnapshot } = await setupWithOldEntry();
             fs.failRename = (_from, to) =>
-                to === payloadPathOf(KEY)
-                    ? Object.assign(new Error("EIO"), { code: "EIO" })
-                    : undefined;
+                isPayloadPath(to) ? Object.assign(new Error("EIO"), { code: "EIO" }) : undefined;
             expect((await coordinator.saveNow(KEY, newSnapshot)).result).to.equal("failed");
             fs.failRename = undefined;
             expect(expectHit(await coordinator.load(KEY)).snapshot.contentHash).to.equal(oldHash);
         }
     });
 
-    test("crash between payload and manifest rename ⇒ clean quarantined miss, next save recovers to NEW", async () => {
+    test("crash between content-addressed payload and manifest rename ⇒ OLD entry remains valid", async () => {
         // (c) crash writing the manifest temp; (d) crash on manifest rename.
         const injections: ReadonlyArray<(fs: MemFs) => void> = [
             (fs) => {
@@ -517,10 +622,9 @@ suite("Metadata cache store (CACHE-2): torn-write matrix (T-A9)", () => {
             expect((await coordinator.saveNow(KEY, newSnapshot)).result).to.equal("failed");
             fs.beforeOp = undefined;
             fs.failRename = undefined;
-            // Old manifest + new payload: the sha check turns the torn cell
-            // into a clean miss (quarantine), NEVER a mixed/partial load.
-            expect(expectMiss(await coordinator.load(KEY))).to.equal("shaMismatch");
-            expect(fs.files.has(`${payloadPathOf(KEY)}.quarantine`)).to.equal(true);
+            // The old manifest still names the old immutable payload, so a
+            // crash cannot create the old-manifest/new-payload mixed cell.
+            expect(expectHit(await coordinator.load(KEY)).snapshot.contentHash).to.equal(oldHash);
             // Recovery: the next save lands a complete NEW entry.
             const resaved = await coordinator.saveNow(KEY, newSnapshot);
             expect(resaved.result).to.equal("saved");
@@ -532,10 +636,10 @@ suite("Metadata cache store (CACHE-2): torn-write matrix (T-A9)", () => {
 
     test("constructed old-payload + new-manifest state ⇒ clean miss, never a mixed snapshot", async () => {
         const { fs, coordinator, newSnapshot } = await setupWithOldEntry();
-        const oldPayloadBytes = fs.files.get(payloadPathOf(KEY))!;
+        const oldPayloadBytes = fs.files.get(payloadPathOf(fs, KEY))!;
         expect((await coordinator.saveNow(KEY, newSnapshot)).result).to.equal("saved");
-        fs.files.set(payloadPathOf(KEY), oldPayloadBytes); // simulate the 4th matrix cell
-        expect(expectMiss(await coordinator.load(KEY))).to.equal("shaMismatch");
+        fs.files.set(payloadPathOf(fs, KEY), oldPayloadBytes); // simulate the 4th matrix cell
+        expect(expectMiss(await coordinator.load(KEY))).to.equal("corrupt");
     });
 });
 
@@ -544,40 +648,31 @@ suite("Metadata cache store (CACHE-2): torn-write matrix (T-A9)", () => {
 // ---------------------------------------------------------------------------
 
 suite("Metadata cache store (CACHE-2): two-writer race (T-A17)", () => {
-    test("interleaved saves: exactly one valid winner; loser emits raceLost", async () => {
+    test("reverse-order saves serialize compare+commit and reject the older capture", async () => {
         const fs = new MemFs();
         const settings = testSettings();
         const key: CacheEntryKey = { serverFingerprint: SFP, database: "RaceDb" };
-        const manifestPath = manifestPathOf(key);
         const a = makeCoordinator(fs, settings, { pid: 111 });
         const b = makeCoordinator(fs, settings, { pid: 222 });
         const snapshotA = buildSnapshot({ generation: 1, variant: "A" });
         await sleep(5);
         const snapshotB = buildSnapshot({ generation: 2, variant: "B" });
 
-        // Interleave: block writer A between its manifest rename and its
-        // H-4.5 post-save re-read; let B run to completion in that window.
-        let manifestRenames = 0;
-        let armed = false;
+        // Block the older writer before it can acquire the cross-window lock.
+        // The newer writer publishes first; when the older writer resumes it
+        // must compare against that authority and skip instead of installing.
+        let blockFirstLock = true;
         let signalBlocked: () => void;
         const aBlocked = new Promise<void>((resolve) => (signalBlocked = resolve));
         let releaseA: () => void;
         const released = new Promise<void>((resolve) => (releaseA = resolve));
         fs.beforeOp = async (op, path) => {
-            if (op === "rename" && path === manifestPath) {
-                manifestRenames++;
-                if (manifestRenames === 1) {
-                    armed = true; // writer A just published its manifest
-                }
-                return;
-            }
-            if (op === "read" && path === manifestPath && armed) {
-                armed = false; // this is A's post-save re-read
+            if (op === "writeExclusive" && path.endsWith("/.publication.lock") && blockFirstLock) {
+                blockFirstLock = false;
                 signalBlocked();
                 await released;
             }
         };
-        const capture = captureEvents();
         try {
             const pendingA = a.coordinator.saveNow(key, snapshotA);
             await aBlocked;
@@ -585,16 +680,61 @@ suite("Metadata cache store (CACHE-2): two-writer race (T-A17)", () => {
             expect(outcomeB.result).to.equal("saved");
             releaseA!();
             const outcomeA = await pendingA;
-            expect(outcomeA.result).to.equal("raceLost");
-            expect(capture.events.some((e) => e.type === "metadataCache.raceLost")).to.equal(true);
-            // Exactly one valid winner: B's complete entry.
+            expect(outcomeA.result).to.equal("skipped");
+            expect(outcomeA.skipped).to.equal("newerExists");
             fs.beforeOp = undefined;
             const loaded = expectHit(await b.coordinator.load(key));
             expect(loaded.manifest.writerId.startsWith("222:")).to.equal(true);
             expect(loaded.snapshot.contentHash).to.equal(outcomeB.contentHash);
         } finally {
             fs.beforeOp = undefined;
-            capture.dispose();
+        }
+    });
+
+    test("a delayed manifest-only writer cannot resurrect its old payload after a full write", async () => {
+        const fs = new MemFs();
+        const settings = testSettings();
+        const key: CacheEntryKey = { serverFingerprint: SFP, database: "ManifestRaceDb" };
+        const a = makeCoordinator(fs, settings, { pid: 111 });
+        const b = makeCoordinator(fs, settings, { pid: 222 });
+        expect(
+            (await a.coordinator.saveNow(key, buildSnapshot({ generation: 1, variant: "old" })))
+                .result,
+        ).to.equal("saved");
+        await sleep(5);
+        const delayedSame = buildSnapshot({ generation: 2, variant: "old" });
+        await sleep(5);
+        const newerFull = buildSnapshot({ generation: 1, variant: "new" });
+
+        let blockFirstLock = true;
+        let signalBlocked: () => void;
+        const blocked = new Promise<void>((resolve) => (signalBlocked = resolve));
+        let release: () => void;
+        const released = new Promise<void>((resolve) => (release = resolve));
+        fs.beforeOp = async (op, path) => {
+            if (op === "writeExclusive" && path.endsWith("/.publication.lock") && blockFirstLock) {
+                blockFirstLock = false;
+                signalBlocked();
+                await released;
+            }
+        };
+        try {
+            const delayed = a.coordinator.saveNow(key, delayedSame);
+            await blocked;
+            const full = await b.coordinator.saveNow(key, newerFull);
+            expect(full.result).to.equal("saved");
+            release!();
+            const old = await delayed;
+            expect(old.result).to.equal("skipped");
+            expect(old.skipped).to.equal("newerExists");
+            fs.beforeOp = undefined;
+            const loaded = expectHit(await b.coordinator.load(key));
+            expect(loaded.snapshot.contentHash).to.equal(full.contentHash);
+            expect(
+                loaded.snapshot.getColumns(101).some((column) => column.name === "Extra_new"),
+            ).to.equal(true);
+        } finally {
+            fs.beforeOp = undefined;
         }
     });
 });
@@ -630,7 +770,7 @@ suite("Metadata cache coordinator (CACHE-2): save rules and skips", () => {
         const second = await coordinator.saveNow(KEY, again, { validation: newValidation });
         expect(second.result).to.equal("manifestOnly");
         expect(second.contentHash).to.equal(first.contentHash);
-        expect(fs.renameCount(payloadPathOf(KEY))).to.equal(1); // ONE payload write ever
+        expect(fs.renameCount(payloadPathOf(fs, KEY))).to.equal(1); // ONE payload write ever
         expect(fs.renameCount(manifestPathOf(KEY))).to.equal(2); // manifest rewritten
         const manifest = parseManifestFile(fs, KEY);
         expect(manifest["validation"]).to.deep.equal(newValidation);
@@ -648,6 +788,24 @@ suite("Metadata cache coordinator (CACHE-2): save rules and skips", () => {
         expect(outcome.skipped).to.equal("newerExists");
         const loaded = expectHit(await coordinator.load(KEY));
         expect(loaded.snapshot.generation).to.equal(5);
+    });
+
+    test("a far-future manifest timestamp cannot pin the cache against replacement", async () => {
+        const fs = new MemFs();
+        const { coordinator } = makeCoordinator(fs, testSettings());
+        expect(
+            (await coordinator.saveNow(KEY, buildSnapshot({ variant: "future" }))).result,
+        ).to.equal("saved");
+        tamperManifest(fs, KEY, (manifest) => {
+            (manifest["capture"] as Record<string, unknown>)["capturedAtUtc"] =
+                "2099-01-01T00:00:00.000Z";
+        });
+        const replacement = await coordinator.saveNow(
+            KEY,
+            buildSnapshot({ generation: 2, variant: "replacement" }),
+        );
+        expect(replacement.result).to.equal("saved");
+        expect(expectHit(await coordinator.load(KEY)).snapshot.generation).to.equal(2);
     });
 
     test("H-7 entryTooLarge: compressed payload over maxEntryBytes skips the save, no files land", async () => {
@@ -674,7 +832,7 @@ suite("Metadata cache coordinator (CACHE-2): save rules and skips", () => {
         coordinator.save(KEY, buildSnapshot({ generation: 1, variant: "one" }));
         coordinator.save(KEY, buildSnapshot({ generation: 2, variant: "two" }));
         await sleep(150);
-        expect(fs.renameCount(payloadPathOf(KEY))).to.equal(1);
+        expect(fs.renameCount(payloadPathOf(fs, KEY))).to.equal(1);
         expect(
             (parseManifestFile(fs, KEY)["capture"] as Record<string, unknown>)[
                 "publishedGeneration"
@@ -701,6 +859,7 @@ suite("Metadata cache coordinator (CACHE-2): save rules and skips", () => {
         const loaded = expectHit(await coordinator.load(KEY));
         expect(loaded.policyIntersected).to.equal(false);
         expect(loaded.snapshot.generation).to.equal(9);
+        expect(loaded.snapshot.capturedAtUtc).to.equal(live.capturedAtUtc);
         expect(loaded.snapshot.contentHash).to.equal(saved.contentHash);
         expect(loaded.manifest.capture.publishedGeneration).to.equal(9);
         const request = {
@@ -721,7 +880,7 @@ suite("Metadata cache coordinator (CACHE-2): policy intersection (T-A8)", () => 
         expect(live.getDescription(101)).to.include(CANARY_PROSE);
         expect((await on.coordinator.saveNow(KEY, live)).result).to.equal("saved");
         // Under the permissive policy the prose IS on disk (canary sanity).
-        const onDisk = gunzipSync(fs.files.get(payloadPathOf(KEY))!).toString("utf8");
+        const onDisk = gunzipSync(fs.files.get(payloadPathOf(fs, KEY))!).toString("utf8");
         expect(onDisk).to.include(CANARY_HOST);
 
         const off = makeCoordinator(fs, testSettings({ persistDescriptions: false }));
@@ -772,7 +931,7 @@ suite("Metadata cache store (CACHE-2): eviction and index", () => {
         const summary = await store.runEviction({ maxAgeDays: 14, maxBytes: 1_000_000_000 });
         expect(summary.removedAged).to.equal(1);
         expect(fs.files.has(manifestPathOf(oldKey))).to.equal(false);
-        expect(fs.files.has(payloadPathOf(oldKey))).to.equal(false);
+        expect([...fs.files.keys()].some((path) => isPayloadPath(path, oldKey))).to.equal(false);
         expect(fs.files.has(manifestPathOf(freshKey))).to.equal(true);
         expect((await store.status()).entryCount).to.equal(1);
     });
@@ -822,6 +981,35 @@ suite("Metadata cache store (CACHE-2): eviction and index", () => {
         expect(fs.files.has(`${corruptDir}/catalog.json.gz`)).to.equal(false);
         expect(fs.files.has(`${orphanDir}/catalog.json.gz`)).to.equal(false);
         expect(fs.files.has(manifestPathOf(goodKey))).to.equal(true);
+    });
+
+    test("leftover payload/temp/quarantine files are swept only after an age grace", async () => {
+        const fs = new MemFs();
+        let clock = Date.now();
+        const store = makeStore(fs, { now: () => clock });
+        const key = keyOf("Leftovers");
+        await writeRawEntry(store, key, { capturedAtUtc: new Date(clock).toISOString() });
+        const oldPayload = `${entryDir(key)}/catalog.${"a".repeat(64)}.json.gz`;
+        const oldTemp = `${entryDir(key)}/manifest.json.123.old.tmp`;
+        const freshQuarantine = `${entryDir(key)}/catalog.${"b".repeat(64)}.json.gz.quarantine`;
+        for (const path of [oldPayload, oldTemp, freshQuarantine]) {
+            fs.files.set(path, Buffer.from("leftover"));
+        }
+        fs.mtimes.set(oldPayload, clock - 11 * 60_000);
+        fs.mtimes.set(oldTemp, clock - 11 * 60_000);
+        fs.mtimes.set(freshQuarantine, clock);
+
+        const first = await store.runEviction({ maxAgeDays: 14, maxBytes: 1_000_000_000 });
+        expect(first.removedCorrupt).to.equal(1);
+        expect(fs.files.has(oldPayload)).to.equal(false);
+        expect(fs.files.has(oldTemp)).to.equal(false);
+        expect(fs.files.has(freshQuarantine)).to.equal(true);
+        expect(fs.files.has(payloadPathOf(fs, key))).to.equal(true);
+
+        clock += 11 * 60_000;
+        const second = await store.runEviction({ maxAgeDays: 14, maxBytes: 1_000_000_000 });
+        expect(second.removedCorrupt).to.equal(1);
+        expect(fs.files.has(freshQuarantine)).to.equal(false);
     });
 
     test("listEntries returns exact keys from manifests; unkeyable entries are omitted (CACHE-6)", async () => {
@@ -894,7 +1082,7 @@ suite("Metadata cache store (CACHE-2): eviction and index", () => {
                 .map((op, i) => (op.path.endsWith("/manifest.json") ? i : -1))
                 .filter((i) => i >= 0);
             const payloadIdx = unlinks
-                .map((op, i) => (op.path.endsWith("/catalog.json.gz") ? i : -1))
+                .map((op, i) => (isPayloadPath(op.path) ? i : -1))
                 .filter((i) => i >= 0);
             expect(manifestIdx).to.have.length(2);
             expect(payloadIdx).to.have.length(2);
@@ -922,10 +1110,17 @@ suite("Metadata cache coordinator (CACHE-2): privacy canary (bytes on disk)", ()
             expect((await coordinator.saveNow(key, buildSnapshot())).result).to.equal("saved");
             expectHit(await coordinator.load(key));
             for (const [path, bytes] of fs.files) {
-                const text = path.endsWith("catalog.json.gz")
+                const text = isPayloadPath(path, key)
                     ? gunzipSync(bytes).toString("utf8")
                     : bytes.toString("utf8");
-                for (const canary of [CANARY_HOST, CANARY_USER, CANARY_TOKEN, CANARY_PROSE]) {
+                for (const canary of [
+                    CANARY_HOST,
+                    CANARY_USER,
+                    CANARY_TOKEN,
+                    CANARY_PROSE,
+                    CANARY_DEFAULT_SQL,
+                    CANARY_COMPUTED_SQL,
+                ]) {
                     expect(text.includes(canary), `${canary} must not reach ${path}`).to.equal(
                         false,
                     );
@@ -981,27 +1176,29 @@ suite("Metadata cache settings (CACHE-2)", () => {
         });
     });
 
-    test("accessor adapter reads mssql.metadataCache.* without vscode; bad values fall back", () => {
+    test("accessor reads declared settings; zero/invalid and undeclared knobs fall back", () => {
         const values: Record<string, unknown> = {
             enabled: true,
-            maxAgeDays: 7,
-            maxBytes: "lots", // wrong type → default
-            maxEntryBytes: Number.NaN, // non-finite → default
-            writeDelayMs: -5, // negative → default
+            maxAgeDays: 0,
+            maxBytes: 0,
+            maxEntryBytes: 17,
+            writeDelayMs: 17,
             persistDescriptions: true,
+            persistModuleDefinitions: true,
             offlineMode: true,
         };
         const settings = readMetadataCacheSettings(
             (key, defaultValue) => values[key] ?? defaultValue,
         );
         expect(settings.enabled).to.equal(true);
-        expect(settings.maxAgeDays).to.equal(7);
+        expect(settings.maxAgeDays).to.equal(14);
         expect(settings.maxBytes).to.equal(268_435_456);
         expect(settings.maxEntryBytes).to.equal(33_554_432);
         expect(settings.writeDelayMs).to.equal(5_000);
-        expect(settings.persistDescriptions).to.equal(true);
+        expect(settings.persistDescriptions).to.equal(false);
+        expect(settings.persistModuleDefinitions).to.equal(false);
         expect(settings.offlineMode).to.equal(true);
-        expect(settings.policyId).to.equal("cp1:d1m0");
+        expect(settings.policyId).to.equal("cp1:d0m0");
         expect(
             cachePolicyId({ persistDescriptions: true, persistModuleDefinitions: true }),
         ).to.equal("cp1:d1m1");

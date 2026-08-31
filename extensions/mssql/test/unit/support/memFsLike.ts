@@ -11,10 +11,19 @@
 
 import { FsLike } from "../../../src/services/metadata/cache/metadataCacheStore";
 
-export type FsOp = "read" | "write" | "rename" | "unlink" | "mkdirp" | "readdir" | "stat";
+export type FsOp =
+    | "read"
+    | "write"
+    | "writeExclusive"
+    | "rename"
+    | "unlink"
+    | "mkdirp"
+    | "readdir"
+    | "stat";
 
 export class MemFs implements FsLike {
     files = new Map<string, Buffer>();
+    mtimes = new Map<string, number>();
     ops: Array<{ op: FsOp; path: string; to?: string }> = [];
     /** Return an Error to make a rename attempt fail (attempt-aware). */
     failRename: ((from: string, to: string) => Error | undefined) | undefined;
@@ -42,10 +51,21 @@ export class MemFs implements FsLike {
     async writeFileSynced(path: string, data: Uint8Array): Promise<void> {
         await this.hook("write", path);
         this.files.set(path, Buffer.from(data));
+        this.mtimes.set(path, Date.now());
+    }
+
+    async writeFileExclusive(path: string, data: Uint8Array): Promise<boolean> {
+        await this.hook("writeExclusive", path);
+        if (this.files.has(path)) {
+            return false;
+        }
+        this.files.set(path, Buffer.from(data));
+        this.mtimes.set(path, Date.now());
+        return true;
     }
 
     async rename(fromPath: string, toPath: string): Promise<void> {
-        await this.hook("rename", toPath, toPath);
+        await this.hook("rename", fromPath, toPath);
         const error = this.failRename?.(fromPath, toPath);
         if (error) {
             throw error;
@@ -55,7 +75,10 @@ export class MemFs implements FsLike {
             throw this.enoent(fromPath);
         }
         this.files.delete(fromPath);
+        const mtime = this.mtimes.get(fromPath) ?? Date.now();
+        this.mtimes.delete(fromPath);
         this.files.set(toPath, file);
+        this.mtimes.set(toPath, mtime);
     }
 
     async unlink(path: string): Promise<void> {
@@ -63,6 +86,7 @@ export class MemFs implements FsLike {
         if (!this.files.delete(path)) {
             throw this.enoent(path);
         }
+        this.mtimes.delete(path);
     }
 
     async mkdirp(path: string): Promise<void> {
@@ -81,13 +105,20 @@ export class MemFs implements FsLike {
         return [...names];
     }
 
-    async stat(path: string): Promise<{ readonly size: number } | undefined> {
+    async stat(
+        path: string,
+    ): Promise<{ readonly size: number; readonly mtimeMs?: number } | undefined> {
         await this.hook("stat", path);
         const file = this.files.get(path);
-        return file ? { size: file.length } : undefined;
+        return file
+            ? {
+                  size: file.length,
+                  ...(this.mtimes.has(path) ? { mtimeMs: this.mtimes.get(path) } : {}),
+              }
+            : undefined;
     }
 
     renameCount(target: string): number {
-        return this.ops.filter((op) => op.op === "rename" && op.path === target).length;
+        return this.ops.filter((op) => op.op === "rename" && op.to === target).length;
     }
 }

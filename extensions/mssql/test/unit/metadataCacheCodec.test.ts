@@ -26,6 +26,7 @@ import {
     buildSchemaContext,
     CatalogBuilder,
     CatalogSnapshot,
+    type ColumnInfo,
     SchemaContextRequest,
 } from "../../src/services/metadata/catalogModel";
 import {
@@ -73,7 +74,6 @@ function buildFixture(options?: { caseSensitive?: boolean; generation?: number }
     if (caseSensitive) {
         // Case-only sibling: BIN2 resolveName must reject folded-only hits.
         b.addObject(104, 1, "orders", "table", "2026-01-05T11:00:00");
-        b.addColumn(104, "id", "int", false);
     }
     // First column carries the full cm2 exact-detail block (identity as
     // exact TEXT beyond Number.MAX_SAFE_INTEGER — §5.3 losslessness rides
@@ -126,6 +126,9 @@ function buildFixture(options?: { caseSensitive?: boolean; generation?: number }
         collationName: "SQL_Latin1_General_CP1_CI_AS",
     });
     b.addColumn(110, "OrderId", "int", false);
+    if (caseSensitive) {
+        b.addColumn(104, "id", "int", false);
+    }
     b.markPrimaryKeyColumn(101, "OrderId");
     b.markPrimaryKeyColumn(103, "CustomerId");
     b.addKeyConstraintColumn(101, "PK_Orders", "primaryKey", "OrderId");
@@ -166,6 +169,18 @@ const UNLIMITED_REQUEST: SchemaContextRequest = {
     privacy: { destination: "local", allowObjectNames: true },
 };
 
+function withoutSqlDefinitions(columns: readonly ColumnInfo[]): ColumnInfo[] {
+    return columns.map((column) => {
+        if (!column.detail) {
+            return column;
+        }
+        const detail = { ...column.detail };
+        delete detail.default;
+        delete detail.computed;
+        return { ...column, detail };
+    });
+}
+
 function roundTrip(
     live: CatalogSnapshot,
     options?: { includeDescriptions?: boolean },
@@ -179,6 +194,7 @@ function roundTrip(
         generation: live.generation,
         readiness: live.readiness,
         mode: live.mode,
+        capturedAtUtc: live.capturedAtUtc,
     });
     return { payload, rehydrated };
 }
@@ -248,7 +264,9 @@ suite("Metadata cache codec (CACHE-1): round-trip proof (§6.5)", () => {
             expect(rehydrated.listSchemas()).to.deep.equal(live.listSchemas());
             expect(rehydrated.listObjects()).to.deep.equal(live.listObjects());
             for (const id of [101, 102, 103, 110, 120, 121]) {
-                expect(rehydrated.getColumns(id)).to.deep.equal(live.getColumns(id));
+                expect(rehydrated.getColumns(id)).to.deep.equal(
+                    withoutSqlDefinitions(live.getColumns(id)),
+                );
                 expect(rehydrated.getPrimaryKeyColumns(id)).to.deep.equal(
                     live.getPrimaryKeyColumns(id),
                 );
@@ -278,6 +296,7 @@ suite("Metadata cache codec (CACHE-1): round-trip proof (§6.5)", () => {
                     generation: live.generation,
                     readiness: live.readiness,
                     mode: live.mode,
+                    capturedAtUtc: live.capturedAtUtc,
                 }),
                 { includeDescriptions },
             );
@@ -369,6 +388,7 @@ suite("Metadata cache codec (CACHE-1): privacy — descriptions excluded by defa
             generation: live.generation,
             readiness: live.readiness,
             mode: live.mode,
+            capturedAtUtc: live.capturedAtUtc,
         });
         expect(rehydrated.getDescription(101)).to.equal(undefined);
         expect(rehydrated.getDescription(101, "CustomerId")).to.equal(undefined);
@@ -477,6 +497,35 @@ suite("Metadata cache codec (CACHE-1): strict validation (§6.4)", () => {
         expect(badOwner.ok).to.equal(false);
     });
 
+    test("duplicate identities, unresolved FK endpoints, and ungrouped owners ⇒ reject", () => {
+        expect(
+            validatePayload(
+                mutated((clone) => {
+                    const ids = clone["schemaIds"] as number[];
+                    ids[1] = ids[0];
+                }),
+                { descriptionsExpected: true },
+            ).ok,
+        ).to.equal(false);
+        expect(
+            validatePayload(
+                mutated((clone) => {
+                    (clone["fkTo"] as number[])[0] = 987_654_321;
+                }),
+                { descriptionsExpected: true },
+            ).ok,
+        ).to.equal(false);
+        expect(
+            validatePayload(
+                mutated((clone) => {
+                    const owners = clone["columnOwner"] as number[];
+                    owners[owners.length - 1] = 0;
+                }),
+                { descriptionsExpected: true },
+            ).ok,
+        ).to.equal(false);
+    });
+
     test("unknown environment field / wrong environment types ⇒ reject", () => {
         expect(
             validatePayload(
@@ -545,16 +594,24 @@ suite("Metadata cache codec (CACHE-1): manifest validation", () => {
                 rowCounts: "absent",
             },
             mode: "full",
-            stats: { schemas: 2, objects: 7, columns: 8, foreignKeys: 2, payloadBytes: 1234 },
+            stats: {
+                schemas: 2,
+                objects: 7,
+                columns: 8,
+                foreignKeys: 2,
+                payloadBytes: 1234,
+                uncompressedBytes: 4321,
+            },
             privacy: {
                 includesDescriptions: false,
+                includesColumnDefinitions: false,
                 includesModuleDefinitions: false,
                 includesRowCounts: false,
                 policyId: "cp1:d0m0",
             },
             payload: {
                 file: "catalog.json.gz",
-                sha256: "deadbeef",
+                sha256: "d".repeat(64),
                 contentHash: "csh_0123456789abcdefghijkl",
             },
         };

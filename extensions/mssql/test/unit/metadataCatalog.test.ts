@@ -16,12 +16,12 @@
 import { expect } from "chai";
 import { FakeBackend, FakeScript } from "../../src/services/sqlDataPlane/fakeBackend";
 import { CatalogBuilder } from "../../src/services/metadata/catalogModel";
+import { leadingKeyword } from "../../src/sql/leadingKeyword";
 import {
     DataPlaneMetadataSessionSource,
     MetadataService,
     typeDisplay,
 } from "../../src/services/metadata/metadataService";
-import { CatalogLanguageMetadataProvider } from "../../src/sqlLanguage/provider/catalogProvider";
 
 function sysScripts(overrides?: {
     columnsFail?: boolean;
@@ -226,6 +226,16 @@ function sysScripts(overrides?: {
     ];
 }
 
+suite("Metadata SQL keyword detection", () => {
+    test("skips whitespace and nested comments before the first keyword", () => {
+        expect(
+            leadingKeyword("  -- comment\n/* outer /* nested */ done */ CREATE TABLE t(i int)"),
+        ).to.equal("CREATE");
+        expect(leadingKeyword("\n\nupdate t set x=1")).to.equal("UPDATE");
+        expect(leadingKeyword("/* only a comment */")).to.equal(undefined);
+    });
+});
+
 async function serviceOver(scripts: FakeScript[]) {
     const backend = new FakeBackend({ scripts });
     const source = new DataPlaneMetadataSessionSource(backend, {
@@ -245,6 +255,9 @@ suite("Metadata catalog (B5)", () => {
         expect(typeDisplay("decimal", 9, 18, 2)).to.equal("decimal(18,2)");
         expect(typeDisplay("int", 4, 10, 0)).to.equal("int");
         expect(typeDisplay("datetime2", 8, 27, 7)).to.equal("datetime2(7)");
+        expect(typeDisplay("PhoneNumber", 40, 0, 0, "Contact Info", true)).to.equal(
+            "[Contact Info].[PhoneNumber]",
+        );
     });
 
     test("hydration: schemas/objects/columns/FKs land; snapshot reads serve", async () => {
@@ -359,7 +372,7 @@ suite("Metadata catalog (B5)", () => {
         service.dispose();
     });
 
-    test("H3 identity/computed flags reach snapshot columns and the pinned language view", async () => {
+    test("H3 identity/computed flags reach snapshot columns", async () => {
         const { service } = await serviceOver(sysScripts());
         const handle = service.acquire(KEY);
         await handle.refresh();
@@ -383,20 +396,6 @@ suite("Metadata catalog (B5)", () => {
         expect(orders[2].isIdentity).to.equal(undefined);
         expect(snapshot.getColumns(102)[0].isIdentity).to.equal(true); // 1/0 wire form
 
-        // Language provider surface: pinned view maps the flags onto LangColumn.
-        const provider = new CatalogLanguageMetadataProvider({
-            handle: () => handle,
-            serverVersion: () => "16.0.4165.4",
-            currentDatabase: () => KEY.database,
-            databases: () => [KEY.database],
-            subscribeStatus: () => () => undefined,
-        });
-        const pinned = provider.pin();
-        const columns = pinned.getColumns({ objectId: 101 })!;
-        expect(
-            columns.map((c) => `${c.name}:${c.isIdentity ?? "-"}:${c.isComputed ?? "-"}`),
-        ).to.deep.equal(["OrderId:true:-", "CustomerId:-:-", "Total:-:true"]);
-        expect(columns[0].isPrimaryKey).to.equal(true);
         handle.dispose();
         service.dispose();
     });
@@ -443,6 +442,40 @@ suite("Metadata catalog (B5)", () => {
         const snap2 = builder2.build(1, { schemas: "ready", objects: "ready" });
         expect(snap2.resolveName(["Orders"]).kind).to.equal("resolved");
         expect(snap2.resolveName(["orders"]).kind).to.equal("notFound");
+    });
+
+    test("unknown case semantics fail closed to exact-only matching", () => {
+        const builder = new CatalogBuilder();
+        builder.addSchema(1, "dbo");
+        builder.addObject(1, 1, "Orders", "table");
+        builder.addObject(2, 1, "ORDERS", "table");
+        const snapshot = builder.build(1, { schemas: "ready", objects: "ready" });
+
+        expect(snapshot.caseSensitive).to.equal(undefined);
+        expect(snapshot.resolveName(["Orders"])).to.deep.include({
+            kind: "resolved",
+            objectId: 1,
+        });
+        expect(snapshot.resolveName(["ORDERS"])).to.deep.include({
+            kind: "resolved",
+            objectId: 2,
+        });
+        expect(snapshot.resolveName(["orders"]).kind).to.equal("notFound");
+    });
+
+    test("builder drops FK edges whose metadata-visible endpoints cannot both resolve", () => {
+        const builder = new CatalogBuilder();
+        builder.addSchema(1, "dbo");
+        builder.addObject(1, 1, "Visible", "table");
+        builder.addForeignKey(1, 999, "FK_ToInvisible", 10);
+        builder.addForeignKey(999, 1, "FK_FromInvisible", 11);
+        const snapshot = builder.build(1, {
+            schemas: "ready",
+            objects: "ready",
+            foreignKeys: "ready",
+        });
+        expect(snapshot.getForeignKeysFrom(1)).to.deep.equal([]);
+        expect(snapshot.getForeignKeysTo(1)).to.deep.equal([]);
     });
 
     test("schema context: byte-identical; budgets degrade fidelity deterministically", async () => {
@@ -494,18 +527,20 @@ suite("Metadata catalog (B5)", () => {
         service.dispose();
     });
 
-    test("DDL sniff: successful CREATE re-hydrates (generation bump); non-DDL/failed do not", async () => {
+    test("DDL sniff: a burst collapses to one active + one follow-up hydration", async () => {
         const { service } = await serviceOver(sysScripts());
         const handle = service.acquire(KEY);
         await handle.refresh();
         const before = handle.status().generation;
-        handle.notifyExecutedBatch({ text: "CREATE TABLE t(i int)", succeeded: true });
-        await new Promise((r) => setTimeout(r, 25));
-        expect(handle.status().generation).to.be.greaterThan(before);
+        for (let i = 0; i < 10; i++) {
+            handle.notifyExecutedBatch({ text: `CREATE TABLE t${i}(i int)`, succeeded: true });
+        }
+        await new Promise((r) => setTimeout(r, 100));
+        expect(handle.status().generation).to.equal(before + 2);
         const gen = handle.status().generation;
         handle.notifyExecutedBatch({ text: "select 1", succeeded: true });
         handle.notifyExecutedBatch({ text: "DROP TABLE t", succeeded: false });
-        await new Promise((r) => setTimeout(r, 25));
+        await new Promise((r) => setTimeout(r, 50));
         expect(handle.status().generation).to.equal(gen);
         handle.dispose();
         service.dispose();
@@ -536,6 +571,57 @@ suite("Metadata catalog (B5)", () => {
         await first.close();
         const second = await source.open();
         expect(second).to.not.equal(first);
+        source.dispose();
+    });
+
+    test("dedicated session source cannot publish or reopen a session after disposal", async () => {
+        const backend = new FakeBackend({ scripts: sysScripts(), openDelayMs: 20 });
+        const source = new DataPlaneMetadataSessionSource(backend, {
+            profile: { profileFingerprint: "fp", server: "srv", authKind: "sql", user: "u" },
+            applicationName: "test",
+        });
+        const opening = source.open();
+        source.dispose();
+        let openingError: unknown;
+        try {
+            await opening;
+        } catch (error) {
+            openingError = error;
+        }
+        expect(String(openingError)).to.match(/disposed during open/);
+        expect(backend.sessions).to.have.length(1);
+        expect(backend.sessions[0].state).to.equal("closed");
+        let reopenError: unknown;
+        try {
+            await source.open();
+        } catch (error) {
+            reopenError = error;
+        }
+        expect(String(reopenError)).to.match(/disposed/);
+        expect(backend.sessions).to.have.length(1);
+    });
+
+    test("recycle during open rejects the abandoned session without clobbering its replacement", async () => {
+        const backend = new FakeBackend({ scripts: sysScripts(), openDelayMs: 20 });
+        const source = new DataPlaneMetadataSessionSource(backend, {
+            profile: { profileFingerprint: "fp", server: "srv", authKind: "sql", user: "u" },
+            applicationName: "test",
+        });
+        const abandoned = source.open();
+        source.recycle();
+        const replacement = source.open();
+        let abandonedError: unknown;
+        try {
+            await abandoned;
+        } catch (error) {
+            abandonedError = error;
+        }
+        expect(String(abandonedError)).to.match(/recycled during open/);
+        const live = await replacement;
+        expect(backend.sessions).to.have.length(2);
+        expect(backend.sessions[0].state).to.equal("closed");
+        expect(live.state).to.equal("open");
+        expect(await source.open()).to.equal(live);
         source.dispose();
     });
 });
@@ -600,27 +686,6 @@ suite("Metadata catalog H7 descriptions (B11)", () => {
         expect(snapshot.getDescription(42)).to.equal(undefined);
     });
 
-    test("pinned language view serves getDescription only when the section is ready", async () => {
-        const { service } = await serviceOver(sysScripts());
-        const handle = service.acquire(KEY);
-        await handle.refresh();
-        const provider = new CatalogLanguageMetadataProvider({
-            handle: () => handle,
-            serverVersion: () => "16.0.4165.4",
-            currentDatabase: () => KEY.database,
-            databases: () => [KEY.database],
-            subscribeStatus: () => () => undefined,
-        });
-        const pinned = provider.pin();
-        expect(pinned.getDescription?.({ objectId: 101 })).to.equal("Order header rows.");
-        expect(pinned.getDescription?.({ objectId: 101 }, "CustomerId")).to.equal(
-            "References the customer.",
-        );
-        expect(pinned.getDescription?.({ objectId: 102 })).to.equal(undefined);
-        handle.dispose();
-        service.dispose();
-    });
-
     test("section failure honesty: H7 fails ⇒ 'descriptions' failed + partial, never pretend-empty", async () => {
         const { service } = await serviceOver(sysScripts({ descriptionsFail: true }));
         const handle = service.acquire(KEY);
@@ -630,16 +695,7 @@ suite("Metadata catalog H7 descriptions (B11)", () => {
         expect(handle.status().mode).to.equal("partial");
         expect(snapshot.readiness.descriptions).to.equal("failed");
         expect(snapshot.readiness.objects).to.equal("ready");
-        // The pinned language view refuses description claims for the failed
-        // section (undefined ≠ "no description exists").
-        const provider = new CatalogLanguageMetadataProvider({
-            handle: () => handle,
-            serverVersion: () => "16.0.4165.4",
-            currentDatabase: () => KEY.database,
-            databases: () => [KEY.database],
-            subscribeStatus: () => () => undefined,
-        });
-        expect(provider.pin().getDescription?.({ objectId: 101 })).to.equal(undefined);
+        expect(snapshot.getDescription(101)).to.equal(undefined);
         handle.dispose();
         service.dispose();
     });
@@ -789,6 +845,18 @@ suite("Metadata catalog module definitions (B12 lazy reads)", () => {
         service.dispose();
     });
 
+    test("unsafe numeric module ids are rejected without interpolating SQL", async () => {
+        const { scripts, counts } = moduleScripts();
+        const { service } = await serviceOver(scripts);
+        const handle = service.acquire(KEY);
+        await handle.refresh();
+        const result = await handle.getModuleDefinition(Number.MAX_SAFE_INTEGER + 1);
+        expect(result.unavailableReason).to.equal("notLoaded");
+        expect(counts.view + counts.encrypted + counts.missing + counts.failing).to.equal(0);
+        handle.dispose();
+        service.dispose();
+    });
+
     test("cache invalidates on a new generation (refresh re-queries)", async () => {
         const { scripts, counts } = moduleScripts();
         const { service } = await serviceOver(scripts);
@@ -836,53 +904,11 @@ suite("Metadata catalog module definitions (B12 lazy reads)", () => {
         service.dispose();
     });
 
-    test("pinned language view: definitions readiness 'lazy' + end-to-end getDefinition", async () => {
-        const { scripts } = moduleScripts();
-        const { service } = await serviceOver(scripts);
-        const handle = service.acquire(KEY);
-        await handle.refresh();
-        const provider = new CatalogLanguageMetadataProvider({
-            handle: () => handle,
-            serverVersion: () => "16.0.4165.4",
-            currentDatabase: () => KEY.database,
-            databases: () => [KEY.database],
-            subscribeStatus: () => () => undefined,
-        });
-        expect(provider.readiness().definitions).to.equal("lazy");
-        const pinned = provider.pin();
-        const text = await pinned.getDefinition?.({ objectId: 103 });
-        expect(text).to.deep.equal({ text: VIEW_TEXT });
-        const encrypted = await pinned.getDefinition?.({ objectId: 105 });
-        expect(encrypted).to.deep.equal({ unavailableReason: "encrypted" });
-        handle.dispose();
-        service.dispose();
-    });
-
-    test("offline pinned view refuses definitions honestly", () => {
-        const provider = new CatalogLanguageMetadataProvider({
-            handle: () => undefined,
-            serverVersion: () => undefined,
-            currentDatabase: () => undefined,
-            databases: () => undefined,
-            subscribeStatus: () => () => undefined,
-        });
-        expect(provider.readiness().definitions).to.equal("unknown");
-        expect(provider.pin().getDefinition).to.equal(undefined);
-    });
-
     test("referenced-side FK details now carry column pairs (B11 finding)", async () => {
         const { service } = await serviceOver(sysScripts());
         const handle = service.acquire(KEY);
         await handle.refresh();
-        const provider = new CatalogLanguageMetadataProvider({
-            handle: () => handle,
-            serverVersion: () => "16.0.4165.4",
-            currentDatabase: () => KEY.database,
-            databases: () => [KEY.database],
-            subscribeStatus: () => () => undefined,
-        });
-        const pinned = provider.pin();
-        const edges = pinned.fkTo({ objectId: 102 });
+        const edges = handle.current()!.getForeignKeyDetailsTo(102);
         expect(edges.length).to.equal(1);
         expect(edges[0].columns).to.deep.equal([
             { fromColumn: "CustomerId", toColumn: "CustomerId" },
@@ -895,15 +921,7 @@ suite("Metadata catalog module definitions (B12 lazy reads)", () => {
         const { service } = await serviceOver(sysScripts());
         const handle = service.acquire(KEY);
         await handle.refresh();
-        const provider = new CatalogLanguageMetadataProvider({
-            handle: () => handle,
-            serverVersion: () => "16.0.4165.4",
-            currentDatabase: () => KEY.database,
-            databases: () => [KEY.database],
-            subscribeStatus: () => () => undefined,
-        });
-        const pinned = provider.pin();
-        const constraints = pinned.getKeyConstraints?.({ objectId: 102 });
+        const constraints = handle.current()!.getKeyConstraints(102);
         expect(constraints).to.deep.equal([
             { name: "PK_Customers", kind: "primaryKey", columns: ["CustomerId"] },
             {

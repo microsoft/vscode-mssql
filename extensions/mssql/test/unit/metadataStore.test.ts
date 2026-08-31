@@ -13,7 +13,7 @@
 
 import { expect } from "chai";
 import { diag } from "../../src/diagnostics/diagnosticsCore";
-import type { DiagEvent } from "../../src/sharedInterfaces/debugConsole";
+import type { DiagEvent } from "../../src/sharedInterfaces/diagnostics";
 import {
     ISqlConnectionService,
     ISqlSession,
@@ -38,7 +38,7 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 /** Minimal H-series scripts for one user table (H4/H5B before H3 — the
  *  "sys.columns" substring matches those first; H7 uses COL_NAME so it
  *  collides with nothing). */
-function catalogScripts(tableName: string): FakeScript[] {
+function catalogScripts(tableName: string, currentDatabase?: string): FakeScript[] {
     return [
         {
             match: (t) => t.includes("extended_properties"),
@@ -57,7 +57,9 @@ function catalogScripts(tableName: string): FakeScript[] {
                 {
                     type: "resultSet",
                     columns: ["engine_edition", "default_schema", "collation_name"],
-                    rows: [[5, "dbo", "SQL_Latin1_General_CP1_CI_AS"]],
+                    rows: [
+                        [5, "dbo", "SQL_Latin1_General_CP1_CI_AS", false, currentDatabase ?? null],
+                    ],
                 },
                 { type: "complete", status: "succeeded" },
             ],
@@ -426,6 +428,7 @@ suite("MetadataStore (B15)", () => {
 
         const first = await store.acquireDatabase(prepared, "DbA");
         const second = await store.acquireDatabase(prepared, "DbA");
+        await first.refresh();
         expect(store.status().databases).to.have.length(1);
         expect(backend.sessions).to.have.length(1); // one dedicated session
 
@@ -440,8 +443,101 @@ suite("MetadataStore (B15)", () => {
         const third = await store.acquireDatabase(prepared, "DbA");
         expect(store.status().databases[0].refCount).to.equal(1);
         expect(backend.sessions).to.have.length(1); // reused, not reopened
+        await third.auxiliary.ensureSection(third.auxiliary.sectionKeys()[0]);
+        expect(backend.sessions).to.have.length(2); // dedicated lazy-aux lane
         third.dispose();
         store.dispose();
+        expect(backend.sessions.every((session) => session.state === "closed")).to.equal(true);
+    });
+
+    test("same-key concurrent acquisitions create exactly one database and server engine", async () => {
+        const databaseBackend = new FakeBackend({
+            scripts: catalogScripts("T"),
+            openDelayMs: 20,
+        });
+        const databaseStore = new MetadataStore(async () => databaseBackend, {
+            pollSeconds: 0,
+            idleTtlMs: 60_000,
+        });
+        const prepared = prepareConnection(INTEGRATED, NO_SECRETS);
+        const databaseLeases = await Promise.all(
+            Array.from({ length: 8 }, () => databaseStore.acquireDatabase(prepared, "DbA")),
+        );
+        await databaseLeases[0].refresh();
+        expect(databaseStore.status().databases).to.have.length(1);
+        expect(databaseStore.status().databases[0].refCount).to.equal(8);
+        expect(databaseBackend.sessions).to.have.length(1);
+        expect(new Set(databaseLeases.map((lease) => lease.current())).size).to.equal(1);
+        for (const lease of databaseLeases) {
+            lease.dispose();
+        }
+        databaseStore.dispose();
+        expect(databaseBackend.sessions[0].state).to.equal("closed");
+
+        const serverBackend = new FakeBackend({
+            openDelayMs: 20,
+            scripts: [
+                {
+                    match: (text) => text.includes("sys.databases"),
+                    events: [
+                        {
+                            type: "resultSet",
+                            columns: [
+                                "database_id",
+                                "name",
+                                "state_desc",
+                                "is_read_only",
+                                "user_access_desc",
+                                "compatibility_level",
+                                "has_dbaccess",
+                            ],
+                            rows: [[5, "AppDb", "ONLINE", false, "MULTI_USER", 160, 1]],
+                        },
+                        { type: "complete", status: "succeeded" },
+                    ],
+                },
+            ],
+        });
+        const serverStore = new MetadataStore(async () => serverBackend, { pollSeconds: 0 });
+        const serverLeases = await Promise.all(
+            Array.from({ length: 8 }, () => serverStore.acquireServer(prepared)),
+        );
+        await serverLeases[0].refresh();
+        expect(serverStore.status().servers).to.have.length(1);
+        expect(serverStore.status().servers[0].refCount).to.equal(8);
+        expect(serverBackend.sessions).to.have.length(1);
+        for (const lease of serverLeases) {
+            lease.dispose();
+        }
+        serverStore.dispose();
+        expect(serverBackend.sessions[0].state).to.equal("closed");
+    });
+
+    test("dispose during lazy provider resolution cannot open a late session", async () => {
+        const backend = new FakeBackend({ scripts: catalogScripts("T") });
+        let resolutions = 0;
+        let release!: () => void;
+        const gate = new Promise<void>((resolve) => (release = resolve));
+        const store = new MetadataStore(async () => {
+            resolutions++;
+            await gate;
+            return backend;
+        });
+        const prepared = prepareConnection(INTEGRATED, NO_SECRETS);
+        const leases = await Promise.all([
+            store.acquireDatabase(prepared, "DbA"),
+            store.acquireDatabase(prepared, "DbA"),
+        ]);
+        await Promise.resolve();
+        expect(resolutions).to.equal(1);
+        store.dispose();
+        release();
+        await sleep(10);
+        expect(store.status().databases).to.deep.equal([]);
+        expect(backend.sessions).to.deep.equal([]);
+        for (const lease of leases) {
+            lease.dispose();
+        }
     });
 
     test("idle TTL disposes the engine; LRU cap evicts oldest idle first", async () => {
@@ -538,9 +634,9 @@ suite("MetadataStore (B15)", () => {
         failStore.dispose();
     });
 
-    test("key-correctness tripwire: backend ignoring the database is counted", async () => {
+    test("H0 identity mismatch fails closed and the next refresh recycles the session", async () => {
         const backend = new FakeBackend({
-            scripts: catalogScripts("T"),
+            scripts: catalogScripts("T", "WrongDb"),
             database: "WrongDb",
         });
         const service = new DatabaseIgnoringService(backend);
@@ -548,7 +644,10 @@ suite("MetadataStore (B15)", () => {
         const prepared = prepareConnection({ ...INTEGRATED, database: undefined }, NO_SECRETS);
         const lease = await store.acquireDatabase(prepared, "DbX");
         await lease.refresh().catch(() => undefined);
+        await lease.refresh().catch(() => undefined);
         expect(store.status().keyCorrectnessViolations).to.be.greaterThan(0);
+        expect(lease.current()).to.equal(undefined);
+        expect(backend.sessions.length).to.be.greaterThan(1);
         lease.dispose();
         store.dispose();
     });

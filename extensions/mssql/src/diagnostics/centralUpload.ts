@@ -422,6 +422,7 @@ export class CentralUploadService {
         return {
             uploadBatchId: Number(row["upload_batch_id"]),
             outcome: row["outcome"] as UploadReceipt["outcome"],
+            reasonCode: (row["reason_code"] as string | null) ?? null,
             kind: projection.kind,
             naturalKey: projection.naturalKey,
             uploadPolicyId: projection.identity.uploadPolicyId,

@@ -24,7 +24,7 @@
  */
 
 import { diag } from "../../diagnostics/diagnosticsCore";
-import { ISqlConnectionService } from "../sqlDataPlane/api";
+import { ISqlConnectionService, OpenSessionParams } from "../sqlDataPlane/api";
 import { AuxiliaryCatalog } from "./auxiliaryCatalog";
 import { DATABASE_AUX_SECTIONS } from "./auxiliaryCatalogDatabaseSections";
 import { CatalogSnapshot, SchemaContextRequest, SchemaContextResult } from "./catalogModel";
@@ -69,6 +69,83 @@ export interface DatabaseKey extends ServerKey {
 
 const serverKeyOf = (key: ServerKey): string => key.serverFingerprint;
 const databaseKeyOf = (key: DatabaseKey): string => `${key.serverFingerprint}|${key.database}`;
+
+interface DisposableMetadataSessionSource extends MetadataSessionSource {
+    dispose(): void;
+}
+
+/**
+ * Defers data-plane resolution until a live operation is actually permitted.
+ * Database cache hits and misses in offline mode therefore do not even resolve
+ * a backend, while the main and auxiliary sources still share one resolution.
+ */
+class LazyMetadataConnection {
+    private pending: Promise<ISqlConnectionService> | undefined;
+
+    constructor(
+        private readonly resolve: () => Promise<ISqlConnectionService>,
+        private readonly isNetworkAllowed: () => boolean,
+    ) {}
+
+    async get(): Promise<ISqlConnectionService> {
+        if (!this.isNetworkAllowed()) {
+            throw new Error("Metadata network access disabled");
+        }
+        const pending = (this.pending ??= this.resolve());
+        let service: ISqlConnectionService;
+        try {
+            service = await pending;
+        } catch (error) {
+            // A transient provider-resolution failure must not poison this
+            // entry forever. The next permitted live operation gets a fresh
+            // resolution attempt, matching the old eager acquisition path.
+            if (this.pending === pending) {
+                this.pending = undefined;
+            }
+            throw error;
+        }
+        if (!this.isNetworkAllowed()) {
+            throw new Error("Metadata network access disabled");
+        }
+        return service;
+    }
+}
+
+class LazyMetadataSessionSource implements DisposableMetadataSessionSource {
+    private inner: DataPlaneMetadataSessionSource | undefined;
+    private disposed = false;
+
+    constructor(
+        private readonly connection: LazyMetadataConnection,
+        private readonly params: OpenSessionParams,
+    ) {}
+
+    async open() {
+        if (this.disposed) {
+            throw new Error("Metadata session source disposed");
+        }
+        if (!this.inner) {
+            const service = await this.connection.get();
+            // Disposal can race the lazy provider resolution. Never publish
+            // an inner source (or open a session) after ownership ended.
+            if (this.disposed) {
+                throw new Error("Metadata session source disposed");
+            }
+            this.inner = new DataPlaneMetadataSessionSource(service, this.params);
+        }
+        return this.inner.open();
+    }
+
+    recycle(): void {
+        this.inner?.recycle();
+    }
+
+    dispose(): void {
+        this.disposed = true;
+        this.inner?.dispose();
+        this.inner = undefined;
+    }
+}
 
 // ---------------------------------------------------------------------------
 // Leases (design §5)
@@ -144,6 +221,8 @@ export interface MetadataStoreOptions {
     idleTtlMs?: number;
     /** Max zero-ref database entries kept warm (LRU, default 4). */
     maxIdleDatabases?: number;
+    /** Synchronous host gate checked before publishing a lease. */
+    assertAcquisitionAllowed?: () => void;
     /**
      * Persistent snapshot cache (CACHE-3): when configured, a fresh
      * database acquire loads the disk snapshot BEFORE live hydration
@@ -160,10 +239,10 @@ export interface MetadataStoreOptions {
 interface ServerEntry {
     key: ServerKey;
     prepared: PreparedConnection;
-    source: DataPlaneMetadataSessionSource;
+    source: DisposableMetadataSessionSource;
     /** Dedicated aux-section session — lazy queries never collide with the
      * one-active-query hydration lane (B24 concurrency rule). */
-    auxSource: DataPlaneMetadataSessionSource;
+    auxSource: DisposableMetadataSessionSource;
     service: ServerMetadataService;
     refCount: number;
     idleTimer: ReturnType<typeof setTimeout> | undefined;
@@ -175,9 +254,9 @@ interface ServerEntry {
 interface DatabaseEntry {
     key: DatabaseKey;
     prepared: PreparedConnection;
-    source: DataPlaneMetadataSessionSource;
+    source: DisposableMetadataSessionSource;
     /** Dedicated aux-section session (same key-correct database context). */
-    auxSource: DataPlaneMetadataSessionSource;
+    auxSource: DisposableMetadataSessionSource;
     aux: AuxiliaryCatalog;
     auxSubscription: { dispose(): void };
     engine: MetadataService;
@@ -194,6 +273,8 @@ interface DatabaseEntry {
 export class MetadataStore {
     private servers = new Map<string, ServerEntry>();
     private databases = new Map<string, DatabaseEntry>();
+    private serverCreations = new Map<string, Promise<void>>();
+    private databaseCreations = new Map<string, Promise<void>>();
     private violations = 0;
     private diskLoads = 0;
     private disposed = false;
@@ -228,49 +309,80 @@ export class MetadataStore {
 
     async acquireServer(prepared: PreparedConnection): Promise<ServerCatalogLease> {
         this.assertLive();
+        this.options.assertAcquisitionAllowed?.();
         const key: ServerKey = { serverFingerprint: prepared.serverFingerprint };
         const id = serverKeyOf(key);
         let entry = this.servers.get(id);
         const cacheHit = entry !== undefined;
         if (!entry) {
-            const connection = await this.service(prepared.profileRef.profileFingerprint);
-            // Server-scoped session: profile default database (server facts
-            // and sys.databases are database-agnostic).
-            const source = new DataPlaneMetadataSessionSource(connection, {
-                profile: prepared.profileRef,
-                applicationName: "vscode-mssql-metadata",
-                auth: prepared.auth,
+            const pending = this.serverCreations.get(id);
+            if (pending) {
+                await pending;
+                return this.acquireServer(prepared);
+            }
+            let resolveCreation!: () => void;
+            let rejectCreation!: (error: unknown) => void;
+            const creation = new Promise<void>((resolve, reject) => {
+                resolveCreation = resolve;
+                rejectCreation = reject;
             });
-            const auxSource = new DataPlaneMetadataSessionSource(connection, {
-                profile: prepared.profileRef,
-                applicationName: "vscode-mssql-metadata",
-                auth: prepared.auth,
-            });
-            entry = {
-                key,
-                prepared,
-                source,
-                auxSource,
-                service: new ServerMetadataService(source, auxSource),
-                refCount: 0,
-                idleTimer: undefined,
-                accessStates: undefined,
-                accessSubscription: undefined,
-            };
-            const created = entry;
-            // H-6(b): every server hydration diffs accessState per database
-            // name against the previous pinned view and pokes matching live
-            // database entries with staleReason "accessChanged".
-            created.accessSubscription = created.service.onDidChange(() =>
-                this.diffServerAccessStates(created),
-            );
-            this.servers.set(id, entry);
+            void creation.catch(() => undefined);
+            this.serverCreations.set(id, creation);
+            try {
+                this.assertLive();
+                const isNetworkAllowed = () => this.networkAllowed();
+                const connection = new LazyMetadataConnection(
+                    () => this.service(prepared.profileRef.profileFingerprint),
+                    isNetworkAllowed,
+                );
+                // Server-scoped session: profile default database (server facts
+                // and sys.databases are database-agnostic).
+                const source = new LazyMetadataSessionSource(connection, {
+                    profile: prepared.profileRef,
+                    applicationName: "vscode-mssql-metadata",
+                    auth: prepared.auth,
+                });
+                const auxSource = new LazyMetadataSessionSource(connection, {
+                    profile: prepared.profileRef,
+                    applicationName: "vscode-mssql-metadata",
+                    auth: prepared.auth,
+                });
+                entry = {
+                    key,
+                    prepared,
+                    source,
+                    auxSource,
+                    service: new ServerMetadataService(source, auxSource, { isNetworkAllowed }),
+                    refCount: 0,
+                    idleTimer: undefined,
+                    accessStates: undefined,
+                    accessSubscription: undefined,
+                };
+                const created = entry;
+                // H-6(b): every server hydration diffs accessState per database
+                // name against the previous pinned view and pokes matching live
+                // database entries with staleReason "accessChanged".
+                created.accessSubscription = created.service.onDidChange(() =>
+                    this.diffServerAccessStates(created),
+                );
+                this.servers.set(id, entry);
+                resolveCreation();
+            } catch (error) {
+                rejectCreation(error);
+                throw error;
+            } finally {
+                if (this.serverCreations.get(id) === creation) {
+                    this.serverCreations.delete(id);
+                }
+            }
         }
         const resolved = entry;
         resolved.refCount++;
         this.cancelIdle(resolved);
         this.emitAcquire("metadataStore.acquireServer", prepared, cacheHit);
-        void resolved.service.ensureHydrated();
+        if (this.networkAllowed()) {
+            void resolved.service.ensureHydrated();
+        }
 
         const store = this;
         let disposed = false;
@@ -369,174 +481,205 @@ export class MetadataStore {
         onStatus?: (status: MetadataStatus) => void,
     ): Promise<DatabaseCatalogLease> {
         this.assertLive();
+        this.options.assertAcquisitionAllowed?.();
         const key: DatabaseKey = { serverFingerprint: prepared.serverFingerprint, database };
         const id = databaseKeyOf(key);
         let entry = this.databases.get(id);
         const cacheHit = entry !== undefined;
         if (!entry) {
-            const connection = await this.service(prepared.profileRef.profileFingerprint);
-            // KEY-CORRECT by construction: the dedicated session opens IN the
-            // requested database (preview-safe strategy, design §6.1). An
-            // empty database means "profile default" — no explicit context,
-            // and the correctness check does not apply.
-            const inner = new DataPlaneMetadataSessionSource(connection, {
-                profile: prepared.profileRef,
-                ...(key.database ? { database: key.database } : {}),
-                applicationName: "vscode-mssql-metadata",
-                auth: prepared.auth,
+            const pending = this.databaseCreations.get(id);
+            if (pending) {
+                await pending;
+                return this.acquireDatabase(prepared, database, onStatus);
+            }
+            let resolveCreation!: () => void;
+            let rejectCreation!: (error: unknown) => void;
+            const creation = new Promise<void>((resolve, reject) => {
+                resolveCreation = resolve;
+                rejectCreation = reject;
             });
-            const source: MetadataSessionSource = {
-                open: async () => {
-                    const session = await inner.open();
-                    if (
-                        key.database &&
-                        session.info.database &&
-                        session.info.database !== key.database
-                    ) {
+            void creation.catch(() => undefined);
+            this.databaseCreations.set(id, creation);
+            try {
+                const isNetworkAllowed = () => this.networkAllowed();
+                const connection = new LazyMetadataConnection(
+                    () => this.service(prepared.profileRef.profileFingerprint),
+                    isNetworkAllowed,
+                );
+                // KEY-CORRECT by construction: the dedicated session opens IN the
+                // requested database (preview-safe strategy, design §6.1). An
+                // empty database means "profile default" — no explicit context,
+                // and the correctness check does not apply.
+                const inner = new LazyMetadataSessionSource(connection, {
+                    profile: prepared.profileRef,
+                    ...(key.database ? { database: key.database } : {}),
+                    applicationName: "vscode-mssql-metadata",
+                    auth: prepared.auth,
+                });
+                const source: MetadataSessionSource = inner;
+                const engine = new MetadataService(source, {
+                    ...(this.options.pollSeconds !== undefined
+                        ? { pollSeconds: this.options.pollSeconds }
+                        : {}),
+                    // H-3: focus fact + the SHARED cross-entry digest limiter.
+                    ...(this.options.isActive ? { isActive: this.options.isActive } : {}),
+                    validationLimiter: this.limiterFor(key.serverFingerprint),
+                    isNetworkAllowed,
+                    onIdentityMismatch: (drift) => {
                         this.violations++;
                         diag.emit({
                             feature: "metadata",
                             kind: "event",
                             type: "metadataStore.keyCorrectness.violation",
                             fields: {
-                                expected: { raw: key.database, cls: "database.name" },
-                                actual: {
-                                    raw: session.info.database,
-                                    cls: "database.name",
-                                },
+                                expected: { raw: drift.expected, cls: "source.path" },
+                                actual: { raw: drift.actual, cls: "source.path" },
                             },
                         });
-                    }
-                    return session;
-                },
-            };
-            const engine = new MetadataService(source, {
-                ...(this.options.pollSeconds !== undefined
-                    ? { pollSeconds: this.options.pollSeconds }
-                    : {}),
-                // H-3: focus fact + the SHARED cross-entry digest limiter.
-                ...(this.options.isActive ? { isActive: this.options.isActive } : {}),
-                validationLimiter: this.limiterFor(key.serverFingerprint),
-                // H-5: the engine detects the rename; the STORE owns the
-                // sanctioned event (cls database.name, same classes as the
-                // key-correctness tripwire) and the violations counter.
-                onIdentityDrift: (drift) => {
-                    this.violations++;
-                    diag.emit({
-                        feature: "metadata",
-                        kind: "event",
-                        type: "metadataStore.keyCorrectness.driftRename",
-                        fields: {
-                            expected: { raw: drift.expected, cls: "database.name" },
-                            actual: { raw: drift.actual, cls: "database.name" },
-                        },
-                    });
-                },
-            });
-            const engineKey = { serverFingerprint: key.serverFingerprint, database: key.database };
-            const cache = this.options.cache;
-            const offline = cache?.offlineMode?.() === true;
+                    },
+                    // H-5: the engine detects the rename; the STORE owns the
+                    // sanctioned local-path-classified event (same classes as
+                    // the key-correctness tripwire) and violations counter.
+                    onIdentityDrift: (drift) => {
+                        this.violations++;
+                        diag.emit({
+                            feature: "metadata",
+                            kind: "event",
+                            type: "metadataStore.keyCorrectness.driftRename",
+                            fields: {
+                                expected: { raw: drift.expected, cls: "source.path" },
+                                actual: { raw: drift.actual, cls: "source.path" },
+                            },
+                        });
+                    },
+                });
+                const engineKey = {
+                    serverFingerprint: key.serverFingerprint,
+                    database: key.database,
+                };
+                const cache = this.options.cache;
+                const offline = !isNetworkAllowed();
 
-            // Disk snapshot BEFORE the engine handle exists (base §10.1):
-            // publishing first means acquire() below sees "ready" and does
-            // not kick its own hydration — the C-4.1 background refresh is
-            // scheduled explicitly instead. A miss costs one manifest stat.
-            let publishedFromDisk = false;
-            let manifestDigest: string | undefined;
-            if (cache) {
-                const loaded = await cache.coordinator.load(engineKey);
-                if (!("miss" in loaded)) {
-                    manifestDigest = loaded.manifest.validation.objectDigest;
-                    publishedFromDisk = engine.publishExternalSnapshot(
-                        engineKey,
-                        loaded.snapshot,
-                        manifestDigest !== undefined ? { manifestDigest } : {},
-                    );
+                // Disk snapshot BEFORE the engine handle exists (base §10.1):
+                // publishing first means acquire() below sees "ready" and does
+                // not kick its own hydration — the C-4.1 background refresh is
+                // scheduled explicitly instead. A miss costs one manifest stat.
+                let publishedFromDisk = false;
+                let manifestDigest: string | undefined;
+                if (cache) {
+                    try {
+                        const loaded = await cache.coordinator.load(engineKey);
+                        if (!("miss" in loaded)) {
+                            manifestDigest = loaded.manifest.validation.objectDigest;
+                            publishedFromDisk = engine.publishExternalSnapshot(
+                                engineKey,
+                                loaded.snapshot,
+                                manifestDigest !== undefined ? { manifestDigest } : {},
+                            );
+                        }
+                    } catch {
+                        // Persistence is an optimization. Any I/O/codec failure
+                        // degrades to a live miss and must not block acquisition.
+                    }
                 }
-            }
+                if (this.disposed) {
+                    engine.dispose();
+                    inner.dispose();
+                    throw new Error("MetadataStore disposed during database acquisition");
+                }
 
-            const listeners = new Set<(status: MetadataStatus) => void>();
-            const pendingEntry: { current: DatabaseEntry | undefined } = { current: undefined };
-            const handle = engine.acquire(engineKey, (status) => {
-                const owner = pendingEntry.current;
-                if (owner && cache && status.readiness === "ready") {
-                    if (
-                        owner.diskGeneration !== undefined &&
-                        status.generation !== owner.diskGeneration
-                    ) {
-                        owner.cacheSource = "live";
-                    }
-                    // Save LIVE generations back (debounced + eligibility-
-                    // gated inside the coordinator); never re-save the
-                    // generation that came FROM the disk.
-                    if (status.generation !== owner.diskGeneration) {
-                        const snapshot = owner.handle?.current();
-                        if (snapshot) {
-                            cache.coordinator.save(engineKey, snapshot);
+                const listeners = new Set<(status: MetadataStatus) => void>();
+                const pendingEntry: { current: DatabaseEntry | undefined } = { current: undefined };
+                const handle = engine.acquire(engineKey, (status) => {
+                    const owner = pendingEntry.current;
+                    if (owner && cache && status.readiness === "ready") {
+                        if (
+                            owner.diskGeneration !== undefined &&
+                            status.generation !== owner.diskGeneration
+                        ) {
+                            owner.cacheSource = "live";
+                        }
+                        // Save LIVE generations back (debounced + eligibility-
+                        // gated inside the coordinator); never re-save the
+                        // generation that came FROM the disk.
+                        if (status.generation !== owner.diskGeneration) {
+                            const snapshot = owner.handle?.current();
+                            if (snapshot) {
+                                cache.coordinator.save(engineKey, snapshot);
+                            }
                         }
                     }
-                }
-                for (const listener of [...listeners]) {
-                    try {
-                        listener(status);
-                    } catch {
-                        /* listener isolation */
+                    for (const listener of [...listeners]) {
+                        try {
+                            listener(status);
+                        } catch {
+                            /* listener isolation */
+                        }
                     }
+                });
+                if (publishedFromDisk && !offline) {
+                    // C-4.1: cached data must never become silent forever-truth.
+                    void handle.refresh();
                 }
-            });
-            if (publishedFromDisk && !offline) {
-                // C-4.1: cached data must never become silent forever-truth.
-                void handle.refresh();
-            }
-            // B24: database aux sections on a DEDICATED key-correct session
-            // (never the engine's one-active-query lane); change ticks ride
-            // the entry's status listeners so OE re-renders.
-            const auxSource = new DataPlaneMetadataSessionSource(connection, {
-                profile: prepared.profileRef,
-                ...(key.database ? { database: key.database } : {}),
-                applicationName: "vscode-mssql-metadata",
-                auth: prepared.auth,
-            });
-            const aux = new AuxiliaryCatalog(
-                auxSource,
-                DATABASE_AUX_SECTIONS,
-                "metadataStore:dbAux",
-            );
-            const auxSubscription = aux.onDidChange(() => {
-                const owner = pendingEntry.current;
-                if (!owner) {
-                    return;
-                }
-                const status = owner.handle.status();
-                for (const listener of [...listeners]) {
-                    try {
-                        listener(status);
-                    } catch {
-                        /* listener isolation */
+                // B24: database aux sections on a DEDICATED key-correct session
+                // (never the engine's one-active-query lane); change ticks ride
+                // the entry's status listeners so OE re-renders.
+                const auxSource = new LazyMetadataSessionSource(connection, {
+                    profile: prepared.profileRef,
+                    ...(key.database ? { database: key.database } : {}),
+                    applicationName: "vscode-mssql-metadata",
+                    auth: prepared.auth,
+                });
+                const aux = new AuxiliaryCatalog(
+                    auxSource,
+                    DATABASE_AUX_SECTIONS,
+                    "metadataStore:dbAux",
+                    { isNetworkAllowed },
+                );
+                const auxSubscription = aux.onDidChange(() => {
+                    const owner = pendingEntry.current;
+                    if (!owner) {
+                        return;
                     }
+                    const status = owner.handle.status();
+                    for (const listener of [...listeners]) {
+                        try {
+                            listener(status);
+                        } catch {
+                            /* listener isolation */
+                        }
+                    }
+                });
+                entry = {
+                    key,
+                    prepared,
+                    source: inner,
+                    auxSource,
+                    aux,
+                    auxSubscription,
+                    engine,
+                    handle,
+                    listeners,
+                    refCount: 0,
+                    idleTimer: undefined,
+                    lastReleasedAt: 0,
+                    diskGeneration: publishedFromDisk ? handle.status().generation : undefined,
+                    cacheSource: publishedFromDisk ? "disk" : undefined,
+                };
+                pendingEntry.current = entry;
+                if (publishedFromDisk) {
+                    this.diskLoads++;
                 }
-            });
-            entry = {
-                key,
-                prepared,
-                source: inner,
-                auxSource,
-                aux,
-                auxSubscription,
-                engine,
-                handle,
-                listeners,
-                refCount: 0,
-                idleTimer: undefined,
-                lastReleasedAt: 0,
-                diskGeneration: publishedFromDisk ? handle.status().generation : undefined,
-                cacheSource: publishedFromDisk ? "disk" : undefined,
-            };
-            pendingEntry.current = entry;
-            if (publishedFromDisk) {
-                this.diskLoads++;
+                this.databases.set(id, entry);
+                resolveCreation();
+            } catch (error) {
+                rejectCreation(error);
+                throw error;
+            } finally {
+                if (this.databaseCreations.get(id) === creation) {
+                    this.databaseCreations.delete(id);
+                }
             }
-            this.databases.set(id, entry);
         }
         const resolved = entry;
         resolved.refCount++;
@@ -666,12 +809,13 @@ export class MetadataStore {
     }
 
     dispose(): void {
+        if (this.disposed) {
+            return;
+        }
         this.disposed = true;
         for (const entry of this.databases.values()) {
             this.cancelIdle(entry);
-            entry.handle.dispose();
-            entry.engine.dispose();
-            entry.source.dispose();
+            this.disposeDatabaseEntry(entry);
         }
         this.databases.clear();
         for (const entry of this.servers.values()) {
@@ -679,6 +823,7 @@ export class MetadataStore {
             entry.accessSubscription?.dispose();
             entry.service.dispose();
             entry.source.dispose();
+            entry.auxSource.dispose();
         }
         this.servers.clear();
     }
@@ -689,6 +834,10 @@ export class MetadataStore {
         if (this.disposed) {
             throw new Error("MetadataStore disposed");
         }
+    }
+
+    private networkAllowed(): boolean {
+        return this.options.cache?.offlineMode?.() !== true;
     }
 
     private scheduleIdle(

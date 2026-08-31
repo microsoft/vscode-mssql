@@ -24,9 +24,17 @@ import {
     FLUENT_RESULT_GRID_FIRST_DATA_CELL_INDEX,
     FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_ID,
 } from "./fluentResultGridConstants";
+import {
+    getFluentResultGridRangesAfterHeaderClick,
+    getFluentResultGridRangesForVisibleColumns,
+} from "./fluentResultGridSelection";
 import type { FluentResultGridActiveDataColumn } from "./fluentResultGridControllerTypes";
 import type { FluentResultGridDataRow } from "./fluentResultGridDataView";
 
+export function isFluentResultGridResizeHandleEvent(eventData: MouseEvent | undefined): boolean {
+    const eventTarget = eventData?.target as Element | null;
+    return !!eventTarget?.closest?.(".slick-resizable-handle");
+}
 export function updateFluentResultGridHeaderButtonStates({
     grid,
     filters,
@@ -122,7 +130,7 @@ export function useFluentResultGridHeaderController({
     openFilterMenuForColumn,
     openOverlay,
     resultSetSummary,
-    selectRange,
+    selectRangesAndActivate,
     sortStateRef,
     strings,
     toggleSortForColumn,
@@ -141,7 +149,12 @@ export function useFluentResultGridHeaderController({
     ) => Promise<void>;
     openOverlay: FluentResultGridProviderContextValue["openOverlay"];
     resultSetSummary: ResultSetSummary;
-    selectRange: (grid: SlickGrid, range: SlickRange) => void;
+    selectRangesAndActivate: (
+        grid: SlickGrid,
+        ranges: SlickRange[],
+        row: number,
+        cell: number,
+    ) => void;
     sortStateRef: MutableRefObject<{ columnId: string; direction: SortProperties } | undefined>;
     strings: FluentResultGridStrings;
     toggleSortForColumn: (
@@ -435,6 +448,11 @@ export function useFluentResultGridHeaderController({
 
     const handleHeaderClick = useCallback(
         (event: CustomEvent) => {
+            const eventData = event.detail?.eventData as MouseEvent | undefined;
+            if (isFluentResultGridResizeHandleEvent(eventData)) {
+                return;
+            }
+
             closeOverlay();
             const args = event.detail?.args;
             const grid = args?.grid as SlickGrid | undefined;
@@ -445,21 +463,49 @@ export function useFluentResultGridHeaderController({
 
             const columnIndex = grid.getColumnIndex(column.id);
             const lastRow = grid.getDataLength() - 1;
-            const lastCell = grid.getColumns().length - 1;
+            const firstVisibleRow = grid.getViewport()?.top ?? 0;
+            const firstDataCell =
+                grid.getColumns()[0]?.id === FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_ID
+                    ? FLUENT_RESULT_GRID_FIRST_DATA_CELL_INDEX
+                    : 0;
 
+            // The corner cell above the row numbers always selects the whole grid.
             if (column.id === FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_ID) {
-                selectRange(
-                    grid,
-                    new SlickRange(0, FLUENT_RESULT_GRID_FIRST_DATA_CELL_INDEX, lastRow, lastCell),
+                const ranges = getFluentResultGridRangesForVisibleColumns(
+                    grid.getColumns(),
+                    0,
+                    lastRow,
                 );
+                if (ranges.length === 0) {
+                    return;
+                }
+
+                selectRangesAndActivate(grid, ranges, firstVisibleRow, ranges[0].fromCell);
                 return;
             }
 
-            if (columnIndex >= FLUENT_RESULT_GRID_FIRST_DATA_CELL_INDEX) {
-                selectRange(grid, new SlickRange(0, columnIndex, lastRow, columnIndex));
+            if (columnIndex < firstDataCell) {
+                return;
             }
+
+            const ranges = getFluentResultGridRangesAfterHeaderClick(
+                grid.getSelectionModel()?.getSelectedRanges() ?? [],
+                columnIndex,
+                grid.getActiveCell(),
+                {
+                    ctrlKey: eventData?.ctrlKey,
+                    metaKey: eventData?.metaKey,
+                    shiftKey: eventData?.shiftKey,
+                },
+                grid.getDataLength(),
+                firstDataCell,
+            );
+
+            // Anchor the next Shift+click on the column that was just clicked, the way the
+            // production grid does.
+            selectRangesAndActivate(grid, ranges, firstVisibleRow, columnIndex);
         },
-        [closeOverlay, selectRange],
+        [closeOverlay, selectRangesAndActivate],
     );
 
     return {

@@ -2,6 +2,11 @@
  * Re-vendor: copy the src/central/*.ts files here with this header (see
  * perf-contracts test/centralVendorSync.test.ts, which pins byte equality).
  * Contract central/1.0 — one projection implementation, two writers. */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 /**
  * Central-store canonicalization and digest rules (central design §6.2, review
  * addendum C-1/C-14/C-15). This module is the single implementation both
@@ -18,31 +23,31 @@ import { createHash } from "node:crypto";
 
 /** Deterministic JSON: keys sorted at every level, arrays in order. */
 export function canonicalJson(value: unknown): string {
-  return JSON.stringify(sortValue(value));
+    return JSON.stringify(sortValue(value));
 }
 
 function sortValue(value: unknown): unknown {
-  if (Array.isArray(value)) {
-    return value.map(sortValue);
-  }
-  if (value && typeof value === "object") {
-    const sorted: Record<string, unknown> = {};
-    for (const key of Object.keys(value as Record<string, unknown>).sort()) {
-      sorted[key] = sortValue((value as Record<string, unknown>)[key]);
+    if (Array.isArray(value)) {
+        return value.map(sortValue);
     }
-    return sorted;
-  }
-  return value;
+    if (value && typeof value === "object") {
+        const sorted: Record<string, unknown> = {};
+        for (const key of Object.keys(value as Record<string, unknown>).sort()) {
+            sorted[key] = sortValue((value as Record<string, unknown>)[key]);
+        }
+        return sorted;
+    }
+    return value;
 }
 
 /** sha256 → URL-safe base64 without padding (house 22-char short form). */
 function sha256B64Url22(input: string): string {
-  return createHash("sha256").update(input, "utf8").digest("base64url").slice(0, 22);
+    return createHash("sha256").update(input, "utf8").digest("base64url").slice(0, 22);
 }
 
 /** sha256 → full lowercase hex (used where SQL Server recomputes, e.g. locks). */
 export function sha256Hex(input: string): string {
-  return createHash("sha256").update(input, "utf8").digest("hex");
+    return createHash("sha256").update(input, "utf8").digest("hex");
 }
 
 /**
@@ -51,32 +56,32 @@ export function sha256Hex(input: string): string {
  * The prefix makes accidental cross-kind comparison visible in queries.
  */
 export const DIGEST_PREFIXES = {
-  /** Pre-policy source artifact inventory (C-1). */
-  source: "src",
-  /** Canonical policy-filtered content before table projection. */
-  content: "cnt",
-  /** Projected row set after contract projection. */
-  projection: "prj",
-  /** One uploaded item / event payload. */
-  payload: "pay",
-  /** The UploadPreview document itself (C-15 "digest-pinned preview"). */
-  preview: "pvw",
-  /** Uploader principal (C-14). */
-  principal: "prn",
-  /** A single payload field re-digested at the upload boundary. */
-  field: "fld",
+    /** Pre-policy source artifact inventory (C-1). */
+    source: "src",
+    /** Canonical policy-filtered content before table projection. */
+    content: "cnt",
+    /** Projected row set after contract projection. */
+    projection: "prj",
+    /** One uploaded item / event payload. */
+    payload: "pay",
+    /** The UploadPreview document itself (C-15 "digest-pinned preview"). */
+    preview: "pvw",
+    /** Uploader principal (C-14). */
+    principal: "prn",
+    /** A single payload field re-digested at the upload boundary. */
+    field: "fld",
 } as const;
 
 export type DigestKind = keyof typeof DIGEST_PREFIXES;
 
 /** Canonicalize `value` and digest it under the given kind's prefix. */
 export function digestCanonical(kind: DigestKind, value: unknown): string {
-  return `${DIGEST_PREFIXES[kind]}_${sha256B64Url22(canonicalJson(value))}`;
+    return `${DIGEST_PREFIXES[kind]}_${sha256B64Url22(canonicalJson(value))}`;
 }
 
 /** Digest an already-canonical string (e.g. an item's exact payload JSON). */
 export function digestString(kind: DigestKind, canonical: string): string {
-  return `${DIGEST_PREFIXES[kind]}_${sha256B64Url22(canonical)}`;
+    return `${DIGEST_PREFIXES[kind]}_${sha256B64Url22(canonical)}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -86,13 +91,13 @@ export function digestString(kind: DigestKind, canonical: string): string {
 export type PrincipalKind = "domainUser" | "alias" | "ci" | "servicePrincipal";
 
 export interface PrincipalInput {
-  kind: PrincipalKind;
-  /** domainUser/alias: UPN or alias; servicePrincipal: appId. */
-  value?: string;
-  /** ci only. */
-  pipelineIdentity?: string;
-  /** ci only. */
-  poolName?: string;
+    kind: PrincipalKind;
+    /** domainUser/alias: UPN or alias; servicePrincipal: appId. */
+    value?: string;
+    /** ci only. */
+    pipelineIdentity?: string;
+    /** ci only. */
+    poolName?: string;
 }
 
 /**
@@ -107,24 +112,24 @@ export interface PrincipalInput {
 const NUL = String.fromCharCode(0);
 
 export function principalDigest(input: PrincipalInput): string {
-  let normalized: string;
-  switch (input.kind) {
-    case "domainUser":
-    case "alias":
-      normalized = (input.value ?? "").trim().toLowerCase();
-      break;
-    case "ci":
-      normalized = `${input.pipelineIdentity ?? ""}${NUL}${input.poolName ?? ""}`;
-      break;
-    case "servicePrincipal":
-      normalized = input.value ?? "";
-      break;
-  }
-  if (normalized.split(NUL).join("") === "") {
-    throw new Error(`principalDigest: empty principal for kind '${input.kind}'`);
-  }
-  const seed = `central-principal${NUL}${input.kind}${NUL}${normalized}`;
-  return `${DIGEST_PREFIXES.principal}_${sha256B64Url22(seed)}`;
+    let normalized: string;
+    switch (input.kind) {
+        case "domainUser":
+        case "alias":
+            normalized = (input.value ?? "").trim().toLowerCase();
+            break;
+        case "ci":
+            normalized = `${input.pipelineIdentity ?? ""}${NUL}${input.poolName ?? ""}`;
+            break;
+        case "servicePrincipal":
+            normalized = input.value ?? "";
+            break;
+    }
+    if (normalized.split(NUL).join("") === "") {
+        throw new Error(`principalDigest: empty principal for kind '${input.kind}'`);
+    }
+    const seed = `central-principal${NUL}${input.kind}${NUL}${normalized}`;
+    return `${DIGEST_PREFIXES.principal}_${sha256B64Url22(seed)}`;
 }
 
 /**
@@ -133,5 +138,8 @@ export function principalDigest(input: PrincipalInput): string {
  * hex sha256 of the natural key (addendum C-2/§3).
  */
 export function entityLockResource(kind: string, naturalKey: string): string {
-  return `central:${kind}:${sha256Hex(naturalKey)}`;
+    const sqlServerHash = createHash("sha256")
+        .update(Buffer.from(naturalKey, "utf16le"))
+        .digest("hex");
+    return `central:${kind}:${sqlServerHash}`;
 }

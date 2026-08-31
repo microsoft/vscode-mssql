@@ -35,7 +35,10 @@ export interface ProfileIdentityInput {
 }
 
 function digestParts(prefix: string, parts: readonly (string | undefined)[]): string {
-    const canonical = parts.map((part) => part ?? "").join("|");
+    // JSON-encode the tuple so field boundaries are unambiguous: profile
+    // fields may legally contain any separator character, and a positional
+    // join would let ["a|b", "c"] and ["a", "b|c"] collide.
+    const canonical = JSON.stringify(parts.map((part) => part ?? ""));
     const hash = createHash("sha256").update(canonical, "utf8").digest("base64url");
     return `${prefix}_${hash.slice(0, 22)}`;
 }

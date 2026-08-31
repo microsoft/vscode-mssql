@@ -441,8 +441,6 @@ export const DBProjectConfigurationKey = "sqlDatabaseProjects";
 export const sqlDatabaseProjectsExtensionId = "ms-mssql.sql-database-projects-vscode";
 export const internalConnectionSharingExtensionIds: ReadonlySet<string> = new Set([
     extensionId,
-    sqlDatabaseProjectsExtensionId,
-    "ms-mssql.data-workspace-vscode",
     "ms-mssql.sql-notebook-controller",
     "microsoft.schema-compare",
 ]);

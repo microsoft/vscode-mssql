@@ -39,7 +39,7 @@ import { getAppDataPath, getEnableConnectionPoolingConfig } from "../azure/utils
 import { serviceName } from "../azure/constants";
 import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-import { PreviewFeature, previewService } from "../previews/previewService";
+import { PrivatePreviewFeature, PreviewFeature, previewService } from "../previews/previewService";
 import { getRuntimeConfigPath, ServiceExecutable } from "./serviceExecutablePaths";
 import { config } from "../configurations/config";
 
@@ -746,7 +746,7 @@ export default class SqlToolsServiceClient {
         // disabled unless the experimental SQL Data Plane is enabled.
         configureSqlDataPlaneLaunchArgs(
             args,
-            vscode.workspace.getConfiguration().get<boolean>("mssql.sqlDataPlane.enabled", false),
+            previewService.isPrivatePreviewEnabled(PrivatePreviewFeature.SqlDataPlane),
         );
         args.push("--parallel-message-processing-limit");
         args.push(String(100));

@@ -269,6 +269,72 @@ suite("Metadata freshness policy (CACHE-0)", () => {
         service.dispose();
     });
 
+    test("T-A6: shared-work races remove abort listeners after success and timeout", async () => {
+        const counters = { digest: 0 };
+        const { service, source } = makeService(counters);
+        const handle = service.acquire(KEY);
+        await handle.refresh();
+        await sleep(10);
+
+        let adds = 0;
+        let removes = 0;
+        const listeners = new Set<EventListenerOrEventListenerObject>();
+        const signal = {
+            aborted: false,
+            addEventListener: (
+                type: string,
+                listener: EventListenerOrEventListenerObject,
+            ): void => {
+                expect(type).to.equal("abort");
+                adds++;
+                listeners.add(listener);
+            },
+            removeEventListener: (
+                type: string,
+                listener: EventListenerOrEventListenerObject,
+            ): void => {
+                expect(type).to.equal("abort");
+                removes++;
+                listeners.delete(listener);
+            },
+        } as AbortSignal;
+
+        const firstHold = deferred();
+        source.gate = (t) => (t.includes("CHECKSUM_AGG") ? firstHold.promise : undefined);
+        const successful = handle.ensureFresh({
+            mode: "requireValidated",
+            reason: "diagnostics",
+            validationTtlMs: 1,
+            signal,
+        });
+        source.gate = undefined;
+        firstHold.resolve();
+        expect((await successful).freshness).to.equal("validated");
+        expect(adds).to.equal(1);
+        expect(removes).to.equal(1);
+        expect(listeners.size).to.equal(0);
+
+        await sleep(10);
+        const secondHold = deferred();
+        source.gate = (t) => (t.includes("CHECKSUM_AGG") ? secondHold.promise : undefined);
+        const timedOut = await handle.ensureFresh({
+            mode: "requireValidated",
+            reason: "diagnostics",
+            validationTtlMs: 1,
+            timeoutMs: 10,
+            signal,
+        });
+        expect(timedOut.freshness).to.equal("stale");
+        expect(adds).to.equal(2);
+        expect(removes).to.equal(2);
+        expect(listeners.size).to.equal(0);
+
+        source.gate = undefined;
+        secondHold.resolve();
+        handle.dispose();
+        service.dispose();
+    });
+
     test("T-A4: watchdog fails a swallowed completion, recycles the session, and requireLive recovers", async () => {
         const counters = { digest: 0 };
         const { service, source } = makeService(counters, {
@@ -434,6 +500,71 @@ suite("Metadata freshness policy (CACHE-0)", () => {
         });
         expect(stale.freshness).to.be.oneOf(["stale", "validated"]);
         expect(stale.generation).to.equal(generation + 1);
+
+        let addedListener: EventListenerOrEventListenerObject | undefined;
+        let removedListener: EventListenerOrEventListenerObject | undefined;
+        const signal = {
+            aborted: false,
+            addEventListener: (
+                type: string,
+                listener: EventListenerOrEventListenerObject,
+            ): void => {
+                expect(type).to.equal("abort");
+                addedListener = listener;
+            },
+            removeEventListener: (
+                type: string,
+                listener: EventListenerOrEventListenerObject,
+            ): void => {
+                expect(type).to.equal("abort");
+                removedListener = listener;
+            },
+        } as AbortSignal;
+        const live = await service.ensureFresh({
+            mode: "requireLive",
+            reason: "scripting",
+            signal,
+        });
+        expect(live.freshness).to.equal("live");
+        expect(addedListener).to.not.equal(undefined);
+        expect(removedListener).to.equal(addedListener);
+        service.dispose();
+    });
+
+    test("server catalog watchdog fails a hung query, recycles, and recovers", async () => {
+        const scripts: FakeScript[] = [
+            {
+                match: (t) => t.includes("sys.databases"),
+                events: [
+                    {
+                        type: "resultSet",
+                        columns: ["database_id", "name", "has_dbaccess"],
+                        rows: [[5, "Db1", 1]],
+                    },
+                    { type: "complete", status: "succeeded" },
+                ],
+            },
+        ];
+        const source = new ControlledSource(new FakeBackend({ scripts }));
+        let wedge = true;
+        source.swallow = (text) => wedge && text.includes("sys.databases");
+        const service = new ServerMetadataService(source, source, { hydrationTimeoutMs: 30 });
+
+        await service.ensureHydrated();
+        expect(service.status().readiness).to.equal("failed");
+        expect(service.pin().listDatabases()).to.equal(undefined);
+        const opensBefore = source.opens;
+
+        wedge = false;
+        await service.refresh();
+        expect(service.status().readiness).to.equal("ready");
+        expect(
+            service
+                .pin()
+                .listDatabases()
+                ?.map((database) => database.name),
+        ).to.deep.equal(["Db1"]);
+        expect(source.opens).to.be.greaterThan(opensBefore);
         service.dispose();
     });
 });

@@ -21,14 +21,52 @@ import type { FluentResultGridDataRow, FluentResultGridDataView } from "./fluent
 import { FLUENT_RESULT_GRID_SELECTION_SUMMARY_DEBOUNCE_MS } from "./fluentResultGridConstants";
 import { makeFluentResultGridMenuButtonsUntabbable } from "./fluentResultGridDomUtils";
 import { enableFluentResultGridModifierDrag } from "./fluentResultGridCellRangeSelector";
-import {
-    convertDisplayedSelectionRowsToActual,
-    getFluentResultGridDataSelectionsFromRanges,
-} from "./fluentResultGridSelection";
+import { getFluentResultGridSelectionSummaryPayload } from "./fluentResultGridSelection";
 import { FluentResultGridSelectionModel } from "./fluentResultGridSelectionModel";
 
 export interface FluentResultGridSlickLifecycleController {
     handleReactGridCreated: (event: CustomEvent<SlickgridReactInstance>) => void;
+}
+
+export function dispatchFluentResultGridSelectionChange({
+    ranges,
+    columns,
+    transformedRows,
+    shouldSuppress,
+    onSelectionChange,
+    onSelectionSummaryChange,
+    publishSelectionSummary,
+}: {
+    ranges: readonly SlickRange[];
+    columns: ReturnType<SlickGrid["getColumns"]>;
+    transformedRows: readonly SourceRow[] | undefined;
+    shouldSuppress: boolean;
+    onSelectionChange: FluentResultGridProps["onSelectionChange"] | undefined;
+    onSelectionSummaryChange: FluentResultGridProps["onSelectionSummaryChange"] | undefined;
+    publishSelectionSummary: ((
+        selection: Parameters<NonNullable<FluentResultGridProps["onSelectionSummaryChange"]>>[0],
+        displaySelection: Parameters<
+            NonNullable<FluentResultGridProps["onSelectionSummaryChange"]>
+        >[1],
+    ) => void) & { cancel: () => void };
+}): void {
+    const { selection, displaySelection } = getFluentResultGridSelectionSummaryPayload(
+        ranges,
+        columns,
+        transformedRows ? (displayRow) => transformedRows[displayRow]?.rowId : undefined,
+    );
+
+    publishSelectionSummary.cancel();
+    if (shouldSuppress) {
+        return;
+    }
+
+    onSelectionChange?.(displaySelection);
+    if (selection.length === 0) {
+        void onSelectionSummaryChange?.(selection, displaySelection);
+    } else {
+        publishSelectionSummary(selection, displaySelection);
+    }
 }
 
 export function useFluentResultGridSlickLifecycle({
@@ -177,27 +215,15 @@ export function useFluentResultGridSlickLifecycle({
                 selectionEventHandlerRef.current.subscribe(
                     selectionModel.onSelectedRangesChanged,
                     (_event, ranges: SlickRange[]) => {
-                        const displaySelection =
-                            getFluentResultGridDataSelectionsFromRanges(ranges);
-                        const transformedRows = transformedRowsRef.current;
-                        const selection = transformedRows
-                            ? convertDisplayedSelectionRowsToActual(
-                                  displaySelection,
-                                  (displayRow) => transformedRows[displayRow]?.rowId,
-                              )
-                            : displaySelection;
-                        publishSelectionSummary.cancel();
-                        if (!shouldSuppressSelectionSummaryChangeRef.current()) {
-                            onSelectionChangeRef.current?.(displaySelection);
-                            if (selection.length === 0) {
-                                void onSelectionSummaryChangeRef.current?.(
-                                    selection,
-                                    displaySelection,
-                                );
-                            } else {
-                                publishSelectionSummary(selection, displaySelection);
-                            }
-                        }
+                        dispatchFluentResultGridSelectionChange({
+                            ranges,
+                            columns: grid.getColumns(),
+                            transformedRows: transformedRowsRef.current,
+                            shouldSuppress: shouldSuppressSelectionSummaryChangeRef.current(),
+                            onSelectionChange: onSelectionChangeRef.current,
+                            onSelectionSummaryChange: onSelectionSummaryChangeRef.current,
+                            publishSelectionSummary,
+                        });
                         emitStateChange(grid);
                     },
                 );
