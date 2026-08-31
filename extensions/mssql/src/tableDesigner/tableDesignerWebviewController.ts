@@ -637,7 +637,7 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                 return;
             }
 
-            this.logger.info("Progress", progress);
+            this.logger.debug("Progress", progress);
             this.appendOperationProgress(progress.operation, progress.message, progress.status);
 
             try {

@@ -122,6 +122,80 @@ suite("ServiceDownloadProvider Tests", () => {
         expect(actual).to.equal(expected);
     });
 
+    test("getRuntimeDownloadPackageFileName returns the configured platform archive", () => {
+        config.getSqlToolsConfigValue
+            .withArgs("downloadFileNames")
+            .returns({ Windows_64: "win-x64.zip" });
+        const downloadProvider = new ServiceDownloadProvider(
+            config,
+            testLogger,
+            statusView,
+            testDownloadHelper,
+            testDecompressProvider,
+        );
+
+        expect(downloadProvider.getRuntimeDownloadPackageFileName(Runtime.Windows_64)).to.equal(
+            "win-x64.zip",
+        );
+    });
+
+    test("installServiceFromPackage copies and extracts a predownloaded package without HTTP", async () => {
+        const testRoot = path.join(__dirname, "testPredownloadedService");
+        const packagePath = path.join(testRoot, "Microsoft.SqlTools.ServiceLayer-win-x64.zip");
+        const installDirectory = path.join(testRoot, "install");
+
+        await fs.rm(testRoot, { recursive: true, force: true });
+        try {
+            await fs.mkdir(testRoot, { recursive: true });
+            await fs.writeFile(packagePath, "package contents");
+            config.getSqlToolsInstallDirectory.returns(installDirectory);
+            config.getSqlToolsPackageVersion.returns("1.0.0");
+            testDecompressProvider.decompress.resolves();
+
+            const downloadProvider = new ServiceDownloadProvider(
+                config,
+                testLogger,
+                statusView,
+                testDownloadHelper,
+                testDecompressProvider,
+            );
+
+            await downloadProvider.installServiceFromPackage(Runtime.Windows_64, packagePath);
+
+            expect(testDownloadHelper.downloadFile).to.not.have.been.called;
+            expect(testDecompressProvider.decompress).to.have.been.calledOnce;
+            expect(testDecompressProvider.decompress.firstCall.args[0].isZipFile).to.be.true;
+            expect(statusView.serviceInstalled).to.have.been.calledOnce;
+        } finally {
+            await fs.rm(testRoot, { recursive: true, force: true });
+        }
+    });
+
+    test("installServiceFromPackage rejects a missing predownloaded package", async () => {
+        const packagePath = path.join(__dirname, "missing-service-package.zip");
+        const downloadProvider = new ServiceDownloadProvider(
+            config,
+            testLogger,
+            statusView,
+            testDownloadHelper,
+            testDecompressProvider,
+        );
+
+        let error: Error | undefined;
+        try {
+            await downloadProvider.installServiceFromPackage(Runtime.Windows_64, packagePath);
+        } catch (err) {
+            if (!(err instanceof Error)) {
+                throw err;
+            }
+            error = err;
+        }
+
+        expect(error?.message).to.equal(`SQL Tools Service package not found: ${packagePath}`);
+        expect(testDownloadHelper.downloadFile).to.not.have.been.called;
+        expect(testDecompressProvider.decompress).to.not.have.been.called;
+    });
+
     test("tryGetInstallDirectory returns undefined when portable install folder exists but required files are missing", async () => {
         const installRoot = path.join(__dirname, "testServicePortableMissing");
         const installDirectory = path.join(installRoot, "1.0.0", "Portable");

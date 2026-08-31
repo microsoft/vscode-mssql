@@ -577,6 +577,37 @@ suite("SqlOutputProvider Tests using mocks", () => {
         expect(state.rowsAffected).to.equal(7);
     });
 
+    test("Print messages remain visible when batch messages are disabled", async () => {
+        const uri = "test_uri";
+        const printMessage = "hello";
+        getConfigurationStub.returns(
+            stubs.createWorkspaceConfiguration({
+                [Constants.configResultsShowBatchMessages]: false,
+            }),
+        );
+        sandbox.stub(QueryRunner.prototype, "runQuery").resolves();
+
+        await contentProvider.runQuery(statusViewInstance, uri, undefined, "test_title");
+        const runner = contentProvider.getQueryRunner(uri);
+        runner.handleMessage({
+            ownerUri: uri,
+            message: {
+                message: printMessage,
+                isError: false,
+                time: new Date().toISOString(),
+                batchId: 0,
+            },
+        });
+
+        const state = contentProvider.queryResultWebviewController.getQueryResultState(uri);
+        expect(state.messages).to.have.length(1);
+        expect(state.messages[0]).to.deep.include({
+            message: printMessage,
+            isError: false,
+            batchId: undefined,
+        });
+    });
+
     test("Completion messages are hidden while execution state still updates", async () => {
         const uri = "test_uri";
         getConfigurationStub.returns(

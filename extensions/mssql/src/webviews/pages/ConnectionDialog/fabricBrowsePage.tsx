@@ -94,7 +94,7 @@ export const FabricBrowsePage = () => {
 
                 return;
             default:
-                log.error("Unknown server type selected.");
+                log.warn("Unknown server type selected.");
         }
     }
 
