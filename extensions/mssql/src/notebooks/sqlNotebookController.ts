@@ -383,7 +383,9 @@ export class SqlNotebookController implements vscode.Disposable {
                     vscode.NotebookControllerAffinity.Preferred,
                 );
                 sendActionEvent(TelemetryViews.SqlNotebooks, TelemetryActions.KernelSelected, {
-                    detectionMethod: "kernelspec",
+                    additionalProps: {
+                        detectionMethod: "kernelspec",
+                    },
                 });
                 return;
             }
@@ -403,7 +405,9 @@ export class SqlNotebookController implements vscode.Disposable {
                 vscode.NotebookControllerAffinity.Preferred,
             );
             sendActionEvent(TelemetryViews.SqlNotebooks, TelemetryActions.KernelSelected, {
-                detectionMethod: "languageInfo",
+                additionalProps: {
+                    detectionMethod: "languageInfo",
+                },
             });
             return;
         }
@@ -421,7 +425,9 @@ export class SqlNotebookController implements vscode.Disposable {
                 vscode.NotebookControllerAffinity.Preferred,
             );
             sendActionEvent(TelemetryViews.SqlNotebooks, TelemetryActions.KernelSelected, {
-                detectionMethod: "allCellsSql",
+                additionalProps: {
+                    detectionMethod: "allCellsSql",
+                },
             });
         }
     }
@@ -950,7 +956,9 @@ export class SqlNotebookController implements vscode.Disposable {
         message: NotebookSaveAsMessage,
     ): Promise<void> {
         sendActionEvent(TelemetryViews.SqlNotebooks, TelemetryActions.SaveResults, {
-            format: message.format,
+            additionalProps: {
+                format: message.format,
+            },
         });
         try {
             const notebookName = path.basename(notebook.uri.fsPath);
@@ -1053,12 +1061,9 @@ export class SqlNotebookController implements vscode.Disposable {
             return;
         }
 
-        const activity = startActivity(
-            TelemetryViews.SqlNotebooks,
-            TelemetryActions.ExecuteCell,
-            undefined,
-            { isMagicCommand: "false" },
-        );
+        const activity = startActivity(TelemetryViews.SqlNotebooks, TelemetryActions.ExecuteCell, {
+            additionalProps: { isMagicCommand: "false" },
+        });
 
         try {
             this.log.debug(
@@ -1330,7 +1335,9 @@ export class SqlNotebookController implements vscode.Disposable {
         const parts = firstLine.split(/\s+/);
         const command = parts[0].substring(2).toLowerCase(); // strip %%
 
-        sendActionEvent(TelemetryViews.SqlNotebooks, TelemetryActions.MagicCommand, { command });
+        sendActionEvent(TelemetryViews.SqlNotebooks, TelemetryActions.MagicCommand, {
+            additionalProps: { command },
+        });
 
         try {
             switch (command) {
@@ -1559,7 +1566,9 @@ export class SqlNotebookController implements vscode.Disposable {
 
     async createNotebookWithConnection(connectionInfo?: IConnectionInfo): Promise<void> {
         sendActionEvent(TelemetryViews.SqlNotebooks, TelemetryActions.CreateNotebook, {
-            source: connectionInfo ? "objectExplorer" : "commandPalette",
+            additionalProps: {
+                source: connectionInfo ? "objectExplorer" : "commandPalette",
+            },
         });
 
         const cellData = new vscode.NotebookCellData(vscode.NotebookCellKind.Code, "", "sql");

@@ -247,19 +247,19 @@ suite("QueryCompletionSoundService", () => {
         expect(sendErrorEvent).to.have.been.calledWith(
             TelemetryViews.QueryEditor,
             TelemetryActions.QueryCompletionSoundPlayback,
-            sinon.match({
-                message:
-                    "Unable to play the bundled default query completion sound because no supported audio player could be used.",
-            }),
-            true,
-            undefined,
-            undefined,
             {
-                platform: Constants.Platform.Linux,
-                architecture: "test-architecture",
-                osType: "test-os",
-                osRelease: "test-release",
-                osVersion: "test-version",
+                error: sinon.match({
+                    message:
+                        "Unable to play the bundled default query completion sound because no supported audio player could be used.",
+                }),
+                includeErrorMessage: true,
+                additionalProps: {
+                    platform: Constants.Platform.Linux,
+                    architecture: "test-architecture",
+                    osType: "test-os",
+                    osRelease: "test-release",
+                    osVersion: "test-version",
+                },
             },
         );
         expect(loggerWarnStub).to.have.been.calledWith(

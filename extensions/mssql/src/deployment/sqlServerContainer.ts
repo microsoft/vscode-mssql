@@ -246,14 +246,10 @@ export async function restartSqlServerContainer(
         objectExplorerService,
     );
     if (!dockerPreparedResult.success) {
-        sendErrorEvent(
-            TelemetryViews.LocalContainers,
-            TelemetryActions.RestartContainer,
-            new Error(dockerPreparedResult.error),
-            false, // includeErrorMessage
-            undefined, // errorCode
-            undefined, // errorType
-        );
+        sendErrorEvent(TelemetryViews.LocalContainers, TelemetryActions.RestartContainer, {
+            error: new Error(dockerPreparedResult.error),
+            includeErrorMessage: false,
+        });
         return false;
     }
     const isContainerRunning = await isDockerContainerRunning(containerName);
@@ -279,14 +275,10 @@ export async function restartSqlServerContainer(
     await objectExplorerService.setLoadingUiForNode(containerNode);
 
     if (!containerReadyResult.success) {
-        sendErrorEvent(
-            TelemetryViews.LocalContainers,
-            TelemetryActions.RestartContainer,
-            new Error(containerReadyResult.error),
-            false, // includeErrorMessage
-            undefined, // errorCode
-            undefined, // errorType
-        );
+        sendErrorEvent(TelemetryViews.LocalContainers, TelemetryActions.RestartContainer, {
+            error: new Error(containerReadyResult.error),
+            includeErrorMessage: false,
+        });
         return false;
     }
     sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.RestartContainer);

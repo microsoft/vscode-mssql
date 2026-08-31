@@ -87,9 +87,11 @@ export async function initializeFabricProvisioningState(
     sendActionEvent(
         TelemetryViews.FabricProvisioning,
         TelemetryActions.StartFabricProvisioningDeployment,
-        {},
         {
-            localContainersInitTimeInMs: Date.now() - startTime,
+            additionalProps: {},
+            additionalMeasurements: {
+                localContainersInitTimeInMs: Date.now() - startTime,
+            },
         },
     );
 
@@ -447,23 +449,19 @@ export async function getWorkspaces(
             workspaceOptions[0]?.value ??
             "";
         updateFabricProvisioningState(deploymentController, state);
-        sendActionEvent(
-            TelemetryViews.FabricProvisioning,
-            TelemetryActions.GetWorkspaces,
-            {},
-            {
+        sendActionEvent(TelemetryViews.FabricProvisioning, TelemetryActions.GetWorkspaces, {
+            additionalProps: {},
+            additionalMeasurements: {
                 numWorkspaces: state.workspaces.length,
                 workspaceLoadTimeInMs: Date.now() - startTime,
             },
-        );
+        });
     } catch (err) {
         state.isWorkspacesErrored = true;
-        sendErrorEvent(
-            TelemetryViews.FabricProvisioning,
-            TelemetryActions.GetWorkspaces,
-            err,
-            false,
-        );
+        sendErrorEvent(TelemetryViews.FabricProvisioning, TelemetryActions.GetWorkspaces, {
+            error: err,
+            includeErrorMessage: false,
+        });
         updateFabricProvisioningState(deploymentController, state);
     }
 }
@@ -491,22 +489,18 @@ export async function getRoleForWorkspace(
                 workspace.role = role.role;
             }
         }
-        sendActionEvent(
-            TelemetryViews.FabricProvisioning,
-            TelemetryActions.GetWorkspaceRole,
-            {},
-            {
+        sendActionEvent(TelemetryViews.FabricProvisioning, TelemetryActions.GetWorkspaceRole, {
+            additionalProps: {},
+            additionalMeasurements: {
                 workspaceRoleLoadTimeInMs: Date.now() - startTime,
             },
-        );
+        });
     } catch (err) {
         state.errorMessage = getErrorMessage(err);
-        sendErrorEvent(
-            TelemetryViews.FabricProvisioning,
-            TelemetryActions.GetWorkspaceRole,
-            err,
-            false,
-        );
+        sendErrorEvent(TelemetryViews.FabricProvisioning, TelemetryActions.GetWorkspaceRole, {
+            error: err,
+            includeErrorMessage: false,
+        });
     }
     return workspace;
 }
@@ -549,9 +543,11 @@ export async function sortWorkspacesByPermission(
         sendActionEvent(
             TelemetryViews.FabricProvisioning,
             TelemetryActions.GetPermissionsForWorkspaces,
-            {},
             {
-                workspacePermissionsLoadTimeInMs: Date.now() - startTime,
+                additionalProps: {},
+                additionalMeasurements: {
+                    workspacePermissionsLoadTimeInMs: Date.now() - startTime,
+                },
             },
         );
     } else {
@@ -619,14 +615,12 @@ export async function handleWorkspaceFormAction(
         state.databaseNamesInWorkspace = databasesInWorkspaces.map(
             (database) => database.displayName,
         );
-        sendActionEvent(
-            TelemetryViews.FabricProvisioning,
-            TelemetryActions.GetFabricDatabases,
-            {},
-            {
+        sendActionEvent(TelemetryViews.FabricProvisioning, TelemetryActions.GetFabricDatabases, {
+            additionalProps: {},
+            additionalMeasurements: {
                 fabricDatabasesLoadTimeInMs: Date.now() - startTime,
             },
-        );
+        });
     }
     // Validate databases
     const databaseNameComponent = state.formComponents["databaseName"];
@@ -665,9 +659,11 @@ export async function provisionDatabase(
         sendActionEvent(
             TelemetryViews.FabricProvisioning,
             TelemetryActions.ProvisionFabricDatabase,
-            {},
             {
-                provisionDatabaseLoadTimeInMs: Date.now() - startTime,
+                additionalProps: {},
+                additionalMeasurements: {
+                    provisionDatabaseLoadTimeInMs: Date.now() - startTime,
+                },
             },
         );
         void connectToDatabase(deploymentController);
@@ -678,8 +674,7 @@ export async function provisionDatabase(
         sendErrorEvent(
             TelemetryViews.FabricProvisioning,
             TelemetryActions.ProvisionFabricDatabase,
-            err,
-            false,
+            { error: err, includeErrorMessage: false },
         );
     }
 }
@@ -738,9 +733,11 @@ export async function connectToDatabase(deploymentController: DeploymentWebviewC
         sendActionEvent(
             TelemetryViews.FabricProvisioning,
             TelemetryActions.ConnectToFabricDatabase,
-            {},
             {
-                connectToDatabaseLoadTimeInMs: Date.now() - startTime,
+                additionalProps: {},
+                additionalMeasurements: {
+                    connectToDatabaseLoadTimeInMs: Date.now() - startTime,
+                },
             },
         );
 
@@ -751,8 +748,7 @@ export async function connectToDatabase(deploymentController: DeploymentWebviewC
         sendErrorEvent(
             TelemetryViews.FabricProvisioning,
             TelemetryActions.ConnectToFabricDatabase,
-            err,
-            false,
+            { error: err, includeErrorMessage: false },
         );
     }
     updateFabricProvisioningState(deploymentController, state);
@@ -763,11 +759,13 @@ export function sendFabricProvisioningCloseEventTelemetry(state: fp.FabricProvis
         TelemetryViews.FabricProvisioning,
         TelemetryActions.FinishFabricProvisioningDeployment,
         {
-            // Include telemetry data about the state when closed
-            formValidationState: state.formValidationLoadState,
-            errorMessage: state.errorMessage,
-            provisionState: state.provisionLoadState,
-            connectionState: state.connectionLoadState,
+            additionalProps: {
+                // Include telemetry data about the state when closed
+                formValidationState: state.formValidationLoadState,
+                errorMessage: state.errorMessage,
+                provisionState: state.provisionLoadState,
+                connectionState: state.connectionLoadState,
+            },
         },
     );
 }

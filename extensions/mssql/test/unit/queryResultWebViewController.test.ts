@@ -191,9 +191,11 @@ suite("QueryResultWebviewController", () => {
             TelemetryViews.QueryResult,
             TelemetryActions.ToggleResultsGridMode,
             sinon.match({
-                correlationId: sinon.match.string,
-                newMode: "preview",
-                source: "settings",
+                additionalProps: {
+                    correlationId: sinon.match.string,
+                    newMode: "preview",
+                    source: "settings",
+                },
             }),
         );
         expect(controller.getQueryResultState(testUri).isBetaResultsGridEnabled).to.be.true;
@@ -218,8 +220,10 @@ suite("QueryResultWebviewController", () => {
             TelemetryViews.QueryResult,
             TelemetryActions.ToggleResultsGridMode,
             sinon.match({
-                newMode: "classic",
-                source: "settings",
+                additionalProps: sinon.match({
+                    newMode: "classic",
+                    source: "settings",
+                }),
             }),
         );
     });
