@@ -33,6 +33,7 @@ import {
     SqlScriptingService,
 } from "./api";
 import { emitCreateTable } from "./createTableEmitter";
+import { sanitizeCommentText, ScriptWriter } from "./scriptWriter";
 import {
     emitDelete,
     emitExecute,
@@ -41,7 +42,6 @@ import {
     emitUpdate,
 } from "./dmlTemplateEmitter";
 import { emitModuleScript, moduleOperations } from "./moduleEmitter";
-import { ScriptWriter } from "./scriptWriter";
 
 const MODULE_KINDS: ReadonlySet<LangObjectKind> = new Set([
     "view",
@@ -119,7 +119,7 @@ export class SqlScriptingEngine implements SqlScriptingService {
                 return this.scriptModule(request, info, operation);
             }
             return this.unavailable(request, info, "unsupported", [
-                "synonym targets are not hydrated — definition scripting unavailable",
+                "synonym definition text is not available through this scripting engine",
             ]);
         }
         switch (operation) {
@@ -296,7 +296,9 @@ export class SqlScriptingEngine implements SqlScriptingService {
         reason: ScriptUnavailableReason,
         notes: readonly string[],
     ): ScriptResult {
-        const label = info !== undefined ? `${info.schema}.${info.name}` : "the requested object";
+        const label = sanitizeCommentText(
+            info !== undefined ? `${info.schema}.${info.name}` : "the requested object",
+        );
         return {
             text: `-- Cannot script ${label}: ${notes[0] ?? reason}.\r\n`,
             anchors: [],

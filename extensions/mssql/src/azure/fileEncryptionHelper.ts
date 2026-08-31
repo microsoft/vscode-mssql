@@ -135,7 +135,7 @@ export class FileEncryptionHelper {
                 (result) => {
                     status = result;
                     if (result) {
-                        this._logger.info(
+                        this._logger.debug(
                             `FileEncryptionHelper: Successfully saved encryption key ${prefixedCredentialId} for persistent cache encryption in system credential store.`,
                         );
                     }

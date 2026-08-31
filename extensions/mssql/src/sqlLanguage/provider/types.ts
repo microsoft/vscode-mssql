@@ -32,6 +32,8 @@ export interface SqlLanguageEnvironment {
     readonly currentDatabase?: string;
     readonly defaultSchema: string;
     readonly caseSensitive: boolean;
+    /** False when the catalog environment probe has not established the rule. */
+    readonly caseSensitivityKnown?: boolean;
     readonly engineEdition?: number;
     readonly serverVersion?: string;
     readonly capabilities: SqlLanguageServerCapabilities;

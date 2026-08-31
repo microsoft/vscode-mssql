@@ -1,5 +1,0 @@
-{
-    "Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues. Error: {1}/{0} is the proxy URL{1} is the error message": "프록시 설정은 찾았지만 URL을 분석하는 중 오류가 발생했습니다('{0}'). 연결 문제가 발생할 수 있습니다. 오류: {1}",
-    "Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues./{0} is the proxy URL": "프록시 설정은 찾았지만 프로토콜(e.g. http://)이 없습니다('{0}'). 연결 문제가 발생할 수 있습니다.",
-    "Unable to read proxy agent options.": "프록시 에이전트 옵션을 읽을 수 없습니다."
-}

@@ -196,7 +196,7 @@ export async function startDabDockerContainer(
             port,
         };
     } catch (e) {
-        dockerLogger.info(`Failed to start DAB container: ${getErrorMessage(e)}`);
+        dockerLogger.error(`Failed to start DAB container: ${getErrorMessage(e)}`);
         return {
             success: false,
             error: LocalContainers.dabStartContainerError,
@@ -229,7 +229,7 @@ export async function checkIfDabContainerIsReady(
         const filteredLogs = filterDabContainerLogsForDisplay(logs);
 
         if (logStream?.hasLaunchFailure()) {
-            dockerLogger.info(`DAB container logs:\n${logs}`);
+            dockerLogger.debug(`DAB container logs:\n${logs}`);
             return {
                 success: false,
                 error: dabLaunchFailureText,
@@ -241,7 +241,7 @@ export async function checkIfDabContainerIsReady(
         // Check timeout before polling
         if (Date.now() - start > timeoutMs) {
             if (logs) {
-                dockerLogger.info(`DAB container logs:\n${logs}`);
+                dockerLogger.debug(`DAB container logs:\n${logs}`);
             }
             return {
                 success: false,
@@ -291,24 +291,24 @@ export async function stopAndRemoveDabContainer(
     try {
         const container = await getContainerByName(containerName);
         if (!container) {
-            dockerLogger.info(`DAB container ${containerName} does not exist.`);
+            dockerLogger.debug(`DAB container ${containerName} does not exist.`);
             return { success: true }; // Container doesn't exist, consider it removed
         }
 
-        dockerLogger.info(`Stopping DAB container: ${containerName}`);
+        dockerLogger.debug(`Stopping DAB container: ${containerName}`);
         try {
             await container.stop();
         } catch {
             // Container might already be stopped
         }
 
-        dockerLogger.info(`Removing DAB container: ${containerName}`);
+        dockerLogger.debug(`Removing DAB container: ${containerName}`);
         await container.remove();
 
-        dockerLogger.info(`DAB container ${containerName} stopped and removed.`);
+        dockerLogger.debug(`DAB container ${containerName} stopped and removed.`);
         return { success: true };
     } catch (e) {
-        dockerLogger.info(`Failed to stop/remove DAB container: ${getErrorMessage(e)}`);
+        dockerLogger.error(`Failed to stop/remove DAB container: ${getErrorMessage(e)}`);
         return {
             success: false,
             error: LocalContainers.dabStopContainerError,

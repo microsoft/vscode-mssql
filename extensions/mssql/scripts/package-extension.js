@@ -310,6 +310,8 @@ Examples:
 Requirements:
     - Install workspace dependencies from the repository root: npm ci
     - Extension must be built first: npm run build -- --target mssql
+    - SQLTOOLS_SERVICE_PACKAGE_DIR may point to predownloaded SQL Tools Service packages.
+      Packages must use the configured Microsoft.SqlTools.ServiceLayer-<platform archive> names.
     - SQLTOOLS_MCP_NUPKG_DIR must point to downloaded SQL Tools MCP nupkgs when using --package-mcp
 `);
 }

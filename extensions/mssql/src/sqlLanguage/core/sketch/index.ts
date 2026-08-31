@@ -203,6 +203,13 @@ function readNameParts(
         }
         const nextName = b.next(dot + 1, endExclusive);
         if (!b.isNameToken(nextName)) {
+            if (b.punct(nextName) === ".") {
+                // Default-schema shorthand: db..table / server.db..table.
+                // Preserve the empty part and continue across the second dot.
+                parts.push("");
+                k = nextName;
+                continue;
+            }
             // Trailing dot: "o." — record the empty tail so the classifier
             // knows a member position follows.
             return { parts: [...parts, ""], span: { start, end: b.tok(dot)!.end }, next: nextName };
@@ -364,6 +371,25 @@ function parseFromSources(
             const spanStart = b.tok(j)!.start;
             const spanEnd = b.tok(Math.max(j, close - 1))!.end;
             const aliasRead = readAlias(b, close, endExclusive);
+            // A derived/VALUES source can declare a column alias list after
+            // its correlation name: `(VALUES (...)) v(a, b)` — with or
+            // without trivia before the paren. Capture the names (they
+            // rename the exposed columns positionally) and skip the whole
+            // balanced list so its comma cannot start a phantom source.
+            const aliasListOpen = b.next(aliasRead.next, endExclusive);
+            let columnAliases: string[] | undefined;
+            let afterAlias = aliasRead.next;
+            if (aliasRead.alias !== undefined && b.punct(aliasListOpen) === "(") {
+                const aliasListClose = b.skipBalanced(aliasListOpen, endExclusive);
+                columnAliases = [];
+                for (let k = aliasListOpen + 1; k < aliasListClose - 1; k++) {
+                    const namePart = b.isNameToken(k) ? b.namePart(k) : undefined;
+                    if (namePart !== undefined) {
+                        columnAliases.push(namePart);
+                    }
+                }
+                afterAlias = aliasListClose;
+            }
             b.sources.push({
                 scopeId,
                 parts: [],
@@ -371,8 +397,11 @@ function parseFromSources(
                 alias: aliasRead.alias,
                 span: { start: spanStart, end: spanEnd },
                 innerScopeId,
+                ...(columnAliases !== undefined && columnAliases.length > 0
+                    ? { columnAliases }
+                    : {}),
             });
-            j = aliasRead.next;
+            j = afterAlias;
             expectSource = false;
             continue;
         }
@@ -691,6 +720,15 @@ function findClauseEnd(b: SketchBuilder, i: number, endExclusive: number): numbe
             continue;
         }
         const w = b.word(j);
+        if (w === "FROM" && previousSignificantWord(b, j) === "DISTINCT") {
+            j++;
+            continue; // IS [NOT] DISTINCT FROM is an expression operator
+        }
+        if (w === "GROUP" && previousSignificantWord(b, j) === "WITHIN") {
+            const open = b.next(j + 1, endExclusive);
+            j = b.punct(open) === "(" ? b.skipBalanced(open, endExclusive) : j + 1;
+            continue; // ordered-set aggregate: WITHIN GROUP (ORDER BY ...)
+        }
         if (w !== undefined && CLAUSE_STARTERS.has(w) && w !== "SELECT") {
             return j;
         }
@@ -700,6 +738,15 @@ function findClauseEnd(b: SketchBuilder, i: number, endExclusive: number): numbe
         j++;
     }
     return endExclusive;
+}
+
+function previousSignificantWord(b: SketchBuilder, i: number): string | undefined {
+    for (let j = i - 1; j >= 0; j--) {
+        if (!isTrivia(b.tokens[j].kind)) {
+            return b.word(j);
+        }
+    }
+    return undefined;
 }
 
 /** WITH name [(cols)] AS ( ... ) [, ...] — returns index after the CTE list. */
@@ -972,6 +1019,7 @@ export function sketchStatement(
     let exec: StatementSketch["exec"];
     let useDatabase: string | undefined;
     let createdTable: StatementSketch["createdTable"];
+    let moduleObject: StatementSketch["moduleObject"];
 
     let leading = b.word(b.next(i, endExclusive));
     i = b.next(i, endExclusive);
@@ -1039,7 +1087,18 @@ export function sketchStatement(
         }
         case "UPDATE": {
             kind = "update";
-            const name = readNameParts(b, i + 1, endExclusive);
+            let j = b.next(i + 1, endExclusive);
+            if (b.word(j) === "TOP") {
+                const count = b.next(j + 1, endExclusive);
+                j =
+                    b.punct(count) === "("
+                        ? b.next(b.skipBalanced(count, endExclusive), endExclusive)
+                        : b.next(count + 1, endExclusive);
+                if (b.word(j) === "PERCENT") {
+                    j = b.next(j + 1, endExclusive);
+                }
+            }
+            const name = readNameParts(b, j, endExclusive);
             if (name !== undefined) {
                 target = {
                     parts: name.parts,
@@ -1047,7 +1106,7 @@ export function sketchStatement(
                     isAliasForm: name.parts.length === 1 || undefined,
                 };
                 // SET assignments until FROM/WHERE/OUTPUT.
-                let j = name.next;
+                j = name.next;
                 if (b.word(j) === "SET") {
                     const start = b.next(j + 1, endExclusive);
                     let k = start;
@@ -1172,10 +1231,17 @@ export function sketchStatement(
         }
         case "CREATE":
         case "ALTER": {
-            const kindWord = b.word(b.next(i + 1, endExclusive));
+            let kindIndex = b.next(i + 1, endExclusive);
+            if (leading === "CREATE" && b.word(kindIndex) === "OR") {
+                const alterIndex = b.next(kindIndex + 1, endExclusive);
+                if (b.word(alterIndex) === "ALTER") {
+                    kindIndex = b.next(alterIndex + 1, endExclusive);
+                }
+            }
+            const kindWord = b.word(kindIndex);
             if (kindWord === "TABLE") {
                 kind = "createTable";
-                const name = readNameParts(b, b.next(i + 1, endExclusive) + 1, endExclusive);
+                const name = readNameParts(b, kindIndex + 1, endExclusive);
                 if (name !== undefined) {
                     let cols: string[] = [];
                     const open = b.next(name.next, endExclusive);
@@ -1197,8 +1263,12 @@ export function sketchStatement(
                 ["PROC", "PROCEDURE", "FUNCTION", "VIEW", "TRIGGER"].includes(kindWord)
             ) {
                 kind = "moduleHeader";
+                const name = readNameParts(b, kindIndex + 1, endExclusive);
+                if (name !== undefined) {
+                    moduleObject = { parts: name.parts, span: name.span };
+                }
                 // Header params (@p type, ...) become batch-visible variables.
-                parseDeclare(b, b.next(i + 1, endExclusive) + 1, endExclusive);
+                parseDeclare(b, kindIndex + 1, endExclusive);
             } else {
                 kind = "ddl";
             }
@@ -1237,6 +1307,7 @@ export function sketchStatement(
         exec,
         useDatabase,
         createdTable,
+        moduleObject,
         selectInto:
             selectIntoParts !== undefined && selectIntoSpan !== undefined
                 ? { parts: selectIntoParts, span: selectIntoSpan }

@@ -186,7 +186,7 @@ export abstract class MsalAzureAuth {
         }
 
         let authority = this.loginEndpointUrl + tenantId;
-        this.logger.info(`Authority URL set to: ${authority}`);
+        this.logger.debug(`Authority URL set to: ${authority}`);
 
         // construct request
         // forceRefresh needs to be set true here in order to fetch the correct token, due to this issue
@@ -325,7 +325,7 @@ export abstract class MsalAzureAuth {
                     tenantList.push(tenantInfo.displayName);
                 } else {
                     tenantList.push(tenantInfo.tenantId);
-                    this.logger.info("Tenant display name found empty: {0}", tenantInfo.tenantId);
+                    this.logger.debug("Tenant display name found empty: {0}", tenantInfo.tenantId);
                 }
                 return {
                     id: tenantInfo.tenantId,
@@ -476,7 +476,7 @@ export abstract class MsalAzureAuth {
                 displayName: "Microsoft Account",
             };
         } else {
-            this.logger.info(
+            this.logger.debug(
                 "Could not find tenant information from tokenClaims, falling back to common Tenant.",
             );
         }

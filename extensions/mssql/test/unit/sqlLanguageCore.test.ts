@@ -21,8 +21,6 @@ import {
     tokenIndexAt,
 } from "../../src/sqlLanguage/core/lexer";
 import { segment } from "../../src/sqlLanguage/core/segmenter";
-import { TextSnapshot } from "../../src/sqlLanguage/core/text/textSnapshot";
-import { splitBatches } from "../../src/sql/batchSplitter";
 import { LanguageFeatureRouter } from "../../src/sqlLanguage/host/router";
 import { NativeSqlLanguageEngine } from "../../src/sqlLanguage/host/nativeEngine";
 import { NullLanguageMetadataProvider } from "../../src/sqlLanguage/provider/nullProvider";
@@ -51,6 +49,19 @@ suite("sqlLanguage lexer", () => {
             cursor = t.end;
         }
         expect(cursor).to.equal(text.length);
+    });
+
+    test("total coverage includes construct openers at exact EOF", () => {
+        for (const text of ["SELECT '", "FROM [", 'SELECT "', "/*"]) {
+            const { tokens } = lex(text);
+            let cursor = 0;
+            for (const token of tokens) {
+                expect(token.start, text).to.equal(cursor);
+                cursor = token.end;
+            }
+            expect(cursor, text).to.equal(text.length);
+            expect(tokens[tokens.length - 2].unterminated, text).to.equal(true);
+        }
     });
 
     test("strings: escapes, N-prefix, multi-line, unterminated", () => {
@@ -107,6 +118,25 @@ suite("sqlLanguage lexer", () => {
         ]);
     });
 
+    test("Unicode space separators, including NBSP, remain whitespace", () => {
+        const text = "SELECT * FROM dbo.Orders\u00a0WHERE Status = 1";
+        const tokens = lex(text).tokens;
+        expect(
+            tokens.some(
+                (token) =>
+                    token.kind === TokenKind.Whitespace &&
+                    text.slice(token.start, token.end) === "\u00a0",
+            ),
+        ).to.equal(true);
+        expect(
+            tokens.some(
+                (token) =>
+                    token.kind === TokenKind.Identifier &&
+                    text.slice(token.start, token.end) === "WHERE",
+            ),
+        ).to.equal(true);
+    });
+
     test("numbers: int, decimal, leading-dot, scientific, hex", () => {
         const tokens = significant("42 3.14 .5 1e5 1.5E-3 0xFF");
         expect(tokens.map((t) => t.kind)).to.deep.equal(new Array(6).fill(TokenKind.NumberLiteral));
@@ -133,6 +163,25 @@ suite("sqlLanguage lexer", () => {
         expect(midline.filter((t) => t.kind === TokenKind.GoSeparator)).to.have.length(0);
     });
 
+    test("GO execution-contract corpus", () => {
+        const corpus: readonly [string, number][] = [
+            ["GO", 1],
+            ["GO 0", 1],
+            ["\u00a0GO 5 -- repeat", 1],
+            ["GO;", 0],
+            ["GO abc", 0],
+            ["SELECT 'before\nGO\nafter'", 0],
+            ["SELECT [GO]", 0],
+            ["/*\nGO\n*/ SELECT 1", 0],
+        ];
+        for (const [text, expected] of corpus) {
+            expect(
+                lex(text).tokens.filter((token) => token.kind === TokenKind.GoSeparator),
+                text,
+            ).to.have.length(expected);
+        }
+    });
+
     test("SQLCMD directive lines are opaque single tokens", () => {
         const tokens = lex(":setvar env prod\nSELECT '$(env)'").tokens;
         expect(tokens[0].kind).to.equal(TokenKind.SqlCmdDirective);
@@ -151,50 +200,7 @@ suite("sqlLanguage lexer", () => {
     });
 });
 
-const PARITY_CORPUS: string[] = [
-    "SELECT 1\nGO\nSELECT 2",
-    "SELECT 1\nGO 3\nSELECT 2\nGO",
-    "SELECT 1;\n  go  \nSELECT 2",
-    "SELECT 1\nGO -- trailing comment\nSELECT 2",
-    "SELECT 1\nGO abc\nSELECT 2", // not a separator
-    "SELECT 'text\nGO\nmore' \nGO\nSELECT 2", // GO inside a string is content
-    "/* comment\nGO\nstill comment */\nSELECT 1\nGO",
-    "SELECT [bracket\nGO\nname] FROM t", // GO inside a bracketed identifier
-    "GO\nGO\nSELECT 1", // empty batches are dropped by both
-    "  GO 0\nSELECT 1", // splitter clamps count to 1
-    "SELECT 1\nGO 2 -- twice\n\n\nSELECT 2\nGO 10",
-    "-- only a comment\nGO\nSELECT 1",
-];
-
 suite("sqlLanguage segmenter", () => {
-    test("EXECUTION-SPLITTER PARITY: batch count, repeat counts, first lines", () => {
-        for (const text of PARITY_CORPUS) {
-            const splitter = splitBatches(text);
-            // splitBatches expands GO n into n entries; group to unique batches.
-            const unique: { startLine: number; repeatTotal: number }[] = [];
-            for (const b of splitter) {
-                if (b.repeatOrdinal === 0) {
-                    unique.push({ startLine: b.startLine, repeatTotal: b.repeatTotal });
-                }
-            }
-            const snapshot = new TextSnapshot(text);
-            const { tokens } = lex(text);
-            const ours = segment(text, tokens).batches;
-
-            expect(ours.length, `batch count for: ${JSON.stringify(text)}`).to.equal(unique.length);
-            for (let i = 0; i < ours.length; i++) {
-                expect(
-                    ours[i].repeatCount,
-                    `repeat count [${i}] for: ${JSON.stringify(text)}`,
-                ).to.equal(unique[i].repeatTotal);
-                expect(
-                    snapshot.positionAt(ours[i].start).line,
-                    `start line [${i}] for: ${JSON.stringify(text)}`,
-                ).to.equal(unique[i].startLine);
-            }
-        }
-    });
-
     test("statements: semicolons and reserved statement-start keywords split", () => {
         const text = "SELECT 1; SELECT 2 SELECT 3\nDECLARE @x int SET @x = 1";
         const { tokens } = lex(text);
@@ -355,6 +361,28 @@ suite("sqlLanguage router", () => {
         expect(status?.circuitBroken).to.equal(true);
         router.resetCircuits();
         expect(router.effectiveEngine("completion")).to.equal("nativeTypeScript");
+    });
+
+    test("async native timeout falls back and counts toward the circuit", async () => {
+        const native = new ScriptedEngine("ok");
+        const bridge = new ScriptedEngine("ok");
+        const router = new LanguageFeatureRouter({
+            native,
+            getBridge: () => bridge,
+            getPreference: () => "nativeTypeScript",
+            nativeTimeoutMs: 5,
+            breakAfterFailures: 1,
+        });
+        const result = await router.route("completion", (engine) =>
+            engine === native
+                ? new Promise<CompletionResult>((resolve) =>
+                      setTimeout(() => resolve({ items: [], isIncomplete: false }), 25),
+                  )
+                : engine.completion(request),
+        );
+        expect(result).to.deep.equal({ items: [], isIncomplete: false });
+        const status = router.status().find((entry) => entry.feature === "completion");
+        expect(status).to.include({ circuitBroken: true, nativeFailures: 1 });
     });
 });
 

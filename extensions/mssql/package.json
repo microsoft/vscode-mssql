@@ -74,8 +74,9 @@
         "watch": "npm run build:prepare && run-p -l watch:extension watch:extension-bundle watch:webviews watch:webviews-bundle watch:notebook-renderer-bundle",
         "lint": "eslint --quiet --cache ./src ./test",
         "localization": "node ../../scripts/localization-extract.js mssql",
-        "localization:generate-pseudoloc": "node scripts/generate-pseudoloc.js",
         "smoketest": "npm run instrument && npm run e2eTest",
+        "clean:test-output": "node -e \"require('node:fs').rmSync('out/test/unit', { recursive: true, force: true })\"",
+        "pretest": "npm run clean:test-output && npm run build:extension:emit && npm run build:extension-bundle",
         "test": "vscode-test --coverage",
         "package": "node scripts/package-extension.js",
         "install:sqltools-mcp": "node scripts/install-sqltools-mcp.js",
@@ -1094,6 +1095,11 @@
                     "group": "9_MSSQL_container@3"
                 },
                 {
+                    "command": "mssql.cancelContainerOperation",
+                    "when": "view == objectExplorer && viewItem == cancelContainerOperation",
+                    "group": "inline@1"
+                },
+                {
                     "command": "mssql.openBackgroundTask",
                     "when": "view == backgroundTasks && viewItem =~ /\\bactionable=true\\b/",
                     "group": "MS_SQL@1"
@@ -1469,6 +1475,10 @@
                 },
                 {
                     "command": "mssql.viewBackgroundTaskLogs",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.cancelContainerOperation",
                     "when": "false"
                 },
                 {
@@ -2352,6 +2362,12 @@
                 "command": "mssql.startContainer",
                 "title": "%mssql.startContainer%",
                 "category": "MS SQL"
+            },
+            {
+                "command": "mssql.cancelContainerOperation",
+                "title": "%mssql.cancelContainerOperation%",
+                "category": "MS SQL",
+                "icon": "$(close)"
             },
             {
                 "command": "mssql.openChangelog",

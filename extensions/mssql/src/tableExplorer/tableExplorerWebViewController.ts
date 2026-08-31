@@ -1268,7 +1268,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         });
 
         this.registerReducer("openScriptInEditor", async (state) => {
-            this.logger.info(`Opening script in SQL editor - OperationId: ${this.operationId}`);
+            this.logger.debug(`Opening script in SQL editor - OperationId: ${this.operationId}`);
 
             sendActionEvent(TelemetryViews.TableExplorer, TelemetryActions.Open, {
                 additionalProps: {
@@ -1285,7 +1285,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     });
                     await vscode.window.showTextDocument(doc);
 
-                    this.logger.info(
+                    this.logger.debug(
                         `Script opened in SQL editor successfully - OperationId: ${this.operationId}`,
                     );
                 } else {
@@ -1304,7 +1304,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         });
 
         this.registerReducer("copyScriptToClipboard", async (state) => {
-            this.logger.info(`Copying script to clipboard - OperationId: ${this.operationId}`);
+            this.logger.debug(`Copying script to clipboard - OperationId: ${this.operationId}`);
 
             sendActionEvent(TelemetryViews.TableExplorer, TelemetryActions.CopyResults, {
                 additionalProps: {
@@ -1320,7 +1320,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                         LocConstants.TableExplorer.scriptCopiedToClipboard,
                     );
 
-                    this.logger.info(
+                    this.logger.debug(
                         `Script copied to clipboard successfully - OperationId: ${this.operationId}`,
                     );
                 } else {
@@ -1366,7 +1366,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         });
 
         this.registerReducer("saveResults", async (state, payload) => {
-            this.logger.info(
+            this.logger.debug(
                 `Saving results as ${payload.format} - OperationId: ${this.operationId}`,
             );
 
@@ -1426,7 +1426,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                             LocConstants.TableExplorer.exportSuccessful(uri.fsPath),
                         );
 
-                        this.logger.info(
+                        this.logger.debug(
                             `Results saved to ${uri.fsPath} - OperationId: ${this.operationId}`,
                         );
 
@@ -1485,7 +1485,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         });
 
         this.registerReducer("runTableQuery", async (state, payload) => {
-            this.logger.info(`Running custom table query - OperationId: ${this.operationId}`);
+            this.logger.debug(`Running custom table query - OperationId: ${this.operationId}`);
 
             const startTime = Date.now();
             // Only operator type names (e.g. "equals", "lessThan") flow through this
@@ -1623,7 +1623,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         });
 
         this.registerReducer("modifyTable", async (state, _payload) => {
-            this.logger.info(`Opening Table Designer - OperationId: ${this.operationId}`);
+            this.logger.debug(`Opening Table Designer - OperationId: ${this.operationId}`);
 
             const startTime = Date.now();
             const endActivity = startActivity(
@@ -1641,7 +1641,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             try {
                 await vscode.commands.executeCommand(Constants.cmdEditTable, this._targetNode);
 
-                this.logger.info(
+                this.logger.debug(
                     `Table Designer opened successfully - OperationId: ${this.operationId}`,
                 );
 
@@ -1676,7 +1676,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         });
 
         this.registerReducer("viewTableDiagram", async (state, _payload) => {
-            this.logger.info(`Opening Schema Designer - OperationId: ${this.operationId}`);
+            this.logger.debug(`Opening Schema Designer - OperationId: ${this.operationId}`);
 
             const startTime = Date.now();
             const endActivity = startActivity(
@@ -1704,7 +1704,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     filterTable,
                 );
 
-                this.logger.info(
+                this.logger.debug(
                     `Schema Designer opened successfully - OperationId: ${this.operationId}`,
                 );
 
@@ -1792,7 +1792,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 
         // Handle the user's choice
         if (result === LocConstants.TableExplorer.Save) {
-            this.logger.info("User chose to save changes before closing");
+            this.logger.debug("User chose to save changes before closing");
 
             try {
                 await this._tableExplorerService.commit(this.state.ownerUri);
@@ -1800,7 +1800,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     LocConstants.TableExplorer.changesSavedSuccessfully,
                 );
 
-                this.logger.info("Changes saved successfully before closing");
+                this.logger.debug("Changes saved successfully before closing");
             } catch (error) {
                 this.logger.error(`Error saving changes before closing: ${error}`);
                 vscode.window.showErrorMessage(
@@ -1808,9 +1808,9 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 );
             }
         } else if (result === LocConstants.TableExplorer.Discard) {
-            this.logger.info("User chose to discard changes");
+            this.logger.debug("User chose to discard changes");
         } else {
-            this.logger.info("User dismissed the prompt - treating as discard");
+            this.logger.debug("User dismissed the prompt - treating as discard");
         }
 
         // Always return undefined to allow disposal to continue
@@ -1823,7 +1823,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
      */
     public override dispose(): void {
         if (this.state.ownerUri) {
-            this.logger.info(
+            this.logger.debug(
                 `Disposing Table Explorer resources for ownerUri: ${this.state.ownerUri}`,
             );
 

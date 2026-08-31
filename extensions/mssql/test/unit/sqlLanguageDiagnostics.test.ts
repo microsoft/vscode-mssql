@@ -830,10 +830,23 @@ const HONESTY_CASES: readonly HonestyCase[] = [
         sql: "SELECT anything FROM dbo.OrdersSynonym",
         reason: "opaqueSource",
     },
+    {
+        name: "EXEC-less synonym target is unknown rather than missing",
+        sql: "dbo.OrdersSynonym",
+    },
+    {
+        name: "GOTO label definition",
+        sql: "GOTO done;\ndone:\nSELECT 1",
+    },
     // Cross-database / linked server
     {
         name: "cross-database reference not hydrated",
         sql: "SELECT x FROM OtherDb.dbo.Table1",
+        reason: "crossDatabaseUnhydrated",
+    },
+    {
+        name: "cross-database default-schema shorthand",
+        sql: "SELECT x FROM OtherDb..Table1",
         reason: "crossDatabaseUnhydrated",
     },
     {
@@ -995,7 +1008,48 @@ const HONESTY_CASES: readonly HonestyCase[] = [
     },
     {
         name: "VALUES derived source with column alias list",
-        sql: "SELECT v.a FROM (VALUES (1), (2)) v(a)",
+        sql: "SELECT v.a FROM (VALUES (1, 2), (3, 4)) v(a, b)",
+    },
+    {
+        name: "derived source with spaced column alias list",
+        sql: "SELECT d.c1 FROM (SELECT OrderID, CustomerID FROM Sales.Orders) AS d (c1, c2)",
+    },
+    {
+        name: "SELECT assignment alias",
+        sql: "SELECT alias = OrderID FROM Sales.Orders",
+    },
+    {
+        name: "WHERE CURRENT OF cursor",
+        sql: "DELETE FROM Sales.Orders WHERE CURRENT OF orders_cursor",
+    },
+    {
+        name: "ordered aggregate WITHIN GROUP",
+        sql: "SELECT STRING_AGG(Comments, ',') WITHIN GROUP (ORDER BY OrderID) FROM Sales.Orders",
+    },
+    {
+        name: "AT TIME ZONE expression",
+        sql: "SELECT OrderDate AT TIME ZONE 'UTC' FROM Sales.Orders",
+    },
+    {
+        name: "IS NOT DISTINCT FROM expression",
+        sql: "SELECT OrderID FROM Sales.Orders WHERE OrderID IS NOT DISTINCT FROM CustomerID",
+    },
+    {
+        name: "NBSP pasted between table and WHERE",
+        sql: "SELECT OrderID FROM Sales.Orders\u00a0WHERE OrderID = 1",
+    },
+    {
+        name: "UPDATE TOP batch",
+        sql: "UPDATE TOP (100) Sales.Orders SET Comments = NULL",
+    },
+    {
+        name: "qualified script-created table",
+        sql: "CREATE TABLE dbo.Stage1 (Id int)\nSELECT Id FROM dbo.Stage1",
+    },
+    {
+        name: "script-created view is suppression-only overlay data",
+        sql: "CREATE VIEW dbo.LocalV AS SELECT OrderID FROM Sales.Orders\nGO\nSELECT Anything FROM dbo.LocalV",
+        reason: "unknownOverlayType",
     },
     {
         name: "table hints",
@@ -1245,6 +1299,19 @@ suite("sqlLanguage diagnostics engine pass", () => {
             version: 10,
         });
         expect(third).to.not.equal(first);
+    });
+
+    test("same version and length with different text cannot collide", async () => {
+        const engine = new NativeSqlLanguageEngine(standardProvider);
+        const bad = "SELECT BadName FROM Sales.Orders";
+        const good = "SELECT OrderID FROM Sales.Orders";
+        expect(bad.length).to.equal(good.length);
+        expect((await engine.diagnostics({ text: bad, version: 1 }))?.diagnostics).to.have.length(
+            1,
+        );
+        expect((await engine.diagnostics({ text: good, version: 1 }))?.diagnostics).to.deep.equal(
+            [],
+        );
     });
 
     test("suppression counts ride the engine result", async () => {

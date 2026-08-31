@@ -18,6 +18,7 @@ import { ConnectionNode } from "../../src/objectExplorer/nodes/connectionNode";
 import { ObjectExplorerService } from "../../src/objectExplorer/objectExplorerService";
 import * as dockerodeClient from "../../src/docker/dockerodeClient";
 import { PassThrough } from "stream";
+import * as vscode from "vscode";
 
 chai.use(sinonChai);
 
@@ -25,6 +26,7 @@ suite("SQL Server Container", () => {
     let sandbox: sinon.SinonSandbox;
     let node: ConnectionNode;
     let mockObjectExplorerService: ObjectExplorerService;
+    let setLoadingUiForNodeStub: sinon.SinonStub;
 
     const createDockerClientMock = (
         overrides: Partial<{
@@ -129,9 +131,10 @@ suite("SQL Server Container", () => {
             loadingLabel: "",
         } as unknown as ConnectionNode;
 
+        setLoadingUiForNodeStub = sandbox.stub();
         mockObjectExplorerService = {
             _refreshCallback: sandbox.stub(),
-            setLoadingUiForNode: sandbox.stub(),
+            setLoadingUiForNode: setLoadingUiForNodeStub,
             removeNode: sandbox.stub(),
         } as unknown as ObjectExplorerService;
     });
@@ -379,6 +382,54 @@ suite("SQL Server Container", () => {
         expect(logsStub).to.have.been.calledOnce;
     });
 
+    test("restartContainer: cancels while waiting for the container to start", async () => {
+        sandbox.stub(os, "platform").returns(Platform.Linux);
+        sandbox.stub(childProcess, "spawn").returns(createSpawnSuccessProcess("Docker is running"));
+        stubTelemetry(sandbox);
+        const containerName = "testContainer";
+        const listContainersStub = sandbox.stub();
+        listContainersStub
+            .onCall(0)
+            .resolves([{ Id: "container-id", Names: [`/${containerName}`] }]);
+        listContainersStub
+            .onCall(1)
+            .resolves([{ Id: "container-id", Names: [`/${containerName}`] }]);
+        listContainersStub
+            .onCall(2)
+            .resolves([{ Id: "container-id", Names: [`/${containerName}`] }]);
+        const startStub = sandbox.stub().returns(new Promise<void>(() => undefined));
+        const getContainerStub = sandbox.stub().returns({
+            inspect: sandbox.stub().resolves({ State: { Running: false } }),
+            start: startStub,
+        });
+        const dockerClientMock = createDockerClientMock({
+            listContainers: listContainersStub,
+            getContainer: getContainerStub,
+        });
+        sandbox
+            .stub(dockerodeClient, "getDockerodeClient")
+            .returns(
+                dockerClientMock as unknown as ReturnType<
+                    typeof dockerodeClient.getDockerodeClient
+                >,
+            );
+        const clock = sandbox.useFakeTimers({ shouldClearNativeTimers: true });
+
+        const restartPromise = sqlServerContainer.restartSqlServerContainer(
+            containerName,
+            node,
+            mockObjectExplorerService,
+        );
+        await clock.tickAsync(10);
+        const cancellationTokenSource = setLoadingUiForNodeStub.lastCall
+            .args[1] as vscode.CancellationTokenSource;
+        expect(cancellationTokenSource).to.not.equal(undefined);
+        cancellationTokenSource.cancel();
+
+        expect(await restartPromise).to.equal(undefined);
+        expect(startStub).to.have.been.calledOnce;
+    });
+
     test("checkIfContainerIsReadyForConnections: should return true if container is ready, false otherwise", async () => {
         const rawLogsStream = new PassThrough();
         const logsStub = sandbox.stub().resolves(rawLogsStream);
@@ -427,6 +478,43 @@ suite("SQL Server Container", () => {
             .be.true;
         expect(inspectStub).to.have.been.calledOnce;
         expect(logsStub).to.have.been.calledOnce;
+    });
+
+    test("checkIfContainerIsReadyForConnections: cancels an in-flight readiness check", async () => {
+        const rawLogsStream = new PassThrough();
+        const logsStub = sandbox.stub().resolves(rawLogsStream);
+        const listContainersStub = sandbox.stub().resolves([{ Id: "container-id" }]);
+        const inspectStub = sandbox
+            .stub()
+            .resolves({ State: { StartedAt: new Date().toISOString() } });
+        const getContainerStub = sandbox.stub().returns({
+            inspect: inspectStub,
+            logs: logsStub,
+        });
+        const dockerClientMock = createDockerClientMock({
+            listContainers: listContainersStub,
+            getContainer: getContainerStub,
+            demuxStream: sandbox.stub(),
+        });
+        sandbox
+            .stub(dockerodeClient, "getDockerodeClient")
+            .returns(
+                dockerClientMock as unknown as ReturnType<
+                    typeof dockerodeClient.getDockerodeClient
+                >,
+            );
+        const cancellationTokenSource = new vscode.CancellationTokenSource();
+
+        const readinessPromise = sqlServerContainer.checkIfSqlServerContainerIsReadyForConnections(
+            "testContainer",
+            cancellationTokenSource.token,
+        );
+        await new Promise<void>((resolve) => setImmediate(resolve));
+        cancellationTokenSource.cancel();
+
+        expect(await readinessPromise).to.deep.equal({ success: false, canceled: true });
+        expect(rawLogsStream.destroyed).to.be.true;
+        cancellationTokenSource.dispose();
     });
 
     test("pullSqlServerContainerImage: should pull the container image from the docker registry", async () => {

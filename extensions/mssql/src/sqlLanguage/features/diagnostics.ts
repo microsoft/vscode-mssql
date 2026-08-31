@@ -167,7 +167,7 @@ const FIRST_ARG_OPAQUE_FUNCTIONS = new Set([
 ]);
 
 /** Keyword ids after which a name chain is not a column reference. */
-const SKIP_AFTER_KEYWORDS = new Set(["AS", "FOR", "COLLATE"]);
+const SKIP_AFTER_KEYWORDS = new Set(["AS", "FOR", "COLLATE", "OF"]);
 
 /** Legacy dbo-visible system catalog names the provider never hydrates. */
 const LEGACY_SYSTEM_TABLES = new Set([
@@ -428,7 +428,8 @@ interface LeadingStatementName {
 
 export function createDiagnostics(input: DiagnosticsComputeInput): DiagnosticsComputation {
     const { text, tokens, statements, overlay, pinned, positionAt } = input;
-    const metadataValidated = input.metadataFreshness !== "notValidated";
+    const metadataValidated =
+        input.metadataFreshness !== "notValidated" && pinned.env.caseSensitivityKnown !== false;
     const caseSensitive = pinned.env.caseSensitive;
     const fold = (value: string): string => (caseSensitive ? value : value.toLowerCase());
 
@@ -664,6 +665,15 @@ export function createDiagnostics(input: DiagnosticsComputeInput): DiagnosticsCo
         if (headName === undefined) {
             return;
         }
+        const afterHead = tokens.find(
+            (token, index) =>
+                index <= s.segment.lastToken &&
+                token.start >= headName.end &&
+                !isTrivia(token.kind),
+        );
+        if (afterHead !== undefined && text.slice(afterHead.start, afterHead.end) === ":") {
+            return; // label definition: label: / GOTO label
+        }
         let depth = 0;
         let betrayed = false;
         for (let i = s.segment.firstToken + 1; i <= s.segment.lastToken && !betrayed; i++) {
@@ -785,6 +795,14 @@ export function createDiagnostics(input: DiagnosticsComputeInput): DiagnosticsCo
             }
 
             if ((current === "GROUP" || current === "ORDER") && next !== undefined) {
+                const previous = prevSignificant(i, s.segment.firstToken);
+                if (
+                    current === "GROUP" &&
+                    previous?.kind === TokenKind.Identifier &&
+                    text.slice(previous.start, previous.end).toUpperCase() === "WITHIN"
+                ) {
+                    continue;
+                }
                 const nextWord =
                     next.kind === TokenKind.Identifier
                         ? text.slice(next.start, next.end).toUpperCase()
@@ -1180,7 +1198,11 @@ export function createDiagnostics(input: DiagnosticsComputeInput): DiagnosticsCo
         const resolution = pinned.resolveObject(lookupParts);
         if (resolution.kind === "resolved") {
             const object = pinned.getObject(resolution.ref);
-            return object?.kind === "procedure" ? "procedure" : "notFound";
+            return object?.kind === "procedure"
+                ? "procedure"
+                : object?.kind === "synonym"
+                  ? "unknown"
+                  : "notFound";
         }
         return resolution.kind === "notFound" ? "notFound" : "unknown";
     };
@@ -1693,6 +1715,13 @@ export function createDiagnostics(input: DiagnosticsComputeInput): DiagnosticsCo
                 afterChain !== undefined &&
                 afterChain.kind === TokenKind.Punctuation &&
                 text.charCodeAt(afterChain.start) === 40; /* ( */
+            const isSelectAssignmentAlias =
+                parts.length === 1 &&
+                innermostClause(s.sketch, t.start) === "selectList" &&
+                afterChain !== undefined &&
+                (afterChain.kind === TokenKind.Operator ||
+                    afterChain.kind === TokenKind.Punctuation) &&
+                text.slice(afterChain.start, afterChain.end) === "=";
 
             const headUpper = parts[0].toUpperCase();
             const consumedSkip = skipNextChain;
@@ -1709,6 +1738,7 @@ export function createDiagnostics(input: DiagnosticsComputeInput): DiagnosticsCo
 
             const skip =
                 consumedSkip ||
+                isSelectAssignmentAlias ||
                 trailingDot ||
                 parts.some((p) => p.length === 0) ||
                 // bare temp names are objects, never columns (#t.col is fine)

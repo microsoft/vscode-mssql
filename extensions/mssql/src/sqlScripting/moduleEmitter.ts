@@ -25,6 +25,7 @@
 import { Token, TokenKind, isTrivia, lex, nextSignificant } from "../sqlLanguage/core/lexer";
 import { LangObjectInfo } from "../sqlLanguage/provider/types";
 import { ScriptAnchor, ScriptOperation } from "./api";
+import { sanitizeCommentText } from "./scriptWriter";
 
 export interface ModuleEmitInput {
     readonly info: LangObjectInfo;
@@ -86,7 +87,7 @@ export function emitModuleScript(input: ModuleEmitInput): ModuleEmitOutput {
     if (head === undefined) {
         return {
             text:
-                `-- ${input.info.schema}.${input.info.name}: the stored definition does not ` +
+                `-- ${sanitizeCommentText(`${input.info.schema}.${input.info.name}`)}: the stored definition does not ` +
                 "begin with CREATE or ALTER; it cannot be rewritten honestly.\r\n",
             anchors: [],
             fidelityNotes: ["stored definition head is not CREATE/ALTER — rewrite refused"],
@@ -100,7 +101,7 @@ export function emitModuleScript(input: ModuleEmitInput): ModuleEmitOutput {
         if (!input.createOrAlterSupported) {
             return {
                 text:
-                    `-- ${input.info.schema}.${input.info.name}: CREATE OR ALTER requires ` +
+                    `-- ${sanitizeCommentText(`${input.info.schema}.${input.info.name}`)}: CREATE OR ALTER requires ` +
                     "SQL Server 2016 SP1 or later; the connected server does not support it.\r\n",
                 anchors: [],
                 fidelityNotes: ["CREATE OR ALTER not supported by the connected server"],

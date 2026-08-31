@@ -66,6 +66,16 @@ import { AzureSqlDatabaseStatus, VsCodeAzureHelper } from "../connectionconfig/a
 import { PreviewFeature, previewService } from "../previews/previewService";
 import { getNodeDescriptor } from "./nodes/nodeUtils";
 
+export class CancelableLoadingNode extends vscode.TreeItem {
+    public constructor(
+        label: string,
+        public readonly cancellationTokenSource: vscode.CancellationTokenSource,
+    ) {
+        super(label, vscode.TreeItemCollapsibleState.None);
+        this.contextValue = "cancelContainerOperation";
+    }
+}
+
 export interface CreateSessionResult {
     sessionId?: string;
     connectionNode?: ConnectionNode;
@@ -656,12 +666,15 @@ export class ObjectExplorerService {
      * @param element The node to set the loading UI for
      * @returns A loading node that will be displayed in the tree
      */
-    public async setLoadingUiForNode(element: TreeNodeInfo): Promise<vscode.TreeItem[]> {
+    public async setLoadingUiForNode(
+        element: TreeNodeInfo,
+        cancellationTokenSource?: vscode.CancellationTokenSource,
+    ): Promise<vscode.TreeItem[]> {
         this._logger.trace(`setLoadingUiForNode: ${getNodeDescriptor(element)}`);
-        const loadingNode = new vscode.TreeItem(
-            element.loadingLabel ?? LocalizedConstants.ObjectExplorer.LoadingNodeLabel,
-            vscode.TreeItemCollapsibleState.None,
-        );
+        const label = element.loadingLabel ?? LocalizedConstants.ObjectExplorer.LoadingNodeLabel;
+        const loadingNode = cancellationTokenSource
+            ? new CancelableLoadingNode(label, cancellationTokenSource)
+            : new vscode.TreeItem(label, vscode.TreeItemCollapsibleState.None);
         loadingNode.iconPath = new vscode.ThemeIcon("loading~spin");
         this._treeNodeToChildrenMap.set(element, [loadingNode]);
         this._refreshCallback(element);
@@ -1000,6 +1013,12 @@ export class ObjectExplorerService {
                     connectionProfile.containerName,
                     classicContainerHostAdapter(containerNode, this),
                 );
+                if (successfullyRunning === undefined) {
+                    containerNode.loadingLabel = undefined;
+                    this.cleanNodeChildren(containerNode);
+                    this._refreshCallback(containerNode);
+                    return undefined;
+                }
                 this._logger.debug(
                     successfullyRunning
                         ? `Failed to restart Docker container "${connectionProfile.containerName}".`

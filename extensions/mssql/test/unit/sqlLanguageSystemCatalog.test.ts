@@ -103,6 +103,19 @@ suite("sqlLanguage system catalog: data helpers", () => {
             systemObjectsInSchema("INFORMATION_SCHEMA", undefined).map((o) => o.name),
         ).to.include.members(["TABLES", "COLUMNS"]);
     });
+
+    test("TVF result shapes exclude their input handle parameters", () => {
+        const sqlText = findSystemObject("sys", "dm_exec_sql_text", 5);
+        expect(sqlText?.columns).to.deep.equal(["dbid", "objectid", "number", "encrypted", "text"]);
+        const queryPlan = findSystemObject("sys", "dm_exec_query_plan", 5);
+        expect(queryPlan?.columns).to.deep.equal([
+            "dbid",
+            "objectid",
+            "number",
+            "encrypted",
+            "query_plan",
+        ]);
+    });
 });
 
 suite("sqlLanguage system catalog: pinned-view fallback precedence", () => {

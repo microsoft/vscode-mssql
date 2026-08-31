@@ -8,7 +8,7 @@
  * capability/maturity gate, a circuit breaker (a native feature that throws
  * or times out repeatedly falls back to the bridge for the rest of the
  * document/session), and a routing span per request
- * (queryStudio.languageService.route — feature/engine/outcome, never text).
+ * (sqlLanguage.route — feature/engine/outcome, never text).
  *
  * host/** may import the diagnostics substrate; the engines it routes stay
  * pure behind SqlLanguageFeatureEngine.
@@ -141,9 +141,9 @@ export class LanguageFeatureRouter {
         const useNative = this.nativeEligible(feature);
         const engineId = useNative ? "nativeTypeScript" : "sqlToolsServiceBridge";
         const span = diag.startSpan({
-            feature: "queryStudio",
+            feature: "sqlLanguage",
             kind: "span",
-            type: "queryStudio.languageService.route",
+            type: "sqlLanguage.route",
             fields: {
                 languageFeature: { raw: feature, cls: "diagnostic.metadata" },
                 engine: { raw: engineId, cls: "diagnostic.metadata" },
@@ -185,6 +185,10 @@ export class LanguageFeatureRouter {
         feature: SqlLanguageFeature,
         invoke: (engine: SqlLanguageFeatureEngine) => Promise<T | undefined>,
     ): Promise<{ value?: T | undefined; failed?: boolean; timedOut?: boolean }> {
+        // Promise racing can bound only work that yields. Native synchronous
+        // features must remain self-bounding; whole-document diagnostics use
+        // diagnosticsPass through the sliced host scheduler for cancellable
+        // publication. The timeout protects async features and bridge seams.
         const timeoutMs = this.options.nativeTimeoutMs ?? 5000;
         let timer: ReturnType<typeof setTimeout> | undefined;
         try {

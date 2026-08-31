@@ -33,7 +33,7 @@ import {
     SqlLanguageFeatureEngine,
     SqlLanguageRequest,
 } from "../api";
-import { LexResult, lex } from "../core/lexer";
+import { LexResult, TokenKind, lex, tokenIndexAt } from "../core/lexer";
 import { SegmentResult, StatementSegment, segment } from "../core/segmenter";
 import { TextSnapshot } from "../core/text/textSnapshot";
 import { IPinnedMetadataView, ISqlLanguageMetadataProvider } from "../provider/types";
@@ -75,6 +75,7 @@ interface AnalyzedStatement extends SketchedStatement {
 
 interface DocumentAnalysis {
     readonly version: number;
+    readonly text: string;
     readonly textLength: number;
     readonly snapshot: TextSnapshot;
     readonly lexed: LexResult;
@@ -85,6 +86,7 @@ interface DocumentAnalysis {
 
 interface DiagnosticsMemo {
     readonly version: number;
+    readonly text: string;
     readonly textLength: number;
     readonly generation: number;
     /** Host freshness verdict the pass ran under (CACHE-5 §7.3). */
@@ -132,7 +134,8 @@ export class NativeSqlLanguageEngine implements SqlLanguageFeatureEngine {
         if (
             cached !== undefined &&
             cached.version === version &&
-            cached.textLength === text.length
+            cached.textLength === text.length &&
+            cached.text === text
         ) {
             return cached;
         }
@@ -214,6 +217,7 @@ export class NativeSqlLanguageEngine implements SqlLanguageFeatureEngine {
         }
         const analysis: DocumentAnalysis = {
             version,
+            text,
             textLength: text.length,
             snapshot,
             lexed,
@@ -272,6 +276,20 @@ export class NativeSqlLanguageEngine implements SqlLanguageFeatureEngine {
                     expectationConfidence: { raw: "high", cls: "diagnostic.metadata" },
                     itemCount: { raw: 0, cls: "diagnostic.metadata" },
                     suppressed: { raw: "emptySpace", cls: "diagnostic.metadata" },
+                });
+                return Promise.resolve(emptyCompletionResult());
+            }
+            const lexicalSuppression = completionLexicalSuppressionAt(
+                analysis.lexed,
+                Math.max(0, offset - 1),
+            );
+            if (lexicalSuppression !== undefined) {
+                span.end("ok", {
+                    contextKind: { raw: "none", cls: "diagnostic.metadata" },
+                    expectationKind: { raw: "none", cls: "diagnostic.metadata" },
+                    expectationConfidence: { raw: "high", cls: "diagnostic.metadata" },
+                    itemCount: { raw: 0, cls: "diagnostic.metadata" },
+                    suppressed: { raw: lexicalSuppression, cls: "diagnostic.metadata" },
                 });
                 return Promise.resolve(emptyCompletionResult());
             }
@@ -574,6 +592,7 @@ export class NativeSqlLanguageEngine implements SqlLanguageFeatureEngine {
             memo !== undefined &&
             memo.version === req.version &&
             memo.textLength === req.text.length &&
+            memo.text === req.text &&
             memo.generation === generation &&
             memo.metadataFreshness === metadataFreshness
         ) {
@@ -652,6 +671,7 @@ export class NativeSqlLanguageEngine implements SqlLanguageFeatureEngine {
                 };
                 this.diagnosticsMemo = {
                     version: req.version,
+                    text: req.text,
                     textLength: req.text.length,
                     generation,
                     metadataFreshness,
@@ -902,6 +922,25 @@ function formatCounts<T extends string>(counts: ReadonlyMap<T, number>): string 
 
 function emptyCompletionResult(): CompletionResult {
     return { items: [], isIncomplete: false };
+}
+
+/** Suppress completion inside lexical regions even when no statement owns the caret. */
+function completionLexicalSuppressionAt(
+    lexed: LexResult,
+    offset: number,
+): "comment" | "string" | "sqlcmd" | undefined {
+    const token = lexed.tokens[tokenIndexAt(lexed.tokens, offset)];
+    switch (token?.kind) {
+        case TokenKind.LineComment:
+        case TokenKind.BlockComment:
+            return "comment";
+        case TokenKind.StringLiteral:
+            return "string";
+        case TokenKind.SqlCmdDirective:
+            return "sqlcmd";
+        default:
+            return undefined;
+    }
 }
 
 function shouldSuppressAutomaticWhitespaceCompletion(req: CompletionRequest): boolean {

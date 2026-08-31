@@ -703,7 +703,7 @@ export class SqlOutputContentProvider {
                 );
 
                 const showBatchMessages = Utils.shouldShowBatchMessages();
-                if (message.isError || showBatchMessages) {
+                if (message.isError || message.batchId >= 0 || showBatchMessages) {
                     resultWebviewState.messages.push(
                         showBatchMessages ? message : { ...message, batchId: undefined },
                     );

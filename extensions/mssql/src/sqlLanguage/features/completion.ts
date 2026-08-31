@@ -128,7 +128,7 @@ export function computeCompletion(input: CompletionComputeInput): CompletionComp
         if (score === undefined) {
             return;
         }
-        const key = completionDedupeKey(item);
+        const key = completionDedupeKey(item, input.pinned.env.caseSensitive);
         if (candidateKeys.has(key)) {
             return;
         }
@@ -276,8 +276,11 @@ function wordPrefixBefore(text: string, offset: number): string {
     return start < offset ? text.slice(start, offset) : "";
 }
 
-function completionDedupeKey(item: Omit<SqlCompletionItem, "sortText">): string {
-    return `${item.kind}:${item.label.toLowerCase()}`;
+function completionDedupeKey(
+    item: Omit<SqlCompletionItem, "sortText">,
+    caseSensitive: boolean,
+): string {
+    return `${item.kind}:${caseSensitive ? item.label : item.label.toLowerCase()}`;
 }
 
 function casing(input: CompletionComputeInput, word: string): string {
@@ -925,7 +928,11 @@ function addStarExpansion(
         if (columns === undefined) {
             return; // incomplete metadata: do not offer expansion (§10.4)
         }
-        const qualify = sources.length > 1 || bound.source.alias !== undefined;
+        // At bare `alias.` the editor inserts after the dot, so emitting the
+        // qualifier again would produce `alias.alias.Column`. Explicit `*`
+        // replacement still needs qualified names.
+        const qualify =
+            boundOverride === undefined && (sources.length > 1 || bound.source.alias !== undefined);
         for (const col of columns) {
             names.push(
                 qualify
@@ -1017,11 +1024,20 @@ function columnsOfParts(
 ):
     | readonly { name: string; typeDisplay?: string; isIdentity?: boolean; isComputed?: boolean }[]
     | undefined {
-    const resolution = input.pinned.resolveObject(parts.filter((p) => p.length > 0));
-    if (resolution.kind !== "resolved") {
-        return undefined;
+    const resolution = resolveNameParts(parts, {
+        overlay: input.overlay,
+        batchIndex: input.batchIndex,
+        ordinal: input.ordinal,
+        pinned: input.pinned,
+        caseSensitive: input.pinned.env.caseSensitive,
+    });
+    if (resolution.kind === "overlay") {
+        return resolution.overlay.columns.map((name) => ({ name }));
     }
-    return input.pinned.getColumns(resolution.ref);
+    if (resolution.kind === "catalog") {
+        return input.pinned.getColumns(resolution.ref);
+    }
+    return undefined;
 }
 
 function addUpdateSetColumns(

@@ -111,7 +111,10 @@ import { CodeAnalysisWebViewController } from "../codeAnalysis/codeAnalysisWebVi
 import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
 import { CopilotService } from "../services/copilotService";
 import * as Prompts from "../copilot/prompts";
-import { CreateSessionResult } from "../objectExplorer/objectExplorerService";
+import {
+    CancelableLoadingNode,
+    CreateSessionResult,
+} from "../objectExplorer/objectExplorerService";
 import { SqlCodeLensProvider } from "../queryResult/sqlCodeLensProvider";
 import { SqlInlineCompletionProvider } from "../copilot/sqlInlineCompletionProvider";
 import {
@@ -363,6 +366,13 @@ export default class MainController implements vscode.Disposable {
             this._event.on(Constants.cmdCancelConnect, () => {
                 void this.runAndLogErrors(this.onCancelConnect());
             });
+            this.registerCommandWithArgs(Constants.cmdCancelContainerOperation);
+            this._event.on(
+                Constants.cmdCancelContainerOperation,
+                (loadingNode: CancelableLoadingNode) => {
+                    loadingNode.cancellationTokenSource.cancel();
+                },
+            );
             this.registerCommand(Constants.cmdRunQuery);
             this._event.on(Constants.cmdRunQuery, () => this.onRunQueryCommand());
             this.registerCommand(Constants.cmdRunQueryWithUriOwnership);
@@ -728,7 +738,7 @@ export default class MainController implements vscode.Disposable {
                             });
                         } else {
                             // The editor already contains text
-                            this._logger.warn("Chat with database: unable to open editor");
+                            this._logger.error("Chat with database: unable to open editor");
                         }
                     } else {
                         // The editor was somehow not created
@@ -3286,7 +3296,7 @@ export default class MainController implements vscode.Disposable {
             let uri = Utils.getActiveTextEditorUri();
             await this._outputContentProvider.cancelQuery(uri);
         } catch (err) {
-            this._logger.warn(`Unexpected error cancelling query: ${getErrorMessage(err)}`);
+            this._logger.error(`Unexpected error cancelling query: ${getErrorMessage(err)}`);
         }
     }
 
@@ -3619,7 +3629,7 @@ export default class MainController implements vscode.Disposable {
                 title,
             );
         } catch (err) {
-            self._logger.warn(
+            self._logger.error(
                 `Unexpected error running current statement: ${getErrorMessage(err)}`,
             );
         }
@@ -3689,7 +3699,7 @@ export default class MainController implements vscode.Disposable {
                 executionPlanOptions,
             );
         } catch (err) {
-            this._logger.warn(`Unexpected error running query: ${getErrorMessage(err)}`);
+            this._logger.error(`Unexpected error running query: ${getErrorMessage(err)}`);
         }
     }
 

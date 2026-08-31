@@ -335,6 +335,11 @@ function segmentStatements(
                 t.keyword?.category === "statement" &&
                 t.keyword.reserved && // unreserved words (GO, THROW) are legal identifiers
                 upper !== "BEGIN" && // block handled above; BEGIN TRAN starts stmt below
+                !(
+                    upper === "ALTER" &&
+                    prevWord?.upper === "OR" &&
+                    wordAt(text, tokens, stmtFirst) === "CREATE"
+                ) && // CREATE OR ALTER is one module header
                 (prevWord === undefined || !CONTINUATION_BEFORE.has(prevWord.upper)) &&
                 lastSigInStmt >= 0 &&
                 !isBoundarySuppressed(text, tokens, lastSigInStmt) &&

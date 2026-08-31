@@ -15,7 +15,7 @@
 
 import { StatementSketch } from "./sketch";
 
-export type OverlayObjectKind = "tempTable" | "tableVariable" | "scriptTable";
+export type OverlayObjectKind = "tempTable" | "tableVariable" | "scriptTable" | "scriptModule";
 
 export interface OverlayObject {
     readonly name: string; // includes # / ## / @ prefixes; script tables may be schema-qualified
@@ -122,6 +122,22 @@ export function buildOverlay(statements: readonly SketchedStatement[]): ScriptOv
                     speculative: isTemp ? undefined : true,
                 });
             }
+        }
+
+        // Script-local modules are suppression-only overlay entries. Their
+        // headers prove the object name exists after execution, but their
+        // result shape is intentionally unknown (empty columns => suppress).
+        if (sketch.moduleObject !== undefined) {
+            const lastPart = sketch.moduleObject.parts[sketch.moduleObject.parts.length - 1];
+            objects.push({
+                name: lastPart,
+                parts: sketch.moduleObject.parts,
+                kind: "scriptModule",
+                columns: [],
+                fromStatement: ordinal,
+                batchIndex,
+                speculative: true,
+            });
         }
 
         // SELECT ... INTO target — columns from the select list when named.

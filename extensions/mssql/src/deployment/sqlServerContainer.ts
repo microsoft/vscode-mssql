@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { DockerCommandParams, DockerStep } from "../sharedInterfaces/localContainers";
+import * as vscode from "vscode";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import {
     defaultPortNumber,
@@ -15,6 +16,8 @@ import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry"
 import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { FormItemOptions } from "../sharedInterfaces/form";
 import { getErrorMessage } from "../utils/utils";
+import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
+import { ObjectExplorerService } from "../objectExplorer/objectExplorerService";
 import { diag, diagnosticErrorClass } from "../diagnostics/diagnosticsCore";
 import { ContainerHostAdapter } from "../docker/containerHostAdapter";
 import type Dockerode from "dockerode";
@@ -29,6 +32,7 @@ import {
     getContainerByName,
     getEngineErrorLink,
     getEngineErrorLinkText,
+    isContainerHostAdapter,
     isDockerContainerRunning,
     prepareForDockerContainerCommand,
     pullContainerImage,
@@ -188,17 +192,6 @@ export async function startSqlServerDockerContainer(
     hostname: string,
     port: number,
 ): Promise<DockerCommandParams> {
-    // DOCK-4: create+start span. Version/port are safe facts; the create
-    // options (MSSQL_SA_PASSWORD env) are NEVER logged or carried on fields.
-    const span = diag.startSpan({
-        feature: "deployment",
-        kind: "span",
-        type: "docker.container.create",
-        fields: {
-            version: { raw: version, cls: "diagnostic.metadata" },
-            port: { raw: port, cls: "diagnostic.metadata" },
-        },
-    });
     try {
         const dockerClient = getDockerodeClient();
         const safeContainerName = sanitizeContainerInput(containerName);
@@ -207,7 +200,7 @@ export async function startSqlServerDockerContainer(
         const imageName = getSqlServerImageName(imageTag);
         const sqlContainerPort = `${defaultPortNumber}/tcp`;
         const hostPort = `${port}`;
-        const containerEnvironment = ["ACCEPT_EULA=Y", `MSSQL_SA_PASSWORD=${password}`];
+        const containerEnvironment = ["ACCEPT_EULA=Y", `SA_PASSWORD=${password}`];
         const createContainerOptions: Dockerode.ContainerCreateOptions = {
             Image: imageName,
             name: safeContainerName,
@@ -228,15 +221,11 @@ export async function startSqlServerDockerContainer(
         const container = await dockerClient.createContainer(createContainerOptions);
         await container.start();
         dockerLogger.trace(`SQL Server container ${containerName} started on port ${port}.`);
-        span.end("ok");
         return {
             success: true,
             port,
         };
     } catch (e) {
-        span.end("error", {
-            errorClass: { raw: diagnosticErrorClass(e), cls: "diagnostic.metadata" },
-        });
         return {
             success: false,
             error: LocalContainers.startSqlServerContainerError,
@@ -252,63 +241,122 @@ export async function startSqlServerDockerContainer(
  */
 export async function restartSqlServerContainer(
     containerName: string,
-    host: ContainerHostAdapter,
-): Promise<boolean> {
+    hostOrNode: ContainerHostAdapter | ConnectionNode,
+    objectExplorerService?: ObjectExplorerService,
+): Promise<boolean | undefined> {
+    const cancellationTokenSource = new vscode.CancellationTokenSource();
+    const host = isContainerHostAdapter(hostOrNode) ? hostOrNode : undefined;
+    const containerNode = host === undefined ? hostOrNode : undefined;
     const span = diag.startSpan({
         feature: "deployment",
         kind: "span",
         type: "docker.container.start",
         fields: {},
     });
-    const dockerPreparedResult = await prepareForDockerContainerCommand(containerName, host);
-    if (!dockerPreparedResult.success) {
-        sendErrorEvent(TelemetryViews.LocalContainers, TelemetryActions.RestartContainer, {
-            error: new Error(dockerPreparedResult.error),
-            includeErrorMessage: false,
-        });
+    const setStatus = async (label: string, cancelable: boolean = true): Promise<void> => {
+        if (host !== undefined) {
+            await host.setStatus(label);
+        } else if (containerNode !== undefined && objectExplorerService !== undefined) {
+            containerNode.loadingLabel = label;
+            await objectExplorerService.setLoadingUiForNode(
+                containerNode,
+                cancelable ? cancellationTokenSource : undefined,
+            );
+        }
+    };
+    try {
+        const dockerPreparedResult = await prepareForDockerContainerCommand(
+            containerName,
+            hostOrNode,
+            objectExplorerService,
+            cancellationTokenSource,
+        );
+        if (!dockerPreparedResult.success) {
+            if (dockerPreparedResult.canceled) {
+                span.end("info", {
+                    result: { raw: "canceled", cls: "diagnostic.metadata" },
+                });
+                return undefined;
+            }
+            sendErrorEvent(TelemetryViews.LocalContainers, TelemetryActions.RestartContainer, {
+                error: new Error(dockerPreparedResult.error),
+                includeErrorMessage: false,
+            });
+            span.end("error", {
+                errorClass: { raw: "preflightFailed", cls: "diagnostic.metadata" },
+            });
+            return false;
+        }
+        const isContainerRunning = await isDockerContainerRunning(containerName);
+
+        if (isContainerRunning) {
+            span.end("info", {
+                result: { raw: "alreadyRunning", cls: "diagnostic.metadata" },
+            });
+            return true; // Container is already running
+        }
+        await setStatus(LocalContainers.startingContainerLoadingLabel);
+        dockerLogger.info(`Restarting container: ${containerName}`);
+        const container = await getContainerByName(containerName);
+        if (!container) {
+            throw new Error(`Container ${containerName} does not exist.`);
+        }
+        const containerStarted = await Promise.race([
+            container.start().then(() => true),
+            new Promise<boolean>((resolve) =>
+                cancellationTokenSource.token.onCancellationRequested(() => resolve(false)),
+            ),
+        ]);
+        if (!containerStarted) {
+            dockerLogger.info(`Container start canceled for ${containerName}.`);
+            span.end("info", {
+                result: { raw: "canceled", cls: "diagnostic.metadata" },
+            });
+            return undefined;
+        }
+
+        dockerLogger.info(`Container ${containerName} restarted successfully.`);
+        await setStatus(LocalContainers.readyingContainerLoadingLabel);
+
+        const containerReadyResult: DockerCommandParams =
+            await checkIfSqlServerContainerIsReadyForConnections(
+                containerName,
+                cancellationTokenSource.token,
+            );
+
+        if (containerReadyResult.canceled) {
+            span.end("info", {
+                result: { raw: "canceled", cls: "diagnostic.metadata" },
+            });
+            return undefined;
+        }
+
+        await setStatus(ObjectExplorer.LoadingNodeLabel, false);
+
+        if (!containerReadyResult.success) {
+            sendErrorEvent(TelemetryViews.LocalContainers, TelemetryActions.RestartContainer, {
+                error: new Error(containerReadyResult.error),
+                includeErrorMessage: false,
+            });
+            span.end("error", {
+                errorClass: { raw: "readinessTimeout", cls: "diagnostic.metadata" },
+            });
+            return false;
+        }
+        sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.RestartContainer);
+        span.end("ok");
+        return true;
+    } catch (error) {
         span.end("error", {
-            errorClass: { raw: "preflightFailed", cls: "diagnostic.metadata" },
+            errorClass: {
+                raw: diagnosticErrorClass(error),
+                cls: "diagnostic.metadata",
+            },
         });
-        return false;
+        throw error;
+    } finally {
+        cancellationTokenSource.dispose();
     }
-    const isContainerRunning = await isDockerContainerRunning(containerName);
-
-    if (isContainerRunning) {
-        span.end("info", { result: { raw: "alreadyRunning", cls: "diagnostic.metadata" } });
-        return true; // Container is already running
-    }
-    await host.setStatus(LocalContainers.startingContainerLoadingLabel);
-    dockerLogger.info(`Restarting container: ${containerName}`);
-    const container = await getContainerByName(containerName);
-    if (!container) {
-        span.end("error", {
-            errorClass: { raw: "containerMissing", cls: "diagnostic.metadata" },
-        });
-        throw new Error(`Container ${containerName} does not exist.`);
-    }
-    await container.start();
-
-    dockerLogger.info(`Container ${containerName} restarted successfully.`);
-    await host.setStatus(LocalContainers.readyingContainerLoadingLabel);
-
-    const containerReadyResult =
-        await checkIfSqlServerContainerIsReadyForConnections(containerName);
-
-    await host.setStatus(ObjectExplorer.LoadingNodeLabel);
-
-    if (!containerReadyResult.success) {
-        sendErrorEvent(TelemetryViews.LocalContainers, TelemetryActions.RestartContainer, {
-            error: new Error(containerReadyResult.error),
-            includeErrorMessage: false,
-        });
-        span.end("error", {
-            errorClass: { raw: "readinessTimeout", cls: "diagnostic.metadata" },
-        });
-        return false;
-    }
-    sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.RestartContainer);
-    span.end("ok");
-    return true;
 }
 
 /**
@@ -317,25 +365,16 @@ export async function restartSqlServerContainer(
  */
 export async function checkIfSqlServerContainerIsReadyForConnections(
     containerName: string,
+    cancellationToken?: vscode.CancellationToken,
 ): Promise<DockerCommandParams> {
     const timeoutMs = 300_000; // 5 minutes
     const readyMessage = SQL_SERVER_COMMANDS.CHECK_CONTAINER_READY;
 
     dockerLogger.info(`Checking if container ${containerName} is ready for connections...`);
-    // DOCK-4: readiness dominates restart wallclock (log-stream wait, 300s cap).
-    const span = diag.startSpan({
-        feature: "deployment",
-        kind: "span",
-        type: "docker.readiness.wait",
-        fields: {},
-    });
 
     try {
         const container = await getContainerByName(containerName);
         if (!container) {
-            span.end("error", {
-                errorClass: { raw: "containerMissing", cls: "diagnostic.metadata" },
-            });
             return {
                 success: false,
                 error: LocalContainers.containerFailedToStartWithinTimeout,
@@ -351,14 +390,17 @@ export async function checkIfSqlServerContainerIsReadyForConnections(
         });
         let isReady = false;
         try {
-            isReady = await logMonitor.waitForMatch(readyMessage, timeoutMs);
+            isReady = await logMonitor.waitForMatch(readyMessage, timeoutMs, cancellationToken);
         } finally {
             logMonitor.dispose();
         }
         if (isReady) {
             dockerLogger.info(`${containerName} is ready for connections!`);
-            span.end("ok");
             return { success: true };
+        }
+        if (cancellationToken?.isCancellationRequested) {
+            dockerLogger.info(`Container readiness check canceled for ${containerName}.`);
+            return { success: false, canceled: true };
         }
     } catch (e) {
         dockerLogger.info(
@@ -366,9 +408,6 @@ export async function checkIfSqlServerContainerIsReadyForConnections(
         );
     }
 
-    span.end("error", {
-        errorClass: { raw: "readinessTimeout", cls: "diagnostic.metadata" },
-    });
     return {
         success: false,
         error: LocalContainers.containerFailedToStartWithinTimeout,

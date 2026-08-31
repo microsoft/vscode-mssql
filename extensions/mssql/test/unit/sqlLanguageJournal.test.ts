@@ -5,7 +5,7 @@
 
 import { expect } from "chai";
 import { diag, DiagnosticSink } from "../../src/diagnostics/diagnosticsCore";
-import { DiagEvent } from "../../src/sharedInterfaces/debugConsole";
+import { DiagEvent } from "../../src/sharedInterfaces/diagnostics";
 import { NativeSqlLanguageEngine } from "../../src/sqlLanguage/host/nativeEngine";
 import { FixtureLanguageMetadataProvider } from "../../src/sqlLanguage/provider/fixtureProvider";
 import { STANDARD_FIXTURE_CATALOG } from "../../src/sqlLanguage/testSupport/fixtureCatalog";

@@ -68,6 +68,20 @@ suite("sqlLanguage sketch parser", () => {
         expect(innerItems[0].alias).to.equal("x");
     });
 
+    test("derived and VALUES column alias lists do not create phantom sources", () => {
+        for (const text of [
+            "SELECT v.a FROM (VALUES (1, 2)) v(a, b)",
+            "SELECT d.a FROM (SELECT 1, 2) AS d(a, b)",
+            "SELECT v.a FROM (VALUES (1, 2)) v (a, b)",
+            "SELECT d.a FROM (SELECT 1, 2) AS d (a, b)",
+            "SELECT d.a FROM (SELECT 1, 2) AS d\n(a, b)",
+        ]) {
+            const s = sketch(text);
+            expect(s.sources, text).to.have.length(1);
+            expect(s.sources[0].alias, text).to.be.oneOf(["v", "d"]);
+        }
+    });
+
     test("UPDATE alias form records target + FROM sources", () => {
         const s = sketch(
             "UPDATE o SET o.Comments = 'x' FROM Sales.Orders o JOIN Sales.Customers c ON c.CustomerID = o.CustomerID",
@@ -78,6 +92,26 @@ suite("sqlLanguage sketch parser", () => {
         expect(s.sources.map((x) => x.alias)).to.include.members(["o", "c"]);
         expect(s.clauses.some((c) => c.kind === "setAssignments")).to.equal(true);
         expect(s.clauses.some((c) => c.kind === "on")).to.equal(true);
+    });
+
+    test("UPDATE TOP skips the row limit before reading the target", () => {
+        const s = sketch("UPDATE TOP (100) Sales.Orders SET Comments = NULL");
+        expect(s.target?.parts).to.deep.equal(["Sales", "Orders"]);
+        expect(s.clauses.some((clause) => clause.kind === "setAssignments")).to.equal(true);
+    });
+
+    test("default-schema multipart shorthand preserves the empty part", () => {
+        expect(sketch("SELECT * FROM OtherDb..Orders").sources[0].parts).to.deep.equal([
+            "OtherDb",
+            "",
+            "Orders",
+        ]);
+    });
+
+    test("IS NOT DISTINCT FROM stays inside the WHERE clause", () => {
+        const s = sketch("SELECT * FROM Sales.Orders WHERE OrderID IS NOT DISTINCT FROM 1");
+        expect(s.sources.map((source) => source.parts.join("."))).to.deep.equal(["Sales.Orders"]);
+        expect(s.clauses.filter((clause) => clause.kind === "where")).to.have.length(1);
     });
 
     test("INSERT with column list and VALUES clause", () => {
@@ -125,6 +159,16 @@ suite("sqlLanguage sketch parser", () => {
         expect(s.kind).to.equal("createTable");
         expect(s.createdTable?.parts).to.deep.equal(["#tmp"]);
         expect(s.createdTable?.columns).to.deep.equal(["Id", "Name"]);
+    });
+
+    test("module headers record their qualified object name", () => {
+        expect(sketch("CREATE VIEW dbo.MyView AS SELECT 1").moduleObject?.parts).to.deep.equal([
+            "dbo",
+            "MyView",
+        ]);
+        expect(
+            sketch("CREATE OR ALTER PROCEDURE dbo.MyProc AS SELECT 1").moduleObject?.parts,
+        ).to.deep.equal(["dbo", "MyProc"]);
     });
 
     test("SELECT INTO #temp records the target", () => {

@@ -151,6 +151,7 @@ export const cmdDeployNewDatabase = "mssql.deployNewDatabase";
 export const cmdStopContainer = "mssql.stopContainer";
 export const cmdDeleteContainer = "mssql.deleteContainer";
 export const cmdStartContainer = "mssql.startContainer";
+export const cmdCancelContainerOperation = "mssql.cancelContainerOperation";
 export const cmdHandleSummaryOperation = "mssql.handleSummaryOperation";
 export const cmdMoveToSchema = "mssql.moveToSchema";
 export const cmdOpenChangelog = "mssql.openChangelog";

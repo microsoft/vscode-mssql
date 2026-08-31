@@ -19,7 +19,29 @@ import {
     MetadataCatalogHandle,
 } from "../../src/sqlLanguage/provider/catalogProvider";
 import { NullLanguageMetadataProvider } from "../../src/sqlLanguage/provider/nullProvider";
-import { QueryStudioLanguageService } from "../../src/queryStudio/queryStudioLanguageService";
+import { CatalogBuilder, CatalogSnapshot } from "../../src/services/metadata/catalogModel";
+import { NativeSqlLanguageEngine } from "../../src/sqlLanguage/host/nativeEngine";
+import { TextSnapshot } from "../../src/sqlLanguage/core/text/textSnapshot";
+
+function providerForSnapshot(snapshot: CatalogSnapshot): CatalogLanguageMetadataProvider {
+    const handle = {
+        status: () => ({
+            readiness: "ready",
+            generation: snapshot.generation,
+            mode: snapshot.mode,
+        }),
+        current: () => snapshot,
+        refresh: () => Promise.resolve(),
+        getModuleDefinition: () => Promise.resolve({ unavailableReason: "notLoaded" as const }),
+    } as unknown as MetadataCatalogHandle;
+    return new CatalogLanguageMetadataProvider({
+        handle: () => handle,
+        serverVersion: () => "16.0.1000.0",
+        currentDatabase: () => "FixtureDb",
+        databases: () => ["FixtureDb"],
+        subscribeStatus: () => () => undefined,
+    });
+}
 
 suite("sqlLanguage fourslash harness", () => {
     test("parses caret and named markers, strips them from text", () => {
@@ -154,6 +176,87 @@ suite("sqlLanguage catalog adapter offline honesty", () => {
         expect(provider.env().engineEdition).to.equal(5);
     });
 
+    test("real CatalogBuilder snapshot maps through provider and engine", async () => {
+        const builder = new CatalogBuilder();
+        builder.setEnvironment({ defaultSchema: "dbo", caseSensitive: false, engineEdition: 5 });
+        builder.addSchema(1, "dbo");
+        builder.addObject(101, 1, "Orders", "table");
+        builder.addColumn(101, "OrderId", "int", false);
+        builder.addColumn(101, "Name", "nvarchar(50)", true);
+        builder.markPrimaryKeyColumn(101, "OrderId");
+        builder.addKeyConstraintColumn(101, "PK_Orders", "primaryKey", "OrderId");
+        const snapshot = builder.build(7, {
+            schemas: "ready",
+            objects: "ready",
+            columns: "ready",
+            keys: "ready",
+            parameters: "ready",
+            foreignKeys: "ready",
+        });
+        const provider = providerForSnapshot(snapshot);
+        const pinned = provider.pin();
+        const resolution = pinned.resolveObject(["dbo", "Orders"]);
+        expect(resolution.kind).to.equal("resolved");
+        if (resolution.kind !== "resolved") {
+            throw new Error("expected real snapshot resolution");
+        }
+        expect(
+            pinned.getColumns(resolution.ref)?.find((column) => column.name === "OrderId"),
+        ).to.deep.include({ isPrimaryKey: true });
+        expect(pinned.getKeyConstraints?.(resolution.ref)?.[0].name).to.equal("PK_Orders");
+
+        const engine = new NativeSqlLanguageEngine(provider);
+        const text = "SELECT o. FROM dbo.Orders o";
+        const position = new TextSnapshot(text, 1).positionAt("SELECT o.".length);
+        const completion = await engine.completion({
+            text,
+            version: 1,
+            position,
+            trigger: "invoke",
+        });
+        expect(completion?.items.map((item) => item.label)).to.include.members(["OrderId", "Name"]);
+        expect(
+            (await engine.diagnostics({ text: "SELECT OrderId FROM dbo.Orders", version: 2 }))
+                ?.diagnostics,
+        ).to.deep.equal([]);
+    });
+
+    test("prefix filtering cannot hide a valid kind behind capped matches", () => {
+        const builder = new CatalogBuilder();
+        builder.setEnvironment({ defaultSchema: "dbo", caseSensitive: false });
+        builder.addSchema(1, "dbo");
+        for (let i = 0; i < 1_205; i++) {
+            builder.addObject(1_000 + i, 1, `usp_${String(i).padStart(4, "0")}`, "procedure");
+        }
+        builder.addObject(9_999, 1, "usp_zzzz_view", "view");
+        const provider = providerForSnapshot(
+            builder.build(8, { schemas: "ready", objects: "ready", columns: "ready" }),
+        );
+        expect(
+            provider
+                .pin()
+                .searchObjects({ prefix: "usp_", kinds: ["view"], limit: 10 })
+                .map((object) => `${object.kind}:${object.schema}.${object.name}`),
+        ).to.include("view:dbo.usp_zzzz_view");
+    });
+
+    test("unknown catalog case rule suppresses binder diagnostics", async () => {
+        const builder = new CatalogBuilder();
+        builder.addSchema(1, "dbo");
+        builder.addObject(101, 1, "Orders", "table");
+        builder.addColumn(101, "OrderId", "int", false);
+        const provider = providerForSnapshot(
+            builder.build(9, { schemas: "ready", objects: "ready", columns: "ready" }),
+        );
+        expect(provider.env().caseSensitivityKnown).to.equal(false);
+        const result = await new NativeSqlLanguageEngine(provider).diagnostics({
+            text: "SELECT orderid FROM dbo.orders",
+            version: 1,
+        });
+        expect(result?.diagnostics).to.deep.equal([]);
+        expect(result?.suppressed?.metadataNotValidated).to.be.at.least(1);
+    });
+
     test("requestHydration kicks ONE refresh and de-dupes repeat misses", async () => {
         let refreshCalls = 0;
         let releaseRefresh: () => void = () => undefined;
@@ -196,40 +299,5 @@ suite("sqlLanguage catalog adapter offline honesty", () => {
         expect(pinned.resolveObject(["x"]).kind).to.equal("unavailable");
         expect(pinned.getColumns({ objectId: 1 })).to.equal(undefined);
         expect(provider.readiness().mode).to.equal("offline");
-    });
-});
-
-suite("sqlLanguage shadow connection lifecycle (LS-0 gate)", () => {
-    test("native-only traffic never creates the shadow connection", async () => {
-        const service = new QueryStudioLanguageService({
-            backingDocument: () => undefined,
-            sessionBinding: () => undefined,
-            databases: () => undefined,
-        });
-        try {
-            // folding + documentSymbols are native-routed under the default
-            // sqlToolsService preference; neither may touch the shadow path.
-            await service.folding();
-            await service.documentSymbols();
-            expect(service.status().shadowConnectionState).to.equal("none");
-        } finally {
-            service.dispose();
-        }
-    });
-
-    test("bridge-routed request without a profile stays honestly disconnected", async () => {
-        const service = new QueryStudioLanguageService({
-            backingDocument: () => undefined,
-            sessionBinding: () => undefined,
-            databases: () => undefined,
-        });
-        try {
-            const result = await service.completion({ line: 0, character: 0 }, "invoke");
-            // No backing document and no profile: unserved, no shadow state.
-            expect(result).to.equal(undefined);
-            expect(service.status().shadowConnectionState).to.equal("none");
-        } finally {
-            service.dispose();
-        }
     });
 });

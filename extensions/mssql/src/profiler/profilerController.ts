@@ -1024,29 +1024,29 @@ export class ProfilerController {
             // New Session - disabled in read-only disconnected mode
             onCreateSession: async () => {
                 // No-op for read-only disconnected sessions
-                this._logger.debug(
+                this._logger.trace(
                     "Create session ignored for read-only disconnected XEL file session",
                 );
             },
             // Start Session - disabled in read-only disconnected mode
             onStartSession: async () => {
                 // No-op for read-only disconnected sessions
-                this._logger.debug(
+                this._logger.trace(
                     "Start session ignored for read-only disconnected XEL file session",
                 );
             },
             // Pause/Resume - disabled for read-only file sessions
             onPauseResume: async () => {
                 // No-op for read-only sessions
-                this._logger.debug("Pause/Resume ignored for read-only XEL file session");
+                this._logger.trace("Pause/Resume ignored for read-only XEL file session");
             },
             // Stop - disabled for read-only file sessions
             onStop: async () => {
                 // No-op for read-only sessions
-                this._logger.debug("Stop ignored for read-only XEL file session");
+                this._logger.trace("Stop ignored for read-only XEL file session");
             },
             onViewChange: (viewId: string) => {
-                this._logger.debug(`View changed to: ${viewId}`);
+                this._logger.trace(`View changed to: ${viewId}`);
             },
         });
     }

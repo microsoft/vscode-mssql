@@ -83,7 +83,6 @@ function printUsage() {
     console.log(`Usage:
   npm run build [-- --target <name>[,<name>]] [--prod]
   npm run watch [-- --target <name>[,<name>]]
-  npm run watch:all
   npm run test [-- --target <name>[,<name>]] [-- <target args>]
   npm run smoketest [-- --target <name>[,<name>]] [-- <target args>]
   npm run lint [-- --target <name>[,<name>]]

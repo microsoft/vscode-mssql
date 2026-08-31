@@ -31,7 +31,8 @@
     "scripts": {
         "build:extension": "tsc -p tsconfig.extension.json",
         "build:extension-bundle": "node esbuild.mjs",
-        "build:prepare": "node -e \"\"",
+        "build:runtime-localization": "node ../../scripts/localization-generate.js sql-database-projects .",
+        "build:prepare": "npm run build:runtime-localization",
         "build": "node scripts/build.js",
         "watch:extension": "tsc -watch -p tsconfig.extension.json  --preserveWatchOutput",
         "watch:extension-bundle": "node esbuild.mjs --watch",

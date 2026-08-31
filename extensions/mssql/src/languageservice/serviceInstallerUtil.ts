@@ -12,6 +12,10 @@ import ServerProvider from "./server";
 import { IStatusView } from "./interfaces";
 import { ILogger } from "../sharedInterfaces/logger";
 import * as fs from "fs";
+import * as path from "path";
+
+const sqlToolsServicePackageDirectoryVariable = "SQLTOOLS_SERVICE_PACKAGE_DIR";
+const sqlToolsServicePackagePrefix = "Microsoft.SqlTools.ServiceLayer-";
 
 export class StubStatusView implements IStatusView {
     constructor(private _log: (msg: string) => void) {}
@@ -99,14 +103,27 @@ export async function cleanAndInstallService(runtime: Runtime): Promise<void> {
         logger.error(`Error deleting service install directory: ${error.message}`);
         throw error;
     }
-    let path: string;
+    let installPath: string;
     try {
-        path = await serverProvider.downloadAndGetServerInstallFolder(runtime);
+        const packageDirectory = process.env[sqlToolsServicePackageDirectoryVariable];
+        if (packageDirectory) {
+            const packageFileName = `${sqlToolsServicePackagePrefix}${downloadProvider.getRuntimeDownloadPackageFileName(runtime)}`;
+            const packagePath = path.join(packageDirectory, packageFileName);
+            await downloadProvider.installServiceFromPackage(runtime, packagePath);
+            installPath = await downloadProvider.tryGetInstallDirectory(runtime);
+            if (!installPath) {
+                throw new Error(
+                    `Installed SQL Tools Service package is incomplete: ${packagePath}`,
+                );
+            }
+        } else {
+            installPath = await serverProvider.downloadAndGetServerInstallFolder(runtime);
+        }
     } catch (error) {
         logger.error(`Error installing service for runtime ${runtime}: ${error.message}`);
         throw error;
     }
-    logger.debug(`Service installation complete for runtime: ${runtime}, path: ${path}`);
+    logger.debug(`Service installation complete for runtime: ${runtime}, path: ${installPath}`);
 }
 
 /*

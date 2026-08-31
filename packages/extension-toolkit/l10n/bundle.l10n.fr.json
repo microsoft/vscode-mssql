@@ -1,5 +1,0 @@
-{
-    "Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues. Error: {1}/{0} is the proxy URL{1} is the error message": "Des paramètres de proxy ont été trouvés, mais une erreur s’est produite lors de l’analyse de l’URL : « {0} ». Vous pouvez rencontrer des problèmes de connexion. Erreur : {1}",
-    "Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues./{0} is the proxy URL": "Des paramètres de proxy ont été trouvés, mais sans protocole (par exemple http://) : « {0} ». Vous pouvez rencontrer des problèmes de connexion.",
-    "Unable to read proxy agent options.": "Impossible de lire les options de l'agent proxy."
-}

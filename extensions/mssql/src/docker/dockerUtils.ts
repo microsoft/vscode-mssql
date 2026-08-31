@@ -26,6 +26,8 @@ import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { FormItemValidationState } from "../sharedInterfaces/form";
 import { getErrorMessage } from "../utils/utils";
 import { Logger } from "../models/logger";
+import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
+import { ObjectExplorerService } from "../objectExplorer/objectExplorerService";
 import { diag, diagnosticErrorClass } from "../diagnostics/diagnosticsCore";
 import { ContainerHostAdapter, NULL_CONTAINER_HOST } from "./containerHostAdapter";
 import type Dockerode from "dockerode";
@@ -180,7 +182,11 @@ export interface ContainerLogMonitor {
     dispose: () => void;
     getLogs: () => string | undefined;
     includes: (text: string) => boolean;
-    waitForMatch: (text: string, timeoutMs: number) => Promise<boolean>;
+    waitForMatch: (
+        text: string,
+        timeoutMs: number,
+        cancellationToken?: vscode.CancellationToken,
+    ) => Promise<boolean>;
 }
 
 export interface StartContainerLogMonitorOptions {
@@ -243,12 +249,32 @@ export async function startContainerLogMonitor(
             return logs.length > 0 ? logs : undefined;
         },
         includes: (text: string) => bufferedLogs.includes(text),
-        waitForMatch: (text: string, timeoutMs: number) => {
+        waitForMatch: (
+            text: string,
+            timeoutMs: number,
+            cancellationToken?: vscode.CancellationToken,
+        ) => {
             if (bufferedLogs.includes(text)) {
                 return Promise.resolve(true);
             }
 
+            if (cancellationToken?.isCancellationRequested) {
+                return Promise.resolve(false);
+            }
+
             return new Promise<boolean>((resolve, reject) => {
+                let cancellationListener: vscode.Disposable | undefined;
+
+                const cleanup = () => {
+                    clearTimeout(timeoutHandle);
+                    cancellationListener?.dispose();
+                    stdoutStream.removeListener("data", onData);
+                    stderrStream.removeListener("data", onData);
+                    rawLogsStream.removeListener("error", onError);
+                    rawLogsStream.removeListener("end", onEnd);
+                    rawLogsStream.removeListener("close", onEnd);
+                };
+
                 const onData = () => {
                     if (bufferedLogs.includes(text)) {
                         cleanupAndResolve(true);
@@ -256,24 +282,14 @@ export async function startContainerLogMonitor(
                 };
 
                 const onError = (error: Error) => {
-                    clearTimeout(timeoutHandle);
-                    stdoutStream.removeListener("data", onData);
-                    stderrStream.removeListener("data", onData);
-                    rawLogsStream.removeListener("error", onError);
-                    rawLogsStream.removeListener("end", onEnd);
-                    rawLogsStream.removeListener("close", onEnd);
+                    cleanup();
                     reject(error);
                 };
 
                 const onEnd = () => cleanupAndResolve(false);
 
                 const cleanupAndResolve = (result: boolean) => {
-                    clearTimeout(timeoutHandle);
-                    stdoutStream.removeListener("data", onData);
-                    stderrStream.removeListener("data", onData);
-                    rawLogsStream.removeListener("error", onError);
-                    rawLogsStream.removeListener("end", onEnd);
-                    rawLogsStream.removeListener("close", onEnd);
+                    cleanup();
                     resolve(result);
                 };
 
@@ -284,6 +300,9 @@ export async function startContainerLogMonitor(
                 rawLogsStream.on("error", onError);
                 rawLogsStream.on("end", onEnd);
                 rawLogsStream.on("close", onEnd);
+                cancellationListener = cancellationToken?.onCancellationRequested(() =>
+                    cleanupAndResolve(false),
+                );
             });
         },
     };
@@ -568,14 +587,6 @@ export async function pullContainerImage(
     errorMessage: string,
     platform?: string,
 ): Promise<DockerCommandParams> {
-    // DOCK-4: pulls dominate first-deploy wallclock — image name is a public
-    // registry coordinate, safe to carry.
-    const span = diag.startSpan({
-        feature: "deployment",
-        kind: "span",
-        type: "docker.image.pull",
-        fields: { image: { raw: imageName, cls: "diagnostic.metadata" } },
-    });
     try {
         dockerLogger.info(`Pulling container image: ${imageName}`);
         const dockerClient = getDockerodeClient();
@@ -588,13 +599,9 @@ export async function pullContainerImage(
             );
         });
         dockerLogger.info(`Container image ${imageName} pulled successfully.`);
-        span.end("ok");
         return { success: true };
     } catch (e) {
         dockerLogger.error(`Failed to pull container image ${imageName}: ${getErrorMessage(e)}`);
-        span.end("error", {
-            errorClass: { raw: diagnosticErrorClass(e), cls: "diagnostic.metadata" },
-        });
         return {
             success: false,
             error: errorMessage,
@@ -625,7 +632,9 @@ export async function isDockerContainerRunning(name: string): Promise<boolean> {
  * Attempts to start Docker Desktop within 30 seconds.
  */
 export async function startDocker(
-    host: ContainerHostAdapter = NULL_CONTAINER_HOST,
+    hostOrNode: ContainerHostAdapter | ConnectionNode = NULL_CONTAINER_HOST,
+    objectExplorerService?: ObjectExplorerService,
+    cancellationTokenSource?: vscode.CancellationTokenSource,
 ): Promise<DockerCommandParams> {
     try {
         await execDockerCommand(COMMANDS.CHECK_DOCKER_RUNNING());
@@ -648,17 +657,17 @@ export async function startDocker(
         }
         // Otherwise docker is likely not running, so we proceed to start it.
     }
-    // DOCK-4: the engine launch + readiness poll is the slowest cold-start
-    // hop — spanned so a slow/failed Docker Desktop start is attributable.
+    const host = isContainerHostAdapter(hostOrNode) ? hostOrNode : undefined;
+    const node = host === undefined ? hostOrNode : undefined;
     const span = diag.startSpan({
         feature: "deployment",
         kind: "span",
         type: "docker.engine.start",
         fields: {},
     });
-    const spannedResult = (result: DockerCommandParams): DockerCommandParams => {
-        span.end(result.success ? "ok" : "error", {
-            ...(result.success
+    const finish = (result: DockerCommandParams): DockerCommandParams => {
+        span.end(result.success ? "ok" : result.canceled ? "info" : "error", {
+            ...(result.success || result.canceled
                 ? {}
                 : {
                       errorClass: {
@@ -669,12 +678,17 @@ export async function startDocker(
         });
         return result;
     };
-    await host.setStatus(LocalContainers.startingDockerLoadingLabel);
+    if (host !== undefined) {
+        await host.setStatus(LocalContainers.startingDockerLoadingLabel);
+    } else if (node && objectExplorerService) {
+        node.loadingLabel = LocalContainers.startingDockerLoadingLabel;
+        await objectExplorerService.setLoadingUiForNode(node, cancellationTokenSource);
+    }
     let dockerDesktopPath = "";
     if (platform() === Platform.Windows) {
         dockerDesktopPath = await getDockerPath(windowsDockerDesktopExecutable);
         if (!dockerDesktopPath) {
-            return spannedResult({
+            return finish({
                 success: false,
                 error: LocalContainers.dockerDesktopPathError,
             });
@@ -684,7 +698,7 @@ export async function startDocker(
     const startCommand = startCommands[platform()];
 
     if (!startCommand) {
-        return spannedResult({
+        return finish({
             success: false,
             error: LocalContainers.unsupportedDockerPlatformError(platform()),
         });
@@ -692,40 +706,76 @@ export async function startDocker(
 
     try {
         dockerLogger.info("Waiting for Docker to start...");
-        await execDockerCommand(startCommand);
+        let startCancellationListener: vscode.Disposable | undefined;
+        let dockerStartCanceled: boolean;
+        try {
+            dockerStartCanceled = await Promise.race([
+                execDockerCommand(startCommand).then(() => false),
+                new Promise<boolean>((resolve) => {
+                    startCancellationListener =
+                        cancellationTokenSource?.token.onCancellationRequested(() => resolve(true));
+                }),
+            ]);
+        } finally {
+            startCancellationListener?.dispose();
+        }
+
+        if (dockerStartCanceled || cancellationTokenSource?.token.isCancellationRequested) {
+            return finish({ success: false, canceled: true });
+        }
 
         let attempts = 0;
         const maxAttempts = 30;
         const interval = 2000;
 
         return await new Promise((resolve) => {
+            let cancellationListener: vscode.Disposable | undefined;
+            let completed = false;
+            const complete = (result: DockerCommandParams) => {
+                if (completed) {
+                    return;
+                }
+                completed = true;
+                clearInterval(checkDocker);
+                cancellationListener?.dispose();
+                resolve(finish(result));
+            };
+
             const checkDocker = setInterval(async () => {
                 try {
                     await execDockerCommand(COMMANDS.CHECK_DOCKER_RUNNING());
-                    clearInterval(checkDocker);
+                    if (completed) {
+                        return;
+                    }
                     dockerLogger.info("Docker started successfully.");
                     sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.StartDocker, {
                         additionalProps: {
                             dockerStartedThroughExtension: "true",
                         },
                     });
-                    resolve(spannedResult({ success: true }));
+                    complete({ success: true });
                 } catch (e) {
+                    if (completed) {
+                        return;
+                    }
                     if (++attempts >= maxAttempts) {
-                        clearInterval(checkDocker);
-                        resolve(
-                            spannedResult({
-                                success: false,
-                                error: LocalContainers.dockerFailedToStartWithinTimeout,
-                                fullErrorText: getErrorMessage(e),
-                            }),
-                        );
+                        complete({
+                            success: false,
+                            error: LocalContainers.dockerFailedToStartWithinTimeout,
+                            fullErrorText: getErrorMessage(e),
+                        });
                     }
                 }
             }, interval);
+            cancellationListener = cancellationTokenSource?.token.onCancellationRequested(() =>
+                complete({ success: false, canceled: true }),
+            );
+            if (cancellationTokenSource?.token.isCancellationRequested) {
+                cancellationListener?.dispose();
+            }
         });
     } catch (e) {
-        return spannedResult({
+        return finish({
             success: false,
             error: LocalContainers.dockerFailedToStartWithinTimeout,
             fullErrorText: getErrorMessage(e),
@@ -733,16 +783,21 @@ export async function startDocker(
     }
 }
 
+export function isContainerHostAdapter(
+    value: ContainerHostAdapter | ConnectionNode | undefined,
+): value is ContainerHostAdapter {
+    return (
+        value !== undefined &&
+        "setStatus" in value &&
+        "showError" in value &&
+        "onContainerMissing" in value
+    );
+}
+
 /**
  * Deletes a Docker container with the specified name.
  */
 export async function deleteContainer(containerName: string): Promise<boolean> {
-    const span = diag.startSpan({
-        feature: "deployment",
-        kind: "span",
-        type: "docker.container.delete",
-        fields: {},
-    });
     try {
         const container = await getContainerByName(containerName);
         if (!container) {
@@ -756,15 +811,11 @@ export async function deleteContainer(containerName: string): Promise<boolean> {
         }
         await container.remove();
         sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.DeleteContainer);
-        span.end("ok");
         return true;
     } catch (e) {
         sendErrorEvent(TelemetryViews.LocalContainers, TelemetryActions.DeleteContainer, {
             error: e,
             includeErrorMessage: false,
-        });
-        span.end("error", {
-            errorClass: { raw: diagnosticErrorClass(e), cls: "diagnostic.metadata" },
         });
         return false;
     }
@@ -774,12 +825,6 @@ export async function deleteContainer(containerName: string): Promise<boolean> {
  * Stops a Docker container with the specified name.
  */
 export async function stopContainer(containerName: string): Promise<boolean> {
-    const span = diag.startSpan({
-        feature: "deployment",
-        kind: "span",
-        type: "docker.container.stop",
-        fields: {},
-    });
     try {
         const container = await getContainerByName(containerName);
         if (!container) {
@@ -788,15 +833,11 @@ export async function stopContainer(containerName: string): Promise<boolean> {
 
         await container.stop();
         sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.StopContainer);
-        span.end("ok");
         return true;
     } catch (e) {
         sendErrorEvent(TelemetryViews.LocalContainers, TelemetryActions.StopContainer, {
             error: e,
             includeErrorMessage: false,
-        });
-        span.end("error", {
-            errorClass: { raw: diagnosticErrorClass(e), cls: "diagnostic.metadata" },
         });
         return false;
     }
@@ -876,19 +917,45 @@ export async function findAvailablePort(startPort: number): Promise<number> {
  */
 export async function prepareForDockerContainerCommand(
     containerName: string,
-    host: ContainerHostAdapter,
+    hostOrNode: ContainerHostAdapter | ConnectionNode,
+    objectExplorerService?: ObjectExplorerService,
+    cancellationTokenSource?: vscode.CancellationTokenSource,
 ): Promise<DockerCommandParams> {
-    const startDockerResult = await startDocker(host);
+    const startDockerResult = await startDocker(
+        hostOrNode,
+        objectExplorerService,
+        cancellationTokenSource,
+    );
+    const host = isContainerHostAdapter(hostOrNode) ? hostOrNode : undefined;
+    const containerNode = host === undefined ? hostOrNode : undefined;
     if (!startDockerResult.success) {
-        host.showError(startDockerResult.error);
+        if (!startDockerResult.canceled) {
+            if (host !== undefined) {
+                host.showError(startDockerResult.error);
+            } else {
+                vscode.window.showErrorMessage(startDockerResult.error);
+            }
+        }
         return startDockerResult;
     }
 
     const containerExists = await checkContainerExists(containerName);
 
     if (!containerExists) {
-        await host.setStatus(Common.error);
-        await host.onContainerMissing();
+        if (host !== undefined) {
+            await host.onContainerMissing();
+        } else if (containerNode !== undefined && objectExplorerService !== undefined) {
+            containerNode.loadingLabel = Common.error;
+            await objectExplorerService.setLoadingUiForNode(containerNode);
+            const confirmation = await vscode.window.showInformationMessage(
+                LocalContainers.containerDoesNotExistError,
+                { modal: true },
+                Common.remove,
+            );
+            if (confirmation === Common.remove) {
+                await objectExplorerService.removeNode(containerNode, false);
+            }
+        }
         return {
             success: false,
             error: LocalContainers.containerDoesNotExistError,

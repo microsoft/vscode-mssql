@@ -322,7 +322,7 @@ export class BackgroundTasksService {
 
         this.trimFinishedTasks();
         this._refreshCallback();
-        this._logger.info("Completed background task", {
+        this._logger.debug("Completed background task", {
             ...getTaskLogContext(task),
             finalState,
         });
