@@ -1922,6 +1922,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         await this.handleAzureMFAEdits("authenticationType");
         await this.handleAzureMFAEdits("accountId");
         await this.checkReadyToConnect();
+        this.triggerDatabaseFetchIfReady();
     }
 
     private async initializeConnectionForDialog(
