@@ -1762,6 +1762,10 @@ VS Code에서 컨테이너와 해당 연결이 모두 제거됩니다.</target>
         <source xml:lang="en">Clear cache and refresh token</source>
         <target state="translated">캐시 지우기 및 토큰 새로 고침</target>
       </trans-unit>
+      <trans-unit id="++CODE++5ed61b23a6cc6bb55c21dc48803bfd68b6ec2bbe196fc8867cf8a52965f287a7">
+        <source xml:lang="en">Clear cached metadata for a connection</source>
+        <target state="new">Clear cached metadata for a connection</target>
+      </trans-unit>
       <trans-unit id="++CODE++7179ea0035fca783ec62b7185659b68c75f2a7c12b909306a57183dc9b3fa44b">
         <source xml:lang="en">Clear filters</source>
         <target state="translated">필터 지우기</target>
@@ -6702,6 +6706,14 @@ Error:
         <source xml:lang="en">MSSQL extension icon</source>
         <target state="translated">MSSQL 확장 아이콘</target>
       </trans-unit>
+      <trans-unit id="++CODE++212c177c0fb717020548b59a64c5ea3dab99e4fa463b7a996a3c4bfb2af3d443">
+        <source xml:lang="en">MSSQL metadata cache cleared.</source>
+        <target state="new">MSSQL metadata cache cleared.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a722617da5b3a5acc85fb6be7668c28e2befae5576d896b99eb4ea97eebb676b">
+        <source xml:lang="en">MSSQL metadata cache entry cleared.</source>
+        <target state="new">MSSQL metadata cache entry cleared.</target>
+      </trans-unit>
       <trans-unit id="++CODE++a8b9a3bc6f9dfdfe260d58469e1cd0c1b8f15a879688815a0c0fb89ece9916bc">
         <source xml:lang="en">MSSQL: Click to change connection</source>
         <target state="translated">MSSQL: 연결을 변경하려면 클릭하세요.</target>
@@ -6816,6 +6828,10 @@ Error:
         <source xml:lang="en">Messages ({0})</source>
         <note>{0} is the keyboard shortcut for the messages tab</note>
         <target state="translated">메시지({0})</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ef4130dc48f45fbb30ce483736bd294e6080ba15a8f915f61c7b91e914733d02">
+        <source xml:lang="en">Metadata requires mssql.enableExperimentalFeatures and mssql.sqlDataPlane.enabled to be enabled.</source>
+        <target state="new">Metadata requires mssql.enableExperimentalFeatures and mssql.sqlDataPlane.enabled to be enabled.</target>
       </trans-unit>
       <trans-unit id="++CODE++2d275a74912cca2e02e6d41f9cae3a75ceef3ed0ef734eff3710e10eb7112228">
         <source xml:lang="en">Metric</source>
@@ -11182,6 +11198,14 @@ Are you sure you want to continue?</source>
         <source xml:lang="en">The maximum length (in characters) that can be stored in this database object.</source>
         <target state="translated">이 데이터베이스 개체에 저장할 수 있는 최대 길이(문자 수)입니다.</target>
       </trans-unit>
+      <trans-unit id="++CODE++680bed6d2dcb86d1bc0264f320c6de629fdd32a04b7b5790e7a16d176fbcf77d">
+        <source xml:lang="en">The metadata cache has no entries to clear.</source>
+        <target state="new">The metadata cache has no entries to clear.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++748f1779a56584b54a1ebea2ed54d4ed5a28d6480654284f36b3c9ccc02e1ddc">
+        <source xml:lang="en">The metadata cache is not enabled. Enable mssql.metadataCache.enabled and reload the window.</source>
+        <target state="new">The metadata cache is not enabled. Enable mssql.metadataCache.enabled and reload the window.</target>
+      </trans-unit>
       <trans-unit id="++CODE++497f95858a915b211f7f758c96976c859fb0e3695e61ec32971051e8b431c186">
         <source xml:lang="en">The move was rejected or could not be completed.</source>
         <target state="translated">이동이 거부되었거나 완료할 수 없습니다.</target>
@@ -12293,6 +12317,11 @@ Are you sure you want to continue?</source>
       <trans-unit id="++CODE++c1399614154a55dfb1fcb95e208ed1f0b1115b846d6150ded7c7b43fdf6cbc09">
         <source xml:lang="en">authenticationType</source>
         <target state="translated">authenticationType</target>
+      </trans-unit>
+      <trans-unit id="++CODE++27f5e6eb93673ec8555f139d6bd2a5f727cfeabefe8c913a9832a141f55fca1a">
+        <source xml:lang="en">captured {0}</source>
+        <note>{0} is the UTC timestamp when the metadata cache entry was captured</note>
+        <target state="new">captured {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++beeb20fbd67695085c26c5dfa7b5ece4d1985d201cb6f0dd9aa66a36ed987ce5">
         <source xml:lang="en">contains</source>
@@ -13471,10 +13500,6 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <source xml:lang="en">Enable expand/collapse buttons in Schema Designer table nodes when tables have more than 10 columns</source>
         <target state="translated">테이블에 열이 10개 이상인 경우 스키마 디자이너의 테이블 노드에서 확장/축소 버튼을 활성화하세요.</target>
       </trans-unit>
-      <trans-unit id="mssql.sqlDataPlane.enabled.description">
-        <source xml:lang="en">Enable the experimental, STS v2-backed SQL Data Plane for preview consumers. Requires SQL Tools Service 6.0.20260825.2 or later; older bundled services are launched without the STS v2 lane. Reload the window after changing this setting. Existing query, connection, language service, and Object Explorer behavior remains unchanged.</source>
-        <target state="translated">미리 보기 사용자를 위해 실험적인 STS v2 기반 SQL 데이터 평면을 사용하도록 설정하세요. SQL Tools Service 6.0.20260825.2 이상이 필요합니다. 이전에 포함된 서비스는 STS v2 경로 없이 시작됩니다. 이 설정을 변경한 후 창을 다시 로드합니다. 기존 쿼리, 연결, 언어 서비스 및 개체 탐색기 동작은 그대로 유지됩니다.</target>
-      </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.enabledLabel">
         <source xml:lang="en">Enabled</source>
         <target state="translated">사용</target>
@@ -13482,10 +13507,6 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       <trans-unit id="mssql.enableConnectionPooling">
         <source xml:lang="en">Enables connection pooling to improve overall connectivity performance. This setting is disabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: 'MS SQL: Clear Pooled Connections'. Note: May keep serverless databases active and prevent auto-pausing.</source>
         <target state="translated">연결 풀링을 사용하여 전반적인 연결 성능을 향상시킵니다. 이 설정은 기본적으로 사용하지 않도록 설정되어 있습니다. 값을 변경하면 Visual Studio Code를 다시 시작해야 합니다. 풀된 연결을 지우려면 'MS SQL: 풀된 연결 지우기' 명령을 실행하세요. 주의: 서버리스 데이터베이스가 활성 상태로 유지되며 자동 일시 중지가 방지됩니다.</target>
-      </trans-unit>
-      <trans-unit id="mssql.enableExperimentalFeatures.description">
-        <source xml:lang="en">Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.</source>
-        <target state="translated">MSSQL 확장에서 실험적 기능을 사용하도록 설정합니다. 이 기능은 프로덕션 준비가 되지 않았으며 버그 또는 문제가 있을 수 있습니다. 이 설정을 변경한 후 Visual Studio Code를 다시 시작합니다.</target>
       </trans-unit>
       <trans-unit id="mssql.preview.betaObjectExplorerFilter.description">
         <source xml:lang="en">Enables the preview Object Explorer filter experience with saved filter presets and recently applied filters. Disable this setting to use the existing Object Explorer filter experience.</source>
@@ -13499,9 +13520,17 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <source xml:lang="en">Enables the preview query results grid experience with improved state management and more column customization options, including showing, hiding, and freezing columns.</source>
         <target state="translated">상태 관리가 향상되고 열 표시, 숨기기, 고정을 비롯한 더 많은 열 사용자 지정 옵션을 제공하는 미리 보기 쿼리 결과 그리드 환경을 사용하도록 설정합니다.</target>
       </trans-unit>
+      <trans-unit id="mssql.enableExperimentalFeatures.description">
+        <source xml:lang="en">Enables the umbrella for experimental features in the MSSQL extension. Private-preview feature settings must also be enabled individually. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.</source>
+        <target state="new">Enables the umbrella for experimental features in the MSSQL extension. Private-preview feature settings must also be enabled individually. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.</target>
+      </trans-unit>
       <trans-unit id="mssql.showEstimatedPlan">
         <source xml:lang="en">Estimated Plan (MSSQL)</source>
         <target state="translated">예상 실행 계획 (MSSQL)</target>
+      </trans-unit>
+      <trans-unit id="mssql.metadataCache.maxAgeDays.description">
+        <source xml:lang="en">Evict persisted metadata snapshots older than this many days.</source>
+        <target state="new">Evict persisted metadata snapshots older than this many days.</target>
       </trans-unit>
       <trans-unit id="mssql.runQuery">
         <source xml:lang="en">Execute Query (MSSQL)</source>
@@ -13566,6 +13595,10 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       <trans-unit id="mssql.flatFileImport">
         <source xml:lang="en">Import Data...</source>
         <target state="translated">데이터 가져오기...</target>
+      </trans-unit>
+      <trans-unit id="mssql.metadata.pollSeconds.description">
+        <source xml:lang="en">Internal preview setting: base interval in seconds for metadata drift checks. Set to 0 to disable polling. Per-database backoff, window-focus suspension, and serverless safeguards also apply. Reload the window after changing this setting.</source>
+        <target state="new">Internal preview setting: base interval in seconds for metadata drift checks. Set to 0 to disable polling. Per-database backoff, window-focus suspension, and serverless safeguards also apply. Reload the window after changing this setting.</target>
       </trans-unit>
       <trans-unit id="mssql.profiler.launchFromObjectExplorer">
         <source xml:lang="en">Launch Query Profiler...</source>
@@ -13638,6 +13671,30 @@ You can connect to a database by entering your connection information, using a c
       <trans-unit id="mssql.sqlDataPlane.timeouts.initializeMs.description">
         <source xml:lang="en">Maximum time in milliseconds to wait for the STS v2 initialization handshake.</source>
         <target state="translated">STS v2 초기화 핸드셰이크를 기다릴 최대 시간(밀리초)입니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.metadataCache.maxBytes.description">
+        <source xml:lang="en">Maximum total size in bytes for persisted metadata snapshots. Least-recently-used entries are evicted first.</source>
+        <target state="new">Maximum total size in bytes for persisted metadata snapshots. Least-recently-used entries are evicted first.</target>
+      </trans-unit>
+      <trans-unit id="mssql.metadataCache.clearAll">
+        <source xml:lang="en">Metadata Cache: Clear All</source>
+        <target state="new">Metadata Cache: Clear All</target>
+      </trans-unit>
+      <trans-unit id="mssql.metadataCache.clearForConnection">
+        <source xml:lang="en">Metadata Cache: Clear for Connection</source>
+        <target state="new">Metadata Cache: Clear for Connection</target>
+      </trans-unit>
+      <trans-unit id="mssql.metadataCache.disableOfflineMode">
+        <source xml:lang="en">Metadata Cache: Disable Offline Mode</source>
+        <target state="new">Metadata Cache: Disable Offline Mode</target>
+      </trans-unit>
+      <trans-unit id="mssql.metadataCache.enableOfflineMode">
+        <source xml:lang="en">Metadata Cache: Enable Offline Mode</source>
+        <target state="new">Metadata Cache: Enable Offline Mode</target>
+      </trans-unit>
+      <trans-unit id="mssql.metadataCache.showStatus">
+        <source xml:lang="en">Metadata Cache: Show Status</source>
+        <target state="new">Metadata Cache: Show Status</target>
       </trans-unit>
       <trans-unit id="mssql.openAzureDataStudioMigration">
         <source xml:lang="en">Migrate from Azure Data Studio</source>
@@ -13748,6 +13805,14 @@ Start by clicking the filter button next to most folders in the Connections view
       <trans-unit id="mssql.preventAutoExecuteScript">
         <source xml:lang="en">Prevent automatic execution of scripts (e.g., 'Select Top 1000'). When enabled, scripts will not be automatically executed upon generation.</source>
         <target state="translated">스크립트의 자동 실행을 방지합니다(예: '상위 1000개 선택'). 이 기능을 켜면 스크립트가 생성될 때 자동으로 실행되지 않습니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.sqlDataPlane.enabled.description">
+        <source xml:lang="en">Private preview. Enable the STS v2-backed SQL Data Plane for preview consumers. Requires mssql.enableExperimentalFeatures and SQL Tools Service 6.0.20260825.2 or later; older bundled services are launched without the STS v2 lane. Reload the window after changing either setting. Existing query, connection, language service, and Object Explorer behavior remains unchanged.</source>
+        <target state="new">Private preview. Enable the STS v2-backed SQL Data Plane for preview consumers. Requires mssql.enableExperimentalFeatures and SQL Tools Service 6.0.20260825.2 or later; older bundled services are launched without the STS v2 lane. Reload the window after changing either setting. Existing query, connection, language service, and Object Explorer behavior remains unchanged.</target>
+      </trans-unit>
+      <trans-unit id="mssql.metadataCache.enabled.description">
+        <source xml:lang="en">Private preview. Persist structural metadata catalog snapshots locally for metadata-backed preview features. Requires mssql.enableExperimentalFeatures and mssql.sqlDataPlane.enabled. Snapshots contain schemas, objects, columns, and keys, but never descriptions, default or computed SQL definitions, module definitions, query results, credentials, or other secrets. Reload the window after changing any required setting.</source>
+        <target state="new">Private preview. Persist structural metadata catalog snapshots locally for metadata-backed preview features. Requires mssql.enableExperimentalFeatures and mssql.sqlDataPlane.enabled. Snapshots contain schemas, objects, columns, and keys, but never descriptions, default or computed SQL definitions, module definitions, query results, credentials, or other secrets. Reload the window after changing any required setting.</target>
       </trans-unit>
       <trans-unit id="mssql.authCodeGrant.description">
         <source xml:lang="en">Prompts users to sign in using their browser.</source>
@@ -13912,6 +13977,10 @@ Start by clicking the filter button next to most folders in the Connections view
       <trans-unit id="mssql.userFeedback">
         <source xml:lang="en">Send Feedback</source>
         <target state="translated">피드백 보내기</target>
+      </trans-unit>
+      <trans-unit id="mssql.metadataCache.offlineMode.description">
+        <source xml:lang="en">Serve metadata only from persisted snapshots without contacting the server. Requires the experimental-features, SQL Data Plane, and metadata-cache settings. Status surfaces disclose snapshot age, and operations requiring fresh metadata refuse stale or unavailable data.</source>
+        <target state="new">Serve metadata only from persisted snapshots without contacting the server. Requires the experimental-features, SQL Data Plane, and metadata-cache settings. Status surfaces disclose snapshot age, and operations requiring fresh metadata refuse stale or unavailable data.</target>
       </trans-unit>
       <trans-unit id="mssql.resultsFontFamily">
         <source xml:lang="en">Set the font family for the results grid; set to blank to use the editor font</source>
