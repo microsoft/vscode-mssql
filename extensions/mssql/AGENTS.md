@@ -72,8 +72,9 @@ See [test/unit/AGENTS.md](test/unit/AGENTS.md) for unit testing conventions and 
 # Full suite with coverage
 npm test
 
-# Targeted test with coverage; source paths are mapped to compiled output automatically
-npm test -- test/unit/utils.test.ts
+# Target a compiled test file or filter by test name
+npm test -- --label "Unit Tests" --run out/test/unit/utils.test.js
+npm test -- --grep "utils"
 ```
 
 #### E2E Tests (Smoke Tests)

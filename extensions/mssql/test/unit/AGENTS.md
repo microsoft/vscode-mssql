@@ -46,6 +46,7 @@
 
 ### Testing
 
-From `extensions/mssql`, use `npm test -- test/unit/<name>.test.ts`. The test runner cleans stale
-output, compiles the tests, maps the source path to `out/test/unit/<name>.test.js`, and launches it
-with coverage in VS Code Insiders.
+From `extensions/mssql`, use
+`npm test -- --label "Unit Tests" --run out/test/unit/<name>.test.js` to target a file or
+`npm test -- --grep <test name>` to filter by test name. Other `@vscode/test-cli` options pass
+through unchanged.
