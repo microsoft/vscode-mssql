@@ -13158,6 +13158,10 @@ Projekte:
         <source xml:lang="en">Build Data API...</source>
         <target state="translated">Daten-API erstellen...</target>
       </trans-unit>
+      <trans-unit id="mssql.cancelContainerOperation">
+        <source xml:lang="en">Cancel</source>
+        <target state="new">Cancel</target>
+      </trans-unit>
       <trans-unit id="mssql.cancelConnect">
         <source xml:lang="en">Cancel Connection (MSSQL)</source>
         <target state="translated">Verbindung abbrechen (MSSQL)</target>
