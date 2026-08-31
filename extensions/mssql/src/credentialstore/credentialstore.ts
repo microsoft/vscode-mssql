@@ -54,13 +54,13 @@ export class CredentialStore implements ICredentialStore {
     public async readCredential(credentialId: string): Promise<Credential> {
         const vscodeCodeCred = await this._secretStorage.get(credentialId);
         if (vscodeCodeCred === undefined) {
-            this._logger.info(
+            this._logger.debug(
                 `No credential found for id ${credentialId} in VS Code Secret Storage.`,
             );
             return undefined;
         }
 
-        this._logger.info(
+        this._logger.debug(
             `Retrieved credential for id ${credentialId} from VS Code Secret Storage.`,
         );
 

@@ -1454,7 +1454,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         if (erroredInputs.length > 0) {
             this.state.connectionStatus = ApiStatus.Error;
             this.updateState(state);
-            this.logger.warn("One more more inputs have errors: " + erroredInputs.join(", "));
+            this.logger.debug("One more more inputs have errors: " + erroredInputs.join(", "));
             return undefined;
         }
 

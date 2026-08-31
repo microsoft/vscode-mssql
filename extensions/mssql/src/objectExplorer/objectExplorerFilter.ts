@@ -68,7 +68,7 @@ export class ObjectExplorerFilterWebviewController extends WebviewPanelControlle
                 }
             } catch (error) {
                 // Applying a filter must not depend on the optional recent-filter cache.
-                this.logger.error("Failed to save the Object Explorer filter history", error);
+                this.logger.warn("Failed to save the Object Explorer filter history", error);
             }
             this._onSubmit.fire(payload.filters);
             this.panel.dispose();
@@ -112,7 +112,7 @@ export class ObjectExplorerFilterWebviewController extends WebviewPanelControlle
             const filterPresets = await update();
             return { ...state, filterPresets };
         } catch (error) {
-            this.logger.error("Failed to update the Object Explorer filter presets", error);
+            this.logger.warn("Failed to update the Object Explorer filter presets", error);
             return state;
         }
     }
