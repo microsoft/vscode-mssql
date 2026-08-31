@@ -72,6 +72,13 @@ export function emitInsert(info: LangObjectInfo, columns: readonly LangColumn[])
     writer.anchored({ kind: "header" }, "INSERT INTO");
     writer.append(` ${quoteIdentifier(info.schema)}.`);
     writer.anchored({ kind: "objectName" }, quoteIdentifier(info.name));
+    if (target.length === 0) {
+        // Every column is identity/computed: an empty column/VALUES list is
+        // invalid T-SQL, but DEFAULT VALUES inserts exactly such a row.
+        notes.push("no writable columns — INSERT emitted as DEFAULT VALUES");
+        writer.append("\r\nDEFAULT VALUES;\r\n");
+        return composeWithNotes(writer, notes);
+    }
     writer.append(" (\r\n");
     target.forEach((column, index) => {
         writer.append("    ");
@@ -96,6 +103,13 @@ export function emitUpdate(info: LangObjectInfo, columns: readonly LangColumn[])
     writer.append(` ${quoteIdentifier(info.schema)}.`);
     writer.anchored({ kind: "objectName" }, quoteIdentifier(info.name));
     writer.append("\r\nSET\r\n");
+    if (settable.length === 0) {
+        // Identity/computed/key-only tables leave nothing to assign; an empty
+        // SET list is invalid T-SQL, so leave an explicit placeholder (same
+        // pattern as the missing-primary-key WHERE below).
+        notes.push("no writable non-key columns — SET left as a placeholder");
+        writer.append("    /* add column assignments */\r\n");
+    }
     settable.forEach((column, index) => {
         writer.append("    ");
         writer.anchored({ kind: "column", name: column.name }, quoteIdentifier(column.name));

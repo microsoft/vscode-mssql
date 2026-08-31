@@ -549,6 +549,33 @@ suite("sqlScripting DML templates", () => {
         expect(result.text).to.not.contain("/* a*/b");
     });
 
+    test("no writable columns: INSERT emits DEFAULT VALUES, UPDATE placeholders SET", async () => {
+        const spec: FixtureCatalogSpec = {
+            ...STANDARD_FIXTURE_CATALOG,
+            objects: [
+                ...STANDARD_FIXTURE_CATALOG.objects,
+                {
+                    schema: "dbo",
+                    name: "IdentityOnly",
+                    kind: "table",
+                    columns: [
+                        { name: "Id", typeDisplay: "int", isIdentity: true, isPrimaryKey: true },
+                        { name: "Doubled", typeDisplay: "int", isComputed: true },
+                    ],
+                },
+            ],
+        };
+        const insert = await scriptOf("dbo", "IdentityOnly", "insert", spec);
+        expect(insert.text).to.contain("INSERT INTO dbo.IdentityOnly\r\nDEFAULT VALUES;");
+        expect(insert.text).to.not.contain("(");
+        expect(insert.fidelityNotes.join(" ")).to.contain("DEFAULT VALUES");
+
+        const update = await scriptOf("dbo", "IdentityOnly", "update", spec);
+        expect(update.text).to.contain("SET\r\n    /* add column assignments */");
+        expect(update.text).to.contain("WHERE Id = /* int */;");
+        expect(update.fidelityNotes.join(" ")).to.contain("no writable non-key columns");
+    });
+
     test("update golden: PK excluded from SET, PK-based WHERE", async () => {
         const result = await scriptOf("dbo", "Widgets", "update", WIDGET_CATALOG);
         const set = result.text.slice(result.text.indexOf("SET"), result.text.indexOf("WHERE"));
