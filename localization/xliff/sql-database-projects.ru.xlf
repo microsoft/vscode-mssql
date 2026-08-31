@@ -4,205 +4,205 @@
     <body>
       <trans-unit id="sqlDatabaseProjects.addDatabaseReference">
         <source xml:lang="en">Add Database Reference</source>
-        <target state="new">Add Database Reference</target>
+        <target state="translated">Добавить ссылку на базу данных</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.addExistingItem">
         <source xml:lang="en">Add Existing Item...</source>
-        <target state="new">Add Existing Item...</target>
+        <target state="translated">Добавить существующий элемент...</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.newExternalStreamingJob">
         <source xml:lang="en">Add External Streaming Job</source>
-        <target state="new">Add External Streaming Job</target>
+        <target state="translated">Добавить задание внешней потоковой передачи</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.newFolder">
         <source xml:lang="en">Add Folder</source>
-        <target state="new">Add Folder</target>
+        <target state="translated">Добавить папку</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.newItem">
         <source xml:lang="en">Add Item...</source>
-        <target state="new">Add Item...</target>
+        <target state="translated">Добавить элемент...</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.newPostDeploymentScript">
         <source xml:lang="en">Add Post-Deployment Script</source>
-        <target state="new">Add Post-Deployment Script</target>
+        <target state="translated">Добавить сценарий, выполняемый после развертывания</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.newPreDeploymentScript">
         <source xml:lang="en">Add Pre-Deployment Script</source>
-        <target state="new">Add Pre-Deployment Script</target>
+        <target state="translated">Добавить сценарий, выполняемый перед развертыванием</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.newPublishProfile">
         <source xml:lang="en">Add Publish Profile</source>
-        <target state="new">Add Publish Profile</target>
+        <target state="translated">Добавить профиль публикации</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.addSqlCmdVariable">
         <source xml:lang="en">Add SQLCMD Variable</source>
-        <target state="new">Add SQLCMD Variable</target>
+        <target state="translated">Добавить переменную SQLCMD</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.newScript">
         <source xml:lang="en">Add Script</source>
-        <target state="new">Add Script</target>
+        <target state="translated">Добавить сценарий</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.newStoredProcedure">
         <source xml:lang="en">Add Stored Procedure</source>
-        <target state="new">Add Stored Procedure</target>
+        <target state="translated">Добавить хранимую процедуру</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.newTable">
         <source xml:lang="en">Add Table</source>
-        <target state="new">Add Table</target>
+        <target state="translated">Добавить таблицу</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.newView">
         <source xml:lang="en">Add View</source>
-        <target state="new">Add View</target>
+        <target state="translated">Добавить представление</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.autoCreateFolders">
         <source xml:lang="en">Automatically create folders (e.g., dbo/Tables) when adding SQL objects from any add-item entry point in a project.</source>
-        <target state="new">Automatically create folders (e.g., dbo/Tables) when adding SQL objects from any add-item entry point in a project.</target>
+        <target state="translated">Автоматически создавать папки (например, dbo/Tables) при добавлении объектов SQL из любой точки входа добавления элементов в проект.</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.build">
         <source xml:lang="en">Build</source>
-        <target state="new">Build</target>
+        <target state="translated">Сборка</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.buildWithCodeAnalysis">
         <source xml:lang="en">Build With Code Analysis</source>
-        <target state="new">Build With Code Analysis</target>
+        <target state="translated">Сборка с Code Analysis</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.changeTargetPlatform">
         <source xml:lang="en">Change Target Platform</source>
-        <target state="new">Change Target Platform</target>
+        <target state="translated">Изменить целевую платформу</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.close">
         <source xml:lang="en">Close Database Project</source>
-        <target state="new">Close Database Project</target>
+        <target state="translated">Закрыть проект базы данных</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.configureCodeAnalysisSettings">
         <source xml:lang="en">Code Analysis Settings</source>
-        <target state="new">Code Analysis Settings</target>
+        <target state="translated">Параметры Code Analysis</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.convertToSdkStyleProject">
         <source xml:lang="en">Convert to SDK-style project</source>
-        <target state="new">Convert to SDK-style project</target>
+        <target state="translated">Преобразовать в проект в стиле SDK</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.createProjectFromDatabase">
         <source xml:lang="en">Create Project from Database</source>
-        <target state="new">Create Project from Database</target>
+        <target state="translated">Создать проект из базы данных</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.Settings">
         <source xml:lang="en">Database Projects</source>
-        <target state="new">Database Projects</target>
+        <target state="translated">Проекты баз данных</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.displayName">
         <source xml:lang="en">Database Projects</source>
-        <target state="new">Database Projects</target>
+        <target state="translated">Проекты баз данных</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.delete">
         <source xml:lang="en">Delete</source>
-        <target state="new">Delete</target>
+        <target state="translated">Удалить</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.description">
         <source xml:lang="en">Design and publish SQL database schemas</source>
-        <target state="new">Design and publish SQL database schemas</target>
+        <target state="translated">Разработка и публикация схем базы данных SQL</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.openDocumentation">
         <source xml:lang="en">Documentation</source>
-        <target state="new">Documentation</target>
+        <target state="translated">Документация</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.edit">
         <source xml:lang="en">Edit</source>
-        <target state="new">Edit</target>
+        <target state="translated">Изменить</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.editProjectFile">
         <source xml:lang="en">Edit .sqlproj File</source>
-        <target state="new">Edit .sqlproj File</target>
+        <target state="translated">Изменить файл SQLPROJ</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.enablePreviewFeatures">
         <source xml:lang="en">Enable preview SQL Database Projects features</source>
-        <target state="new">Enable preview SQL Database Projects features</target>
+        <target state="translated">Включить предварительные версии функций SQL Database Projects</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.exclude">
         <source xml:lang="en">Exclude from project</source>
-        <target state="new">Exclude from project</target>
+        <target state="translated">Исключить из проекта</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.dotnetInstallLocation">
         <source xml:lang="en">Full path to .NET SDK on the machine. For example, if dotnet.exe is located at C:\folder1\dotnet\dotnet.exe, set the path for this setting to C:\folder1\dotnet</source>
-        <target state="new">Full path to .NET SDK on the machine. For example, if dotnet.exe is located at C:\folder1\dotnet\dotnet.exe, set the path for this setting to C:\folder1\dotnet</target>
+        <target state="translated">Полный путь к пакету SDK для .NET на компьютере. Например, если dotnet.exe находится в расположении C:\folder1\dotnet\dotnet.exe, задайте следующий путь для этого параметра: C:\folder1\dotnet</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.new">
         <source xml:lang="en">New Database Project</source>
-        <target state="new">New Database Project</target>
+        <target state="translated">Новый проект базы данных</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.welcome">
         <source xml:lang="en">No database projects currently open.
 [New Project](command:sqlDatabaseProjects.new)
 [Open Project](command:sqlDatabaseProjects.open)
 [Create Project From Database](command:sqlDatabaseProjects.importDatabase)</source>
-        <target state="new">No database projects currently open.
-[New Project](command:sqlDatabaseProjects.new)
-[Open Project](command:sqlDatabaseProjects.open)
-[Create Project From Database](command:sqlDatabaseProjects.importDatabase)</target>
+        <target state="translated">В настоящее время нет открытых проектов баз данных.
+[Новый проект](command:sqlDatabaseProjects.new)
+[Открыть проект](command:sqlDatabaseProjects.open)
+[Создать проект из базы данных](command:sqlDatabaseProjects.importDatabase)</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.openContainingFolder">
         <source xml:lang="en">Open Containing Folder</source>
-        <target state="new">Open Containing Folder</target>
+        <target state="translated">Открыть содержащую папку</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.open">
         <source xml:lang="en">Open Database Project</source>
-        <target state="new">Open Database Project</target>
+        <target state="translated">Открыть проект базы данных</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.openInDesigner">
         <source xml:lang="en">Open in Designer</source>
-        <target state="new">Open in Designer</target>
+        <target state="translated">Открыть в конструкторе</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.openReferencedSqlProject">
         <source xml:lang="en">Open project</source>
-        <target state="new">Open project</target>
+        <target state="translated">Открыть проект</target>
       </trans-unit>
       <trans-unit id="title.projectsView">
         <source xml:lang="en">Projects</source>
-        <target state="new">Projects</target>
+        <target state="translated">Проекты</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.properties">
         <source xml:lang="en">Properties</source>
-        <target state="new">Properties</target>
+        <target state="translated">Свойства</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.publish">
         <source xml:lang="en">Publish</source>
-        <target state="new">Publish</target>
+        <target state="translated">Опубликовать</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.rename">
         <source xml:lang="en">Rename</source>
-        <target state="new">Rename</target>
+        <target state="translated">Переименовать</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.restorePackages">
         <source xml:lang="en">Restore Packages</source>
-        <target state="new">Restore Packages</target>
+        <target state="translated">Восстановить пакеты</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.objectExplorerSubmenu">
         <source xml:lang="en">SQL Database Projects</source>
-        <target state="new">SQL Database Projects</target>
+        <target state="translated">Проекты базы данных SQL</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.schemaCompare">
         <source xml:lang="en">Schema Compare</source>
-        <target state="new">Schema Compare</target>
+        <target state="translated">Сравнение схем</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.updateProjectFromDatabase">
         <source xml:lang="en">Update Project from Database</source>
-        <target state="new">Update Project from Database</target>
+        <target state="translated">Обновить проект из базы данных</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.validateExternalStreamingJob">
         <source xml:lang="en">Validate External Streaming Job</source>
-        <target state="new">Validate External Streaming Job</target>
+        <target state="translated">Проверка задания внешней потоковой передачи</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.collapseProjectNodes">
         <source xml:lang="en">Whether project nodes start collapsed</source>
-        <target state="new">Whether project nodes start collapsed</target>
+        <target state="translated">Будут ли узлы проекта свернуты</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.netCoreDoNotAsk">
         <source xml:lang="en">Whether to prompt the user to install .NET SDK when not detected.</source>
-        <target state="new">Whether to prompt the user to install .NET SDK when not detected.</target>
+        <target state="translated">Следует ли предлагать пользователю установить .NET SDK, если он не будет обнаружен.</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.microsoftBuildSqlVersion">
         <source xml:lang="en">Which version of Microsoft.Build.Sql SDK to use for building legacy sql projects. Example: 0.1.7-preview</source>
-        <target state="new">Which version of Microsoft.Build.Sql SDK to use for building legacy sql projects. Example: 0.1.7-preview</target>
+        <target state="translated">Какую версию Microsoft.Build.Sql SDK использовать для создания устаревших проектов SQL. Пример: 0.1.7-предварительная версия</target>
       </trans-unit>
     </body>
   </file>

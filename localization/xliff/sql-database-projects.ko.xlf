@@ -4,205 +4,205 @@
     <body>
       <trans-unit id="sqlDatabaseProjects.addDatabaseReference">
         <source xml:lang="en">Add Database Reference</source>
-        <target state="new">Add Database Reference</target>
+        <target state="translated">데이터베이스 참조 추가</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.addExistingItem">
         <source xml:lang="en">Add Existing Item...</source>
-        <target state="new">Add Existing Item...</target>
+        <target state="translated">기존 항목 추가...</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.newExternalStreamingJob">
         <source xml:lang="en">Add External Streaming Job</source>
-        <target state="new">Add External Streaming Job</target>
+        <target state="translated">외부 스트리밍 작업 추가</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.newFolder">
         <source xml:lang="en">Add Folder</source>
-        <target state="new">Add Folder</target>
+        <target state="translated">폴더 추가</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.newItem">
         <source xml:lang="en">Add Item...</source>
-        <target state="new">Add Item...</target>
+        <target state="translated">항목 추가...</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.newPostDeploymentScript">
         <source xml:lang="en">Add Post-Deployment Script</source>
-        <target state="new">Add Post-Deployment Script</target>
+        <target state="translated">배포 후 스크립트 추가</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.newPreDeploymentScript">
         <source xml:lang="en">Add Pre-Deployment Script</source>
-        <target state="new">Add Pre-Deployment Script</target>
+        <target state="translated">배포 전 스크립트 추가</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.newPublishProfile">
         <source xml:lang="en">Add Publish Profile</source>
-        <target state="new">Add Publish Profile</target>
+        <target state="translated">게시 프로필 추가</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.addSqlCmdVariable">
         <source xml:lang="en">Add SQLCMD Variable</source>
-        <target state="new">Add SQLCMD Variable</target>
+        <target state="translated">SQLCMD 변수 추가</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.newScript">
         <source xml:lang="en">Add Script</source>
-        <target state="new">Add Script</target>
+        <target state="translated">스크립트 추가</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.newStoredProcedure">
         <source xml:lang="en">Add Stored Procedure</source>
-        <target state="new">Add Stored Procedure</target>
+        <target state="translated">저장 프로시저 추가</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.newTable">
         <source xml:lang="en">Add Table</source>
-        <target state="new">Add Table</target>
+        <target state="translated">테이블 추가</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.newView">
         <source xml:lang="en">Add View</source>
-        <target state="new">Add View</target>
+        <target state="translated">보기 추가</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.autoCreateFolders">
         <source xml:lang="en">Automatically create folders (e.g., dbo/Tables) when adding SQL objects from any add-item entry point in a project.</source>
-        <target state="new">Automatically create folders (e.g., dbo/Tables) when adding SQL objects from any add-item entry point in a project.</target>
+        <target state="translated">프로젝트의 모든 추가 항목 진입점에서 SQL 개체를 추가할 때 자동으로 폴더(예: dbo/Tables)를 만듭니다.</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.build">
         <source xml:lang="en">Build</source>
-        <target state="new">Build</target>
+        <target state="translated">빌드</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.buildWithCodeAnalysis">
         <source xml:lang="en">Build With Code Analysis</source>
-        <target state="new">Build With Code Analysis</target>
+        <target state="translated">Code Analysis로 빌드</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.changeTargetPlatform">
         <source xml:lang="en">Change Target Platform</source>
-        <target state="new">Change Target Platform</target>
+        <target state="translated">대상 플랫폼 변경</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.close">
         <source xml:lang="en">Close Database Project</source>
-        <target state="new">Close Database Project</target>
+        <target state="translated">데이터베이스 프로젝트 닫기</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.configureCodeAnalysisSettings">
         <source xml:lang="en">Code Analysis Settings</source>
-        <target state="new">Code Analysis Settings</target>
+        <target state="translated">Code Analysis 설정</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.convertToSdkStyleProject">
         <source xml:lang="en">Convert to SDK-style project</source>
-        <target state="new">Convert to SDK-style project</target>
+        <target state="translated">SDK 스타일 프로젝트로 변환</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.createProjectFromDatabase">
         <source xml:lang="en">Create Project from Database</source>
-        <target state="new">Create Project from Database</target>
+        <target state="translated">데이터베이스에서 프로젝트 만들기</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.Settings">
         <source xml:lang="en">Database Projects</source>
-        <target state="new">Database Projects</target>
+        <target state="translated">데이터베이스 프로젝트</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.displayName">
         <source xml:lang="en">Database Projects</source>
-        <target state="new">Database Projects</target>
+        <target state="translated">데이터베이스 프로젝트</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.delete">
         <source xml:lang="en">Delete</source>
-        <target state="new">Delete</target>
+        <target state="translated">삭제</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.description">
         <source xml:lang="en">Design and publish SQL database schemas</source>
-        <target state="new">Design and publish SQL database schemas</target>
+        <target state="translated">SQL 데이터베이스 스키마 디자인 및 게시</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.openDocumentation">
         <source xml:lang="en">Documentation</source>
-        <target state="new">Documentation</target>
+        <target state="translated">설명서</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.edit">
         <source xml:lang="en">Edit</source>
-        <target state="new">Edit</target>
+        <target state="translated">편집</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.editProjectFile">
         <source xml:lang="en">Edit .sqlproj File</source>
-        <target state="new">Edit .sqlproj File</target>
+        <target state="translated">.sqlproj 파일 편집</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.enablePreviewFeatures">
         <source xml:lang="en">Enable preview SQL Database Projects features</source>
-        <target state="new">Enable preview SQL Database Projects features</target>
+        <target state="translated">SQL Database Projects 미리보기 기능 사용</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.exclude">
         <source xml:lang="en">Exclude from project</source>
-        <target state="new">Exclude from project</target>
+        <target state="translated">프로젝트에서 제외</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.dotnetInstallLocation">
         <source xml:lang="en">Full path to .NET SDK on the machine. For example, if dotnet.exe is located at C:\folder1\dotnet\dotnet.exe, set the path for this setting to C:\folder1\dotnet</source>
-        <target state="new">Full path to .NET SDK on the machine. For example, if dotnet.exe is located at C:\folder1\dotnet\dotnet.exe, set the path for this setting to C:\folder1\dotnet</target>
+        <target state="translated">컴퓨터의 .NET SDK 전체 경로입니다. 예를 들어 dotnet.exe가 C:\folder1\dotnet\dotnet.exe에 있다면 이 설정의 경로를 C:\folder1\dotnet으로 설정합니다.</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.new">
         <source xml:lang="en">New Database Project</source>
-        <target state="new">New Database Project</target>
+        <target state="translated">새 데이터베이스 프로젝트</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.welcome">
         <source xml:lang="en">No database projects currently open.
 [New Project](command:sqlDatabaseProjects.new)
 [Open Project](command:sqlDatabaseProjects.open)
 [Create Project From Database](command:sqlDatabaseProjects.importDatabase)</source>
-        <target state="new">No database projects currently open.
-[New Project](command:sqlDatabaseProjects.new)
-[Open Project](command:sqlDatabaseProjects.open)
-[Create Project From Database](command:sqlDatabaseProjects.importDatabase)</target>
+        <target state="translated">현재 열려 있는 데이터베이스 프로젝트가 없습니다.
+[새 프로젝트](command: sqlDatabaseProjects.new)
+[프로젝트 열기](command: sqlDatabaseProjects)
+[데이터베이스에서 프로젝트 만들기](command: sqlDatabaseProjects. importDatabase)</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.openContainingFolder">
         <source xml:lang="en">Open Containing Folder</source>
-        <target state="new">Open Containing Folder</target>
+        <target state="translated">상위 폴더 열기</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.open">
         <source xml:lang="en">Open Database Project</source>
-        <target state="new">Open Database Project</target>
+        <target state="translated">데이터베이스 프로젝트 열기</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.openInDesigner">
         <source xml:lang="en">Open in Designer</source>
-        <target state="new">Open in Designer</target>
+        <target state="translated">디자이너에서 열기</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.openReferencedSqlProject">
         <source xml:lang="en">Open project</source>
-        <target state="new">Open project</target>
+        <target state="translated">프로젝트 열기</target>
       </trans-unit>
       <trans-unit id="title.projectsView">
         <source xml:lang="en">Projects</source>
-        <target state="new">Projects</target>
+        <target state="translated">프로젝트</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.properties">
         <source xml:lang="en">Properties</source>
-        <target state="new">Properties</target>
+        <target state="translated">속성</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.publish">
         <source xml:lang="en">Publish</source>
-        <target state="new">Publish</target>
+        <target state="translated">게시</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.rename">
         <source xml:lang="en">Rename</source>
-        <target state="new">Rename</target>
+        <target state="translated">이름 바꾸기</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.restorePackages">
         <source xml:lang="en">Restore Packages</source>
-        <target state="new">Restore Packages</target>
+        <target state="translated">패키지 복원</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.objectExplorerSubmenu">
         <source xml:lang="en">SQL Database Projects</source>
-        <target state="new">SQL Database Projects</target>
+        <target state="translated">SQL Database 프로젝트</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.schemaCompare">
         <source xml:lang="en">Schema Compare</source>
-        <target state="new">Schema Compare</target>
+        <target state="translated">스키마 비교</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.updateProjectFromDatabase">
         <source xml:lang="en">Update Project from Database</source>
-        <target state="new">Update Project from Database</target>
+        <target state="translated">데이터베이스에서 프로젝트 업데이트</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.validateExternalStreamingJob">
         <source xml:lang="en">Validate External Streaming Job</source>
-        <target state="new">Validate External Streaming Job</target>
+        <target state="translated">외부 스트리밍 작업 유효성 검사</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.collapseProjectNodes">
         <source xml:lang="en">Whether project nodes start collapsed</source>
-        <target state="new">Whether project nodes start collapsed</target>
+        <target state="translated">프로젝트 노드를 축소할지 여부</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.netCoreDoNotAsk">
         <source xml:lang="en">Whether to prompt the user to install .NET SDK when not detected.</source>
-        <target state="new">Whether to prompt the user to install .NET SDK when not detected.</target>
+        <target state="translated">검색되지 않은 경우 사용자에게 .NET SDK를 설치하라는 메시지를 표시할지입니다.</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.microsoftBuildSqlVersion">
         <source xml:lang="en">Which version of Microsoft.Build.Sql SDK to use for building legacy sql projects. Example: 0.1.7-preview</source>
-        <target state="new">Which version of Microsoft.Build.Sql SDK to use for building legacy sql projects. Example: 0.1.7-preview</target>
+        <target state="translated">레거시 SQL 프로젝트를 빌드하는 데 사용할 Microsoft.Build.Sql SDK 버전입니다. 예: 0.1.7-preview</target>
       </trans-unit>
     </body>
   </file>
