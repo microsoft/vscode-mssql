@@ -9,10 +9,9 @@ repository root unless noted otherwise.
 - npm
 - Visual Studio Code
 
-Install dependencies and list the available workspace targets:
+List the available workspace targets:
 
 ```bash
-npm install
 npm run list:targets
 ```
 
@@ -41,15 +40,16 @@ npm test -- --target extension-toolkit
 npm test -- --target mssql
 ```
 
-The MSSQL test runner also accepts source test paths for targeted runs. Run these from
-`extensions/mssql`:
+Test-runner arguments are passed through to the selected target.
 
-```bash
-cd extensions/mssql
-npm test -- test/unit/utils.test.ts
-```
+Extension-toolkit uses the
+[Node.js test runner](https://nodejs.org/api/test.html). Refer to its documentation for current
+file-selection and command-line options.
 
-MSSQL test commands compile the tests and collect coverage.
+MSSQL uses
+[`@vscode/test-cli`](https://github.com/microsoft/vscode-test-cli). Refer to its documentation for
+current filtering and command-line options. MSSQL test commands compile the tests and collect
+coverage.
 
 For MSSQL end-to-end tests, configure the environment using
 `extensions/mssql/test/e2e/.env.example`, then run this command from the repository root:
@@ -57,8 +57,6 @@ For MSSQL end-to-end tests, configure the environment using
 ```bash
 npm run smoketest -- --target mssql
 ```
-
-Use VS Code Insiders for test development when tests need to launch VS Code Stable.
 
 ## Localization
 
@@ -68,13 +66,11 @@ When user-facing MSSQL strings change, run:
 npm --prefix extensions/mssql run localization
 ```
 
-Do not hand-edit generated localization artifacts. Change the source localization constants and
-run the localization workflow instead.
+## Common Workflow
 
-## Debugging
-
-Start the watcher for the target you are changing, then launch the appropriate configuration from
-VS Code's **Run and Debug** view. Root launch configurations are defined in `.vscode/launch.json`.
-
-Keep this guide durable: update it when a supported workflow changes, but leave exhaustive script
-and target inventories in their package and workspace configuration files.
+1. Run `npm install` after a fresh clone or when dependencies change.
+2. Run `npm run watch` in a terminal.
+3. Select **Run All Extensions** from VS Code's **Run and Debug** view.
+4. Make changes, then press `Ctrl+R` in the Extension Development Host to reload them.
+5. Run the relevant tests and lint checks.
+6. Commit after the checks pass.
