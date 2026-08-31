@@ -637,7 +637,9 @@ export async function startDocker(
     try {
         await execDockerCommand(COMMANDS.CHECK_DOCKER_RUNNING());
         sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.StartDocker, {
-            dockerStartedThroughExtension: "false",
+            additionalProps: {
+                dockerStartedThroughExtension: "false",
+            },
         });
         return { success: true };
     } catch (e) {
@@ -722,7 +724,9 @@ export async function startDocker(
                     }
                     dockerLogger.info("Docker started successfully.");
                     sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.StartDocker, {
-                        dockerStartedThroughExtension: "true",
+                        additionalProps: {
+                            dockerStartedThroughExtension: "true",
+                        },
                     });
                     complete({ success: true });
                 } catch (e) {
@@ -773,14 +777,10 @@ export async function deleteContainer(containerName: string): Promise<boolean> {
         sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.DeleteContainer);
         return true;
     } catch (e) {
-        sendErrorEvent(
-            TelemetryViews.LocalContainers,
-            TelemetryActions.DeleteContainer,
-            e,
-            false, // includeErrorMessage
-            undefined, // errorCode
-            undefined, // errorType
-        );
+        sendErrorEvent(TelemetryViews.LocalContainers, TelemetryActions.DeleteContainer, {
+            error: e,
+            includeErrorMessage: false,
+        });
         return false;
     }
 }
@@ -799,14 +799,10 @@ export async function stopContainer(containerName: string): Promise<boolean> {
         sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.StopContainer);
         return true;
     } catch (e) {
-        sendErrorEvent(
-            TelemetryViews.LocalContainers,
-            TelemetryActions.StopContainer,
-            e,
-            false, // includeErrorMessage
-            undefined, // errorCode
-            undefined, // errorType
-        );
+        sendErrorEvent(TelemetryViews.LocalContainers, TelemetryActions.StopContainer, {
+            error: e,
+            includeErrorMessage: false,
+        });
         return false;
     }
 }

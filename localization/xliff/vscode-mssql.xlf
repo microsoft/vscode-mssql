@@ -283,9 +283,6 @@
     <trans-unit id="++CODE++7287537df41bee4b40e151d7c5f2f345d70fdcf9b16a48ec51a07013cd23a6ac">
       <source xml:lang="en">Add SQLCMD variable &apos;{0}&apos; to project without default value?</source>
     </trans-unit>
-    <trans-unit id="++CODE++937a7b0b3cc8c58a787de5a63bfc07573789ee22a22918957f92651c0edb31f9">
-      <source xml:lang="en">Add Server Connection</source>
-    </trans-unit>
     <trans-unit id="++CODE++cbc187e255409f8de0f011bbebfc96b04028928cce72ccb35ca8a088f156aba9">
       <source xml:lang="en">Add Table</source>
     </trans-unit>
@@ -1335,6 +1332,9 @@
     </trans-unit>
     <trans-unit id="++CODE++bb7638a0d8b3b374d81381caaf50ea1e5639135dd6ec1df7bc2dae0f344b72ec">
       <source xml:lang="en">Clear cache and refresh token</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5ed61b23a6cc6bb55c21dc48803bfd68b6ec2bbe196fc8867cf8a52965f287a7">
+      <source xml:lang="en">Clear cached metadata for a connection</source>
     </trans-unit>
     <trans-unit id="++CODE++7179ea0035fca783ec62b7185659b68c75f2a7c12b909306a57183dc9b3fa44b">
       <source xml:lang="en">Clear filters</source>
@@ -5105,6 +5105,12 @@
     <trans-unit id="++CODE++f7fc6e80cfc472d01f0cbe63665cda3c32d6d6ef2539b7e7cb27b1f22709a050">
       <source xml:lang="en">MSSQL extension icon</source>
     </trans-unit>
+    <trans-unit id="++CODE++212c177c0fb717020548b59a64c5ea3dab99e4fa463b7a996a3c4bfb2af3d443">
+      <source xml:lang="en">MSSQL metadata cache cleared.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a722617da5b3a5acc85fb6be7668c28e2befae5576d896b99eb4ea97eebb676b">
+      <source xml:lang="en">MSSQL metadata cache entry cleared.</source>
+    </trans-unit>
     <trans-unit id="++CODE++a8b9a3bc6f9dfdfe260d58469e1cd0c1b8f15a879688815a0c0fb89ece9916bc">
       <source xml:lang="en">MSSQL: Click to change connection</source>
     </trans-unit>
@@ -5191,6 +5197,9 @@
     <trans-unit id="++CODE++d383f047a2ab3c6127191873e02bfe1e822d683f30c084fb0a6f54bad4716328">
       <source xml:lang="en">Messages ({0})</source>
       <note>{0} is the keyboard shortcut for the messages tab</note>
+    </trans-unit>
+    <trans-unit id="++CODE++ef4130dc48f45fbb30ce483736bd294e6080ba15a8f915f61c7b91e914733d02">
+      <source xml:lang="en">Metadata requires mssql.enableExperimentalFeatures and mssql.sqlDataPlane.enabled to be enabled.</source>
     </trans-unit>
     <trans-unit id="++CODE++2d275a74912cca2e02e6d41f9cae3a75ceef3ed0ef734eff3710e10eb7112228">
       <source xml:lang="en">Metric</source>
@@ -7231,6 +7240,10 @@
     <trans-unit id="++CODE++5a2df8a2745d54fa2197753e1c2c22a8dea9676916677120da5c44550647180d">
       <source xml:lang="en">Saved Connections</source>
     </trans-unit>
+    <trans-unit id="++CODE++f7fdd5b0b1aa6beecb02dab9409db0a6853b395f5bf95a4d3098a057f1284209">
+      <source xml:lang="en">Saved connection &apos;{0}&apos; not found.</source>
+      <note>{0} is the saved connection ID</note>
+    </trans-unit>
     <trans-unit id="++CODE++214bf67326266805ed0887a2154efa6a38e78d684c4f4c69c33cbecdb16feb13">
       <source xml:lang="en">Saved results to {0}</source>
       <note>{0} is the saved file path</note>
@@ -8485,6 +8498,12 @@
     <trans-unit id="++CODE++ee33dcb49174e212fabe894df8373991cebe8d617d56b472934c7dcea6335b5b">
       <source xml:lang="en">The maximum length (in characters) that can be stored in this database object.</source>
     </trans-unit>
+    <trans-unit id="++CODE++680bed6d2dcb86d1bc0264f320c6de629fdd32a04b7b5790e7a16d176fbcf77d">
+      <source xml:lang="en">The metadata cache has no entries to clear.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++748f1779a56584b54a1ebea2ed54d4ed5a28d6480654284f36b3c9ccc02e1ddc">
+      <source xml:lang="en">The metadata cache is not enabled. Enable mssql.metadataCache.enabled and reload the window.</source>
+    </trans-unit>
     <trans-unit id="++CODE++497f95858a915b211f7f758c96976c859fb0e3695e61ec32971051e8b431c186">
       <source xml:lang="en">The move was rejected or could not be completed.</source>
     </trans-unit>
@@ -9332,6 +9351,10 @@
     </trans-unit>
     <trans-unit id="++CODE++c1399614154a55dfb1fcb95e208ed1f0b1115b846d6150ded7c7b43fdf6cbc09">
       <source xml:lang="en">authenticationType</source>
+    </trans-unit>
+    <trans-unit id="++CODE++27f5e6eb93673ec8555f139d6bd2a5f727cfeabefe8c913a9832a141f55fca1a">
+      <source xml:lang="en">captured {0}</source>
+      <note>{0} is the UTC timestamp when the metadata cache entry was captured</note>
     </trans-unit>
     <trans-unit id="++CODE++beeb20fbd67695085c26c5dfa7b5ece4d1985d201cb6f0dd9aa66a36ed987ce5">
       <source xml:lang="en">contains</source>
@@ -10238,17 +10261,11 @@
     <trans-unit id="mssql.schemaDesigner.enableExpandCollapseButtons">
       <source xml:lang="en">Enable expand/collapse buttons in Schema Designer table nodes when tables have more than 10 columns</source>
     </trans-unit>
-    <trans-unit id="mssql.sqlDataPlane.enabled.description">
-      <source xml:lang="en">Enable the experimental, STS v2-backed SQL Data Plane for preview consumers. Requires SQL Tools Service 6.0.20260825.2 or later; older bundled services are launched without the STS v2 lane. Reload the window after changing this setting. Existing query, connection, language service, and Object Explorer behavior remains unchanged.</source>
-    </trans-unit>
     <trans-unit id="mssql.objectExplorer.Tooltip.enabledLabel">
       <source xml:lang="en">Enabled</source>
     </trans-unit>
     <trans-unit id="mssql.enableConnectionPooling">
       <source xml:lang="en">Enables connection pooling to improve overall connectivity performance. This setting is disabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: &apos;MS SQL: Clear Pooled Connections&apos;. Note: May keep serverless databases active and prevent auto-pausing.</source>
-    </trans-unit>
-    <trans-unit id="mssql.enableExperimentalFeatures.description">
-      <source xml:lang="en">Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.</source>
     </trans-unit>
     <trans-unit id="mssql.preview.betaObjectExplorerFilter.description">
       <source xml:lang="en">Enables the preview Object Explorer filter experience with saved filter presets and recently applied filters. Disable this setting to use the existing Object Explorer filter experience.</source>
@@ -10259,8 +10276,14 @@
     <trans-unit id="mssql.preview.betaResultsGrid.description">
       <source xml:lang="en">Enables the preview query results grid experience with improved state management and more column customization options, including showing, hiding, and freezing columns.</source>
     </trans-unit>
+    <trans-unit id="mssql.enableExperimentalFeatures.description">
+      <source xml:lang="en">Enables the umbrella for experimental features in the MSSQL extension. Private-preview feature settings must also be enabled individually. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.</source>
+    </trans-unit>
     <trans-unit id="mssql.showEstimatedPlan">
       <source xml:lang="en">Estimated Plan (MSSQL)</source>
+    </trans-unit>
+    <trans-unit id="mssql.metadataCache.maxAgeDays.description">
+      <source xml:lang="en">Evict persisted metadata snapshots older than this many days.</source>
     </trans-unit>
     <trans-unit id="mssql.runQuery">
       <source xml:lang="en">Execute Query (MSSQL)</source>
@@ -10309,6 +10332,9 @@
     </trans-unit>
     <trans-unit id="mssql.flatFileImport">
       <source xml:lang="en">Import Data...</source>
+    </trans-unit>
+    <trans-unit id="mssql.metadata.pollSeconds.description">
+      <source xml:lang="en">Internal preview setting: base interval in seconds for metadata drift checks. Set to 0 to disable polling. Per-database backoff, window-focus suspension, and serverless safeguards also apply. Reload the window after changing this setting.</source>
     </trans-unit>
     <trans-unit id="mssql.profiler.launchFromObjectExplorer">
       <source xml:lang="en">Launch Query Profiler...</source>
@@ -10360,6 +10386,24 @@
     </trans-unit>
     <trans-unit id="mssql.sqlDataPlane.timeouts.initializeMs.description">
       <source xml:lang="en">Maximum time in milliseconds to wait for the STS v2 initialization handshake.</source>
+    </trans-unit>
+    <trans-unit id="mssql.metadataCache.maxBytes.description">
+      <source xml:lang="en">Maximum total size in bytes for persisted metadata snapshots. Least-recently-used entries are evicted first.</source>
+    </trans-unit>
+    <trans-unit id="mssql.metadataCache.clearAll">
+      <source xml:lang="en">Metadata Cache: Clear All</source>
+    </trans-unit>
+    <trans-unit id="mssql.metadataCache.clearForConnection">
+      <source xml:lang="en">Metadata Cache: Clear for Connection</source>
+    </trans-unit>
+    <trans-unit id="mssql.metadataCache.disableOfflineMode">
+      <source xml:lang="en">Metadata Cache: Disable Offline Mode</source>
+    </trans-unit>
+    <trans-unit id="mssql.metadataCache.enableOfflineMode">
+      <source xml:lang="en">Metadata Cache: Enable Offline Mode</source>
+    </trans-unit>
+    <trans-unit id="mssql.metadataCache.showStatus">
+      <source xml:lang="en">Metadata Cache: Show Status</source>
     </trans-unit>
     <trans-unit id="mssql.openAzureDataStudioMigration">
       <source xml:lang="en">Migrate from Azure Data Studio</source>
@@ -10441,6 +10485,12 @@
     </trans-unit>
     <trans-unit id="mssql.preventAutoExecuteScript">
       <source xml:lang="en">Prevent automatic execution of scripts (e.g., &apos;Select Top 1000&apos;). When enabled, scripts will not be automatically executed upon generation.</source>
+    </trans-unit>
+    <trans-unit id="mssql.sqlDataPlane.enabled.description">
+      <source xml:lang="en">Private preview. Enable the STS v2-backed SQL Data Plane for preview consumers. Requires mssql.enableExperimentalFeatures and SQL Tools Service 6.0.20260825.2 or later; older bundled services are launched without the STS v2 lane. Reload the window after changing either setting. Existing query, connection, language service, and Object Explorer behavior remains unchanged.</source>
+    </trans-unit>
+    <trans-unit id="mssql.metadataCache.enabled.description">
+      <source xml:lang="en">Private preview. Persist structural metadata catalog snapshots locally for metadata-backed preview features. Requires mssql.enableExperimentalFeatures and mssql.sqlDataPlane.enabled. Snapshots contain schemas, objects, columns, and keys, but never descriptions, default or computed SQL definitions, module definitions, query results, credentials, or other secrets. Reload the window after changing any required setting.</source>
     </trans-unit>
     <trans-unit id="mssql.authCodeGrant.description">
       <source xml:lang="en">Prompts users to sign in using their browser.</source>
@@ -10564,6 +10614,9 @@
     </trans-unit>
     <trans-unit id="mssql.userFeedback">
       <source xml:lang="en">Send Feedback</source>
+    </trans-unit>
+    <trans-unit id="mssql.metadataCache.offlineMode.description">
+      <source xml:lang="en">Serve metadata only from persisted snapshots without contacting the server. Requires the experimental-features, SQL Data Plane, and metadata-cache settings. Status surfaces disclose snapshot age, and operations requiring fresh metadata refuse stale or unavailable data.</source>
     </trans-unit>
     <trans-unit id="mssql.resultsFontFamily">
       <source xml:lang="en">Set the font family for the results grid; set to blank to use the editor font</source>

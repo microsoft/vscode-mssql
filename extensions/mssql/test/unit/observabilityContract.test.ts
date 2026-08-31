@@ -39,6 +39,8 @@ function walk(dir: string, out: string[] = []): string[] {
 
 interface EmittedMarker {
     attrs: Set<string>;
+    /** Attributes whose classification is supplied by Perf.marker at runtime. */
+    perfAttrs: Set<string>;
     files: Set<string>;
 }
 
@@ -53,23 +55,17 @@ function propertyNameText(name: ts.PropertyName | undefined): string | undefined
 }
 
 function collectObjectKeys(expression: ts.Expression | undefined, target: Set<string>): void {
-    if (expression === undefined) {
+    if (expression === undefined || !ts.isObjectLiteralExpression(expression)) {
         return;
     }
-    const visit = (node: ts.Node): void => {
-        if (ts.isObjectLiteralExpression(node)) {
-            for (const property of node.properties) {
-                if (!ts.isSpreadAssignment(property)) {
-                    const key = propertyNameText(property.name);
-                    if (key !== undefined) {
-                        target.add(key);
-                    }
-                }
+    for (const property of expression.properties) {
+        if (!ts.isSpreadAssignment(property)) {
+            const key = propertyNameText(property.name);
+            if (key !== undefined) {
+                target.add(key);
             }
         }
-        ts.forEachChild(node, visit);
-    };
-    visit(expression);
+    }
 }
 
 function emittedMarkers(): Map<string, EmittedMarker> {
@@ -83,13 +79,21 @@ function emittedMarkers(): Map<string, EmittedMarker> {
             true,
             file.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS,
         );
-        const record = (name: string, attrsExpression?: ts.Expression): void => {
+        const record = (
+            name: string,
+            attrsExpression?: ts.Expression,
+            runtimeClassified = false,
+        ): void => {
             const marker = emitted.get(name) ?? {
                 attrs: new Set<string>(),
+                perfAttrs: new Set<string>(),
                 files: new Set<string>(),
             };
             marker.files.add(path.relative(SRC_ROOT, file));
             collectObjectKeys(attrsExpression, marker.attrs);
+            if (runtimeClassified) {
+                collectObjectKeys(attrsExpression, marker.perfAttrs);
+            }
             emitted.set(name, marker);
         };
         const visit = (node: ts.Node): void => {
@@ -102,7 +106,7 @@ function emittedMarkers(): Map<string, EmittedMarker> {
                 ) {
                     const name = node.arguments[0];
                     if (name !== undefined && ts.isStringLiteralLike(name)) {
-                        record(name.text, node.arguments[2]);
+                        record(name.text, node.arguments[2], true);
                     }
                 } else if (
                     ts.isIdentifier(node.expression) &&
@@ -111,7 +115,7 @@ function emittedMarkers(): Map<string, EmittedMarker> {
                 ) {
                     const name = node.arguments[0];
                     if (name !== undefined && ts.isStringLiteralLike(name)) {
-                        record(name.text, node.arguments[1]);
+                        record(name.text, node.arguments[1], true);
                     }
                 } else if (
                     ts.isPropertyAccessExpression(node.expression) &&
@@ -190,7 +194,7 @@ suite("Observability Contract conformance", () => {
         }
         const missing: string[] = [];
         for (const [name, marker] of emittedMarkers()) {
-            for (const attr of marker.attrs) {
+            for (const attr of marker.perfAttrs) {
                 if (PERF_ATTR_CLASSIFICATION[attr] === undefined) {
                     missing.push(`${name}.${attr} (${[...marker.files].join(", ")})`);
                 }

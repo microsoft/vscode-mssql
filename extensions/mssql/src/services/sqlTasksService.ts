@@ -199,8 +199,10 @@ export class SqlTasksService {
         // Emit telemetry if a handler for this operation is being overwritten
         if (this._completionHandlers.has(handler.operationName)) {
             sendActionEvent(TelemetryViews.General, TelemetryActions.Initialize, {
-                event: "CompletionHandlerOverwritten",
-                operationName: handler.operationName,
+                additionalProps: {
+                    event: "CompletionHandlerOverwritten",
+                    operationName: handler.operationName,
+                },
             });
             this._logger.error(
                 `There is an existing completion handler for operation ${handler.operationName} cannot be overwritten.`,

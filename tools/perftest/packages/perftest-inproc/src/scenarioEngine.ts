@@ -752,7 +752,8 @@ async function createOeSession(
         throw new Error(`No connection profile '${profileName}' for Object Explorer`);
     }
     const controller = (await vscode.commands.executeCommand("mssql.getControllerForTests")) as
-        { _objectExplorerProvider?: OeProviderSeam } | undefined;
+        | { _objectExplorerProvider?: OeProviderSeam }
+        | undefined;
     const provider = controller?._objectExplorerProvider;
     if (!provider) {
         throw new Error("object explorer provider unavailable");
@@ -923,7 +924,8 @@ async function mssqlDisconnect(ctx: EngineContext): Promise<void> {
     }
     const uri = editor.document.uri.toString();
     const controller = (await vscode.commands.executeCommand("mssql.getControllerForTests")) as
-        { connectionManager?: { disconnect(fileUri: string): Promise<boolean> } } | undefined;
+        | { connectionManager?: { disconnect(fileUri: string): Promise<boolean> } }
+        | undefined;
     if (!controller?.connectionManager) {
         throw new Error("mssql.getControllerForTests returned no controller");
     }

@@ -561,7 +561,7 @@ export default class ConnectionManager {
                     sendActionEvent(
                         TelemetryViews.QueryEditor,
                         TelemetryActions.DisableLanguageServiceForNonTSqlFiles,
-                        { selectedOption: LocalizedConstants.msgYes },
+                        { additionalProps: { selectedOption: LocalizedConstants.msgYes } },
                     );
 
                     await vscode.workspace
@@ -582,13 +582,13 @@ export default class ConnectionManager {
                     sendActionEvent(
                         TelemetryViews.QueryEditor,
                         TelemetryActions.DisableLanguageServiceForNonTSqlFiles,
-                        { selectedOption: LocalizedConstants.msgNo },
+                        { additionalProps: { selectedOption: LocalizedConstants.msgNo } },
                     );
                 } else {
                     sendActionEvent(
                         TelemetryViews.QueryEditor,
                         TelemetryActions.DisableLanguageServiceForNonTSqlFiles,
-                        { selectedOption: LocalizedConstants.dismiss },
+                        { additionalProps: { selectedOption: LocalizedConstants.dismiss } },
                     );
                 }
             }
@@ -667,17 +667,20 @@ export default class ConnectionManager {
                             sendErrorEvent(
                                 TelemetryViews.ConnectionManager,
                                 TelemetryActions.RefreshTokenNotification,
-                                new Error("Missing accountId in refresh token notification"),
-                                true, // includeErrorMessage
-                                "missingAccountId",
-                                undefined,
                                 {
-                                    useVscodeAccountsForEntraMFA: String(
-                                        useVscodeAccountsForEntraMFA,
+                                    error: new Error(
+                                        "Missing accountId in refresh token notification",
                                     ),
-                                },
-                                {
-                                    currentTimestamp: Math.floor(Date.now() / 1000),
+                                    includeErrorMessage: true,
+                                    errorCode: "missingAccountId",
+                                    additionalProps: {
+                                        useVscodeAccountsForEntraMFA: String(
+                                            useVscodeAccountsForEntraMFA,
+                                        ),
+                                    },
+                                    additionalMeasurements: {
+                                        currentTimestamp: Math.floor(Date.now() / 1000),
+                                    },
                                 },
                             );
 
@@ -694,17 +697,18 @@ export default class ConnectionManager {
                             sendErrorEvent(
                                 TelemetryViews.ConnectionManager,
                                 TelemetryActions.RefreshTokenNotification,
-                                new Error("Account not found in account store"),
-                                true, // includeErrorMessage
-                                "accountNotFound",
-                                undefined,
                                 {
-                                    useVscodeAccountsForEntraMFA: String(
-                                        useVscodeAccountsForEntraMFA,
-                                    ),
-                                },
-                                {
-                                    currentTimestamp: Math.floor(Date.now() / 1000),
+                                    error: new Error("Account not found in account store"),
+                                    includeErrorMessage: true,
+                                    errorCode: "accountNotFound",
+                                    additionalProps: {
+                                        useVscodeAccountsForEntraMFA: String(
+                                            useVscodeAccountsForEntraMFA,
+                                        ),
+                                    },
+                                    additionalMeasurements: {
+                                        currentTimestamp: Math.floor(Date.now() / 1000),
+                                    },
                                 },
                             );
 
@@ -733,18 +737,21 @@ export default class ConnectionManager {
                         sendErrorEvent(
                             TelemetryViews.ConnectionManager,
                             TelemetryActions.RefreshTokenNotification,
-                            new Error("Token refresh did not produce a token"),
-                            true, // includeErrorMessage
-                            "tokenNotRefreshed",
-                            undefined,
                             {
-                                useVscodeAccountsForEntraMFA: String(useVscodeAccountsForEntraMFA),
-                            },
-                            {
-                                currentTimestamp: Math.floor(Date.now() / 1000),
-                                ...(expiresOn !== undefined
-                                    ? { refreshedTokenExpirationTimestamp: expiresOn }
-                                    : {}),
+                                error: new Error("Token refresh did not produce a token"),
+                                includeErrorMessage: true,
+                                errorCode: "tokenNotRefreshed",
+                                additionalProps: {
+                                    useVscodeAccountsForEntraMFA: String(
+                                        useVscodeAccountsForEntraMFA,
+                                    ),
+                                },
+                                additionalMeasurements: {
+                                    currentTimestamp: Math.floor(Date.now() / 1000),
+                                    ...(expiresOn !== undefined
+                                        ? { refreshedTokenExpirationTimestamp: expiresOn }
+                                        : {}),
+                                },
                             },
                         );
 
@@ -757,20 +764,23 @@ export default class ConnectionManager {
                         sendErrorEvent(
                             TelemetryViews.ConnectionManager,
                             TelemetryActions.RefreshTokenNotification,
-                            new Error(
-                                "Service client unavailable while sending refreshed token notification",
-                            ),
-                            true, // includeErrorMessage
-                            "serviceClientUnavailable",
-                            undefined,
                             {
-                                useVscodeAccountsForEntraMFA: String(useVscodeAccountsForEntraMFA),
-                            },
-                            {
-                                currentTimestamp: Math.floor(Date.now() / 1000),
-                                ...(expiresOn !== undefined
-                                    ? { refreshedTokenExpirationTimestamp: expiresOn }
-                                    : {}),
+                                error: new Error(
+                                    "Service client unavailable while sending refreshed token notification",
+                                ),
+                                includeErrorMessage: true,
+                                errorCode: "serviceClientUnavailable",
+                                additionalProps: {
+                                    useVscodeAccountsForEntraMFA: String(
+                                        useVscodeAccountsForEntraMFA,
+                                    ),
+                                },
+                                additionalMeasurements: {
+                                    currentTimestamp: Math.floor(Date.now() / 1000),
+                                    ...(expiresOn !== undefined
+                                        ? { refreshedTokenExpirationTimestamp: expiresOn }
+                                        : {}),
+                                },
                             },
                         );
 
@@ -782,12 +792,14 @@ export default class ConnectionManager {
                         TelemetryViews.ConnectionManager,
                         TelemetryActions.RefreshTokenNotification,
                         {
-                            useVscodeAccountsForEntraMFA: String(useVscodeAccountsForEntraMFA),
-                        },
-                        {
-                            currentTimestamp: Math.floor(Date.now() / 1000),
-                            refreshedTokenExpirationTimestamp:
-                                expiresOn !== undefined ? expiresOn : 0,
+                            additionalProps: {
+                                useVscodeAccountsForEntraMFA: String(useVscodeAccountsForEntraMFA),
+                            },
+                            additionalMeasurements: {
+                                currentTimestamp: Math.floor(Date.now() / 1000),
+                                refreshedTokenExpirationTimestamp:
+                                    expiresOn !== undefined ? expiresOn : 0,
+                            },
                         },
                     );
 
@@ -807,15 +819,17 @@ export default class ConnectionManager {
                     sendErrorEvent(
                         TelemetryViews.ConnectionManager,
                         TelemetryActions.RefreshTokenNotification,
-                        error instanceof Error ? error : new Error(getErrorMessage(error)),
-                        false, // includeErrorMessage
-                        "exception",
-                        undefined,
                         {
-                            useVscodeAccountsForEntraMFA: String(useVscodeAccountsForEntraMFA),
-                        },
-                        {
-                            currentTimestamp: Math.floor(Date.now() / 1000),
+                            error:
+                                error instanceof Error ? error : new Error(getErrorMessage(error)),
+                            includeErrorMessage: false,
+                            errorCode: "exception",
+                            additionalProps: {
+                                useVscodeAccountsForEntraMFA: String(useVscodeAccountsForEntraMFA),
+                            },
+                            additionalMeasurements: {
+                                currentTimestamp: Math.floor(Date.now() / 1000),
+                            },
                         },
                     );
 
@@ -1302,12 +1316,12 @@ export default class ConnectionManager {
             account = await this.accountStore.getAccount(connectionInfo.accountId);
         } else {
             // Send telemetry to identify code paths where accountId is missing
-            sendErrorEvent(
-                TelemetryViews.ConnectionManager,
-                TelemetryActions.Connect,
-                new Error("Azure MFA connection missing accountId in refreshEntraTokenIfNeeded"),
-                true, // includeErrorMessage
-            );
+            sendErrorEvent(TelemetryViews.ConnectionManager, TelemetryActions.Connect, {
+                error: new Error(
+                    "Azure MFA connection missing accountId in refreshEntraTokenIfNeeded",
+                ),
+                includeErrorMessage: true,
+            });
             throw new Error(LocalizedConstants.cannotConnect);
         }
 
@@ -1447,16 +1461,15 @@ export default class ConnectionManager {
         const connectionActivity = startActivity(
             TelemetryViews.ConnectionManager,
             TelemetryActions.Connect,
-            undefined, // Default correlation id
             {
-                serverTypes: getServerTypes(credentials).join(","),
-                cloudType: getCloudId(),
-                connectionSource: connectionSource,
+                additionalProps: {
+                    serverTypes: getServerTypes(credentials).join(","),
+                    cloudType: getCloudId(),
+                    connectionSource: connectionSource,
+                },
+                connectionInfo: credentials,
+                includeCallStack: true,
             },
-            undefined,
-            credentials,
-            undefined,
-            true, // include call stack
         );
 
         if (!fileUri) {
@@ -1515,7 +1528,9 @@ export default class ConnectionManager {
             setTimeout(() => {
                 if (!initRequestCompleted) {
                     connectionActivity.update({
-                        longRunningIntialization: "true",
+                        additionalProps: {
+                            longRunningIntialization: "true",
+                        },
                     });
                 }
             }, Constants.stsImmediateActivityTimeout);
@@ -1571,7 +1586,9 @@ export default class ConnectionManager {
         }
 
         connectionActivity.update({
-            connectionInitiated: "true",
+            additionalProps: {
+                connectionInitiated: "true",
+            },
         });
 
         const result = await this.awaitConnectionCompletion(connectionCompletePromise.promise);
@@ -1587,13 +1604,10 @@ export default class ConnectionManager {
              */
 
             await this.handleConnectionSuccess(fileUri, connectionInfo, result);
-            connectionActivity.end(
-                ActivityStatus.Succeeded,
-                undefined,
-                undefined,
-                connectionInfo?.credentials,
-                result?.serverInfo,
-            );
+            connectionActivity.end(ActivityStatus.Succeeded, {
+                connectionInfo: connectionInfo?.credentials,
+                serverInfo: result?.serverInfo,
+            });
             return true;
         } else {
             let errorType = "";
@@ -1608,7 +1622,7 @@ export default class ConnectionManager {
                         serverlessStatusPromise,
                     )
                 ) {
-                    connectionActivity.update({ retryConnection: "true" });
+                    connectionActivity.update({ additionalProps: { retryConnection: "true" } });
                     connectionActivity.end(ActivityStatus.Retrying);
                     Perf.marker("mssql.connection.failed", "instant", {
                         error: true,
@@ -1631,7 +1645,9 @@ export default class ConnectionManager {
 
                 errorType = errorHandlingResult?.errorHandled;
                 connectionActivity.update({
-                    retryConnection: errorHandlingResult?.isHandled ? "true" : "false",
+                    additionalProps: {
+                        retryConnection: errorHandlingResult?.isHandled ? "true" : "false",
+                    },
                 });
                 if (errorHandlingResult.isHandled) {
                     connectionActivity.end(ActivityStatus.Retrying);
@@ -1828,7 +1844,9 @@ export default class ConnectionManager {
         }
 
         telemetryActivity?.update({
-            connectionPrepared: "true",
+            additionalProps: {
+                connectionPrepared: "true",
+            },
         });
         return credentials;
     }
@@ -1917,18 +1935,16 @@ export default class ConnectionManager {
                 JSON.stringify(connectionInfo.serverInfo),
             ),
         );
-        sendActionEvent(
-            TelemetryViews.ConnectionManager,
-            TelemetryActions.CreateConnectionResult,
-            {
+        sendActionEvent(TelemetryViews.ConnectionManager, TelemetryActions.CreateConnectionResult, {
+            additionalProps: {
                 connectedEngineEditionId: String(result.serverInfo.engineEditionId),
             },
-            {
+            additionalMeasurements: {
                 connectedEngineEditionId: result.serverInfo.engineEditionId,
             },
-            newCredentials as IConnectionProfile,
-            result.serverInfo,
-        );
+            connectionInfo: newCredentials as IConnectionProfile,
+            serverInfo: result.serverInfo,
+        });
 
         await this.handlePasswordStorageOnConnect(connectionInfo.credentials as IConnectionProfile);
 
@@ -2345,17 +2361,15 @@ export default class ConnectionManager {
             );
         }
 
-        sendActionEvent(
-            TelemetryViews.Connection,
-            TelemetryActions.Stats,
-            {}, // properties
-            {
+        sendActionEvent(TelemetryViews.Connection, TelemetryActions.Stats, {
+            additionalProps: {},
+            additionalMeasurements: {
                 connectionCount: connections.length,
                 connectionGroupCount: connectionGroups.length,
                 ...migrationTally,
                 ...orderingTally,
             },
-        );
+        });
     }
 
     private async migrateLegacyConnection(
@@ -2417,12 +2431,10 @@ export default class ConnectionManager {
                 ),
             );
 
-            sendErrorEvent(
-                TelemetryViews.General,
-                TelemetryActions.MigrateLegacyConnections,
-                err,
-                false, // includeErrorMessage
-            );
+            sendErrorEvent(TelemetryViews.General, TelemetryActions.MigrateLegacyConnections, {
+                error: err,
+                includeErrorMessage: false,
+            });
 
             return "error";
         }
@@ -2490,11 +2502,11 @@ export default class ConnectionManager {
                 sendErrorEvent(
                     TelemetryViews.ConnectionManager,
                     TelemetryActions.AcquireVsCodeAccountToken,
-                    error instanceof Error ? error : new Error(getErrorMessage(error)),
-                    /* includeErrorMessage */ false,
-                    /* errorCode */ undefined,
-                    /* errorType */ undefined,
-                    {},
+                    {
+                        error: error instanceof Error ? error : new Error(getErrorMessage(error)),
+                        includeErrorMessage: false,
+                        additionalProps: {},
+                    },
                 );
                 return { accountKey: "", token: "", expiresOn: 0 };
             }

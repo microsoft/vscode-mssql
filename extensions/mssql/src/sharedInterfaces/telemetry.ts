@@ -64,7 +64,6 @@ export enum TelemetryActions {
     PublishProjectChanges = "PublishProjectChanges",
     PublishDatabaseChanges = "PublishDatabaseChanges",
     BuildProject = "BuildProject",
-    AddNewConnectionDialogOpened = "AddNewConnectionDialogOpened",
     ListingActiveServers = "ListingActiveServers",
     SqlProjectInstalledVerification = "SqlProjectInstalledVerification",
     Compare = "Compare",
@@ -319,11 +318,16 @@ export enum ActivityStatus {
  */
 export type FinishActivity = (
     activityStatus: Exclude<ActivityStatus, ActivityStatus.Failed>,
-    additionalProperties?: Record<string, string>,
-    additionalMeasurements?: Record<string, number>,
-    connectionProfile?: vscodeMssql.IConnectionInfo,
-    serverInfo?: vscodeMssql.IServerInfo,
+    options?: ActivityEventOptions,
 ) => void;
+
+/** Optional telemetry data included when updating or finishing an activity. */
+export interface ActivityEventOptions {
+    additionalProps?: Record<string, string>;
+    additionalMeasurements?: Record<string, number>;
+    connectionInfo?: vscodeMssql.IConnectionInfo;
+    serverInfo?: vscodeMssql.IServerInfo;
+}
 
 /**
  * Finish an activity with a failure. This should be called when the activity fails to send the final telemetry event
@@ -342,12 +346,7 @@ export type FinishActivityFailed = (
 /**
  * Update an activity. This should be called when the activity is still in progress to send intermediate telemetry events
  */
-export type UpdateActivity = (
-    additionalProperties?: Record<string, string>,
-    additionalMeasurements?: Record<string, number>,
-    connectionProfile?: vscodeMssql.IConnectionInfo,
-    serverInfo?: vscodeMssql.IServerInfo,
-) => void;
+export type UpdateActivity = (options?: ActivityEventOptions) => void;
 
 /**
  * An object that contains the functions to update and finish an activity. This is returned when an activity is started

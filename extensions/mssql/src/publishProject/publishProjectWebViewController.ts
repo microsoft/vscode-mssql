@@ -130,7 +130,9 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
         // Send telemetry for dialog opened
         sendActionEvent(TelemetryViews.SqlProjects, TelemetryActions.PublishDialogOpened, {
-            operationId: this._operationId,
+            additionalProps: {
+                operationId: this._operationId,
+            },
         });
 
         this.registerRpcHandlers();
@@ -174,18 +176,14 @@ export class PublishProjectWebViewController extends FormWebviewController<
             const dacpacPath = await this._projectController.buildProject(state.projectProperties);
             return dacpacPath;
         } catch (error) {
-            sendErrorEvent(
-                TelemetryViews.SqlProjects,
-                TelemetryActions.BuildProject,
-                error instanceof Error ? error : new Error(getErrorMessage(error)),
-                false,
-                undefined,
-                undefined,
-                {
+            sendErrorEvent(TelemetryViews.SqlProjects, TelemetryActions.BuildProject, {
+                error: error instanceof Error ? error : new Error(getErrorMessage(error)),
+                includeErrorMessage: false,
+                additionalProps: {
                     operationId: this._operationId,
                     success: "false",
                 },
-            );
+            });
             return undefined;
         }
     }
@@ -221,41 +219,35 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
             if (result.success) {
                 sendActionEvent(TelemetryViews.SqlProjects, TelemetryActions.PublishProject, {
-                    operationId: this._operationId,
-                    success: "true",
-                    serverTypes: this._serverTypes,
+                    additionalProps: {
+                        operationId: this._operationId,
+                        success: "true",
+                        serverTypes: this._serverTypes,
+                    },
                 });
                 // Prompt user for NPS feedback after successful publish
                 void UserSurvey.getInstance().promptUserForNPSFeedback(SQLPROJ_PUBLISH_VIEW_ID);
             } else {
-                sendErrorEvent(
-                    TelemetryViews.SqlProjects,
-                    TelemetryActions.PublishProject,
-                    new Error(getErrorMessage(result.errorMessage)),
-                    false,
-                    undefined,
-                    undefined,
-                    {
+                sendErrorEvent(TelemetryViews.SqlProjects, TelemetryActions.PublishProject, {
+                    error: new Error(getErrorMessage(result.errorMessage)),
+                    includeErrorMessage: false,
+                    additionalProps: {
                         operationId: this._operationId,
                         success: "false",
                         serverTypes: this._serverTypes,
                     },
-                );
+                });
             }
         } catch (error) {
-            sendErrorEvent(
-                TelemetryViews.SqlProjects,
-                TelemetryActions.PublishProject,
-                error instanceof Error ? error : new Error(getErrorMessage(error)),
-                false,
-                undefined,
-                undefined,
-                {
+            sendErrorEvent(TelemetryViews.SqlProjects, TelemetryActions.PublishProject, {
+                error: error instanceof Error ? error : new Error(getErrorMessage(error)),
+                includeErrorMessage: false,
+                additionalProps: {
                     operationId: this._operationId,
                     success: "false",
                     serverTypes: this._serverTypes,
                 },
-            );
+            });
         }
     }
 
@@ -287,39 +279,33 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
             if (result.success) {
                 sendActionEvent(TelemetryViews.SqlProjects, TelemetryActions.GenerateScript, {
-                    operationId: this._operationId,
-                    success: "true",
-                    serverTypes: this._serverTypes,
+                    additionalProps: {
+                        operationId: this._operationId,
+                        success: "true",
+                        serverTypes: this._serverTypes,
+                    },
                 });
             } else {
-                sendErrorEvent(
-                    TelemetryViews.SqlProjects,
-                    TelemetryActions.GenerateScript,
-                    new Error(getErrorMessage(result.errorMessage)),
-                    false,
-                    undefined,
-                    undefined,
-                    {
+                sendErrorEvent(TelemetryViews.SqlProjects, TelemetryActions.GenerateScript, {
+                    error: new Error(getErrorMessage(result.errorMessage)),
+                    includeErrorMessage: false,
+                    additionalProps: {
                         operationId: this._operationId,
                         success: "false",
                         serverTypes: this._serverTypes,
                     },
-                );
+                });
             }
         } catch (error) {
-            sendErrorEvent(
-                TelemetryViews.SqlProjects,
-                TelemetryActions.GenerateScript,
-                error instanceof Error ? error : new Error(getErrorMessage(error)),
-                false,
-                undefined,
-                undefined,
-                {
+            sendErrorEvent(TelemetryViews.SqlProjects, TelemetryActions.GenerateScript, {
+                error: error instanceof Error ? error : new Error(getErrorMessage(error)),
+                includeErrorMessage: false,
+                additionalProps: {
                     operationId: this._operationId,
                     success: "false",
                     serverTypes: this._serverTypes,
                 },
-            );
+            });
         }
     }
 
@@ -519,9 +505,11 @@ export class PublishProjectWebViewController extends FormWebviewController<
                         TelemetryViews.SqlProjects,
                         TelemetryActions.ConnectToContainer,
                         {
-                            operationId: this._operationId,
-                            publishTarget: PublishTarget.LocalContainer,
-                            success: "true",
+                            additionalProps: {
+                                operationId: this._operationId,
+                                publishTarget: PublishTarget.LocalContainer,
+                                success: "true",
+                            },
                         },
                     );
 
@@ -550,18 +538,14 @@ export class PublishProjectWebViewController extends FormWebviewController<
         }
 
         // All attempts exhausted
-        sendErrorEvent(
-            TelemetryViews.SqlProjects,
-            TelemetryActions.ConnectToContainer,
-            new Error(lastConnectionError),
-            false,
-            undefined,
-            undefined,
-            {
+        sendErrorEvent(TelemetryViews.SqlProjects, TelemetryActions.ConnectToContainer, {
+            error: new Error(lastConnectionError),
+            includeErrorMessage: false,
+            additionalProps: {
                 operationId: this._operationId,
                 success: "false",
             },
-        );
+        });
 
         return {
             success: false,
@@ -580,18 +564,14 @@ export class PublishProjectWebViewController extends FormWebviewController<
             return savedConnections as IConnectionDialogProfile[];
         } catch (error) {
             this.logger.error(`Failed to list saved connections: ${getErrorMessage(error)}`);
-            sendErrorEvent(
-                TelemetryViews.SqlProjects,
-                TelemetryActions.LoadConnections,
-                error instanceof Error ? error : new Error(getErrorMessage(error)),
-                false,
-                undefined,
-                undefined,
-                {
+            sendErrorEvent(TelemetryViews.SqlProjects, TelemetryActions.LoadConnections, {
+                error: error instanceof Error ? error : new Error(getErrorMessage(error)),
+                includeErrorMessage: false,
+                additionalProps: {
                     operationId: this._operationId,
                     success: "false",
                 },
-            );
+            });
             return [];
         }
     }
@@ -675,18 +655,14 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     : undefined;
                 const errorMessage = connectionInfo?.errorMessage || Loc.FailedToConnectToServer;
 
-                sendErrorEvent(
-                    TelemetryViews.SqlProjects,
-                    TelemetryActions.Connect,
-                    new Error(errorMessage),
-                    false,
-                    undefined,
-                    undefined,
-                    {
+                sendErrorEvent(TelemetryViews.SqlProjects, TelemetryActions.Connect, {
+                    error: new Error(errorMessage),
+                    includeErrorMessage: false,
+                    additionalProps: {
                         operationId: this._operationId,
                         success: "false",
                     },
-                );
+                });
 
                 return {
                     ownerUri: "",
@@ -696,18 +672,14 @@ export class PublishProjectWebViewController extends FormWebviewController<
             }
         } catch (error) {
             this.logger.error(`Failed to connect to server: ${error}`);
-            sendErrorEvent(
-                TelemetryViews.SqlProjects,
-                TelemetryActions.Connect,
-                error instanceof Error ? error : new Error(getErrorMessage(error)),
-                false,
-                undefined,
-                undefined,
-                {
+            sendErrorEvent(TelemetryViews.SqlProjects, TelemetryActions.Connect, {
+                error: error instanceof Error ? error : new Error(getErrorMessage(error)),
+                includeErrorMessage: false,
+                additionalProps: {
                     operationId: this._operationId,
                     success: "false",
                 },
-            );
+            });
             return {
                 ownerUri: "",
                 isConnected: false,
@@ -725,18 +697,14 @@ export class PublishProjectWebViewController extends FormWebviewController<
         if (!this._connectionUri) {
             const error = new Error(Loc.NoActiveConnection);
             this.logger.error(`Failed to get connection string: ${error.message}`);
-            sendErrorEvent(
-                TelemetryViews.SqlProjects,
-                TelemetryActions.LoadFromConnectionString,
+            sendErrorEvent(TelemetryViews.SqlProjects, TelemetryActions.LoadFromConnectionString, {
                 error,
-                false,
-                undefined,
-                undefined,
-                {
+                includeErrorMessage: false,
+                additionalProps: {
                     operationId: this._operationId,
                     success: "false",
                 },
-            );
+            });
             throw error;
         }
 
@@ -748,18 +716,14 @@ export class PublishProjectWebViewController extends FormWebviewController<
             );
         } catch (error) {
             this.logger.error(`Failed to get connection string: ${getErrorMessage(error)}`);
-            sendErrorEvent(
-                TelemetryViews.SqlProjects,
-                TelemetryActions.LoadFromConnectionString,
-                error instanceof Error ? error : new Error(getErrorMessage(error)),
-                false,
-                undefined,
-                undefined,
-                {
+            sendErrorEvent(TelemetryViews.SqlProjects, TelemetryActions.LoadFromConnectionString, {
+                error: error instanceof Error ? error : new Error(getErrorMessage(error)),
+                includeErrorMessage: false,
+                additionalProps: {
                     operationId: this._operationId,
                     success: "false",
                 },
-            );
+            });
             throw error;
         }
     }
@@ -846,18 +810,14 @@ export class PublishProjectWebViewController extends FormWebviewController<
         } catch (error) {
             // Log error and send telemetry, but keep dialog resilient
             this.logger.error("Failed to read project properties:", error);
-            sendErrorEvent(
-                TelemetryViews.SqlProjects,
-                TelemetryActions.PublishProjectProperties,
-                error instanceof Error ? error : new Error(String(error)),
-                false,
-                undefined,
-                undefined,
-                {
+            sendErrorEvent(TelemetryViews.SqlProjects, TelemetryActions.PublishProjectProperties, {
+                error: error instanceof Error ? error : new Error(String(error)),
+                includeErrorMessage: false,
+                additionalProps: {
                     operationId: this._operationId,
                     success: "false",
                 },
-            );
+            });
         }
 
         // Load publish form components
@@ -922,13 +882,13 @@ export class PublishProjectWebViewController extends FormWebviewController<
                         sendErrorEvent(
                             TelemetryViews.SqlProjects,
                             TelemetryActions.PublishDialogLocalContainersPrerequisites,
-                            new Error(prereqResult.error),
-                            false,
-                            undefined,
-                            undefined,
                             {
-                                operationId: this._operationId,
-                                success: "false",
+                                error: new Error(prereqResult.error),
+                                includeErrorMessage: false,
+                                additionalProps: {
+                                    operationId: this._operationId,
+                                    success: "false",
+                                },
                             },
                         );
                         state.formMessage = {
@@ -964,13 +924,15 @@ export class PublishProjectWebViewController extends FormWebviewController<
                         sendErrorEvent(
                             TelemetryViews.SqlProjects,
                             TelemetryActions.PublishDialogCreateLocalContainers,
-                            new Error(containerResult.fullErrorText || containerResult.error),
-                            false,
-                            undefined,
-                            undefined,
                             {
-                                operationId: this._operationId,
-                                success: "false",
+                                error: new Error(
+                                    containerResult.fullErrorText || containerResult.error,
+                                ),
+                                includeErrorMessage: false,
+                                additionalProps: {
+                                    operationId: this._operationId,
+                                    success: "false",
+                                },
                             },
                         );
                         state.formMessage = {
@@ -1007,18 +969,14 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     this.panel?.dispose();
                 } catch (error) {
                     this.logger.error("Failed during container publish:", error);
-                    sendErrorEvent(
-                        TelemetryViews.SqlProjects,
-                        TelemetryActions.PublishProject,
-                        error instanceof Error ? error : new Error(getErrorMessage(error)),
-                        false,
-                        undefined,
-                        undefined,
-                        {
+                    sendErrorEvent(TelemetryViews.SqlProjects, TelemetryActions.PublishProject, {
+                        error: error instanceof Error ? error : new Error(getErrorMessage(error)),
+                        includeErrorMessage: false,
+                        additionalProps: {
                             operationId: this._operationId,
                             success: "false",
                         },
-                    );
+                    });
                     state.formMessage = {
                         message: getErrorMessage(error),
                         intent: "error",
@@ -1091,7 +1049,9 @@ export class PublishProjectWebViewController extends FormWebviewController<
                         TelemetryViews.SqlProjects,
                         TelemetryActions.PublishProfileLoaded,
                         {
-                            operationId: this._operationId,
+                            additionalProps: {
+                                operationId: this._operationId,
+                            },
                         },
                     );
 
@@ -1170,13 +1130,14 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     sendErrorEvent(
                         TelemetryViews.SqlProjects,
                         TelemetryActions.PublishProfileLoaded,
-                        error instanceof Error ? error : new Error(getErrorMessage(error)),
-                        false,
-                        undefined,
-                        undefined,
                         {
-                            operationId: this._operationId,
-                            success: "false",
+                            error:
+                                error instanceof Error ? error : new Error(getErrorMessage(error)),
+                            includeErrorMessage: false,
+                            additionalProps: {
+                                operationId: this._operationId,
+                                success: "false",
+                            },
                         },
                     );
 
@@ -1236,8 +1197,10 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     TelemetryViews.SqlProjects,
                     TelemetryActions.PublishServerConnected,
                     {
-                        operationId: this._operationId,
-                        success: "true",
+                        additionalProps: {
+                            operationId: this._operationId,
+                            success: "true",
+                        },
                     },
                 );
 
@@ -1263,10 +1226,12 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     TelemetryViews.SqlProjects,
                     TelemetryActions.SqlCmdVariablesModified,
                     {
-                        operationId: this._operationId,
-                        action: "modified",
+                        additionalProps: {
+                            operationId: this._operationId,
+                            action: "modified",
+                        },
+                        additionalMeasurements: { variablesCount },
                     },
-                    { variablesCount },
                 );
 
                 state.formState.sqlCmdVariables = payload.variables;
@@ -1277,8 +1242,10 @@ export class PublishProjectWebViewController extends FormWebviewController<
         this.registerReducer("revertSqlCmdVariables", async (state: PublishDialogState) => {
             // Send telemetry for SQLCMD variables revert
             sendActionEvent(TelemetryViews.SqlProjects, TelemetryActions.SqlCmdVariablesModified, {
-                operationId: this._operationId,
-                action: "reverted",
+                additionalProps: {
+                    operationId: this._operationId,
+                    action: "reverted",
+                },
             });
 
             state.formState.sqlCmdVariables = { ...state.defaultSqlCmdVariables };
@@ -1369,7 +1336,9 @@ export class PublishProjectWebViewController extends FormWebviewController<
                         TelemetryViews.SqlProjects,
                         TelemetryActions.PublishProfileSaved,
                         {
-                            operationId: this._operationId,
+                            additionalProps: {
+                                operationId: this._operationId,
+                            },
                         },
                     );
 
@@ -1385,13 +1354,14 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     sendErrorEvent(
                         TelemetryViews.SqlProjects,
                         TelemetryActions.PublishProfileSaved,
-                        error instanceof Error ? error : new Error(getErrorMessage(error)),
-                        false,
-                        undefined,
-                        undefined,
                         {
-                            operationId: this._operationId,
-                            success: "false",
+                            error:
+                                error instanceof Error ? error : new Error(getErrorMessage(error)),
+                            includeErrorMessage: false,
+                            additionalProps: {
+                                operationId: this._operationId,
+                                success: "false",
+                            },
                         },
                     );
 
@@ -1492,8 +1462,10 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     TelemetryViews.SqlProjects,
                     TelemetryActions.GenerateSqlPackageCommand,
                     {
-                        operationId: this._operationId,
-                        success: "true",
+                        additionalProps: {
+                            operationId: this._operationId,
+                            success: "true",
+                        },
                     },
                 );
 
@@ -1504,13 +1476,13 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 sendErrorEvent(
                     TelemetryViews.SqlProjects,
                     TelemetryActions.GenerateSqlPackageCommand,
-                    error instanceof Error ? error : new Error(getErrorMessage(error)),
-                    false,
-                    undefined,
-                    undefined,
                     {
-                        operationId: this._operationId,
-                        success: "false",
+                        error: error instanceof Error ? error : new Error(getErrorMessage(error)),
+                        includeErrorMessage: false,
+                        additionalProps: {
+                            operationId: this._operationId,
+                            success: "false",
+                        },
                     },
                 );
                 return {
@@ -1557,18 +1529,14 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     this.logger.error(
                         `Could not find accountId for Azure MFA connection when loading publish profile`,
                     );
-                    sendErrorEvent(
-                        TelemetryViews.SqlProjects,
-                        TelemetryActions.Connect,
-                        new Error(errorMessage),
-                        false,
-                        undefined,
-                        undefined,
-                        {
+                    sendErrorEvent(TelemetryViews.SqlProjects, TelemetryActions.Connect, {
+                        error: new Error(errorMessage),
+                        includeErrorMessage: false,
+                        additionalProps: {
                             operationId: this._operationId,
                             success: "false",
                         },
-                    );
+                    });
                     state.loadConnectionStatus = ApiStatus.Error;
                     state.formMessage = {
                         message: errorMessage,
@@ -1602,18 +1570,14 @@ export class PublishProjectWebViewController extends FormWebviewController<
             return fileUri;
         } catch (error) {
             this.logger.error(`Failed to connect from publish profile: ${getErrorMessage(error)}`);
-            sendErrorEvent(
-                TelemetryViews.SqlProjects,
-                TelemetryActions.Connect,
-                error instanceof Error ? error : new Error(getErrorMessage(error)),
-                false,
-                undefined,
-                undefined,
-                {
+            sendErrorEvent(TelemetryViews.SqlProjects, TelemetryActions.Connect, {
+                error: error instanceof Error ? error : new Error(getErrorMessage(error)),
+                includeErrorMessage: false,
+                additionalProps: {
                     operationId: this._operationId,
                     success: "false",
                 },
-            );
+            });
             state.loadConnectionStatus = ApiStatus.Error;
             state.formMessage = {
                 message: Loc.ProfileLoadedConnectionFailed(state.formState.serverName),

@@ -16,7 +16,11 @@ import type {
 } from "@mssqlperf/contracts";
 
 export type ScenarioMaturity =
-    "exploratory" | "diagnostic" | "measurementCandidate" | "ciGating" | "releaseGate";
+    | "exploratory"
+    | "diagnostic"
+    | "measurementCandidate"
+    | "ciGating"
+    | "releaseGate";
 
 export interface RegisteredScenario {
     spec: ScenarioSpec;
@@ -3521,6 +3525,7 @@ register({
         tags: ["metadata", "cache"],
         profileMode: "warmed",
         userSettings: {
+            "mssql.enableExperimentalFeatures": true,
             "mssql.sqlDataPlane.enabled": true,
             "mssql.metadataCache.enabled": true,
         },

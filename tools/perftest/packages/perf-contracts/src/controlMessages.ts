@@ -30,7 +30,12 @@ export type ControlMessageKind =
     | "error";
 
 export type SenderRole =
-    "orchestrator" | "automationExtension" | "productExtension" | "sts" | "webview" | "child";
+    | "orchestrator"
+    | "automationExtension"
+    | "productExtension"
+    | "sts"
+    | "webview"
+    | "child";
 
 export interface ControlSender {
     role: SenderRole | string;

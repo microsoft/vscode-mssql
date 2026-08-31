@@ -185,16 +185,14 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
         }) => {
             const { operation, success, reason, measurements } = params;
             try {
-                sendActionEvent(
-                    TelemetryViews.MssqlCopilot,
-                    TelemetryActions.SchemaDesignerTool,
-                    {
+                sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.SchemaDesignerTool, {
+                    additionalProps: {
                         operation,
                         success: String(success),
                         ...(reason ? { reason } : {}),
                     },
-                    measurements ?? {},
-                );
+                    additionalMeasurements: measurements ?? {},
+                });
             } catch {
                 // Telemetry must never block tool execution.
             }
