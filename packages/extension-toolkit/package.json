@@ -51,7 +51,7 @@
     "scripts": {
         "build": "npm run build:runtime-localization && tsc -p tsconfig.json",
         "build:runtime-localization": "node ../../scripts/localization-generate.js extension-toolkit .",
-        "watch": "tsc -watch -p tsconfig.json --preserveWatchOutput",
+        "watch": "npm run build:runtime-localization && tsc -watch -p tsconfig.json --preserveWatchOutput",
         "lint": "eslint --quiet --cache ./src ./test",
         "localization": "node ../../scripts/localization-extract.js extension-toolkit",
         "pretest": "npm run build",

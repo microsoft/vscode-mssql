@@ -12,3 +12,4 @@ tsconfig*.json
 extension.webpack.config.js
 *.vsix
 **/*.nupkg
+l10n

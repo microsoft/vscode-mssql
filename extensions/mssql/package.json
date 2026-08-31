@@ -73,7 +73,6 @@
         "watch": "npm run build:prepare && run-p -l watch:extension watch:extension-bundle watch:webviews watch:webviews-bundle watch:notebook-renderer-bundle",
         "lint": "eslint --quiet --cache ./src ./test",
         "localization": "node ../../scripts/localization-extract.js mssql",
-        "localization:generate-pseudoloc": "node scripts/generate-pseudoloc.js",
         "smoketest": "npm run instrument && npm run e2eTest",
         "clean:test-output": "node -e \"require('node:fs').rmSync('out/test/unit', { recursive: true, force: true })\"",
         "pretest": "npm run clean:test-output && npm run build:extension:emit && npm run build:extension-bundle",
