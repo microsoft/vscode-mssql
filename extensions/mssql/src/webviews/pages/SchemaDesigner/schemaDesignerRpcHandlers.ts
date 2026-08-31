@@ -1627,6 +1627,7 @@ function applyDabToolChange(
                     restEnabled: isEnabled,
                     graphQLEnabled: isEnabled,
                     mcpEnabled: isEnabled,
+                    mcpDmlToolsEnabled: isEnabled,
                 },
             };
             return { success: true };
@@ -1651,6 +1652,7 @@ function applyDabToolChange(
                     restEnabled: change.isEnabled,
                     graphQLEnabled: change.isEnabled,
                     mcpEnabled: change.isEnabled,
+                    mcpDmlToolsEnabled: change.isEnabled,
                 },
             };
             return { success: true };
@@ -2487,6 +2489,7 @@ function applyDabToolChange(
                     restEnabled: selectedEntityIds.has(entity.id),
                     graphQLEnabled: selectedEntityIds.has(entity.id),
                     mcpEnabled: selectedEntityIds.has(entity.id),
+                    mcpDmlToolsEnabled: selectedEntityIds.has(entity.id),
                 },
             }));
             return { success: true };
@@ -2501,6 +2504,7 @@ function applyDabToolChange(
                     restEnabled: change.isEnabled ? entity.isSupported : false,
                     graphQLEnabled: change.isEnabled ? entity.isSupported : false,
                     mcpEnabled: change.isEnabled ? entity.isSupported : false,
+                    mcpDmlToolsEnabled: change.isEnabled ? entity.isSupported : false,
                 },
             }));
             return { success: true };

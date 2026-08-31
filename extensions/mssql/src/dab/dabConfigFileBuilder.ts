@@ -166,7 +166,11 @@ export class DabConfigFileBuilder {
     ): Record<string, DabEntityOutput> {
         const result: Record<string, DabEntityOutput> = {};
         for (const entity of entities) {
-            if (!entity.isSupported || !Dab.isEntityExposed(entity)) {
+            const hasEnabledApiSurface =
+                (isRestEnabled && Dab.isEntityRestEnabled(entity)) ||
+                (isGraphQLEnabled && Dab.isEntityGraphQLEnabled(entity)) ||
+                (isMcpEnabled && Dab.isEntityMcpEnabled(entity));
+            if (!entity.isSupported || !hasEnabledApiSurface) {
                 continue;
             }
             result[entity.advancedSettings.entityName] = this.buildEntityEntry(

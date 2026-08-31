@@ -979,7 +979,9 @@ suite("DabTool Tests", () => {
             expect(state.config?.entities[0].isSupported).to.equal(true);
             expect(state.config?.entities[0].isEnabled).to.equal(true);
             expect(state.config?.entities[0].unsupportedReasons?.[0].type).to.equal("noPrimaryKey");
-            expect(harness.commitSpy.calledOnce).to.equal(true);
+            expect(harness.getConfig()?.entities[0].unsupportedReasons?.[0].type).to.equal(
+                "noPrimaryKey",
+            );
         });
 
         test("get_state version changes when schema support status changes", async () => {
@@ -1396,6 +1398,69 @@ suite("DabTool Tests", () => {
             expect(settings?.mcpDmlToolsEnabled).to.equal(true);
             expect(settings?.mcpCustomToolEnabled).to.equal(true);
             expect(settings?.exposeAsMcpCustomTool).to.equal(true);
+        });
+
+        test("apply_changes legacy entity toggles synchronize MCP DML tools", async () => {
+            const table = createTable("t1", "dbo", "Users");
+            const dabConfig = Dab.createDefaultConfig([table]);
+            dabConfig.entities[0] = {
+                ...dabConfig.entities[0],
+                isEnabled: false,
+                advancedSettings: {
+                    ...dabConfig.entities[0].advancedSettings,
+                    restEnabled: false,
+                    graphQLEnabled: false,
+                    mcpEnabled: false,
+                    mcpDmlToolsEnabled: false,
+                },
+            };
+            const harness = createDabHandlerHarness({ tables: [table], dabConfig });
+            let version = (await harness.getState()).version;
+
+            const applyChange = async (change: Dab.DabToolChange): Promise<Dab.DabEntityConfig> => {
+                const result = await harness.applyChanges({
+                    expectedVersion: version,
+                    changes: [change],
+                });
+                expect(result.success).to.equal(true);
+                if (!result.success || !result.config) {
+                    throw new Error("Expected full success response");
+                }
+                version = result.version;
+                return result.config.entities[0];
+            };
+
+            let entity = await applyChange({
+                type: "set_entity_enabled",
+                entity: { id: table.id },
+                isEnabled: true,
+            });
+            expect(entity.advancedSettings.mcpEnabled).to.equal(true);
+            expect(entity.advancedSettings.mcpDmlToolsEnabled).to.equal(true);
+
+            entity = await applyChange({ type: "remove_entity", entity: { id: table.id } });
+            expect(entity.advancedSettings.mcpEnabled).to.equal(false);
+            expect(entity.advancedSettings.mcpDmlToolsEnabled).to.equal(false);
+
+            entity = await applyChange({ type: "add_entity", entity: { id: table.id } });
+            expect(entity.advancedSettings.mcpEnabled).to.equal(true);
+            expect(entity.advancedSettings.mcpDmlToolsEnabled).to.equal(true);
+
+            entity = await applyChange({ type: "set_all_entities_enabled", isEnabled: false });
+            expect(entity.advancedSettings.mcpEnabled).to.equal(false);
+            expect(entity.advancedSettings.mcpDmlToolsEnabled).to.equal(false);
+
+            entity = await applyChange({
+                type: "set_only_enabled_entities",
+                entities: [{ id: table.id }],
+            });
+            expect(entity.advancedSettings.mcpEnabled).to.equal(true);
+            expect(entity.advancedSettings.mcpDmlToolsEnabled).to.equal(true);
+
+            await applyChange({ type: "set_all_entities_enabled", isEnabled: false });
+            entity = await applyChange({ type: "set_all_entities_enabled", isEnabled: true });
+            expect(entity.advancedSettings.mcpEnabled).to.equal(true);
+            expect(entity.advancedSettings.mcpDmlToolsEnabled).to.equal(true);
         });
 
         test("apply_changes validates patch_entity_settings payload and duplicate entity names", async () => {

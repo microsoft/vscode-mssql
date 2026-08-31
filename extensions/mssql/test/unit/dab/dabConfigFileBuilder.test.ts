@@ -290,6 +290,29 @@ suite("DabConfigFileBuilder Tests", () => {
                 expect(parsed.entities).to.have.property("SupportedEntity");
                 expect(parsed.entities).to.not.have.property("UnsupportedEntity");
             });
+
+            test("should exclude entities without a locally and globally enabled API surface", () => {
+                const config = createTestConfig({
+                    apiTypes: [Dab.ApiType.GraphQL],
+                    entities: [
+                        createTestEntity({
+                            advancedSettings: {
+                                entityName: "RestOnlyEntity",
+                                authorizationRole: Dab.AuthorizationRole.Anonymous,
+                                restEnabled: true,
+                                graphQLEnabled: false,
+                                mcpEnabled: false,
+                                mcpDmlToolsEnabled: false,
+                            },
+                        }),
+                    ],
+                });
+
+                const result = builder.build(config, defaultConnectionInfo);
+                const parsed = JSON.parse(result);
+
+                expect(parsed.entities).to.not.have.property("RestOnlyEntity");
+            });
         });
 
         suite("entity source mapping", () => {
