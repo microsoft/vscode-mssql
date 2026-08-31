@@ -657,8 +657,13 @@ export async function startDocker(
         }
         // Otherwise docker is likely not running, so we proceed to start it.
     }
-    const host = isContainerHostAdapter(hostOrNode) ? hostOrNode : undefined;
-    const node = host === undefined ? hostOrNode : undefined;
+    let host: ContainerHostAdapter | undefined;
+    let node: ConnectionNode | undefined;
+    if (isContainerHostAdapter(hostOrNode)) {
+        host = hostOrNode;
+    } else {
+        node = hostOrNode;
+    }
     const span = diag.startSpan({
         feature: "deployment",
         kind: "span",
@@ -926,8 +931,13 @@ export async function prepareForDockerContainerCommand(
         objectExplorerService,
         cancellationTokenSource,
     );
-    const host = isContainerHostAdapter(hostOrNode) ? hostOrNode : undefined;
-    const containerNode = host === undefined ? hostOrNode : undefined;
+    let host: ContainerHostAdapter | undefined;
+    let containerNode: ConnectionNode | undefined;
+    if (isContainerHostAdapter(hostOrNode)) {
+        host = hostOrNode;
+    } else {
+        containerNode = hostOrNode;
+    }
     if (!startDockerResult.success) {
         if (!startDockerResult.canceled) {
             if (host !== undefined) {

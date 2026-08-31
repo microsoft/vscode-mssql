@@ -245,8 +245,13 @@ export async function restartSqlServerContainer(
     objectExplorerService?: ObjectExplorerService,
 ): Promise<boolean | undefined> {
     const cancellationTokenSource = new vscode.CancellationTokenSource();
-    const host = isContainerHostAdapter(hostOrNode) ? hostOrNode : undefined;
-    const containerNode = host === undefined ? hostOrNode : undefined;
+    let host: ContainerHostAdapter | undefined;
+    let containerNode: ConnectionNode | undefined;
+    if (isContainerHostAdapter(hostOrNode)) {
+        host = hostOrNode;
+    } else {
+        containerNode = hostOrNode;
+    }
     const span = diag.startSpan({
         feature: "deployment",
         kind: "span",
