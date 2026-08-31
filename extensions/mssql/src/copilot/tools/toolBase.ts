@@ -17,9 +17,11 @@ export abstract class ToolBase<T> implements vscode.LanguageModelTool<T> {
         const telemetryActivity = startActivity(
             TelemetryViews.MssqlCopilot,
             TelemetryActions.CopilotAgentModeToolCall,
-            `${options.toolInvocationToken}`,
             {
-                toolName: this.toolName,
+                correlationId: `${options.toolInvocationToken}`,
+                additionalProps: {
+                    toolName: this.toolName,
+                },
             },
         );
         try {

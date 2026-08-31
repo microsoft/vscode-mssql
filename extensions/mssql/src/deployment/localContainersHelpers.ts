@@ -53,9 +53,11 @@ export async function initializeLocalContainersState(
     sendActionEvent(
         TelemetryViews.LocalContainers,
         TelemetryActions.StartLocalContainersDeployment,
-        {},
         {
-            localContainersInitTimeInMs: Date.now() - startTime,
+            additionalProps: {},
+            additionalMeasurements: {
+                localContainersInitTimeInMs: Date.now() - startTime,
+            },
         },
     );
     return state;
@@ -130,26 +132,20 @@ export function registerLocalContainersReducers(deploymentController: Deployment
         // and increment the current step number to move to the next step
         if (stepSuccessful) {
             currentStep.loadState = ApiStatus.Loaded;
-            sendActionEvent(
-                TelemetryViews.LocalContainers,
-                TelemetryActions.RunDockerStep,
-                telemetryProperties,
-                telemetryMeasures,
-            );
+            sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.RunDockerStep, {
+                additionalProps: telemetryProperties,
+                additionalMeasurements: telemetryMeasures,
+            });
         } else {
             // If the step failed, update step's load state to Error and set the error message
             // Error telemetry includes the step number and error message
             currentStep.loadState = ApiStatus.Error;
-            sendErrorEvent(
-                TelemetryViews.LocalContainers,
-                TelemetryActions.RunDockerStep,
-                new Error(currentStep.errorMessage),
-                true, // includeErrorMessage
-                undefined, // errorCode
-                undefined, // errorType
-                telemetryProperties,
-                telemetryMeasures,
-            );
+            sendErrorEvent(TelemetryViews.LocalContainers, TelemetryActions.RunDockerStep, {
+                error: new Error(currentStep.errorMessage),
+                includeErrorMessage: true,
+                additionalProps: telemetryProperties,
+                additionalMeasurements: telemetryMeasures,
+            });
         }
 
         localContainersState.dockerSteps[currentStepNumber] = currentStep;
@@ -164,7 +160,9 @@ export function registerLocalContainersReducers(deploymentController: Deployment
         const currentStepNumber = localContainersState.currentDockerStep;
         localContainersState.dockerSteps[currentStepNumber].loadState = ApiStatus.NotStarted;
         sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.RetryDockerStep, {
-            dockerStep: lc.DockerStepOrder[currentStepNumber],
+            additionalProps: {
+                dockerStep: lc.DockerStepOrder[currentStepNumber],
+            },
         });
         state.deploymentTypeState = localContainersState;
         return state;
@@ -195,7 +193,9 @@ export function registerLocalContainersReducers(deploymentController: Deployment
 
         if (localContainersState.isDockerProfileValid) {
             sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.SubmitContainerForm, {
-                hasAdvancedOptions: hasAdvancedOptions ? "true" : "false",
+                additionalProps: {
+                    hasAdvancedOptions: hasAdvancedOptions ? "true" : "false",
+                },
             });
         }
         state.deploymentTypeState = localContainersState;
@@ -288,10 +288,12 @@ export function sendLocalContainersCloseEventTelemetry(state: lc.LocalContainers
         TelemetryViews.LocalContainers,
         TelemetryActions.FinishLocalContainersDeployment,
         {
-            // Include the current step, its status, and its potential error in the telemetry
-            currentStep: lc.DockerStepOrder[state.currentDockerStep],
-            currentStepStatus: state.dockerSteps[state.currentDockerStep]?.loadState,
-            currentStepErrorMessage: state.dockerSteps[state.currentDockerStep]?.errorMessage,
+            additionalProps: {
+                // Include the current step, its status, and its potential error in the telemetry
+                currentStep: lc.DockerStepOrder[state.currentDockerStep],
+                currentStepStatus: state.dockerSteps[state.currentDockerStep]?.loadState,
+                currentStepErrorMessage: state.dockerSteps[state.currentDockerStep]?.errorMessage,
+            },
         },
     );
 }

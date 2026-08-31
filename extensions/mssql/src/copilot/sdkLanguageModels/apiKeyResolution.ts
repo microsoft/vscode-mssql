@@ -137,7 +137,9 @@ export class SdkApiKeyResolver {
                 TelemetryViews.MssqlCopilot,
                 TelemetryActions.SdkProviderApiKeyConfigured,
                 {
-                    vendor: sdkApiKeyProviders[kind].vendor,
+                    additionalProps: {
+                        vendor: sdkApiKeyProviders[kind].vendor,
+                    },
                 },
             );
         }

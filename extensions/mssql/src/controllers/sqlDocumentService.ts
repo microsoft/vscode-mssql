@@ -198,17 +198,14 @@ export default class SqlDocumentService implements vscode.Disposable {
             );
         }
 
-        sendActionEvent(
-            TelemetryViews.CommandPalette,
-            TelemetryActions.NewQuery,
-            {
+        sendActionEvent(TelemetryViews.CommandPalette, TelemetryActions.NewQuery, {
+            additionalProps: {
                 nodeType: nodeType,
                 isContainer: connectionCreds?.containerName ? "true" : "false",
             },
-            undefined,
-            connectionCreds as IConnectionProfile,
-            this._connectionMgr.getServerInfo(connectionResult?.credentials),
-        );
+            connectionInfo: connectionCreds as IConnectionProfile,
+            serverInfo: this._connectionMgr.getServerInfo(connectionResult?.credentials),
+        });
     }
 
     dispose() {

@@ -187,9 +187,11 @@ export class CopilotEnableSettingsGuard implements vscode.Disposable {
         wroteTarget: CopilotEnableGuardWriteTarget = "none",
     ): void {
         sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.CopilotEnableGuard, {
-            trigger,
-            action,
-            wroteTarget,
+            additionalProps: {
+                trigger,
+                action,
+                wroteTarget,
+            },
         });
     }
 }

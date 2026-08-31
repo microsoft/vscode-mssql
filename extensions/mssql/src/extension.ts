@@ -201,9 +201,13 @@ class MssqlActivation {
         const receiveFeedbackDisposable = participant.onDidReceiveFeedback(
             (feedback: vscode.ChatResultFeedback) => {
                 sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.Feedback, {
-                    kind:
-                        feedback.kind === ChatResultFeedbackKind.Helpful ? "Helpful" : "Unhelpful",
-                    correlationId: (feedback.result as ISqlChatResult).metadata.correlationId,
+                    additionalProps: {
+                        kind:
+                            feedback.kind === ChatResultFeedbackKind.Helpful
+                                ? "Helpful"
+                                : "Unhelpful",
+                        correlationId: (feedback.result as ISqlChatResult).metadata.correlationId,
+                    },
                 });
             },
         );

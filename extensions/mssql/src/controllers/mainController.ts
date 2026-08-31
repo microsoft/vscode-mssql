@@ -1213,11 +1213,13 @@ export default class MainController implements vscode.Disposable {
             reason?: "noActiveDesigner" | "chatCommandMissing",
         ) => {
             sendActionEvent(TelemetryViews.SchemaDesigner, TelemetryActions.Open, {
-                entryPoint,
-                scenario,
-                mode: "agent",
-                success: success.toString(),
-                ...(reason ? { reason } : {}),
+                additionalProps: {
+                    entryPoint,
+                    scenario,
+                    mode: "agent",
+                    success: success.toString(),
+                    ...(reason ? { reason } : {}),
+                },
             });
         };
 
@@ -1308,15 +1310,17 @@ export default class MainController implements vscode.Disposable {
 
         // capture basic metadata
         sendActionEvent(TelemetryViews.General, TelemetryActions.Activated, {
-            experimentalFeaturesEnabled: previewService.experimentalFeaturesEnabled.toString(),
-            cloudType: getCloudId(),
-            previewFeatureOverrides: JSON.stringify(previewService.getNonDefaultOverrides()),
-            newEditorConnectionBehavior: vscode.workspace
-                .getConfiguration()
-                .get<string>(
-                    Constants.configNewEditorConnectionBehavior,
-                    Constants.NewEditorConnectionBehavior.TransferActive,
-                ),
+            additionalProps: {
+                experimentalFeaturesEnabled: previewService.experimentalFeaturesEnabled.toString(),
+                cloudType: getCloudId(),
+                previewFeatureOverrides: JSON.stringify(previewService.getNonDefaultOverrides()),
+                newEditorConnectionBehavior: vscode.workspace
+                    .getConfiguration()
+                    .get<string>(
+                        Constants.configNewEditorConnectionBehavior,
+                        Constants.NewEditorConnectionBehavior.TransferActive,
+                    ),
+            },
         });
 
         // Set context for experimental features (used for conditional menu visibility)
@@ -3417,10 +3421,12 @@ export default class MainController implements vscode.Disposable {
             TelemetryViews.MssqlCopilot,
             TelemetryActions.CopilotNewQueryWithConnection,
             {
-                forceNewEditor: forceNewEditor?.toString() ?? "false",
-                forceConnect: forceConnect?.toString() ?? "false",
-                isSqlEditor: isSqlEditor.toString(),
-                isConnected: isConnected.toString(),
+                additionalProps: {
+                    forceNewEditor: forceNewEditor?.toString() ?? "false",
+                    forceConnect: forceConnect?.toString() ?? "false",
+                    isSqlEditor: isSqlEditor.toString(),
+                    isConnected: isConnected.toString(),
+                },
             },
         );
 
@@ -4392,7 +4398,7 @@ export default class MainController implements vscode.Disposable {
                 sendActionEvent(
                     TelemetryViews.General,
                     TelemetryActions.MigrateEditorConnectionBehavior,
-                    { migratedValue: newBehavior, scope: scopeName },
+                    { additionalProps: { migratedValue: newBehavior, scope: scopeName } },
                 );
             } catch (err) {
                 this._logger.error(
@@ -4401,11 +4407,11 @@ export default class MainController implements vscode.Disposable {
                 sendErrorEvent(
                     TelemetryViews.General,
                     TelemetryActions.MigrateEditorConnectionBehavior,
-                    err instanceof Error ? err : new Error(String(err)),
-                    false,
-                    undefined,
-                    undefined,
-                    { scope: scopeName },
+                    {
+                        error: err instanceof Error ? err : new Error(String(err)),
+                        includeErrorMessage: false,
+                        additionalProps: { scope: scopeName },
+                    },
                 );
             }
         }

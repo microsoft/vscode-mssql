@@ -302,26 +302,26 @@ export abstract class SdkLanguageModelProviderBase {
         result: "success" | "error" | "cancelled",
         usage: SdkProviderUsage | undefined,
     ): void {
-        sendActionEvent(
-            TelemetryViews.MssqlCopilot,
-            TelemetryActions.SdkProviderInvocation,
-            {
+        sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.SdkProviderInvocation, {
+            additionalProps: {
                 vendor: this.vendor,
                 family: model.family,
                 latencyBucket: getLatencyBucket(Date.now() - startedAt),
                 result,
             },
-            {
+            additionalMeasurements: {
                 inputTokens: usage?.inputTokens ?? 0,
                 outputTokens: usage?.outputTokens ?? 0,
             },
-        );
+        });
     }
 
     private sendErrorTelemetry(errorClass: string): void {
         sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.SdkProviderError, {
-            vendor: this.vendor,
-            errorClass,
+            additionalProps: {
+                vendor: this.vendor,
+                errorClass,
+            },
         });
     }
 }

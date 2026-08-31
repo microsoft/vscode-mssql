@@ -49,9 +49,11 @@ export class RunQueryTool extends ToolBase<RunQueryToolParams> {
         phase: "prepare" | "execute",
     ) {
         sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.RunQuery, {
-            phase,
-            queryTypes: queryTypes?.join(",") || "unknown",
-            queryIntent: queryIntent || "unknown",
+            additionalProps: {
+                phase,
+                queryTypes: queryTypes?.join(",") || "unknown",
+                queryIntent: queryIntent || "unknown",
+            },
         });
     }
 

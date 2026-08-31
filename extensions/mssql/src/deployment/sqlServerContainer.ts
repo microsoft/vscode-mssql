@@ -262,14 +262,10 @@ export async function restartSqlServerContainer(
     });
     const dockerPreparedResult = await prepareForDockerContainerCommand(containerName, host);
     if (!dockerPreparedResult.success) {
-        sendErrorEvent(
-            TelemetryViews.LocalContainers,
-            TelemetryActions.RestartContainer,
-            new Error(dockerPreparedResult.error),
-            false, // includeErrorMessage
-            undefined, // errorCode
-            undefined, // errorType
-        );
+        sendErrorEvent(TelemetryViews.LocalContainers, TelemetryActions.RestartContainer, {
+            error: new Error(dockerPreparedResult.error),
+            includeErrorMessage: false,
+        });
         span.end("error", {
             errorClass: { raw: "preflightFailed", cls: "diagnostic.metadata" },
         });
@@ -301,14 +297,10 @@ export async function restartSqlServerContainer(
     await host.setStatus(ObjectExplorer.LoadingNodeLabel);
 
     if (!containerReadyResult.success) {
-        sendErrorEvent(
-            TelemetryViews.LocalContainers,
-            TelemetryActions.RestartContainer,
-            new Error(containerReadyResult.error),
-            false, // includeErrorMessage
-            undefined, // errorCode
-            undefined, // errorType
-        );
+        sendErrorEvent(TelemetryViews.LocalContainers, TelemetryActions.RestartContainer, {
+            error: new Error(containerReadyResult.error),
+            includeErrorMessage: false,
+        });
         span.end("error", {
             errorClass: { raw: "readinessTimeout", cls: "diagnostic.metadata" },
         });

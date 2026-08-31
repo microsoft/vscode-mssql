@@ -836,12 +836,10 @@ export class SqlInlineCompletionProvider
             const errorMessage = getErrorMessage(error);
             this._logger.warn(`Inline completion request failed: ${errorMessage}`);
             sendResultTelemetry("error");
-            sendErrorEvent(
-                TelemetryViews.MssqlCopilot,
-                TelemetryActions.InlineCompletion,
-                error instanceof Error ? error : new Error(errorMessage),
-                false,
-            );
+            sendErrorEvent(TelemetryViews.MssqlCopilot, TelemetryActions.InlineCompletion, {
+                error: error instanceof Error ? error : new Error(errorMessage),
+                includeErrorMessage: false,
+            });
             recordDebugEvent("error", error);
             return [];
         }
@@ -950,23 +948,27 @@ export class SqlInlineCompletionProvider
         snapshot: InlineCompletionTelemetrySnapshot | undefined,
     ): void {
         sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.InlineCompletion, {
-            result,
-            usedSchemaContext: (snapshot?.usedSchemaContext ?? false).toString(),
-            fallbackWithoutMetadata: (snapshot?.fallbackWithoutMetadata ?? true).toString(),
-            schemaObjectCountBucket: getCountBucket(snapshot?.schemaObjectCount ?? 0),
-            schemaSystemObjectCountBucket: getCountBucket(snapshot?.schemaSystemObjectCount ?? 0),
-            schemaForeignKeyCountBucket: getCountBucket(snapshot?.schemaForeignKeyCount ?? 0),
-            modelFamily: snapshot?.modelFamily ?? "unknown",
-            triggerKind: snapshot?.triggerKind ?? "unknown",
-            latencyBucket: getLatencyBucket(snapshot?.latencyMs ?? 0),
-            inferredSystemQuery: (snapshot?.inferredSystemQuery ?? false).toString(),
-            completionCategory: snapshot?.completionCategory ?? "unknown",
-            intentMode: (snapshot?.intentMode ?? false).toString(),
-            schemaBudgetProfile: snapshot?.schemaBudgetProfile ?? "unknown",
-            schemaSizeKind: snapshot?.schemaSizeKind ?? "unknown",
-            schemaDegradationStepCountBucket: getCountBucket(
-                snapshot?.schemaDegradationStepCount ?? 0,
-            ),
+            additionalProps: {
+                result,
+                usedSchemaContext: (snapshot?.usedSchemaContext ?? false).toString(),
+                fallbackWithoutMetadata: (snapshot?.fallbackWithoutMetadata ?? true).toString(),
+                schemaObjectCountBucket: getCountBucket(snapshot?.schemaObjectCount ?? 0),
+                schemaSystemObjectCountBucket: getCountBucket(
+                    snapshot?.schemaSystemObjectCount ?? 0,
+                ),
+                schemaForeignKeyCountBucket: getCountBucket(snapshot?.schemaForeignKeyCount ?? 0),
+                modelFamily: snapshot?.modelFamily ?? "unknown",
+                triggerKind: snapshot?.triggerKind ?? "unknown",
+                latencyBucket: getLatencyBucket(snapshot?.latencyMs ?? 0),
+                inferredSystemQuery: (snapshot?.inferredSystemQuery ?? false).toString(),
+                completionCategory: snapshot?.completionCategory ?? "unknown",
+                intentMode: (snapshot?.intentMode ?? false).toString(),
+                schemaBudgetProfile: snapshot?.schemaBudgetProfile ?? "unknown",
+                schemaSizeKind: snapshot?.schemaSizeKind ?? "unknown",
+                schemaDegradationStepCountBucket: getCountBucket(
+                    snapshot?.schemaDegradationStepCount ?? 0,
+                ),
+            },
         });
     }
 

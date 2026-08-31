@@ -68,12 +68,10 @@ export class ProjectController {
             return projectProperties.dacpacOutputPath;
         } catch (error) {
             // Send error telemetry
-            sendErrorEvent(
-                TelemetryViews.SqlProjects,
-                TelemetryActions.BuildProject,
-                error instanceof Error ? error : new Error(getErrorMessage(error)),
-                false,
-            );
+            sendErrorEvent(TelemetryViews.SqlProjects, TelemetryActions.BuildProject, {
+                error: error instanceof Error ? error : new Error(getErrorMessage(error)),
+                includeErrorMessage: false,
+            });
             throw error;
         }
     }

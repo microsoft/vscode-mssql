@@ -92,10 +92,8 @@ export function registerCommonRequestHandlers(
 
         // Sent before the update because writing the setting reloads this webview, which may
         // tear down the caller before the request resolves.
-        sendActionEvent(
-            TelemetryViews.QueryResult,
-            TelemetryActions.ToggleResultsGridMode,
-            {
+        sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.ToggleResultsGridMode, {
+            additionalProps: {
                 correlationId: correlationId,
                 newMode: newValue ? "preview" : "classic",
                 source: "resultsPaneSwitch",
@@ -104,8 +102,8 @@ export function registerCommonRequestHandlers(
                         ? "panel"
                         : "document",
             },
-            measurements,
-        );
+            additionalMeasurements: measurements,
+        });
 
         // The configuration listener fires for this write too and reports changes made outside
         // the product. Claim this one so the single toggle is not counted twice.
@@ -160,10 +158,12 @@ export function registerCommonRequestHandlers(
 
     webviewController.onRequest(qr.SaveResultsWebviewRequest.type, async (message) => {
         sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.SaveResults, {
-            correlationId: correlationId,
-            format: message.format,
-            selection: JSON.stringify(message.selection),
-            origin: message.origin,
+            additionalProps: {
+                correlationId: correlationId,
+                format: message.format,
+                selection: JSON.stringify(message.selection),
+                origin: message.origin,
+            },
         });
         return await webviewViewController
             .getSqlOutputContentProvider()
@@ -178,7 +178,9 @@ export function registerCommonRequestHandlers(
 
     webviewController.onRequest(qr.CopySelectionRequest.type, async (message) => {
         sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.CopyResults, {
-            correlationId: correlationId,
+            additionalProps: {
+                correlationId: correlationId,
+            },
         });
         return await webviewViewController
             .getSqlOutputContentProvider()
@@ -194,7 +196,9 @@ export function registerCommonRequestHandlers(
 
     webviewController.onRequest(qr.CopyHeadersRequest.type, async (message) => {
         sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.CopyHeaders, {
-            correlationId: correlationId,
+            additionalProps: {
+                correlationId: correlationId,
+            },
         });
         return await webviewViewController
             .getSqlOutputContentProvider()
@@ -208,8 +212,10 @@ export function registerCommonRequestHandlers(
 
     webviewController.onRequest(qr.CopyAsCsvRequest.type, async (message) => {
         sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.CopyResults, {
-            correlationId: correlationId,
-            format: "csv",
+            additionalProps: {
+                correlationId: correlationId,
+                format: "csv",
+            },
         });
         return await webviewViewController
             .getSqlOutputContentProvider()
@@ -223,8 +229,10 @@ export function registerCommonRequestHandlers(
 
     webviewController.onRequest(qr.CopyAsJsonRequest.type, async (message) => {
         sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.CopyResults, {
-            correlationId: correlationId,
-            format: "json",
+            additionalProps: {
+                correlationId: correlationId,
+                format: "json",
+            },
         });
         return await webviewViewController
             .getSqlOutputContentProvider()
@@ -238,8 +246,10 @@ export function registerCommonRequestHandlers(
 
     webviewController.onRequest(qr.CopyAsInClauseRequest.type, async (message) => {
         sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.CopyResults, {
-            correlationId: correlationId,
-            format: "in-clause",
+            additionalProps: {
+                correlationId: correlationId,
+                format: "in-clause",
+            },
         });
         return await webviewViewController
             .getSqlOutputContentProvider()
@@ -253,8 +263,10 @@ export function registerCommonRequestHandlers(
 
     webviewController.onRequest(qr.CopyAsInsertIntoRequest.type, async (message) => {
         sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.CopyResults, {
-            correlationId: correlationId,
-            format: "insert-into",
+            additionalProps: {
+                correlationId: correlationId,
+                format: "insert-into",
+            },
         });
         return await webviewViewController
             .getSqlOutputContentProvider()

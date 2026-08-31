@@ -99,14 +99,11 @@ export class TableDesignerWebviewController extends WebviewPanelController<
     private async initialize() {
         if (!this._targetNode) {
             const errorMessage = "Unable to find object explorer node";
-            sendErrorEvent(
-                TelemetryViews.TableDesigner,
-                TelemetryActions.Initialize,
-                new Error(errorMessage),
-                true, //includeErrorMessage
-                undefined, // errorCode
-                "unableToFindObjectExplorerNode",
-            );
+            sendErrorEvent(TelemetryViews.TableDesigner, TelemetryActions.Initialize, {
+                error: new Error(errorMessage),
+                includeErrorMessage: true,
+                errorType: "unableToFindObjectExplorerNode",
+            });
             this.state = {
                 ...this.state,
                 apiState: {
@@ -154,14 +151,11 @@ export class TableDesignerWebviewController extends WebviewPanelController<
             )) as IConnectionProfile;
         } catch (e) {
             const error = e instanceof Error ? e : new Error(getErrorMessage(e));
-            sendErrorEvent(
-                TelemetryViews.TableDesigner,
-                TelemetryActions.Initialize,
+            sendErrorEvent(TelemetryViews.TableDesigner, TelemetryActions.Initialize, {
                 error,
-                true, //includeErrorMessage
-                undefined, // errorCode
-                "prepareConnectionInfoFailed",
-            );
+                includeErrorMessage: true,
+                errorType: "prepareConnectionInfoFailed",
+            });
             this.state = {
                 ...this.state,
                 apiState: {
@@ -189,14 +183,11 @@ export class TableDesignerWebviewController extends WebviewPanelController<
 
             if (!connectionString || connectionString === "") {
                 const errorMessage = "Unable to find connection string for the connection";
-                sendErrorEvent(
-                    TelemetryViews.TableDesigner,
-                    TelemetryActions.Initialize,
-                    new Error(errorMessage),
-                    true, //includeErrorMessage
-                    undefined, // errorCode
-                    "unableToFindConnectionString",
-                );
+                sendErrorEvent(TelemetryViews.TableDesigner, TelemetryActions.Initialize, {
+                    error: new Error(errorMessage),
+                    includeErrorMessage: true,
+                    errorType: "unableToFindConnectionString",
+                });
 
                 this.state = {
                     ...this.state,
@@ -212,14 +203,11 @@ export class TableDesignerWebviewController extends WebviewPanelController<
             }
         } catch (e) {
             const error = e instanceof Error ? e : new Error(getErrorMessage(e));
-            sendErrorEvent(
-                TelemetryViews.TableDesigner,
-                TelemetryActions.Initialize,
+            sendErrorEvent(TelemetryViews.TableDesigner, TelemetryActions.Initialize, {
                 error,
-                false, //includeErrorMessage
-                undefined, // errorCode
-                "unableToFindConnectionString",
-            );
+                includeErrorMessage: false,
+                errorType: "unableToFindConnectionString",
+            });
             this.state = {
                 ...this.state,
                 apiState: {
@@ -235,10 +223,12 @@ export class TableDesignerWebviewController extends WebviewPanelController<
         const endActivity = startActivity(
             TelemetryViews.TableDesigner,
             TelemetryActions.Initialize,
-            this._correlationId,
             {
                 correlationId: this._correlationId,
-                isEdit: this._isEdit.toString(),
+                additionalProps: {
+                    correlationId: this._correlationId,
+                    isEdit: this._isEdit.toString(),
+                },
             },
         );
         Perf.marker("mssql.tableDesigner.init.begin", "begin", { isEdit: this._isEdit });
@@ -338,7 +328,9 @@ export class TableDesignerWebviewController extends WebviewPanelController<
         this._tableDesignerService.disposeTableDesigner(this.state.tableInfo);
         super.dispose();
         sendActionEvent(TelemetryViews.TableDesigner, TelemetryActions.Close, {
-            correlationId: this._correlationId,
+            additionalProps: {
+                correlationId: this._correlationId,
+            },
         });
     }
 
@@ -350,9 +342,11 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                     payload.tableChangeInfo,
                 );
                 sendActionEvent(TelemetryViews.TableDesigner, TelemetryActions.Edit, {
-                    type: payload.tableChangeInfo.type.toString(),
-                    source: payload.tableChangeInfo.source,
-                    correlationId: this._correlationId,
+                    additionalProps: {
+                        type: payload.tableChangeInfo.type.toString(),
+                        source: payload.tableChangeInfo.source,
+                        correlationId: this._correlationId,
+                    },
                 });
                 if (editResponse.issues?.length === 0) {
                     state.tabStates.resultPaneTab = designer.DesignerResultPaneTabs.Script;
@@ -381,12 +375,10 @@ export class TableDesignerWebviewController extends WebviewPanelController<
             } catch (e) {
                 const error = e instanceof Error ? e : new Error(getErrorMessage(e));
 
-                sendErrorEvent(
-                    TelemetryViews.TableDesigner,
-                    TelemetryActions.Edit,
+                sendErrorEvent(TelemetryViews.TableDesigner, TelemetryActions.Edit, {
                     error,
-                    false, //includeErrorMessage
-                );
+                    includeErrorMessage: false,
+                });
                 vscode.window.showErrorMessage(getErrorMessage(e));
                 return state;
             }
@@ -397,9 +389,11 @@ export class TableDesignerWebviewController extends WebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.TableDesigner,
                 TelemetryActions.Publish,
-                this._correlationId,
                 {
                     correlationId: this._correlationId,
+                    additionalProps: {
+                        correlationId: this._correlationId,
+                    },
                 },
             );
             this.state = {
@@ -488,7 +482,9 @@ export class TableDesignerWebviewController extends WebviewPanelController<
             try {
                 const script = await this._tableDesignerService.generateScript(payload.table);
                 sendActionEvent(TelemetryViews.TableDesigner, TelemetryActions.GenerateScript, {
-                    correlationId: this._correlationId,
+                    additionalProps: {
+                        correlationId: this._correlationId,
+                    },
                 });
                 state = {
                     ...state,
@@ -585,7 +581,9 @@ export class TableDesignerWebviewController extends WebviewPanelController<
                 };
             }
             sendActionEvent(TelemetryViews.TableDesigner, TelemetryActions.GenerateScript, {
-                correlationId: this._correlationId,
+                additionalProps: {
+                    correlationId: this._correlationId,
+                },
             });
 
             return state;
@@ -627,7 +625,9 @@ export class TableDesignerWebviewController extends WebviewPanelController<
 
         this.onNotification(designer.CloseDesignerNotification.type, async () => {
             sendActionEvent(TelemetryViews.TableDesigner, TelemetryActions.Close, {
-                correlationId: this._correlationId,
+                additionalProps: {
+                    correlationId: this._correlationId,
+                },
             });
             this.panel.dispose();
         });
@@ -635,7 +635,9 @@ export class TableDesignerWebviewController extends WebviewPanelController<
         this.registerReducer("continueEditing", async (state) => {
             this.state.apiState.publishState = designer.LoadState.NotStarted;
             sendActionEvent(TelemetryViews.TableDesigner, TelemetryActions.ContinueEditing, {
-                correlationId: this._correlationId,
+                additionalProps: {
+                    correlationId: this._correlationId,
+                },
             });
             return state;
         });
