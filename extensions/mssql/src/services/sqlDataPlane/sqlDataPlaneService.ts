@@ -24,6 +24,11 @@ import * as vscode from "vscode";
 import { RequestType, NotificationType } from "vscode-languageclient";
 import SqlToolsServiceClient from "../../languageservice/serviceclient";
 import {
+    PrivatePreviewContextKey,
+    PrivatePreviewFeature,
+    previewService,
+} from "../../previews/previewService";
+import {
     CapabilityCheck,
     DataPlaneAvailability,
     ISqlConnectionService,
@@ -74,6 +79,7 @@ import { Sts2Backend, Sts2Rpc, DEFAULT_DEADLINES, Sts2Deadlines } from "../sts2/
 // ---------------------------------------------------------------------------
 
 const SETTING_ENABLED = "mssql.sqlDataPlane.enabled";
+const SETTING_EXPERIMENTAL_FEATURES = "mssql.enableExperimentalFeatures";
 const SETTING_BACKEND = "mssql.sqlDataPlane.backend";
 const TIMEOUT_SETTINGS = [
     "mssql.sqlDataPlane.timeouts.openMs",
@@ -332,7 +338,10 @@ export class SqlDataPlaneService {
     }
 
     get enabled(): boolean {
-        return this.config.get<boolean>(SETTING_ENABLED, false);
+        return (
+            this.config.get<boolean>(SETTING_EXPERIMENTAL_FEATURES, false) &&
+            this.config.get<boolean>(SETTING_ENABLED, false)
+        );
     }
 
     /** The configured default kind for FUTURE sessions (alias-normalized). */
@@ -514,7 +523,9 @@ export class SqlDataPlaneService {
         // Azure serverless auto-pause: eligible profiles get an ARM status
         // check in parallel with the open and a bounded silent retry while
         // the database reports Paused/Pausing/Resuming (classic-path parity).
-        return openWithServerlessWake(params.profile, () => service.openSession(params));
+        // The public service view owns serverless wake/retry. Delegating once
+        // keeps the policy bounded instead of nesting two wake loops.
+        return service.openSession(params);
     }
 
     /**
@@ -796,6 +807,31 @@ export class SqlDataPlaneService {
             );
         }
         const registry = this;
+        const checkRequirements = (params: OpenSessionParams): CapabilityCheck => {
+            const requirements = registry.requirementsFor(params);
+            const check = evaluateRequirements(registry.effectiveSet(entry), requirements);
+            if (check.ok) {
+                return check;
+            }
+            const alternatives = registry.kindsSatisfying(requirements, entry.factory.kind);
+            return alternatives.length > 0 ? { ...check, alternatives } : check;
+        };
+        const throwUnsupported = (check: CapabilityCheck): never => {
+            throw new SqlDataPlaneError(
+                DataPlaneErrorCodes.capabilityUnsupported,
+                check.reason ?? "required capabilities not supported by the selected backend",
+                false,
+                { backend: { kind: entry.factory.kind } },
+            );
+        };
+        const throwUnavailable = (check: CapabilityCheck): never => {
+            throw new SqlDataPlaneError(
+                DataPlaneErrorCodes.unavailable,
+                check.reason ?? "selected backend is unavailable",
+                true,
+                { backend: { kind: entry.factory.kind } },
+            );
+        };
         return {
             get availability() {
                 return service.availability;
@@ -806,9 +842,28 @@ export class SqlDataPlaneService {
             get backendInfo() {
                 return service.backendInfo;
             },
-            canOpen: (params) => service.canOpen(params),
+            canOpen: async (params) => {
+                const check = checkRequirements(params);
+                return check.ok ? service.canOpen(params) : check;
+            },
             openSession: async (params) => {
-                const session = await service.openSession(params);
+                // service()/serviceForProfile() are public consumer surfaces,
+                // not raw-backend escape hatches. Enforce the same registry
+                // tripwire as SqlDataPlaneService.openSession before the
+                // provider can resolve credentials, then retain the shared
+                // Azure SQL serverless-wake behavior for direct view users
+                // such as MetadataStore.
+                const check = checkRequirements(params);
+                if (!check.ok) {
+                    throwUnsupported(check);
+                }
+                const providerCheck = await service.canOpen(params);
+                if (!providerCheck.ok) {
+                    throwUnavailable(providerCheck);
+                }
+                const session = await openWithServerlessWake(params.profile, () =>
+                    service.openSession(params),
+                );
                 registry.registerSession(entry, session);
                 return session;
             },
@@ -935,15 +990,29 @@ export function registerSqlDataPlane(context: vscode.ExtensionContext): void {
     context.subscriptions.push({
         dispose: () => void service.dispose(),
     });
-    context.subscriptions.push(
-        vscode.commands.registerCommand("mssql.sqlDataPlane.showStatus", async () => {
-            // PASSIVE (D5): never constructs a backend or resolves credentials.
-            const summary = JSON.stringify(SqlDataPlaneService.get().statusSummary(), undefined, 2);
-            const doc = await vscode.workspace.openTextDocument({
-                language: "json",
-                content: summary,
-            });
-            await vscode.window.showTextDocument(doc, { preview: true });
-        }),
+    const activeAtActivation = previewService.isPrivatePreviewEnabled(
+        PrivatePreviewFeature.SqlDataPlane,
     );
+    void vscode.commands.executeCommand(
+        "setContext",
+        PrivatePreviewContextKey.SqlDataPlaneActive,
+        activeAtActivation,
+    );
+    if (activeAtActivation) {
+        context.subscriptions.push(
+            vscode.commands.registerCommand("mssql.sqlDataPlane.showStatus", async () => {
+                // PASSIVE (D5): never constructs a backend or resolves credentials.
+                const summary = JSON.stringify(
+                    SqlDataPlaneService.get().statusSummary(),
+                    undefined,
+                    2,
+                );
+                const doc = await vscode.workspace.openTextDocument({
+                    language: "json",
+                    content: summary,
+                });
+                await vscode.window.showTextDocument(doc, { preview: true });
+            }),
+        );
+    }
 }

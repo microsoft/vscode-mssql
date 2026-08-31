@@ -20,6 +20,7 @@ import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import * as UriOwnershipInitialization from "../../src/uriOwnership/uriOwnershipInitialization";
 import { IconUtils } from "../../src/utils/iconUtils";
 import { UriOwnershipCoordinator } from "../../src/uriOwnership/uriOwnershipCore";
+import { PrivatePreviewContextKey } from "../../src/previews/previewService";
 
 const { expect } = chai;
 
@@ -109,6 +110,14 @@ suite("Extension API Tests", () => {
         expect(vscodeMssql.connectionSharing).to.equal(mainController.connectionSharingService);
         expect(vscodeMssql.uriOwnershipApi).to.equal(
             Extension.uriOwnershipCoordinator.uriOwnershipApi,
+        );
+    });
+
+    test("publishes the activation snapshot used to gate SQL Data Plane UI", () => {
+        expect(vscode.commands.executeCommand).to.have.been.calledWith(
+            "setContext",
+            PrivatePreviewContextKey.SqlDataPlaneActive,
+            false,
         );
     });
 });

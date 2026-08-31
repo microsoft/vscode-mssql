@@ -7,6 +7,7 @@ import * as childProcess from "child_process";
 import { Stats } from "fs";
 import * as fsPromises from "fs/promises";
 import * as os from "os";
+import * as path from "path";
 import * as chai from "chai";
 import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
@@ -158,10 +159,9 @@ suite("QueryCompletionSoundService", () => {
 
         await createService().play();
 
-        expect(statFileStub).to.have.been.calledWith("/home/test-user/sounds/complete.wav");
-        expect(spawnProcessStub).to.have.been.calledWith("/usr/bin/afplay", [
-            "/home/test-user/sounds/complete.wav",
-        ]);
+        const expandedPath = path.join("/home/test-user", "sounds", "complete.wav");
+        expect(statFileStub).to.have.been.calledWith(expandedPath);
+        expect(spawnProcessStub).to.have.been.calledWith("/usr/bin/afplay", [expandedPath]);
     });
 
     test("expands a forward-slash home directory path on Windows", async () => {
@@ -170,7 +170,9 @@ suite("QueryCompletionSoundService", () => {
 
         await createService(Constants.Platform.Windows).play();
 
-        expect(statFileStub).to.have.been.calledWith("/home/test-user/sounds/complete.wav");
+        expect(statFileStub).to.have.been.calledWith(
+            path.join("/home/test-user", "sounds", "complete.wav"),
+        );
     });
 
     test("plays the bundled default when the configured file type is unsupported", async () => {
@@ -247,19 +249,19 @@ suite("QueryCompletionSoundService", () => {
         expect(sendErrorEvent).to.have.been.calledWith(
             TelemetryViews.QueryEditor,
             TelemetryActions.QueryCompletionSoundPlayback,
-            sinon.match({
-                message:
-                    "Unable to play the bundled default query completion sound because no supported audio player could be used.",
-            }),
-            true,
-            undefined,
-            undefined,
             {
-                platform: Constants.Platform.Linux,
-                architecture: "test-architecture",
-                osType: "test-os",
-                osRelease: "test-release",
-                osVersion: "test-version",
+                error: sinon.match({
+                    message:
+                        "Unable to play the bundled default query completion sound because no supported audio player could be used.",
+                }),
+                includeErrorMessage: true,
+                additionalProps: {
+                    platform: Constants.Platform.Linux,
+                    architecture: "test-architecture",
+                    osType: "test-os",
+                    osRelease: "test-release",
+                    osVersion: "test-version",
+                },
             },
         );
         expect(loggerWarnStub).to.have.been.calledWith(

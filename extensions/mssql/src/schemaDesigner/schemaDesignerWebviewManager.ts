@@ -182,8 +182,7 @@ export class SchemaDesignerWebviewManager {
                         sendActionEvent(
                             TelemetryViews.WebviewController,
                             TelemetryActions.Restore,
-                            {},
-                            {},
+                            { additionalProps: {}, additionalMeasurements: {} },
                         );
                         // Show the webview again
                         return await this.getSchemaDesigner(

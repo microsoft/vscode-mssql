@@ -34,13 +34,12 @@ suite("MainController Background Tasks Tests", () => {
             openTask: openTaskStub,
         };
 
-        const nowStub = sandbox.stub(Date, "now");
-        nowStub.onCall(0).returns(1000);
-        nowStub.onCall(1).returns(1300);
+        const clock = sandbox.useFakeTimers({ now: 1000 });
 
         await (controller as any).handleBackgroundTaskNodeAction({ taskId: "task-1" });
         expect(openTaskStub).to.not.have.been.called;
 
+        clock.tick(300);
         await (controller as any).handleBackgroundTaskNodeAction({ taskId: "task-1" });
         expect(openTaskStub).to.have.been.calledWithExactly("task-1");
     });

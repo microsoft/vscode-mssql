@@ -124,8 +124,10 @@ suite("SqlTasksService Tests", () => {
                 "General",
                 "Initialize",
                 sinon.match({
-                    event: "CompletionHandlerOverwritten",
-                    operationName: "TestOperation",
+                    additionalProps: {
+                        event: "CompletionHandlerOverwritten",
+                        operationName: "TestOperation",
+                    },
                 }),
             );
         });
