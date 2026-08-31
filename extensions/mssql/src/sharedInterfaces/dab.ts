@@ -115,6 +115,30 @@ export namespace Dab {
         StoredProcedure = "stored-procedure",
     }
 
+    export interface DabMetadataQueryOptions {
+        useNoLock?: boolean;
+    }
+
+    export interface DabDatabaseObjectMetadata {
+        id: string;
+        schema: string;
+        name: string;
+    }
+
+    export interface DabViewColumnMetadata {
+        id: string;
+        name: string;
+        dataType: string;
+        isPrimaryKey: boolean;
+        ordinal: number;
+    }
+
+    export interface DabStoredProcedureParameterMetadata {
+        name: string;
+        dataType: string;
+        ordinal: number;
+    }
+
     /**
      * Authorization roles for entity access
      */

@@ -14,20 +14,16 @@ import { getErrorMessage, getUniqueFilePath, uuid } from "../utils/utils";
 import { sendActionEvent, startActivity } from "extension-toolkit/vscode";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { configSchemaDesignerEnableExpandCollapseButtons } from "../constants/constants";
-import { IConnectionInfo } from "vscode-mssql";
+import { DatabaseEngineEdition, IConnectionInfo, IServerInfo } from "vscode-mssql";
 import { AuthenticationType } from "../sharedInterfaces/connectionDialog";
 import { ConnectionStrategy } from "../controllers/sqlDocumentService";
 import { UserSurvey } from "../nps/userSurvey";
+import { DabMetadataService, type IDabMetadataService } from "../dab/dabMetadataService";
 import { DabService } from "../services/dabService";
 import { Dab } from "../sharedInterfaces/dab";
 import { CopilotChat } from "../sharedInterfaces/copilotChat";
 import { addMcpServerToWorkspace } from "../copilot/copilotUtils";
-import type { IMetadataService } from "../services/metadataService";
-import type {
-    DabDatabaseObjectMetadata,
-    DabStoredProcedureParameterMetadata,
-    DabViewColumnMetadata,
-} from "../sharedInterfaces/metadata";
+import SqlToolsServiceClient from "../languageservice/serviceclient";
 import {
     getSchemaDesignerDefinitionOutput,
     SchemaDesignerDefinitionOutput,
@@ -94,6 +90,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
     private _serverName: string | undefined;
     private _sqlServerContainerName: string | undefined;
     private _dabService = new DabService();
+    private _dabMetadataService: IDabMetadataService | undefined;
     private _progressListener:
         | ((progress: SchemaDesigner.SchemaDesignerProgressNotificationParams) => void)
         | undefined;
@@ -118,6 +115,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
         private connectionUri?: string,
         isReadOnly: boolean = false,
         cacheKey?: string,
+        dabMetadataService?: IDabMetadataService,
     ) {
         super(
             context,
@@ -152,6 +150,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
         );
 
         this._key = cacheKey ?? `${this.connectionString}-${this.databaseName}`;
+        this._dabMetadataService = dabMetadataService;
         this._serverName = this.resolveServerName();
         this._sqlServerContainerName = this.resolveSqlServerContainerName();
 
@@ -646,17 +645,28 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             return [];
         }
 
-        const metadataService = this.mainController.metadataService;
+        const dabMetadataService = this.dabMetadataService;
+        const queryOptions = this.getDabMetadataQueryOptions();
         const [views, storedProcedures] = await Promise.all([
-            metadataService.listDabViews(this.connectionUri, this.databaseName),
-            metadataService.listDabStoredProcedures(this.connectionUri, this.databaseName),
+            dabMetadataService.listDabViews(this.connectionUri, this.databaseName, queryOptions),
+            dabMetadataService.listDabStoredProcedures(
+                this.connectionUri,
+                this.databaseName,
+                queryOptions,
+            ),
         ]);
         const [viewColumnsByView, parametersByProcedure] = await Promise.all([
-            this.getDabViewColumnsByView(metadataService, this.connectionUri, views),
+            this.getDabViewColumnsByView(
+                dabMetadataService,
+                this.connectionUri,
+                views,
+                queryOptions,
+            ),
             this.getDabStoredProcedureParametersByProcedure(
-                metadataService,
+                dabMetadataService,
                 this.connectionUri,
                 storedProcedures,
+                queryOptions,
             ),
         ]);
 
@@ -701,17 +711,27 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
         return [...viewObjects, ...storedProcedureObjects];
     }
 
+    private get dabMetadataService(): IDabMetadataService {
+        this._dabMetadataService ??= new DabMetadataService(SqlToolsServiceClient.instance);
+        return this._dabMetadataService;
+    }
+
     private async getDabViewColumnsByView(
-        metadataService: IMetadataService,
+        dabMetadataService: IDabMetadataService,
         ownerUri: string,
-        views: DabDatabaseObjectMetadata[],
-    ): Promise<Map<string, DabViewColumnMetadata[]>> {
+        views: Dab.DabDatabaseObjectMetadata[],
+        queryOptions: Dab.DabMetadataQueryOptions,
+    ): Promise<Map<string, Dab.DabViewColumnMetadata[]>> {
         if (views.length === 0) {
             return new Map();
         }
 
         try {
-            return await metadataService.getDabViewColumnsByView(ownerUri, this.databaseName);
+            return await dabMetadataService.getDabViewColumnsByView(
+                ownerUri,
+                this.databaseName,
+                queryOptions,
+            );
         } catch (error) {
             this.logger.warn(
                 `Failed to load DAB view columns in bulk. Falling back to per-view metadata. ${getErrorMessage(error)}`,
@@ -724,18 +744,19 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                     try {
                         return [
                             view.id,
-                            await metadataService.getDabViewColumns(
+                            await dabMetadataService.getDabViewColumns(
                                 ownerUri,
                                 view.schema,
                                 view.name,
                                 this.databaseName,
+                                queryOptions,
                             ),
                         ] as const;
                     } catch (error) {
                         this.logger.warn(
                             `Failed to load DAB view columns for ${view.schema}.${view.name}. ${getErrorMessage(error)}`,
                         );
-                        return [view.id, [] as DabViewColumnMetadata[]] as const;
+                        return [view.id, [] as Dab.DabViewColumnMetadata[]] as const;
                     }
                 }),
             ),
@@ -743,18 +764,20 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
     }
 
     private async getDabStoredProcedureParametersByProcedure(
-        metadataService: IMetadataService,
+        dabMetadataService: IDabMetadataService,
         ownerUri: string,
-        storedProcedures: DabDatabaseObjectMetadata[],
-    ): Promise<Map<string, DabStoredProcedureParameterMetadata[]>> {
+        storedProcedures: Dab.DabDatabaseObjectMetadata[],
+        queryOptions: Dab.DabMetadataQueryOptions,
+    ): Promise<Map<string, Dab.DabStoredProcedureParameterMetadata[]>> {
         if (storedProcedures.length === 0) {
             return new Map();
         }
 
         try {
-            return await metadataService.getDabStoredProcedureParametersByProcedure(
+            return await dabMetadataService.getDabStoredProcedureParametersByProcedure(
                 ownerUri,
                 this.databaseName,
+                queryOptions,
             );
         } catch (error) {
             this.logger.warn(
@@ -768,21 +791,39 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                     try {
                         return [
                             procedure.id,
-                            await metadataService.getDabStoredProcedureParameters(
+                            await dabMetadataService.getDabStoredProcedureParameters(
                                 ownerUri,
                                 procedure.schema,
                                 procedure.name,
                                 this.databaseName,
+                                queryOptions,
                             ),
                         ] as const;
                     } catch (error) {
                         this.logger.warn(
                             `Failed to load DAB stored procedure parameters for ${procedure.schema}.${procedure.name}. ${getErrorMessage(error)}`,
                         );
-                        return [procedure.id, [] as DabStoredProcedureParameterMetadata[]] as const;
+                        return [
+                            procedure.id,
+                            [] as Dab.DabStoredProcedureParameterMetadata[],
+                        ] as const;
                     }
                 }),
             ),
+        );
+    }
+
+    private getDabMetadataQueryOptions(): Dab.DabMetadataQueryOptions {
+        return {
+            useNoLock: this.supportsNoLockTableHints(),
+        };
+    }
+
+    private supportsNoLockTableHints(): boolean {
+        const engineEditionId = this.resolveServerInfo()?.engineEditionId;
+        return (
+            engineEditionId !== DatabaseEngineEdition.SqlDataWarehouse &&
+            engineEditionId !== DatabaseEngineEdition.SqlOnDemand
         );
     }
 
@@ -1075,16 +1116,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
     }
 
     private resolveServerName(): string | undefined {
-        if (this.treeNode) {
-            return this.treeNode.connectionProfile?.server;
-        }
-
-        if (this.connectionUri) {
-            return this.mainController.connectionManager.getConnectionInfo(this.connectionUri)
-                ?.credentials?.server;
-        }
-
-        return undefined;
+        return this.resolveConnectionInfo()?.server;
     }
 
     /**
@@ -1098,14 +1130,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
     }
 
     private resolveAuthenticationType(): string | undefined {
-        if (this.treeNode) {
-            return this.treeNode.connectionProfile?.authenticationType;
-        }
-        if (this.connectionUri) {
-            return this.mainController.connectionManager.getConnectionInfo(this.connectionUri)
-                ?.credentials?.authenticationType;
-        }
-        return undefined;
+        return this.resolveConnectionInfo()?.authenticationType;
     }
 
     /**
@@ -1113,13 +1138,25 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
      * Returns undefined if the SQL Server is not running in a Docker container.
      */
     private resolveSqlServerContainerName(): string | undefined {
+        return this.resolveConnectionInfo()?.containerName;
+    }
+
+    private resolveServerInfo(): IServerInfo | undefined {
+        const connectionInfo = this.resolveConnectionInfo();
+        if (!connectionInfo) {
+            return undefined;
+        }
+        return this.mainController.connectionManager.getServerInfo(connectionInfo);
+    }
+
+    private resolveConnectionInfo(): IConnectionInfo | undefined {
         if (this.treeNode) {
-            return this.treeNode.connectionProfile?.containerName;
+            return this.treeNode.connectionProfile;
         }
 
         if (this.connectionUri) {
             return this.mainController.connectionManager.getConnectionInfo(this.connectionUri)
-                ?.credentials?.containerName;
+                ?.credentials;
         }
 
         return undefined;
