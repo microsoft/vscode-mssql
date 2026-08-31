@@ -2439,18 +2439,25 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     ): Promise<boolean> {
         const azureAccount = await VsCodeAzureHelper.getAccountById(state.selectedAccountId);
         const auth = VsCodeAzureHelper.getProvider();
+        const homeTenantId = VsCodeAzureHelper.getHomeTenantIdForAccount(azureAccount);
 
-        const signedIn = await auth.signIn(tenantId, azureAccount);
+        const signedIn = await auth.signIn(
+            tenantId === homeTenantId ? undefined : tenantId,
+            azureAccount,
+        );
 
-        // Refresh isSignedIn status for all tenants so the UI reflects the change
+        // Reload tenant metadata after sign-in so a home-tenant fallback is replaced by the full list.
         if (signedIn) {
+            const tenants = await VsCodeAzureHelper.getTenantsForAccount(azureAccount);
             const statuses = await Promise.all(
-                state.azureTenants.map((t) => auth.isSignedIn(t.id, azureAccount)),
+                tenants.map((tenant) => auth.isSignedIn(tenant.tenantId, azureAccount)),
             );
-            state.azureTenants = state.azureTenants.map((t, i) => ({
-                ...t,
-                isSignedIn: statuses[i],
+            state.azureTenants = tenants.map((tenant, index) => ({
+                id: tenant.tenantId!,
+                name: tenant.displayName!,
+                isSignedIn: statuses[index],
             }));
+            state.selectedTenantId = tenantId;
             this.updateState(state);
         }
 

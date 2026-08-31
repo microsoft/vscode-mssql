@@ -144,6 +144,7 @@ suite("Azure Helpers", () => {
             const account = mockAccounts.signedInAccount;
 
             sandbox.stub(azureHelpers.VsCodeAzureHelper, "getProvider").returns({
+                isSignedIn: () => Promise.resolve(true),
                 getTenants: (account) => {
                     // only the first account is signed in for this mock
                     if (account.id === mockAccounts.signedInAccount.id) {
@@ -157,6 +158,28 @@ suite("Azure Helpers", () => {
 
             const tenants = await azureHelpers.VsCodeAzureHelper.getTenantsForAccount(account);
             expect(tenants).to.deep.equal([mockTenants[1], mockTenants[0]]); // Tenants are returned alphabetically
+        });
+
+        test("getTenantsForAccount returns the home tenant when the account is signed out", async () => {
+            const provider = sandbox.createStubInstance(VSCodeAzureSubscriptionProvider);
+            provider.isSignedIn.resolves(false);
+            sandbox.stub(azureHelpers.VsCodeAzureHelper, "getProvider").returns(provider);
+
+            const tenants = await azureHelpers.VsCodeAzureHelper.getTenantsForAccount(
+                mockAccounts.notSignedInAccount,
+            );
+
+            const homeTenantId = azureHelpers.VsCodeAzureHelper.getHomeTenantIdForAccount(
+                mockAccounts.notSignedInAccount,
+            );
+            expect(tenants).to.deep.equal([
+                {
+                    tenantId: homeTenantId,
+                    displayName: homeTenantId,
+                    account: mockAccounts.notSignedInAccount,
+                },
+            ]);
+            expect(provider.getTenants.notCalled).to.be.true;
         });
 
         test("getSubscriptionsForTenant", async () => {
