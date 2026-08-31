@@ -10,7 +10,7 @@ import { Dab } from "../sharedInterfaces/dab";
 import { escapeStringLiteral } from "../utils/sqlStringUtils";
 import { getErrorMessage } from "../utils/utils";
 import { RequestType } from "vscode-languageclient";
-import { SimpleExecuteResult } from "vscode-mssql";
+import type { SimpleExecuteResult } from "vscode-mssql";
 
 const logger = getLogger("DabMetadataService");
 

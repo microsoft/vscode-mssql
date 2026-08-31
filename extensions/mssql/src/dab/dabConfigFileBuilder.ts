@@ -415,7 +415,16 @@ export class DabConfigFileBuilder {
         const hiddenColumns = entity.columns
             .filter((column) => !column.isExposed && !Dab.isLogicalKeyColumn(entity, column))
             .map((column) => column.name);
-        const allColumns = entity.columns.map((column) => column.name);
+        const allowedColumns = entity.columns
+            .filter((column) => column.isExposed || Dab.isLogicalKeyColumn(entity, column))
+            .map((column) => column.name);
+        const allowedColumnNames = new Set(
+            allowedColumns.map((columnName) => Dab.normalizeDabIdentifier(columnName)),
+        );
+        const filterAllowedColumns = (columnNames: string[]): string[] =>
+            columnNames.filter((columnName) =>
+                allowedColumnNames.has(Dab.normalizeDabIdentifier(columnName)),
+            );
 
         return Dab.getEntityPermissions(entity)
             .filter((permission) => permission.actions.length > 0)
@@ -429,7 +438,9 @@ export class DabConfigFileBuilder {
                         return {
                             action,
                             fields: {
-                                include: [...(actionFieldAccess?.fields ?? allColumns)],
+                                include: filterAllowedColumns(
+                                    actionFieldAccess?.fields ?? allowedColumns,
+                                ),
                             },
                         };
                     }

@@ -14,7 +14,8 @@ import { getErrorMessage, getUniqueFilePath, uuid } from "../utils/utils";
 import { sendActionEvent, startActivity } from "extension-toolkit/vscode";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { configSchemaDesignerEnableExpandCollapseButtons } from "../constants/constants";
-import { DatabaseEngineEdition, IConnectionInfo, IServerInfo } from "vscode-mssql";
+import type { IConnectionInfo, IServerInfo } from "vscode-mssql";
+import { DatabaseEngineEdition } from "../databaseProjects/common/enums";
 import { AuthenticationType } from "../sharedInterfaces/connectionDialog";
 import { ConnectionStrategy } from "../controllers/sqlDocumentService";
 import { UserSurvey } from "../nps/userSurvey";
@@ -833,6 +834,10 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
 
     private supportsNoLockTableHints(): boolean {
         const engineEditionId = this.resolveServerInfo()?.engineEditionId;
+        if (engineEditionId === undefined || engineEditionId === DatabaseEngineEdition.Unknown) {
+            return false;
+        }
+
         return (
             engineEditionId !== DatabaseEngineEdition.SqlDataWarehouse &&
             engineEditionId !== DatabaseEngineEdition.SqlOnDemand

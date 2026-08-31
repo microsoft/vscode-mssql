@@ -1664,17 +1664,23 @@ suite("SchemaDesignerWebviewController tests", () => {
 
             await handler(undefined);
 
-            expect(metadataService.listDabViews.firstCall.args[2]).to.deep.equal({
-                useNoLock: true,
-            });
-            expect(metadataService.getDabViewColumnsByView.firstCall.args[2]).to.deep.equal({
-                useNoLock: true,
-            });
+            expect(metadataService.listDabViews).to.have.been.calledWith(
+                connectionUri,
+                databaseName,
+                sinon.match({ useNoLock: true }),
+            );
+            expect(metadataService.getDabViewColumnsByView).to.have.been.calledWith(
+                connectionUri,
+                databaseName,
+                sinon.match({ useNoLock: true }),
+            );
             expect(
-                metadataService.getDabStoredProcedureParametersByProcedure.firstCall.args[2],
-            ).to.deep.equal({
-                useNoLock: true,
-            });
+                metadataService.getDabStoredProcedureParametersByProcedure,
+            ).to.have.been.calledWith(
+                connectionUri,
+                databaseName,
+                sinon.match({ useNoLock: true }),
+            );
         });
 
         test("should skip NOLOCK hints for Synapse and Data Warehouse metadata discovery", async () => {
@@ -1691,10 +1697,32 @@ suite("SchemaDesignerWebviewController tests", () => {
 
                 await handler(undefined);
 
-                expect(metadataService.listDabViews.firstCall.args[2]).to.deep.equal({
-                    useNoLock: false,
-                });
+                expect(metadataService.listDabViews).to.have.been.calledWith(
+                    connectionUri,
+                    databaseName,
+                    sinon.match({ useNoLock: false }),
+                );
             }
+        });
+
+        test("should skip NOLOCK hints when server engine information is unavailable", async () => {
+            const metadataService = createDabMetadataServiceStub();
+            (mockMainController.connectionManager as any).getServerInfo = sandbox
+                .stub()
+                .returns(undefined);
+
+            createController(metadataService);
+
+            const handler = requestHandlers.get(Dab.GetDatabaseObjectsRequest.type.method);
+            expect(handler).to.be.a("function");
+
+            await handler(undefined);
+
+            expect(metadataService.listDabViews).to.have.been.calledWith(
+                connectionUri,
+                databaseName,
+                sinon.match({ useNoLock: false }),
+            );
         });
     });
 

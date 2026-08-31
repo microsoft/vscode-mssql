@@ -1031,10 +1031,36 @@ suite("DabConfigFileBuilder Tests", () => {
                 ]);
             });
 
-            test("should emit all action includes for a role once column access is customized", () => {
+            test("should keep hidden columns out of customized field includes", () => {
                 const config = createTestConfig({
                     entities: [
                         createTestEntity({
+                            columns: [
+                                {
+                                    id: "id",
+                                    name: "Id",
+                                    dataType: "int",
+                                    isSupported: true,
+                                    isExposed: true,
+                                    isPrimaryKey: true,
+                                },
+                                {
+                                    id: "name",
+                                    name: "Name",
+                                    dataType: "nvarchar",
+                                    isSupported: true,
+                                    isExposed: true,
+                                    isPrimaryKey: false,
+                                },
+                                {
+                                    id: "secret",
+                                    name: "SecretValue",
+                                    dataType: "nvarchar",
+                                    isSupported: true,
+                                    isExposed: false,
+                                    isPrimaryKey: false,
+                                },
+                            ],
                             advancedSettings: {
                                 entityName: "Users",
                                 authorizationRole: Dab.AuthorizationRole.Anonymous,
@@ -1045,7 +1071,7 @@ suite("DabConfigFileBuilder Tests", () => {
                                         fieldAccess: [
                                             {
                                                 action: Dab.EntityAction.Create,
-                                                fields: ["Id"],
+                                                fields: ["Id", "SecretValue"],
                                             },
                                         ],
                                     },
