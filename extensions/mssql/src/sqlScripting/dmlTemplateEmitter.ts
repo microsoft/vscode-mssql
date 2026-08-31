@@ -23,7 +23,7 @@
 import { quoteIdentifier } from "../sqlLanguage/core/quote";
 import { LangColumn, LangObjectInfo, LangParam } from "../sqlLanguage/provider/types";
 import { ScriptAnchor } from "./api";
-import { ScriptWriter, fidelityHeader, withHeader } from "./scriptWriter";
+import { ScriptWriter, fidelityHeader, sanitizeCommentText, withHeader } from "./scriptWriter";
 
 export interface DmlEmitOutput {
     readonly text: string;
@@ -34,7 +34,7 @@ export interface DmlEmitOutput {
 function placeholder(column: LangColumn): string {
     const nullability =
         column.nullable === true ? ", NULL" : column.nullable === false ? ", NOT NULL" : "";
-    return `/* ${column.name} ${column.typeDisplay}${nullability} */`;
+    return `/* ${sanitizeCommentText(`${column.name} ${column.typeDisplay ?? "value"}${nullability}`)} */`;
 }
 
 function writable(columns: readonly LangColumn[]): readonly LangColumn[] {
@@ -165,7 +165,7 @@ function appendKeyedWhere(writer: ScriptWriter, pk: readonly LangColumn[], notes
     writer.append("WHERE ");
     pk.forEach((column, index) => {
         writer.anchored({ kind: "column", name: column.name }, quoteIdentifier(column.name));
-        writer.append(` = /* ${column.typeDisplay} */`);
+        writer.append(` = /* ${sanitizeCommentText(column.typeDisplay ?? "value")} */`);
         writer.append(index < pk.length - 1 ? "\r\n  AND " : ";\r\n");
     });
 }

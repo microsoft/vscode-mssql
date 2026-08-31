@@ -103,7 +103,21 @@ export function resolveNameParts(
         return { kind: "opaque", reason: "unknownSketchRegion" };
     }
     const last = parts[parts.length - 1];
-    // 1. Overlay objects (#temp, @tablevar, script tables).
+    // 1. Overlay objects (#temp, @tablevar, script tables/modules). Match the
+    // complete qualified parts first; last-part lookup remains for the legal
+    // unqualified/temp forms.
+    const qualifiedOverlay = ctx.overlay
+        .visibleObjectsAt(ctx.batchIndex, ctx.ordinal)
+        .slice()
+        .reverse()
+        .find(
+            (candidate) =>
+                candidate.parts.length === parts.length &&
+                candidate.parts.every((part, index) => fold(part) === fold(parts[index])),
+        );
+    if (qualifiedOverlay !== undefined) {
+        return { kind: "overlay", overlay: qualifiedOverlay };
+    }
     if (parts.length === 1 || last.startsWith("#")) {
         const obj = ctx.overlay.findObject(last, ctx.batchIndex, ctx.ordinal);
         if (obj !== undefined) {
@@ -114,11 +128,11 @@ export function resolveNameParts(
         }
     }
     // 2. Cross-database / linked-server honesty.
-    if (parts.length >= 4) {
+    if (rawParts.length >= 4) {
         return { kind: "opaque", reason: "linkedServer" };
     }
-    if (parts.length === 3) {
-        const database = parts[0];
+    if (rawParts.length === 3) {
+        const database = rawParts[0];
         const current = ctx.pinned.env.currentDatabase;
         if (current === undefined || fold(database) !== fold(current)) {
             return { kind: "opaque", reason: "crossDatabaseUnhydrated" };
@@ -128,7 +142,7 @@ export function resolveNameParts(
     if (ctx.pinned.readiness.objects !== "ready" && ctx.pinned.readiness.objects !== "partial") {
         return { kind: "opaque", reason: "providerNotReady" };
     }
-    const nameParts = parts.length === 3 ? parts.slice(1) : parts;
+    const nameParts = rawParts.length === 3 ? rawParts.slice(1).filter((p) => p.length > 0) : parts;
     const resolution = ctx.pinned.resolveObject(nameParts);
     switch (resolution.kind) {
         case "resolved":
@@ -173,7 +187,7 @@ export function bindStatement(input: BindInput): StatementBinding {
                 return { kind: "cte", cte };
             }
         }
-        return resolveNameParts(parts, nameCtx);
+        return resolveNameParts(source.parts, nameCtx);
     };
 
     const bindSource = (source: SourceRef): BoundSource => {

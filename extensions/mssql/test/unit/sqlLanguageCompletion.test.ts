@@ -256,6 +256,18 @@ suite("sqlLanguage native completion: CTEs, derived tables, temp objects", () =>
         expect(labels(result)).to.include.members(["Id", "Name"]);
     });
 
+    test("temp table columns flow into INSERT and UPDATE target completion", async () => {
+        const insert = await complete(
+            "CREATE TABLE #tmp (a int, b int)\nINSERT INTO #tmp (/*caret*/",
+        );
+        expect(labels(insert)).to.include.members(["a", "b"]);
+
+        const update = await complete(
+            "CREATE TABLE #tmp (a int, b int)\nUPDATE #tmp SET /*caret*/",
+        );
+        expect(labels(update)).to.include.members(["a", "b"]);
+    });
+
     test("SELECT INTO temp table columns (names known, types unknown)", async () => {
         const result = await complete(
             "SELECT OrderID AS oid INTO #x FROM Sales.Orders\nSELECT x./*caret*/ FROM #x x",
@@ -452,6 +464,14 @@ suite("sqlLanguage native completion: star expansion", () => {
         expect(expand!.replaceRange).to.not.equal(undefined);
     });
 
+    test("bare alias dot expansion does not duplicate the qualifier", async () => {
+        const result = await complete("SELECT o./*caret*/ FROM Sales.Orders o");
+        const expand = result.items.find((item) => item.label === "Expand columns");
+        expect(expand?.insertText).to.contain("OrderID");
+        expect(expand?.insertText).to.not.contain("o.OrderID");
+        expect(expand?.replaceRange).to.equal(undefined);
+    });
+
     test("no expansion when metadata is incomplete", async () => {
         const provider = new FixtureLanguageMetadataProvider({
             ...STANDARD_FIXTURE_CATALOG,
@@ -528,6 +548,20 @@ suite("sqlLanguage native completion: honesty under partial readiness", () => {
         const rightCase = await complete("SELECT O./*caret*/ FROM Sales.Orders AS O", provider);
         expect(labels(rightCase)).to.include("OrderID");
     });
+
+    test("case-sensitive catalog preserves case-distinct object candidates", async () => {
+        const provider = new FixtureLanguageMetadataProvider({
+            ...STANDARD_FIXTURE_CATALOG,
+            env: { ...STANDARD_FIXTURE_CATALOG.env, caseSensitive: true },
+            objects: [
+                ...STANDARD_FIXTURE_CATALOG.objects,
+                { schema: "dbo", name: "Foo", kind: "table", columns: [] },
+                { schema: "dbo", name: "foo", kind: "table", columns: [] },
+            ],
+        });
+        const result = await complete("SELECT * FROM dbo./*caret*/", provider);
+        expect(labels(result)).to.include.members(["Foo", "foo"]);
+    });
 });
 
 suite("sqlLanguage native completion: latency budget", () => {
@@ -569,6 +603,12 @@ suite("sqlLanguage native completion: statement start", () => {
         const result = await complete("/*caret*/");
         expect(labels(result)).to.include.members(["SELECT", "INSERT", "UPDATE", "DECLARE"]);
         expect(result.items.some((i) => i.kind === "snippet")).to.equal(true);
+    });
+
+    test("trailing comments and exact-EOF string openers suppress fallback completion", async () => {
+        expect((await complete("SELECT 1 -- trailing /*caret*/")).items).to.have.length(0);
+        expect((await complete("SELECT '/*caret*/")).items).to.have.length(0);
+        expect((await complete("SELECT 1 /* open /*caret*/")).items).to.have.length(0);
     });
 
     test("typed prefix ranks statement keywords before snippets", async () => {

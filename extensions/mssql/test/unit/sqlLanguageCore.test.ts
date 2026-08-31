@@ -51,6 +51,19 @@ suite("sqlLanguage lexer", () => {
         expect(cursor).to.equal(text.length);
     });
 
+    test("total coverage includes construct openers at exact EOF", () => {
+        for (const text of ["SELECT '", "FROM [", 'SELECT "', "/*"]) {
+            const { tokens } = lex(text);
+            let cursor = 0;
+            for (const token of tokens) {
+                expect(token.start, text).to.equal(cursor);
+                cursor = token.end;
+            }
+            expect(cursor, text).to.equal(text.length);
+            expect(tokens[tokens.length - 2].unterminated, text).to.equal(true);
+        }
+    });
+
     test("strings: escapes, N-prefix, multi-line, unterminated", () => {
         const escaped = significant("'it''s'");
         expect(escaped).to.have.length(1);
@@ -105,6 +118,25 @@ suite("sqlLanguage lexer", () => {
         ]);
     });
 
+    test("Unicode space separators, including NBSP, remain whitespace", () => {
+        const text = "SELECT * FROM dbo.Orders\u00a0WHERE Status = 1";
+        const tokens = lex(text).tokens;
+        expect(
+            tokens.some(
+                (token) =>
+                    token.kind === TokenKind.Whitespace &&
+                    text.slice(token.start, token.end) === "\u00a0",
+            ),
+        ).to.equal(true);
+        expect(
+            tokens.some(
+                (token) =>
+                    token.kind === TokenKind.Identifier &&
+                    text.slice(token.start, token.end) === "WHERE",
+            ),
+        ).to.equal(true);
+    });
+
     test("numbers: int, decimal, leading-dot, scientific, hex", () => {
         const tokens = significant("42 3.14 .5 1e5 1.5E-3 0xFF");
         expect(tokens.map((t) => t.kind)).to.deep.equal(new Array(6).fill(TokenKind.NumberLiteral));
@@ -129,6 +161,25 @@ suite("sqlLanguage lexer", () => {
         // Mid-line GO is an identifier; "GO abc" is content, not a separator.
         const midline = lex("SELECT go FROM t\nGO abc\n").tokens;
         expect(midline.filter((t) => t.kind === TokenKind.GoSeparator)).to.have.length(0);
+    });
+
+    test("GO execution-contract corpus", () => {
+        const corpus: readonly [string, number][] = [
+            ["GO", 1],
+            ["GO 0", 1],
+            ["\u00a0GO 5 -- repeat", 1],
+            ["GO;", 0],
+            ["GO abc", 0],
+            ["SELECT 'before\nGO\nafter'", 0],
+            ["SELECT [GO]", 0],
+            ["/*\nGO\n*/ SELECT 1", 0],
+        ];
+        for (const [text, expected] of corpus) {
+            expect(
+                lex(text).tokens.filter((token) => token.kind === TokenKind.GoSeparator),
+                text,
+            ).to.have.length(expected);
+        }
     });
 
     test("SQLCMD directive lines are opaque single tokens", () => {
@@ -310,6 +361,28 @@ suite("sqlLanguage router", () => {
         expect(status?.circuitBroken).to.equal(true);
         router.resetCircuits();
         expect(router.effectiveEngine("completion")).to.equal("nativeTypeScript");
+    });
+
+    test("async native timeout falls back and counts toward the circuit", async () => {
+        const native = new ScriptedEngine("ok");
+        const bridge = new ScriptedEngine("ok");
+        const router = new LanguageFeatureRouter({
+            native,
+            getBridge: () => bridge,
+            getPreference: () => "nativeTypeScript",
+            nativeTimeoutMs: 5,
+            breakAfterFailures: 1,
+        });
+        const result = await router.route("completion", (engine) =>
+            engine === native
+                ? new Promise<CompletionResult>((resolve) =>
+                      setTimeout(() => resolve({ items: [], isIncomplete: false }), 25),
+                  )
+                : engine.completion(request),
+        );
+        expect(result).to.deep.equal({ items: [], isIncomplete: false });
+        const status = router.status().find((entry) => entry.feature === "completion");
+        expect(status).to.include({ circuitBroken: true, nativeFailures: 1 });
     });
 });
 

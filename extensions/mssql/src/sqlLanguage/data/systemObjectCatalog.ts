@@ -132,13 +132,13 @@ export const curatedSystemObjects: readonly CuratedSystemObject[] = [
         schema: "sys",
         name: "dm_exec_sql_text",
         scope: "broad",
-        columns: ["sql_handle", "dbid", "objectid", "number", "encrypted", "text"],
+        columns: ["dbid", "objectid", "number", "encrypted", "text"],
     },
     {
         schema: "sys",
         name: "dm_exec_query_plan",
         scope: "broad",
-        columns: ["plan_handle", "dbid", "objectid", "number", "encrypted", "query_plan"],
+        columns: ["dbid", "objectid", "number", "encrypted", "query_plan"],
     },
     {
         schema: "sys",

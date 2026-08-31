@@ -185,6 +185,10 @@ export class LanguageFeatureRouter {
         feature: SqlLanguageFeature,
         invoke: (engine: SqlLanguageFeatureEngine) => Promise<T | undefined>,
     ): Promise<{ value?: T | undefined; failed?: boolean; timedOut?: boolean }> {
+        // Promise racing can bound only work that yields. Native synchronous
+        // features must remain self-bounding; whole-document diagnostics use
+        // diagnosticsPass through the sliced host scheduler for cancellable
+        // publication. The timeout protects async features and bridge seams.
         const timeoutMs = this.options.nativeTimeoutMs ?? 5000;
         let timer: ReturnType<typeof setTimeout> | undefined;
         try {

@@ -27,10 +27,17 @@ export class ScriptWriter {
     append(text: string): this {
         this.parts.push(text);
         for (let i = 0; i < text.length; i++) {
-            if (text.charCodeAt(i) === 10 /* \n */) {
+            const ch = text.charCodeAt(i);
+            if (ch === 13 /* \r */) {
                 this.line++;
                 this.character = 0;
-            } else if (text.charCodeAt(i) !== 13 /* \r counts with its \n */) {
+                if (text.charCodeAt(i + 1) === 10 /* CRLF is one newline */) {
+                    i++;
+                }
+            } else if (ch === 10 /* \n */) {
+                this.line++;
+                this.character = 0;
+            } else {
                 this.character++;
             }
         }
@@ -67,7 +74,13 @@ export function withHeader(
     }
     let headerLines = 0;
     for (let i = 0; i < header.length; i++) {
-        if (header.charCodeAt(i) === 10) {
+        const ch = header.charCodeAt(i);
+        if (ch === 13) {
+            headerLines++;
+            if (header.charCodeAt(i + 1) === 10) {
+                i++;
+            }
+        } else if (ch === 10) {
             headerLines++;
         }
     }

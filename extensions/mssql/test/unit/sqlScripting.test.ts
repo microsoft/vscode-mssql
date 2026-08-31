@@ -25,6 +25,7 @@ import {
     ScriptResult,
 } from "../../src/sqlScripting/api";
 import { SqlScriptingEngine } from "../../src/sqlScripting/scriptingService";
+import { ScriptWriter, withHeader } from "../../src/sqlScripting/scriptWriter";
 
 function pinOf(spec: FixtureCatalogSpec = STANDARD_FIXTURE_CATALOG): IPinnedMetadataView {
     return new FixtureLanguageMetadataProvider(spec).pin();
@@ -524,6 +525,30 @@ suite("sqlScripting DML templates", () => {
         expect(result.fidelityNotes.join(" ")).to.contain("identity/computed");
     });
 
+    test("placeholder comments sanitize legal delimiter text in metadata names", async () => {
+        const spec: FixtureCatalogSpec = {
+            ...STANDARD_FIXTURE_CATALOG,
+            objects: [
+                ...STANDARD_FIXTURE_CATALOG.objects,
+                {
+                    schema: "dbo",
+                    name: "DangerousNames",
+                    kind: "table",
+                    columns: [
+                        {
+                            name: "a*/b",
+                            typeDisplay: "[dbo].[type*/name]",
+                            nullable: true,
+                        },
+                    ],
+                },
+            ],
+        };
+        const result = await scriptOf("dbo", "DangerousNames", "insert", spec);
+        expect(result.text).to.contain("/* a* /b [dbo].[type* /name], NULL */");
+        expect(result.text).to.not.contain("/* a*/b");
+    });
+
     test("update golden: PK excluded from SET, PK-based WHERE", async () => {
         const result = await scriptOf("dbo", "Widgets", "update", WIDGET_CATALOG);
         const set = result.text.slice(result.text.indexOf("SET"), result.text.indexOf("WHERE"));
@@ -595,6 +620,27 @@ suite("sqlScripting DML templates", () => {
         };
         const result = await scriptOf("Sales", "Orders", "selectTop", spec);
         expect(result.unavailableReason).to.equal("notLoaded");
+    });
+});
+
+suite("sqlScripting writer newline accounting", () => {
+    test("standalone CR and CRLF each advance anchors by one line", () => {
+        const writer = new ScriptWriter();
+        writer.append("a\rb\r\nc").anchored({ kind: "header" }, "X");
+        expect(writer.anchors[0]).to.deep.include({ line: 2, character: 1 });
+
+        const composed = withHeader("one\rtwo\r\n", {
+            text: "body",
+            anchors: [
+                {
+                    symbol: { kind: "header" },
+                    span: { start: 0, end: 4 },
+                    line: 0,
+                    character: 0,
+                },
+            ],
+        });
+        expect(composed.anchors[0].line).to.equal(2);
     });
 });
 

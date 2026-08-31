@@ -14,9 +14,9 @@
  * line whose entry state is unchanged (design §7.1 "track line-start states").
  *
  * Purity: no vscode, no node APIs, no imports outside src/sqlLanguage
- * (lint-enforced). GO recognition follows the execution splitter's rules
- * (line-level, optional count, comments allowed around it) — parity is
- * asserted by tests against src/sql/batchSplitter.ts.
+ * (lint-enforced). GO recognition follows the documented execution splitter
+ * contract (line-level, optional count, comments allowed around it); a shared
+ * table-driven corpus pins that contract until the execution host consumes it.
  */
 
 import { TSQL_KEYWORD_MAP, KeywordInfo } from "../data/keywords.generated";
@@ -86,7 +86,24 @@ function isIdentStart(ch: number): boolean {
         (ch >= 65 && ch <= 90) || // A-Z
         (ch >= 97 && ch <= 122) || // a-z
         ch === 95 || // _
-        ch > 127 // unicode identifiers — tolerant superset
+        (ch > 127 && !isHorizontalWhitespace(ch)) // unicode identifiers — tolerant superset
+    );
+}
+
+/** Unicode space separators accepted between T-SQL tokens (not line breaks). */
+function isHorizontalWhitespace(ch: number): boolean {
+    return (
+        ch === 32 ||
+        ch === 9 ||
+        ch === 11 ||
+        ch === 12 ||
+        ch === 0x00a0 ||
+        ch === 0x1680 ||
+        (ch >= 0x2000 && ch <= 0x200a) ||
+        ch === 0x202f ||
+        ch === 0x205f ||
+        ch === 0x3000 ||
+        ch === 0xfeff
     );
 }
 
@@ -246,11 +263,11 @@ export function lex(text: string): LexResult {
         }
 
         // Whitespace run (no terminators).
-        if (ch === 32 || ch === 9 || ch === 11 || ch === 12) {
+        if (isHorizontalWhitespace(ch)) {
             let i = pos + 1;
             while (i < length) {
                 const c = text.charCodeAt(i);
-                if (c === 32 || c === 9 || c === 11 || c === 12) {
+                if (isHorizontalWhitespace(c)) {
                     i++;
                 } else {
                     break;
@@ -400,8 +417,8 @@ export function lex(text: string): LexResult {
             }
             const raw = text.slice(pos, i);
             const upper = raw.toUpperCase();
-            // GO batch separator — EXACT execution-splitter parity
-            // (src/sql/batchSplitter.ts GO_LINE = /^\s*GO(?:\s+(\d+))?\s*(?:--.*)?$/i):
+            // GO batch separator — documented execution-splitter contract:
+            // /^\s*GO(?:\s+(\d+))?\s*(?:--.*)?$/i
             // whitespace-only prefix on the line, and the remainder must be an
             // optional count plus an optional line comment. "GO abc" is NOT a
             // separator (it ships to the server as content).
@@ -442,6 +459,21 @@ export function lex(text: string): LexResult {
         tokens.push({ kind: TokenKind.Unknown, start: pos, end: pos + 1 });
         pos += 1;
         atLineStart = false;
+    }
+
+    // An opener can be the final character(s) in the document, in which case
+    // the loop exits before the resume branch can emit the unterminated token.
+    // Flush it here to preserve the total-coverage and suppression invariants.
+    if (constructStart >= 0) {
+        const kind =
+            mode === LineStartMode.BlockComment
+                ? TokenKind.BlockComment
+                : mode === LineStartMode.String
+                  ? TokenKind.StringLiteral
+                  : mode === LineStartMode.QuotedIdentifier
+                    ? TokenKind.QuotedIdentifier
+                    : TokenKind.BracketedIdentifier;
+        tokens.push({ kind, start: constructStart, end: length, unterminated: true });
     }
 
     tokens.push({ kind: TokenKind.EndOfFile, start: length, end: length });

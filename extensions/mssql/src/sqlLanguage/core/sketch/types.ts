@@ -152,6 +152,8 @@ export interface StatementSketch {
     readonly exec?: ExecCall;
     readonly useDatabase?: string;
     readonly createdTable?: CreatedTable;
+    /** Script-local CREATE/ALTER module name (shape intentionally unknown). */
+    readonly moduleObject?: { readonly parts: readonly string[]; readonly span: SketchSpan };
     /** SELECT ... INTO target (temp or real). */
     readonly selectInto?: { readonly parts: readonly string[]; readonly span: SketchSpan };
 }

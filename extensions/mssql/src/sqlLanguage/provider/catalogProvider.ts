@@ -153,7 +153,11 @@ export class CatalogLanguageMetadataProvider implements ISqlLanguageMetadataProv
         return {
             currentDatabase: this.host.currentDatabase(),
             defaultSchema: snapshot?.defaultSchema ?? "dbo",
-            caseSensitive: snapshot?.caseSensitive ?? false,
+            // CatalogSnapshot deliberately fails closed (exact spelling) when
+            // H0 did not establish the comparison rule. Mirror that behavior
+            // here and tell diagnostics not to make 207/208 claims meanwhile.
+            caseSensitive: snapshot?.caseSensitive ?? true,
+            caseSensitivityKnown: snapshot === undefined || snapshot.caseSensitive !== undefined,
             engineEdition: snapshot?.engineEdition ?? this.host.engineEdition?.(),
             serverVersion: this.host.serverVersion(),
             capabilities: { createOrAlterProgrammability: createOrAlter, dropIfExists },
@@ -353,32 +357,26 @@ class SnapshotPinnedView implements IPinnedMetadataView {
 
     searchObjects(query: ObjectSearchQuery): readonly LangObjectInfo[] {
         const limit = query.limit ?? 100;
-        const source =
-            query.prefix !== undefined && query.prefix.length > 0
-                ? this.snapshot.search(query.prefix, Math.max(limit * 2, limit))
-                : this.snapshot.listObjects(
-                      query.schema,
-                      query.kinds ? [...query.kinds] : undefined,
-                  );
-        const out: LangObjectInfo[] = [];
-        for (const info of source) {
-            if (query.schema !== undefined && info.schema !== query.schema) {
-                continue;
-            }
-            if (query.kinds !== undefined && !query.kinds.includes(info.kind)) {
-                continue;
-            }
-            out.push({
-                ref: { objectId: info.objectId },
-                schema: info.schema,
-                name: info.name,
-                kind: info.kind,
-            });
-            if (out.length >= limit) {
-                break;
+        if (query.prefix !== undefined && query.prefix.length > 0) {
+            // Snapshot.search cannot accept kind/schema filters. Grow the
+            // prefix window until the filtered result is full or the prefix
+            // range is exhausted; a fixed pre-filter cap can silently omit a
+            // valid table/view behind many same-prefix procedures.
+            let searchLimit = Math.max(limit * 2, limit);
+            for (;;) {
+                const source = this.snapshot.search(query.prefix, searchLimit);
+                const filtered = mapFilteredObjects(source, query, limit);
+                if (filtered.length >= limit || source.length < searchLimit) {
+                    return filtered;
+                }
+                searchLimit *= 2;
             }
         }
-        return out;
+        const source = this.snapshot.listObjects(
+            query.schema,
+            query.kinds ? [...query.kinds] : undefined,
+        );
+        return mapFilteredObjects(source, query, limit);
     }
 
     listSchemas(): readonly { name: string }[] {
@@ -409,4 +407,30 @@ class SnapshotPinnedView implements IPinnedMetadataView {
         }
         return { unavailableReason: result.unavailableReason ?? "notLoaded" };
     }
+}
+
+function mapFilteredObjects(
+    source: Readonly<ReturnType<CatalogSnapshot["listObjects"]>>,
+    query: ObjectSearchQuery,
+    limit: number,
+): LangObjectInfo[] {
+    const out: LangObjectInfo[] = [];
+    for (const info of source) {
+        if (query.schema !== undefined && info.schema !== query.schema) {
+            continue;
+        }
+        if (query.kinds !== undefined && !query.kinds.includes(info.kind)) {
+            continue;
+        }
+        out.push({
+            ref: { objectId: info.objectId },
+            schema: info.schema,
+            name: info.name,
+            kind: info.kind,
+        });
+        if (out.length >= limit) {
+            break;
+        }
+    }
+    return out;
 }

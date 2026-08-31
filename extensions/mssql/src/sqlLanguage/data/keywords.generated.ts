@@ -138,6 +138,12 @@ export const TSQL_KEYWORDS: readonly KeywordInfo[] = [
     { id: "WHERE", category: "clause", reserved: true },
     { id: "WITH", category: "clause", reserved: true },
 
+    // Contextual expression grammar. These are keyword-like only in their
+    // multi-word forms (AT TIME ZONE, WITHIN GROUP), not reserved identifiers.
+    { id: "AT", category: "contextual", reserved: false },
+    { id: "WITHIN", category: "contextual", reserved: false },
+    { id: "ZONE", category: "contextual", reserved: false },
+
     // ------------------------------------------------------------------
     // operator — word operators (all reserved)
     // ------------------------------------------------------------------
