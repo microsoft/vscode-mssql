@@ -1078,11 +1078,16 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
                             onChange={(_, data) => {
                                 toggleEntities(row.entities, data.checked === true);
                             }}
-                            aria-label={locConstants.schemaDesigner.toggleAllEntitiesInSchema(
+                            aria-label={
                                 row.type === "schema"
-                                    ? row.schemaName
-                                    : sourceTypeLabels[row.sourceType],
-                            )}
+                                    ? locConstants.schemaDesigner.toggleAllEntitiesInSchema(
+                                          row.schemaName,
+                                      )
+                                    : locConstants.schemaDesigner.toggleAllEntitiesInObjectGroup(
+                                          sourceTypeLabels[row.sourceType],
+                                          row.schemaName,
+                                      )
+                            }
                         />
                     </div>
                 );
@@ -1190,7 +1195,7 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
 
             const labels: Record<Dab.ApiType, string> = {
                 [Dab.ApiType.Rest]: locConstants.schemaDesigner.rest,
-                [Dab.ApiType.GraphQL]: "GQL",
+                [Dab.ApiType.GraphQL]: locConstants.schemaDesigner.graphql,
                 [Dab.ApiType.Mcp]: locConstants.schemaDesigner.mcp,
             };
             const sections: Record<Dab.ApiType, SettingsInitialSection> = {

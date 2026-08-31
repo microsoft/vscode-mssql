@@ -25,31 +25,31 @@
 }
 
 .dab-pill-rest {
-    border-color: rgba(63, 185, 80, 0.35) !important;
-    background: rgba(63, 185, 80, 0.12) !important;
-    color: #7ee787 !important;
+    border-color: color-mix(in srgb, var(--vscode-charts-green) 35%, transparent) !important;
+    background: color-mix(in srgb, var(--vscode-charts-green) 12%, transparent) !important;
+    color: var(--vscode-charts-green) !important;
 }
 
 .dab-pill-graphql {
-    border-color: rgba(233, 130, 157, 0.35) !important;
-    background: rgba(233, 130, 157, 0.12) !important;
-    color: #ffb3c4 !important;
+    border-color: color-mix(in srgb, var(--vscode-charts-red) 35%, transparent) !important;
+    background: color-mix(in srgb, var(--vscode-charts-red) 12%, transparent) !important;
+    color: var(--vscode-charts-red) !important;
 }
 
 .dab-pill-mcp {
-    border-color: rgba(180, 122, 248, 0.35) !important;
-    background: rgba(180, 122, 248, 0.12) !important;
-    color: #d2a8ff !important;
+    border-color: color-mix(in srgb, var(--vscode-charts-purple) 35%, transparent) !important;
+    background: color-mix(in srgb, var(--vscode-charts-purple) 12%, transparent) !important;
+    color: var(--vscode-charts-purple) !important;
 }
 
 .dab-pill-anonymous {
-    border-color: rgba(91, 179, 245, 0.35) !important;
-    background: rgba(91, 179, 245, 0.12) !important;
-    color: #79c0ff !important;
+    border-color: color-mix(in srgb, var(--vscode-charts-blue) 35%, transparent) !important;
+    background: color-mix(in srgb, var(--vscode-charts-blue) 12%, transparent) !important;
+    color: var(--vscode-charts-blue) !important;
 }
 
 .dab-pill-authenticated {
-    border-color: rgba(240, 136, 62, 0.35) !important;
-    background: rgba(240, 136, 62, 0.12) !important;
-    color: #ffa657 !important;
+    border-color: color-mix(in srgb, var(--vscode-charts-orange) 35%, transparent) !important;
+    background: color-mix(in srgb, var(--vscode-charts-orange) 12%, transparent) !important;
+    color: var(--vscode-charts-orange) !important;
 }

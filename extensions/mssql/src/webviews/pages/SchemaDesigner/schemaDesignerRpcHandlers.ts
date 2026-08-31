@@ -1509,7 +1509,7 @@ function createEntityWithSurfaceEnabled(
         case Dab.ApiType.Mcp:
             advancedSettings.mcpEnabled = isEnabled;
             advancedSettings.mcpDmlToolsEnabled = isEnabled;
-            if (entity.sourceType === Dab.EntitySourceType.StoredProcedure) {
+            if (!isEnabled && entity.sourceType === Dab.EntitySourceType.StoredProcedure) {
                 advancedSettings.mcpCustomToolEnabled = false;
                 advancedSettings.exposeAsMcpCustomTool = false;
             }
@@ -1729,9 +1729,15 @@ function applyDabToolChange(
                 return permissionValidation;
             }
 
+            const selectedRoleActions =
+                change.permissions.find(
+                    (permission) =>
+                        permission.role ===
+                        resolvedEntity.entity.advancedSettings.authorizationRole,
+                )?.actions ?? [];
             config.entities[resolvedEntity.index] = {
                 ...resolvedEntity.entity,
-                enabledActions: change.permissions[0]?.actions ?? [],
+                enabledActions: [...selectedRoleActions],
                 advancedSettings: {
                     ...resolvedEntity.entity.advancedSettings,
                     permissions: change.permissions.map((permission) => ({

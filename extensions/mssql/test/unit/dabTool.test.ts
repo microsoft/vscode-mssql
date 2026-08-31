@@ -1319,6 +1319,85 @@ suite("DabTool Tests", () => {
             expect(validAction.success).to.equal(true);
         });
 
+        test("apply_changes keeps legacy actions synchronized with the selected permission role", async () => {
+            const table = createTable("t1", "dbo", "Users");
+            const dabConfig = Dab.createDefaultConfig([table]);
+            dabConfig.entities[0].advancedSettings.authorizationRole =
+                Dab.AuthorizationRole.Authenticated;
+            const harness = createDabHandlerHarness({
+                tables: [table],
+                dabConfig,
+            });
+            const state = await harness.getState();
+
+            const result = await harness.applyChanges({
+                expectedVersion: state.version,
+                changes: [
+                    {
+                        type: "set_entity_permissions",
+                        entity: { id: "t1" },
+                        permissions: [
+                            {
+                                role: Dab.AuthorizationRole.Anonymous,
+                                actions: [Dab.EntityAction.Read],
+                            },
+                            {
+                                role: Dab.AuthorizationRole.Authenticated,
+                                actions: [Dab.EntityAction.Create, Dab.EntityAction.Update],
+                            },
+                        ],
+                    },
+                ],
+            });
+
+            expect(result.success).to.equal(true);
+            expect(result.config?.entities[0].enabledActions).to.deep.equal([
+                Dab.EntityAction.Create,
+                Dab.EntityAction.Update,
+            ]);
+        });
+
+        test("apply_changes preserves stored procedure custom-tool settings when enabling MCP", async () => {
+            const procedureSource: Dab.DabSourceObject = {
+                id: "stored-procedure:dbo.GetUsers",
+                sourceType: Dab.EntitySourceType.StoredProcedure,
+                schemaName: "dbo",
+                sourceName: "GetUsers",
+                columns: [],
+                parameters: [],
+            };
+            const dabConfig = Dab.createDefaultConfigFromSources([procedureSource]);
+            dabConfig.entities[0].advancedSettings.mcpEnabled = false;
+            dabConfig.entities[0].advancedSettings.mcpDmlToolsEnabled = false;
+            dabConfig.entities[0].advancedSettings.mcpCustomToolEnabled = true;
+            dabConfig.entities[0].advancedSettings.exposeAsMcpCustomTool = true;
+            const harness = createDabHandlerHarness({
+                tables: [],
+                sourceObjects: [procedureSource],
+                dabConfig,
+            });
+            const state = await harness.getState();
+
+            const result = await harness.applyChanges({
+                expectedVersion: state.version,
+                changes: [
+                    {
+                        type: "set_entity_surface",
+                        entity: { id: procedureSource.id },
+                        apiType: Dab.ApiType.Mcp,
+                        isEnabled: true,
+                    },
+                ],
+            });
+
+            expect(result.success).to.equal(true);
+            const settings = result.config?.entities[0].advancedSettings;
+            expect(settings?.mcpEnabled).to.equal(true);
+            expect(settings?.mcpDmlToolsEnabled).to.equal(true);
+            expect(settings?.mcpCustomToolEnabled).to.equal(true);
+            expect(settings?.exposeAsMcpCustomTool).to.equal(true);
+        });
+
         test("apply_changes validates patch_entity_settings payload and duplicate entity names", async () => {
             const harness = createDabHandlerHarness({
                 tables: [createTable("t1", "dbo", "Users"), createTable("t2", "dbo", "Orders")],

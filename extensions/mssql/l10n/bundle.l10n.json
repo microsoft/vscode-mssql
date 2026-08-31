@@ -3863,6 +3863,10 @@
         "message": "Toggle all entities in {0}",
         "comment": ["{0} is the schema name"]
     },
+    "Toggle all {0} in schema {1}/{0} is the source type{1} is the schema name": {
+        "message": "Toggle all {0} in schema {1}",
+        "comment": ["{0} is the source type", "{1} is the schema name"]
+    },
     "Enable {0}/{0} is the entity name": {
         "message": "Enable {0}",
         "comment": ["{0} is the entity name"]

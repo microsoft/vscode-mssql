@@ -2163,6 +2163,12 @@ export class LocConstants {
                     args: [schemaName],
                     comment: ["{0} is the schema name"],
                 }),
+            toggleAllEntitiesInObjectGroup: (sourceType: string, schemaName: string) =>
+                l10n.t({
+                    message: "Toggle all {0} in schema {1}",
+                    args: [sourceType, schemaName],
+                    comment: ["{0} is the source type", "{1} is the schema name"],
+                }),
             enableEntity: (entityName: string) =>
                 l10n.t({
                     message: "Enable {0}",

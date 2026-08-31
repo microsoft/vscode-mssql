@@ -8773,6 +8773,11 @@
       <source xml:lang="en">Toggle all entities in {0}</source>
       <note>{0} is the schema name</note>
     </trans-unit>
+    <trans-unit id="++CODE++a66b489150eac01cbefbd7ab03abcf4527a72a38c9956636647b07d9d31f530f">
+      <source xml:lang="en">Toggle all {0} in schema {1}</source>
+      <note>{0} is the source type
+{1} is the schema name</note>
+    </trans-unit>
     <trans-unit id="++CODE++9bcf2e5fe7e330dcd17af169e2cd49b62da4c4c033dbeb88966f8e3a8d5e6ad8">
       <source xml:lang="en">Toggle between grid and text view</source>
     </trans-unit>
