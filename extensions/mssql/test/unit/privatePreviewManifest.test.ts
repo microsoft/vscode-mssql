@@ -24,6 +24,11 @@ interface CommandPaletteContribution {
     when?: string;
 }
 
+interface LanguageModelChatProviderContribution {
+    vendor: string;
+    when?: string;
+}
+
 interface ExtensionPackageJson {
     contributes: {
         commands: CommandContribution[];
@@ -31,6 +36,7 @@ interface ExtensionPackageJson {
         configuration: {
             properties: Record<string, { default?: unknown }>;
         };
+        languageModelChatProviders: LanguageModelChatProviderContribution[];
     };
 }
 
@@ -64,6 +70,16 @@ suite("Private preview manifest", () => {
                 expect(command(commandId).enablement).to.equal(AI_INLINE_COMPLETIONS_GATE);
                 expect(commandPalette(commandId).when).to.equal(AI_INLINE_COMPLETIONS_GATE);
             }
+        }
+    });
+
+    test("keeps AI language-model providers out of the default UI", () => {
+        for (const vendor of ["anthropic-api", "openai-api", "xai-api"]) {
+            const provider = packageJson.contributes.languageModelChatProviders.find(
+                (candidate) => candidate.vendor === vendor,
+            );
+            expect(provider, `missing language model provider ${vendor}`).to.not.be.undefined;
+            expect(provider!.when).to.equal(AI_INLINE_COMPLETIONS_GATE);
         }
     });
 

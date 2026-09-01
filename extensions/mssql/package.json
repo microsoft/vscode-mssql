@@ -5758,21 +5758,24 @@
                 "vendor": "anthropic-api",
                 "label": "Anthropic API",
                 "displayName": "Anthropic API",
-                "managementCommand": "mssql.copilot.sdkProviders.anthropic.setApiKey"
+                "managementCommand": "mssql.copilot.sdkProviders.anthropic.setApiKey",
+                "when": "mssql.privatePreview.aiInlineCompletionsActive && config.mssql.enableExperimentalFeatures && config.mssql.copilot.inlineCompletions.enabled"
             },
             {
                 "id": "openai-api",
                 "vendor": "openai-api",
                 "label": "OpenAI API",
                 "displayName": "OpenAI API",
-                "managementCommand": "mssql.copilot.sdkProviders.openai.setApiKey"
+                "managementCommand": "mssql.copilot.sdkProviders.openai.setApiKey",
+                "when": "mssql.privatePreview.aiInlineCompletionsActive && config.mssql.enableExperimentalFeatures && config.mssql.copilot.inlineCompletions.enabled"
             },
             {
                 "id": "xai-api",
                 "vendor": "xai-api",
                 "label": "xAI API",
                 "displayName": "xAI API",
-                "managementCommand": "mssql.copilot.sdkProviders.xai.setApiKey"
+                "managementCommand": "mssql.copilot.sdkProviders.xai.setApiKey",
+                "when": "mssql.privatePreview.aiInlineCompletionsActive && config.mssql.enableExperimentalFeatures && config.mssql.copilot.inlineCompletions.enabled"
             }
         ]
     }
