@@ -19,6 +19,7 @@
 
 import { diag } from "../../../diagnostics/diagnosticsCore";
 import { IConnectionProfile } from "../../../models/interfaces";
+import { randomUUID } from "crypto";
 
 export interface HandoffConnectionSeam {
     connect(ownerUri: string, profile: IConnectionProfile): Promise<boolean>;
@@ -62,7 +63,7 @@ export class OeV2ClassicHandoffService {
             this.emitHandoff(feature, "reused");
             return existing.ownerUri;
         }
-        const nonce = this.options.uriNonce?.() ?? Math.random().toString(36).slice(2, 10);
+        const nonce = this.options.uriNonce?.() ?? randomUUID();
         const ownerUri = `objectexplorerv2://handoff/${fingerprint.slice(0, 12)}/${nonce}`;
         const connected = await this.connections.connect(ownerUri, profile).catch(() => false);
         if (!connected) {
