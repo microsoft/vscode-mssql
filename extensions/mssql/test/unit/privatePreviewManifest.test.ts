@@ -11,6 +11,8 @@ const SQL_DATA_PLANE_GATE =
     "mssql.privatePreview.sqlDataPlaneActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled";
 const METADATA_CACHE_GATE =
     "mssql.privatePreview.metadataCacheActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.metadataCache.enabled";
+const AI_INLINE_COMPLETIONS_GATE =
+    "mssql.privatePreview.aiInlineCompletionsActive && config.mssql.enableExperimentalFeatures && config.mssql.copilot.inlineCompletions.enabled";
 
 interface CommandContribution {
     command: string;
@@ -43,6 +45,26 @@ suite("Private preview manifest", () => {
         expect(settings["mssql.enableExperimentalFeatures"]?.default).to.equal(false);
         expect(settings["mssql.sqlDataPlane.enabled"]?.default).to.equal(false);
         expect(settings["mssql.metadataCache.enabled"]?.default).to.equal(false);
+        expect(settings["mssql.copilot.inlineCompletions.enabled"]?.default).to.equal(false);
+        expect(settings["mssql.copilot.inlineCompletions.trace.captureEnabled"]?.default).to.equal(
+            false,
+        );
+        expect(settings["mssql.copilot.inlineCompletions.trace.redactPrompts"]?.default).to.equal(
+            true,
+        );
+        expect(settings["mssql.copilot.sdkProviders.anthropic.enabled"]?.default).to.equal(false);
+        expect(settings["mssql.copilot.sdkProviders.openai.enabled"]?.default).to.equal(false);
+        expect(settings["mssql.copilot.sdkProviders.xai.enabled"]?.default).to.equal(false);
+    });
+
+    test("keeps AI provider commands out of the default UI", () => {
+        for (const provider of ["anthropic", "openai", "xai"]) {
+            for (const action of ["setApiKey", "clearApiKey"]) {
+                const commandId = `mssql.copilot.sdkProviders.${provider}.${action}`;
+                expect(command(commandId).enablement).to.equal(AI_INLINE_COMPLETIONS_GATE);
+                expect(commandPalette(commandId).when).to.equal(AI_INLINE_COMPLETIONS_GATE);
+            }
+        }
     });
 
     test("requires the activation snapshot and umbrella before SQL Data Plane UI is visible", () => {

@@ -10,32 +10,39 @@
  *   document → resolver → catalog snapshot → RawSchemaContextPayload →
  *   normalize (per generation+budget, cached) → relevance selection (per call)
  *
- * Resolvers, in order:
- *   1. Query Studio documents — reuse the DocumentSessionBinding's metadata
- *      handle (already hydrated over its dedicated background session).
- *   2. Classic .sql documents — map the document's classic connection to a
- *      data-plane metadata acquisition (gated on mssql.sqlDataPlane.enabled;
- *      passwords resolved through the connection store at open time only).
+ * Classic .sql documents map their active connection to a shared
+ * MetadataStore acquisition. Query Studio integration stays out of this
+ * standalone slice because that editor has not been merged to main yet.
  *
  * Deviation from the original service: there is no fetch-wait — a catalog
  * still hydrating yields no schema context for that request (the provider
  * already reports fallbackWithoutMetadata honestly) and later requests pick
- * up the hydrated catalog. The classic resolver awaits the FIRST hydration of
- * a newly acquired catalog so cold connections still get context.
+ * up the hydrated catalog. The classic resolver goes through the SHARED
+ * MetadataStore (CACHE-4, addendum §7.6): a persistent-cache hit answers a
+ * cold restart instantly with a background refresh; otherwise
+ * ensureFresh(aiContext) joins the first hydration, still bounded by the
+ * prior 120s ceiling.
  */
 
 import * as vscode from "vscode";
 import * as Constants from "../constants/constants";
-import { logger2 } from "../models/logger2";
+import { diagnosticErrorClass } from "../diagnostics/diagnosticsCore";
+import { logger } from "../models/logger";
 import { CatalogSnapshot } from "../services/metadata/catalogModel";
+import { MetadataPolicies } from "../services/metadata/cache/metadataFreshness";
+import { DatabaseCatalogLease } from "../services/metadata/metadataStore";
+import { MetadataStoreService } from "../services/metadata/metadataStoreService";
 import {
-    DataPlaneMetadataSessionSource,
-    MetadataService,
-} from "../services/metadata/metadataService";
-import { SqlConnectionProfileRef } from "../services/sqlDataPlane/api";
+    prepareConnection,
+    profilePrincipal,
+    ProfileTokenSource,
+    ResolvedAuthKind,
+    resolveAuthKind,
+    StoredConnectionProfile,
+} from "../services/metadata/profileAuthAdapter";
+import { profileFingerprint } from "../services/metadata/profileFingerprint";
 import { SqlDataPlaneService } from "../services/sqlDataPlane/sqlDataPlaneService";
 import { InlineCompletionDebugSchemaContextOverrides } from "../sharedInterfaces/inlineCompletionDebug";
-import { findQueryStudioModel } from "../queryStudio/queryStudioEditorProvider";
 import {
     buildRawSchemaContextPayload,
     CatalogPayloadConnectionFacts,
@@ -65,34 +72,14 @@ export interface CompletionMetadataResolver {
     dispose?(): void;
 }
 
-/** Resolver 1: Query Studio documents via their session binding's handle. */
-export class QueryStudioCompletionMetadataResolver implements CompletionMetadataResolver {
-    async resolve(document: vscode.TextDocument): Promise<CompletionCatalogAccess | undefined> {
-        const model = findQueryStudioModel(document.uri);
-        const binding = model?.sessionBinding;
-        const handle = binding?.metadataHandleForConsumers;
-        const snapshot = handle?.current();
-        if (!binding || !handle || !snapshot) {
-            return undefined;
-        }
-        const state = binding.connectionState;
-        return {
-            snapshot,
-            generation: snapshot.generation,
-            facts: {
-                server: state.serverDisplayName,
-                database: state.database,
-            },
-            fingerprint: `qs|${state.serverDisplayName ?? "?"}|${state.database ?? "?"}|${state.loginName ?? "?"}`,
-        };
-    }
-}
-
 /** Narrow classic-connection seams (stubbed in tests). */
 export interface ClassicConnectionFacts {
     server?: string;
     database?: string;
     user?: string;
+    email?: string;
+    accountId?: string;
+    tenantId?: string;
     authenticationType?: string;
     encrypt?: string | boolean;
     trustServerCertificate?: boolean;
@@ -104,18 +91,18 @@ export interface ClassicConnectionSource {
 }
 
 interface ClassicAcquisition {
-    service: MetadataService;
-    source: DataPlaneMetadataSessionSource;
-    handle: ReturnType<MetadataService["acquire"]>;
-    firstHydration: Promise<void>;
+    lease: DatabaseCatalogLease;
 }
 
-/** Resolver 2: classic editor documents via the data plane. */
+/** Classic editor documents via the shared MetadataStore. */
 export class ClassicCompletionMetadataResolver implements CompletionMetadataResolver {
-    private readonly logger = logger2.withPrefix("SqlInlineSchemaContext");
+    private readonly logger = logger.withPrefix("SqlInlineSchemaContext");
     private readonly acquisitions = new Map<string, ClassicAcquisition>();
 
-    constructor(private readonly connections: ClassicConnectionSource) {}
+    constructor(
+        private readonly connections: ClassicConnectionSource,
+        private readonly tokens?: ProfileTokenSource,
+    ) {}
 
     async resolve(document: vscode.TextDocument): Promise<CompletionCatalogAccess | undefined> {
         const dataPlane = SqlDataPlaneService.get();
@@ -126,10 +113,22 @@ export class ClassicCompletionMetadataResolver implements CompletionMetadataReso
         if (!facts?.server) {
             return undefined;
         }
-        const authKind = (facts.authenticationType ?? "").toLowerCase().includes("integrated")
-            ? ("integrated" as const)
-            : ("sql" as const);
-        const fingerprint = `classic|${facts.server}|${facts.database ?? ""}|${facts.user ?? ""}|${authKind}`;
+        let authKind: ResolvedAuthKind;
+        try {
+            authKind = resolveAuthKind(facts);
+        } catch (error) {
+            this.logger.debug(
+                `Classic metadata authentication is unsupported: ${error instanceof Error ? error.name : "unknown"}`,
+            );
+            return undefined;
+        }
+        // In-memory LRU key only — the store derives the non-reversible
+        // fingerprints from the same facts via prepareConnection.
+        const fingerprint = profileFingerprint({
+            ...facts,
+            user: profilePrincipal(facts),
+            authKind,
+        });
 
         let acquisition = this.acquisitions.get(fingerprint);
         if (!acquisition) {
@@ -143,8 +142,15 @@ export class ClassicCompletionMetadataResolver implements CompletionMetadataReso
             this.acquisitions.set(fingerprint, acquisition);
         }
 
-        await acquisition.firstHydration;
-        const snapshot = acquisition.handle.current();
+        // §7.6: a disk-cache hit answers instantly (stale + background
+        // refresh); a cold catalog joins hydration bounded by the prior
+        // 120s ceiling. Freshness rides result metadata — prompt bytes
+        // stay generation-pinned via the snapshot itself.
+        const result = await acquisition.lease.ensureFresh({
+            ...MetadataPolicies.aiContext,
+            timeoutMs: firstHydrationWaitMs,
+        });
+        const snapshot = result.snapshot;
         if (!snapshot) {
             return undefined;
         }
@@ -159,87 +165,65 @@ export class ClassicCompletionMetadataResolver implements CompletionMetadataReso
     private async acquire(
         fingerprint: string,
         facts: ClassicConnectionFacts,
-        authKind: "sql" | "integrated",
+        authKind: ResolvedAuthKind,
     ): Promise<ClassicAcquisition | undefined> {
         try {
-            const service = await SqlDataPlaneService.get().service();
-            const profile: SqlConnectionProfileRef = {
-                profileFingerprint: `iccfp_${Buffer.from(fingerprint).toString("base64url").slice(0, 24)}`,
+            const stored: StoredConnectionProfile = {
                 server: facts.server!,
                 ...(facts.database ? { database: facts.database } : {}),
-                authKind,
                 ...(facts.user ? { user: facts.user } : {}),
+                ...(facts.email ? { email: facts.email } : {}),
+                ...(facts.accountId ? { accountId: facts.accountId } : {}),
+                ...(facts.tenantId ? { tenantId: facts.tenantId } : {}),
+                authenticationType:
+                    facts.authenticationType ??
+                    (authKind === "integrated" ? "Integrated" : "SqlLogin"),
                 ...(facts.encrypt !== undefined ? { encrypt: facts.encrypt } : {}),
                 ...(facts.trustServerCertificate !== undefined
                     ? { trustServerCertificate: facts.trustServerCertificate }
                     : {}),
             };
-            const source = new DataPlaneMetadataSessionSource(service, {
-                profile,
-                applicationName: "vscode-mssql-metadata",
-                auth: {
-                    // Password exists only inside this provider call chain.
-                    passwordProvider: async () =>
-                        authKind === "sql" ? this.connections.lookupPassword(facts) : undefined,
-                },
-            });
-            const metadataService = new MetadataService(source);
-            let resolveFirst: (() => void) | undefined;
-            const firstHydration = new Promise<void>((resolve) => {
-                resolveFirst = resolve;
-                setTimeout(resolve, firstHydrationWaitMs).unref?.();
-            });
-            const handle = metadataService.acquire(
+            const prepared = prepareConnection(
+                stored,
                 {
-                    serverFingerprint: profile.profileFingerprint,
-                    database: facts.database ?? "",
+                    // Password exists only inside this provider call chain.
+                    lookupPassword: async () =>
+                        (await this.connections.lookupPassword(facts)) ?? "",
                 },
-                (status) => {
-                    if (status.readiness === "ready" || status.readiness === "failed") {
-                        resolveFirst?.();
-                    }
-                },
+                this.tokens,
             );
-            const acquisition: ClassicAcquisition = {
-                service: metadataService,
-                source,
-                handle,
-                firstHydration,
-            };
+            const lease = await MetadataStoreService.get()
+                .store()
+                .acquireDatabase(prepared, facts.database ?? "");
+            const acquisition: ClassicAcquisition = { lease };
             this.acquisitions.set(fingerprint, acquisition);
             while (this.acquisitions.size > maxClassicAcquisitions) {
                 const oldestKey = this.acquisitions.keys().next().value;
                 if (oldestKey === undefined) {
                     break;
                 }
-                this.disposeAcquisition(this.acquisitions.get(oldestKey)!);
+                this.acquisitions.get(oldestKey)!.lease.dispose();
                 this.acquisitions.delete(oldestKey);
             }
             return acquisition;
         } catch (error) {
             this.logger.debug(
-                `Classic metadata acquisition failed: ${error instanceof Error ? error.message : String(error)}`,
+                `Classic metadata acquisition failed: ${diagnosticErrorClass(error)}`,
             );
             return undefined;
         }
     }
 
-    private disposeAcquisition(acquisition: ClassicAcquisition): void {
-        acquisition.handle.dispose();
-        acquisition.service.dispose();
-        acquisition.source.dispose();
-    }
-
     dispose(): void {
         for (const acquisition of this.acquisitions.values()) {
-            this.disposeAcquisition(acquisition);
+            acquisition.lease.dispose();
         }
         this.acquisitions.clear();
     }
 }
 
 export class CompletionSchemaContextService implements vscode.Disposable {
-    private readonly logger = logger2.withPrefix("SqlInlineSchemaContext");
+    private readonly logger = logger.withPrefix("SqlInlineSchemaContext");
     private readonly disposables: vscode.Disposable[] = [];
     /** fingerprint|generation|fetchCacheKey → normalized full context. */
     private readonly normalized = new Map<string, SqlInlineCompletionSchemaContext | undefined>();

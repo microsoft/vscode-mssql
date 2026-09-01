@@ -70,6 +70,7 @@ export function featureFor(name: string): string {
     if (name.startsWith("mssql.query")) return "query";
     if (name.startsWith("mssql.resultsGrid")) return "resultsGrid";
     if (name.startsWith("mssql.oe")) return "objectExplorer";
+    if (name.startsWith("sqlDataPlane.")) return "sqlDataPlane";
     if (name.startsWith("sqlLanguage.") || name.startsWith("sqlScripting.")) {
         return "sqlLanguage";
     }

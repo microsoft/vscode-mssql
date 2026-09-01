@@ -5447,3 +5447,53 @@ export function copilotEnableGuardApplyFailed(errorMessage: string): string {
         comment: ["{0} is the error message"],
     });
 }
+
+export const inlineCompletionAccepted = l10n.t("MSSQL inline SQL completion accepted");
+
+export function copilotSdkSetApiKeyTitle(providerLabel: string): string {
+    return l10n.t("Set {0} API Key", providerLabel);
+}
+
+export function copilotSdkApiKeyPrompt(providerLabel: string): string {
+    return l10n.t("Enter the {0} API key to store in VS Code SecretStorage.", providerLabel);
+}
+
+export function copilotSdkApiKeySaved(providerLabel: string): string {
+    return l10n.t("{0} API key saved.", providerLabel);
+}
+
+export function copilotSdkApiKeyCleared(providerLabel: string): string {
+    return l10n.t("{0} API key cleared.", providerLabel);
+}
+
+export function copilotSdkApiKeyRequired(providerLabel: string): string {
+    return l10n.t("{0} API key is required.", providerLabel);
+}
+
+export function copilotSdkApiKeyPrefix(providerLabel: string, prefixes: string): string {
+    return l10n.t("{0} API keys should start with {1}.", providerLabel, prefixes);
+}
+
+export const copilotSdkSetAnthropicApiKey = l10n.t("Set Anthropic API Key");
+export const copilotSdkSetOpenAiApiKey = l10n.t("Set OpenAI API Key");
+export const copilotSdkSetXAiApiKey = l10n.t("Set xAI API Key");
+export const copilotSdkSetApiKey = l10n.t("Set API Key");
+export const copilotSdkOpenSettings = l10n.t("Open Settings");
+export const copilotSdkDontShowAgain = l10n.t("Don't show again");
+export const copilotSdkNoProviderAvailable = l10n.t(
+    "MSSQL inline completion is configured but no language model providers are available.",
+);
+
+export function copilotSdkConfigureApiKey(providerLabel: string): string {
+    return l10n.t(
+        "Configure your {0} API key to enable {0} models in MSSQL inline completion.",
+        providerLabel,
+    );
+}
+
+export function inlineCompletionTraceSaveFailed(errorMessage: string): string {
+    return l10n.t("Failed to save inline completion trace: {0}", errorMessage);
+}
+
+export const inlineCompletionTraceOpenFolder = l10n.t("Open folder");
+export const inlineCompletionTraceOpenOutput = l10n.t("Open output");

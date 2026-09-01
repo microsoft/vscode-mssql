@@ -474,9 +474,6 @@ export const codeAnalysisViewId = "codeAnalysis";
 // Inline SQL completions (ported from dev/karlb/completions)
 export const cmdCopilotInlineCompletionRefreshSchemaContext =
     "mssql.copilot.inlineCompletion.refreshSchemaContext";
-export const cmdOpenInlineCompletionDebug = "mssql.openInlineCompletionDebug";
-export const cmdCopilotCompletionsTraceSyncToDatabase =
-    "mssql.copilot.completions.trace.syncToDatabase";
 export const cmdSetAnthropicSdkLanguageModelApiKey =
     "mssql.copilot.sdkProviders.anthropic.setApiKey";
 export const cmdClearAnthropicSdkLanguageModelApiKey =
@@ -486,6 +483,7 @@ export const cmdClearOpenAiSdkLanguageModelApiKey = "mssql.copilot.sdkProviders.
 export const cmdSetXAiSdkLanguageModelApiKey = "mssql.copilot.sdkProviders.xai.setApiKey";
 export const cmdClearXAiSdkLanguageModelApiKey = "mssql.copilot.sdkProviders.xai.clearApiKey";
 export const documentationLink = "https://aka.ms/vscode-mssql-docs";
+export const configCopilotInlineCompletionsEnabled = "mssql.copilot.inlineCompletions.enabled";
 export const configCopilotInlineCompletionsUseSchemaContext =
     "mssql.copilot.inlineCompletions.useSchemaContext";
 export const configCopilotInlineCompletionsIncludeSqlDiagnostics =

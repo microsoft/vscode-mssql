@@ -5,7 +5,8 @@
 
 import * as vscode from "vscode";
 import * as Constants from "../../constants/constants";
-import { logger2 } from "../../models/logger2";
+import * as LocalizedConstants from "../../constants/locConstants";
+import { logger as rootLogger } from "../../models/logger";
 import { isInlineCompletionFeatureEnabled } from "../inlineCompletionFeatureGate";
 import { AnthropicSdkLanguageModelProvider } from "./anthropicSdkLanguageModelProvider";
 import {
@@ -19,7 +20,7 @@ import { XAiSdkLanguageModelProvider } from "./xaiSdkLanguageModelProvider";
 
 type RegisterLanguageModelChatProvider = (vendor: string, provider: unknown) => vscode.Disposable;
 
-const logger = logger2.withPrefix("SdkLanguageModelProviders");
+const logger = rootLogger.withPrefix("SdkLanguageModelProviders");
 
 export function registerSdkLanguageModelProviders(context: vscode.ExtensionContext): void {
     const apiKeys = new SdkApiKeyResolver(context);
@@ -84,8 +85,8 @@ async function promptAndStoreApiKey(
 ): Promise<void> {
     const info = sdkApiKeyProviders[kind];
     const value = await vscode.window.showInputBox({
-        title: `Set ${info.label} API Key`,
-        prompt: `Enter the ${info.label} API key to store in VS Code SecretStorage.`,
+        title: LocalizedConstants.copilotSdkSetApiKeyTitle(info.label),
+        prompt: LocalizedConstants.copilotSdkApiKeyPrompt(info.label),
         password: true,
         ignoreFocusOut: true,
         validateInput: (input) => validateApiKeyInput(info, input),
@@ -96,25 +97,27 @@ async function promptAndStoreApiKey(
     }
 
     await apiKeys.setApiKey(kind, value);
-    void vscode.window.showInformationMessage(`${info.label} API key saved.`);
+    void vscode.window.showInformationMessage(LocalizedConstants.copilotSdkApiKeySaved(info.label));
 }
 
 async function clearApiKey(apiKeys: SdkApiKeyResolver, kind: SdkProviderKind): Promise<void> {
     const info = sdkApiKeyProviders[kind];
     await apiKeys.clearApiKey(kind);
-    void vscode.window.showInformationMessage(`${info.label} API key cleared.`);
+    void vscode.window.showInformationMessage(
+        LocalizedConstants.copilotSdkApiKeyCleared(info.label),
+    );
 }
 
 function validateApiKeyInput(info: SdkApiKeyProviderInfo, input: string): string | undefined {
     const trimmed = input.trim();
     if (!trimmed) {
-        return `${info.label} API key is required.`;
+        return LocalizedConstants.copilotSdkApiKeyRequired(info.label);
     }
     if (
         info.keyPrefixes.length > 0 &&
         !info.keyPrefixes.some((prefix) => trimmed.startsWith(prefix))
     ) {
-        return `${info.label} API keys should start with ${info.keyPrefixes.join(" or ")}.`;
+        return LocalizedConstants.copilotSdkApiKeyPrefix(info.label, info.keyPrefixes.join(" or "));
     }
     return undefined;
 }
@@ -146,12 +149,12 @@ async function showNoExternalProviderAvailableMessage(
         return;
     }
 
-    const setAnthropic = "Set Anthropic API Key";
-    const setOpenAi = "Set OpenAI API Key";
-    const setXAi = "Set xAI API Key";
-    const dontShow = "Don't show again";
+    const setAnthropic = LocalizedConstants.copilotSdkSetAnthropicApiKey;
+    const setOpenAi = LocalizedConstants.copilotSdkSetOpenAiApiKey;
+    const setXAi = LocalizedConstants.copilotSdkSetXAiApiKey;
+    const dontShow = LocalizedConstants.copilotSdkDontShowAgain;
     const selection = await vscode.window.showInformationMessage(
-        "MSSQL inline completion is configured but no language model providers are available.",
+        LocalizedConstants.copilotSdkNoProviderAvailable,
         setAnthropic,
         setOpenAi,
         setXAi,

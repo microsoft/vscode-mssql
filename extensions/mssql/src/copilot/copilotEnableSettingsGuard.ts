@@ -7,14 +7,14 @@ import * as vscode from "vscode";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-import { sendActionEvent } from "../telemetry/telemetry";
+import { sendActionEvent } from "extension-toolkit/vscode";
 import { getErrorMessage } from "../utils/utils";
 
 const dismissedStateKey = "copilotEnableGuard.dismissed";
 const copilotSection = "github.copilot";
 const copilotEnableKey = "enable";
 
-type CopilotEnableGuardTrigger = "activation" | "useSchemaContextToggle" | "copilotEnableChange";
+type CopilotEnableGuardTrigger = "activation" | "inlineCompletionsToggle" | "copilotEnableChange";
 type CopilotEnableGuardAction =
     | "alreadyCorrect"
     | "promptShown"
@@ -59,7 +59,7 @@ export function resolveCopilotEnableTarget(inspect: CopilotEnableInspect | undef
 
 export class CopilotEnableSettingsGuard implements vscode.Disposable {
     private readonly _disposables: vscode.Disposable[] = [];
-    private _useSchemaContextEnabled = this.isUseSchemaContextEnabled();
+    private _inlineCompletionsEnabled = this.isInlineCompletionsEnabled();
 
     constructor(private readonly _context: vscode.ExtensionContext) {
         this._disposables.push(
@@ -68,7 +68,7 @@ export class CopilotEnableSettingsGuard implements vscode.Disposable {
             }),
         );
 
-        if (this._useSchemaContextEnabled) {
+        if (this._inlineCompletionsEnabled) {
             void this.checkSettings("activation");
         }
     }
@@ -78,29 +78,29 @@ export class CopilotEnableSettingsGuard implements vscode.Disposable {
     }
 
     private async handleConfigurationChange(e: vscode.ConfigurationChangeEvent): Promise<void> {
-        const didUseSchemaContextChange = e.affectsConfiguration(
-            Constants.configCopilotInlineCompletionsUseSchemaContext,
+        const didInlineCompletionsChange = e.affectsConfiguration(
+            Constants.configCopilotInlineCompletionsEnabled,
         );
         const didCopilotEnableChange = e.affectsConfiguration(
             `${copilotSection}.${copilotEnableKey}`,
         );
-        if (!didUseSchemaContextChange && !didCopilotEnableChange) {
+        if (!didInlineCompletionsChange && !didCopilotEnableChange) {
             return;
         }
 
-        const wasUseSchemaContextEnabled = this._useSchemaContextEnabled;
-        this._useSchemaContextEnabled = this.isUseSchemaContextEnabled();
+        const wasInlineCompletionsEnabled = this._inlineCompletionsEnabled;
+        this._inlineCompletionsEnabled = this.isInlineCompletionsEnabled();
 
         if (
-            didUseSchemaContextChange &&
-            !wasUseSchemaContextEnabled &&
-            this._useSchemaContextEnabled
+            didInlineCompletionsChange &&
+            !wasInlineCompletionsEnabled &&
+            this._inlineCompletionsEnabled
         ) {
-            void this.checkSettings("useSchemaContextToggle", true);
+            void this.checkSettings("inlineCompletionsToggle", true);
             return;
         }
 
-        if (didCopilotEnableChange && this._useSchemaContextEnabled) {
+        if (didCopilotEnableChange && this._inlineCompletionsEnabled) {
             void this.checkSettings("copilotEnableChange");
         }
     }
@@ -172,12 +172,11 @@ export class CopilotEnableSettingsGuard implements vscode.Disposable {
         return vscode.workspace.getConfiguration(copilotSection, scope);
     }
 
-    private isUseSchemaContextEnabled(): boolean {
+    private isInlineCompletionsEnabled(): boolean {
         return (
             vscode.workspace
                 .getConfiguration()
-                .get<boolean>(Constants.configCopilotInlineCompletionsUseSchemaContext, false) ??
-            false
+                .get<boolean>(Constants.configCopilotInlineCompletionsEnabled, false) ?? false
         );
     }
 
@@ -187,9 +186,11 @@ export class CopilotEnableSettingsGuard implements vscode.Disposable {
         wroteTarget: CopilotEnableGuardWriteTarget = "none",
     ): void {
         sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.CopilotEnableGuard, {
-            trigger,
-            action,
-            wroteTarget,
+            additionalProps: {
+                trigger,
+                action,
+                wroteTarget,
+            },
         });
     }
 }

@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import { logger2 } from "../../../models/logger2";
+import { logger } from "../../../models/logger";
 
 export interface ProviderModelEntry {
     id: string;
@@ -33,7 +33,7 @@ export interface LanguageModelChatInformation {
     };
 }
 
-const logger = logger2.withPrefix("LanguageModelCatalog");
+const catalogLogger = logger.withPrefix("LanguageModelCatalog");
 
 export function getProviderModelCatalog(catalog: ProviderModelCatalog): ProviderModelEntry[] {
     return [...catalog.builtIn, ...getConfiguredAdditionalModels(catalog.additionalModelsSetting)];
@@ -49,7 +49,7 @@ export function normalizeConfiguredAdditionalModels(
     setting: string,
 ): ProviderModelEntry[] {
     if (!Array.isArray(configured)) {
-        logger.warn(`Ignoring ${setting}; expected an array.`);
+        catalogLogger.warn(`Ignoring ${setting}; expected an array.`);
         return [];
     }
 
@@ -57,7 +57,7 @@ export function normalizeConfiguredAdditionalModels(
     for (const [index, value] of configured.entries()) {
         const entry = normalizeModelEntry(value);
         if (!entry) {
-            logger.warn(`Ignoring invalid ${setting}[${index}] model definition.`);
+            catalogLogger.warn(`Ignoring invalid ${setting}[${index}] model definition.`);
             continue;
         }
         valid.push(entry);

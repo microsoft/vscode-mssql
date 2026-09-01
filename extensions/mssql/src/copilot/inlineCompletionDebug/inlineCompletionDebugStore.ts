@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import { logger2 } from "../../models/logger2";
+import { logger } from "../../models/logger";
 import {
     InlineCompletionCategory,
     InlineCompletionDebugEvent,
@@ -35,7 +35,7 @@ const defaultOverrides: InlineCompletionDebugOverrides = {
 };
 
 class InlineCompletionDebugStore {
-    private readonly _logger = logger2.withPrefix("InlineCompletionDebug");
+    private readonly _logger = logger.withPrefix("InlineCompletionDebug");
     private readonly _onDidChange = new vscode.EventEmitter<void>();
     private _events: InlineCompletionDebugEvent[] = [];
     private _overrides: InlineCompletionDebugOverrides = { ...defaultOverrides };

@@ -6,7 +6,7 @@
 import * as vscode from "vscode";
 import * as Constants from "../../constants/constants";
 import { TelemetryActions, TelemetryViews } from "../../sharedInterfaces/telemetry";
-import { sendActionEvent } from "../../telemetry/telemetry";
+import { sendActionEvent } from "extension-toolkit/vscode";
 
 export type SdkProviderKind = "anthropic" | "openai" | "xai";
 export type SdkProviderVendor = "anthropic-api" | "openai-api" | "xai-api";
@@ -137,7 +137,9 @@ export class SdkApiKeyResolver {
                 TelemetryViews.MssqlCopilot,
                 TelemetryActions.SdkProviderApiKeyConfigured,
                 {
-                    vendor: sdkApiKeyProviders[kind].vendor,
+                    additionalProps: {
+                        vendor: sdkApiKeyProviders[kind].vendor,
+                    },
                 },
             );
         }

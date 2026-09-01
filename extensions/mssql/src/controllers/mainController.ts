@@ -35,6 +35,7 @@ import {
     StoredConnectionProfile,
 } from "../services/metadata/profileAuthAdapter";
 import { SqlDataPlaneService } from "../services/sqlDataPlane/sqlDataPlaneService";
+import { vscodeSqlTokenSource } from "../services/sqlDataPlane/vscodeSqlTokenSource";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import CodeAdapter from "../prompts/adapter";
@@ -99,6 +100,15 @@ import {
     CreateSessionResult,
 } from "../objectExplorer/objectExplorerService";
 import { SqlCodeLensProvider } from "../queryResult/sqlCodeLensProvider";
+import { SqlInlineCompletionProvider } from "../copilot/sqlInlineCompletionProvider";
+import {
+    ClassicCompletionMetadataResolver,
+    ClassicConnectionSource,
+    CompletionSchemaContextService,
+} from "../copilot/completionSchemaContextService";
+import { CopilotEnableSettingsGuard } from "../copilot/copilotEnableSettingsGuard";
+import { isInlineCompletionFeatureEnabled } from "../copilot/inlineCompletionFeatureGate";
+import { saveInlineCompletionTraceOnDeactivate } from "../copilot/inlineCompletionDebug/tracePersistence";
 import { ConnectionSharingService } from "../connectionSharing/connectionSharingService";
 import { SqlNotebookController } from "../notebooks/sqlNotebookController";
 import { registerNotebookCopyOutput } from "../notebooks/notebookCopyOutputProvider";
@@ -205,6 +215,7 @@ export default class MainController implements vscode.Disposable {
     public profilerController: ProfilerController;
     public sqlNotebookController: SqlNotebookController;
     public cloudDeployService: CloudDeployService;
+    public inlineCompletionSchemaContextService: CompletionSchemaContextService | undefined;
     public protocolHandler: MssqlProtocolHandler;
     public azureResourcesIntegration: AzureResourcesExtensionIntegration;
 
@@ -283,6 +294,7 @@ export default class MainController implements vscode.Disposable {
      */
     public async deactivate(): Promise<void> {
         this._logger.debug("Extension de-activated.");
+        await saveInlineCompletionTraceOnDeactivate(this._context);
         await MetadataStoreService.get().flush();
         await this.onDisconnect();
         this._shortcutsConfigurationController?.dispose();
@@ -452,6 +464,8 @@ export default class MainController implements vscode.Disposable {
                     new SqlCodeLensProvider(this._connectionMgr),
                 ),
             );
+
+            this.activateInlineCompletions();
 
             await this.initializeObjectExplorer();
 
@@ -1175,6 +1189,60 @@ export default class MainController implements vscode.Disposable {
 
         this._initialized = true;
         return true;
+    }
+
+    /**
+     * Registers the private-preview inline completion provider only when both
+     * the extension-wide experimental switch and the feature-specific switch
+     * were enabled at activation. The provider repeats the check per request.
+     */
+    private activateInlineCompletions(): void {
+        if (!isInlineCompletionFeatureEnabled()) {
+            return;
+        }
+
+        const classicConnections: ClassicConnectionSource = {
+            getConnectionFacts: (ownerUri) => {
+                const credentials = this._connectionMgr.getConnectionInfo(ownerUri)?.credentials;
+                if (!credentials?.server) {
+                    return undefined;
+                }
+                return {
+                    server: credentials.server,
+                    database: credentials.database,
+                    user: credentials.user,
+                    email: credentials.email,
+                    accountId: credentials.accountId,
+                    tenantId: credentials.tenantId,
+                    authenticationType: credentials.authenticationType,
+                    encrypt: credentials.encrypt,
+                    trustServerCertificate: credentials.trustServerCertificate,
+                };
+            },
+            lookupPassword: async (facts) => {
+                const password = await this._connectionMgr.connectionStore.lookupPassword(
+                    facts as Parameters<
+                        typeof this._connectionMgr.connectionStore.lookupPassword
+                    >[0],
+                );
+                return password || undefined;
+            },
+        };
+        const schemaContextService = new CompletionSchemaContextService([
+            new ClassicCompletionMetadataResolver(classicConnections, vscodeSqlTokenSource),
+        ]);
+        const provider = new SqlInlineCompletionProvider(this._context, schemaContextService);
+        const copilotEnableSettingsGuard = new CopilotEnableSettingsGuard(this._context);
+        this.inlineCompletionSchemaContextService = schemaContextService;
+        this._context.subscriptions.push(
+            schemaContextService,
+            provider,
+            copilotEnableSettingsGuard,
+            vscode.languages.registerInlineCompletionItemProvider(
+                { language: Constants.languageId },
+                provider,
+            ),
+        );
     }
 
     /**
@@ -3557,6 +3625,10 @@ export default class MainController implements vscode.Disposable {
         const configSettingsRequiringReload = [
             Constants.enableConnectionPooling,
             Constants.configEnableExperimentalFeatures,
+            Constants.configCopilotInlineCompletionsEnabled,
+            Constants.configCopilotSdkProvidersAnthropicEnabled,
+            Constants.configCopilotSdkProvidersOpenAiEnabled,
+            Constants.configCopilotSdkProvidersXAiEnabled,
             Constants.configSovereignCloudEnvironment,
             Constants.configSovereignCloudCustomEnvironment,
             Constants.configCustomEnvironment,

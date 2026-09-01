@@ -6,9 +6,10 @@
 import * as path from "path";
 import * as vscode from "vscode";
 import * as Constants from "../constants/constants";
-import { logger2 } from "../models/logger2";
+import * as LocalizedConstants from "../constants/locConstants";
+import { logger } from "../models/logger";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { getErrorMessage } from "../utils/utils";
 import {
     defaultInlineCompletionModelPreference,
@@ -116,7 +117,7 @@ interface RecentAcceptedIntentCompletion {
 export class SqlInlineCompletionProvider
     implements vscode.InlineCompletionItemProvider, vscode.Disposable
 {
-    private readonly _logger = logger2.withPrefix("SqlInlineCompletion");
+    private readonly _logger = logger.withPrefix("SqlInlineCompletion");
     private readonly _disposables: vscode.Disposable[] = [];
     private readonly _cachedModels = new Map<string, vscode.LanguageModelChat | undefined>();
     private _recentAcceptedIntentCompletion: RecentAcceptedIntentCompletion | undefined;
@@ -217,9 +218,13 @@ export class SqlInlineCompletionProvider
             profile,
             completionCategory,
         );
-        const enabledCategories =
-            overrides.enabledCategories ??
-            (profile ? [...profile.enabledCategories] : this.getConfiguredEnabledCategories());
+        const configuredEnabledCategories = this.getConfiguredEnabledCategories();
+        const profileEnabledCategories = profile
+            ? profile.enabledCategories.filter((category) =>
+                  configuredEnabledCategories.includes(category),
+              )
+            : configuredEnabledCategories;
+        const enabledCategories = overrides.enabledCategories ?? profileEnabledCategories;
         const effectiveMaxTokens =
             overrides.maxTokens ??
             profile?.maxTokens ??
@@ -228,10 +233,10 @@ export class SqlInlineCompletionProvider
             intentMode ? intentModeMaxChars : maxCompletionChars,
             overrides.maxTokens ?? profile?.maxTokens,
         );
+        const configuredUseSchemaContext = this.getConfiguredUseSchemaContext();
         const useSchemaContext =
             overrides.useSchemaContext ??
-            profile?.useSchemaContext ??
-            this.getConfiguredUseSchemaContext();
+            ((profile?.useSchemaContext ?? true) && configuredUseSchemaContext);
         const includeSqlDiagnostics =
             overrides.includeSqlDiagnostics ?? this.getConfiguredIncludeSqlDiagnostics();
         const sqlDiagnosticsText = includeSqlDiagnostics
@@ -708,7 +713,7 @@ export class SqlInlineCompletionProvider
                     finalCompletionText,
                     new vscode.Range(position, position),
                     {
-                        title: "MSSQL inline SQL completion accepted",
+                        title: LocalizedConstants.inlineCompletionAccepted,
                         command: inlineCompletionAcceptedCommand,
                         arguments: [telemetrySnapshot, storedEvent?.id],
                     },
@@ -725,12 +730,10 @@ export class SqlInlineCompletionProvider
             const errorMessage = getErrorMessage(error);
             this._logger.warn(`Inline completion request failed: ${errorMessage}`);
             sendResultTelemetry("error");
-            sendErrorEvent(
-                TelemetryViews.MssqlCopilot,
-                TelemetryActions.InlineCompletion,
-                error instanceof Error ? error : new Error(errorMessage),
-                false,
-            );
+            sendErrorEvent(TelemetryViews.MssqlCopilot, TelemetryActions.InlineCompletion, {
+                error: error instanceof Error ? error : new Error(errorMessage),
+                includeErrorMessage: false,
+            });
             recordDebugEvent("error", error);
             return [];
         }
@@ -748,8 +751,8 @@ export class SqlInlineCompletionProvider
         return (
             vscode.workspace
                 .getConfiguration()
-                .get<boolean>(Constants.configCopilotInlineCompletionsUseSchemaContext, false) ??
-            false
+                .get<boolean>(Constants.configCopilotInlineCompletionsUseSchemaContext, true) ??
+            true
         );
     }
 
@@ -839,23 +842,27 @@ export class SqlInlineCompletionProvider
         snapshot: InlineCompletionTelemetrySnapshot | undefined,
     ): void {
         sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.InlineCompletion, {
-            result,
-            usedSchemaContext: (snapshot?.usedSchemaContext ?? false).toString(),
-            fallbackWithoutMetadata: (snapshot?.fallbackWithoutMetadata ?? true).toString(),
-            schemaObjectCountBucket: getCountBucket(snapshot?.schemaObjectCount ?? 0),
-            schemaSystemObjectCountBucket: getCountBucket(snapshot?.schemaSystemObjectCount ?? 0),
-            schemaForeignKeyCountBucket: getCountBucket(snapshot?.schemaForeignKeyCount ?? 0),
-            modelFamily: snapshot?.modelFamily ?? "unknown",
-            triggerKind: snapshot?.triggerKind ?? "unknown",
-            latencyBucket: getLatencyBucket(snapshot?.latencyMs ?? 0),
-            inferredSystemQuery: (snapshot?.inferredSystemQuery ?? false).toString(),
-            completionCategory: snapshot?.completionCategory ?? "unknown",
-            intentMode: (snapshot?.intentMode ?? false).toString(),
-            schemaBudgetProfile: snapshot?.schemaBudgetProfile ?? "unknown",
-            schemaSizeKind: snapshot?.schemaSizeKind ?? "unknown",
-            schemaDegradationStepCountBucket: getCountBucket(
-                snapshot?.schemaDegradationStepCount ?? 0,
-            ),
+            additionalProps: {
+                result,
+                usedSchemaContext: (snapshot?.usedSchemaContext ?? false).toString(),
+                fallbackWithoutMetadata: (snapshot?.fallbackWithoutMetadata ?? true).toString(),
+                schemaObjectCountBucket: getCountBucket(snapshot?.schemaObjectCount ?? 0),
+                schemaSystemObjectCountBucket: getCountBucket(
+                    snapshot?.schemaSystemObjectCount ?? 0,
+                ),
+                schemaForeignKeyCountBucket: getCountBucket(snapshot?.schemaForeignKeyCount ?? 0),
+                modelFamily: snapshot?.modelFamily ?? "unknown",
+                triggerKind: snapshot?.triggerKind ?? "unknown",
+                latencyBucket: getLatencyBucket(snapshot?.latencyMs ?? 0),
+                inferredSystemQuery: (snapshot?.inferredSystemQuery ?? false).toString(),
+                completionCategory: snapshot?.completionCategory ?? "unknown",
+                intentMode: (snapshot?.intentMode ?? false).toString(),
+                schemaBudgetProfile: snapshot?.schemaBudgetProfile ?? "unknown",
+                schemaSizeKind: snapshot?.schemaSizeKind ?? "unknown",
+                schemaDegradationStepCountBucket: getCountBucket(
+                    snapshot?.schemaDegradationStepCount ?? 0,
+                ),
+            },
         });
     }
 

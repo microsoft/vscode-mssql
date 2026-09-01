@@ -8,11 +8,12 @@ import * as os from "os";
 import * as path from "path";
 import * as vscode from "vscode";
 import * as Constants from "../../constants/constants";
-import { logger2 } from "../../models/logger2";
+import * as LocalizedConstants from "../../constants/locConstants";
+import { logger } from "../../models/logger";
 import { getErrorMessage } from "../../utils/utils";
 import { inlineCompletionDebugStore } from "./inlineCompletionDebugStore";
 
-const traceLogger = logger2.withPrefix("InlineCompletionTrace");
+const traceLogger = logger.withPrefix("InlineCompletionTrace");
 export const DEFAULT_TRACE_FOLDER_NAME = "copilot-completion-traces";
 export const TRACE_FILE_PREFIX = "mssql-copilot-trace-";
 export const TRACE_FILE_GLOB = `${TRACE_FILE_PREFIX}*.json`;
@@ -65,7 +66,7 @@ export async function saveInlineCompletionTraceNow(
         traceLogger.info(`Saved inline completion trace to ${filePath}`);
         return { filePath };
     } catch (error) {
-        const message = `Failed to save inline completion trace: ${getErrorMessage(error)}`;
+        const message = LocalizedConstants.inlineCompletionTraceSaveFailed(getErrorMessage(error));
         traceLogger.warn(message);
         await showTraceWriteWarning(folder, message);
         return { error: message };
@@ -101,8 +102,7 @@ export function getTraceRedactPromptsSetting(): boolean {
     return (
         vscode.workspace
             .getConfiguration()
-            .get<boolean>(Constants.configCopilotInlineCompletionsTraceRedactPrompts, false) ??
-        false
+            .get<boolean>(Constants.configCopilotInlineCompletionsTraceRedactPrompts, true) ?? true
     );
 }
 
@@ -142,8 +142,8 @@ function expandHome(folder: string): string {
 }
 
 async function showTraceWriteWarning(folder: string, message: string): Promise<void> {
-    const openFolder = "Open folder";
-    const openOutput = "Open output";
+    const openFolder = LocalizedConstants.inlineCompletionTraceOpenFolder;
+    const openOutput = LocalizedConstants.inlineCompletionTraceOpenOutput;
     const selection = await vscode.window.showWarningMessage(message, openFolder, openOutput);
     if (selection === openFolder) {
         await vscode.env.openExternal(vscode.Uri.file(folder));

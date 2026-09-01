@@ -5,10 +5,11 @@
 
 import * as vscode from "vscode";
 import * as Constants from "../../constants/constants";
-import { logger2 } from "../../models/logger2";
+import * as LocalizedConstants from "../../constants/locConstants";
+import { logger } from "../../models/logger";
 import { getLatencyBucket } from "../../sharedInterfaces/latencyBuckets";
 import { TelemetryActions, TelemetryViews } from "../../sharedInterfaces/telemetry";
-import { sendActionEvent } from "../../telemetry/telemetry";
+import { sendActionEvent } from "extension-toolkit/vscode";
 import { getErrorMessage } from "../../utils/utils";
 import {
     LanguageModelChatInformation,
@@ -53,7 +54,7 @@ const prepareCacheTtlMs = 30_000;
 const defaultTimeoutMs = 60_000;
 
 export abstract class SdkLanguageModelProviderBase {
-    private readonly _logger = logger2.withPrefix("SdkLanguageModelProvider");
+    private readonly _logger = logger.withPrefix("SdkLanguageModelProvider");
     private readonly _onDidChange = new vscode.EventEmitter<void>();
     private readonly _suppressMissingKeyNotification: boolean;
     private _prepareCache: PrepareCache | undefined;
@@ -274,11 +275,11 @@ export abstract class SdkLanguageModelProviderBase {
         }
 
         this._missingKeyShownThisSession = true;
-        const setKey = "Set API Key";
-        const openSettings = "Open Settings";
-        const dontShow = "Don't show again";
+        const setKey = LocalizedConstants.copilotSdkSetApiKey;
+        const openSettings = LocalizedConstants.copilotSdkOpenSettings;
+        const dontShow = LocalizedConstants.copilotSdkDontShowAgain;
         const selection = await vscode.window.showInformationMessage(
-            `Configure your ${this.providerLabel} API key to enable ${this.providerLabel} models in MSSQL inline completion.`,
+            LocalizedConstants.copilotSdkConfigureApiKey(this.providerLabel),
             setKey,
             openSettings,
             dontShow,
@@ -302,26 +303,26 @@ export abstract class SdkLanguageModelProviderBase {
         result: "success" | "error" | "cancelled",
         usage: SdkProviderUsage | undefined,
     ): void {
-        sendActionEvent(
-            TelemetryViews.MssqlCopilot,
-            TelemetryActions.SdkProviderInvocation,
-            {
+        sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.SdkProviderInvocation, {
+            additionalProps: {
                 vendor: this.vendor,
                 family: model.family,
                 latencyBucket: getLatencyBucket(Date.now() - startedAt),
                 result,
             },
-            {
+            additionalMeasurements: {
                 inputTokens: usage?.inputTokens ?? 0,
                 outputTokens: usage?.outputTokens ?? 0,
             },
-        );
+        });
     }
 
     private sendErrorTelemetry(errorClass: string): void {
         sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.SdkProviderError, {
-            vendor: this.vendor,
-            errorClass,
+            additionalProps: {
+                vendor: this.vendor,
+                errorClass,
+            },
         });
     }
 }
