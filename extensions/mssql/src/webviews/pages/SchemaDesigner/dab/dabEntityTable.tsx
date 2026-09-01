@@ -56,6 +56,9 @@ const TYPE_INDENT = 20;
 const ENTITY_INDENT = 40;
 const COLUMN_INDENT = 60;
 
+/** Stands in for the exposed-column count while an entity is not exposed on any API surface. */
+const EXPOSURE_COUNT_PLACEHOLDER = "—";
+
 // ── Flat-row type for virtualized rendering ──
 
 type FlatRow =
@@ -791,6 +794,17 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
         [classes.blankCell],
     );
 
+    /**
+     * An entity that is not exposed on any API surface has no effective column exposure, so the
+     * grid reports none rather than showing stale per-column state the endpoint will not use.
+     * The underlying choices are left untouched and come back when the entity is re-enabled.
+     */
+    const isEntityExposed = useCallback(
+        (entity: Dab.DabEntityConfig) =>
+            Dab.getEntityExposedApiTypes(entity, dabConfig?.apiTypes ?? []).length > 0,
+        [dabConfig?.apiTypes],
+    );
+
     const getRowIndent = useCallback((row: FlatRow) => {
         switch (row.type) {
             case "entity":
@@ -933,8 +947,14 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
                         </span>
                         {sourceType !== Dab.EntitySourceType.StoredProcedure && (
                             <DabCountPill>
-                                {row.entity.columns.filter((c) => c.isExposed).length}/
-                                {row.entity.columns.length}
+                                {isEntityExposed(row.entity) ? (
+                                    <>
+                                        {row.entity.columns.filter((c) => c.isExposed).length}/
+                                        {row.entity.columns.length}
+                                    </>
+                                ) : (
+                                    EXPOSURE_COUNT_PLACEHOLDER
+                                )}
                             </DabCountPill>
                         )}
                         {keyWarningText && (
@@ -1061,6 +1081,7 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
             classes.searchHighlight,
             dabTextFilter,
             getRowIndent,
+            isEntityExposed,
             openSettingsDialog,
         ],
     );
@@ -1152,6 +1173,10 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
     const renderExposedContent = useCallback(
         (row: FlatRow) => {
             if (row.type === "column") {
+                if (!isEntityExposed(row.entity)) {
+                    return renderBlankContent();
+                }
+
                 const isLogicalKey = Dab.isLogicalKeyColumn(row.entity, row.column);
                 return (
                     <div className={classes.pillCell}>
@@ -1224,6 +1249,7 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
             classes.pillCell,
             classes.mutedMetadataTag,
             dabConfig?.apiTypes,
+            isEntityExposed,
             openSettingsDialog,
             renderBlankContent,
         ],
