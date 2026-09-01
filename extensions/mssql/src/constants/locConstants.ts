@@ -1068,6 +1068,233 @@ export class ObjectExplorer {
     public static ConnectionStringCopied = l10n.t("Connection string copied to clipboard");
 }
 
+/** User-visible strings for the private-preview Object Explorer v2 surface. */
+export class ObjectExplorerV2 {
+    private static readonly folderLabels = new Map<string, string>([
+        ["Databases", l10n.t("Databases")],
+        ["Security", l10n.t("Security")],
+        ["Logins", l10n.t("Logins")],
+        ["Server Roles", l10n.t("Server Roles")],
+        ["Credentials", l10n.t("Credentials")],
+        ["Cryptographic Providers", l10n.t("Cryptographic Providers")],
+        ["Server Audits", l10n.t("Server Audits")],
+        ["Server Audit Specifications", l10n.t("Server Audit Specifications")],
+        ["Server Objects", l10n.t("Server Objects")],
+        ["Endpoints", l10n.t("Endpoints")],
+        ["Linked Servers", l10n.t("Linked Servers")],
+        ["Server Triggers", l10n.t("Server Triggers")],
+        ["Error Messages", l10n.t("Error Messages")],
+        ["Tables", l10n.t("Tables")],
+        ["System Tables", l10n.t("System Tables")],
+        ["Dropped Ledger Tables", l10n.t("Dropped Ledger Tables")],
+        ["External Tables", l10n.t("External Tables")],
+        ["Views", l10n.t("Views")],
+        ["System Views", l10n.t("System Views")],
+        ["Dropped Ledger Views", l10n.t("Dropped Ledger Views")],
+        ["Synonyms", l10n.t("Synonyms")],
+        ["Programmability", l10n.t("Programmability")],
+        ["Stored Procedures", l10n.t("Stored Procedures")],
+        ["System Stored Procedures", l10n.t("System Stored Procedures")],
+        ["Functions", l10n.t("Functions")],
+        ["Database Triggers", l10n.t("Database Triggers")],
+        ["Assemblies", l10n.t("Assemblies")],
+        ["Types", l10n.t("Types")],
+        ["User-Defined Data Types", l10n.t("User-Defined Data Types")],
+        ["User-Defined Table Types", l10n.t("User-Defined Table Types")],
+        ["XML Schema Collections", l10n.t("XML Schema Collections")],
+        ["Sequences", l10n.t("Sequences")],
+        ["Service Broker", l10n.t("Service Broker")],
+        ["Message Types", l10n.t("Message Types")],
+        ["Contracts", l10n.t("Contracts")],
+        ["Queues", l10n.t("Queues")],
+        ["Services", l10n.t("Services")],
+        ["Remote Service Bindings", l10n.t("Remote Service Bindings")],
+        ["Broker Priorities", l10n.t("Broker Priorities")],
+        ["Storage", l10n.t("Storage")],
+        ["Filegroups", l10n.t("Filegroups")],
+        ["Full Text Catalogs", l10n.t("Full Text Catalogs")],
+        ["Full Text Stop Lists", l10n.t("Full Text Stop Lists")],
+        ["Log Files", l10n.t("Log Files")],
+        ["Partition Functions", l10n.t("Partition Functions")],
+        ["Partition Schemes", l10n.t("Partition Schemes")],
+        ["Search Property Lists", l10n.t("Search Property Lists")],
+        ["Users", l10n.t("Users")],
+        ["Roles", l10n.t("Roles")],
+        ["Database Roles", l10n.t("Database Roles")],
+        ["Application Roles", l10n.t("Application Roles")],
+        ["Schemas", l10n.t("Schemas")],
+        ["Asymmetric Keys", l10n.t("Asymmetric Keys")],
+        ["Certificates", l10n.t("Certificates")],
+        ["Symmetric Keys", l10n.t("Symmetric Keys")],
+        ["Database Scoped Credentials", l10n.t("Database Scoped Credentials")],
+        ["Database Audit Specifications", l10n.t("Database Audit Specifications")],
+        ["Security Policies", l10n.t("Security Policies")],
+        ["Always Encrypted Keys", l10n.t("Always Encrypted Keys")],
+        ["Column Master Keys", l10n.t("Column Master Keys")],
+        ["Column Encryption Keys", l10n.t("Column Encryption Keys")],
+    ]);
+    private static readonly legacyActionLabels = new Map<string, string>([
+        ["backupDatabase", l10n.t("Backup Database… (legacy)")],
+        ["restoreDatabase", l10n.t("Restore Database… (legacy)")],
+        ["profiler", l10n.t("Launch Profiler (legacy)")],
+        ["schemaCompare", l10n.t("Schema Compare (legacy)")],
+        ["editTable", l10n.t("Edit Table (legacy Table Designer)")],
+        ["tableExplorer", l10n.t("Edit Table Data… (legacy)")],
+        ["schemaDesigner", l10n.t("Visualize and Design Schema… (legacy)")],
+        ["buildDataApi", l10n.t("Build Data API… (legacy)")],
+        ["renameDatabase", l10n.t("Rename Database… (legacy)")],
+        ["dropDatabase", l10n.t("Drop Database… (legacy)")],
+        ["flatFileImport", l10n.t("Import Data… (legacy)")],
+        ["dacpacDialog", l10n.t("DACPAC/BACPAC Operations… (legacy)")],
+        ["copyConnectionString", l10n.t("Copy Connection String (legacy)")],
+        ["chatWithDatabase", l10n.t("Open in GitHub Copilot Chat (legacy)")],
+        ["chatWithDatabaseAgent", l10n.t("Open in GitHub Copilot Agent (legacy)")],
+        ["createNotebook", l10n.t("New SQL Notebook (legacy)")],
+    ]);
+
+    public static folderLabel(label: string): string {
+        return this.folderLabels.get(label) ?? label;
+    }
+
+    public static legacyActionLabel(feature: string): string {
+        return this.legacyActionLabels.get(feature) ?? feature;
+    }
+
+    public static loading = l10n.t("Loading…");
+    public static noItems = l10n.t("No items");
+    public static disabled = l10n.t("disabled");
+    public static systemDatabases = l10n.t("System Databases");
+    public static columns = l10n.t("Columns");
+    public static keys = l10n.t("Keys");
+    public static foreignKeys = l10n.t("Foreign Keys");
+    public static parameters = l10n.t("Parameters");
+    public static returnValue = l10n.t("(return value)");
+    public static connecting = l10n.t("connecting…");
+    public static disconnecting = l10n.t("disconnecting…");
+    public static connectionLostDescription = l10n.t("connection lost");
+    public static connectError = l10n.t("connect error");
+    public static noAccess = l10n.t("no access");
+    public static readOnly = l10n.t("read-only");
+    public static databaseNoAccess = l10n.t("No access to this database.");
+    public static metadataFailed = l10n.t("Metadata failed to load. Refresh to retry.");
+    public static metadataLoadFailed = l10n.t("Metadata failed to load.");
+    public static permissionDenied = l10n.t("Permission denied.");
+    public static unsupportedConnection = l10n.t("Not supported for this connection.");
+    public static dataPlaneUnavailable = l10n.t("SQL Data Plane is disabled or unavailable.");
+    public static connectionLost = l10n.t("Connection lost. Reconnect from the context menu.");
+    public static dataPlaneRequired = l10n.t(
+        "Object Explorer v2 requires the SQL Data Plane. Enable mssql.sqlDataPlane.enabled, then reload.",
+    );
+    public static noSavedProfiles = l10n.t(
+        "No saved connection profiles. Create one with 'MS SQL: Add Connection'.",
+    );
+    public static connectHint = l10n.t(
+        "Use 'Connect' on this profile to browse (Object Explorer v2 preview).",
+    );
+    public static savedConnectionNotFound = l10n.t(
+        "That connection could not be found in saved connections.",
+    );
+    public static noLegacyActions = l10n.t(
+        "No legacy actions are available for this node in the Object Explorer v2 preview.",
+    );
+    public static legacyActionsTitle = l10n.t("Legacy actions (creates a classic connection)");
+    public static outputChannelName = l10n.t("MSSQL Object Explorer v2");
+    public static filterTitle = l10n.t("Filter Object Explorer v2 Folder");
+    public static filterPrompt = l10n.t("Enter text to match object names");
+    public static searchTitle = l10n.t("Search Object Explorer v2");
+    public static searchPrompt = l10n.t("Enter an object name or prefix");
+    public static moveConnectionTitle = l10n.t("Move connection to group");
+    public static rootGroup = l10n.t("(Root)");
+    public static groupNoLongerExists = l10n.t(
+        "That connection group no longer exists. Refresh the view.",
+    );
+    public static filterObjectsPrompt = l10n.t(
+        "Objects whose name contains this text remain visible.",
+    );
+    public static searchNamePrefixPrompt = l10n.t("Name prefix to search for.");
+    public static sectionFailed = l10n.t("section failed");
+    public static serverCatalogFailed = l10n.t("server catalog failed");
+    public static unknownError = l10n.t("unknown error");
+    public static profilePreparationFailed = l10n.t("Connection profile preparation failed.");
+    public static serverVersion = l10n.t("Server Version");
+    public static sameNameDifferences = l10n.t("Differs from same-named connections:");
+    public static updatableLedger = l10n.t("(Updatable Ledger)");
+    public static appendOnlyLedger = l10n.t("(Append-Only Ledger)");
+    public static systemVersioned = l10n.t("(System-Versioned)");
+    public static external = l10n.t("(External)");
+    public static fileTable = l10n.t("(FileTable)");
+    public static history = l10n.t("(History)");
+    public static primaryKey = l10n.t("PK");
+    public static uniqueKey = l10n.t("UQ");
+    public static identity = l10n.t("identity");
+    public static computed = l10n.t("computed");
+    public static nullValue = l10n.t("null");
+    public static notNull = l10n.t("not null");
+    public static output = l10n.t("OUTPUT");
+    public static outputLowercase = l10n.t("output");
+    public static unknown = l10n.t("(unknown)");
+
+    public static couldNotConnect(reason?: string): string {
+        return reason
+            ? l10n.t("Object Explorer v2 could not connect: {0}", reason)
+            : l10n.t("Object Explorer v2 could not connect.");
+    }
+    public static connectingFor(seconds: number): string {
+        return l10n.t("connecting… ({0}s)", seconds);
+    }
+    public static failed(reason: string): string {
+        return l10n.t("failed: {0}", reason);
+    }
+    public static expansionFailed(reason: string): string {
+        return l10n.t("Expansion failed: {0}. Refresh to retry.", reason);
+    }
+    public static connectFailed(reason: string): string {
+        return l10n.t("Connect failed: {0}.", reason);
+    }
+    public static noFilterMatches(filter: string): string {
+        return l10n.t("No matches for filter '{0}'. Use Clear Filters to remove it.", filter);
+    }
+    public static filterSummary(filter: string, shown: number, total: number): string {
+        return l10n.t("Filter: '{0}' ({1} of {2} shown)", filter, shown, total);
+    }
+    public static noObjectsMatch(term: string): string {
+        return l10n.t("No objects match '{0}'.", term);
+    }
+    public static filterFolderTitle(folder: string): string {
+        return l10n.t("Filter {0} by name", folder);
+    }
+    public static searchDatabaseTitle(database: string): string {
+        return l10n.t("Search objects in {0}", database);
+    }
+    public static searchResultsTitle(term: string): string {
+        return l10n.t("Objects matching '{0}' — pick to copy qualified name", term);
+    }
+    public static folderNotCurrent(folder: string): string {
+        return l10n.t(
+            "Folder '{0}' is not part of the current layout. Refresh the parent node.",
+            folder,
+        );
+    }
+    public static folderUnavailable(folder: string, reason: string): string {
+        return l10n.t("{0} unavailable: {1}. Refresh to retry.", folder, reason);
+    }
+    public static databasesUnavailable(reason: string): string {
+        return l10n.t("Databases unavailable: {0}. Refresh to retry.", reason);
+    }
+    public static metadataSectionFailed(section: string): string {
+        return l10n.t("Metadata section '{0}' failed. Refresh to retry.", section);
+    }
+    public static objectNotFound = l10n.t(
+        "Object not found in the current catalog generation. Refresh the parent folder.",
+    );
+    public static metadataNotValidated(detail: string): string {
+        return l10n.t("Metadata not validated — {0} (refresh to retry).", detail);
+    }
+    public static databaseAccessMayHaveChanged = l10n.t("database access may have changed");
+    public static permissionsMayHaveChanged = l10n.t("permissions may have changed");
+    public static usingLastKnownCatalog = l10n.t("using last known catalog");
+}
+
 export class ConnectionDialog {
     public static connectionDialog = l10n.t("Connection Dialog");
     public static microsoftAccount = l10n.t("Microsoft Account");

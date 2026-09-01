@@ -62,14 +62,41 @@
     <trans-unit id="++CODE++666e175d7e3437548ba8bc1a84d083677a73792a61fa2184e8d6a6675eb8d030">
       <source xml:lang="en">(1 row affected)</source>
     </trans-unit>
+    <trans-unit id="++CODE++1f6160cbb690a1ac61cd44d5da624eab23ad9b589897694d31066a649d745cdf">
+      <source xml:lang="en">(Append-Only Ledger)</source>
+    </trans-unit>
     <trans-unit id="++CODE++130aea5a0d1dd689e85fedca3a2c57e179d4a58d3e7d62875e2bf25799c0762f">
       <source xml:lang="en">(Command completed successfully)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e8667fc97ef87e1e26e60ba713d23ca9f32ad154bdf3462b9cc460b7756c5e3c">
+      <source xml:lang="en">(External)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c9161c30d70f10d960008b8e4bd9936eaee3c3fe608135a18e098a023319550d">
+      <source xml:lang="en">(FileTable)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7e57026fdbf4b85bbea1f4751be5cafbbb9fcd0bf7a23d705ef5083fa8cbb67e">
+      <source xml:lang="en">(History)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6a7f5092928c934edb55d811e973d58cfc512ac634a7dc76d08576d68ff71682">
+      <source xml:lang="en">(Root)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7225d9a6d95d1075431910dff8f186df865908106c59941d402cd1488909c664">
+      <source xml:lang="en">(System-Versioned)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++01742e58bf0afa796ce13a94ce79eedc5402d1470cb5102a5d4cf79189a6cc63">
+      <source xml:lang="en">(Updatable Ledger)</source>
     </trans-unit>
     <trans-unit id="++CODE++10901a1c32c7ff27302839dda36a950d6b522c7ca85b8d9605112601a8a392f9">
       <source xml:lang="en">(current)</source>
     </trans-unit>
     <trans-unit id="++CODE++d29a0939bcb51176dd565a5e2d33214ce5204806b384bd80a72cb40861cdc7b9">
       <source xml:lang="en">(empty)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c996dc204bdf4ab7850b9b8d20c0baa7cbd108c34ea800853047a049691c3b9f">
+      <source xml:lang="en">(return value)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8fe7794d43e70acc3b2d247b434236a3c2ea54451ea3435897fc2b28f9b2af15">
+      <source xml:lang="en">(unknown)</source>
     </trans-unit>
     <trans-unit id="++CODE++2dbc3a842e150a69d5a35dc7e059907884fff202bead2f25e3284cdbecedf340">
       <source xml:lang="en">({0} row(s) affected)</source>
@@ -446,6 +473,9 @@
     <trans-unit id="++CODE++2377437eeccabd24162dbc0f1d9e2ed6af6102f30ef6da601f39ce4237cb6bee">
       <source xml:lang="en">Always Encrypted</source>
     </trans-unit>
+    <trans-unit id="++CODE++16309ce22a9776bd31836e2490cb9001335ab43cef8dda6e3e25e50b7b9d983a">
+      <source xml:lang="en">Always Encrypted Keys</source>
+    </trans-unit>
     <trans-unit id="++CODE++1888bd4ce917e9c8cecde43608d69624f56668f86f1bbe4331494db33fb52578">
       <source xml:lang="en">Always show in new tab</source>
     </trans-unit>
@@ -519,6 +549,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e9865ab4cac1f8559837db62fe175d0784978b075680404a655ce2a6182ff532">
       <source xml:lang="en">Application Name</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fc0cf3e8bf7f287dcaca71603e289613fd6b6ebce9794f7e5ecd69340ff84082">
+      <source xml:lang="en">Application Roles</source>
     </trans-unit>
     <trans-unit id="++CODE++a187c7382f4026c938df224dd7484977538cd582c67e94b62861499fe68c68a4">
       <source xml:lang="en">Application Version</source>
@@ -635,6 +668,12 @@
     </trans-unit>
     <trans-unit id="++CODE++75e12513d00f783f9aaecccd95c59520bca219b3991587d51c43adc8487975b3">
       <source xml:lang="en">Ask questions or propose schema changes in chat, and GitHub Copilot updates the schema instantly in the diagram.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++22817472d075bababa93435b2f2b9aa766fa207678c1498422496d96ffd97d0e">
+      <source xml:lang="en">Assemblies</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fea765474e97df1fb824cc8008ffaa21df00215e1782a61e27c1acdf0c9e9311">
+      <source xml:lang="en">Asymmetric Keys</source>
     </trans-unit>
     <trans-unit id="++CODE++6b17def22e3775d608a7cdc7f600aa9fd107e2209e657a6d358a5687f9f7c7bd">
       <source xml:lang="en">At least one API type must be selected.</source>
@@ -836,6 +875,9 @@
       <source xml:lang="en">Backup Database - {0}</source>
       <note>{0} is the database name</note>
     </trans-unit>
+    <trans-unit id="++CODE++43f844b784afddde98c90e4267956538c635e29e5fc73304c278d86d692443c4">
+      <source xml:lang="en">Backup Database… (legacy)</source>
+    </trans-unit>
     <trans-unit id="++CODE++55e3ec5a66490b401352f97b8c81d967c3e0f06782815833b8ebef7c4113a1f3">
       <source xml:lang="en">Backup File</source>
     </trans-unit>
@@ -912,6 +954,9 @@
     <trans-unit id="++CODE++ecc77aec6ef08eda8ac83e4a4062c7509261b6fadd0f7939f483aed310bea9e3">
       <source xml:lang="en">Bring your saved connections, groups, and configuration from Azure Data Studio into the MSSQL extension and discover familiar experiences.</source>
     </trans-unit>
+    <trans-unit id="++CODE++002dd38b42e5c29ded6cfc3a59c1c5a6d57d93fb7631848ee378a87e27249b8f">
+      <source xml:lang="en">Broker Priorities</source>
+    </trans-unit>
     <trans-unit id="++CODE++3227aa9666253f7a736509074fb83bc4d47b19582faaa0233f228746de29217a">
       <source xml:lang="en">Browse</source>
     </trans-unit>
@@ -950,6 +995,9 @@
     </trans-unit>
     <trans-unit id="++CODE++8e86ef922196322045f4a646ef811f7df15a59da3a33b8180732d68155a7a652">
       <source xml:lang="en">Build Data API</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5e3a18d69dca444d0ac1e3209f81a1729f8b53589b80e8112db9d6d10f167de1">
+      <source xml:lang="en">Build Data API… (legacy)</source>
     </trans-unit>
     <trans-unit id="++CODE++566ea12984a4e3c41f444143aa587ddc245400b46fd8225ff9719cf7904e193d">
       <source xml:lang="en">Build Elements</source>
@@ -1096,6 +1144,9 @@
     </trans-unit>
     <trans-unit id="++CODE++292c06f0045a45d044be282b132b7055ae224e18e02b523a451d8ea96fadfd24">
       <source xml:lang="en">Category</source>
+    </trans-unit>
+    <trans-unit id="++CODE++16f637921eba69b04b80b33acfce138c0f48121ce6b33eda1a10aaf7c5216b23">
+      <source xml:lang="en">Certificates</source>
     </trans-unit>
     <trans-unit id="++CODE++c0bf75bd78bf9572596720d596bd5a20a5b9145cde0fe50dec1e783cb184d69b">
       <source xml:lang="en">Change</source>
@@ -1518,6 +1569,12 @@
       <source xml:lang="en">Column &apos;{0}&apos; not found</source>
       <note>{0} is the column name</note>
     </trans-unit>
+    <trans-unit id="++CODE++4bf72a2c8f50f0ad9baa4ad362614f39f455a681e4ffe9a008da6217bc13d5e6">
+      <source xml:lang="en">Column Encryption Keys</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2e723bb01bc21bbfc493ac20a04cb1b811cf09a71046f31e6e4bcd93b639acd5">
+      <source xml:lang="en">Column Master Keys</source>
+    </trans-unit>
     <trans-unit id="++CODE++186b1f01ef876a3c1fd8101430b6e3f0b83c8960f32e74b36ebe6015c4b15a25">
       <source xml:lang="en">Column Name</source>
     </trans-unit>
@@ -1643,6 +1700,9 @@
     </trans-unit>
     <trans-unit id="++CODE++0e65cf5077295cb9c747c8444e19e9f9c8c5b82d37158c24cf1ece7c84dd746b">
       <source xml:lang="en">Connect and manage database connections</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bba5670b931925604df9d1f5f170236d3ecdca7d435b4d87e79ce9966b98a91b">
+      <source xml:lang="en">Connect failed: {0}.</source>
     </trans-unit>
     <trans-unit id="++CODE++ee4f8cf15984e2a10f54dd947303b40318e5503eb1116a815d634bd45dcc55da">
       <source xml:lang="en">Connect the active SQL document to a database</source>
@@ -1815,6 +1875,9 @@
     <trans-unit id="++CODE++fb6d70b252967b1a424bfa1f8be6c56eb3359e0a7f86d477837002be7af317f3">
       <source xml:lang="en">Connection is not active. Please establish a connection before performing this action.</source>
     </trans-unit>
+    <trans-unit id="++CODE++053408a58627f9f0248fab65d111d768c48aa619d3d5f4b49929fe2fa1414e72">
+      <source xml:lang="en">Connection lost. Reconnect from the context menu.</source>
+    </trans-unit>
     <trans-unit id="++CODE++28512f31201abdd26ae93d0caaba3b8a3c77113b9665059a9e1d2ba4e47de64d">
       <source xml:lang="en">Connection not found for uri &quot;{0}&quot;.</source>
       <note>{0} is the uri</note>
@@ -1825,6 +1888,9 @@
     </trans-unit>
     <trans-unit id="++CODE++56417c812e9849fa389e329e3239fd0a5abc5778b3ff738ce7c6d3c49f8739df">
       <source xml:lang="en">Connection profile not found. Please create a new connection using the Connection Dialog.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++44b8a8a9840bc6053acbd80a7515867533fd1a1ba95d3fd45fae6a4db6a2e3ce">
+      <source xml:lang="en">Connection profile preparation failed.</source>
     </trans-unit>
     <trans-unit id="++CODE++d7ab7c0f4c608ef31b73519723a5e437bde717796c5946c33d68cfd96501e3f8">
       <source xml:lang="en">Connection sharing permission denied for extension: &apos;{0}&apos;. Use the permission management commands to change this.</source>
@@ -1928,6 +1994,9 @@
     <trans-unit id="++CODE++36788a4bbad501fe2c69d37d0d7ce128868a41848663752a28c886a54df70752">
       <source xml:lang="en">Continue using for additional charges</source>
     </trans-unit>
+    <trans-unit id="++CODE++0488acc63d8b513587cc45e2d7dd7c17cb873266452b23273c6dedb651764243">
+      <source xml:lang="en">Contracts</source>
+    </trans-unit>
     <trans-unit id="++CODE++04ed7bc7a0e65dc11fc23e991a54fdd2c2ea33d9919598c0cccbfd9df831f338">
       <source xml:lang="en">Control the results grid display</source>
     </trans-unit>
@@ -1965,6 +2034,9 @@
     </trans-unit>
     <trans-unit id="++CODE++96060c7cd5841d631c4c2cf65834a41409b3005fd80c393f48e902ade8901239">
       <source xml:lang="en">Copy Column Name</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8e2fd9faa95472d2d40827b043bab046076df7ee27d990243b85d0e4398e81a8">
+      <source xml:lang="en">Copy Connection String (legacy)</source>
     </trans-unit>
     <trans-unit id="++CODE++e172d8c5fbb864a5f85d4926588ef06167cdd4a29ddffdf07714bf25336c2269">
       <source xml:lang="en">Copy Headers</source>
@@ -2250,6 +2322,12 @@
       <source xml:lang="en">Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate. Error: {0}</source>
       <note>{0} is the error message</note>
     </trans-unit>
+    <trans-unit id="++CODE++d48a617c7da5163c44f117b9b23d8c920e69b4aa83d7b6570d71a66f3a857183">
+      <source xml:lang="en">Credentials</source>
+    </trans-unit>
+    <trans-unit id="++CODE++57648bfb244cc3625d03be929104a9f1c97470e313b09466dd6ed216c292fcc7">
+      <source xml:lang="en">Cryptographic Providers</source>
+    </trans-unit>
     <trans-unit id="++CODE++31471ef54c94fd1a0ed4fcd85c62277d98a6119305f1ea0862fab2f0aa4a1c3b">
       <source xml:lang="en">Current Schema: {0}, Select the new schema:</source>
     </trans-unit>
@@ -2314,6 +2392,9 @@
     </trans-unit>
     <trans-unit id="++CODE++859430fa647177df2bca8384a1b91e9f607ab6c35eba8d61c1ff399e80cf0ac2">
       <source xml:lang="en">DACPAC path not found. Please build the project first.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++780c0cd66522cb9aa442c0fe3246bef20fc913f773de99bba46f6fdad2dc0547">
+      <source xml:lang="en">DACPAC/BACPAC Operations… (legacy)</source>
     </trans-unit>
     <trans-unit id="++CODE++a624c53f324c90b7a7da7401d49f23d00dc78cdad529bbb41bdd319c1e6f4cbb">
       <source xml:lang="en">DML tools expose this entity through generic MCP tools.</source>
@@ -2401,6 +2482,9 @@
       <source xml:lang="en">Database - {0}</source>
       <note>{0} is the database name</note>
     </trans-unit>
+    <trans-unit id="++CODE++8bd9b4bcb9d0a24051d3546010a0e23cc4dca9884dca0b6d96608d2cf6b60ea7">
+      <source xml:lang="en">Database Audit Specifications</source>
+    </trans-unit>
     <trans-unit id="++CODE++cc2bc1468b131fa8c46d376dd879592e78af283343403eb011206e52450a7ad3">
       <source xml:lang="en">Database Description</source>
     </trans-unit>
@@ -2422,8 +2506,17 @@
     <trans-unit id="++CODE++82894a5a07867575dd9f6d0b2acb4a56840d90151d262694bbeab305ef6b5cd0">
       <source xml:lang="en">Database References</source>
     </trans-unit>
+    <trans-unit id="++CODE++c918dc2e743472969e9811cc7567ea3f85dcc46b24936f0131c972fbac511cae">
+      <source xml:lang="en">Database Roles</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d24504348e1a4945109f6fade989f5033f83304ae8a2581e0cddb56e5112503f">
+      <source xml:lang="en">Database Scoped Credentials</source>
+    </trans-unit>
     <trans-unit id="++CODE++b6e543a005bad43a063405630b714cebb06d39c3690172255d067673fac8de8b">
       <source xml:lang="en">Database Trigger</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b98507e493e9161e885bb8cc030287424525bc2da44d9924c30a438973ef0608">
+      <source xml:lang="en">Database Triggers</source>
     </trans-unit>
     <trans-unit id="++CODE++ec9c37392a809590dbb62879bd1b261c3675552b33d4d8936d539925d774f6a6">
       <source xml:lang="en">Database changed successfully</source>
@@ -2478,6 +2571,12 @@
     </trans-unit>
     <trans-unit id="++CODE++b387433c2578a3f7370d165966a0e7f9c00b58cbdce9b504fd8e42626c934937">
       <source xml:lang="en">DatabaseProject</source>
+    </trans-unit>
+    <trans-unit id="++CODE++61d2afe2349913ce5b96de2556ffe0f14deb1e86cdfeda218e0a3d83a35670c7">
+      <source xml:lang="en">Databases</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1550aee6c0d6b779c25ee298d845a55bf9c4a69cc9625e44d1cabea7e378ec6f">
+      <source xml:lang="en">Databases unavailable: {0}. Refresh to retry.</source>
     </trans-unit>
     <trans-unit id="++CODE++99c40ab405926cb5ad1def9cff4d7ce624f8f8abfff4e85f655347fcb949d08e">
       <source xml:lang="en">Date</source>
@@ -2654,6 +2753,9 @@
     <trans-unit id="++CODE++ba142112330ecabeb92c1588f850c838091bcfd621fa97b344e2d9e73a3b7314">
       <source xml:lang="en">Differential</source>
     </trans-unit>
+    <trans-unit id="++CODE++4cb2de9c1fe726ca3a9110e922532a25003fb853c27eed49926608cb2fc8acd8">
+      <source xml:lang="en">Differs from same-named connections:</source>
+    </trans-unit>
     <trans-unit id="++CODE++a5ae618cb3167a304d3c5c6c4ab64a1e6370431b7d8d18093ce828c7735f5300">
       <source xml:lang="en">Directory &apos;{0}&apos; already exists in the selected location, please choose another</source>
     </trans-unit>
@@ -2828,8 +2930,17 @@
     <trans-unit id="++CODE++9efa6488b1453597a16946eec3bec93d89632493aae8e137b09ed9ffcaf70e7b">
       <source xml:lang="en">Drop Database Options</source>
     </trans-unit>
+    <trans-unit id="++CODE++29716a1c00c7caf04c7b10bc8aeade44de05b5e06273ca6c614cde0f76d5fd79">
+      <source xml:lang="en">Drop Database… (legacy)</source>
+    </trans-unit>
     <trans-unit id="++CODE++0301e63bd19eb739abb705445f40ef5338164e75b5ccdaed58dc76bbebeb4f06">
       <source xml:lang="en">Drop active connections</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e4ea91ab495e4ed16436fda81a38fb5a495867623d57c24d796d9474b4fbac96">
+      <source xml:lang="en">Dropped Ledger Tables</source>
+    </trans-unit>
+    <trans-unit id="++CODE++db84152b4d56525295a2bea6a152c3e37b1b03db45413a20c2f78b75f16f9d24">
+      <source xml:lang="en">Dropped Ledger Views</source>
     </trans-unit>
     <trans-unit id="++CODE++b5fb1a311c627a052d69179f4fb37cc4d9b0d9aa8b4db5a16458c97563420413">
       <source xml:lang="en">Dropping database</source>
@@ -2860,6 +2971,12 @@
     </trans-unit>
     <trans-unit id="++CODE++3ed3609cfd38169ffe27957c6ef1ad4df5bdf9c403542839533396143d436b41">
       <source xml:lang="en">Edit Table</source>
+    </trans-unit>
+    <trans-unit id="++CODE++442e0c9cf9e688960aba00a6c94eced2cbe55952b2b94c749fccbf2b28688e83">
+      <source xml:lang="en">Edit Table (legacy Table Designer)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e034ed187c64af4bc123fadd1002e8cc77fa41757089f0efbfc413d2184b6f1d">
+      <source xml:lang="en">Edit Table Data… (legacy)</source>
     </trans-unit>
     <trans-unit id="++CODE++150306f3e1fcaf1151d7ad284dea56d8ed1f23566fc18dfe02709310c2bb0a41">
       <source xml:lang="en">Edit an existing connection profile</source>
@@ -2961,6 +3078,9 @@
     <trans-unit id="++CODE++6051d2070e8e51a99adfa6b3f5171cfa92107943f46417bcd51a8f5e995c881f">
       <source xml:lang="en">End IP Address</source>
     </trans-unit>
+    <trans-unit id="++CODE++fce7fec2a58c8b49e4deba672461d849ec0df43da356de68d0cd8d47ce3eefa3">
+      <source xml:lang="en">Endpoints</source>
+    </trans-unit>
     <trans-unit id="++CODE++1a77d555bedbf97481907d505c8c8ba64d32d3525b77122e16178dd4054c3c93">
       <source xml:lang="en">Ends With</source>
     </trans-unit>
@@ -3012,6 +3132,9 @@
     </trans-unit>
     <trans-unit id="++CODE++2029b6cedb7a8d6b58872d33896e8d2d86134cb98d9194706758d32238c9dee2">
       <source xml:lang="en">Enter admin username</source>
+    </trans-unit>
+    <trans-unit id="++CODE++21f7927c143ff4e0d1715d4f5fd3d8e798ea4a065971480a91c147706fe74f0e">
+      <source xml:lang="en">Enter an object name or prefix</source>
     </trans-unit>
     <trans-unit id="++CODE++db8916a9e121c88e488cc019e97f752538fe362701a492cbf905fa8e1cddf4d1">
       <source xml:lang="en">Enter application name</source>
@@ -3076,6 +3199,9 @@
     <trans-unit id="++CODE++01361e7512312c886672147a57fe766787e82c148e04d8c5e26897ff5bba3bef">
       <source xml:lang="en">Enter server name</source>
     </trans-unit>
+    <trans-unit id="++CODE++187982c1e7a9693b24cf2c1c0289473464501ca4c0ac9f13fefe0f79fb30ce06">
+      <source xml:lang="en">Enter text to match object names</source>
+    </trans-unit>
     <trans-unit id="++CODE++a462b8c590652563cb55e5dc6e55e0b7ac0123f0a5dd70f9043bdef3d4fa5417">
       <source xml:lang="en">Enter text...</source>
     </trans-unit>
@@ -3128,6 +3254,9 @@
     </trans-unit>
     <trans-unit id="++CODE++f251a7b2d632de7a4122dafe6fd4a9e984d632ffe0c1e71591e5e253ea9fda11">
       <source xml:lang="en">Error Message: </source>
+    </trans-unit>
+    <trans-unit id="++CODE++935992e587dc40dfb2dc5ae22f8967d3b4bebbf59439556b6cdf35ee39c3f8bc">
+      <source xml:lang="en">Error Messages</source>
     </trans-unit>
     <trans-unit id="++CODE++e0bae86bdfb080a21f5931b75cc441576b072107cd2d7c85f85645ad75df114a">
       <source xml:lang="en">Error adding database reference to {0}. Error: {1}</source>
@@ -3454,6 +3583,9 @@
       <source xml:lang="en">Expand {0}</source>
       <note>{0} is the category name, e.g. Design</note>
     </trans-unit>
+    <trans-unit id="++CODE++94e62d2591c04e2d1af2896b56b4e6935b18690d678bbcbecbee92f70039b7ce">
+      <source xml:lang="en">Expansion failed: {0}. Refresh to retry.</source>
+    </trans-unit>
     <trans-unit id="++CODE++f38d6e0e9b0832fa142cfa3a658a948fda6200e465fae470e535154579d5ef98">
       <source xml:lang="en">Expiration</source>
     </trans-unit>
@@ -3578,6 +3710,9 @@
     </trans-unit>
     <trans-unit id="++CODE++c2598c4eff93f92ad64b8b20edf4a58bf6fa0001d4725b6833595690c531bbd8">
       <source xml:lang="en">External Streaming Job</source>
+    </trans-unit>
+    <trans-unit id="++CODE++41794940d7195669f8786c78b5bf433feb416d0d10071749c31e2051534c36d2">
+      <source xml:lang="en">External Tables</source>
     </trans-unit>
     <trans-unit id="++CODE++09fb0b40c52653920efa7d90c989b0455616a837458b1690dd908a961ae768dc">
       <source xml:lang="en">Extract DACPAC</source>
@@ -4050,6 +4185,9 @@
       <source xml:lang="en">File: {0}</source>
       <note>{0} is the file name</note>
     </trans-unit>
+    <trans-unit id="++CODE++01e8c91d889dd77fe0f775e81715899f47475b8ec8aaa1fad00828389dab8980">
+      <source xml:lang="en">Filegroups</source>
+    </trans-unit>
     <trans-unit id="++CODE++abc7e9892806b047b4d4786b3685285543f76ca314c4c76246d5f6544c7856c9">
       <source xml:lang="en">Files</source>
     </trans-unit>
@@ -4068,6 +4206,9 @@
     </trans-unit>
     <trans-unit id="++CODE++6912047d1e34810c689d86abbaaff16d03c52fddb02d0a438654cbfae32e926b">
       <source xml:lang="en">Filter Changes</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e9e38ca778846da5c0aba34f92acd2b8b5be8e0e70521e742d6cd62d0b43f933">
+      <source xml:lang="en">Filter Object Explorer v2 Folder</source>
     </trans-unit>
     <trans-unit id="++CODE++dcd87fabe8cdcdf7a36e88a2326e72e03e96ddd1b279d554ba9ef435af8f22f4">
       <source xml:lang="en">Filter Options</source>
@@ -4130,8 +4271,14 @@
     <trans-unit id="++CODE++50ee55cd30fcbff4593b799f78f7ee159d3eb0ad52bcf7b43f6fea7ea5cf5050">
       <source xml:lang="en">Filter {0}</source>
     </trans-unit>
+    <trans-unit id="++CODE++829c4c3d439c8656d2e1c585beea209eb3ec9570d2d46fbc2d96aeb4acaf5906">
+      <source xml:lang="en">Filter {0} by name</source>
+    </trans-unit>
     <trans-unit id="++CODE++ec9c8be4d7dede5d0b4ded3caba65e4311e4d5cca428b1c65b2d4d08b07f5707">
       <source xml:lang="en">Filter...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++10082433dc765484ff7cb602190587aa5583950d3b2669c159bdf23e1d5a3bb9">
+      <source xml:lang="en">Filter: &apos;{0}&apos; ({1} of {2} shown)</source>
     </trans-unit>
     <trans-unit id="++CODE++c97e4310054d0eac7186d3f17446802485f036aec155d65ddd1c193cc6273bd4">
       <source xml:lang="en">Filter: {0}</source>
@@ -4194,6 +4341,9 @@
     </trans-unit>
     <trans-unit id="++CODE++74ccd43303847f2655300641a934959cdb11689ce171aa0f00faa92917fbd340">
       <source xml:lang="en">Folder</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fde10702d00ccd7cd23bb5295b08ac34d91403b587a61475fd989e816b44ebc0">
+      <source xml:lang="en">Folder &apos;{0}&apos; is not part of the current layout. Refresh the parent node.</source>
     </trans-unit>
     <trans-unit id="++CODE++628cf6a24bca5af30b531d234bdd0eb8da3e5bcb988ca0607388087178f0fb75">
       <source xml:lang="en">Folder Elements</source>
@@ -4287,6 +4437,12 @@
     </trans-unit>
     <trans-unit id="++CODE++008dacb6d1e85bd8c0ae9661c4472810ef75537f690dd75d77fc74ca62f78fec">
       <source xml:lang="en">Full</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3519a3fcb7c0daa1b25d7fe61899b384edb412eab0d3fd98519355efc8c0b941">
+      <source xml:lang="en">Full Text Catalogs</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f851dd06471f59f92ff55e6ebffcfd94098656ced0f2400d74a3333391d498c3">
+      <source xml:lang="en">Full Text Stop Lists</source>
     </trans-unit>
     <trans-unit id="++CODE++c803710302d5769d8fcd51958c516ff27f2a3c5ad9373c348d1d180c04a74624">
       <source xml:lang="en">Function</source>
@@ -4523,6 +4679,9 @@
     </trans-unit>
     <trans-unit id="++CODE++f297587645cd5e7ce0a5f6f74be689bc53dd731e24a946c15ed70df07f084e83">
       <source xml:lang="en">Import Data</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b6eef179a8808488a28c925868f6859fc9ca367b133b48d93d0fe530aeeb488c">
+      <source xml:lang="en">Import Data… (legacy)</source>
     </trans-unit>
     <trans-unit id="++CODE++459f619c9ccfe5e3fa7210a22a69e5a512c7c7c7c0ee12e38b2ff119582bc322">
       <source xml:lang="en">Import Elements</source>
@@ -4774,6 +4933,9 @@
     <trans-unit id="++CODE++1730c13cc8d1bc6550b4f9150c1934d2bcac56f8a34d701392c057ff113bd491">
       <source xml:lang="en">Keyboard Shortcuts editor</source>
     </trans-unit>
+    <trans-unit id="++CODE++f0d66a79c138e951c2f840fcd94ea9bdf399f745088a832a9ba49cf07f7125de">
+      <source xml:lang="en">Keys</source>
+    </trans-unit>
     <trans-unit id="++CODE++a3c13b491573b0d54bf743caf0f5d59d5a791c42ae1072f16bb941be925fae18">
       <source xml:lang="en">Keys for token cache could not be saved in credential store, this may cause Microsoft Entra Id access token persistence issues and connection instabilities. It&apos;s likely that SqlTools has reached credential storage limit on Windows, please clear at least 2 credentials that start with &quot;Microsoft.SqlTools|&quot; in Windows Credential Manager and reload.</source>
     </trans-unit>
@@ -4785,6 +4947,9 @@
     </trans-unit>
     <trans-unit id="++CODE++c7d299ed6b2896187b535a86fd6b04f01669a9b72528a8f2021fff2f42d9f6e3">
       <source xml:lang="en">Last Page</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8b4e0e36a7476c99a078eed44af0725428e6e29d21a972fa97c8ba683446413a">
+      <source xml:lang="en">Launch Profiler (legacy)</source>
     </trans-unit>
     <trans-unit id="++CODE++8d8cd546b58d91c300d3149ef40b8d98d3061dc38f15ea937d2ed785a3f25771">
       <source xml:lang="en">Learn More</source>
@@ -4800,6 +4965,9 @@
     </trans-unit>
     <trans-unit id="++CODE++998276d04826bfa9ef42b723a5004ca0d28262fbf2b15899520378a43d93ecc9">
       <source xml:lang="en">Leave the source database in the restoring state</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d0f8e1e86e1cfed9254b1d386ce3742635c1b26e5a51b490d12ac45899146357">
+      <source xml:lang="en">Legacy actions (creates a classic connection)</source>
     </trans-unit>
     <trans-unit id="++CODE++adc95605a1b30c73959fbaf21e60f9723efe855c482fa336a957924d4ea0a08b">
       <source xml:lang="en">Length</source>
@@ -4829,6 +4997,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e2a627b4134a5455218d4018fec6393c005ed0097d63e533d50ea350a1eab6c2">
       <source xml:lang="en">Link copied to clipboard</source>
+    </trans-unit>
+    <trans-unit id="++CODE++cd9ad677187545cac4b7840d1bb0b24961dc12975e5983631b899eb70e4d7c90">
+      <source xml:lang="en">Linked Servers</source>
     </trans-unit>
     <trans-unit id="++CODE++4ffa355be76c7d5e9f39081d405b5a1d2d9cae27b4016b7588b4b812f2146556">
       <source xml:lang="en">List Connections</source>
@@ -5076,6 +5247,9 @@
     <trans-unit id="++CODE++47d2a515ef2f05b87d688656286a61e4f743da4b878684c7654969db17711c40">
       <source xml:lang="en">Loading...</source>
     </trans-unit>
+    <trans-unit id="++CODE++c8885cf40442d827f55c1f7ace8336cdb5421a7565b633e16b31cb8844bd85dc">
+      <source xml:lang="en">Loading…</source>
+    </trans-unit>
     <trans-unit id="++CODE++8c31e6e7223097e2e4847773c47a4efab6aaf79deeecc92a7759891c74976dde">
       <source xml:lang="en">Local</source>
     </trans-unit>
@@ -5106,6 +5280,9 @@
     <trans-unit id="++CODE++1aa90f6c7d9e7a123d71457bdbe1f733cbe0170eb978723ecf13717f64403cda">
       <source xml:lang="en">Location of the file to be imported</source>
     </trans-unit>
+    <trans-unit id="++CODE++3143d2621afaec6c9a466356a428d44af109efadebe0925270efebfaa1f2e306">
+      <source xml:lang="en">Log Files</source>
+    </trans-unit>
     <trans-unit id="++CODE++9113b512a7294a5909b6024e3a11f8c0be79f286e9dccc963697c1128534ec23">
       <source xml:lang="en">Log file folder</source>
     </trans-unit>
@@ -5117,6 +5294,9 @@
     </trans-unit>
     <trans-unit id="++CODE++155952ddf38c19af2c08d64095b80c9fe510faade4f78b6f0c6113fda082eda0">
       <source xml:lang="en">Logical operator</source>
+    </trans-unit>
+    <trans-unit id="++CODE++543eb6e59b2d9076bcd19e7217a2437aa8f9f26de4e313560f4ca0827225a787">
+      <source xml:lang="en">Logins</source>
     </trans-unit>
     <trans-unit id="++CODE++ea2100dc89ae9fe21fa9b08ab1bf18662dca1e53a3eebd7d03afebcaf5d57515">
       <source xml:lang="en">Logs</source>
@@ -5162,6 +5342,9 @@
     <trans-unit id="++CODE++65298a316736d0742788a35a1a44d804842b5f5d39234b03faa3be7815a545e4">
       <source xml:lang="en">MSSQL Notebook connected to {0}</source>
       <note>{0} is the connection label</note>
+    </trans-unit>
+    <trans-unit id="++CODE++f25716553dd92d832e01ca466ebf533739c98e3ae16948278269ce3b4d8f0bd0">
+      <source xml:lang="en">MSSQL Object Explorer v2</source>
     </trans-unit>
     <trans-unit id="++CODE++f7fc6e80cfc472d01f0cbe63665cda3c32d6d6ef2539b7e7cb27b1f22709a050">
       <source xml:lang="en">MSSQL extension icon</source>
@@ -5252,6 +5435,9 @@
     <trans-unit id="++CODE++2f77668a9dfbf8d5848b9eeb4a7145ca94c6ed9236e4a773f6dcafa5132b2f91">
       <source xml:lang="en">Message</source>
     </trans-unit>
+    <trans-unit id="++CODE++139ead26b3a5a61f8d31bcbcc599c226ff3ff89da16d73dffbd50ca2d0c0aead">
+      <source xml:lang="en">Message Types</source>
+    </trans-unit>
     <trans-unit id="++CODE++04d7b48339271ea67d3c8493e07e90bc68dc565485eebe5e0b67c21c1586e3c0">
       <source xml:lang="en">Messages</source>
     </trans-unit>
@@ -5259,8 +5445,20 @@
       <source xml:lang="en">Messages ({0})</source>
       <note>{0} is the keyboard shortcut for the messages tab</note>
     </trans-unit>
+    <trans-unit id="++CODE++90b0144a88b10a68fe575b1b027fb2450cb972d050265fd8ba041cadf325258c">
+      <source xml:lang="en">Metadata failed to load.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b6e29fa9fd99bf4b7a398cae3d0fb3814a855748cb0f5235c6e208b725dceb53">
+      <source xml:lang="en">Metadata failed to load. Refresh to retry.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++dc316e911d9fd3ce9a79dfdd03cbe714cae7e1ebaa450eccf69a937a88eca611">
+      <source xml:lang="en">Metadata not validated — {0} (refresh to retry).</source>
+    </trans-unit>
     <trans-unit id="++CODE++ef4130dc48f45fbb30ce483736bd294e6080ba15a8f915f61c7b91e914733d02">
       <source xml:lang="en">Metadata requires mssql.enableExperimentalFeatures and mssql.sqlDataPlane.enabled to be enabled.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bce35cdeec5117392e1c8110b938115f882e95215b84b84ba617ca805cf1c227">
+      <source xml:lang="en">Metadata section &apos;{0}&apos; failed. Refresh to retry.</source>
     </trans-unit>
     <trans-unit id="++CODE++2d275a74912cca2e02e6d41f9cae3a75ceef3ed0ef734eff3710e10eb7112228">
       <source xml:lang="en">Metric</source>
@@ -5403,6 +5601,9 @@
     <trans-unit id="++CODE++2d5283fdd2a43acc64170f29dc3d6892ffe9c36f84adf2a0fdcaf19c869f5e72">
       <source xml:lang="en">Move and expand the active grid selection</source>
     </trans-unit>
+    <trans-unit id="++CODE++e94ebca5e73c5f40f583cd385c24ad5bf99a7077cd88ef822f97a1de0e40136a">
+      <source xml:lang="en">Move connection to group</source>
+    </trans-unit>
     <trans-unit id="++CODE++5defb507de07fc33f447ed735c12fb0520493a09c2ad759d19a2f298a070dfce">
       <source xml:lang="en">Move focus to the next result set grid</source>
     </trans-unit>
@@ -5479,6 +5680,9 @@
     <trans-unit id="++CODE++ad4811485a0a0f3f000987d581730b04c0bf33a9d4ccf59a9ff1c127b33d76d1">
       <source xml:lang="en">Name of the primary key.</source>
     </trans-unit>
+    <trans-unit id="++CODE++a4887d226555d78ef8b3c34fd3452dfcec04cd54201a949a272893b9db5f05a8">
+      <source xml:lang="en">Name prefix to search for.</source>
+    </trans-unit>
     <trans-unit id="++CODE++2b7cfe25c7ec50bed3130625cf2450de919a7f1961b5081b5e069d3bc41bb9f5">
       <source xml:lang="en">Navigate to this item in the diagram</source>
     </trans-unit>
@@ -5538,6 +5742,9 @@
     </trans-unit>
     <trans-unit id="++CODE++0d4d95a7a2955bb82377a0ca37dbb8a946344dd95c092820b5ece489c29e7403">
       <source xml:lang="en">New Query Profiler - Select Template</source>
+    </trans-unit>
+    <trans-unit id="++CODE++be57be60bd4883083c87a9dd75c93ba3d739798e3960aa5c90a241ac43d9690d">
+      <source xml:lang="en">New SQL Notebook (legacy)</source>
     </trans-unit>
     <trans-unit id="++CODE++f0ebbe4b20d0db8c4c52feb9dc715d1db281ae429389480780ce9120113da253">
       <source xml:lang="en">New SQL database</source>
@@ -5602,6 +5809,9 @@
     <trans-unit id="++CODE++51376cb4a62d2ba04bbfabe2409c9957f6d4839845b43a39b01d38c368d1912b">
       <source xml:lang="en">No SQL Tools MCP connection found for connectionName: {0}</source>
       <note>{0} is the SQL Tools MCP registered connection name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++b300684f69c156846b5dd1df5f5b5475f5c574b10e9dad8fa74601e129ec019b">
+      <source xml:lang="en">No access to this database.</source>
     </trans-unit>
     <trans-unit id="++CODE++b363e5f44515909e667e5e4b24f9690b87a202de3c6b1f1f7b8b597205461ad6">
       <source xml:lang="en">No account selected</source>
@@ -5755,8 +5965,14 @@
     <trans-unit id="++CODE++6c351c116cc7feeaf5724426f891c890b4f7d9cb8baab5f2ec1d6c512cc016b6">
       <source xml:lang="en">No items</source>
     </trans-unit>
+    <trans-unit id="++CODE++19a6d6126b1ed8aa03054039bcf8a79542524db198b93a12bb645420040e0417">
+      <source xml:lang="en">No legacy actions are available for this node in the Object Explorer v2 preview.</source>
+    </trans-unit>
     <trans-unit id="++CODE++985ed9835264ebdfa8f578536196c1d3f0a23b500b824b417300dd7e954b0042">
       <source xml:lang="en">No log entries yet.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++23d5212e4f89227354e5edc341bc393c85aef467e5ebf586359c70e2dcd606f9">
+      <source xml:lang="en">No matches for filter &apos;{0}&apos;. Use Clear Filters to remove it.</source>
     </trans-unit>
     <trans-unit id="++CODE++4b4d7ac22cee34f92cd16fbe4193b0eb106e185100ea38f72b0190e1affaf933">
       <source xml:lang="en">No matches found</source>
@@ -5777,6 +5993,9 @@
     </trans-unit>
     <trans-unit id="++CODE++5aa25ab8e1d89c0563f5cf32fc56ca21e52cefa7663326b1527eaa567ab33a8c">
       <source xml:lang="en">No objects found</source>
+    </trans-unit>
+    <trans-unit id="++CODE++62b98c0dc526cee1f4c34b229e91b60fa1959fb2ea9011db985c924966c0753c">
+      <source xml:lang="en">No objects match &apos;{0}&apos;.</source>
     </trans-unit>
     <trans-unit id="++CODE++c2a1a3e03cf67c0ac40fabfee38ee5346f05417614d1a55e7eed85e87de976d7">
       <source xml:lang="en">No parameters were discovered for this stored procedure.</source>
@@ -5836,6 +6055,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e32e1aa390f5243f880caab46155befbe51dd11233564502e4699d1cd79e56ab">
       <source xml:lang="en">No saved connection profiles found.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9236487660a0b9b37848d7dae950ee167dbbbab8ad297eb798e81bda1979c63d">
+      <source xml:lang="en">No saved connection profiles. Create one with &apos;MS SQL: Add Connection&apos;.</source>
     </trans-unit>
     <trans-unit id="++CODE++86147502503bfa8f5f4b25b018362f8a6990334ff839907a0c3008e98d4d7125">
       <source xml:lang="en">No saved connections found. Please create a connection first.</source>
@@ -5980,6 +6202,9 @@
     <trans-unit id="++CODE++ba35f0c47d862763dafa955d6716942f79b8bfe1d01d5968520db6f9ba665f6f">
       <source xml:lang="en">Not started</source>
     </trans-unit>
+    <trans-unit id="++CODE++326a5993a3b8a8cc018f72efba4bb30039df814c25455368285ee8ab27d815cf">
+      <source xml:lang="en">Not supported for this connection.</source>
+    </trans-unit>
     <trans-unit id="++CODE++07b555a4dd9446c56aae7bbe326905f8aabc205d5eee96191a71e15510fbb53f">
       <source xml:lang="en">Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable &apos;Trust server certificate&apos; on this connection and retry?</source>
     </trans-unit>
@@ -6005,8 +6230,20 @@
     <trans-unit id="++CODE++17353b3f8f54bed0a811ad1ed6fb9f3505a0e039df3b934afb3e8bc11976a2ca">
       <source xml:lang="en">OLTP, built on Azure SQL</source>
     </trans-unit>
+    <trans-unit id="++CODE++5dbf351336f2e66ee89266f3853594ff717c7c5e05724ad4b0047bd31e78658c">
+      <source xml:lang="en">OUTPUT</source>
+    </trans-unit>
     <trans-unit id="++CODE++501ec8c3629bcdcd52b9d7895c90d04b0c0b969f1134ba024efe021f0a25d867">
       <source xml:lang="en">Object Explorer Filter</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1d1d5d567532b171b4108c3400f31357808e67114ef9c312b8001a3dad7b6183">
+      <source xml:lang="en">Object Explorer v2 could not connect.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++63ebc6dc27390ab4a34aae1159082305ddbb1583f670b6ce1b59bb139b978b7d">
+      <source xml:lang="en">Object Explorer v2 could not connect: {0}</source>
+    </trans-unit>
+    <trans-unit id="++CODE++88d408f49dc1cc8f0a5e919295cf15c6fe84a19afa43073c720a8715e3d25efc">
+      <source xml:lang="en">Object Explorer v2 requires the SQL Data Plane. Enable mssql.sqlDataPlane.enabled, then reload.</source>
     </trans-unit>
     <trans-unit id="++CODE++149f598e7edb5433f886c75bb1bf9e22c7129d29754a8bdc6223eee95384047c">
       <source xml:lang="en">Object Type</source>
@@ -6014,8 +6251,17 @@
     <trans-unit id="++CODE++15bcefe28749fc12d60214a94c60d8a46127c922357c31e718e1cd3d28262678">
       <source xml:lang="en">Object Types</source>
     </trans-unit>
+    <trans-unit id="++CODE++91784155a9e16c0fedb92961751ac2a931cf4d42d795446d8936c0c2dffda260">
+      <source xml:lang="en">Object not found in the current catalog generation. Refresh the parent folder.</source>
+    </trans-unit>
     <trans-unit id="++CODE++46e7c345a4106f8dba31dee33a1559a12f24d16a1678241d55e84ae55c107d81">
       <source xml:lang="en">Object type</source>
+    </trans-unit>
+    <trans-unit id="++CODE++801cabaa5a7ad970cec5a1d075dedafabd76f712112fc2a5fa9c5e1a409e02a4">
+      <source xml:lang="en">Objects matching &apos;{0}&apos; — pick to copy qualified name</source>
+    </trans-unit>
+    <trans-unit id="++CODE++28e534acbd6436268936c51850a7356858fe62039bd6d77c2445e92ae48ac999">
+      <source xml:lang="en">Objects whose name contains this text remain visible.</source>
     </trans-unit>
     <trans-unit id="++CODE++ca7981b46ecf2c1787b6d76d81d9fd7fa0ca95842e2fcc2a452869891a9334d1">
       <source xml:lang="en">Off</source>
@@ -6109,8 +6355,14 @@
     <trans-unit id="++CODE++f395ae5e32b4cc24f8030096918e6a2318d4be5fb9274dbeedc0002ce9840bb7">
       <source xml:lang="en">Open in Editor</source>
     </trans-unit>
+    <trans-unit id="++CODE++4ac009034e6a248019d914946453b9ec2b19023be0227272338ba004402c2234">
+      <source xml:lang="en">Open in GitHub Copilot Agent (legacy)</source>
+    </trans-unit>
     <trans-unit id="++CODE++908e4d79c8e37a885368e9bf598eaa4f2287067f58bd19a7837c959b83cd2ba7">
       <source xml:lang="en">Open in GitHub Copilot Chat</source>
+    </trans-unit>
+    <trans-unit id="++CODE++876e9549537ac4745c8f4afbbb3e2db132fdff8ac08ad7e55f25fe907ca50538">
+      <source xml:lang="en">Open in GitHub Copilot Chat (legacy)</source>
     </trans-unit>
     <trans-unit id="++CODE++35e74c3a943dcaf90a91c99a242ea7dbfb3ead16a012ba5a7d6a747a96e01d64">
       <source xml:lang="en">Open in New Tab</source>
@@ -6210,6 +6462,9 @@
     <trans-unit id="++CODE++4b1b8aa3608a26da451ae0630d75b60ab1bc2dd229c41a80838fc7993e835c46">
       <source xml:lang="en">Owner</source>
     </trans-unit>
+    <trans-unit id="++CODE++fcab7fcc2b4cffd9bb45003bfc2e468a04ef6f77ca8200a7341f027631584d25">
+      <source xml:lang="en">PK</source>
+    </trans-unit>
     <trans-unit id="++CODE++796120837694d3f3f29259cfeb25091698c2a0aa87873658d840b4993ee889b3">
       <source xml:lang="en">PNG</source>
     </trans-unit>
@@ -6227,6 +6482,12 @@
     </trans-unit>
     <trans-unit id="++CODE++5cafcd08f15a2a6ce49d703f1da5861c94ec134cc92984cc6b2f67965c31b5ee">
       <source xml:lang="en">Parent node was not TreeNodeInfo.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++875d97950049c1ba7d3bb95d81167d4b9944cce2045fdbb132ceff5b417d0d33">
+      <source xml:lang="en">Partition Functions</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f477e622d6992772ae9983376f5b8989363fc88bdbdf23ae6d5616f58775900d">
+      <source xml:lang="en">Partition Schemes</source>
     </trans-unit>
     <trans-unit id="++CODE++e7cf3ef4f17c3999a94f2c6f612e8a888e5b1026878e4e19398b23bd38ec221a">
       <source xml:lang="en">Password</source>
@@ -6273,6 +6534,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e87dbc12e88933c84d9ccdb30d89a4c9977b80894c26a85504ed7b1b42fda674">
       <source xml:lang="en">Perform checksum before writing to media</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8fbfbbfd0d6df40fb3ac544463426d3da1683e2c78c771df98e05d638d2e1101">
+      <source xml:lang="en">Permission denied.</source>
     </trans-unit>
     <trans-unit id="++CODE++abccc78cc93c07931feccfbd0665c003373b48334fd8d4cf5c6d0c714e68f26e">
       <source xml:lang="en">Permissions</source>
@@ -6494,6 +6758,9 @@
       <source xml:lang="en">Profiler session &apos;{0}&apos; started successfully.</source>
       <note>{0} is the session name</note>
     </trans-unit>
+    <trans-unit id="++CODE++db4a3abf5898849968ef032cd46398c568c711bc67cb43f0b8b5906dbf1e685b">
+      <source xml:lang="en">Programmability</source>
+    </trans-unit>
     <trans-unit id="++CODE++985959785319747668373cc6dee294b11db782b03cdd90a2851fbdc0637c6b7b">
       <source xml:lang="en">Project</source>
     </trans-unit>
@@ -6659,6 +6926,9 @@
       <note>{0} is the query number
 {1} is the query cost</note>
     </trans-unit>
+    <trans-unit id="++CODE++be77db1156d1f1b555249e6dfa14d2d3e1d7b288f7e3f887696bf6208dde867e">
+      <source xml:lang="en">Queues</source>
+    </trans-unit>
     <trans-unit id="++CODE++76d95315fb4f255c5f431e76d2838984eb65d11e88bb9c1c9b50777bac4a7acb">
       <source xml:lang="en">Quick Queries</source>
     </trans-unit>
@@ -6798,6 +7068,9 @@
     <trans-unit id="++CODE++b69ef66763bd411348c2bf030ab4cd0881dc36c538ce1a05966e92b927d2675c">
       <source xml:lang="en">Remind Me Later</source>
     </trans-unit>
+    <trans-unit id="++CODE++1dce85e8914e6fd9adf6b4a42d5b219bc289f46db0b45e86b7df48bdec882494">
+      <source xml:lang="en">Remote Service Bindings</source>
+    </trans-unit>
     <trans-unit id="++CODE++2447e095bf309befc0891c8154c7e06eb8f02751bf746054d6a5f06837c534a8">
       <source xml:lang="en">Remote git repository</source>
     </trans-unit>
@@ -6843,6 +7116,9 @@
     </trans-unit>
     <trans-unit id="++CODE++90d9ab3255a92db5b378418ece6b230df904cb32837a59f146c96966f659a683">
       <source xml:lang="en">Rename Database</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6371d0d7a1bb48c939741c2c9a176a877e7040636ceefa38cb626c17c134d488">
+      <source xml:lang="en">Rename Database… (legacy)</source>
     </trans-unit>
     <trans-unit id="++CODE++39b10e9a29841c96618fdf773450de8dbc3c86e0d4392b03e0c13ae1c6dfd938">
       <source xml:lang="en">Rename Options</source>
@@ -6931,6 +7207,9 @@
     </trans-unit>
     <trans-unit id="++CODE++fcc2107b5a260d3c07480870a91a7634f1520f7d2afa98f70ff1ce21e36132b1">
       <source xml:lang="en">Restore Database</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5c53e2b1d038e4eb1e8d2928478a1b0aad9eeda8795778693efe1d42c6b98160">
+      <source xml:lang="en">Restore Database… (legacy)</source>
     </trans-unit>
     <trans-unit id="++CODE++a1fd0aa6b9bdf8696143377ec1bf93d31e265ac3127aaee41867716f69f4405e">
       <source xml:lang="en">Restore NuGet packages</source>
@@ -7041,6 +7320,9 @@
     <trans-unit id="++CODE++6787c1583c12d96416e9c293250562f4dcb4c7159b13ce67f7c7a73eddebd5ca">
       <source xml:lang="en">Reviewing Copilot Change</source>
     </trans-unit>
+    <trans-unit id="++CODE++c25337055464f8d31fb1498bc94025cba5eae3b0e1cf07741f09f8b873d00103">
+      <source xml:lang="en">Roles</source>
+    </trans-unit>
     <trans-unit id="++CODE++02db2f499ba6ed0895fdb86e879b5758e87aacd4251189046218aec2617a0ba5">
       <source xml:lang="en">Rosetta is required to run SQL Server container images on Apple Silicon. Enable &quot;Use Rosetta for x86_64/amd64 emulation on Apple Silicon&quot; in Docker Desktop &gt; Settings &gt; General.</source>
     </trans-unit>
@@ -7136,6 +7418,9 @@
     </trans-unit>
     <trans-unit id="++CODE++418024d48b3bccf64d26f1031290f65e229c515336a4b5a08a0cde384d803ed7">
       <source xml:lang="en">SQL Container Version</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9fb49c1452c606d2cabd18b0df5db6166ddd5d4dce5785233f4e4d83645504b2">
+      <source xml:lang="en">SQL Data Plane is disabled or unavailable.</source>
     </trans-unit>
     <trans-unit id="++CODE++7f779b8a3477b9909716127bf4ed2ef8e07e7f5fae134f7ad1506a7f267de247">
       <source xml:lang="en">SQL Database</source>
@@ -7357,6 +7642,9 @@
     <trans-unit id="++CODE++154e484fc5e1a7cb4991c071caef673c453eaa7dcfef4321db537c576a5c56cf">
       <source xml:lang="en">Schema Compare</source>
     </trans-unit>
+    <trans-unit id="++CODE++d305bde21bdefb306656cda9a594ac10f326d57d5c3212f17c9707b701665104">
+      <source xml:lang="en">Schema Compare (legacy)</source>
+    </trans-unit>
     <trans-unit id="++CODE++57232ac852b468be7624e8edcfabbb24ac13076a47e75fb4121be42bc813c881">
       <source xml:lang="en">Schema Compare Options</source>
     </trans-unit>
@@ -7449,6 +7737,12 @@
       <source xml:lang="en">Search Database Objects - {0}</source>
       <note>{0} is the server name</note>
     </trans-unit>
+    <trans-unit id="++CODE++03155141a76d698d2f174d78717b159ee7cddda3c99550a4ecfe9189342823bc">
+      <source xml:lang="en">Search Object Explorer v2</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d71978f988aebbe4865b042a84a83d9ac8fa9b10cdf55bd3f07bb2b58bd168aa">
+      <source xml:lang="en">Search Property Lists</source>
+    </trans-unit>
     <trans-unit id="++CODE++bd74591fea2d60dc873cec192685f7b6a930d2a370d5b3c9032014bf8224529a">
       <source xml:lang="en">Search Workspaces</source>
     </trans-unit>
@@ -7463,6 +7757,9 @@
     </trans-unit>
     <trans-unit id="++CODE++bf02e2b6200125d467ce1c048b8124906131963d7af4568a0b538aecede4da47">
       <source xml:lang="en">Search extension shortcut</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ccf323536d2cea4fcb97607b935a1c184513082121e398774838345b1dbccc59">
+      <source xml:lang="en">Search objects in {0}</source>
     </trans-unit>
     <trans-unit id="++CODE++556a085010faa6476221cb3790fd4b9e00d6a9abacd60c19b398162ec9af1d53">
       <source xml:lang="en">Search options</source>
@@ -7501,6 +7798,12 @@
     <trans-unit id="++CODE++06945f53f6f3426aff80ff3d1ebd63cc295edc8d60121dc8fdb5ee773d4db823">
       <source xml:lang="en">Second {0} filter value</source>
       <note>{0} is a filter property name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++8f6fb4eb7f42c0e245e29e63f5b82cc3ba19852681d1ed9aed291f59cf75ec0e">
+      <source xml:lang="en">Security</source>
+    </trans-unit>
+    <trans-unit id="++CODE++04ef695dacf1343b5831f77b592cb59d6cd7e960da0dd7f29c0a27490149e698">
+      <source xml:lang="en">Security Policies</source>
     </trans-unit>
     <trans-unit id="++CODE++2a78025de6aae5e7ff88e5a951bb3a78ddd67388913529cf9e2dd9653e62b02d">
       <source xml:lang="en">Select</source>
@@ -7782,6 +8085,9 @@
     <trans-unit id="++CODE++0740f4bade2a0a5b3c5d4f09aac7cc9aca2eba6907e144e2c02a226b70e4bfa7">
       <source xml:lang="en">Sequence</source>
     </trans-unit>
+    <trans-unit id="++CODE++ff4eaa5e6020142cc2a0db212eb951133ebbdcc55e4985c8bd67b95ecbb167f0">
+      <source xml:lang="en">Sequences</source>
+    </trans-unit>
     <trans-unit id="++CODE++115bef38fad466675b802fb8894b90a61134e862ded7447052405f06fb5ccc15">
       <source xml:lang="en">Serialization failed</source>
     </trans-unit>
@@ -7792,6 +8098,12 @@
       <source xml:lang="en">Server - {0}</source>
       <note>{0} is the server name</note>
     </trans-unit>
+    <trans-unit id="++CODE++a576bc43b3f3bc50fc507163976ec3ec6cfe240b8fc2697a49d5bebdc65c24d6">
+      <source xml:lang="en">Server Audit Specifications</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a6a6eae1c2a66f8127a22934e5a1e28e0170911705a07cc799db3316e040f8ab">
+      <source xml:lang="en">Server Audits</source>
+    </trans-unit>
     <trans-unit id="++CODE++ab56b110c247b1a29510788bdf844c63ca571d71be93c7e98c9715b095f7f507">
       <source xml:lang="en">Server Connections</source>
     </trans-unit>
@@ -7800,6 +8112,15 @@
     </trans-unit>
     <trans-unit id="++CODE++bc4816425ebe8079c4f9aef802a1507b5c519d415762a5cb6549fc4c1cc6dee7">
       <source xml:lang="en">Server Name</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5edef5980057588cb99b2d067d672781eeb334d06d352ca6a549a9af5711bafc">
+      <source xml:lang="en">Server Objects</source>
+    </trans-unit>
+    <trans-unit id="++CODE++08c7953c5729e109806a8672110b76fc11dc1b7ec46150061fe5bdbf1d00cbdc">
+      <source xml:lang="en">Server Roles</source>
+    </trans-unit>
+    <trans-unit id="++CODE++61d7ba90aa6c65971e69539908594fead14c2cd3d4002d3b9fe03565b6f2cdfc">
+      <source xml:lang="en">Server Triggers</source>
     </trans-unit>
     <trans-unit id="++CODE++86c1cd65696eadbc588fd4fe04d8b03ca948befc5a89467c621edf47f885118c">
       <source xml:lang="en">Server Version</source>
@@ -7835,11 +8156,17 @@
     <trans-unit id="++CODE++a4469e8491766ec6b1f6d3c2f4e3861d58829898ba912fad682eb8133520cb6d">
       <source xml:lang="en">Serverless</source>
     </trans-unit>
+    <trans-unit id="++CODE++8b9c1358b46f657510f8b3c1bcaf9d6f0978a6c151c14298095422ad887de2c5">
+      <source xml:lang="en">Service Broker</source>
+    </trans-unit>
     <trans-unit id="++CODE++dac743dff083eb4e7426ed1b0a586ff5ead5b87a35759f12eea61e57638fcbc3">
       <source xml:lang="en">Service installation failed.</source>
     </trans-unit>
     <trans-unit id="++CODE++e9cf6025703e6809e20b33168b1ad2c6120b938ab5fe8d648892d50ac54d3051">
       <source xml:lang="en">Service tier</source>
+    </trans-unit>
+    <trans-unit id="++CODE++604dce445e326d952308addc99bd3d0e3ffb0ed9a455e4aa0190641fc5facccc">
+      <source xml:lang="en">Services</source>
     </trans-unit>
     <trans-unit id="++CODE++6959b4159575d8dd76d9f3bbe2c6437904f861e7860c35abd18deffb1c3425a0">
       <source xml:lang="en">Session</source>
@@ -8324,8 +8651,26 @@
     <trans-unit id="++CODE++494731de200692139842ce40b55ca4e15ccb299d4d82b803ed1f0bd25ce82efd">
       <source xml:lang="en">Switching to Linux containers was canceled. SQL Server only supports Linux containers.</source>
     </trans-unit>
+    <trans-unit id="++CODE++0eb7202b0f0e147ad1c15b1771600643febb01123c9411ee279f7449190ac345">
+      <source xml:lang="en">Symmetric Keys</source>
+    </trans-unit>
     <trans-unit id="++CODE++2550007022b2cb525a426176b9fd9615b9fac3cc51d6abd99ac96f59ea33ce3a">
       <source xml:lang="en">Synchronous resize</source>
+    </trans-unit>
+    <trans-unit id="++CODE++181e7ec5a25b8b2b3a19b5ae1324f83e6b73357d6729eea93928a647c9ce374b">
+      <source xml:lang="en">Synonyms</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7851edba78e80968fcf971cfb2a0404035c92b19feca4c3699bcdbfce3831471">
+      <source xml:lang="en">System Databases</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e85a30e91557a8efd8aefcb744938c5bd8ba0dc8e8691dcdd953f2baf0e0a7b7">
+      <source xml:lang="en">System Stored Procedures</source>
+    </trans-unit>
+    <trans-unit id="++CODE++cbed0bf94db7d465e5cb3dc03033531c5e4c1a184d563f2d4af4a523eac2df0b">
+      <source xml:lang="en">System Tables</source>
+    </trans-unit>
+    <trans-unit id="++CODE++917fb833209e5b672bf49d633b8f361f6cfd8c1b49093b8ef9b397f85be8cdd5">
+      <source xml:lang="en">System Views</source>
     </trans-unit>
     <trans-unit id="++CODE++d2e6fd6384b452938306d46d37b20fbce453cce4becd1bf436a7f472db1c8a42">
       <source xml:lang="en">System database</source>
@@ -8490,6 +8835,12 @@
     </trans-unit>
     <trans-unit id="++CODE++33c3b491fa743d2c355067a31dceaf799d4baaef0778d786cf5aafa5406ecf47">
       <source xml:lang="en">Text tab - displays SQL text data</source>
+    </trans-unit>
+    <trans-unit id="++CODE++440ec2c9289282b89b210fb1b489e831756ac9a6f272904c0d77b6f2c4379538">
+      <source xml:lang="en">That connection could not be found in saved connections.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f522d631993a3ff32b8e0aff417f52361af3197c6c442c34f476ae4d503703d8">
+      <source xml:lang="en">That connection group no longer exists. Refresh the view.</source>
     </trans-unit>
     <trans-unit id="++CODE++ad21b866cd78c8e2444ffe9593f592e88ed2fa82e200191a85e10725a0e321a7">
       <source xml:lang="en">The .NET SDK cannot be located. Project build will not work. Please install .NET 8 SDK or higher or update the .NET SDK location in settings if already installed.</source>
@@ -8874,6 +9225,12 @@
     <trans-unit id="++CODE++eab9bd4ed6506f418e00977a0a7bcc445774cac844a2f6debffeff1efc0b75f2">
       <source xml:lang="en">TypeORM</source>
     </trans-unit>
+    <trans-unit id="++CODE++a5fc918683bf9602be66b508a32e2a19f4d59eb866fbc21c8bb3e1d503335d9e">
+      <source xml:lang="en">Types</source>
+    </trans-unit>
+    <trans-unit id="++CODE++33abe804f44c979c65364567d56bb59d7ebee0531288998218cea65a893cda96">
+      <source xml:lang="en">UQ</source>
+    </trans-unit>
     <trans-unit id="++CODE++e7a241debad56609ee660a5d2ef258a1aceb7357ff210ac66d7280b3add02a9a">
       <source xml:lang="en">URL</source>
     </trans-unit>
@@ -9065,6 +9422,9 @@
     <trans-unit id="++CODE++c83ce937073615b8c93e7c38ed529e567ff2c01f291f92e3b4d08245018f362b">
       <source xml:lang="en">Usage limits exceeded. Try again later, or consider optimizing your requests.</source>
     </trans-unit>
+    <trans-unit id="++CODE++288f4d9f67eedc4b956916fc4f29f2c1f9f7585b81342fbde3f8081677fdf5b2">
+      <source xml:lang="en">Use &apos;Connect&apos; on this profile to browse (Object Explorer v2 preview).</source>
+    </trans-unit>
     <trans-unit id="++CODE++b5561dc4caff598b3f5a9190b224cd34587621b1d44cb0f024a6308777d211df">
       <source xml:lang="en">Use Microsoft Entra ID authentication to provision and connect to this database.</source>
     </trans-unit>
@@ -9118,11 +9478,20 @@
     <trans-unit id="++CODE++bb6e451b4ca453ef7b93d4a89b702cde206029b5c57a46ac64072d7e909018c4">
       <source xml:lang="en">User name is required</source>
     </trans-unit>
+    <trans-unit id="++CODE++476040ea907aceaa89082c7ace3f34779f5021796e503900527afdddc11c2078">
+      <source xml:lang="en">User-Defined Data Types</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f46a12ae7f63c6235d7fcba529543f36a412aa19e59b763351c4253a3406414c">
+      <source xml:lang="en">User-Defined Table Types</source>
+    </trans-unit>
     <trans-unit id="++CODE++e3b89e9d33f88e523083d8b4436adcc3726c89e97fd3179a2e102d765d1b16ed">
       <source xml:lang="en">Username</source>
     </trans-unit>
     <trans-unit id="++CODE++d18de1563a616cb53199d56202336f6b481375ac8ecb8d0eeafb53466f42c4bf">
       <source xml:lang="en">Username is required</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6b0cc904d081a8c11cfdaec667f05132cbfa8a57f5040d27d5fc0f2fc50d0dc6">
+      <source xml:lang="en">Users</source>
     </trans-unit>
     <trans-unit id="++CODE++4c0f47c92a61b83f5a3505071ff1ba53361768bccee0021da6a0d341daa653a1">
       <source xml:lang="en">Uses the WITH KEEP_REPLICATION option during restore</source>
@@ -9245,6 +9614,9 @@
     <trans-unit id="++CODE++eab0f257866b670694bf52eec427b7799ca53883151d4d4526b0e57660ce65ab">
       <source xml:lang="en">Visualize and Design Schema</source>
     </trans-unit>
+    <trans-unit id="++CODE++6ad3142f5f687afef0994ced8196602bc2d42f627d4d8d4c0888dabdc5d50526">
+      <source xml:lang="en">Visualize and Design Schema… (legacy)</source>
+    </trans-unit>
     <trans-unit id="++CODE++9f01c06e42657754f1351fdd6c5c8fa9c5a15dc9bcaff5446038222ba1d3e694">
       <source xml:lang="en">Visualize and design your database with Schema Designer</source>
     </trans-unit>
@@ -9326,6 +9698,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e288577fddfc0fca255b96b887c869892311ba4f7ba0ecab34268b08e08d1ad3">
       <source xml:lang="en">Write, optimize, and troubleshoot SQL queries with AI-recommended improvements</source>
+    </trans-unit>
+    <trans-unit id="++CODE++05028899e7a8d10fa3f3006a1573a289ad95e841ee2633eea71d9da29abdc18d">
+      <source xml:lang="en">XML Schema Collections</source>
     </trans-unit>
     <trans-unit id="++CODE++54a82587ded9d34e040e4db9f860f3e0b0e6285ca43651e9cfca8dbc65bd3ab0">
       <source xml:lang="en">YYYY-MM-DD HH:mm:ss</source>
@@ -9443,6 +9818,21 @@
       <source xml:lang="en">captured {0}</source>
       <note>{0} is the UTC timestamp when the metadata cache entry was captured</note>
     </trans-unit>
+    <trans-unit id="++CODE++5aa562409c66b3b3b2db9ee316b11ac180ad6fa1421c555c156fcefb75cfa12f">
+      <source xml:lang="en">computed</source>
+    </trans-unit>
+    <trans-unit id="++CODE++75fedc80e0987c9c97f9a2ca40b8718978a74b85d4d29377fe780212889b8ee7">
+      <source xml:lang="en">connect error</source>
+    </trans-unit>
+    <trans-unit id="++CODE++94d4f542dfe9ed240cb75db552154685d58259f2bfa89985108685f783156bca">
+      <source xml:lang="en">connecting…</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2eff778b7c20ad69fd055536768ddec5db58682a2e2d0984621de2538a9d3de5">
+      <source xml:lang="en">connecting… ({0}s)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fbe3bc3f09bc50985c450238be89be3c60b2291e769203da0f8865d147a0cc36">
+      <source xml:lang="en">connection lost</source>
+    </trans-unit>
     <trans-unit id="++CODE++beeb20fbd67695085c26c5dfa7b5ece4d1985d201cb6f0dd9aa66a36ed987ce5">
       <source xml:lang="en">contains</source>
     </trans-unit>
@@ -9452,12 +9842,21 @@
     <trans-unit id="++CODE++3549b0028b75d981cdda2e573e9cb49dedc200185876df299f912b79f69dabd8">
       <source xml:lang="en">database</source>
     </trans-unit>
+    <trans-unit id="++CODE++8d346a8cc8f064446a92da046fb4859794e202406e68cefb00b7105f455cb283">
+      <source xml:lang="en">database access may have changed</source>
+    </trans-unit>
     <trans-unit id="++CODE++37a8eec1ce19687d132fe29051dca629d164e2c4958ba141d5f4133a33f0688f">
       <source xml:lang="en">default</source>
     </trans-unit>
     <trans-unit id="++CODE++43daebc3c05a210cb50000c5c10686b90656dcdf1cae4ebd4914b1f0c98f9b03">
       <source xml:lang="en">delete the saved connection: {0}?</source>
       <note>{0} is the connection name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++17eb3c0168d0d7b21ede5481150f17233427d89833ec121b4dbc4fb96cfab71e">
+      <source xml:lang="en">disabled</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a5ec50a7857a0d78d8c3f71cf17224c1aba1c2bb00ec8fc59599f0235a38f77e">
+      <source xml:lang="en">disconnecting…</source>
     </trans-unit>
     <trans-unit id="++CODE++80ccd8c9b9af87acd9ce5bea7f8b6c9978971ca8f81888ab1d2ab3a3de6d2c06">
       <source xml:lang="en">does not contain</source>
@@ -9474,6 +9873,9 @@
     <trans-unit id="++CODE++e93cb41d4a7d2395d9bdfe4d8616f9b52762523bb44e75bf7701cd9d2e0d1cb7">
       <source xml:lang="en">equals</source>
     </trans-unit>
+    <trans-unit id="++CODE++f6dd485bc8aca12e33885740348134c0acc23ee43e5140682868566e78d6f3d8">
+      <source xml:lang="en">failed: {0}</source>
+    </trans-unit>
     <trans-unit id="++CODE++3b9c358f36f0a31b6ad3e14f309c7cf198ac9246e8316f9ce543d5b19ac02b80">
       <source xml:lang="en">file</source>
     </trans-unit>
@@ -9488,6 +9890,9 @@
     </trans-unit>
     <trans-unit id="++CODE++1b52f3a2e15148731314bf167145c54565ed2385a862b5eb7771eaf719e4f82e">
       <source xml:lang="en">hr</source>
+    </trans-unit>
+    <trans-unit id="++CODE++689f6a627384c7dcb2dcc1487e540223e77bdf9dcd0d8be8a326eda65b0ce9a4">
+      <source xml:lang="en">identity</source>
     </trans-unit>
     <trans-unit id="++CODE++075b0e112ce5f3585bf21875b678fb678865a30c79d482cd01098957e6497c28">
       <source xml:lang="en">intelliSenseUpdated</source>
@@ -9525,11 +9930,20 @@
     <trans-unit id="++CODE++b2c1822878838eb52770e9845b4582d503d975b484897b83048ea841e0c5c6b6">
       <source xml:lang="en">msec</source>
     </trans-unit>
+    <trans-unit id="++CODE++e7a76c84d135f4588986388b7db2e5d6382e0a92af6078bdf04483890e935a23">
+      <source xml:lang="en">no access</source>
+    </trans-unit>
     <trans-unit id="++CODE++d2a589f7f49acd96e560ee2773d4c45f1ab7aa3328f0cb94939d6d1f9cf49ae5">
       <source xml:lang="en">none selected</source>
     </trans-unit>
     <trans-unit id="++CODE++c83cb9c83f01a1dd4f46165ee292e834d69397b661e8c6d72689019245f92d71">
       <source xml:lang="en">not equals</source>
+    </trans-unit>
+    <trans-unit id="++CODE++65a835d430735eaa3b89f9a9ce32d52205e9313d7178dfda061cdf54637bd73c">
+      <source xml:lang="en">not null</source>
+    </trans-unit>
+    <trans-unit id="++CODE++74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b">
+      <source xml:lang="en">null</source>
     </trans-unit>
     <trans-unit id="++CODE++28391d3bc64ec15cbb090426b04aa6b7649c3cc85f11230bb0105e02d15e3624">
       <source xml:lang="en">of</source>
@@ -9537,8 +9951,17 @@
     <trans-unit id="++CODE++7175517a370b5cd2e664e3fd29c4ea9db5ce17058eb9772fe090a5485e49dad6">
       <source xml:lang="en">or</source>
     </trans-unit>
+    <trans-unit id="++CODE++e0ee8bb50685e05fa0f47ed04203ae953fdfd055f5bd2892ea186504254f8c3a">
+      <source xml:lang="en">output</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ec0d4a05a20f9af6988b7baca7e1ec77e200155d867a0ef7b8939ac110eec396">
+      <source xml:lang="en">permissions may have changed</source>
+    </trans-unit>
     <trans-unit id="++CODE++738dce14f9c7825c6601ed72dce22b095491c097fc1c76d6352399229c9262f8">
       <source xml:lang="en">profiler_events</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4fed3970dcc0d31dccddbf69ef55b00f32d2ca787f1757894914bc0365ea7aa5">
+      <source xml:lang="en">read-only</source>
     </trans-unit>
     <trans-unit id="++CODE++35a1031e991d85c2d12e5768b98c031dcc6394f3ccfb766314b8a3d0ab2242db">
       <source xml:lang="en">resource group</source>
@@ -9546,8 +9969,14 @@
     <trans-unit id="++CODE++add93534eeb463800fe0ed0946048d33636dd2a014fab92e8a37f77ce98c740b">
       <source xml:lang="en">sec</source>
     </trans-unit>
+    <trans-unit id="++CODE++8d6ebe0c311978716cb43f13d3e5ff00f8bbd611fad0f17a6df6557a04516b0f">
+      <source xml:lang="en">section failed</source>
+    </trans-unit>
     <trans-unit id="++CODE++b3eacd33433b31b5252351032c9b3e7a2e7aa7738d5decdf0dd6c62680853c06">
       <source xml:lang="en">server</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d0c46d83c4faa7c9d79acbb206c0ba7dca527e9274428efd48046f626baf53f0">
+      <source xml:lang="en">server catalog failed</source>
     </trans-unit>
     <trans-unit id="++CODE++97862730c3a13cd957b766b03489cdf46b415e9d465b67812974158d631d6107">
       <source xml:lang="en">starts with</source>
@@ -9561,11 +9990,17 @@
     <trans-unit id="++CODE++eb045d78d273107348b0300c01d29b7552d622abbc6faf81b3ec55359aa9950c">
       <source xml:lang="en">undefined</source>
     </trans-unit>
+    <trans-unit id="++CODE++3e4443e52275a9a092994d93853ea05b985abc67238b4b482c7b90b3a76e6098">
+      <source xml:lang="en">unknown error</source>
+    </trans-unit>
     <trans-unit id="++CODE++630c74b2de45669259227b267211f2cbc1b0d85d38728a506258a9e8bdf42acc">
       <source xml:lang="en">untitled</source>
     </trans-unit>
     <trans-unit id="++CODE++f39d8207a23b19fa52f06809909505464af2764c6b3ade40db823f0a46b33487">
       <source xml:lang="en">updatingIntelliSense</source>
+    </trans-unit>
+    <trans-unit id="++CODE++57e3fb4844abbd8a88dc82329569d7f66e5c6bd3e9192669b33304c346a9c0e2">
+      <source xml:lang="en">using last known catalog</source>
     </trans-unit>
     <trans-unit id="++CODE++7ff2c6370613ed94cff5b41da2922691d968855c00b28dc39d101079cc59f673">
       <source xml:lang="en">vCores</source>
@@ -9788,6 +10223,9 @@
     <trans-unit id="++CODE++1bc61380dfa94d79a64b67b2a483332c51a6263dcf5379519cd36b691f6469e3">
       <source xml:lang="en">{0} stopped successfully.</source>
       <note>{0} stopped successfully.</note>
+    </trans-unit>
+    <trans-unit id="++CODE++0914554395f3232ceadba2a361d9578da37571caad74df4759b68ccc1db65885">
+      <source xml:lang="en">{0} unavailable: {1}. Refresh to retry.</source>
     </trans-unit>
     <trans-unit id="++CODE++c4777dc358a4dd9d44e2865392ea9fb6b761d10b718279ab38df4f72f5645fa7">
       <source xml:lang="en">{0} warnings</source>
@@ -10084,14 +10522,23 @@
     <trans-unit id="extension.backgroundTasks">
       <source xml:lang="en">Background Tasks</source>
     </trans-unit>
+    <trans-unit id="mssql.objectExplorerV2.backupDatabase">
+      <source xml:lang="en">Backup Database...</source>
+    </trans-unit>
     <trans-unit id="mssql.backupDatabase">
       <source xml:lang="en">Backup Database...</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorerV2.buildDataApi">
+      <source xml:lang="en">Build Data API...</source>
     </trans-unit>
     <trans-unit id="mssql.buildDataApi">
       <source xml:lang="en">Build Data API...</source>
     </trans-unit>
     <trans-unit id="mssql.cancelContainerOperation">
       <source xml:lang="en">Cancel</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorerV2.cancelConnect">
+      <source xml:lang="en">Cancel Connection</source>
     </trans-unit>
     <trans-unit id="mssql.cancelConnect">
       <source xml:lang="en">Cancel Connection (MSSQL)</source>
@@ -10135,6 +10582,9 @@
     <trans-unit id="mssql.clearAllQueryHistory">
       <source xml:lang="en">Clear All Query History</source>
     </trans-unit>
+    <trans-unit id="mssql.objectExplorerV2.clearFilters">
+      <source xml:lang="en">Clear Filters</source>
+    </trans-unit>
     <trans-unit id="mssql.clearFilters">
       <source xml:lang="en">Clear Filters</source>
     </trans-unit>
@@ -10150,11 +10600,17 @@
     <trans-unit id="mssql.objectExplorer.Tooltip.commandTimeoutLabel">
       <source xml:lang="en">Command Timeout</source>
     </trans-unit>
+    <trans-unit id="mssql.objectExplorerV2.schemaCompare">
+      <source xml:lang="en">Compare Schemas...</source>
+    </trans-unit>
     <trans-unit id="mssql.schemaCompare">
       <source xml:lang="en">Compare Schemas...</source>
     </trans-unit>
     <trans-unit id="mssql.quickQueries">
       <source xml:lang="en">Configure up to 10 Quick Queries that execute from commands.</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorerV2.connect">
+      <source xml:lang="en">Connect</source>
     </trans-unit>
     <trans-unit id="mssql.connect">
       <source xml:lang="en">Connect (MSSQL)</source>
@@ -10195,8 +10651,14 @@
     <trans-unit id="mssql.notebooks.copyCellMessages">
       <source xml:lang="en">Copy Cell Messages</source>
     </trans-unit>
+    <trans-unit id="mssql.objectExplorerV2.copyConnectionString">
+      <source xml:lang="en">Copy Connection String</source>
+    </trans-unit>
     <trans-unit id="mssql.copyConnectionString">
       <source xml:lang="en">Copy Connection String</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorerV2.copyName">
+      <source xml:lang="en">Copy Name</source>
     </trans-unit>
     <trans-unit id="mssql.copyObjectName">
       <source xml:lang="en">Copy Object Name</source>
@@ -10210,6 +10672,9 @@
     <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.description">
       <source xml:lang="en">Create a new table in your database, or edit existing tables with the table designer.&#10;Once you&apos;re done making your changes, click the &apos;Publish&apos; button to send the changes to your database.</source>
     </trans-unit>
+    <trans-unit id="mssql.objectExplorerV2.dacpacDialog">
+      <source xml:lang="en">DACPAC/BACPAC Operations...</source>
+    </trans-unit>
     <trans-unit id="mssql.dacpacDialog.launch">
       <source xml:lang="en">DACPAC/BACPAC Operations...</source>
     </trans-unit>
@@ -10218,6 +10683,9 @@
     </trans-unit>
     <trans-unit id="mssql.deleteQueryHistory">
       <source xml:lang="en">Delete</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorerV2.connectionGroups.delete">
+      <source xml:lang="en">Delete Connection Group</source>
     </trans-unit>
     <trans-unit id="mssql.connectionGroups.delete">
       <source xml:lang="en">Delete Connection Group</source>
@@ -10258,8 +10726,14 @@
     <trans-unit id="mssql.openQueryResultsInTabByDefaultDoNotShowPrompt.description">
       <source xml:lang="en">Do not show prompts to display query results in a new tab.</source>
     </trans-unit>
+    <trans-unit id="mssql.objectExplorerV2.dropDatabase">
+      <source xml:lang="en">Drop Database...</source>
+    </trans-unit>
     <trans-unit id="mssql.dropDatabase">
       <source xml:lang="en">Drop Database...</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorerV2.connectionGroups.edit">
+      <source xml:lang="en">Edit Connection Group</source>
     </trans-unit>
     <trans-unit id="mssql.connectionGroups.edit">
       <source xml:lang="en">Edit Connection Group</source>
@@ -10269,6 +10743,9 @@
     </trans-unit>
     <trans-unit id="mssql.editConnection">
       <source xml:lang="en">Edit Connection...</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorerV2.editTableData">
+      <source xml:lang="en">Edit Table Data...</source>
     </trans-unit>
     <trans-unit id="mssql.tableExplorer">
       <source xml:lang="en">Edit Table Data...</source>
@@ -10399,6 +10876,9 @@
     <trans-unit id="mssql.walkthroughs.nextSteps.objectExplorerFilters.title">
       <source xml:lang="en">Filter your Object Explorer Tree</source>
     </trans-unit>
+    <trans-unit id="mssql.objectExplorerV2.filter">
+      <source xml:lang="en">Filter...</source>
+    </trans-unit>
     <trans-unit id="mssql.resultsGrid.freezeFirstColumnByDefault">
       <source xml:lang="en">Freeze the first data column by default in new result grids. Existing saved grid state takes precedence.</source>
     </trans-unit>
@@ -10411,17 +10891,26 @@
     <trans-unit id="mssql.showGettingStarted">
       <source xml:lang="en">Getting Started Guide</source>
     </trans-unit>
+    <trans-unit id="mssql.objectExplorer.v2.groupBySchema.description">
+      <source xml:lang="en">Group supported Object Explorer v2 database objects by schema.</source>
+    </trans-unit>
     <trans-unit id="mssql.resultsGrid.showGridLines.none">
       <source xml:lang="en">Hide all grid lines</source>
     </trans-unit>
     <trans-unit id="mssql.dacpacDialog.import">
       <source xml:lang="en">Import BACPAC</source>
     </trans-unit>
+    <trans-unit id="mssql.objectExplorerV2.importData">
+      <source xml:lang="en">Import Data...</source>
+    </trans-unit>
     <trans-unit id="mssql.flatFileImport">
       <source xml:lang="en">Import Data...</source>
     </trans-unit>
     <trans-unit id="mssql.metadata.pollSeconds.description">
       <source xml:lang="en">Internal preview setting: base interval in seconds for metadata drift checks. Set to 0 to disable polling. Per-database backoff, window-focus suspension, and serverless safeguards also apply. Reload the window after changing this setting.</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorerV2.launchProfiler">
+      <source xml:lang="en">Launch Query Profiler...</source>
     </trans-unit>
     <trans-unit id="mssql.profiler.launchFromObjectExplorer">
       <source xml:lang="en">Launch Query Profiler...</source>
@@ -10495,8 +10984,17 @@
     <trans-unit id="mssql.openAzureDataStudioMigration">
       <source xml:lang="en">Migrate from Azure Data Studio</source>
     </trans-unit>
+    <trans-unit id="mssql.objectExplorerV2.editTable">
+      <source xml:lang="en">Modify Table Structure...</source>
+    </trans-unit>
     <trans-unit id="mssql.editTable">
       <source xml:lang="en">Modify Table Structure...</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorerV2.legacyActions">
+      <source xml:lang="en">More Actions...</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorerV2.moveToGroup">
+      <source xml:lang="en">Move to Group...</source>
     </trans-unit>
     <trans-unit id="mssql.createDatabase">
       <source xml:lang="en">New Database...</source>
@@ -10509,6 +11007,9 @@
     </trans-unit>
     <trans-unit id="mssql.newQuery">
       <source xml:lang="en">New Query</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorerV2.newNotebook">
+      <source xml:lang="en">New SQL Notebook</source>
     </trans-unit>
     <trans-unit id="mssql.notebooks.createNotebook">
       <source xml:lang="en">New SQL Notebook</source>
@@ -10527,6 +11028,12 @@
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.nextSteps.objectExplorerFilters.altText">
       <source xml:lang="en">Object Explorer filters</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorerV2.viewName">
+      <source xml:lang="en">Object Explorer v2 (Private Preview)</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorerV2.showStatus">
+      <source xml:lang="en">Object Explorer v2: Show Status</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.nextSteps.objectExplorerFilters.description">
       <source xml:lang="en">Only see the database objects that matter most to you by applying filters to the Object Explorer tree.&#10;Start by clicking the filter button next to most folders in the Connections view.</source>
@@ -10555,8 +11062,17 @@
     <trans-unit id="mssql.openBackgroundTask">
       <source xml:lang="en">Open Task Result</source>
     </trans-unit>
+    <trans-unit id="mssql.objectExplorerV2.openClassicObjectExplorer">
+      <source xml:lang="en">Open in Classic Object Explorer</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorerV2.chatWithDatabaseAgent">
+      <source xml:lang="en">Open in GitHub Copilot Agent</source>
+    </trans-unit>
     <trans-unit id="mssql.objectExplorerChatWithDatabaseInAgentMode">
       <source xml:lang="en">Open in GitHub Copilot Agent</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorerV2.chatWithDatabase">
+      <source xml:lang="en">Open in GitHub Copilot Chat</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorerChatWithDatabase">
       <source xml:lang="en">Open in GitHub Copilot Chat</source>
@@ -10572,6 +11088,9 @@
     </trans-unit>
     <trans-unit id="mssql.preventAutoExecuteScript">
       <source xml:lang="en">Prevent automatic execution of scripts (e.g., &apos;Select Top 1000&apos;). When enabled, scripts will not be automatically executed upon generation.</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorer.v2.enabled.description">
+      <source xml:lang="en">Private preview. Enable Object Explorer v2. Requires mssql.enableExperimentalFeatures and mssql.sqlDataPlane.enabled. Reload the window after changing any required setting. Classic Object Explorer remains available.</source>
     </trans-unit>
     <trans-unit id="mssql.sqlDataPlane.enabled.description">
       <source xml:lang="en">Private preview. Enable the STS v2-backed SQL Data Plane for preview consumers. Requires mssql.enableExperimentalFeatures and SQL Tools Service 6.0.20260825.2 or later; older bundled services are launched without the STS v2 lane. Reload the window after changing either setting. Existing query, connection, language service, and Object Explorer behavior remains unchanged.</source>
@@ -10594,6 +11113,9 @@
     <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.altText">
       <source xml:lang="en">Query plan visualization</source>
     </trans-unit>
+    <trans-unit id="mssql.objectExplorerV2.refresh">
+      <source xml:lang="en">Refresh</source>
+    </trans-unit>
     <trans-unit id="mssql.refreshObjectExplorerNode">
       <source xml:lang="en">Refresh</source>
     </trans-unit>
@@ -10606,11 +11128,17 @@
     <trans-unit id="mssql.removeAadAccount">
       <source xml:lang="en">Remove Microsoft Entra Account</source>
     </trans-unit>
+    <trans-unit id="mssql.objectExplorerV2.renameDatabase">
+      <source xml:lang="en">Rename Database...</source>
+    </trans-unit>
     <trans-unit id="mssql.renameDatabase">
       <source xml:lang="en">Rename Database...</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.Tooltip.replicationLabel">
       <source xml:lang="en">Replication</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorerV2.restoreDatabase">
+      <source xml:lang="en">Restore Database...</source>
     </trans-unit>
     <trans-unit id="mssql.restoreDatabase">
       <source xml:lang="en">Restore Database...</source>
@@ -10759,6 +11287,9 @@
     <trans-unit id="mssql.resultsGrid.showGridLines.vertical">
       <source xml:lang="en">Show only vertical grid lines</source>
     </trans-unit>
+    <trans-unit id="mssql.objectExplorer.v2.showSystemDatabases.description">
+      <source xml:lang="en">Show system databases in Object Explorer v2.</source>
+    </trans-unit>
     <trans-unit id="mssql.query.showActiveConnectionAsCodeLensSuggestion">
       <source xml:lang="en">Show the active SQL connection details as a CodeLens suggestion at the top of the editor for quick visibility.</source>
     </trans-unit>
@@ -10896,6 +11427,9 @@
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
       <source xml:lang="en">Visualize a Query Plan</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorerV2.schemaDesigner">
+      <source xml:lang="en">Visualize and Design Schema...</source>
     </trans-unit>
     <trans-unit id="mssql.schemaDesigner">
       <source xml:lang="en">Visualize and Design Schema...</source>
