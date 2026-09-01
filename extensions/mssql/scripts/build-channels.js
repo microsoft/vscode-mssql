@@ -30,7 +30,9 @@ const path = require("path");
 const CHANNELS = ["development", "internal", "insiders", "stable"];
 const DEFAULT_CHANNEL = "development";
 const NONPRODUCTION_ROOT = path.resolve(__dirname, "..", "src", "nonproduction");
-const BUILD_CHANNEL_RECORD = path.join("dist", "build-channel.json");
+// Anchored to the extension root (not process.cwd()) so build and packaging
+// agree on the record's location regardless of the invoking directory.
+const BUILD_CHANNEL_RECORD = path.resolve(__dirname, "..", "dist", "build-channel.json");
 
 function resolveBuildChannel(argv = process.argv.slice(2), env = process.env) {
     const arg = argv.find((value) => value.startsWith("--channel="));
