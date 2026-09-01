@@ -187,6 +187,34 @@ suite("DAB shared interface helpers", () => {
         ]);
     });
 
+    test("getEntityExposedApiTypes intersects global and entity API settings", () => {
+        const entity = Dab.createDefaultConfigFromSources([createSourceObject()]).entities[0];
+        entity.advancedSettings = {
+            ...entity.advancedSettings,
+            restEnabled: true,
+            graphQLEnabled: false,
+            mcpEnabled: true,
+            mcpDmlToolsEnabled: true,
+        };
+
+        expect(
+            Dab.getEntityExposedApiTypes(entity, [Dab.ApiType.Rest, Dab.ApiType.GraphQL]),
+        ).to.deep.equal([Dab.ApiType.Rest]);
+        expect(
+            Dab.getEntityExposedApiTypes(entity, [Dab.ApiType.GraphQL, Dab.ApiType.Mcp]),
+        ).to.deep.equal([Dab.ApiType.Mcp]);
+        expect(Dab.getEntityExposedApiTypes(entity, [])).to.deep.equal([]);
+
+        entity.advancedSettings.graphQLEnabled = true;
+        expect(
+            Dab.getEntityExposedApiTypes(entity, [
+                Dab.ApiType.Mcp,
+                Dab.ApiType.GraphQL,
+                Dab.ApiType.Rest,
+            ]),
+        ).to.deep.equal([Dab.ApiType.Rest, Dab.ApiType.GraphQL, Dab.ApiType.Mcp]);
+    });
+
     test("syncConfigWithSources removes missing entities, adds new ones, and refreshes metadata", () => {
         const currentConfig = Dab.createDefaultConfigFromSources([
             createSourceObject({ id: "TABLE:DBO.USERS" }),

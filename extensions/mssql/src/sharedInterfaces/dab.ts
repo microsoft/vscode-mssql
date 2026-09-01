@@ -1496,12 +1496,28 @@ export namespace Dab {
         );
     }
 
+    export function getEntityExposedApiTypes(
+        entity: DabEntityConfig,
+        globallyEnabledApiTypes: readonly ApiType[] = [ApiType.Rest, ApiType.GraphQL, ApiType.Mcp],
+    ): ApiType[] {
+        const globallyEnabledApiTypeSet = new Set(globallyEnabledApiTypes);
+        return [ApiType.Rest, ApiType.GraphQL, ApiType.Mcp].filter((apiType) => {
+            if (!globallyEnabledApiTypeSet.has(apiType)) {
+                return false;
+            }
+            switch (apiType) {
+                case ApiType.Rest:
+                    return isEntityRestEnabled(entity);
+                case ApiType.GraphQL:
+                    return isEntityGraphQLEnabled(entity);
+                case ApiType.Mcp:
+                    return isEntityMcpEnabled(entity);
+            }
+        });
+    }
+
     export function isEntityExposed(entity: DabEntityConfig): boolean {
-        return (
-            isEntityRestEnabled(entity) ||
-            isEntityGraphQLEnabled(entity) ||
-            isEntityMcpEnabled(entity)
-        );
+        return getEntityExposedApiTypes(entity).length > 0;
     }
 
     export function hasLogicalKey(entity: DabEntityConfig): boolean {

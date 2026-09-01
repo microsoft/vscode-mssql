@@ -1179,11 +1179,7 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
                 return renderBlankContent();
             }
 
-            const apiTypes = [
-                Dab.isEntityRestEnabled(row.entity) ? Dab.ApiType.Rest : undefined,
-                Dab.isEntityGraphQLEnabled(row.entity) ? Dab.ApiType.GraphQL : undefined,
-                Dab.isEntityMcpEnabled(row.entity) ? Dab.ApiType.Mcp : undefined,
-            ].filter((apiType): apiType is Dab.ApiType => !!apiType);
+            const apiTypes = Dab.getEntityExposedApiTypes(row.entity, dabConfig?.apiTypes ?? []);
 
             if (apiTypes.length === 0) {
                 return (
@@ -1227,6 +1223,7 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
             classes.pillButton,
             classes.pillCell,
             classes.mutedMetadataTag,
+            dabConfig?.apiTypes,
             openSettingsDialog,
             renderBlankContent,
         ],

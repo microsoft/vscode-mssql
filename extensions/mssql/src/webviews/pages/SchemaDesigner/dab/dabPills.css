@@ -21,35 +21,38 @@
 }
 
 .dab-pill {
-    border-color: var(--vscode-editorWidget-border) !important;
+    --dab-pill-accent: var(--vscode-foreground);
+    border-color: color-mix(in srgb, var(--dab-pill-accent) 50%, transparent) !important;
+    background: color-mix(
+        in srgb,
+        var(--dab-pill-accent) 14%,
+        var(--vscode-editor-background)
+    ) !important;
+    color: var(--vscode-foreground) !important;
 }
 
 .dab-pill-rest {
-    border-color: color-mix(in srgb, var(--vscode-charts-green) 35%, transparent) !important;
-    background: color-mix(in srgb, var(--vscode-charts-green) 12%, transparent) !important;
-    color: var(--vscode-charts-green) !important;
+    --dab-pill-accent: var(--vscode-charts-green, #7ee787);
 }
 
 .dab-pill-graphql {
-    border-color: color-mix(in srgb, var(--vscode-charts-red) 35%, transparent) !important;
-    background: color-mix(in srgb, var(--vscode-charts-red) 12%, transparent) !important;
-    color: var(--vscode-charts-red) !important;
+    --dab-pill-accent: var(--vscode-charts-red, #ff7b9c);
 }
 
 .dab-pill-mcp {
-    border-color: color-mix(in srgb, var(--vscode-charts-purple) 35%, transparent) !important;
-    background: color-mix(in srgb, var(--vscode-charts-purple) 12%, transparent) !important;
-    color: var(--vscode-charts-purple) !important;
+    --dab-pill-accent: var(--vscode-charts-purple, #d2a8ff);
 }
 
 .dab-pill-anonymous {
-    border-color: color-mix(in srgb, var(--vscode-charts-blue) 35%, transparent) !important;
-    background: color-mix(in srgb, var(--vscode-charts-blue) 12%, transparent) !important;
-    color: var(--vscode-charts-blue) !important;
+    --dab-pill-accent: var(--vscode-charts-blue, #79c0ff);
 }
 
 .dab-pill-authenticated {
-    border-color: color-mix(in srgb, var(--vscode-charts-orange) 35%, transparent) !important;
-    background: color-mix(in srgb, var(--vscode-charts-orange) 12%, transparent) !important;
-    color: var(--vscode-charts-orange) !important;
+    --dab-pill-accent: var(--vscode-charts-yellow, #f2cc60);
+}
+
+body.vscode-high-contrast .dab-pill,
+body.vscode-high-contrast-light .dab-pill {
+    border-color: var(--vscode-contrastBorder) !important;
+    background: transparent !important;
 }
