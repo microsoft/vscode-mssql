@@ -83,8 +83,10 @@ export class MssqlProtocolHandler {
             if (handled) {
                 this._logger.info(`Successfully handled URI: ${uri.toString()}`);
                 sendActionEvent(TelemetryViews.ProtocolHandler, TelemetryActions.Invoke, {
-                    action: uri.path,
-                    source: new URLSearchParams(uri.query).get("source") ?? "unknown",
+                    additionalProps: {
+                        action: uri.path,
+                        source: new URLSearchParams(uri.query).get("source") ?? "unknown",
+                    },
                 });
             } else {
                 throw new Error(`Unknown URI command: ${uri.toString()}`);
@@ -92,18 +94,14 @@ export class MssqlProtocolHandler {
         } catch (err) {
             this._logger.error(`Error handling URI: ${getErrorMessage(err)}`);
 
-            sendErrorEvent(
-                TelemetryViews.ProtocolHandler,
-                TelemetryActions.Invoke,
-                err,
-                false, // includeErrorMessage
-                undefined, //errorCode
-                undefined, // errorType
-                {
+            sendErrorEvent(TelemetryViews.ProtocolHandler, TelemetryActions.Invoke, {
+                error: err,
+                includeErrorMessage: false,
+                additionalProps: {
                     command: uri.path,
                     source: new URLSearchParams(uri.query).get("source") ?? "unknown",
                 },
-            );
+            });
         }
     }
 

@@ -12,6 +12,7 @@ import { IConnectionProfile, IConnectionProfileWithSource } from "../../src/mode
 import * as utilUtils from "../../src/utils/utils";
 import * as vscode from "vscode";
 import * as os from "os";
+import * as path from "path";
 
 suite("Utility Tests - Path handling", () => {
     let sandbox: sinon.SinonSandbox;
@@ -27,7 +28,7 @@ suite("Utility Tests - Path handling", () => {
 
     test("expands a leading tilde path segment", () => {
         expect(utilUtils.expandTildePath("~/sounds/complete.wav")).to.equal(
-            "/home/test-user/sounds/complete.wav",
+            path.join("/home/test-user", "sounds", "complete.wav"),
         );
     });
 

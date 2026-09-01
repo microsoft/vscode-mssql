@@ -264,11 +264,34 @@ export class VsCodeAzureHelper {
             account = typeof account === "string" ? await this.getAccountById(account) : account;
 
             const auth: VSCodeAzureSubscriptionProvider = VsCodeAzureHelper.getProvider();
+            const accountSignedIn = await auth.isSignedIn(undefined, account);
+
+            if (!accountSignedIn) {
+                const homeTenantId = this.getHomeTenantIdForAccount(account);
+                if (!homeTenantId) {
+                    azureHelperLogger.warn(
+                        "Tenant discovery cannot offer home-tenant sign-in because the account ID does not contain a tenant ID.",
+                    );
+                    return [];
+                }
+
+                return [
+                    {
+                        tenantId: homeTenantId,
+                        displayName: homeTenantId,
+                        account,
+                    },
+                ];
+            }
+
             const tenants = [...(await auth.getTenants(account))]; // spread operator to create a new array since sort() mutates the array
 
             return tenants.sort((a, b) => a.displayName.localeCompare(b.displayName));
         } catch (error) {
-            azureHelperLogger.error("Error fetching tenants for account", getErrorMessage(error));
+            azureHelperLogger.error(
+                "Tenant discovery failed while fetching tenants for account",
+                getErrorMessage(error),
+            );
             return [];
         }
     }
@@ -1232,18 +1255,17 @@ export async function getAccounts(
         sendErrorEvent(
             TelemetryViews.ConnectionDialog,
             TelemetryActions.LoadAzureAccountsForEntraAuth,
-            error,
-            false, // includeErrorMessage
-            undefined, // errorCode
-            undefined, // errorType
-            undefined, // additionalProperties
             {
-                accountCount: accounts.length,
-                undefinedAccountCount: accounts.filter((x) => x === undefined).length,
-                undefinedDisplayInfoCount: accounts.filter(
-                    (x) => x !== undefined && x.displayInfo === undefined,
-                ).length,
-            }, // additionalMeasurements
+                error,
+                includeErrorMessage: false,
+                additionalMeasurements: {
+                    accountCount: accounts.length,
+                    undefinedAccountCount: accounts.filter((x) => x === undefined).length,
+                    undefinedDisplayInfoCount: accounts.filter(
+                        (x) => x !== undefined && x.displayInfo === undefined,
+                    ).length,
+                },
+            },
         );
 
         return [];
@@ -1281,10 +1303,11 @@ export async function getTenants(
             sendErrorEvent(
                 TelemetryViews.ConnectionDialog,
                 TelemetryActions.LoadAzureTenantsForEntraAuth,
-                new Error(message),
-                true, // includeErrorMessage
-                undefined, // errorCode
-                `missing_${missingProp}`, // errorType
+                {
+                    error: new Error(message),
+                    includeErrorMessage: true,
+                    errorType: `missing_${missingProp}`,
+                },
             );
 
             return [];
@@ -1304,15 +1327,14 @@ export async function getTenants(
         sendErrorEvent(
             TelemetryViews.ConnectionDialog,
             TelemetryActions.LoadAzureTenantsForEntraAuth,
-            error,
-            false, // includeErrorMessage
-            undefined, // errorCode
-            undefined, // errorType
-            undefined, // additionalProperties
             {
-                tenant: tenants.length,
-                undefinedTenantCount: tenants.filter((x) => x === undefined).length,
-            }, // additionalMeasurements
+                error,
+                includeErrorMessage: false,
+                additionalMeasurements: {
+                    tenant: tenants.length,
+                    undefinedTenantCount: tenants.filter((x) => x === undefined).length,
+                },
+            },
         );
 
         return [];

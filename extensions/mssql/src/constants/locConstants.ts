@@ -4446,6 +4446,28 @@ export class SqlDataPlane {
         });
 }
 
+export class MetadataCache {
+    public static notEnabled = l10n.t(
+        "The metadata cache is not enabled. Enable mssql.metadataCache.enabled and reload the window.",
+    );
+    public static cleared = l10n.t("MSSQL metadata cache cleared.");
+    public static noEntries = l10n.t("The metadata cache has no entries to clear.");
+    public static clearForConnectionTitle = l10n.t("Clear cached metadata for a connection");
+    public static capturedAt = (capturedAtUtc: string): string =>
+        l10n.t({
+            message: "captured {0}",
+            args: [capturedAtUtc],
+            comment: ["{0} is the UTC timestamp when the metadata cache entry was captured"],
+        });
+    public static entryCleared = l10n.t("MSSQL metadata cache entry cleared.");
+}
+
+export class Metadata {
+    public static dataPlaneRequired = l10n.t(
+        "Metadata requires mssql.enableExperimentalFeatures and mssql.sqlDataPlane.enabled to be enabled.",
+    );
+}
+
 export class SqlProjects {
     private static readonly dataSourcesFileName = "datasources.json";
     private static readonly illegalSqlCmdChars = ["$", "@", "#", '"', "'", "-"];

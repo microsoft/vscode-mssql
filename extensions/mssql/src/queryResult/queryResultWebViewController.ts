@@ -160,9 +160,11 @@ export class QueryResultWebviewController extends WebviewViewController<
                             TelemetryViews.QueryResult,
                             TelemetryActions.ToggleResultsGridMode,
                             {
-                                correlationId: this._correlationId,
-                                newMode: newValue ? "preview" : "classic",
-                                source: "settings",
+                                additionalProps: {
+                                    correlationId: this._correlationId,
+                                    newMode: newValue ? "preview" : "classic",
+                                    source: "settings",
+                                },
                             },
                         );
                     }
@@ -337,7 +339,9 @@ export class QueryResultWebviewController extends WebviewViewController<
                     TelemetryViews.General,
                     TelemetryActions.OpenQueryResultsInTabByDefaultPrompt,
                     {
-                        response: telemResponse,
+                        additionalProps: {
+                            response: telemResponse,
+                        },
                     },
                 );
 
@@ -436,12 +440,10 @@ export class QueryResultWebviewController extends WebviewViewController<
         // Do not block query execution on webview bootstrap, and do not dispose
         // the panel if ready is delayed or never arrives.
         void controller.whenWebviewReady().catch((e) => {
-            sendErrorEvent(
-                TelemetryViews.QueryResult,
-                TelemetryActions.CreatePanelController,
-                e instanceof Error ? e : new Error(String(e)),
-                true, // includeErrorMessage
-            );
+            sendErrorEvent(TelemetryViews.QueryResult, TelemetryActions.CreatePanelController, {
+                error: e instanceof Error ? e : new Error(String(e)),
+                includeErrorMessage: true,
+            });
             if (controller.isDisposed) {
                 this._queryResultWebviewPanelControllerMap.delete(uri);
             }
@@ -716,12 +718,10 @@ export class QueryResultWebviewController extends WebviewViewController<
             // This should never happen
 
             const error = new Error(`No query result state found for uri ${uri}`);
-            sendErrorEvent(
-                TelemetryViews.QueryResult,
-                TelemetryActions.GetQueryResultState,
-                new Error(`No query result state found for uri`),
-                false, // includeErrorMessage
-            );
+            sendErrorEvent(TelemetryViews.QueryResult, TelemetryActions.GetQueryResultState, {
+                error: new Error(`No query result state found for uri`),
+                includeErrorMessage: false,
+            });
 
             throw error;
         }

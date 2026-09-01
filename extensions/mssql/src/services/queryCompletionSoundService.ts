@@ -75,16 +75,17 @@ export class QueryCompletionSoundService {
             sendErrorEvent(
                 TelemetryViews.QueryEditor,
                 TelemetryActions.QueryCompletionSoundPlayback,
-                new Error(message),
-                true, // includeErrorMessage
-                undefined, // errorCode
-                undefined, // errorType
                 {
-                    platform: os.platform(),
-                    architecture: os.arch(),
-                    osType: os.type(),
-                    osRelease: os.release(),
-                    osVersion: os.version(),
+                    error: new Error(message),
+                    // The message is a fixed extension-authored string and contains no user data.
+                    includeErrorMessage: true,
+                    additionalProps: {
+                        platform: os.platform(),
+                        architecture: os.arch(),
+                        osType: os.type(),
+                        osRelease: os.release(),
+                        osVersion: os.version(),
+                    },
                 },
             );
         }

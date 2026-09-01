@@ -592,7 +592,9 @@ export class SqlOutputContentProvider {
                 this.updateWebviewState(queryRunner.uri, resultWebviewState);
                 this.revealQueryResult(queryRunner.uri, "throw");
                 sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.OpenQueryResult, {
-                    defaultLocation: isOpenQueryResultsInTabByDefaultEnabled() ? "tab" : "pane",
+                    additionalProps: {
+                        defaultLocation: isOpenQueryResultsInTabByDefaultEnabled() ? "tab" : "pane",
+                    },
                 });
             });
 
@@ -684,7 +686,7 @@ export class SqlOutputContentProvider {
                 );
 
                 const showBatchMessages = Utils.shouldShowBatchMessages();
-                if (message.isError || showBatchMessages) {
+                if (message.isError || message.batchId >= 0 || showBatchMessages) {
                     resultWebviewState.messages.push(
                         showBatchMessages ? message : { ...message, batchId: undefined },
                     );

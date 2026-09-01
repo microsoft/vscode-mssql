@@ -15,6 +15,7 @@ import * as path from "path";
 import { SchemaDesignerWebviewController } from "../../src/schemaDesigner/schemaDesignerWebviewController";
 import { SchemaDesigner } from "../../src/sharedInterfaces/schemaDesigner";
 import { Dab } from "../../src/sharedInterfaces/dab";
+import type { IDabMetadataService } from "../../src/dab/dabMetadataService";
 import { CopilotChat } from "../../src/sharedInterfaces/copilotChat";
 import { ReducerRequest } from "../../src/sharedInterfaces/webview";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
@@ -148,7 +149,9 @@ suite("SchemaDesignerWebviewController tests", () => {
         sandbox.restore();
     });
 
-    function createController(): SchemaDesignerWebviewController {
+    function createController(
+        dabMetadataService?: IDabMetadataService,
+    ): SchemaDesignerWebviewController {
         const ctrl = new SchemaDesignerWebviewController(
             mockContext,
             mockMainController,
@@ -159,9 +162,35 @@ suite("SchemaDesignerWebviewController tests", () => {
             schemaDesignerCache,
             treeNode,
             connectionUri,
+            false,
+            undefined,
+            dabMetadataService,
         );
         observeWebviewReady(ctrl);
         return ctrl;
+    }
+
+    function createDabMetadataServiceStub() {
+        return {
+            listDabViews: sandbox.stub().resolves([
+                {
+                    id: "view:dbo.ActiveUsers",
+                    schema: "dbo",
+                    name: "ActiveUsers",
+                },
+            ]),
+            listDabStoredProcedures: sandbox.stub().resolves([
+                {
+                    id: "stored-procedure:dbo.GetUsers",
+                    schema: "dbo",
+                    name: "GetUsers",
+                },
+            ]),
+            getDabViewColumnsByView: sandbox.stub().resolves(new Map()),
+            getDabViewColumns: sandbox.stub().resolves([]),
+            getDabStoredProcedureParametersByProcedure: sandbox.stub().resolves(new Map()),
+            getDabStoredProcedureParameters: sandbox.stub().resolves([]),
+        };
     }
 
     suite("Constructor and Initialization", () => {
@@ -1618,6 +1647,82 @@ suite("SchemaDesignerWebviewController tests", () => {
             expect(result.success).to.be.false;
             expect(result.error).to.be.a("string");
             expect(showErrorStub).to.have.been.calledOnce;
+        });
+    });
+
+    suite("DAB metadata query options", () => {
+        test("should request NOLOCK hints for regular SQL Server metadata discovery", async () => {
+            const metadataService = createDabMetadataServiceStub();
+            (mockMainController.connectionManager as any).getServerInfo = sandbox.stub().returns({
+                engineEditionId: 3,
+            });
+
+            createController(metadataService);
+
+            const handler = requestHandlers.get(Dab.GetDatabaseObjectsRequest.type.method);
+            expect(handler).to.be.a("function");
+
+            await handler(undefined);
+
+            expect(metadataService.listDabViews).to.have.been.calledWith(
+                connectionUri,
+                databaseName,
+                sinon.match({ useNoLock: true }),
+            );
+            expect(metadataService.getDabViewColumnsByView).to.have.been.calledWith(
+                connectionUri,
+                databaseName,
+                sinon.match({ useNoLock: true }),
+            );
+            expect(
+                metadataService.getDabStoredProcedureParametersByProcedure,
+            ).to.have.been.calledWith(
+                connectionUri,
+                databaseName,
+                sinon.match({ useNoLock: true }),
+            );
+        });
+
+        test("should skip NOLOCK hints for Synapse and Data Warehouse metadata discovery", async () => {
+            for (const engineEditionId of [6, 11]) {
+                const metadataService = createDabMetadataServiceStub();
+                (mockMainController.connectionManager as any).getServerInfo = sandbox
+                    .stub()
+                    .returns({ engineEditionId });
+
+                createController(metadataService);
+
+                const handler = requestHandlers.get(Dab.GetDatabaseObjectsRequest.type.method);
+                expect(handler).to.be.a("function");
+
+                await handler(undefined);
+
+                expect(metadataService.listDabViews).to.have.been.calledWith(
+                    connectionUri,
+                    databaseName,
+                    sinon.match({ useNoLock: false }),
+                );
+            }
+        });
+
+        test("should skip NOLOCK hints when server engine information is unavailable", async () => {
+            const metadataService = createDabMetadataServiceStub();
+            (mockMainController.connectionManager as any).getServerInfo = sandbox
+                .stub()
+                .returns(undefined);
+
+            createController(metadataService);
+
+            const handler = requestHandlers.get(Dab.GetDatabaseObjectsRequest.type.method);
+            expect(handler).to.be.a("function");
+
+            await handler(undefined);
+
+            expect(metadataService.listDabViews).to.have.been.calledWith(
+                connectionUri,
+                databaseName,
+                sinon.match({ useNoLock: false }),
+            );
         });
     });
 
