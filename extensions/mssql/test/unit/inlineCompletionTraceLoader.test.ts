@@ -9,6 +9,7 @@ import * as path from "path";
 import { expect } from "chai";
 import {
     loadTraceFile,
+    normalizeTraceFile,
     scanTraceFolder,
 } from "../../src/copilot/inlineCompletionDebug/traceLoader";
 
@@ -54,6 +55,28 @@ suite("Inline completion trace loader", () => {
         expect(trace.version).to.equal(1);
         expect(trace._extensionVersion).to.equal("1.43.0-test");
         expect(trace.events).to.have.lengthOf(1);
+    });
+
+    test("rejects unsupported versions and malformed events", () => {
+        expect(() => normalizeTraceFile({ version: 2, events: [] }, "future.json")).to.throw(
+            "unsupported inline completion trace version",
+        );
+        expect(() =>
+            normalizeTraceFile({ version: 1, events: [{ id: "incomplete" }] }, "bad.json"),
+        ).to.throw("invalid inline completion trace event");
+    });
+
+    test("rejects files over the configured load limit before reading JSON", async () => {
+        const filePath = path.join(tempFolder, "mssql-copilot-trace-large.json");
+        await fs.promises.writeFile(filePath, "{}", "utf8");
+
+        let error: unknown;
+        try {
+            await loadTraceFile(filePath, 1);
+        } catch (caught) {
+            error = caught;
+        }
+        expect((error as Error).message).to.contain("too large to load");
     });
 
     async function writeTrace(

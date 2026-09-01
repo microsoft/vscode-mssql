@@ -62,7 +62,7 @@ export async function saveInlineCompletionTraceNow(
         );
         const filePath = path.join(folder, createTraceFileName(trace._savedAt));
         const serialized = JSON.stringify(trace, undefined, 2);
-        fs.writeFileSync(filePath, serialized, "utf8");
+        await fs.promises.writeFile(filePath, serialized, "utf8");
         traceLogger.info(`Saved inline completion trace to ${filePath}`);
         return { filePath };
     } catch (error) {
@@ -82,7 +82,15 @@ export function getConfiguredTraceFolder(context: vscode.ExtensionContext): stri
         return vscode.Uri.joinPath(context.globalStorageUri, DEFAULT_TRACE_FOLDER_NAME).fsPath;
     }
 
-    return expandHome(configured);
+    const expanded = expandHome(configured);
+    if (!path.isAbsolute(expanded)) {
+        traceLogger.warn(
+            `Ignoring relative inline completion trace folder '${configured}'; using extension storage instead.`,
+        );
+        return vscode.Uri.joinPath(context.globalStorageUri, DEFAULT_TRACE_FOLDER_NAME).fsPath;
+    }
+
+    return expanded;
 }
 
 export function createTraceFileName(savedAtIso: string = new Date().toISOString()): string {

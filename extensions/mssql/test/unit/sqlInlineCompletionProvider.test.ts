@@ -34,6 +34,7 @@ suite("SqlInlineCompletionProvider Tests", () => {
     let useSchemaContextEnabled: boolean;
     let configuredProfile: string;
     let configuredModelFamily: string;
+    let modelVendors: string[];
     let enabledCategories: string[];
 
     setup(() => {
@@ -44,6 +45,7 @@ suite("SqlInlineCompletionProvider Tests", () => {
         useSchemaContextEnabled = true;
         configuredProfile = "default";
         configuredModelFamily = "";
+        modelVendors = ["copilot", "anthropic-api", "openai-api", "xai-api"];
         enabledCategories = ["continuation", "intent"];
 
         schemaContextService = sandbox.createStubInstance(CompletionSchemaContextService);
@@ -75,6 +77,10 @@ suite("SqlInlineCompletionProvider Tests", () => {
 
                     if (key === Constants.configCopilotInlineCompletionsModelFamily) {
                         return configuredModelFamily;
+                    }
+
+                    if (key === Constants.configCopilotInlineCompletionsModelVendors) {
+                        return modelVendors;
                     }
 
                     if (key === Constants.configCopilotInlineCompletionsEnabledCategories) {
@@ -150,7 +156,9 @@ suite("SqlInlineCompletionProvider Tests", () => {
         );
 
         const userMessageText = getMessageText(sendRequestStub.firstCall.args[0][1]);
-        expect(userMessageText).to.include("-- connection: localhost / Sales");
+        expect(userMessageText).not.to.include("localhost");
+        expect(userMessageText).not.to.include("Sales");
+        expect(userMessageText).to.include("-- default schema: dbo");
         expect(userMessageText).to.include("TABLE dbo.Customers (CustomerId, Name)");
         expect(userMessageText).to.include("-- user tables: detailed 1 of 18");
         expect(userMessageText).to.include("TABLE NAMES sales (Orders, Invoices)");
@@ -749,6 +757,54 @@ ORDER BY qs.total_worker_time DESC;`,
         expect(defaultSendRequest).to.have.been.calledOnce;
     });
 
+    test("configured model selector overrides the profile model preference", async () => {
+        const configuredSendRequest = sandbox.stub().resolves(createChatResponse("SELECT 1;"));
+        configuredModelFamily = "openai-api/gpt-configured";
+        modelVendors = ["openai-api"];
+        (vscode.lm.selectChatModels as sinon.SinonStub).resolves([
+            {
+                id: "gpt-configured",
+                name: "Configured GPT",
+                family: "gpt-configured",
+                vendor: "openai-api",
+                sendRequest: configuredSendRequest,
+                countTokens: countTokensStub,
+            } as unknown as vscode.LanguageModelChat,
+        ]);
+        schemaContextService.getSchemaContext.resolves(undefined);
+
+        await provider.provideInlineCompletionItems(
+            createTestDocument("-- Write a query\n", "file:///query.sql"),
+            new vscode.Position(1, 0),
+            {
+                triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
+            } as vscode.InlineCompletionContext,
+            { isCancellationRequested: false } as vscode.CancellationToken,
+        );
+
+        expect(configuredSendRequest).to.have.been.calledOnce;
+    });
+
+    test("ignores unrecognized configured language model vendors", async () => {
+        modelVendors = ["untrusted-provider", "copilot"];
+        schemaContextService.getSchemaContext.resolves(undefined);
+
+        await provider.provideInlineCompletionItems(
+            createTestDocument("SELECT *", "file:///query.sql"),
+            new vscode.Position(0, "SELECT *".length),
+            {
+                triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
+            } as vscode.InlineCompletionContext,
+            { isCancellationRequested: false } as vscode.CancellationToken,
+        );
+
+        expect(
+            (vscode.lm.selectChatModels as sinon.SinonStub)
+                .getCalls()
+                .map((call) => call.args[0]?.vendor),
+        ).to.deep.equal(["copilot"]);
+    });
+
     test("returns no completions when the cancellation token fires during the debounce wait", async () => {
         schemaContextService.getSchemaContext.resolves(undefined);
 
@@ -1055,6 +1111,52 @@ ORDER BY qs.total_worker_time DESC;`;
         );
 
         expect(sanitized).to.equal("WHERE NoteText = 'line one\n\nline two'");
+    });
+
+    test("preserves SQL literals and quoted identifiers returned as the completion", () => {
+        expect(sanitizeInlineCompletionText("'active'", 200, "WHERE Status = ", false)).to.equal(
+            "'active'",
+        );
+        expect(sanitizeInlineCompletionText('"Order"', 200, "SELECT ", false)).to.equal('"Order"');
+        expect(sanitizeInlineCompletionText("'SELECT * FROM dbo.Orders'", 200, "", true)).to.equal(
+            "SELECT * FROM dbo.Orders",
+        );
+    });
+
+    test("normalizes generated newlines to the document EOL convention", async () => {
+        schemaContextService.getSchemaContext.resolves(undefined);
+        sendRequestStub.resolves(createChatResponse("SELECT\n    1;"));
+
+        const items = await provider.provideInlineCompletionItems(
+            createTestDocument("-- write a query\r\n", "file:///query.sql"),
+            new vscode.Position(1, 0),
+            {
+                triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
+            } as vscode.InlineCompletionContext,
+            { isCancellationRequested: false } as vscode.CancellationToken,
+        );
+
+        expect((items as vscode.InlineCompletionItem[])[0].insertText).to.equal("SELECT\r\n    1;");
+    });
+
+    test("discards a completion when the document changes while the request is in flight", async () => {
+        schemaContextService.getSchemaContext.resolves(undefined);
+        const document = createTestDocument("SELECT *", "file:///query.sql");
+        sendRequestStub.callsFake(async () => {
+            Object.defineProperty(document, "version", { value: 2 });
+            return createChatResponse("FROM dbo.Customers");
+        });
+
+        const items = await provider.provideInlineCompletionItems(
+            document,
+            new vscode.Position(0, "SELECT *".length),
+            {
+                triggerKind: vscode.InlineCompletionTriggerKind.Invoke,
+            } as vscode.InlineCompletionContext,
+            { isCancellationRequested: false } as vscode.CancellationToken,
+        );
+
+        expect(items).to.deep.equal([]);
     });
 
     test("returns no completion when intent mode produces an explanation instead of SQL", async () => {

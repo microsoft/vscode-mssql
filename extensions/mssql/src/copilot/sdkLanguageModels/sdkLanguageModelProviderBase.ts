@@ -22,6 +22,7 @@ import {
     sdkApiKeyProviders,
 } from "./apiKeyResolution";
 import { getSdkModelCatalog } from "./sdkModelCatalog";
+import { isInlineCompletionFeatureEnabled } from "../inlineCompletionFeatureGate";
 
 export interface LanguageModelChatResponseProgress {
     report(part: vscode.LanguageModelTextPart): void;
@@ -151,7 +152,9 @@ export abstract class SdkLanguageModelProviderBase {
         let usage: SdkProviderUsage | undefined;
 
         try {
+            this.assertEnabled();
             const apiKey = await this.resolveApiKey();
+            this.assertEnabled();
             if (!apiKey) {
                 this.sendErrorTelemetry("auth");
                 throw vscode.LanguageModelError.NoPermissions(
@@ -236,9 +239,20 @@ export abstract class SdkLanguageModelProviderBase {
             : defaultTimeoutMs;
     }
 
+    protected assertEnabled(): void {
+        if (!this.isEnabled()) {
+            throw vscode.LanguageModelError.NoPermissions(
+                `${this.providerLabel} SDK language models are disabled.`,
+            );
+        }
+    }
+
     private isEnabled(): boolean {
         const setting = getEnabledSetting(this.kind);
-        return vscode.workspace.getConfiguration().get<boolean>(setting, true) ?? true;
+        return (
+            isInlineCompletionFeatureEnabled() &&
+            (vscode.workspace.getConfiguration().get<boolean>(setting, false) ?? false)
+        );
     }
 
     private resolveApiKey(): Promise<string | undefined> {

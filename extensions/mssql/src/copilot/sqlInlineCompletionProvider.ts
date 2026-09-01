@@ -63,7 +63,8 @@ const maxNearbyDiagnostics = 8;
 const maxDiagnosticMessageChars = 220;
 const exactTokenCountEstimateLimit = 200_000;
 const exactTokenCountTimeoutMs = 5_000;
-const schemaContextBuildTimeoutMs = 6 * 60 * 1000;
+const schemaContextBuildTimeoutMs = 120_000;
+const automaticSchemaContextBuildTimeoutMs = 1_500;
 const languageModelRequestTimeoutMs = 120_000;
 export const continuationModeMaxTokens = 240;
 export const intentModeMaxChars = 2000;
@@ -169,6 +170,8 @@ export class SqlInlineCompletionProvider
         if (!this.isEnabledForDocument(document) || context.selectedCompletionInfo) {
             return [];
         }
+        const requestDocumentVersion = document.version;
+        const requestOffset = document.offsetAt(position);
 
         const triggerKind = context.triggerKind;
         const overrides = inlineCompletionDebugStore.getOverrides();
@@ -473,6 +476,7 @@ export class SqlInlineCompletionProvider
                     overrides,
                     completionCategory,
                     this.getConfiguredContinuationModelSelector(),
+                    this.getConfiguredModelSelector(),
                 ),
                 modelPreference,
             );
@@ -522,15 +526,22 @@ export class SqlInlineCompletionProvider
 
             if (useSchemaContext) {
                 recordPendingStage("buildingSchemaContext");
-                schemaContext = await withTimeout(
-                    this._schemaContextService.getSchemaContext(
-                        document,
-                        statementPrefix,
-                        selectedModel.maxInputTokens,
-                        schemaContextOverrides,
-                    ),
-                    schemaContextBuildTimeoutMs,
+                const schemaTimeoutMs =
+                    triggerKind === vscode.InlineCompletionTriggerKind.Automatic
+                        ? automaticSchemaContextBuildTimeoutMs
+                        : schemaContextBuildTimeoutMs;
+                schemaContext = await withAbortableTimeout(
+                    (signal) =>
+                        this._schemaContextService.getSchemaContext(
+                            document,
+                            statementPrefix,
+                            selectedModel.maxInputTokens,
+                            schemaContextOverrides,
+                            { signal, hydrationTimeoutMs: schemaTimeoutMs },
+                        ),
+                    schemaTimeoutMs,
                     "Timed out building SQL schema context.",
+                    token,
                 );
             }
 
@@ -695,6 +706,15 @@ export class SqlInlineCompletionProvider
                 intentMode,
             );
             finalCompletionText = suppressDocumentSuffixOverlap(finalCompletionText, suffix);
+            finalCompletionText = normalizeCompletionEndOfLine(finalCompletionText, document.eol);
+
+            if (
+                document.version !== requestDocumentVersion ||
+                document.offsetAt(position) !== requestOffset
+            ) {
+                recordDebugEvent("cancelled");
+                return [];
+            }
 
             if (!finalCompletionText) {
                 sendResultTelemetry("emptyFromSanitizer");
@@ -751,8 +771,8 @@ export class SqlInlineCompletionProvider
         return (
             vscode.workspace
                 .getConfiguration()
-                .get<boolean>(Constants.configCopilotInlineCompletionsUseSchemaContext, true) ??
-            true
+                .get<boolean>(Constants.configCopilotInlineCompletionsUseSchemaContext, false) ??
+            false
         );
     }
 
@@ -762,8 +782,8 @@ export class SqlInlineCompletionProvider
                 .getConfiguration()
                 .get<boolean>(
                     Constants.configCopilotInlineCompletionsIncludeSqlDiagnostics,
-                    true,
-                ) ?? true
+                    false,
+                ) ?? false
         );
     }
 
@@ -931,17 +951,18 @@ function getModelSelectorForCompletionCategory(
     overrides: InlineCompletionDebugOverrides,
     completionCategory: InlineCompletionCategory,
     configuredContinuationModelSelector: string | undefined,
+    configuredModelSelector: string | undefined,
 ): string | undefined {
     if (completionCategory === "continuation") {
         return (
             overrides.continuationModelSelector ??
             configuredContinuationModelSelector ??
             overrides.modelSelector ??
-            undefined
+            configuredModelSelector
         );
     }
 
-    return overrides.modelSelector ?? undefined;
+    return overrides.modelSelector ?? configuredModelSelector;
 }
 
 function getConfiguredInlineCompletionProfileId() {
@@ -1484,6 +1505,22 @@ function withTimeout<T>(thenable: PromiseLike<T>, timeoutMs: number, message: st
     });
 }
 
+async function withAbortableTimeout<T>(
+    factory: (signal: AbortSignal) => PromiseLike<T>,
+    timeoutMs: number,
+    message: string,
+    token: vscode.CancellationToken,
+): Promise<T> {
+    const controller = new AbortController();
+    const cancellation = token.onCancellationRequested?.(() => controller.abort());
+    try {
+        return await withTimeout(factory(controller.signal), timeoutMs, message);
+    } finally {
+        controller.abort();
+        cancellation?.dispose();
+    }
+}
+
 function isFinitePositiveNumber(value: unknown): value is number {
     return typeof value === "number" && Number.isFinite(value) && value > 0;
 }
@@ -1670,6 +1707,11 @@ export function fixLeadingWhitespace(
         return " " + completionText;
     }
     return completionText;
+}
+
+function normalizeCompletionEndOfLine(completionText: string, endOfLine: vscode.EndOfLine): string {
+    const normalized = completionText.replace(/\r\n|\r|\n/g, "\n");
+    return endOfLine === vscode.EndOfLine.CRLF ? normalized.replace(/\n/g, "\r\n") : normalized;
 }
 
 function isAfterStatementTerminator(linePrefix: string): boolean {
@@ -2346,7 +2388,15 @@ function unwrapQuotedResponse(text: string): string {
 
     for (const [openQuote, closeQuote] of quotePairs) {
         if (trimmed.startsWith(openQuote) && trimmed.endsWith(closeQuote)) {
-            return trimmed.slice(openQuote.length, trimmed.length - closeQuote.length);
+            const inner = trimmed.slice(openQuote.length, trimmed.length - closeQuote.length);
+            if (
+                /\r?\n/.test(inner) ||
+                /^(?:select|with|insert|update|delete|merge|create|alter|drop|exec(?:ute)?|declare|set|begin|if|while|use|grant|revoke|deny)\b/i.test(
+                    inner.trimStart(),
+                )
+            ) {
+                return inner;
+            }
         }
     }
 
@@ -2540,9 +2590,7 @@ export function formatSchemaContextForPrompt(
     const inventoryChunkSize = metadata?.inventoryChunkSize ?? 8;
     const lines: string[] = [];
     lines.push(
-        `-- connection: ${schemaContext.server ?? "unknown server"} / ${
-            schemaContext.database ?? "unknown database"
-        }, default schema ${schemaContext.defaultSchema ?? "dbo"}, engine: ${
+        `-- default schema: ${schemaContext.defaultSchema ?? "dbo"}, engine: ${
             schemaContext.engineEditionName ?? "unknown"
         }`,
     );

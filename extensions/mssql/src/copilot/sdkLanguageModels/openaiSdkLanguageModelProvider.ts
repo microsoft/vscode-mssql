@@ -57,6 +57,7 @@ export class OpenAiSdkLanguageModelProvider extends SdkLanguageModelProviderBase
         text: string | vscode.LanguageModelChatMessage,
         token: vscode.CancellationToken,
     ): Promise<number> {
+        this.assertEnabled();
         if (token.isCancellationRequested) {
             return 0;
         }

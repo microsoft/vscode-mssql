@@ -34,7 +34,7 @@ interface ExtensionPackageJson {
         commands: CommandContribution[];
         menus: { commandPalette: CommandPaletteContribution[] };
         configuration: {
-            properties: Record<string, { default?: unknown }>;
+            properties: Record<string, { default?: unknown; scope?: string }>;
         };
         languageModelChatProviders: LanguageModelChatProviderContribution[];
     };
@@ -52,6 +52,12 @@ suite("Private preview manifest", () => {
         expect(settings["mssql.sqlDataPlane.enabled"]?.default).to.equal(false);
         expect(settings["mssql.metadataCache.enabled"]?.default).to.equal(false);
         expect(settings["mssql.copilot.inlineCompletions.enabled"]?.default).to.equal(false);
+        expect(settings["mssql.copilot.inlineCompletions.useSchemaContext"]?.default).to.equal(
+            false,
+        );
+        expect(settings["mssql.copilot.inlineCompletions.includeSqlDiagnostics"]?.default).to.equal(
+            false,
+        );
         expect(settings["mssql.copilot.inlineCompletions.trace.captureEnabled"]?.default).to.equal(
             false,
         );
@@ -61,6 +67,27 @@ suite("Private preview manifest", () => {
         expect(settings["mssql.copilot.sdkProviders.anthropic.enabled"]?.default).to.equal(false);
         expect(settings["mssql.copilot.sdkProviders.openai.enabled"]?.default).to.equal(false);
         expect(settings["mssql.copilot.sdkProviders.xai.enabled"]?.default).to.equal(false);
+    });
+
+    test("keeps prompt controls global and trace controls machine-local", () => {
+        const settings = packageJson.contributes.configuration.properties;
+        for (const key of [
+            "mssql.copilot.inlineCompletions.enabled",
+            "mssql.copilot.inlineCompletions.useSchemaContext",
+            "mssql.copilot.inlineCompletions.includeSqlDiagnostics",
+            "mssql.copilot.inlineCompletions.modelVendors",
+        ]) {
+            expect(settings[key]?.scope, key).to.equal("application");
+        }
+        for (const key of [
+            "mssql.copilot.inlineCompletions.debug.recordWhenClosed",
+            "mssql.copilot.inlineCompletions.trace.captureEnabled",
+            "mssql.copilot.inlineCompletions.trace.folder",
+            "mssql.copilot.inlineCompletions.trace.redactPrompts",
+            "mssql.copilot.inlineCompletions.trace.maxFileSizeMB",
+        ]) {
+            expect(settings[key]?.scope, key).to.equal("machine");
+        }
     });
 
     test("keeps AI provider commands out of the default UI", () => {

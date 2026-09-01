@@ -31,6 +31,8 @@ const REDACTED_KEYS = new Set([
     "rawResponse",
     "sanitizedResponse",
     "finalCompletionText",
+    "documentUri",
+    "documentFileName",
 ]);
 
 export function serializeSessionTrace(
@@ -61,9 +63,12 @@ function redactValue(value: unknown, key?: string): unknown {
     if (key && REDACTED_KEYS.has(key)) {
         return REDACTED;
     }
+    if (key === "locals") {
+        return redactLocalStrings(value);
+    }
 
     if (Array.isArray(value)) {
-        return value.map((item) => redactValue(item));
+        return value.map((item) => redactValue(item, key));
     }
 
     if (!isRecord(value)) {
@@ -72,6 +77,14 @@ function redactValue(value: unknown, key?: string): unknown {
 
     const output: Record<string, unknown> = {};
     for (const [entryKey, entryValue] of Object.entries(value)) {
+        if (entryKey === "error" && isRecord(entryValue)) {
+            output[entryKey] = {
+                message: REDACTED,
+                ...(typeof entryValue.name === "string" ? { name: entryValue.name } : {}),
+            };
+            continue;
+        }
+
         if (entryKey === "promptMessages" && Array.isArray(entryValue)) {
             output[entryKey] = entryValue.map((message) =>
                 isRecord(message) ? { ...message, content: REDACTED } : message,
@@ -88,6 +101,22 @@ function redactValue(value: unknown, key?: string): unknown {
     }
 
     return output;
+}
+
+function redactLocalStrings(value: unknown): unknown {
+    if (typeof value === "string") {
+        return REDACTED;
+    }
+    if (Array.isArray(value)) {
+        return value.map(redactLocalStrings);
+    }
+    if (!isRecord(value)) {
+        return value;
+    }
+
+    return Object.fromEntries(
+        Object.entries(value).map(([key, entry]) => [key, redactLocalStrings(entry)]),
+    );
 }
 
 function truncateTraceToMaxSize(

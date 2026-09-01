@@ -23,16 +23,29 @@ suite("SDK language model message translation", () => {
         expect(translated.messages).to.deep.equal([
             { role: "user", content: "complete this" },
             { role: "assistant", content: "prior answer" },
+            { role: "user", content: "Please respond." },
         ]);
     });
 
-    test("Anthropic translation synthesizes a placeholder user turn after system extraction", () => {
+    test("a single user message remains a user turn", () => {
         const translated = translateForAnthropic([
-            vscode.LanguageModelChatMessage.User("system rules"),
+            vscode.LanguageModelChatMessage.User("complete this"),
         ]);
 
-        expect(translated.system).to.equal("system rules");
-        expect(translated.messages).to.deep.equal([{ role: "user", content: "Please respond." }]);
+        expect(translated.system).to.equal("");
+        expect(translated.messages).to.deep.equal([{ role: "user", content: "complete this" }]);
+    });
+
+    test("Anthropic translation never leaves an assistant prefill at the end", () => {
+        const translated = translateForAnthropic([
+            vscode.LanguageModelChatMessage.Assistant("prior answer"),
+        ]);
+
+        expect(translated.messages).to.deep.equal([
+            { role: "user", content: "Please respond." },
+            { role: "assistant", content: "prior answer" },
+            { role: "user", content: "Please respond." },
+        ]);
     });
 
     test("OpenAI translation includes the first user message as a system message", () => {
@@ -47,6 +60,12 @@ suite("SDK language model message translation", () => {
             { role: "user", content: "complete this" },
             { role: "assistant", content: "prior answer" },
         ]);
+    });
+
+    test("OpenAI translation keeps a lone user message as a user message", () => {
+        expect(
+            translateForOpenAI([vscode.LanguageModelChatMessage.User("complete this")]),
+        ).to.deep.equal([{ role: "user", content: "complete this" }]);
     });
 
     test("non-text content parts cause a clear error", () => {

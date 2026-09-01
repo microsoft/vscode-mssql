@@ -59,6 +59,7 @@ export class XAiSdkLanguageModelProvider extends SdkLanguageModelProviderBase {
         text: string | vscode.LanguageModelChatMessage,
         token: vscode.CancellationToken,
     ): Promise<number> {
+        this.assertEnabled();
         if (token.isCancellationRequested) {
             return 0;
         }

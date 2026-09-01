@@ -37,19 +37,24 @@ export function stubTelemetry(sandbox?: sinon.SinonSandbox): {
  */
 export function createTestDocument(text: string, uri: string): vscode.TextDocument {
     const lines = text.split(/\r?\n/);
+    const lineOffsets: number[] = [0];
+    const lineBreakPattern = /\r?\n/g;
+    let lineBreak: RegExpExecArray | null;
+    while ((lineBreak = lineBreakPattern.exec(text)) !== null) {
+        lineOffsets.push(lineBreak.index + lineBreak[0].length);
+    }
 
     function offsetAt(position: vscode.Position): number {
-        let offset = 0;
-        for (let line = 0; line < position.line; line++) {
-            offset += lines[line].length + 1;
-        }
-        return offset + position.character;
+        return (lineOffsets[position.line] ?? text.length) + position.character;
     }
 
     return {
         uri: vscode.Uri.parse(uri),
         languageId: "sql",
+        version: 1,
+        eol: text.includes("\r\n") ? vscode.EndOfLine.CRLF : vscode.EndOfLine.LF,
         lineCount: lines.length,
+        offsetAt,
         lineAt: (line: number) => ({
             text: lines[line] ?? "",
             range: new vscode.Range(

@@ -488,8 +488,6 @@ export const configCopilotInlineCompletionsUseSchemaContext =
     "mssql.copilot.inlineCompletions.useSchemaContext";
 export const configCopilotInlineCompletionsIncludeSqlDiagnostics =
     "mssql.copilot.inlineCompletions.includeSqlDiagnostics";
-export const configCopilotInlineCompletionsSchemaContext =
-    "mssql.copilot.inlineCompletions.schemaContext";
 export const configCopilotInlineCompletionsProfile = "mssql.copilot.inlineCompletions.profile";
 export const configCopilotInlineCompletionsModelFamily =
     "mssql.copilot.inlineCompletions.modelFamily";

@@ -12,6 +12,7 @@ export const defaultInlineCompletionModelVendors = [
     "openai-api",
     "xai-api",
 ];
+const allowedInlineCompletionModelVendors = new Set(defaultInlineCompletionModelVendors);
 
 export function getConfiguredInlineCompletionModelVendors(): string[] {
     const configured = vscode.workspace
@@ -25,7 +26,10 @@ export function getConfiguredInlineCompletionModelVendors(): string[] {
     }
 
     const vendors = configured
-        .filter((value): value is string => typeof value === "string" && !!value.trim())
+        .filter(
+            (value): value is string =>
+                typeof value === "string" && allowedInlineCompletionModelVendors.has(value.trim()),
+        )
         .map((value) => value.trim());
     return vendors.length ? Array.from(new Set(vendors)) : defaultInlineCompletionModelVendors;
 }

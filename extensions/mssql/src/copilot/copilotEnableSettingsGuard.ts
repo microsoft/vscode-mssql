@@ -9,6 +9,7 @@ import * as LocalizedConstants from "../constants/locConstants";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { sendActionEvent } from "extension-toolkit/vscode";
 import { getErrorMessage } from "../utils/utils";
+import { isInlineCompletionFeatureEnabled } from "./inlineCompletionFeatureGate";
 
 const dismissedStateKey = "copilotEnableGuard.dismissed";
 const copilotSection = "github.copilot";
@@ -174,9 +175,11 @@ export class CopilotEnableSettingsGuard implements vscode.Disposable {
 
     private isInlineCompletionsEnabled(): boolean {
         return (
-            vscode.workspace
+            isInlineCompletionFeatureEnabled() &&
+            (vscode.workspace
                 .getConfiguration()
-                .get<boolean>(Constants.configCopilotInlineCompletionsEnabled, false) ?? false
+                .get<boolean>(Constants.configCopilotInlineCompletionsEnabled, false) ??
+                false)
         );
     }
 

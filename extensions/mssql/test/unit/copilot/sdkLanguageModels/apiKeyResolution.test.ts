@@ -18,6 +18,7 @@ suite("SdkApiKeyResolver", () => {
     let originalAnthropicKey: string | undefined;
     let originalOpenAiKey: string | undefined;
     let originalXAiKey: string | undefined;
+    let originalConfiguredKey: string | undefined;
 
     setup(() => {
         sandbox = sinon.createSandbox();
@@ -26,15 +27,18 @@ suite("SdkApiKeyResolver", () => {
         originalAnthropicKey = process.env.ANTHROPIC_API_KEY;
         originalOpenAiKey = process.env.OPENAI_API_KEY;
         originalXAiKey = process.env.XAI_API_KEY;
+        originalConfiguredKey = process.env.MSSQL_TEST_ANTHROPIC_API_KEY;
         delete process.env.ANTHROPIC_API_KEY;
         delete process.env.OPENAI_API_KEY;
         delete process.env.XAI_API_KEY;
+        delete process.env.MSSQL_TEST_ANTHROPIC_API_KEY;
     });
 
     teardown(() => {
         restoreEnv("ANTHROPIC_API_KEY", originalAnthropicKey);
         restoreEnv("OPENAI_API_KEY", originalOpenAiKey);
         restoreEnv("XAI_API_KEY", originalXAiKey);
+        restoreEnv("MSSQL_TEST_ANTHROPIC_API_KEY", originalConfiguredKey);
         sandbox.restore();
     });
 
@@ -53,13 +57,29 @@ suite("SdkApiKeyResolver", () => {
         stubTelemetry(sandbox);
         stubWorkspaceConfiguration(sandbox, {
             [Constants.configCopilotSdkProvidersAnthropicEnv]: {
-                ANTHROPIC_API_KEY: "configured-key",
+                ANTHROPIC_API_KEY: "$MSSQL_TEST_ANTHROPIC_API_KEY",
             },
         });
         const resolver = new SdkApiKeyResolver(createSdkExtensionContext());
+        process.env.MSSQL_TEST_ANTHROPIC_API_KEY = "configured-key";
         process.env.ANTHROPIC_API_KEY = "env-key";
 
         expect(await resolver.resolveAnthropic()).to.equal("configured-key");
+    });
+
+    test("configured setting is only an environment variable name, never a literal key", async () => {
+        sandbox.restore();
+        sandbox = sinon.createSandbox();
+        stubTelemetry(sandbox);
+        stubWorkspaceConfiguration(sandbox, {
+            [Constants.configCopilotSdkProvidersAnthropicEnv]: {
+                ANTHROPIC_API_KEY: "sk-ant-plaintext-must-not-be-used",
+            },
+        });
+
+        expect(
+            await new SdkApiKeyResolver(createSdkExtensionContext()).resolveAnthropic(),
+        ).to.equal(undefined);
     });
 
     test("process env var wins when SecretStorage is empty", async () => {
@@ -100,10 +120,7 @@ suite("SdkApiKeyResolver", () => {
     });
 });
 
-function restoreEnv(
-    name: "ANTHROPIC_API_KEY" | "OPENAI_API_KEY" | "XAI_API_KEY",
-    value: string | undefined,
-): void {
+function restoreEnv(name: string, value: string | undefined): void {
     if (value === undefined) {
         delete process.env[name];
     } else {

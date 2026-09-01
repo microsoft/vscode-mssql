@@ -1957,19 +1957,19 @@
                     "type": "boolean",
                     "default": false,
                     "description": "%mssql.copilot.inlineCompletions.enabled.description%",
-                    "scope": "window"
+                    "scope": "application"
                 },
                 "mssql.copilot.inlineCompletions.useSchemaContext": {
                     "type": "boolean",
-                    "default": true,
+                    "default": false,
                     "description": "%mssql.copilot.inlineCompletions.useSchemaContext.description%",
-                    "scope": "window"
+                    "scope": "application"
                 },
                 "mssql.copilot.inlineCompletions.includeSqlDiagnostics": {
                     "type": "boolean",
-                    "default": true,
+                    "default": false,
                     "description": "%mssql.copilot.inlineCompletions.includeSqlDiagnostics.description%",
-                    "scope": "window"
+                    "scope": "application"
                 },
                 "mssql.copilot.inlineCompletions.profile": {
                     "type": "string",
@@ -1985,19 +1985,19 @@
                         "%mssql.copilot.inlineCompletions.profile.broad%"
                     ],
                     "description": "%mssql.copilot.inlineCompletions.profile.description%",
-                    "scope": "window"
+                    "scope": "application"
                 },
                 "mssql.copilot.inlineCompletions.modelFamily": {
                     "type": "string",
-                    "default": "claude-sonnet-4-6",
+                    "default": "",
                     "description": "%mssql.copilot.inlineCompletions.modelFamily.description%",
-                    "scope": "window"
+                    "scope": "application"
                 },
                 "mssql.copilot.inlineCompletions.continuationModelFamily": {
                     "type": "string",
                     "default": "",
                     "description": "%mssql.copilot.inlineCompletions.continuationModelFamily.description%",
-                    "scope": "window"
+                    "scope": "application"
                 },
                 "mssql.copilot.inlineCompletions.modelVendors": {
                     "type": "array",
@@ -2008,10 +2008,17 @@
                         "xai-api"
                     ],
                     "items": {
-                        "type": "string"
+                        "type": "string",
+                        "enum": [
+                            "copilot",
+                            "anthropic-api",
+                            "openai-api",
+                            "xai-api"
+                        ]
                     },
+                    "uniqueItems": true,
                     "description": "%mssql.copilot.inlineCompletions.modelVendors.description%",
-                    "scope": "window"
+                    "scope": "application"
                 },
                 "mssql.copilot.inlineCompletions.enabledCategories": {
                     "type": "array",
@@ -2028,38 +2035,38 @@
                     },
                     "uniqueItems": true,
                     "description": "%mssql.copilot.inlineCompletions.enabledCategories.description%",
-                    "scope": "window"
+                    "scope": "application"
                 },
                 "mssql.copilot.inlineCompletions.debug.recordWhenClosed": {
                     "type": "boolean",
                     "default": false,
                     "description": "%mssql.copilot.inlineCompletions.debug.recordWhenClosed.description%",
-                    "scope": "window"
+                    "scope": "machine"
                 },
                 "mssql.copilot.inlineCompletions.trace.captureEnabled": {
                     "type": "boolean",
                     "default": false,
                     "description": "%mssql.copilot.inlineCompletions.trace.captureEnabled.description%",
-                    "scope": "window"
+                    "scope": "machine"
                 },
                 "mssql.copilot.inlineCompletions.trace.folder": {
                     "type": "string",
                     "default": "",
                     "description": "%mssql.copilot.inlineCompletions.trace.folder.description%",
-                    "scope": "window"
+                    "scope": "machine"
                 },
                 "mssql.copilot.inlineCompletions.trace.redactPrompts": {
                     "type": "boolean",
                     "default": true,
                     "description": "%mssql.copilot.inlineCompletions.trace.redactPrompts.description%",
-                    "scope": "window"
+                    "scope": "machine"
                 },
                 "mssql.copilot.inlineCompletions.trace.maxFileSizeMB": {
                     "type": "number",
                     "default": 50,
                     "minimum": 1,
                     "description": "%mssql.copilot.inlineCompletions.trace.maxFileSizeMB.description%",
-                    "scope": "window"
+                    "scope": "machine"
                 },
                 "mssql.copilot.sdkProviders.anthropic.enabled": {
                     "type": "boolean",

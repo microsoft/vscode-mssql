@@ -164,7 +164,7 @@ export class SdkApiKeyResolver {
             ? configuredValue.slice(1)
             : configuredValue;
         const resolvedFromNamedEnv = process.env[envVarName];
-        return isNonEmpty(resolvedFromNamedEnv) ? resolvedFromNamedEnv.trim() : configuredValue;
+        return isNonEmpty(resolvedFromNamedEnv) ? resolvedFromNamedEnv.trim() : undefined;
     }
 }
 

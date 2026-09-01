@@ -20,6 +20,7 @@ import {
 import { getSecretStorageKey, SdkApiKeyResolver } from "../../../../src/copilot/sdkLanguageModels";
 import { defaultOpenAiSdkModels } from "../../../../src/copilot/sdkLanguageModels/sdkModelCatalog";
 import { stubTelemetry } from "../../utils";
+import { previewService } from "../../../../src/previews/previewService";
 import {
     createSdkExtensionContext,
     stubWorkspaceConfiguration,
@@ -35,7 +36,8 @@ suite("OpenAiSdkLanguageModelProvider", () => {
     setup(() => {
         sandbox = sinon.createSandbox();
         telemetry = stubTelemetry(sandbox);
-        configuration = {};
+        configuration = { [Constants.configCopilotSdkProvidersOpenAiEnabled]: true };
+        sandbox.stub(previewService, "isPrivatePreviewEnabled").returns(true);
         stubWorkspaceConfiguration(sandbox, configuration);
         originalOpenAiKey = process.env.OPENAI_API_KEY;
         delete process.env.OPENAI_API_KEY;
@@ -69,6 +71,37 @@ suite("OpenAiSdkLanguageModelProvider", () => {
         );
 
         expect(models).to.deep.equal([]);
+    });
+
+    test("provider gates are rechecked for discovery, response, and token counting", async () => {
+        configuration[Constants.configCopilotSdkProvidersOpenAiEnabled] = false;
+        const create = sandbox.stub().resolves(new FakeOpenAiStream([]));
+        const provider = createProviderWithClient(create);
+
+        expect(await provider.prepareLanguageModelChat({}, cancellationToken())).to.deep.equal([]);
+
+        let responseError: unknown;
+        try {
+            await provider.provideLanguageModelChatResponse(
+                defaultModel(),
+                [vscode.LanguageModelChatMessage.User("complete this")],
+                {},
+                { report: sandbox.stub() },
+                cancellationToken(),
+            );
+        } catch (error) {
+            responseError = error;
+        }
+        expect(responseError).to.include({ code: "NoPermissions" });
+        expect(create).not.to.have.been.called;
+
+        let tokenError: unknown;
+        try {
+            await provider.provideTokenCount(defaultModel(), "SELECT", cancellationToken());
+        } catch (error) {
+            tokenError = error;
+        }
+        expect(tokenError).to.include({ code: "NoPermissions" });
     });
 
     test("user-defined additional models appear in the catalog", async () => {

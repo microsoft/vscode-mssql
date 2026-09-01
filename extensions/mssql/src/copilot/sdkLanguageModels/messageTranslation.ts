@@ -17,7 +17,7 @@ export function translateForAnthropic(
 ): AnthropicMessageTranslation {
     let system = "";
     let chatStart = 0;
-    if (messages.length > 0 && messages[0].role === vscode.LanguageModelChatMessageRole.User) {
+    if (messages.length > 1 && messages[0].role === vscode.LanguageModelChatMessageRole.User) {
         system = textOfMessage(messages[0], "Anthropic SDK provider");
         chatStart = 1;
     }
@@ -37,6 +37,9 @@ export function translateForAnthropic(
     } else if (chatMessages[0].role !== "user") {
         chatMessages.unshift({ role: "user", content: "Please respond." });
     }
+    if (chatMessages.at(-1)?.role === "assistant") {
+        chatMessages.push({ role: "user", content: "Please respond." });
+    }
 
     return { system, messages: chatMessages };
 }
@@ -46,7 +49,7 @@ export function translateForOpenAI(
 ): ChatCompletionMessageParam[] {
     const result: ChatCompletionMessageParam[] = [];
     let chatStart = 0;
-    if (messages.length > 0 && messages[0].role === vscode.LanguageModelChatMessageRole.User) {
+    if (messages.length > 1 && messages[0].role === vscode.LanguageModelChatMessageRole.User) {
         result.push({
             role: "system",
             content: textOfMessage(messages[0], "OpenAI SDK provider"),

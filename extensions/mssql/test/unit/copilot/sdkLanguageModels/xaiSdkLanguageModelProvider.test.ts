@@ -19,6 +19,7 @@ import {
 import { getSecretStorageKey, SdkApiKeyResolver } from "../../../../src/copilot/sdkLanguageModels";
 import { defaultXAiSdkModels } from "../../../../src/copilot/sdkLanguageModels/sdkModelCatalog";
 import { stubTelemetry } from "../../utils";
+import { previewService } from "../../../../src/previews/previewService";
 import {
     createSdkExtensionContext,
     stubWorkspaceConfiguration,
@@ -33,7 +34,8 @@ suite("XAiSdkLanguageModelProvider", () => {
     setup(() => {
         sandbox = sinon.createSandbox();
         stubTelemetry(sandbox);
-        configuration = {};
+        configuration = { [Constants.configCopilotSdkProvidersXAiEnabled]: true };
+        sandbox.stub(previewService, "isPrivatePreviewEnabled").returns(true);
         stubWorkspaceConfiguration(sandbox, configuration);
         originalXAiKey = process.env.XAI_API_KEY;
         delete process.env.XAI_API_KEY;

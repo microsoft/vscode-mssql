@@ -14,6 +14,7 @@
 
 import { expect } from "chai";
 import { CatalogBuilder, CatalogSnapshot } from "../../src/services/metadata/catalogModel";
+import { DatabaseCatalogLease } from "../../src/services/metadata/metadataStore";
 import { buildRawSchemaContextPayload } from "../../src/copilot/catalogSchemaContextPayload";
 import {
     buildSchemaContextFromRawPayload,
@@ -24,6 +25,7 @@ import {
 } from "../../src/copilot/completionSchemaContextCore";
 import { formatSchemaContextForPrompt } from "../../src/copilot/sqlInlineCompletionProvider";
 import {
+    ClassicCompletionMetadataResolver,
     CompletionSchemaContextService,
     CompletionMetadataResolver,
 } from "../../src/copilot/completionSchemaContextService";
@@ -105,9 +107,7 @@ suite("Completion schema context bridge (MD-4 golden parity)", () => {
     test("golden render: header, PK-first definitions with PK/FK annotations", () => {
         const { text } = renderFixture();
         const lines = text.split("\n");
-        expect(lines[0]).to.equal(
-            "-- connection: srv / Db1, default schema dbo, engine: Azure SQL Database",
-        );
+        expect(lines[0]).to.equal("-- default schema: dbo, engine: Azure SQL Database");
         expect(lines[1]).to.equal("-- inferred system query: no");
         expect(text).to.include("-- schemas (user): dbo, sales");
         expect(text).to.include(
@@ -150,9 +150,7 @@ suite("Completion schema context bridge (MD-4 golden parity)", () => {
         const unknown = renderFixture({ engineEdition: "unknown" });
         expect(unknown.text).to.include("INFORMATION_SCHEMA.TABLES");
         expect(unknown.text).to.not.include("sys.dm_exec_requests");
-        expect(unknown.text.split("\n")[0]).to.equal(
-            "-- connection: srv / Db1, default schema dbo, engine: unknown",
-        );
+        expect(unknown.text.split("\n")[0]).to.equal("-- default schema: dbo, engine: unknown");
     });
 
     test("detail caps overflow into name-only inventories", () => {
@@ -175,6 +173,34 @@ suite("Completion schema context bridge (MD-4 golden parity)", () => {
         expect(customersIndex).to.be.greaterThan(-1);
         expect(salesOrdersIndex).to.be.greaterThan(-1);
         expect(customersIndex).to.be.lessThan(salesOrdersIndex);
+    });
+
+    test("case-sensitive catalogs preserve names that differ only by case", () => {
+        const settings = getSqlInlineCompletionSchemaContextRuntimeSettings(undefined, {});
+        const context = buildSchemaContextFromRawPayload(
+            {
+                caseSensitive: true,
+                defaultSchema: "dbo",
+                schemas: [{ name: "dbo" }, { name: "DBO" }],
+                tables: [
+                    {
+                        schema: "dbo",
+                        name: "Orders",
+                        columns: [{ name: "Code" }, { name: "code" }],
+                    },
+                    { schema: "dbo", name: "orders", columns: [{ name: "Id" }] },
+                ],
+            },
+            settings.budget,
+        );
+
+        expect(context?.caseSensitive).to.equal(true);
+        expect(context?.schemas).to.deep.equal(["dbo", "DBO"]);
+        expect(context?.tables.map((table) => table.name)).to.deep.equal([
+            "dbo.Orders",
+            "dbo.orders",
+        ]);
+        expect(context?.tables[0].columns).to.deep.equal(["Code", "code"]);
     });
 
     test("empty catalog renders as unavailable", () => {
@@ -210,5 +236,93 @@ suite("Completion schema context bridge (MD-4 golden parity)", () => {
         } finally {
             service.dispose();
         }
+    });
+
+    test("classic resolver shares concurrent acquisition and forwards hydration controls", async () => {
+        const snapshot = fixtureSnapshot();
+        let acquireCalls = 0;
+        let disposeCalls = 0;
+        const policies: Array<{ timeoutMs?: number; signal?: AbortSignal }> = [];
+        const lease = {
+            ensureFresh: async (policy: { timeoutMs?: number; signal?: AbortSignal }) => {
+                policies.push(policy);
+                return {
+                    snapshot,
+                    generation: snapshot.generation,
+                    source: "memory",
+                    freshness: "validated",
+                    waitedMs: 0,
+                };
+            },
+            dispose: () => disposeCalls++,
+        };
+        const resolver = new ClassicCompletionMetadataResolver(
+            {
+                getConnectionFacts: () => ({
+                    server: "localhost",
+                    database: "Db1",
+                    user: "sa",
+                    authenticationType: "SqlLogin",
+                }),
+                lookupPassword: async () => "password",
+            },
+            undefined,
+            () => ({
+                acquireDatabase: async () => {
+                    acquireCalls++;
+                    return lease as never;
+                },
+            }),
+            () => true,
+        );
+        const document = {
+            uri: { toString: () => "file:///query.sql" },
+        } as never;
+        const controller = new AbortController();
+
+        const results = await Promise.all([
+            resolver.resolve(document, { signal: controller.signal, hydrationTimeoutMs: 123 }),
+            resolver.resolve(document, { signal: controller.signal, hydrationTimeoutMs: 123 }),
+        ]);
+
+        expect(acquireCalls).to.equal(1);
+        expect(results.every((result) => result?.snapshot === snapshot)).to.equal(true);
+        expect(policies).to.have.lengthOf(2);
+        expect(policies.every((policy) => policy.timeoutMs === 123)).to.equal(true);
+        expect(policies.every((policy) => policy.signal === controller.signal)).to.equal(true);
+        resolver.dispose();
+        expect(disposeCalls).to.equal(1);
+    });
+
+    test("classic resolver disposes a lease that arrives after resolver disposal", async () => {
+        let completeAcquire: ((lease: DatabaseCatalogLease) => void) | undefined;
+        let disposeCalls = 0;
+        const resolver = new ClassicCompletionMetadataResolver(
+            {
+                getConnectionFacts: () => ({
+                    server: "localhost",
+                    database: "Db1",
+                    user: "sa",
+                    authenticationType: "SqlLogin",
+                }),
+                lookupPassword: async () => "password",
+            },
+            undefined,
+            () => ({
+                acquireDatabase: () =>
+                    new Promise((resolve) => {
+                        completeAcquire = resolve;
+                    }),
+            }),
+            () => true,
+        );
+        const pending = resolver.resolve({ uri: { toString: () => "file:///query.sql" } } as never);
+        await Promise.resolve();
+        await Promise.resolve();
+        resolver.dispose();
+        completeAcquire?.({ dispose: () => disposeCalls++ } as never);
+
+        expect(await pending).to.equal(undefined);
+        expect(disposeCalls).to.equal(1);
     });
 });

@@ -34,6 +34,15 @@ suite("Inline completion trace serializer", () => {
         expect(trace.events[0].sanitizedResponse).to.equal("[REDACTED]");
         expect(trace.events[0].finalCompletionText).to.equal("[REDACTED]");
         expect(trace.events[0].schemaContextFormatted).to.equal("[REDACTED]");
+        expect(trace.events[0].documentUri).to.equal("[REDACTED]");
+        expect(trace.events[0].documentFileName).to.equal("[REDACTED]");
+        expect(trace.events[0].locals["document.languageId"]).to.equal("[REDACTED]");
+        expect(trace.events[0].locals.sqlCanary).to.equal("[REDACTED]");
+        expect(trace.events[0].locals.nested).to.deep.equal({ sql: "[REDACTED]" });
+        expect(trace.events[0].error).to.deep.equal({
+            message: "[REDACTED]",
+            name: "Error",
+        });
         expect(trace.events[0].inputTokens).to.equal(1200);
         expect(trace.events[0].latencyMs).to.equal(250);
     });
@@ -127,6 +136,13 @@ function createEvent(
         schemaContextFormatted: "schema text",
         locals: {
             "document.languageId": "sql",
+            sqlCanary: "SELECT secret FROM Customer",
+            nested: { sql: "SELECT nestedSecret FROM Customer" },
+        },
+        error: {
+            message: "Failed near SELECT secret FROM Customer",
+            name: "Error",
+            stack: "Error: SELECT secret FROM Customer",
         },
         ...overrides,
     };

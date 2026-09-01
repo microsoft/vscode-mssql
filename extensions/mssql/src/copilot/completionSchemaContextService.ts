@@ -30,7 +30,7 @@ import { diagnosticErrorClass } from "../diagnostics/diagnosticsCore";
 import { logger } from "../models/logger";
 import { CatalogSnapshot } from "../services/metadata/catalogModel";
 import { MetadataPolicies } from "../services/metadata/cache/metadataFreshness";
-import { DatabaseCatalogLease } from "../services/metadata/metadataStore";
+import { DatabaseCatalogLease, MetadataStore } from "../services/metadata/metadataStore";
 import { MetadataStoreService } from "../services/metadata/metadataStoreService";
 import {
     prepareConnection,
@@ -68,8 +68,16 @@ export interface CompletionCatalogAccess {
 }
 
 export interface CompletionMetadataResolver {
-    resolve(document: vscode.TextDocument): Promise<CompletionCatalogAccess | undefined>;
+    resolve(
+        document: vscode.TextDocument,
+        options?: CompletionMetadataResolveOptions,
+    ): Promise<CompletionCatalogAccess | undefined>;
     dispose?(): void;
+}
+
+export interface CompletionMetadataResolveOptions {
+    signal?: AbortSignal;
+    hydrationTimeoutMs?: number;
 }
 
 /** Narrow classic-connection seams (stubbed in tests). */
@@ -98,15 +106,25 @@ interface ClassicAcquisition {
 export class ClassicCompletionMetadataResolver implements CompletionMetadataResolver {
     private readonly logger = logger.withPrefix("SqlInlineSchemaContext");
     private readonly acquisitions = new Map<string, ClassicAcquisition>();
+    private readonly pendingAcquisitions = new Map<
+        string,
+        Promise<ClassicAcquisition | undefined>
+    >();
+    private disposed = false;
 
     constructor(
         private readonly connections: ClassicConnectionSource,
         private readonly tokens?: ProfileTokenSource,
+        private readonly storeProvider: () => Pick<MetadataStore, "acquireDatabase"> = () =>
+            MetadataStoreService.get().store(),
+        private readonly dataPlaneEnabled: () => boolean = () => SqlDataPlaneService.get().enabled,
     ) {}
 
-    async resolve(document: vscode.TextDocument): Promise<CompletionCatalogAccess | undefined> {
-        const dataPlane = SqlDataPlaneService.get();
-        if (!dataPlane.enabled) {
+    async resolve(
+        document: vscode.TextDocument,
+        options: CompletionMetadataResolveOptions = {},
+    ): Promise<CompletionCatalogAccess | undefined> {
+        if (this.disposed || options.signal?.aborted || !this.dataPlaneEnabled()) {
             return undefined;
         }
         const facts = this.connections.getConnectionFacts(document.uri.toString());
@@ -132,7 +150,7 @@ export class ClassicCompletionMetadataResolver implements CompletionMetadataReso
 
         let acquisition = this.acquisitions.get(fingerprint);
         if (!acquisition) {
-            acquisition = await this.acquire(fingerprint, facts, authKind);
+            acquisition = await this.getOrCreateAcquisition(fingerprint, facts, authKind);
             if (!acquisition) {
                 return undefined;
             }
@@ -148,7 +166,8 @@ export class ClassicCompletionMetadataResolver implements CompletionMetadataReso
         // stay generation-pinned via the snapshot itself.
         const result = await acquisition.lease.ensureFresh({
             ...MetadataPolicies.aiContext,
-            timeoutMs: firstHydrationWaitMs,
+            timeoutMs: options.hydrationTimeoutMs ?? firstHydrationWaitMs,
+            signal: options.signal,
         });
         const snapshot = result.snapshot;
         if (!snapshot) {
@@ -163,7 +182,6 @@ export class ClassicCompletionMetadataResolver implements CompletionMetadataReso
     }
 
     private async acquire(
-        fingerprint: string,
         facts: ClassicConnectionFacts,
         authKind: ResolvedAuthKind,
     ): Promise<ClassicAcquisition | undefined> {
@@ -192,10 +210,38 @@ export class ClassicCompletionMetadataResolver implements CompletionMetadataReso
                 },
                 this.tokens,
             );
-            const lease = await MetadataStoreService.get()
-                .store()
-                .acquireDatabase(prepared, facts.database ?? "");
-            const acquisition: ClassicAcquisition = { lease };
+            const lease = await this.storeProvider().acquireDatabase(
+                prepared,
+                facts.database ?? "",
+            );
+            return { lease };
+        } catch (error) {
+            this.logger.debug(
+                `Classic metadata acquisition failed: ${diagnosticErrorClass(error)}`,
+            );
+            return undefined;
+        }
+    }
+
+    private getOrCreateAcquisition(
+        fingerprint: string,
+        facts: ClassicConnectionFacts,
+        authKind: ResolvedAuthKind,
+    ): Promise<ClassicAcquisition | undefined> {
+        const existing = this.pendingAcquisitions.get(fingerprint);
+        if (existing) {
+            return existing;
+        }
+
+        const pending = this.acquire(facts, authKind).then((acquisition) => {
+            if (!acquisition) {
+                return undefined;
+            }
+            if (this.disposed) {
+                acquisition.lease.dispose();
+                return undefined;
+            }
+
             this.acquisitions.set(fingerprint, acquisition);
             while (this.acquisitions.size > maxClassicAcquisitions) {
                 const oldestKey = this.acquisitions.keys().next().value;
@@ -206,19 +252,23 @@ export class ClassicCompletionMetadataResolver implements CompletionMetadataReso
                 this.acquisitions.delete(oldestKey);
             }
             return acquisition;
-        } catch (error) {
-            this.logger.debug(
-                `Classic metadata acquisition failed: ${diagnosticErrorClass(error)}`,
-            );
-            return undefined;
-        }
+        });
+        this.pendingAcquisitions.set(fingerprint, pending);
+        void pending.finally(() => {
+            if (this.pendingAcquisitions.get(fingerprint) === pending) {
+                this.pendingAcquisitions.delete(fingerprint);
+            }
+        });
+        return pending;
     }
 
     dispose(): void {
+        this.disposed = true;
         for (const acquisition of this.acquisitions.values()) {
             acquisition.lease.dispose();
         }
         this.acquisitions.clear();
+        this.pendingAcquisitions.clear();
     }
 }
 
@@ -229,17 +279,6 @@ export class CompletionSchemaContextService implements vscode.Disposable {
     private readonly normalized = new Map<string, SqlInlineCompletionSchemaContext | undefined>();
 
     constructor(private readonly resolvers: CompletionMetadataResolver[]) {
-        this.disposables.push(
-            vscode.workspace.onDidChangeConfiguration((event) => {
-                if (
-                    event.affectsConfiguration(
-                        Constants.configCopilotInlineCompletionsSchemaContext,
-                    )
-                ) {
-                    this.clearCache();
-                }
-            }),
-        );
         try {
             this.disposables.push(
                 vscode.commands.registerCommand(
@@ -272,12 +311,16 @@ export class CompletionSchemaContextService implements vscode.Disposable {
         relevanceText?: string,
         modelMaxInputTokens?: number,
         debugSchemaContextOverrides?: InlineCompletionDebugSchemaContextOverrides | null,
+        resolveOptions?: CompletionMetadataResolveOptions,
     ): Promise<SqlInlineCompletionSchemaContext | undefined> {
         let access: CompletionCatalogAccess | undefined;
         for (const resolver of this.resolvers) {
-            access = await resolver.resolve(document);
+            access = await resolver.resolve(document, resolveOptions);
             if (access) {
                 break;
+            }
+            if (resolveOptions?.signal?.aborted) {
+                return undefined;
             }
         }
         if (!access) {

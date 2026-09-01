@@ -10377,13 +10377,13 @@
       <source xml:lang="en">Enables the umbrella for experimental features in the MSSQL extension. Private-preview feature settings must also be enabled individually. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.</source>
     </trans-unit>
     <trans-unit id="mssql.copilot.sdkProviders.anthropic.env.description">
-      <source xml:lang="en">Environment fallbacks for the Anthropic provider. ANTHROPIC_API_KEY may contain a key or name an existing environment variable.</source>
+      <source xml:lang="en">Environment fallbacks for the Anthropic provider. ANTHROPIC_API_KEY may only name an existing environment variable; literal API keys are ignored.</source>
     </trans-unit>
     <trans-unit id="mssql.copilot.sdkProviders.openai.env.description">
-      <source xml:lang="en">Environment fallbacks for the OpenAI provider. OPENAI_API_KEY may contain a key or name an existing environment variable.</source>
+      <source xml:lang="en">Environment fallbacks for the OpenAI provider. OPENAI_API_KEY may only name an existing environment variable; literal API keys are ignored.</source>
     </trans-unit>
     <trans-unit id="mssql.copilot.sdkProviders.xai.env.description">
-      <source xml:lang="en">Environment fallbacks for the xAI provider. XAI_API_KEY may contain a key or name an existing environment variable.</source>
+      <source xml:lang="en">Environment fallbacks for the xAI provider. XAI_API_KEY may only name an existing environment variable; literal API keys are ignored.</source>
     </trans-unit>
     <trans-unit id="mssql.showEstimatedPlan">
       <source xml:lang="en">Estimated Plan (MSSQL)</source>
@@ -10439,12 +10439,6 @@
     <trans-unit id="mssql.flatFileImport">
       <source xml:lang="en">Import Data...</source>
     </trans-unit>
-    <trans-unit id="mssql.copilot.inlineCompletions.useSchemaContext.description">
-      <source xml:lang="en">Include metadata-backed database schema context when it is available. Completion requests fall back without database context when metadata is unavailable.</source>
-    </trans-unit>
-    <trans-unit id="mssql.copilot.inlineCompletions.includeSqlDiagnostics.description">
-      <source xml:lang="en">Include nearby SQL error diagnostics in inline completion prompts. Diagnostics are limited to errors near the cursor and omit file paths.</source>
-    </trans-unit>
     <trans-unit id="mssql.copilot.inlineCompletions.enabledCategories.description">
       <source xml:lang="en">Inline SQL completion categories to enable: cursor-continuation ghost text, comment-to-query intent completions, or both.</source>
     </trans-unit>
@@ -10459,9 +10453,6 @@
     </trans-unit>
     <trans-unit id="mssql.metadata.pollSeconds.description">
       <source xml:lang="en">Internal preview setting: base interval in seconds for metadata drift checks. Set to 0 to disable polling. Per-database backoff, window-focus suspension, and serverless safeguards also apply. Reload the window after changing this setting.</source>
-    </trans-unit>
-    <trans-unit id="mssql.copilot.inlineCompletions.modelFamily.description">
-      <source xml:lang="en">Language model selector used for SQL inline completions. Accepts a vendor/id selector or a bare family name and falls back to the strongest available model.</source>
     </trans-unit>
     <trans-unit id="mssql.copilot.inlineCompletions.modelVendors.description">
       <source xml:lang="en">Language model vendors to query for MSSQL inline SQL completions, in priority order.</source>
@@ -10618,6 +10609,9 @@
     </trans-unit>
     <trans-unit id="mssql.copilot.sdkProviders.openai.baseUrl.description">
       <source xml:lang="en">Optional OpenAI-compatible API base URL for a proxy, gateway, or Azure OpenAI endpoint.</source>
+    </trans-unit>
+    <trans-unit id="mssql.copilot.inlineCompletions.modelFamily.description">
+      <source xml:lang="en">Optional language model selector used for SQL inline completions. Accepts a vendor/id selector or a bare family name. Leave empty to use the active completion profile.</source>
     </trans-unit>
     <trans-unit id="mssql.copilot.inlineCompletions.continuationModelFamily.description">
       <source xml:lang="en">Optional language model selector used only for continuation completions. Leave empty to use the active profile or default model.</source>
@@ -10783,6 +10777,12 @@
     </trans-unit>
     <trans-unit id="mssql.userFeedback">
       <source xml:lang="en">Send Feedback</source>
+    </trans-unit>
+    <trans-unit id="mssql.copilot.inlineCompletions.includeSqlDiagnostics.description">
+      <source xml:lang="en">Send nearby SQL error diagnostics to the selected language model provider. Diagnostics are limited to errors near the cursor and omit file paths. Off by default.</source>
+    </trans-unit>
+    <trans-unit id="mssql.copilot.inlineCompletions.useSchemaContext.description">
+      <source xml:lang="en">Send selected schema, table, view, column, and routine identifiers to the selected language model provider for metadata-backed completions. Off by default; requests fall back without database context.</source>
     </trans-unit>
     <trans-unit id="mssql.metadataCache.offlineMode.description">
       <source xml:lang="en">Serve metadata only from persisted snapshots without contacting the server. Requires the experimental-features, SQL Data Plane, and metadata-cache settings. Status surfaces disclose snapshot age, and operations requiring fresh metadata refuse stale or unavailable data.</source>

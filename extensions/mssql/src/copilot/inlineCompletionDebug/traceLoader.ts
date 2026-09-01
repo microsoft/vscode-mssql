@@ -14,6 +14,8 @@ import {
 import { getErrorMessage } from "../../utils/utils";
 import { TRACE_FILE_GLOB, TRACE_FILE_PREFIX } from "./tracePersistence";
 
+export const MAX_TRACE_LOAD_BYTES = 64 * 1024 * 1024;
+
 export function createTraceFolderWatcher(
     folder: string,
     onDidChange: () => void,
@@ -83,7 +85,16 @@ export async function indexTraceFile(
     }
 }
 
-export async function loadTraceFile(filePath: string): Promise<InlineCompletionDebugExportData> {
+export async function loadTraceFile(
+    filePath: string,
+    maxBytes: number = MAX_TRACE_LOAD_BYTES,
+): Promise<InlineCompletionDebugExportData> {
+    const stat = await fs.promises.stat(filePath);
+    if (stat.size > maxBytes) {
+        throw new Error(
+            `${filePath} is too large to load (${stat.size} bytes; maximum ${maxBytes} bytes).`,
+        );
+    }
     const contents = await fs.promises.readFile(filePath, "utf8");
     return normalizeTraceFile(JSON.parse(contents), filePath);
 }
@@ -95,9 +106,17 @@ export function normalizeTraceFile(
     if (!isRecord(value) || !Array.isArray(value.events)) {
         throw new Error(`${source} is not an inline completion trace JSON file.`);
     }
+    if (value.version !== 1) {
+        throw new Error(
+            `${source} uses unsupported inline completion trace version '${value.version}'.`,
+        );
+    }
+    if (!value.events.every(isInlineCompletionDebugEvent)) {
+        throw new Error(`${source} contains an invalid inline completion trace event.`);
+    }
 
     return {
-        version: value.version === 1 ? 1 : 1,
+        version: 1,
         exportedAt: typeof value.exportedAt === "number" ? value.exportedAt : Date.now(),
         _savedAt:
             typeof value._savedAt === "string"
@@ -115,7 +134,7 @@ export function normalizeTraceFile(
             typeof value.customPromptLastSavedAt === "number"
                 ? value.customPromptLastSavedAt
                 : undefined,
-        events: value.events as InlineCompletionDebugEvent[],
+        events: value.events,
     };
 }
 
@@ -187,4 +206,94 @@ function asString(value: unknown): string | undefined {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
     return typeof value === "object" && value !== null;
+}
+
+function isInlineCompletionDebugEvent(value: unknown): value is InlineCompletionDebugEvent {
+    if (!isRecord(value)) {
+        return false;
+    }
+
+    const stringFields = [
+        "id",
+        "documentUri",
+        "documentFileName",
+        "triggerKind",
+        "completionCategory",
+        "result",
+        "rawResponse",
+    ];
+    const numberFields = [
+        "timestamp",
+        "line",
+        "column",
+        "latencyMs",
+        "schemaObjectCount",
+        "schemaSystemObjectCount",
+        "schemaForeignKeyCount",
+    ];
+    const booleanFields = [
+        "explicitFromUser",
+        "intentMode",
+        "inferredSystemQuery",
+        "usedSchemaContext",
+    ];
+
+    if (
+        !stringFields.every((field) => typeof value[field] === "string") ||
+        !numberFields.every(
+            (field) => typeof value[field] === "number" && Number.isFinite(value[field]),
+        ) ||
+        !booleanFields.every((field) => typeof value[field] === "boolean") ||
+        !isRecord(value.overridesApplied) ||
+        !isRecord(value.locals) ||
+        !Array.isArray(value.promptMessages) ||
+        !value.promptMessages.every(isPromptMessage)
+    ) {
+        return false;
+    }
+
+    return (
+        isOptionalString(value.modelFamily) &&
+        isOptionalString(value.modelId) &&
+        isOptionalString(value.modelVendor) &&
+        isOptionalNumber(value.inputTokens) &&
+        isOptionalNumber(value.outputTokens) &&
+        isOptionalString(value.sanitizedResponse) &&
+        isOptionalString(value.finalCompletionText) &&
+        isOptionalString(value.schemaContextFormatted) &&
+        (value.tags === undefined || isStringRecord(value.tags)) &&
+        (value.error === undefined || isTraceError(value.error))
+    );
+}
+
+function isPromptMessage(value: unknown): boolean {
+    return (
+        isRecord(value) &&
+        (value.role === "user" || value.role === "assistant") &&
+        typeof value.content === "string"
+    );
+}
+
+function isTraceError(value: unknown): boolean {
+    return (
+        isRecord(value) &&
+        typeof value.message === "string" &&
+        isOptionalString(value.name) &&
+        isOptionalString(value.stack)
+    );
+}
+
+function isStringRecord(value: unknown): boolean {
+    return (
+        isRecord(value) &&
+        Object.values(value).every((entry) => entry === undefined || typeof entry === "string")
+    );
+}
+
+function isOptionalString(value: unknown): boolean {
+    return value === undefined || typeof value === "string";
+}
+
+function isOptionalNumber(value: unknown): boolean {
+    return value === undefined || (typeof value === "number" && Number.isFinite(value));
 }

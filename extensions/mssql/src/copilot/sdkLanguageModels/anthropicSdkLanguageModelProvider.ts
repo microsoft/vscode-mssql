@@ -63,6 +63,7 @@ export class AnthropicSdkLanguageModelProvider extends SdkLanguageModelProviderB
         text: string | vscode.LanguageModelChatMessage,
         token: vscode.CancellationToken,
     ): Promise<number> {
+        this.assertEnabled();
         const value =
             typeof text === "string" ? text : textOfMessage(text, "Anthropic SDK provider");
         if (token.isCancellationRequested) {
@@ -70,6 +71,7 @@ export class AnthropicSdkLanguageModelProvider extends SdkLanguageModelProviderB
         }
 
         const apiKey = await this.apiKeys.resolveAnthropic();
+        this.assertEnabled();
         if (!apiKey || token.isCancellationRequested) {
             return approximateTokenCount(value);
         }

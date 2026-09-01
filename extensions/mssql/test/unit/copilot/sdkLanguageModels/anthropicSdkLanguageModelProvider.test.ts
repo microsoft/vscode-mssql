@@ -22,6 +22,7 @@ import {
 import { getSecretStorageKey, SdkApiKeyResolver } from "../../../../src/copilot/sdkLanguageModels";
 import { defaultAnthropicSdkModels } from "../../../../src/copilot/sdkLanguageModels/sdkModelCatalog";
 import { stubTelemetry } from "../../utils";
+import { previewService } from "../../../../src/previews/previewService";
 import {
     createSdkExtensionContext,
     stubWorkspaceConfiguration,
@@ -37,7 +38,8 @@ suite("AnthropicSdkLanguageModelProvider", () => {
     setup(() => {
         sandbox = sinon.createSandbox();
         telemetry = stubTelemetry(sandbox);
-        configuration = {};
+        configuration = { [Constants.configCopilotSdkProvidersAnthropicEnabled]: true };
+        sandbox.stub(previewService, "isPrivatePreviewEnabled").returns(true);
         stubWorkspaceConfiguration(sandbox, configuration);
         originalAnthropicKey = process.env.ANTHROPIC_API_KEY;
         delete process.env.ANTHROPIC_API_KEY;
@@ -333,7 +335,7 @@ function defaultModel() {
         family: "claude-sonnet",
         version: "claude-sonnet-4-6",
         maxInputTokens: 1000000,
-        maxOutputTokens: 64000,
+        maxOutputTokens: 128000,
         capabilities: { toolCalling: false, imageInput: false },
     };
 }
