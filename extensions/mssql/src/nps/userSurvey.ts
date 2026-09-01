@@ -75,8 +75,10 @@ export class UserSurvey {
             vscode.extensions.getExtension(constants.extensionId).packageJSON.version || "unknown";
 
         sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
-            step: FunnelSteps.EnterFunnel,
-            surveySource: surveySource,
+            additionalProps: {
+                step: FunnelSteps.EnterFunnel,
+                surveySource: surveySource,
+            },
         });
 
         if (!(await this.shouldPromptForFeedback(surveySource))) {
@@ -93,9 +95,11 @@ export class UserSurvey {
         switch (selection) {
             case Loc.UserSurvey.takeSurvey: {
                 sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
-                    step: FunnelSteps.Prompt,
-                    outcome: "takeSurvey",
-                    surveySource: surveySource,
+                    additionalProps: {
+                        step: FunnelSteps.Prompt,
+                        outcome: "takeSurvey",
+                        surveySource: surveySource,
+                    },
                 });
 
                 const state: UserSurveyState = getStandardNPSQuestions();
@@ -107,9 +111,11 @@ export class UserSurvey {
             }
             case Loc.Common.dontShowAgain: {
                 sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
-                    step: FunnelSteps.Prompt,
-                    outcome: "dontShowAgain",
-                    surveySource: surveySource,
+                    additionalProps: {
+                        step: FunnelSteps.Prompt,
+                        outcome: "dontShowAgain",
+                        surveySource: surveySource,
+                    },
                 });
 
                 await globalState.update(NEVER_KEY, true);
@@ -119,9 +125,11 @@ export class UserSurvey {
             case Loc.Common.remindMeLater:
             default: {
                 sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
-                    step: FunnelSteps.Prompt,
-                    outcome: selection ? "remindMeLater" : "closedPrompt",
-                    surveySource: surveySource,
+                    additionalProps: {
+                        step: FunnelSteps.Prompt,
+                        outcome: selection ? "remindMeLater" : "closedPrompt",
+                        surveySource: surveySource,
+                    },
                 });
 
                 await globalState.update(SESSION_COUNT_KEY, sessionCount - 3);
@@ -147,18 +155,22 @@ export class UserSurvey {
         const answers = await new Promise<Answers>((resolve) => {
             this._webviewController.onSubmit((e) => {
                 sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
-                    step: FunnelSteps.Survey,
-                    outcome: "submitted",
-                    surveySource: surveySource,
+                    additionalProps: {
+                        step: FunnelSteps.Survey,
+                        outcome: "submitted",
+                        surveySource: surveySource,
+                    },
                 });
                 resolve(e);
             });
 
             this._webviewController.onCancel(() => {
                 sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
-                    step: FunnelSteps.Survey,
-                    outcome: "cancelled",
-                    surveySource: surveySource,
+                    additionalProps: {
+                        step: FunnelSteps.Survey,
+                        outcome: "cancelled",
+                        surveySource: surveySource,
+                    },
                 });
                 resolve({});
             });
@@ -175,9 +187,11 @@ export class UserSurvey {
         const isNeverUser = globalState.get(NEVER_KEY, false);
         if (isNeverUser) {
             sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
-                step: FunnelSteps.EligibilityCheck,
-                outcome: "exit_optedOut",
-                surveySource: surveySource,
+                additionalProps: {
+                    step: FunnelSteps.EligibilityCheck,
+                    outcome: "exit_optedOut",
+                    surveySource: surveySource,
+                },
             });
             return false;
         }
@@ -188,9 +202,11 @@ export class UserSurvey {
         const skipVersion = globalState.get(SKIP_VERSION_KEY, "");
         if (skipVersion === extensionVersion) {
             sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
-                step: FunnelSteps.EligibilityCheck,
-                outcome: "exit_skipVersion",
-                surveySource: surveySource,
+                additionalProps: {
+                    step: FunnelSteps.EligibilityCheck,
+                    outcome: "exit_skipVersion",
+                    surveySource: surveySource,
+                },
             });
             return false;
         }
@@ -201,9 +217,11 @@ export class UserSurvey {
 
         if (date === lastSessionDate) {
             sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
-                step: FunnelSteps.EligibilityCheck,
-                outcome: "exit_alreadyConsidered",
-                surveySource: surveySource,
+                additionalProps: {
+                    step: FunnelSteps.EligibilityCheck,
+                    outcome: "exit_alreadyConsidered",
+                    surveySource: surveySource,
+                },
             });
             return false;
         }
@@ -215,9 +233,11 @@ export class UserSurvey {
         // 4. Don't prompt if the user hasn't used the extension much
         if (sessionCount < 5) {
             sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
-                step: FunnelSteps.EligibilityCheck,
-                outcome: "exit_notEnoughSessions",
-                surveySource: surveySource,
+                additionalProps: {
+                    step: FunnelSteps.EligibilityCheck,
+                    outcome: "exit_notEnoughSessions",
+                    surveySource: surveySource,
+                },
             });
             return false;
         }
@@ -230,17 +250,21 @@ export class UserSurvey {
         if (!isCandidate) {
             await globalState.update(SKIP_VERSION_KEY, extensionVersion);
             sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
-                step: FunnelSteps.EligibilityCheck,
-                outcome: "exit_notSelectedAsCandidate",
-                surveySource: surveySource,
+                additionalProps: {
+                    step: FunnelSteps.EligibilityCheck,
+                    outcome: "exit_notSelectedAsCandidate",
+                    surveySource: surveySource,
+                },
             });
             return false;
         }
 
         sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
-            step: FunnelSteps.EligibilityCheck,
-            outcome: "prompt",
-            surveySource: surveySource,
+            additionalProps: {
+                step: FunnelSteps.EligibilityCheck,
+                outcome: "prompt",
+                surveySource: surveySource,
+            },
         });
         return true;
     }
@@ -265,18 +289,16 @@ export function sendSurveyTelemetry(
         return acc;
     }, {});
 
-    sendActionEvent(
-        TelemetryViews.UserSurvey,
-        TelemetryActions.SurveySubmit,
-        {
+    sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SurveySubmit, {
+        additionalProps: {
             surveyId: surveyId,
             experimentalFeaturesEnabled: previewService.experimentalFeaturesEnabled.toString(),
             surveySource: surveySource,
             ...stringAnswers,
             previewFeatureOverrides: JSON.stringify(previewService.getNonDefaultOverrides()),
         },
-        numericalAnswers,
-    );
+        additionalMeasurements: numericalAnswers,
+    });
 }
 
 export class UserSurveyWebviewController extends WebviewPanelController<
@@ -314,8 +336,10 @@ export class UserSurveyWebviewController extends WebviewPanelController<
                 );
 
                 sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SubmitGithubIssue, {
-                    response:
-                        response === Loc.UserSurvey.submitIssue ? "submitted" : "not submitted",
+                    additionalProps: {
+                        response:
+                            response === Loc.UserSurvey.submitIssue ? "submitted" : "not submitted",
+                    },
                 });
 
                 if (response === Loc.UserSurvey.submitIssue) {
@@ -338,8 +362,10 @@ export class UserSurveyWebviewController extends WebviewPanelController<
                 );
 
                 sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SubmitReview, {
-                    response:
-                        response === Loc.UserSurvey.writeReview ? "submitted" : "not submitted",
+                    additionalProps: {
+                        response:
+                            response === Loc.UserSurvey.writeReview ? "submitted" : "not submitted",
+                    },
                 });
 
                 if (response === Loc.UserSurvey.writeReview) {

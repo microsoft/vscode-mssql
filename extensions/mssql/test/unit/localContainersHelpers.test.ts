@@ -61,6 +61,7 @@ suite("localContainers logic", () => {
 
         expect(state.loadState).to.equal(ApiStatus.Loaded);
         expect(state.formState.version).to.equal("latest");
+        expect(state.connectionString).to.equal("");
         expect(state.formComponents.password).to.be.ok;
         expect(state.dockerSteps).to.have.lengthOf(1);
     });
@@ -286,7 +287,7 @@ suite("localContainers logic", () => {
         expect(sendActionEvent).to.have.been.called;
     });
 
-    test("addContainerConnection returns true on success", async () => {
+    test("addContainerConnection returns connection string on success", async () => {
         const dockerProfile = {
             containerName: "c",
             port: 1433,
@@ -294,12 +295,21 @@ suite("localContainers logic", () => {
             savePassword: true,
         } as any;
 
-        const saveProfileStub = sandbox.stub().resolves({});
+        const savedProfile = { id: "container-profile" };
+        const connectionDetails = { options: {} };
+        const saveProfileStub = sandbox.stub().resolves(savedProfile);
         const createSessionStub = sandbox.stub().resolves();
+        const createConnectionDetailsStub = sandbox.stub().returns(connectionDetails);
+        const getConnectionStringStub = sandbox
+            .stub()
+            .withArgs(connectionDetails, false, false)
+            .resolves("Server=localhost,1433;User ID=sa;Trust Server Certificate=True");
 
         const mainController = {
             connectionManager: {
                 connectionUI: { saveProfile: saveProfileStub },
+                createConnectionDetails: createConnectionDetailsStub,
+                getConnectionString: getConnectionStringStub,
             },
             createObjectExplorerSession: createSessionStub,
         } as unknown as MainController;
@@ -308,9 +318,15 @@ suite("localContainers logic", () => {
             dockerProfile,
             mainController,
         );
-        expect(result).to.be.true;
-        expect(saveProfileStub).to.have.been.calledOnce;
-        expect(createSessionStub).to.have.been.calledOnce;
+        expect(result).to.deep.equal({
+            success: true,
+            connectionString: "Server=localhost,1433;User ID=sa;Trust Server Certificate=True",
+        });
+        expect(saveProfileStub).to.have.been.calledWithMatch({
+            server: "localhost,1433",
+            user: "SA",
+        });
+        expect(createSessionStub).to.have.been.calledWith(savedProfile);
     });
 
     test("sendLocalContainersCloseEventTelemetry sends telemetry event", async () => {

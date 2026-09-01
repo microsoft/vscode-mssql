@@ -184,10 +184,10 @@ export async function generateScript(
     schemaCompareService: mssql.ISchemaCompareService,
     logger?: ILogger,
 ): Promise<mssql.ResultStatus> {
-    logger?.info(
+    logger?.debug(
         `[schemaCompareUtils] generateScript called - operationId: ${operationId}, taskExecutionMode: ${taskExecutionMode} - OperationId: ${operationId}`,
     );
-    logger?.info(
+    logger?.debug(
         `[schemaCompareUtils] Payload - hasTargetServerName: ${!!payload?.targetServerName}, hasTargetDatabaseName: ${!!payload?.targetDatabaseName} - OperationId: ${operationId}`,
     );
     logger?.debug(
@@ -201,12 +201,12 @@ export async function generateScript(
         taskExecutionMode,
     );
 
-    logger?.info(
+    logger?.debug(
         `[schemaCompareUtils] schemaCompareService.generateScript returned - success: ${result?.success}, hasErrorMessage: ${!!result?.errorMessage} - OperationId: ${operationId}`,
     );
 
     if (result) {
-        logger?.info(
+        logger?.debug(
             `[schemaCompareUtils] Result object type: ${typeof result}, keys: ${Object.keys(result).join(", ")} - OperationId: ${operationId}`,
         );
         logger?.debug(
@@ -224,7 +224,7 @@ export async function generateScript(
         );
     }
 
-    logger?.info(`[schemaCompareUtils] Returning result - OperationId: ${operationId}`);
+    logger?.debug(`[schemaCompareUtils] Returning result - OperationId: ${operationId}`);
     return result;
 }
 
@@ -295,7 +295,7 @@ export async function includeExcludeNode(
     schemaCompareService: mssql.ISchemaCompareService,
     logger?: ILogger,
 ): Promise<mssql.SchemaCompareIncludeExcludeResult> {
-    logger?.info(
+    logger?.trace(
         `[schemaCompareUtils] includeExcludeNode called - operationId: ${operationId}, includeRequest: ${payload.includeRequest}, diffEntry type: ${payload.diffEntry?.name}`,
     );
     logger?.debug(
@@ -311,12 +311,12 @@ export async function includeExcludeNode(
     );
 
     const elapsed = Date.now() - startTime;
-    logger?.info(
+    logger?.trace(
         `[schemaCompareUtils] includeExcludeNode service returned after ${elapsed}ms - success: ${result?.success}`,
     );
 
     if (result) {
-        logger?.info(
+        logger?.trace(
             `[schemaCompareUtils] Affected dependencies: ${result.affectedDependencies?.length || 0}, Blocking dependencies: ${result.blockingDependencies?.length || 0}`,
         );
 
@@ -346,13 +346,13 @@ export async function includeExcludeAllNodes(
     schemaCompareService: mssql.ISchemaCompareService,
     logger?: ILogger,
 ): Promise<mssql.SchemaCompareIncludeExcludeAllResult> {
-    logger?.info(
+    logger?.debug(
         `[schemaCompareUtils] includeExcludeAllNodes called - operationId: ${operationId}, includeRequest: ${payload.includeRequest}`,
     );
     logger?.debug(`[schemaCompareUtils] taskExecutionMode: ${taskExecutionMode}`);
 
     const startTime = Date.now();
-    logger?.info(`[schemaCompareUtils] Calling schemaCompareService.includeExcludeAllNodes`);
+    logger?.debug(`[schemaCompareUtils] Calling schemaCompareService.includeExcludeAllNodes`);
 
     const result = await schemaCompareService.includeExcludeAllNodes(
         operationId,
@@ -361,12 +361,12 @@ export async function includeExcludeAllNodes(
     );
 
     const elapsed = Date.now() - startTime;
-    logger?.info(
+    logger?.debug(
         `[schemaCompareUtils] includeExcludeAllNodes service returned after ${elapsed}ms - success: ${result?.success}`,
     );
 
     if (result) {
-        logger?.info(
+        logger?.debug(
             `[schemaCompareUtils] Result differences count: ${result.allIncludedOrExcludedDifferences?.length || 0}`,
         );
 
@@ -400,30 +400,30 @@ export async function openScmp(
     schemaCompareService: mssql.ISchemaCompareService,
     logger?: ILogger,
 ): Promise<mssql.SchemaCompareOpenScmpResult> {
-    logger?.info(
+    logger?.debug(
         `[schemaCompareUtils] openScmp called with file path length: ${filePath?.length || 0}`,
     );
     logger?.debug(`[schemaCompareUtils] Calling schemaCompareService.openScmp`);
 
     const result = await schemaCompareService.openScmp(filePath);
 
-    logger?.info(
+    logger?.debug(
         `[schemaCompareUtils] openScmp service returned - success: ${result?.success}, hasErrorMessage: ${!!result?.errorMessage}`,
     );
 
     if (result) {
-        logger?.info(
+        logger?.debug(
             `[schemaCompareUtils] Result has sourceEndpointInfo: ${!!result.sourceEndpointInfo}, targetEndpointInfo: ${!!result.targetEndpointInfo}`,
         );
 
         if (result.sourceEndpointInfo) {
-            logger?.info(
+            logger?.debug(
                 `[schemaCompareUtils] Source endpoint type: ${result.sourceEndpointInfo.endpointType}`,
             );
         }
 
         if (result.targetEndpointInfo) {
-            logger?.info(
+            logger?.debug(
                 `[schemaCompareUtils] Target endpoint type: ${result.targetEndpointInfo.endpointType}`,
             );
         }

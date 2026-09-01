@@ -518,6 +518,164 @@ suite("SqlOutputProvider Tests using mocks", () => {
         expect(batchMessage.link).to.be.undefined;
     });
 
+    test("Batch start messages are hidden when batch messages are disabled", async () => {
+        const uri = "test_uri";
+        getConfigurationStub.returns(
+            stubs.createWorkspaceConfiguration({
+                [Constants.configResultsShowBatchMessages]: false,
+            }),
+        );
+        sandbox.stub(QueryRunner.prototype, "runQuery").resolves();
+
+        await contentProvider.runQuery(statusViewInstance, uri, undefined, "test_title");
+        const runner = contentProvider.getQueryRunner(uri);
+        runner.handleBatchStart({
+            ownerUri: uri,
+            batchSummary: {
+                hasError: false,
+                id: 0,
+                selection: {
+                    startLine: 0,
+                    startColumn: 0,
+                    endLine: 0,
+                    endColumn: 8,
+                },
+                resultSetSummaries: [],
+                executionElapsed: undefined,
+                executionEnd: undefined,
+                executionStart: new Date().toISOString(),
+            },
+        });
+
+        const state = contentProvider.queryResultWebviewController.getQueryResultState(uri);
+        expect(state.messages).to.be.empty;
+    });
+
+    test("Hidden batch messages still update rows affected", async () => {
+        const uri = "test_uri";
+        getConfigurationStub.returns(
+            stubs.createWorkspaceConfiguration({
+                [Constants.configResultsShowBatchMessages]: false,
+            }),
+        );
+        sandbox.stub(QueryRunner.prototype, "runQuery").resolves();
+
+        await contentProvider.runQuery(statusViewInstance, uri, undefined, "test_title");
+        const runner = contentProvider.getQueryRunner(uri);
+        runner.handleMessage({
+            ownerUri: uri,
+            message: {
+                message: "(7 rows affected)",
+                isError: false,
+                time: new Date().toISOString(),
+                batchId: -1,
+            },
+        });
+
+        const state = contentProvider.queryResultWebviewController.getQueryResultState(uri);
+        expect(state.messages).to.be.empty;
+        expect(state.rowsAffected).to.equal(7);
+    });
+
+    test("Print messages remain visible when batch messages are disabled", async () => {
+        const uri = "test_uri";
+        const printMessage = "hello";
+        getConfigurationStub.returns(
+            stubs.createWorkspaceConfiguration({
+                [Constants.configResultsShowBatchMessages]: false,
+            }),
+        );
+        sandbox.stub(QueryRunner.prototype, "runQuery").resolves();
+
+        await contentProvider.runQuery(statusViewInstance, uri, undefined, "test_title");
+        const runner = contentProvider.getQueryRunner(uri);
+        runner.handleMessage({
+            ownerUri: uri,
+            message: {
+                message: printMessage,
+                isError: false,
+                time: new Date().toISOString(),
+                batchId: 0,
+            },
+        });
+
+        const state = contentProvider.queryResultWebviewController.getQueryResultState(uri);
+        expect(state.messages).to.have.length(1);
+        expect(state.messages[0]).to.deep.include({
+            message: printMessage,
+            isError: false,
+            batchId: undefined,
+        });
+    });
+
+    test("Completion messages are hidden while execution state still updates", async () => {
+        const uri = "test_uri";
+        getConfigurationStub.returns(
+            stubs.createWorkspaceConfiguration({
+                [Constants.configResultsShowBatchMessages]: false,
+            }),
+        );
+        sandbox.stub(QueryRunner.prototype, "runQuery").resolves();
+
+        await contentProvider.runQuery(statusViewInstance, uri, undefined, "test_title");
+        const runner = contentProvider.getQueryRunner(uri);
+        runner.handleBatchComplete({
+            ownerUri: uri,
+            batchSummary: {
+                hasError: false,
+                id: 0,
+                selection: undefined,
+                resultSetSummaries: [],
+                executionElapsed: "00:00:03",
+                executionEnd: new Date().toISOString(),
+                executionStart: new Date().toISOString(),
+            },
+        });
+        runner.handleQueryComplete({
+            ownerUri: uri,
+            batchSummaries: [],
+        });
+
+        const state = contentProvider.queryResultWebviewController.getQueryResultState(uri);
+        expect(state.messages).to.be.empty;
+        expect(state.isExecuting).to.equal(false);
+        expect(state.executionElapsedMilliseconds).to.equal(3000);
+    });
+
+    test("Error messages remain visible when batch messages are disabled", async () => {
+        const uri = "test_uri";
+        const errorMessage = "Incorrect syntax near 'FROM'.";
+        const errorTime = new Date().toISOString();
+        getConfigurationStub.returns(
+            stubs.createWorkspaceConfiguration({
+                [Constants.configResultsShowBatchMessages]: false,
+            }),
+        );
+        sandbox.stub(QueryRunner.prototype, "runQuery").resolves();
+
+        await contentProvider.runQuery(statusViewInstance, uri, undefined, "test_title");
+        const runner = contentProvider.getQueryRunner(uri);
+        runner.handleMessage({
+            ownerUri: uri,
+            message: {
+                message: errorMessage,
+                isError: true,
+                time: errorTime,
+                batchId: -1,
+            },
+        });
+
+        const state = contentProvider.queryResultWebviewController.getQueryResultState(uri);
+        expect(state.messages).to.have.length(1);
+        expect(state.messages[0]).to.deep.include({
+            message: errorMessage,
+            isError: true,
+            time: new Date(errorTime).toLocaleTimeString(),
+            batchId: undefined,
+            rowsAffected: undefined,
+        });
+    });
+
     test("runCurrentStatement calls runStatement with correct options when actual plan is enabled", async () => {
         const uri = "test_uri";
         const title = "test_title";

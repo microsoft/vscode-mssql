@@ -48,6 +48,12 @@ export class QueryResultWebviewController extends WebviewViewController<
     private _selectionSummaryContinuations: Map<string, Deferred<void>> = new Map();
     private _correlationId: string = randomUUID();
     /**
+     * Set while the results grid mode is being changed by the in-product switch, which reports
+     * its own telemetry. The configuration listener below fires for that write as well, so this
+     * keeps a single toggle from being counted twice.
+     */
+    private _gridModeChangeReportedBySwitch: boolean = false;
+    /**
      * Editor status bar item used to show the grid selection summary when the query results
      * footer preview is disabled. When the footer preview is enabled, the selection summary is
      * shown inside the results view footer instead and this item stays hidden.
@@ -143,6 +149,26 @@ export class QueryResultWebviewController extends WebviewViewController<
                     e.affectsConfiguration(Constants.configEnableExperimentalFeatures)
                 ) {
                     const newValue = this.isBetaResultsGridEnabled;
+
+                    // The in-product switch reports its own richer event, so only report the
+                    // changes that came from elsewhere (the Settings UI, settings sync, or a
+                    // change to the global experimental features flag).
+                    if (this._gridModeChangeReportedBySwitch) {
+                        this._gridModeChangeReportedBySwitch = false;
+                    } else {
+                        sendActionEvent(
+                            TelemetryViews.QueryResult,
+                            TelemetryActions.ToggleResultsGridMode,
+                            {
+                                additionalProps: {
+                                    correlationId: this._correlationId,
+                                    newMode: newValue ? "preview" : "classic",
+                                    source: "settings",
+                                },
+                            },
+                        );
+                    }
+
                     for (const [uri, state] of this._queryResultStateMap) {
                         state.isBetaResultsGridEnabled = newValue;
                         this._queryResultStateMap.set(uri, state);
@@ -166,6 +192,7 @@ export class QueryResultWebviewController extends WebviewViewController<
                 }
                 if (
                     e.affectsConfiguration("mssql.resultsGrid.alternatingRowColors") ||
+                    e.affectsConfiguration("mssql.resultsGrid.freezeFirstColumnByDefault") ||
                     e.affectsConfiguration("mssql.resultsGrid.showGridLines") ||
                     e.affectsConfiguration("mssql.resultsGrid.rowPadding")
                 ) {
@@ -273,6 +300,15 @@ export class QueryResultWebviewController extends WebviewViewController<
         );
     }
 
+    /**
+     * Suppresses the configuration listener's telemetry for the next results grid mode change,
+     * for use by the in-product switch which reports the change itself. Pass `false` to release
+     * the suppression if the configuration write ends up failing.
+     */
+    public setGridModeChangeReportedBySwitch(reported: boolean): void {
+        this._gridModeChangeReportedBySwitch = reported;
+    }
+
     private get isBetaResultsGridEnabled(): boolean {
         return previewService.isFeatureEnabled(PreviewFeature.BetaResultsGrid);
     }
@@ -303,7 +339,9 @@ export class QueryResultWebviewController extends WebviewViewController<
                     TelemetryViews.General,
                     TelemetryActions.OpenQueryResultsInTabByDefaultPrompt,
                     {
-                        response: telemResponse,
+                        additionalProps: {
+                            response: telemResponse,
+                        },
                     },
                 );
 
@@ -399,24 +437,17 @@ export class QueryResultWebviewController extends WebviewViewController<
         controller.revealToForeground();
         this._queryResultWebviewPanelControllerMap.set(uri, controller);
         this.showSplashScreen();
-        try {
-            await controller.whenWebviewReady();
-        } catch (e) {
-            // If the webview was disposed or timed out before it became ready, clean up the
-            // panel controller entry so callers are not blocked indefinitely.
-            sendErrorEvent(
-                TelemetryViews.QueryResult,
-                TelemetryActions.CreatePanelController,
-                e instanceof Error ? e : new Error(String(e)),
-                true, // includeErrorMessage
-            );
-            this._queryResultWebviewPanelControllerMap.delete(uri);
-            controller.panel.dispose();
-            void vscode.window.showErrorMessage(
-                LocalizedConstants.QueryResult.queryResultPanelFailedToLoad,
-            );
-            throw e;
-        }
+        // Do not block query execution on webview bootstrap, and do not dispose
+        // the panel if ready is delayed or never arrives.
+        void controller.whenWebviewReady().catch((e) => {
+            sendErrorEvent(TelemetryViews.QueryResult, TelemetryActions.CreatePanelController, {
+                error: e instanceof Error ? e : new Error(String(e)),
+                includeErrorMessage: true,
+            });
+            if (controller.isDisposed) {
+                this._queryResultWebviewPanelControllerMap.delete(uri);
+            }
+        });
     }
 
     public addQueryResultState(uri: string, title: string, isExecutionPlan?: boolean): void {
@@ -503,6 +534,9 @@ export class QueryResultWebviewController extends WebviewViewController<
         return {
             alternatingRowColors:
                 (config.get(Constants.configResultsGridAlternatingRowColors) as boolean) ?? false,
+            freezeFirstColumnByDefault:
+                (config.get(Constants.configResultsGridFreezeFirstColumnByDefault) as boolean) ??
+                false,
             showGridLines,
             rowPadding: config.get(Constants.configResultsGridRowPadding) as number | undefined,
         };
@@ -684,12 +718,10 @@ export class QueryResultWebviewController extends WebviewViewController<
             // This should never happen
 
             const error = new Error(`No query result state found for uri ${uri}`);
-            sendErrorEvent(
-                TelemetryViews.QueryResult,
-                TelemetryActions.GetQueryResultState,
-                new Error(`No query result state found for uri`),
-                false, // includeErrorMessage
-            );
+            sendErrorEvent(TelemetryViews.QueryResult, TelemetryActions.GetQueryResultState, {
+                error: new Error(`No query result state found for uri`),
+                includeErrorMessage: false,
+            });
 
             throw error;
         }

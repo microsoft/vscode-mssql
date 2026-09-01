@@ -5,6 +5,7 @@
 
 import {
     useCallback,
+    useEffect,
     useState,
     type FocusEvent as ReactFocusEvent,
     type KeyboardEvent as ReactKeyboardEvent,
@@ -20,10 +21,13 @@ import type {
     FluentResultGridKeyBindingMap,
 } from "../types/fluentResultGridCommands";
 import { FluentResultGridCommand } from "../types/fluentResultGridCommandIds";
-import { FLUENT_RESULT_GRID_FIRST_DATA_CELL_INDEX } from "./fluentResultGridConstants";
 import type { ReactGridInstanceWithSharedService } from "./fluentResultGridControllerTypes";
 import { isEditableFluentResultGridKeyboardTarget } from "./fluentResultGridDomUtils";
 import { getFluentResultGridKeyboardAction } from "./fluentResultGridKeyboard";
+import {
+    getFluentResultGridDataColumnIndex,
+    getFluentResultGridRowEdgeCell,
+} from "./fluentResultGridSelection";
 
 export interface FluentResultGridKeyboardController {
     focusGrid: () => void;
@@ -32,6 +36,18 @@ export interface FluentResultGridKeyboardController {
     handleGridKeyDownCapture: (event: ReactKeyboardEvent<HTMLDivElement>) => void;
     handleKeyDown: (eventData: SlickEventData, args: { grid: SlickGrid }) => void;
     isGridFocused: boolean;
+}
+
+/**
+ * Only keyboard-visible focus should reveal the active grid cell. The browser preserves this
+ * signal when focus enters the webview from its host, while native scrollbar interactions do not
+ * make the container focus-visible.
+ */
+export function shouldRevealFluentResultGridActiveCell(
+    isDirectContainerFocus: boolean,
+    isFocusVisible: boolean,
+): boolean {
+    return isDirectContainerFocus && isFocusVisible;
 }
 
 export function useFluentResultGridKeyboardController({
@@ -50,6 +66,29 @@ export function useFluentResultGridKeyboardController({
     reactGridRef: MutableRefObject<ReactGridInstanceWithSharedService | undefined>;
 }): FluentResultGridKeyboardController {
     const [isGridFocused, setIsGridFocused] = useState(false);
+
+    useEffect(() => {
+        const syncFocusState = () => {
+            const container = containerRef.current;
+            setIsGridFocused(
+                document.hasFocus() &&
+                    !!container &&
+                    !!document.activeElement &&
+                    container.contains(document.activeElement),
+            );
+        };
+        const clearFocusState = () => setIsGridFocused(false);
+
+        syncFocusState();
+        window.addEventListener("blur", clearFocusState);
+        window.addEventListener("focus", syncFocusState);
+        document.addEventListener("visibilitychange", syncFocusState);
+        return () => {
+            window.removeEventListener("blur", clearFocusState);
+            window.removeEventListener("focus", syncFocusState);
+            document.removeEventListener("visibilitychange", syncFocusState);
+        };
+    }, [containerRef]);
 
     const moveFocusOutsideGrid = useCallback(
         (forward: boolean) => {
@@ -165,10 +204,18 @@ export function useFluentResultGridKeyboardController({
 
         const active = grid.getActiveCell();
         const row = active?.row ?? 0;
-        const cell = Math.max(
-            active?.cell ?? FLUENT_RESULT_GRID_FIRST_DATA_CELL_INDEX,
-            FLUENT_RESULT_GRID_FIRST_DATA_CELL_INDEX,
-        );
+        const columns = grid.getColumns();
+        const activeColumn = active ? columns[active.cell] : undefined;
+        const cell =
+            activeColumn &&
+            !activeColumn.hidden &&
+            getFluentResultGridDataColumnIndex(activeColumn) !== undefined
+                ? active!.cell
+                : getFluentResultGridRowEdgeCell(columns, false);
+        if (cell === undefined) {
+            containerRef.current?.focus();
+            return;
+        }
         (grid as SlickGrid & { tabbingDirection?: number }).tabbingDirection = 1;
         grid.gotoCell(row, cell, false);
     }, [containerRef, reactGridRef]);
@@ -177,7 +224,11 @@ export function useFluentResultGridKeyboardController({
         (event: ReactFocusEvent<HTMLDivElement>) => {
             setIsGridFocused(true);
 
-            if (event.target === event.currentTarget) {
+            const shouldRevealActiveCell = shouldRevealFluentResultGridActiveCell(
+                event.target === event.currentTarget,
+                event.currentTarget.matches(":focus-visible"),
+            );
+            if (shouldRevealActiveCell) {
                 focusGrid();
             }
         },

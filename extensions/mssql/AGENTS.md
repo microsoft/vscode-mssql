@@ -67,15 +67,14 @@ npm run lint -- --target mssql
 See [test/unit/AGENTS.md](test/unit/AGENTS.md) for unit testing conventions and patterns.
 
 ```bash
-# Unit tests require VS Code download and cannot run in sandboxed environments
-# This is expected behavior - tests work in CI with proper VS Code setup
-npm run test -- --target mssql
-# Expected to fail with "ENOTFOUND update.code.visualstudio.com" in sandboxed environments
+# Run these commands from extensions/mssql.
 
-# Run targeted unit tests using grep patterns
-npm run test -- --target mssql --grep "ConnectionManager"          # Run tests matching "ConnectionManager"
-npm run test -- --target mssql --pattern ".*service.*"             # Run tests matching service pattern
-npm run test -- --target mssql --testPattern "QueryRunner"         # Alternative syntax for test filtering
+# Full suite with coverage
+npm test
+
+# Target a compiled test file or filter by test name
+npm test -- --label "Unit Tests" --run out/test/unit/utils.test.js
+npm test -- --grep "utils"
 ```
 
 #### E2E Tests (Smoke Tests)

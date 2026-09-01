@@ -46,4 +46,7 @@
 
 ### Testing
 
-Use the provided command format: `npm run test -- --target mssql --grep <test suite name>`.
+From `extensions/mssql`, use
+`npm test -- --label "Unit Tests" --run out/test/unit/<name>.test.js` to target a file or
+`npm test -- --grep <test name>` to filter by test name. Other `@vscode/test-cli` options pass
+through unchanged.

@@ -68,7 +68,7 @@ export class ObjectExplorerFilterWebviewController extends WebviewPanelControlle
                 }
             } catch (error) {
                 // Applying a filter must not depend on the optional recent-filter cache.
-                this.logger.error("Failed to save the Object Explorer filter history", error);
+                this.logger.warn("Failed to save the Object Explorer filter history", error);
             }
             this._onSubmit.fire(payload.filters);
             this.panel.dispose();
@@ -112,7 +112,7 @@ export class ObjectExplorerFilterWebviewController extends WebviewPanelControlle
             const filterPresets = await update();
             return { ...state, filterPresets };
         } catch (error) {
-            this.logger.error("Failed to update the Object Explorer filter presets", error);
+            this.logger.warn("Failed to update the Object Explorer filter presets", error);
             return state;
         }
     }
@@ -141,8 +141,10 @@ export class ObjectExplorerFilter {
     ): Promise<vscodeMssql.NodeFilter[] | undefined> {
         const correlationId = randomUUID();
         sendActionEvent(TelemetryViews.ObjectExplorerFilter, TelemetryActions.Open, {
-            nodeType: treeNode.nodeType,
-            correlationId,
+            additionalProps: {
+                nodeType: treeNode.nodeType,
+                correlationId,
+            },
         });
         const filterStore = new ObjectExplorerFilterStore(context);
         const filterScopeId = ObjectExplorerFilterStore.getScopeId(
@@ -195,12 +197,14 @@ export class ObjectExplorerFilter {
                             TelemetryViews.ObjectExplorerFilter,
                             TelemetryActions.Submit,
                             {
-                                nodeType: treeNode.nodeType,
-                                correlationId,
-                                filters: JSON.stringify(e.map((e) => e.name)),
-                            },
-                            {
-                                filterCount: e.length,
+                                additionalProps: {
+                                    nodeType: treeNode.nodeType,
+                                    correlationId,
+                                    filters: JSON.stringify(e.map((e) => e.name)),
+                                },
+                                additionalMeasurements: {
+                                    filterCount: e.length,
+                                },
                             },
                         );
                     }
@@ -210,8 +214,10 @@ export class ObjectExplorerFilter {
             disposables.push(
                 this._filterWebviewController.onCancel(() => {
                     sendActionEvent(TelemetryViews.ObjectExplorerFilter, TelemetryActions.Cancel, {
-                        nodeType: treeNode.nodeType,
-                        correlationId,
+                        additionalProps: {
+                            nodeType: treeNode.nodeType,
+                            correlationId,
+                        },
                     });
                     complete(undefined);
                 }),
@@ -219,8 +225,10 @@ export class ObjectExplorerFilter {
             disposables.push(
                 this._filterWebviewController.onDisposed(() => {
                     sendActionEvent(TelemetryViews.ObjectExplorerFilter, TelemetryActions.Cancel, {
-                        nodeType: treeNode.nodeType,
-                        correlationId,
+                        additionalProps: {
+                            nodeType: treeNode.nodeType,
+                            correlationId,
+                        },
                     });
                     complete(undefined);
                 }),
