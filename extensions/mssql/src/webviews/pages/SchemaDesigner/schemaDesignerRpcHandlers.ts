@@ -1475,6 +1475,27 @@ function createEntityWithEnabledActions(
     };
 }
 
+/**
+ * Sets an entity's enabled state, cascading to column exposure the same way the designer's entity
+ * checkbox does, so a deselected entity never leaves its columns selected. Exposure is only reset
+ * when the enabled state actually changes, which keeps per-column choices intact for entities that
+ * a bulk change leaves on the state they were already in.
+ */
+function createEntityWithEnabledState(
+    entity: Dab.DabEntityConfig,
+    isEnabled: boolean,
+): Dab.DabEntityConfig {
+    if (entity.isEnabled === isEnabled) {
+        return entity;
+    }
+
+    return {
+        ...entity,
+        isEnabled,
+        columns: entity.columns.map((column) => ({ ...column, isExposed: isEnabled })),
+    };
+}
+
 function applyDabToolChange(
     config: Dab.DabConfig,
     change: Dab.DabToolChange,
@@ -1528,10 +1549,10 @@ function applyDabToolChange(
                     return supportValidation;
                 }
             }
-            config.entities[resolvedEntity.index] = {
-                ...resolvedEntity.entity,
+            config.entities[resolvedEntity.index] = createEntityWithEnabledState(
+                resolvedEntity.entity,
                 isEnabled,
-            };
+            );
             return { success: true };
         }
 
@@ -1546,10 +1567,10 @@ function applyDabToolChange(
                     return supportValidation;
                 }
             }
-            config.entities[resolvedEntity.index] = {
-                ...resolvedEntity.entity,
-                isEnabled: change.isEnabled,
-            };
+            config.entities[resolvedEntity.index] = createEntityWithEnabledState(
+                resolvedEntity.entity,
+                change.isEnabled,
+            );
             return { success: true };
         }
 
@@ -2042,18 +2063,16 @@ function applyDabToolChange(
                 selectedEntityIds.add(resolvedEntity.entity.id);
             }
 
-            config.entities = config.entities.map((entity) => ({
-                ...entity,
-                isEnabled: selectedEntityIds.has(entity.id),
-            }));
+            config.entities = config.entities.map((entity) =>
+                createEntityWithEnabledState(entity, selectedEntityIds.has(entity.id)),
+            );
             return { success: true };
         }
 
         case "set_all_entities_enabled": {
-            config.entities = config.entities.map((entity) => ({
-                ...entity,
-                isEnabled: change.isEnabled ? entity.isSupported : false,
-            }));
+            config.entities = config.entities.map((entity) =>
+                createEntityWithEnabledState(entity, change.isEnabled ? entity.isSupported : false),
+            );
             return { success: true };
         }
 

@@ -1157,6 +1157,140 @@ suite("DabTool Tests", () => {
             );
         });
 
+        const createTableWithColumns = (
+            id: string,
+            schemaName: string,
+            tableName: string,
+        ): SchemaDesigner.Table => ({
+            ...createTable(id, schemaName, tableName),
+            columns: [
+                {
+                    id: `${id}-id`,
+                    name: "Id",
+                    dataType: "int",
+                    isPrimaryKey: true,
+                } as SchemaDesigner.Column,
+                {
+                    id: `${id}-name`,
+                    name: "Name",
+                    dataType: "nvarchar",
+                    isPrimaryKey: false,
+                } as SchemaDesigner.Column,
+            ],
+        });
+
+        const getEntity = (harness: ReturnType<typeof createDabHandlerHarness>, entityId: string) =>
+            harness.getConfig()?.entities.find((candidate) => candidate.id === entityId);
+
+        test("apply_changes cascades set_entity_enabled to column exposure", async () => {
+            const harness = createDabHandlerHarness({
+                tables: [createTableWithColumns("t1", "dbo", "Users")],
+                dabConfig: null,
+            });
+            const disabledState = await harness.getState();
+
+            const disabled = await harness.applyChanges({
+                expectedVersion: disabledState.version,
+                changes: [{ type: "set_entity_enabled", entity: { id: "t1" }, isEnabled: false }],
+            });
+
+            expect(disabled.success).to.equal(true);
+            expect(getEntity(harness, "t1")?.isEnabled).to.equal(false);
+            expect(
+                getEntity(harness, "t1")?.columns.map((column) => column.isExposed),
+            ).to.deep.equal([false, false]);
+
+            const enabledState = await harness.getState();
+            const reEnabled = await harness.applyChanges({
+                expectedVersion: enabledState.version,
+                changes: [{ type: "set_entity_enabled", entity: { id: "t1" }, isEnabled: true }],
+            });
+
+            expect(reEnabled.success).to.equal(true);
+            expect(
+                getEntity(harness, "t1")?.columns.map((column) => column.isExposed),
+            ).to.deep.equal([true, true]);
+        });
+
+        test("apply_changes cascades remove_entity to column exposure", async () => {
+            const harness = createDabHandlerHarness({
+                tables: [createTableWithColumns("t1", "dbo", "Users")],
+                dabConfig: null,
+            });
+            const state = await harness.getState();
+
+            const result = await harness.applyChanges({
+                expectedVersion: state.version,
+                changes: [{ type: "remove_entity", entity: { id: "t1" } }],
+            });
+
+            expect(result.success).to.equal(true);
+            expect(getEntity(harness, "t1")?.isEnabled).to.equal(false);
+            expect(getEntity(harness, "t1")?.columns.every((column) => !column.isExposed)).to.equal(
+                true,
+            );
+        });
+
+        test("apply_changes cascades set_only_enabled_entities to column exposure", async () => {
+            const harness = createDabHandlerHarness({
+                tables: [
+                    createTableWithColumns("t1", "dbo", "Users"),
+                    createTableWithColumns("t2", "dbo", "Orders"),
+                ],
+                dabConfig: null,
+            });
+            const state = await harness.getState();
+
+            const result = await harness.applyChanges({
+                expectedVersion: state.version,
+                changes: [
+                    {
+                        type: "set_column_exposed",
+                        entity: { id: "t1" },
+                        column: { name: "Name" },
+                        isExposed: false,
+                    },
+                    { type: "set_only_enabled_entities", entities: [{ id: "t1" }] },
+                ],
+            });
+
+            expect(result.success).to.equal(true);
+            // The deselected entity's columns follow it.
+            expect(getEntity(harness, "t2")?.isEnabled).to.equal(false);
+            expect(getEntity(harness, "t2")?.columns.every((column) => !column.isExposed)).to.equal(
+                true,
+            );
+            // An entity that was already enabled keeps its per-column choices.
+            expect(getEntity(harness, "t1")?.isEnabled).to.equal(true);
+            expect(
+                getEntity(harness, "t1")?.columns.map((column) => column.isExposed),
+            ).to.deep.equal([true, false]);
+        });
+
+        test("apply_changes cascades set_all_entities_enabled to column exposure", async () => {
+            const harness = createDabHandlerHarness({
+                tables: [
+                    createTableWithColumns("t1", "dbo", "Users"),
+                    createTableWithColumns("t2", "dbo", "Orders"),
+                ],
+                dabConfig: null,
+            });
+            const state = await harness.getState();
+
+            const result = await harness.applyChanges({
+                expectedVersion: state.version,
+                changes: [{ type: "set_all_entities_enabled", isEnabled: false }],
+            });
+
+            expect(result.success).to.equal(true);
+            for (const entityId of ["t1", "t2"]) {
+                expect(getEntity(harness, entityId)?.isEnabled).to.equal(false);
+                expect(
+                    getEntity(harness, entityId)?.columns.every((column) => !column.isExposed),
+                ).to.equal(true);
+            }
+        });
+
         test("apply_changes rejects hiding a primary key column", async () => {
             const harness = createDabHandlerHarness({
                 tables: [createTable("t1", "dbo", "Users")],
