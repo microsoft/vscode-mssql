@@ -51,6 +51,8 @@ import { Deferred } from "../protocol";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import { getLocalizationFileContentsCached } from "./localizationCache";
+import { Perf } from "../perf/perfTelemetry";
+import { PerfEnableNotification, PerfWebviewMarkNotification } from "../sharedInterfaces/perf";
 
 class WebviewControllerMessageReader extends AbstractMessageReader implements MessageReader {
     private _onData: Emitter<Message>;
@@ -164,6 +166,37 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
                 this._connectionWriter.dispose();
             },
         });
+
+        // Perf-harness webview mark bridge (PERF_MODE only): forward webview
+        // marks to the perf sink, and tell the webview marks are wanted once
+        // it is ready. Inert outside perf mode. The enable notification is
+        // re-sent on a short schedule because "webview ready" can precede the
+        // app's handler registration; the webview queues marks (with original
+        // timestamps) until one of the sends lands.
+        if (Perf.enabled) {
+            this.connection.onNotification(PerfWebviewMarkNotification.type, (mark) => {
+                Perf.webviewMark(mark, this._sourceFile);
+            });
+            // Unconditional schedule (not gated on whenWebviewReady, which can
+            // time out on cold first loads): sends to a not-yet-ready webview
+            // are dropped harmlessly, and the webview queues marks with their
+            // original timestamps until one enable lands.
+            for (const delayMs of [500, 2000, 5000, 15000, 30000]) {
+                const timer = setTimeout(() => {
+                    if (!this._isDisposed) {
+                        try {
+                            void this.connection.sendNotification(
+                                PerfEnableNotification.type,
+                                undefined,
+                            );
+                        } catch {
+                            // disposed between check and send; ignore
+                        }
+                    }
+                }, delayMs);
+                this._disposables.push({ dispose: () => clearTimeout(timer) });
+            }
+        }
     }
 
     /**
@@ -281,28 +314,24 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
         this.onNotification(
             SendActionEventNotification.type,
             (message: WebviewTelemetryActionEvent) => {
-                sendActionEvent(
-                    message.telemetryView,
-                    message.telemetryAction,
-                    message.additionalProps,
-                    message.additionalMeasurements,
-                );
+                sendActionEvent(message.telemetryView, message.telemetryAction, {
+                    additionalProps: message.additionalProps,
+                    additionalMeasurements: message.additionalMeasurements,
+                });
             },
         );
 
         this.onNotification(
             SendErrorEventNotification.type,
             (message: WebviewTelemetryErrorEvent) => {
-                sendErrorEvent(
-                    message.telemetryView,
-                    message.telemetryAction,
-                    message.error,
-                    message.includeErrorMessage,
-                    message.errorCode,
-                    message.errorType,
-                    message.additionalProps,
-                    message.additionalMeasurements,
-                );
+                sendErrorEvent(message.telemetryView, message.telemetryAction, {
+                    error: message.error,
+                    includeErrorMessage: message.includeErrorMessage,
+                    errorCode: message.errorCode,
+                    errorType: message.errorType,
+                    additionalProps: message.additionalProps,
+                    additionalMeasurements: message.additionalMeasurements,
+                });
             },
         );
 
@@ -344,16 +373,15 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
                 this.logger.trace(
                     `Load stats for ${this._sourceFile}` + "\n" + `Total time: ${timeToLoad} ms`,
                 );
-                this._endLoadActivity.end(
-                    ActivityStatus.Succeeded,
-                    {
+                this._endLoadActivity.end(ActivityStatus.Succeeded, {
+                    additionalProps: {
                         type: this._sourceFile,
                     },
-                    {
+                    additionalMeasurements: {
                         timeToLoad,
                         ...(message.stages ?? {}),
                     },
-                );
+                });
                 this._isFirstLoad = false;
             }
         });
@@ -391,15 +419,13 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
             const reducerActivity = startActivity(
                 TelemetryViews.WebviewController,
                 TelemetryActions.Reducer,
-                undefined, // correlationId
                 {
-                    type: action.type as string,
-                    webviewId: this._sourceFile,
+                    additionalProps: {
+                        type: action.type as string,
+                        webviewId: this._sourceFile,
+                    },
+                    includeCallStack: true,
                 },
-                undefined, // startActivityAdditionalMeasurements
-                undefined, // connectionInfo
-                undefined, // serverInfo
-                true, // include call stack
             );
             const reducer = this._reducerHandlers.get(action.type);
             if (reducer) {
@@ -467,15 +493,13 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
             const handlerActivity = startActivity(
                 TelemetryViews.WebviewController,
                 TelemetryActions.OnRequest,
-                undefined, // correlationId
                 {
-                    type: type.method,
-                    webviewId: this._sourceFile,
+                    additionalProps: {
+                        type: type.method,
+                        webviewId: this._sourceFile,
+                    },
+                    includeCallStack: true,
                 },
-                undefined, // startActivityAdditionalMeasurements
-                undefined, // connectionInfo
-                undefined, // serverInfo
-                true, // include call stack
             );
             try {
                 const result = handler(params, token);
@@ -540,18 +564,13 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
         if (this._isDisposed) {
             throw new Error("Cannot send notification on disposed controller");
         }
-        sendActionEvent(
-            TelemetryViews.WebviewController,
-            TelemetryActions.SendNotification,
-            {
+        sendActionEvent(TelemetryViews.WebviewController, TelemetryActions.SendNotification, {
+            additionalProps: {
                 type: type.method,
                 webviewId: this._sourceFile,
             },
-            undefined,
-            undefined,
-            undefined,
-            true, // include call stack
-        );
+            includeCallStack: true,
+        });
         return this.connection.sendNotification(type, params as RequestParam<TParams>);
     }
 

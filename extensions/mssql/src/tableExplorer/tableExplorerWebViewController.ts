@@ -109,7 +109,9 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             this.updateState();
 
             sendActionEvent(TelemetryViews.TableExplorer, TelemetryActions.EditSessionReady, {
-                operationId: this.operationId,
+                additionalProps: {
+                    operationId: this.operationId,
+                },
             });
 
             void this.loadResultSet();
@@ -127,17 +129,13 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             this._preserveTableQuery = false;
             this.updateState();
 
-            sendErrorEvent(
-                TelemetryViews.TableExplorer,
-                TelemetryActions.EditSessionReady,
-                new Error("Edit session failed to initialize"),
-                true /* includeErrorMessage */,
-                undefined /* errorCode */,
-                undefined /* errorType */,
-                {
+            sendErrorEvent(TelemetryViews.TableExplorer, TelemetryActions.EditSessionReady, {
+                error: new Error("Edit session failed to initialize"),
+                includeErrorMessage: true,
+                additionalProps: {
                     operationId: this.operationId,
                 },
-            );
+            });
 
             void vscode.window.showErrorMessage(toastMessage);
         }
@@ -151,10 +149,12 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         const endActivity = startActivity(
             TelemetryViews.TableExplorer,
             TelemetryActions.Initialize,
-            uuid(),
             {
-                startTime: startTime.toString(),
-                operationId: this.operationId,
+                correlationId: uuid(),
+                additionalProps: {
+                    startTime: startTime.toString(),
+                    operationId: this.operationId,
+                },
             },
         );
 
@@ -217,8 +217,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 `Table explorer initialized successfully - OperationId: ${this.operationId}`,
             );
             endActivity.end(ActivityStatus.Succeeded, {
-                elapsedTime: (Date.now() - startTime).toString(),
-                operationId: this.operationId,
+                additionalProps: {
+                    elapsedTime: (Date.now() - startTime).toString(),
+                    operationId: this.operationId,
+                },
             });
         } catch (error) {
             this.logger.error(
@@ -425,11 +427,13 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.TableExplorer,
                 TelemetryActions.CommitChanges,
-                uuid(),
                 {
-                    startTime: startTime.toString(),
-                    operationId: this.operationId,
-                    newRowsCount: state.newRows.length.toString(),
+                    correlationId: uuid(),
+                    additionalProps: {
+                        startTime: startTime.toString(),
+                        operationId: this.operationId,
+                        newRowsCount: state.newRows.length.toString(),
+                    },
                 },
             );
 
@@ -451,8 +455,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 );
 
                 endActivity.end(ActivityStatus.Succeeded, {
-                    elapsedTime: (Date.now() - startTime).toString(),
-                    operationId: this.operationId,
+                    additionalProps: {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                    },
                 });
             } catch (error) {
                 this.logger.error(
@@ -487,11 +493,13 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.TableExplorer,
                 TelemetryActions.LoadSubset,
-                uuid(),
                 {
-                    startTime: startTime.toString(),
-                    operationId: this.operationId,
-                    rowCount: payload.rowCount.toString(),
+                    correlationId: uuid(),
+                    additionalProps: {
+                        startTime: startTime.toString(),
+                        operationId: this.operationId,
+                        rowCount: payload.rowCount.toString(),
+                    },
                 },
             );
 
@@ -533,9 +541,11 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 this.updateState();
 
                 endActivity.end(ActivityStatus.Succeeded, {
-                    elapsedTime: (Date.now() - startTime).toString(),
-                    operationId: this.operationId,
-                    rowsLoaded: subsetResult.rowCount.toString(),
+                    additionalProps: {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                        rowsLoaded: subsetResult.rowCount.toString(),
+                    },
                 });
             } catch (error) {
                 state.loadStatus = ApiStatus.Error;
@@ -572,10 +582,12 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.TableExplorer,
                 TelemetryActions.CreateRow,
-                uuid(),
                 {
-                    startTime: startTime.toString(),
-                    operationId: this.operationId,
+                    correlationId: uuid(),
+                    additionalProps: {
+                        startTime: startTime.toString(),
+                        operationId: this.operationId,
+                    },
                 },
             );
 
@@ -613,8 +625,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 await this.regenerateScriptIfVisible(state);
 
                 endActivity.end(ActivityStatus.Succeeded, {
-                    elapsedTime: (Date.now() - startTime).toString(),
-                    operationId: this.operationId,
+                    additionalProps: {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                    },
                 });
             } catch (error) {
                 this.logger.error(
@@ -647,10 +661,12 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.TableExplorer,
                 TelemetryActions.DeleteRow,
-                uuid(),
                 {
-                    startTime: startTime.toString(),
-                    operationId: this.operationId,
+                    correlationId: uuid(),
+                    additionalProps: {
+                        startTime: startTime.toString(),
+                        operationId: this.operationId,
+                    },
                 },
             );
 
@@ -733,8 +749,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 await this.regenerateScriptIfVisible(state);
 
                 endActivity.end(ActivityStatus.Succeeded, {
-                    elapsedTime: (Date.now() - startTime).toString(),
-                    operationId: this.operationId,
+                    additionalProps: {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                    },
                 });
             } catch (error) {
                 this.logger.error(
@@ -769,10 +787,12 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.TableExplorer,
                 TelemetryActions.UpdateCell,
-                uuid(),
                 {
-                    startTime: startTime.toString(),
-                    operationId: this.operationId,
+                    correlationId: uuid(),
+                    additionalProps: {
+                        startTime: startTime.toString(),
+                        operationId: this.operationId,
+                    },
                 },
             );
 
@@ -841,8 +861,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 await this.regenerateScriptIfVisible(state);
 
                 endActivity.end(ActivityStatus.Succeeded, {
-                    elapsedTime: (Date.now() - startTime).toString(),
-                    operationId: this.operationId,
+                    additionalProps: {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                    },
                 });
             } catch (error) {
                 this.logger.error(
@@ -911,10 +933,12 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.TableExplorer,
                 TelemetryActions.RevertCell,
-                uuid(),
                 {
-                    startTime: startTime.toString(),
-                    operationId: this.operationId,
+                    correlationId: uuid(),
+                    additionalProps: {
+                        startTime: startTime.toString(),
+                        operationId: this.operationId,
+                    },
                 },
             );
 
@@ -1002,8 +1026,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 await this.regenerateScriptIfVisible(state);
 
                 endActivity.end(ActivityStatus.Succeeded, {
-                    elapsedTime: (Date.now() - startTime).toString(),
-                    operationId: this.operationId,
+                    additionalProps: {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                    },
                 });
             } catch (error) {
                 this.logger.error(
@@ -1036,10 +1062,12 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.TableExplorer,
                 TelemetryActions.RevertRow,
-                uuid(),
                 {
-                    startTime: startTime.toString(),
-                    operationId: this.operationId,
+                    correlationId: uuid(),
+                    additionalProps: {
+                        startTime: startTime.toString(),
+                        operationId: this.operationId,
+                    },
                 },
             );
 
@@ -1133,8 +1161,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 await this.regenerateScriptIfVisible(state);
 
                 endActivity.end(ActivityStatus.Succeeded, {
-                    elapsedTime: (Date.now() - startTime).toString(),
-                    operationId: this.operationId,
+                    additionalProps: {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                    },
                 });
             } catch (error) {
                 this.logger.error(
@@ -1169,10 +1199,12 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.TableExplorer,
                 TelemetryActions.GenerateScript,
-                uuid(),
                 {
-                    startTime: startTime.toString(),
-                    operationId: this.operationId,
+                    correlationId: uuid(),
+                    additionalProps: {
+                        startTime: startTime.toString(),
+                        operationId: this.operationId,
+                    },
                 },
             );
 
@@ -1205,9 +1237,11 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 );
 
                 endActivity.end(ActivityStatus.Succeeded, {
-                    elapsedTime: (Date.now() - startTime).toString(),
-                    operationId: this.operationId,
-                    scriptCount: scriptResult.scripts?.length.toString() || "0",
+                    additionalProps: {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                        scriptCount: scriptResult.scripts?.length.toString() || "0",
+                    },
                 });
             } catch (error) {
                 this.logger.error(
@@ -1234,11 +1268,13 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         });
 
         this.registerReducer("openScriptInEditor", async (state) => {
-            this.logger.info(`Opening script in SQL editor - OperationId: ${this.operationId}`);
+            this.logger.debug(`Opening script in SQL editor - OperationId: ${this.operationId}`);
 
             sendActionEvent(TelemetryViews.TableExplorer, TelemetryActions.Open, {
-                operationId: this.operationId,
-                context: "scriptEditor",
+                additionalProps: {
+                    operationId: this.operationId,
+                    context: "scriptEditor",
+                },
             });
 
             try {
@@ -1249,7 +1285,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     });
                     await vscode.window.showTextDocument(doc);
 
-                    this.logger.info(
+                    this.logger.debug(
                         `Script opened in SQL editor successfully - OperationId: ${this.operationId}`,
                     );
                 } else {
@@ -1268,11 +1304,13 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         });
 
         this.registerReducer("copyScriptToClipboard", async (state) => {
-            this.logger.info(`Copying script to clipboard - OperationId: ${this.operationId}`);
+            this.logger.debug(`Copying script to clipboard - OperationId: ${this.operationId}`);
 
             sendActionEvent(TelemetryViews.TableExplorer, TelemetryActions.CopyResults, {
-                operationId: this.operationId,
-                context: "script",
+                additionalProps: {
+                    operationId: this.operationId,
+                    context: "script",
+                },
             });
 
             try {
@@ -1282,7 +1320,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                         LocConstants.TableExplorer.scriptCopiedToClipboard,
                     );
 
-                    this.logger.info(
+                    this.logger.debug(
                         `Script copied to clipboard successfully - OperationId: ${this.operationId}`,
                     );
                 } else {
@@ -1308,9 +1346,11 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             );
 
             sendActionEvent(TelemetryViews.TableExplorer, TelemetryActions.Close, {
-                operationId: this.operationId,
-                context: "scriptPane",
-                action: state.showScriptPane ? "opened" : "closed",
+                additionalProps: {
+                    operationId: this.operationId,
+                    context: "scriptPane",
+                    action: state.showScriptPane ? "opened" : "closed",
+                },
             });
             this.updateState();
 
@@ -1326,7 +1366,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         });
 
         this.registerReducer("saveResults", async (state, payload) => {
-            this.logger.info(
+            this.logger.debug(
                 `Saving results as ${payload.format} - OperationId: ${this.operationId}`,
             );
 
@@ -1334,11 +1374,13 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.TableExplorer,
                 TelemetryActions.SaveResults,
-                uuid(),
                 {
-                    startTime: startTime.toString(),
-                    operationId: this.operationId,
-                    format: payload.format,
+                    correlationId: uuid(),
+                    additionalProps: {
+                        startTime: startTime.toString(),
+                        operationId: this.operationId,
+                        format: payload.format,
+                    },
                 },
             );
 
@@ -1384,15 +1426,17 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                             LocConstants.TableExplorer.exportSuccessful(uri.fsPath),
                         );
 
-                        this.logger.info(
+                        this.logger.debug(
                             `Results saved to ${uri.fsPath} - OperationId: ${this.operationId}`,
                         );
 
                         endActivity.end(ActivityStatus.Succeeded, {
-                            elapsedTime: (Date.now() - startTime).toString(),
-                            operationId: this.operationId,
-                            format: payload.format,
-                            rowCount: rows.length.toString(),
+                            additionalProps: {
+                                elapsedTime: (Date.now() - startTime).toString(),
+                                operationId: this.operationId,
+                                format: payload.format,
+                                rowCount: rows.length.toString(),
+                            },
                         });
                     } else {
                         throw new Error(result.messages || "Serialization failed");
@@ -1428,7 +1472,9 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             this.logger.debug(`Showing table query pane - OperationId: ${this.operationId}`);
 
             sendActionEvent(TelemetryViews.TableExplorer, TelemetryActions.ShowTableQuery, {
-                operationId: this.operationId,
+                additionalProps: {
+                    operationId: this.operationId,
+                },
             });
 
             state.showScriptPane = true;
@@ -1439,7 +1485,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         });
 
         this.registerReducer("runTableQuery", async (state, payload) => {
-            this.logger.info(`Running custom table query - OperationId: ${this.operationId}`);
+            this.logger.debug(`Running custom table query - OperationId: ${this.operationId}`);
 
             const startTime = Date.now();
             // Only operator type names (e.g. "equals", "lessThan") flow through this
@@ -1452,11 +1498,13 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.TableExplorer,
                 TelemetryActions.RunTableQuery,
-                uuid(),
                 {
-                    startTime: startTime.toString(),
-                    operationId: this.operationId,
-                    ...filterTelemetry,
+                    correlationId: uuid(),
+                    additionalProps: {
+                        startTime: startTime.toString(),
+                        operationId: this.operationId,
+                        ...filterTelemetry,
+                    },
                 },
             );
 
@@ -1464,10 +1512,12 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             if (!payload.queryString || !payload.queryString.trim()) {
                 this.logger.debug("Empty query string provided, skipping custom query");
                 endActivity.end(ActivityStatus.Succeeded, {
-                    elapsedTime: (Date.now() - startTime).toString(),
-                    operationId: this.operationId,
-                    cancelled: "true",
-                    ...filterTelemetry,
+                    additionalProps: {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                        cancelled: "true",
+                        ...filterTelemetry,
+                    },
                 });
                 return state;
             }
@@ -1493,10 +1543,12 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             if (this.hasPendingChanges(state) && !(await this.promptDiscardPendingChanges())) {
                 this.logger.debug("User cancelled custom query due to pending changes");
                 endActivity.end(ActivityStatus.Succeeded, {
-                    elapsedTime: (Date.now() - startTime).toString(),
-                    operationId: this.operationId,
-                    cancelled: "true",
-                    ...filterTelemetry,
+                    additionalProps: {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                        cancelled: "true",
+                        ...filterTelemetry,
+                    },
                 });
                 return state;
             }
@@ -1536,9 +1588,11 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 );
 
                 endActivity.end(ActivityStatus.Succeeded, {
-                    elapsedTime: (Date.now() - startTime).toString(),
-                    operationId: this.operationId,
-                    ...filterTelemetry,
+                    additionalProps: {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                        ...filterTelemetry,
+                    },
                 });
             } catch (error) {
                 this.logger.error(
@@ -1569,29 +1623,33 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         });
 
         this.registerReducer("modifyTable", async (state, _payload) => {
-            this.logger.info(`Opening Table Designer - OperationId: ${this.operationId}`);
+            this.logger.debug(`Opening Table Designer - OperationId: ${this.operationId}`);
 
             const startTime = Date.now();
             const endActivity = startActivity(
                 TelemetryViews.TableExplorer,
                 TelemetryActions.ModifyTable,
-                uuid(),
                 {
-                    startTime: startTime.toString(),
-                    operationId: this.operationId,
+                    correlationId: uuid(),
+                    additionalProps: {
+                        startTime: startTime.toString(),
+                        operationId: this.operationId,
+                    },
                 },
             );
 
             try {
                 await vscode.commands.executeCommand(Constants.cmdEditTable, this._targetNode);
 
-                this.logger.info(
+                this.logger.debug(
                     `Table Designer opened successfully - OperationId: ${this.operationId}`,
                 );
 
                 endActivity.end(ActivityStatus.Succeeded, {
-                    elapsedTime: (Date.now() - startTime).toString(),
-                    operationId: this.operationId,
+                    additionalProps: {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                    },
                 });
             } catch (error) {
                 this.logger.error(
@@ -1618,16 +1676,18 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         });
 
         this.registerReducer("viewTableDiagram", async (state, _payload) => {
-            this.logger.info(`Opening Schema Designer - OperationId: ${this.operationId}`);
+            this.logger.debug(`Opening Schema Designer - OperationId: ${this.operationId}`);
 
             const startTime = Date.now();
             const endActivity = startActivity(
                 TelemetryViews.TableExplorer,
                 TelemetryActions.ViewTableDiagram,
-                uuid(),
                 {
-                    startTime: startTime.toString(),
-                    operationId: this.operationId,
+                    correlationId: uuid(),
+                    additionalProps: {
+                        startTime: startTime.toString(),
+                        operationId: this.operationId,
+                    },
                 },
             );
 
@@ -1644,13 +1704,15 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     filterTable,
                 );
 
-                this.logger.info(
+                this.logger.debug(
                     `Schema Designer opened successfully - OperationId: ${this.operationId}`,
                 );
 
                 endActivity.end(ActivityStatus.Succeeded, {
-                    elapsedTime: (Date.now() - startTime).toString(),
-                    operationId: this.operationId,
+                    additionalProps: {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                    },
                 });
             } catch (error) {
                 this.logger.error(
@@ -1689,8 +1751,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 });
                 await vscode.window.showTextDocument(doc, { preview: false });
                 sendActionEvent(TelemetryViews.TableExplorer, TelemetryActions.Open, {
-                    operationId: this.operationId,
-                    context: "showSql",
+                    additionalProps: {
+                        operationId: this.operationId,
+                        context: "showSql",
+                    },
                 });
             } catch (error) {
                 this.logger.error(
@@ -1728,7 +1792,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 
         // Handle the user's choice
         if (result === LocConstants.TableExplorer.Save) {
-            this.logger.info("User chose to save changes before closing");
+            this.logger.debug("User chose to save changes before closing");
 
             try {
                 await this._tableExplorerService.commit(this.state.ownerUri);
@@ -1736,7 +1800,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     LocConstants.TableExplorer.changesSavedSuccessfully,
                 );
 
-                this.logger.info("Changes saved successfully before closing");
+                this.logger.debug("Changes saved successfully before closing");
             } catch (error) {
                 this.logger.error(`Error saving changes before closing: ${error}`);
                 vscode.window.showErrorMessage(
@@ -1744,9 +1808,9 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 );
             }
         } else if (result === LocConstants.TableExplorer.Discard) {
-            this.logger.info("User chose to discard changes");
+            this.logger.debug("User chose to discard changes");
         } else {
-            this.logger.info("User dismissed the prompt - treating as discard");
+            this.logger.debug("User dismissed the prompt - treating as discard");
         }
 
         // Always return undefined to allow disposal to continue
@@ -1759,7 +1823,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
      */
     public override dispose(): void {
         if (this.state.ownerUri) {
-            this.logger.info(
+            this.logger.debug(
                 `Disposing Table Explorer resources for ownerUri: ${this.state.ownerUri}`,
             );
 

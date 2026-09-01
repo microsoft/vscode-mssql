@@ -1,0 +1,55 @@
+// Query Studio semantic-interaction baseline: execute each deterministic
+// shape during setup, then measure product-owned tab/scroll/render actions.
+// Connection credentials come only from STS2_SQLSERVER_CONNSTRING.
+{
+    "schemaVersion": 2,
+    "runId": "auto",
+    "passType": "measurement",
+    "repetitions": 3,
+    "warmupRepetitions": 1,
+    "scenarios": [
+        "querystudio-query-scalar-results-focus",
+        "querystudio-interaction-scroll-100k",
+        "querystudio-interaction-selectall-100k",
+        "querystudio-interaction-copyall-10k-messages",
+        "querystudio-interaction-copyall-100k",
+        "querystudio-interaction-wide-1000x300",
+        "querystudio-interaction-large-cells-20x1mb",
+        "querystudio-interaction-copyall-large-cells",
+        "querystudio-interaction-copyall-large-cells-forced-spill",
+        "querystudio-interaction-100-resultsets",
+    ],
+    "vscode": {
+        "version": "stable",
+        "quality": "stable",
+        "launchMode": "directSpawn",
+        "profileMode": "scenarioDefault",
+        "workspaceRoot": "../workspaces/perf",
+        "extensions": [
+            {
+                "id": "ms-mssql.mssql",
+                "source": "developmentPath",
+                "path": "../../../extensions/mssql",
+            },
+            {
+                "id": "perftest.mssql-perf-driver",
+                "source": "developmentPath",
+                "path": "../extensions/mssql-perf-driver",
+            },
+        ],
+        "extraArgs": [],
+        "env": {},
+    },
+    "sql": {
+        "provider": "external",
+        "connectionStringEnv": "STS2_SQLSERVER_CONNSTRING",
+        "snapshot": "seed-v2",
+        "cacheMode": "warm",
+        "connectionProfile": "default",
+    },
+    "environment": { "requireIdle": false },
+    "diagnostics": { "markers": true, "processSampler": true, "otel": "off" },
+    "store": { "type": "sqlite", "path": "../perf.db" },
+    "regression": { "baseline": "none", "failOnRegression": false },
+    "output": { "dir": "../perf-runs", "keepArtifacts": "always" },
+}

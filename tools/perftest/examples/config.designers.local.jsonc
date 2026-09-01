@@ -1,0 +1,53 @@
+// Chunk 4: designer scenarios via the CLI driver's designerOpen step (the
+// same semantics as the in-product self-test). Diagnostic-maturity scenarios:
+// useful evidence, not yet a regression gate.
+// Connection string from STS2_SQLSERVER_CONNSTRING (never logged/persisted).
+// Run from the perftest repo root:
+//   node packages/perftest-cli/dist/cli.js run --config examples/config.designers.local.jsonc
+{
+    "schemaVersion": 2,
+    "runId": "auto",
+    "passType": "measurement",
+    "repetitions": 3,
+    "warmupRepetitions": 1,
+    "scenarios": ["table-designer-open", "schema-designer-open"],
+    "vscode": {
+        "version": "stable",
+        "quality": "stable",
+        "launchMode": "directSpawn",
+        "profileMode": "scenarioDefault",
+        "workspaceRoot": "../workspaces/perf",
+        "extensions": [
+            {
+                "id": "ms-mssql.mssql",
+                "source": "developmentPath",
+                "path": "../../../extensions/mssql",
+            },
+            {
+                "id": "perftest.mssql-perf-driver",
+                "source": "developmentPath",
+                "path": "../extensions/mssql-perf-driver",
+            },
+        ],
+        "extraArgs": [],
+        "env": {},
+    },
+    "sql": {
+        "provider": "external",
+        "connectionStringEnv": "STS2_SQLSERVER_CONNSTRING",
+        "snapshot": "seed-v1",
+        "cacheMode": "warm",
+        "connectionProfile": "default",
+    },
+    "environment": {
+        "requireIdle": false,
+    },
+    "diagnostics": {
+        "markers": true,
+        "processSampler": true,
+        "otel": "off",
+    },
+    "store": { "type": "sqlite", "path": "../perf.db" },
+    "regression": { "baseline": "none", "failOnRegression": false },
+    "output": { "dir": "../perf-runs", "keepArtifacts": "always" },
+}

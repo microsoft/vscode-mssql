@@ -1,0 +1,48 @@
+// Diagnostic one-process Query Studio lifecycle soak. Each iteration reopens
+// Query Studio, reconnects, executes forced-spill 1 MiB MAX cells, scrolls,
+// performs an exact copy, closes, and proves spill cleanup. The process
+// sampler feeds per-iteration RSS slope/plateau analysis. Increase
+// PERF_SOAK_ITERATIONS toward the scenario default (100) for overnight runs.
+{
+    "schemaVersion": 2,
+    "runId": "auto",
+    "passType": "diagnostic",
+    "repetitions": 1,
+    "warmupRepetitions": 0,
+    "scenarios": ["querystudio-soak-forced-spill-lifecycle"],
+    "vscode": {
+        "version": "stable",
+        "quality": "stable",
+        "launchMode": "directSpawn",
+        "profileMode": "scenarioDefault",
+        "workspaceRoot": "../workspaces/perf",
+        "extensions": [
+            {
+                "id": "ms-mssql.mssql",
+                "source": "developmentPath",
+                "path": "../../../extensions/mssql",
+            },
+            {
+                "id": "perftest.mssql-perf-driver",
+                "source": "developmentPath",
+                "path": "../extensions/mssql-perf-driver",
+            },
+        ],
+        "extraArgs": [],
+        "env": {
+            "PERF_SOAK_ITERATIONS": "10",
+        },
+    },
+    "sql": {
+        "provider": "external",
+        "connectionStringEnv": "STS2_SQLSERVER_SQLLOGIN_CONNSTRING",
+        "snapshot": "seed-v2",
+        "cacheMode": "warm",
+        "connectionProfile": "default",
+    },
+    "environment": { "requireIdle": false },
+    "diagnostics": { "markers": true, "processSampler": true, "otel": "off" },
+    "store": { "type": "sqlite", "path": "../perf.db" },
+    "regression": { "baseline": "none", "failOnRegression": false },
+    "output": { "dir": "../perf-runs", "keepArtifacts": "always" },
+}

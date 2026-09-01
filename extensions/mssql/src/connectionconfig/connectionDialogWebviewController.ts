@@ -51,11 +51,7 @@ import { generateConnectionComponents, groupAdvancedOptions } from "./formCompon
 import { FormWebviewController } from "../forms/formWebviewController";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import { Deferred } from "../protocol";
-import {
-    cmdOpenAzureDataStudioMigration,
-    defaultDatabase,
-    systemDatabases,
-} from "../constants/constants";
+import { cmdOpenAzureDataStudioMigration, defaultDatabase } from "../constants/constants";
 import * as AzureConstants from "../azure/constants";
 import { AddFirewallRuleState } from "../sharedInterfaces/addFirewallRule";
 import * as Utils from "../models/utils";
@@ -89,6 +85,7 @@ import {
     BrowseProviderHost,
     FabricBrowseProvider,
 } from "./browseProvider";
+import { buildDatabaseOptions } from "../utils/databaseUtils";
 
 export const CLEAR_TOKEN_CACHE = "clearTokenCache";
 export const SIGN_IN_TO_AZURE = "signInToAzure";
@@ -215,14 +212,11 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
                 // The spots in initializeDialog() that handle potential PII have their own error catches that emit error telemetry with `includeErrorMessage` set to false.
                 // Everything else during initialization shouldn't have PII, so it's okay to include the error message here.
-                sendErrorEvent(
-                    TelemetryViews.ConnectionDialog,
-                    TelemetryActions.Initialize,
-                    err,
-                    true, // includeErrorMessage
-                    undefined, // errorCode,
-                    "catchAll", // errorType
-                );
+                sendErrorEvent(TelemetryViews.ConnectionDialog, TelemetryActions.Initialize, {
+                    error: err,
+                    includeErrorMessage: true,
+                    errorType: "catchAll",
+                });
                 this.initialized.reject(getErrorMessage(err));
             });
     }
@@ -283,14 +277,11 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             this.updateState();
         } catch (err) {
             void vscode.window.showErrorMessage(getErrorMessage(err));
-            sendErrorEvent(
-                TelemetryViews.ConnectionDialog,
-                TelemetryActions.Initialize,
-                err,
-                false, // includeErrorMessage
-                undefined, // errorCode,
-                "loadSavedConnections", // errorType
-            );
+            sendErrorEvent(TelemetryViews.ConnectionDialog, TelemetryActions.Initialize, {
+                error: err,
+                includeErrorMessage: false,
+                errorType: "loadSavedConnections",
+            });
         }
 
         // Load connection (if specified); happens after form is loaded so that the form can be updated
@@ -301,14 +292,11 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 this.loadEmptyConnection();
                 void vscode.window.showErrorMessage(getErrorMessage(err));
 
-                sendErrorEvent(
-                    TelemetryViews.ConnectionDialog,
-                    TelemetryActions.Initialize,
-                    err,
-                    false, // includeErrorMessage
-                    undefined, // errorCode,
-                    "loadConnectionToEdit", // errorType
-                );
+                sendErrorEvent(TelemetryViews.ConnectionDialog, TelemetryActions.Initialize, {
+                    error: err,
+                    includeErrorMessage: false,
+                    errorType: "loadConnectionToEdit",
+                });
             }
         }
 
@@ -380,7 +368,9 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
         this.registerReducer("loadConnectionAsNewDraft", async (state, payload) => {
             sendActionEvent(TelemetryViews.ConnectionDialog, TelemetryActions.LoadConnection, {
-                mode: "newDraft",
+                additionalProps: {
+                    mode: "newDraft",
+                },
             });
             await this.setConnectionAsNewDraft(payload.connection);
 
@@ -418,18 +408,15 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 state.formMessage = { message: getErrorMessage(err) };
                 state.dialog = undefined;
 
-                sendErrorEvent(
-                    TelemetryViews.ConnectionDialog,
-                    TelemetryActions.AddFirewallRule,
-                    err,
-                    false, // includeErrorMessage
-                    undefined, // errorCode
-                    err.Name, // errorType
-                    {
+                sendErrorEvent(TelemetryViews.ConnectionDialog, TelemetryActions.AddFirewallRule, {
+                    error: err,
+                    includeErrorMessage: false,
+                    errorType: err.Name,
+                    additionalProps: {
                         failure: err.Name,
                         cloudType: getCloudId(),
                     },
-                );
+                });
 
                 return state;
             }
@@ -564,8 +551,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                         TelemetryViews.ConnectionDialog,
                         TelemetryActions.LoadFromConnectionString,
                         {
-                            result: "unsupportedAuthType",
-                            details: connDetails.options.authenticationType,
+                            additionalProps: {
+                                result: "unsupportedAuthType",
+                                details: connDetails.options.authenticationType,
+                            },
                         },
                     );
 
@@ -589,7 +578,9 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     TelemetryViews.ConnectionDialog,
                     TelemetryActions.LoadFromConnectionString,
                     {
-                        result: "success",
+                        additionalProps: {
+                            result: "success",
+                        },
                     },
                 );
 
@@ -607,10 +598,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 sendErrorEvent(
                     TelemetryViews.ConnectionDialog,
                     TelemetryActions.LoadFromConnectionString,
-                    error,
-                    false, // includeErrorMessage
-                    undefined, // errorCode
-                    undefined, // errorType
+                    { error, includeErrorMessage: false },
                 );
 
                 return state;
@@ -1226,15 +1214,12 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             savedConnections,
         );
 
-        sendActionEvent(
-            TelemetryViews.ConnectionDialog,
-            TelemetryActions.LoadRecentConnections,
-            undefined, // additionalProperties
-            {
+        sendActionEvent(TelemetryViews.ConnectionDialog, TelemetryActions.LoadRecentConnections, {
+            additionalMeasurements: {
                 savedConnectionsCount: savedConnections.length,
                 recentConnectionsCount: recentConnections.length,
             },
-        );
+        });
 
         const self = this;
 
@@ -1254,13 +1239,13 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                         sendErrorEvent(
                             TelemetryViews.ConnectionDialog,
                             TelemetryActions.LoadConnections,
-                            err,
-                            false, // includeErrorMessage
-                            undefined, // errorCode
-                            undefined, // errorType
                             {
-                                connectionType: connType,
-                                authType: conn.authenticationType,
+                                error: err,
+                                includeErrorMessage: false,
+                                additionalProps: {
+                                    connectionType: connType,
+                                    authType: conn.authenticationType,
+                                },
                             },
                         );
 
@@ -1422,13 +1407,15 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             this.updateState();
 
             sendActionEvent(TelemetryViews.ConnectionDialog, TelemetryActions.CreateConnection, {
-                result: "success",
-                submitAction: action,
-                newOrEditedConnection: this._connectionBeingEdited ? "edited" : "new",
-                connectionInputType: this.state.selectedInputMode,
-                authMode: this.state.connectionProfile.authenticationType,
-                serverTypes: getServerTypes(this.state.connectionProfile).join(","),
-                cloudType: getCloudId(),
+                additionalProps: {
+                    result: "success",
+                    submitAction: action,
+                    newOrEditedConnection: this._connectionBeingEdited ? "edited" : "new",
+                    connectionInputType: this.state.selectedInputMode,
+                    authMode: this.state.connectionProfile.authenticationType,
+                    serverTypes: getServerTypes(this.state.connectionProfile).join(","),
+                    cloudType: getCloudId(),
+                },
             });
 
             await this.panel.dispose();
@@ -1439,20 +1426,15 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             this.state.formMessage = { message: getErrorMessage(error) };
             this.updateState();
 
-            sendErrorEvent(
-                TelemetryViews.ConnectionDialog,
-                TelemetryActions.CreateConnection,
+            sendErrorEvent(TelemetryViews.ConnectionDialog, TelemetryActions.CreateConnection, {
                 error,
-                undefined, // includeErrorMessage
-                undefined, // errorCode
-                undefined, // errorType
-                {
+                additionalProps: {
                     submitAction: action,
                     connectionInputType: this.state.selectedInputMode,
                     authMode: this.state.connectionProfile.authenticationType,
                     cloudType: getCloudId(),
                 },
-            );
+            });
 
             return state;
         }
@@ -1472,7 +1454,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         if (erroredInputs.length > 0) {
             this.state.connectionStatus = ApiStatus.Error;
             this.updateState(state);
-            this.logger.warn("One more more inputs have errors: " + erroredInputs.join(", "));
+            this.logger.debug("One more more inputs have errors: " + erroredInputs.join(", "));
             return undefined;
         }
 
@@ -1532,20 +1514,16 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             this.updateState(state);
 
-            sendErrorEvent(
-                TelemetryViews.ConnectionDialog,
-                TelemetryActions.CreateConnection,
+            sendErrorEvent(TelemetryViews.ConnectionDialog, TelemetryActions.CreateConnection, {
                 error,
-                false, // includeErrorMessage
-                undefined, // errorCode
-                undefined, // errorType
-                {
+                includeErrorMessage: false,
+                additionalProps: {
                     submitAction: this._lastSubmittedAction,
                     connectionInputType: this.state.selectedInputMode,
                     authMode: this.state.connectionProfile.authenticationType,
                     cloudType: getCloudId(),
                 },
-            );
+            });
 
             return false;
         } finally {
@@ -1580,25 +1558,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     }
 
     private buildDatabaseOptions(dbs: string[]): FormItemOptions[] {
-        const collator = new Intl.Collator(undefined, { sensitivity: "base" });
-        const userDbs = dbs
-            .filter((db) => !systemDatabases.includes(db.toLowerCase()))
-            .sort((a, b) => collator.compare(a, b));
-        const sysDbs = dbs
-            .filter((db) => systemDatabases.includes(db.toLowerCase()))
-            .sort((a, b) => collator.compare(a, b));
-        return [
-            ...userDbs.map((db) => ({
-                displayName: db,
-                value: db,
-                groupName: LocalizedConstants.ConnectionDialog.userDatabasesGroup,
-            })),
-            ...sysDbs.map((db) => ({
-                displayName: db,
-                value: db,
-                groupName: LocalizedConstants.ConnectionDialog.systemDatabasesGroup,
-            })),
-        ];
+        return buildDatabaseOptions(dbs, {
+            userDatabases: LocalizedConstants.ConnectionDialog.userDatabasesGroup,
+            systemDatabases: LocalizedConstants.ConnectionDialog.systemDatabasesGroup,
+        });
     }
 
     private buildDatabaseFetchKey(): string {
@@ -1814,14 +1777,12 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 );
 
             if (!handleFirewallErrorResult.result) {
-                sendErrorEvent(
-                    TelemetryViews.ConnectionDialog,
-                    TelemetryActions.AddFirewallRule,
-                    new Error(result.errorMessage),
-                    true, // includeErrorMessage; parse failed because it couldn't detect an IP address, so that'd be the only PII
-                    undefined, // errorCode
-                    "parseIP", // errorType
-                );
+                sendErrorEvent(TelemetryViews.ConnectionDialog, TelemetryActions.AddFirewallRule, {
+                    error: new Error(result.errorMessage),
+                    // Parse failed because it couldn't detect an IP address, so that'd be the only PII.
+                    includeErrorMessage: true,
+                    errorType: "parseIP",
+                });
 
                 // Proceed with 0.0.0.0 as the client IP, and let user fill it out manually.
                 handleFirewallErrorResult.ipAddress = "0.0.0.0";
@@ -1869,11 +1830,13 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             this.state.connectionStatus = ApiStatus.Error;
 
             sendActionEvent(TelemetryViews.ConnectionDialog, TelemetryActions.CreateConnection, {
-                result: "connectionError",
-                errorNumber: String(result.errorNumber),
-                newOrEditedConnection: this._connectionBeingEdited ? "edited" : "new",
-                connectionInputType: this.state.selectedInputMode,
-                authMode: this.state.connectionProfile.authenticationType,
+                additionalProps: {
+                    result: "connectionError",
+                    errorNumber: String(result.errorNumber),
+                    newOrEditedConnection: this._connectionBeingEdited ? "edited" : "new",
+                    connectionInputType: this.state.selectedInputMode,
+                    authMode: this.state.connectionProfile.authenticationType,
+                },
             });
 
             return state;
@@ -1959,6 +1922,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         await this.handleAzureMFAEdits("authenticationType");
         await this.handleAzureMFAEdits("accountId");
         await this.checkReadyToConnect();
+        this.triggerDatabaseFetchIfReady();
     }
 
     private async initializeConnectionForDialog(
@@ -2475,18 +2439,25 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     ): Promise<boolean> {
         const azureAccount = await VsCodeAzureHelper.getAccountById(state.selectedAccountId);
         const auth = VsCodeAzureHelper.getProvider();
+        const homeTenantId = VsCodeAzureHelper.getHomeTenantIdForAccount(azureAccount);
 
-        const signedIn = await auth.signIn(tenantId, azureAccount);
+        const signedIn = await auth.signIn(
+            tenantId === homeTenantId ? undefined : tenantId,
+            azureAccount,
+        );
 
-        // Refresh isSignedIn status for all tenants so the UI reflects the change
+        // Reload tenant metadata after sign-in so a home-tenant fallback is replaced by the full list.
         if (signedIn) {
+            const tenants = await VsCodeAzureHelper.getTenantsForAccount(azureAccount);
             const statuses = await Promise.all(
-                state.azureTenants.map((t) => auth.isSignedIn(t.id, azureAccount)),
+                tenants.map((tenant) => auth.isSignedIn(tenant.tenantId, azureAccount)),
             );
-            state.azureTenants = state.azureTenants.map((t, i) => ({
-                ...t,
-                isSignedIn: statuses[i],
+            state.azureTenants = tenants.map((tenant, index) => ({
+                id: tenant.tenantId!,
+                name: tenant.displayName!,
+                isSignedIn: statuses[index],
             }));
+            state.selectedTenantId = tenantId;
             this.updateState(state);
         }
 

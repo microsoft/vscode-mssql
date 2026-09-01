@@ -14,7 +14,9 @@ import { FluentResultGridCellRangeSelector } from "./fluentResultGridCellRangeSe
 import {
     getFluentResultGridRangesAfterClick,
     getFluentResultGridRangesAfterDrag,
+    getFluentResultGridRowNumberClickSelection,
 } from "./fluentResultGridSelection";
+import { FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_ID } from "./fluentResultGridConstants";
 
 export class FluentResultGridSelectionModel extends SlickHybridSelectionModel {
     private readonly _cellRangeSelector: FluentResultGridCellRangeSelector;
@@ -54,7 +56,42 @@ export class FluentResultGridSelectionModel extends SlickHybridSelectionModel {
         }
 
         const cell = this._grid.getCellFromEvent(eventData);
-        if (!cell || !this._grid.canCellBeActive(cell.row, cell.cell)) {
+        if (!cell) {
+            return false;
+        }
+
+        const columns = this._grid.getColumns();
+        const modifiers = {
+            ctrlKey: eventData.ctrlKey,
+            metaKey: eventData.metaKey,
+            shiftKey: eventData.shiftKey,
+        };
+
+        // The row-number column is not a data cell, so it never passes canCellBeActive. Resolve it
+        // before that check: a click there selects whole rows, honouring Ctrl/Cmd and Shift.
+        const rowNumberSelection = getFluentResultGridRowNumberClickSelection(
+            this.getSelectedRanges(),
+            cell,
+            this._grid.getActiveCell(),
+            modifiers,
+            columns.length,
+            columns[0]?.id === FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_ID,
+            columns,
+        );
+        if (rowNumberSelection) {
+            this.setSelectedRanges(rowNumberSelection.ranges, undefined, "");
+            this._grid.setActiveCell(
+                rowNumberSelection.activeCell.row,
+                rowNumberSelection.activeCell.cell,
+                false,
+                false,
+                true,
+            );
+            eventData.stopImmediatePropagation();
+            return true;
+        }
+
+        if (!this._grid.canCellBeActive(cell.row, cell.cell)) {
             return false;
         }
 
@@ -63,11 +100,7 @@ export class FluentResultGridSelectionModel extends SlickHybridSelectionModel {
                 this.getSelectedRanges(),
                 cell,
                 this._grid.getActiveCell(),
-                {
-                    ctrlKey: eventData.ctrlKey,
-                    metaKey: eventData.metaKey,
-                    shiftKey: eventData.shiftKey,
-                },
+                modifiers,
             ),
             undefined,
             "",

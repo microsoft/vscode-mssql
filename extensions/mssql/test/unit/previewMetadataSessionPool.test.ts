@@ -3,8 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { expect } from "chai";
+import * as chai from "chai";
 import * as sinon from "sinon";
+import sinonChai from "sinon-chai";
 import {
     InMemoryMetadataProvider,
     type MetadataProvider,
@@ -15,6 +16,9 @@ import {
     PreviewMetadataSessionPool,
     previewMetadataSessionKey,
 } from "../../src/languageservice/preview/previewMetadataSessionPool";
+
+const { expect } = chai;
+chai.use(sinonChai);
 
 suite("Preview metadata session pool", () => {
     let sandbox: sinon.SinonSandbox;

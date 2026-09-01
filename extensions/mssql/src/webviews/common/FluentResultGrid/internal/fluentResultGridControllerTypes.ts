@@ -52,6 +52,8 @@ export interface FluentResultGridControllerResult {
     gridOptions: GridOption;
     handleBeforeHeaderCellDestroy: (event: CustomEvent) => void;
     handleClick: (event: CustomEvent) => void;
+    handleColumnsResizeDblClick: (event: CustomEvent) => void;
+    handleDblClick: (event: CustomEvent) => void;
     handleCommand: FluentResultGridProps["onCommand"];
     handleContextMenu: (event: CustomEvent) => void;
     handleGridContainerBlur: (event: ReactFocusEvent<HTMLDivElement>) => void;
