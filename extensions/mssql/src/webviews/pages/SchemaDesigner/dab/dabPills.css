@@ -1,0 +1,58 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.dab-count-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    height: 18px;
+    padding: 0 7px;
+    border-radius: 999px;
+    border: 1px solid var(--vscode-editorWidget-border);
+    background: var(--vscode-editorWidget-background, transparent);
+    color: var(--vscode-descriptionForeground);
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 18px;
+    flex-shrink: 0;
+}
+
+.dab-pill {
+    --dab-pill-accent: var(--vscode-foreground);
+    border-color: color-mix(in srgb, var(--dab-pill-accent) 50%, transparent) !important;
+    background: color-mix(
+        in srgb,
+        var(--dab-pill-accent) 14%,
+        var(--vscode-editor-background)
+    ) !important;
+    color: var(--vscode-foreground) !important;
+}
+
+.dab-pill-rest {
+    --dab-pill-accent: var(--vscode-charts-green, #7ee787);
+}
+
+.dab-pill-graphql {
+    --dab-pill-accent: var(--vscode-charts-red, #ff7b9c);
+}
+
+.dab-pill-mcp {
+    --dab-pill-accent: var(--vscode-charts-purple, #d2a8ff);
+}
+
+.dab-pill-anonymous {
+    --dab-pill-accent: var(--vscode-charts-blue, #79c0ff);
+}
+
+.dab-pill-authenticated {
+    --dab-pill-accent: var(--vscode-charts-yellow, #f2cc60);
+}
+
+body.vscode-high-contrast .dab-pill,
+body.vscode-high-contrast-light .dab-pill {
+    border-color: var(--vscode-contrastBorder) !important;
+    background: transparent !important;
+}
