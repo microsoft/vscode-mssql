@@ -16,9 +16,12 @@ import { TelemetryActions } from "../../../../src/sharedInterfaces/telemetry";
 import {
     OpenAiSdkClient,
     OpenAiSdkLanguageModelProvider,
-} from "../../../../src/copilot/sdkLanguageModels/openaiSdkLanguageModelProvider";
-import { getSecretStorageKey, SdkApiKeyResolver } from "../../../../src/copilot/sdkLanguageModels";
-import { defaultOpenAiSdkModels } from "../../../../src/copilot/sdkLanguageModels/sdkModelCatalog";
+} from "../../../../src/nonproduction/sdkLanguageModels/openaiSdkLanguageModelProvider";
+import {
+    getSecretStorageKey,
+    SdkApiKeyResolver,
+} from "../../../../src/nonproduction/sdkLanguageModels/apiKeyResolution";
+import { defaultOpenAiSdkModels } from "../../../../src/nonproduction/sdkLanguageModels/sdkModelCatalog";
 import { stubTelemetry } from "../../utils";
 import { previewService } from "../../../../src/previews/previewService";
 import {

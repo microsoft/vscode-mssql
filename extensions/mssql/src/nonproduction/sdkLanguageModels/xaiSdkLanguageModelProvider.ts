@@ -10,8 +10,8 @@ import type {
     ChatCompletionCreateParamsStreaming,
 } from "openai/resources/chat/completions";
 import type { Stream } from "openai/core/streaming";
-import { approximateTokenCount } from "../languageModels/shared/tokenApproximation";
-import { LanguageModelChatInformation } from "../languageModels/shared/providerModelCatalog";
+import { approximateTokenCount } from "../../copilot/languageModels/shared/tokenApproximation";
+import { LanguageModelChatInformation } from "../../copilot/languageModels/shared/providerModelCatalog";
 import {
     getSdkErrorMessage,
     LanguageModelChatResponseProgress,
@@ -22,7 +22,9 @@ import {
 } from "./sdkLanguageModelProviderBase";
 import { textOfMessage, translateForOpenAI } from "./messageTranslation";
 
-export interface OpenAiSdkClient {
+const defaultXAiBaseUrl = "https://api.x.ai/v1";
+
+export interface XAiSdkClient {
     chat: {
         completions: {
             create(
@@ -32,23 +34,23 @@ export interface OpenAiSdkClient {
     };
 }
 
-export type OpenAiSdkClientFactory = (options: ClientOptions) => OpenAiSdkClient;
+export type XAiSdkClientFactory = (options: ClientOptions) => XAiSdkClient;
 
-export interface OpenAiSdkLanguageModelProviderOptions extends SdkLanguageModelProviderOptions {
-    clientFactory?: OpenAiSdkClientFactory;
+export interface XAiSdkLanguageModelProviderOptions extends SdkLanguageModelProviderOptions {
+    clientFactory?: XAiSdkClientFactory;
 }
 
-export class OpenAiSdkLanguageModelProvider extends SdkLanguageModelProviderBase {
-    private readonly _clientFactory: OpenAiSdkClientFactory;
+export class XAiSdkLanguageModelProvider extends SdkLanguageModelProviderBase {
+    private readonly _clientFactory: XAiSdkClientFactory;
     private _clientCache:
         | {
               key: string;
-              client: OpenAiSdkClient;
+              client: XAiSdkClient;
           }
         | undefined;
 
-    constructor(context: vscode.ExtensionContext, options?: OpenAiSdkLanguageModelProviderOptions) {
-        super(context, "openai", options);
+    constructor(context: vscode.ExtensionContext, options?: XAiSdkLanguageModelProviderOptions) {
+        super(context, "xai", options);
         this._clientFactory = options?.clientFactory ?? ((opts) => new OpenAI(opts));
     }
 
@@ -63,7 +65,7 @@ export class OpenAiSdkLanguageModelProvider extends SdkLanguageModelProviderBase
         }
 
         return approximateTokenCount(
-            typeof text === "string" ? text : textOfMessage(text, "OpenAI SDK provider"),
+            typeof text === "string" ? text : textOfMessage(text, "xAI SDK provider"),
         );
     }
 
@@ -78,7 +80,7 @@ export class OpenAiSdkLanguageModelProvider extends SdkLanguageModelProviderBase
         const stream = await this.getClient(clientOptions).chat.completions.create({
             model: this.getModelId(model),
             messages: translateForOpenAI(messages),
-            max_completion_tokens: maxTokens,
+            max_tokens: maxTokens,
             stream: true,
             stream_options: { include_usage: true },
         });
@@ -116,7 +118,7 @@ export class OpenAiSdkLanguageModelProvider extends SdkLanguageModelProviderBase
     }
 
     protected mapError(error: unknown): vscode.LanguageModelError {
-        return mapOpenAiError(error);
+        return mapXAiError(error);
     }
 
     protected classifyError(error: unknown): string {
@@ -143,7 +145,11 @@ export class OpenAiSdkLanguageModelProvider extends SdkLanguageModelProviderBase
         this._clientCache = undefined;
     }
 
-    private getClient(options: SdkClientOptions): OpenAiSdkClient {
+    protected override getBaseUrl(): string {
+        return super.getBaseUrl() ?? defaultXAiBaseUrl;
+    }
+
+    private getClient(options: SdkClientOptions): XAiSdkClient {
         const key = JSON.stringify(options);
         if (this._clientCache?.key === key) {
             return this._clientCache.client;
@@ -155,22 +161,20 @@ export class OpenAiSdkLanguageModelProvider extends SdkLanguageModelProviderBase
     }
 }
 
-export function mapOpenAiError(error: unknown): vscode.LanguageModelError {
+export function mapXAiError(error: unknown): vscode.LanguageModelError {
     if (error instanceof OpenAI.AuthenticationError) {
         return vscode.LanguageModelError.NoPermissions(
-            "OpenAI API authentication failed. Check your API key.",
+            "xAI API authentication failed. Check your API key.",
         );
     }
     if (error instanceof OpenAI.RateLimitError) {
-        return vscode.LanguageModelError.Blocked("OpenAI API rate limit exceeded.");
+        return vscode.LanguageModelError.Blocked("xAI API rate limit exceeded.");
     }
     if (error instanceof OpenAI.BadRequestError) {
-        return new vscode.LanguageModelError(`OpenAI API rejected the request: ${error.message}`);
+        return new vscode.LanguageModelError(`xAI API rejected the request: ${error.message}`);
     }
     if (error instanceof OpenAI.APIError) {
-        return new vscode.LanguageModelError(
-            `OpenAI API error (${error.status}): ${error.message}`,
-        );
+        return new vscode.LanguageModelError(`xAI API error (${error.status}): ${error.message}`);
     }
     return new vscode.LanguageModelError(getSdkErrorMessage(error));
 }

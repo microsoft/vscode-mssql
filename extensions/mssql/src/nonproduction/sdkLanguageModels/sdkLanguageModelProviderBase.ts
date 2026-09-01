@@ -14,7 +14,7 @@ import { getErrorMessage } from "../../utils/utils";
 import {
     LanguageModelChatInformation,
     toLanguageModelChatInformation,
-} from "../languageModels/shared/providerModelCatalog";
+} from "../../copilot/languageModels/shared/providerModelCatalog";
 import {
     SdkApiKeyResolver,
     SdkProviderKind,
@@ -22,7 +22,7 @@ import {
     sdkApiKeyProviders,
 } from "./apiKeyResolution";
 import { getSdkModelCatalog } from "./sdkModelCatalog";
-import { isInlineCompletionFeatureEnabled } from "../inlineCompletionFeatureGate";
+import { isInlineCompletionFeatureEnabled } from "../../copilot/inlineCompletionFeatureGate";
 
 export interface LanguageModelChatResponseProgress {
     report(part: vscode.LanguageModelTextPart): void;

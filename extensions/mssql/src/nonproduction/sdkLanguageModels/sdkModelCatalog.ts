@@ -7,7 +7,7 @@ import * as Constants from "../../constants/constants";
 import {
     getConfiguredAdditionalModels,
     ProviderModelEntry,
-} from "../languageModels/shared/providerModelCatalog";
+} from "../../copilot/languageModels/shared/providerModelCatalog";
 import { SdkProviderKind } from "./apiKeyResolution";
 
 export type SdkModelCatalogEntry = ProviderModelEntry;

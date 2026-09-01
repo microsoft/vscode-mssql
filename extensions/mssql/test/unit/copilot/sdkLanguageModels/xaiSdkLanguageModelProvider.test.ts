@@ -15,9 +15,12 @@ import * as Constants from "../../../../src/constants/constants";
 import {
     XAiSdkClient,
     XAiSdkLanguageModelProvider,
-} from "../../../../src/copilot/sdkLanguageModels/xaiSdkLanguageModelProvider";
-import { getSecretStorageKey, SdkApiKeyResolver } from "../../../../src/copilot/sdkLanguageModels";
-import { defaultXAiSdkModels } from "../../../../src/copilot/sdkLanguageModels/sdkModelCatalog";
+} from "../../../../src/nonproduction/sdkLanguageModels/xaiSdkLanguageModelProvider";
+import {
+    getSecretStorageKey,
+    SdkApiKeyResolver,
+} from "../../../../src/nonproduction/sdkLanguageModels/apiKeyResolution";
+import { defaultXAiSdkModels } from "../../../../src/nonproduction/sdkLanguageModels/sdkModelCatalog";
 import { stubTelemetry } from "../../utils";
 import { previewService } from "../../../../src/previews/previewService";
 import {

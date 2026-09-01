@@ -9,7 +9,7 @@ import {
     textOfMessage,
     translateForAnthropic,
     translateForOpenAI,
-} from "../../../../src/copilot/sdkLanguageModels/messageTranslation";
+} from "../../../../src/nonproduction/sdkLanguageModels/messageTranslation";
 
 suite("SDK language model message translation", () => {
     test("Anthropic translation extracts system text and formats remaining messages", () => {

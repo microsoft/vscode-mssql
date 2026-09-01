@@ -43,7 +43,7 @@ import {
 import { registerSqlToolsMcpServer } from "./sqlToolsMcp/registerSqlToolsMcpServer";
 import { registerSqlDataPlane } from "./services/sqlDataPlane/sqlDataPlaneService";
 import { isInlineCompletionFeatureEnabled } from "./copilot/inlineCompletionFeatureGate";
-import { registerSdkLanguageModelProviders } from "./copilot/sdkLanguageModels";
+import { registerSdkLanguageModelProviders } from "./nonproduction/sdkLanguageModels";
 import { CredentialStore, ICredentialStore } from "./credentialstore/credentialstore";
 import { ConnectionConfig, IConnectionConfig } from "./connectionconfig/connectionconfig";
 import { IConnectionStore, ConnectionStore } from "./models/connectionStore";

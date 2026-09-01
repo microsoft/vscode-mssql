@@ -7,7 +7,7 @@ import * as vscode from "vscode";
 import * as Constants from "../../constants/constants";
 import * as LocalizedConstants from "../../constants/locConstants";
 import { logger as rootLogger } from "../../models/logger";
-import { isInlineCompletionFeatureEnabled } from "../inlineCompletionFeatureGate";
+import { isInlineCompletionFeatureEnabled } from "../../copilot/inlineCompletionFeatureGate";
 import { AnthropicSdkLanguageModelProvider } from "./anthropicSdkLanguageModelProvider";
 import {
     SdkApiKeyProviderInfo,
@@ -189,8 +189,3 @@ function getEnabledProviderKinds(): Set<SdkProviderKind> {
 function isSettingEnabled(setting: string, defaultValue: boolean): boolean {
     return vscode.workspace.getConfiguration().get<boolean>(setting, defaultValue) ?? defaultValue;
 }
-
-export { AnthropicSdkLanguageModelProvider } from "./anthropicSdkLanguageModelProvider";
-export { OpenAiSdkLanguageModelProvider } from "./openaiSdkLanguageModelProvider";
-export { XAiSdkLanguageModelProvider } from "./xaiSdkLanguageModelProvider";
-export { getSecretStorageKey, SdkApiKeyResolver } from "./apiKeyResolution";

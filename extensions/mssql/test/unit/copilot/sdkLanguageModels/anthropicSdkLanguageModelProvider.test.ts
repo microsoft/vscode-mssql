@@ -18,9 +18,12 @@ import { TelemetryActions } from "../../../../src/sharedInterfaces/telemetry";
 import {
     AnthropicSdkClient,
     AnthropicSdkLanguageModelProvider,
-} from "../../../../src/copilot/sdkLanguageModels/anthropicSdkLanguageModelProvider";
-import { getSecretStorageKey, SdkApiKeyResolver } from "../../../../src/copilot/sdkLanguageModels";
-import { defaultAnthropicSdkModels } from "../../../../src/copilot/sdkLanguageModels/sdkModelCatalog";
+} from "../../../../src/nonproduction/sdkLanguageModels/anthropicSdkLanguageModelProvider";
+import {
+    getSecretStorageKey,
+    SdkApiKeyResolver,
+} from "../../../../src/nonproduction/sdkLanguageModels/apiKeyResolution";
+import { defaultAnthropicSdkModels } from "../../../../src/nonproduction/sdkLanguageModels/sdkModelCatalog";
 import { stubTelemetry } from "../../utils";
 import { previewService } from "../../../../src/previews/previewService";
 import {

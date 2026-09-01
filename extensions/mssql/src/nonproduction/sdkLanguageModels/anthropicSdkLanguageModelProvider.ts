@@ -11,8 +11,8 @@ import type {
     MessageCreateParamsBase,
     MessageStreamEvent,
 } from "@anthropic-ai/sdk/resources/messages";
-import { approximateTokenCount } from "../languageModels/shared/tokenApproximation";
-import { LanguageModelChatInformation } from "../languageModels/shared/providerModelCatalog";
+import { approximateTokenCount } from "../../copilot/languageModels/shared/tokenApproximation";
+import { LanguageModelChatInformation } from "../../copilot/languageModels/shared/providerModelCatalog";
 import {
     getSdkErrorMessage,
     LanguageModelChatResponseProgress,

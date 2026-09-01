@@ -9,7 +9,7 @@ import * as Constants from "../../../../src/constants/constants";
 import {
     getSecretStorageKey,
     SdkApiKeyResolver,
-} from "../../../../src/copilot/sdkLanguageModels/apiKeyResolution";
+} from "../../../../src/nonproduction/sdkLanguageModels/apiKeyResolution";
 import { stubTelemetry } from "../../utils";
 import { createSdkExtensionContext, stubWorkspaceConfiguration } from "./sdkProviderTestUtils";
 
