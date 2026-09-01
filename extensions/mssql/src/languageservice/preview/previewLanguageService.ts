@@ -56,7 +56,12 @@ import {
     showStatsCommand,
     statsScheme,
 } from "./previewLanguageServiceConstants";
-import type { PreviewDocumentState, ResolvedDefinitionTarget } from "./previewLanguageServiceState";
+import type {
+    PreviewDocumentState,
+    PreviewOperationFailure,
+    PreviewOperationStage,
+    ResolvedDefinitionTarget,
+} from "./previewLanguageServiceState";
 import {
     PreviewCompletionProvider,
     PreviewDefinitionDocumentProvider,
@@ -265,9 +270,7 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
                 this._metadataRefresh.refreshMetadata(uri, true),
             ),
             vscode.workspace.onDidOpenTextDocument((document) => this.openDocument(document)),
-            vscode.workspace.onDidChangeTextDocument((event) =>
-                this.changeDocument(event.document),
-            ),
+            vscode.workspace.onDidChangeTextDocument((event) => this.changeDocument(event)),
             vscode.workspace.onDidCloseTextDocument((document) => this.closeDocument(document.uri)),
             vscode.workspace.onDidChangeConfiguration((event) => {
                 if (
@@ -359,6 +362,7 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
             queue: Promise.resolve(),
             syncedVersion: document.version,
             syncedText: document.getText(),
+            incrementalFallbackCount: 0,
             refreshing: false,
             rebindQueued: false,
             profileGeneration: runtime.capabilities.generation,
@@ -381,7 +385,7 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
         );
         this._documents.set(key, state);
 
-        this.enqueue(state, async () => {
+        this.enqueue(state, "full-open", async () => {
             const snapshot = await state.runtime.open(key, state.syncedVersion, state.syncedText);
             this.publishDiagnostics(state, snapshot);
         });
@@ -393,7 +397,8 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
         this.fireStatusChanged(state);
     }
 
-    private changeDocument(document: vscode.TextDocument): void {
+    private changeDocument(event: vscode.TextDocumentChangeEvent): void {
+        const document = event.document;
         if (!this._enabled || !isSqlDocument(document)) return;
         const key = document.uri.toString();
         let state = this._documents.get(key);
@@ -405,23 +410,25 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
 
         const version = document.version;
         const text = document.getText();
-        this.enqueue(state, async () => {
+        const contentChanges = [...event.contentChanges];
+        this.enqueue(state, "incremental-change", async () => {
             if (version <= state.syncedVersion && text === state.syncedText) return;
-            const change = computeSingleTextChange(state.syncedText, text);
-            let snapshot: DocumentAnalysisSnapshot;
-            try {
-                snapshot = await state.runtime.change(
-                    key,
-                    state.syncedVersion,
-                    version,
-                    change ? [change] : [],
-                );
-            } catch {
-                snapshot = await state.runtime.open(key, version, text);
+            const changes = toSequentialTextChanges(state.syncedText, text, contentChanges);
+            const update = await changeRuntimeWithFallback(
+                state.runtime,
+                key,
+                state.syncedVersion,
+                version,
+                changes,
+                text,
+            );
+            if (update.failure) {
+                state.incrementalFallbackCount++;
+                state.lastOperationFailure = update.failure;
             }
             state.syncedVersion = version;
             state.syncedText = text;
-            this.publishDiagnostics(state, snapshot);
+            this.publishDiagnostics(state, update.snapshot);
         });
     }
 
@@ -496,7 +503,11 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
         });
     }
 
-    private enqueue(state: PreviewDocumentState, operation: () => Promise<void>): void {
+    private enqueue(
+        state: PreviewDocumentState,
+        stage: PreviewOperationStage,
+        operation: () => Promise<void>,
+    ): void {
         state.queue = state.queue
             .then(async () => {
                 if (!state.disposed && this._documents.get(state.connectionUri) === state) {
@@ -505,7 +516,11 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
             })
             .catch((error: unknown) => {
                 if (!state.disposed) {
-                    state.lastRefreshError = errorMessage(error);
+                    state.lastOperationFailure = {
+                        stage,
+                        message: errorMessage(error),
+                        fallbackAttempted: false,
+                    };
                     this.fireStatusChanged(state);
                 }
             });
@@ -518,7 +533,7 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
      * rather than a reparse. Facts that resolve to the profile already in force do nothing.
      */
     private scheduleReprofile(state: PreviewDocumentState): void {
-        this.enqueue(state, async () => {
+        this.enqueue(state, "reprofile", async () => {
             if (state.disposed) return;
             // Facts are read when the reprofile runs rather than when it was queued, so a
             // connection that changed while the queue drained is not adopted from stale values.
@@ -585,7 +600,7 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
     private scheduleRebind(state: PreviewDocumentState): void {
         if (state.rebindQueued) return;
         state.rebindQueued = true;
-        this.enqueue(state, async () => {
+        this.enqueue(state, "rebind", async () => {
             state.rebindQueued = false;
             const snapshot = await state.runtime.rebind(state.connectionUri, state.syncedVersion);
             this.publishDiagnostics(state, snapshot);
@@ -785,6 +800,8 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
                     metadataRefreshInProgress: state?.refreshing ?? false,
                     lastMetadataRefreshMs: state?.lastRefreshMs,
                     lastMetadataRefreshError: state?.lastRefreshError,
+                    incrementalFallbackCount: state?.incrementalFallbackCount ?? 0,
+                    lastOperationFailure: state?.lastOperationFailure,
                 },
                 languageService: stats ?? null,
             },
@@ -820,8 +837,90 @@ export function computeSingleTextChange(previous: string, next: string): TextCha
     return { start, end: previousEnd, text: next.slice(start, nextEnd) };
 }
 
-function isSqlDocument(document: vscode.TextDocument): boolean {
-    return document.languageId === "sql" && document.uri.scheme !== statsScheme;
+/** Applies an exact incremental update and records when correctness required a cold-open fallback. */
+export async function changeRuntimeWithFallback(
+    runtime: Pick<LanguageServiceRuntime, "change" | "open">,
+    uri: string,
+    fromVersion: number,
+    toVersion: number,
+    changes: readonly TextChange[],
+    text: string,
+): Promise<{
+    readonly snapshot: DocumentAnalysisSnapshot;
+    readonly failure?: PreviewOperationFailure;
+}> {
+    try {
+        return { snapshot: await runtime.change(uri, fromVersion, toVersion, changes) };
+    } catch (incrementalError) {
+        try {
+            return {
+                snapshot: await runtime.open(uri, toVersion, text),
+                failure: {
+                    stage: "incremental-change",
+                    message: errorMessage(incrementalError),
+                    fallbackAttempted: true,
+                    fallbackSucceeded: true,
+                },
+            };
+        } catch (fullOpenError) {
+            throw new Error(
+                `Incremental change failed (${errorMessage(incrementalError)}); ` +
+                    `full-open fallback failed (${errorMessage(fullOpenError)}).`,
+                { cause: fullOpenError },
+            );
+        }
+    }
+}
+
+/** Converts VS Code edit deltas to verified sequential UTF-16 changes. */
+export function toSequentialTextChanges(
+    previous: string,
+    next: string,
+    contentChanges: readonly Pick<
+        vscode.TextDocumentContentChangeEvent,
+        "rangeOffset" | "rangeLength" | "text"
+    >[],
+): readonly TextChange[] {
+    const direct = contentChanges.map(toTextChange);
+    if (applySequentialChanges(previous, direct) === next) return direct;
+
+    const descending = [...direct].sort((left, right) => right.start - left.start);
+    if (applySequentialChanges(previous, descending) === next) return descending;
+
+    const fallback = computeSingleTextChange(previous, next);
+    return fallback ? [fallback] : [];
+}
+
+function toTextChange(
+    change: Pick<vscode.TextDocumentContentChangeEvent, "rangeOffset" | "rangeLength" | "text">,
+): TextChange {
+    return {
+        start: change.rangeOffset,
+        end: change.rangeOffset + change.rangeLength,
+        text: change.text,
+    };
+}
+
+function applySequentialChanges(
+    previous: string,
+    changes: readonly TextChange[],
+): string | undefined {
+    let text = previous;
+    for (const change of changes) {
+        if (change.start < 0 || change.end < change.start || change.end > text.length) {
+            return undefined;
+        }
+        text = text.slice(0, change.start) + change.text + text.slice(change.end);
+    }
+    return text;
+}
+
+export function isSqlDocument(document: vscode.TextDocument): boolean {
+    return (
+        document.languageId === "sql" &&
+        document.uri.scheme !== statsScheme &&
+        document.uri.scheme !== definitionScheme
+    );
 }
 
 function asVscodeDisposable(disposable: { dispose(): void }): vscode.Disposable {

@@ -29,6 +29,9 @@ export class PreviewCompletionProvider implements vscode.CompletionItemProvider 
         vscode.CompletionItem,
         {
             readonly document: vscode.TextDocument;
+            readonly documentVersion: number;
+            readonly metadataGeneration: number;
+            readonly profileGeneration: string;
             readonly item: ServiceCompletionItem;
             readonly state: PreviewDocumentState;
         }
@@ -89,7 +92,14 @@ export class PreviewCompletionProvider implements vscode.CompletionItemProvider 
             return new vscode.CompletionList(
                 result.items.map((item) => {
                     const converted = toVscodeCompletionItem(document, item);
-                    this._serviceItems.set(converted, { document, item, state });
+                    this._serviceItems.set(converted, {
+                        document,
+                        documentVersion: document.version,
+                        metadataGeneration: state.metadata.pin().generation,
+                        profileGeneration: state.profileGeneration,
+                        item,
+                        state,
+                    });
                     return converted;
                 }),
                 result.incomplete,
@@ -106,13 +116,32 @@ export class PreviewCompletionProvider implements vscode.CompletionItemProvider 
         const source = this._serviceItems.get(item);
         if (!source || token.isCancellationRequested || source.state.disposed) return item;
         try {
+            await source.state.queue;
+            if (!this.isCurrent(source) || token.isCancellationRequested) return item;
             const resolved = await source.state.features.resolveCompletion(source.item);
-            return token.isCancellationRequested
+            return token.isCancellationRequested || !this.isCurrent(source)
                 ? item
                 : toVscodeCompletionItem(source.document, resolved);
         } catch {
             return item;
         }
+    }
+
+    private isCurrent(source: {
+        readonly document: vscode.TextDocument;
+        readonly documentVersion: number;
+        readonly metadataGeneration: number;
+        readonly profileGeneration: string;
+        readonly state: PreviewDocumentState;
+    }): boolean {
+        return (
+            this._state(source.document.uri) === source.state &&
+            !source.state.disposed &&
+            source.document.version === source.documentVersion &&
+            source.state.syncedVersion === source.documentVersion &&
+            source.state.metadata.pin().generation === source.metadataGeneration &&
+            source.state.profileGeneration === source.profileGeneration
+        );
     }
 }
 
@@ -226,9 +255,11 @@ export class PreviewSignatureHelpProvider implements vscode.SignatureHelpProvide
             );
             if (!result && state.metadata.waitForHydration) {
                 await waitForInteractiveHydration(state.metadata, token, 1_000);
+                await state.queue;
                 if (
                     token.isCancellationRequested ||
                     state.disposed ||
+                    this._state(document.uri) !== state ||
                     document.version !== requestedVersion ||
                     state.syncedVersion !== requestedVersion
                 ) {

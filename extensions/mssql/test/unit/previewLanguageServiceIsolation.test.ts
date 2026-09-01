@@ -101,4 +101,17 @@ suite("Preview language service isolation", () => {
             sinon.match((diagnostics: vscode.Diagnostic[]) => diagnostics.length === 0),
         );
     });
+
+    test("leaves production-only feature routes untouched in preview mode", () => {
+        const middleware = createProductionLanguageServiceMiddleware({
+            isPreviewEnabled: () => true,
+        });
+
+        expect(middleware.provideReferences).to.equal(undefined);
+        expect(middleware.provideDocumentSymbols).to.equal(undefined);
+        expect(middleware.provideCodeActions).to.equal(undefined);
+        expect(middleware.provideDocumentFormattingEdits).to.equal(undefined);
+        expect(middleware.provideRenameEdits).to.equal(undefined);
+        expect(middleware.provideDocumentLinks).to.equal(undefined);
+    });
 });

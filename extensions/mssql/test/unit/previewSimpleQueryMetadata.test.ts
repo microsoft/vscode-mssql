@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from "chai";
+import * as sinon from "sinon";
+import * as vscode from "vscode";
 import {
     InMemoryMetadataProvider,
     type SimpleQueryExecutor,
@@ -13,9 +15,12 @@ import {
 import { VscodeMssqlSimpleQueryMetadataLoader } from "../../src/languageservice/preview/simpleQueryMetadata";
 import {
     completionHydrationTimeoutMs,
+    changeRuntimeWithFallback,
     computeSingleTextChange,
+    isSqlDocument,
     isPreviewStatsCodeLensEnabled,
     metadataSectionsInvalidatedByExecutedSql,
+    toSequentialTextChanges,
 } from "../../src/languageservice/preview/previewLanguageService";
 
 suite("Preview language service integration", () => {
@@ -470,6 +475,58 @@ suite("Preview language service integration", () => {
         );
         expect(change.start).to.equal(previous.lastIndexOf("1"));
         expect(change.end).to.equal(previous.lastIndexOf("1") + 1);
+    });
+
+    test("preserves exact disjoint VS Code edit deltas", () => {
+        const previous = "SELECT one; SELECT two;";
+        const next = "SELECT 1; SELECT 2;";
+        const changes = toSequentialTextChanges(previous, next, [
+            { rangeOffset: 7, rangeLength: 3, text: "1" },
+            { rangeOffset: 19, rangeLength: 3, text: "2" },
+        ]);
+
+        expect(changes).to.deep.equal([
+            { start: 19, end: 22, text: "2" },
+            { start: 7, end: 10, text: "1" },
+        ]);
+    });
+
+    test("reports an incremental failure when full-open fallback succeeds", async () => {
+        const snapshot = {} as never;
+        const runtime = {
+            change: sinon.stub().rejects(new Error("incremental failed")),
+            open: sinon.stub().resolves(snapshot),
+        };
+
+        const result = await changeRuntimeWithFallback(
+            runtime,
+            "file:///fallback.sql",
+            1,
+            2,
+            [{ start: 0, end: 0, text: "-" }],
+            "-SELECT 1",
+        );
+
+        expect(result.snapshot).to.equal(snapshot);
+        expect(result.failure).to.deep.equal({
+            stage: "incremental-change",
+            message: "incremental failed",
+            fallbackAttempted: true,
+            fallbackSucceeded: true,
+        });
+        expect(runtime.open).to.have.been.calledWith("file:///fallback.sql", 2, "-SELECT 1");
+    });
+
+    test("does not analyze generated definition or stats documents as SQL editors", () => {
+        const document = (scheme: string) =>
+            ({
+                languageId: "sql",
+                uri: { scheme },
+            }) as vscode.TextDocument;
+
+        expect(isSqlDocument(document("file"))).to.equal(true);
+        expect(isSqlDocument(document("mssql-definition"))).to.equal(false);
+        expect(isSqlDocument(document("mssql-language-service-stats"))).to.equal(false);
     });
 
     test("requires both preview flags before showing the stats CodeLens", () => {

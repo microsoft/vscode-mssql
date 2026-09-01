@@ -100,10 +100,10 @@ npm run test:integration
 npm run test:performance
 ```
 
-`test:offline` includes every non-live suite, including corpus and performance gates. `test:all`
-additionally includes live integration tests and therefore requires the documented test database.
-Correctness suites use normal Node file isolation; only the retained-memory performance lane opts
-into a shared process.
+`test:offline` includes type-contract tests and every non-live runtime suite, including corpus and
+performance gates. `test:all` additionally includes live integration tests and therefore requires
+the documented test database. Correctness suites use normal Node file isolation; only the
+retained-memory performance lane opts into a shared process.
 
 ## Grammar generation
 

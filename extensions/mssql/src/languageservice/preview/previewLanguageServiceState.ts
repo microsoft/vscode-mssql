@@ -24,6 +24,15 @@ export interface ResolvedDefinitionTarget {
     readonly targetSelectionRange: vscode.Range;
 }
 
+export type PreviewOperationStage = "full-open" | "incremental-change" | "rebind" | "reprofile";
+
+export interface PreviewOperationFailure {
+    readonly stage: PreviewOperationStage;
+    readonly message: string;
+    readonly fallbackAttempted: boolean;
+    readonly fallbackSucceeded?: boolean;
+}
+
 /** All mutable host coordination for one document; analysis products remain immutable snapshots. */
 export interface PreviewDocumentState {
     readonly documentUri: vscode.Uri;
@@ -37,6 +46,8 @@ export interface PreviewDocumentState {
     queue: Promise<void>;
     syncedVersion: number;
     syncedText: string;
+    incrementalFallbackCount: number;
+    lastOperationFailure?: PreviewOperationFailure;
     refreshing: boolean;
     lastRefreshMs?: number;
     lastRefreshError?: string;

@@ -49,7 +49,11 @@ const hasHeapFlag = [...process.execArgv, process.env.NODE_OPTIONS ?? ""].some((
 if (!hasHeapFlag) {
     const { status, error } = spawnSync(
         process.execPath,
-        [`--max-old-space-size=${HEAP_MB}`, fileURLToPath(import.meta.url)],
+        [
+            `--max-old-space-size=${HEAP_MB}`,
+            fileURLToPath(import.meta.url),
+            ...process.argv.slice(2),
+        ],
         { stdio: "inherit" },
     );
     if (error) throw error;
@@ -81,15 +85,18 @@ await writeFile(
 );
 
 async function grammarInputHash(grammarSource) {
-    const [script, generatorPackage] = await Promise.all([
+    const [script, generatorPackage, generatorEntry] = await Promise.all([
         readFile(new URL(import.meta.url), "utf8"),
         readFile(new URL("../node_modules/@lezer/generator/package.json", import.meta.url), "utf8"),
+        readFile(new URL(import.meta.resolve("@lezer/generator")), "utf8"),
     ]);
     const generatorVersion = JSON.parse(generatorPackage).version;
     return digest(
         [
             "tsql-language-service-grammar-v1",
             generatorVersion,
+            digest(generatorPackage),
+            digest(generatorEntry),
             "moduleStyle=cjs;includeNames=true",
             script,
             grammarSource,

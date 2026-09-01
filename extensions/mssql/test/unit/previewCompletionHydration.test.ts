@@ -6,7 +6,10 @@
 import { expect } from "chai";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
-import { PreviewCompletionProvider } from "../../src/languageservice/preview/previewVscodeFeatureProviders";
+import {
+    PreviewCompletionProvider,
+    PreviewSignatureHelpProvider,
+} from "../../src/languageservice/preview/previewVscodeFeatureProviders";
 import type { PreviewDocumentState } from "../../src/languageservice/preview/previewLanguageServiceState";
 
 suite("Preview completion metadata hydration", () => {
@@ -27,6 +30,7 @@ suite("Preview completion metadata hydration", () => {
         const state = {
             connectionUri: uri.toString(),
             syncedVersion: 1,
+            profileGeneration: "profile-1",
             disposed: false,
             queue: Promise.resolve(),
             features: {
@@ -41,6 +45,7 @@ suite("Preview completion metadata hydration", () => {
                 },
             },
             metadata: {
+                pin: () => ({ generation: rebound ? 2 : 1 }),
                 waitForHydration() {
                     // Metadata publication schedules the host-owned rebind asynchronously. The
                     // hydration promise itself may settle before that queue entry has run.
@@ -111,13 +116,14 @@ suite("Preview completion metadata hydration", () => {
         const state = {
             connectionUri: uri.toString(),
             syncedVersion: 1,
+            profileGeneration: "profile-1",
             disposed: false,
             queue: Promise.resolve(),
             features: {
                 completion,
                 resolveCompletion,
             },
-            metadata: {},
+            metadata: { pin: () => ({ generation: 1 }) },
         } as unknown as PreviewDocumentState;
         const provider = new PreviewCompletionProvider(
             () => true,
@@ -146,6 +152,105 @@ suite("Preview completion metadata hydration", () => {
             expect((resolved.insertText as vscode.SnippetString).value).to.equal(
                 "dbo.RunReport @Id = ${1:NULL}",
             );
+        } finally {
+            cancellation.dispose();
+        }
+    });
+
+    test("does not resolve an item after its document snapshot changes", async () => {
+        const uri = vscode.Uri.parse("file:///stale-completion.sql");
+        const resolveCompletion = sandbox.stub().resolves({ label: "resolved", kind: "table" });
+        const state = {
+            connectionUri: uri.toString(),
+            syncedVersion: 1,
+            profileGeneration: "profile-1",
+            disposed: false,
+            queue: Promise.resolve(),
+            features: {
+                completion: () => ({
+                    incomplete: false,
+                    items: [{ label: "Customers", kind: "table" }],
+                }),
+                resolveCompletion,
+            },
+            metadata: { pin: () => ({ generation: 1 }) },
+        } as unknown as PreviewDocumentState;
+        const provider = new PreviewCompletionProvider(
+            () => true,
+            () => state,
+        );
+        const document = {
+            uri,
+            version: 1,
+            offsetAt: () => 0,
+            positionAt: () => new vscode.Position(0, 0),
+        } as unknown as vscode.TextDocument;
+        const cancellation = new vscode.CancellationTokenSource();
+        try {
+            const completion = await provider.provideCompletionItems(
+                document,
+                new vscode.Position(0, 0),
+                cancellation.token,
+            );
+            state.syncedVersion = 2;
+
+            const selected = completion!.items[0];
+            expect(await provider.resolveCompletionItem(selected, cancellation.token)).to.equal(
+                selected,
+            );
+            expect(resolveCompletion).not.to.have.been.called;
+        } finally {
+            cancellation.dispose();
+        }
+    });
+
+    test("waits for the queued metadata rebind before retrying signature help", async () => {
+        const uri = vscode.Uri.parse("file:///signature-hydration.sql");
+        let rebound = false;
+        const signatureHelp = sandbox.stub().callsFake(() =>
+            rebound
+                ? {
+                      signatures: [{ label: "dbo.p(@Id int)", parameters: [] }],
+                      activeSignature: 0,
+                      activeParameter: 0,
+                  }
+                : undefined,
+        );
+        const state = {
+            connectionUri: uri.toString(),
+            syncedVersion: 1,
+            profileGeneration: "profile-1",
+            disposed: false,
+            queue: Promise.resolve(),
+            features: { signatureHelp },
+            metadata: {
+                waitForHydration() {
+                    state.queue = Promise.resolve().then(() => {
+                        rebound = true;
+                    });
+                    return Promise.resolve();
+                },
+            },
+        } as unknown as PreviewDocumentState;
+        const provider = new PreviewSignatureHelpProvider(
+            () => true,
+            () => state,
+        );
+        const document = {
+            uri,
+            version: 1,
+            offsetAt: () => 0,
+        } as unknown as vscode.TextDocument;
+        const cancellation = new vscode.CancellationTokenSource();
+        try {
+            const result = await provider.provideSignatureHelp(
+                document,
+                new vscode.Position(0, 0),
+                cancellation.token,
+            );
+
+            expect(result?.signatures[0].label).to.equal("dbo.p(@Id int)");
+            expect(signatureHelp).to.have.been.calledTwice;
         } finally {
             cancellation.dispose();
         }

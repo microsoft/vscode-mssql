@@ -58,7 +58,7 @@
         "test:coverage": "npm run test:unit:typecheck && c8 tsx --test \"test/unit/**/*.test.ts\"",
         "test:performance": "npm run test:performance:typecheck && node --import tsx --expose-gc --test --test-isolation=none test/performance/*.test.ts",
         "test:performance:typecheck": "tsc -p test/performance/tsconfig.json",
-        "test:offline": "npm run test:unit && npm run test:performance",
+        "test:offline": "npm run test:types && npm run test:unit && npm run test:performance",
         "test:all": "npm run test:offline && npm run test:integration",
         "test:integration": "npm run test:integration:typecheck && node --import tsx --test --test-concurrency=1 test/integration/*.test.ts",
         "test:integration:typecheck": "tsc -p test/integration/tsconfig.json",
@@ -90,7 +90,7 @@
             "src/**/*.ts"
         ],
         "exclude": [
-            "src/syntax/generated/**"
+            "src/syntax/lezer/generated/**"
         ],
         "reporter": [
             "text",
