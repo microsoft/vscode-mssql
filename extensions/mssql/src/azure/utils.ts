@@ -95,11 +95,9 @@ export function getEnableConnectionPoolingConfig(): boolean {
 }
 
 export function getUseMsalEntraMfaAuthConfig(): boolean {
-    return (
-        vscode.workspace
-            .getConfiguration()
-            .get<boolean>(ExtensionConstants.configUseMsalEntraMfaAuth, false) ?? false
-    );
+    return vscode.workspace
+        .getConfiguration()
+        .get<boolean>(ExtensionConstants.configUseMsalEntraMfaAuth, false);
 }
 
 export function getAppDataPath(): string {

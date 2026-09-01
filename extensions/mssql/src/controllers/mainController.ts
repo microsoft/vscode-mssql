@@ -1136,9 +1136,11 @@ export default class MainController implements vscode.Disposable {
                 experimentalFeaturesEnabled: previewService.experimentalFeaturesEnabled.toString(),
                 cloudType: getCloudId(),
                 previewFeatureOverrides: JSON.stringify(previewService.getNonDefaultOverrides()),
-useMsalEntraMfaAuth: String(
-    vscode.workspace.getConfiguration().get(Constants.configUseMsalEntraMfaAuth, false) ?? false,
-),
+                useMsalEntraMfaAuth: String(
+                    vscode.workspace
+                        .getConfiguration()
+                        .get(Constants.configUseMsalEntraMfaAuth, false) ?? false,
+                ),
                 newEditorConnectionBehavior: vscode.workspace
                     .getConfiguration()
                     .get<string>(
