@@ -3,14 +3,20 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import type { MetadataView } from "../metadata/index.js";
+import type { ColumnMetadata, MetadataView } from "../metadata/index.js";
 import type { DocumentAnalysisSnapshot } from "../runtime/index.js";
-import { multipartIdentifierParts, normalizeIdentifier } from "../semantics/index.js";
+import {
+    multipartIdentifierParts,
+    normalizeIdentifier,
+    normalizeStringLiteral,
+} from "../semantics/index.js";
 import type { SyntaxNode } from "../syntax/index.js";
 import {
     ancestorOfKind as ancestor,
+    directChildOfKind as directChild,
     descendantsOfKind as descendants,
     firstDescendantOfKind as firstDescendant,
+    lastDescendantOfKind as lastDescendant,
     sameSyntaxNode,
 } from "../syntax/treeUtilities.js";
 import { CatalogFeatureContext } from "./catalogFeatureContext.js";
@@ -31,6 +37,15 @@ export interface CompletionExpansionResult {
  * identified syntax node. They deliberately do not classify a SQL clause or parse an identifier.
  */
 export class CompletionExpansionProvider {
+    private readonly _cteProjectionCache = new WeakMap<
+        DocumentAnalysisSnapshot,
+        Map<string, ProjectedColumnsResult>
+    >();
+    private readonly _cteIndexCache = new WeakMap<
+        DocumentAnalysisSnapshot,
+        Map<string, readonly SyntaxNode[]>
+    >();
+
     public constructor(private readonly _catalog: CatalogFeatureContext) {}
 
     public star(
@@ -42,7 +57,7 @@ export class CompletionExpansionProvider {
         const expansionSite = selectExpansionStar(snapshot, offset);
         if (!expansionSite) return { incomplete: false };
         const { star, query } = expansionSite;
-        const ownSources = querySourcesWithin(snapshot, view, query);
+        const ownSources = querySourcesWithin(snapshot, view, query, false);
         const sourcePrefix = sourcePrefixForStar(text.slice(star.start, star.end));
         if (ownSources.length === 0 && sourcePrefix === undefined) return { incomplete: false };
         const ownSelected = sourcePrefix
@@ -52,7 +67,7 @@ export class CompletionExpansionProvider {
             : ownSources;
         const selected =
             sourcePrefix && ownSelected.length === 0
-                ? visibleQuerySources(snapshot, view, query).filter((source) =>
+                ? visibleQuerySources(snapshot, view, query, false).filter((source) =>
                       view.nameComparison.equals(source.qualifier, sourcePrefix),
                   )
                 : ownSelected;
@@ -60,9 +75,7 @@ export class CompletionExpansionProvider {
         const expanded: string[] = [];
         let incomplete = false;
         for (const source of selected) {
-            const columns = source.columns
-                ? { value: source.columns, incomplete: false }
-                : this._catalog.columns(view, source.object!, "completion");
+            const columns = this.sourceColumns(snapshot, view, query, source, new Set(), 0);
             incomplete ||= columns.incomplete;
             if (!columns.value) continue;
             const qualify = sourcePrefix !== undefined || selected.length > 1;
@@ -92,6 +105,146 @@ export class CompletionExpansionProvider {
                 },
             },
         };
+    }
+
+    /**
+     * Resolves document-local projection stars only when expansion is requested. Ordinary binding
+     * keeps its cheap syntactic CTE shape, while this path follows CTE dependencies once and caches
+     * them on the immutable analysis snapshot.
+     */
+    private sourceColumns(
+        snapshot: DocumentAnalysisSnapshot,
+        view: MetadataView,
+        query: SyntaxNode,
+        source: ReturnType<typeof querySourcesWithin>[number],
+        active: Set<string>,
+        depth: number,
+    ): ProjectedColumnsResult {
+        const cte = this.visibleCte(snapshot, view, query, source.qualifier);
+        if (cte) return this.cteColumns(snapshot, view, cte, active, depth + 1);
+        if (source.object) return this._catalog.columns(view, source.object, "completion");
+        if (source.columns && source.columns.length > 0) {
+            return { value: source.columns, incomplete: false };
+        }
+        return { value: source.columns, incomplete: false };
+    }
+
+    private cteColumns(
+        snapshot: DocumentAnalysisSnapshot,
+        view: MetadataView,
+        cte: SyntaxNode,
+        active: Set<string>,
+        depth: number,
+    ): ProjectedColumnsResult {
+        if (depth > maxCteProjectionDepth) return { incomplete: false };
+        const key = `${cte.start}:${cte.end}`;
+        const cache = this.cteProjectionCache(snapshot);
+        const cached = cache.get(key);
+        if (cached) return cached;
+        if (active.has(key)) return { incomplete: false };
+        active.add(key);
+        try {
+            const explicit = directChild(cte, "ColumnNameList");
+            if (explicit) {
+                const result = {
+                    value: descendants(explicit, "IdentifierName").map((name) => ({
+                        name: normalizeIdentifier(snapshot.text.text.slice(name.start, name.end)),
+                    })),
+                    incomplete: false,
+                } satisfies ProjectedColumnsResult;
+                cache.set(key, result);
+                return result;
+            }
+            const query = firstDescendant(cte, "QuerySpecification");
+            const list = query && firstDescendant(query, "SelectList");
+            if (!query || !list) return { incomplete: false };
+            const sources = querySourcesWithin(snapshot, view, query, false);
+            const columns: ColumnMetadata[] = [];
+            let incomplete = false;
+            for (const element of descendants(list, "SelectElement")) {
+                if (!sameSyntaxNode(ancestor(element, ["QuerySpecification"]), query)) continue;
+                const star = projectionStar(element);
+                if (star) {
+                    const prefix = sourcePrefixForStar(
+                        snapshot.text.text.slice(star.start, star.end),
+                    );
+                    const selected = prefix
+                        ? sources.filter((source) =>
+                              view.nameComparison.equals(source.qualifier, prefix),
+                          )
+                        : sources;
+                    for (const source of selected) {
+                        const projected = this.sourceColumns(
+                            snapshot,
+                            view,
+                            query,
+                            source,
+                            active,
+                            depth,
+                        );
+                        incomplete ||= projected.incomplete;
+                        if (projected.value) columns.push(...projected.value);
+                        if (columns.length > maxProjectedColumns) return { incomplete };
+                    }
+                    continue;
+                }
+                const column = projectedColumn(snapshot, element);
+                if (column) columns.push(column);
+                if (columns.length > maxProjectedColumns) return { incomplete };
+            }
+            const result = { value: columns, incomplete } satisfies ProjectedColumnsResult;
+            cache.set(key, result);
+            return result;
+        } finally {
+            active.delete(key);
+        }
+    }
+
+    private cteProjectionCache(
+        snapshot: DocumentAnalysisSnapshot,
+    ): Map<string, ProjectedColumnsResult> {
+        let cache = this._cteProjectionCache.get(snapshot);
+        if (!cache) {
+            cache = new Map();
+            this._cteProjectionCache.set(snapshot, cache);
+        }
+        return cache;
+    }
+
+    private visibleCte(
+        snapshot: DocumentAnalysisSnapshot,
+        view: MetadataView,
+        query: SyntaxNode,
+        name: string,
+    ): SyntaxNode | undefined {
+        const statement = ancestor(query, ["Statement"]);
+        if (!statement) return undefined;
+        let index = this._cteIndexCache.get(snapshot);
+        if (!index) {
+            index = new Map();
+            for (const cte of descendants(snapshot.syntax.root(), "CommonTableExpression")) {
+                const identifier = firstDescendant(cte, "IdentifierName");
+                if (!identifier) continue;
+                const key = view.nameComparison.key(
+                    normalizeIdentifier(snapshot.text.text.slice(identifier.start, identifier.end)),
+                );
+                const declarations = index.get(key) ?? [];
+                index.set(key, [...declarations, cte]);
+            }
+            this._cteIndexCache.set(snapshot, index);
+        }
+        const candidates = index.get(view.nameComparison.key(name)) ?? [];
+        for (let candidate = candidates.length - 1; candidate >= 0; candidate--) {
+            const cte = candidates[candidate]!;
+            if (
+                cte.start < query.start &&
+                cte.start >= statement.start &&
+                cte.end <= statement.end
+            ) {
+                return cte;
+            }
+        }
+        return undefined;
     }
 
     public insert(
@@ -153,6 +306,38 @@ export class CompletionExpansionProvider {
             },
         };
     }
+}
+
+interface ProjectedColumnsResult {
+    readonly value?: readonly ColumnMetadata[];
+    readonly incomplete: boolean;
+}
+
+const maxCteProjectionDepth = 256;
+const maxProjectedColumns = 4_096;
+
+function projectionStar(element: SyntaxNode): SyntaxNode | undefined {
+    const star = firstDescendant(element, "StarExpression") ?? firstDescendant(element, "Star");
+    return star && !ancestor(star, ["FunctionCall"]) ? star : undefined;
+}
+
+function projectedColumn(
+    snapshot: DocumentAnalysisSnapshot,
+    element: SyntaxNode,
+): ColumnMetadata | undefined {
+    const stringAlias = directChild(element, "StringLiteral");
+    if (stringAlias) {
+        return {
+            name: normalizeStringLiteral(
+                snapshot.text.text.slice(stringAlias.start, stringAlias.end),
+            ),
+        };
+    }
+    const identifierAlias = directChild(element, "IdentifierName");
+    const name = identifierAlias ?? lastDescendant(element, "IdentifierName");
+    return name
+        ? { name: normalizeIdentifier(snapshot.text.text.slice(name.start, name.end)) }
+        : undefined;
 }
 
 function formatColumnList(columns: readonly string[], indent: string): string {

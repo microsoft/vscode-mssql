@@ -120,6 +120,21 @@ suite("local and grammar completion", () => {
         assert.deepEqual(columnLabels(items), ["Id", "Label"]);
     });
 
+    test("preserves CTE column types and gives columns the source-first rank", async () => {
+        const sql = [
+            "WITH Base AS (SELECT 1 AS Id, 'x' AS Label),",
+            "Combined AS (SELECT b.* FROM Base AS b)",
+            "SELECT c. FROM Combined AS c;",
+        ].join("\n");
+        const items = await complete(sql, sql.indexOf("c. FROM") + "c.".length);
+        const id = items.find((item) => item.label === "Id" && item.kind === "column");
+        const label = items.find((item) => item.label === "Label" && item.kind === "column");
+
+        assert.equal(id?.detail, "int — c");
+        assert.equal(label?.detail, "varchar — c");
+        assert.match(id?.sortText ?? "", /^02-/u);
+    });
+
     // Verifies derived tables and SELECT INTO expose their projected shapes without an eager AST.
     test("completes derived and SELECT INTO shapes", async () => {
         const derived =

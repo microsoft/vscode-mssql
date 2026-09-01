@@ -10954,6 +10954,9 @@
     <trans-unit id="mssql.selectedFabricWorkspaces">
       <source xml:lang="en">Selected Microsoft Fabric workspaces for browsing and managing SQL databases</source>
     </trans-unit>
+    <trans-unit id="mssql.preview.languageServiceMetadataProvider.description">
+      <source xml:lang="en">Selects the catalog provider used by the preview T-SQL language service. Shared metadata requires experimental features and the SQL Data Plane private preview setting.</source>
+    </trans-unit>
     <trans-unit id="mssql.userFeedback">
       <source xml:lang="en">Send Feedback</source>
     </trans-unit>
@@ -11158,8 +11161,14 @@
     <trans-unit id="mssql.resultsGrid.useDataOnlyEnumDescription">
       <source xml:lang="en">Use only row data to size columns automatically</source>
     </trans-unit>
+    <trans-unit id="mssql.preview.languageServiceMetadataProvider.sharedMetadata">
+      <source xml:lang="en">Use the extension-wide shared metadata catalog and its cross-database cache.</source>
+    </trans-unit>
     <trans-unit id="mssql.format.enablePreviewFormatter">
       <source xml:lang="en">Use the preview SQL formatter. Disable this setting to temporarily use the existing formatter.</source>
+    </trans-unit>
+    <trans-unit id="mssql.preview.languageServiceMetadataProvider.simpleQuery">
+      <source xml:lang="en">Use the preview language service&apos;s direct simple-query catalog.</source>
     </trans-unit>
     <trans-unit id="mssql.preview.useVscodeAccountsForEntraMFA.description">
       <source xml:lang="en">Uses VS Code signed-in accounts for Microsoft Entra ID MFA authentication to SQL. Restart Visual Studio Code after changing this setting.</source>

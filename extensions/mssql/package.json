@@ -2127,6 +2127,20 @@
                     "description": "%mssql.preview.languageService.description%",
                     "scope": "window"
                 },
+                "mssql.preview.languageServiceMetadataProvider": {
+                    "type": "string",
+                    "enum": [
+                        "simpleQuery",
+                        "sharedMetadata"
+                    ],
+                    "enumDescriptions": [
+                        "%mssql.preview.languageServiceMetadataProvider.simpleQuery%",
+                        "%mssql.preview.languageServiceMetadataProvider.sharedMetadata%"
+                    ],
+                    "default": "sharedMetadata",
+                    "description": "%mssql.preview.languageServiceMetadataProvider.description%",
+                    "scope": "window"
+                },
                 "mssql.preview.languageServiceStatsCodeLens": {
                     "type": "boolean",
                     "default": false,

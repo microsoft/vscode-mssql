@@ -10,7 +10,6 @@ import type {
     MetadataProvider,
 } from "@vscode-mssql/tsql-language-service";
 import type * as vscode from "vscode";
-import type { PreviewMetadataSessionLease } from "./previewMetadataSessionPool";
 
 /** The last full colorization published for one document, kept so deltas have a baseline. */
 export interface PreviewSemanticTokenCache {
@@ -39,7 +38,7 @@ export interface PreviewDocumentState {
     readonly connectionUri: string;
     readonly metadata: MetadataProvider;
     readonly metadataSessionKey?: string;
-    readonly metadataLease?: PreviewMetadataSessionLease;
+    readonly metadataLease?: vscode.Disposable;
     readonly runtime: LanguageServiceRuntime;
     readonly features: LanguageFeatureService;
     readonly disposables: vscode.Disposable[];

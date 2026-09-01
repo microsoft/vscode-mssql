@@ -36,6 +36,7 @@ import {
     typeEventKinds,
 } from "./model/catalogTimeline.js";
 import { itemsWithinRanges } from "./model/lookups.js";
+import { localColumnsForName } from "./model/scopeModel.js";
 import {
     compactMultipartName,
     lastMultipartIdentifierPartRange,
@@ -1223,8 +1224,7 @@ class ValidationContext {
         const local = this.localRelationEventAt(parts, source.start);
         if (local) return local.create ? local.columns : undefined;
         if (this.isCteReference(source, parts)) {
-            const cte = findCte(this._syntax, source, parts.at(-1)!, this._metadata);
-            return cte ? projectedColumns(this._syntax, cte) : undefined;
+            return localColumnsForName({ syntax: this._syntax }, parts, source.start);
         }
         const resolution = this._metadata.resolveObject(parts);
         if (resolution.kind !== "resolved") return undefined;

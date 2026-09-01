@@ -9,6 +9,10 @@ import type { Middleware } from "vscode-languageclient";
 export const previewLanguageServiceSetting = "mssql.preview.languageService";
 export const previewLanguageServiceStatsCodeLensSetting =
     "mssql.preview.languageServiceStatsCodeLens";
+export const previewLanguageServiceMetadataProviderSetting =
+    "mssql.preview.languageServiceMetadataProvider";
+
+export type PreviewLanguageServiceMetadataProvider = "simpleQuery" | "sharedMetadata";
 
 export function isPreviewLanguageServiceEnabled(): boolean {
     return vscode.workspace.getConfiguration().get<boolean>(previewLanguageServiceSetting, false);

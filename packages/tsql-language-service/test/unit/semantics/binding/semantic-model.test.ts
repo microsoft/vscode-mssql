@@ -196,6 +196,31 @@ suite("shared semantic model", () => {
         );
     });
 
+    test("carries projected columns through chained CTE stars", async () => {
+        const sql = [
+            "WITH Base AS (SELECT 1 AS Id, 'name' AS display_name),",
+            "Qualified AS (SELECT b.* FROM Base AS b),",
+            "Combined AS (SELECT * FROM Qualified UNION ALL SELECT * FROM Base)",
+            "SELECT Id, display_name FROM Combined;",
+        ].join("\n");
+        const { snapshot } = await open(sql);
+        const relation = snapshot.semantics.model.relationFor(
+            "Combined",
+            sql.lastIndexOf("Combined"),
+        );
+
+        assertDefined(relation, "expected the final CTE relation");
+        assertKnownColumns(relation);
+        assert.deepEqual(
+            relation.columns.map(({ name }) => name),
+            ["Id", "display_name"],
+        );
+        assert.equal(
+            snapshot.semantics.diagnostics.some(({ code }) => code === "MSSQL207"),
+            false,
+        );
+    });
+
     // A relation whose columns have not arrived is "unknown", never an empty list: the two answers
     // mean different things and only one of them may suppress a completion.
     test("keeps an unhydrated relation shape distinct from an empty one", async () => {

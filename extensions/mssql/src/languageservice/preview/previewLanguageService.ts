@@ -40,11 +40,12 @@ import {
 import {
     PreviewMetadataSessionPool,
     previewMetadataSessionKey,
-    type PreviewMetadataSessionLease,
 } from "./previewMetadataSessionPool";
 import {
     previewLanguageServiceSetting,
+    previewLanguageServiceMetadataProviderSetting,
     previewLanguageServiceStatsCodeLensSetting,
+    type PreviewLanguageServiceMetadataProvider,
 } from "./productionLanguageServiceIsolation";
 import { ScriptingObjectDefinitionProvider } from "./previewScriptedDefinitions";
 import { previewSemanticTokensLegend } from "./previewSemanticTokens";
@@ -80,6 +81,14 @@ import {
     isPreviewStatsCodeLensEnabled,
 } from "./previewLanguageServiceStatus";
 import { PreviewMetadataRefreshCoordinator } from "./previewMetadataRefreshCoordinator";
+import { SharedMetadataProvider } from "./sharedMetadataProvider";
+import { MetadataStoreService } from "../../services/metadata/metadataStoreService";
+import {
+    prepareConnection,
+    type ProfileSecretSource,
+} from "../../services/metadata/profileAuthAdapter";
+import { acquireSqlAccessTokenFromVscodeAccount } from "../../connectionconfig/azureHelpers";
+import { PrivatePreviewFeature, previewService } from "../../previews/previewService";
 
 export {
     completionHydrationTimeoutMs,
@@ -141,6 +150,7 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
     private readonly _statsUris = new Map<string, vscode.Uri>();
     private _enabled = false;
     private _statsCodeLensEnabled = false;
+    private _metadataProviderKind: PreviewLanguageServiceMetadataProvider = "sharedMetadata";
     private _disposed = false;
 
     private readonly _statsPanels = new Map<string, LanguageServiceStatsWebviewController>();
@@ -275,7 +285,10 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
             vscode.workspace.onDidChangeConfiguration((event) => {
                 if (
                     event.affectsConfiguration(previewLanguageServiceSetting) ||
-                    event.affectsConfiguration(previewLanguageServiceStatsCodeLensSetting)
+                    event.affectsConfiguration(previewLanguageServiceStatsCodeLensSetting) ||
+                    event.affectsConfiguration(previewLanguageServiceMetadataProviderSetting) ||
+                    event.affectsConfiguration("mssql.enableExperimentalFeatures") ||
+                    event.affectsConfiguration(PrivatePreviewFeature.SqlDataPlane)
                 ) {
                     this.applyConfiguration();
                 }
@@ -305,11 +318,14 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
             previewLanguageServiceStatsCodeLensSetting,
             false,
         );
+        const metadataProviderKind = this.configuredMetadataProvider(configuration);
         const previewChanged = enabled !== this._enabled;
         const statsCodeLensChanged = statsCodeLensEnabled !== this._statsCodeLensEnabled;
-        if (!previewChanged && !statsCodeLensChanged) return;
+        const metadataProviderChanged = metadataProviderKind !== this._metadataProviderKind;
+        if (!previewChanged && !statsCodeLensChanged && !metadataProviderChanged) return;
         this._enabled = enabled;
         this._statsCodeLensEnabled = statsCodeLensEnabled;
+        this._metadataProviderKind = metadataProviderKind;
         if (previewChanged) {
             if (enabled) {
                 for (const document of vscode.workspace.textDocuments) {
@@ -326,8 +342,23 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
             // Turning the preview off must drop its coloring rather than leave the last tokens
             // painted, and turning it on must repaint without waiting for the next edit.
             this._semanticTokensChanged.fire();
+        } else if (metadataProviderChanged && enabled) {
+            this.rebuildConnectedDocuments();
         }
         this._codeLensChanged.fire();
+    }
+
+    private configuredMetadataProvider(
+        configuration: vscode.WorkspaceConfiguration,
+    ): PreviewLanguageServiceMetadataProvider {
+        const requested = configuration.get<PreviewLanguageServiceMetadataProvider>(
+            previewLanguageServiceMetadataProviderSetting,
+            "sharedMetadata",
+        );
+        return requested === "sharedMetadata" &&
+            previewService.isPrivatePreviewEnabled(PrivatePreviewFeature.SqlDataPlane)
+            ? "sharedMetadata"
+            : "simpleQuery";
     }
 
     private stop(): void {
@@ -392,7 +423,12 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
 
         if (this._controller.connectionManager.isConnected(key)) {
             this.scheduleReprofile(state);
-            void this._metadataRefresh.refreshState(state, false);
+            // Shared metadata acquisition already publishes its cached snapshot immediately and
+            // starts live hydration. Forcing refresh() here duplicates that work and turns every
+            // database switch into a full H0-H7 reload. SimpleQuery still needs its initial load.
+            if (metadata.id === "simple-query") {
+                void this._metadataRefresh.refreshState(state, false);
+            }
         }
         this.fireStatusChanged(state);
     }
@@ -455,13 +491,16 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
             const key = document.uri.toString();
             const state = this._documents.get(key);
             const connected = this._controller.connectionManager.isConnected(key);
-            const expectedProvider = connected ? "simple-query" : "null";
+            const providerMatches = connected
+                ? this._metadataProviderKind === "sharedMetadata"
+                    ? state?.metadata.id === "shared-catalog" ||
+                      // Unsupported authentication and missing database context deliberately use
+                      // the compatibility provider until the connection itself changes.
+                      state?.metadata.id === "simple-query"
+                    : state?.metadata.id === "simple-query"
+                : state?.metadata.id === "null";
             const expectedSessionKey = connected ? this.metadataSessionKey(key) : undefined;
-            if (
-                !state ||
-                state.metadata.id !== expectedProvider ||
-                state.metadataSessionKey !== expectedSessionKey
-            ) {
+            if (!state || !providerMatches || state.metadataSessionKey !== expectedSessionKey) {
                 this.disposeState(key);
                 this.openDocument(document);
             }
@@ -471,14 +510,66 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
     private createMetadataBinding(connectionUri: string): {
         readonly provider: MetadataProvider;
         readonly key?: string;
-        readonly lease?: PreviewMetadataSessionLease;
+        readonly lease?: vscode.Disposable;
     } {
         if (!this._controller.connectionManager.isConnected(connectionUri)) {
             return { provider: new NullMetadataProvider() };
         }
         const key = this.metadataSessionKey(connectionUri);
+        if (this._metadataProviderKind === "sharedMetadata") {
+            const provider = this.createSharedMetadataProvider(connectionUri);
+            if (provider) return { provider, key, lease: provider };
+        }
         const lease = this._metadataSessions.acquire(key, connectionUri);
         return { provider: lease.provider, key, lease };
+    }
+
+    private createSharedMetadataProvider(
+        connectionUri: string,
+    ): SharedMetadataProvider | undefined {
+        const credentials =
+            this._controller.connectionManager.getConnectionInfoFromUri(connectionUri);
+        if (!credentials) return undefined;
+        let prepared: ReturnType<typeof prepareConnection>;
+        try {
+            prepared = prepareConnection(
+                credentials,
+                this._controller.connectionManager
+                    .connectionStore as unknown as ProfileSecretSource,
+                {
+                    acquireSqlAccessToken: async (profile) =>
+                        (
+                            await acquireSqlAccessTokenFromVscodeAccount(
+                                profile.accountId,
+                                profile.tenantId,
+                            )
+                        ).token.token,
+                },
+            );
+        } catch {
+            // The shared store intentionally supports only SQL Data Plane authentication modes.
+            // Preserve the existing SimpleQuery metadata path for every other connection.
+            return undefined;
+        }
+        const store = MetadataStoreService.get().store();
+        const info = this.serverInfo(connectionUri);
+        const database = credentials.database ?? prepared.defaultDatabase ?? "";
+        if (!database) return undefined;
+        return new SharedMetadataProvider({
+            acquireServer: () => store.acquireServer(prepared),
+            acquireDatabase: (requestedDatabase) =>
+                store.acquireDatabase(prepared, requestedDatabase),
+            environment: {
+                database,
+                serverName: credentials.server,
+                engineEdition: info?.engineEditionId,
+                serverVersion:
+                    typeof info?.serverMajorVersion === "number"
+                        ? `${info.serverMajorVersion}.${info.serverMinorVersion ?? 0}.${info.serverReleaseVersion ?? 0}`
+                        : undefined,
+            },
+            observer: new CatalogObserver(),
+        });
     }
 
     private metadataSessionKey(connectionUri: string): string {

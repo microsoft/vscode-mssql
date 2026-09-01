@@ -60,6 +60,95 @@ suite("smart SQL completion expansion", () => {
             false,
         );
     });
+    test("expands a CTE whose first UNION branch projects another CTE star", async () => {
+        const { runtime, features } = createServices();
+        const sql = `WITH CurrentDatabaseObjects AS
+(
+    SELECT DB_NAME() AS database_name,
+           s.name AS schema_name,
+           o.name AS object_name,
+           o.type_desc
+    FROM sys.objects AS o
+    JOIN sys.schemas AS s ON s.schema_id = o.schema_id
+),
+OtherDatabaseObjects AS
+(
+    SELECT N'OtherDatabase' AS database_name,
+           s.name AS schema_name,
+           o.name AS object_name,
+           o.type_desc
+    FROM sys.objects AS o
+    JOIN sys.schemas AS s ON s.schema_id = o.schema_id
+),
+CombinedObjects AS
+(
+    SELECT * FROM CurrentDatabaseObjects
+    UNION ALL
+    SELECT * FROM OtherDatabaseObjects
+)
+SELECT * FROM CombinedObjects;`;
+        await runtime.open("file:///cte-union-star.sql", 1, sql);
+        const finalStar = sql.lastIndexOf("*");
+
+        const expansion = features
+            .completion("file:///cte-union-star.sql", 1, finalStar + 1)
+            .items.find((item) => item.label === "Expand SELECT *");
+
+        assertDefined(expansion);
+        assert.deepEqual(expansion.edit, {
+            start: finalStar,
+            end: finalStar + 1,
+            newText: "[database_name], [schema_name], [object_name], [type_desc]",
+        });
+    });
+    test("recursively expands chained and qualified CTE stars", async () => {
+        const { runtime, features } = createServices();
+        const sql = `WITH Base AS
+(
+    SELECT Id, [Display Name] FROM dbo.Users
+),
+Middle AS
+(
+    SELECT Base.*, Id AS CopiedId FROM Base
+),
+Final AS
+(
+    SELECT Middle.* FROM Middle
+)
+SELECT Final.* FROM Final;`;
+        await runtime.open("file:///cte-chain-star.sql", 1, sql);
+        const finalStar = sql.lastIndexOf("*");
+
+        const expansion = features
+            .completion("file:///cte-chain-star.sql", 1, finalStar + 1)
+            .items.find((item) => item.label === "Expand SELECT *");
+
+        assertDefined(expansion);
+        assert.deepEqual(expansion.edit, {
+            start: sql.lastIndexOf("Final.*"),
+            end: sql.lastIndexOf("Final.*") + "Final.*".length,
+            newText: "[Final].[Id], [Final].[Display Name], [Final].[CopiedId]",
+        });
+    });
+    test("terminates recursive CTE projection cycles", async () => {
+        const { runtime, features } = createServices();
+        const sql = `WITH RecursiveRows AS
+(
+    SELECT 1 AS Id
+    UNION ALL
+    SELECT * FROM RecursiveRows
+)
+SELECT * FROM RecursiveRows;`;
+        await runtime.open("file:///recursive-cte-star.sql", 1, sql);
+        const finalStar = sql.lastIndexOf("*");
+
+        const expansion = features
+            .completion("file:///recursive-cte-star.sql", 1, finalStar + 1)
+            .items.find((item) => item.label === "Expand SELECT *");
+
+        assertDefined(expansion);
+        assert.equal(expansion.edit?.newText, "[Id]");
+    });
     // Verifies smart INSERT expansion omits generated columns and replaces stray closing syntax.
     test("expands INSERT columns and values without duplicate closing brackets", async () => {
         const { runtime, features } = createServices();

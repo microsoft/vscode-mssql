@@ -10,8 +10,8 @@ import {
     descendantsOfKind as descendants,
     directChildOfKind as directChild,
     firstDescendantOfKind as firstDescendant,
-    hasDescendantOfKind as hasDescendant,
     lastDescendantOfKind as lastDescendant,
+    sameSyntaxNode,
     syntaxSource,
     visitSyntaxTree as visit,
 } from "../../syntax/treeUtilities.js";
@@ -326,6 +326,17 @@ function namedRelation(
         undefined,
         resolvedParts,
     );
+    const localColumns =
+        parts.length === 1 ? localColumnsForName(input, parts, node.start) : undefined;
+    if (localColumns) {
+        return relation(node, scopeId, {
+            id: `relation:${rangeKey(node)}`,
+            kind: "table",
+            name: bound,
+            exposedName,
+            columns: toBoundColumns(localColumns),
+        });
+    }
     const resolution = input.metadata.resolveObject(resolvedParts);
     if (resolution.kind === "resolved") {
         const state = input.metadata.columnState(resolution.object.ref);
@@ -337,13 +348,12 @@ function namedRelation(
             columns: state.kind === "loaded" ? toBoundColumns(state.value) : "unknown",
         });
     }
-    const columns = localColumnsForName(input, parts, node.start);
     return relation(node, scopeId, {
         id: `relation:${rangeKey(node)}`,
-        kind: columns ? "table" : "unknown",
+        kind: "unknown",
         name: bound,
         exposedName,
-        columns: columns ? toBoundColumns(columns) : "unknown",
+        columns: "unknown",
     });
 }
 
@@ -696,6 +706,15 @@ export function localColumnsForName(
     parts: readonly string[],
     useOffset: number,
 ): readonly ColumnMetadata[] | undefined {
+    return localColumnsForNameWithContext(input, parts, useOffset, localProjectionContext(input));
+}
+
+function localColumnsForNameWithContext(
+    input: LocalRowsetInput,
+    parts: readonly string[],
+    useOffset: number,
+    context: LocalProjectionContext,
+): readonly ColumnMetadata[] | undefined {
     const wanted = normalizeIdentifier(parts.at(-1) ?? "").toLowerCase();
     if (!wanted) return undefined;
     const declarations = localRowsetIndex(input).get(wanted);
@@ -722,7 +741,7 @@ export function localColumnsForName(
     for (const declaration of rangeIndexFor(declarations, declarationRange).endingBefore(
         useOffset,
     )) {
-        if (visible(declaration)) return columnsForDeclaration(input, declaration);
+        if (visible(declaration)) return columnsForDeclaration(input, declaration, context);
     }
     return undefined;
 }
@@ -736,12 +755,13 @@ const declarationRange = (declaration: LocalRowsetDeclaration): TextRange => ({
 function columnsForDeclaration(
     input: LocalRowsetInput,
     declaration: LocalRowsetDeclaration,
+    context: LocalProjectionContext,
 ): readonly ColumnMetadata[] | undefined {
     switch (declaration.kind) {
         case "drop":
             return undefined;
         case "cte":
-            return cteColumns(input, declaration.node);
+            return cteColumns(input, declaration.node, context);
         case "into":
             return projectedColumns(input, firstDescendant(declaration.node, "SelectList"));
         case "table":
@@ -772,24 +792,64 @@ function columnMetadata(input: LocalRowsetInput, node: SyntaxNode): ColumnMetada
     };
 }
 
-function cteColumns(input: LocalRowsetInput, cte: SyntaxNode): readonly ColumnMetadata[] {
+interface LocalProjectionContext {
+    readonly active: Set<string>;
+    readonly cache: Map<string, readonly ColumnMetadata[]>;
+}
+
+const localProjectionCaches = new WeakMap<SyntaxSnapshot, Map<string, readonly ColumnMetadata[]>>();
+
+function localProjectionContext(input: LocalRowsetInput): LocalProjectionContext {
+    let cache = localProjectionCaches.get(input.syntax);
+    if (!cache) {
+        cache = new Map();
+        localProjectionCaches.set(input.syntax, cache);
+    }
+    return { active: new Set(), cache };
+}
+
+function cteColumns(
+    input: LocalRowsetInput,
+    cte: SyntaxNode,
+    context = localProjectionContext(input),
+): readonly ColumnMetadata[] {
+    const key = rangeKey(cte);
+    const cached = context.cache.get(key);
+    if (cached) return cached;
+    if (context.active.has(key)) return [];
+    context.active.add(key);
+    let columns: readonly ColumnMetadata[];
     const explicit = directChild(cte, "ColumnNameList");
     if (explicit) {
-        return descendants(explicit, "IdentifierName").map((name) => ({
+        columns = descendants(explicit, "IdentifierName").map((name) => ({
             name: normalizeIdentifier(source(input, name)),
         }));
+    } else {
+        columns = projectedColumns(input, firstDescendant(cte, "SelectList"), context);
     }
-    return projectedColumns(input, firstDescendant(cte, "SelectList"));
+    context.active.delete(key);
+    const frozen = Object.freeze(columns);
+    context.cache.set(key, frozen);
+    return frozen;
 }
 
 function projectedColumns(
     input: LocalRowsetInput,
     list: SyntaxNode | undefined,
+    context = localProjectionContext(input),
 ): readonly ColumnMetadata[] {
     if (!list) return [];
+    const query = ancestor(list, ["QuerySpecification"]);
     const columns: ColumnMetadata[] = [];
     for (const element of descendants(list, "SelectElement")) {
-        if (hasDescendant(element, "Star")) continue;
+        if (query && !sameSyntaxNode(ancestor(element, ["QuerySpecification"]), query)) continue;
+        const star = firstDescendant(element, "StarExpression") ?? firstDescendant(element, "Star");
+        if (star && !ancestor(star, ["FunctionCall"])) {
+            if (query) {
+                columns.push(...localStarColumns(input, query, star, context));
+            }
+            continue;
+        }
         const stringAlias = directChild(element, "StringLiteral");
         if (stringAlias) {
             columns.push({ name: normalizeStringLiteral(source(input, stringAlias)) });
@@ -803,6 +863,33 @@ function projectedColumns(
         const names = descendants(element, "IdentifierName");
         const name = names.at(-1);
         if (name) columns.push({ name: normalizeIdentifier(source(input, name)) });
+    }
+    return columns;
+}
+
+function localStarColumns(
+    input: LocalRowsetInput,
+    query: SyntaxNode,
+    star: SyntaxNode,
+    context: LocalProjectionContext,
+): readonly ColumnMetadata[] {
+    const written = source(input, star);
+    const dot = written.lastIndexOf(".");
+    const prefix = dot < 0 ? undefined : normalizeIdentifier(written.slice(0, dot).trim());
+    const columns: ColumnMetadata[] = [];
+    for (const table of descendants(query, "NamedTableSource")) {
+        if (!sameSyntaxNode(ancestor(table, ["QuerySpecification"]), query)) continue;
+        const name = firstDescendant(table, "MultipartIdentifier");
+        if (!name) continue;
+        const parts = multipartIdentifierParts(source(input, name));
+        const alias = firstDescendant(table, "TableAlias");
+        const aliasName = alias && lastDescendant(alias, "IdentifierName");
+        const qualifier = aliasName
+            ? normalizeIdentifier(source(input, aliasName))
+            : normalizeIdentifier(parts.at(-1) ?? "");
+        if (prefix && qualifier.toLowerCase() !== prefix.toLowerCase()) continue;
+        const local = localColumnsForNameWithContext(input, parts, table.start, context);
+        if (local) columns.push(...local);
     }
     return columns;
 }

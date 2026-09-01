@@ -536,8 +536,8 @@ function columnCompletion(
     return {
         label: column.name,
         kind: "column",
-        detail: `${column.typeDisplay ?? "column"}${column.nullable ? " null" : ""}`,
-        sortText: `10-${column.name.toLowerCase()}`,
+        detail: `${column.typeDisplay ?? "column"}${column.nullable ? " null" : ""} — ${qualifier}`,
+        sortText: `02-${column.name.toLowerCase()}`,
         edit: {
             ...prefix.range,
             newText: completionIdentifierInsertion(prefix, column.name),
