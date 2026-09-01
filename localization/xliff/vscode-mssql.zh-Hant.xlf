@@ -518,6 +518,10 @@
         <source xml:lang="en">After</source>
         <target state="translated">之後</target>
       </trans-unit>
+      <trans-unit id="++CODE++b19e02e9502bbe5ac59dff4b2d4160768a4a7b8feff5693e5769613562290a45">
+        <source xml:lang="en">Alias</source>
+        <target state="new">Alias</target>
+      </trans-unit>
       <trans-unit id="++CODE++a52ace420f2175d08b1577a1bea5445e36801229c074ef9ed6c55a73401fd9c2">
         <source xml:lang="en">All</source>
         <target state="translated">全部</target>
@@ -657,6 +661,10 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++0f67514b901da8b9c613167848294cb0010b3c0e696732aa1a0c9737e5be69b1">
         <source xml:lang="en">And</source>
         <target state="translated">和</target>
+      </trans-unit>
+      <trans-unit id="++CODE++90395d452a308fcb26c44a7a5fb70916b2aaf592fccdd187ac7c6e1192b217c1">
+        <source xml:lang="en">Anon</source>
+        <target state="new">Anon</target>
       </trans-unit>
       <trans-unit id="++CODE++e7a8aa2df7e5d0b233da615af4e7fef148bec39aef1709da0a80391ad0316563">
         <source xml:lang="en">Anonymous</source>
@@ -841,6 +849,14 @@ This will remove both the container and its connection from VS Code.</source>
       <trans-unit id="++CODE++6b17def22e3775d608a7cdc7f600aa9fd107e2209e657a6d358a5687f9f7c7bd">
         <source xml:lang="en">At least one API type must be selected.</source>
         <target state="translated">至少必須選取一個 API 類型。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8eb3ea9bbde631592dfac3150044fabe4678c820a107c026035c13bf0c8ba9d7">
+        <source xml:lang="en">Auth</source>
+        <target state="new">Auth</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0fdea2ab7469cfd94d44d8c7d77dd529199dc868fd6bc8b1d9c3c331744edeb0">
+        <source xml:lang="en">Auth mode</source>
+        <target state="new">Auth mode</target>
       </trans-unit>
       <trans-unit id="++CODE++8ff1f9a47f14327a26fd3a548d2babeec226cb63828a0803433b4a34a19c09ff">
         <source xml:lang="en">Auth type</source>
@@ -2984,6 +3000,18 @@ This will remove both the container and its connection from VS Code.</source>
         <source xml:lang="en">Custom Zoom</source>
         <target state="translated">自訂縮放</target>
       </trans-unit>
+      <trans-unit id="++CODE++2382ba5d273153b70b946e94dce6917ebe7aa25b0d46f4cc7b31ec891ec8784e">
+        <source xml:lang="en">Custom tool creates a dedicated MCP tool for this stored procedure.</source>
+        <target state="new">Custom tool creates a dedicated MCP tool for this stored procedure.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++51ca74e23be7acf03bd1740c2091cbf8a1124e81866eb6ed6b2e937136cb5f67">
+        <source xml:lang="en">Customize column access</source>
+        <target state="new">Customize column access</target>
+      </trans-unit>
+      <trans-unit id="++CODE++bbf15d3d65d70f80283cf7adfe4537ecd273144eb51643167de4c12967f470e7">
+        <source xml:lang="en">Customize columns</source>
+        <target state="new">Customize columns</target>
+      </trans-unit>
       <trans-unit id="++CODE++c525ed2944e05f661b7bc658ddccb355cd47a8daab5629ce4310c575aa58e2a1">
         <source xml:lang="en">Customize keyboard shortcuts</source>
         <target state="translated">自訂鍵盤快速鍵</target>
@@ -3021,6 +3049,14 @@ This will remove both the container and its connection from VS Code.</source>
       <trans-unit id="++CODE++859430fa647177df2bca8384a1b91e9f607ab6c35eba8d61c1ff399e80cf0ac2">
         <source xml:lang="en">DACPAC path not found. Please build the project first.</source>
         <target state="translated">找不到 DACPAC 路徑。請先建置專案。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a624c53f324c90b7a7da7401d49f23d00dc78cdad529bbb41bdd319c1e6f4cbb">
+        <source xml:lang="en">DML tools expose this entity through generic MCP tools.</source>
+        <target state="new">DML tools expose this entity through generic MCP tools.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a724eec1c740993b1bd30143c1d2ef8b6a4f3560e19c4e2355e786a18d3ce48e">
+        <source xml:lang="en">DML tools expose this stored procedure through generic execute tools.</source>
+        <target state="new">DML tools expose this stored procedure through generic execute tools.</target>
       </trans-unit>
       <trans-unit id="++CODE++02b435f9a4c73633bef7d3b2b6548de6bb7ec5414c63e0bb6db520a4ca4d1004">
         <source xml:lang="en">DacFx service is not available. Profile loaded without deployment options. Publish and generate script operations cannot be performed.</source>
@@ -3772,6 +3808,10 @@ This will remove both the container and its connection from VS Code.</source>
         <source xml:lang="en">Enable GraphQL in API Type to expose this entity through GraphQL.</source>
         <target state="translated">啟用 API 類型的 GraphQL，以透過 GraphQL 公開此實體。</target>
       </trans-unit>
+      <trans-unit id="++CODE++88c59d6325c5f9cb638b3671a4ed7680c56c924d8b07a98dadce93466d269197">
+        <source xml:lang="en">Enable MCP in API Type to expose this entity through MCP.</source>
+        <target state="new">Enable MCP in API Type to expose this entity through MCP.</target>
+      </trans-unit>
       <trans-unit id="++CODE++15435d09b1cffdaf56b14da1b895b33f43e8c959a77676be198778deca88c203">
         <source xml:lang="en">Enable MCP in API Type to use this DML tools setting.</source>
         <target state="translated">啟用 API 類型中的 MCP 以使用此 DML 工具設定。</target>
@@ -4352,6 +4392,10 @@ Error:
         <source xml:lang="en">Excluding folders is not yet supported</source>
         <target state="translated">尚不支援排除資料夾</target>
       </trans-unit>
+      <trans-unit id="++CODE++eae47ccdd51f34b36191e508f439eb4539be120218976462316ea74d1011cc2a">
+        <source xml:lang="en">Exec</source>
+        <target state="new">Exec</target>
+      </trans-unit>
       <trans-unit id="++CODE++e3a67d9540e9a204f7dc4aa9d44a0ec652856cfa932a21196bf9df23aa0e4cd1">
         <source xml:lang="en">Execute</source>
         <target state="translated">執行</target>
@@ -4596,6 +4640,10 @@ Error:
         <source xml:lang="en">Exporting BACPAC...</source>
         <target state="translated">正在匯出 BACPAC...</target>
       </trans-unit>
+      <trans-unit id="++CODE++9687fa49cbabe130e6700fb6dba29d6650f2a4f3ed416a9956a1f494c16a5c36">
+        <source xml:lang="en">Expose</source>
+        <target state="new">Expose</target>
+      </trans-unit>
       <trans-unit id="++CODE++29b442400008bbd807940df17eeffd10d069f415bd2c1320d813f2e61a223095">
         <source xml:lang="en">Expose as MCP DML tools</source>
         <target state="translated">公開為 MCP DML 工具</target>
@@ -4608,6 +4656,10 @@ Error:
         <source xml:lang="en">Expose this entity through GraphQL</source>
         <target state="translated">透過 GraphQL 公開此實體</target>
       </trans-unit>
+      <trans-unit id="++CODE++bf42d779f126ae3f936e2ed856401f447e8c5b071da8d1001f276728942fd678">
+        <source xml:lang="en">Expose this entity through MCP</source>
+        <target state="new">Expose this entity through MCP</target>
+      </trans-unit>
       <trans-unit id="++CODE++1d66e218f7e4f002993789d4d2f5882562de9be46ff392069f35b830da0a78f6">
         <source xml:lang="en">Expose this entity through REST</source>
         <target state="translated">透過 REST 公開此實體</target>
@@ -4616,6 +4668,14 @@ Error:
         <source xml:lang="en">Expose {0}</source>
         <note>{0} is the backing database column name</note>
         <target state="translated">公開 {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d85cdd4a3e9b81d2f16b2dad8854d17525cd7dfdab8d72741b36e86805bc2519">
+        <source xml:lang="en">Exposed</source>
+        <target state="new">Exposed</target>
+      </trans-unit>
+      <trans-unit id="++CODE++843e65c123943ded912c77e1bc283de1b9fb26e1ee2a1ba2401c286edfa16cda">
+        <source xml:lang="en">Exposed via</source>
+        <target state="new">Exposed via</target>
       </trans-unit>
       <trans-unit id="++CODE++c67415bcff328a59fd399e2a7ca9691e0044192fb7480ae501644339965d046d">
         <source xml:lang="en">Expression</source>
@@ -5327,6 +5387,10 @@ Error:
         <source xml:lang="en">Filter changes</source>
         <target state="translated">篩選變更</target>
       </trans-unit>
+      <trans-unit id="++CODE++1a6f33ce99a271f6bf6f94ed11bc223cd8a7fc7e5594d15119cfe82f465cb514">
+        <source xml:lang="en">Filter columns...</source>
+        <target state="new">Filter columns...</target>
+      </trans-unit>
       <trans-unit id="++CODE++25f7c9810f4a804cfb8dd52d53afff3e995a0e03165362b827f6eb301d685327">
         <source xml:lang="en">Filter entities</source>
         <target state="translated">篩選實體</target>
@@ -5759,6 +5823,10 @@ Error:
         <source xml:lang="en">Help us improve by sharing your thoughts.</source>
         <target state="translated">分享您的想法，以協助我們改進。</target>
       </trans-unit>
+      <trans-unit id="++CODE++7e6fefff0f0aeb6ca93086d3855d0406bdd0ee53b56771f8c794cf07af6598b7">
+        <source xml:lang="en">Hidden</source>
+        <target state="new">Hidden</target>
+      </trans-unit>
       <trans-unit id="++CODE++cf7a4462cdb4e65708d6da34fafbdbd520b0300850a68be92f1fe3d5be3811d2">
         <source xml:lang="en">Hide Changes</source>
         <target state="translated">隱藏變更</target>
@@ -5993,6 +6061,11 @@ Error:
       <trans-unit id="++CODE++7dc845e477a5399b83a72140956e6da831ac0886fc280d45019d982ed862ff15">
         <source xml:lang="en">Include permissions in project</source>
         <target state="translated">在專案中包含權限</target>
+      </trans-unit>
+      <trans-unit id="++CODE++38ccbbcbe0241e051909d6867d0528e4eff3bed6cbd9360cbaa67a0301f67066">
+        <source xml:lang="en">Include {0}</source>
+        <note>{0} is the entity name</note>
+        <target state="new">Include {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++a19caa35e133f5a0e94975762741c4c73b09c8a830908934206474fea30817b0">
         <source xml:lang="en">Incomplete or orphaned connections</source>
@@ -6643,6 +6716,10 @@ Error:
         <source xml:lang="en">Logical file name</source>
         <target state="translated">邏輯檔案名稱</target>
       </trans-unit>
+      <trans-unit id="++CODE++8336175b8ad79d9ee20c64d8271504a8d4cddaf613f831c0be0465ed761ef21d">
+        <source xml:lang="en">Logical key</source>
+        <target state="new">Logical key</target>
+      </trans-unit>
       <trans-unit id="++CODE++155952ddf38c19af2c08d64095b80c9fe510faade4f78b6f0c6113fda082eda0">
         <source xml:lang="en">Logical operator</source>
         <target state="translated">邏輯運算子</target>
@@ -6662,6 +6739,10 @@ Error:
       <trans-unit id="++CODE++53f13ae99ed53bd346eb8e1c8cefb7ef8260683b50401caf101360967ea052aa">
         <source xml:lang="en">MCP</source>
         <target state="translated">MCP</target>
+      </trans-unit>
+      <trans-unit id="++CODE++bfd23a1362b4cd5f3c66dc3b8860ed4511a3ef7e1f8d69db59f764e0fc65851b">
+        <source xml:lang="en">MCP DML tools</source>
+        <target state="new">MCP DML tools</target>
       </trans-unit>
       <trans-unit id="++CODE++cb571bc2bc5742ac76bfe870bd81c2d7aeefe4a9f9c828b36c7a39464c3c3ebb">
         <source xml:lang="en">MCP custom tool</source>
@@ -7359,6 +7440,14 @@ Error:
         <source xml:lang="en">No code analysis rules available.</source>
         <target state="translated">沒有可用的程式代碼分析規則。</target>
       </trans-unit>
+      <trans-unit id="++CODE++aced1f6eb816646c06bf8c07537b988d6170549fb090727e92423ce063207afd">
+        <source xml:lang="en">No columns match the current filter.</source>
+        <target state="new">No columns match the current filter.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++92b96197f4ff0a723964fe779267ba475892eb8f744fe5482fd3c6bc752892a3">
+        <source xml:lang="en">No columns were discovered for this entity.</source>
+        <target state="new">No columns were discovered for this entity.</target>
+      </trans-unit>
       <trans-unit id="++CODE++d359844ae129bd7d51eda9e3c61dcf5c4036be148cdf783fc11d6454e8ca372b">
         <source xml:lang="en">No connection credentials found</source>
         <target state="translated">找不到任何連線認證。</target>
@@ -7507,9 +7596,17 @@ Error:
         <source xml:lang="en">No objects found</source>
         <target state="translated">找不到任何物件</target>
       </trans-unit>
+      <trans-unit id="++CODE++c2a1a3e03cf67c0ac40fabfee38ee5346f05417614d1a55e7eed85e87de976d7">
+        <source xml:lang="en">No parameters were discovered for this stored procedure.</source>
+        <target state="new">No parameters were discovered for this stored procedure.</target>
+      </trans-unit>
       <trans-unit id="++CODE++b4722b7d6b5e5dd7c69480a9bd436e71d151acf1a05b81fcace235ba42c83375">
         <source xml:lang="en">No pending changes. Make edits to generate a script.</source>
         <target state="translated">沒有擱置的變更。進行編輯以產生指令碼。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ef5bb5141fd8afa4951e5674000f5cb3307e6b129c57298ff8f5853ed1f893ae">
+        <source xml:lang="en">No permissions</source>
+        <target state="new">No permissions</target>
       </trans-unit>
       <trans-unit id="++CODE++4d2b6723246a1c9f0623c0c48a49e0303cd42b98acd1bc981582ca59a83b2ccc">
         <source xml:lang="en">No profiler connection available</source>
@@ -7741,6 +7838,10 @@ Error:
       <trans-unit id="++CODE++c9a7c5601ef0cf94864a294ea116e414d2e0cf571ab03baabf79b726e1dcb294">
         <source xml:lang="en">Not equal to</source>
         <target state="translated">不等於</target>
+      </trans-unit>
+      <trans-unit id="++CODE++441818ccc4c33fe807938249c80e7be1eddc196d87077b06367d567dc08eaf05">
+        <source xml:lang="en">Not exposed</source>
+        <target state="new">Not exposed</target>
       </trans-unit>
       <trans-unit id="++CODE++972711d90594be0ec9340bc56950dc455b2764187dcad7093ae641df2cbc10c5">
         <source xml:lang="en">Not likely at all</source>
@@ -8002,6 +8103,10 @@ Error:
       <trans-unit id="++CODE++d61cf0d0a028f8efb43946f57214e6a58daf084a15b7538310db794de155eaa5">
         <source xml:lang="en">Option Name</source>
         <target state="translated">選項名稱</target>
+      </trans-unit>
+      <trans-unit id="++CODE++59be71333c960fd08e7e4fe9862206d9355f0a9884121a5b50ef8b36efdfe4cf">
+        <source xml:lang="en">Optional</source>
+        <target state="new">Optional</target>
       </trans-unit>
       <trans-unit id="++CODE++da53ba1a285ffae9c6528e235b57336fa85b4f05e9fc00a51ee922069c3d9865">
         <source xml:lang="en">Optional (False)</source>
@@ -8939,6 +9044,10 @@ Error:
       <trans-unit id="++CODE++4850b174b713d88cfc63de107830d5388929020e78abc91fc19bba7a6821625f">
         <source xml:lang="en">Required</source>
         <target state="translated">必要</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a0bd6e6936bbac62dd89c1012d9ccddc307a904c3cb34cbceed2500075fe3b5d">
+        <source xml:lang="en">Required parameter</source>
+        <target state="new">Required parameter</target>
       </trans-unit>
       <trans-unit id="++CODE++98fe17bca293f3dccd1fbe14ff7b0f12d73ba72e6a3e47310982e8de208f560f">
         <source xml:lang="en">Requirements:</source>
@@ -9982,6 +10091,10 @@ Query: {2}</source>
       <trans-unit id="++CODE++16900742d2f35c9ffb6cc72369893127a8357154e22d9c4b84f020e87dac0602">
         <source xml:lang="en">Select an operation</source>
         <target state="translated">選取作業</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1f44d9cdb4b2b64253e0642a79bda7f3738c87e3a22ce505d6454ee7a10d1623">
+        <source xml:lang="en">Select at least one logical key column before applying or deploying this exposed table or view.</source>
+        <target state="new">Select at least one logical key column before applying or deploying this exposed table or view.</target>
       </trans-unit>
       <trans-unit id="++CODE++91db086469f6b5535752cd441009d061a5ade94b6684a1dbaff02da204515224">
         <source xml:lang="en">Select column</source>
@@ -11469,6 +11582,12 @@ Are you sure you want to continue?</source>
         <note>{0} is the schema name</note>
         <target state="translated">切換 {0} 中所有實體</target>
       </trans-unit>
+      <trans-unit id="++CODE++a66b489150eac01cbefbd7ab03abcf4527a72a38c9956636647b07d9d31f530f">
+        <source xml:lang="en">Toggle all {0} in schema {1}</source>
+        <note>{0} is the source type
+{1} is the schema name</note>
+        <target state="new">Toggle all {0} in schema {1}</target>
+      </trans-unit>
       <trans-unit id="++CODE++9bcf2e5fe7e330dcd17af169e2cd49b62da4c4c033dbeb88966f8e3a8d5e6ad8">
         <source xml:lang="en">Toggle between grid and text view</source>
         <target state="translated">在方格與文字檢視之間切換</target>
@@ -11863,10 +11982,6 @@ Are you sure you want to continue?</source>
         <source xml:lang="en">Use {0} to create a new connection.</source>
         <note>{0} is the connect command</note>
         <target state="translated">使用 {0} 來建立新的連線。</target>
-      </trans-unit>
-      <trans-unit id="++CODE++f5e86af62d403420feae11b58a68c8df237889fb279d6a28cc08e11566ad5161">
-        <source xml:lang="en">Used in API routes and responses</source>
-        <target state="translated">於 API 路由與回應中使用</target>
       </trans-unit>
       <trans-unit id="++CODE++b512d97e7cbf97c273e4db073bbb547aa65a84589227f8f3d9e4a72b9372a24d">
         <source xml:lang="en">User</source>
