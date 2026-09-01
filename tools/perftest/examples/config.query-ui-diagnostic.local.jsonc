@@ -1,0 +1,49 @@
+// Focused Query Studio renderer diagnostic. Query execution and first grid
+// paint are inside the measured window so the exact-webview CPU profile covers
+// grid construction while the workbench trace captures concurrent window work.
+{
+    "schemaVersion": 2,
+    "runId": "auto",
+    "passType": "diagnostic",
+    "repetitions": 1,
+    "warmupRepetitions": 0,
+    "scenarios": ["querystudio-query-wide-1000x300"],
+    "vscode": {
+        "version": "stable",
+        "quality": "stable",
+        "launchMode": "directSpawn",
+        "profileMode": "scenarioDefault",
+        "workspaceRoot": "../workspaces/perf",
+        "extensions": [
+            {
+                "id": "ms-mssql.mssql",
+                "source": "developmentPath",
+                "path": "../../../extensions/mssql",
+            },
+            {
+                "id": "perftest.mssql-perf-driver",
+                "source": "developmentPath",
+                "path": "../extensions/mssql-perf-driver",
+            },
+        ],
+        "extraArgs": [],
+        "env": {},
+    },
+    "sql": {
+        "provider": "external",
+        "connectionStringEnv": "STS2_SQLSERVER_CONNSTRING",
+        "snapshot": "seed-v2",
+        "cacheMode": "warm",
+        "connectionProfile": "default",
+    },
+    "environment": { "requireIdle": false },
+    "diagnostics": {
+        "markers": true,
+        "processSampler": true,
+        "cdp": { "extHostProfile": false, "rendererTrace": true, "rendererProfile": true },
+        "otel": "off",
+    },
+    "store": { "type": "sqlite", "path": "../perf.db" },
+    "regression": { "baseline": "none", "failOnRegression": false },
+    "output": { "dir": "../perf-runs", "keepArtifacts": "always" },
+}

@@ -64,6 +64,16 @@ import { AzureSqlDatabaseStatus, VsCodeAzureHelper } from "../connectionconfig/a
 import { PreviewFeature, previewService } from "../previews/previewService";
 import { getNodeDescriptor } from "./nodes/nodeUtils";
 
+export class CancelableLoadingNode extends vscode.TreeItem {
+    public constructor(
+        label: string,
+        public readonly cancellationTokenSource: vscode.CancellationTokenSource,
+    ) {
+        super(label, vscode.TreeItemCollapsibleState.None);
+        this.contextValue = "cancelContainerOperation";
+    }
+}
+
 export interface CreateSessionResult {
     sessionId?: string;
     connectionNode?: ConnectionNode;
@@ -202,11 +212,12 @@ export class ObjectExplorerService {
         const expandActivity = startActivity(
             TelemetryViews.ObjectExplorer,
             TelemetryActions.ExpandNode,
-            undefined,
             {
-                nodeType: node.nodeType,
-                nodeSubType: node.nodeSubType,
-                isRefresh: node.shouldRefresh.toString(),
+                additionalProps: {
+                    nodeType: node.nodeType,
+                    nodeSubType: node.nodeSubType,
+                    isRefresh: node.shouldRefresh.toString(),
+                },
             },
         );
         this._logger.trace(`expandNode start: ${getNodeDescriptor(node)}`);
@@ -316,8 +327,10 @@ export class ObjectExplorerService {
                         ),
                     );
                     this._treeNodeToChildrenMap.set(node, children);
-                    expandActivity.end(ActivityStatus.Succeeded, undefined, {
-                        childrenCount: children.length,
+                    expandActivity.end(ActivityStatus.Succeeded, {
+                        additionalMeasurements: {
+                            childrenCount: children.length,
+                        },
                     });
                     return children;
                 }
@@ -463,9 +476,10 @@ export class ObjectExplorerService {
         const getConnectionActivity = startActivity(
             TelemetryViews.ObjectExplorer,
             TelemetryActions.ExpandNode,
-            undefined,
             {
-                nodeType: "root",
+                additionalProps: {
+                    nodeType: "root",
+                },
             },
         );
 
@@ -482,8 +496,10 @@ export class ObjectExplorerService {
             this._logger.debug(
                 "No saved connections or groups found. Showing add connection node.",
             );
-            getConnectionActivity.end(ActivityStatus.Succeeded, undefined, {
-                childrenCount: 0,
+            getConnectionActivity.end(ActivityStatus.Succeeded, {
+                additionalMeasurements: {
+                    childrenCount: 0,
+                },
             });
             return this.getAddConnectionNodes();
         }
@@ -579,8 +595,10 @@ export class ObjectExplorerService {
 
         const result = [...this._rootTreeNodeArray];
 
-        getConnectionActivity.end(ActivityStatus.Succeeded, undefined, {
-            nodeCount: result.length,
+        getConnectionActivity.end(ActivityStatus.Succeeded, {
+            additionalMeasurements: {
+                nodeCount: result.length,
+            },
         });
         return result;
     }
@@ -631,12 +649,15 @@ export class ObjectExplorerService {
      * @param element The node to set the loading UI for
      * @returns A loading node that will be displayed in the tree
      */
-    public async setLoadingUiForNode(element: TreeNodeInfo): Promise<vscode.TreeItem[]> {
+    public async setLoadingUiForNode(
+        element: TreeNodeInfo,
+        cancellationTokenSource?: vscode.CancellationTokenSource,
+    ): Promise<vscode.TreeItem[]> {
         this._logger.trace(`setLoadingUiForNode: ${getNodeDescriptor(element)}`);
-        const loadingNode = new vscode.TreeItem(
-            element.loadingLabel ?? LocalizedConstants.ObjectExplorer.LoadingNodeLabel,
-            vscode.TreeItemCollapsibleState.None,
-        );
+        const label = element.loadingLabel ?? LocalizedConstants.ObjectExplorer.LoadingNodeLabel;
+        const loadingNode = cancellationTokenSource
+            ? new CancelableLoadingNode(label, cancellationTokenSource)
+            : new vscode.TreeItem(label, vscode.TreeItemCollapsibleState.None);
         loadingNode.iconPath = new vscode.ThemeIcon("loading~spin");
         this._treeNodeToChildrenMap.set(element, [loadingNode]);
         this._refreshCallback(element);
@@ -806,11 +827,11 @@ export class ObjectExplorerService {
         const createSessionActivity = startActivity(
             TelemetryViews.ObjectExplorer,
             TelemetryActions.CreateSession,
-            undefined,
             {
-                connectionType: connectionInfo?.authenticationType ?? "newConnection",
+                additionalProps: {
+                    connectionType: connectionInfo?.authenticationType ?? "newConnection",
+                },
             },
-            undefined,
         );
 
         const connectionProfile = await this.prepareConnectionProfile(connectionInfo);
@@ -886,7 +907,9 @@ export class ObjectExplorerService {
                     connectionProfile,
                 );
                 createSessionActivity.end(ActivityStatus.Succeeded, {
-                    connectionType: connectionProfile.authenticationType,
+                    additionalProps: {
+                        connectionType: connectionProfile.authenticationType,
+                    },
                 });
                 finalizeSession();
                 return successResponse;
@@ -949,14 +972,10 @@ export class ObjectExplorerService {
         if (!connectionProfile) {
             const connectionUI = this._connectionManager.connectionUI;
             connectionUI.openConnectionDialog();
-            sendActionEvent(
-                TelemetryViews.ObjectExplorer,
-                TelemetryActions.CreateConnection,
-                undefined,
-                undefined,
-                connectionInfo as IConnectionProfile,
-                this._connectionManager.getServerInfo(connectionInfo),
-            );
+            sendActionEvent(TelemetryViews.ObjectExplorer, TelemetryActions.CreateConnection, {
+                connectionInfo: connectionInfo as IConnectionProfile,
+                serverInfo: this._connectionManager.getServerInfo(connectionInfo),
+            });
         }
 
         if (!connectionProfile) {
@@ -978,6 +997,12 @@ export class ObjectExplorerService {
                     containerNode,
                     this,
                 );
+                if (successfullyRunning === undefined) {
+                    containerNode.loadingLabel = undefined;
+                    this.cleanNodeChildren(containerNode);
+                    this._refreshCallback(containerNode);
+                    return undefined;
+                }
                 this._logger.debug(
                     successfullyRunning
                         ? `Failed to restart Docker container "${connectionProfile.containerName}".`
@@ -1122,14 +1147,14 @@ export class ObjectExplorerService {
         telemetryActivty: ActivityObject,
     ): Promise<boolean> {
         if (failureResponse.errorNumber) {
-            telemetryActivty.update(
-                {
+            telemetryActivty.update({
+                additionalProps: {
                     connectionType: connectionProfile.authenticationType,
                 },
-                {
+                additionalMeasurements: {
                     errorNumber: failureResponse.errorNumber,
                 },
-            );
+            });
         }
 
         const errorHandlingResult = await this._connectionManager.handleConnectionErrors(
@@ -1138,9 +1163,11 @@ export class ObjectExplorerService {
         );
 
         telemetryActivty.update({
-            connectionType: connectionProfile.authenticationType,
-            errorHandled: errorHandlingResult.errorHandled,
-            isFixed: errorHandlingResult.errorHandled ? "true" : "false",
+            additionalProps: {
+                connectionType: connectionProfile.authenticationType,
+                errorHandled: errorHandlingResult.errorHandled,
+                isFixed: errorHandlingResult.errorHandled ? "true" : "false",
+            },
         });
 
         if (errorHandlingResult.isHandled) {

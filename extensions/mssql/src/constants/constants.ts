@@ -151,6 +151,7 @@ export const cmdDeployNewDatabase = "mssql.deployNewDatabase";
 export const cmdStopContainer = "mssql.stopContainer";
 export const cmdDeleteContainer = "mssql.deleteContainer";
 export const cmdStartContainer = "mssql.startContainer";
+export const cmdCancelContainerOperation = "mssql.cancelContainerOperation";
 export const cmdHandleSummaryOperation = "mssql.handleSummaryOperation";
 export const cmdMoveToSchema = "mssql.moveToSchema";
 export const cmdOpenChangelog = "mssql.openChangelog";
@@ -300,6 +301,7 @@ export const configMaxRecentConnections = "maxRecentConnections";
 export const configCopyRemoveNewLine = "copyRemoveNewLine";
 export const configSplitPaneSelection = "splitPaneSelection";
 export const configShowBatchTime = "showBatchTime";
+export const configResultsShowBatchMessages = "results.showBatchMessages";
 export const configMessagesCopyIncludeTimestamps = "messages.copyIncludeTimestamps";
 export const configPreventAutoExecuteScript = "mssql.query.preventAutoExecuteScript";
 export enum extConfigResultKeys {
@@ -317,6 +319,8 @@ export const configPersistQueryResultTabs = "persistQueryResultTabs";
 export const configQueryHistoryLimit = "queryHistoryLimit";
 export const configEnableQueryHistoryCapture = "enableQueryHistoryCapture";
 export const configEnableQueryHistoryFeature = "enableQueryHistoryFeature";
+export const configQueryCompletionSoundEnabled = "query.playCompletionSound";
+export const configQueryCompletionSoundFile = "query.completionSoundFile";
 export const configEnableExperimentalFeatures = "mssql.enableExperimentalFeatures";
 export const configOpenQueryResultsInTabByDefault = "mssql.openQueryResultsInTabByDefault";
 export const configOpenQueryResultsInTabByDefaultDoNotShowPrompt =
@@ -325,6 +329,7 @@ export const configAutoColumnSizingMode = "resultsGrid.autoSizeColumnsMode";
 export const configInMemoryDataProcessingThreshold =
     "mssql.resultsGrid.inMemoryDataProcessingThreshold";
 export const configResultsGridAlternatingRowColors = "resultsGrid.alternatingRowColors";
+export const configResultsGridFreezeFirstColumnByDefault = "resultsGrid.freezeFirstColumnByDefault";
 export const configResultsGridShowGridLines = "resultsGrid.showGridLines";
 export const configResultsGridRowPadding = "resultsGrid.rowPadding";
 export const configAutoDisableNonTSqlLanguageService = "mssql.autoDisableNonTSqlLanguageService";
@@ -335,6 +340,7 @@ export const configShowActiveConnectionAsCodeLensSuggestion =
     "mssql.query.showActiveConnectionAsCodeLensSuggestion";
 export const configStatusBarConnectionInfoMaxLength = "statusBar.connectionInfoMaxLength";
 export const configStatusBarEnableConnectionColor = "mssql.statusBar.enableConnectionColor";
+export const configStatusBarShowQueryExecutionStatus = "statusBar.showQueryExecutionStatus";
 export const configSchemaDesignerEnableExpandCollapseButtons =
     "mssql.schemaDesigner.enableExpandCollapseButtons";
 export const configSavePasswordsUntilRestart =
@@ -436,8 +442,6 @@ export const DBProjectConfigurationKey = "sqlDatabaseProjects";
 export const sqlDatabaseProjectsExtensionId = "ms-mssql.sql-database-projects-vscode";
 export const internalConnectionSharingExtensionIds: ReadonlySet<string> = new Set([
     extensionId,
-    sqlDatabaseProjectsExtensionId,
-    "ms-mssql.data-workspace-vscode",
     "ms-mssql.sql-notebook-controller",
     "microsoft.schema-compare",
 ]);

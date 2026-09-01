@@ -62,6 +62,8 @@ suite("localContainers logic", () => {
                     connectionUI: {
                         saveProfile: sandbox.stub().resolves({}),
                     },
+                    createConnectionDetails: sandbox.stub().returns({}),
+                    getConnectionString: sandbox.stub().resolves("Server=localhost,1433"),
                 },
                 createObjectExplorerSession: sandbox.stub().resolves({}),
             },
@@ -92,6 +94,7 @@ suite("localContainers logic", () => {
 
         expect(state.loadState).to.equal(ApiStatus.Loaded);
         expect(state.formState.version).to.equal("latest");
+        expect(state.connectionString).to.equal("");
         expect(state.formComponents.password).to.be.ok;
         expect(state.dockerSteps).to.have.lengthOf(1);
     });
@@ -429,7 +432,7 @@ suite("localContainers logic", () => {
         expect(sendActionEvent).to.have.been.called;
     });
 
-    test("addContainerConnection returns true on success", async () => {
+    test("addContainerConnection returns connection string on success", async () => {
         const dockerProfile = {
             containerName: "c",
             port: 1433,
@@ -437,16 +440,25 @@ suite("localContainers logic", () => {
             savePassword: true,
         } as any;
 
-        const saveProfileStub = sandbox.stub().resolves({});
-        const createSessionStub = sandbox.stub().resolves({});
+        const savedProfile = { id: "container-profile" };
+        const connectionDetails = { options: {} };
+        const saveProfileStub = sandbox.stub().resolves(savedProfile);
+        const createSessionStub = sandbox.stub().resolves();
         const connectStub = sandbox.stub().resolves(true);
         const disconnectStub = sandbox.stub().resolves();
+        const createConnectionDetailsStub = sandbox.stub().returns(connectionDetails);
+        const getConnectionStringStub = sandbox
+            .stub()
+            .withArgs(connectionDetails, false, false)
+            .resolves("Server=localhost,1433;User ID=sa;Trust Server Certificate=True");
 
         const mainController = {
             connectionManager: {
                 connect: connectStub,
                 disconnect: disconnectStub,
                 connectionUI: { saveProfile: saveProfileStub },
+                createConnectionDetails: createConnectionDetailsStub,
+                getConnectionString: getConnectionStringStub,
             },
             createObjectExplorerSession: createSessionStub,
         } as unknown as MainController;
@@ -455,13 +467,19 @@ suite("localContainers logic", () => {
             dockerProfile,
             mainController,
         );
-        expect(result).to.be.true;
+        expect(result).to.deep.equal({
+            success: true,
+            connectionString: "Server=localhost,1433;User ID=sa;Trust Server Certificate=True",
+        });
         expect(connectStub).to.have.been.calledWithMatch(sinon.match.string, sinon.match.object, {
             shouldHandleErrors: false,
         });
         expect(disconnectStub).to.have.been.called;
-        expect(saveProfileStub).to.have.been.calledOnce;
-        expect(createSessionStub).to.have.been.calledOnce;
+        expect(saveProfileStub).to.have.been.calledWithMatch({
+            server: "localhost,1433",
+            user: "SA",
+        });
+        expect(createSessionStub).to.have.been.calledWith(savedProfile);
     });
 
     test("addContainerConnection retries while container authentication initializes", async () => {
@@ -473,18 +491,24 @@ suite("localContainers logic", () => {
             savePassword: true,
         } as any;
 
-        const saveProfileStub = sandbox.stub().resolves({});
-        const createSessionStub = sandbox.stub().resolves({});
+        const savedProfile = { id: "container-profile" };
+        const connectionDetails = { options: {} };
+        const saveProfileStub = sandbox.stub().resolves(savedProfile);
+        const createSessionStub = sandbox.stub().resolves();
         const connectStub = sandbox.stub();
         connectStub.onFirstCall().resolves(false);
         connectStub.onSecondCall().resolves(true);
         const disconnectStub = sandbox.stub().resolves();
+        const createConnectionDetailsStub = sandbox.stub().returns(connectionDetails);
+        const getConnectionStringStub = sandbox.stub().resolves("Server=localhost,1433");
 
         const mainController = {
             connectionManager: {
                 connect: connectStub,
                 disconnect: disconnectStub,
                 connectionUI: { saveProfile: saveProfileStub },
+                createConnectionDetails: createConnectionDetailsStub,
+                getConnectionString: getConnectionStringStub,
             },
             createObjectExplorerSession: createSessionStub,
         } as unknown as MainController;
@@ -495,11 +519,16 @@ suite("localContainers logic", () => {
         );
         await clock.tickAsync(3000);
 
-        expect(await resultPromise).to.be.true;
+        expect(await resultPromise).to.deep.equal({
+            success: true,
+            connectionString: "Server=localhost,1433",
+        });
         expect(connectStub).to.have.been.calledTwice;
         expect(disconnectStub).to.have.been.called;
-        expect(saveProfileStub).to.have.been.calledOnce;
-        expect(createSessionStub).to.have.been.calledOnce;
+        expect(saveProfileStub).to.have.been.calledWithMatch({
+            server: "localhost,1433",
+        });
+        expect(createSessionStub).to.have.been.calledWith(savedProfile);
     });
 
     test("sendLocalContainersCloseEventTelemetry sends telemetry event", async () => {

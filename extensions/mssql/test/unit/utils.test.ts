@@ -11,6 +11,33 @@ import { ConnectionCredentials } from "../../src/models/connectionCredentials";
 import { IConnectionProfile, IConnectionProfileWithSource } from "../../src/models/interfaces";
 import * as utilUtils from "../../src/utils/utils";
 import * as vscode from "vscode";
+import * as os from "os";
+import * as path from "path";
+
+suite("Utility Tests - Path handling", () => {
+    let sandbox: sinon.SinonSandbox;
+
+    setup(() => {
+        sandbox = sinon.createSandbox();
+        sandbox.stub(os, "homedir").returns("/home/test-user");
+    });
+
+    teardown(() => {
+        sandbox.restore();
+    });
+
+    test("expands a leading tilde path segment", () => {
+        expect(utilUtils.expandTildePath("~/sounds/complete.wav")).to.equal(
+            path.join("/home/test-user", "sounds", "complete.wav"),
+        );
+    });
+
+    test("does not expand a tilde that is not a path segment", () => {
+        expect(utilUtils.expandTildePath("~other/sounds/complete.wav")).to.equal(
+            "~other/sounds/complete.wav",
+        );
+    });
+});
 
 suite("Utility Tests - Timestamp handling", () => {
     test("should return false if nothing passed", () => {

@@ -67,9 +67,11 @@ export async function initializeLocalContainersState(
     sendActionEvent(
         TelemetryViews.LocalContainers,
         TelemetryActions.StartLocalContainersDeployment,
-        {},
         {
-            localContainersInitTimeInMs: Date.now() - startTime,
+            additionalProps: {},
+            additionalMeasurements: {
+                localContainersInitTimeInMs: Date.now() - startTime,
+            },
         },
     );
     return state;
@@ -86,8 +88,13 @@ export function registerLocalContainersReducers(deploymentController: Deployment
                         sendErrorEvent(
                             TelemetryViews.LocalContainers,
                             TelemetryActions.RunDockerStep,
-                            error instanceof Error ? error : new Error(getErrorMessage(error)),
-                            true,
+                            {
+                                error:
+                                    error instanceof Error
+                                        ? error
+                                        : new Error(getErrorMessage(error)),
+                                includeErrorMessage: true,
+                            },
                         );
                     })
                     .finally(() => {
@@ -113,7 +120,9 @@ export function registerLocalContainersReducers(deploymentController: Deployment
         const currentStepNumber = localContainersState.currentDockerStep;
         localContainersState.dockerSteps[currentStepNumber].loadState = ApiStatus.NotStarted;
         sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.RetryDockerStep, {
-            dockerStep: lc.DockerStepOrder[currentStepNumber],
+            additionalProps: {
+                dockerStep: lc.DockerStepOrder[currentStepNumber],
+            },
         });
         state.deploymentTypeState = localContainersState;
         return state;
@@ -144,7 +153,9 @@ export function registerLocalContainersReducers(deploymentController: Deployment
 
         if (localContainersState.isDockerProfileValid) {
             sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.SubmitContainerForm, {
-                hasAdvancedOptions: hasAdvancedOptions ? "true" : "false",
+                additionalProps: {
+                    hasAdvancedOptions: hasAdvancedOptions ? "true" : "false",
+                },
             });
         }
         state.deploymentTypeState = localContainersState;
@@ -212,10 +223,13 @@ async function completeLocalContainerStep(
                 localContainersState.formState,
                 deploymentController.mainController,
             );
-            stepSuccessful = connectionResult;
+            stepSuccessful = connectionResult.success;
 
-            if (!connectionResult) {
+            if (connectionResult.success) {
+                localContainersState.connectionString = connectionResult.connectionString ?? "";
+            } else {
                 currentStep.errorMessage = `${connectErrorTooltip} ${localContainersState.formState.profileName}`;
+                currentStep.fullErrorText = connectionResult.fullErrorText;
             }
 
             UserSurvey.getInstance().promptUserForNPSFeedback(
@@ -256,24 +270,18 @@ async function completeLocalContainerStep(
     };
     if (stepSuccessful) {
         currentStep.loadState = ApiStatus.Loaded;
-        sendActionEvent(
-            TelemetryViews.LocalContainers,
-            TelemetryActions.RunDockerStep,
-            telemetryProperties,
-            telemetryMeasures,
-        );
+        sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.RunDockerStep, {
+            additionalProps: telemetryProperties,
+            additionalMeasurements: telemetryMeasures,
+        });
     } else {
         currentStep.loadState = ApiStatus.Error;
-        sendErrorEvent(
-            TelemetryViews.LocalContainers,
-            TelemetryActions.RunDockerStep,
-            new Error(currentStep.errorMessage),
-            true,
-            undefined,
-            undefined,
-            telemetryProperties,
-            telemetryMeasures,
-        );
+        sendErrorEvent(TelemetryViews.LocalContainers, TelemetryActions.RunDockerStep, {
+            error: new Error(currentStep.errorMessage),
+            includeErrorMessage: true,
+            additionalProps: telemetryProperties,
+            additionalMeasurements: telemetryMeasures,
+        });
     }
 
     localContainersState.dockerSteps[currentStepNumber] = currentStep;
@@ -383,10 +391,12 @@ export function sendLocalContainersCloseEventTelemetry(state: lc.LocalContainers
         TelemetryViews.LocalContainers,
         TelemetryActions.FinishLocalContainersDeployment,
         {
-            // Include the current step, its status, and its potential error in the telemetry
-            currentStep: lc.DockerStepOrder[state.currentDockerStep],
-            currentStepStatus: state.dockerSteps[state.currentDockerStep]?.loadState,
-            currentStepErrorMessage: state.dockerSteps[state.currentDockerStep]?.errorMessage,
+            additionalProps: {
+                // Include the current step, its status, and its potential error in the telemetry
+                currentStep: lc.DockerStepOrder[state.currentDockerStep],
+                currentStepStatus: state.dockerSteps[state.currentDockerStep]?.loadState,
+                currentStepErrorMessage: state.dockerSteps[state.currentDockerStep]?.errorMessage,
+            },
         },
     );
 }
@@ -394,7 +404,7 @@ export function sendLocalContainersCloseEventTelemetry(state: lc.LocalContainers
 export async function addContainerConnection(
     dockerProfile: lc.DockerConnectionProfile,
     mainController: MainController,
-): Promise<boolean> {
+): Promise<lc.ContainerConnectionResult> {
     const connection = {
         ...dockerProfile,
         server: `${localhost},${dockerProfile.port}`,
@@ -422,7 +432,7 @@ export async function addContainerConnection(
         }
 
         if (attempt + 1 === containerConnectionMaxAttempts) {
-            return false;
+            return { success: false };
         }
 
         if (attempt + 1 < containerConnectionMaxAttempts) {
@@ -434,9 +444,16 @@ export async function addContainerConnection(
 
     try {
         const profile = await connectionManager.connectionUI.saveProfile(connection);
-        return Boolean(await mainController.createObjectExplorerSession(profile));
-    } catch {
-        return false;
+        const connectionString = await connectionManager.getConnectionString(
+            connectionManager.createConnectionDetails(profile),
+            false /* includePassword */,
+            false /* includeApplicationName */,
+        );
+        await mainController.createObjectExplorerSession(profile);
+
+        return { success: true, connectionString };
+    } catch (error) {
+        return { success: false, fullErrorText: getErrorMessage(error) };
     }
 }
 
