@@ -1937,6 +1937,10 @@ export class LocConstants {
             enableGraphQLForEntityHelp: l10n.t(
                 "Enable GraphQL in API Type to expose this entity through GraphQL.",
             ),
+            enableMcpForEntity: l10n.t("Expose this entity through MCP"),
+            enableMcpForEntityHelp: l10n.t(
+                "Enable MCP in API Type to expose this entity through MCP.",
+            ),
             storedProcedureRestMethods: l10n.t("Stored procedure REST methods"),
             storedProcedureRestMethodsHelp: l10n.t(
                 "Select the HTTP method that can execute this stored procedure. DAB defaults to POST.",
@@ -1948,6 +1952,7 @@ export class LocConstants {
             graphqlMutation: l10n.t("Mutation"),
             graphqlQuery: l10n.t("Query"),
             mcpCustomTool: l10n.t("MCP custom tool"),
+            mcpDmlTools: l10n.t("MCP DML tools"),
             exposeAsMcpCustomTool: l10n.t("Expose as MCP custom tool"),
             exposeAsMcpCustomToolHelp: l10n.t(
                 "Creates a dedicated MCP tool for this stored procedure. When disabled, the procedure can still be available through generic MCP execute tools if MCP is enabled.",
@@ -1961,6 +1966,13 @@ export class LocConstants {
             ),
             enableMcpForCustomToolHelp: l10n.t(
                 "Enable MCP in API Type to use this custom tool setting.",
+            ),
+            mcpDmlToolsHelp: l10n.t("DML tools expose this entity through generic MCP tools."),
+            mcpStoredProcedureDmlToolsHelp: l10n.t(
+                "DML tools expose this stored procedure through generic execute tools.",
+            ),
+            mcpCustomToolHelp: l10n.t(
+                "Custom tool creates a dedicated MCP tool for this stored procedure.",
             ),
             apiTypeNotEnabledGlobally: (apiType: string) =>
                 l10n.t({
@@ -1987,6 +1999,10 @@ export class LocConstants {
             filterEntitiesTitle: l10n.t("Filter entities"),
             status: l10n.t("Status"),
             objectType: l10n.t("Object type"),
+            exposedVia: l10n.t("Exposed via"),
+            authMode: l10n.t("Auth mode"),
+            notExposed: l10n.t("Not exposed"),
+            noPermissions: l10n.t("No permissions"),
             clearAllFilters: l10n.t("Clear all"),
             entityStatusFilterLabel: (status: "all" | "enabled" | "disabled" | "warnings") => {
                 switch (status) {
@@ -2013,6 +2029,7 @@ export class LocConstants {
             read: l10n.t("Read"),
             update: l10n.t("Update"),
             execute: l10n.t("Execute"),
+            executeShort: l10n.t("Exec"),
             view: l10n.t("View"),
             storedProcedure: l10n.t("Stored Procedure"),
             tables: l10n.t("Tables"),
@@ -2059,6 +2076,7 @@ export class LocConstants {
             makeReadOnly: l10n.t("Make everything read-only"),
             enableAllCruds: l10n.t("Enable all CRUD operations"),
             includeAllColumns: l10n.t("Include all columns"),
+            customizeColumnAccess: l10n.t("Customize column access"),
             entityNameDescription: l10n.t("Entity name used in API routes"),
             viewConfig: l10n.t("View Config"),
             deploy: l10n.t("Deploy"),
@@ -2066,6 +2084,9 @@ export class LocConstants {
                 "Local container deployment is currently only supported with SQL Authentication connections.",
             ),
             atLeastOneApiTypeRequired: l10n.t("At least one API type must be selected."),
+            missingLogicalKeyRequired: l10n.t(
+                "Select at least one logical key column before applying or deploying this exposed table or view.",
+            ),
             authenticationNotSupported: l10n.t("Authentication not supported"),
             dabDeploymentNotSupportedBanner: l10n.t(
                 "In the Data API builder experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.",
@@ -2081,7 +2102,6 @@ export class LocConstants {
             identity: l10n.t("Identity"),
             rest: l10n.t("REST"),
             entityName: l10n.t("Entity Name"),
-            entityNameHelp: l10n.t("Used in API routes and responses"),
             authorizationRole: l10n.t("Permissions"),
             authorizationRoleHelp: l10n.t("Define who can access this endpoint"),
             authorizationRoleStoredProcedureHelp: l10n.t(
@@ -2089,9 +2109,31 @@ export class LocConstants {
             ),
             disabledGlobally: l10n.t("Disabled globally"),
             anonymous: l10n.t("Anonymous"),
+            anonymousShort: l10n.t("Anon"),
             anonymousDescription: l10n.t("No authentication required"),
             authenticated: l10n.t("Authenticated"),
+            authenticatedShort: l10n.t("Auth"),
             authenticatedDescription: l10n.t("Requires user authentication"),
+            allowedActions: l10n.t("Actions"),
+            customizeColumns: l10n.t("Customize columns"),
+            done: l10n.t("Done"),
+            description: l10n.t("Description"),
+            parameters: l10n.t("Parameters"),
+            alias: l10n.t("Alias"),
+            key: l10n.t("Key"),
+            logicalKey: l10n.t("Logical key"),
+            expose: l10n.t("Expose"),
+            exposed: l10n.t("Exposed"),
+            hidden: l10n.t("Hidden"),
+            required: l10n.t("Required"),
+            requiredParameter: l10n.t("Required parameter"),
+            optional: l10n.t("Optional"),
+            noColumnsDiscovered: l10n.t("No columns were discovered for this entity."),
+            filterColumns: l10n.t("Filter columns..."),
+            noColumnsMatchFilter: l10n.t("No columns match the current filter."),
+            noParametersDiscovered: l10n.t(
+                "No parameters were discovered for this stored procedure.",
+            ),
             customRestPath: l10n.t("Custom REST Path"),
             customRestPathHelp: l10n.t("Optional - Override default api/entityName path"),
             customGraphQLType: l10n.t("Custom GraphQL Type"),
@@ -2121,9 +2163,21 @@ export class LocConstants {
                     args: [schemaName],
                     comment: ["{0} is the schema name"],
                 }),
+            toggleAllEntitiesInObjectGroup: (sourceType: string, schemaName: string) =>
+                l10n.t({
+                    message: "Toggle all {0} in schema {1}",
+                    args: [sourceType, schemaName],
+                    comment: ["{0} is the source type", "{1} is the schema name"],
+                }),
             enableEntity: (entityName: string) =>
                 l10n.t({
                     message: "Enable {0}",
+                    args: [entityName],
+                    comment: ["{0} is the entity name"],
+                }),
+            includeEntity: (entityName: string) =>
+                l10n.t({
+                    message: "Include {0}",
                     args: [entityName],
                     comment: ["{0} is the entity name"],
                 }),
