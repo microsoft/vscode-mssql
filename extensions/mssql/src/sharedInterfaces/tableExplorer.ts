@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { RequestType } from "vscode-jsonrpc";
 import { ApiStatus, CoreRPCs } from "./webview";
 
 export enum SqlPaneMode {
@@ -204,13 +205,13 @@ export interface TableExplorerWebViewState {
 }
 
 export interface TableExplorerContextProps extends CoreRPCs {
-    commitChanges: () => void;
-    loadSubset: (rowCount: number) => void;
-    createRow: () => void;
-    deleteRow: (rowId: number) => void;
-    updateCell: (rowId: number, columnId: number, newValue: string) => void;
-    revertCell: (rowId: number, columnId: number) => void;
-    revertRow: (rowId: number) => void;
+    commitChanges: () => Promise<void>;
+    loadSubset: (rowCount: number) => Promise<void>;
+    createRow: () => Promise<void>;
+    deleteRow: (rowId: number) => Promise<void>;
+    updateCell: (rowId: number, columnId: number, newValue: string) => Promise<void>;
+    revertCell: (rowId: number, columnId: number) => Promise<void>;
+    revertRow: (rowId: number) => Promise<void>;
     generateScript: () => void;
     openScriptInEditor: () => void;
     copyScriptToClipboard: () => void;
@@ -218,7 +219,11 @@ export interface TableExplorerContextProps extends CoreRPCs {
     setCurrentPage: (pageNumber: number) => void;
     saveResults: (format: SupportedSaveFormats, data: ExportData) => void;
     showTableQuery: () => void;
-    runTableQuery: (queryString: string, rowCount?: number, filterOperators?: string[]) => void;
+    runTableQuery: (
+        queryString: string,
+        rowCount?: number,
+        filterOperators?: string[],
+    ) => Promise<boolean>;
     modifyTable: () => void;
     viewTableDiagram: () => void;
     showSql: (sqlScript: string) => void;
@@ -243,6 +248,12 @@ export interface TableExplorerReducers {
     modifyTable: {};
     viewTableDiagram: {};
     showSql: { sqlScript: string };
+}
+
+export namespace WaitForEditSessionReadyRequest {
+    export const type = new RequestType<void, boolean, void>(
+        "tableExplorer/waitForEditSessionReady",
+    );
 }
 
 export interface ExportData {

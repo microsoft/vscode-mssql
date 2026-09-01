@@ -9,6 +9,7 @@ import {
     TableExplorerReducers,
     TableExplorerContextProps,
     ExportData,
+    WaitForEditSessionReadyRequest,
 } from "../../../sharedInterfaces/tableExplorer";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { getCoreRPCs } from "../../common/utils";
@@ -25,32 +26,36 @@ export const TableExplorerStateProvider: React.FC<{
     const commands = useMemo<TableExplorerContextProps>(
         () => ({
             ...getCoreRPCs(extensionRpc),
-            commitChanges: function (): void {
-                extensionRpc.action("commitChanges", {});
+            commitChanges: async function (): Promise<void> {
+                await extensionRpc.actionAndWait("commitChanges", {});
             },
 
-            loadSubset: function (rowCount: number): void {
-                extensionRpc.action("loadSubset", { rowCount });
+            loadSubset: async function (rowCount: number): Promise<void> {
+                await extensionRpc.actionAndWait("loadSubset", { rowCount });
             },
 
-            createRow: function (): void {
-                extensionRpc.action("createRow", {});
+            createRow: async function (): Promise<void> {
+                await extensionRpc.actionAndWait("createRow", {});
             },
 
-            deleteRow: function (rowId: number): void {
-                extensionRpc.action("deleteRow", { rowId });
+            deleteRow: async function (rowId: number): Promise<void> {
+                await extensionRpc.actionAndWait("deleteRow", { rowId });
             },
 
-            updateCell: function (rowId: number, columnId: number, newValue: string): void {
-                extensionRpc.action("updateCell", { rowId, columnId, newValue });
+            updateCell: async function (
+                rowId: number,
+                columnId: number,
+                newValue: string,
+            ): Promise<void> {
+                await extensionRpc.actionAndWait("updateCell", { rowId, columnId, newValue });
             },
 
-            revertCell: function (rowId: number, columnId: number): void {
-                extensionRpc.action("revertCell", { rowId, columnId });
+            revertCell: async function (rowId: number, columnId: number): Promise<void> {
+                await extensionRpc.actionAndWait("revertCell", { rowId, columnId });
             },
 
-            revertRow: function (rowId: number): void {
-                extensionRpc.action("revertRow", { rowId });
+            revertRow: async function (rowId: number): Promise<void> {
+                await extensionRpc.actionAndWait("revertRow", { rowId });
             },
 
             generateScript: function (): void {
@@ -81,12 +86,17 @@ export const TableExplorerStateProvider: React.FC<{
                 extensionRpc.action("showTableQuery", {});
             },
 
-            runTableQuery: function (
+            runTableQuery: async function (
                 queryString: string,
                 rowCount?: number,
                 filterOperators?: string[],
-            ): void {
-                extensionRpc.action("runTableQuery", { queryString, rowCount, filterOperators });
+            ): Promise<boolean> {
+                await extensionRpc.actionAndWait("runTableQuery", {
+                    queryString,
+                    rowCount,
+                    filterOperators,
+                });
+                return extensionRpc.sendRequest(WaitForEditSessionReadyRequest.type);
             },
 
             modifyTable: function (): void {

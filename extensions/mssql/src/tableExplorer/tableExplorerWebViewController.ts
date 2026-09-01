@@ -12,6 +12,7 @@ import {
     EditSessionReadyParams,
     DbCellValue,
     SqlPaneMode,
+    WaitForEditSessionReadyRequest,
 } from "../sharedInterfaces/tableExplorer";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import ConnectionManager from "../controllers/connectionManager";
@@ -25,13 +26,17 @@ import * as Constants from "../constants/constants";
 import { sendActionEvent, sendErrorEvent, startActivity } from "extension-toolkit/vscode";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { ApiStatus } from "../sharedInterfaces/webview";
+import { Deferred } from "../protocol";
 
 export class TableExplorerWebViewController extends WebviewPanelController<
     TableExplorerWebViewState,
     TableExplorerReducers
 > {
     private operationId: string;
-    private _preserveTableQuery = false;
+    private _sessionLoadCompletion: Deferred<boolean> | undefined;
+    private _sessionLoadCanSucceed = true;
+    private _pendingTableQuery: string | undefined;
+    private _pendingRowCount: number | undefined;
 
     constructor(
         context: vscode.ExtensionContext,
@@ -116,29 +121,40 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 
             void this.loadResultSet();
         } else {
-            const serverMessage = result.message?.trim() ?? "";
-            const toastMessage =
-                serverMessage.length > 0
-                    ? LocConstants.TableExplorer.failedToRunTableQuery(serverMessage)
-                    : LocConstants.TableExplorer.failedToRunTableQueryUnknown;
-            this.logger.error(
-                `Edit session failed to initialize: ${toastMessage} - OperationId: ${this.operationId}`,
-            );
+            void this.handleEditSessionReadyFailure(result);
+        }
+    }
+
+    private async handleEditSessionReadyFailure(result: EditSessionReadyParams): Promise<void> {
+        const serverMessage = result.message?.trim() ?? "";
+        const toastMessage =
+            serverMessage.length > 0
+                ? LocConstants.TableExplorer.failedToRunTableQuery(serverMessage)
+                : LocConstants.TableExplorer.failedToRunTableQueryUnknown;
+        this.logger.error(
+            `Edit session failed to initialize: ${toastMessage} - OperationId: ${this.operationId}`,
+        );
+
+        const shouldRestorePreviousSession = this.shouldRestorePreviousSession();
+        const restored =
+            shouldRestorePreviousSession && (await this.restorePreviousSessionAfterFailure());
+        if (!restored) {
             this.state.loadStatus = ApiStatus.Error;
             this.state.resultSet = undefined;
-            this._preserveTableQuery = false;
+            this.clearPendingSessionState();
             this.updateState();
-
-            sendErrorEvent(TelemetryViews.TableExplorer, TelemetryActions.EditSessionReady, {
-                error: new Error("Edit session failed to initialize"),
-                includeErrorMessage: true,
-                additionalProps: {
-                    operationId: this.operationId,
-                },
-            });
-
-            void vscode.window.showErrorMessage(toastMessage);
+            this.completeSessionLoad(false);
         }
+
+        sendErrorEvent(TelemetryViews.TableExplorer, TelemetryActions.EditSessionReady, {
+            error: new Error("Edit session failed to initialize"),
+            includeErrorMessage: true,
+            additionalProps: {
+                operationId: this.operationId,
+            },
+        });
+
+        void vscode.window.showErrorMessage(toastMessage);
     }
 
     /**
@@ -243,22 +259,27 @@ export class TableExplorerWebViewController extends WebviewPanelController<
     }
 
     private async loadResultSet(): Promise<void> {
+        let succeeded = false;
+        let recoveryStarted = false;
         try {
+            const rowCount = this._pendingRowCount ?? this.state.currentRowCount;
             const subsetResult = await this._tableExplorerService.subset(
                 this.state.ownerUri,
                 0,
-                this.state.currentRowCount,
+                rowCount,
             );
             this.state.resultSet = subsetResult;
             this.state.loadStatus = ApiStatus.Loaded;
 
-            if (this._preserveTableQuery) {
-                this._preserveTableQuery = false;
-            } else {
+            if (this._pendingTableQuery !== undefined) {
+                this.state.tableQuery = this._pendingTableQuery;
+            } else if (!this._sessionLoadCompletion || this._sessionLoadCanSucceed) {
                 this.state.tableQuery = this.buildDefaultSelectQuery();
             }
+            this.state.currentRowCount = rowCount;
 
             this.updateState();
+            succeeded = true;
         } catch (error) {
             // subset() is invoked fire-and-forget from onEditSessionReady, so an
             // unhandled rejection here would leave the grid stuck in the Loading
@@ -267,15 +288,48 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             this.logger.error(
                 `Error loading result set: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
             );
-            this.state.loadStatus = ApiStatus.Error;
-            this.state.resultSet = undefined;
-            this._preserveTableQuery = false;
-            this.updateState();
+            if (this.shouldRestorePreviousSession()) {
+                recoveryStarted = await this.restorePreviousSessionAfterFailure();
+            }
+            if (!recoveryStarted) {
+                this.state.loadStatus = ApiStatus.Error;
+                this.state.resultSet = undefined;
+                this.updateState();
+            }
 
             void vscode.window.showErrorMessage(
                 LocConstants.TableExplorer.failedToLoadData(getErrorMessage(error)),
             );
+        } finally {
+            if (!recoveryStarted) {
+                this.clearPendingSessionState();
+                this.completeSessionLoad(succeeded);
+            }
         }
+    }
+
+    private clearPendingSessionState(): void {
+        this._pendingTableQuery = undefined;
+        this._pendingRowCount = undefined;
+    }
+
+    private completeSessionLoad(succeeded: boolean): void {
+        if (this._sessionLoadCompletion && !this._sessionLoadCompletion.isCompleted) {
+            this._sessionLoadCompletion.resolve(succeeded && this._sessionLoadCanSucceed);
+        }
+    }
+
+    private async waitForEditSessionReady(): Promise<boolean> {
+        const completion = this._sessionLoadCompletion;
+        if (!completion) {
+            return false;
+        }
+
+        const succeeded = await completion.promise;
+        if (this._sessionLoadCompletion === completion) {
+            this._sessionLoadCompletion = undefined;
+        }
+        return succeeded;
     }
 
     /**
@@ -388,36 +442,44 @@ export class TableExplorerWebViewController extends WebviewPanelController<
     }
 
     /**
-     * Re-initializes the edit session without a custom query, restoring the table's default view.
-     * Used as a recovery step when a custom query fails. Sets state.loadStatus to Error
+     * Re-initializes the edit session with the last successfully loaded query.
+     * Used as a recovery step when a replacement query fails. Sets state.loadStatus to Error
      * if the recovery init itself fails. Returns true on success, false on failure.
      */
-    private async tryRestoreOriginalSession(
-        state: TableExplorerWebViewState,
-        objectName: string,
-        schemaName: string | undefined,
-        objectType: string,
-    ): Promise<boolean> {
+    private shouldRestorePreviousSession(): boolean {
+        return (
+            this._sessionLoadCompletion !== undefined &&
+            !this._sessionLoadCompletion.isCompleted &&
+            this._sessionLoadCanSucceed
+        );
+    }
+
+    private async restorePreviousSessionAfterFailure(): Promise<boolean> {
+        this._sessionLoadCanSucceed = false;
+        this.clearPendingSessionState();
+        const previousQuery = this.state.tableQuery?.trim() ? this.state.tableQuery : undefined;
         try {
             await this._tableExplorerService.initialize(
-                state.ownerUri,
-                objectName,
-                schemaName ?? "",
-                objectType,
-                undefined,
+                this.state.ownerUri,
+                this.state.tableName,
+                this.state.schemaName ?? "",
+                this._targetNode.metadata.metadataTypeName.toUpperCase(),
+                previousQuery,
             );
-            this.logger.debug("Restored original session after custom query failure");
+            this.logger.debug("Restored previous session after replacement query failure");
             return true;
         } catch (restoreError) {
             this.logger.error(
-                `Failed to restore original session: ${getErrorMessage(restoreError)}`,
+                `Failed to restore previous session: ${getErrorMessage(restoreError)}`,
             );
-            state.loadStatus = ApiStatus.Error;
+            this.state.loadStatus = ApiStatus.Error;
             return false;
         }
     }
 
     private registerRpcHandlers(): void {
+        this.onRequest(WaitForEditSessionReadyRequest.type, () => this.waitForEditSessionReady());
+
         this.registerReducer("commitChanges", async (state) => {
             this.logger.info(
                 `Committing changes for: ${state.tableName} - OperationId: ${this.operationId}`,
@@ -479,6 +541,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 vscode.window.showErrorMessage(
                     LocConstants.TableExplorer.failedToSaveChanges(getErrorMessage(error)),
                 );
+                throw error;
             }
 
             return state;
@@ -568,6 +631,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 vscode.window.showErrorMessage(
                     LocConstants.TableExplorer.failedToLoadData(getErrorMessage(error)),
                 );
+                throw error;
             }
 
             return state;
@@ -773,6 +837,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 vscode.window.showErrorMessage(
                     LocConstants.TableExplorer.failedToRemoveRow(getErrorMessage(error)),
                 );
+                throw error;
             }
 
             return state;
@@ -919,6 +984,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 vscode.window.showErrorMessage(
                     LocConstants.TableExplorer.failedToUpdateCell(getErrorMessage(error)),
                 );
+                throw error;
             }
 
             return state;
@@ -1050,6 +1116,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 vscode.window.showErrorMessage(
                     LocConstants.TableExplorer.failedToRevertCell(getErrorMessage(error)),
                 );
+                throw error;
             }
 
             return state;
@@ -1185,6 +1252,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 vscode.window.showErrorMessage(
                     LocConstants.TableExplorer.failedToRevertRow(getErrorMessage(error)),
                 );
+                throw error;
             }
 
             return state;
@@ -1487,6 +1555,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         this.registerReducer("runTableQuery", async (state, payload) => {
             this.logger.debug(`Running custom table query - OperationId: ${this.operationId}`);
 
+            this._sessionLoadCompletion = new Deferred<boolean>();
+            this._sessionLoadCanSucceed = true;
+            this.clearPendingSessionState();
+
             const startTime = Date.now();
             // Only operator type names (e.g. "equals", "lessThan") flow through this
             // payload — column names and user-entered values stay in the webview.
@@ -1519,6 +1591,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                         ...filterTelemetry,
                     },
                 });
+                this.completeSessionLoad(false);
                 return state;
             }
 
@@ -1537,6 +1610,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                         ...filterTelemetry,
                     },
                 );
+                this.completeSessionLoad(false);
                 return state;
             }
 
@@ -1550,9 +1624,12 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                         ...filterTelemetry,
                     },
                 });
+                this.completeSessionLoad(false);
                 return state;
             }
 
+            this._pendingTableQuery = payload.queryString;
+            this._pendingRowCount = payload.rowCount;
             await this.tearDownEditSession(state);
 
             const objectName = state.tableName;
@@ -1571,18 +1648,6 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     payload.queryString,
                 );
 
-                // Persist the custom query so loadResultSet won't overwrite it with the default
-                state.tableQuery = payload.queryString;
-                this._preserveTableQuery = true;
-
-                // Callers that change the row count (e.g. the toolbar selector)
-                // pass the new count alongside the query so the toolbar stays in
-                // sync. Filter apply/clear paths leave it undefined since they
-                // don't change the count.
-                if (payload.rowCount !== undefined) {
-                    state.currentRowCount = payload.rowCount;
-                }
-
                 this.logger.debug(
                     `Custom query session re-initialized successfully - OperationId: ${this.operationId}`,
                 );
@@ -1599,7 +1664,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     `Error running custom table query: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
                 );
 
-                await this.tryRestoreOriginalSession(state, objectName, schemaName, objectType);
+                const restored = await this.restorePreviousSessionAfterFailure();
+                if (!restored) {
+                    this.completeSessionLoad(false);
+                }
                 this.updateState();
 
                 endActivity.endFailed(
