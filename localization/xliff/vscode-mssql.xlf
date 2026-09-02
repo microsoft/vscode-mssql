@@ -10888,8 +10888,8 @@
     <trans-unit id="mssql.format.enablePreviewFormatter">
       <source xml:lang="en">Use the preview SQL formatter. Disable this setting to temporarily use the existing formatter.</source>
     </trans-unit>
-    <trans-unit id="mssql.preview.useVscodeAccountsForEntraMFA.description">
-      <source xml:lang="en">Uses VS Code signed-in accounts for Microsoft Entra ID MFA authentication to SQL. Restart Visual Studio Code after changing this setting.</source>
+    <trans-unit id="mssql.useMsalEntraMfaAuth.description">
+      <source xml:lang="en">Uses MSAL for Microsoft Entra MFA authentication instead of VS Code signed-in accounts. Restart Visual Studio Code after changing this setting.</source>
     </trans-unit>
     <trans-unit id="mssql.viewBackgroundTaskLogs">
       <source xml:lang="en">View Task Logs</source>

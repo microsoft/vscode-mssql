@@ -34,14 +34,13 @@ import { TestPrompter } from "./stubs";
 import {
     stubExtensionContext,
     stubMessageBoxes,
-    stubPreviewService,
     createStubLogger,
     stubInstantiationService,
+    stubUseMsalEntraMfaAuthConfig,
 } from "./utils";
 import { Deferred } from "../../src/protocol";
 import { Perf } from "../../src/perf/perfTelemetry";
 import { MsalAzureController } from "../../src/azure/msal/msalAzureController";
-import { PreviewFeature } from "../../src/previews/previewService";
 import * as vscodeEntraMfaUtils from "../../src/azure/vscodeEntraMfaUtils";
 import * as azureHelpers from "../../src/connectionconfig/azureHelpers";
 import * as telemetry from "extension-toolkit/vscode/telemetry";
@@ -325,7 +324,7 @@ suite("ConnectionManager Tests", () => {
     suite("Token request handling", () => {
         setup(() => {
             // Test the MSAL (non-VS-Code-accounts) path
-            stubPreviewService(sandbox, { [PreviewFeature.UseVscodeAccountsForEntraMFA]: false });
+            stubUseMsalEntraMfaAuthConfig(sandbox, true);
             connectionManager = createConnectionManager();
         });
         test("should return cached token when valid", async () => {
@@ -413,9 +412,7 @@ suite("ConnectionManager Tests", () => {
         let acquireTokenStub: sinon.SinonStub;
 
         setup(() => {
-            stubPreviewService(sandbox, {
-                [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
-            });
+            stubUseMsalEntraMfaAuthConfig(sandbox, false);
             connectionManager = createConnectionManager();
             acquireTokenStub = sandbox.stub(
                 vscodeEntraMfaUtils,
@@ -545,9 +542,7 @@ suite("ConnectionManager Tests", () => {
         }
 
         setup(() => {
-            stubPreviewService(sandbox, {
-                [PreviewFeature.UseVscodeAccountsForEntraMFA]: false,
-            });
+            stubUseMsalEntraMfaAuthConfig(sandbox, true);
             connectionManager = createConnectionManager();
             sendNotificationStub = mockServiceClient.sendNotification as sinon.SinonStub;
             sendNotificationStub.reset();
@@ -743,9 +738,7 @@ suite("ConnectionManager Tests", () => {
         }
 
         setup(async () => {
-            stubPreviewService(sandbox, {
-                [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
-            });
+            stubUseMsalEntraMfaAuthConfig(sandbox, false);
             connectionManager = createConnectionManager();
             acquireTokenStub = sandbox.stub(
                 vscodeEntraMfaUtils,
@@ -816,7 +809,7 @@ suite("ConnectionManager Tests", () => {
 
         setup(async () => {
             // Test the MSAL (non-VS-Code-accounts) path
-            stubPreviewService(sandbox, { [PreviewFeature.UseVscodeAccountsForEntraMFA]: false });
+            stubUseMsalEntraMfaAuthConfig(sandbox, true);
 
             mockAccountStore = sandbox.createStubInstance(AccountStore);
             mockAzureController = sandbox.createStubInstance(MsalAzureController);

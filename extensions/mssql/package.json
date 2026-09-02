@@ -1027,11 +1027,11 @@
                 },
                 {
                     "command": "mssql.addAadAccount",
-                    "when": "!config.mssql.preview.useVscodeAccountsForEntraMFA"
+                    "when": "config.mssql.useMsalEntraMfaAuth"
                 },
                 {
                     "command": "mssql.removeAadAccount",
-                    "when": "!config.mssql.preview.useVscodeAccountsForEntraMFA"
+                    "when": "config.mssql.useMsalEntraMfaAuth"
                 },
                 {
                     "command": "mssql.objectExplorerNewQuery",
@@ -1997,13 +1997,10 @@
                     "description": "%mssql.preview.betaExecutionPlan.description%",
                     "scope": "application"
                 },
-                "mssql.preview.useVscodeAccountsForEntraMFA": {
-                    "type": [
-                        "boolean",
-                        "null"
-                    ],
-                    "default": true,
-                    "description": "%mssql.preview.useVscodeAccountsForEntraMFA.description%",
+                "mssql.useMsalEntraMfaAuth": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "%mssql.useMsalEntraMfaAuth.description%",
                     "scope": "application"
                 },
                 "mssql.openQueryResultsInTabByDefault": {
