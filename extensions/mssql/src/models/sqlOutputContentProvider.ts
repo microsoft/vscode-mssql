@@ -20,7 +20,7 @@ import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry"
 import * as qr from "../sharedInterfaces/queryResult";
 import { ExecutionPlanService } from "../services/executionPlanService";
 import { countResultSets, isOpenQueryResultsInTabByDefaultEnabled } from "../queryResult/utils";
-import { createErrorLineLink } from "../queryResult/messageLinks";
+import { createErrorMessageNavigation } from "../queryResult/messageLinks";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { getErrorMessage } from "../utils/utils";
 import { getLogger } from "./logger";
@@ -688,26 +688,20 @@ export class SqlOutputContentProvider {
 
                 const showBatchMessages = Utils.shouldShowBatchMessages();
                 if (message.isError || message.batchId >= 0 || showBatchMessages) {
-                    // An execution error names the line it failed on, counted from the start of
-                    // its batch. Turn that into a link back to the line in the document.
-                    let errorLink: IMessage["link"];
-                    let errorSelection: IMessage["selection"];
-                    if (message.isError) {
-                        const link = createErrorLineLink(
-                            message.message,
-                            queryRunner.batchSets[message.batchId]?.selection,
-                        );
-                        if (link) {
-                            errorLink = { text: link.text, uri: queryRunner.uri };
-                            errorSelection = link.selection;
-                        }
-                    }
+                    const { errorSelection, ...displayMessage } = message;
+                    const errorNavigation = message.isError
+                        ? createErrorMessageNavigation(
+                              message.message,
+                              errorSelection,
+                              queryRunner.uri,
+                          )
+                        : undefined;
 
                     resultWebviewState.messages.push({
-                        ...message,
+                        ...displayMessage,
                         batchId: showBatchMessages ? message.batchId : undefined,
-                        link: errorLink,
-                        selection: errorSelection,
+                        link: errorNavigation?.link,
+                        selection: errorNavigation?.selection,
                     });
                 }
                 if (typeof message.rowsAffected === "number") {

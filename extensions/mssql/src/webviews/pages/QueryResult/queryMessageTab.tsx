@@ -85,9 +85,8 @@ export const QueryMessageTab = () => {
                             selectionData: item.selection,
                         });
                     };
-                    // An execution error already names the line in its own text, so make that
-                    // text the link rather than repeating it. Anything else gets the link
-                    // appended, which is how the batch start message reads.
+                    // Structured query errors link only their line segment. Other messages append
+                    // their link, which is how the batch start message reads.
                     const linkStart = item.message.indexOf(item.link.text);
                     return (
                         <DataGridCell focusMode="group" style={{ minHeight: "18px" }}>
