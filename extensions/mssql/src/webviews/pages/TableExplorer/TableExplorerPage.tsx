@@ -131,6 +131,9 @@ export const TableExplorerPage: React.FC = () => {
     const failedCells = useTableExplorerSelector((s) => s.failedCells);
     const deletedRows = useTableExplorerSelector((s) => s.deletedRows);
     const newRows = useTableExplorerSelector((s) => s.newRows);
+    const cellUpdateAcknowledgements = useTableExplorerSelector(
+        (s) => s.cellUpdateAcknowledgements,
+    );
     const showScriptPane = useTableExplorerSelector((s) => s.showScriptPane);
     const updateScript = useTableExplorerSelector((s) => s.updateScript);
     const sqlPaneMode = useTableExplorerSelector((s) => s.sqlPaneMode);
@@ -440,6 +443,7 @@ export const TableExplorerPage: React.FC = () => {
                                     failedCells={failedCells}
                                     deletedRows={deletedRows}
                                     newRowIds={newRows?.map((r) => r.id)}
+                                    cellUpdateAcknowledgements={cellUpdateAcknowledgements}
                                     tableQuery={tableQuery}
                                     sessionKey={ownerUri}
                                     onCreateRow={context?.createRow}
