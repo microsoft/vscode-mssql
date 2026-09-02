@@ -1512,9 +1512,16 @@ suite("SqlNotebookController", () => {
         test("opens saved results beside the notebook when Open File is selected", async () => {
             stubSuccessfulSave(csvUri, LocalizedConstants.Common.openFile);
 
+            const doc = {} as unknown as vscode.TextDocument;
+            const openTextDocumentStub = sandbox.stub(vscode.workspace, "openTextDocument").resolves(doc);
+            const showTextDocumentStub = sandbox
+                .stub(vscode.window, "showTextDocument")
+                .resolves({} as unknown as vscode.TextEditor);
+
             await controller["handleSaveAs"](notebook, saveAsMessage);
 
-            expect(executeCommandStub).to.have.been.calledWith("vscode.open", csvUri, {
+            expect(openTextDocumentStub).to.have.been.calledWith(csvUri);
+            expect(showTextDocumentStub).to.have.been.calledWith(doc, {
                 viewColumn: vscode.ViewColumn.Beside,
                 preview: false,
             });
