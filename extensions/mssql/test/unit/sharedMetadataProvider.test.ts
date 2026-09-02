@@ -325,6 +325,63 @@ suite("SharedMetadataProvider", () => {
         provider.dispose();
     });
 
+    test("preserves length, precision, and scale in auxiliary column types", async () => {
+        const objectId = -10;
+        const columns: readonly AuxCatalogItem[] = [
+            auxiliaryColumn(objectId, "Code", "CHAR", 10, 0, 0),
+            auxiliaryColumn(objectId, "Label", "varchar", -1, 0, 0),
+            auxiliaryColumn(objectId, "LocalizedLabel", "nvarchar", 100, 0, 0),
+            auxiliaryColumn(objectId, "Amount", "decimal", 9, 18, 4),
+            auxiliaryColumn(objectId, "Ratio", "numeric", 9, 12, 6),
+            auxiliaryColumn(objectId, "Payload", "varbinary", -1, 0, 0),
+            auxiliaryColumn(objectId, "OccurredAt", "datetime2", 8, 27, 7),
+            auxiliaryColumn(objectId, "LocalTime", "time", 5, 16, 3),
+            auxiliaryColumn(objectId, "OffsetAt", "datetimeoffset", 10, 34, 2),
+        ];
+        const provider = new SharedMetadataProvider({
+            acquireServer: () => Promise.resolve(serverLease(["SalesDb"])),
+            acquireDatabase: () =>
+                Promise.resolve(
+                    databaseLease("SalesDb", catalog("SalesDb", 1, 10, "Orders"), {
+                        ready: ["systemObjects", "language/systemColumns"],
+                        values: {
+                            systemObjects: [
+                                {
+                                    name: "type_shapes",
+                                    schema: "sys",
+                                    kind: "view",
+                                    isSystem: true,
+                                    objectId,
+                                },
+                            ],
+                            "language/systemColumns": columns,
+                        },
+                    }),
+                ),
+            environment: { database: "SalesDb" },
+        });
+        await provider.waitForHydration();
+
+        const resolution = provider.pin().resolveObject(["sys", "type_shapes"]);
+        expect(resolution.kind).to.equal("resolved");
+        if (resolution.kind !== "resolved") throw new Error("Expected system object");
+        const state = provider.pin().columnState(resolution.object.ref);
+        expect(state.kind).to.equal("loaded");
+        if (state.kind !== "loaded") throw new Error("Expected loaded columns");
+        expect(state.value.map((column) => `${column.name}:${column.typeDisplay}`)).to.deep.equal([
+            "Code:CHAR(10)",
+            "Label:varchar(max)",
+            "LocalizedLabel:nvarchar(50)",
+            "Amount:decimal(18,4)",
+            "Ratio:numeric(12,6)",
+            "Payload:varbinary(max)",
+            "OccurredAt:datetime2(7)",
+            "LocalTime:time(3)",
+            "OffsetAt:datetimeoffset(2)",
+        ]);
+        provider.dispose();
+    });
+
     test("keeps unsupported sections honestly unavailable", async () => {
         const provider = new SharedMetadataProvider({
             acquireServer: () => Promise.resolve(serverLease(["SalesDb"])),
@@ -546,6 +603,22 @@ function catalog(
         constraints: "ready",
         descriptions: "ready",
     });
+}
+
+function auxiliaryColumn(
+    objectId: number,
+    name: string,
+    typeName: string,
+    maxLength: number,
+    precision: number,
+    scale: number,
+): AuxCatalogItem {
+    return {
+        name,
+        isSystem: true,
+        objectId,
+        attributes: { typeName, maxLength, precision, scale, nullable: false },
+    };
 }
 
 function databaseLease(

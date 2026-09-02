@@ -1493,16 +1493,22 @@ function booleanAttribute(
 
 function formatAuxiliaryType(attributes: AuxCatalogItem["attributes"] | undefined): string {
     const name = stringAttribute(attributes, "typeName") ?? "unknown";
+    const normalizedName = name.toLowerCase();
     const maxLength = Number(attributes?.maxLength);
     const precision = Number(attributes?.precision);
     const scale = Number(attributes?.scale);
-    if (["varchar", "char", "varbinary", "binary"].includes(name)) {
+    if (["varchar", "char", "varbinary", "binary"].includes(normalizedName)) {
         return `${name}(${maxLength === -1 ? "max" : maxLength})`;
     }
-    if (["nvarchar", "nchar"].includes(name)) {
+    if (["nvarchar", "nchar"].includes(normalizedName)) {
         return `${name}(${maxLength === -1 ? "max" : maxLength / 2})`;
     }
-    if (["decimal", "numeric"].includes(name)) return `${name}(${precision},${scale})`;
+    if (["decimal", "numeric"].includes(normalizedName)) {
+        return `${name}(${precision},${scale})`;
+    }
+    if (["datetime2", "datetimeoffset", "time"].includes(normalizedName)) {
+        return `${name}(${scale})`;
+    }
     return name;
 }
 

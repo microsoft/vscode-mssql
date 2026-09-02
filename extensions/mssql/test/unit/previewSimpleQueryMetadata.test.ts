@@ -196,6 +196,48 @@ suite("Preview language service integration", () => {
         }
     });
 
+    test("preserves length, precision, and scale in hydrated column types", async () => {
+        const executor: SimpleQueryExecutor = {
+            execute: async (query) =>
+                /FROM\s+(?:\[[^\]]+\]\.)?sys\.all_columns/i.test(query)
+                    ? typeShapeColumns()
+                    : resultFor(query),
+        };
+        const store = new InMemoryMetadataProvider();
+        const publisher: SimpleQueryMetadataPublisher = {
+            replace: (input) => store.replace(input),
+            merge: (input) => store.merge(input),
+            replaceSection: (section, input) => store.replaceSection(section, input),
+            reportDataQuality: () => undefined,
+        };
+        const loader = new VscodeMssqlSimpleQueryMetadataLoader();
+        await loader.refresh(executor, publisher);
+        const resolution = store.pin().resolveObject(["dbo", "Customers"]);
+        expect(resolution.kind).to.equal("resolved");
+        if (resolution.kind !== "resolved") throw new Error("Expected Customers");
+
+        await loader.hydrate(
+            executor,
+            { section: "columns", object: resolution.object.ref, priority: "interactive" },
+            publisher,
+        );
+
+        const state = store.pin().columnState(resolution.object.ref);
+        expect(state.kind).to.equal("loaded");
+        if (state.kind !== "loaded") throw new Error("Expected loaded columns");
+        expect(state.value.map((column) => `${column.name}:${column.typeDisplay}`)).to.deep.equal([
+            "Code:char(10)",
+            "Label:varchar(max)",
+            "LocalizedLabel:nvarchar(50)",
+            "Amount:decimal(18,4)",
+            "Ratio:numeric(12,6)",
+            "Payload:varbinary(max)",
+            "OccurredAt:datetime2(7)",
+            "LocalTime:time(3)",
+            "OffsetAt:datetimeoffset(2)",
+        ]);
+    });
+
     test("omits unsupported catalog hints for a Fabric warehouse", async () => {
         const queries: string[] = [];
         const executor: SimpleQueryExecutor = {
@@ -776,6 +818,59 @@ function resultFor(query: string): SimpleQueryResult {
         );
     }
     throw new Error(`Unexpected metadata query: ${query}`);
+}
+
+function typeShapeColumns(): SimpleQueryResult {
+    const row = (
+        columnId: string,
+        name: string,
+        typeName: string,
+        maxLength: string,
+        precision: string,
+        scale: string,
+    ) => [
+        "42",
+        columnId,
+        name,
+        typeName,
+        maxLength,
+        precision,
+        scale,
+        "0",
+        "0",
+        "0",
+        "0",
+        undefined,
+        undefined,
+    ];
+    return table(
+        [
+            "object_id",
+            "column_id",
+            "column_name",
+            "type_name",
+            "max_length",
+            "precision",
+            "scale",
+            "is_nullable",
+            "is_identity",
+            "is_computed",
+            "is_hidden",
+            "column_description",
+            "primary_key_ordinal",
+        ],
+        [
+            row("1", "Code", "char", "10", "0", "0"),
+            row("2", "Label", "varchar", "-1", "0", "0"),
+            row("3", "LocalizedLabel", "nvarchar", "100", "0", "0"),
+            row("4", "Amount", "decimal", "9", "18", "4"),
+            row("5", "Ratio", "numeric", "9", "12", "6"),
+            row("6", "Payload", "varbinary", "-1", "0", "0"),
+            row("7", "OccurredAt", "datetime2", "8", "27", "7"),
+            row("8", "LocalTime", "time", "5", "16", "3"),
+            row("9", "OffsetAt", "datetimeoffset", "10", "34", "2"),
+        ],
+    );
 }
 
 function table(

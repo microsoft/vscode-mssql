@@ -26,7 +26,20 @@ function services() {
             object("customers", "dbo", "Customers", "table", "db"),
         ],
         columns: new Map([
-            ["customers", [{ name: "Code", typeDisplay: "char(10)", nullable: false }]],
+            [
+                "customers",
+                [
+                    { name: "Code", typeDisplay: "char(10)", nullable: false },
+                    { name: "Label", typeDisplay: "varchar(max)", nullable: true },
+                    { name: "LocalizedLabel", typeDisplay: "nvarchar(50)", nullable: false },
+                    { name: "Amount", typeDisplay: "decimal(18,4)", nullable: false },
+                    { name: "Ratio", typeDisplay: "numeric(12,6)", nullable: true },
+                    { name: "Payload", typeDisplay: "varbinary(max)", nullable: true },
+                    { name: "OccurredAt", typeDisplay: "datetime2(7)", nullable: false },
+                    { name: "LocalTime", typeDisplay: "time(3)", nullable: false },
+                    { name: "OffsetAt", typeDisplay: "datetimeoffset(2)", nullable: false },
+                ],
+            ],
         ]),
         parameters: new Map([
             [
@@ -87,15 +100,30 @@ suite("GitHub issue signature and hover regressions", () => {
         );
     });
 
-    test("shows the complete catalog column type in hover (vscode-mssql#20212)", async () => {
+    test("shows complete catalog column types in hover (sqltoolsservice#2746; vscode-mssql#20212)", async () => {
         const { runtime, features } = services();
         const uri = "file:///column-type-hover.sql";
-        const sql = "SELECT Code FROM dbo.Customers;";
+        const expectedTypes = new Map([
+            ["Code", "char(10) NOT NULL"],
+            ["Label", "varchar(max) NULL"],
+            ["LocalizedLabel", "nvarchar(50) NOT NULL"],
+            ["Amount", "decimal(18,4) NOT NULL"],
+            ["Ratio", "numeric(12,6) NULL"],
+            ["Payload", "varbinary(max) NULL"],
+            ["OccurredAt", "datetime2(7) NOT NULL"],
+            ["LocalTime", "time(3) NOT NULL"],
+            ["OffsetAt", "datetimeoffset(2) NOT NULL"],
+        ]);
+        const sql = `SELECT ${[...expectedTypes.keys()].join(", ")} FROM dbo.Customers;`;
         await runtime.open(uri, 1, sql);
 
-        const hover = features.hover(uri, 1, sql.indexOf("Code") + 1);
-
-        assert.ok(hover);
-        assert.match(hover.markdown, /Type: `char\(10\) NOT NULL`/u);
+        for (const [column, expectedType] of expectedTypes) {
+            const hover = features.hover(uri, 1, sql.indexOf(column) + 1);
+            assert.ok(hover, `expected hover for ${column}`);
+            assert.ok(
+                hover.markdown.includes(`Type: \`${expectedType}\``),
+                `expected ${column} hover to include ${expectedType}: ${hover.markdown}`,
+            );
+        }
     });
 });
