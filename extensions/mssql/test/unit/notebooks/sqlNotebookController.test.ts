@@ -15,7 +15,6 @@ import * as Constants from "../../../src/constants/constants";
 import * as LocalizedConstants from "../../../src/constants/locConstants";
 import { SqlNotebookController } from "../../../src/notebooks/sqlNotebookController";
 import ConnectionManager from "../../../src/controllers/connectionManager";
-import { ConnectionSharingService } from "../../../src/connectionSharing/connectionSharingService";
 import type { HeadlessQueryResult } from "../../../src/queryExecution/headlessQueryExecutor";
 import { NotebookConnectionManager } from "../../../src/notebooks/notebookConnectionManager";
 import { IDbColumn } from "../../../src/models/interfaces";
@@ -333,7 +332,6 @@ suite("SqlNotebookController", () => {
 
         controller = new SqlNotebookController(
             connectionMgr as unknown as ConnectionManager,
-            {} as unknown as ConnectionSharingService,
             mockWorkspaceState as unknown as vscode.Memento,
             () => mockNotebookConnMgr as unknown as NotebookConnectionManager,
         );
@@ -963,10 +961,7 @@ suite("SqlNotebookController", () => {
             });
             sandbox.stub(vscode.workspace, "notebookDocuments").value([mockNotebook]);
 
-            const ctrl = new SqlNotebookController(
-                connectionMgr as unknown as ConnectionManager,
-                {} as unknown as ConnectionSharingService,
-            );
+            const ctrl = new SqlNotebookController(connectionMgr as unknown as ConnectionManager);
 
             expect(mockController.updateNotebookAffinity).to.have.been.calledWith(
                 mockNotebook,

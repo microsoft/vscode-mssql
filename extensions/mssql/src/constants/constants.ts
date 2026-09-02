@@ -231,8 +231,6 @@ export const timeToWaitForLanguageModeChange = 10000.0;
 export const gettingStartedGuideLink = "https://aka.ms/mssql-getting-started";
 export const changelogLink = "https://aka.ms/vscode-mssql-changes";
 export const feedbackUrl = "https://aka.ms/vscode-mssql-bug";
-export const connectionSharingFeatureRequestUrl =
-    "https://github.com/microsoft/vscode-mssql/issues/new?template=2-mssql-feature-request.yml";
 export const encryptionBlogLink = "https://aka.ms/vscodemssql-connection";
 export const integratedAuthHelpLink = "https://aka.ms/vscode-mssql-integratedauth";
 export const createDatabaseHelpLink =
@@ -440,11 +438,6 @@ export const DefaultSqlPortNumber = "1433";
 export const DefaultAdminUsername = "sa";
 export const DBProjectConfigurationKey = "sqlDatabaseProjects";
 export const sqlDatabaseProjectsExtensionId = "ms-mssql.sql-database-projects-vscode";
-export const internalConnectionSharingExtensionIds: ReadonlySet<string> = new Set([
-    extensionId,
-    "ms-mssql.sql-notebook-controller",
-    "microsoft.schema-compare",
-]);
 export const enableSqlProjPreviewFeaturesKey = "enablePreviewFeatures";
 export const AzureSqlV12 = "AzureV12";
 export const PublishProfileExtension = "publish.xml";

@@ -10,7 +10,6 @@ import type { IConnectionInfo } from "vscode-mssql";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import ConnectionManager from "../controllers/connectionManager";
-import { ConnectionSharingService } from "../connectionSharing/connectionSharingService";
 import * as Utils from "../models/utils";
 import { ILogger } from "../sharedInterfaces/logger";
 import { Logger } from "../models/logger";
@@ -117,11 +116,9 @@ export class SqlNotebookController implements vscode.Disposable {
 
     constructor(
         private connectionMgr: ConnectionManager,
-        private connectionSharingService: ConnectionSharingService,
         private readonly _workspaceState?: vscode.Memento,
         private readonly _connectionManagerFactory?: (
             connectionMgr: ConnectionManager,
-            connectionSharingService: ConnectionSharingService,
             log: ILogger,
         ) => NotebookConnectionManager,
     ) {
@@ -537,16 +534,8 @@ export class SqlNotebookController implements vscode.Disposable {
         let mgr = this.connections.get(key);
         if (!mgr) {
             mgr = this._connectionManagerFactory
-                ? this._connectionManagerFactory(
-                      this.connectionMgr,
-                      this.connectionSharingService,
-                      this.log,
-                  )
-                : new NotebookConnectionManager(
-                      this.connectionMgr,
-                      this.connectionSharingService,
-                      this.log,
-                  );
+                ? this._connectionManagerFactory(this.connectionMgr, this.log)
+                : new NotebookConnectionManager(this.connectionMgr, this.log);
 
             // Restore saved database context from workspaceState so the
             // notebook reconnects to its original database instead of master.

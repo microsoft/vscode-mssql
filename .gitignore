@@ -61,5 +61,4 @@ localization/l10n/
 .eslintcache
 .nyc_output
 *.tsbuildinfo
-samples/connection-sharing-sample/dist
 .claude/

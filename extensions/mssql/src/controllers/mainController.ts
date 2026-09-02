@@ -99,7 +99,6 @@ import {
     CreateSessionResult,
 } from "../objectExplorer/objectExplorerService";
 import { SqlCodeLensProvider } from "../queryResult/sqlCodeLensProvider";
-import { ConnectionSharingService } from "../connectionSharing/connectionSharingService";
 import { SqlNotebookController } from "../notebooks/sqlNotebookController";
 import { registerNotebookCopyOutput } from "../notebooks/notebookCopyOutputProvider";
 import { ConnectTool } from "../copilot/tools/connectTool";
@@ -200,7 +199,6 @@ export default class MainController implements vscode.Disposable {
     public objectExplorerTree: vscode.TreeView<TreeNodeInfo>;
     public executionPlanService: ExecutionPlanService;
     public schemaDesignerService: SchemaDesignerService;
-    public connectionSharingService: ConnectionSharingService;
     public fileBrowserService: FileBrowserService;
     public profilerController: ProfilerController;
     public sqlNotebookController: SqlNotebookController;
@@ -735,17 +733,9 @@ export default class MainController implements vscode.Disposable {
                 profilerSessionManager,
             );
 
-            this.connectionSharingService = new ConnectionSharingService(
-                this._context,
-                this._connectionMgr.client,
-                this._connectionMgr,
-                this._scriptingService,
-            );
-
             // Initialize SQL Notebook controller
             this.sqlNotebookController = new SqlNotebookController(
                 this._connectionMgr,
-                this.connectionSharingService,
                 this._context.workspaceState,
             );
             this._context.subscriptions.push(this.sqlNotebookController);

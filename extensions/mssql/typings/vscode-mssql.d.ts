@@ -19,9 +19,6 @@ declare module "vscode-mssql" {
 
     /** The API provided to other extensions by the mssql extension. */
     export interface IExtension {
-        /** APIs for working with user-approved mssql connections. */
-        readonly connectionSharing: IConnectionSharingService;
-
         /** APIs for coordinating URI ownership with other database extensions. */
         readonly uriOwnershipApi: UriOwnershipApi;
     }
@@ -2691,111 +2688,5 @@ declare module "vscode-mssql" {
         Delete = 4,
         Execute = 5,
         Alter = 6,
-    }
-
-    /** Represents the approval status for connection sharing with an extension. */
-    export type ConnectionSharingApproval = "approved" | "denied";
-
-    /**
-     * Interface for connection sharing service
-     * This service allows external extensions to use connections established by the mssql extension.
-     * TODO(api-retirement): Remove this public API after dependent extensions have migrated.
-     */
-    export interface IConnectionSharingService {
-        /**
-         * Get the connection ID for the active editor.
-         * @param extensionId The ID of the extension.
-         * @returns The connection ID if an active editor is connected, or undefined if there is no active editor or the editor is not connected.
-         */
-        getActiveEditorConnectionId(extensionId: string): Promise<string | undefined>;
-        /**
-         * Get the active database name for the connection in the active editor.
-         * @param extensionId The ID of the extension.
-         * @returns The active database name if an active editor is connected, or undefined if there is no active editor or the editor is not connected.
-         */
-        getActiveDatabase(extensionId: string): Promise<string | undefined>;
-        /**
-         * Get the database name for a specific connection ID.
-         * @param extensionId The ID of the extension.
-         * @param connectionId The ID of the connection.
-         * @returns The database name for the connection if found, or undefined if the connection is not found.
-         */
-        getDatabaseForConnectionId(
-            extensionId: string,
-            connectionId: string,
-        ): Promise<string | undefined>;
-        /**
-         * Connect to an existing connection using the connection ID.
-         * This will return the connection URI if successful.
-         * @param extensionId The ID of the extension.
-         * @param connectionId The ID of the connection.
-         * @param database Optional database name to connect to.
-         * @returns The connection URI if the connection is established successfully.
-         * @throws Error if the connection cannot be established.
-         */
-        connect(
-            extensionId: string,
-            connectionId: string,
-            database?: string,
-        ): Promise<string | undefined>;
-        /**
-         * Disconnect from a connection using the connection URI.
-         * @param connectionUri The URI of the connection to disconnect from.
-         */
-        disconnect(connectionUri: string): void;
-        /**
-         * Check if a connection is currently established using the connection URI.
-         * @param connectionUri The URI of the connection to check.
-         * @returns True if the connection is established, false otherwise.
-         */
-        isConnected(connectionUri: string): boolean;
-        /**
-         * Execute a simple query on the database using the connection URI.
-         * @param connectionUri The URI of the connection to use for executing the query.
-         * @param queryString The SQL query to execute.
-         * @returns A promise that resolves with the result of the query execution.
-         */
-        executeSimpleQuery(
-            connectionUri: string,
-            queryString: string,
-        ): Promise<SimpleExecuteResult>;
-        /**
-         * Get server information using the connection URI.
-         * @param connectionUri The URI of the connection to get server information from.
-         * @returns A promise that resolves with the server information.
-         */
-        getServerInfo(connectionUri: string): IServerInfo;
-        /**
-         * Edit the connection sharing permissions for a specific extension.
-         * @param extensionId The ID of the extension to edit permissions for.
-         * @returns A promise that resolves with the updated connection sharing approval, or undefined if the operation failed.
-         */
-        editConnectionSharingPermissions(
-            extensionId: string,
-        ): Promise<ConnectionSharingApproval | undefined>;
-        /**
-         * List all databases available in the server for the given connection URI.
-         * @param connectionUri The URI of the connection to list databases for.
-         */
-        listDatabases(connectionUri: string): Promise<string[]>;
-        /**
-         * Script an object from the database using the connection URI.
-         * @param connectionUri The URI of the connection to use for scripting.
-         * @param operation The operation to perform (e.g., ScriptCreate, ScriptDrop, etc.).
-         * @param scriptingObject The object to script, containing its type, schema, name, and parent information.
-         * @return A promise that resolves with the scripted SQL string, or undefined if the operation failed.
-         */
-        scriptObject(
-            connectionUri: string,
-            operation: ScriptOperation,
-            scriptingObject: IScriptingObject,
-        ): Promise<string | undefined>;
-        /**
-         * Get the connection string for a specific connection ID.
-         * @param extensionId The ID of the extension.
-         * @param connectionId The ID of the connection.
-         * @returns The connection string if the connection is found, or undefined if the connection is not found.
-         */
-        getConnectionString(extensionId: string, connectionId: string): Promise<string | undefined>;
     }
 }

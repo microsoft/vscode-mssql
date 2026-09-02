@@ -31,7 +31,7 @@ import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry"
 
 /**
  * Contract for the connection storage manager consumed by connection webviews, object
- * explorer, code lens, connection sharing, and the public API surface.
+ * explorer, code lens, and the public API surface.
  */
 export const IConnectionStore = createServiceIdentifier<IConnectionStore>("connectionStore");
 

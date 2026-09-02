@@ -19,7 +19,6 @@ import {
     ConnectionRequest,
     DisconnectRequest,
 } from "../../../src/models/contracts/connection";
-import { ConnectionSharingService } from "../../../src/connectionSharing/connectionSharingService";
 import { ConnectionStore } from "../../../src/models/connectionStore";
 import { ConnectionUI } from "../../../src/views/connectionUI";
 import SqlToolsServiceClient from "../../../src/languageservice/serviceclient";
@@ -96,7 +95,6 @@ function makeLogStub(sandbox: sinon.SinonSandbox): sinon.SinonStubbedInstance<IL
 suite("NotebookConnectionManager", () => {
     let sandbox: sinon.SinonSandbox;
     let connectionMgr: sinon.SinonStubbedInstance<ConnectionManager>;
-    let sharingService: sinon.SinonStubbedInstance<ConnectionSharingService>;
     let mockClient: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
     let mockNotificationHandler: sinon.SinonStubbedInstance<QueryNotificationHandler>;
     let log: sinon.SinonStubbedInstance<ILogger>;
@@ -110,6 +108,7 @@ suite("NotebookConnectionManager", () => {
         // --- ConnectionManager ---
         connectionMgr = sandbox.createStubInstance(ConnectionManager);
         connectionMgr.connect.resolves(true);
+        connectionMgr.isConnected.returns(false);
         connectionMgr.listDatabases.resolves(["master", "TestDB"]);
 
         const stubDetails: ConnectionDetails = { options: { serverName: "test-server" } };
@@ -132,10 +131,6 @@ suite("NotebookConnectionManager", () => {
         stubUI.promptForConnection.resolves(makeConnectionInfo());
         sandbox.stub(connectionMgr, "connectionUI").get(() => stubUI);
 
-        // --- ConnectionSharingService ---
-        sharingService = sandbox.createStubInstance(ConnectionSharingService);
-        sharingService.isConnected.returns(false);
-
         // --- STS client & notification handler (for HeadlessQueryExecutor) ---
         mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
         mockClient.sendRequest.resolves({});
@@ -147,7 +142,6 @@ suite("NotebookConnectionManager", () => {
         // --- Subject-under-test ---
         mgr = new NotebookConnectionManager(
             connectionMgr,
-            sharingService,
             log,
             mockClient,
             mockNotificationHandler,
@@ -164,7 +158,7 @@ suite("NotebookConnectionManager", () => {
     suite("ensureConnection", () => {
         test("returns existing URI when connection is alive", async () => {
             const uri = await mgr.promptAndConnect();
-            sharingService.isConnected.returns(true);
+            connectionMgr.isConnected.returns(true);
 
             const result = await mgr.ensureConnection();
             expect(result).to.equal(uri);
@@ -177,7 +171,7 @@ suite("NotebookConnectionManager", () => {
 
         test("reconnects silently when stale but connectionInfo is available", async () => {
             await mgr.promptAndConnect();
-            sharingService.isConnected.returns(false);
+            connectionMgr.isConnected.returns(false);
 
             stubUI.promptForConnection.resetHistory();
             connectionMgr.connect.resetHistory();
@@ -190,7 +184,7 @@ suite("NotebookConnectionManager", () => {
 
         test("falls back to prompt when reconnection fails", async () => {
             await mgr.promptAndConnect();
-            sharingService.isConnected.returns(false);
+            connectionMgr.isConnected.returns(false);
 
             // Make the reconnection attempt fail
             connectionMgr.connect.onSecondCall().resolves(false);
@@ -206,7 +200,7 @@ suite("NotebookConnectionManager", () => {
             expect(labelBefore).to.include("test-server");
 
             // Mark stale — reconnection will succeed with stored connectionInfo
-            sharingService.isConnected.returns(false);
+            connectionMgr.isConnected.returns(false);
             connectionMgr.getConnectionInfoFromUri.returns(
                 makeConnectionInfo({ database: "TestDB" }),
             );
@@ -334,7 +328,7 @@ suite("NotebookConnectionManager", () => {
             await mgr.connectWith(makeConnectionInfo({ database: "SessionDB" }));
 
             // Now simulate stale connection and reconnection failure
-            sharingService.isConnected.returns(false);
+            connectionMgr.isConnected.returns(false);
             connectionMgr.connect.onSecondCall().resolves(false);
 
             // Prompt should use SessionDB (from connectionInfo) not MetadataDB
@@ -399,12 +393,12 @@ suite("NotebookConnectionManager", () => {
     suite("changeDatabase", () => {
         test("disconnects old connection and reconnects with new database", async () => {
             await mgr.connectWith(makeConnectionInfo());
-            sharingService.disconnect.resetHistory();
+            connectionMgr.disconnect.resetHistory();
             connectionMgr.connect.resetHistory();
 
             await mgr.changeDatabase("NewDB");
 
-            expect(sharingService.disconnect).to.have.been.calledOnce;
+            expect(connectionMgr.disconnect).to.have.been.calledOnce;
             expect(connectionMgr.connect).to.have.been.calledOnce;
         });
 
@@ -454,22 +448,22 @@ suite("NotebookConnectionManager", () => {
             expect(mgr.getConnectionLabel()).to.include("Not connected");
         });
 
-        test("calls connectionSharingService.disconnect with the URI", async () => {
+        test("disconnects the URI through the connection manager", async () => {
             const uri = await mgr.connectWith(makeConnectionInfo());
-            sharingService.disconnect.resetHistory();
+            connectionMgr.disconnect.resetHistory();
 
             mgr.disconnect();
-            expect(sharingService.disconnect).to.have.been.calledOnce;
-            expect(sharingService.disconnect).to.have.been.calledWith(uri);
+            expect(connectionMgr.disconnect).to.have.been.calledOnce;
+            expect(connectionMgr.disconnect).to.have.been.calledWith(uri);
         });
 
         test("is safe to call when already disconnected", () => {
             expect(() => mgr.disconnect()).to.not.throw();
         });
 
-        test("does not call sharingService.disconnect when no URI", () => {
+        test("does not disconnect when there is no URI", () => {
             mgr.disconnect();
-            expect(sharingService.disconnect).to.not.have.been.called;
+            expect(connectionMgr.disconnect).to.not.have.been.called;
         });
     });
 
@@ -481,12 +475,12 @@ suite("NotebookConnectionManager", () => {
             expect(mgr.isConnected()).to.be.false;
         });
 
-        test("delegates to connectionSharingService.isConnected", async () => {
+        test("delegates to the connection manager", async () => {
             await mgr.connectWith(makeConnectionInfo());
-            sharingService.isConnected.returns(true);
+            connectionMgr.isConnected.returns(true);
             expect(mgr.isConnected()).to.be.true;
 
-            sharingService.isConnected.returns(false);
+            connectionMgr.isConnected.returns(false);
             expect(mgr.isConnected()).to.be.false;
         });
     });
