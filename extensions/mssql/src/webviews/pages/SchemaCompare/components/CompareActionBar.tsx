@@ -262,7 +262,7 @@ const CompareActionBar = (props: Props) => {
                 {targetEndpointInfo && schemaCompareResult ? (
                     <SchemaCompareApplyDialog
                         targetEndpoint={targetEndpointInfo}
-                        differences={schemaCompareResult.differences}
+                        differences={differences}
                         onApply={handlePublishChanges}
                         disabled={isApplyDisabled}>
                         {applyButton}

@@ -972,17 +972,39 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
             },
         };
 
-        const totalCount = differences.length;
-        const selectedCount = differences.filter((difference) => difference.included).length;
-        const addCount = differences.filter(
-            (difference) => difference.updateAction === SchemaUpdateAction.Add,
-        ).length;
-        const changeCount = differences.filter(
-            (difference) => difference.updateAction === SchemaUpdateAction.Change,
-        ).length;
-        const deleteCount = differences.filter(
-            (difference) => difference.updateAction === SchemaUpdateAction.Delete,
-        ).length;
+        const { totalCount, selectedCount, addCount, changeCount, deleteCount } =
+            React.useMemo(() => {
+                let selectedCount = 0;
+                let addCount = 0;
+                let changeCount = 0;
+                let deleteCount = 0;
+
+                for (const difference of differences) {
+                    if (difference.included) {
+                        selectedCount++;
+                    }
+
+                    switch (difference.updateAction) {
+                        case SchemaUpdateAction.Add:
+                            addCount++;
+                            break;
+                        case SchemaUpdateAction.Change:
+                            changeCount++;
+                            break;
+                        case SchemaUpdateAction.Delete:
+                            deleteCount++;
+                            break;
+                    }
+                }
+
+                return {
+                    totalCount: differences.length,
+                    selectedCount,
+                    addCount,
+                    changeCount,
+                    deleteCount,
+                };
+            }, [differences]);
         const activeFilterCount = selectedSchemas.size + selectedObjectTypes.size;
 
         return (
