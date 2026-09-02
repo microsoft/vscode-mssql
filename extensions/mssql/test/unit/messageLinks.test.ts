@@ -34,7 +34,7 @@ suite("Query message links", () => {
             });
         });
 
-        test("does not parse localized server error text", () => {
+        test("supports localized error header labels", () => {
             const navigation = createErrorMessageNavigation(
                 "Mensaje 102, Nivel 15, Estado 1, Línea 51\nSintaxis incorrecta.",
                 errorSelection,
@@ -43,6 +43,26 @@ suite("Query message links", () => {
 
             expect(navigation?.link.text).to.equal("Línea 51");
             expect(navigation?.selection).to.equal(errorSelection);
+        });
+
+        test("returns nothing when the header has no comma-delimited line segment", () => {
+            const navigation = createErrorMessageNavigation(
+                "Unexpected error on line 51",
+                errorSelection,
+                "file:///q.sql",
+            );
+
+            expect(navigation).to.be.undefined;
+        });
+
+        test("returns nothing when the header line does not match the selection", () => {
+            const navigation = createErrorMessageNavigation(
+                "Msg 102, Level 15, State 1, Line 52",
+                errorSelection,
+                "file:///q.sql",
+            );
+
+            expect(navigation).to.be.undefined;
         });
 
         test("returns nothing without a message or service selection", () => {

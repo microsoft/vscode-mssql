@@ -31,8 +31,16 @@ export function createErrorMessageNavigation(
 
     // Match either a Windows CRLF or Unix LF line ending so only the error header is inspected.
     const header = message.split(/\r?\n/, 1)[0];
-    const linkText = header.slice(header.lastIndexOf(",") + 1).trim();
-    if (!linkText) {
+    const lastComma = header.lastIndexOf(",");
+    if (lastComma === -1) {
+        return undefined;
+    }
+
+    const linkText = header.slice(lastComma + 1).trim();
+    // Capture the trailing number without depending on the localized label preceding it.
+    const lineNumberMatch = /(?:^|\s)(\d+)$/.exec(linkText);
+    const expectedLineNumber = errorSelection.startLine + 1;
+    if (!lineNumberMatch || Number(lineNumberMatch[1]) !== expectedLineNumber) {
         return undefined;
     }
 
