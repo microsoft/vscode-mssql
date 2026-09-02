@@ -131,8 +131,8 @@ export class LocConstants {
             filterValueRequiredToSave: l10n.t(
                 "Add at least one filter value before saving this filter.",
             ),
-            pinFilter: l10n.t("Pin to Saved"),
-            unpinFilter: l10n.t("Move to Recent"),
+            saveFilter: l10n.t("Save filter"),
+            removeFromSavedFilters: l10n.t("Remove from saved filters"),
             deleteFilter: l10n.t("Delete filter"),
             renameFilter: l10n.t("Rename filter"),
             confirmDeleteFilterTitle: l10n.t("Delete reusable filter?"),

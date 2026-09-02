@@ -33,7 +33,7 @@ import {
     FilterRegular,
     InfoRegular,
     MoreHorizontalRegular,
-    PinRegular,
+    SaveRegular,
 } from "@fluentui/react-icons";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { KeyboardEvent, useRef, useState } from "react";
@@ -597,7 +597,13 @@ export const ObjectExplorerFilterPresets = ({
                                                         <MenuPopover>
                                                             <MenuList>
                                                                 <MenuItem
-                                                                    icon={<PinRegular />}
+                                                                    icon={
+                                                                        row.preset.isPinned ? (
+                                                                            <DismissRegular />
+                                                                        ) : (
+                                                                            <SaveRegular />
+                                                                        )
+                                                                    }
                                                                     onClick={() =>
                                                                         onSetPinned(
                                                                             row.preset.id,
@@ -607,10 +613,10 @@ export const ObjectExplorerFilterPresets = ({
                                                                     {row.preset.isPinned
                                                                         ? locConstants
                                                                               .objectExplorerFiltering
-                                                                              .unpinFilter
+                                                                              .removeFromSavedFilters
                                                                         : locConstants
                                                                               .objectExplorerFiltering
-                                                                              .pinFilter}
+                                                                              .saveFilter}
                                                                 </MenuItem>
                                                                 {row.preset.isPinned && (
                                                                     <MenuItem
