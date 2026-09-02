@@ -13,9 +13,7 @@ import {
     ScriptType,
     SEARCH_TYPE_PREFIXES,
 } from "../sharedInterfaces/searchDatabase";
-import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import ConnectionManager from "../controllers/connectionManager";
-import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { IMetadataService } from "../services/metadataService";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { MetadataType, ObjectMetadata } from "../sharedInterfaces/metadata";
@@ -28,7 +26,6 @@ import * as LocConstants from "../constants/locConstants";
 import { Deferred } from "../protocol";
 import { sendActionEvent, startActivity } from "extension-toolkit/vscode";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-import * as Utils from "../models/utils";
 
 export class SearchDatabaseWebViewController extends WebviewPanelController<
     SearchDatabaseWebViewState,
@@ -44,25 +41,21 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
     private _operationId: string;
     // Deferred that resolves when initialization completes (success or error)
     private _initialized: Deferred<void> = new Deferred<void>();
-    private _connectionCredentials: IConnectionInfo | undefined;
 
+    /**
+     * @param connectionCredentials Connection to search against. Callers are responsible for
+     * resolving this from whatever context invoked the command (Object Explorer node, active
+     * editor connection, etc.).
+     */
     constructor(
         context: vscode.ExtensionContext,
         private _metadataService: IMetadataService,
         private _connectionManager: ConnectionManager,
-        targetNode: TreeNodeInfo | undefined,
+        private _connectionCredentials: IConnectionInfo,
         private _scriptingService: ScriptingService,
     ) {
-        const activeEditorUri = Utils.getActiveTextEditorUri();
-        const connectionCredentials =
-            targetNode?.connectionProfile ??
-            (activeEditorUri
-                ? _connectionManager.getConnectionInfo(activeEditorUri)?.credentials
-                : undefined);
-        const serverName = connectionCredentials?.server || "Server";
-        const databaseName = targetNode
-            ? ObjectExplorerUtils.getDatabaseName(targetNode) || "master"
-            : connectionCredentials?.database || "master";
+        const serverName = _connectionCredentials.server;
+        const databaseName = _connectionCredentials.database || Constants.defaultDatabase;
 
         // Generate a unique, stable owner URI for this webview instance (per-panel URI, stable for panel lifetime)
         const instanceId = uuid();
@@ -114,7 +107,6 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
 
         this._ownerUri = ownerUri;
         this._operationId = uuid();
-        this._connectionCredentials = connectionCredentials;
         this.logInfo(
             `SearchDatabaseWebViewController created for server '${serverName}', database '${databaseName}', ownerUri '${ownerUri}'`,
         );
@@ -230,11 +222,10 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
         return this._ownerUri;
     }
 
+    /**
+     * Get the connection credentials for this panel, scoped to the currently selected database.
+     */
     private getConnectionCredentials(): IConnectionInfo {
-        if (!this._connectionCredentials) {
-            throw new Error(LocConstants.SearchDatabase.failedToEstablishConnection);
-        }
-
         return {
             ...this._connectionCredentials,
             database: this.state.selectedDatabase,

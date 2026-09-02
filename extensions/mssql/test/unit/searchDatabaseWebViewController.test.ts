@@ -11,15 +11,13 @@ import sinonChai from "sinon-chai";
 import { SearchDatabaseWebViewController } from "../../src/searchDatabase/searchDatabaseWebViewController";
 
 chai.use(sinonChai);
-import ConnectionManager, { ConnectionInfo } from "../../src/controllers/connectionManager";
+import ConnectionManager from "../../src/controllers/connectionManager";
 import { IMetadataService } from "../../src/services/metadataService";
 import { MetadataType, ObjectMetadata } from "../../src/sharedInterfaces/metadata";
 import { SearchResultItem } from "../../src/sharedInterfaces/searchDatabase";
 import { ApiStatus } from "../../src/sharedInterfaces/webview";
-import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { stubTelemetry } from "./utils";
 import { ScriptingService } from "../../src/scripting/scriptingService";
-import * as Utils from "../../src/models/utils";
 import type { IConnectionInfo } from "vscode-mssql";
 
 suite("SearchDatabaseWebViewController", () => {
@@ -27,7 +25,7 @@ suite("SearchDatabaseWebViewController", () => {
     let mockContext: vscode.ExtensionContext;
     let mockMetadataService: sinon.SinonStubbedInstance<IMetadataService>;
     let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
-    let mockTargetNode: TreeNodeInfo | undefined;
+    let mockConnectionCredentials: IConnectionInfo;
     let mockScriptingService: sinon.SinonStubbedInstance<ScriptingService>;
     let controller: SearchDatabaseWebViewController;
     let mockWebview: vscode.Webview;
@@ -137,12 +135,10 @@ suite("SearchDatabaseWebViewController", () => {
             getServerInfo: sandbox.stub().returns({ serverVersion: "15.0" }),
         } as any;
 
-        mockTargetNode = {
-            connectionProfile: {
-                server: "test-server",
-                database: "TestDB",
-            },
-        } as unknown as TreeNodeInfo;
+        mockConnectionCredentials = {
+            server: "test-server",
+            database: "TestDB",
+        } as IConnectionInfo;
 
         mockScriptingService = {
             scriptAsSelect: sandbox.stub().resolves(""),
@@ -160,7 +156,7 @@ suite("SearchDatabaseWebViewController", () => {
             mockContext,
             mockMetadataService,
             mockConnectionManager,
-            mockTargetNode,
+            mockConnectionCredentials,
             mockScriptingService,
         );
         return controller;
@@ -177,35 +173,28 @@ suite("SearchDatabaseWebViewController", () => {
 
     suite("Connection Context", () => {
         setup(() => {
-            const activeEditorUri = "file:///test/query.sql";
-            const activeConnection = new ConnectionInfo();
-            activeConnection.credentials = {
-                server: "active-server",
-                database: "ActiveDB",
+            mockConnectionCredentials = {
+                server: "provided-server",
+                database: "ProvidedDB",
             } as IConnectionInfo;
-            sandbox.stub(Utils, "getActiveTextEditorUri").returns(activeEditorUri);
-            mockConnectionManager.getConnectionInfo
-                .withArgs(activeEditorUri)
-                .returns(activeConnection);
-            mockTargetNode = undefined;
         });
 
-        test("uses the active editor connection when invoked without an Object Explorer node", async () => {
+        test("initializes with the supplied connection credentials", async () => {
             createController();
             await waitForInitialization();
 
-            expect(controller.state.serverName).to.equal("active-server");
-            expect(controller.state.selectedDatabase).to.equal("ActiveDB");
+            expect(controller.state.serverName).to.equal("provided-server");
+            expect(controller.state.selectedDatabase).to.equal("ProvidedDB");
             expect(mockConnectionManager.connect).to.have.been.calledWithMatch(
                 sinon.match.string,
                 sinon.match({
-                    server: "active-server",
-                    database: "ActiveDB",
+                    server: "provided-server",
+                    database: "ProvidedDB",
                 }),
             );
         });
 
-        test("uses the active editor connection when scripting an object", async () => {
+        test("uses the supplied connection credentials when scripting an object", async () => {
             createController();
             await waitForInitialization();
             openTextDocumentStub.resolves({
@@ -226,13 +215,13 @@ suite("SearchDatabaseWebViewController", () => {
             });
 
             expect(mockConnectionManager.getServerInfo).to.have.been.calledWithMatch({
-                server: "active-server",
-                database: "ActiveDB",
+                server: "provided-server",
+                database: "ProvidedDB",
             });
             expect(mockScriptingService.script).to.have.been.called;
         });
 
-        test("uses the active editor connection when opening Edit Data", async () => {
+        test("uses the supplied connection credentials when opening Edit Data", async () => {
             createController();
             await waitForInitialization();
             const executeCommandStub = sandbox.stub(vscode.commands, "executeCommand").resolves();
@@ -253,14 +242,14 @@ suite("SearchDatabaseWebViewController", () => {
                 "mssql.tableExplorer",
                 sinon.match({
                     connectionProfile: sinon.match({
-                        server: "active-server",
-                        database: "ActiveDB",
+                        server: "provided-server",
+                        database: "ProvidedDB",
                     }),
                 }),
             );
         });
 
-        test("uses the active editor connection when opening Modify Table", async () => {
+        test("uses the supplied connection credentials when opening Modify Table", async () => {
             createController();
             await waitForInitialization();
             const executeCommandStub = sandbox.stub(vscode.commands, "executeCommand").resolves();
@@ -281,8 +270,8 @@ suite("SearchDatabaseWebViewController", () => {
                 "mssql.editTable",
                 sinon.match({
                     connectionProfile: sinon.match({
-                        server: "active-server",
-                        database: "ActiveDB",
+                        server: "provided-server",
+                        database: "ProvidedDB",
                     }),
                 }),
             );
