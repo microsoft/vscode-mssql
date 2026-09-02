@@ -2646,11 +2646,16 @@
     "Move Down": "Move Down",
     "Filter Settings": "Filter Settings",
     "Clear All": "Clear All",
+    "Save and Apply": "Save and Apply",
     "Enter": "Enter",
     "Escape": "Escape",
     "Apply ({0})/{0} is the keyboard shortcut for applying the filter": {
         "message": "Apply ({0})",
         "comment": ["{0} is the keyboard shortcut for applying the filter"]
+    },
+    "Save and Apply ({0})/{0} is the keyboard shortcut for saving and applying the filter": {
+        "message": "Save and Apply ({0})",
+        "comment": ["{0} is the keyboard shortcut for saving and applying the filter"]
     },
     "Close ({0})/{0} is the keyboard shortcut for closing the filter dialog": {
         "message": "Close ({0})",

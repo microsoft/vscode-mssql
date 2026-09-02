@@ -15,6 +15,11 @@ import {
     DialogTitle,
     Input,
     makeStyles,
+    Menu,
+    MenuItem,
+    MenuList,
+    MenuPopover,
+    MenuTrigger,
     mergeClasses,
     Text,
     tokens,
@@ -27,7 +32,7 @@ import {
     EditRegular,
     FilterRegular,
     InfoRegular,
-    PinFilled,
+    MoreHorizontalRegular,
     PinRegular,
 } from "@fluentui/react-icons";
 import { useVirtualizer } from "@tanstack/react-virtual";
@@ -39,7 +44,6 @@ const presetRowHeight = 48;
 const groupHeadingHeight = 32;
 const separatedGroupHeadingHeight = 44;
 const maximumListHeight = 352;
-const actionsClassName = "filterPresetActions";
 
 interface PresetGroupRow {
     kind: "group";
@@ -127,19 +131,6 @@ const useStyles = makeStyles({
         boxSizing: "border-box",
         padding: `2px ${tokens.spacingHorizontalXS}`,
         margin: 0,
-        [`& .${actionsClassName}`]: {
-            visibility: "hidden",
-        },
-        ":hover": {
-            [`& .${actionsClassName}`]: {
-                visibility: "visible",
-            },
-        },
-        ":focus-within": {
-            [`& .${actionsClassName}`]: {
-                visibility: "visible",
-            },
-        },
     },
     selectedRow: {
         backgroundColor: "var(--vscode-list-inactiveSelectionBackground)",
@@ -585,90 +576,69 @@ export const ObjectExplorerFilterPresets = ({
                                                 ),
                                             }}
                                             action={{
-                                                className: mergeClasses(
-                                                    classes.actions,
-                                                    actionsClassName,
-                                                ),
+                                                className: classes.actions,
                                                 children: (
-                                                    <>
-                                                        <Button
-                                                            type="button"
-                                                            appearance="subtle"
-                                                            size="small"
-                                                            className={classes.actionButton}
-                                                            icon={
-                                                                row.preset.isPinned ? (
-                                                                    <PinFilled />
-                                                                ) : (
-                                                                    <PinRegular />
-                                                                )
-                                                            }
-                                                            title={
-                                                                row.preset.isPinned
-                                                                    ? locConstants
-                                                                          .objectExplorerFiltering
-                                                                          .unpinFilter
-                                                                    : locConstants
-                                                                          .objectExplorerFiltering
-                                                                          .pinFilter
-                                                            }
-                                                            aria-label={
-                                                                row.preset.isPinned
-                                                                    ? locConstants
-                                                                          .objectExplorerFiltering
-                                                                          .unpinFilter
-                                                                    : locConstants
-                                                                          .objectExplorerFiltering
-                                                                          .pinFilter
-                                                            }
-                                                            onClick={() =>
-                                                                onSetPinned(
-                                                                    row.preset.id,
-                                                                    !row.preset.isPinned,
-                                                                )
-                                                            }
-                                                        />
-                                                        {row.preset.isPinned && (
+                                                    <Menu>
+                                                        <MenuTrigger disableButtonEnhancement>
                                                             <Button
                                                                 type="button"
                                                                 appearance="subtle"
                                                                 size="small"
                                                                 className={classes.actionButton}
-                                                                icon={<EditRegular />}
-                                                                title={
-                                                                    locConstants
-                                                                        .objectExplorerFiltering
-                                                                        .renameFilter
-                                                                }
-                                                                aria-label={
-                                                                    locConstants
-                                                                        .objectExplorerFiltering
-                                                                        .renameFilter
-                                                                }
-                                                                onClick={() =>
-                                                                    beginRename(row.preset)
-                                                                }
+                                                                icon={<MoreHorizontalRegular />}
+                                                                title={locConstants.objectExplorerFiltering.moreFilterActions(
+                                                                    displayName,
+                                                                )}
+                                                                aria-label={locConstants.objectExplorerFiltering.moreFilterActions(
+                                                                    displayName,
+                                                                )}
                                                             />
-                                                        )}
-                                                        <Button
-                                                            type="button"
-                                                            appearance="subtle"
-                                                            size="small"
-                                                            className={classes.actionButton}
-                                                            icon={<DeleteRegular />}
-                                                            title={
-                                                                locConstants.objectExplorerFiltering
-                                                                    .deleteFilter
-                                                            }
-                                                            aria-label={
-                                                                locConstants.objectExplorerFiltering
-                                                                    .deleteFilter
-                                                            }
-                                                            onClick={() =>
-                                                                setPendingDelete(row.preset)
-                                                            }
-                                                        />
-                                                    </>
+                                                        </MenuTrigger>
+                                                        <MenuPopover>
+                                                            <MenuList>
+                                                                <MenuItem
+                                                                    icon={<PinRegular />}
+                                                                    onClick={() =>
+                                                                        onSetPinned(
+                                                                            row.preset.id,
+                                                                            !row.preset.isPinned,
+                                                                        )
+                                                                    }>
+                                                                    {row.preset.isPinned
+                                                                        ? locConstants
+                                                                              .objectExplorerFiltering
+                                                                              .unpinFilter
+                                                                        : locConstants
+                                                                              .objectExplorerFiltering
+                                                                              .pinFilter}
+                                                                </MenuItem>
+                                                                {row.preset.isPinned && (
+                                                                    <MenuItem
+                                                                        icon={<EditRegular />}
+                                                                        onClick={() =>
+                                                                            beginRename(row.preset)
+                                                                        }>
+                                                                        {
+                                                                            locConstants
+                                                                                .objectExplorerFiltering
+                                                                                .renameFilter
+                                                                        }
+                                                                    </MenuItem>
+                                                                )}
+                                                                <MenuItem
+                                                                    icon={<DeleteRegular />}
+                                                                    onClick={() =>
+                                                                        setPendingDelete(row.preset)
+                                                                    }>
+                                                                    {
+                                                                        locConstants
+                                                                            .objectExplorerFiltering
+                                                                            .deleteFilter
+                                                                    }
+                                                                </MenuItem>
+                                                            </MenuList>
+                                                        </MenuPopover>
+                                                    </Menu>
                                                 ),
                                             }}
                                         />

@@ -98,6 +98,7 @@ export class LocConstants {
             clearAll: l10n.t("Clear All"),
             ok: l10n.t("OK"),
             apply: l10n.t("Apply"),
+            saveAndApply: l10n.t("Save and Apply"),
             enter: l10n.t("Enter"),
             escape: l10n.t("Escape"),
             applyTooltip: (shortcut: string) =>
@@ -105,6 +106,12 @@ export class LocConstants {
                     message: "Apply ({0})",
                     args: [shortcut],
                     comment: ["{0} is the keyboard shortcut for applying the filter"],
+                }),
+            saveAndApplyTooltip: (shortcut: string) =>
+                l10n.t({
+                    message: "Save and Apply ({0})",
+                    args: [shortcut],
+                    comment: ["{0} is the keyboard shortcut for saving and applying the filter"],
                 }),
             closeTooltip: (shortcut: string) =>
                 l10n.t({

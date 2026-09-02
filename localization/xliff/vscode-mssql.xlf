@@ -7249,6 +7249,13 @@
     <trans-unit id="++CODE++072fb040dae019a32d416f0ad48852b98a2544da0e126c054ea338011ae0d63a">
       <source xml:lang="en">Save Secret</source>
     </trans-unit>
+    <trans-unit id="++CODE++6b93458b8efd284fb830885ed38c172565b677f208e972fbace1b47f79415423">
+      <source xml:lang="en">Save and Apply</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d5080bf6371aad6675debbdfd41ebeb56f3766b1ab3785a741578f53f03b4235">
+      <source xml:lang="en">Save and Apply ({0})</source>
+      <note>{0} is the keyboard shortcut for saving and applying the filter</note>
+    </trans-unit>
     <trans-unit id="++CODE++e50761ebedbdddb4dd4afb99a7c0964cf8bfed33ec03cb39f5a08e65812c795a">
       <source xml:lang="en">Save as CSV</source>
     </trans-unit>
@@ -10353,9 +10360,6 @@
     </trans-unit>
     <trans-unit id="mssql.enableConnectionPooling">
       <source xml:lang="en">Enables connection pooling to improve overall connectivity performance. This setting is disabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: &apos;MS SQL: Clear Pooled Connections&apos;. Note: May keep serverless databases active and prevent auto-pausing.</source>
-    </trans-unit>
-    <trans-unit id="mssql.preview.betaObjectExplorerFilter.description">
-      <source xml:lang="en">Enables the preview Object Explorer filter experience with saved filter presets and recently applied filters. Disable this setting to use the existing Object Explorer filter experience.</source>
     </trans-unit>
     <trans-unit id="mssql.preview.betaExecutionPlan.description">
       <source xml:lang="en">Enables the preview query execution plan experience with improved layout, keyboard navigation, tooltips, SQL text display, and toolbar interactions. Disable this setting to use the existing execution plan experience.</source>
