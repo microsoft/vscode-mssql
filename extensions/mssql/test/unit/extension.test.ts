@@ -9,8 +9,8 @@ import * as chai from "chai";
 import sinonChai from "sinon-chai";
 import * as vscode from "vscode";
 import { IExtension } from "vscode-mssql";
-import MainController from "../../src/controllers/mainController";
 import * as Extension from "../../src/extension";
+import MainController from "../../src/controllers/mainController";
 import { stubExtensionContext } from "./utils";
 import { ChangelogWebviewController } from "../../src/controllers/changelogWebviewController";
 import * as LocalizationCache from "../../src/controllers/localizationCache";
@@ -30,7 +30,6 @@ suite("Extension API Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let context: vscode.ExtensionContext;
     let vscodeMssql: IExtension;
-    let mainController: MainController;
 
     setup(async () => {
         sandbox = sinon.createSandbox();
@@ -91,7 +90,7 @@ suite("Extension API Tests", () => {
         sandbox.stub(UriOwnershipInitialization, "initializeUriOwnershipCoordinator").returns();
 
         vscodeMssql = await Extension.activate(context);
-        mainController = await Extension.getController();
+        await Extension.getController();
     });
 
     teardown(() => {
@@ -106,8 +105,7 @@ suite("Extension API Tests", () => {
     });
 
     test("only exports the supported public APIs", () => {
-        expect(Object.keys(vscodeMssql)).to.deep.equal(["connectionSharing", "uriOwnershipApi"]);
-        expect(vscodeMssql.connectionSharing).to.equal(mainController.connectionSharingService);
+        expect(Object.keys(vscodeMssql)).to.deep.equal(["uriOwnershipApi"]);
         expect(vscodeMssql.uriOwnershipApi).to.equal(
             Extension.uriOwnershipCoordinator.uriOwnershipApi,
         );

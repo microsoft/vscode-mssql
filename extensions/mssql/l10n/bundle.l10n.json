@@ -1656,51 +1656,6 @@
         "message": "Failed disposing query: {0}",
         "comment": ["{0} is the error message"]
     },
-    "The “{0}” extension uses a connection-sharing capability that the MSSQL extension is retiring. File a feature request for the capability you use so we can consider adding it natively./{0} is the extension name": {
-        "message": "The “{0}” extension uses a connection-sharing capability that the MSSQL extension is retiring. File a feature request for the capability you use so we can consider adding it natively.",
-        "comment": ["{0} is the extension name"]
-    },
-    "File a feature request": "File a feature request",
-    "Don’t show again for this extension": "Don’t show again for this extension",
-    "The extension '{0}' is requesting access to your SQL Server connections. This will allow it to execute queries and access your database./{0} is the extension name": {
-        "message": "The extension '{0}' is requesting access to your SQL Server connections. This will allow it to execute queries and access your database.",
-        "comment": ["{0} is the extension name"]
-    },
-    "Approve": "Approve",
-    "Deny": "Deny",
-    "✅ Grant Access": "✅ Grant Access",
-    "✅ Grant Access (Current)": "✅ Grant Access (Current)",
-    "❌ Deny Access": "❌ Deny Access",
-    "❌ Deny Access (Current)": "❌ Deny Access (Current)",
-    "Allow this extension to access your connections": "Allow this extension to access your connections",
-    "Block this extension from accessing your connections": "Block this extension from accessing your connections",
-    "Select an extension to manage connection sharing permissions": "Select an extension to manage connection sharing permissions",
-    "Select new permission for extension: '{0}'/{0} is the extension name": {
-        "message": "Select new permission for extension: '{0}'",
-        "comment": ["{0} is the extension name"]
-    },
-    "Clear permissions for all extensions to access your connections": "Clear permissions for all extensions to access your connections",
-    "Clear": "Clear",
-    "All permissions for extensions to access your connections have been cleared.": "All permissions for extensions to access your connections have been cleared.",
-    "No active text editor found. Please open a file with an active database connection.": "No active text editor found. Please open a file with an active database connection.",
-    "Connection with ID \"{0}\" not found. Please verify the connection ID exists./{0} is the connection ID": {
-        "message": "Connection with ID \"{0}\" not found. Please verify the connection ID exists.",
-        "comment": ["{0} is the connection ID"]
-    },
-    "Failed to establish connection with ID \"{0}\". Please check connection details and network connectivity./{0} is the connection ID": {
-        "message": "Failed to establish connection with ID \"{0}\". Please check connection details and network connectivity.",
-        "comment": ["{0} is the connection ID"]
-    },
-    "Invalid connection URI provided.": "Invalid connection URI provided.",
-    "Connection is not active. Please establish a connection before performing this action.": "Connection is not active. Please establish a connection before performing this action.",
-    "Connection sharing permission denied for extension: '{0}'. Use the permission management commands to change this./{0} is the extension ID": {
-        "message": "Connection sharing permission denied for extension: '{0}'. Use the permission management commands to change this.",
-        "comment": ["{0} is the extension ID"]
-    },
-    "Connection sharing permission is required for extension: '{0}'/{0} is the extension ID": {
-        "message": "Connection sharing permission is required for extension: '{0}'",
-        "comment": ["{0} is the extension ID"]
-    },
     "Create Connection Group": "Create Connection Group",
     "Edit Connection Group - {0}/{0} is the connection group name": {
         "message": "Edit Connection Group - {0}",
@@ -2615,6 +2570,7 @@
     "Apply": "Apply",
     "Next": "Next",
     "Clear Selection": "Clear Selection",
+    "Clear": "Clear",
     "Find": "Find",
     "Find Next": "Find Next",
     "Find Previous": "Find Previous",

@@ -6,7 +6,6 @@
 import * as vscode from "vscode";
 import type { IConnectionInfo, ConnectionDetails } from "vscode-mssql";
 import ConnectionManager from "../controllers/connectionManager";
-import { ConnectionSharingService } from "../connectionSharing/connectionSharingService";
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import { QueryNotificationHandler } from "../controllers/queryNotificationHandler";
 import {
@@ -30,8 +29,8 @@ import {
  * Manages the active database connection for a notebook.
  * One connection per notebook — each notebook maintains its own isolated session.
  *
- * NOTE: The MSSQL extension's connectionSharing.getActiveEditorConnectionId()
- * uses vscode.window.activeTextEditor, which is undefined for notebook editors.
+ * NOTE: The MSSQL extension tracks connections per text editor, and
+ * vscode.window.activeTextEditor is undefined for notebook editors.
  * We cannot auto-sync with the MSSQL UI. Connection changes must be explicit:
  *   - %%connect magic command
  *   - "New SQL Notebook" from Object Explorer (connectWith)
@@ -80,7 +79,6 @@ export class NotebookConnectionManager implements vscode.Disposable {
 
     constructor(
         private connectionMgr: ConnectionManager,
-        private connectionSharingService: ConnectionSharingService,
         log: ILogger,
         client?: SqlToolsServiceClient,
         notificationHandler?: QueryNotificationHandler,
@@ -157,7 +155,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
                 `hasStoredInfo=${!!this.connectionInfo}`,
         );
         if (this.connectionUri) {
-            const alive = this.connectionSharingService.isConnected(this.connectionUri);
+            const alive = this.connectionMgr.isConnected(this.connectionUri);
             this.log.trace(`[ensureConnection] existing uri alive=${alive}`);
             if (alive) {
                 return this.connectionUri;
@@ -300,7 +298,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
 
         // Disconnect current connection
         if (this.connectionUri) {
-            this.connectionSharingService.disconnect(this.connectionUri);
+            void this.connectionMgr.disconnect(this.connectionUri);
         }
 
         // Reconnect with the new database
@@ -330,7 +328,7 @@ export class NotebookConnectionManager implements vscode.Disposable {
             this.log.warn(`[executeQueryString] no active connection`);
             throw new Error(LocalizedConstants.Notebooks.noActiveConnection);
         }
-        const alive = this.connectionSharingService.isConnected(this.connectionUri);
+        const alive = this.connectionMgr.isConnected(this.connectionUri);
         this.log.trace(
             `[executeQueryString] dispatch uri=${this.connectionUri} ` +
                 `aliveAtDispatch=${alive} sqlLen=${sql.length}`,
@@ -342,14 +340,14 @@ export class NotebookConnectionManager implements vscode.Disposable {
         if (!this.connectionUri) {
             return false;
         }
-        return this.connectionSharingService.isConnected(this.connectionUri);
+        return this.connectionMgr.isConnected(this.connectionUri);
     }
 
     disconnect(): void {
         this.log.debug(`[disconnect] URI=${this.connectionUri ?? "none"}`);
         if (this.connectionUri) {
             sendActionEvent(TelemetryViews.SqlNotebooks, TelemetryActions.NotebookDisconnect);
-            this.connectionSharingService.disconnect(this.connectionUri);
+            void this.connectionMgr.disconnect(this.connectionUri);
         }
         this.connectionUri = undefined;
         this.connectionInfo = undefined;
@@ -360,13 +358,12 @@ export class NotebookConnectionManager implements vscode.Disposable {
     }
 
     /**
-     * Disconnect a specific URI from the connection sharing service without
-     * clearing the manager's current state. Used to clean up a previous
-     * connection after a new one has been established.
+     * Disconnect a specific URI without clearing the manager's current state.
+     * Used to clean up a previous connection after a new one has been established.
      */
     disconnectUri(uri: string): void {
         this.log.debug(`[disconnectUri] URI=${uri}`);
-        this.connectionSharingService.disconnect(uri);
+        void this.connectionMgr.disconnect(uri);
     }
 
     getConnectionLabel(): string {

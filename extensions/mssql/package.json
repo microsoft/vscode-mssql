@@ -1690,16 +1690,6 @@
                 "category": "MS SQL"
             },
             {
-                "command": "mssql.connectionSharing.editConnectionSharingPermissions",
-                "title": "%mssql.connectionSharing.editConnectionSharingPermissions%",
-                "category": "MSSQL"
-            },
-            {
-                "command": "mssql.connectionSharing.clearAllConnectionSharingPermissions",
-                "title": "%mssql.connectionSharing.clearAllConnectionSharingPermissions%",
-                "category": "MSSQL"
-            },
-            {
                 "command": "mssql.connectionGroups.create",
                 "title": "%mssql.connectionGroups.create%",
                 "category": "MS SQL",

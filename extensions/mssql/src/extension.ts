@@ -202,7 +202,6 @@ class MssqlActivation {
         Perf.flush();
 
         return {
-            connectionSharing: controller.connectionSharingService,
             uriOwnershipApi: uriOwnershipCoordinator.uriOwnershipApi,
         };
     }
