@@ -4,10 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 /**
- * Readiness → child-node policy (oe_view_design §9.4/§13): ONLY `readyEmpty`
- * produces a no-items child. Loading, failed, stale, partial, permission
- * denied, unsupported, and data-plane-unavailable states each synthesize
- * their own explicit status/error child — failure is never emptiness.
+ * Readiness → child-node policy (oe_view_design §9.4/§13): only an explicitly
+ * empty result (`readyEmpty`) or a `ready` result with zero children produces a
+ * no-items child. Loading, failed, stale, partial, permission denied,
+ * unsupported, and data-plane-unavailable states remain distinct from emptiness.
  */
 
 import { OeV2Node, OeV2Readiness } from "./oeV2Node";

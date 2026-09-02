@@ -80,7 +80,7 @@ export function registerOeV2GroupCommands(deps: OeV2GroupCommandDeps): vscode.Di
 
     const create = vscode.commands.registerCommand(
         "mssql.objectExplorerV2.connectionGroups.create",
-        (node?: OeV2Node) => {
+        () => {
             if (!isEnabled()) {
                 return;
             }
@@ -88,15 +88,13 @@ export function registerOeV2GroupCommands(deps: OeV2GroupCommandDeps): vscode.Di
             if (!config) {
                 return;
             }
-            // Creating from a group node's context menu nests under it.
-            const parentId = groupIdOf(node);
+            // The classic dialog creates at the root; nesting is available through move or DnD.
             const dialog = instantiationService.createInstance(
                 ConnectionGroupWebviewController,
                 undefined,
             );
             dialog.revealToForeground();
             emitGroupMutation("create", "ok");
-            void parentId; // dialog assigns root parent; nesting via move/DnD
         },
     );
 

@@ -5,8 +5,8 @@
 
 /**
  * SQL identifier formatting for OE v2 native commands (oe_view_design
- * §11.4): bracket-quote identifiers (']' doubled), qualified names, and
- * qualified names. Pure module; identifiers always pass through bracketQuote.
+ * §11.4): bracket-quote identifiers (']' doubled) and compose qualified names.
+ * Pure module; identifiers always pass through bracketQuote.
  */
 
 /** Always-bracketed, ]-doubled — safe for any identifier content. */
