@@ -423,6 +423,7 @@ suite("FlatFileImportWebviewController", () => {
         state = await reducer(state, { resetType: FlatFileStepType.ImportData });
 
         expect(state.importDataStatus).to.equal(ApiStatus.NotStarted);
+        expect(state.columnChanges).to.deep.equal([{ index: 0 }]);
         expect(state.currentStep).to.equal(FlatFileStepType.ColumnChanges);
 
         // ---- ColumnChanges branch ----
