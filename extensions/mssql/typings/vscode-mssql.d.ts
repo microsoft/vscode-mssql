@@ -2672,6 +2672,11 @@ declare module "vscode-mssql" {
          * The parent object type name such as Table, View, etc.
          */
         parentTypeName?: string;
+
+        /**
+         * The database that owns the object, when it is not the one the connection is using.
+         */
+        databaseName?: string;
     }
 
     /**

@@ -1,0 +1,35 @@
+-- Test 1: FETCH APPROXIMATE NEXT (full keyword) - NO OFFSET
+SELECT OrderID, CustomerName
+FROM Orders
+ORDER BY OrderDate
+FETCH APPROXIMATE NEXT 20 ROWS ONLY;
+
+-- Test 2: FETCH APPROX NEXT (abbreviated keyword) - NO OFFSET
+SELECT OrderID, CustomerName
+FROM Orders
+ORDER BY OrderDate
+FETCH APPROX NEXT 20 ROWS ONLY;
+
+-- Test 3: FETCH APPROXIMATE FIRST (with FIRST instead of NEXT) - NO OFFSET
+SELECT ProductID, ProductName
+FROM Products
+ORDER BY Price
+FETCH APPROXIMATE FIRST 15 ROWS ONLY;
+
+-- Test 4: FETCH APPROXIMATE with parameter - NO OFFSET
+DECLARE @take INT = 50;
+
+SELECT OrderID, CustomerName, OrderDate
+FROM Orders
+ORDER BY OrderDate
+FETCH APPROXIMATE NEXT @take ROWS ONLY;
+
+-- Test 5: FETCH APPROXIMATE with complex expression - NO OFFSET
+SELECT TOP 100 *
+FROM (
+    SELECT OrderID, CustomerName
+    FROM Orders
+    ORDER BY OrderDate
+    FETCH APPROXIMATE NEXT 1000 ROWS ONLY
+) AS RecentOrders
+ORDER BY OrderID;

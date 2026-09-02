@@ -1,0 +1,3917 @@
+{
+    "schemaVersion": 1,
+    "files": [
+        {
+            "path": "AcceleratedDatabaseRecoveryTests150.sql",
+            "bytes": 124,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AddDropSignatureStatementTests.sql",
+            "bytes": 480,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AiAnalyzeSentimentTestsFabricDW.sql",
+            "bytes": 518,
+            "encoding": "utf8",
+            "flavorHint": "fabric",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AiClassifyTestsFabricDW.sql",
+            "bytes": 702,
+            "encoding": "utf8",
+            "flavorHint": "fabric",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AiExtractTestsFabricDW.sql",
+            "bytes": 695,
+            "encoding": "utf8",
+            "flavorHint": "fabric",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AiFixGrammarTestsFabricDW.sql",
+            "bytes": 470,
+            "encoding": "utf8",
+            "flavorHint": "fabric",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AiGenerateChunksTests170.sql",
+            "bytes": 2638,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AiGenerateEmbeddingsTests170.sql",
+            "bytes": 1644,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AiGenerateResponseTestsFabricDW.sql",
+            "bytes": 523,
+            "encoding": "utf8",
+            "flavorHint": "fabric",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AiSummarizeTestsFabricDW.sql",
+            "bytes": 454,
+            "encoding": "utf8",
+            "flavorHint": "fabric",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AiTranslateTestsFabricDW.sql",
+            "bytes": 609,
+            "encoding": "utf8",
+            "flavorHint": "fabric",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterAssemblyStatementTests.sql",
+            "bytes": 494,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterAvailabilityGroupStatementTests.sql",
+            "bytes": 1644,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterCertificateStatementTests.sql",
+            "bytes": 316,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterCreateCredentialStatementTests.sql",
+            "bytes": 210,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterCreateDatabaseFilePath150.sql",
+            "bytes": 422,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterCreateDatabaseStatementTests100.sql",
+            "bytes": 809,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterCreateDatabaseStatementTests120.sql",
+            "bytes": 446,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 120,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterCreateDatabaseStatementTests90.sql",
+            "bytes": 1171,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 90,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterCreateResourcePoolStatement120.sql",
+            "bytes": 1071,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 120,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterCreateServiceStatementTests.sql",
+            "bytes": 379,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterDatabaseManualCutoverTests170.sql",
+            "bytes": 301,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterDatabaseOptionsTests.sql",
+            "bytes": 1112,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterDatabaseOptionsTests100.sql",
+            "bytes": 775,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterDatabaseOptionsTests120.sql",
+            "bytes": 249,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 120,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterDatabaseOptionsTests130.sql",
+            "bytes": 1839,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterDatabaseOptionsTests140.sql",
+            "bytes": 1805,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterDatabaseOptionsTests140_Azure.sql",
+            "bytes": 115,
+            "encoding": "utf8",
+            "flavorHint": "azure-sql",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterDatabaseOptionsTests90.sql",
+            "bytes": 1216,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 90,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterDatabaseScopedConfigClearProcCacheTests150.sql",
+            "bytes": 218,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterDatabaseScopedConfigForSecondaryClearProcCacheTests150.sql",
+            "bytes": 244,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterDatabaseScopedConfigTxnPriorityTests180.sql",
+            "bytes": 845,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 180,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterDatabaseScopedConfigurationTests130.sql",
+            "bytes": 1975,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterDatabaseScopedCredentialStatementTests130.sql",
+            "bytes": 134,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterDatabaseScopedGenericConfigurationTests140.sql",
+            "bytes": 2549,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterDatabaseStatementTests.sql",
+            "bytes": 1147,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterDatabaseStatementTests130.sql",
+            "bytes": 284,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterEndpointStatementTests.sql",
+            "bytes": 403,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterExternalDataSourceStatementTests130.sql",
+            "bytes": 2123,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterExternalLanguage150.sql",
+            "bytes": 804,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterExternalLibrary140.sql",
+            "bytes": 334,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterExternalLibrary150.sql",
+            "bytes": 510,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterExternalModelStatementTests170.sql",
+            "bytes": 540,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterExternalResourcePoolStatementTests130.sql",
+            "bytes": 1116,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterFulltextCatalogStatementTests.sql",
+            "bytes": 235,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterFulltextIndexStatementTests.sql",
+            "bytes": 828,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterFunctionJsonObjectTests160.sql",
+            "bytes": 387,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterIndexStatementTests.sql",
+            "bytes": 712,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterIndexStatementTests100.sql",
+            "bytes": 143,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterIndexStatementTests120.sql",
+            "bytes": 1929,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 120,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterIndexStatementTests130.sql",
+            "bytes": 637,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterIndexStatementTests140.sql",
+            "bytes": 1934,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterIndexStatementTests150.sql",
+            "bytes": 364,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterMasterKeyStatementTests.sql",
+            "bytes": 347,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterMessageTypeStatementTests.sql",
+            "bytes": 112,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterPartitionStatementsTests.sql",
+            "bytes": 339,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterProcedureStatementTests.sql",
+            "bytes": 678,
+            "encoding": "utf16le",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterProcedureStatementTests120.sql",
+            "bytes": 1205,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 120,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterRemoteServiceBindingStatementTests.sql",
+            "bytes": 162,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterResourceGovernorStatementTests.sql",
+            "bytes": 233,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterSchemaStatementTests.sql",
+            "bytes": 158,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterSearchPropertyListStatementTests.sql",
+            "bytes": 492,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterSelectiveXmlIndexStatementTests.sql",
+            "bytes": 713,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterSequenceStatementTests.sql",
+            "bytes": 317,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterServerConfigurationExternalAuthenticationTests150.sql",
+            "bytes": 225,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterServerConfigurationSoftNumaTests130.sql",
+            "bytes": 90,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterServerConfigurationStatementTests.sql",
+            "bytes": 194,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterServerConfigurationStatementTests110.sql",
+            "bytes": 1990,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 110,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterServiceMasterKeyStatementTests.sql",
+            "bytes": 265,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterTableAddIndexTests.sql",
+            "bytes": 81,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterTableAddTableElementStatementTests.sql",
+            "bytes": 1359,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterTableAlterColumnStatementTests.sql",
+            "bytes": 824,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterTableAlterColumnStatementTests130.sql",
+            "bytes": 5532,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterTableAlterColumnStatementTests140.sql",
+            "bytes": 1159,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterTableAlterIndex130.sql",
+            "bytes": 59,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterTableConstraintModificationStatementTests.sql",
+            "bytes": 292,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterTableDropTableElementStatementTests.sql",
+            "bytes": 220,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterTableDropTableElementStatementTests130.sql",
+            "bytes": 28,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterTableDropTableElementStatementTests140.sql",
+            "bytes": 941,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterTableDropTableElementStatementTests90.sql",
+            "bytes": 272,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 90,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterTableResumableTests160.sql",
+            "bytes": 514,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterTableStatementTests100.sql",
+            "bytes": 1085,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterTableStatementTests120.sql",
+            "bytes": 2123,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 120,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterTableStatementTests130.sql",
+            "bytes": 4560,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterTableStatementTests140_Azure.sql",
+            "bytes": 236,
+            "encoding": "utf8-bom",
+            "flavorHint": "azure-sql",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterTableStatementTests160.sql",
+            "bytes": 161,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterTableSwitchStatementTests.sql",
+            "bytes": 383,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterTableSwitchStatementTests120.sql",
+            "bytes": 756,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 120,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterTableSwitchStatementTests130.sql",
+            "bytes": 147,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterTableTriggerModificationStatementTests.sql",
+            "bytes": 269,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterTriggerStatementTests.sql",
+            "bytes": 143,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterWorkloadGroupStatementSqlDwTests.sql",
+            "bytes": 1445,
+            "encoding": "utf8",
+            "flavorHint": "synapse-dw",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterWorkloadGroupStatementTests130.sql",
+            "bytes": 821,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlterXmlSchemaCollectionStatementTests.sql",
+            "bytes": 202,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlwaysEncryptedTests130.sql",
+            "bytes": 7162,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AlwaysEncryptedTests150.sql",
+            "bytes": 448,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "ApplicationRoleStatementTests.sql",
+            "bytes": 426,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AssignmentWithOperationTests.sql",
+            "bytes": 892,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AsymmetricKeyStatementTests.sql",
+            "bytes": 1263,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AsymmetricKeyStatementTests100.sql",
+            "bytes": 339,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AtTimeZoneTests130.sql",
+            "bytes": 914,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AuditSpecificationStatementTests110.sql",
+            "bytes": 1072,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 110,
+            "expectation": "parseable"
+        },
+        {
+            "path": "AutomaticIndexCompactionTests180.sql",
+            "bytes": 221,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 180,
+            "expectation": "parseable"
+        },
+        {
+            "path": "BackupCertificateStatementTests.sql",
+            "bytes": 231,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "BackupRestoreServiceMasterKeyStatementTests.sql",
+            "bytes": 495,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "BackupStatementTests.sql",
+            "bytes": 1581,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "BackupStatementTests100.sql",
+            "bytes": 180,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "BackupStatementTests120.sql",
+            "bytes": 1168,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 120,
+            "expectation": "parseable"
+        },
+        {
+            "path": "BaseTableNameTests.sql",
+            "bytes": 277,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "BeginConversationStatementTests.sql",
+            "bytes": 624,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "BeginEndBlockStatementTests.sql",
+            "bytes": 540,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "BeginEndStatementErrorTests.sql",
+            "bytes": 353,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "recovery"
+        },
+        {
+            "path": "BeginTransactionStatementTests.sql",
+            "bytes": 584,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "BigIntRowCountPageCountTests.sql",
+            "bytes": 224,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "BitManipulationFunctionTests160.sql",
+            "bytes": 384,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "BooleanExpressionTests.sql",
+            "bytes": 4962,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "BuiltInFunctionTests160.sql",
+            "bytes": 1966,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "BulkInsertStatementTests.sql",
+            "bytes": 1733,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "BulkInsertStatementTests140.sql",
+            "bytes": 1203,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "BulkInsertStatementTests150.sql",
+            "bytes": 726,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CTEStatementTests.sql",
+            "bytes": 898,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CTEStatementTests100.sql",
+            "bytes": 546,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CloneTableTestsFabricDW.sql",
+            "bytes": 278,
+            "encoding": "utf8",
+            "flavorHint": "fabric",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "ColumnDefinitionTests.sql",
+            "bytes": 2035,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "ColumnDefinitionTests100.sql",
+            "bytes": 658,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "ColumnDefinitionTests120.sql",
+            "bytes": 1256,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 120,
+            "expectation": "parseable"
+        },
+        {
+            "path": "ColumnStoreInlineIndex130.sql",
+            "bytes": 975,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CommitTransactionStatementTests.sql",
+            "bytes": 181,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CommitTransactionStatementTests120.sql",
+            "bytes": 564,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 120,
+            "expectation": "parseable"
+        },
+        {
+            "path": "ComplexJsonObjectFunctionTests160.sql",
+            "bytes": 610,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "ComplexJsonObjectFunctionTests170.sql",
+            "bytes": 610,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "ComplexQueryTests170.sql",
+            "bytes": 3076,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CopyCommandTestsDw.sql",
+            "bytes": 4147,
+            "encoding": "utf8",
+            "flavorHint": "synapse-dw",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateAggregateStatementTests.sql",
+            "bytes": 298,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateAggregateStatementTests100.sql",
+            "bytes": 107,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateAggregateStatementTests120.sql",
+            "bytes": 438,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 120,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateAlterDatabaseStatementTests110.sql",
+            "bytes": 1637,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 110,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateAlterDatabaseStatementTestsAzure110.sql",
+            "bytes": 338,
+            "encoding": "utf8",
+            "flavorHint": "azure-sql",
+            "versionHint": 110,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateAlterDatabaseStatementTestsAzure120.sql",
+            "bytes": 1181,
+            "encoding": "utf8",
+            "flavorHint": "azure-sql",
+            "versionHint": 120,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateAlterDropBrokerPriorityStatementTests.sql",
+            "bytes": 913,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateAlterDropFulltextStoplistStatementTests.sql",
+            "bytes": 892,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateAlterDropResourcePoolStatementTests.sql",
+            "bytes": 1090,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateAlterDropWorkloadGroupStatementTests.sql",
+            "bytes": 1127,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateAlterExternalDataSourceTestsFabricDW.sql",
+            "bytes": 317,
+            "encoding": "utf8",
+            "flavorHint": "fabric",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateAlterFederationStatementTestsAzure110.sql",
+            "bytes": 181,
+            "encoding": "utf8-bom",
+            "flavorHint": "azure-sql",
+            "versionHint": 110,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateAlterResourcePoolStatementTests110.sql",
+            "bytes": 863,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 110,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateAlterSecurityPolicyStatementTests130.sql",
+            "bytes": 3436,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateAlterTableClusterByTestsFabricDW.sql",
+            "bytes": 646,
+            "encoding": "utf8",
+            "flavorHint": "fabric",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateAlterTableStatementTests110.sql",
+            "bytes": 788,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 110,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateAlterUserStatementTests110.sql",
+            "bytes": 430,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 110,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateAlterWorkloadGroupStatementTests110.sql",
+            "bytes": 277,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 110,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateAssemblyStatementTests.sql",
+            "bytes": 552,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateAvailabilityGroupStatementTests.sql",
+            "bytes": 1145,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateCertificateStatementTests.sql",
+            "bytes": 628,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateColumnStoreIndexTests130.sql",
+            "bytes": 421,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateColumnStoreIndexTests170.sql",
+            "bytes": 198,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateColumnStoreIndexTestsDw.sql",
+            "bytes": 128,
+            "encoding": "utf8",
+            "flavorHint": "synapse-dw",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateContractStatementTests.sql",
+            "bytes": 125,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateCredentialStatementTests.sql",
+            "bytes": 125,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateCredentialStatementTests100.sql",
+            "bytes": 189,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateDatabaseCollateBeforeEditionTests120.sql",
+            "bytes": 347,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 120,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateDatabaseCollateBeforeEditionTestsFabricDW.sql",
+            "bytes": 347,
+            "encoding": "utf8",
+            "flavorHint": "fabric",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateDatabaseScopedCredentialStatementTests130.sql",
+            "bytes": 172,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateDatabaseStatementTests.sql",
+            "bytes": 950,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateDatabaseTests140.sql",
+            "bytes": 386,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateDatabaseTests160.sql",
+            "bytes": 271,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateDefaultStatementTests.sql",
+            "bytes": 136,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateEndpointStatementTests.sql",
+            "bytes": 3883,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateEventNotificationStatementTests.sql",
+            "bytes": 6035,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateEventSessionNotLikePredicate.sql",
+            "bytes": 580,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateExternalDataSource140.sql",
+            "bytes": 520,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateExternalDataSourceStatementTests130.sql",
+            "bytes": 2480,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateExternalDataSourceStatementTests160.sql",
+            "bytes": 223,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateExternalFileFormatStatementTests130.sql",
+            "bytes": 3983,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateExternalFileFormatStatementTests160.sql",
+            "bytes": 183,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateExternalLanguage150.sql",
+            "bytes": 979,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateExternalLibrary140.sql",
+            "bytes": 340,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateExternalLibrary150.sql",
+            "bytes": 536,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateExternalModelStatementTests170.sql",
+            "bytes": 812,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateExternalResourcePoolStatementTests130.sql",
+            "bytes": 1296,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateExternalTableStatementTests130.sql",
+            "bytes": 5074,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateExternalTableStatementTests160.sql",
+            "bytes": 692,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateExternalTableStatementTestsFabricDW.sql",
+            "bytes": 1191,
+            "encoding": "utf8",
+            "flavorHint": "fabric",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateFulltextCatalogStatementTests.sql",
+            "bytes": 586,
+            "encoding": "utf16le",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateFunctionStatementTests100.sql",
+            "bytes": 482,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateFunctionStatementTests160.sql",
+            "bytes": 399,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateFunctionStatementTests90.sql",
+            "bytes": 965,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 90,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateHekatonTriggerStatementTest.sql",
+            "bytes": 302,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateIndexStatementTests.sql",
+            "bytes": 933,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateIndexStatementTests100.sql",
+            "bytes": 1031,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateIndexStatementTests110.sql",
+            "bytes": 594,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 110,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateIndexStatementTests120.sql",
+            "bytes": 1520,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 120,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateIndexStatementTests130.sql",
+            "bytes": 580,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateIndexStatementTests140.sql",
+            "bytes": 1887,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateIndexStatementTests150.sql",
+            "bytes": 801,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateIndexStatementTests160.sql",
+            "bytes": 1928,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateIndexStatementTests90.sql",
+            "bytes": 601,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 90,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateLedgerTableTests160.sql",
+            "bytes": 10746,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateMasterKeyStatementTests.sql",
+            "bytes": 172,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateMasterKeyStatementTests130.sql",
+            "bytes": 79,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateMessageTypeStatementTests.sql",
+            "bytes": 550,
+            "encoding": "utf16le",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateOrAlterStatementTests130.sql",
+            "bytes": 1129,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreatePartitionFunctionStatementTests.sql",
+            "bytes": 185,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreatePartitionSchemeStatementTests.sql",
+            "bytes": 114,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateProcedureCloneTableTestsFabricDW.sql",
+            "bytes": 469,
+            "encoding": "utf8",
+            "flavorHint": "fabric",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateProcedureStatementTests.sql",
+            "bytes": 6822,
+            "encoding": "utf16le",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateProcedureStatementTests120.sql",
+            "bytes": 3174,
+            "encoding": "utf16le",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 120,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateProcedureStatementTests160.sql",
+            "bytes": 920,
+            "encoding": "utf16le",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateProcedureStatementTests90.sql",
+            "bytes": 986,
+            "encoding": "utf16le",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 90,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateRemoteServiceBindingStatementTests.sql",
+            "bytes": 422,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateRuleStatementTests.sql",
+            "bytes": 154,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateSchemaStatementErrorTests.sql",
+            "bytes": 129,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "recovery"
+        },
+        {
+            "path": "CreateSchemaStatementTests.sql",
+            "bytes": 624,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateSchemaStatementTests90.sql",
+            "bytes": 540,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 90,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateSearchPropertyListStatementTests.sql",
+            "bytes": 175,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateSelectiveXmlIndexStatementTests.sql",
+            "bytes": 1810,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateSemanticIndexTests180.sql",
+            "bytes": 3514,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 180,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateSequenceStatementTests.sql",
+            "bytes": 345,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateSpatialIndexStatementTests.sql",
+            "bytes": 1047,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateSpatialIndexStatementTests110.sql",
+            "bytes": 250,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 110,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateStatisticsStatementTests.sql",
+            "bytes": 391,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateStatisticsStatementTests100.sql",
+            "bytes": 445,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateStatisticsStatementTests160.sql",
+            "bytes": 547,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateSynonymStatementTests.sql",
+            "bytes": 219,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateTableTests100.sql",
+            "bytes": 514,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateTableTests120.sql",
+            "bytes": 1495,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 120,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateTableTests130.sql",
+            "bytes": 19295,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateTableTests140.sql",
+            "bytes": 5587,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateTableTests140_Azure.sql",
+            "bytes": 5680,
+            "encoding": "utf8",
+            "flavorHint": "azure-sql",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateTableTests150.sql",
+            "bytes": 2068,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateTableTests160.sql",
+            "bytes": 1634,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateTableTests90.sql",
+            "bytes": 895,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 90,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateTriggerStatementErrorTests.sql",
+            "bytes": 168,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "recovery"
+        },
+        {
+            "path": "CreateTriggerStatementTests.sql",
+            "bytes": 1098,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateTriggerStatementTests130.sql",
+            "bytes": 125,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateTriggerStatementTests90.sql",
+            "bytes": 923,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 90,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateTypeStatementTests.sql",
+            "bytes": 306,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateUserFromExternalProvider130.sql",
+            "bytes": 108,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateUserFromExternalProvider160.sql",
+            "bytes": 67,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateWorkloadClassifierStatementSqlDwTests.sql",
+            "bytes": 243,
+            "encoding": "utf8",
+            "flavorHint": "synapse-dw",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateWorkloadGroupStatementSqlDwTests130.sql",
+            "bytes": 2264,
+            "encoding": "utf8",
+            "flavorHint": "synapse-dw",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateWorkloadGroupStatementTests130.sql",
+            "bytes": 827,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateXmlIndexStatementTests.sql",
+            "bytes": 793,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CreateXmlSchemaCollectionStatementTests.sql",
+            "bytes": 202,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CryptographicProviderStatementTests.sql",
+            "bytes": 242,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CtasStatementTests.sql",
+            "bytes": 1982,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "CursorStatementsTests.sql",
+            "bytes": 293,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "DataClassificationTests130.sql",
+            "bytes": 522,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "DataClassificationTests140.sql",
+            "bytes": 522,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "DataClassificationTests150.sql",
+            "bytes": 522,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "DatabaseAuditSpecificationStatementTests.sql",
+            "bytes": 1493,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "DatabaseAuditSpecificationStatementTests150.sql",
+            "bytes": 1650,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "DatabaseEncryptionKeyStatementTests.sql",
+            "bytes": 510,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "DatePartFunctionTests160.sql",
+            "bytes": 2756,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "DbccStatementsTests.sql",
+            "bytes": 599,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "DeclareCursorStatementTests.sql",
+            "bytes": 438,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "DeclareTableStatementTests.sql",
+            "bytes": 225,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "DeclareTableVariableTests150.sql",
+            "bytes": 213,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "DeclareVariableElementTest.sql",
+            "bytes": 149,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "DeclareVariableStatementTests.sql",
+            "bytes": 168,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "DeclareVariableWithAssignmentTests.sql",
+            "bytes": 158,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "DeleteStatementTests.sql",
+            "bytes": 598,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "DeleteStatementTests90.sql",
+            "bytes": 622,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 90,
+            "expectation": "parseable"
+        },
+        {
+            "path": "DeprecatedKeywordsIn90Tests.sql",
+            "bytes": 109,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 90,
+            "expectation": "parseable"
+        },
+        {
+            "path": "DropDatabaseScopedCredentialStatementTests130.sql",
+            "bytes": 34,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "DropExternalLanguage150.sql",
+            "bytes": 94,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "DropExternalLibrary140.sql",
+            "bytes": 82,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "DropExternalModelStatementTests170.sql",
+            "bytes": 33,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "DropIfExistsTests130.sql",
+            "bytes": 3856,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "DropIndexStatementTests100.sql",
+            "bytes": 454,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "DropIndexStatementTests140.sql",
+            "bytes": 683,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "DropStatementsTests.sql",
+            "bytes": 576,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "DropStatementsTests110.sql",
+            "bytes": 174,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 110,
+            "expectation": "parseable"
+        },
+        {
+            "path": "DropStatementsTests130.sql",
+            "bytes": 334,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "DropStatementsTests2.sql",
+            "bytes": 1533,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "DumpLoadStatement90Tests.sql",
+            "bytes": 290,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 90,
+            "expectation": "parseable"
+        },
+        {
+            "path": "DumpLoadStatementTests.sql",
+            "bytes": 438,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "EnableDisableTriggerStatementTests.sql",
+            "bytes": 328,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "EndConversationStatementTests.sql",
+            "bytes": 594,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "EventNotificationStatementTests100.sql",
+            "bytes": 308,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "EventSessionDbScopeStatementTests.sql",
+            "bytes": 7402,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "EventSessionStatementTests.sql",
+            "bytes": 3668,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "ExecuteAsStatementTests.sql",
+            "bytes": 197,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "ExecuteStatementTests.sql",
+            "bytes": 877,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "ExecuteStatementTests110.sql",
+            "bytes": 410,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 110,
+            "expectation": "parseable"
+        },
+        {
+            "path": "ExecuteStatementTests90.sql",
+            "bytes": 298,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 90,
+            "expectation": "parseable"
+        },
+        {
+            "path": "ExpressionTests.sql",
+            "bytes": 4594,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "ExpressionTests100.sql",
+            "bytes": 442,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "ExpressionTests110.sql",
+            "bytes": 1064,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 110,
+            "expectation": "parseable"
+        },
+        {
+            "path": "ExpressionTests160.sql",
+            "bytes": 2426,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "ExpressionTests90.sql",
+            "bytes": 983,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 90,
+            "expectation": "parseable"
+        },
+        {
+            "path": "ExternalFunctionTestsFabricDW.sql",
+            "bytes": 1737,
+            "encoding": "utf8",
+            "flavorHint": "fabric",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "ExternalTableCtasStatementTests.sql",
+            "bytes": 1072,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "FetchApproximateTests170.sql",
+            "bytes": 921,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "ForClauseTests.sql",
+            "bytes": 695,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "ForeignKeyConstraintTests.sql",
+            "bytes": 1278,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "FromClauseTests.sql",
+            "bytes": 5214,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "FromClauseTests100.sql",
+            "bytes": 1779,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "FromClauseTests110.sql",
+            "bytes": 832,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 110,
+            "expectation": "parseable"
+        },
+        {
+            "path": "FromClauseTests120.sql",
+            "bytes": 395,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 120,
+            "expectation": "parseable"
+        },
+        {
+            "path": "FromClauseTests130.sql",
+            "bytes": 2394,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "FromClauseTests150.sql",
+            "bytes": 1539,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "FromClauseTests90.sql",
+            "bytes": 2180,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 90,
+            "expectation": "parseable"
+        },
+        {
+            "path": "FulltextIndexStatementTests.sql",
+            "bytes": 4394,
+            "encoding": "utf16le",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "FulltextIndexStatementTests100.sql",
+            "bytes": 2014,
+            "encoding": "utf16le",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "FulltextIndexStatementTests110.sql",
+            "bytes": 2732,
+            "encoding": "utf16le",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 110,
+            "expectation": "parseable"
+        },
+        {
+            "path": "FunctionStatementTests.sql",
+            "bytes": 1431,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "FuzzyStringMatchingTests160.sql",
+            "bytes": 334,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "GetConversationGroupStatementTests.sql",
+            "bytes": 136,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "GetTokenTypesFailureTests.sql",
+            "bytes": 105,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "GetTokenTypesTests.sql",
+            "bytes": 133,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "GotoStatementTests.sql",
+            "bytes": 192,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "GraphDbEdgeConstraintsSyntaxTests150.sql",
+            "bytes": 5483,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "GraphDbShortestPathSyntaxTests150.sql",
+            "bytes": 7178,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "GraphDbSyntaxTests140.sql",
+            "bytes": 3154,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "GraphDbSyntaxTests150.sql",
+            "bytes": 697,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "GroupByClauseTests100.sql",
+            "bytes": 1027,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "GroupByClauseTests130.sql",
+            "bytes": 788,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "GroupByClauseTests140.sql",
+            "bytes": 788,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "GroupByClauseTests150.sql",
+            "bytes": 788,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "IPv4AddressTests.sql",
+            "bytes": 3007,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "IdentifierTests.sql",
+            "bytes": 1164,
+            "encoding": "utf16le",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "IdentityColumnTestsFabricDW.sql",
+            "bytes": 456,
+            "encoding": "utf8",
+            "flavorHint": "fabric",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "IfStatementTests.sql",
+            "bytes": 470,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "IgnoreRespectNullsSyntaxTests160.sql",
+            "bytes": 515,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "IifParenthesesTests160.sql",
+            "bytes": 2382,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "IncrementalStatsTests.sql",
+            "bytes": 702,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "InlineIndexColumnWithINCLUDEtest.sql",
+            "bytes": 623,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "InsertStatementTests.sql",
+            "bytes": 1108,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "InsertStatementTests100.sql",
+            "bytes": 697,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "InsertStatementTests90.sql",
+            "bytes": 352,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 90,
+            "expectation": "parseable"
+        },
+        {
+            "path": "IntegerTests.sql",
+            "bytes": 95,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "InvokeExternalApiTestsFabricDW.sql",
+            "bytes": 708,
+            "encoding": "utf8",
+            "flavorHint": "fabric",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "JsonArrayAggOrderBy170.sql",
+            "bytes": 1254,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "JsonForClauseTests130.sql",
+            "bytes": 755,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "JsonFunctionTests160.sql",
+            "bytes": 1707,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "JsonFunctionTests170.sql",
+            "bytes": 5139,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "JsonIndexTests170.sql",
+            "bytes": 1428,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "JsonObjectAggOverClause170.sql",
+            "bytes": 651,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "LoginStatementTests.sql",
+            "bytes": 1470,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "LoginStatementTests100.sql",
+            "bytes": 68,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "LoginStatementTests150.sql",
+            "bytes": 889,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "MaterializedViewTests130.sql",
+            "bytes": 1901,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "MaterializedViewTests140.sql",
+            "bytes": 566,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "MaterializedViewTests150.sql",
+            "bytes": 566,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "MaterializedViewTests160.sql",
+            "bytes": 566,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "MergeStatementTests.sql",
+            "bytes": 2041,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "MergeStatementTests160.sql",
+            "bytes": 953,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "MiscDeprecatedIn100Tests.sql",
+            "bytes": 98,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "MiscDeprecatedIn110Tests.sql",
+            "bytes": 1017,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 110,
+            "expectation": "parseable"
+        },
+        {
+            "path": "MiscTests100.sql",
+            "bytes": 257,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "MiscTests110.sql",
+            "bytes": 68,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 110,
+            "expectation": "parseable"
+        },
+        {
+            "path": "MiscTests80.sql",
+            "bytes": 586,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 80,
+            "expectation": "parseable"
+        },
+        {
+            "path": "MiscTests90.sql",
+            "bytes": 920,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 90,
+            "expectation": "parseable"
+        },
+        {
+            "path": "ModernGroupByAllTestsFabricDW.sql",
+            "bytes": 1116,
+            "encoding": "utf8",
+            "flavorHint": "fabric",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "MoveConversationStatementTests.sql",
+            "bytes": 64,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "MultiLineCommentTests170.sql",
+            "bytes": 242,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "MultipleErrorTests.sql",
+            "bytes": 423,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "recovery"
+        },
+        {
+            "path": "NativelyCompiledScalarUDFTests130.sql",
+            "bytes": 963,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "NestedCTETestsFabricDW.sql",
+            "bytes": 1385,
+            "encoding": "utf8",
+            "flavorHint": "fabric",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "NotEnforcedConstraintTests160.sql",
+            "bytes": 467,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "NullableConstraintTests.sql",
+            "bytes": 129,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "OffsetClause.sql",
+            "bytes": 784,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "OpenRowsetBulkStatementTests140.sql",
+            "bytes": 1086,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "OpenRowsetBulkStatementTests150.sql",
+            "bytes": 2405,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "OpenRowsetBulkStatementTests160.sql",
+            "bytes": 1472,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "OpenRowsetStatementTests160.sql",
+            "bytes": 2416,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "OpenSymmetricKeyStatementTests.sql",
+            "bytes": 426,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "OptimizedLockingTests170.sql",
+            "bytes": 103,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "OptimizerHintsTests.sql",
+            "bytes": 477,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "OptimizerHintsTests110.sql",
+            "bytes": 64,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 110,
+            "expectation": "parseable"
+        },
+        {
+            "path": "OptimizerHintsTests130.sql",
+            "bytes": 374,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "OptimizerHintsTests140.sql",
+            "bytes": 412,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "OptimizerHintsTests150.sql",
+            "bytes": 47,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "OptimizerHintsTests90.sql",
+            "bytes": 290,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 90,
+            "expectation": "parseable"
+        },
+        {
+            "path": "OrderByAllTestsFabricDW.sql",
+            "bytes": 1094,
+            "encoding": "utf8",
+            "flavorHint": "fabric",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "OverClauseTests110.sql",
+            "bytes": 1766,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 110,
+            "expectation": "parseable"
+        },
+        {
+            "path": "ParserModeTests.sql",
+            "bytes": 689,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "PersistSamplePercentStatisticsTests130.sql",
+            "bytes": 519,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "PredicateSetTests.sql",
+            "bytes": 620,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "PredictSqlDwTests.sql",
+            "bytes": 546,
+            "encoding": "utf8",
+            "flavorHint": "synapse-dw",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "PrintStatementTests.sql",
+            "bytes": 47,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "QueryExpressionTests.sql",
+            "bytes": 1100,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "QueueStatementTests.sql",
+            "bytes": 819,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "QueueStatementTests100.sql",
+            "bytes": 244,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "RaiseErrorStatementTests.sql",
+            "bytes": 274,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "ReadTextStatementTests.sql",
+            "bytes": 171,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "ReceiveStatementTests.sql",
+            "bytes": 430,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "RegexpLikeTests170.sql",
+            "bytes": 1232,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "RegexpTVFTests170.sql",
+            "bytes": 546,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "RegexpTests170.sql",
+            "bytes": 1259,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "RemoteDataArchiveDatabaseTests130.sql",
+            "bytes": 780,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "RemoteDataArchiveTableTests130.sql",
+            "bytes": 1191,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "RenameStatementTests.sql",
+            "bytes": 245,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "RestoreStatementTests.sql",
+            "bytes": 1407,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "RestoreStatementTests140_Azure.sql",
+            "bytes": 493,
+            "encoding": "utf8",
+            "flavorHint": "azure-sql",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "ReturnStatementTests.sql",
+            "bytes": 455,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "RevertStatementTests.sql",
+            "bytes": 56,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "RoleStatementTests.sql",
+            "bytes": 204,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "RoleStatementTests110.sql",
+            "bytes": 100,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 110,
+            "expectation": "parseable"
+        },
+        {
+            "path": "RollbackTransactionStatementTests.sql",
+            "bytes": 193,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "RouteStatementTests.sql",
+            "bytes": 550,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "RowsetsInSelectTests.sql",
+            "bytes": 2343,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "RowsetsInSelectTests100.sql",
+            "bytes": 208,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "RowsetsInSelectTests90.sql",
+            "bytes": 240,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 90,
+            "expectation": "parseable"
+        },
+        {
+            "path": "SaveTransactionStatementTests.sql",
+            "bytes": 247,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "ScalarDataTypeTests.sql",
+            "bytes": 2016,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "ScalarDataTypeTests90.sql",
+            "bytes": 683,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 90,
+            "expectation": "parseable"
+        },
+        {
+            "path": "ScalarFunctionTestsFabricDW.sql",
+            "bytes": 1043,
+            "encoding": "utf8",
+            "flavorHint": "fabric",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "ScalarUDFInlineTests150.sql",
+            "bytes": 477,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "SecurityStatement130Tests.sql",
+            "bytes": 286,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "SecurityStatement80Tests.sql",
+            "bytes": 1229,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 80,
+            "expectation": "parseable"
+        },
+        {
+            "path": "SecurityStatement90Tests.sql",
+            "bytes": 3558,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 90,
+            "expectation": "parseable"
+        },
+        {
+            "path": "SecurityStatementExternalModelTests170.sql",
+            "bytes": 1583,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "SelectExpressionTests.sql",
+            "bytes": 971,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "SelectStatementDeprecatedIn110Tests.sql",
+            "bytes": 954,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 110,
+            "expectation": "parseable"
+        },
+        {
+            "path": "SelectStatementTests.sql",
+            "bytes": 1882,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "SelectStatementTests140.sql",
+            "bytes": 352,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "SelectStatementTests160.sql",
+            "bytes": 1150,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "SelectWithCollation.sql",
+            "bytes": 596,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "SemicolonsBeforeStatementTests1.sql",
+            "bytes": 221,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "SemicolonsBeforeStatementTests2.sql",
+            "bytes": 369,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "SendStatementTests.sql",
+            "bytes": 271,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "SendStatementTests110.sql",
+            "bytes": 308,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 110,
+            "expectation": "parseable"
+        },
+        {
+            "path": "ServerAuditSpecificationStatementTests.sql",
+            "bytes": 2102,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "ServerAuditSpecificationStatementTests150.sql",
+            "bytes": 2170,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "ServerAuditStatementTests.sql",
+            "bytes": 751,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "ServerAuditStatementTests110.sql",
+            "bytes": 315,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 110,
+            "expectation": "parseable"
+        },
+        {
+            "path": "ServerAuditStatementTests150.sql",
+            "bytes": 1194,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "ServerRoleStatementTests.sql",
+            "bytes": 393,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "SetCommandsAndMiscTests.sql",
+            "bytes": 858,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "SetOffsetsAndOnOffSetTests.sql",
+            "bytes": 423,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "SetVariableStatementTests.sql",
+            "bytes": 443,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "SetVariableStatementTests90.sql",
+            "bytes": 332,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 90,
+            "expectation": "parseable"
+        },
+        {
+            "path": "ShiftOperatorTests160.sql",
+            "bytes": 134,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "SimpleJsonObjectReturn160.sql",
+            "bytes": 135,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "SingleLineCommentTests170.sql",
+            "bytes": 297,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "StringConcatOperatorTests160.sql",
+            "bytes": 340,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "SymmetricKeyStatementTests.sql",
+            "bytes": 503,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "SymmetricKeyStatementTests100.sql",
+            "bytes": 427,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TSqlParserTestScript1.sql",
+            "bytes": 455,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TSqlParserTestScript2.sql",
+            "bytes": 308,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TSqlParserTestScript3.sql",
+            "bytes": 538,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TSqlParserTestScript5.sql",
+            "bytes": 2502,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TableParametersTests.sql",
+            "bytes": 382,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TableTypeTests120.sql",
+            "bytes": 484,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 120,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TemporalSelectTest130.sql",
+            "bytes": 2345,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestJsonArrayReturn160.sql",
+            "bytes": 154,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestTrimReturn160.sql",
+            "bytes": 164,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "ThrowStatementTests.sql",
+            "bytes": 40,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TopWithApproximateTests170.sql",
+            "bytes": 722,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TrimBuiltInTest140.sql",
+            "bytes": 877,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TrimFromReturnTests140.sql",
+            "bytes": 120,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TrimFromReturnTests160.sql",
+            "bytes": 532,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TrimFunctionTests160.sql",
+            "bytes": 1327,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TrivialStatementTests.sql",
+            "bytes": 481,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TrivialStatementTests90.sql",
+            "bytes": 425,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 90,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TruncatePartitions120.sql",
+            "bytes": 163,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 120,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TryCatchStatementTests.sql",
+            "bytes": 1678,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "UniqueConstraintTests.sql",
+            "bytes": 1653,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "UniqueConstraintTests120.sql",
+            "bytes": 602,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 120,
+            "expectation": "parseable"
+        },
+        {
+            "path": "UniqueConstraintTests150.sql",
+            "bytes": 792,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "UniqueConstraintTests90.sql",
+            "bytes": 587,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 90,
+            "expectation": "parseable"
+        },
+        {
+            "path": "UniqueInlineIndex130.sql",
+            "bytes": 1345,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "UpdateStatementTests.sql",
+            "bytes": 797,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "UpdateStatementTests90.sql",
+            "bytes": 571,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 90,
+            "expectation": "parseable"
+        },
+        {
+            "path": "UpdateStatisticsStatementTests.sql",
+            "bytes": 595,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "UpdateTextStatementTests.sql",
+            "bytes": 568,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "UseFederationTests110.sql",
+            "bytes": 235,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 110,
+            "expectation": "parseable"
+        },
+        {
+            "path": "UserStatementTests.sql",
+            "bytes": 672,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "VariableTests.sql",
+            "bytes": 120,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "VectorFunctionTests160.sql",
+            "bytes": 738,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "VectorFunctionTests170.sql",
+            "bytes": 1231,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "VectorIndexTests170.sql",
+            "bytes": 1565,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "VectorSearchApproximateTests170.sql",
+            "bytes": 1521,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "VectorSearchCrossApplyTests170.sql",
+            "bytes": 292,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "VectorSearchOptionalTopNTests170.sql",
+            "bytes": 939,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "VectorTypeSecondParameterTests170.sql",
+            "bytes": 247,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "ViewStatementTests.sql",
+            "bytes": 1130,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "WaitForStatementTests.sql",
+            "bytes": 187,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "WaitForStatementTests90.sql",
+            "bytes": 163,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 90,
+            "expectation": "parseable"
+        },
+        {
+            "path": "WhileStatementTests.sql",
+            "bytes": 218,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "WhitespaceTests.sql",
+            "bytes": 280,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "WindowClauseTests160.sql",
+            "bytes": 2077,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "WithinGroupTests130.sql",
+            "bytes": 677,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "WithinGroupTests140.sql",
+            "bytes": 580,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "WithinGroupTests160.sql",
+            "bytes": 429,
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "WriteTextStatementTests.sql",
+            "bytes": 236,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "ZeroLengthFile.sql",
+            "bytes": 0,
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        }
+    ]
+}

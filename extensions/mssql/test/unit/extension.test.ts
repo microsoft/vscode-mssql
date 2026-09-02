@@ -20,7 +20,11 @@ import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import * as UriOwnershipInitialization from "../../src/uriOwnership/uriOwnershipInitialization";
 import { IconUtils } from "../../src/utils/iconUtils";
 import { UriOwnershipCoordinator } from "../../src/uriOwnership/uriOwnershipCore";
+import { SqlOutputContentProvider } from "../../src/models/sqlOutputContentProvider";
 import { PrivatePreviewContextKey } from "../../src/previews/previewService";
+import { ConnectionStore } from "../../src/models/connectionStore";
+import { ConnectionUI } from "../../src/views/connectionUI";
+import ConnectionManager from "../../src/controllers/connectionManager";
 
 const { expect } = chai;
 
@@ -30,6 +34,9 @@ suite("Extension API Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let context: vscode.ExtensionContext;
     let vscodeMssql: IExtension;
+    let connectionManagerStub: sinon.SinonStubbedInstance<ConnectionManager>;
+    let connectionStoreStub: sinon.SinonStubbedInstance<ConnectionStore>;
+    let connectionUiStub: sinon.SinonStubbedInstance<ConnectionUI>;
     let mainController: MainController;
 
     setup(async () => {
@@ -77,6 +84,32 @@ suite("Extension API Tests", () => {
         sandbox.stub(UserSurvey, "createInstance").returns();
         sandbox.stub(VscodeHttpClient.prototype, "warnOnInvalidProxySettings").returns();
         sandbox.stub(MainController.prototype, "activate").resolves(true);
+
+        connectionManagerStub = sandbox.createStubInstance(ConnectionManager);
+        connectionStoreStub = sandbox.createStubInstance(ConnectionStore);
+        connectionUiStub = sandbox.createStubInstance(ConnectionUI);
+        const connectionsChangedEmitter = new vscode.EventEmitter<void>();
+        const queryExecutionCatalogEmitter = new vscode.EventEmitter();
+        const outputContentProviderStub = sandbox.createStubInstance(SqlOutputContentProvider);
+
+        sandbox.stub(connectionManagerStub, "connectionStore").get(() => connectionStoreStub);
+        sandbox.stub(connectionManagerStub, "connectionUI").get(() => connectionUiStub);
+        sandbox.define(
+            connectionManagerStub,
+            "onConnectionsChanged",
+            connectionsChangedEmitter.event,
+        );
+        sandbox.define(
+            outputContentProviderStub,
+            "onQueryExecutionCatalogChanged",
+            queryExecutionCatalogEmitter.event,
+        );
+        sandbox
+            .stub(MainController.prototype, "connectionManager")
+            .get(() => connectionManagerStub);
+        sandbox
+            .stub(MainController.prototype, "outputContentProvider")
+            .get(() => outputContentProviderStub);
 
         const sqlToolsClient: sinon.SinonStubbedInstance<SqlToolsServerClient> =
             sandbox.createStubInstance(SqlToolsServerClient);

@@ -41,6 +41,14 @@ export class QueryRunnerState {
     }
 }
 
+/** The exact submitted SQL and outcome, exposed so catalog consumers can invalidate metadata. */
+export interface QueryExecutionCatalogEvent {
+    readonly uri: string;
+    readonly query: string | undefined;
+    readonly hasError: boolean;
+    readonly isRefresh: boolean;
+}
+
 class ResultsConfig implements Interfaces.IResultsConfig {
     shortcuts: { [key: string]: string };
     messagesDefaultOpen: boolean;
@@ -59,6 +67,9 @@ export class SqlOutputContentProvider {
     private _queryExecutionInFlightUris: Set<string> = new Set();
     // Throttled state update functions per result URI (messages, results, etc.)
     private _stateUpdateThrottles: Map<string, ReturnType<typeof throttle>> = new Map();
+    private readonly _queryExecutionCatalogEmitter =
+        new vscode.EventEmitter<QueryExecutionCatalogEvent>();
+    public readonly onQueryExecutionCatalogChanged = this._queryExecutionCatalogEmitter.event;
     private _queryCompletionSoundService: QueryCompletionSoundService;
 
     constructor(
@@ -82,6 +93,7 @@ export class SqlOutputContentProvider {
         );
 
         this._context.subscriptions.push(
+            this._queryExecutionCatalogEmitter,
             vscode.window.registerWebviewViewProvider(
                 "queryResult",
                 this._queryResultWebviewController,
@@ -706,6 +718,12 @@ export class SqlOutputContentProvider {
                     isFullExecutionComplete,
                     isRefresh,
                 } = e;
+                this._queryExecutionCatalogEmitter.fire({
+                    uri: queryRunner.uri,
+                    query: queryRunner.getQueryString(queryRunner.uri),
+                    hasError,
+                    isRefresh: isRefresh === true,
+                });
                 if (!isRefresh) {
                     // only update query history with new queries
                     vscode.commands.executeCommand(

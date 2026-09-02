@@ -28,6 +28,7 @@ import {
 } from "./refactorLog";
 import { SqlProjectsService } from "../services/sqlProjectsService";
 import { getLogger } from "../models/logger";
+import { isPreviewLanguageServiceEnabled } from "./preview/productionLanguageServiceIsolation";
 
 const logger = getLogger("SqlMoveToSchemaProvider");
 
@@ -110,6 +111,7 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
         document: vscode.TextDocument,
         range: vscode.Range | vscode.Selection,
     ): Promise<vscode.CodeAction[]> {
+        if (isPreviewLanguageServiceEnabled()) return [];
         if (!(await isInSqlProject(document.uri.fsPath))) {
             return [];
         }
@@ -135,6 +137,7 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
         document: vscode.TextDocument,
         position: vscode.Position,
     ): Promise<void> {
+        if (isPreviewLanguageServiceEnabled()) return;
         if (!(await isInSqlProject(document.uri.fsPath))) {
             void vscode.window.showInformationMessage(loc.moveToSchemaOnlyInProjectFiles);
             return;

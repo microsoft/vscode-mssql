@@ -46,6 +46,7 @@ import { CredentialStore, ICredentialStore } from "./credentialstore/credentials
 import { ConnectionConfig, IConnectionConfig } from "./connectionconfig/connectionconfig";
 import { IConnectionStore, ConnectionStore } from "./models/connectionStore";
 import { IAccountStore, AccountStore } from "./azure/accountStore";
+import { PreviewLanguageServiceIntegration } from "./languageservice/preview/previewLanguageService";
 import { registerPerfApi } from "./perf/perfApi";
 import { Perf } from "./perf/perfTelemetry";
 import { diagnosticErrorClass } from "./diagnostics/diagnosticsCore";
@@ -107,6 +108,8 @@ export async function getController(): Promise<MainController> {
 }
 
 class MssqlActivation {
+    private _previewLanguageService: PreviewLanguageServiceIntegration | undefined;
+
     constructor(
         @IExtensionContextService private readonly _contextService: IExtensionContextService,
         @IInstantiationService private readonly _instantiationService: IInstantiationService,
@@ -140,6 +143,8 @@ class MssqlActivation {
         vscode.commands.registerCommand("mssql.getControllerForTests", () => controller);
         registerSqlDataPlane(context);
         await controller.activate();
+
+        this._previewLanguageService = new PreviewLanguageServiceIntegration(context, controller);
 
         initializeUriOwnershipCoordinator(uriOwnershipCoordinator, controller.connectionManager);
         registerSqlToolsMcpServer(
@@ -208,6 +213,8 @@ class MssqlActivation {
     }
 
     async deactivate(): Promise<void> {
+        this._previewLanguageService?.dispose();
+        this._previewLanguageService = undefined;
         if (controller) {
             await controller.deactivate();
             controller.dispose();

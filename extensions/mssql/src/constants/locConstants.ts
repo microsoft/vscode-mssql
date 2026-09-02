@@ -37,6 +37,50 @@ export class SqlToolsMcp {
     public static serverLabel = l10n.t("SQL Tools (MSSQL)");
 }
 
+export class PreviewLanguageService {
+    public static enableSettingFirst = l10n.t(
+        "Enable the T-SQL Language Service preview setting first.",
+    );
+    public static openEditorToRefresh = l10n.t(
+        "Open a SQL editor to refresh language service metadata.",
+    );
+    public static connectBeforeRefresh = l10n.t(
+        "Connect this SQL editor before refreshing metadata.",
+    );
+    public static metadataRefreshed = (elapsedMs: string) =>
+        l10n.t({
+            message: "T-SQL language service metadata refreshed in {0} ms.",
+            args: [elapsedMs],
+            comment: ["{0} is the metadata refresh duration in milliseconds"],
+        });
+    public static metadataRefreshFailed = (error: string) =>
+        l10n.t({
+            message: "T-SQL language service metadata refresh failed: {0}",
+            args: [error],
+            comment: ["{0} is the metadata refresh error message"],
+        });
+    public static openEditorForStats = l10n.t(
+        "Open a SQL editor to inspect language service status.",
+    );
+    public static openDetailedStatus = l10n.t("Open detailed T-SQL language service status");
+    public static initializing = l10n.t("$(loading~spin) T-SQL preview: initializing");
+    public static metadataFailed = l10n.t("metadata failed");
+    public static metadataLoading = l10n.t("metadata loading");
+    public static metadataOffline = l10n.t("metadata offline");
+    public static metadataReady = l10n.t("metadata ready");
+    public static metadataPending = l10n.t("metadata pending");
+    public static status = (parseMs: string, bindMs: string, metadata: string) =>
+        l10n.t({
+            message: "$(pulse) T-SQL preview: parse {0} ms | bind {1} ms | {2}",
+            args: [parseMs, bindMs, metadata],
+            comment: [
+                "{0} is parse time in milliseconds",
+                "{1} is semantic binding time in milliseconds",
+                "{2} is localized metadata readiness status",
+            ],
+        });
+}
+
 export let createDatabaseDialogTitle = l10n.t("Create Database");
 export let dropDatabaseDialogTitle = l10n.t("Drop Database");
 export let renameDatabaseDialogTitle = l10n.t("Rename Database");
@@ -3447,6 +3491,124 @@ export class AzureDataStudioMigration {
     public static groupNotSelectedWillBeMovedToRootWarning = l10n.t(
         "This connection's group has not been selected, so this connection will be imported to the root.",
     );
+}
+
+export class LanguageServiceStats {
+    public static panelTitle = (documentName: string) =>
+        l10n.t({
+            message: "T-SQL preview stats: {0}",
+            args: [documentName],
+            comment: ["{0} is the name of the SQL file the statistics describe"],
+        });
+    public static overview = l10n.t("Overview");
+    public static metadata = l10n.t("Metadata");
+    public static requests = l10n.t("Requests");
+    public static pipeline = l10n.t("Pipeline");
+    public static parse = l10n.t("Parse");
+    public static bind = l10n.t("Bind");
+    public static diagnostics = l10n.t("Diagnostics");
+    public static notMeasuredYet = l10n.t("Not measured yet");
+    public static previewDisabled = l10n.t(
+        "The preview language service is turned off for this document.",
+    );
+    public static noStatsYet = l10n.t(
+        "This document has not been analysed yet. Statistics appear after the first parse.",
+    );
+    public static parseCaption = (mode: string, changedRanges: number) =>
+        l10n.t({
+            message: "{0} parse, {1} changed ranges",
+            args: [mode, changedRanges],
+            comment: ["{0} is full or incremental", "{1} is a count of changed text ranges"],
+        });
+    public static bindCaption = (rebound: number, examined: number) =>
+        l10n.t({
+            message: "{0} of {1} statements rebound",
+            args: [rebound, examined],
+            comment: ["{0} and {1} are counts of statements"],
+        });
+    public static diagnosticsCaption = (errors: number, warnings: number, hints: number) =>
+        l10n.t({
+            message: "{0} errors, {1} warnings, {2} hints",
+            args: [errors, warnings, hints],
+            comment: ["{0}, {1} and {2} are counts of diagnostics"],
+        });
+    public static fetchLog = l10n.t("Fetch log");
+    public static fetchLogDescription = l10n.t(
+        "Catalog queries this document caused. Schemas and objects load when a database comes into scope; columns, parameters and definitions load per object, the first time a request needs them.",
+    );
+    public static databases = l10n.t("Databases");
+    public static reloads = l10n.t("Metadata reloads");
+    public static reloadsDescription = l10n.t(
+        "What caused metadata to be reloaded, and how long each reload took.",
+    );
+    public static timeLoading = l10n.t("Time loading metadata");
+    public static answeredLocally = l10n.t("Answered from memory");
+    public static loadingNow = l10n.t("Loading now");
+    public static slowestFetch = l10n.t("Slowest fetch");
+    public static columnTime = l10n.t("Time");
+    public static columnSection = l10n.t("Kind");
+    public static columnScope = l10n.t("Scope");
+    public static columnDuration = l10n.t("Duration");
+    public static columnRows = l10n.t("Rows");
+    public static columnSource = l10n.t("Source");
+    public static columnTrigger = l10n.t("Trigger");
+    public static columnCause = l10n.t("Trigger");
+    public static columnEffect = l10n.t("Effect");
+    public static columnReloadTime = l10n.t("Reload time");
+    public static sourceServer = l10n.t("Server");
+    public static sourceResident = l10n.t("Memory");
+    public static outcomeFailed = l10n.t("Failed");
+    public static outcomeEmpty = l10n.t("Empty");
+    public static outcomeCancelled = l10n.t("Cancelled");
+    public static noFetches = l10n.t("This document has not loaded any metadata yet.");
+    public static noRequests = l10n.t("No language feature requests have been measured yet.");
+    public static columnRequest = l10n.t("Request");
+    public static columnCount = l10n.t("Count");
+    public static columnMedian = l10n.t("Median");
+    public static columnP95 = l10n.t("p95");
+    public static columnStale = l10n.t("Discarded");
+    public static staleTooltip = l10n.t(
+        "Results computed against a document version the editor had already moved past. These are caught before they reach the editor.",
+    );
+    public static requestsDescription = l10n.t(
+        "Measured since this document was opened. Cancellation is not counted here: a cancelled request is one the editor abandoned, which this layer cannot observe.",
+    );
+    public static fetchesAcross = (fetches: number, databases: number) =>
+        l10n.t({
+            message: "{0} fetches across {1} databases",
+            args: [fetches, databases],
+            comment: ["{0} is a count of fetches", "{1} is a count of databases"],
+        });
+    public static residentCaption = (resident: number, server: number) =>
+        l10n.t({
+            message: "{0} from memory, {1} from the server",
+            args: [resident, server],
+            comment: ["{0} and {1} are counts of catalog fetches"],
+        });
+    public static export = l10n.t("Export debug log");
+    public static includeIdentifiers = l10n.t("Include names and SQL");
+    public static includeIdentifiersHint = l10n.t(
+        "Database names, object names and SQL text. Off by default because exported logs are usually attached to bug reports.",
+    );
+    public static copy = l10n.t("Copy");
+    public static copied = l10n.t("Language service statistics copied to the clipboard");
+    public static exportSaveLabel = l10n.t("Export");
+    public static nothingToExport = l10n.t("There are no statistics to export yet.");
+    public static exported = (path: string) =>
+        l10n.t({
+            message: "Language service statistics exported to {0}",
+            args: [path],
+            comment: ["{0} is a file path"],
+        });
+    public static queryHeading = l10n.t("Query");
+    public static errorHeading = l10n.t("Error");
+    public static notRecorded = l10n.t("This provider does not record a fetch log.");
+    public static milliseconds = (value: string) =>
+        l10n.t({
+            message: "{0} ms",
+            args: [value],
+            comment: ["{0} is a duration in milliseconds"],
+        });
 }
 
 export class Changelog {

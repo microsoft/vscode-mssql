@@ -1,0 +1,129 @@
+CREATE TABLE T1
+WITH (DISTRIBUTION = ROUND_ROBIN) AS
+SELECT 1;
+
+GO
+CREATE TABLE dbo.T1
+WITH (DISTRIBUTION = ROUND_ROBIN) AS
+SELECT *
+FROM dbo.T2;
+
+GO
+CREATE TABLE dbo.T1
+WITH (DISTRIBUTION = HASH(column1)) AS
+SELECT column1
+FROM dbo.T2;
+
+GO
+CREATE TABLE dbo.T1
+WITH (CLUSTERED COLUMNSTORE INDEX, DISTRIBUTION = ROUND_ROBIN) AS
+SELECT *
+FROM dbo.T2;
+
+GO
+CREATE TABLE dbo.T1
+WITH (CLUSTERED INDEX(column1), DISTRIBUTION = ROUND_ROBIN) AS
+SELECT *
+FROM dbo.T2;
+
+GO
+CREATE TABLE dbo.T1
+WITH (CLUSTERED INDEX(column1), DISTRIBUTION = HASH(column1)) AS
+SELECT *
+FROM dbo.T2;
+
+GO
+CREATE TABLE dbo.T1
+WITH (HEAP, DISTRIBUTION = HASH(column1)) AS
+SELECT *
+FROM dbo.T2;
+
+GO
+CREATE TABLE #tmp_fct
+WITH(DISTRIBUTION = ROUND_ROBIN)AS 
+SELECT * 
+FROM [dbo].[FactInternetSales];
+
+GO
+CREATE TABLE dbo.DimProduct_upsert
+WITH
+(   Distribution=HASH(ProductKey)
+,   CLUSTERED INDEX (ProductKey)
+)
+AS
+SELECT p.ProductKey
+FROM dbo.DimProduct p
+RIGHT JOIN dbo.stg_DimProduct s
+ON p.ProductKey = s.ProductKey
+;
+
+GO
+CREATE TABLE dbo.T1
+(
+    column1
+)
+WITH (DISTRIBUTION = HASH(column1))
+AS
+SELECT column1
+FROM dbo.T2;
+
+GO
+CREATE TABLE dbo.T1
+(
+    column1,
+    column2
+)
+WITH (DISTRIBUTION = ROUND_ROBIN)
+AS
+SELECT column1
+FROM dbo.T2;
+
+GO
+CREATE TABLE dbo.T1
+(
+    column1,
+    column2,
+    column3
+)
+WITH
+(
+    Distribution=HASH(column1),
+    CLUSTERED INDEX (column1)
+)
+AS
+SELECT * FROM dbo.T2
+
+GO
+CREATE PROCEDURE dwCtasSyntaxWithColumnNames
+AS
+CREATE TABLE dbo.T1
+(
+    column1,
+    column2,
+    column3
+)
+WITH
+(
+    Distribution=HASH(column1),
+    CLUSTERED INDEX (column1)
+)
+AS
+SELECT * FROM dbo.T2
+
+GO
+CREATE PROCEDURE dwsyntaxforsqldom
+AS
+ CREATE TABLE [dbo].[DimSalesTerritory_REPLICATE]
+ WITH
+   (   
+  CLUSTERED COLUMNSTORE INDEX,
+  DISTRIBUTION = REPLICATE
+   )  
+ AS SELECT * FROM [dbo].[DimSalesTerritory]
+
+ GO
+ --CTAS with ordered columns
+CREATE TABLE dbo.CTAS_OrderCCI
+WITH(DISTRIBUTION = ROUND_ROBIN, CLUSTERED COLUMNSTORE INDEX ORDER(column_3, column_4))
+AS
+SELECT* FROM Table_OrderCCI;

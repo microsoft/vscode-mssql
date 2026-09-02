@@ -41,6 +41,7 @@ import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { PrivatePreviewFeature, PreviewFeature, previewService } from "../previews/previewService";
 import { getRuntimeConfigPath, ServiceExecutable } from "./serviceExecutablePaths";
+import { createProductionLanguageServiceMiddleware } from "./preview/productionLanguageServiceIsolation";
 import { config } from "../configurations/config";
 
 const STS_OVERRIDE_ENV_VAR = "MSSQL_SQLTOOLSSERVICE";
@@ -184,6 +185,10 @@ export default class SqlToolsServiceClient {
     // getter method for language client diagnostic collection
     public get diagnosticCollection(): vscode.DiagnosticCollection {
         return this._client.diagnostics;
+    }
+
+    public clearLanguageServiceDiagnostics(uri: vscode.Uri): void {
+        this._client?.diagnostics.delete(uri);
     }
 
     constructor(
@@ -463,12 +468,8 @@ export default class SqlToolsServiceClient {
                 ],
             },
             errorHandler: new LanguageClientErrorHandler(Constants.sqlToolsServiceName),
-            middleware: {
-                provideCompletionItem: async (document, position, context, token, next) => {
-                    const result = await next(document, position, context, token);
-                    const count = Array.isArray(result)
-                        ? result.length
-                        : (result?.items?.length ?? 0);
+            middleware: createProductionLanguageServiceMiddleware({
+                onCompletionResult: (document, context, count) => {
                     const scheme = document.uri.scheme;
                     // Gate logging: only log when STS returned no completions, or
                     // when the request came from a notebook cell. This keeps log
@@ -479,9 +480,8 @@ export default class SqlToolsServiceClient {
                             `Completion count=${count} scheme=${scheme} triggerKind=${context.triggerKind} uri=${document.uri.toString()}`,
                         );
                     }
-                    return result;
                 },
-            },
+            }),
         };
 
         // cache the client instance for later use

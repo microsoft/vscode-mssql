@@ -1,0 +1,167 @@
+name: T-SQL Language Service
+
+on:
+  pull_request:
+    paths:
+      - "packages/tsql-language-service/**"
+      - "extensions/mssql/src/languageservice/preview/**"
+      - "extensions/mssql/test/unit/preview*.test.ts"
+      - ".github/workflows/tsql-language-service.yml"
+  push:
+    branches: [main]
+    paths:
+      - "packages/tsql-language-service/**"
+      - "extensions/mssql/src/languageservice/preview/**"
+      - "extensions/mssql/test/unit/preview*.test.ts"
+      - ".github/workflows/tsql-language-service.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tsql-language-service-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: packages/tsql-language-service
+
+jobs:
+  validate:
+    name: Validate T-SQL language service
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      MSSQL_SA_PASSWORD: TsqlService-CI-2026!
+      TSQL_INTEGRATION_CONNECTION_STRING: Data Source=localhost,1433;Initial Catalog=master;User ID=sa;Password=TsqlService-CI-2026!;Encrypt=True;Trust Server Certificate=True;Authentication=SqlPassword
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: packages/tsql-language-service/package-lock.json
+
+      - name: Validate grammar, types, and offline behavior
+        run: |
+          npm ci
+          if ! npm run check:grammar; then
+            echo "::error::The generated parser is stale. Run 'npm run build:grammar' and push the grammar source, generated parser, terms, and build stamp together."
+            exit 1
+          fi
+          npm run lint
+          npm run test:types
+          npm run test:unit
+          npm run test:performance
+
+      - name: Run SQL Server integration tests
+        run: |
+          cleanup_sql_server() {
+            exit_code=$?
+            if [[ $exit_code -ne 0 ]]; then
+              docker logs tsql-language-service-sql 2>&1 | tail -200 || true
+            fi
+            docker rm --force tsql-language-service-sql >/dev/null 2>&1 || true
+          }
+          trap cleanup_sql_server EXIT
+
+          docker pull mcr.microsoft.com/mssql/server:2025-latest
+          docker run --detach --name tsql-language-service-sql --publish 1433:1433 \
+            --env ACCEPT_EULA=Y \
+            --env MSSQL_PID=Developer \
+            --env MSSQL_SA_PASSWORD="$MSSQL_SA_PASSWORD" \
+            mcr.microsoft.com/mssql/server:2025-latest
+
+          ready=false
+          for attempt in {1..60}; do
+            if docker exec tsql-language-service-sql /opt/mssql-tools18/bin/sqlcmd \
+              -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -C -b -l 1 -Q "SELECT 1" >/dev/null 2>&1; then
+              ready=true
+              break
+            fi
+            sleep 2
+          done
+          if [[ "$ready" != true ]]; then
+            docker logs tsql-language-service-sql
+            echo "::error::SQL Server did not become ready in time."
+            exit 1
+          fi
+
+          sqlcmd=(docker exec tsql-language-service-sql /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -C -b)
+          "${sqlcmd[@]}" -Q "CREATE DATABASE AdventureWorks2022"
+          "${sqlcmd[@]}" -Q "CREATE DATABASE Issue21930Repro_6d31c8a4"
+          "${sqlcmd[@]}" -Q "CREATE DATABASE WideWorldImporters"
+          "${sqlcmd[@]}" -d AdventureWorks2022 -Q "CREATE SCHEMA Person"
+          "${sqlcmd[@]}" -d AdventureWorks2022 -Q "CREATE TABLE Person.Person (BusinessEntityID int NOT NULL PRIMARY KEY)"
+          npm run test:integration
+
+      - name: Benchmark against main
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PUSH_BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          mkdir -p benchmarks/results
+
+          base_sha="$PR_BASE_SHA"
+          if [[ -z "$base_sha" && "$PUSH_BEFORE_SHA" != "0000000000000000000000000000000000000000" ]]; then
+            base_sha="$PUSH_BEFORE_SHA"
+          fi
+          if [[ -z "$base_sha" ]]; then
+            base_sha="$(git rev-parse origin/main)"
+          fi
+
+          if git cat-file -e "$base_sha:packages/tsql-language-service/package.json" 2>/dev/null; then
+            git worktree add --detach "$RUNNER_TEMP/tsql-language-service-main" "$base_sha"
+            pushd "$RUNNER_TEMP/tsql-language-service-main/packages/tsql-language-service"
+            npm ci
+            npm run benchmark:language-service -- \
+              --samples 10 \
+              --warmups 3 \
+              --seed 1592598566 \
+              --document-kb 64 \
+              --catalog-objects 30000 \
+              --memory-documents 6 \
+              --corpora realistic,many-batches \
+              --json "$GITHUB_WORKSPACE/packages/tsql-language-service/benchmarks/results/main.json"
+            popd
+          else
+            echo "No package benchmark exists at $base_sha; this run will establish the initial main baseline." >> "$GITHUB_STEP_SUMMARY"
+            echo >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          npm run benchmark:language-service -- \
+            --samples 10 \
+            --warmups 3 \
+            --seed 1592598566 \
+            --document-kb 64 \
+            --catalog-objects 30000 \
+            --memory-documents 6 \
+            --corpora realistic,many-batches \
+            --json benchmarks/results/candidate.json
+
+          comparison_args=(benchmarks/results/candidate.json)
+          if [[ -f benchmarks/results/main.json ]]; then
+            comparison_args=(benchmarks/results/main.json benchmarks/results/candidate.json)
+          fi
+          set +e
+          node benchmarks/support/compare-reports.mjs \
+            "${comparison_args[@]}" \
+            --markdown benchmarks/results/comparison.md 2>&1 | tee benchmarks/results/comparison.txt
+          comparison_status=${PIPESTATUS[0]}
+          set -e
+          cat benchmarks/results/comparison.md >> "$GITHUB_STEP_SUMMARY"
+          exit "$comparison_status"
+
+      - name: Upload benchmark reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: tsql-language-service-benchmarks
+          path: packages/tsql-language-service/benchmarks/results/
+          if-no-files-found: ignore
+          retention-days: 30

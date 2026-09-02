@@ -31,6 +31,12 @@ export interface AuxCatalogItem {
     readonly objectId?: number;
     /** Section-specific numeric facts (tableFacets: temporalType, historyTableId, …). */
     readonly facts?: Readonly<Record<string, number>>;
+    /**
+     * Typed catalog facts used by shared consumers whose contracts are richer than Object
+     * Explorer's name/icon projection. Values remain raw catalog facts; presentation belongs to
+     * the consumer. Names and definitions must never be copied into diagnostics.
+     */
+    readonly attributes?: Readonly<Record<string, string | number | boolean | undefined>>;
 }
 
 export interface AuxSectionSpec {
@@ -242,6 +248,38 @@ const mapNameOnly = (row: unknown[]): AuxCatalogItem | undefined =>
 const flag = (value: unknown): boolean => value === true || Number(value) === 1;
 
 export const SERVER_AUX_SECTIONS: readonly AuxSectionSpec[] = [
+    {
+        key: "language/principals",
+        scope: "server",
+        sql:
+            "SELECT p.principal_id, p.name, RTRIM(p.type), " +
+            "CASE WHEN p.is_fixed_role=1 OR p.principal_id <= 4 THEN 1 ELSE 0 END " +
+            "FROM sys.server_principals p WHERE p.name NOT LIKE '##%' " +
+            "AND p.type IN ('S','U','G','C','K','E','X','R') ORDER BY p.principal_id;",
+        map: (row) =>
+            row[0] === null || row[0] === undefined || row[1] === null || row[1] === undefined
+                ? undefined
+                : {
+                      name: String(row[1]),
+                      kind: row[2] === null || row[2] === undefined ? undefined : String(row[2]),
+                      isSystem: flag(row[3]),
+                      objectId: Number(row[0]),
+                  },
+    },
+    {
+        key: "language/securables",
+        scope: "server",
+        sql: "SELECT c.credential_id, c.name FROM sys.credentials c ORDER BY c.credential_id;",
+        map: (row) =>
+            row[0] === null || row[0] === undefined || row[1] === null || row[1] === undefined
+                ? undefined
+                : {
+                      name: String(row[1]),
+                      kind: "credential",
+                      isSystem: false,
+                      objectId: Number(row[0]),
+                  },
+    },
     {
         key: "security/logins",
         scope: "server",

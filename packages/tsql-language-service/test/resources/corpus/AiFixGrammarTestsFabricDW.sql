@@ -1,0 +1,27 @@
+SELECT AI_FIX_GRAMMAR('text');
+
+SELECT AI_FIX_GRAMMAR(t.text_col)
+FROM dbo.Texts AS t;
+
+SELECT AI_FIX_GRAMMAR(text_col)
+FROM Texts;
+
+DECLARE @s0 AS NVARCHAR (MAX) = N'Hello world';
+
+SELECT AI_FIX_GRAMMAR(@s0 + 'a');
+
+SELECT AI_FIX_GRAMMAR('b' + 'a');
+
+SELECT *
+FROM AI_FIX_GRAMMAR((SELECT t.text_col
+                     FROM dbo.Texts AS t));
+
+
+GO
+CREATE OR ALTER FUNCTION dbo.fx
+(@s NVARCHAR (MAX))
+RETURNS NVARCHAR (MAX)
+AS
+BEGIN
+    RETURN (AI_FIX_GRAMMAR(@s));
+END

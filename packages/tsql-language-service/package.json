@@ -1,0 +1,102 @@
+{
+    "name": "@vscode-mssql/tsql-language-service",
+    "version": "0.1.0",
+    "private": true,
+    "description": "Host-neutral incremental T-SQL syntax, semantics, and editor features",
+    "license": "SEE LICENSE IN ../../LICENSE.txt",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "require": "./dist/index.js",
+            "default": "./dist/index.js"
+        },
+        "./metadata": {
+            "types": "./dist/metadata/index.d.ts",
+            "require": "./dist/metadata/index.js",
+            "default": "./dist/metadata/index.js"
+        },
+        "./worker": {
+            "types": "./dist/worker/index.d.ts",
+            "require": "./dist/worker/index.js",
+            "default": "./dist/worker/index.js"
+        },
+        "./worker/node": {
+            "types": "./dist/worker/node/client.d.ts",
+            "require": "./dist/worker/node/client.js",
+            "default": "./dist/worker/node/client.js"
+        },
+        "./worker/browser": {
+            "types": "./dist/worker/browser/client.d.mts",
+            "import": "./dist/worker/browser/client.mjs",
+            "default": "./dist/worker/browser/client.mjs"
+        },
+        "./worker/browser-entry": "./dist/worker/browser/worker.mjs"
+    },
+    "files": [
+        "dist",
+        "README.md"
+    ],
+    "scripts": {
+        "build:grammar": "node scripts/build-grammar.mjs",
+        "build:grammar:cached": "node scripts/build-grammar.mjs --if-stale",
+        "check:grammar": "node scripts/build-grammar.mjs --check",
+        "build:corpus-manifest": "node scripts/build-tsql-corpus-manifest.mjs",
+        "report:corpus": "node scripts/report-tsql-corpus.mjs",
+        "report:fixture-inventory": "node scripts/report-fixture-inventory.mjs",
+        "build:typescript": "npm run build:grammar:cached && tsc -p tsconfig.json",
+        "build:workers": "node scripts/build-workers.mjs",
+        "build": "npm run build:typescript && npm run build:workers",
+        "typecheck": "npm run build:grammar:cached && tsc -p tsconfig.json --noEmit",
+        "prewatch": "npm run build:grammar:cached",
+        "watch": "tsc -watch -p tsconfig.json --preserveWatchOutput",
+        "lint": "node scripts/check-boundaries.mjs",
+        "test": "npm run test:offline",
+        "test:unit": "npm run test:unit:typecheck && tsx --test \"test/unit/**/*.test.ts\"",
+        "test:unit:typecheck": "tsc -p test/unit/tsconfig.json",
+        "test:coverage": "npm run test:unit:typecheck && c8 tsx --test \"test/unit/**/*.test.ts\"",
+        "test:performance": "npm run test:performance:typecheck && node --import tsx --expose-gc --test --test-isolation=none test/performance/*.test.ts",
+        "test:performance:typecheck": "tsc -p test/performance/tsconfig.json",
+        "test:offline": "npm run test:types && npm run test:unit && npm run test:performance",
+        "test:all": "npm run test:offline && npm run test:integration",
+        "test:integration": "npm run test:integration:typecheck && node --import tsx --test --test-concurrency=1 test/integration/*.test.ts",
+        "test:integration:typecheck": "tsc -p test/integration/tsconfig.json",
+        "test:types": "npm run build:typescript && tsc -p test/types/tsconfig.json",
+        "benchmark": "npm run build && node --expose-gc benchmarks/run.mjs",
+        "benchmark:features": "npm run build:typescript && node --expose-gc benchmarks/catalog-features.mjs",
+        "benchmark:language-service": "npm run build && node --expose-gc benchmarks/language-service.mjs",
+        "benchmark:sqlparser": "npm run build && dotnet build benchmarks/dotnet/LocalSqlParserBenchmark.csproj --configuration Release && node --expose-gc benchmarks/compare-sqlparser.mjs",
+        "benchmark:smoke": "npm run build && node benchmarks/run.mjs --smoke",
+        "report:scriptdom-diff": "node scripts/report-scriptdom-diff.mjs",
+        "report:dialect": "tsx scripts/report-dialect-readiness.ts",
+        "benchmark:dialect": "node --expose-gc benchmarks/dialect.mjs"
+    },
+    "dependencies": {
+        "@lezer/common": "^1.2.3",
+        "@lezer/lr": "^1.4.8"
+    },
+    "devDependencies": {
+        "@lezer/generator": "^1.8.0",
+        "@types/node": "^22.13.14",
+        "c8": "^11.0.0",
+        "esbuild": "^0.25.8",
+        "tedious": "^20.0.0",
+        "tsx": "^4.20.5",
+        "typescript": "^5.8.3"
+    },
+    "c8": {
+        "include": [
+            "src/**/*.ts"
+        ],
+        "exclude": [
+            "src/syntax/lezer/generated/**"
+        ],
+        "reporter": [
+            "text",
+            "html",
+            "lcov"
+        ],
+        "reportsDirectory": "coverage"
+    }
+}

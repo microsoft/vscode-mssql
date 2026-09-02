@@ -22,8 +22,17 @@
     <trans-unit id="++CODE++fd3bd9305a1a7d5dfd79fa21b626163609a8f298aab892396554e74842a84f9b">
       <source xml:lang="en">$(check) Copied messages</source>
     </trans-unit>
+    <trans-unit id="++CODE++43113d9ff237492b32db8d15317609d93d2a10ef402ed0b5b16a94f0e0e98927">
+      <source xml:lang="en">$(loading~spin) T-SQL preview: initializing</source>
+    </trans-unit>
     <trans-unit id="++CODE++18b63db64aa0aff55a9f4784ad62abdc2b70cedb95b5e89d5551996cc9bd25ac">
       <source xml:lang="en">$(plug)  Connect to MSSQL</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4921d5d7846637484b461b5fe64b8f70ec9cb243850f2efbdbd2bee8a256235f">
+      <source xml:lang="en">$(pulse) T-SQL preview: parse {0} ms | bind {1} ms | {2}</source>
+      <note>{0} is parse time in milliseconds
+{1} is semantic binding time in milliseconds
+{2} is localized metadata readiness status</note>
     </trans-unit>
     <trans-unit id="++CODE++7ab8e89a60b445298b22409ca4e3a36b6032cd1f4b770cd638e11e0ebf23fabd">
       <source xml:lang="en">&apos;mssql.newEditorConnectionBehavior&apos; is set to &apos;defaultConnection&apos;, but &apos;mssql.defaultConnectionId&apos; is not configured. New editors will fall back to transferring the active connection.</source>
@@ -505,6 +514,9 @@
     <trans-unit id="++CODE++e7a8aa2df7e5d0b233da615af4e7fef148bec39aef1709da0a80391ad0316563">
       <source xml:lang="en">Anonymous</source>
     </trans-unit>
+    <trans-unit id="++CODE++0828b17265786c394566e6b46870e5ab8ba314554989931452705a9ca603ba5f">
+      <source xml:lang="en">Answered from memory</source>
+    </trans-unit>
     <trans-unit id="++CODE++a6f31505cd1943fe9695363ab1c0a08e79c015c0747830d411a24e29689f4899">
       <source xml:lang="en">Append to the existing backup set</source>
     </trans-unit>
@@ -882,6 +894,9 @@
     <trans-unit id="++CODE++58dc7c57a2a33c0296c19821b099c26fbc36524b42f44701954de1580e1b394c">
       <source xml:lang="en">Bicep</source>
     </trans-unit>
+    <trans-unit id="++CODE++56b9b63d2831804be5c23a83d6d2e4e19c3124f546890b0628e839c9806c0e00">
+      <source xml:lang="en">Bind</source>
+    </trans-unit>
     <trans-unit id="++CODE++79654f98221029c4c838b279ed9a41aa49c8a3cdb1cc95d81a456c510e6854d0">
       <source xml:lang="en">Blanks</source>
     </trans-unit>
@@ -1031,6 +1046,9 @@
       <source xml:lang="en">Canceling the query failed: {0}</source>
       <note>{0} is the error message</note>
     </trans-unit>
+    <trans-unit id="++CODE++d353a99eb4556847ceeb3c306ac886cf6b4fa13043eb1864b9aeb0607fd5f2cc">
+      <source xml:lang="en">Cancelled</source>
+    </trans-unit>
     <trans-unit id="++CODE++86e5686d8209e4271ae22b1c2545b88f4681d12cc9e6c6839c1f1a4344c10166">
       <source xml:lang="en">Cannot access parent of provided tree item</source>
     </trans-unit>
@@ -1093,6 +1111,9 @@
     </trans-unit>
     <trans-unit id="++CODE++9527fb2b3d5ccb62606c88f7604ddb16febed19faead67b1edf263f6e0c8fe0b">
       <source xml:lang="en">Cascade</source>
+    </trans-unit>
+    <trans-unit id="++CODE++58ea768b8cad203bd59d3c41986f29572739f2f31dc5e910b78835fde078db76">
+      <source xml:lang="en">Catalog queries this document caused. Schemas and objects load when a database comes into scope; columns, parameters and definitions load per object, the first time a request needs them.</source>
     </trans-unit>
     <trans-unit id="++CODE++292c06f0045a45d044be282b132b7055ae224e18e02b523a451d8ea96fadfd24">
       <source xml:lang="en">Category</source>
@@ -1647,6 +1668,9 @@
     <trans-unit id="++CODE++ee4f8cf15984e2a10f54dd947303b40318e5503eb1116a815d634bd45dcc55da">
       <source xml:lang="en">Connect the active SQL document to a database</source>
     </trans-unit>
+    <trans-unit id="++CODE++e04750c52ee550c7b4e4f3692d98ecb8a1ff62edfe833daf43834981c46727dc">
+      <source xml:lang="en">Connect this SQL editor before refreshing metadata.</source>
+    </trans-unit>
     <trans-unit id="++CODE++150851f09acf7f6f4d53e35fb619389c38558ea5b98d3a13efaf84b3eda50422">
       <source xml:lang="en">Connect to Database</source>
     </trans-unit>
@@ -2059,6 +2083,9 @@
     <trans-unit id="++CODE++e1b145c1fedde6b3a445206c1a5cdce5a5545f2392793095b07c41a62a01c123">
       <source xml:lang="en">Copy text data to clipboard</source>
     </trans-unit>
+    <trans-unit id="++CODE++2cd1e53befd5c3fe227319eeb877f1629b75000c636923de2ba59051627e597c">
+      <source xml:lang="en">Copy the debug log to the clipboard</source>
+    </trans-unit>
     <trans-unit id="++CODE++3ae569f53ee1e765e3551a7f7881999f868289afbf0b1c6077d906c68cd10525">
       <source xml:lang="en">Copy with Headers</source>
     </trans-unit>
@@ -2455,6 +2482,9 @@
     <trans-unit id="++CODE++402d00d25022d7d90590017acaa8ef375ab6ddd4f14be17bb58c7003175216ae">
       <source xml:lang="en">Database name must be 128 characters or fewer</source>
     </trans-unit>
+    <trans-unit id="++CODE++4d7969789d893e7c23bcd1020d60d510064b76e0370a94f6c00b94616341a429">
+      <source xml:lang="en">Database names, object names and SQL text. Off by default because exported logs are usually attached to bug reports.</source>
+    </trans-unit>
     <trans-unit id="++CODE++0c44c1ef5c326d66d59992daca9150070537b80433d82792a6f4a8451bbba635">
       <source xml:lang="en">Database not found on the server</source>
     </trans-unit>
@@ -2478,6 +2508,9 @@
     </trans-unit>
     <trans-unit id="++CODE++b387433c2578a3f7370d165966a0e7f9c00b58cbdce9b504fd8e42626c934937">
       <source xml:lang="en">DatabaseProject</source>
+    </trans-unit>
+    <trans-unit id="++CODE++61d2afe2349913ce5b96de2556ffe0f14deb1e86cdfeda218e0a3d83a35670c7">
+      <source xml:lang="en">Databases</source>
     </trans-unit>
     <trans-unit id="++CODE++99c40ab405926cb5ad1def9cff4d7ce624f8f8abfff4e85f655347fcb949d08e">
       <source xml:lang="en">Date</source>
@@ -2645,6 +2678,9 @@
     <trans-unit id="++CODE++4140839b57403cf1b132332262ad00592590d6f7970b0f83fc60fb9b8c53d707">
       <source xml:lang="en">Developer-friendly transactional database using the Azure SQL Database Engine.</source>
     </trans-unit>
+    <trans-unit id="++CODE++268f14bbfe119c1e92150583af960a086d7db9619a097f8aa72ff6779842f610">
+      <source xml:lang="en">Diagnostics</source>
+    </trans-unit>
     <trans-unit id="++CODE++babe24f1687d8f696f010c9dab1cdc17cea284045f0cef8dab2ed2c4cd5eac9e">
       <source xml:lang="en">Different database, different server</source>
     </trans-unit>
@@ -2674,6 +2710,9 @@
     </trans-unit>
     <trans-unit id="++CODE++eb1a70e39274bb762b5d7c1adb5debeea2b05e12af28207f21a375b596853273">
       <source xml:lang="en">Discard</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7fb156411a966bca8713b9519b25ab36e8756988b3f1466f3003d5d4a9de895e">
+      <source xml:lang="en">Discarded</source>
     </trans-unit>
     <trans-unit id="++CODE++acfc5be785a9bb3da11c9f05adb69bd5633096f09002aa44813a1b3207e912ad">
       <source xml:lang="en">Disconnect</source>
@@ -2834,6 +2873,9 @@
     <trans-unit id="++CODE++b5fb1a311c627a052d69179f4fb37cc4d9b0d9aa8b4db5a16458c97563420413">
       <source xml:lang="en">Dropping database</source>
     </trans-unit>
+    <trans-unit id="++CODE++4fc52a3c4c558b517c463b22d86d0e3b9cfd4255c98fe3510f9075b37ab419c9">
+      <source xml:lang="en">Duration</source>
+    </trans-unit>
     <trans-unit id="++CODE++4a87bc4a6f84b6911fabebc702ad8d32dbb799d7bec2abf53a05c86d91b456bf">
       <source xml:lang="en">EF Core</source>
     </trans-unit>
@@ -2874,12 +2916,18 @@
       <source xml:lang="en">Edit {0}</source>
       <note>{0} is the name of the connection profile</note>
     </trans-unit>
+    <trans-unit id="++CODE++2252d5cf93767a43ecc53f07c8e49d76be0126e021c0397af8d51927e9c5e2e4">
+      <source xml:lang="en">Effect</source>
+    </trans-unit>
     <trans-unit id="++CODE++7df64a9f48aa848c4d73ffa6d0d63511e082d0b8a592b9d6880d3988fb4006a7">
       <source xml:lang="en">Either profileId or serverName must be provided.</source>
     </trans-unit>
     <trans-unit id="++CODE++e451b91d33132634ff0a558d8d40b0e2daa3e392c45f0b75591924534362255d">
       <source xml:lang="en">Elapsed time: {0}</source>
       <note>{0} is the task elapsed time</note>
+    </trans-unit>
+    <trans-unit id="++CODE++c6c094bc0054f9cbe34102ff49f86b3928b5ac09f3d2ac87e170d0500675921f">
+      <source xml:lang="en">Empty</source>
     </trans-unit>
     <trans-unit id="++CODE++1e71b5c8f3211f1f01b27341d3ddc6a2ad651800264b495c12b50867f998662c">
       <source xml:lang="en">Enable &apos;Trust Server Certificate&apos;</source>
@@ -2917,6 +2965,9 @@
     </trans-unit>
     <trans-unit id="++CODE++fb0bb2387237028dc70c4153c6f199ba4dcf1d78c143ac148621a822e41d2f04">
       <source xml:lang="en">Enable or disable SQLCMD mode for the active SQL document</source>
+    </trans-unit>
+    <trans-unit id="++CODE++25bfb38c393d81e2ddc823579631570a4644aad4917c0cba1e03961d26b97fd7">
+      <source xml:lang="en">Enable the T-SQL Language Service preview setting first.</source>
     </trans-unit>
     <trans-unit id="++CODE++3fa5ae9b74f834209a906cfae8b88c904769f06a491fbefc81d5a19a01483ad5">
       <source xml:lang="en">Enable {0}</source>
@@ -3493,6 +3544,9 @@
     <trans-unit id="++CODE++5be15d5b5b4cc52954f9556226d71e11e6615cc61f77411094cb407fb0327ff1">
       <source xml:lang="en">Export all results to an Excel file</source>
     </trans-unit>
+    <trans-unit id="++CODE++7d51fa259f8df8f5194a2d73a1471c3764e530462e01d0356cb9e3878f282f70">
+      <source xml:lang="en">Export debug log</source>
+    </trans-unit>
     <trans-unit id="++CODE++db58c9165373339af3f704ec69490c93458bb6a0c870a7dca79c243948cc02e1">
       <source xml:lang="en">Export the schema and data from a SQL database to a .bacpac file</source>
     </trans-unit>
@@ -3978,6 +4032,9 @@
     </trans-unit>
     <trans-unit id="++CODE++aac77df347205252b074d45aff7891debdba0ff1466cc0c351416d1662bb71ab">
       <source xml:lang="en">Feedback</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9cb5c186791430dc362f24dced2d91b4d7f523944be36a12ae15282370760cd0">
+      <source xml:lang="en">Fetch log</source>
     </trans-unit>
     <trans-unit id="++CODE++4d696d1fc30a43745a483d9bf89065718f6abfcdf8241fe4abb09ef13ec1d5e3">
       <source xml:lang="en">Fetching {0} script...</source>
@@ -4606,6 +4663,9 @@
     <trans-unit id="++CODE++ac665fafc5f9732c9d322749a1f726be51f8b31d2ec83ecde83a6e1d2b632eda">
       <source xml:lang="en">Include all object types</source>
     </trans-unit>
+    <trans-unit id="++CODE++0aaf61a270744c6f42c32db5bf18ab8d8a51cc297e0177f549220b9b5655d1da">
+      <source xml:lang="en">Include names and SQL</source>
+    </trans-unit>
     <trans-unit id="++CODE++3f763b9cd0ea6431ca045177a0ef88702e20d566b4634c7efad944d1a4b1ef4d">
       <source xml:lang="en">Include permissions</source>
     </trans-unit>
@@ -4777,11 +4837,21 @@
     <trans-unit id="++CODE++a3c13b491573b0d54bf743caf0f5d59d5a791c42ae1072f16bb941be925fae18">
       <source xml:lang="en">Keys for token cache could not be saved in credential store, this may cause Microsoft Entra Id access token persistence issues and connection instabilities. It&apos;s likely that SqlTools has reached credential storage limit on Windows, please clear at least 2 credentials that start with &quot;Microsoft.SqlTools|&quot; in Windows Credential Manager and reload.</source>
     </trans-unit>
+    <trans-unit id="++CODE++f5387f9bb6ed70315a77fdcb9335facc27a9bf241f35955bd2755c55e0c016c7">
+      <source xml:lang="en">Kind</source>
+    </trans-unit>
     <trans-unit id="++CODE++0ca9017c8fb85ae12ca8668af23d92b03040f0d7f3b3dc6df332a7ec59ef611f">
       <source xml:lang="en">LRS</source>
     </trans-unit>
     <trans-unit id="++CODE++f89417d53ba776c805f239fe55d55177f66764a88a5ae08085341e904985b900">
       <source xml:lang="en">LRS backup (locally redundant)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++48a10a0f9343f94f3bda89f31b11367f312014b21ebc3c60a563f9840e831bb4">
+      <source xml:lang="en">Language service statistics copied to the clipboard</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8fea506d72f0db42e4754655aa7fc000e2685425dde44063946bd17ad3c75bfa">
+      <source xml:lang="en">Language service statistics exported to {0}</source>
+      <note>{0} is a file path</note>
     </trans-unit>
     <trans-unit id="++CODE++c7d299ed6b2896187b535a86fd6b04f01669a9b72528a8f2021fff2f42d9f6e3">
       <source xml:lang="en">Last Page</source>
@@ -5017,6 +5087,9 @@
     <trans-unit id="++CODE++b4eb78ee43fade6ba490bb64508b7dc359f5f67a8438030d28f54d46a222ee4b">
       <source xml:lang="en">Loading maintenance windows...</source>
     </trans-unit>
+    <trans-unit id="++CODE++b37676e94030d5eefe3591eb7a4895b404cc27121beefbd47c49f94ff0aba4c2">
+      <source xml:lang="en">Loading now</source>
+    </trans-unit>
     <trans-unit id="++CODE++c81954973ca0121a610a95a9872f6e71c08df9f100dd5dfb65dfee8545d2df2f">
       <source xml:lang="en">Loading resource groups</source>
     </trans-unit>
@@ -5240,6 +5313,9 @@
     <trans-unit id="++CODE++bf18e5cb878e3e2732c578fcc970528f5dbb3bf17ad8378e40d9bb675f5e19af">
       <source xml:lang="en">Maximize results grid</source>
     </trans-unit>
+    <trans-unit id="++CODE++f2829ab8461df86cca0a2cf509ca094ce5d97b1362956346e8d893ff2ebcefb5">
+      <source xml:lang="en">Measured since this document was opened. Cancellation is not counted here: a cancelled request is one the editor abandoned, which this layer cannot observe.</source>
+    </trans-unit>
     <trans-unit id="++CODE++d357175cfe8978d39b0f86552dcd9404973493e2816101d9ff6c05ee248ef6bd">
       <source xml:lang="en">Media</source>
     </trans-unit>
@@ -5248,6 +5324,12 @@
     </trans-unit>
     <trans-unit id="++CODE++927853630df5ee306a9b44a868e0a34b91e055e070b630b5dc2451bd2163fab9">
       <source xml:lang="en">Media set name is required</source>
+    </trans-unit>
+    <trans-unit id="++CODE++daab7c435134742abeb8e1e42de999740f2362c3f58271edf32e627e97bf2130">
+      <source xml:lang="en">Median</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c3963aedaac6c83c04cf8fb997b479c61e66b3caeecfadd2f2d4bd5b0aef1778">
+      <source xml:lang="en">Memory</source>
     </trans-unit>
     <trans-unit id="++CODE++2f77668a9dfbf8d5848b9eeb4a7145ca94c6ed9236e4a773f6dcafa5132b2f91">
       <source xml:lang="en">Message</source>
@@ -5258,6 +5340,12 @@
     <trans-unit id="++CODE++d383f047a2ab3c6127191873e02bfe1e822d683f30c084fb0a6f54bad4716328">
       <source xml:lang="en">Messages ({0})</source>
       <note>{0} is the keyboard shortcut for the messages tab</note>
+    </trans-unit>
+    <trans-unit id="++CODE++9eddf573cb509f1f62df633e25c052ac1b2a0ff9241e70223c77c73e834c0045">
+      <source xml:lang="en">Metadata</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fa16c343e69e1ee2a860c1432f69ff1b11943bc507c55d842c262ad80ad04a2e">
+      <source xml:lang="en">Metadata reloads</source>
     </trans-unit>
     <trans-unit id="++CODE++ef4130dc48f45fbb30ce483736bd294e6080ba15a8f915f61c7b91e914733d02">
       <source xml:lang="en">Metadata requires mssql.enableExperimentalFeatures and mssql.sqlDataPlane.enabled to be enabled.</source>
@@ -5755,6 +5843,9 @@
     <trans-unit id="++CODE++6c351c116cc7feeaf5724426f891c890b4f7d9cb8baab5f2ec1d6c512cc016b6">
       <source xml:lang="en">No items</source>
     </trans-unit>
+    <trans-unit id="++CODE++34b5ec0a69d448325618902f805c7bab96a091acc4e1be605d708991de1f744c">
+      <source xml:lang="en">No language feature requests have been measured yet.</source>
+    </trans-unit>
     <trans-unit id="++CODE++985ed9835264ebdfa8f578536196c1d3f0a23b500b824b417300dd7e954b0042">
       <source xml:lang="en">No log entries yet.</source>
     </trans-unit>
@@ -5967,6 +6058,9 @@
     <trans-unit id="++CODE++972711d90594be0ec9340bc56950dc455b2764187dcad7093ae641df2cbc10c5">
       <source xml:lang="en">Not likely at all</source>
     </trans-unit>
+    <trans-unit id="++CODE++baf7f6c7bd2d7f5286854406fcb020de5250c3c7a9f5d9114f15ea0637677cc0">
+      <source xml:lang="en">Not measured yet</source>
+    </trans-unit>
     <trans-unit id="++CODE++9e3856eef37c48e551fcb274637d0d3499eec816116e0a3aa509990a59a49040">
       <source xml:lang="en">Not running</source>
     </trans-unit>
@@ -6094,6 +6188,12 @@
     <trans-unit id="++CODE++458f7bdeed472d6583d8b0e14f2535e896f301136ee1ea3c63fdbf0845407225">
       <source xml:lang="en">Open XML</source>
     </trans-unit>
+    <trans-unit id="++CODE++fa2513e3c35affb70b1b41c29d0bb73031052c699e2fb5e4e3bdf4ecf7ff1d2d">
+      <source xml:lang="en">Open a SQL editor to inspect language service status.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++29b879e5e6da0e0c717e744eade1f13618b9635f0519b8644085f6164bd96463">
+      <source xml:lang="en">Open a SQL editor to refresh language service metadata.</source>
+    </trans-unit>
     <trans-unit id="++CODE++811c17ffde572f2a3f875d0066464c75847bbeca86303f13e4dac1c448d05b21">
       <source xml:lang="en">Open a new SQL query file</source>
     </trans-unit>
@@ -6102,6 +6202,9 @@
     </trans-unit>
     <trans-unit id="++CODE++0ff35606d4c615fdb3160459aad9f61192a9321945983e2559c2175dd96b3f8f">
       <source xml:lang="en">Open column menu</source>
+    </trans-unit>
+    <trans-unit id="++CODE++437ad3135cec38cdad6a80306cd184230bb06c733defa73f1796f5bbc3f9e556">
+      <source xml:lang="en">Open detailed T-SQL language service status</source>
     </trans-unit>
     <trans-unit id="++CODE++cef89448c86ea390bfb9f0953513fd8871c5595cd7e65fc9ef5fc306fe7bfd11">
       <source xml:lang="en">Open filter menu</source>
@@ -6198,6 +6301,9 @@
       <source xml:lang="en">Overall, how satisfied are you with {0}?</source>
       <note>{0} is the feature name</note>
     </trans-unit>
+    <trans-unit id="++CODE++d4b1ea5708dd532930a85188b45aff6f0a3ed458500c7577e0127a538eb0d100">
+      <source xml:lang="en">Overview</source>
+    </trans-unit>
     <trans-unit id="++CODE++b24963ea2cbc74b97321a347754137aa207b126695a95c860406098528966b55">
       <source xml:lang="en">Overwrite</source>
     </trans-unit>
@@ -6227,6 +6333,9 @@
     </trans-unit>
     <trans-unit id="++CODE++5cafcd08f15a2a6ce49d703f1da5861c94ec134cc92984cc6b2f67965c31b5ee">
       <source xml:lang="en">Parent node was not TreeNodeInfo.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++605537ca5d125a21cf6dd8750e9e0b34c0cd9693e10df9091683f86acee019a1">
+      <source xml:lang="en">Parse</source>
     </trans-unit>
     <trans-unit id="++CODE++e7cf3ef4f17c3999a94f2c6f612e8a888e5b1026878e4e19398b23bd38ec221a">
       <source xml:lang="en">Password</source>
@@ -6282,6 +6391,9 @@
     </trans-unit>
     <trans-unit id="++CODE++7402b850c8ea04211c0bde6a01e934211ac94feed7e01d1d719473b9a453b644">
       <source xml:lang="en">Pin to Saved</source>
+    </trans-unit>
+    <trans-unit id="++CODE++37e1c775f452d695697b6e3389169e4109236f420f9ece420af0d5e7bb9b1533">
+      <source xml:lang="en">Pipeline</source>
     </trans-unit>
     <trans-unit id="++CODE++2d88a61abeffd59a3bd59240d49c72a6b54deaecde6c449c2a4fd88f698d2628">
       <source xml:lang="en">Please Accept the SQL Server EULA</source>
@@ -6792,6 +6904,9 @@
     <trans-unit id="++CODE++0cd1ba1d31d508fcf599096e647eb0c1a60819928248e404a3f71ea9f7aafad8">
       <source xml:lang="en">Reload Visual Studio Code</source>
     </trans-unit>
+    <trans-unit id="++CODE++e15490d067be21b3731cd1f7c0a4ecd4a22c61d4612124660ee41c82d317b92a">
+      <source xml:lang="en">Reload time</source>
+    </trans-unit>
     <trans-unit id="++CODE++df5c131161a52277f378b1ef01786bab0e114c3a30f9574c9f4b325ad50e4ad3">
       <source xml:lang="en">Relocate all files</source>
     </trans-unit>
@@ -6870,8 +6985,14 @@
     <trans-unit id="++CODE++0b73ca14b5d89fd5c289af312a66842146e766baf6c5018848b36f086944cb0b">
       <source xml:lang="en">Replication</source>
     </trans-unit>
+    <trans-unit id="++CODE++59f03d642b41e22f4575061e817f9e87c3ced5a0e77d5c92364bd45b7f90d0c9">
+      <source xml:lang="en">Request</source>
+    </trans-unit>
     <trans-unit id="++CODE++cc874c54b76cd239b02d7fddeea1dd3415c1a0a3fe476cd537f26b06c0e98dcd">
       <source xml:lang="en">Request a new feature</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ada27592c9578e9072b465934a474d7e2c7a3d057db04101550a3cd4ac93fb0d">
+      <source xml:lang="en">Requests</source>
     </trans-unit>
     <trans-unit id="++CODE++4850b174b713d88cfc63de107830d5388929020e78abc91fc19bba7a6821625f">
       <source xml:lang="en">Required</source>
@@ -6985,6 +7106,9 @@
     <trans-unit id="++CODE++19845d8a46ab987a3d8bf7a121f630c6f4dd5bbf37f30e81ec6fb187bba7a8e3">
       <source xml:lang="en">Results Preview ({0})</source>
       <note>{0} is the keyboard shortcut for the preview results tab</note>
+    </trans-unit>
+    <trans-unit id="++CODE++cdf19c3cd0d32094b9a6bf3d962c8392b2443595a5a8da16ccbce01c1d06df53">
+      <source xml:lang="en">Results computed against a document version the editor had already moved past. These are caught before they reach the editor.</source>
     </trans-unit>
     <trans-unit id="++CODE++47c4e447deebe0e891365e8fc7bd3805ac17b8753bb83205ee77b7408103de61">
       <source xml:lang="en">Results exported successfully to {0}</source>
@@ -7414,6 +7538,9 @@
     </trans-unit>
     <trans-unit id="++CODE++bdae3cfc11ace2d49f363c2a0603b5d7467a534bc981769ae9f3a4dd4f594059">
       <source xml:lang="en">Schemas</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b073f6c68ef8721107fd9815b19b2c35ec111d526b75c2123d1111ba64424000">
+      <source xml:lang="en">Scope</source>
     </trans-unit>
     <trans-unit id="++CODE++102acc10e67a297d79f7a0440d9fb96e2bfe8b1830676ae1d524cde6203212e0">
       <source xml:lang="en">Script</source>
@@ -8047,6 +8174,9 @@
     <trans-unit id="++CODE++f6dd83003322db3c5d5ef293a8dc73363ae462529918cc8d17cc94f9988c0d45">
       <source xml:lang="en">Simple Container Management</source>
     </trans-unit>
+    <trans-unit id="++CODE++a9b2509abb76b7655436a18831da194767183650a569bbdf069a6899bb0dd279">
+      <source xml:lang="en">Slowest fetch</source>
+    </trans-unit>
     <trans-unit id="++CODE++ab3134048412e796a4a423dc1963ca8ff12b535d546d314470407639777e0ac5">
       <source xml:lang="en">Smart performance</source>
     </trans-unit>
@@ -8339,6 +8469,18 @@
     <trans-unit id="++CODE++b27ba710997adaf6099374edb801d44bef36c92e6d37e0190c7c1d12d4b32209">
       <source xml:lang="en">T-SQL</source>
     </trans-unit>
+    <trans-unit id="++CODE++a218189cd4ccfa52fe95357014a0346d66ca6e860ce5378edd8d7864925e6753">
+      <source xml:lang="en">T-SQL language service metadata refresh failed: {0}</source>
+      <note>{0} is the metadata refresh error message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++a2196fd80ce61b5f134e4f403e8a3028d6673f7148458d9cdf8cb7af943b04ca">
+      <source xml:lang="en">T-SQL language service metadata refreshed in {0} ms.</source>
+      <note>{0} is the metadata refresh duration in milliseconds</note>
+    </trans-unit>
+    <trans-unit id="++CODE++f0cfd09df126aa1b259ece84af52b22e3cab4e1f819edac6a349ea2ed61f6138">
+      <source xml:lang="en">T-SQL preview stats: {0}</source>
+      <note>{0} is the name of the SQL file the statistics describe</note>
+    </trans-unit>
     <trans-unit id="++CODE++16d1c9050a0b32e83764a81d801a880773abedfd7f8b0b08a1cd87ca0e404f12">
       <source xml:lang="en">Table</source>
     </trans-unit>
@@ -8607,6 +8749,9 @@
     <trans-unit id="++CODE++644a28f160d2df093fab1a8c94e5176f21c1af3bee1915315edd409d14397021">
       <source xml:lang="en">The name of the index.</source>
     </trans-unit>
+    <trans-unit id="++CODE++e202d761ec7b3c6ab4aef89347ad61281d13cd875e23b4696956f53b74140e3a">
+      <source xml:lang="en">The preview language service is turned off for this document.</source>
+    </trans-unit>
     <trans-unit id="++CODE++1541ca54eaafab6eaf10bd1051af6f50394e0b8f11aad6012045ce761a8ff683">
       <source xml:lang="en">The project &apos;{0}&apos; will not be fully compatible with SSDT after conversion. A backup copy of the project file will be created in the project folder prior to conversion. More information is available at https://aka.ms/sqlprojsdk. Continue with converting to SDK-style project?</source>
     </trans-unit>
@@ -8681,6 +8826,9 @@
       <source xml:lang="en">The “{0}” extension uses a connection-sharing capability that the MSSQL extension is retiring. File a feature request for the capability you use so we can consider adding it natively.</source>
       <note>{0} is the extension name</note>
     </trans-unit>
+    <trans-unit id="++CODE++41b0c821f9e3c0d21bdb5b3c91e32e94f75362565397370ee57ce3f2fa32cc41">
+      <source xml:lang="en">There are no statistics to export yet.</source>
+    </trans-unit>
     <trans-unit id="++CODE++733d73b219fd9a1e4009ee7a3bc2e771e41099d295ccf8c230e04f68ba8606ee">
       <source xml:lang="en">There is already a directory named &apos;{0}&apos; in the selected location: &apos;{1}&apos;.</source>
     </trans-unit>
@@ -8713,6 +8861,12 @@
     <trans-unit id="++CODE++a616eb2bf2f817c4898b6d9709fa799bf564dc58ec7bdb879358e3f47795106e">
       <source xml:lang="en">This database name is already in use. Please choose a different name.</source>
     </trans-unit>
+    <trans-unit id="++CODE++62916a0a2ac24f281177fed69d51274e6e796d02939356a9db972b4d08406b13">
+      <source xml:lang="en">This document has not been analysed yet. Statistics appear after the first parse.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ec38bdb4fd1b3e02fa5cb0d01a3cbcda3186561347ca8665f412aba6ee925b5c">
+      <source xml:lang="en">This document has not loaded any metadata yet.</source>
+    </trans-unit>
     <trans-unit id="++CODE++cb4eade41a7e9bf4aecf7539c5167bf881e1dac0fd35c216a8fbf4b1b4d3fa84">
       <source xml:lang="en">This file name is reserved for use by Windows. Choose another name and try again</source>
     </trans-unit>
@@ -8724,6 +8878,9 @@
     </trans-unit>
     <trans-unit id="++CODE++d2cd4222b87fe208131546fa04e7a1627d7270f2581fc96c91e88a4e870c9fc0">
       <source xml:lang="en">This project type does not support drag and drop.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4b7538fca5188b067efa1ae2d01ea68cfdcb20507697ba9f04367f32b8ee8c5a">
+      <source xml:lang="en">This provider does not record a fetch log.</source>
     </trans-unit>
     <trans-unit id="++CODE++cbc6ae36d1aec69e8b4ab32b18eac65c87ac1ded2fe8e3c342df068fb83be36d">
       <source xml:lang="en">This server only supports Microsoft Entra ID authentication.</source>
@@ -8749,6 +8906,9 @@
     </trans-unit>
     <trans-unit id="++CODE++33b93476cf597a3330653b66a658983d892ac264b5d6029a2dc642b9b1f30870">
       <source xml:lang="en">Time</source>
+    </trans-unit>
+    <trans-unit id="++CODE++649f5c2610f123d69393ab13f59d9700f75c5029100a3fecc08bee92c8bf6a91">
+      <source xml:lang="en">Time loading metadata</source>
     </trans-unit>
     <trans-unit id="++CODE++115a2cc92c1097ac4ebeb49698f5e22635a24ee1ef89722616f862ea43c5baba">
       <source xml:lang="en">Timestamp</source>
@@ -9297,6 +9457,9 @@
     <trans-unit id="++CODE++bf3cd82434efadb9ea501ff44c7d52b0dd98b3d11c0097ba88a10b7fd14d9b54">
       <source xml:lang="en">What can we do to improve?</source>
     </trans-unit>
+    <trans-unit id="++CODE++0752b6ce70d589c04c9e6f8d2af3f21f9f0de80b4fbade3f4ca31a677e7a7a90">
+      <source xml:lang="en">What caused metadata to be reloaded, and how long each reload took.</source>
+    </trans-unit>
     <trans-unit id="++CODE++9d42472185c6fe080e6ab7a93b676c943ab7e5b29b29b760346898bf579c031d">
       <source xml:lang="en">What&apos;s next?</source>
     </trans-unit>
@@ -9519,6 +9682,21 @@
     <trans-unit id="++CODE++eb69f53f51eaef9887d5c3f3cbd0993b208e962fed51bdd572b0816eb75c1d10">
       <source xml:lang="en">macOS Sierra or newer is required to use this feature.</source>
     </trans-unit>
+    <trans-unit id="++CODE++3241441c0f217c906d0870d89ec73fc58a138769f59fb782c61c54b9cebf583c">
+      <source xml:lang="en">metadata failed</source>
+    </trans-unit>
+    <trans-unit id="++CODE++db17da8f9c0e574405945d07cd3b6688801dce38d74cf1a96cf29fe266107a3e">
+      <source xml:lang="en">metadata loading</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3c8f4aec9db4d8bc675fb9b7d814c603744133f5e16029c326dc22a3b9514c82">
+      <source xml:lang="en">metadata offline</source>
+    </trans-unit>
+    <trans-unit id="++CODE++26a21d2c31a4517da99eb764dccc409e2553e5b8a0e91e880adc3137debff98c">
+      <source xml:lang="en">metadata pending</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fe146095d1a440d572afe7526300148b72acfa044ad092510bad245b0e0fbb4a">
+      <source xml:lang="en">metadata ready</source>
+    </trans-unit>
     <trans-unit id="++CODE++1f6fa6f69d185e6086d04e7330361bf9001a3b8d0ce511171055dc34eb90c1c5">
       <source xml:lang="en">min</source>
     </trans-unit>
@@ -9536,6 +9714,9 @@
     </trans-unit>
     <trans-unit id="++CODE++7175517a370b5cd2e664e3fd29c4ea9db5ce17058eb9772fe090a5485e49dad6">
       <source xml:lang="en">or</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f771f4d32eee4ed24b0532b790dc9869d4a828d070f3071cae26d3529cca23e7">
+      <source xml:lang="en">p95</source>
     </trans-unit>
     <trans-unit id="++CODE++738dce14f9c7825c6601ed72dce22b095491c097fc1c76d6352399229c9262f8">
       <source xml:lang="en">profiler_events</source>
@@ -9662,9 +9843,18 @@
       <source xml:lang="en">{0} errors</source>
       <note>{0} is the number of errors</note>
     </trans-unit>
+    <trans-unit id="++CODE++b617f6e85a614a8f8e6a5dc26cd90794c59f72451b43d0712eab9b0c870a3b8b">
+      <source xml:lang="en">{0} errors, {1} warnings, {2} hints</source>
+      <note>{0}, {1} and {2} are counts of diagnostics</note>
+    </trans-unit>
     <trans-unit id="++CODE++d70ef3a0d3dafd1dfb3ac896ba331f0c11c35f7638de133a8739a0a7d5a87056">
       <source xml:lang="en">{0} events</source>
       <note>{0} is the number of events</note>
+    </trans-unit>
+    <trans-unit id="++CODE++7dee58d679b71126616ac8c82d3bef1b27a211e8a92c1115b81c65b6f793f5fd">
+      <source xml:lang="en">{0} fetches across {1} databases</source>
+      <note>{0} is a count of fetches
+{1} is a count of databases</note>
     </trans-unit>
     <trans-unit id="++CODE++73a3b5564a6f6d4a90ee66b091f6e9326921f7465dd5a35abe9112ae716ec35c">
       <source xml:lang="en">{0} filter operator</source>
@@ -9673,6 +9863,10 @@
     <trans-unit id="++CODE++69b96dbb650a078a1de2f0d5190029748a0530448136853be144116411920739">
       <source xml:lang="en">{0} filter value</source>
       <note>{0} is a filter property name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++aa0efc3d95a8f4472d57ca5829b3f27f69e83e039cf8ce91bcb07f0440ecbbf4">
+      <source xml:lang="en">{0} from memory, {1} from the server</source>
+      <note>{0} and {1} are counts of catalog fetches</note>
     </trans-unit>
     <trans-unit id="++CODE++16885df9a4767fe04d26b997deabc5a36f96f34bf58bbed4b4a87d029f25209b">
       <source xml:lang="en">{0} has been closed. Would you like to restore it?</source>
@@ -9697,6 +9891,10 @@
     <trans-unit id="++CODE++4960928686dec57850ef0fde437021e4bec60d6d0fcc3e196448bb01c88d3920">
       <source xml:lang="en">{0} issues</source>
       <note>{0} is the number of issues</note>
+    </trans-unit>
+    <trans-unit id="++CODE++3b339eab460eb43d72b8cc7bdf633e0d045f327f8951ede5e8bb389afbe5a31e">
+      <source xml:lang="en">{0} ms</source>
+      <note>{0} is a duration in milliseconds</note>
     </trans-unit>
     <trans-unit id="++CODE++929b85deaa0b29d7b7adb8318824ecfabb9cf7c9d0a056b0d0fe0827cdd9f141">
       <source xml:lang="en">{0} must define one or more key fields to be used with Data API builder</source>
@@ -9730,10 +9928,24 @@
       <source xml:lang="en">{0} of {1} rules</source>
       <note>{0} is the filtered count, {1} is the total count</note>
     </trans-unit>
+    <trans-unit id="++CODE++83a04fe964ee7abed2e5a56765109108f17e0c9ba9c8e77418ff83b4368b0eef">
+      <source xml:lang="en">{0} of {1} statements rebound</source>
+      <note>{0} and {1} are counts of statements</note>
+    </trans-unit>
     <trans-unit id="++CODE++fd20691998de3c939ec5fca7c6823619440671dfbe0927a4cf15a4eb6b792dc7">
       <source xml:lang="en">{0} of {1} tenants</source>
       <note>{0} is the number of tenants with active sessions
 {1} is the total number of tenants</note>
+    </trans-unit>
+    <trans-unit id="++CODE++5b09fc50039d72e87be6db60d0f772d82897dfcf244a848d998c576b52af9a87">
+      <source xml:lang="en">{0} parse, {1} changed ranges</source>
+      <note>{0} is the parse mode, full or incremental
+{1} is a count of changed text ranges</note>
+    </trans-unit>
+    <trans-unit id="++CODE++260b7b2786ac79990dc17ee664011614b759f6c74db1c4c9cf983620c6710b71">
+      <source xml:lang="en">{0} parse, {1} changed ranges</source>
+      <note>{0} is full or incremental
+{1} is a count of changed text ranges</note>
     </trans-unit>
     <trans-unit id="++CODE++0a6a65ea9882252d0abde519b647d2bd091f9a3a4ad1ddd0b8f79de88c4173e6">
       <source xml:lang="en">{0} password doesn&apos;t match the confirmation password</source>
@@ -9784,6 +9996,10 @@
     <trans-unit id="++CODE++e92744f747f8adbd4eb748f272e3c3f3542a48f35b35134f2f2adf89758e2310">
       <source xml:lang="en">{0} started successfully.</source>
       <note>{0} started successfully.</note>
+    </trans-unit>
+    <trans-unit id="++CODE++dc72f55cefbdcee8ad2614c8605cf443bd36ac9119442de483e437d4900c0261">
+      <source xml:lang="en">{0} still loading</source>
+      <note>{0} is a count of catalog fetches currently in flight</note>
     </trans-unit>
     <trans-unit id="++CODE++1bc61380dfa94d79a64b67b2a483332c51a6263dcf5379519cd36b691f6469e3">
       <source xml:lang="en">{0} stopped successfully.</source>
@@ -10044,6 +10260,39 @@
     </trans-unit>
     <trans-unit id="mssql.format.options.sqlVersion">
       <source xml:lang="en">**Used when Preview Formatter is enabled.** T-SQL version used to parse and generate formatted scripts.</source>
+    </trans-unit>
+    <trans-unit id="mssql.semanticTokenTypes.identifier.description">
+      <source xml:lang="en">A SQL identifier with no more specific role.</source>
+    </trans-unit>
+    <trans-unit id="mssql.semanticTokenTypes.column.description">
+      <source xml:lang="en">A column name.</source>
+    </trans-unit>
+    <trans-unit id="mssql.semanticTokenTypes.commonTableExpression.description">
+      <source xml:lang="en">A common table expression name.</source>
+    </trans-unit>
+    <trans-unit id="mssql.semanticTokenTypes.alias.description">
+      <source xml:lang="en">A correlation name for a rowset or a result column.</source>
+    </trans-unit>
+    <trans-unit id="mssql.semanticTokenTypes.database.description">
+      <source xml:lang="en">A database name.</source>
+    </trans-unit>
+    <trans-unit id="mssql.semanticTokenTypes.server.description">
+      <source xml:lang="en">A linked server name.</source>
+    </trans-unit>
+    <trans-unit id="mssql.semanticTokenTypes.schema.description">
+      <source xml:lang="en">A schema name.</source>
+    </trans-unit>
+    <trans-unit id="mssql.semanticTokenTypes.procedure.description">
+      <source xml:lang="en">A stored procedure name.</source>
+    </trans-unit>
+    <trans-unit id="mssql.semanticTokenTypes.table.description">
+      <source xml:lang="en">A table name.</source>
+    </trans-unit>
+    <trans-unit id="mssql.semanticTokenTypes.temporaryTable.description">
+      <source xml:lang="en">A temporary table name.</source>
+    </trans-unit>
+    <trans-unit id="mssql.semanticTokenTypes.view.description">
+      <source xml:lang="en">A view name.</source>
     </trans-unit>
     <trans-unit id="mssql.addObjectExplorer">
       <source xml:lang="en">Add Connection</source>
@@ -10357,6 +10606,9 @@
     <trans-unit id="mssql.preview.betaObjectExplorerFilter.description">
       <source xml:lang="en">Enables the preview Object Explorer filter experience with saved filter presets and recently applied filters. Disable this setting to use the existing Object Explorer filter experience.</source>
     </trans-unit>
+    <trans-unit id="mssql.preview.languageService.description">
+      <source xml:lang="en">Enables the preview TypeScript T-SQL language service and its local parsing, binding, metadata, worker, and request statistics. Production editor language features are disabled while this preview is enabled.</source>
+    </trans-unit>
     <trans-unit id="mssql.preview.betaExecutionPlan.description">
       <source xml:lang="en">Enables the preview query execution plan experience with improved layout, keyboard navigation, tooltips, SQL text display, and toolbar interactions. Disable this setting to use the existing execution plan experience.</source>
     </trans-unit>
@@ -10600,6 +10852,9 @@
     <trans-unit id="mssql.rebuildIntelliSenseCache">
       <source xml:lang="en">Refresh IntelliSense Cache</source>
     </trans-unit>
+    <trans-unit id="mssql.preview.refreshLanguageServiceMetadata">
+      <source xml:lang="en">Refresh T-SQL Language Service Metadata (Preview)</source>
+    </trans-unit>
     <trans-unit id="mssql.removeObjectExplorerNode">
       <source xml:lang="en">Remove Connection</source>
     </trans-unit>
@@ -10699,6 +10954,9 @@
     <trans-unit id="mssql.selectedFabricWorkspaces">
       <source xml:lang="en">Selected Microsoft Fabric workspaces for browsing and managing SQL databases</source>
     </trans-unit>
+    <trans-unit id="mssql.preview.languageServiceMetadataProvider.description">
+      <source xml:lang="en">Selects the catalog provider used by the preview T-SQL language service. Shared metadata requires experimental features and the SQL Data Plane private preview setting.</source>
+    </trans-unit>
     <trans-unit id="mssql.userFeedback">
       <source xml:lang="en">Send Feedback</source>
     </trans-unit>
@@ -10744,6 +11002,9 @@
     <trans-unit id="mssql.sqlDataPlane.showStatus">
       <source xml:lang="en">Show SQL Data Plane Status</source>
     </trans-unit>
+    <trans-unit id="mssql.preview.showLanguageServiceStats">
+      <source xml:lang="en">Show T-SQL Language Service Stats (Preview)</source>
+    </trans-unit>
     <trans-unit id="mssql.format.showParseErrorNotification">
       <source xml:lang="en">Show a notification when Preview Formatter cannot fully parse the T-SQL being formatted.</source>
     </trans-unit>
@@ -10761,6 +11022,9 @@
     </trans-unit>
     <trans-unit id="mssql.query.showActiveConnectionAsCodeLensSuggestion">
       <source xml:lang="en">Show the active SQL connection details as a CodeLens suggestion at the top of the editor for quick visibility.</source>
+    </trans-unit>
+    <trans-unit id="mssql.preview.languageServiceStatsCodeLens.description">
+      <source xml:lang="en">Shows a detailed language service status CodeLens in SQL editors. The preview language service setting must also be enabled.</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.nextSteps.sortAndFilterQueryResults.title">
       <source xml:lang="en">Sort and Filter Query Results</source>
@@ -10831,6 +11095,18 @@
     <trans-unit id="mssql.maxRecentConnections">
       <source xml:lang="en">The maximum number of recently used connections to store in the connection list.</source>
     </trans-unit>
+    <trans-unit id="mssql.semanticTokenModifiers.system.description">
+      <source xml:lang="en">The name belongs to SQL Server rather than to the user.</source>
+    </trans-unit>
+    <trans-unit id="mssql.semanticTokenModifiers.temporary.description">
+      <source xml:lang="en">The name belongs to a temporary object.</source>
+    </trans-unit>
+    <trans-unit id="mssql.semanticTokenModifiers.write.description">
+      <source xml:lang="en">The name is assigned or otherwise modified at this position.</source>
+    </trans-unit>
+    <trans-unit id="mssql.semanticTokenModifiers.quoted.description">
+      <source xml:lang="en">The name is delimited by brackets or double quotes.</source>
+    </trans-unit>
     <trans-unit id="mssql.connectionGroup.name">
       <source xml:lang="en">The name of the connection group.</source>
     </trans-unit>
@@ -10885,8 +11161,14 @@
     <trans-unit id="mssql.resultsGrid.useDataOnlyEnumDescription">
       <source xml:lang="en">Use only row data to size columns automatically</source>
     </trans-unit>
+    <trans-unit id="mssql.preview.languageServiceMetadataProvider.sharedMetadata">
+      <source xml:lang="en">Use the extension-wide shared metadata catalog and its cross-database cache.</source>
+    </trans-unit>
     <trans-unit id="mssql.format.enablePreviewFormatter">
       <source xml:lang="en">Use the preview SQL formatter. Disable this setting to temporarily use the existing formatter.</source>
+    </trans-unit>
+    <trans-unit id="mssql.preview.languageServiceMetadataProvider.simpleQuery">
+      <source xml:lang="en">Use the preview language service&apos;s direct simple-query catalog.</source>
     </trans-unit>
     <trans-unit id="mssql.preview.useVscodeAccountsForEntraMFA.description">
       <source xml:lang="en">Uses VS Code signed-in accounts for Microsoft Entra ID MFA authentication to SQL. Restart Visual Studio Code after changing this setting.</source>

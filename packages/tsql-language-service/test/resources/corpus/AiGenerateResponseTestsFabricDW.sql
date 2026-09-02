@@ -1,0 +1,19 @@
+SELECT AI_GENERATE_RESPONSE('Hello');
+
+SELECT AI_GENERATE_RESPONSE('Question:', ' What is the time?');
+
+DECLARE @p1 NVARCHAR(MAX) = N'Prompt ';
+DECLARE @p2 NVARCHAR(MAX) = N'Continuation';
+SELECT AI_GENERATE_RESPONSE(@p1 + 'part1', @p2);
+SELECT AI_GENERATE_RESPONSE('b' + 'a');
+SELECT * FROM AI_GENERATE_RESPONSE((SELECT t.text_col
+                                    FROM dbo.Texts AS t));
+GO
+
+CREATE OR ALTER FUNCTION dbo.fx(@p NVARCHAR(MAX))
+RETURNS NVARCHAR(MAX)
+AS
+BEGIN
+    RETURN (AI_GENERATE_RESPONSE(@p));
+END;
+GO
