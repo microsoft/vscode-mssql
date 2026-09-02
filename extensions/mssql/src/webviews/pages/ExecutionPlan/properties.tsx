@@ -3,10 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import "./executionPlan.css";
-
 import * as ep from "../../../sharedInterfaces/executionPlan";
-import * as utils from "./queryPlanSetup";
 
 import {
     Button,
@@ -25,15 +22,11 @@ import {
     createTableColumn,
     makeStyles,
     mergeClasses,
-    tokens,
 } from "@fluentui/react-components";
 import {
     ArrowSortDownLines16Regular,
     ChevronDown16Regular,
-    ChevronDown20Regular,
     ChevronRight16Regular,
-    ChevronRight20Regular,
-    Dismiss12Regular,
     Dismiss16Regular,
     TextSortAscending16Regular,
     TextSortDescending16Regular,
@@ -47,7 +40,6 @@ import {
     ExpandAllIcon16Regular,
     FilterIcon16Regular,
 } from "../../common/icons/executionPlanIcons";
-import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 
 const useStyles = makeStyles({
     paneContainer: {
@@ -56,37 +48,14 @@ const useStyles = makeStyles({
         overflowX: "hidden",
         overflowY: "scroll",
     },
-    chevronButton: {
-        padding: 0,
-        height: "auto",
-        minWidth: "auto",
-        border: "none",
-        backgroundColor: "transparent",
-        boxShadow: "none",
-    },
     button: {
         cursor: "pointer",
-    },
-    buttonImg: {
-        display: "block",
-        height: "16px",
-        width: "16px",
     },
     previewToolbarIcon: {
         display: "block",
         width: "16px",
         height: "16px",
         flexShrink: 0,
-    },
-    propertiesHeader: {
-        fontWeight: "bold",
-        fontSize: "12px",
-        width: "100%",
-        padding: "4px",
-        opacity: 1,
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
     },
     previewStickyHeader: {
         position: "sticky",
@@ -114,13 +83,6 @@ const useStyles = makeStyles({
         textOverflow: "ellipsis",
         whiteSpace: "nowrap",
     },
-    nameContainer: {
-        fontWeight: "bold",
-        fontSize: "14px",
-        width: "100%",
-        padding: "4px",
-        opacity: 1,
-    },
     previewNameContainer: {
         boxSizing: "border-box",
         width: "100%",
@@ -134,20 +96,6 @@ const useStyles = makeStyles({
         lineHeight: "28px",
         textOverflow: "ellipsis",
         whiteSpace: "nowrap",
-    },
-    tableHeader: {
-        fontWeight: "bold",
-        fontSize: "12px",
-        border: "1px solid var(--vscode-foreground)",
-    },
-    tableRow: {
-        height: "25px",
-        overflow: "hidden",
-    },
-    tableCell: {
-        overflow: "hidden",
-        border: "1px solid var(--vscode-foreground)",
-        fontSize: "12px",
     },
     previewGridContainer: {
         width: "100%",
@@ -297,21 +245,11 @@ const useStyles = makeStyles({
         borderBottom:
             "1px solid var(--vscode-panel-border, var(--vscode-widget-border, transparent))",
     },
-    dismissButton: {
-        width: "12px",
-        height: "12px",
-        border: "none",
-        outline: "none",
-        marginRight: "4px",
-    },
     previewDismissButton: {
         width: "24px",
         minWidth: "24px",
         height: "24px",
         padding: 0,
-    },
-    textContainer: {
-        whiteSpace: "nowrap",
     },
 });
 
@@ -332,18 +270,14 @@ interface PropertiesPaneProps {
     executionPlanView: ExecutionPlanGraphController;
     setPropertiesClicked: any;
     inputRef: any;
-    useReactFlow: boolean;
 }
 
 export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
     executionPlanView,
     setPropertiesClicked,
     inputRef,
-    useReactFlow,
 }) => {
-    const { themeKind } = useVscodeWebview();
     const classes = useStyles();
-    const theme = themeKind;
     const [shownChildren, setShownChildren] = useState<number[]>([]);
     const [openedButtons, setOpenedButtons] = useState<string[]>([]);
     const [name, setName] = useState<string>("");
@@ -452,7 +386,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
         event: ReactKeyboardEvent<HTMLDivElement>,
         item: ep.ExecutionPlanPropertyTableItem,
     ) => {
-        if (!useReactFlow || event.target !== event.currentTarget) {
+        if (event.target !== event.currentTarget) {
             return;
         }
 
@@ -548,120 +482,79 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
     const columns: TableColumnDefinition<ep.ExecutionPlanPropertyTableItem>[] = [
         createTableColumn<ep.ExecutionPlanPropertyTableItem>({
             columnId: "name",
-            renderHeaderCell: () =>
-                useReactFlow ? (
-                    <span className={classes.previewHeaderText} title={NAME}>
-                        {NAME}
-                    </span>
-                ) : (
-                    NAME
-                ),
+            renderHeaderCell: () => (
+                <span className={classes.previewHeaderText} title={NAME}>
+                    {NAME}
+                </span>
+            ),
             renderCell: (item) => {
                 const isExpanded = openedButtons.includes(item.name);
-                if (useReactFlow) {
-                    return (
-                        <TableCellLayout
-                            truncate
-                            className={classes.previewCellLayout}
-                            title={item.name || undefined}>
-                            <div
-                                className={classes.previewNameContent}
-                                style={{ paddingLeft: `${item.level * 16}px` }}>
-                                {item.children.length > 0 ? (
-                                    <Button
-                                        appearance="subtle"
-                                        size="small"
-                                        className={classes.previewDisclosureButton}
-                                        aria-label={
-                                            isExpanded
-                                                ? locConstants.executionPlan.collapse
-                                                : locConstants.executionPlan.expand
-                                        }
-                                        aria-expanded={isExpanded}
-                                        icon={
-                                            isExpanded ? (
-                                                <ChevronDown16Regular />
-                                            ) : (
-                                                <ChevronRight16Regular />
-                                            )
-                                        }
-                                        onClick={(event) => {
-                                            event.stopPropagation();
-                                            void handleShowChildrenClick(item.name, item.children);
-                                        }}
-                                    />
-                                ) : (
-                                    item.level > 0 && (
-                                        <span
-                                            className={classes.previewDisclosureSpacer}
-                                            aria-hidden="true"
-                                        />
-                                    )
-                                )}
-                                <span
-                                    className={mergeClasses(
-                                        classes.previewCellText,
-                                        classes.previewNameText,
-                                    )}>
-                                    {item.name}
-                                </span>
-                            </div>
-                        </TableCellLayout>
-                    );
-                }
-
                 return (
-                    // Add tabbing based on the "level" of the item in the table,
-                    // and add expand button based on whether the item has children
-                    <TableCellLayout truncate className={classes.textContainer}>
-                        {`\u200b\t`.repeat(item.level * 6)}
-                        {item.children.length > 0 && (
-                            <Button
-                                size="small"
-                                className={classes.chevronButton}
-                                aria-label={
-                                    isExpanded
-                                        ? locConstants.executionPlan.collapse
-                                        : locConstants.executionPlan.expand
-                                }
-                                icon={
-                                    isExpanded ? (
-                                        <ChevronDown20Regular />
-                                    ) : (
-                                        <ChevronRight20Regular />
-                                    )
-                                }
-                                onClick={() => handleShowChildrenClick(item.name, item.children)}
-                            />
-                        )}
-                        {item.name}
+                    <TableCellLayout
+                        truncate
+                        className={classes.previewCellLayout}
+                        title={item.name || undefined}>
+                        <div
+                            className={classes.previewNameContent}
+                            style={{ paddingLeft: `${item.level * 16}px` }}>
+                            {item.children.length > 0 ? (
+                                <Button
+                                    appearance="subtle"
+                                    size="small"
+                                    className={classes.previewDisclosureButton}
+                                    aria-label={
+                                        isExpanded
+                                            ? locConstants.executionPlan.collapse
+                                            : locConstants.executionPlan.expand
+                                    }
+                                    aria-expanded={isExpanded}
+                                    icon={
+                                        isExpanded ? (
+                                            <ChevronDown16Regular />
+                                        ) : (
+                                            <ChevronRight16Regular />
+                                        )
+                                    }
+                                    onClick={(event) => {
+                                        event.stopPropagation();
+                                        void handleShowChildrenClick(item.name, item.children);
+                                    }}
+                                />
+                            ) : (
+                                item.level > 0 && (
+                                    <span
+                                        className={classes.previewDisclosureSpacer}
+                                        aria-hidden="true"
+                                    />
+                                )
+                            )}
+                            <span
+                                className={mergeClasses(
+                                    classes.previewCellText,
+                                    classes.previewNameText,
+                                )}>
+                                {item.name}
+                            </span>
+                        </div>
                     </TableCellLayout>
                 );
             },
         }),
         createTableColumn<ep.ExecutionPlanPropertyTableItem>({
             columnId: "value",
-            renderHeaderCell: () =>
-                useReactFlow ? (
-                    <span className={classes.previewHeaderText} title={VALUE}>
-                        {VALUE}
-                    </span>
-                ) : (
-                    VALUE
-                ),
-            renderCell: (item) =>
-                useReactFlow ? (
-                    <TableCellLayout
-                        truncate
-                        className={classes.previewCellLayout}
-                        title={item.value || undefined}>
-                        <span className={classes.previewCellText}>{item.value}</span>
-                    </TableCellLayout>
-                ) : (
-                    <TableCellLayout truncate className={classes.textContainer}>
-                        {item.value}
-                    </TableCellLayout>
-                ),
+            renderHeaderCell: () => (
+                <span className={classes.previewHeaderText} title={VALUE}>
+                    {VALUE}
+                </span>
+            ),
+            renderCell: (item) => (
+                <TableCellLayout
+                    truncate
+                    className={classes.previewCellLayout}
+                    title={item.value || undefined}>
+                    <span className={classes.previewCellText}>{item.value}</span>
+                </TableCellLayout>
+            ),
         }),
     ];
 
@@ -671,92 +564,38 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
             id="propertiesPanelContainer"
             className={classes.paneContainer}
             style={{
-                background: useReactFlow
-                    ? "var(--vscode-editor-background)"
-                    : tokens.colorNeutralBackground2,
-                borderLeft: useReactFlow
-                    ? "1px solid var(--vscode-sideBar-border, var(--vscode-editorGroup-border, transparent))"
-                    : `0.5px solid ${tokens.colorNeutralStroke1}`,
+                background: "var(--vscode-editor-background)",
+                borderLeft:
+                    "1px solid var(--vscode-sideBar-border, var(--vscode-editorGroup-border, transparent))",
             }}>
-            <div
-                className={useReactFlow ? classes.previewStickyHeader : undefined}
-                style={
-                    useReactFlow
-                        ? undefined
-                        : {
-                              position: "sticky",
-                              top: 0,
-                              zIndex: 1,
-                              background: tokens.colorNeutralBackground1,
-                          }
-                }>
-                <div
-                    className={
-                        useReactFlow ? classes.previewPropertiesHeader : classes.propertiesHeader
-                    }
-                    style={
-                        useReactFlow
-                            ? undefined
-                            : {
-                                  background: tokens.colorNeutralBackground2,
-                              }
-                    }>
-                    <div
-                        className={useReactFlow ? classes.previewHeaderTitle : undefined}
-                        aria-label={PROPERTIES}
-                        tabIndex={useReactFlow ? undefined : 0}>
+            <div className={classes.previewStickyHeader}>
+                <div className={classes.previewPropertiesHeader}>
+                    <div className={classes.previewHeaderTitle} aria-label={PROPERTIES}>
                         {PROPERTIES}
                     </div>
-                    <div tabIndex={useReactFlow ? undefined : 0}>
+                    <div>
                         <Button
-                            className={
-                                useReactFlow ? classes.previewDismissButton : classes.dismissButton
-                            }
-                            appearance={useReactFlow ? "subtle" : undefined}
-                            size={useReactFlow ? "small" : undefined}
-                            style={
-                                useReactFlow
-                                    ? undefined
-                                    : {
-                                          background: tokens.colorNeutralBackground2,
-                                      }
-                            }
+                            className={classes.previewDismissButton}
+                            appearance="subtle"
+                            size="small"
                             onClick={() => setPropertiesClicked(false)}
                             title={locConstants.common.close}
                             aria-label={locConstants.common.close}
-                            icon={useReactFlow ? <Dismiss16Regular /> : <Dismiss12Regular />}
+                            icon={<Dismiss16Regular />}
                             ref={inputRef}
                         />
                     </div>
                 </div>
-                <div
-                    className={useReactFlow ? classes.previewNameContainer : classes.nameContainer}
-                    aria-label={name}
-                    title={useReactFlow ? name : undefined}
-                    tabIndex={useReactFlow ? undefined : 0}>
+                <div className={classes.previewNameContainer} aria-label={name} title={name}>
                     {name}
                 </div>
                 <Toolbar
-                    className={
-                        useReactFlow
-                            ? mergeClasses(classes.toolbar, classes.previewToolbar)
-                            : classes.toolbar
-                    }
+                    className={mergeClasses(classes.toolbar, classes.previewToolbar)}
                     size="small">
                     <ToolbarButton
                         className={classes.button}
                         icon={
-                            useReactFlow ? (
-                                <ArrowSortDownLines16Regular
-                                    className={classes.previewToolbarIcon}
-                                />
-                            ) : (
-                                <img
-                                    className={classes.buttonImg}
-                                    src={utils.sortByImportance(theme)}
-                                    alt={IMPORTANCE}
-                                />
-                            )
+                            <ArrowSortDownLines16Regular className={classes.previewToolbarIcon} />
                         }
                         onClick={() => handleSort(ep.SortOption.Importance)}
                         title={IMPORTANCE}
@@ -764,19 +603,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                     />
                     <ToolbarButton
                         className={classes.button}
-                        icon={
-                            useReactFlow ? (
-                                <TextSortAscending16Regular
-                                    className={classes.previewToolbarIcon}
-                                />
-                            ) : (
-                                <img
-                                    className={classes.buttonImg}
-                                    src={utils.sortAlphabetically(theme)}
-                                    alt={ALPHABETICAL}
-                                />
-                            )
-                        }
+                        icon={<TextSortAscending16Regular className={classes.previewToolbarIcon} />}
                         onClick={() => handleSort(ep.SortOption.Alphabetical)}
                         title={ALPHABETICAL}
                         aria-label={ALPHABETICAL}
@@ -784,17 +611,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                     <ToolbarButton
                         className={classes.button}
                         icon={
-                            useReactFlow ? (
-                                <TextSortDescending16Regular
-                                    className={classes.previewToolbarIcon}
-                                />
-                            ) : (
-                                <img
-                                    className={classes.buttonImg}
-                                    src={utils.sortReverseAlphabetically(theme)}
-                                    alt={REVERSE_ALPHABETICAL}
-                                />
-                            )
+                            <TextSortDescending16Regular className={classes.previewToolbarIcon} />
                         }
                         onClick={() => handleSort(ep.SortOption.ReverseAlphabetical)}
                         title={REVERSE_ALPHABETICAL}
@@ -802,34 +619,14 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                     />
                     <ToolbarButton
                         className={classes.button}
-                        icon={
-                            useReactFlow ? (
-                                <ExpandAllIcon16Regular className={classes.previewToolbarIcon} />
-                            ) : (
-                                <img
-                                    className={classes.buttonImg}
-                                    src={utils.expandAll(theme)}
-                                    alt={EXPAND_ALL}
-                                />
-                            )
-                        }
+                        icon={<ExpandAllIcon16Regular className={classes.previewToolbarIcon} />}
                         onClick={handleExpandAll}
                         title={EXPAND_ALL}
                         aria-label={EXPAND_ALL}
                     />
                     <ToolbarButton
                         className={classes.button}
-                        icon={
-                            useReactFlow ? (
-                                <CollapseAllIcon16Regular className={classes.previewToolbarIcon} />
-                            ) : (
-                                <img
-                                    className={classes.buttonImg}
-                                    src={utils.collapseAll(theme)}
-                                    alt={COLLAPSE_ALL}
-                                />
-                            )
-                        }
+                        icon={<CollapseAllIcon16Regular className={classes.previewToolbarIcon} />}
                         onClick={handleCollapseAll}
                         title={COLLAPSE_ALL}
                         aria-label={COLLAPSE_ALL}
@@ -841,15 +638,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                         value={inputValue}
                         placeholder={FILTER_ANY_FIELD}
                         contentBefore={
-                            useReactFlow ? (
-                                <FilterIcon16Regular className={classes.previewToolbarIcon} />
-                            ) : (
-                                <img
-                                    src={utils.filterIcon(theme)}
-                                    alt={FILTER_ANY_FIELD}
-                                    style={{ width: "20px", height: "20px" }}
-                                />
-                            )
+                            <FilterIcon16Regular className={classes.previewToolbarIcon} />
                         }
                         onChange={(e) => {
                             setInputValue(e.target.value);
@@ -858,72 +647,46 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                     />
                 </Toolbar>
             </div>
-            <div
-                className={useReactFlow ? classes.previewGridContainer : undefined}
-                style={useReactFlow ? undefined : { width: "100%" }}>
+            <div className={classes.previewGridContainer}>
                 <DataGrid
-                    className={useReactFlow ? classes.previewGrid : undefined}
+                    className={classes.previewGrid}
                     items={visibleItems}
                     columns={columns}
                     focusMode="composite"
                     resizableColumns={true}
-                    columnSizingOptions={useReactFlow ? previewColumnSizingOptions : undefined}
+                    columnSizingOptions={previewColumnSizingOptions}
                     size="small"
-                    role={useReactFlow ? "treegrid" : "grid"}
-                    aria-label={useReactFlow ? `${PROPERTIES}: ${name}` : undefined}>
-                    <DataGridHeader
-                        className={useReactFlow ? classes.previewTableHeader : classes.tableHeader}
-                        style={
-                            useReactFlow
-                                ? undefined
-                                : {
-                                      background: tokens.colorNeutralBackground2,
-                                  }
-                        }>
-                        <DataGridRow
-                            className={useReactFlow ? classes.previewHeaderRow : classes.tableRow}>
+                    role="treegrid"
+                    aria-label={`${PROPERTIES}: ${name}`}>
+                    <DataGridHeader className={classes.previewTableHeader}>
+                        <DataGridRow className={classes.previewHeaderRow}>
                             {({ renderHeaderCell }) => (
-                                <DataGridHeaderCell
-                                    className={
-                                        useReactFlow
-                                            ? classes.previewHeaderCell
-                                            : classes.tableHeader
-                                    }>
+                                <DataGridHeaderCell className={classes.previewHeaderCell}>
                                     {renderHeaderCell()}
                                 </DataGridHeaderCell>
                             )}
                         </DataGridRow>
                     </DataGridHeader>
-                    <DataGridBody<ep.ExecutionPlanPropertyTableItem>
-                        tabIndex={useReactFlow ? undefined : 0}>
+                    <DataGridBody<ep.ExecutionPlanPropertyTableItem>>
                         {({ item, rowId }) => (
                             <DataGridRow<ep.ExecutionPlanPropertyTableItem>
                                 key={rowId}
                                 data-property-id={item.id}
-                                aria-level={useReactFlow ? item.level + 1 : undefined}
+                                aria-level={item.level + 1}
                                 aria-expanded={
-                                    useReactFlow && item.children.length > 0
+                                    item.children.length > 0
                                         ? shownChildren.includes(item.children[0])
                                         : undefined
                                 }
                                 onKeyDown={(event: ReactKeyboardEvent<HTMLDivElement>) =>
                                     handlePropertyRowKeyDown(event, item)
                                 }
-                                className={
-                                    useReactFlow
-                                        ? mergeClasses(
-                                              classes.previewTableRow,
-                                              item.children.length > 0 && classes.previewGroupRow,
-                                          )
-                                        : classes.tableRow
-                                }>
+                                className={mergeClasses(
+                                    classes.previewTableRow,
+                                    item.children.length > 0 && classes.previewGroupRow,
+                                )}>
                                 {({ renderCell }) => (
-                                    <DataGridCell
-                                        className={
-                                            useReactFlow
-                                                ? classes.previewTableCell
-                                                : classes.tableCell
-                                        }>
+                                    <DataGridCell className={classes.previewTableCell}>
                                         {renderCell(item)}
                                     </DataGridCell>
                                 )}

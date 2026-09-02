@@ -3,27 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import "./executionPlan.css";
-
 import * as ep from "../../../sharedInterfaces/executionPlan";
 
-import {
-    ArrowDown16Regular,
-    ArrowDown20Regular,
-    ArrowUp16Regular,
-    ArrowUp20Regular,
-    Dismiss16Regular,
-    Dismiss20Regular,
-} from "@fluentui/react-icons";
-import {
-    Button,
-    Combobox,
-    Dropdown,
-    Input,
-    Option,
-    makeStyles,
-    tokens,
-} from "@fluentui/react-components";
+import { ArrowDown16Regular, ArrowUp16Regular, Dismiss16Regular } from "@fluentui/react-icons";
+import { Dropdown, Input, Option, makeStyles } from "@fluentui/react-components";
 
 import { ExecutionPlanGraphController } from "./executionPlanGraphController";
 import { locConstants } from "../../common/locConstants";
@@ -35,19 +18,6 @@ import {
 import { SearchableDropdown } from "../../common/searchableDropdown.component";
 
 const useStyles = makeStyles({
-    inputContainer: {
-        position: "absolute",
-        top: 0,
-        right: "35px",
-        padding: "10px",
-        border: "1px solid #ccc",
-        zIndex: "1",
-        boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
-        display: "flex",
-        alignItems: "center",
-        gap: "2px",
-        opacity: 1,
-    },
     previewInputContainer: {
         position: "absolute",
         top: "4px",
@@ -73,19 +43,12 @@ const useStyles = makeStyles({
         paddingRight: "2px",
         whiteSpace: "nowrap",
     },
-    inputs: {
-        minWidth: "unset",
-        maxWidth: "unset",
-    },
     option: {
         fontSize: "12px",
         whiteSpace: "nowrap",
         textAlign: "left",
         marginLeft: "0px",
         paddingLeft: "0px",
-    },
-    spacer: {
-        padding: "1px",
     },
 });
 
@@ -95,7 +58,6 @@ interface FindNodeProps {
     findNodeOptions: string[];
     setFindNodeClicked: any;
     inputRef: any;
-    useReactFlow: boolean;
 }
 
 export const FindNode: React.FC<FindNodeProps> = ({
@@ -104,7 +66,6 @@ export const FindNode: React.FC<FindNodeProps> = ({
     findNodeOptions,
     setFindNodeClicked,
     inputRef,
-    useReactFlow,
 }) => {
     const classes = useStyles();
     const findNodeComparisonOptions: string[] = [
@@ -177,169 +138,64 @@ export const FindNode: React.FC<FindNodeProps> = ({
         setExecutionPlanView(executionPlanView);
     };
 
-    if (useReactFlow) {
-        const resultSummary =
-            findNodeResults.length > 0 && findNodeResultsIndex >= 0
-                ? locConstants.common.searchResultSummary(
-                      findNodeResultsIndex + 1,
-                      findNodeResults.length,
-                  )
-                : hasSearched
-                  ? locConstants.common.noResults
-                  : "";
-
-        return (
-            <VscodeFloatingWidget
-                id="findNodeInputContainer"
-                className={classes.previewInputContainer}
-                role="search"
-                aria-label={locConstants.executionPlan.findNodes}
-                onKeyDown={(event) => {
-                    if (event.key === "Escape") {
-                        event.preventDefault();
-                        setFindNodeClicked(false);
-                    }
-                }}>
-                <SearchableDropdown
-                    id="findNodeDropdown"
-                    size="small"
-                    options={searchableFindNodeOptions}
-                    selectedOption={selectedFindNodeOption}
-                    style={{
-                        width: "210px",
-                        minWidth: "160px",
-                        height: "26px",
-                        boxSizing: "border-box",
-                    }}
-                    minPopupWidth={240}
-                    searchBoxPlaceholder={locConstants.common.find}
-                    onSelect={(option) => {
-                        setFindNodeSelection(option.value);
-                        setHasSearched(false);
-                        setFindNodeResultsIndex(-1);
-                        setFindNodeResults([]);
-                    }}
-                    triggerRef={inputRef}
-                    ariaLabel={locConstants.executionPlan.findNode}
-                />
-                <Dropdown
-                    id="findNodeComparisonDropdown"
-                    size="small"
-                    className={classes.previewComparisonControl}
-                    style={{
-                        width: "96px",
-                        minWidth: "96px",
-                        height: "26px",
-                        boxSizing: "border-box",
-                    }}
-                    defaultValue={findNodeComparisonOptions[0]}
-                    onOptionSelect={(_, data) => {
-                        setFindNodeComparisonSelection(
-                            data.optionText ?? findNodeComparisonOptions[0],
-                        );
-                        setHasSearched(false);
-                        setFindNodeResultsIndex(-1);
-                        setFindNodeResults([]);
-                    }}
-                    aria-label={locConstants.executionPlan.findNode}>
-                    {findNodeComparisonOptions.map((option) => (
-                        <Option key={option} className={classes.option}>
-                            {option}
-                        </Option>
-                    ))}
-                </Dropdown>
-                <Input
-                    id="findNodeInputBox"
-                    size="small"
-                    type="text"
-                    className={classes.previewValueControl}
-                    value={findNodeSearchValue}
-                    placeholder={locConstants.executionPlan.value}
-                    contentAfter={
-                        resultSummary ? (
-                            <span className={classes.previewResultCount} aria-live="polite">
-                                {resultSummary}
-                            </span>
-                        ) : undefined
-                    }
-                    onChange={(event) => {
-                        setFindNodeSearchValue(event.target.value);
-                        setHasSearched(false);
-                        setFindNodeResultsIndex(-1);
-                        setFindNodeResults([]);
-                    }}
-                    onKeyDown={(event) => {
-                        if (event.key === "Enter") {
-                            event.preventDefault();
-                            void handleFoundNode(event.shiftKey ? -1 : 1);
-                        }
-                    }}
-                    aria-label={locConstants.executionPlan.value}
-                />
-                <VscodeFloatingWidgetAction
-                    onClick={() => handleFoundNode(-1)}
-                    title={locConstants.executionPlan.previous}
-                    aria-label={locConstants.executionPlan.previous}
-                    icon={<ArrowUp16Regular />}
-                />
-                <VscodeFloatingWidgetAction
-                    onClick={() => handleFoundNode(1)}
-                    title={locConstants.executionPlan.next}
-                    aria-label={locConstants.executionPlan.next}
-                    icon={<ArrowDown16Regular />}
-                />
-                <VscodeFloatingWidgetAction
-                    onClick={() => setFindNodeClicked(false)}
-                    title={locConstants.common.close}
-                    aria-label={locConstants.common.close}
-                    icon={<Dismiss16Regular />}
-                />
-            </VscodeFloatingWidget>
-        );
-    }
+    const resultSummary =
+        findNodeResults.length > 0 && findNodeResultsIndex >= 0
+            ? locConstants.common.searchResultSummary(
+                  findNodeResultsIndex + 1,
+                  findNodeResults.length,
+              )
+            : hasSearched
+              ? locConstants.common.noResults
+              : "";
 
     return (
-        <div
+        <VscodeFloatingWidget
             id="findNodeInputContainer"
-            className={classes.inputContainer}
-            style={{
-                background: tokens.colorNeutralBackground1,
+            className={classes.previewInputContainer}
+            role="search"
+            aria-label={locConstants.executionPlan.findNodes}
+            onKeyDown={(event) => {
+                if (event.key === "Escape") {
+                    event.preventDefault();
+                    setFindNodeClicked(false);
+                }
             }}>
-            {locConstants.executionPlan.findNodes}
-            <div style={{ paddingRight: "12px" }} />
-            <Combobox
+            <SearchableDropdown
                 id="findNodeDropdown"
-                className={classes.inputs}
                 size="small"
-                input={{ style: { width: "130px", textOverflow: "ellipsis" } }}
-                listbox={{ style: { minWidth: "fit-content" } }}
-                defaultValue={findNodeOptions[0]}
-                onOptionSelect={(_, data) => {
-                    setFindNodeSelection(data.optionText ?? findNodeOptions[0]);
+                options={searchableFindNodeOptions}
+                selectedOption={selectedFindNodeOption}
+                style={{
+                    width: "210px",
+                    minWidth: "160px",
+                    height: "26px",
+                    boxSizing: "border-box",
+                }}
+                minPopupWidth={240}
+                searchBoxPlaceholder={locConstants.common.find}
+                onSelect={(option) => {
+                    setFindNodeSelection(option.value);
+                    setHasSearched(false);
                     setFindNodeResultsIndex(-1);
                     setFindNodeResults([]);
                 }}
-                ref={inputRef}
-                aria-label={locConstants.executionPlan.findNode}>
-                {findNodeOptions.map((option) => (
-                    <Option key={option} className={classes.option}>
-                        {option}
-                    </Option>
-                ))}
-            </Combobox>
-            <div className={classes.spacer}></div>
+                triggerRef={inputRef}
+                ariaLabel={locConstants.executionPlan.findNode}
+            />
             <Dropdown
                 id="findNodeComparisonDropdown"
                 size="small"
-                className={classes.inputs}
+                className={classes.previewComparisonControl}
                 style={{
-                    width: "80px",
-                    textOverflow: "ellipsis",
-                    height: "24px",
+                    width: "96px",
+                    minWidth: "96px",
+                    height: "26px",
+                    boxSizing: "border-box",
                 }}
                 defaultValue={findNodeComparisonOptions[0]}
                 onOptionSelect={(_, data) => {
                     setFindNodeComparisonSelection(data.optionText ?? findNodeComparisonOptions[0]);
+                    setHasSearched(false);
                     setFindNodeResultsIndex(-1);
                     setFindNodeResults([]);
                 }}
@@ -350,44 +206,52 @@ export const FindNode: React.FC<FindNodeProps> = ({
                     </Option>
                 ))}
             </Dropdown>
-            <div className={classes.spacer}></div>
             <Input
                 id="findNodeInputBox"
                 size="small"
                 type="text"
-                className={classes.inputs}
-                input={{ style: { width: "85px", textOverflow: "ellipsis" } }}
-                onChange={(e) => {
-                    setFindNodeSearchValue(e.target.value);
+                className={classes.previewValueControl}
+                value={findNodeSearchValue}
+                placeholder={locConstants.executionPlan.value}
+                contentAfter={
+                    resultSummary ? (
+                        <span className={classes.previewResultCount} aria-live="polite">
+                            {resultSummary}
+                        </span>
+                    ) : undefined
+                }
+                onChange={(event) => {
+                    setFindNodeSearchValue(event.target.value);
+                    setHasSearched(false);
                     setFindNodeResultsIndex(-1);
                     setFindNodeResults([]);
                 }}
+                onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                        event.preventDefault();
+                        void handleFoundNode(event.shiftKey ? -1 : 1);
+                    }
+                }}
+                aria-label={locConstants.executionPlan.value}
             />
-            <div className={classes.spacer}></div>
-            <Button
+            <VscodeFloatingWidgetAction
                 onClick={() => handleFoundNode(-1)}
-                size="small"
-                appearance="subtle"
                 title={locConstants.executionPlan.previous}
                 aria-label={locConstants.executionPlan.previous}
-                icon={<ArrowUp20Regular />}
+                icon={<ArrowUp16Regular />}
             />
-            <Button
+            <VscodeFloatingWidgetAction
                 onClick={() => handleFoundNode(1)}
-                size="small"
-                appearance="subtle"
                 title={locConstants.executionPlan.next}
                 aria-label={locConstants.executionPlan.next}
-                icon={<ArrowDown20Regular />}
+                icon={<ArrowDown16Regular />}
             />
-            <Button
+            <VscodeFloatingWidgetAction
                 onClick={() => setFindNodeClicked(false)}
-                size="small"
-                appearance="subtle"
                 title={locConstants.common.close}
                 aria-label={locConstants.common.close}
-                icon={<Dismiss20Regular />}
+                icon={<Dismiss16Regular />}
             />
-        </div>
+        </VscodeFloatingWidget>
     );
 };

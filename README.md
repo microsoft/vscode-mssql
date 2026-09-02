@@ -219,7 +219,6 @@ Configure the MSSQL extension in user preferences (`Cmd+,`) or workspace setting
 {
   "mssql.openQueryResultsInTabByDefault": false,           // Open query results in a tab instead of side panel
   "mssql.preview.betaResultsGrid": false,                  // (Preview) Enable the new query results grid with improved state management and column show/hide/freeze options
-  "mssql.preview.betaExecutionPlan": false,                // (Preview) Enable the new execution plan viewer with improved performance
   "mssql.resultsFontFamily": null,                         // Font family for results grid (null = VS Code default)
   "mssql.resultsFontSize": null,                           // Font size for results grid in pixels (null = VS Code default)
   "mssql.defaultQueryResultsViewMode": "Grid",             // Default results view: "Grid" or "Text"
