@@ -348,11 +348,9 @@ suite("OE Service Tests", () => {
             expect(
                 endStub,
                 "Telemetry should end successfully with the child count",
-            ).to.have.been.calledWithMatch(
-                ActivityStatus.Succeeded,
-                sinon.match.any,
-                sinon.match({ childrenCount: 2 }),
-            );
+            ).to.have.been.calledWithMatch(ActivityStatus.Succeeded, {
+                additionalMeasurements: sinon.match({ childrenCount: 2 }),
+            });
 
             // Verify the result matches the mapped children
             expect(result, "Result should match mapped children").to.equal(mappedChildren);
@@ -1138,12 +1136,17 @@ suite("OE Service Tests", () => {
             const updateStub = mockActivityObject.update as sinon.SinonStub;
             expect(updateStub.calledOnce, "Telemetry should be updated once").to.be.true;
             expect(
-                updateStub.args[0][0].connectionType,
+                updateStub.args[0][0].additionalProps.connectionType,
                 "Connection type should be captured",
             ).to.equal(connectionProfile.authenticationType);
-            expect(updateStub.args[0][0].isFixed, "Is fixed should be false").to.equal("false");
-            expect(updateStub.args[0][0].errorHandled, "Error handled should be undefined").to.be
-                .undefined;
+            expect(
+                updateStub.args[0][0].additionalProps.isFixed,
+                "Is fixed should be false",
+            ).to.equal("false");
+            expect(
+                updateStub.args[0][0].additionalProps.errorHandled,
+                "Error handled should be undefined",
+            ).to.be.undefined;
         });
 
         test("handleSessionCreationFailure should update telemetry when error number is present", async () => {
@@ -1171,10 +1174,14 @@ suite("OE Service Tests", () => {
 
             // Verify telemetry was updated with error number
             expect(updateStub.calledTwice, "Telemetry should be updated twice").to.be.true;
-            expect(updateStub.args[0][0].connectionType, "Connection type should match").to.equal(
-                "SqlLogin",
-            );
-            expect(updateStub.args[0][1].errorNumber, "Error number should match").to.equal(12345);
+            expect(
+                updateStub.args[0][0].additionalProps.connectionType,
+                "Connection type should match",
+            ).to.equal("SqlLogin");
+            expect(
+                updateStub.args[0][0].additionalMeasurements.errorNumber,
+                "Error number should match",
+            ).to.equal(12345);
         });
 
         test("handleSessionCreationFailure delegates to ConnectionManager.handleConnectionErrors", async () => {
@@ -1246,11 +1253,11 @@ suite("OE Service Tests", () => {
             ).to.be.true;
             expect(updateStub.calledTwice, "Telemetry should be updated twice").to.be.true;
             expect(
-                updateStub.args[1][0].errorHandled,
+                updateStub.args[1][0].additionalProps.errorHandled,
                 "Telemetry should record handled error type",
             ).to.equal("trustServerCertificate");
             expect(
-                updateStub.args[1][0].isFixed,
+                updateStub.args[1][0].additionalProps.isFixed,
                 "Telemetry should record issue as fixed",
             ).to.equal("true");
         });
@@ -1290,7 +1297,7 @@ suite("OE Service Tests", () => {
             ).to.be.false;
             expect(updateStub.calledTwice, "Telemetry should be updated twice").to.be.true;
             expect(
-                updateStub.args[1][0].isFixed,
+                updateStub.args[1][0].additionalProps.isFixed,
                 "Telemetry should indicate the issue is unresolved",
             ).to.equal("true");
         });
@@ -1638,8 +1645,7 @@ suite("OE Service Tests", () => {
             ).to.have.been.calledWithMatch(
                 TelemetryViews.ObjectExplorer,
                 TelemetryActions.CreateSession,
-                sinon.match.any,
-                sinon.match({ connectionType: "SqlLogin" }),
+                { additionalProps: sinon.match({ connectionType: "SqlLogin" }) },
             );
         });
 
@@ -1711,16 +1717,16 @@ suite("OE Service Tests", () => {
             ).to.have.been.calledWithMatch(
                 TelemetryViews.ObjectExplorer,
                 TelemetryActions.CreateSession,
-                sinon.match.any,
-                sinon.match({ connectionType: "newConnection" }),
+                { additionalProps: sinon.match({ connectionType: "newConnection" }) },
             );
             expect(
                 endStub,
                 "Telemetry should end successfully with the connection type",
-            ).to.have.been.calledWithMatch(
-                ActivityStatus.Succeeded,
-                sinon.match({ connectionType: connectionProfile.authenticationType }),
-            );
+            ).to.have.been.calledWithMatch(ActivityStatus.Succeeded, {
+                additionalProps: sinon.match({
+                    connectionType: connectionProfile.authenticationType,
+                }),
+            });
 
             // Verify client requests were sent
             expect(mockClient.sendRequest.calledTwice, "Client should send two requests").to.be
@@ -2023,8 +2029,7 @@ suite("OE Service Tests", () => {
             ).to.have.been.calledWithMatch(
                 TelemetryViews.ObjectExplorer,
                 TelemetryActions.CreateSession,
-                sinon.match.any,
-                sinon.match({ connectionType: "AzureMFA" }),
+                { additionalProps: sinon.match({ connectionType: "AzureMFA" }) },
             );
 
             // Reset stubs
@@ -2041,8 +2046,7 @@ suite("OE Service Tests", () => {
             ).to.have.been.calledWithMatch(
                 TelemetryViews.ObjectExplorer,
                 TelemetryActions.CreateSession,
-                sinon.match.any,
-                sinon.match({ connectionType: "newConnection" }),
+                { additionalProps: sinon.match({ connectionType: "newConnection" }) },
             );
         });
 
@@ -2241,10 +2245,9 @@ suite("OE Service Tests", () => {
             expect(
                 endStub,
                 "Telemetry should end with the updated connection type",
-            ).to.have.been.calledWithMatch(
-                ActivityStatus.Succeeded,
-                sinon.match({ connectionType: "SqlLogin" }),
-            );
+            ).to.have.been.calledWithMatch(ActivityStatus.Succeeded, {
+                additionalProps: sinon.match({ connectionType: "SqlLogin" }),
+            });
         });
     });
 
@@ -2336,19 +2339,16 @@ suite("OE Service Tests", () => {
             ).to.have.been.calledWithMatch(
                 TelemetryViews.ObjectExplorer,
                 TelemetryActions.ExpandNode,
-                sinon.match.any,
-                sinon.match({ nodeType: "root" }),
+                { additionalProps: sinon.match({ nodeType: "root" }) },
             );
 
             // Verify activity ended with success.
             expect(
                 endStub,
                 "Telemetry should end successfully with zero children",
-            ).to.have.been.calledWithMatch(
-                ActivityStatus.Succeeded,
-                sinon.match.any,
-                sinon.match({ childrenCount: 0 }),
-            );
+            ).to.have.been.calledWithMatch(ActivityStatus.Succeeded, {
+                additionalMeasurements: sinon.match({ childrenCount: 0 }),
+            });
         });
 
         test("getRootNodes should create connection nodes from saved profiles", async () => {
@@ -2378,8 +2378,7 @@ suite("OE Service Tests", () => {
             // Verify telemetry ended with correct node count.
             expect(endStub, "Telemetry should include the node count").to.have.been.calledWithMatch(
                 ActivityStatus.Succeeded,
-                sinon.match.any,
-                sinon.match({ nodeCount: 2 }),
+                { additionalMeasurements: sinon.match({ nodeCount: 2 }) },
             );
         });
 
@@ -2404,8 +2403,7 @@ suite("OE Service Tests", () => {
                 ).to.have.been.calledWithMatch(
                     TelemetryViews.ObjectExplorer,
                     TelemetryActions.ExpandNode,
-                    sinon.match.any,
-                    sinon.match({ nodeType: "root" }),
+                    { additionalProps: sinon.match({ nodeType: "root" }) },
                 );
                 expect(endStub.called, "Telemetry end should not be called").to.be.false;
                 expect(endFailedStub.called, "Telemetry end failed should not be called").to.be
@@ -2802,8 +2800,7 @@ suite("OE Service Tests", () => {
             ).to.have.been.calledWithMatch(
                 TelemetryViews.ObjectExplorer,
                 TelemetryActions.CreateSession,
-                sinon.match.any,
-                sinon.match({ connectionType: "SqlLogin" }),
+                { additionalProps: sinon.match({ connectionType: "SqlLogin" }) },
             );
         });
     });

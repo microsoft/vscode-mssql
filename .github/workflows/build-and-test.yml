@@ -45,7 +45,7 @@ jobs:
       - name: Download baseline sizes
         if: env.should_compare_baseline == 'true'
         continue-on-error: true
-        uses: dawidd6/action-download-artifact@b6e2e70617bc3265edd6dab6c906732b2f1ae151 # v21
+        uses: dawidd6/action-download-artifact@57aa996fc1713cc1579039614f4645a7f4841fd4 # v23
         with:
           workflow: publish-baseline.yml
           branch: ${{ github.event.pull_request.base.ref }}
@@ -289,9 +289,10 @@ jobs:
 
       - name: MSSQL - Run unit tests
         continue-on-error: true
+        working-directory: ./extensions/mssql
         run: |
           set +e  # Don't exit on errors
-          DISPLAY=:10 npm run test -- --target mssql
+          DISPLAY=:10 npm test
           UNIT_EXIT_CODE=$?
           echo "mssql_unit_tests_pr_exit_code=$UNIT_EXIT_CODE" >> $GITHUB_ENV
 
@@ -435,36 +436,6 @@ jobs:
           comment-id: ${{ steps.fc.outputs.comment-id }}
           edit-mode: replace
 
-      - name: SqlProj - Run unit tests
-        continue-on-error: true
-        run: |
-          set +e  # Don't exit on errors
-          DISPLAY=:10 npm run test -- --target sql-database-projects
-          UNIT_EXIT_CODE=$?
-          echo "sqlproj_unit_tests_pr_exit_code=$UNIT_EXIT_CODE" >> $GITHUB_ENV
-
-      - name: SqlProj - Upload coverage to Codecov
-        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./extensions/sql-database-projects/coverage/cobertura-coverage.xml
-          flags: sqlproj
-
-      - name: DataWorkspace - Run unit tests
-        continue-on-error: true
-        run: |
-          set +e  # Don't exit on errors
-          DISPLAY=:10 npm run test -- --target data-workspace
-          UNIT_EXIT_CODE=$?
-          echo "dataworkspace_unit_tests_pr_exit_code=$UNIT_EXIT_CODE" >> $GITHUB_ENV
-
-      - name: DataWorkspace - Upload coverage to Codecov
-        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./extensions/data-workspace/coverage/cobertura-coverage.xml
-          flags: data-workspace
-
       - name: Generate xliff files
         run: |
           npm run localization
@@ -569,18 +540,6 @@ jobs:
           if [ "${{ env.mssql_unit_tests_pr_exit_code }}" != "0" ] && [ "${{ env.mssql_unit_tests_pr_exit_code }}" != "" ]; then
             echo "  ❌ MSSQL unit tests failed with exit code ${{ env.mssql_unit_tests_pr_exit_code }}"
             PIPELINE_FAILED=true
-          fi
-
-          # Check SqlProj unit tests
-          if [ "${{ env.sqlproj_unit_tests_pr_exit_code }}" != "0" ] && [ "${{ env.sqlproj_unit_tests_pr_exit_code }}" != "" ]; then
-            echo "  ❌ SqlProj unit tests failed with exit code ${{ env.sqlproj_unit_tests_pr_exit_code }}"
-            PIPELINE_FAILED=true
-          fi
-
-          # Check DataWorkspace unit tests
-          if [ "${{ env.dataworkspace_unit_tests_pr_exit_code }}" != "0" ] && [ "${{ env.dataworkspace_unit_tests_pr_exit_code }}" != "" ]; then
-            echo "  ⚠️ DataWorkspace unit tests failed with exit code ${{ env.dataworkspace_unit_tests_pr_exit_code }} (warning because tests not yet stablized)"
-            # PIPELINE_FAILED=true # Don't fail for dataworkspace unit tests yet; they aren't stable
           fi
 
           # Check MSSQL smoke tests

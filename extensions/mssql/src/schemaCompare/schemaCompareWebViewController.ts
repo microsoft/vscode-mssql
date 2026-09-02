@@ -14,6 +14,7 @@ import {
     ExtractTarget,
     SchemaCompareEndpointType,
     SchemaCompareReducers,
+    SchemaCompareServer,
     SchemaCompareWebViewState,
     SchemaDifferenceType,
     SchemaUpdateAction,
@@ -42,16 +43,12 @@ import { DiffEntry } from "vscode-mssql";
 import { sendActionEvent, startActivity, sendErrorEvent } from "extension-toolkit/vscode";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import * as locConstants from "../constants/locConstants";
-import { IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
-import {
-    cmdAddObjectExplorer,
-    azureMfa,
-    triggerSchemaCompareAutomatic,
-    triggerSchemaCompareManual,
-} from "../constants/constants";
+import { triggerSchemaCompareAutomatic, triggerSchemaCompareManual } from "../constants/constants";
 import { getErrorMessage } from "../utils/utils";
 import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
 import { UserSurvey } from "../nps/userSurvey";
+import { getConnectionDisplayName } from "../models/connectionInfo";
+import { buildDatabaseOptions } from "../utils/databaseUtils";
 
 const SCHEMA_COMPARE_VIEW_ID = "schemaCompare";
 
@@ -62,6 +59,9 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
     private static readonly SQL_DATABASE_PROJECTS_EXTENSION_ID =
         "ms-mssql.sql-database-projects-vscode";
     private operationId: string;
+    private readonly connectionUris = new Map<string, string>();
+    private databaseListRequestGeneration = 0;
+    private readonly databaseListCache = new Map<string, string[]>();
 
     constructor(
         context: vscode.ExtensionContext,
@@ -94,8 +94,11 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 applySucceeded: false,
                 applyFailed: false,
                 isIncludeExcludeAllOperationInProgress: false,
-                activeServers: {},
+                connections: {},
                 databases: [],
+                databaseListConnectionId: "",
+                isDatabaseListLoading: false,
+                databaseListError: "",
                 defaultDeploymentOptionsResult: structuredClone(schemaCompareOptionsResult),
                 intermediaryOptionsResult: undefined,
                 endpointsSwitched: false,
@@ -115,8 +118,6 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 schemaCompareOpenScmpResult: undefined,
                 saveScmpResultStatus: undefined,
                 cancelResultStatus: undefined,
-                waitingForNewConnection: false,
-                pendingConnectionEndpointType: null,
             },
             {
                 title: title,
@@ -146,33 +147,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
 
         this.registerDisposable(
             this.connectionMgr.onConnectionsChanged(async () => {
-                const activeServers = this.getActiveServersList();
-
-                // Check if we're waiting for a new connection and auto-select it
-                if (
-                    this.state.waitingForNewConnection &&
-                    this.state.pendingConnectionEndpointType
-                ) {
-                    const newConnections = this.findNewConnections(
-                        this.state.activeServers,
-                        activeServers,
-                    );
-                    if (newConnections.length > 0) {
-                        // Update active servers first so the UI has the latest list
-                        this.state.activeServers = activeServers;
-
-                        // Auto-select the first new connection
-                        const newConnectionUri = newConnections[0];
-                        await this.autoSelectNewConnection(
-                            newConnectionUri,
-                            this.state.pendingConnectionEndpointType,
-                        );
-                    }
-                } else {
-                    // Update active servers if we're not waiting for a new connection
-                    this.state.activeServers = activeServers;
-                }
-
+                this.state.connections = await this.getAvailableServersList();
                 this.updateState();
             }),
         );
@@ -301,6 +276,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         sourceContext: any,
     ): Promise<mssql.SchemaCompareEndpointInfo> {
         let ownerUri = await this.connectionMgr.getUriForConnection(connectionProfile);
+        const databaseName = ObjectExplorerUtils.getDatabaseName(sourceContext);
         let user = connectionProfile.user;
         if (!user) {
             user = locConstants.SchemaCompare.defaultUserName;
@@ -310,14 +286,11 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             endpointType: SchemaCompareEndpointType.Database,
             serverDisplayName: `${connectionProfile.server} (${user})`,
             serverName: connectionProfile.server,
-            databaseName: ObjectExplorerUtils.getDatabaseName(sourceContext),
+            databaseName: databaseName,
             ownerUri: ownerUri,
+            connectionId: connectionProfile.id || ownerUri,
             packageFilePath: "",
-            connectionDetails: {
-                options: {
-                    database: connectionProfile.database,
-                },
-            },
+            connectionDetails: undefined,
             connectionName: connectionProfile.profileName ? connectionProfile.profileName : "",
             projectFilePath: "",
             targetScripts: [],
@@ -399,12 +372,14 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             sendErrorEvent(
                 TelemetryViews.SchemaCompare,
                 TelemetryActions.GetDatabaseProjectScriptFiles,
-                new Error(`Failed to get project script files: ${getErrorMessage(error)}`),
-                true,
-                undefined,
-                undefined,
                 {
-                    operationId: this.operationId,
+                    error: new Error(
+                        `Failed to get project script files: ${getErrorMessage(error)}`,
+                    ),
+                    includeErrorMessage: true,
+                    additionalProps: {
+                        operationId: this.operationId,
+                    },
                 },
             );
         }
@@ -445,12 +420,14 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             sendErrorEvent(
                 TelemetryViews.SchemaCompare,
                 TelemetryActions.GetDatabaseProjectSchemaProvider,
-                new Error(`Failed to get database schema provider: ${getErrorMessage(error)}`),
-                true,
-                undefined,
-                undefined,
                 {
-                    operationId: this.operationId,
+                    error: new Error(
+                        `Failed to get database schema provider: ${getErrorMessage(error)}`,
+                    ),
+                    includeErrorMessage: true,
+                    additionalProps: {
+                        operationId: this.operationId,
+                    },
                 },
             );
         }
@@ -475,9 +452,11 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.SchemaCompare,
                 TelemetryActions.SqlProjectInstalledVerification,
-                generateOperationId(),
                 {
-                    operationId: this.operationId,
+                    correlationId: generateOperationId(),
+                    additionalProps: {
+                        operationId: this.operationId,
+                    },
                 },
             );
 
@@ -493,13 +472,17 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                     await extension.activate();
 
                     endActivity.update({
-                        message: "SQL Database Projects extension activated",
+                        additionalProps: {
+                            message: "SQL Database Projects extension activated",
+                        },
                     });
                 }
 
                 endActivity.end(ActivityStatus.Succeeded, {
-                    operationId: this.operationId,
-                    isSqlProjectExtensionInstalled: "true",
+                    additionalProps: {
+                        operationId: this.operationId,
+                        isSqlProjectExtensionInstalled: "true",
+                    },
                 });
 
                 this.logger.debug(
@@ -512,8 +495,10 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 );
 
                 endActivity.end(ActivityStatus.Succeeded, {
-                    operationId: this.operationId,
-                    isSqlProjectExtensionInstalled: "false",
+                    additionalProps: {
+                        operationId: this.operationId,
+                        isSqlProjectExtensionInstalled: "false",
+                    },
                 });
 
                 state.isSqlProjectExtensionInstalled = false;
@@ -524,26 +509,35 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             return state;
         });
 
-        this.registerReducer("listActiveServers", (state) => {
-            this.logger.debug(`Listing active SQL servers - OperationId: ${this.operationId}`);
-            const activeServers = this.getActiveServersList();
+        this.registerReducer("listActiveServers", async (state) => {
+            this.logger.debug(`Listing SQL connections - OperationId: ${this.operationId}`);
+            const connections = await this.getAvailableServersList();
 
-            const serverCount = Object.keys(activeServers).length;
+            const serverCount = Object.keys(connections).length;
             this.logger.debug(
-                `Found ${serverCount} active SQL server connection(s) - OperationId: ${this.operationId}`,
+                `Found ${serverCount} SQL connection(s) - OperationId: ${this.operationId}`,
             );
             sendActionEvent(TelemetryViews.SchemaCompare, TelemetryActions.ListingActiveServers, {
-                operationId: this.operationId,
-                serverCount: serverCount.toString(),
+                additionalProps: {
+                    operationId: this.operationId,
+                    serverCount: serverCount.toString(),
+                },
             });
 
-            state.activeServers = activeServers;
+            state.connections = connections;
             this.updateState(state);
 
             return state;
         });
 
         this.registerReducer("listDatabasesForActiveServer", async (state, payload) => {
+            const requestGeneration = ++this.databaseListRequestGeneration;
+            const connectionDatabaseName =
+                payload.connectionDatabaseName ??
+                state.connections[payload.connectionUri]?.database ??
+                "";
+            const databaseCacheKey =
+                this.connectionUris.get(payload.connectionUri) ?? payload.connectionUri;
             this.logger.debug(
                 `Listing databases for server connection: ${payload.connectionUri} - OperationId: ${this.operationId}`,
             );
@@ -551,24 +545,77 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.SchemaCompare,
                 TelemetryActions.ListingDatabasesForActiveServer,
-                generateOperationId(),
                 {
-                    operationId: this.operationId,
+                    correlationId: generateOperationId(),
+                    additionalProps: {
+                        operationId: this.operationId,
+                    },
                 },
             );
 
-            let databases: string[] = [];
+            state.databaseListConnectionId = payload.connectionUri;
+            state.databaseListError = "";
+
+            const cachedDatabases = this.databaseListCache.get(databaseCacheKey);
+            if (cachedDatabases) {
+                const databaseNames = this.includeConnectionDatabase(
+                    cachedDatabases,
+                    connectionDatabaseName,
+                );
+                state.databases = this.buildDatabaseOptions(databaseNames);
+                state.isDatabaseListLoading = false;
+                this.updateState(state);
+                endActivity.end(ActivityStatus.Succeeded, {
+                    additionalProps: {
+                        operationId: this.operationId,
+                        databaseCount: state.databases.length.toString(),
+                        cacheHit: "true",
+                    },
+                });
+                return state;
+            }
+
+            state.databases = this.buildDatabaseOptions(
+                connectionDatabaseName ? [connectionDatabaseName] : [],
+            );
+            state.isDatabaseListLoading = true;
+            this.updateState(state);
+
             try {
-                databases = await this.connectionMgr.listDatabases(payload.connectionUri);
+                const connectionUri = await this.connectToServer(payload.connectionUri);
+                if (requestGeneration !== this.databaseListRequestGeneration) {
+                    endActivity.end(ActivityStatus.Canceled);
+                    return state;
+                }
+
+                const databases = this.includeConnectionDatabase(
+                    await this.connectionMgr.listDatabases(connectionUri),
+                    connectionDatabaseName,
+                );
+                if (requestGeneration !== this.databaseListRequestGeneration) {
+                    endActivity.end(ActivityStatus.Canceled);
+                    return state;
+                }
+                this.databaseListCache.set(connectionUri, [...databases]);
                 this.logger.debug(
                     `Found ${databases.length} database(s) on server - OperationId: ${this.operationId}`,
                 );
 
                 endActivity.end(ActivityStatus.Succeeded, {
-                    operationId: this.operationId,
-                    databaseCount: databases.length.toString(),
+                    additionalProps: {
+                        operationId: this.operationId,
+                        databaseCount: databases.length.toString(),
+                    },
                 });
+
+                state.databases = this.buildDatabaseOptions(databases);
+                state.isDatabaseListLoading = false;
+                state.databaseListError = "";
             } catch (error) {
+                if (requestGeneration !== this.databaseListRequestGeneration) {
+                    endActivity.end(ActivityStatus.Canceled);
+                    return state;
+                }
                 this.logger.error(
                     `Error listing databases: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
                 );
@@ -584,35 +631,11 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                         operationId: this.operationId,
                     },
                 );
+                state.isDatabaseListLoading = false;
+                state.databaseListError = getErrorMessage(error);
             }
 
-            state.databases = databases;
             this.updateState(state);
-
-            return state;
-        });
-
-        this.registerReducer("openAddNewConnectionDialog", (state, payload) => {
-            this.logger.debug(
-                `Opening new connection dialog for ${payload.endpointType} endpoint - OperationId: ${this.operationId}`,
-            );
-
-            sendActionEvent(
-                TelemetryViews.SchemaCompare,
-                TelemetryActions.AddNewConnectionDialogOpened,
-                {
-                    operationId: this.operationId,
-                },
-            );
-
-            state.waitingForNewConnection = true;
-            state.pendingConnectionEndpointType = payload.endpointType;
-
-            this.logger.debug(
-                `Executing command: ${cmdAddObjectExplorer} - OperationId: ${this.operationId}`,
-            );
-
-            vscode.commands.executeCommand(cmdAddObjectExplorer);
 
             return state;
         });
@@ -706,17 +729,58 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             return state;
         });
 
-        this.registerReducer("confirmSelectedDatabase", (state, payload) => {
+        this.registerReducer("confirmSelectedDatabase", async (state, payload) => {
             this.logger.debug(
                 `Confirming selected database for ${payload.endpointType} endpoint: ${payload.databaseName} - OperationId: ${this.operationId}`,
             );
 
-            const connection = this.connectionMgr.activeConnections[payload.serverConnectionUri];
+            let connectionUri: string;
+            try {
+                connectionUri = await this.connectToServer(payload.serverConnectionUri);
+            } catch (error) {
+                this.logger.error(
+                    `Failed to resolve saved connection ${payload.serverConnectionUri}: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+                );
+                await vscode.window.showErrorMessage(
+                    locConstants.SchemaCompare.connectionFailed(getErrorMessage(error)),
+                );
+                return state;
+            }
+
+            const connection = this.connectionMgr.getConnectionInfo(connectionUri);
             this.logger.debug(
-                `Using connection: ${payload.serverConnectionUri} - OperationId: ${this.operationId}`,
+                `Using connection: ${connectionUri} - OperationId: ${this.operationId}`,
             );
 
-            const connectionProfile = connection.credentials as IConnectionProfile;
+            if (!connection) {
+                this.logger.error(
+                    `Connection not found: ${connectionUri} - OperationId: ${this.operationId}`,
+                );
+                await vscode.window.showErrorMessage(
+                    locConstants.SchemaCompare.connectionFailed(
+                        locConstants.msgConnectionNotFound(connectionUri),
+                    ),
+                );
+                return state;
+            }
+
+            const { profile: connectionProfile, score } =
+                await this.connectionMgr.findMatchingProfile(
+                    connection.credentials as IConnectionProfile,
+                );
+            if (!connectionProfile || score === utils.MatchScore.NotMatch) {
+                this.logger.error(
+                    `Saved connection profile not found for: ${payload.serverConnectionUri} - OperationId: ${this.operationId}`,
+                );
+                await vscode.window.showErrorMessage(
+                    locConstants.SchemaCompare.connectionFailed(
+                        locConstants.SchemaCompare.savedConnectionNotFound(
+                            payload.serverConnectionUri,
+                        ),
+                    ),
+                );
+                return state;
+            }
 
             let user = connectionProfile.user;
             if (!user) {
@@ -731,13 +795,10 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 serverDisplayName: `${connectionProfile.server} (${user})`,
                 serverName: connectionProfile.server,
                 databaseName: payload.databaseName,
-                ownerUri: payload.serverConnectionUri,
+                ownerUri: connectionUri,
+                connectionId: connectionProfile.id || payload.serverConnectionUri,
                 packageFilePath: "",
-                connectionDetails: {
-                    options: {
-                        database: connectionProfile.database,
-                    },
-                },
+                connectionDetails: undefined,
                 connectionName: connectionProfile.profileName ? connectionProfile.profileName : "",
                 projectFilePath: "",
                 targetScripts: [],
@@ -865,9 +926,11 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.SchemaCompare,
                 TelemetryActions.OptionsChanged,
-                generateOperationId(),
                 {
-                    operationId: this.operationId,
+                    correlationId: generateOperationId(),
+                    additionalProps: {
+                        operationId: this.operationId,
+                    },
                 },
             );
 
@@ -893,8 +956,10 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                             );
 
                             endActivity.update({
-                                operationId: this.operationId,
-                                message: "User chose to run comparison with new options",
+                                additionalProps: {
+                                    operationId: this.operationId,
+                                    message: "User chose to run comparison with new options",
+                                },
                             });
 
                             const payload = {
@@ -906,8 +971,10 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                             await this.schemaCompare(payload, state);
 
                             endActivity.end(ActivityStatus.Succeeded, {
-                                operationId: this.operationId,
-                                message: "Comparison run with new options",
+                                additionalProps: {
+                                    operationId: this.operationId,
+                                    message: "Comparison run with new options",
+                                },
                             });
                         } else {
                             this.logger.debug(
@@ -915,8 +982,10 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                             );
 
                             endActivity.end(ActivityStatus.Succeeded, {
-                                operationId: this.operationId,
-                                message: "User chose not to run comparison",
+                                additionalProps: {
+                                    operationId: this.operationId,
+                                    message: "User chose not to run comparison",
+                                },
                             });
                         }
                     });
@@ -924,8 +993,10 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 this.logger.debug(`No options were changed - OperationId: ${this.operationId}`);
 
                 endActivity.end(ActivityStatus.Succeeded, {
-                    operationId: this.operationId,
-                    message: "No options were changed",
+                    additionalProps: {
+                        operationId: this.operationId,
+                        message: "No options were changed",
+                    },
                 });
             }
 
@@ -981,20 +1052,22 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.SchemaCompare,
                 TelemetryActions.Switch,
-                generateOperationId(),
                 {
-                    startTime: startTime.toString(),
-                    operationId: this.operationId,
-                    oldSourceType: payload.newSourceEndpointInfo
-                        ? getSchemaCompareEndpointTypeString(
-                              payload.newSourceEndpointInfo.endpointType,
-                          )
-                        : "None",
-                    oldTargetType: payload.newTargetEndpointInfo
-                        ? getSchemaCompareEndpointTypeString(
-                              payload.newTargetEndpointInfo.endpointType,
-                          )
-                        : "None",
+                    correlationId: generateOperationId(),
+                    additionalProps: {
+                        startTime: startTime.toString(),
+                        operationId: this.operationId,
+                        oldSourceType: payload.newSourceEndpointInfo
+                            ? getSchemaCompareEndpointTypeString(
+                                  payload.newSourceEndpointInfo.endpointType,
+                              )
+                            : "None",
+                        oldTargetType: payload.newTargetEndpointInfo
+                            ? getSchemaCompareEndpointTypeString(
+                                  payload.newTargetEndpointInfo.endpointType,
+                              )
+                            : "None",
+                    },
                 },
             );
 
@@ -1019,10 +1092,12 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
 
             this.logger.debug(`Successfully switched endpoints - OperationId: ${this.operationId}`);
             endActivity.end(ActivityStatus.Succeeded, {
-                elapsedTime: (Date.now() - startTime).toString(),
-                operationId: this.operationId,
-                newSourceType: sourceType,
-                newTargetType: targetType,
+                additionalProps: {
+                    elapsedTime: (Date.now() - startTime).toString(),
+                    operationId: this.operationId,
+                    newSourceType: sourceType,
+                    newTargetType: targetType,
+                },
             });
 
             return state;
@@ -1059,18 +1134,20 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.SchemaCompare,
                 TelemetryActions.GenerateScript,
-                generateOperationId(),
                 {
-                    startTime: startTime.toString(),
-                    operationId: this.operationId,
-                    sourceType: getSchemaCompareEndpointTypeString(
-                        state.sourceEndpointInfo?.endpointType,
-                    ),
-                    targetType: getSchemaCompareEndpointTypeString(
-                        state.targetEndpointInfo?.endpointType,
-                    ),
-                    hasTargetServerName: (!!payload?.targetServerName).toString(),
-                    hasTargetDatabaseName: (!!payload?.targetDatabaseName).toString(),
+                    correlationId: generateOperationId(),
+                    additionalProps: {
+                        startTime: startTime.toString(),
+                        operationId: this.operationId,
+                        sourceType: getSchemaCompareEndpointTypeString(
+                            state.sourceEndpointInfo?.endpointType,
+                        ),
+                        targetType: getSchemaCompareEndpointTypeString(
+                            state.targetEndpointInfo?.endpointType,
+                        ),
+                        hasTargetServerName: (!!payload?.targetServerName).toString(),
+                        hasTargetDatabaseName: (!!payload?.targetDatabaseName).toString(),
+                    },
                 },
             );
 
@@ -1140,8 +1217,10 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             }
 
             endActivity.end(ActivityStatus.Succeeded, {
-                elapsedTime: (Date.now() - startTime).toString(),
-                operationId: this.operationId,
+                additionalProps: {
+                    elapsedTime: (Date.now() - startTime).toString(),
+                    operationId: this.operationId,
+                },
             });
 
             this.logger.debug(
@@ -1165,16 +1244,18 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.SchemaCompare,
                 TelemetryActions.Publish,
-                generateOperationId(),
                 {
-                    startTime: startTime.toString(),
-                    operationId: this.operationId,
-                    sourceType: getSchemaCompareEndpointTypeString(
-                        state.sourceEndpointInfo.endpointType,
-                    ),
-                    targetType: getSchemaCompareEndpointTypeString(
-                        state.targetEndpointInfo.endpointType,
-                    ),
+                    correlationId: generateOperationId(),
+                    additionalProps: {
+                        startTime: startTime.toString(),
+                        operationId: this.operationId,
+                        sourceType: getSchemaCompareEndpointTypeString(
+                            state.sourceEndpointInfo.endpointType,
+                        ),
+                        targetType: getSchemaCompareEndpointTypeString(
+                            state.targetEndpointInfo.endpointType,
+                        ),
+                    },
                 },
             );
 
@@ -1189,8 +1270,10 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                     numDiffsChanged: actionCounts[SchemaUpdateAction.Change],
                 };
                 endActivity.update({
-                    operationId: this.operationId,
-                    updateActionSummary: JSON.stringify(updateActionBreakdown),
+                    additionalProps: {
+                        operationId: this.operationId,
+                        updateActionSummary: JSON.stringify(updateActionBreakdown),
+                    },
                 });
             }
 
@@ -1213,8 +1296,10 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                         );
 
                         endActivity.update({
-                            publishType: "Database",
-                            OperationId: this.operationId,
+                            additionalProps: {
+                                publishType: "Database",
+                                OperationId: this.operationId,
+                            },
                         });
 
                         publishResult = await publishDatabaseChanges(
@@ -1225,11 +1310,13 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                         );
 
                         endActivity.end(ActivityStatus.Succeeded, {
-                            elapsedTime: (Date.now() - startTime).toString(),
-                            operationId: this.operationId,
-                            targetType: getSchemaCompareEndpointTypeString(
-                                state.targetEndpointInfo.endpointType,
-                            ),
+                            additionalProps: {
+                                elapsedTime: (Date.now() - startTime).toString(),
+                                operationId: this.operationId,
+                                targetType: getSchemaCompareEndpointTypeString(
+                                    state.targetEndpointInfo.endpointType,
+                                ),
+                            },
                         });
                         break;
 
@@ -1238,8 +1325,10 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                             `Publishing changes to project ${state.targetEndpointInfo.projectFilePath} - OperationId: ${this.operationId}`,
                         );
                         endActivity.update({
-                            publishType: "Project",
-                            OperationId: this.operationId,
+                            additionalProps: {
+                                publishType: "Project",
+                                OperationId: this.operationId,
+                            },
                         });
 
                         publishResult = await publishProjectChanges(
@@ -1253,11 +1342,13 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                         );
 
                         endActivity.end(ActivityStatus.Succeeded, {
-                            elapsedTime: (Date.now() - startTime).toString(),
-                            operationId: this.operationId,
-                            targetType: getSchemaCompareEndpointTypeString(
-                                state.targetEndpointInfo.endpointType,
-                            ),
+                            additionalProps: {
+                                elapsedTime: (Date.now() - startTime).toString(),
+                                operationId: this.operationId,
+                                targetType: getSchemaCompareEndpointTypeString(
+                                    state.targetEndpointInfo.endpointType,
+                                ),
+                            },
                         });
                         break;
 
@@ -1330,11 +1421,13 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             void UserSurvey.getInstance().promptUserForNPSFeedback(SCHEMA_COMPARE_VIEW_ID);
 
             endActivity.end(ActivityStatus.Succeeded, {
-                endTime: Date.now().toString(),
-                operationId: this.operationId,
-                targetType: getSchemaCompareEndpointTypeString(
-                    state.targetEndpointInfo.endpointType,
-                ),
+                additionalProps: {
+                    endTime: Date.now().toString(),
+                    operationId: this.operationId,
+                    targetType: getSchemaCompareEndpointTypeString(
+                        state.targetEndpointInfo.endpointType,
+                    ),
+                },
             });
 
             state.isApplyInProgress = false;
@@ -1351,10 +1444,12 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.SchemaCompare,
                 TelemetryActions.PublishDatabaseChanges,
-                generateOperationId(),
                 {
-                    startTime: startTime.toString(),
-                    operationId: this.operationId,
+                    correlationId: generateOperationId(),
+                    additionalProps: {
+                        startTime: startTime.toString(),
+                        operationId: this.operationId,
+                    },
                 },
             );
 
@@ -1372,8 +1467,10 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                     );
 
                     endActivity.end(ActivityStatus.Succeeded, {
-                        elapsedTime: (Date.now() - startTime).toString(),
-                        operationId: this.operationId,
+                        additionalProps: {
+                            elapsedTime: (Date.now() - startTime).toString(),
+                            operationId: this.operationId,
+                        },
                     });
                 } else {
                     this.logger.error(
@@ -1425,10 +1522,12 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.SchemaCompare,
                 TelemetryActions.PublishProjectChanges,
-                generateOperationId(),
                 {
-                    startTime: startTime.toString(),
-                    operationId: this.operationId,
+                    correlationId: generateOperationId(),
+                    additionalProps: {
+                        startTime: startTime.toString(),
+                        operationId: this.operationId,
+                    },
                 },
             );
 
@@ -1445,8 +1544,10 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                     );
 
                     endActivity.end(ActivityStatus.Succeeded, {
-                        elapsedTime: (Date.now() - startTime).toString(),
-                        operationId: this.operationId,
+                        additionalProps: {
+                            elapsedTime: (Date.now() - startTime).toString(),
+                            operationId: this.operationId,
+                        },
                     });
                 } else {
                     this.logger.error(
@@ -1497,10 +1598,12 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.SchemaCompare,
                 TelemetryActions.ResetOptions,
-                generateOperationId(),
                 {
-                    startTime: startTime.toString(),
-                    operationId: this.operationId,
+                    correlationId: generateOperationId(),
+                    additionalProps: {
+                        startTime: startTime.toString(),
+                        operationId: this.operationId,
+                    },
                 },
             );
 
@@ -1508,8 +1611,10 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             this.logger.debug(`Reset options to defaults - OperationId: ${this.operationId}`);
 
             endActivity.end(ActivityStatus.Succeeded, {
-                elapsedTime: (Date.now() - startTime).toString(),
-                operationId: this.operationId,
+                additionalProps: {
+                    elapsedTime: (Date.now() - startTime).toString(),
+                    operationId: this.operationId,
+                },
             });
 
             return state;
@@ -1542,15 +1647,17 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.SchemaCompare,
                 TelemetryActions.IncludeExcludeNode,
-                generateOperationId(),
                 {
-                    startTime: startTime.toString(),
-                    operationId: this.operationId,
-                    requestType: payload.includeRequest ? "Include" : "Exclude",
-                    diffEntryType: payload.diffEntry.name,
-                    diffActionType: this.getSchemaUpdateActionString(
-                        payload.diffEntry.updateAction,
-                    ),
+                    correlationId: generateOperationId(),
+                    additionalProps: {
+                        startTime: startTime.toString(),
+                        operationId: this.operationId,
+                        requestType: payload.includeRequest ? "Include" : "Exclude",
+                        diffEntryType: payload.diffEntry.name,
+                        diffActionType: this.getSchemaUpdateActionString(
+                            payload.diffEntry.updateAction,
+                        ),
+                    },
                 },
             );
 
@@ -1581,11 +1688,13 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 }
 
                 endActivity.end(ActivityStatus.Succeeded, {
-                    elapsedTime: (Date.now() - startTime).toString(),
-                    operationId: this.operationId,
-                    affectedDependenciesCount: (
-                        result.affectedDependencies?.length || 0
-                    ).toString(),
+                    additionalProps: {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                        affectedDependenciesCount: (
+                            result.affectedDependencies?.length || 0
+                        ).toString(),
+                    },
                 });
 
                 state.schemaCompareIncludeExcludeResult = result;
@@ -1758,14 +1867,16 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.SchemaCompare,
                 TelemetryActions.IncludeExcludeAllNodes,
-                generateOperationId(),
                 {
-                    startTime: startTime.toString(),
-                    operationId: this.operationId,
-                    requestType: payload.includeRequest ? "Include all" : "Exclude all",
-                    totalDifferences: (
-                        state.schemaCompareResult?.differences?.length || 0
-                    ).toString(),
+                    correlationId: generateOperationId(),
+                    additionalProps: {
+                        startTime: startTime.toString(),
+                        operationId: this.operationId,
+                        requestType: payload.includeRequest ? "Include all" : "Exclude all",
+                        totalDifferences: (
+                            state.schemaCompareResult?.differences?.length || 0
+                        ).toString(),
+                    },
                 },
             );
 
@@ -1814,11 +1925,13 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                     const excludedCount = count - includedCount;
 
                     endActivity.end(ActivityStatus.Succeeded, {
-                        elapsedTime: (Date.now() - startTime).toString(),
-                        operationId: this.operationId,
-                        differenceCount: count.toString(),
-                        includedCount: includedCount.toString(),
-                        excludedCount: excludedCount.toString(),
+                        additionalProps: {
+                            elapsedTime: (Date.now() - startTime).toString(),
+                            operationId: this.operationId,
+                            differenceCount: count.toString(),
+                            includedCount: includedCount.toString(),
+                            excludedCount: excludedCount.toString(),
+                        },
                     });
 
                     this.logger.debug(
@@ -1907,10 +2020,12 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.SchemaCompare,
                 TelemetryActions.OpenScmp,
-                generateOperationId(),
                 {
-                    startTime: startTime.toString(),
-                    operationId: this.operationId,
+                    correlationId: generateOperationId(),
+                    additionalProps: {
+                        startTime: startTime.toString(),
+                        operationId: this.operationId,
+                    },
                 },
             );
 
@@ -2029,14 +2144,16 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             );
 
             endActivity.end(ActivityStatus.Succeeded, {
-                operationId: this.operationId,
-                elapsedTime: (Date.now() - startTime).toString(),
-                sourceType: getSchemaCompareEndpointTypeString(
-                    state.sourceEndpointInfo.endpointType,
-                ),
-                targetType: getSchemaCompareEndpointTypeString(
-                    state.targetEndpointInfo.endpointType,
-                ),
+                additionalProps: {
+                    operationId: this.operationId,
+                    elapsedTime: (Date.now() - startTime).toString(),
+                    sourceType: getSchemaCompareEndpointTypeString(
+                        state.sourceEndpointInfo.endpointType,
+                    ),
+                    targetType: getSchemaCompareEndpointTypeString(
+                        state.targetEndpointInfo.endpointType,
+                    ),
+                },
             });
 
             state.schemaCompareOpenScmpResult = result;
@@ -2082,16 +2199,18 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.SchemaCompare,
                 TelemetryActions.SaveScmp,
-                generateOperationId(),
                 {
-                    startTime: startTime.toString(),
-                    operationId: this.operationId,
-                    sourceType: getSchemaCompareEndpointTypeString(
-                        state.sourceEndpointInfo?.endpointType,
-                    ),
-                    targetType: getSchemaCompareEndpointTypeString(
-                        state.targetEndpointInfo?.endpointType,
-                    ),
+                    correlationId: generateOperationId(),
+                    additionalProps: {
+                        startTime: startTime.toString(),
+                        operationId: this.operationId,
+                        sourceType: getSchemaCompareEndpointTypeString(
+                            state.sourceEndpointInfo?.endpointType,
+                        ),
+                        targetType: getSchemaCompareEndpointTypeString(
+                            state.targetEndpointInfo?.endpointType,
+                        ),
+                    },
                 },
             );
 
@@ -2135,8 +2254,10 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             }
 
             endActivity.end(ActivityStatus.Succeeded, {
-                operationId: this.operationId,
-                elapsedTime: (Date.now() - startTime).toString(),
+                additionalProps: {
+                    operationId: this.operationId,
+                    elapsedTime: (Date.now() - startTime).toString(),
+                },
             });
 
             state.saveScmpResultStatus = result;
@@ -2152,16 +2273,18 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.SchemaCompare,
                 TelemetryActions.Cancel,
-                generateOperationId(),
                 {
-                    startTime: startTime.toString(),
-                    operationId: this.operationId,
-                    sourceType: getSchemaCompareEndpointTypeString(
-                        state.sourceEndpointInfo?.endpointType,
-                    ),
-                    targetType: getSchemaCompareEndpointTypeString(
-                        state.targetEndpointInfo?.endpointType,
-                    ),
+                    correlationId: generateOperationId(),
+                    additionalProps: {
+                        startTime: startTime.toString(),
+                        operationId: this.operationId,
+                        sourceType: getSchemaCompareEndpointTypeString(
+                            state.sourceEndpointInfo?.endpointType,
+                        ),
+                        targetType: getSchemaCompareEndpointTypeString(
+                            state.targetEndpointInfo?.endpointType,
+                        ),
+                    },
                 },
             );
 
@@ -2195,8 +2318,10 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                     `Successfully cancelled schema comparison operation - OperationId: ${this.operationId}`,
                 );
                 endActivity.end(ActivityStatus.Succeeded, {
-                    elapsedTime: (Date.now() - startTime).toString(),
-                    operationId: this.operationId,
+                    additionalProps: {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                    },
                 });
 
                 state.isComparisonInProgress = false;
@@ -2246,136 +2371,94 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         }
     }
 
-    private findNewConnections(
-        oldActiveServers: { [connectionUri: string]: { profileName: string; server: string } },
-        newActiveServers: { [connectionUri: string]: { profileName: string; server: string } },
-    ): string[] {
-        const newConnections: string[] = [];
-
-        for (const connectionUri in newActiveServers) {
-            if (!(connectionUri in oldActiveServers)) {
-                newConnections.push(connectionUri);
-            }
-        }
-
-        return newConnections;
-    }
-
-    private async autoSelectNewConnection(
-        connectionUri: string,
-        endpointType: "source" | "target",
-    ): Promise<void> {
-        this.logger.debug(
-            `Auto-selecting new connection for ${endpointType} endpoint: ${connectionUri} - OperationId: ${this.operationId}`,
-        );
+    /**
+     * Returns saved profiles using their profile ID as the picker value.
+     */
+    private async getAvailableServersList(): Promise<{
+        [connectionId: string]: SchemaCompareServer;
+    }> {
+        const connections: { [connectionId: string]: SchemaCompareServer } = {};
+        this.connectionUris.clear();
 
         try {
-            // Get the list of databases for the new connection
-            this.logger.debug(
-                `Retrieving databases for connection: ${connectionUri} - OperationId: ${this.operationId}`,
-            );
-            const databases = await this.connectionMgr.listDatabases(connectionUri);
-            this.logger.debug(
-                `Found ${databases.length} databases on server - OperationId: ${this.operationId}`,
-            );
+            const savedConnections = await this.connectionMgr.connectionStore.readAllConnections();
+            for (const connection of savedConnections) {
+                const profile = connection as IConnectionProfile;
+                const connectionId = profile.id;
 
-            // If there are databases, select the first one
-            if (databases.length > 0) {
-                const databaseName = databases[0];
-                this.logger.debug(
-                    `Auto-selecting database: ${databaseName} - OperationId: ${this.operationId}`,
-                );
-
-                // Create the endpoint info for the new connection
-                const connection = this.connectionMgr.activeConnections[connectionUri];
-                const connectionProfile = connection?.credentials as IConnectionProfile;
-
-                if (connectionProfile) {
-                    this.logger.debug(
-                        `Creating endpoint info from connection profile: ${connectionProfile.server} - OperationId: ${this.operationId}`,
-                    );
-                    let user = connectionProfile.user;
-                    if (!user) {
-                        user = locConstants.SchemaCompare.defaultUserName;
-                        this.logger.debug(
-                            `Using default user name: ${user} - OperationId: ${this.operationId}`,
-                        );
-                    }
-
-                    const endpointInfo = {
-                        endpointType: SchemaCompareEndpointType.Database,
-                        serverDisplayName: `${connectionProfile.server} (${user})`,
-                        serverName: connectionProfile.server,
-                        databaseName: databaseName,
-                        ownerUri: connectionUri,
-                        packageFilePath: "",
-                        connectionDetails: {
-                            options: {
-                                database: connectionProfile.database,
-                            },
-                        },
-                        connectionName: connectionProfile.profileName
-                            ? connectionProfile.profileName
-                            : "",
-                        projectFilePath: "",
-                        targetScripts: [],
-                        dataSchemaProvider: "",
-                        extractTarget: ExtractTarget.schemaObjectType,
-                    };
-
-                    if (endpointType === "source") {
-                        this.logger.debug(
-                            `Setting connection as source endpoint - OperationId: ${this.operationId}`,
-                        );
-                        this.state.sourceEndpointInfo = endpointInfo;
-                    } else {
-                        this.logger.debug(
-                            `Setting connection as target endpoint - OperationId: ${this.operationId}`,
-                        );
-                        this.state.targetEndpointInfo = endpointInfo;
-                    }
-
-                    // Update the databases list for the UI
-                    this.state.databases = databases;
-                } else {
-                    this.logger.warn(
-                        `No connection profile found for connection URI: ${connectionUri} - OperationId: ${this.operationId}`,
-                    );
-                }
-            } else {
-                this.logger.warn(
-                    `No databases found for connection: ${connectionUri} - OperationId: ${this.operationId}`,
-                );
+                connections[connectionId] = {
+                    profileName: profile.profileName || getConnectionDisplayName(profile),
+                    server: profile.server,
+                    ...(profile.database ? { database: profile.database } : {}),
+                };
             }
         } catch (error) {
             this.logger.error(
-                `Error auto-selecting new connection: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+                `Failed to list saved connections: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
             );
-        } finally {
-            // Reset the waiting state
-            this.logger.debug(`Resetting waiting state - OperationId: ${this.operationId}`);
-            this.state.waitingForNewConnection = false;
-            this.state.pendingConnectionEndpointType = null;
         }
+
+        return connections;
     }
 
-    private getActiveServersList(): {
-        [connectionUri: string]: { profileName: string; server: string };
-    } {
-        const activeServers: { [connectionUri: string]: { profileName: string; server: string } } =
-            {};
-        const activeConnections = this.connectionMgr.activeConnections;
-        Object.keys(activeConnections).forEach((connectionUri) => {
-            let credentials = activeConnections[connectionUri]
-                .credentials as IConnectionDialogProfile;
+    private includeConnectionDatabase(
+        databases: string[],
+        connectionDatabaseName: string,
+    ): string[] {
+        const result = [...databases];
+        if (connectionDatabaseName && !result.includes(connectionDatabaseName)) {
+            result.unshift(connectionDatabaseName);
+        }
+        return result;
+    }
 
-            activeServers[connectionUri] = {
-                profileName: credentials.profileName ?? "",
-                server: credentials.server,
-            };
+    private buildDatabaseOptions(databases: string[]) {
+        return buildDatabaseOptions(databases, {
+            userDatabases: locConstants.ConnectionDialog.userDatabasesGroup,
+            systemDatabases: locConstants.ConnectionDialog.systemDatabasesGroup,
         });
+    }
 
-        return activeServers;
+    private async connectToServer(connectionId: string): Promise<string> {
+        const savedConnections = await this.connectionMgr.connectionStore.readAllConnections();
+        const profile = savedConnections.find((connection) => {
+            const savedProfile = connection as IConnectionProfile;
+            const savedConnectionId =
+                savedProfile.id || `${savedProfile.server}_${savedProfile.database || ""}`;
+            return savedConnectionId === connectionId;
+        }) as IConnectionProfile | undefined;
+
+        if (!profile) {
+            throw new Error(locConstants.SchemaCompare.savedConnectionNotFound(connectionId));
+        }
+
+        const existingConnectionUri = this.connectionMgr.getUriForConnection(profile);
+        if (existingConnectionUri && this.connectionMgr.isConnected(existingConnectionUri)) {
+            this.connectionUris.set(connectionId, existingConnectionUri);
+            return existingConnectionUri;
+        }
+        this.connectionUris.delete(connectionId);
+
+        const connectionUri = utils.generateQueryUri().toString();
+        let isConnected: boolean;
+        try {
+            isConnected = await this.connectionMgr.connect(connectionUri, profile, {
+                shouldHandleErrors: false,
+            });
+        } catch (error) {
+            delete this.connectionMgr.activeConnections[connectionUri];
+            throw error;
+        }
+
+        if (!isConnected) {
+            const connectionError =
+                this.connectionMgr.getConnectionInfo(connectionUri)?.errorMessage;
+            delete this.connectionMgr.activeConnections[connectionUri];
+            throw new Error(connectionError || locConstants.SchemaCompare.failedToConnectToServer);
+        }
+
+        this.connectionUris.set(connectionId, connectionUri);
+        return connectionUri;
     }
 
     private async schemaCompare(
@@ -2401,11 +2484,9 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         this.updateState(state);
 
         const startTime = Date.now();
-        const endActivity = startActivity(
-            TelemetryViews.SchemaCompare,
-            TelemetryActions.Compare,
-            generateOperationId(),
-            {
+        const endActivity = startActivity(TelemetryViews.SchemaCompare, TelemetryActions.Compare, {
+            correlationId: generateOperationId(),
+            additionalProps: {
                 startTime: startTime.toString(),
                 operationId: this.operationId,
                 sourceType: getSchemaCompareEndpointTypeString(
@@ -2416,7 +2497,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 ),
                 triggerSource: triggerSource,
             },
-        );
+        });
 
         if (payload.sourceEndpointInfo.endpointType === SchemaCompareEndpointType.Project) {
             this.logger.debug(
@@ -2447,8 +2528,10 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         }
 
         endActivity.update({
-            operationId: this.operationId,
-            generalOptionsConfig: JSON.stringify(booleanOptionsAsStrings),
+            additionalProps: {
+                operationId: this.operationId,
+                generalOptionsConfig: JSON.stringify(booleanOptionsAsStrings),
+            },
         });
 
         const objectTypesDictionary =
@@ -2475,8 +2558,10 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         });
 
         endActivity.update({
-            operationId: this.operationId,
-            includeObjectTypesConfig: JSON.stringify(includedObjectTypesTelemetryDictionary),
+            additionalProps: {
+                operationId: this.operationId,
+                includeObjectTypesConfig: JSON.stringify(includedObjectTypesTelemetryDictionary),
+            },
         });
 
         this.logger.info(`Executing schema comparison with operation ID: ${this.operationId}`);
@@ -2520,16 +2605,20 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             }
         }
         endActivity.update({
-            operationId: this.operationId,
-            compareObjectTypeSummary: JSON.stringify(stringifiedFrequencies),
+            additionalProps: {
+                operationId: this.operationId,
+                compareObjectTypeSummary: JSON.stringify(stringifiedFrequencies),
+            },
         });
 
         this.logger.info(
             `Schema comparison completed successfully with ${result.differences?.length || 0} differences found - OperationId: ${this.operationId}`,
         );
         endActivity.end(ActivityStatus.Succeeded, {
-            elapsedTime: (Date.now() - startTime).toString(),
-            operationId: this.operationId,
+            additionalProps: {
+                elapsedTime: (Date.now() - startTime).toString(),
+                operationId: this.operationId,
+            },
         });
 
         const finalDifferences = this.getAllObjectTypeDifferences(result);
@@ -2569,84 +2658,79 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 `Processing Database endpoint for ${caller} - OperationId: ${this.operationId}`,
             );
 
-            const connInfo = endpoint.connectionDetails.options as mssql.IConnectionInfo;
+            const connectionOptions = endpoint.connectionDetails?.options ?? {};
+            const connInfo = {
+                ...connectionOptions,
+                server: connectionOptions.server || endpoint.serverName,
+                database: connectionOptions.database || endpoint.databaseName,
+            } as mssql.IConnectionInfo;
 
             this.logger.debug(
                 `Has connectionDetails: ${!!endpoint.connectionDetails}, Has options: ${!!endpoint.connectionDetails?.options} - OperationId: ${this.operationId}`,
             );
 
-            ownerUri = this.connectionMgr.getUriForScmpConnection(connInfo);
+            const { profile: connectionProfile, score } =
+                await this.connectionMgr.findMatchingProfile(connInfo as IConnectionProfile);
+            let isConnected = false;
 
-            this.logger.debug(
-                `Got owner URI from existing connection: ${!!ownerUri} - OperationId: ${this.operationId}`,
-            );
-
-            let isConnected = ownerUri ? true : false;
-            if (!ownerUri) {
-                this.logger.debug(
-                    `No existing connection found, creating new connection for ${caller} - OperationId: ${this.operationId}`,
-                );
-                ownerUri = utils.generateQueryUri().toString();
-
-                // Ensure accountId is present for Azure MFA connections before connecting
-                if (connInfo.authenticationType === azureMfa && !connInfo.accountId) {
-                    const profileMatched =
-                        await this.connectionMgr.ensureAccountIdForAzureMfa(connInfo);
-                    if (!profileMatched) {
-                        this.logger.warn(
-                            `Could not find accountId for Azure MFA connection for ${caller} - OperationId: ${this.operationId}`,
-                        );
-
-                        // Show the error message as no matched profile is found
-                        vscode.window.showErrorMessage(
-                            locConstants.PublishProject.ProfileLoadedConnectionFailed(
-                                connInfo.server,
-                            ),
-                        );
-                    }
-                }
-
-                try {
-                    isConnected = await this.connectionMgr.connect(ownerUri, connInfo, {
-                        connectionSource: "schemaCompare",
-                    });
-                } catch (error) {
-                    this.logger.error(
-                        `Exception during connection attempt for ${caller}: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
-                    );
-                    isConnected = false;
-
-                    // Show the error message from the exception
-                    // Error could be similar to "Cannot connect due to expired tokens. Please re-authenticate and try again."
-                    // database doesn't exists or user doens't have permission to access, will get "login failed <token credential> error"
-                    vscode.window.showErrorMessage(
-                        locConstants.SchemaCompare.connectionFailed(getErrorMessage(error)),
-                    );
-                }
+            if (connectionProfile && score !== utils.MatchScore.NotMatch) {
+                const connectionCredentials = {
+                    ...connectionProfile,
+                    database: connInfo.database,
+                };
+                ownerUri = this.connectionMgr.getUriForScmpConnection(connectionCredentials);
+                isConnected = Boolean(ownerUri && this.connectionMgr.isConnected(ownerUri));
 
                 this.logger.debug(
-                    `Connection attempt result for ${caller}: ${isConnected} - OperationId: ${this.operationId}`,
+                    `Got owner URI from existing connection: ${isConnected} - OperationId: ${this.operationId}`,
                 );
 
                 if (!isConnected) {
-                    this.logger.warn(
-                        `Failed to connect to database for ${caller}, removing invalid connection - OperationId: ${this.operationId}`,
+                    this.logger.debug(
+                        `No existing connection found, connecting saved profile for ${caller} - OperationId: ${this.operationId}`,
                     );
-                    // Invoking connect will add an active connection that isn't valid, hence removing it.
-                    delete this.connectionMgr.activeConnections[ownerUri];
+                    ownerUri = utils.generateQueryUri().toString();
+
+                    try {
+                        isConnected = await this.connectionMgr.connect(
+                            ownerUri,
+                            connectionCredentials,
+                            {
+                                connectionSource: "schemaCompare",
+                            },
+                        );
+                    } catch (error) {
+                        this.logger.error(
+                            `Exception during connection attempt for ${caller}: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+                        );
+                        vscode.window.showErrorMessage(
+                            locConstants.SchemaCompare.connectionFailed(getErrorMessage(error)),
+                        );
+                    }
+
+                    this.logger.debug(
+                        `Connection attempt result for ${caller}: ${isConnected} - OperationId: ${this.operationId}`,
+                    );
+
+                    if (!isConnected) {
+                        this.logger.warn(
+                            `Failed to connect to database for ${caller}, removing invalid connection - OperationId: ${this.operationId}`,
+                        );
+                        delete this.connectionMgr.activeConnections[ownerUri];
+                    }
+                } else {
+                    this.logger.debug(
+                        `Using existing connection for ${caller} - OperationId: ${this.operationId}`,
+                    );
                 }
             } else {
-                this.logger.debug(
-                    `Using existing connection for ${caller} - OperationId: ${this.operationId}`,
+                this.logger.warn(
+                    `No saved connection profile found for ${caller} - OperationId: ${this.operationId}`,
+                );
+                vscode.window.showErrorMessage(
+                    locConstants.PublishProject.ProfileLoadedConnectionFailed(connInfo.server),
                 );
             }
-
-            const connection = this.connectionMgr.activeConnections[ownerUri];
-            const connectionProfile = connection?.credentials as IConnectionProfile;
-
-            this.logger.debug(
-                `Has connection: ${!!connection}, Has connectionProfile: ${!!connectionProfile} - OperationId: ${this.operationId}`,
-            );
 
             if (isConnected && ownerUri && connectionProfile) {
                 this.logger.debug(
@@ -2658,12 +2742,9 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                     serverName: connInfo.server,
                     databaseName: connInfo.database,
                     ownerUri: ownerUri,
+                    connectionId: connectionProfile.id || ownerUri,
                     packageFilePath: "",
-                    connectionDetails: {
-                        options: {
-                            database: connectionProfile.database,
-                        },
-                    },
+                    connectionDetails: undefined,
                     connectionName: connectionProfile.profileName
                         ? connectionProfile.profileName
                         : "",

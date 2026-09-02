@@ -293,7 +293,7 @@ export class DabService implements Dab.IDabService {
             encoding: "utf8",
             mode: 0o600,
         });
-        dockerLogger.info(`DAB config written to: ${configFilePath}`);
+        dockerLogger.debug(`DAB config written to: ${configFilePath}`);
 
         return configFilePath;
     }
@@ -314,7 +314,7 @@ export class DabService implements Dab.IDabService {
                 await fs.promises.rmdir(configDir);
             }
 
-            dockerLogger.info(`Cleaned up DAB config: ${configFilePath}`);
+            dockerLogger.debug(`Cleaned up DAB config: ${configFilePath}`);
         } catch (e) {
             dockerLogger.warn(`Failed to cleanup DAB config file: ${getErrorMessage(e)}`);
         }

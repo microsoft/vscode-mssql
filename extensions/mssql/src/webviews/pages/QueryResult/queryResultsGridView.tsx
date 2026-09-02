@@ -21,6 +21,7 @@ import * as qr from "../../../sharedInterfaces/queryResult";
 import CommandBar from "./commandBar";
 import type { ResultGridHandle, ResultGridProps } from "./resultGrid";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
+import { perfMarkAfterNextPaint } from "../../common/perfMarks";
 import { eventMatchesShortcut } from "../../common/keyboardUtils";
 import { WebviewAction } from "../../../sharedInterfaces/webview";
 import debounce from "lodash/debounce";
@@ -79,6 +80,7 @@ export const QueryResultsGridView = ({
     }
     const uri = useQueryResultSelector((state) => state.uri);
     const resultSetSummaries = useQueryResultSelector((state) => state.resultSetSummaries);
+    const isExecuting = useQueryResultSelector((state) => state.isExecuting);
     const viewMode =
         useQueryResultSelector((state) => state.tabStates?.resultViewMode) ??
         qr.QueryResultViewMode.Grid;
@@ -93,6 +95,7 @@ export const QueryResultsGridView = ({
     );
     const [maximizedGridKey, setMaximizedGridKey] = useState<string | undefined>(undefined);
     const gridRefs = useRef<Array<ResultGridHandle | undefined>>([]);
+    const activeSelectionGridKeyRef = useRef<string | undefined>(undefined);
     const { keyBindings } = useVscodeWebview();
 
     // Derive a stable flat list for rendering
@@ -168,6 +171,33 @@ export const QueryResultsGridView = ({
         gridViewContainerHeight,
         resultSetSummaries,
     ]);
+
+    // Perf-harness render-complete mark: fires only when the perf bridge is
+    // enabled (PERF_MODE runs); otherwise perfMarkAfterNextPaint is inert.
+    const lastPerfMarkKey = useRef<string | undefined>(undefined);
+    useEffect(() => {
+        if (isExecuting === true) {
+            lastPerfMarkKey.current = undefined;
+            return;
+        }
+        if (isExecuting !== false || gridList.length === 0) {
+            return;
+        }
+        const totalRows = gridList.reduce(
+            (total, item) =>
+                total + (resultSetSummaries?.[item.batchId]?.[item.resultId]?.rowCount ?? 0),
+            0,
+        );
+        const key = `${uri}:${gridList.length}:${totalRows}`;
+        if (lastPerfMarkKey.current === key) {
+            return;
+        }
+        lastPerfMarkKey.current = key;
+        perfMarkAfterNextPaint("mssql.resultsGrid.renderComplete", {
+            rowCount: totalRows,
+            resultSets: gridList.length,
+        });
+    }, [isExecuting, gridList, resultSetSummaries, uri]);
 
     // Restore grid view container scroll position on mount
     useEffect(() => {
@@ -346,6 +376,30 @@ export const QueryResultsGridView = ({
         [gridRefs],
     );
 
+    const handleGridSelectionChange = useCallback(
+        (gridKey: string, hasSelection: boolean) => {
+            if (!hasSelection) {
+                if (activeSelectionGridKeyRef.current === gridKey) {
+                    activeSelectionGridKeyRef.current = undefined;
+                }
+                return;
+            }
+
+            if (activeSelectionGridKeyRef.current === gridKey) {
+                return;
+            }
+
+            activeSelectionGridKeyRef.current = gridKey;
+            gridList.forEach((item, index) => {
+                const itemKey = `${item.batchId}_${item.resultId}`;
+                if (itemKey !== gridKey) {
+                    gridRefs.current[index]?.clearSelection?.();
+                }
+            });
+        },
+        [gridList],
+    );
+
     useEffect(() => {
         const handler = (event: KeyboardEvent) => {
             if (!event.shiftKey || event.key !== "Tab") {
@@ -505,6 +559,9 @@ export const QueryResultsGridView = ({
                                 }
                                 isMaximized={isMaximized}
                                 onToggleMaximize={() => handleToggleMaximize(gridKey)}
+                                onSelectionChange={(hasSelection) =>
+                                    handleGridSelectionChange(gridKey, hasSelection)
+                                }
                             />
                         </div>
                         {showExternalCommandBar && (

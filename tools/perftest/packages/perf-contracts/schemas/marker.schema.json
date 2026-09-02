@@ -1,0 +1,52 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://mssql-perf.local/schemas/marker.schema.json",
+    "title": "MSSQL VS Code Perf Marker",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "schemaVersion",
+        "runId",
+        "repId",
+        "scenarioId",
+        "name",
+        "phase",
+        "timestampUnixNs",
+        "process"
+    ],
+    "properties": {
+        "schemaVersion": { "const": 1 },
+        "runId": { "type": "string", "minLength": 1 },
+        "repId": { "type": "integer", "minimum": 0 },
+        "scenarioId": { "type": "string", "minLength": 1 },
+        "name": { "type": "string", "minLength": 1 },
+        "phase": { "enum": ["instant", "begin", "end", "counter"] },
+        "correlationId": { "type": "string" },
+        "timestampUnixNs": { "type": "string", "pattern": "^[0-9]+$" },
+        "monotonicNs": { "type": "string", "pattern": "^[0-9]+$" },
+        "traceId": { "type": "string", "pattern": "^[0-9a-f]{32}$" },
+        "spanId": { "type": "string", "pattern": "^[0-9a-f]{16}$" },
+        "process": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["role", "pid", "name"],
+            "properties": {
+                "role": { "type": "string" },
+                "pid": { "type": "integer", "minimum": 0 },
+                "name": { "type": "string" }
+            }
+        },
+        "thread": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "id": { "type": ["string", "integer"] },
+                "name": { "type": "string" }
+            }
+        },
+        "attrs": {
+            "type": "object",
+            "additionalProperties": { "type": ["string", "number", "integer", "boolean", "null"] }
+        }
+    }
+}

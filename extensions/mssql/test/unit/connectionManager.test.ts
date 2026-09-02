@@ -39,6 +39,7 @@ import {
     stubInstantiationService,
 } from "./utils";
 import { Deferred } from "../../src/protocol";
+import { Perf } from "../../src/perf/perfTelemetry";
 import { MsalAzureController } from "../../src/azure/msal/msalAzureController";
 import { PreviewFeature } from "../../src/previews/previewService";
 import * as vscodeEntraMfaUtils from "../../src/azure/vscodeEntraMfaUtils";
@@ -281,6 +282,43 @@ suite("ConnectionManager Tests", () => {
             connectionManager["normalizeServerName"](credentials);
 
             expect(credentials.server).to.equal("localhost");
+        });
+
+        test("a cancelled connection completion closes its perf interval before rethrowing", async () => {
+            const perfMarkerStub = sandbox.stub(Perf, "marker");
+            const completion = new Deferred<ConnectionContracts.ConnectionCompleteParams>();
+            const failure = new Error("Connection cancelled");
+
+            const pending = connectionManager["awaitConnectionCompletion"](completion.promise);
+            completion.reject(failure);
+
+            let thrown: unknown;
+            try {
+                await pending;
+            } catch (error) {
+                thrown = error;
+            }
+
+            expect(thrown).to.equal(failure);
+            expect(perfMarkerStub).to.have.been.calledOnceWith(
+                "mssql.connection.failed",
+                "instant",
+                sinon.match({ error: true, reason: "cancelled" }),
+            );
+        });
+
+        test("a resolved connection completion emits no failure marker", async () => {
+            const perfMarkerStub = sandbox.stub(Perf, "marker");
+            const completion = new Deferred<ConnectionContracts.ConnectionCompleteParams>();
+            const params = {
+                ownerUri: "file:///test.sql",
+            } as ConnectionContracts.ConnectionCompleteParams;
+
+            const pending = connectionManager["awaitConnectionCompletion"](completion.promise);
+            completion.resolve(params);
+
+            expect(await pending).to.equal(params);
+            expect(perfMarkerStub).to.not.have.been.called;
         });
     });
 
@@ -628,9 +666,16 @@ suite("ConnectionManager Tests", () => {
             expect(sendErrorEventStub).to.have.been.calledWithMatch(
                 TelemetryViews.ConnectionManager,
                 TelemetryActions.RefreshTokenNotification,
-                sinon.match.instanceOf(Error),
-                sinon.match.any,
-                "serviceClientUnavailable",
+                {
+                    error: sinon.match.instanceOf(Error),
+                    includeErrorMessage: true,
+                    errorCode: "serviceClientUnavailable",
+                    additionalProps: { useVscodeAccountsForEntraMFA: "false" },
+                    additionalMeasurements: {
+                        currentTimestamp: sinon.match.number,
+                        refreshedTokenExpirationTimestamp: sinon.match.number,
+                    },
+                },
             );
             expect(sendNotificationStub).to.not.have.been.called;
         });

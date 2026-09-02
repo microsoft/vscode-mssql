@@ -33,6 +33,7 @@ import {
     applyFluentResultGridTransformsToSourceRows,
     hasActiveFluentResultGridFilters,
 } from "./fluentResultGridTransforms";
+import { clearFluentResultGridSelection } from "./fluentResultGridSelection";
 
 export interface FluentResultGridDataController {
     allRowsCacheRef: MutableRefObject<SourceRow[] | undefined>;
@@ -235,6 +236,7 @@ export function useFluentResultGridDataController({
                     restoreHorizontalScrollPosition(grid, preservedScrollLeft);
                 }
                 dataView.ensureViewportLoaded();
+                clearFluentResultGridSelection(grid);
                 return true;
             }
 
@@ -276,6 +278,7 @@ export function useFluentResultGridDataController({
                 restoreHorizontalScrollPosition(grid, preservedScrollLeft);
             }
             dataView.ensureViewportLoaded();
+            clearFluentResultGridSelection(grid);
             return true;
         },
         [dataView, ensureAllRowsLoaded, hasActiveTransforms, restoreHorizontalScrollPosition],

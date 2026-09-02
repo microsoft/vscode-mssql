@@ -6,6 +6,7 @@
 import React, {
     useState,
     useEffect,
+    useLayoutEffect,
     useRef,
     useImperativeHandle,
     forwardRef,
@@ -37,6 +38,17 @@ import {
     createFluentAutoResizeOptions,
     FluentSlickGrid,
 } from "../../common/FluentSlickGrid/FluentSlickGrid";
+import {
+    clearRevertedCellChanges,
+    enqueueTableExplorerCreateRow,
+    hasPendingChangesForRow,
+    isTableExplorerDataColumn,
+    runBeforeTableExplorerSessionReplacement,
+    snapshotCellChangesForRow,
+    TableExplorerLifecycleMutex,
+    TableExplorerRowMutationQueue,
+    tryLockTableExplorerRow,
+} from "./tableDataGridUtils";
 
 export type { AppliedSortColumn };
 
@@ -69,10 +81,12 @@ interface TableDataGridProps {
     deletedRows?: number[];
     newRowIds?: number[];
     tableQuery?: string;
-    onDeleteRow?: (rowId: number) => void;
-    onUpdateCell?: (rowId: number, columnId: number, newValue: string) => void;
-    onRevertCell?: (rowId: number, columnId: number) => void;
-    onRevertRow?: (rowId: number) => void;
+    sessionKey: string;
+    onCreateRow?: () => Promise<void>;
+    onDeleteRow?: (rowId: number) => Promise<void>;
+    onUpdateCell?: (rowId: number, columnId: number, newValue: string) => Promise<void>;
+    onRevertCell?: (rowId: number, columnId: number) => Promise<void>;
+    onRevertRow?: (rowId: number) => Promise<void>;
     onCellChangeCountChanged?: (count: number) => void;
     onDeletionCountChanged?: (count: number) => void;
     onSelectedRowsChanged?: (selectedRowIds: number[]) => void;
@@ -97,8 +111,11 @@ export interface TableDataGridRef {
     exportData: (format: "csv" | "excel" | "json") => void;
     getDataColumns: () => DataColumnVisibility[];
     setDataColumnVisibility: (id: string, visible: boolean) => void;
+    createRow: () => Promise<void>;
     deleteRows: (rowIds: number[]) => void;
     getSqlForCurrentView: () => string;
+    runAfterPendingMutations: (operation: () => Promise<void>) => Promise<boolean>;
+    runBeforeSessionReplacement: <T>(operation: () => Promise<T>) => Promise<T>;
 }
 
 export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
@@ -111,6 +128,8 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             deletedRows,
             newRowIds,
             tableQuery,
+            sessionKey,
+            onCreateRow,
             onDeleteRow,
             onUpdateCell,
             onRevertCell,
@@ -133,6 +152,10 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         const deletedRowsRef = useRef<Set<number>>(new Set());
         const newRowIdsRef = useRef<Set<number>>(new Set());
         const failedCellsRef = useRef<Set<string>>(new Set());
+        const revertingRowsRef = useRef<Set<number>>(new Set());
+        const rowMutationQueueRef = useRef(new TableExplorerRowMutationQueue());
+        const lifecycleMutexRef = useRef(new TableExplorerLifecycleMutex());
+        const mutationsBlockedRef = useRef(false);
         const lastPageRef = useRef<number>(1);
         const lastItemsPerPageRef = useRef<number>(pageSize);
         const previousResultSetRef = useRef<EditSubsetResult | undefined>(undefined);
@@ -157,6 +180,8 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
 
         function reactGridReady(reactGrid: SlickgridReactInstance) {
             reactGridRef.current = reactGrid;
+            // SlickGrid consumes the handler's false return to veto editor creation.
+            reactGrid.slickGrid.onBeforeEditCell.subscribe(handleBeforeEditCell);
             isInitializedRef.current = true;
             tryAutoSelectFirstCell();
         }
@@ -285,8 +310,16 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 grid.updateColumnById(id, { hidden: !visible });
                 grid.updateColumns();
             },
+            createRow: () =>
+                onCreateRow
+                    ? enqueueTableExplorerCreateRow(
+                          rowMutationQueueRef.current,
+                          mutationsBlockedRef.current,
+                          onCreateRow,
+                      )
+                    : Promise.resolve(),
             deleteRows: (rowIds: number[]) => {
-                if (!onDeleteRow) {
+                if (!onDeleteRow || mutationsBlockedRef.current) {
                     return;
                 }
                 if (reactGridRef.current?.paginationService) {
@@ -295,8 +328,14 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         reactGridRef.current.paginationService.itemsPerPage;
                 }
                 for (const rowId of rowIds) {
-                    if (!deletedRowsRef.current.has(rowId)) {
-                        onDeleteRow(rowId);
+                    if (
+                        !deletedRowsRef.current.has(rowId) &&
+                        !revertingRowsRef.current.has(rowId)
+                    ) {
+                        void rowMutationQueueRef.current.enqueue(rowId, async () => {
+                            await onDeleteRow(rowId);
+                            rowMutationQueueRef.current.clearFailuresForRow(rowId);
+                        });
                     }
                 }
                 if (reactGridRef.current?.slickGrid) {
@@ -333,6 +372,38 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 const stripped = stripTrailingOrderByAndSemicolon(base);
                 return `${stripped}\nORDER BY ${orderParts.join(", ")}`;
             },
+            runAfterPendingMutations: (operation: () => Promise<void>) =>
+                lifecycleMutexRef.current.runExclusive(async () => {
+                    const grid = reactGridRef.current?.slickGrid;
+                    if (grid && !grid.getEditorLock().commitCurrentEdit()) {
+                        return false;
+                    }
+
+                    mutationsBlockedRef.current = true;
+                    grid?.invalidate();
+                    try {
+                        await rowMutationQueueRef.current.drain();
+                        await operation();
+                        return true;
+                    } finally {
+                        mutationsBlockedRef.current = false;
+                        reactGridRef.current?.slickGrid?.invalidate();
+                    }
+                }),
+            runBeforeSessionReplacement: <T,>(operation: () => Promise<T>) =>
+                lifecycleMutexRef.current.runExclusive(() =>
+                    runBeforeTableExplorerSessionReplacement(
+                        rowMutationQueueRef.current,
+                        (blocked) => {
+                            mutationsBlockedRef.current = blocked;
+                            reactGridRef.current?.slickGrid?.invalidate();
+                        },
+                        async () => {
+                            revertingRowsRef.current.clear();
+                            return operation();
+                        },
+                    ),
+                ),
         }));
 
         // Convert a single row to grid format
@@ -357,8 +428,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         }
 
         // Inline action column (right of the checkbox selector) that shows an
-        // undo arrow on rows marked for delete. The icon is dimmed on rows that
-        // aren't deleted so the column has a consistent visual width.
+        // undo arrow on rows with pending changes.
         function createUndoColumn(): Column {
             return {
                 id: "undo",
@@ -375,13 +445,19 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     dataContext: any,
                 ) => {
                     const rowId = dataContext.id;
-                    const isDeleted = deletedRowsRef.current.has(rowId);
-                    const iconClass = isDeleted
+                    const canRevert =
+                        hasPendingChangesForRow(
+                            rowId,
+                            cellChangesRef.current.values(),
+                            deletedRowsRef.current,
+                            newRowIdsRef.current,
+                        ) && !revertingRowsRef.current.has(rowId);
+                    const iconClass = canRevert
                         ? "fi fi-arrow-undo action-icon pointer"
                         : "fi fi-arrow-undo action-icon disabled";
                     return createDomElement("i", {
                         className: iconClass,
-                        title: isDeleted ? loc.tableExplorer.revertRow : "",
+                        title: canRevert ? loc.tableExplorer.revertRow : "",
                     });
                 },
                 minWidth: 30,
@@ -603,9 +679,18 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         // because the backend assigns position-based row IDs (0, 1, 2, ...), so
         // incremental ID-based comparison would incorrectly keep stale data for
         // overlapping IDs.
-        useEffect(() => {
+        useLayoutEffect(() => {
             previousResultSetRef.current = undefined;
-        }, [tableQuery]);
+            rowMutationQueueRef.current.invalidate();
+            revertingRowsRef.current.clear();
+        }, [sessionKey, tableQuery]);
+
+        useEffect(
+            () => () => {
+                rowMutationQueueRef.current.invalidate();
+            },
+            [],
+        );
 
         // Main effect: Handle resultSet changes
         useEffect(() => {
@@ -933,7 +1018,11 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             // Notify parent
             if (onUpdateCell) {
                 const newValue = args.item[column?.field];
-                onUpdateCell(rowId, dataColumnIndex, newValue);
+                void rowMutationQueueRef.current.enqueue(
+                    rowId,
+                    () => onUpdateCell(rowId, dataColumnIndex, newValue),
+                    changeKey,
+                );
             }
 
             // Update the display without full re-render
@@ -942,36 +1031,88 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             }
         }
 
+        function handleBeforeEditCell(_e: any, args: any): boolean {
+            return !mutationsBlockedRef.current && !revertingRowsRef.current.has(args.item.id);
+        }
+
         // Shared revert-row logic used by both the inline undo button and the
         // context menu's "Revert Row" command. Notifies the backend, clears
         // local deletion / cell-change tracking for the row, and updates parent
         // counters.
-        function revertRow(rowId: number) {
-            if (onRevertRow) {
-                onRevertRow(rowId);
+        async function revertRow(rowId: number) {
+            if (!onRevertRow || mutationsBlockedRef.current) {
+                return;
             }
 
-            deletedRowsRef.current.delete(rowId);
+            const grid = reactGridRef.current?.slickGrid;
+            if (grid && !grid.getEditorLock().commitCurrentEdit()) {
+                return;
+            }
+            if (!tryLockTableExplorerRow(rowId, revertingRowsRef.current)) {
+                return;
+            }
+            grid?.invalidate();
 
-            const keysToDelete: string[] = [];
-            cellChangesRef.current.forEach((_, key) => {
-                if (key.startsWith(`${rowId}-`)) {
-                    keysToDelete.push(key);
+            const revertedCellChanges = snapshotCellChangesForRow(rowId, cellChangesRef.current);
+            try {
+                await rowMutationQueueRef.current.enqueue(rowId, () => onRevertRow(rowId));
+                rowMutationQueueRef.current.clearFailuresForRow(rowId);
+
+                deletedRowsRef.current.delete(rowId);
+                newRowIdsRef.current.delete(rowId);
+
+                clearRevertedCellChanges(
+                    cellChangesRef.current,
+                    revertedCellChanges,
+                    failedCellsRef.current,
+                );
+
+                if (onCellChangeCountChanged) {
+                    onCellChangeCountChanged(cellChangesRef.current.size);
                 }
-            });
-            keysToDelete.forEach((key) => {
-                cellChangesRef.current.delete(key);
-                failedCellsRef.current.delete(key);
-            });
-
-            if (onCellChangeCountChanged) {
-                onCellChangeCountChanged(cellChangesRef.current.size);
+                if (onDeletionCountChanged) {
+                    onDeletionCountChanged(deletedRowsRef.current.size);
+                }
+            } catch (error) {
+                rowMutationQueueRef.current.acknowledgeFailure(error);
+                return;
+            } finally {
+                revertingRowsRef.current.delete(rowId);
+                reactGridRef.current?.slickGrid?.invalidate();
             }
-            if (onDeletionCountChanged) {
-                onDeletionCountChanged(deletedRowsRef.current.size);
+        }
+
+        async function revertCell(rowId: number, dataColumnIndex: number): Promise<void> {
+            if (
+                !onRevertCell ||
+                mutationsBlockedRef.current ||
+                revertingRowsRef.current.has(rowId)
+            ) {
+                return;
             }
 
-            // Invalidate the grid to refresh UI immediately after revert
+            const changeKey = `${rowId}-${dataColumnIndex}`;
+            const revertedCellChanges = new Map<string, any>();
+            if (cellChangesRef.current.has(changeKey)) {
+                revertedCellChanges.set(changeKey, cellChangesRef.current.get(changeKey));
+            }
+            try {
+                await rowMutationQueueRef.current.enqueue(
+                    rowId,
+                    () => onRevertCell(rowId, dataColumnIndex),
+                    changeKey,
+                );
+            } catch (error) {
+                rowMutationQueueRef.current.acknowledgeFailure(error);
+                return;
+            }
+
+            clearRevertedCellChanges(
+                cellChangesRef.current,
+                revertedCellChanges,
+                failedCellsRef.current,
+            );
+            onCellChangeCountChanged?.(cellChangesRef.current.size);
             reactGridRef.current?.slickGrid?.invalidate();
         }
 
@@ -981,7 +1122,15 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 return;
             }
             const rowId = metadata?.dataContext?.id;
-            if (rowId === undefined || !deletedRowsRef.current.has(rowId)) {
+            if (
+                rowId === undefined ||
+                !hasPendingChangesForRow(
+                    rowId,
+                    cellChangesRef.current.values(),
+                    deletedRowsRef.current,
+                    newRowIdsRef.current,
+                )
+            ) {
                 return;
             }
 
@@ -990,7 +1139,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 lastItemsPerPageRef.current = reactGridRef.current.paginationService.itemsPerPage;
             }
 
-            revertRow(rowId);
+            void revertRow(rowId);
         }
 
         function handleCellKeyDown(e: KeyboardEvent, _args: any) {
@@ -1021,7 +1170,15 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 return;
             }
             const dataItem = grid.getDataItem(activeCell.row);
-            if (!dataItem || !deletedRowsRef.current.has(dataItem.id)) {
+            if (
+                !dataItem ||
+                !hasPendingChangesForRow(
+                    dataItem.id,
+                    cellChangesRef.current.values(),
+                    deletedRowsRef.current,
+                    newRowIdsRef.current,
+                )
+            ) {
                 return;
             }
 
@@ -1030,7 +1187,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 lastItemsPerPageRef.current = reactGridRef.current.paginationService.itemsPerPage;
             }
 
-            revertRow(dataItem.id);
+            void revertRow(dataItem.id);
             e.preventDefault();
             e.stopPropagation();
         }
@@ -1072,8 +1229,15 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     break;
 
                 case "delete-row":
-                    if (onDeleteRow) {
-                        onDeleteRow(rowId);
+                    if (
+                        onDeleteRow &&
+                        !mutationsBlockedRef.current &&
+                        !revertingRowsRef.current.has(rowId)
+                    ) {
+                        void rowMutationQueueRef.current.enqueue(rowId, async () => {
+                            await onDeleteRow(rowId);
+                            rowMutationQueueRef.current.clearFailuresForRow(rowId);
+                        });
                     }
                     break;
 
@@ -1081,26 +1245,17 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     const cellIndex = args.cell;
                     // Get the actual column from the grid (accounts for hidden columns)
                     const gridColumns = reactGridRef.current?.slickGrid?.getVisibleColumns() || [];
-                    const column = gridColumns[cellIndex];
+                    const column = args.column ?? gridColumns[cellIndex];
+                    if (!isTableExplorerDataColumn(column)) {
+                        break;
+                    }
                     // Use the original column index stored in column metadata (handles hidden columns)
-                    const dataColumnIndex = (column as any)?.originalIndex ?? cellIndex;
-                    const changeKey = `${rowId}-${dataColumnIndex}`;
-
-                    if (onRevertCell) {
-                        onRevertCell(rowId, dataColumnIndex);
-                    }
-
-                    cellChangesRef.current.delete(changeKey);
-                    failedCellsRef.current.delete(changeKey);
-
-                    // Notify parent of change count update
-                    if (onCellChangeCountChanged) {
-                        onCellChangeCountChanged(cellChangesRef.current.size);
-                    }
+                    const dataColumnIndex = column.originalIndex;
+                    void revertCell(rowId, dataColumnIndex);
                     break;
 
                 case "revert-row":
-                    revertRow(rowId);
+                    void revertRow(rowId);
                     break;
 
                 case "modify-table":
@@ -1504,6 +1659,9 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         title: loc.tableExplorer.revertCell,
                         iconCssClass: "fi fi-arrow-undo",
                         positionOrder: 10,
+                        itemVisibilityOverride: (args: any) => {
+                            return isTableExplorerDataColumn(args.column);
+                        },
                     },
                     {
                         command: "revert-row",

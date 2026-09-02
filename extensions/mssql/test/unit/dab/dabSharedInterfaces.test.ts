@@ -143,7 +143,16 @@ suite("DAB shared interface helpers", () => {
             isSupported: true,
         });
         expect(config.entities[0].enabledActions).to.deep.equal([Dab.EntityAction.Execute]);
-        expect(config.entities[0].advancedSettings.exposeAsMcpCustomTool).to.equal(true);
+        expect(config.apiTypes).to.deep.equal([
+            Dab.ApiType.Rest,
+            Dab.ApiType.GraphQL,
+            Dab.ApiType.Mcp,
+        ]);
+        expect(config.entities[0].advancedSettings.permissions).to.deep.equal([
+            { role: Dab.AuthorizationRole.Anonymous, actions: [] },
+            { role: Dab.AuthorizationRole.Authenticated, actions: [Dab.EntityAction.Execute] },
+        ]);
+        expect(config.entities[0].advancedSettings.exposeAsMcpCustomTool).to.equal(false);
         expect(config.entities[0].parameters).to.deep.equal([
             {
                 name: "userId",
@@ -176,6 +185,34 @@ suite("DAB shared interface helpers", () => {
                 columns: "OrganizationNode (hierarchyid)",
             },
         ]);
+    });
+
+    test("getEntityExposedApiTypes intersects global and entity API settings", () => {
+        const entity = Dab.createDefaultConfigFromSources([createSourceObject()]).entities[0];
+        entity.advancedSettings = {
+            ...entity.advancedSettings,
+            restEnabled: true,
+            graphQLEnabled: false,
+            mcpEnabled: true,
+            mcpDmlToolsEnabled: true,
+        };
+
+        expect(
+            Dab.getEntityExposedApiTypes(entity, [Dab.ApiType.Rest, Dab.ApiType.GraphQL]),
+        ).to.deep.equal([Dab.ApiType.Rest]);
+        expect(
+            Dab.getEntityExposedApiTypes(entity, [Dab.ApiType.GraphQL, Dab.ApiType.Mcp]),
+        ).to.deep.equal([Dab.ApiType.Mcp]);
+        expect(Dab.getEntityExposedApiTypes(entity, [])).to.deep.equal([]);
+
+        entity.advancedSettings.graphQLEnabled = true;
+        expect(
+            Dab.getEntityExposedApiTypes(entity, [
+                Dab.ApiType.Mcp,
+                Dab.ApiType.GraphQL,
+                Dab.ApiType.Rest,
+            ]),
+        ).to.deep.equal([Dab.ApiType.Rest, Dab.ApiType.GraphQL, Dab.ApiType.Mcp]);
     });
 
     test("syncConfigWithSources removes missing entities, adds new ones, and refreshes metadata", () => {

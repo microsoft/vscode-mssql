@@ -156,12 +156,10 @@ export class FlatFileImportWebviewController extends FormWebviewController<
                 state.errorMessage = Loc.FlatFileImport.fetchTablePreviewError;
                 state.fullErrorMessage = getErrorMessage(error);
                 state.tablePreviewStatus = ApiStatus.Error;
-                sendErrorEvent(
-                    TelemetryViews.FlatFile,
-                    TelemetryActions.TablePreview,
+                sendErrorEvent(TelemetryViews.FlatFile, TelemetryActions.TablePreview, {
                     error,
-                    false,
-                );
+                    includeErrorMessage: false,
+                });
                 this.logger.error(`Error fetching table preview: ${getErrorMessage(error)}`);
             }
             return state;
@@ -216,7 +214,10 @@ export class FlatFileImportWebviewController extends FormWebviewController<
                 state.fullErrorMessage = getErrorMessage(error);
                 state.importDataStatus = ApiStatus.Error;
 
-                sendErrorEvent(TelemetryViews.FlatFile, TelemetryActions.ImportFile, error, false);
+                sendErrorEvent(TelemetryViews.FlatFile, TelemetryActions.ImportFile, {
+                    error,
+                    includeErrorMessage: false,
+                });
                 this.logger.error(`Error importing data: ${getErrorMessage(error)}`);
             }
 
@@ -294,12 +295,10 @@ export class FlatFileImportWebviewController extends FormWebviewController<
                     const errorMessage = `Unknown reset type: ${payload.resetType}`;
                     this.logger.error(errorMessage);
                     state.loadState = ApiStatus.Error;
-                    sendErrorEvent(
-                        TelemetryViews.FlatFile,
-                        TelemetryActions.ResetState,
-                        new Error(errorMessage),
-                        true,
-                    );
+                    sendErrorEvent(TelemetryViews.FlatFile, TelemetryActions.ResetState, {
+                        error: new Error(errorMessage),
+                        includeErrorMessage: true,
+                    });
                     break;
             }
 
