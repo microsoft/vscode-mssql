@@ -29,6 +29,7 @@ export function createErrorMessageNavigation(
         return undefined;
     }
 
+    // Match either a Windows CRLF or Unix LF line ending so only the error header is inspected.
     const header = message.split(/\r?\n/, 1)[0];
     const linkText = header.slice(header.lastIndexOf(",") + 1).trim();
     if (!linkText) {

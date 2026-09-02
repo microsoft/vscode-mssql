@@ -47,6 +47,7 @@ export const splitMessages = (messages: qr.IMessage[] | undefined | null): qr.IM
         return [];
     }
     return messages.flatMap((message) => {
+        // Match both Windows CRLF and Unix LF line endings before rendering each display row.
         const lines = message.message.split(/\r?\n/);
         // A link points at one place in the message, so once the message is split it belongs to
         // the line it was taken from. Errors span two lines and would otherwise repeat the link.
