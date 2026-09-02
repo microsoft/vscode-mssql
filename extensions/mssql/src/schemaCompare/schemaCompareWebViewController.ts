@@ -2658,7 +2658,11 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 `Processing Database endpoint for ${caller} - OperationId: ${this.operationId}`,
             );
 
-            const connectionOptions = endpoint.connectionDetails?.options ?? {};
+            const connectionOptions = { ...(endpoint.connectionDetails?.options ?? {}) };
+            // The original SCMP connection string is useful for reconnecting, but saved profile
+            // matching treats connection strings as exact identities. Match using the parsed
+            // fields so an equivalent saved profile can be found.
+            delete connectionOptions.connectionString;
             const connInfo = {
                 ...connectionOptions,
                 server: connectionOptions.server || endpoint.serverName,

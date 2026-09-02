@@ -334,15 +334,28 @@ export class ConnectionMatcher {
         current: IConnectionProfile,
         expected: IConnectionProfile,
     ): boolean {
-        function normalizeServerName(server: string): string {
-            if (server === ".") {
-                return "localhost";
+        function normalizeServerName(profile: IConnectionProfile): string {
+            let server = profile.server?.trim();
+            let port = profile.port;
+
+            const commaIndex = server?.lastIndexOf(",") ?? -1;
+            if (commaIndex >= 0) {
+                const embeddedPort = server.substring(commaIndex + 1).trim();
+                if (/^\d+$/.test(embeddedPort)) {
+                    server = server.substring(0, commaIndex).trim();
+                    port = Number(embeddedPort);
+                }
             }
-            return server;
+
+            if (server === ".") {
+                server = "localhost";
+            }
+
+            return port ? `${server},${port}` : (server ?? "");
         }
 
-        const currentServer = normalizeServerName(current.server);
-        const expectedServer = normalizeServerName(expected.server);
+        const currentServer = normalizeServerName(current);
+        const expectedServer = normalizeServerName(expected);
 
         return currentServer === expectedServer;
     }
@@ -439,11 +452,17 @@ export function isSameConnectionInfo(
         : // Azure MFA connections
           expectedConn.authenticationType === Constants.azureMfa &&
             conn.authenticationType === Constants.azureMfa
-          ? expectedConn.server === conn.server &&
+          ? ConnectionMatcher.serverMatches(
+                conn as IConnectionProfile,
+                expectedConn as IConnectionProfile,
+            ) &&
             isSameDatabase(expectedConn.database, conn.database) &&
             isSameAccountKey(expectedConn.accountId, conn.accountId)
           : // Not Azure MFA connections
-            expectedConn.server === conn.server &&
+            ConnectionMatcher.serverMatches(
+                conn as IConnectionProfile,
+                expectedConn as IConnectionProfile,
+            ) &&
             isSameDatabase(expectedConn.database, conn.database) &&
             isSameAuthenticationType(expectedConn.authenticationType, conn.authenticationType) &&
             (conn.authenticationType === Constants.sqlAuthentication
@@ -473,11 +492,16 @@ export function isSameScmpConnection(
         conn.authenticationType === Constants.azureMfa
     ) {
         return (
-            expectedConn.server === conn.server &&
-            isSameAccountKey(expectedConn.accountId, conn.accountId)
+            ConnectionMatcher.serverMatches(
+                conn as IConnectionProfile,
+                expectedConn as IConnectionProfile,
+            ) && isSameAccountKey(expectedConn.accountId, conn.accountId)
         );
     } else if (
-        expectedConn.server === conn.server &&
+        ConnectionMatcher.serverMatches(
+            conn as IConnectionProfile,
+            expectedConn as IConnectionProfile,
+        ) &&
         isSameAuthenticationType(expectedConn.authenticationType, conn.authenticationType)
     ) {
         if (conn.authenticationType === Constants.sqlAuthentication) {
