@@ -1403,6 +1403,10 @@ export function DabEntitySettingsDialog({
                                             localEntity,
                                             column,
                                         );
+                                        const logicalKeyExposureLockedText =
+                                            locConstants.schemaDesigner.logicalKeyColumnExposureLocked(
+                                                column.name,
+                                            );
                                         const exposureCheckbox = (
                                             <Checkbox
                                                 checked={isLogicalKey || column.isExposed}
@@ -1426,6 +1430,23 @@ export function DabEntitySettingsDialog({
                                                     column.name,
                                                 )}
                                             />
+                                        );
+                                        const exposureCell = (
+                                            <div
+                                                {...getMetadataCellProps(
+                                                    "columns",
+                                                    virtualRow.index,
+                                                    1,
+                                                )}
+                                                tabIndex={isLogicalKey ? 0 : undefined}
+                                                aria-label={
+                                                    isLogicalKey
+                                                        ? logicalKeyExposureLockedText
+                                                        : undefined
+                                                }
+                                                className={classes.metadataGridCell}>
+                                                {exposureCheckbox}
+                                            </div>
                                         );
                                         return (
                                             <div
@@ -1464,25 +1485,15 @@ export function DabEntitySettingsDialog({
                                                         }
                                                     />
                                                 </div>
-                                                <div
-                                                    {...getMetadataCellProps(
-                                                        "columns",
-                                                        virtualRow.index,
-                                                        1,
-                                                    )}
-                                                    className={classes.metadataGridCell}>
-                                                    {isLogicalKey ? (
-                                                        <Tooltip
-                                                            content={locConstants.schemaDesigner.logicalKeyColumnExposureLocked(
-                                                                column.name,
-                                                            )}
-                                                            relationship="description">
-                                                            <span>{exposureCheckbox}</span>
-                                                        </Tooltip>
-                                                    ) : (
-                                                        exposureCheckbox
-                                                    )}
-                                                </div>
+                                                {isLogicalKey ? (
+                                                    <Tooltip
+                                                        content={logicalKeyExposureLockedText}
+                                                        relationship="description">
+                                                        {exposureCell}
+                                                    </Tooltip>
+                                                ) : (
+                                                    exposureCell
+                                                )}
                                                 <div
                                                     {...getMetadataCellProps(
                                                         "columns",

@@ -942,18 +942,20 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
                                 {Dab.isEntityEffectivelyExposed(row.entity, dabConfig?.apiTypes) ? (
                                     <>
                                         {
-                                            row.entity.columns.filter((column) =>
-                                                Dab.isColumnEffectivelyExposed(
-                                                    row.entity,
-                                                    column,
-                                                    dabConfig?.apiTypes,
-                                                ),
+                                            row.entity.columns.filter(
+                                                (column) =>
+                                                    column.isExposed ||
+                                                    Dab.isLogicalKeyColumn(row.entity, column),
                                             ).length
                                         }
                                         /{row.entity.columns.length}
                                     </>
                                 ) : (
-                                    EXPOSURE_COUNT_PLACEHOLDER
+                                    <span
+                                        title={locConstants.schemaDesigner.notExposed}
+                                        aria-label={locConstants.schemaDesigner.notExposed}>
+                                        {EXPOSURE_COUNT_PLACEHOLDER}
+                                    </span>
                                 )}
                             </DabCountPill>
                         )}
@@ -1180,11 +1182,7 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
                 return (
                     <div className={classes.pillCell}>
                         <span className={classes.mutedMetadataTag}>
-                            {Dab.isColumnEffectivelyExposed(
-                                row.entity,
-                                row.column,
-                                dabConfig?.apiTypes,
-                            )
+                            {row.column.isExposed || Dab.isLogicalKeyColumn(row.entity, row.column)
                                 ? locConstants.schemaDesigner.exposed
                                 : locConstants.schemaDesigner.hidden}
                         </span>
