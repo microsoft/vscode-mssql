@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useEffect, useState, useRef } from "react";
+import { useContext, useEffect, useState } from "react";
 import SchemaDifferences from "./components/SchemaDifferences";
 import SelectSchemasPanel from "./components/SelectSchemasPanel";
 import CompareDiffEditor from "./components/CompareDiffEditor";
@@ -14,6 +14,7 @@ import { schemaCompareContext } from "./SchemaCompareStateProvider";
 import { useSchemaCompareSelector } from "./schemaCompareSelector";
 import Message from "./components/Message";
 import { makeStyles } from "@fluentui/react-components";
+import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 
 export type SchemaCompareGroupBy = "none" | "type" | "action" | "schema";
 
@@ -23,6 +24,7 @@ const useStyles = makeStyles({
         flexDirection: "column",
         height: "100vh",
         overflow: "hidden",
+        position: "relative",
     },
     contentContainer: {
         display: "flex",
@@ -38,6 +40,10 @@ const useStyles = makeStyles({
         overflow: "hidden",
         position: "relative",
     },
+    resizeHandle: {
+        height: "2px",
+        backgroundColor: "var(--vscode-editorWidget-border)",
+    },
 });
 
 export const SchemaComparePage = () => {
@@ -52,10 +58,8 @@ export const SchemaComparePage = () => {
     const [showOptionsDrawer, setShowOptionsDrawer] = useState(false);
     const [endpointType, setEndpointType] = useState<"source" | "target">("source");
     const [groupBy, setGroupBy] = useState<SchemaCompareGroupBy>("type");
-
-    // Create refs for the resizable components
-    const differencesRef = useRef<HTMLDivElement>(null);
-    const diffEditorRef = useRef<HTMLDivElement>(null);
+    const [showComparisonDetails, setShowComparisonDetails] = useState(true);
+    const [navigableDiffIds, setNavigableDiffIds] = useState<number[]>([]);
 
     useEffect(() => {
         context.isSqlProjectExtensionInstalled();
@@ -68,6 +72,25 @@ export const SchemaComparePage = () => {
 
     const handleDiffSelected = (id: number): void => {
         setSelectedDiffId(id);
+        setShowComparisonDetails(true);
+    };
+
+    const handlePreviousDiff = (): void => {
+        if (navigableDiffIds.length === 0) {
+            return;
+        }
+        const currentIndex = navigableDiffIds.indexOf(selectedDiffId);
+        const previousIndex = currentIndex <= 0 ? navigableDiffIds.length - 1 : currentIndex - 1;
+        handleDiffSelected(navigableDiffIds[previousIndex]);
+    };
+
+    const handleNextDiff = (): void => {
+        if (navigableDiffIds.length === 0) {
+            return;
+        }
+        const currentIndex = navigableDiffIds.indexOf(selectedDiffId);
+        const nextIndex = currentIndex < 0 ? 0 : (currentIndex + 1) % navigableDiffIds.length;
+        handleDiffSelected(navigableDiffIds[nextIndex]);
     };
 
     const handleShowDrawer = (show: boolean): void => {
@@ -98,11 +121,7 @@ export const SchemaComparePage = () => {
 
     return (
         <div className={classes.container}>
-            <CompareActionBar
-                onOptionsClicked={openOptionsDialog}
-                groupBy={groupBy}
-                onGroupByChange={setGroupBy}
-            />
+            <CompareActionBar onOptionsClicked={openOptionsDialog} />
             <SelectSchemasPanel onSelectSchemaClicked={handleSelectSchemaClicked} />
 
             {showMessage() && <Message />}
@@ -110,20 +129,31 @@ export const SchemaComparePage = () => {
             {!showMessage() && (
                 <div className={classes.contentContainer}>
                     <div className={classes.resizableContainer}>
-                        <SchemaDifferences
-                            ref={differencesRef}
-                            selectedDiffId={selectedDiffId}
-                            onDiffSelected={handleDiffSelected}
-                            siblingRef={diffEditorRef}
-                            groupBy={groupBy}
-                        />
+                        <PanelGroup direction="vertical">
+                            <Panel defaultSize={60}>
+                                <SchemaDifferences
+                                    selectedDiffId={selectedDiffId}
+                                    onDiffSelected={handleDiffSelected}
+                                    groupBy={groupBy}
+                                    onGroupByChange={setGroupBy}
+                                    onNavigableDiffIdsChange={setNavigableDiffIds}
+                                />
+                            </Panel>
 
-                        {selectedDiffId !== -1 && (
-                            <CompareDiffEditor
-                                ref={diffEditorRef}
-                                selectedDiffId={selectedDiffId}
-                            />
-                        )}
+                            {selectedDiffId !== -1 && showComparisonDetails && (
+                                <>
+                                    <PanelResizeHandle className={classes.resizeHandle} />
+                                    <CompareDiffEditor
+                                        selectedDiffId={selectedDiffId}
+                                        onClose={() => setShowComparisonDetails(false)}
+                                        onPrevious={handlePreviousDiff}
+                                        onNext={handleNextDiff}
+                                        hasPrevious={navigableDiffIds.length > 1}
+                                        hasNext={navigableDiffIds.length > 1}
+                                    />
+                                </>
+                            )}
+                        </PanelGroup>
                     </div>
                 </div>
             )}

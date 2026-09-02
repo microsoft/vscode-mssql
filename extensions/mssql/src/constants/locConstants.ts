@@ -2168,26 +2168,26 @@ export class SchemaCompare {
         });
     public static cannotExcludeEntryWithBlockingDependency = (
         diffEntryName: string,
-        firstDependentName: string,
+        blockingObjectNames: string,
     ) =>
         l10n.t({
-            message: "Cannot exclude {0}. Included dependents exist, such as {1}",
-            args: [diffEntryName, firstDependentName],
+            message: "Cannot exclude {0}. Blocking included objects: {1}",
+            args: [diffEntryName, blockingObjectNames],
             comment: [
                 "{0} is the name of the entry",
-                "{1} is the name of the blocking dependency preventing exclusion.",
+                "{1} is a comma-separated list of objects preventing exclusion.",
             ],
         });
     public static cannotIncludeEntryWithBlockingDependency = (
         diffEntryName: string,
-        firstDependentName: string,
+        blockingObjectNames: string,
     ) =>
         l10n.t({
-            message: "Cannot include {0}. Excluded dependents exist, such as {1}",
-            args: [diffEntryName, firstDependentName],
+            message: "Cannot include {0}. Blocking excluded objects: {1}",
+            args: [diffEntryName, blockingObjectNames],
             comment: [
                 "{0} is the name of the entry",
-                "{1} is the name of the blocking dependency preventing inclusion.",
+                "{1} is a comma-separated list of objects preventing inclusion.",
             ],
         });
     public static cannotExcludeEntry = (diffEntryName: string) =>
