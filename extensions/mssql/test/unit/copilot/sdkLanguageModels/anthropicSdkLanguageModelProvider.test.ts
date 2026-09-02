@@ -78,6 +78,41 @@ suite("AnthropicSdkLanguageModelProvider", () => {
         expect(models).to.deep.equal([]);
     });
 
+    test("prepareLanguageModelChat prompts once for a missing API key", async () => {
+        const context = createSdkExtensionContext();
+        const showInformationMessage = sandbox
+            .stub(vscode.window, "showInformationMessage")
+            .resolves(undefined);
+        const provider = new AnthropicSdkLanguageModelProvider(context, {
+            apiKeys: new SdkApiKeyResolver(context),
+        });
+
+        expect(await provider.prepareLanguageModelChat({}, cancellationToken())).to.deep.equal([]);
+        expect(await provider.prepareLanguageModelChat({}, cancellationToken())).to.deep.equal([]);
+
+        expect(showInformationMessage.callCount).to.equal(1);
+    });
+
+    test("prepareLanguageModelChat stays silent when cancelled while resolving the API key", async () => {
+        const context = createSdkExtensionContext();
+        const source = new vscode.CancellationTokenSource();
+        sandbox.stub(context.secrets, "get").callsFake(async () => {
+            source.cancel();
+            return undefined;
+        });
+        const showInformationMessage = sandbox
+            .stub(vscode.window, "showInformationMessage")
+            .resolves(undefined);
+        const provider = new AnthropicSdkLanguageModelProvider(context, {
+            apiKeys: new SdkApiKeyResolver(context),
+        });
+
+        const models = await provider.prepareLanguageModelChat({}, source.token);
+
+        expect(models).to.deep.equal([]);
+        expect(showInformationMessage.called).to.equal(false);
+    });
+
     test("user-defined additional models appear in the catalog", async () => {
         configuration[Constants.configCopilotSdkProvidersAnthropicAdditionalModels] = [
             {

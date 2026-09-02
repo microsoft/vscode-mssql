@@ -6,6 +6,7 @@
 import { expect } from "chai";
 import * as fs from "fs";
 import * as path from "path";
+import { MAX_TRACE_FILE_SIZE_MB } from "../../src/copilot/inlineCompletionDebug/traceSerializer";
 
 const SQL_DATA_PLANE_GATE =
     "mssql.privatePreview.sqlDataPlaneActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled";
@@ -34,7 +35,10 @@ interface ExtensionPackageJson {
         commands: CommandContribution[];
         menus: { commandPalette: CommandPaletteContribution[] };
         configuration: {
-            properties: Record<string, { default?: unknown; scope?: string }>;
+            properties: Record<
+                string,
+                { default?: unknown; scope?: string; minimum?: number; maximum?: number }
+            >;
         };
         languageModelChatProviders: LanguageModelChatProviderContribution[];
     };
@@ -88,6 +92,16 @@ suite("Private preview manifest", () => {
         ]) {
             expect(settings[key]?.scope, key).to.equal("machine");
         }
+    });
+
+    test("caps the trace file size setting at the limit that loading enforces", () => {
+        const setting =
+            packageJson.contributes.configuration.properties[
+                "mssql.copilot.inlineCompletions.trace.maxFileSizeMB"
+            ];
+        expect(setting?.minimum).to.equal(1);
+        expect(setting?.maximum).to.equal(MAX_TRACE_FILE_SIZE_MB);
+        expect(setting?.default).to.be.within(1, MAX_TRACE_FILE_SIZE_MB);
     });
 
     test("keeps AI provider commands out of the default UI", () => {

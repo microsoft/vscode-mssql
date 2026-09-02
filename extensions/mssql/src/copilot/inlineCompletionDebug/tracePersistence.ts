@@ -12,8 +12,10 @@ import * as LocalizedConstants from "../../constants/locConstants";
 import { logger } from "../../models/logger";
 import { getErrorMessage } from "../../utils/utils";
 import { inlineCompletionDebugStore } from "./inlineCompletionDebugStore";
+import { MAX_TRACE_FILE_SIZE_MB, serializeTraceFile } from "./traceSerializer";
 
 const traceLogger = logger.withPrefix("InlineCompletionTrace");
+export const DEFAULT_TRACE_MAX_FILE_SIZE_MB = 50;
 export const DEFAULT_TRACE_FOLDER_NAME = "copilot-completion-traces";
 export const TRACE_FILE_PREFIX = "mssql-copilot-trace-";
 export const TRACE_FILE_GLOB = `${TRACE_FILE_PREFIX}*.json`;
@@ -61,7 +63,7 @@ export async function saveInlineCompletionTraceNow(
             },
         );
         const filePath = path.join(folder, createTraceFileName(trace._savedAt));
-        const serialized = JSON.stringify(trace, undefined, 2);
+        const serialized = serializeTraceFile(trace);
         await fs.promises.writeFile(filePath, serialized, "utf8");
         traceLogger.info(`Saved inline completion trace to ${filePath}`);
         return { filePath };
@@ -117,10 +119,22 @@ export function getTraceRedactPromptsSetting(): boolean {
 export function getTraceMaxFileSizeMBSetting(): number {
     const configured = vscode.workspace
         .getConfiguration()
-        .get<number>(Constants.configCopilotInlineCompletionsTraceMaxFileSizeMB, 50);
-    return typeof configured === "number" && Number.isFinite(configured) && configured > 0
-        ? configured
-        : 50;
+        .get<number>(
+            Constants.configCopilotInlineCompletionsTraceMaxFileSizeMB,
+            DEFAULT_TRACE_MAX_FILE_SIZE_MB,
+        );
+    if (typeof configured !== "number" || !Number.isFinite(configured) || configured <= 0) {
+        return DEFAULT_TRACE_MAX_FILE_SIZE_MB;
+    }
+
+    if (configured > MAX_TRACE_FILE_SIZE_MB) {
+        traceLogger.warn(
+            `Clamping inline completion trace size ${configured} MB to the ${MAX_TRACE_FILE_SIZE_MB} MB limit that trace loading enforces.`,
+        );
+        return MAX_TRACE_FILE_SIZE_MB;
+    }
+
+    return configured;
 }
 
 function getRecordWhenClosedSetting(): boolean {

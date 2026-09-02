@@ -96,7 +96,7 @@ suite("OpenAiSdkLanguageModelProvider", () => {
             responseError = error;
         }
         expect(responseError).to.include({ code: "NoPermissions" });
-        expect(create).not.to.have.been.called;
+        expect(create.called).to.equal(false);
 
         let tokenError: unknown;
         try {

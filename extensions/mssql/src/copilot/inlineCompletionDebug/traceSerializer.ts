@@ -23,6 +23,21 @@ export interface SerializeSessionTraceOptions {
     maxFileSizeMB?: number;
 }
 
+/**
+ * Hard ceiling for a persisted trace file. Saving clamps the configured maximum to this value
+ * and loading refuses anything larger, so every trace the extension writes can be read back.
+ */
+export const MAX_TRACE_FILE_SIZE_MB = 64;
+export const MAX_TRACE_FILE_BYTES = MAX_TRACE_FILE_SIZE_MB * 1024 * 1024;
+
+/**
+ * Produces the exact text written to a trace file. Size limits are measured against this
+ * representation so a truncated trace cannot grow past the limit once it is pretty-printed.
+ */
+export function serializeTraceFile(trace: InlineCompletionDebugExportData): string {
+    return JSON.stringify(trace, undefined, 2);
+}
+
 const REDACTED = "[REDACTED]";
 const REDACTED_KEYS = new Set([
     "userPrompt",
@@ -127,8 +142,8 @@ function truncateTraceToMaxSize(
         return trace;
     }
 
-    const maxBytes = Math.floor(maxFileSizeMB * 1024 * 1024);
-    if (Buffer.byteLength(JSON.stringify(trace), "utf8") <= maxBytes) {
+    const maxBytes = Math.min(Math.floor(maxFileSizeMB * 1024 * 1024), MAX_TRACE_FILE_BYTES);
+    if (Buffer.byteLength(serializeTraceFile(trace), "utf8") <= maxBytes) {
         return trace;
     }
 
@@ -140,7 +155,7 @@ function truncateTraceToMaxSize(
 
     while (
         truncatedTrace.events.length > 0 &&
-        Buffer.byteLength(JSON.stringify(truncatedTrace), "utf8") > maxBytes
+        Buffer.byteLength(serializeTraceFile(truncatedTrace), "utf8") > maxBytes
     ) {
         truncatedTrace.events.shift();
     }

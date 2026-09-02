@@ -10560,7 +10560,7 @@
       <source xml:lang="en">Manage Connection Profiles</source>
     </trans-unit>
     <trans-unit id="mssql.copilot.inlineCompletions.trace.maxFileSizeMB.description">
-      <source xml:lang="en">Maximum completion trace size in megabytes. Older events are dropped first when necessary.</source>
+      <source xml:lang="en">Maximum completion trace file size in megabytes, between 1 and 64. Older events are dropped first when necessary.</source>
     </trans-unit>
     <trans-unit id="mssql.query.maxXmlCharsToStore">
       <source xml:lang="en">Maximum number of characters to store for each value in XML columns after running a query. Default value: 2,097,152. Valid value range: 1 to 2,147,483,647.</source>

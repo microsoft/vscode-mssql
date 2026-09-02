@@ -4,7 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from "chai";
-import { serializeSessionTrace } from "../../src/copilot/inlineCompletionDebug/traceSerializer";
+import { MAX_TRACE_LOAD_BYTES } from "../../src/copilot/inlineCompletionDebug/traceLoader";
+import {
+    MAX_TRACE_FILE_BYTES,
+    serializeSessionTrace,
+    serializeTraceFile,
+} from "../../src/copilot/inlineCompletionDebug/traceSerializer";
 import {
     InlineCompletionDebugEvent,
     InlineCompletionDebugOverrides,
@@ -73,6 +78,31 @@ suite("Inline completion trace serializer", () => {
 
         expect(trace._truncated).to.equal(true);
         expect(trace.events.map((event) => event.id)).to.deep.equal(["E-2"]);
+    });
+
+    test("measures the size limit against the pretty-printed file text", () => {
+        const events = [
+            createEvent({ id: "E-1", schemaContextFormatted: "x".repeat(4096) }),
+            createEvent({ id: "E-2", schemaContextFormatted: "y".repeat(256) }),
+        ];
+        const untruncated = serializeSessionTrace(events, createMetadata());
+        const compactBytes = Buffer.byteLength(JSON.stringify(untruncated), "utf8");
+        const prettyBytes = Buffer.byteLength(serializeTraceFile(untruncated), "utf8");
+        expect(prettyBytes).to.be.greaterThan(compactBytes + 8);
+
+        // A limit that the compact JSON satisfies but the persisted pretty-printed JSON exceeds.
+        const maxFileSizeMB = (compactBytes + 8) / (1024 * 1024);
+        const trace = serializeSessionTrace(events, createMetadata(), { maxFileSizeMB });
+
+        expect(trace._truncated).to.equal(true);
+        expect(trace.events.map((event) => event.id)).to.deep.equal(["E-2"]);
+        expect(Buffer.byteLength(serializeTraceFile(trace), "utf8")).to.be.at.most(
+            Math.floor(maxFileSizeMB * 1024 * 1024),
+        );
+    });
+
+    test("shares one hard file size limit between saving and loading", () => {
+        expect(MAX_TRACE_LOAD_BYTES).to.equal(MAX_TRACE_FILE_BYTES);
     });
 });
 

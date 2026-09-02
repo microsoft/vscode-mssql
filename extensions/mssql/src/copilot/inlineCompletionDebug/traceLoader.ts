@@ -13,8 +13,9 @@ import {
 } from "../../sharedInterfaces/inlineCompletionDebug";
 import { getErrorMessage } from "../../utils/utils";
 import { TRACE_FILE_GLOB, TRACE_FILE_PREFIX } from "./tracePersistence";
+import { MAX_TRACE_FILE_BYTES } from "./traceSerializer";
 
-export const MAX_TRACE_LOAD_BYTES = 64 * 1024 * 1024;
+export const MAX_TRACE_LOAD_BYTES = MAX_TRACE_FILE_BYTES;
 
 export function createTraceFolderWatcher(
     folder: string,

@@ -407,7 +407,7 @@
     "mssql.copilot.inlineCompletions.trace.captureEnabled.description": "Save recorded inline completion diagnostics to a local trace file when the extension deactivates.",
     "mssql.copilot.inlineCompletions.trace.folder.description": "Absolute or home-relative folder for completion trace files. Leave empty to use extension storage.",
     "mssql.copilot.inlineCompletions.trace.redactPrompts.description": "Redact prompt, response, completion, and schema-context text in saved completion trace files.",
-    "mssql.copilot.inlineCompletions.trace.maxFileSizeMB.description": "Maximum completion trace size in megabytes. Older events are dropped first when necessary.",
+    "mssql.copilot.inlineCompletions.trace.maxFileSizeMB.description": "Maximum completion trace file size in megabytes, between 1 and 64. Older events are dropped first when necessary.",
     "mssql.copilot.sdkProviders.anthropic.enabled.description": "Register the Anthropic API language model provider for MSSQL inline completions. Reload after changing this setting.",
     "mssql.copilot.sdkProviders.anthropic.additionalModels.description": "Additional Anthropic API model definitions beyond the built-in catalog.",
     "mssql.copilot.sdkProviders.anthropic.baseUrl.description": "Optional Anthropic API base URL for a proxy or gateway.",

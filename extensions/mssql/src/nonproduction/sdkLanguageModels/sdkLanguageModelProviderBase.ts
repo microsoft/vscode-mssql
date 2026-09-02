@@ -108,7 +108,10 @@ export abstract class SdkLanguageModelProviderBase {
         }
 
         const apiKey = await this.resolveApiKey();
-        if (!apiKey || token.isCancellationRequested) {
+        if (token.isCancellationRequested) {
+            return [];
+        }
+        if (!apiKey) {
             void this.showMissingApiKeyMessage();
             return [];
         }
