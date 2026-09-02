@@ -520,7 +520,7 @@
       </trans-unit>
       <trans-unit id="++CODE++b19e02e9502bbe5ac59dff4b2d4160768a4a7b8feff5693e5769613562290a45">
         <source xml:lang="en">Alias</source>
-        <target state="new">Alias</target>
+        <target state="translated">Alias</target>
       </trans-unit>
       <trans-unit id="++CODE++a52ace420f2175d08b1577a1bea5445e36801229c074ef9ed6c55a73401fd9c2">
         <source xml:lang="en">All</source>
@@ -664,7 +664,7 @@ Selecione "{0}" para estabelecer uma conexão.</target>
       </trans-unit>
       <trans-unit id="++CODE++90395d452a308fcb26c44a7a5fb70916b2aaf592fccdd187ac7c6e1192b217c1">
         <source xml:lang="en">Anon</source>
-        <target state="new">Anon</target>
+        <target state="translated">Anon</target>
       </trans-unit>
       <trans-unit id="++CODE++e7a8aa2df7e5d0b233da615af4e7fef148bec39aef1709da0a80391ad0316563">
         <source xml:lang="en">Anonymous</source>
@@ -852,11 +852,11 @@ Isso removerá tanto o contêiner quanto sua conexão do VS Code.</target>
       </trans-unit>
       <trans-unit id="++CODE++8eb3ea9bbde631592dfac3150044fabe4678c820a107c026035c13bf0c8ba9d7">
         <source xml:lang="en">Auth</source>
-        <target state="new">Auth</target>
+        <target state="translated">Autenticação</target>
       </trans-unit>
       <trans-unit id="++CODE++0fdea2ab7469cfd94d44d8c7d77dd529199dc868fd6bc8b1d9c3c331744edeb0">
         <source xml:lang="en">Auth mode</source>
-        <target state="new">Auth mode</target>
+        <target state="translated">Modo de autenticação</target>
       </trans-unit>
       <trans-unit id="++CODE++8ff1f9a47f14327a26fd3a548d2babeec226cb63828a0803433b4a34a19c09ff">
         <source xml:lang="en">Auth type</source>
@@ -1780,7 +1780,7 @@ Isso removerá tanto o contêiner quanto sua conexão do VS Code.</target>
       </trans-unit>
       <trans-unit id="++CODE++5ed61b23a6cc6bb55c21dc48803bfd68b6ec2bbe196fc8867cf8a52965f287a7">
         <source xml:lang="en">Clear cached metadata for a connection</source>
-        <target state="new">Clear cached metadata for a connection</target>
+        <target state="translated">Limpar metadados em cache de uma conexão</target>
       </trans-unit>
       <trans-unit id="++CODE++7179ea0035fca783ec62b7185659b68c75f2a7c12b909306a57183dc9b3fa44b">
         <source xml:lang="en">Clear filters</source>
@@ -3002,15 +3002,15 @@ Isso removerá tanto o contêiner quanto sua conexão do VS Code.</target>
       </trans-unit>
       <trans-unit id="++CODE++2382ba5d273153b70b946e94dce6917ebe7aa25b0d46f4cc7b31ec891ec8784e">
         <source xml:lang="en">Custom tool creates a dedicated MCP tool for this stored procedure.</source>
-        <target state="new">Custom tool creates a dedicated MCP tool for this stored procedure.</target>
+        <target state="translated">Ferramenta personalizada cria uma ferramenta MCP dedicada para este procedimento armazenado.</target>
       </trans-unit>
       <trans-unit id="++CODE++51ca74e23be7acf03bd1740c2091cbf8a1124e81866eb6ed6b2e937136cb5f67">
         <source xml:lang="en">Customize column access</source>
-        <target state="new">Customize column access</target>
+        <target state="translated">Personalizar o acesso à coluna</target>
       </trans-unit>
       <trans-unit id="++CODE++bbf15d3d65d70f80283cf7adfe4537ecd273144eb51643167de4c12967f470e7">
         <source xml:lang="en">Customize columns</source>
-        <target state="new">Customize columns</target>
+        <target state="translated">Personalizar colunas</target>
       </trans-unit>
       <trans-unit id="++CODE++c525ed2944e05f661b7bc658ddccb355cd47a8daab5629ce4310c575aa58e2a1">
         <source xml:lang="en">Customize keyboard shortcuts</source>
@@ -3052,11 +3052,11 @@ Isso removerá tanto o contêiner quanto sua conexão do VS Code.</target>
       </trans-unit>
       <trans-unit id="++CODE++a624c53f324c90b7a7da7401d49f23d00dc78cdad529bbb41bdd319c1e6f4cbb">
         <source xml:lang="en">DML tools expose this entity through generic MCP tools.</source>
-        <target state="new">DML tools expose this entity through generic MCP tools.</target>
+        <target state="translated">As ferramentas DML expõem essa entidade por meio de ferramentas MCP genéricas.</target>
       </trans-unit>
       <trans-unit id="++CODE++a724eec1c740993b1bd30143c1d2ef8b6a4f3560e19c4e2355e786a18d3ce48e">
         <source xml:lang="en">DML tools expose this stored procedure through generic execute tools.</source>
-        <target state="new">DML tools expose this stored procedure through generic execute tools.</target>
+        <target state="translated">As ferramentas DML expõem esse procedimento armazenado por meio de ferramentas genéricas de execução.</target>
       </trans-unit>
       <trans-unit id="++CODE++02b435f9a4c73633bef7d3b2b6548de6bb7ec5414c63e0bb6db520a4ca4d1004">
         <source xml:lang="en">DacFx service is not available. Profile loaded without deployment options. Publish and generate script operations cannot be performed.</source>
@@ -3810,7 +3810,7 @@ Isso removerá tanto o contêiner quanto sua conexão do VS Code.</target>
       </trans-unit>
       <trans-unit id="++CODE++88c59d6325c5f9cb638b3671a4ed7680c56c924d8b07a98dadce93466d269197">
         <source xml:lang="en">Enable MCP in API Type to expose this entity through MCP.</source>
-        <target state="new">Enable MCP in API Type to expose this entity through MCP.</target>
+        <target state="translated">Habilite MCP no Tipo de API para expor essa entidade por meio do MCP.</target>
       </trans-unit>
       <trans-unit id="++CODE++15435d09b1cffdaf56b14da1b895b33f43e8c959a77676be198778deca88c203">
         <source xml:lang="en">Enable MCP in API Type to use this DML tools setting.</source>
@@ -4394,7 +4394,7 @@ Erro:
       </trans-unit>
       <trans-unit id="++CODE++eae47ccdd51f34b36191e508f439eb4539be120218976462316ea74d1011cc2a">
         <source xml:lang="en">Exec</source>
-        <target state="new">Exec</target>
+        <target state="translated">Exec</target>
       </trans-unit>
       <trans-unit id="++CODE++e3a67d9540e9a204f7dc4aa9d44a0ec652856cfa932a21196bf9df23aa0e4cd1">
         <source xml:lang="en">Execute</source>
@@ -4642,7 +4642,7 @@ Erro:
       </trans-unit>
       <trans-unit id="++CODE++9687fa49cbabe130e6700fb6dba29d6650f2a4f3ed416a9956a1f494c16a5c36">
         <source xml:lang="en">Expose</source>
-        <target state="new">Expose</target>
+        <target state="translated">Expor</target>
       </trans-unit>
       <trans-unit id="++CODE++29b442400008bbd807940df17eeffd10d069f415bd2c1320d813f2e61a223095">
         <source xml:lang="en">Expose as MCP DML tools</source>
@@ -4658,7 +4658,7 @@ Erro:
       </trans-unit>
       <trans-unit id="++CODE++bf42d779f126ae3f936e2ed856401f447e8c5b071da8d1001f276728942fd678">
         <source xml:lang="en">Expose this entity through MCP</source>
-        <target state="new">Expose this entity through MCP</target>
+        <target state="translated">Expor esta entidade por meio do MCP</target>
       </trans-unit>
       <trans-unit id="++CODE++1d66e218f7e4f002993789d4d2f5882562de9be46ff392069f35b830da0a78f6">
         <source xml:lang="en">Expose this entity through REST</source>
@@ -4671,11 +4671,11 @@ Erro:
       </trans-unit>
       <trans-unit id="++CODE++d85cdd4a3e9b81d2f16b2dad8854d17525cd7dfdab8d72741b36e86805bc2519">
         <source xml:lang="en">Exposed</source>
-        <target state="new">Exposed</target>
+        <target state="translated">Exposto</target>
       </trans-unit>
       <trans-unit id="++CODE++843e65c123943ded912c77e1bc283de1b9fb26e1ee2a1ba2401c286edfa16cda">
         <source xml:lang="en">Exposed via</source>
-        <target state="new">Exposed via</target>
+        <target state="translated">Exposto através de</target>
       </trans-unit>
       <trans-unit id="++CODE++c67415bcff328a59fd399e2a7ca9691e0044192fb7480ae501644339965d046d">
         <source xml:lang="en">Expression</source>
@@ -5389,7 +5389,7 @@ Erro:
       </trans-unit>
       <trans-unit id="++CODE++1a6f33ce99a271f6bf6f94ed11bc223cd8a7fc7e5594d15119cfe82f465cb514">
         <source xml:lang="en">Filter columns...</source>
-        <target state="new">Filter columns...</target>
+        <target state="translated">Filtrar colunas...</target>
       </trans-unit>
       <trans-unit id="++CODE++25f7c9810f4a804cfb8dd52d53afff3e995a0e03165362b827f6eb301d685327">
         <source xml:lang="en">Filter entities</source>
@@ -5825,7 +5825,7 @@ Erro:
       </trans-unit>
       <trans-unit id="++CODE++7e6fefff0f0aeb6ca93086d3855d0406bdd0ee53b56771f8c794cf07af6598b7">
         <source xml:lang="en">Hidden</source>
-        <target state="new">Hidden</target>
+        <target state="translated">Oculta</target>
       </trans-unit>
       <trans-unit id="++CODE++cf7a4462cdb4e65708d6da34fafbdbd520b0300850a68be92f1fe3d5be3811d2">
         <source xml:lang="en">Hide Changes</source>
@@ -6065,7 +6065,7 @@ Erro:
       <trans-unit id="++CODE++38ccbbcbe0241e051909d6867d0528e4eff3bed6cbd9360cbaa67a0301f67066">
         <source xml:lang="en">Include {0}</source>
         <note>{0} is the entity name</note>
-        <target state="new">Include {0}</target>
+        <target state="translated">Incluir {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++a19caa35e133f5a0e94975762741c4c73b09c8a830908934206474fea30817b0">
         <source xml:lang="en">Incomplete or orphaned connections</source>
@@ -6718,7 +6718,7 @@ Erro:
       </trans-unit>
       <trans-unit id="++CODE++8336175b8ad79d9ee20c64d8271504a8d4cddaf613f831c0be0465ed761ef21d">
         <source xml:lang="en">Logical key</source>
-        <target state="new">Logical key</target>
+        <target state="translated">Chave lógica</target>
       </trans-unit>
       <trans-unit id="++CODE++155952ddf38c19af2c08d64095b80c9fe510faade4f78b6f0c6113fda082eda0">
         <source xml:lang="en">Logical operator</source>
@@ -6742,7 +6742,7 @@ Erro:
       </trans-unit>
       <trans-unit id="++CODE++bfd23a1362b4cd5f3c66dc3b8860ed4511a3ef7e1f8d69db59f764e0fc65851b">
         <source xml:lang="en">MCP DML tools</source>
-        <target state="new">MCP DML tools</target>
+        <target state="translated">Ferramentas DML do MCP</target>
       </trans-unit>
       <trans-unit id="++CODE++cb571bc2bc5742ac76bfe870bd81c2d7aeefe4a9f9c828b36c7a39464c3c3ebb">
         <source xml:lang="en">MCP custom tool</source>
@@ -6789,11 +6789,11 @@ Erro:
       </trans-unit>
       <trans-unit id="++CODE++212c177c0fb717020548b59a64c5ea3dab99e4fa463b7a996a3c4bfb2af3d443">
         <source xml:lang="en">MSSQL metadata cache cleared.</source>
-        <target state="new">MSSQL metadata cache cleared.</target>
+        <target state="translated">Cache de metadados do MSSQL limpo.</target>
       </trans-unit>
       <trans-unit id="++CODE++a722617da5b3a5acc85fb6be7668c28e2befae5576d896b99eb4ea97eebb676b">
         <source xml:lang="en">MSSQL metadata cache entry cleared.</source>
-        <target state="new">MSSQL metadata cache entry cleared.</target>
+        <target state="translated">Entrada do cache de metadados do MSSQL limpa.</target>
       </trans-unit>
       <trans-unit id="++CODE++a8b9a3bc6f9dfdfe260d58469e1cd0c1b8f15a879688815a0c0fb89ece9916bc">
         <source xml:lang="en">MSSQL: Click to change connection</source>
@@ -6912,7 +6912,7 @@ Erro:
       </trans-unit>
       <trans-unit id="++CODE++ef4130dc48f45fbb30ce483736bd294e6080ba15a8f915f61c7b91e914733d02">
         <source xml:lang="en">Metadata requires mssql.enableExperimentalFeatures and mssql.sqlDataPlane.enabled to be enabled.</source>
-        <target state="new">Metadata requires mssql.enableExperimentalFeatures and mssql.sqlDataPlane.enabled to be enabled.</target>
+        <target state="translated">Os metadados exigem que mssql.enableExperimentalFeatures e mssql.sqlDataPlane.enabled estejam habilitados.</target>
       </trans-unit>
       <trans-unit id="++CODE++2d275a74912cca2e02e6d41f9cae3a75ceef3ed0ef734eff3710e10eb7112228">
         <source xml:lang="en">Metric</source>
@@ -7442,11 +7442,11 @@ Erro:
       </trans-unit>
       <trans-unit id="++CODE++aced1f6eb816646c06bf8c07537b988d6170549fb090727e92423ce063207afd">
         <source xml:lang="en">No columns match the current filter.</source>
-        <target state="new">No columns match the current filter.</target>
+        <target state="translated">Nenhuma coluna corresponde ao filtro atual.</target>
       </trans-unit>
       <trans-unit id="++CODE++92b96197f4ff0a723964fe779267ba475892eb8f744fe5482fd3c6bc752892a3">
         <source xml:lang="en">No columns were discovered for this entity.</source>
-        <target state="new">No columns were discovered for this entity.</target>
+        <target state="translated">Nenhuma coluna foi descoberta para esta entidade.</target>
       </trans-unit>
       <trans-unit id="++CODE++d359844ae129bd7d51eda9e3c61dcf5c4036be148cdf783fc11d6454e8ca372b">
         <source xml:lang="en">No connection credentials found</source>
@@ -7598,7 +7598,7 @@ Erro:
       </trans-unit>
       <trans-unit id="++CODE++c2a1a3e03cf67c0ac40fabfee38ee5346f05417614d1a55e7eed85e87de976d7">
         <source xml:lang="en">No parameters were discovered for this stored procedure.</source>
-        <target state="new">No parameters were discovered for this stored procedure.</target>
+        <target state="translated">Nenhum parâmetro foi encontrado para este procedimento armazenado.</target>
       </trans-unit>
       <trans-unit id="++CODE++b4722b7d6b5e5dd7c69480a9bd436e71d151acf1a05b81fcace235ba42c83375">
         <source xml:lang="en">No pending changes. Make edits to generate a script.</source>
@@ -7606,7 +7606,7 @@ Erro:
       </trans-unit>
       <trans-unit id="++CODE++ef5bb5141fd8afa4951e5674000f5cb3307e6b129c57298ff8f5853ed1f893ae">
         <source xml:lang="en">No permissions</source>
-        <target state="new">No permissions</target>
+        <target state="translated">Sem permissões</target>
       </trans-unit>
       <trans-unit id="++CODE++4d2b6723246a1c9f0623c0c48a49e0303cd42b98acd1bc981582ca59a83b2ccc">
         <source xml:lang="en">No profiler connection available</source>
@@ -7841,7 +7841,7 @@ Erro:
       </trans-unit>
       <trans-unit id="++CODE++441818ccc4c33fe807938249c80e7be1eddc196d87077b06367d567dc08eaf05">
         <source xml:lang="en">Not exposed</source>
-        <target state="new">Not exposed</target>
+        <target state="translated">Não exposto</target>
       </trans-unit>
       <trans-unit id="++CODE++972711d90594be0ec9340bc56950dc455b2764187dcad7093ae641df2cbc10c5">
         <source xml:lang="en">Not likely at all</source>
@@ -8106,7 +8106,7 @@ Erro:
       </trans-unit>
       <trans-unit id="++CODE++59be71333c960fd08e7e4fe9862206d9355f0a9884121a5b50ef8b36efdfe4cf">
         <source xml:lang="en">Optional</source>
-        <target state="new">Optional</target>
+        <target state="translated">Opcional</target>
       </trans-unit>
       <trans-unit id="++CODE++da53ba1a285ffae9c6528e235b57336fa85b4f05e9fc00a51ee922069c3d9865">
         <source xml:lang="en">Optional (False)</source>
@@ -9047,7 +9047,7 @@ Erro:
       </trans-unit>
       <trans-unit id="++CODE++a0bd6e6936bbac62dd89c1012d9ccddc307a904c3cb34cbceed2500075fe3b5d">
         <source xml:lang="en">Required parameter</source>
-        <target state="new">Required parameter</target>
+        <target state="translated">Parâmetro obrigatório</target>
       </trans-unit>
       <trans-unit id="++CODE++98fe17bca293f3dccd1fbe14ff7b0f12d73ba72e6a3e47310982e8de208f560f">
         <source xml:lang="en">Requirements:</source>
@@ -10094,7 +10094,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++1f44d9cdb4b2b64253e0642a79bda7f3738c87e3a22ce505d6454ee7a10d1623">
         <source xml:lang="en">Select at least one logical key column before applying or deploying this exposed table or view.</source>
-        <target state="new">Select at least one logical key column before applying or deploying this exposed table or view.</target>
+        <target state="translated">Selecione pelo menos uma coluna de chave lógica antes de aplicar ou implantar esta tabela ou exibição exposta.</target>
       </trans-unit>
       <trans-unit id="++CODE++91db086469f6b5535752cd441009d061a5ade94b6684a1dbaff02da204515224">
         <source xml:lang="en">Select column</source>
@@ -11313,11 +11313,11 @@ Tem certeza de que quer continuar?</target>
       </trans-unit>
       <trans-unit id="++CODE++680bed6d2dcb86d1bc0264f320c6de629fdd32a04b7b5790e7a16d176fbcf77d">
         <source xml:lang="en">The metadata cache has no entries to clear.</source>
-        <target state="new">The metadata cache has no entries to clear.</target>
+        <target state="translated">O cache de metadados não tem entradas para limpar.</target>
       </trans-unit>
       <trans-unit id="++CODE++748f1779a56584b54a1ebea2ed54d4ed5a28d6480654284f36b3c9ccc02e1ddc">
         <source xml:lang="en">The metadata cache is not enabled. Enable mssql.metadataCache.enabled and reload the window.</source>
-        <target state="new">The metadata cache is not enabled. Enable mssql.metadataCache.enabled and reload the window.</target>
+        <target state="translated">O cache de metadados não está habilitado. Habilite mssql.metadataCache.enabled e recarregue a janela.</target>
       </trans-unit>
       <trans-unit id="++CODE++497f95858a915b211f7f758c96976c859fb0e3695e61ec32971051e8b431c186">
         <source xml:lang="en">The move was rejected or could not be completed.</source>
@@ -11586,7 +11586,7 @@ Tem certeza de que quer continuar?</target>
         <source xml:lang="en">Toggle all {0} in schema {1}</source>
         <note>{0} is the source type
 {1} is the schema name</note>
-        <target state="new">Toggle all {0} in schema {1}</target>
+        <target state="translated">Alternar todo {0} no esquema {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++9bcf2e5fe7e330dcd17af169e2cd49b62da4c4c033dbeb88966f8e3a8d5e6ad8">
         <source xml:lang="en">Toggle between grid and text view</source>
@@ -12436,7 +12436,7 @@ Tem certeza de que quer continuar?</target>
       <trans-unit id="++CODE++27f5e6eb93673ec8555f139d6bd2a5f727cfeabefe8c913a9832a141f55fca1a">
         <source xml:lang="en">captured {0}</source>
         <note>{0} is the UTC timestamp when the metadata cache entry was captured</note>
-        <target state="new">captured {0}</target>
+        <target state="translated">capturado em {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++beeb20fbd67695085c26c5dfa7b5ece4d1985d201cb6f0dd9aa66a36ed987ce5">
         <source xml:lang="en">contains</source>
@@ -13275,7 +13275,7 @@ Projetos:
       </trans-unit>
       <trans-unit id="mssql.cancelContainerOperation">
         <source xml:lang="en">Cancel</source>
-        <target state="new">Cancel</target>
+        <target state="translated">Cancelar</target>
       </trans-unit>
       <trans-unit id="mssql.cancelConnect">
         <source xml:lang="en">Cancel Connection (MSSQL)</source>
@@ -13641,7 +13641,7 @@ Quando terminar de fazer suas alterações, clique no botão "Publicar" para env
       </trans-unit>
       <trans-unit id="mssql.enableExperimentalFeatures.description">
         <source xml:lang="en">Enables the umbrella for experimental features in the MSSQL extension. Private-preview feature settings must also be enabled individually. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.</source>
-        <target state="new">Enables the umbrella for experimental features in the MSSQL extension. Private-preview feature settings must also be enabled individually. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.</target>
+        <target state="translated">Habilita a configuração geral para recursos experimentais na extensão do MSSQL. As configurações de versão prévia privada do recurso também precisam ser habilitadas individualmente. Os recursos não estão prontos para produção e podem ter bugs ou problemas. Reinicie o Visual Studio Code após alterar essa configuração.</target>
       </trans-unit>
       <trans-unit id="mssql.showEstimatedPlan">
         <source xml:lang="en">Estimated Plan (MSSQL)</source>
@@ -13649,7 +13649,7 @@ Quando terminar de fazer suas alterações, clique no botão "Publicar" para env
       </trans-unit>
       <trans-unit id="mssql.metadataCache.maxAgeDays.description">
         <source xml:lang="en">Evict persisted metadata snapshots older than this many days.</source>
-        <target state="new">Evict persisted metadata snapshots older than this many days.</target>
+        <target state="translated">Remover instantâneos de metadados persistentes anteriores a este número de dias.</target>
       </trans-unit>
       <trans-unit id="mssql.runQuery">
         <source xml:lang="en">Execute Query (MSSQL)</source>
@@ -13717,7 +13717,7 @@ Quando terminar de fazer suas alterações, clique no botão "Publicar" para env
       </trans-unit>
       <trans-unit id="mssql.metadata.pollSeconds.description">
         <source xml:lang="en">Internal preview setting: base interval in seconds for metadata drift checks. Set to 0 to disable polling. Per-database backoff, window-focus suspension, and serverless safeguards also apply. Reload the window after changing this setting.</source>
-        <target state="new">Internal preview setting: base interval in seconds for metadata drift checks. Set to 0 to disable polling. Per-database backoff, window-focus suspension, and serverless safeguards also apply. Reload the window after changing this setting.</target>
+        <target state="translated">Configuração de versão prévia interna: intervalo base em segundos para verificações de descompasso de metadados. Defina como 0 para desabilitar a sondagem. Retirada por banco de dados, suspensão quando a janela está em foco e proteções para sem servidor também se aplicam. Recarregue a janela após alterar essa configuração.</target>
       </trans-unit>
       <trans-unit id="mssql.profiler.launchFromObjectExplorer">
         <source xml:lang="en">Launch Query Profiler...</source>
@@ -13793,27 +13793,27 @@ Você pode se conectar a um banco de dados inserindo suas informações de conex
       </trans-unit>
       <trans-unit id="mssql.metadataCache.maxBytes.description">
         <source xml:lang="en">Maximum total size in bytes for persisted metadata snapshots. Least-recently-used entries are evicted first.</source>
-        <target state="new">Maximum total size in bytes for persisted metadata snapshots. Least-recently-used entries are evicted first.</target>
+        <target state="translated">Tamanho total máximo em bytes para instantâneos de metadados persistentes. As entradas menos usadas recentemente são removidas primeiro.</target>
       </trans-unit>
       <trans-unit id="mssql.metadataCache.clearAll">
         <source xml:lang="en">Metadata Cache: Clear All</source>
-        <target state="new">Metadata Cache: Clear All</target>
+        <target state="translated">Cache de metadados: limpar tudo</target>
       </trans-unit>
       <trans-unit id="mssql.metadataCache.clearForConnection">
         <source xml:lang="en">Metadata Cache: Clear for Connection</source>
-        <target state="new">Metadata Cache: Clear for Connection</target>
+        <target state="translated">Cache de metadados: limpar para conexão</target>
       </trans-unit>
       <trans-unit id="mssql.metadataCache.disableOfflineMode">
         <source xml:lang="en">Metadata Cache: Disable Offline Mode</source>
-        <target state="new">Metadata Cache: Disable Offline Mode</target>
+        <target state="translated">Cache de metadados: desativar modo offline</target>
       </trans-unit>
       <trans-unit id="mssql.metadataCache.enableOfflineMode">
         <source xml:lang="en">Metadata Cache: Enable Offline Mode</source>
-        <target state="new">Metadata Cache: Enable Offline Mode</target>
+        <target state="translated">Cache de metadados: ativar modo offline</target>
       </trans-unit>
       <trans-unit id="mssql.metadataCache.showStatus">
         <source xml:lang="en">Metadata Cache: Show Status</source>
-        <target state="new">Metadata Cache: Show Status</target>
+        <target state="translated">Cache de metadados: mostrar status</target>
       </trans-unit>
       <trans-unit id="mssql.openAzureDataStudioMigration">
         <source xml:lang="en">Migrate from Azure Data Studio</source>
@@ -13927,11 +13927,11 @@ Comece clicando no botão de filtro ao lado da maioria das pastas na exibição 
       </trans-unit>
       <trans-unit id="mssql.sqlDataPlane.enabled.description">
         <source xml:lang="en">Private preview. Enable the STS v2-backed SQL Data Plane for preview consumers. Requires mssql.enableExperimentalFeatures and SQL Tools Service 6.0.20260825.2 or later; older bundled services are launched without the STS v2 lane. Reload the window after changing either setting. Existing query, connection, language service, and Object Explorer behavior remains unchanged.</source>
-        <target state="new">Private preview. Enable the STS v2-backed SQL Data Plane for preview consumers. Requires mssql.enableExperimentalFeatures and SQL Tools Service 6.0.20260825.2 or later; older bundled services are launched without the STS v2 lane. Reload the window after changing either setting. Existing query, connection, language service, and Object Explorer behavior remains unchanged.</target>
+        <target state="translated">Versão prévia privada. Habilite o Plano de Dados SQL, baseado em STS v2, para usuários da versão prévia. Requer mssql.enableExperimentalFeatures e SQL Tools Service 6.0.20260825.2 ou posterior; serviços incluídos mais antigos são iniciados sem o canal STS v2. Recarregue a janela após alterar qualquer configuração. O comportamento existente de consulta, conexão, serviço de linguagem e Pesquisador de Objetos permanece inalterado.</target>
       </trans-unit>
       <trans-unit id="mssql.metadataCache.enabled.description">
         <source xml:lang="en">Private preview. Persist structural metadata catalog snapshots locally for metadata-backed preview features. Requires mssql.enableExperimentalFeatures and mssql.sqlDataPlane.enabled. Snapshots contain schemas, objects, columns, and keys, but never descriptions, default or computed SQL definitions, module definitions, query results, credentials, or other secrets. Reload the window after changing any required setting.</source>
-        <target state="new">Private preview. Persist structural metadata catalog snapshots locally for metadata-backed preview features. Requires mssql.enableExperimentalFeatures and mssql.sqlDataPlane.enabled. Snapshots contain schemas, objects, columns, and keys, but never descriptions, default or computed SQL definitions, module definitions, query results, credentials, or other secrets. Reload the window after changing any required setting.</target>
+        <target state="translated">Versão prévia privada. Persista os instantâneos do catálogo de metadados estruturais localmente para recursos de visualização com suporte de metadados. Requer mssql.enableExperimentalFeatures e mssql.sqlDataPlane.enabled. Os instantâneos contêm esquemas, objetos, colunas e chaves, mas nunca descrições, definições SQL padrão ou computadas, definições de módulo, resultados de consultas, credenciais ou outros segredos. Recarregue a janela depois de alterar as configurações necessárias.</target>
       </trans-unit>
       <trans-unit id="mssql.authCodeGrant.description">
         <source xml:lang="en">Prompts users to sign in using their browser.</source>
@@ -14099,7 +14099,7 @@ Comece clicando no botão de filtro ao lado da maioria das pastas na exibição 
       </trans-unit>
       <trans-unit id="mssql.metadataCache.offlineMode.description">
         <source xml:lang="en">Serve metadata only from persisted snapshots without contacting the server. Requires the experimental-features, SQL Data Plane, and metadata-cache settings. Status surfaces disclose snapshot age, and operations requiring fresh metadata refuse stale or unavailable data.</source>
-        <target state="new">Serve metadata only from persisted snapshots without contacting the server. Requires the experimental-features, SQL Data Plane, and metadata-cache settings. Status surfaces disclose snapshot age, and operations requiring fresh metadata refuse stale or unavailable data.</target>
+        <target state="translated">Forneça metadados somente de instantâneos persistentes sem entrar em contato com o servidor. Requer as configurações de recursos experimentais, Plano de Dados SQL e cache de metadados. As superfícies de status revelam a idade do snapshot e as operações que exigem metadados novos recusam dados obsoletos ou indisponíveis.</target>
       </trans-unit>
       <trans-unit id="mssql.resultsFontFamily">
         <source xml:lang="en">Set the font family for the results grid; set to blank to use the editor font</source>

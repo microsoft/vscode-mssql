@@ -8106,7 +8106,7 @@ Errore:
       </trans-unit>
       <trans-unit id="++CODE++59be71333c960fd08e7e4fe9862206d9355f0a9884121a5b50ef8b36efdfe4cf">
         <source xml:lang="en">Optional</source>
-        <target state="new">Optional</target>
+        <target state="translated">Facoltativo</target>
       </trans-unit>
       <trans-unit id="++CODE++da53ba1a285ffae9c6528e235b57336fa85b4f05e9fc00a51ee922069c3d9865">
         <source xml:lang="en">Optional (False)</source>
@@ -11313,7 +11313,7 @@ Continuare?</target>
       </trans-unit>
       <trans-unit id="++CODE++680bed6d2dcb86d1bc0264f320c6de629fdd32a04b7b5790e7a16d176fbcf77d">
         <source xml:lang="en">The metadata cache has no entries to clear.</source>
-        <target state="new">The metadata cache has no entries to clear.</target>
+        <target state="translated">La cache dei metadati non contiene voci da cancellare.</target>
       </trans-unit>
       <trans-unit id="++CODE++748f1779a56584b54a1ebea2ed54d4ed5a28d6480654284f36b3c9ccc02e1ddc">
         <source xml:lang="en">The metadata cache is not enabled. Enable mssql.metadataCache.enabled and reload the window.</source>
