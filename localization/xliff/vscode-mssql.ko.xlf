@@ -14347,9 +14347,9 @@ See the estimated plan without running the query, or view the actual query plan 
         <source xml:lang="en">Use the preview SQL formatter. Disable this setting to temporarily use the existing formatter.</source>
         <target state="translated">미리 보기 SQL 포맷터를 사용합니다. 기존 포맷터를 일시적으로 사용하려면 이 설정을 사용하지 않도록 설정합니다.</target>
       </trans-unit>
-      <trans-unit id="mssql.preview.useVscodeAccountsForEntraMFA.description">
-        <source xml:lang="en">Uses VS Code signed-in accounts for Microsoft Entra ID MFA authentication to SQL. Restart Visual Studio Code after changing this setting.</source>
-        <target state="translated">SQL에 대한 Microsoft Entra ID MFA 인증에 VS Code 로그인 계정을 사용합니다. 이 설정을 변경한 후 Visual Studio Code를 다시 시작하세요.</target>
+      <trans-unit id="mssql.useMsalEntraMfaAuth.description">
+        <source xml:lang="en">Uses MSAL for Microsoft Entra MFA authentication instead of VS Code signed-in accounts. Restart Visual Studio Code after changing this setting.</source>
+        <target state="new">Uses MSAL for Microsoft Entra MFA authentication instead of VS Code signed-in accounts. Restart Visual Studio Code after changing this setting.</target>
       </trans-unit>
       <trans-unit id="mssql.viewBackgroundTaskLogs">
         <source xml:lang="en">View Task Logs</source>

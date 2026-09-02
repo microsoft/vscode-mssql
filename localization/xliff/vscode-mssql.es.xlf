@@ -14347,9 +14347,9 @@ Vea el plan estimado sin ejecutar la consulta, o vea el plan de consulta real de
         <source xml:lang="en">Use the preview SQL formatter. Disable this setting to temporarily use the existing formatter.</source>
         <target state="translated">Use el formateador SQL en vista previa. Deshabilite esta configuración para usar temporalmente el formateador existente.</target>
       </trans-unit>
-      <trans-unit id="mssql.preview.useVscodeAccountsForEntraMFA.description">
-        <source xml:lang="en">Uses VS Code signed-in accounts for Microsoft Entra ID MFA authentication to SQL. Restart Visual Studio Code after changing this setting.</source>
-        <target state="translated">Usa las cuentas con sesión iniciada en VS Code para la autenticación MFA de Microsoft Entra ID en SQL. Reinicie Visual Studio Code después de cambiar esta configuración.</target>
+      <trans-unit id="mssql.useMsalEntraMfaAuth.description">
+        <source xml:lang="en">Uses MSAL for Microsoft Entra MFA authentication instead of VS Code signed-in accounts. Restart Visual Studio Code after changing this setting.</source>
+        <target state="new">Uses MSAL for Microsoft Entra MFA authentication instead of VS Code signed-in accounts. Restart Visual Studio Code after changing this setting.</target>
       </trans-unit>
       <trans-unit id="mssql.viewBackgroundTaskLogs">
         <source xml:lang="en">View Task Logs</source>
