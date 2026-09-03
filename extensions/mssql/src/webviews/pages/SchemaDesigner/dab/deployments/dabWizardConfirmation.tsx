@@ -3,18 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {
-    Button,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
-    makeStyles,
-    Text,
-    tokens,
-} from "@fluentui/react-components";
+import { Button, DialogActions, makeStyles, Text, tokens } from "@fluentui/react-components";
 import { Info20Regular } from "@fluentui/react-icons";
 import { Dab } from "../../../../../sharedInterfaces/dab";
 import { locConstants } from "../../../../common/locConstants";
+import { DabDialogContent, DabDialogTitle } from "./dabDialogLayout";
 
 const useStyles = makeStyles({
     content: {
@@ -26,9 +19,14 @@ const useStyles = makeStyles({
         display: "flex",
         alignItems: "flex-start",
         gap: "12px",
-        padding: "12px",
+        padding: "16px",
         backgroundColor: tokens.colorNeutralBackground3,
-        borderRadius: "4px",
+        borderRadius: "6px",
+        // Body copy sits at the readable size and contrast rather than the
+        // muted small text this box used to carry.
+        fontSize: tokens.fontSizeBase300,
+        lineHeight: tokens.lineHeightBase300,
+        color: tokens.colorNeutralForeground1,
     },
     infoIcon: {
         color: tokens.colorBrandForeground1,
@@ -39,7 +37,10 @@ const useStyles = makeStyles({
 
 interface DabDeploymentConfirmationProps {
     apiTypes: Dab.ApiType[];
+    target: Dab.DabDeploymentTarget;
     onConfirm: () => void;
+    /** Omitted when nothing precedes this step. */
+    onBack?: () => void;
     onCancel: () => void;
 }
 
@@ -54,36 +55,56 @@ function formatApiTypesList(apiTypes: Dab.ApiType[]): string {
     return new Intl.ListFormat(undefined, { style: "long", type: "conjunction" }).format(names);
 }
 
-export const DabDeploymentConfirmation = ({
+export const DabWizardConfirmation = ({
     apiTypes,
+    target,
     onConfirm,
+    onBack,
     onCancel,
 }: DabDeploymentConfirmationProps) => {
     const classes = useStyles();
+    const isCli = target === Dab.DabDeploymentTarget.DabCli;
 
     return (
         <>
-            <DialogTitle>{locConstants.schemaDesigner.deployDabContainer}</DialogTitle>
-            <DialogContent className={classes.content}>
+            <DabDialogTitle>
+                {isCli
+                    ? locConstants.schemaDesigner.deployDabCli
+                    : locConstants.schemaDesigner.deployDabContainer}
+            </DabDialogTitle>
+            <DabDialogContent>
                 <div className={classes.confirmationInfo}>
                     <Info20Regular className={classes.infoIcon} />
                     <div>
                         <Text weight="semibold">
-                            {locConstants.schemaDesigner.localContainerDeployment}
+                            {isCli
+                                ? locConstants.schemaDesigner.deploymentTargetDabCli
+                                : locConstants.schemaDesigner.localContainerDeployment}
                         </Text>
                         <Text block style={{ marginTop: "8px" }}>
-                            {locConstants.schemaDesigner.deployDabContainerDescription(
-                                formatApiTypesList(apiTypes),
-                            )}
+                            {isCli
+                                ? locConstants.schemaDesigner.deployDabCliDescription(
+                                      formatApiTypesList(apiTypes),
+                                  )
+                                : locConstants.schemaDesigner.deployDabContainerDescription(
+                                      formatApiTypesList(apiTypes),
+                                  )}
                         </Text>
                         <Text block style={{ marginTop: "8px" }}>
                             <strong>{locConstants.schemaDesigner.requirements}</strong>{" "}
-                            {locConstants.schemaDesigner.dockerDesktopRequirement}
+                            {isCli
+                                ? locConstants.schemaDesigner.dotnetRequirement
+                                : locConstants.schemaDesigner.dockerDesktopRequirement}
                         </Text>
                     </div>
                 </div>
-            </DialogContent>
+            </DabDialogContent>
             <DialogActions>
+                {onBack && (
+                    <Button appearance="secondary" onClick={onBack}>
+                        {locConstants.common.back}
+                    </Button>
+                )}
                 <Button appearance="secondary" onClick={onCancel}>
                     {locConstants.common.cancel}
                 </Button>

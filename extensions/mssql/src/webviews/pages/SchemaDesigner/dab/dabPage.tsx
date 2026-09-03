@@ -11,6 +11,8 @@ import { DabEntityTable } from "./dabEntityTable";
 import { DabInfoBanner } from "./dabInfoBanner";
 import { DabDefinitionsPanel, DabDefinitionsPanelRef } from "./dabDefinitionsPanel";
 import { DabDeploymentDialog } from "./deployment/dabDeploymentDialog";
+import { DabDeploymentsDialog } from "./deployments/dabDeploymentsDialog";
+import { Dab } from "../../../../sharedInterfaces/dab";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { useDabContext } from "./dabContext";
@@ -77,6 +79,7 @@ export const DabPage = ({ activeView, onNavigateToSchema }: DabPageProps) => {
         syncDabConfigWithSchema,
         isInitialized,
         isDabDeploymentSupported,
+        dabDeploymentState,
     } = useDabContext();
     const isDabTabActive = activeView === SchemaDesigner.SchemaDesignerActiveView.Dab;
     const hasUnsupportedDataTypes =
@@ -113,7 +116,15 @@ export const DabPage = ({ activeView, onNavigateToSchema }: DabPageProps) => {
 
     return (
         <div className={classes.root}>
-            <DabDeploymentDialog />
+            {/* The toolbar's Deploy button drives the original self-contained
+                dialog; the deployments experience drives its own. Only one is
+                rendered, so the deployments experience can be removed without
+                touching the flow behind Deploy. */}
+            {dabDeploymentState.entryPoint === Dab.DabDeploymentEntryPoint.Standalone ? (
+                <DabDeploymentDialog />
+            ) : (
+                <DabDeploymentsDialog />
+            )}
             {!isDabDeploymentSupported && (
                 <DabInfoBanner
                     title={locConstants.schemaDesigner.authenticationNotSupported}

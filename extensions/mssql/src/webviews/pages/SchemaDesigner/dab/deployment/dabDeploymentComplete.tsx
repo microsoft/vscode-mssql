@@ -3,7 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Button, DialogActions, makeStyles, Text, tokens } from "@fluentui/react-components";
+import {
+    Button,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    makeStyles,
+    Text,
+    tokens,
+} from "@fluentui/react-components";
 import {
     Add16Regular,
     Checkmark16Regular,
@@ -16,8 +24,6 @@ import { useCallback, useMemo, useState } from "react";
 import { locConstants } from "../../../../common/locConstants";
 import { Dab } from "../../../../../sharedInterfaces/dab";
 import { useDabContext } from "../dabContext";
-import { DabDialogContent, DabDialogTitle } from "./dabDialogLayout";
-import { DabEndpoint, DabEndpointAction, getDabEndpoints } from "./dabEndpoints";
 
 const useStyles = makeStyles({
     content: {
@@ -84,15 +90,28 @@ const useStyles = makeStyles({
 });
 
 interface DabDeploymentCompleteProps {
-    target: Dab.DabDeploymentTarget;
     apiUrl?: string;
     error?: string;
     onRetry: () => void;
     onFinish: () => void;
 }
 
+type ApiEndpointAction = "copy" | "addToVSCode" | "openUrl";
+
+interface ApiEndpointOpenUrlConfig {
+    url: string;
+    label: string;
+}
+
+interface ApiEndpoint {
+    type: Dab.ApiType;
+    label: string;
+    url: string;
+    actions: ApiEndpointAction[];
+    openUrlConfig?: ApiEndpointOpenUrlConfig;
+}
+
 export const DabDeploymentComplete = ({
-    target,
     apiUrl,
     error,
     onRetry,
@@ -104,10 +123,46 @@ export const DabDeploymentComplete = ({
     const [mcpAdded, setMcpAdded] = useState(false);
     const [mcpError, setMcpError] = useState<string | null>(null);
 
-    const endpoints = useMemo(
-        () => getDabEndpoints(apiUrl, dabConfig?.apiTypes),
-        [apiUrl, dabConfig],
-    );
+    const endpoints = useMemo<ApiEndpoint[]>(() => {
+        if (!apiUrl || !dabConfig) {
+            return [];
+        }
+        const enabledTypes = dabConfig.apiTypes;
+        const result: ApiEndpoint[] = [];
+        if (enabledTypes.includes(Dab.ApiType.Rest)) {
+            result.push({
+                type: Dab.ApiType.Rest,
+                label: locConstants.schemaDesigner.restApi,
+                url: `${apiUrl}/api`,
+                actions: ["openUrl", "copy"],
+                openUrlConfig: {
+                    url: `${apiUrl}/swagger/index.html`,
+                    label: locConstants.schemaDesigner.viewSwagger,
+                },
+            });
+        }
+        if (enabledTypes.includes(Dab.ApiType.GraphQL)) {
+            result.push({
+                type: Dab.ApiType.GraphQL,
+                label: locConstants.schemaDesigner.graphql,
+                url: `${apiUrl}/graphql`,
+                actions: ["openUrl", "copy"],
+                openUrlConfig: {
+                    url: `${apiUrl}/graphql`,
+                    label: locConstants.schemaDesigner.openNitro,
+                },
+            });
+        }
+        if (enabledTypes.includes(Dab.ApiType.Mcp)) {
+            result.push({
+                type: Dab.ApiType.Mcp,
+                label: locConstants.schemaDesigner.mcp,
+                url: `${apiUrl}/mcp`,
+                actions: ["addToVSCode"],
+            });
+        }
+        return result;
+    }, [apiUrl, dabConfig]);
 
     const handleAddMcpServer = useCallback(
         async (serverUrl: string) => {
@@ -123,7 +178,7 @@ export const DabDeploymentComplete = ({
     );
 
     const renderAction = useCallback(
-        (ep: DabEndpoint, action: DabEndpointAction) => {
+        (ep: ApiEndpoint, action: ApiEndpointAction) => {
             switch (action) {
                 case "copy":
                     return (
@@ -179,12 +234,12 @@ export const DabDeploymentComplete = ({
 
     return (
         <>
-            <DabDialogTitle>
+            <DialogTitle>
                 {isSuccess
                     ? locConstants.schemaDesigner.deploymentComplete
                     : locConstants.schemaDesigner.deploymentFailed}
-            </DabDialogTitle>
-            <DabDialogContent centered>
+            </DialogTitle>
+            <DialogContent className={classes.content}>
                 <div className={classes.completionContainer}>
                     {isSuccess ? (
                         <>
@@ -194,9 +249,7 @@ export const DabDeploymentComplete = ({
                                 />
                             </div>
                             <Text weight="semibold" size={400}>
-                                {target === Dab.DabDeploymentTarget.DabCli
-                                    ? locConstants.schemaDesigner.dabEngineRunning
-                                    : locConstants.schemaDesigner.dabContainerRunning}
+                                {locConstants.schemaDesigner.dabContainerRunning}
                             </Text>
                             <Text>{locConstants.schemaDesigner.apisAvailableAt}</Text>
                             <div className={classes.apiUrlList}>
@@ -224,7 +277,7 @@ export const DabDeploymentComplete = ({
                         </>
                     )}
                 </div>
-            </DabDialogContent>
+            </DialogContent>
             <DialogActions>
                 {!isSuccess && (
                     <Button appearance="secondary" onClick={onRetry}>

@@ -858,23 +858,43 @@ export async function checkIfConnectionIsDockerContainer(machineName: string): P
 const MAX_PORT_PROBE_ATTEMPTS = 200;
 
 /**
- * Checks whether the host can still publish the given port.
+ * Addresses a published port has to be free on.
  *
- * Docker port bindings are not the whole story: a port claimed by any other
- * process on the machine is one `docker create` will refuse to bind, so the
- * port has to be probed directly. Binding on all interfaces is deliberately
- * conservative — a port held only on a loopback address is reported as
- * unavailable, which costs a usable port but never suggests a broken one.
+ * Loopback is probed because that is where DAB publishes: containers bind
+ * 127.0.0.1 and the CLI engine listens there too, and on Windows a wildcard
+ * bind succeeds while a loopback listener holds the same port. The wildcard is
+ * probed with no address at all, which is how Node binds every interface, so a
+ * service listening broadly is caught as well.
  */
-export async function isHostPortAvailable(port: number): Promise<boolean> {
+const HOST_PORT_PROBE_ADDRESSES: (string | undefined)[] = ["127.0.0.1", undefined];
+
+/** Reports whether a socket can be bound to one address and port. */
+function canBindAddress(host: string | undefined, port: number): Promise<boolean> {
     return new Promise<boolean>((resolve) => {
         const server = createServer();
         server.unref();
         server.once("error", () => resolve(false));
-        server.listen({ port, exclusive: true }, () => {
+        server.listen({ ...(host ? { host } : {}), port, exclusive: true }, () => {
             server.close(() => resolve(true));
         });
     });
+}
+
+/**
+ * Checks whether the host can still publish the given port.
+ *
+ * Docker port bindings are not the whole story: a port claimed by any other
+ * process on the machine is one `docker create` will refuse to bind, and a
+ * detached engine left running by an earlier session is exactly such a process.
+ */
+export async function isHostPortAvailable(port: number): Promise<boolean> {
+    for (const host of HOST_PORT_PROBE_ADDRESSES) {
+        if (!(await canBindAddress(host, port))) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 /**

@@ -329,11 +329,14 @@ export async function validateDabContainerName(containerName: string): Promise<s
 /**
  * Finds an available port for the DAB container
  * @param preferredPort The preferred port to use if available
+ * @param isPortFree Overridable so tests decide port availability instead of
+ * depending on what happens to be listening on the machine running them
  */
 export async function findAvailableDabPort(
     preferredPort: number = Dab.DAB_DEFAULT_PORT,
+    isPortFree: (port: number) => Promise<boolean> = isHostPortAvailable,
 ): Promise<number> {
-    return findAvailablePort(preferredPort);
+    return findAvailablePort(preferredPort, isPortFree);
 }
 
 /**

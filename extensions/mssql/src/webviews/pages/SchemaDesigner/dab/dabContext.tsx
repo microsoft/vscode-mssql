@@ -51,6 +51,7 @@ interface DabContextProps {
     validateDabDeploymentParams: (
         containerName: string,
         port: number,
+        namingStyle?: Dab.DabDeploymentNamingStyle,
     ) => Promise<Dab.ValidateDeploymentParamsResponse>;
     runDabDeploymentStep: (step: Dab.DabDeploymentStepOrder) => Promise<void>;
     resetDabDeploymentState: () => void;
@@ -463,10 +464,12 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
         async (
             containerName: string,
             port: number,
+            namingStyle?: Dab.DabDeploymentNamingStyle,
         ): Promise<Dab.ValidateDeploymentParamsResponse> => {
             return extensionRpc.sendRequest(Dab.ValidateDeploymentParamsRequest.type, {
                 containerName,
                 port,
+                namingStyle,
             });
         },
         [extensionRpc],

@@ -456,15 +456,15 @@ export function DabToolbar({
             entity.sourceType !== Dab.EntitySourceType.StoredProcedure &&
             !Dab.hasLogicalKey(entity),
     );
-    // Deploy runs the Docker target, so it gates on that target rather than on
-    // whether any target at all is available.
-    const dockerSupport = dabTargetSupport[Dab.DabDeploymentTarget.Docker];
-    const isDockerSupported = dockerSupport?.isSupported !== false;
+    // Deploy runs the original Docker-only flow, so it gates on that target,
+    // which is the same rule and the same message it has always shown.
+    const isDockerSupported =
+        dabTargetSupport[Dab.DabDeploymentTarget.Docker]?.isSupported !== false;
     const isDeployDisabled = !isDockerSupported || !hasApiTypes || hasMissingKeyEntity;
 
     const getDeployTooltip = (): string => {
         if (!isDockerSupported) {
-            return dockerSupport?.reason ?? locConstants.schemaDesigner.dabDeploymentNotSupported;
+            return locConstants.schemaDesigner.dabDeploymentNotSupported;
         }
         if (!hasApiTypes) {
             return locConstants.schemaDesigner.atLeastOneApiTypeRequired;

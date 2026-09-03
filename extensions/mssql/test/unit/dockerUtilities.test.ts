@@ -890,6 +890,27 @@ suite("Docker Utilities", () => {
         expect(result, "Should report failure rather than a port that cannot bind").to.equal(-1);
     });
 
+    test("isHostPortAvailable: should report a port held only on loopback as unavailable", async () => {
+        // DAB publishes on 127.0.0.1 — containers bind it and the CLI engine
+        // listens there — and on Windows a wildcard bind succeeds alongside a
+        // loopback listener, so checking only the wildcard misses these.
+        const server = net.createServer();
+        await new Promise<void>((resolve, reject) => {
+            server.once("error", reject);
+            server.listen({ host: "127.0.0.1", port: 0 }, () => resolve());
+        });
+
+        const boundPort = (server.address() as net.AddressInfo).port;
+        try {
+            expect(
+                await dockerUtils.isHostPortAvailable(boundPort),
+                "A loopback listener still takes the port",
+            ).to.be.false;
+        } finally {
+            await new Promise<void>((resolve) => server.close(() => resolve()));
+        }
+    });
+
     test("isHostPortAvailable: should report a port held by another listener as unavailable", async () => {
         const server = net.createServer();
         await new Promise<void>((resolve, reject) => {

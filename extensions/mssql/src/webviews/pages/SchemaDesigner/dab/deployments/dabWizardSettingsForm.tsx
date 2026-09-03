@@ -6,8 +6,6 @@
 import {
     Button,
     DialogActions,
-    DialogContent,
-    DialogTitle,
     Field,
     Input,
     makeStyles,
@@ -19,37 +17,46 @@ import debounce from "lodash/debounce";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { locConstants } from "../../../../common/locConstants";
 import { Dab } from "../../../../../sharedInterfaces/dab";
+import { DabDialogContent, DabDialogTitle } from "./dabDialogLayout";
 
 const useStyles = makeStyles({
     content: {
-        display: "flex",
-        flexDirection: "column",
-        gap: "16px",
+        gap: "20px",
+        // A form reads better at a fixed measure than stretched across the
+        // dialog, so it keeps its own width rather than filling the frame.
+        maxWidth: "420px",
     },
     fieldHint: {
-        fontSize: "12px",
-        color: tokens.colorNeutralForeground3,
-        marginTop: "2px",
+        fontSize: tokens.fontSizeBase200,
+        lineHeight: tokens.lineHeightBase200,
+        color: tokens.colorNeutralForeground2,
+        marginTop: "4px",
     },
 });
 
 interface DabDeploymentInputFormProps {
+    target: Dab.DabDeploymentTarget;
     initialParams: Dab.DabDeploymentParams;
     validateParams: (
         containerName: string,
         port: number,
+        namingStyle?: Dab.DabDeploymentNamingStyle,
     ) => Promise<Dab.ValidateDeploymentParamsResponse>;
     onSubmit: (params: Dab.DabDeploymentParams) => void;
+    onBack: () => void;
     onCancel: () => void;
 }
 
-export const DabDeploymentInputForm = ({
+export const DabWizardSettingsForm = ({
+    target,
     initialParams,
     validateParams,
     onSubmit,
+    onBack,
     onCancel,
 }: DabDeploymentInputFormProps) => {
     const classes = useStyles();
+    const isCli = target === Dab.DabDeploymentTarget.DabCli;
 
     const [containerName, setContainerName] = useState(initialParams.containerName);
     const [port, setPort] = useState(initialParams.port.toString());
@@ -89,7 +96,11 @@ export const DabDeploymentInputForm = ({
             setIsInitializing(true);
             try {
                 // Pass empty string to trigger auto-generation of unique container name
-                const result = await validateParams("", initialParams.port);
+                const result = await validateParams(
+                    "",
+                    initialParams.port,
+                    Dab.DabDeploymentNamingStyle.Deployment,
+                );
                 // Use validated/suggested values
                 setContainerName(result.validatedContainerName);
                 setPort(result.suggestedPort.toString());
@@ -176,10 +187,18 @@ export const DabDeploymentInputForm = ({
 
     return (
         <>
-            <DialogTitle>{locConstants.schemaDesigner.containerSettings}</DialogTitle>
-            <DialogContent className={classes.content}>
+            <DabDialogTitle>
+                {isCli
+                    ? locConstants.schemaDesigner.deploymentSettings
+                    : locConstants.schemaDesigner.containerSettings}
+            </DabDialogTitle>
+            <DabDialogContent className={classes.content}>
                 <Field
-                    label={locConstants.schemaDesigner.containerName}
+                    label={
+                        isCli
+                            ? locConstants.schemaDesigner.deploymentName
+                            : locConstants.schemaDesigner.containerName
+                    }
                     validationState={containerNameError ? "error" : undefined}
                     validationMessage={containerNameError}>
                     <Input
@@ -188,7 +207,9 @@ export const DabDeploymentInputForm = ({
                         disabled={isInitializing}
                     />
                     <Text className={classes.fieldHint}>
-                        {locConstants.schemaDesigner.containerNameHint}
+                        {isCli
+                            ? locConstants.schemaDesigner.deploymentNameHint
+                            : locConstants.schemaDesigner.containerNameHint}
                     </Text>
                 </Field>
 
@@ -206,8 +227,11 @@ export const DabDeploymentInputForm = ({
                         {locConstants.schemaDesigner.portHint}
                     </Text>
                 </Field>
-            </DialogContent>
+            </DabDialogContent>
             <DialogActions>
+                <Button appearance="secondary" onClick={onBack} disabled={isSubmitting}>
+                    {locConstants.common.back}
+                </Button>
                 <Button appearance="secondary" onClick={onCancel} disabled={isSubmitting}>
                     {locConstants.common.cancel}
                 </Button>
@@ -216,7 +240,9 @@ export const DabDeploymentInputForm = ({
                     onClick={handleSubmit}
                     disabled={isInitializing || isSubmitting}
                     icon={isSubmitting ? <Spinner size="tiny" /> : undefined}>
-                    {locConstants.localContainers.createContainer}
+                    {isCli
+                        ? locConstants.common.next
+                        : locConstants.localContainers.createContainer}
                 </Button>
             </DialogActions>
         </>

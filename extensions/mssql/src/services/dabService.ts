@@ -160,8 +160,13 @@ export class DabService implements Dab.IDabService {
         const containerNameValidation = await validateDabContainerName(containerName);
         const isContainerNameValid = containerNameValidation === containerName;
 
-        const suggestedPort = await findAvailableDabPort(port);
-        const isPortValid = suggestedPort === port;
+        const availablePort = await findAvailableDabPort(port);
+        // A negative result means the scan found nothing free. Suggesting it
+        // would put -1 in the port field, so the requested port is echoed back
+        // and reported as unusable instead.
+        const foundPort = availablePort >= 0;
+        const suggestedPort = foundPort ? availablePort : port;
+        const isPortValid = foundPort && availablePort === port;
 
         return {
             isContainerNameValid,

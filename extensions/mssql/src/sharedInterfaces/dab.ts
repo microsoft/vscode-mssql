@@ -790,6 +790,14 @@ export namespace Dab {
      */
     export const DAB_DEFAULT_CONTAINER_NAME = "dab-container";
 
+    /** How a generated deployment name is shaped. */
+    export enum DabDeploymentNamingStyle {
+        /** dab-container, dab-container_2 — what the Deploy flow has always used. */
+        Container = "container",
+        /** DAB_<database>_<n>, used by the deployments experience. */
+        Deployment = "deployment",
+    }
+
     /** Prefix every generated deployment name carries. */
     export const DAB_DEPLOYMENT_NAME_PREFIX = "DAB";
 
@@ -1259,6 +1267,12 @@ export namespace Dab {
          * Container name to validate
          */
         containerName: string;
+        /**
+         * Name style to generate when containerName is empty. The original
+         * Deploy flow keeps the container-name style it has always produced;
+         * the deployments experience asks for its own.
+         */
+        namingStyle?: DabDeploymentNamingStyle;
         /**
          * Port to validate
          */
