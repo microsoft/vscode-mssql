@@ -64,7 +64,43 @@ interface DabConfigFileContents {
 
 interface DabDeploymentsFileContents {
     version: number;
-    deployments: Dab.DabDeploymentRecord[];
+    deployments: StoredDabDeploymentRecord[];
+}
+
+/**
+ * A record as it may appear on disk. Deployments written before the DAB CLI
+ * target existed named the container `containerName` and carried no target,
+ * so those fields are optional here and normalized on read.
+ */
+type StoredDabDeploymentRecord = Omit<Dab.DabDeploymentRecord, "name" | "target"> & {
+    name?: string;
+    target?: Dab.DabDeploymentTarget;
+    /** Pre-CLI field name for the deployment's name. */
+    containerName?: string;
+};
+
+/**
+ * Brings a stored record up to the current shape. A record that predates the
+ * CLI target describes a Docker container, which is what its absent target
+ * means; discarding such records instead would silently orphan containers the
+ * user still expects to manage from this list.
+ */
+function normalizeDeploymentRecord(
+    stored: StoredDabDeploymentRecord,
+): Dab.DabDeploymentRecord | undefined {
+    // Drop the legacy field so the next write leaves the file in the current
+    // shape rather than carrying both spellings forward.
+    const { containerName, ...rest } = stored;
+    const name = stored.name ?? containerName;
+    if (!name) {
+        return undefined;
+    }
+
+    return {
+        ...rest,
+        name,
+        target: stored.target ?? Dab.DabDeploymentTarget.Docker,
+    };
 }
 
 /** Identifies the database a saved configuration belongs to. */
@@ -162,7 +198,9 @@ export class DabConfigStore {
             return [];
         }
 
-        return contents.deployments;
+        return contents.deployments
+            .map(normalizeDeploymentRecord)
+            .filter((record): record is Dab.DabDeploymentRecord => record !== undefined);
     }
 
     /**

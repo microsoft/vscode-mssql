@@ -354,6 +354,96 @@ suite("DabConfigStore Tests", () => {
             expect(await store.getDeployments(testKey)).to.deep.equal([]);
         });
 
+        test("reads records written before the CLI target existed", async () => {
+            // Written by a build that named the field containerName and had no
+            // notion of a target.
+            const legacyPath = path.join(
+                rootPath,
+                "dab",
+                computeDabStoreKey(testKey),
+                "deployments.json",
+            );
+            fs.files.set(
+                legacyPath,
+                JSON.stringify({
+                    version: 1,
+                    deployments: [
+                        {
+                            id: "legacy-1",
+                            containerName: "dab-container",
+                            port: 5000,
+                            apiTypes: [Dab.ApiType.Rest],
+                            configHash: "hash-1",
+                            createdUtc: "2026-09-03T04:32:51.594Z",
+                            deployedUtc: "2026-09-03T04:32:51.594Z",
+                        },
+                    ],
+                }),
+            );
+
+            const [deployment] = await store.getDeployments(testKey);
+
+            expect(deployment.name, "The container name must survive the rename").to.equal(
+                "dab-container",
+            );
+            expect(deployment.target, "A record without a target is a Docker container").to.equal(
+                Dab.DabDeploymentTarget.Docker,
+            );
+            expect(deployment.port).to.equal(5000);
+        });
+
+        test("rewrites a legacy record in the current shape", async () => {
+            const legacyPath = path.join(
+                rootPath,
+                "dab",
+                computeDabStoreKey(testKey),
+                "deployments.json",
+            );
+            fs.files.set(
+                legacyPath,
+                JSON.stringify({
+                    version: 1,
+                    deployments: [
+                        {
+                            id: "legacy-1",
+                            containerName: "dab-container",
+                            port: 5000,
+                            apiTypes: [Dab.ApiType.Rest],
+                            configHash: "hash-1",
+                            createdUtc: "2026-09-03T04:32:51.594Z",
+                            deployedUtc: "2026-09-03T04:32:51.594Z",
+                        },
+                    ],
+                }),
+            );
+
+            await store.updateDeployment(testKey, "legacy-1", { configHash: "hash-2" });
+
+            const written = fs.files.get(legacyPath)!;
+            expect(written, "The legacy field must not be carried forward").to.not.contain(
+                "containerName",
+            );
+            expect(written).to.contain('"name": "dab-container"');
+        });
+
+        test("skips a record with no usable name", async () => {
+            const legacyPath = path.join(
+                rootPath,
+                "dab",
+                computeDabStoreKey(testKey),
+                "deployments.json",
+            );
+            fs.files.set(
+                legacyPath,
+                JSON.stringify({
+                    version: 1,
+                    deployments: [{ id: "nameless", port: 5000 }],
+                }),
+            );
+
+            expect(await store.getDeployments(testKey)).to.deep.equal([]);
+        });
+
         test("reports a malformed deployments file as nothing tracked", async () => {
             await store.addDeployment(testKey, {
                 target: Dab.DabDeploymentTarget.Docker,
