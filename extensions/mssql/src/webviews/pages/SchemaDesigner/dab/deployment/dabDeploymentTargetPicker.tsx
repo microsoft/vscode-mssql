@@ -6,11 +6,10 @@
 import { Button, Card, DialogActions, makeStyles, Text, tokens } from "@fluentui/react-components";
 import { locConstants } from "../../../../common/locConstants";
 import { Dab } from "../../../../../sharedInterfaces/dab";
+import { DabLogoIcon } from "../../../../common/icons/dabLogo";
 import { DockerIcon } from "../../../../common/icons/docker";
 import { KeyCode } from "../../../../common/keys";
 import { DabDialogContent, DabDialogTitle } from "./dabDialogLayout";
-
-const dabLogo = require("../icons/dab-logo.png");
 
 const useStyles = makeStyles({
     // Mirrors the deployment page's target cards so choosing where to run DAB
@@ -114,7 +113,7 @@ export const DabDeploymentTargetPicker = ({
             target: Dab.DabDeploymentTarget.DabCli,
             title: locConstants.schemaDesigner.deploymentTargetDabCli,
             description: locConstants.schemaDesigner.deploymentTargetDabCliDescription,
-            icon: <img src={dabLogo} className={classes.cardIcon} alt="" />,
+            icon: <DabLogoIcon className={classes.cardIcon} role="img" aria-hidden />,
         },
     ];
 
