@@ -25,6 +25,7 @@ export enum PreviewFeature {
 export enum PrivatePreviewFeature {
     SqlDataPlane = "mssql.sqlDataPlane.enabled",
     MetadataCache = "mssql.metadataCache.enabled",
+    AiInlineCompletions = "mssql.copilot.inlineCompletions.enabled",
 }
 
 /**
@@ -35,6 +36,7 @@ export enum PrivatePreviewFeature {
 export enum PrivatePreviewContextKey {
     SqlDataPlaneActive = "mssql.privatePreview.sqlDataPlaneActive",
     MetadataCacheActive = "mssql.privatePreview.metadataCacheActive",
+    AiInlineCompletionsActive = "mssql.privatePreview.aiInlineCompletionsActive",
 }
 
 export const CONFIG_PREVIEW_PREFIX = "mssql.preview.";

@@ -1617,6 +1617,9 @@
     <trans-unit id="++CODE++dbbf02ec8187fe0ca87c3912fce8fb9f4aeba2ae37da3cd211bb9a5fc30f3ca0">
       <source xml:lang="en">Configure the full list of Query Editor shortcuts.</source>
     </trans-unit>
+    <trans-unit id="++CODE++e18f8fc6ffe5fddca8e189ae0b2b721c745639e4691a05d413fd7891ca45e7e1">
+      <source xml:lang="en">Configure your {0} API key to enable {0} models in MSSQL inline completion.</source>
+    </trans-unit>
     <trans-unit id="++CODE++c292210c44167923a75b092a008f9d2b194fb08631a6aa43d753ed7931ad4d5e">
       <source xml:lang="en">Confirm Password</source>
     </trans-unit>
@@ -2101,6 +2104,10 @@
     </trans-unit>
     <trans-unit id="++CODE++779a7b17e40482d5ea307dc9a3c53901566b6fbaf138bb9660b557780102ce0a">
       <source xml:lang="en">Could not load restore plan</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f98ff593dab8c96691b26d57492b135374895433313d6fd18efbb2f78be3aed6">
+      <source xml:lang="en">Couldn&apos;t update the &apos;github.copilot.enable&apos; setting. {0}</source>
+      <note>{0} is the error message</note>
     </trans-unit>
     <trans-unit id="++CODE++37bac4952becf21ac5838d3c9ba82811bc421c857571e89634dcbe346681d54c">
       <source xml:lang="en">Count</source>
@@ -2663,6 +2670,9 @@
     <trans-unit id="++CODE++3583e2d377f9ee2c31596d15752d65fddec82de715720b2c43fad0756d6fda28">
       <source xml:lang="en">Disable all entities</source>
     </trans-unit>
+    <trans-unit id="++CODE++bcd054524a893b2ece4c1e612a0d118b1e9ff220f4575849d69cd832577a9065">
+      <source xml:lang="en">Disable for SQL</source>
+    </trans-unit>
     <trans-unit id="++CODE++6fbed214e0ea21c683db0ba2d648ef09b11edf4b4bb23835d4fdda84b5d097f3">
       <source xml:lang="en">Disable intellisense and syntax error checking on current document</source>
     </trans-unit>
@@ -2764,6 +2774,9 @@
     </trans-unit>
     <trans-unit id="++CODE++1d60d0cdcb5408b8e39ed364f675c9cad8a2f6174a413324d1e34437bd41269b">
       <source xml:lang="en">Don&apos;t Show Again</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4e5374759acb5346cc22cfbece70ad33d2d775b391fe2d7655bdceebf3bb4a44">
+      <source xml:lang="en">Don&apos;t show again</source>
     </trans-unit>
     <trans-unit id="++CODE++831c69f02fd7c9c62450695c18f11c56b34ae3ababb1670737507a5cc01404b4">
       <source xml:lang="en">Don&apos;t show this again</source>
@@ -3085,6 +3098,9 @@
     </trans-unit>
     <trans-unit id="++CODE++41058600ed8ab3d197264132f1b22ed25b7b2d9fa6afdffd559fc08bca9e6075">
       <source xml:lang="en">Enter the path for the output file</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8b0a54c1a87b494e16766e81d7b80e219c380339d1b8a5c119f89bf8e08824b2">
+      <source xml:lang="en">Enter the {0} API key to store in VS Code SecretStorage.</source>
     </trans-unit>
     <trans-unit id="++CODE++4cd95a398bcc4e99d1d5ddc3f92702e41fa5ce370a10569104474d290505cf56">
       <source xml:lang="en">Enter user name</source>
@@ -3906,6 +3922,9 @@
     <trans-unit id="++CODE++180beb8dccb6a6d30603b490fbe691f2ed33f8409ca4bb7f42d32e26734c65d5">
       <source xml:lang="en">Failed to save code analysis rules</source>
     </trans-unit>
+    <trans-unit id="++CODE++2bdfddbcf478a163ad92e47191a7c2089ec7cfa5b3f25c0be21d5426913a05da">
+      <source xml:lang="en">Failed to save inline completion trace: {0}</source>
+    </trans-unit>
     <trans-unit id="++CODE++656e30cd5a427ecbf935f88a531699c67f2edc2f0cfa7ef8cbec340a88c0c423">
       <source xml:lang="en">Failed to save publish profile</source>
     </trans-unit>
@@ -4397,6 +4416,9 @@
     <trans-unit id="++CODE++f311c2fb4a90d31362e0c6578ce52cd4b6200755caf41040acf39fc9ea6ed487">
       <source xml:lang="en">GitHub Copilot survey</source>
     </trans-unit>
+    <trans-unit id="++CODE++4cc5abb73fe59a8c42b91a10ffb5ea3804fb9cc18be4e70dc38b997ee1933507">
+      <source xml:lang="en">GitHub Copilot&apos;s default completions are now disabled for SQL files.</source>
+    </trans-unit>
     <trans-unit id="++CODE++60c3ae4830143b646d9d70611c2ad5961faeca804e4713b5b768087167d1772b">
       <source xml:lang="en">Got invalid tool use parameters: &quot;{0}&quot;. ({1})</source>
       <note>{0} is the part input
@@ -4761,6 +4783,9 @@
     </trans-unit>
     <trans-unit id="++CODE++b91185f63fbbc17c093e3d2b7a50b755ba38d0e3a2bf1c82e079236e0624c673">
       <source xml:lang="en">Join the discussions</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9fc40891e01f78aea537da3fed4bcf2af4d4cd21a6edbe8303b780a2e024a6aa">
+      <source xml:lang="en">Keep as-is</source>
     </trans-unit>
     <trans-unit id="++CODE++29b39d81b8651e8717f85c00002b2b087bafb969eb289ac991fa41b17522e775">
       <source xml:lang="en">Keep in query pane</source>
@@ -5165,6 +5190,15 @@
     </trans-unit>
     <trans-unit id="++CODE++f7fc6e80cfc472d01f0cbe63665cda3c32d6d6ef2539b7e7cb27b1f22709a050">
       <source xml:lang="en">MSSQL extension icon</source>
+    </trans-unit>
+    <trans-unit id="++CODE++43a50a88054a700883b67cc5170398ad4029e777a90944479874848ede25fe41">
+      <source xml:lang="en">MSSQL inline SQL completion accepted</source>
+    </trans-unit>
+    <trans-unit id="++CODE++018a4fc0acce1f89db728a57386fbf8d198b87fb47bfc47eed2a2abd88ef9576">
+      <source xml:lang="en">MSSQL inline SQL completions are active. For best results, disable GitHub Copilot&apos;s default completions for SQL files.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ee5b67817988c3b6d8ce74f37916b8f3080ecacb7bb83edb4096345d4af2ee36">
+      <source xml:lang="en">MSSQL inline completion is configured but no language model providers are available.</source>
     </trans-unit>
     <trans-unit id="++CODE++212c177c0fb717020548b59a64c5ea3dab99e4fa463b7a996a3c4bfb2af3d443">
       <source xml:lang="en">MSSQL metadata cache cleared.</source>
@@ -6091,6 +6125,9 @@
     <trans-unit id="++CODE++2c1ff609e9acedfcd56ba1c75b3cc704ce0c59afafb9f280e75d37376028e9cd">
       <source xml:lang="en">Open SQL editor and connect</source>
     </trans-unit>
+    <trans-unit id="++CODE++3f940108cb1ecd9c0090da0b51b45f9fe673f00b22c7ffe3d013319b97456674">
+      <source xml:lang="en">Open Settings</source>
+    </trans-unit>
     <trans-unit id="++CODE++458f7bdeed472d6583d8b0e14f2535e896f301136ee1ea3c63fdbf0845407225">
       <source xml:lang="en">Open XML</source>
     </trans-unit>
@@ -6106,6 +6143,9 @@
     <trans-unit id="++CODE++cef89448c86ea390bfb9f0953513fd8871c5595cd7e65fc9ef5fc306fe7bfd11">
       <source xml:lang="en">Open filter menu</source>
     </trans-unit>
+    <trans-unit id="++CODE++6a9084025c4bf3e1e99c40dd84245d6b8ccf4da301ffb703a6dc1a1ea7aa1b04">
+      <source xml:lang="en">Open folder</source>
+    </trans-unit>
     <trans-unit id="++CODE++f395ae5e32b4cc24f8030096918e6a2318d4be5fb9274dbeedc0002ce9840bb7">
       <source xml:lang="en">Open in Editor</source>
     </trans-unit>
@@ -6120,6 +6160,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ea1d0f038bbdb9e9aa6649671dcbff49e1f63b700b27d60890da5c60fb4e89af">
       <source xml:lang="en">Open in editor</source>
+    </trans-unit>
+    <trans-unit id="++CODE++98d03db7b37aae7f194c1969557b119e09a712fd4b8cbdb79f8f637f5b0658da">
+      <source xml:lang="en">Open output</source>
     </trans-unit>
     <trans-unit id="++CODE++d5b15bfc605139b20cbb77db812b2496d375680f31d266bccd9767a0c63f0092">
       <source xml:lang="en">Open text data in a new editor</source>
@@ -7860,11 +7903,20 @@
     <trans-unit id="++CODE++4b80d5f9dd620b5ac11a742d3d138e56e05b6b4ce0cd9575b1ca820590a7fce0">
       <source xml:lang="en">Session not running</source>
     </trans-unit>
+    <trans-unit id="++CODE++ad6e178e3db22376ef835d0fe39d599a0594d20320f4cc9ecc9ef513829ba950">
+      <source xml:lang="en">Set API Key</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b68f05b6e04613a64007f02eb7402541ab7a5fb09ba0b9d1d382759a2156fd27">
+      <source xml:lang="en">Set Anthropic API Key</source>
+    </trans-unit>
     <trans-unit id="++CODE++c365f1cb6d8e84e7476450255ffb4dd9360ed4a895c83b5378238bcc764e39f8">
       <source xml:lang="en">Set Default</source>
     </trans-unit>
     <trans-unit id="++CODE++7dcc1c2a0bebbc604d5c15ae5e2a764048d5936bda66f0137af772be71d7a145">
       <source xml:lang="en">Set Null</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fab288881eb54dc21b74bf73d055bbdd8796429dc17d5ab97f21e6252b6ecec5">
+      <source xml:lang="en">Set OpenAI API Key</source>
     </trans-unit>
     <trans-unit id="++CODE++0099e307c30bf6206a012fd8c962c7b7f6b10004d1ba789042ff0e5ff5841424">
       <source xml:lang="en">Set backup Compression</source>
@@ -7874,6 +7926,12 @@
     </trans-unit>
     <trans-unit id="++CODE++4b2be143e0119f38be0df3cde1479ccef0505331124cd5f5584fa1bc6a34e581">
       <source xml:lang="en">Set backup retain days</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a3316076be80c1e11d7df52fbae764fc700ca330f5e8e535c1635bbe64235104">
+      <source xml:lang="en">Set xAI API Key</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d146491716fbc193437e5c1b76e13bca772de496d67a136893d013c87c1ba6b1">
+      <source xml:lang="en">Set {0} API Key</source>
     </trans-unit>
     <trans-unit id="++CODE++818cd8d91aea3a1689455f009f49e87fe7fa647fa2c4b9f09072dd1c33d52ca5">
       <source xml:lang="en">Setting</source>
@@ -9594,6 +9652,18 @@
 {1} is the completion percent
 {2} is the task message</note>
     </trans-unit>
+    <trans-unit id="++CODE++8d131b652d4b61f23ff665b992750c048e308d44dc7923de015b26c8c9936d55">
+      <source xml:lang="en">{0} API key cleared.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1f60f2e72dfdce2d9dc7dd22a95f9694b30c2e7cab120be5b5ec2eb27f2aaad2">
+      <source xml:lang="en">{0} API key is required.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6add58b2aacb68ad4de7ef89601138e977a482a133735de6d9c5baab1cd8271c">
+      <source xml:lang="en">{0} API key saved.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0599d0e3e836977c1b39f76d9d7f9344fdd1b44528c77f7074841f03660740de">
+      <source xml:lang="en">{0} API keys should start with {1}.</source>
+    </trans-unit>
     <trans-unit id="++CODE++08fefe04a78a12b9e4ac61ac107a5237d5d6993e0dc8c6706949b4c9fe54ca6f">
       <source xml:lang="en">{0} If the project was created in SSDT, it will continue to work in both tools. Do you want to update the project?</source>
     </trans-unit>
@@ -10045,6 +10115,9 @@
     <trans-unit id="mssql.format.options.sqlVersion">
       <source xml:lang="en">**Used when Preview Formatter is enabled.** T-SQL version used to parse and generate formatted scripts.</source>
     </trans-unit>
+    <trans-unit id="mssql.copilot.inlineCompletions.trace.folder.description">
+      <source xml:lang="en">Absolute or home-relative folder for completion trace files. Leave empty to use extension storage.</source>
+    </trans-unit>
     <trans-unit id="mssql.addObjectExplorer">
       <source xml:lang="en">Add Connection</source>
     </trans-unit>
@@ -10053,6 +10126,15 @@
     </trans-unit>
     <trans-unit id="mssql.addAadAccount">
       <source xml:lang="en">Add Microsoft Entra Account</source>
+    </trans-unit>
+    <trans-unit id="mssql.copilot.sdkProviders.anthropic.additionalModels.description">
+      <source xml:lang="en">Additional Anthropic API model definitions beyond the built-in catalog.</source>
+    </trans-unit>
+    <trans-unit id="mssql.copilot.sdkProviders.openai.additionalModels.description">
+      <source xml:lang="en">Additional OpenAI API model definitions beyond the built-in catalog.</source>
+    </trans-unit>
+    <trans-unit id="mssql.copilot.sdkProviders.xai.additionalModels.description">
+      <source xml:lang="en">Additional xAI API model definitions beyond the built-in catalog.</source>
     </trans-unit>
     <trans-unit id="mssql.deviceCode.description">
       <source xml:lang="en">Allows users to sign in to input-constrained devices.</source>
@@ -10068,6 +10150,9 @@
     </trans-unit>
     <trans-unit id="mssql.copilot.analyzeQueryPerformance">
       <source xml:lang="en">Analyze Query Performance</source>
+    </trans-unit>
+    <trans-unit id="mssql.copilot.sdkProviders.anthropic.timeout.description">
+      <source xml:lang="en">Anthropic API request timeout in milliseconds.</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.Tooltip.applicationIntentLabel">
       <source xml:lang="en">Application Intent</source>
@@ -10135,6 +10220,9 @@
     <trans-unit id="mssql.clearAllQueryHistory">
       <source xml:lang="en">Clear All Query History</source>
     </trans-unit>
+    <trans-unit id="mssql.copilot.sdkProviders.anthropic.clearApiKey">
+      <source xml:lang="en">Clear Anthropic API Key</source>
+    </trans-unit>
     <trans-unit id="mssql.clearFilters">
       <source xml:lang="en">Clear Filters</source>
     </trans-unit>
@@ -10144,8 +10232,14 @@
     <trans-unit id="mssql.clearAzureAccountTokenCache">
       <source xml:lang="en">Clear Microsoft Entra account token cache</source>
     </trans-unit>
+    <trans-unit id="mssql.copilot.sdkProviders.openai.clearApiKey">
+      <source xml:lang="en">Clear OpenAI API Key</source>
+    </trans-unit>
     <trans-unit id="mssql.clearPooledConnections">
       <source xml:lang="en">Clear Pooled Connections</source>
+    </trans-unit>
+    <trans-unit id="mssql.copilot.sdkProviders.xai.clearApiKey">
+      <source xml:lang="en">Clear xAI API Key</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.Tooltip.commandTimeoutLabel">
       <source xml:lang="en">Command Timeout</source>
@@ -10212,6 +10306,9 @@
     </trans-unit>
     <trans-unit id="mssql.dacpacDialog.launch">
       <source xml:lang="en">DACPAC/BACPAC Operations...</source>
+    </trans-unit>
+    <trans-unit id="mssql.copilot.inlineCompletions.profile.description">
+      <source xml:lang="en">Default request profile for SQL inline completions. Profiles control model preference, enabled categories, and automatic debounce.</source>
     </trans-unit>
     <trans-unit id="mssql.defaultQueryResultsViewMode.description">
       <source xml:lang="en">Default view mode for query results display.</source>
@@ -10366,6 +10463,15 @@
     <trans-unit id="mssql.enableExperimentalFeatures.description">
       <source xml:lang="en">Enables the umbrella for experimental features in the MSSQL extension. Private-preview feature settings must also be enabled individually. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.</source>
     </trans-unit>
+    <trans-unit id="mssql.copilot.sdkProviders.anthropic.env.description">
+      <source xml:lang="en">Environment fallbacks for the Anthropic provider. ANTHROPIC_API_KEY may only name an existing environment variable; literal API keys are ignored.</source>
+    </trans-unit>
+    <trans-unit id="mssql.copilot.sdkProviders.openai.env.description">
+      <source xml:lang="en">Environment fallbacks for the OpenAI provider. OPENAI_API_KEY may only name an existing environment variable; literal API keys are ignored.</source>
+    </trans-unit>
+    <trans-unit id="mssql.copilot.sdkProviders.xai.env.description">
+      <source xml:lang="en">Environment fallbacks for the xAI provider. XAI_API_KEY may only name an existing environment variable; literal API keys are ignored.</source>
+    </trans-unit>
     <trans-unit id="mssql.showEstimatedPlan">
       <source xml:lang="en">Estimated Plan (MSSQL)</source>
     </trans-unit>
@@ -10420,8 +10526,23 @@
     <trans-unit id="mssql.flatFileImport">
       <source xml:lang="en">Import Data...</source>
     </trans-unit>
+    <trans-unit id="mssql.copilot.inlineCompletions.enabledCategories.description">
+      <source xml:lang="en">Inline SQL completion categories to enable: cursor-continuation ghost text, comment-to-query intent completions, or both.</source>
+    </trans-unit>
+    <trans-unit id="mssql.copilot.inlineCompletions.profile.balanced">
+      <source xml:lang="en">Intent and continuation completions with a moderate automatic debounce.</source>
+    </trans-unit>
+    <trans-unit id="mssql.copilot.inlineCompletions.profile.broad">
+      <source xml:lang="en">Intent and continuation completions with the quickest debounce.</source>
+    </trans-unit>
+    <trans-unit id="mssql.copilot.inlineCompletions.profile.focused">
+      <source xml:lang="en">Intent-only completions with the lowest automatic request volume.</source>
+    </trans-unit>
     <trans-unit id="mssql.metadata.pollSeconds.description">
       <source xml:lang="en">Internal preview setting: base interval in seconds for metadata drift checks. Set to 0 to disable polling. Per-database backoff, window-focus suspension, and serverless safeguards also apply. Reload the window after changing this setting.</source>
+    </trans-unit>
+    <trans-unit id="mssql.copilot.inlineCompletions.modelVendors.description">
+      <source xml:lang="en">Language model vendors to query for MSSQL inline SQL completions, in priority order.</source>
     </trans-unit>
     <trans-unit id="mssql.profiler.launchFromObjectExplorer">
       <source xml:lang="en">Launch Query Profiler...</source>
@@ -10437,6 +10558,9 @@
     </trans-unit>
     <trans-unit id="mssql.manageProfiles">
       <source xml:lang="en">Manage Connection Profiles</source>
+    </trans-unit>
+    <trans-unit id="mssql.copilot.inlineCompletions.trace.maxFileSizeMB.description">
+      <source xml:lang="en">Maximum completion trace file size in megabytes, between 1 and 64. Older events are dropped first when necessary.</source>
     </trans-unit>
     <trans-unit id="mssql.query.maxXmlCharsToStore">
       <source xml:lang="en">Maximum number of characters to store for each value in XML columns after running a query. Default value: 2,097,152. Valid value range: 1 to 2,147,483,647.</source>
@@ -10564,6 +10688,24 @@
     <trans-unit id="mssql.openInMssqlExtensionFromAzureResources">
       <source xml:lang="en">Open in MSSQL extension</source>
     </trans-unit>
+    <trans-unit id="mssql.copilot.sdkProviders.openai.timeout.description">
+      <source xml:lang="en">OpenAI API request timeout in milliseconds.</source>
+    </trans-unit>
+    <trans-unit id="mssql.copilot.sdkProviders.anthropic.baseUrl.description">
+      <source xml:lang="en">Optional Anthropic API base URL for a proxy or gateway.</source>
+    </trans-unit>
+    <trans-unit id="mssql.copilot.sdkProviders.openai.baseUrl.description">
+      <source xml:lang="en">Optional OpenAI-compatible API base URL for a proxy, gateway, or Azure OpenAI endpoint.</source>
+    </trans-unit>
+    <trans-unit id="mssql.copilot.inlineCompletions.modelFamily.description">
+      <source xml:lang="en">Optional language model selector used for SQL inline completions. Accepts a vendor/id selector or a bare family name. Leave empty to use the active completion profile.</source>
+    </trans-unit>
+    <trans-unit id="mssql.copilot.inlineCompletions.continuationModelFamily.description">
+      <source xml:lang="en">Optional language model selector used only for continuation completions. Leave empty to use the active profile or default model.</source>
+    </trans-unit>
+    <trans-unit id="mssql.copilot.sdkProviders.xai.baseUrl.description">
+      <source xml:lang="en">Optional xAI API base URL for a proxy or gateway.</source>
+    </trans-unit>
     <trans-unit id="mssql.pauseQueryHistoryCapture">
       <source xml:lang="en">Pause Query History Capture</source>
     </trans-unit>
@@ -10572,6 +10714,9 @@
     </trans-unit>
     <trans-unit id="mssql.preventAutoExecuteScript">
       <source xml:lang="en">Prevent automatic execution of scripts (e.g., &apos;Select Top 1000&apos;). When enabled, scripts will not be automatically executed upon generation.</source>
+    </trans-unit>
+    <trans-unit id="mssql.copilot.inlineCompletions.enabled.description">
+      <source xml:lang="en">Private preview. Enable MSSQL AI inline SQL completions. Requires mssql.enableExperimentalFeatures. Reload the window after changing either setting.</source>
     </trans-unit>
     <trans-unit id="mssql.sqlDataPlane.enabled.description">
       <source xml:lang="en">Private preview. Enable the STS v2-backed SQL Data Plane for preview consumers. Requires mssql.enableExperimentalFeatures and SQL Tools Service 6.0.20260825.2 or later; older bundled services are launched without the STS v2 lane. Reload the window after changing either setting. Existing query, connection, language service, and Object Explorer behavior remains unchanged.</source>
@@ -10594,11 +10739,26 @@
     <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.altText">
       <source xml:lang="en">Query plan visualization</source>
     </trans-unit>
+    <trans-unit id="mssql.copilot.inlineCompletions.debug.recordWhenClosed.description">
+      <source xml:lang="en">Record bounded in-memory completion diagnostics when no completion debug viewer is open.</source>
+    </trans-unit>
+    <trans-unit id="mssql.copilot.inlineCompletions.trace.redactPrompts.description">
+      <source xml:lang="en">Redact prompt, response, completion, and schema-context text in saved completion trace files.</source>
+    </trans-unit>
     <trans-unit id="mssql.refreshObjectExplorerNode">
       <source xml:lang="en">Refresh</source>
     </trans-unit>
     <trans-unit id="mssql.rebuildIntelliSenseCache">
       <source xml:lang="en">Refresh IntelliSense Cache</source>
+    </trans-unit>
+    <trans-unit id="mssql.copilot.sdkProviders.anthropic.enabled.description">
+      <source xml:lang="en">Register the Anthropic API language model provider for MSSQL inline completions. Reload after changing this setting.</source>
+    </trans-unit>
+    <trans-unit id="mssql.copilot.sdkProviders.openai.enabled.description">
+      <source xml:lang="en">Register the OpenAI API language model provider for MSSQL inline completions. Reload after changing this setting.</source>
+    </trans-unit>
+    <trans-unit id="mssql.copilot.sdkProviders.xai.enabled.description">
+      <source xml:lang="en">Register the xAI API language model provider for MSSQL inline completions. Reload after changing this setting.</source>
     </trans-unit>
     <trans-unit id="mssql.removeObjectExplorerNode">
       <source xml:lang="en">Remove Connection</source>
@@ -10672,6 +10832,9 @@
     <trans-unit id="mssql.quickQueries.query">
       <source xml:lang="en">SQL text for this Quick Query. Use {arg} to insert selected query-editor text; otherwise, it is appended.</source>
     </trans-unit>
+    <trans-unit id="mssql.copilot.inlineCompletions.trace.captureEnabled.description">
+      <source xml:lang="en">Save recorded inline completion diagnostics to a local trace file when the extension deactivates.</source>
+    </trans-unit>
     <trans-unit id="mssql.scriptAlter">
       <source xml:lang="en">Script as Alter</source>
     </trans-unit>
@@ -10702,14 +10865,29 @@
     <trans-unit id="mssql.userFeedback">
       <source xml:lang="en">Send Feedback</source>
     </trans-unit>
+    <trans-unit id="mssql.copilot.inlineCompletions.includeSqlDiagnostics.description">
+      <source xml:lang="en">Send nearby SQL error diagnostics to the selected language model provider. Diagnostics are limited to errors near the cursor and omit file paths. Off by default.</source>
+    </trans-unit>
+    <trans-unit id="mssql.copilot.inlineCompletions.useSchemaContext.description">
+      <source xml:lang="en">Send selected schema, table, view, column, and routine identifiers to the selected language model provider for metadata-backed completions. Off by default; requests fall back without database context.</source>
+    </trans-unit>
     <trans-unit id="mssql.metadataCache.offlineMode.description">
       <source xml:lang="en">Serve metadata only from persisted snapshots without contacting the server. Requires the experimental-features, SQL Data Plane, and metadata-cache settings. Status surfaces disclose snapshot age, and operations requiring fresh metadata refuse stale or unavailable data.</source>
+    </trans-unit>
+    <trans-unit id="mssql.copilot.sdkProviders.anthropic.setApiKey">
+      <source xml:lang="en">Set Anthropic API Key</source>
+    </trans-unit>
+    <trans-unit id="mssql.copilot.sdkProviders.openai.setApiKey">
+      <source xml:lang="en">Set OpenAI API Key</source>
     </trans-unit>
     <trans-unit id="mssql.resultsFontFamily">
       <source xml:lang="en">Set the font family for the results grid; set to blank to use the editor font</source>
     </trans-unit>
     <trans-unit id="mssql.resultsFontSize">
       <source xml:lang="en">Set the font size for the results grid; set to blank to use the editor size</source>
+    </trans-unit>
+    <trans-unit id="mssql.copilot.sdkProviders.xai.setApiKey">
+      <source xml:lang="en">Set xAI API Key</source>
     </trans-unit>
     <trans-unit id="mssql.shortcuts">
       <source xml:lang="en">Shortcuts handled inside MSSQL views</source>
@@ -11088,6 +11266,9 @@
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.Tooltip.userLabel">
       <source xml:lang="en">user</source>
+    </trans-unit>
+    <trans-unit id="mssql.copilot.sdkProviders.xai.timeout.description">
+      <source xml:lang="en">xAI API request timeout in milliseconds.</source>
     </trans-unit>
   </body></file>
 </xliff>
