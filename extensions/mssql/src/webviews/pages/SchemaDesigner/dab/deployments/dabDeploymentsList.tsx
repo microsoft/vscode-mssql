@@ -134,9 +134,9 @@ const useStyles = makeStyles({
         gap: "8px",
         flexWrap: "wrap",
     },
-    outdatedBar: {
-        // The warning owns a line of its own so the redeploy it asks for is
-        // next to the reason, not buried in a menu.
+    statusBar: {
+        // The bar owns a line of its own so the action it asks for sits next to
+        // the reason, rather than being hunted for in the menu.
         width: "100%",
     },
     endpointsToggle: {
@@ -293,6 +293,96 @@ export const DabDeploymentsList = ({ onCreateNew, onClose }: DabDeploymentsListP
             <DockerIcon className={classes.targetIconGlyph} role="img" aria-hidden />
         );
 
+    /**
+     * The one thing this deployment needs the reader to know, and the actions
+     * that resolve it. A deployment that is serving the current configuration
+     * needs no bar at all.
+     */
+    const renderStatusBar = (deployment: Dab.DabDeploymentListItem, isBusy: boolean) => {
+        const isMissing = deployment.status === Dab.DabDeploymentContainerStatus.Missing;
+        const isRunning = deployment.status === Dab.DabDeploymentContainerStatus.Running;
+        const isCli = deployment.target === Dab.DabDeploymentTarget.DabCli;
+
+        if (isRunning && !deployment.isConfigOutdated) {
+            return undefined;
+        }
+
+        const redeployButton = (label: string) => (
+            <Button
+                size="small"
+                appearance="primary"
+                icon={<ArrowSync16Regular />}
+                disabled={isBusy}
+                onClick={() => void runAction(deployment.id, redeployDabDeployment)}>
+                {label}
+            </Button>
+        );
+
+        // Nothing survives to start, so redeploying is the only way back.
+        if (isMissing) {
+            return (
+                <MessageBar intent="error" layout="multiline" className={classes.statusBar}>
+                    <MessageBarBody>
+                        <MessageBarTitle>
+                            {locConstants.schemaDesigner.deploymentMissingTitle}
+                        </MessageBarTitle>
+                        {isCli
+                            ? locConstants.schemaDesigner.deploymentMissingBodyCli
+                            : locConstants.schemaDesigner.deploymentMissingBodyDocker}
+                    </MessageBarBody>
+                    <MessageBarActions>
+                        {redeployButton(locConstants.schemaDesigner.redeploy)}
+                    </MessageBarActions>
+                </MessageBar>
+            );
+        }
+
+        // Stopped: it can be started as it is, or brought up to date on the way.
+        if (!isRunning) {
+            return (
+                <MessageBar intent="error" layout="multiline" className={classes.statusBar}>
+                    <MessageBarBody>
+                        <MessageBarTitle>
+                            {locConstants.schemaDesigner.deploymentNotRunningTitle}
+                        </MessageBarTitle>
+                        {deployment.isConfigOutdated
+                            ? locConstants.schemaDesigner.deploymentNotRunningOutdatedBody
+                            : locConstants.schemaDesigner.deploymentNotRunningBody}
+                    </MessageBarBody>
+                    <MessageBarActions>
+                        {deployment.isConfigOutdated &&
+                            redeployButton(locConstants.schemaDesigner.updateAndStart)}
+                        <Button
+                            size="small"
+                            appearance={deployment.isConfigOutdated ? "secondary" : "primary"}
+                            icon={<Play16Regular />}
+                            disabled={isBusy}
+                            onClick={() =>
+                                void runAction(deployment.id, startDabDeploymentContainer)
+                            }>
+                            {locConstants.schemaDesigner.startContainer}
+                        </Button>
+                    </MessageBarActions>
+                </MessageBar>
+            );
+        }
+
+        // Running, but not what the designer currently describes.
+        return (
+            <MessageBar intent="warning" layout="multiline" className={classes.statusBar}>
+                <MessageBarBody>
+                    <MessageBarTitle>
+                        {locConstants.schemaDesigner.deploymentConfigOutdatedTitle}
+                    </MessageBarTitle>
+                    {locConstants.schemaDesigner.deploymentConfigOutdatedBody}
+                </MessageBarBody>
+                <MessageBarActions>
+                    {redeployButton(locConstants.schemaDesigner.redeploy)}
+                </MessageBarActions>
+            </MessageBar>
+        );
+    };
+
     const renderRow = (deployment: Dab.DabDeploymentListItem) => {
         const isBusy = busyDeploymentId === deployment.id;
         const isExpanded = expandedIds.includes(deployment.id);
@@ -346,31 +436,7 @@ export const DabDeploymentsList = ({ onCreateNew, onClose }: DabDeploymentsListP
                         </Tooltip>
                     </div>
 
-                    {deployment.isConfigOutdated && (
-                        <MessageBar
-                            intent="warning"
-                            layout="multiline"
-                            className={classes.outdatedBar}>
-                            <MessageBarBody>
-                                <MessageBarTitle>
-                                    {locConstants.schemaDesigner.deploymentConfigOutdatedTitle}
-                                </MessageBarTitle>
-                                {locConstants.schemaDesigner.deploymentConfigOutdatedBody}
-                            </MessageBarBody>
-                            <MessageBarActions>
-                                <Button
-                                    size="small"
-                                    appearance="primary"
-                                    icon={<ArrowSync16Regular />}
-                                    disabled={isBusy}
-                                    onClick={() =>
-                                        void runAction(deployment.id, redeployDabDeployment)
-                                    }>
-                                    {locConstants.schemaDesigner.redeploy}
-                                </Button>
-                            </MessageBarActions>
-                        </MessageBar>
-                    )}
+                    {renderStatusBar(deployment, isBusy)}
 
                     {!isMissing && (
                         <Button

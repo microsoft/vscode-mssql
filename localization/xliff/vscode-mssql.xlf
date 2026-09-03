@@ -4877,6 +4877,12 @@
     <trans-unit id="++CODE++4066c897b4290a769a8446512662e9fbb8b9e8c60cf66c56c96b355b74ae5d8d">
       <source xml:lang="en">Items with absolute path outside project folder are not supported. Please make sure the paths in the project file are relative to project folder.</source>
     </trans-unit>
+    <trans-unit id="++CODE++cf8c3297ab7628d786643eac5519083798d99ceb941e12a143010e0a54baaa32">
+      <source xml:lang="en">Its container has been removed. Redeploy to create it again.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f061aeddb83c8408d0337ec848124627bcfd74121e26578ef57e345af463cdd0">
+      <source xml:lang="en">Its generated configuration has been removed. Redeploy to create it again.</source>
+    </trans-unit>
     <trans-unit id="++CODE++f4dc1c96a30fbdeb2a15cb6d4229469fff36c0266dc0c346599093c24d4c0a01">
       <source xml:lang="en">JPEG</source>
     </trans-unit>
@@ -8943,8 +8949,17 @@
     <trans-unit id="++CODE++39689cd482388c355f7e0721e799cc73bb6a968b7f8c6f81d99778ca62ce8ab4">
       <source xml:lang="en">This deployment is no longer tracked. Refresh the deployments list and try again.</source>
     </trans-unit>
+    <trans-unit id="++CODE++4b5ae74ddb4ca3e016189806d6416b4dd28e2d0a53de8d08da351164792732c9">
+      <source xml:lang="en">This deployment is not serving requests, and it is running an earlier version of your configuration.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ab81702157ab7c569f837c5ed0b5ec4318ae26021c2ab425c920c69bb3e6c56d">
+      <source xml:lang="en">This deployment is not serving requests. Start it to bring its endpoints back.</source>
+    </trans-unit>
     <trans-unit id="++CODE++20766bf27fdaeb9525112dbbed778777df1e9fcb91315521e19232d83cb0d63e">
       <source xml:lang="en">This deployment is running an earlier version of your configuration. Redeploy it to serve the current one.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++757ab980fc6aa23039b078034c46f53beac4388f316bc8e98c9770a87e6d5ad9">
+      <source xml:lang="en">This deployment no longer exists</source>
     </trans-unit>
     <trans-unit id="++CODE++424524b73f7b54ca2663888521169681b82129343191178726fb2d93a58fc294">
       <source xml:lang="en">This deployment&apos;s configuration file is missing, so it cannot be started. Redeploy it instead.</source>
@@ -9299,6 +9314,9 @@
     </trans-unit>
     <trans-unit id="++CODE++da0eda30c429c4292ccde4655c4d2fb2e64d66753cd153cf81585d27a634a19d">
       <source xml:lang="en">Update action</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2503b01003bcd3cc049b9e4f273e2bcffeefa91ce4a71ad31fa4a74f01d6856a">
+      <source xml:lang="en">Update and start</source>
     </trans-unit>
     <trans-unit id="++CODE++81b0538c480bf2f63a2346db5fa0618f5aa96be47c6039c1fc7d877c1c2dd120">
       <source xml:lang="en">Update project from database</source>

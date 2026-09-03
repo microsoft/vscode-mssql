@@ -2314,6 +2314,21 @@ export class LocConstants {
                 }),
             deploymentActions: l10n.t("More actions"),
             deploymentConfigOutdatedTitle: l10n.t("Configuration has changed"),
+            deploymentNotRunningTitle: l10n.t("Not running"),
+            deploymentNotRunningBody: l10n.t(
+                "This deployment is not serving requests. Start it to bring its endpoints back.",
+            ),
+            deploymentNotRunningOutdatedBody: l10n.t(
+                "This deployment is not serving requests, and it is running an earlier version of your configuration.",
+            ),
+            updateAndStart: l10n.t("Update and start"),
+            deploymentMissingTitle: l10n.t("This deployment no longer exists"),
+            deploymentMissingBodyDocker: l10n.t(
+                "Its container has been removed. Redeploy to create it again.",
+            ),
+            deploymentMissingBodyCli: l10n.t(
+                "Its generated configuration has been removed. Redeploy to create it again.",
+            ),
             deploymentConfigOutdatedBody: l10n.t(
                 "This deployment is running an earlier version of your configuration. Redeploy it to serve the current one.",
             ),

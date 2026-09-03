@@ -22,6 +22,14 @@ import { DabDialogContent, DabDialogTitle } from "./dabDialogLayout";
 import { useDabContext } from "../dabContext";
 
 const useStyles = makeStyles({
+    /**
+     * Centres the cards in the frame's height. The shared centred variant is
+     * not used because it also centres text, and a card reads from its left
+     * edge.
+     */
+    content: {
+        justifyContent: "center",
+    },
     // Mirrors the deployment page's target cards so choosing where to run DAB
     // looks like choosing where to create a database.
     cardRow: {
@@ -160,7 +168,7 @@ export const DabDeploymentTargetPicker = ({
     return (
         <>
             <DabDialogTitle>{locConstants.schemaDesigner.selectDeploymentTarget}</DabDialogTitle>
-            <DabDialogContent>
+            <DabDialogContent className={classes.content}>
                 <div className={classes.cardRow}>
                     {targets.map((target) => {
                         const support = dabTargetSupport[target.target];
