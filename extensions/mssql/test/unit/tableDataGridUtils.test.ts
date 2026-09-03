@@ -11,6 +11,7 @@ import {
     getTableExplorerFilterColumns,
     hasPendingChangesForRow,
     isTableExplorerDataColumn,
+    removeAcknowledgedCleanCellChanges,
     runBeforeTableExplorerSessionReplacement,
     runSessionReplacementAndUpdate,
     snapshotCellChangesForRow,
@@ -88,6 +89,46 @@ suite("tableDataGridUtils", () => {
             expect(cellChanges.has("5-1")).to.equal(false);
             expect(cellChanges.get("5-2")).to.equal(laterThirdCellChange);
             expect([...failedCells]).to.deep.equal(["5-0", "5-2"]);
+        });
+    });
+
+    suite("clean cell acknowledgement cleanup", () => {
+        test("removes the matching edit when the service reports it clean", () => {
+            const cellChanges = new Map([["5-0", { rowId: 5, requestId: 2 }]]);
+
+            const changed = removeAcknowledgedCleanCellChanges(
+                { "5-0": { requestId: 2, isDirty: false } },
+                cellChanges,
+            );
+
+            expect(changed).to.equal(true);
+            expect(cellChanges.has("5-0")).to.equal(false);
+        });
+
+        test("preserves a newer edit when an older clean acknowledgement arrives", () => {
+            const newerChange = { rowId: 5, requestId: 3 };
+            const cellChanges = new Map([["5-0", newerChange]]);
+
+            const changed = removeAcknowledgedCleanCellChanges(
+                { "5-0": { requestId: 2, isDirty: false } },
+                cellChanges,
+            );
+
+            expect(changed).to.equal(false);
+            expect(cellChanges.get("5-0")).to.equal(newerChange);
+        });
+
+        test("preserves a matching edit when the service reports it dirty", () => {
+            const cellChange = { rowId: 5, requestId: 2 };
+            const cellChanges = new Map([["5-0", cellChange]]);
+
+            const changed = removeAcknowledgedCleanCellChanges(
+                { "5-0": { requestId: 2, isDirty: true } },
+                cellChanges,
+            );
+
+            expect(changed).to.equal(false);
+            expect(cellChanges.get("5-0")).to.equal(cellChange);
         });
     });
 

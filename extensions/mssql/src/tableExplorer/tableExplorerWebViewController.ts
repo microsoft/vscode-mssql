@@ -73,6 +73,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 currentPage: 1, // Start on page 1
                 failedCells: [], // Track cells that failed to update
                 originalCellValues: new Map<string, DbCellValue>(), // Cache original values for reliable revert
+                cellUpdateAcknowledgements: {},
             },
             {
                 title: qualifiedTableName,
@@ -418,6 +419,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         state.deletedRows = [];
         state.failedCells = [];
         state.originalCellValues?.clear();
+        state.cellUpdateAcknowledgements = {};
         state.updateScript = undefined;
     }
 
@@ -510,6 +512,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 state.deletedRows = [];
                 state.failedCells = [];
                 state.originalCellValues?.clear(); // Clear cached original values since they're now outdated
+                state.cellUpdateAcknowledgements = {};
                 this.showRestorePromptAfterClose = false;
 
                 this.logger.debug(
@@ -891,7 +894,18 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     payload.newValue,
                 );
 
-                this.showRestorePromptAfterClose = true;
+                state.cellUpdateAcknowledgements = {
+                    ...state.cellUpdateAcknowledgements,
+                    [cacheKey]: {
+                        requestId: payload.requestId,
+                        isDirty: updateCellResult.cell.isDirty,
+                    },
+                };
+
+                if (!updateCellResult.cell.isDirty) {
+                    state.originalCellValues?.delete(cacheKey);
+                }
+                this.showRestorePromptAfterClose = this.hasPendingChanges(state);
 
                 // Remove from failed cells tracking if it was previously failed
                 if (state.failedCells) {

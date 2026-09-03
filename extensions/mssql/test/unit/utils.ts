@@ -19,6 +19,7 @@ import { ILogger } from "../../src/sharedInterfaces/logger";
 import { logger as baseLogger } from "../../src/models/logger";
 import { PreviewFeature, previewService } from "../../src/previews/previewService";
 import { IInstantiationService, InstantiationService } from "extension-toolkit/base";
+import * as AzureUtils from "../../src/azure/utils";
 
 // Stubs the telemetry code
 export function stubTelemetry(sandbox?: sinon.SinonSandbox): {
@@ -390,6 +391,10 @@ export function stubPreviewService(
     sandbox
         .stub(previewService, "isFeatureEnabled")
         .callsFake((feature: PreviewFeature) => previews[feature] ?? experimentalFeaturesEnabled);
+}
+
+export function stubUseMsalEntraMfaAuthConfig(sandbox: sinon.SinonSandbox, enabled: boolean): void {
+    sandbox.stub(AzureUtils, "getUseMsalEntraMfaAuthConfig").returns(enabled);
 }
 
 /**

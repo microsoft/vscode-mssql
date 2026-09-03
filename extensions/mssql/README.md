@@ -155,8 +155,8 @@ Configure the MSSQL extension in user preferences (`Cmd+,`) or workspace setting
   "mssql.maxRecentConnections": 5,                         // Number of recent connections to display (0-50)
   "mssql.connectionManagement.rememberPasswordsUntilRestart": true,  // Keep passwords in memory until VS Code restarts
   "mssql.enableConnectionPooling": false,                  // Enable connection pooling for improved performance
-  "mssql.azureActiveDirectory": "AuthCodeGrant"            // Azure AD auth method: "AuthCodeGrant" or "DeviceCode"
-  "mssql.preview.useVscodeAccountsForEntraMFA": true,      // Whether to use accounts signed into VS Code for authenticating to databases with Microsoft Entra ID Universal with MFA
+  "mssql.azureActiveDirectory": "AuthCodeGrant",           // Azure AD auth method: "AuthCodeGrant" or "DeviceCode"
+  "mssql.useMsalEntraMfaAuth": false,                      // Whether to use MSAL for Microsoft Entra MFA authentication instead of accounts signed into VS Code
   "mssql.newEditorConnectionBehavior": "transferACtive",   // How to connect a newly-opened .SQL file or query editor: "none" | "transferActive" | "defaultConnection"
   "mssql.defaultConnectionId": "",                         // Connection ID (GUID) of the connection to auto-connect new editors with. Only applicable when "mssql.newEditorConnectionBehavior" is set to "defaultConnection"
 }

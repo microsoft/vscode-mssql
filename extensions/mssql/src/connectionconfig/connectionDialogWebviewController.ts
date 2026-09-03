@@ -77,7 +77,7 @@ import {
     getVscodeEntraTenantOptions,
     resolveVscodeEntraAccount,
 } from "../azure/vscodeEntraMfaUtils";
-import { PreviewFeature, previewService } from "../previews/previewService";
+import { getUseMsalEntraMfaAuthConfig } from "../azure/utils";
 import { getCloudId } from "../azure/providerSettings";
 import {
     AzureBrowseProvider,
@@ -226,9 +226,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         initialConnectionGroup?: IConnectionGroup,
         openAsNewDraft?: boolean,
     ): Promise<void> {
-        const useVscodeAccounts = previewService.isFeatureEnabled(
-            PreviewFeature.UseVscodeAccountsForEntraMFA,
-        );
+        const useVscodeAccounts = !getUseMsalEntraMfaAuthConfig();
 
         // Load connection form components
         this.state.formComponents = await generateConnectionComponents(
@@ -763,10 +761,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             // If they signed in with a new account and they're using VS Code accounts for EntraMFA auth,
             // then add it to the MFA auth account list and select it.
-            if (
-                newlyAddedAccountId &&
-                previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)
-            ) {
+            if (newlyAddedAccountId && !getUseMsalEntraMfaAuthConfig()) {
                 const accountComponent = this.getFormComponent(state, "accountId");
 
                 if (accountComponent) {
@@ -1088,7 +1083,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             hiddenProperties.push("accountId", "tenantId");
         }
         if (this.state.connectionProfile.authenticationType === AuthenticationType.AzureMFA) {
-            if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
+            if (!getUseMsalEntraMfaAuthConfig()) {
                 const accountId = this.state.connectionProfile.accountId;
                 const cachedTenants = accountId
                     ? this._cachedEntraTenants.get(accountId)
@@ -2004,7 +1999,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             return this._cachedEntraAccounts;
         }
 
-        if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
+        if (!getUseMsalEntraMfaAuthConfig()) {
             this._cachedEntraAccounts = await getVscodeEntraAccountOptions();
         } else {
             this._cachedEntraAccounts = await getAccounts(
@@ -2026,7 +2021,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         }
 
         if (!this._cachedEntraTenants.has(accountId)) {
-            if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
+            if (!getUseMsalEntraMfaAuthConfig()) {
                 this._cachedEntraTenants.set(
                     accountId,
                     await getVscodeEntraTenantOptions(accountId),
@@ -2078,7 +2073,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             label: LocalizedConstants.ConnectionDialog.signIn,
             id: "azureSignIn",
             callback: async () => {
-                if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
+                if (!getUseMsalEntraMfaAuthConfig()) {
                     const existingAccountIds = new Set(
                         (this._cachedEntraAccounts ?? []).map((a) => a.value),
                     );
@@ -2158,9 +2153,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         }
 
         const tenantComponent = this.getFormComponent(this.state, "tenantId");
-        const useVscodeAccounts = previewService.isFeatureEnabled(
-            PreviewFeature.UseVscodeAccountsForEntraMFA,
-        );
+        const useVscodeAccounts = !getUseMsalEntraMfaAuthConfig();
 
         // If background loading hasn't finished, show spinner on account and
         // await the deferred. updateItemVisibility is called for authenticationType
@@ -2515,7 +2508,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             toProfile.authenticationType === AuthenticationType.AzureMFA &&
             toProfile.user !== undefined
         ) {
-            if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
+            if (!getUseMsalEntraMfaAuthConfig()) {
                 const matchingAccount = await resolveVscodeEntraAccount(undefined, toProfile.user);
                 if (matchingAccount) {
                     toProfile.accountId = matchingAccount.id;
