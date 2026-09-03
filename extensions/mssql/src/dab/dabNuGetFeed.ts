@@ -30,6 +30,7 @@ import { VscodeHttpClient } from "extension-toolkit/vscode";
 import { ILogger } from "../sharedInterfaces/logger";
 import { Dab } from "../sharedInterfaces/dab";
 import { getErrorMessage } from "../utils/utils";
+import { stripByteOrderMark } from "./dabCliTool";
 
 /** Resource type naming a v3 feed's flat container in its service index. */
 const PACKAGE_BASE_ADDRESS_TYPE = "PackageBaseAddress/3.0.0";
@@ -100,7 +101,9 @@ export function getNuGetConfigPaths(workspacePath?: string): string[] {
 
 /** Reads the package source declarations out of one NuGet.Config document. */
 export function parseNuGetConfig(xml: string): NuGetConfigContents {
-    const document = new DOMParser().parseFromString(xml, "text/xml");
+    // NuGet writes these files as UTF-8 with a BOM, which an XML parser
+    // rejects as content before the declaration.
+    const document = new DOMParser().parseFromString(stripByteOrderMark(xml), "text/xml");
     const readSection = (sectionName: string) => {
         const section = document.getElementsByTagName(sectionName)[0];
         if (!section) {

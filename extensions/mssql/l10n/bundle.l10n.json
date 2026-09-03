@@ -1112,6 +1112,7 @@
     },
     "Deployments cannot be tracked because the extension's storage location is unavailable.": "Deployments cannot be tracked because the extension's storage location is unavailable.",
     "Failed to download the Data API builder CLI. Please check your network connection.": "Failed to download the Data API builder CLI. Please check your network connection.",
+    "Failed to prepare the Data API builder CLI.": "Failed to prepare the Data API builder CLI.",
     "The Data API builder CLI is not available. Run the prerequisite checks again.": "The Data API builder CLI is not available. Run the prerequisite checks again.",
     "No .NET runtime was found to run the Data API builder CLI. Install .NET and try again.": "No .NET runtime was found to run the Data API builder CLI. Install .NET and try again.",
     "Download .NET": "Download .NET",

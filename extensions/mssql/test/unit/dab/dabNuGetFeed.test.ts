@@ -77,6 +77,21 @@ suite("DAB NuGet Feed Tests", () => {
             expect(contents.sources).to.have.lengthOf(1);
         });
 
+        test("reads a config written with a byte order mark", () => {
+            // NuGet writes NuGet.Config as UTF-8 with a BOM; failing to parse it
+            // would silently fall back to nuget.org.
+            const contents = parseNuGetConfig(`﻿<?xml version="1.0" encoding="utf-8"?>
+                <configuration>
+                  <packageSources>
+                    <add key="internal" value="https://contoso.example/nuget/v3/index.json" />
+                  </packageSources>
+                </configuration>`);
+
+            expect(contents.sources).to.deep.equal([
+                { key: "internal", value: "https://contoso.example/nuget/v3/index.json" },
+            ]);
+        });
+
         test("handles a config with no package sources", () => {
             const contents = parseNuGetConfig(
                 `<?xml version="1.0" encoding="utf-8"?><configuration />`,

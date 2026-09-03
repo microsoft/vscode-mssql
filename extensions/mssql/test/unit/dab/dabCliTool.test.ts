@@ -13,6 +13,7 @@ import {
     getDabCliInstallPath,
     getDabCliPackageUrl,
     readRuntimePackageId,
+    stripByteOrderMark,
 } from "../../../src/dab/dabCliTool";
 import { Dab } from "../../../src/sharedInterfaces/dab";
 
@@ -85,6 +86,20 @@ suite("DAB CLI Tool Tests", () => {
             expect(readRuntimePackageId(toolSettings, "osx-x64")).to.equal(
                 "Microsoft.DataApiBuilder.osx-x64",
             );
+        });
+
+        test("reads a manifest written with a byte order mark", () => {
+            // NuGet writes DotnetToolSettings.xml as UTF-8 with a BOM, which an
+            // XML parser otherwise rejects as content before the declaration.
+            expect(readRuntimePackageId(`﻿${toolSettings}`, "win-x64")).to.equal(
+                "Microsoft.DataApiBuilder.win-x64",
+            );
+        });
+
+        test("strips only a leading byte order mark", () => {
+            expect(stripByteOrderMark("﻿<xml />")).to.equal("<xml />");
+            expect(stripByteOrderMark("<xml />")).to.equal("<xml />");
+            expect(stripByteOrderMark("")).to.equal("");
         });
 
         test("reports a runtime the tool does not publish", () => {

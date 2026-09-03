@@ -38,6 +38,22 @@ const DAB_CLI_RUNTIME_CONFIG_NAME = "Microsoft.DataApiBuilder.runtimeconfig.json
 /** Tool manifest naming the runtime-specific packages that carry the binaries. */
 const DOTNET_TOOL_SETTINGS_NAME = "DotnetToolSettings.xml";
 
+/**
+ * Which part of acquisition failed, so the reported cause is the real one
+ * rather than a guess at the network.
+ */
+export type DabCliAcquisitionStage = "download" | "unpack" | "resolve";
+
+export class DabCliAcquisitionError extends Error {
+    constructor(
+        public readonly stage: DabCliAcquisitionStage,
+        message: string,
+    ) {
+        super(message);
+        this.name = "DabCliAcquisitionError";
+    }
+}
+
 /** Marker written once a package has been fully unpacked. */
 const INSTALL_COMPLETE_MARKER = ".installed";
 
@@ -144,11 +160,19 @@ async function findFile(rootPath: string, fileName: string): Promise<string | un
  * @param settingsXml Contents of the tool manifest
  * @param runtimeIdentifier Runtime to look up
  */
+/**
+ * Removes a leading byte order mark. NuGet writes these files as UTF-8 with a
+ * BOM, and an XML parser treats the mark as content before the declaration.
+ */
+export function stripByteOrderMark(text: string): string {
+    return text.charCodeAt(0) === 0xfeff ? text.slice(1) : text;
+}
+
 export function readRuntimePackageId(
     settingsXml: string,
     runtimeIdentifier: string,
 ): string | undefined {
-    const document = new DOMParser().parseFromString(settingsXml, "text/xml");
+    const document = new DOMParser().parseFromString(stripByteOrderMark(settingsXml), "text/xml");
     const packages = document.getElementsByTagName("RuntimeIdentifierPackage");
 
     for (let index = 0; index < packages.length; index++) {
@@ -214,7 +238,10 @@ async function downloadAndUnpack(
             throw new Error(`${result.status} ${result.statusText}`);
         }
     } catch (error) {
-        throw new Error(`Failed to download ${packageId}: ${getErrorMessage(error)}`);
+        throw new DabCliAcquisitionError(
+            "download",
+            `Failed to download ${packageId}: ${getErrorMessage(error)}`,
+        );
     }
 
     try {
@@ -223,7 +250,10 @@ async function downloadAndUnpack(
             entryName.startsWith("tools/"),
         );
     } catch (error) {
-        throw new Error(`Failed to unpack ${packageId}: ${getErrorMessage(error)}`);
+        throw new DabCliAcquisitionError(
+            "unpack",
+            `Failed to unpack ${packageId}: ${getErrorMessage(error)}`,
+        );
     } finally {
         await fsPromises.unlink(packagePath).catch(() => {});
     }
@@ -263,21 +293,31 @@ export async function acquireDabCli(
 
     const settingsPath = await findFile(installPath, DOTNET_TOOL_SETTINGS_NAME);
     if (!settingsPath) {
-        throw new Error(
+        throw new DabCliAcquisitionError(
+            "resolve",
             `The Data API builder CLI package did not contain ${DOTNET_TOOL_SETTINGS_NAME}.`,
         );
     }
 
     const runtimeIdentifier = getCurrentRuntimeIdentifier();
-    const runtimePackageId = readRuntimePackageId(
-        await fsPromises.readFile(settingsPath, "utf8"),
-        runtimeIdentifier,
-    );
+    let runtimePackageId: string | undefined;
+    try {
+        runtimePackageId = readRuntimePackageId(
+            await fsPromises.readFile(settingsPath, "utf8"),
+            runtimeIdentifier,
+        );
+    } catch (error) {
+        throw new DabCliAcquisitionError(
+            "resolve",
+            `Failed to read ${DOTNET_TOOL_SETTINGS_NAME}: ${getErrorMessage(error)}`,
+        );
+    }
     if (!runtimePackageId) {
         // Data API builder publishes x64 runtimes only, so an arm64 host has
         // nothing to run. Saying which runtime is missing beats a later failure
         // about an assembly that was never going to be there.
-        throw new Error(
+        throw new DabCliAcquisitionError(
+            "resolve",
             `The Data API builder CLI does not publish a build for ${runtimeIdentifier}.`,
         );
     }
@@ -286,7 +326,10 @@ export async function acquireDabCli(
 
     const assemblyPath = await findFile(installPath, DAB_CLI_ASSEMBLY_NAME);
     if (!assemblyPath) {
-        throw new Error(`${runtimePackageId} did not contain ${DAB_CLI_ASSEMBLY_NAME}.`);
+        throw new DabCliAcquisitionError(
+            "resolve",
+            `${runtimePackageId} did not contain ${DAB_CLI_ASSEMBLY_NAME}.`,
+        );
     }
 
     await fsPromises.writeFile(path.join(installPath, INSTALL_COMPLETE_MARKER), version, "utf8");

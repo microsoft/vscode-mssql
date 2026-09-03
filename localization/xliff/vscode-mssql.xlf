@@ -3934,6 +3934,9 @@
       <source xml:lang="en">Failed to open text in editor: {0}</source>
       <note>{0} is the error message</note>
     </trans-unit>
+    <trans-unit id="++CODE++954dec32386b912be138accf36de060517dcc00ae06dd2f4b243aa7233170cad">
+      <source xml:lang="en">Failed to prepare the Data API builder CLI.</source>
+    </trans-unit>
     <trans-unit id="++CODE++07ada7fc091c333284ba42452a6d0ef44eae8f3105e07704463afe34a9d0c92d">
       <source xml:lang="en">Failed to pull DAB container image. Please check your network connection.</source>
     </trans-unit>

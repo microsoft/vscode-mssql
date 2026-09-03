@@ -19,7 +19,7 @@ import { LocalContainers } from "../constants/locConstants";
 import { ILogger } from "../sharedInterfaces/logger";
 import { Dab } from "../sharedInterfaces/dab";
 import { getErrorMessage } from "../utils/utils";
-import { acquireDabCli, DabCliInstallation } from "./dabCliTool";
+import { acquireDabCli, DabCliAcquisitionError, DabCliInstallation } from "./dabCliTool";
 import {
     checkDabCliEngineReady,
     DabCliProcessEnvironment,
@@ -51,9 +51,17 @@ export class DabCliRunner {
             this._installation = await acquireDabCli(this.storagePath, this.logger);
             return { success: true };
         } catch (error) {
+            // Only a failed download is a network problem; unpacking and
+            // resolving the right runtime package fail for their own reasons,
+            // and saying otherwise sends people to check the wrong thing.
+            const isDownloadFailure =
+                error instanceof DabCliAcquisitionError && error.stage === "download";
+
             return {
                 success: false,
-                error: LocalContainers.dabCliAcquireFailed,
+                error: isDownloadFailure
+                    ? LocalContainers.dabCliDownloadFailed
+                    : LocalContainers.dabCliPrepareFailed,
                 fullErrorText: getErrorMessage(error),
             };
         }

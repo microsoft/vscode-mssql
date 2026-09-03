@@ -1969,9 +1969,10 @@ export class LocalContainers {
         "Deployments cannot be tracked because the extension's storage location is unavailable.",
     );
     // DAB CLI deployment strings
-    public static dabCliAcquireFailed = l10n.t(
+    public static dabCliDownloadFailed = l10n.t(
         "Failed to download the Data API builder CLI. Please check your network connection.",
     );
+    public static dabCliPrepareFailed = l10n.t("Failed to prepare the Data API builder CLI.");
     public static dabCliNotAcquired = l10n.t(
         "The Data API builder CLI is not available. Run the prerequisite checks again.",
     );
