@@ -8,7 +8,7 @@ import * as fs from "fs/promises";
 import * as os from "os";
 import * as path from "path";
 import { extractZipArchive } from "../../../src/dab/dabCliArchive";
-import { isDatabaseConnectionFailure } from "../../../src/dab/dabCliRunner";
+import { getAzureCliInstallLink, isDatabaseConnectionFailure } from "../../../src/dab/dabCliRunner";
 import {
     getCurrentRuntimeIdentifier,
     getDabCliInstallPath,
@@ -295,5 +295,44 @@ suite("DAB CLI connection failure detection", () => {
     test("treats absent output as no connection failure", () => {
         expect(isDatabaseConnectionFailure(undefined)).to.be.false;
         expect(isDatabaseConnectionFailure("")).to.be.false;
+    });
+});
+
+suite("Azure CLI install link", () => {
+    test("points at instructions for this machine's operating system", () => {
+        // The install steps differ per platform, so the wrong page is worse
+        // than no page: it describes a package manager the reader does not have.
+        const expectedPage =
+            process.platform === "win32"
+                ? "install-azure-cli-windows"
+                : process.platform === "darwin"
+                  ? "install-azure-cli-macos"
+                  : "install-azure-cli-linux";
+
+        expect(getAzureCliInstallLink()).to.contain(expectedPage);
+    });
+
+    test("omits the locale so the page opens in the reader's language", () => {
+        expect(getAzureCliInstallLink()).to.not.contain("/en-us/");
+    });
+});
+
+suite("Azure CLI install guidance", () => {
+    test("points at the instructions for this machine", () => {
+        const link = getAzureCliInstallLink();
+        const expectedPage =
+            {
+                win32: "install-azure-cli-windows",
+                darwin: "install-azure-cli-macos",
+            }[process.platform as string] ?? "install-azure-cli-linux";
+
+        expect(
+            link,
+            "Install steps differ per platform, so the wrong page is unusable advice",
+        ).to.contain(expectedPage);
+    });
+
+    test("omits the locale so the page opens in the reader's language", () => {
+        expect(getAzureCliInstallLink()).to.not.contain("/en-us/");
     });
 });

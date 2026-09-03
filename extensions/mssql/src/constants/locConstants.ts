@@ -1988,10 +1988,10 @@ export class LocalContainers {
     );
     public static dabCliConfigInvalid = l10n.t("The Data API builder configuration is not valid.");
     public static dabCliDatabaseConnectionFailed = l10n.t(
-        "Data API builder could not connect to the database. Check that the server is reachable and that the connection's credentials are still valid, then run this step again.",
+        "Data API builder could not reach the database. Check that the server is running and the connection still works, then run this step again.",
     );
     public static dabCliEntraConnectionFailed = l10n.t(
-        "Data API builder could not sign in to the database. It signs in as you rather than reusing this extension's sign-in, so it needs an Entra sign-in on this machine: run 'az login' in a terminal, then run this step again.",
+        "Data API builder could not sign in to the database. It signs in separately from this extension, using the Azure CLI. Run 'az login', then run this step again.",
     );
     public static dabCliInstallAzureCli = l10n.t("Install the Azure CLI");
     public static dabCliStartFailed = l10n.t("Failed to start the Data API builder engine.");

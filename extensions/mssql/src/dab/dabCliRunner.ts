@@ -30,8 +30,24 @@ import {
 /** Where to send a user who has no usable .NET runtime. */
 export const dotnetDownloadLink = "https://dotnet.microsoft.com/download";
 
-/** Where to send a user who needs an Entra sign-in on the machine. */
-export const azureCliDownloadLink = "https://aka.ms/installazurecli";
+/**
+ * Azure CLI install instructions for this machine.
+ *
+ * The pages differ per platform — winget on Windows, Homebrew on macOS, a
+ * package manager on Linux — so one shared link would leave most readers
+ * translating steps for an operating system they are not on. The locale
+ * segment is left out so the page opens in the reader's own language.
+ */
+export function getAzureCliInstallLink(): string {
+    const base = "https://learn.microsoft.com/cli/azure";
+    if (process.platform === "win32") {
+        return `${base}/install-azure-cli-windows?view=azure-cli-latest&pivots=winget`;
+    }
+
+    return process.platform === "darwin"
+        ? `${base}/install-azure-cli-macos?view=azure-cli-latest`
+        : `${base}/install-azure-cli-linux?view=azure-cli-latest`;
+}
 
 /**
  * The engine reports every failure to open a database connection with this
@@ -183,7 +199,7 @@ export class DabCliRunner {
                     : LocalContainers.dabCliDatabaseConnectionFailed,
                 ...(isEntra
                     ? {
-                          errorLink: azureCliDownloadLink,
+                          errorLink: getAzureCliInstallLink(),
                           errorLinkText: LocalContainers.dabCliInstallAzureCli,
                       }
                     : {}),

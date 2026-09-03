@@ -2407,11 +2407,11 @@
     <trans-unit id="++CODE++2154b11388f741094808a9e344ab0be7e4be3d2a989551deec3b43f35fc729e3">
       <source xml:lang="en">Data API builder Configuration</source>
     </trans-unit>
-    <trans-unit id="++CODE++012710b34d59a963ef63b6b02134fee38a19a64d5260225088039675d944327b">
-      <source xml:lang="en">Data API builder could not connect to the database. Check that the server is reachable and that the connection&apos;s credentials are still valid, then run this step again.</source>
+    <trans-unit id="++CODE++e640a89ce8e350fd9cdd83c32a3ab2ccdeeca996218a760b548091330dc62179">
+      <source xml:lang="en">Data API builder could not reach the database. Check that the server is running and the connection still works, then run this step again.</source>
     </trans-unit>
-    <trans-unit id="++CODE++c81d9791604a0050c5854c67ea1a6c84903774d7160a12908a63de477df45f10">
-      <source xml:lang="en">Data API builder could not sign in to the database. It signs in as you rather than reusing this extension&apos;s sign-in, so it needs an Entra sign-in on this machine: run &apos;az login&apos; in a terminal, then run this step again.</source>
+    <trans-unit id="++CODE++3c26053c4678fe4e3f992866121ffa0360ca6b3ab11b54e65f7bc7c89ce9f36b">
+      <source xml:lang="en">Data API builder could not sign in to the database. It signs in separately from this extension, using the Azure CLI. Run &apos;az login&apos;, then run this step again.</source>
     </trans-unit>
     <trans-unit id="++CODE++d90dacedab33faee6e7e3d4aec2d222b63b231958e052de1a3f5a55ffc80c982">
       <source xml:lang="en">Data API builder is running!</source>
