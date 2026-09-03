@@ -5430,3 +5430,94 @@ export class SqlProjects {
 
     public static stderr = l10n.t("    stderr: ");
 }
+
+export class SessionDiag {
+    public static privatePreviewRequired = l10n.t(
+        "Enable mssql.enableExperimentalFeatures and mssql.sessionDiag.enabled, then reload the window to use session diagnostics.",
+    );
+    public static deleteAll = l10n.t("Delete all");
+    public static clearConfirm = (count: number): string =>
+        l10n.t({
+            message:
+                "Delete {0} locally stored diagnostic session(s)? The current session keeps recording if capture is on.",
+            args: [count],
+            comment: ["{0} is the number of locally stored diagnostic sessions"],
+        });
+    public static removedSessions = (count: number): string =>
+        l10n.t({
+            message: "Removed {0} diagnostic session(s).",
+            args: [count],
+            comment: ["{0} is the number of removed diagnostic sessions"],
+        });
+    public static elevateReasonPrompt = l10n.t(
+        "Reason for elevated (full) capture — recorded in the session log",
+    );
+    public static elevateReasonPlaceholder = l10n.t("e.g. reproducing bug #1234");
+    public static elevateDurationTitle = l10n.t("Elevated capture duration (auto-reverts)");
+    public static minutes = (count: number): string =>
+        l10n.t({
+            message: "{0} minutes",
+            args: [count],
+            comment: ["{0} is a number of minutes"],
+        });
+    public static statusName = l10n.t("MSSQL Session Diagnostics");
+    public static statusOff = l10n.t("$(circle-slash) MSSQL Diag");
+    public static statusOffTooltip = l10n.t(
+        "MSSQL session diagnostics: capture off. Click to open the Debug Console.",
+    );
+    public static statusOffTooltipNoConsole = l10n.t("MSSQL session diagnostics: capture off.");
+    public static statusFull = l10n.t("$(record) MSSQL Diag: FULL");
+    public static statusFullTooltip = l10n.t(
+        "Elevated (full) capture is active and time-bounded. Click to open the Debug Console.",
+    );
+    public static statusFullTooltipNoConsole = l10n.t(
+        "Elevated (full) capture is active and time-bounded.",
+    );
+    public static statusMode = (mode: string): string =>
+        l10n.t({
+            message: "$(shield) MSSQL Diag: {0}",
+            args: [mode],
+            comment: ["{0} is the capture mode (redacted or digest)"],
+        });
+    public static statusModeTooltip = (mode: string): string =>
+        l10n.t({
+            message:
+                "MSSQL session diagnostics capturing ({0}, local only). Click to open the Debug Console.",
+            args: [mode],
+            comment: ["{0} is the capture mode (redacted or digest)"],
+        });
+    public static statusModeTooltipNoConsole = (mode: string): string =>
+        l10n.t({
+            message: "MSSQL session diagnostics capturing ({0}, local only).",
+            args: [mode],
+            comment: ["{0} is the capture mode (redacted or digest)"],
+        });
+}
+
+export class DebugConsole {
+    public static panelTitle = l10n.t("MSSQL Debug Console");
+    public static enableSettingFirst = l10n.t(
+        "Enable mssql.enableExperimentalFeatures and mssql.debugConsole.enabled, then reload the window to use the MSSQL Debug Console.",
+    );
+    public static restartForSts = l10n.t(
+        "Restart VS Code so SQL Tools Service diagnostics are included in the Debug Console.",
+    );
+    public static deleteRun = l10n.t("Delete run");
+    public static deleteRunConfirm = (runId: string): string =>
+        l10n.t({
+            message:
+                "Delete perf run '{0}'? This removes the run directory and its artifacts from disk.",
+            args: [runId],
+            comment: ["{0} is the perf run id"],
+        });
+    public static importRunTitle = l10n.t("Select a perftest run directory (perf-runs/<runId>)");
+    public static noMarkersFound = l10n.t("No harness markers found in the selected directory.");
+    public static exportTitle = l10n.t("Export diagnostic events (redacted JSONL)");
+    public static exportTitleFull = l10n.t(
+        "Export diagnostic events (JSONL — full capture, may contain SQL text)",
+    );
+    public static jsonLinesFilter = l10n.t("JSON Lines");
+    public static addSqliteTitle = l10n.t("Connect a perftest SQLite store (read-only preview)");
+    public static addBundleTitle = l10n.t("Import a perf-runs bundle directory (read-only)");
+    public static addDirectoryTitle = l10n.t("Open a perf-runs directory");
+}
