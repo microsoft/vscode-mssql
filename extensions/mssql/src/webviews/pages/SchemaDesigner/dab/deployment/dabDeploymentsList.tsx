@@ -119,14 +119,28 @@ const statusBadgeColor: Record<
     [Dab.DabDeploymentContainerStatus.Unknown]: "warning",
 };
 
-function getStatusLabel(status: Dab.DabDeploymentContainerStatus): string {
+/** Short label naming where a deployment runs. */
+function getTargetLabel(target: Dab.DabDeploymentTarget): string {
+    return target === Dab.DabDeploymentTarget.DabCli
+        ? locConstants.schemaDesigner.deploymentTargetLabelDabCli
+        : locConstants.schemaDesigner.deploymentTargetLabelDocker;
+}
+
+function getStatusLabel(
+    status: Dab.DabDeploymentContainerStatus,
+    target: Dab.DabDeploymentTarget,
+): string {
     switch (status) {
         case Dab.DabDeploymentContainerStatus.Running:
             return locConstants.schemaDesigner.deploymentStatusRunning;
         case Dab.DabDeploymentContainerStatus.Stopped:
             return locConstants.schemaDesigner.deploymentStatusStopped;
         case Dab.DabDeploymentContainerStatus.Missing:
-            return locConstants.schemaDesigner.deploymentStatusMissing;
+            // A CLI deployment has no container; what is gone is the generated
+            // config that would let it be started again.
+            return target === Dab.DabDeploymentTarget.DabCli
+                ? locConstants.schemaDesigner.deploymentStatusMissingCli
+                : locConstants.schemaDesigner.deploymentStatusMissing;
         default:
             return locConstants.schemaDesigner.deploymentStatusUnknown;
     }
@@ -200,12 +214,15 @@ export const DabDeploymentsList = ({ onCreateNew, onClose }: DabDeploymentsListP
         return (
             <div key={deployment.id} className={classes.row}>
                 <div className={classes.rowHeader}>
-                    <Text className={classes.containerName}>{deployment.containerName}</Text>
+                    <Text className={classes.containerName}>{deployment.name}</Text>
                     <Text className={classes.metaText}>
                         {locConstants.schemaDesigner.deploymentPort(deployment.port)}
                     </Text>
+                    <Badge appearance="outline" color="informative">
+                        {getTargetLabel(deployment.target)}
+                    </Badge>
                     <Badge appearance="tint" color={statusBadgeColor[deployment.status]}>
-                        {getStatusLabel(deployment.status)}
+                        {getStatusLabel(deployment.status, deployment.target)}
                     </Badge>
                     {deployment.isConfigOutdated ? (
                         <Tooltip
@@ -231,9 +248,13 @@ export const DabDeploymentsList = ({ onCreateNew, onClose }: DabDeploymentsListP
                 {confirmingDeleteId === deployment.id ? (
                     <div className={classes.confirmRow}>
                         <Text className={classes.metaText}>
-                            {locConstants.schemaDesigner.deleteDeploymentConfirmMessage(
-                                deployment.containerName,
-                            )}
+                            {deployment.target === Dab.DabDeploymentTarget.DabCli
+                                ? locConstants.schemaDesigner.deleteCliDeploymentConfirmMessage(
+                                      deployment.name,
+                                  )
+                                : locConstants.schemaDesigner.deleteDeploymentConfirmMessage(
+                                      deployment.name,
+                                  )}
                         </Text>
                         <div className={classes.spacer} />
                         <Button

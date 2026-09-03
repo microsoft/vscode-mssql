@@ -93,9 +93,11 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
     private _key: string = "";
     private _serverName: string | undefined;
     private _sqlServerContainerName: string | undefined;
-    private _dabService = new DabService();
+    private _dabService: DabService;
     private _dabConfigStore: DabConfigStore | undefined;
     private _pendingDabConfigSave: Dab.DabConfig | undefined;
+    /** Process id of a CLI engine launched but not yet recorded. */
+    private _pendingDabCliProcessId: number | undefined;
     private _dabConfigSaveTimer: NodeJS.Timeout | undefined;
     private _dabMetadataService: IDabMetadataService | undefined;
     private _progressListener:
@@ -163,6 +165,11 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
         this._dabConfigStore = context.globalStorageUri
             ? new DabConfigStore(context.globalStorageUri.fsPath)
             : undefined;
+        this._dabService = new DabService(
+            context.globalStorageUri
+                ? { storagePath: context.globalStorageUri.fsPath, logger: this.logger }
+                : undefined,
+        );
 
         this.updateState({
             ...this.state,
@@ -628,25 +635,47 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                     error: message,
                 };
             }
+            const target = payload.target ?? Dab.DabDeploymentTarget.Docker;
             try {
-                const result = await this._dabService.runDeploymentStep(
-                    payload.step,
-                    payload.params,
-                    payload.config,
-                    this.connectionString
-                        ? {
-                              connectionString: this.connectionString,
-                              sqlServerContainerName: this._sqlServerContainerName,
-                          }
-                        : undefined,
-                );
+                const connectionInfo = this.connectionString
+                    ? {
+                          connectionString: this.connectionString,
+                          sqlServerContainerName: this._sqlServerContainerName,
+                      }
+                    : undefined;
+
+                const result =
+                    target === Dab.DabDeploymentTarget.DabCli
+                        ? await this._dabService.runCliDeploymentStep(
+                              payload.step,
+                              payload.params,
+                              payload.config,
+                              connectionInfo,
+                              payload.params
+                                  ? this.getDabCliConfigPath(payload.params.containerName)
+                                  : undefined,
+                          )
+                        : await this._dabService.runDeploymentStep(
+                              payload.step,
+                              payload.params,
+                              payload.config,
+                              connectionInfo,
+                          );
+
                 if (result.success) {
-                    // The container is only worth tracking once it answers.
+                    // Remember the engine's process id so it can be stopped later;
+                    // it is launched a step before the deployment is tracked.
                     if (
-                        payload.step === Dab.DabDeploymentStepOrder.checkContainer &&
-                        payload.params
+                        target === Dab.DabDeploymentTarget.DabCli &&
+                        payload.step === Dab.DabDeploymentStepOrder.startCliEngine
                     ) {
+                        this._pendingDabCliProcessId = (result as { processId?: number }).processId;
+                    }
+
+                    // The deployment is only worth tracking once it answers.
+                    if (Dab.isFinalDabDeploymentStep(target, payload.step) && payload.params) {
                         await this.trackDabDeployment(
+                            target,
                             payload.params,
                             payload.config,
                             payload.deploymentId,
@@ -684,7 +713,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             return this.withTrackedDabDeployment(
                 payload.deploymentId,
                 async (store, key, record) => {
-                    const result = await this._dabService.stopDeployment(record.containerName);
+                    const result = await this.tearDownDabDeployment(store, key, record);
                     if (!result.success) {
                         return { success: false, error: result.error };
                     }
@@ -700,10 +729,8 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
         });
 
         this.onRequest(Dab.StartDeploymentContainerRequest.type, async (payload) => {
-            return this.withTrackedDabDeployment(
-                payload.deploymentId,
-                async (_store, _key, record) =>
-                    this._dabService.startContainer(record.containerName),
+            return this.withTrackedDabDeployment(payload.deploymentId, async (store, key, record) =>
+                this.startTrackedDabDeployment(store, key, record),
             );
         });
 
@@ -711,14 +738,15 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             return this.withTrackedDabDeployment(
                 payload.deploymentId,
                 async (_store, _key, record) =>
-                    this._dabService.stopContainer(record.containerName),
+                    record.target === Dab.DabDeploymentTarget.DabCli
+                        ? this._dabService.stopCliDeployment(record)
+                        : this._dabService.stopContainer(record.name),
             );
         });
 
         this.onRequest(Dab.PrepareRedeploymentRequest.type, async (payload) => {
-            return this.withTrackedDabDeployment(
-                payload.deploymentId,
-                async (_store, _key, record) => this.prepareDabRedeployment(record),
+            return this.withTrackedDabDeployment(payload.deploymentId, async (store, key, record) =>
+                this.prepareDabRedeployment(store, key, record),
             );
         });
 
@@ -1240,6 +1268,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
      * one that was redeployed.
      */
     private async trackDabDeployment(
+        target: Dab.DabDeploymentTarget,
         params: Dab.DabDeploymentParams,
         config: Dab.DabConfig | undefined,
         deploymentId: string | undefined,
@@ -1250,33 +1279,122 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             return;
         }
 
+        const isCli = target === Dab.DabDeploymentTarget.DabCli;
+        const cliFields = isCli
+            ? {
+                  processId: this._pendingDabCliProcessId,
+                  configPath: this.getDabCliConfigPath(params.containerName),
+              }
+            : {};
+
         try {
             const configHash = this._dabService.computeConfigHash(config);
             if (deploymentId) {
                 const updated = await store.updateDeployment(key, deploymentId, {
-                    containerName: params.containerName,
+                    target,
+                    name: params.containerName,
                     port: params.port,
                     apiTypes: config.apiTypes,
                     configHash,
                     deployedUtc: new Date().toISOString(),
+                    ...cliFields,
                 });
 
                 // The record can be gone if it was deleted mid-redeploy; fall
-                // through and track the container that is now actually running.
+                // through and track the deployment that is now actually running.
                 if (updated) {
                     return;
                 }
             }
 
             await store.addDeployment(key, {
-                containerName: params.containerName,
+                target,
+                name: params.containerName,
                 port: params.port,
                 apiTypes: config.apiTypes,
                 configHash,
+                ...cliFields,
             });
         } catch (error) {
             this.logger.error(`Failed to record DAB deployment: ${getErrorMessage(error)}`);
+        } finally {
+            this._pendingDabCliProcessId = undefined;
         }
+    }
+
+    /** Config file path for a CLI deployment of this name. */
+    private getDabCliConfigPath(name: string): string | undefined {
+        const store = this._dabConfigStore;
+        const key = this.dabStoreKey;
+        if (!store || !key) {
+            return undefined;
+        }
+
+        return this._dabService.getCliConfigPath(store.getCliDeploymentDirectory(key, name));
+    }
+
+    /** Resolves the live state of a tracked deployment, whichever target it uses. */
+    private async getDabDeploymentStatus(
+        record: Dab.DabDeploymentRecord,
+    ): Promise<Dab.DabDeploymentContainerStatus> {
+        return record.target === Dab.DabDeploymentTarget.DabCli
+            ? this._dabService.getCliDeploymentStatus(record)
+            : this._dabService.getContainerStatus(record.name);
+    }
+
+    /**
+     * Starts a tracked deployment again without redeploying it.
+     *
+     * A CLI engine is a process rather than a container, so restarting it means
+     * relaunching it from its saved config; the new process id is recorded so
+     * the deployment can be stopped again later.
+     */
+    private async startTrackedDabDeployment(
+        store: DabConfigStore,
+        key: DabStoreKey,
+        record: Dab.DabDeploymentRecord,
+    ): Promise<Dab.DeploymentActionResponse> {
+        if (record.target !== Dab.DabDeploymentTarget.DabCli) {
+            return this._dabService.startContainer(record.name);
+        }
+
+        if (!this.connectionString) {
+            return { success: false, error: LocConstants.SchemaDesigner.dabDeploymentNotSupported };
+        }
+
+        const result = await this._dabService.startCliDeployment(record, {
+            connectionString: this.connectionString,
+            sqlServerContainerName: this._sqlServerContainerName,
+        });
+
+        if (result.success) {
+            await store.updateDeployment(key, record.id, { processId: result.processId });
+        }
+
+        return { success: result.success, error: result.error };
+    }
+
+    /**
+     * Stops a deployment and removes whatever it left behind: the container for
+     * Docker, or the engine process and its generated config for the CLI.
+     */
+    private async tearDownDabDeployment(
+        store: DabConfigStore,
+        key: DabStoreKey,
+        record: Dab.DabDeploymentRecord,
+    ): Promise<Dab.DeploymentActionResponse> {
+        if (record.target === Dab.DabDeploymentTarget.DabCli) {
+            const stopResult = await this._dabService.stopCliDeployment(record);
+            if (!stopResult.success) {
+                return stopResult;
+            }
+
+            await store.deleteCliDeployment(key, record.name);
+            return { success: true };
+        }
+
+        const result = await this._dabService.stopDeployment(record.name);
+        return { success: result.success, error: result.error };
     }
 
     /**
@@ -1304,7 +1422,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             const deployments = await Promise.all(
                 records.map(async (record) => ({
                     ...record,
-                    status: await this._dabService.getContainerStatus(record.containerName),
+                    status: await this.getDabDeploymentStatus(record),
                     isConfigOutdated: currentConfigHash
                         ? currentConfigHash !== record.configHash
                         : false,
@@ -1366,40 +1484,45 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
      * existing container is removed so it can be recreated under the same name.
      */
     private async prepareDabRedeployment(
+        store: DabConfigStore,
+        key: DabStoreKey,
         record: Dab.DabDeploymentRecord,
     ): Promise<Dab.PrepareRedeploymentResponse> {
-        const status = await this._dabService.getContainerStatus(record.containerName);
+        const status = await this.getDabDeploymentStatus(record);
         const portUnavailableError = {
             success: false,
             error: LocConstants.LocalContainers.dabRedeployPortUnavailable(
                 record.port,
-                record.containerName,
+                record.name,
             ),
         };
 
-        // Only a running container is holding its own port. In every other state
-        // the port can be checked first, so a container is never removed for a
+        // Only a running deployment is holding its own port. In every other
+        // state the port can be checked first, so nothing is torn down for a
         // redeployment that was going to fail anyway.
         const isRunning = status === Dab.DabDeploymentContainerStatus.Running;
         if (!isRunning && !(await this._dabService.isPortAvailable(record.port))) {
             return portUnavailableError;
         }
 
-        const stopResult = await this._dabService.stopDeployment(record.containerName);
-        if (!stopResult.success) {
-            return { success: false, error: stopResult.error };
+        const tearDownResult = await this.tearDownDabDeployment(store, key, record);
+        if (!tearDownResult.success) {
+            return { success: false, error: tearDownResult.error };
         }
 
-        // The container that was holding the port is gone now, so anything still
-        // bound to it belongs to something else.
+        // Whatever was holding the port is gone now, so anything still bound to
+        // it belongs to something else.
         if (isRunning && !(await this._dabService.isPortAvailable(record.port))) {
             return portUnavailableError;
         }
 
-        sendActionEvent(TelemetryViews.SchemaDesigner, TelemetryActions.RedeployDabDeployment);
+        sendActionEvent(TelemetryViews.SchemaDesigner, TelemetryActions.RedeployDabDeployment, {
+            additionalProps: { target: record.target },
+        });
         return {
             success: true,
-            params: { containerName: record.containerName, port: record.port },
+            params: { containerName: record.name, port: record.port },
+            target: record.target,
         };
     }
 

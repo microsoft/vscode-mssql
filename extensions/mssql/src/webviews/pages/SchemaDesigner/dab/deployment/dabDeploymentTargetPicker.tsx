@@ -12,7 +12,7 @@ import {
     Text,
     tokens,
 } from "@fluentui/react-components";
-import { Box20Regular } from "@fluentui/react-icons";
+import { Box20Regular, Rocket20Regular } from "@fluentui/react-icons";
 import { locConstants } from "../../../../common/locConstants";
 import { Dab } from "../../../../../sharedInterfaces/dab";
 
@@ -75,6 +75,21 @@ export const DabDeploymentTargetPicker = ({
 }: DabDeploymentTargetPickerProps) => {
     const classes = useStyles();
 
+    const targets = [
+        {
+            target: Dab.DabDeploymentTarget.Docker,
+            Icon: Box20Regular,
+            title: locConstants.schemaDesigner.deploymentTargetDocker,
+            description: locConstants.schemaDesigner.deploymentTargetDockerDescription,
+        },
+        {
+            target: Dab.DabDeploymentTarget.DabCli,
+            Icon: Rocket20Regular,
+            title: locConstants.schemaDesigner.deploymentTargetDabCli,
+            description: locConstants.schemaDesigner.deploymentTargetDabCliDescription,
+        },
+    ];
+
     return (
         <>
             <DialogTitle>{locConstants.schemaDesigner.selectDeploymentTarget}</DialogTitle>
@@ -82,27 +97,26 @@ export const DabDeploymentTargetPicker = ({
                 <Text className={classes.description}>
                     {locConstants.schemaDesigner.selectDeploymentTargetDescription}
                 </Text>
-                <div
-                    className={classes.targetCard}
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => onSelectTarget(Dab.DabDeploymentTarget.Docker)}
-                    onKeyDown={(event) => {
-                        if (event.key === "Enter" || event.key === " ") {
-                            event.preventDefault();
-                            onSelectTarget(Dab.DabDeploymentTarget.Docker);
-                        }
-                    }}>
-                    <Box20Regular className={classes.targetIcon} />
-                    <div className={classes.targetText}>
-                        <Text className={classes.targetTitle}>
-                            {locConstants.schemaDesigner.deploymentTargetDocker}
-                        </Text>
-                        <Text className={classes.targetDescription}>
-                            {locConstants.schemaDesigner.deploymentTargetDockerDescription}
-                        </Text>
+                {targets.map((target) => (
+                    <div
+                        key={target.target}
+                        className={classes.targetCard}
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => onSelectTarget(target.target)}
+                        onKeyDown={(event) => {
+                            if (event.key === "Enter" || event.key === " ") {
+                                event.preventDefault();
+                                onSelectTarget(target.target);
+                            }
+                        }}>
+                        <target.Icon className={classes.targetIcon} />
+                        <div className={classes.targetText}>
+                            <Text className={classes.targetTitle}>{target.title}</Text>
+                            <Text className={classes.targetDescription}>{target.description}</Text>
+                        </div>
                     </div>
-                </div>
+                ))}
             </DialogContent>
             <DialogActions>
                 <Button appearance="secondary" onClick={onBack}>

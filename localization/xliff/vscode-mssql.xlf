@@ -129,6 +129,9 @@
     <trans-unit id="++CODE++380918b946a526640a40df5dced6516794f3d97bbd9e6bb553d037c4439f31c3">
       <source xml:lang="en">=</source>
     </trans-unit>
+    <trans-unit id="++CODE++c61a041f6ca5abff2c94cefc531083c11d3f3b2af7131fb9640dda59a551e289">
+      <source xml:lang="en">A .NET runtime is required. The extension downloads the Data API builder CLI and resolves a runtime for it.</source>
+    </trans-unit>
     <trans-unit id="++CODE++646d218b74cf8fcc4644195bd9dae9ef4615c9d33d9afc5a4ff24e492ce3fb1f">
       <source xml:lang="en">A SQL Projects build task has been added to the existing tasks.json file.</source>
     </trans-unit>
@@ -168,6 +171,9 @@
     </trans-unit>
     <trans-unit id="++CODE++6b262b5e3f3a492b857cb857bded5d039fa91cbc72a121ef398ef5676b2be947">
       <source xml:lang="en">A highly integrated, developer-ready transactional database that auto-scales, auto-tunes, and mirrors data to OneLake for analytics across Fabric services</source>
+    </trans-unit>
+    <trans-unit id="++CODE++045d71b1a3454db180c918941024e788e68689e951e9d51ea41f3283ed5b7666">
+      <source xml:lang="en">A name for this deployment</source>
     </trans-unit>
     <trans-unit id="++CODE++880a0618dd92395efe1446e54fe5d50854c148586fdc14f5da8aecda61c827ae">
       <source xml:lang="en">A predefined global default value for the column or binding.</source>
@@ -1202,6 +1208,9 @@
     <trans-unit id="++CODE++c4152381e591eb56f29211e9e1041f2db298ba2a28040a4bff7894f1602bb4ca">
       <source xml:lang="en">Check output pane for more details</source>
     </trans-unit>
+    <trans-unit id="++CODE++2fffa807cb6b4bd34f3fc8bf567ebcb2aed34f84dbe187fe16c7a2102150b6b5">
+      <source xml:lang="en">Checking .NET runtime</source>
+    </trans-unit>
     <trans-unit id="++CODE++43034967e711bc54bfe87c71c74ca2a19a39ca0d6e18c5d495cd90634d25eea0">
       <source xml:lang="en">Checking Docker Engine Configuration</source>
     </trans-unit>
@@ -1216,6 +1225,9 @@
     </trans-unit>
     <trans-unit id="++CODE++a03fe5c6bd995e5dd1d1f1972329ecc85747bd329900c6fbd46344bd110d9a7d">
       <source xml:lang="en">Checking container readiness</source>
+    </trans-unit>
+    <trans-unit id="++CODE++66b868d316fac9d2254207e43df9118377a95ef7e35d136c357498e0637d5871">
+      <source xml:lang="en">Checking engine readiness</source>
     </trans-unit>
     <trans-unit id="++CODE++469663d6e6c1f487f123cf95220bce4d9ac1c98f2cd06e373ccb0baa14c343d4">
       <source xml:lang="en">Checking if Docker is installed</source>
@@ -1234,6 +1246,9 @@
     </trans-unit>
     <trans-unit id="++CODE++38ccc9db5b300e54116d6f6e8b8ee1420fea7792e8483c7368fdd964b6ecef0a">
       <source xml:lang="en">Checking pre-requisites</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ed7fa7e173cd1f99f4403bd77fd717d26cdffa2216341e208fa2c5f7ac0d5d53">
+      <source xml:lang="en">Checking the generated configuration</source>
     </trans-unit>
     <trans-unit id="++CODE++de88f00e461bb1cd413f9c556b06e1b903006bb3c0123f2e75fdff92532034af">
       <source xml:lang="en">Choose An Action</source>
@@ -1595,6 +1610,9 @@
     </trans-unit>
     <trans-unit id="++CODE++7ddbffc16744c2642445a4ec489967d4201fe93f5ec6af10738ba783cbd78680">
       <source xml:lang="en">Config copied to clipboard</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bf0c5eefb35a2a14ae8ea5fa2d7747fff0157874c2640e9a31397ed840b8d5b3">
+      <source xml:lang="en">Configuration no longer exists</source>
     </trans-unit>
     <trans-unit id="++CODE++6b5b3c69e02dd47e73c93615e2a00d870b2ced5f28f2b7698d30d77d82cc349b">
       <source xml:lang="en">Configuration saved.</source>
@@ -2308,6 +2326,9 @@
     <trans-unit id="++CODE++c525ed2944e05f661b7bc658ddccb355cd47a8daab5629ce4310c575aa58e2a1">
       <source xml:lang="en">Customize keyboard shortcuts</source>
     </trans-unit>
+    <trans-unit id="++CODE++422979c51c0af204281c88c2e286e6d5d44fb3b9be6b6a21e3fc964a167372d1">
+      <source xml:lang="en">DAB CLI</source>
+    </trans-unit>
     <trans-unit id="++CODE++e7aa1ff656ae01487b19a24f178526fa3b74963ac0bfb6cff35b047b62d8be4b">
       <source xml:lang="en">DAB container failed to become ready within the timeout period.</source>
     </trans-unit>
@@ -2361,8 +2382,14 @@
     <trans-unit id="++CODE++dcae6c28f812fc336c88e1a1bfe5cbd8f60eab3a61864135ef5bd04af45ce283">
       <source xml:lang="en">Data API builder</source>
     </trans-unit>
+    <trans-unit id="++CODE++529233139a7f825a4fdb76f61d8ce0507228a61b913494424f04710930da9e0f">
+      <source xml:lang="en">Data API builder CLI</source>
+    </trans-unit>
     <trans-unit id="++CODE++2154b11388f741094808a9e344ab0be7e4be3d2a989551deec3b43f35fc729e3">
       <source xml:lang="en">Data API builder Configuration</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d90dacedab33faee6e7e3d4aec2d222b63b231958e052de1a3f5a55ffc80c982">
+      <source xml:lang="en">Data API builder is running!</source>
     </trans-unit>
     <trans-unit id="++CODE++18c1620276c4ac7ddaec590de6087601cbfad39f0ef20e19c41db887fb760c00">
       <source xml:lang="en">Data API builder opened. Continue with {0} operations ({1}/{2}).</source>
@@ -2625,6 +2652,12 @@
     <trans-unit id="++CODE++cc51187ae9dbe9ccc606865c0177000cdeca2af5bca1c36c7f3065882c6ee18b">
       <source xml:lang="en">Deployment in progress</source>
     </trans-unit>
+    <trans-unit id="++CODE++d39279795c068e7eae0fac751fc1ff7e722232cb6f15f871494b4d70e46a7f9c">
+      <source xml:lang="en">Deployment name, port, and configuration are required to start the engine.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++777bc7ace9ef9cd24f40d697d603c4ca07ebd13f76c7ce9148fa0df315e2c5ef">
+      <source xml:lang="en">Deployment settings</source>
+    </trans-unit>
     <trans-unit id="++CODE++842a4697fd0dddaa2ffb9e593abdfcc1963640b7e3b28eb5e5ae1624a18eaf46">
       <source xml:lang="en">Deployments</source>
     </trans-unit>
@@ -2779,6 +2812,9 @@
     <trans-unit id="++CODE++3c96c6d1388e41b0724659fa022b1843dea4a84d175a1d571bf72382fc0c3581">
       <source xml:lang="en">Do you want to enable &apos;Trust server certificate&apos; on this connection and retry?</source>
     </trans-unit>
+    <trans-unit id="++CODE++e6169e958b37ce8662817b0f3e0bf450a174742fafc527800e67f430738b4b63">
+      <source xml:lang="en">Docker</source>
+    </trans-unit>
     <trans-unit id="++CODE++f1286712850b10aee8607a93c2120e10316b5962b73c377860cd5cded5b98184">
       <source xml:lang="en">Docker Desktop must be installed and running on your machine.</source>
     </trans-unit>
@@ -2815,6 +2851,9 @@
     <trans-unit id="++CODE++d6eafe82359100423c93c5ce53c352c1b51ca1e699215fcec3f5c5dd9bf12d24">
       <source xml:lang="en">Download</source>
     </trans-unit>
+    <trans-unit id="++CODE++a1a823de4d28a66950b1dbb93d476d8244e0d54ef2936f008ab33d4a82f51d82">
+      <source xml:lang="en">Download .NET</source>
+    </trans-unit>
     <trans-unit id="++CODE++400da40cfed58da293f9d4814548dd8f6d03a1acb727c417e2022f8202a988a5">
       <source xml:lang="en">Download deployment scripts</source>
     </trans-unit>
@@ -2832,6 +2871,9 @@
     </trans-unit>
     <trans-unit id="++CODE++37b345555d7ea6c1724d28076ce47b956d202574c211fefa36afba778f335373">
       <source xml:lang="en">Downloading</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6f1737dd338b7ed6e377799ecdaaeae637e31c51c9641edf808353790312c58e">
+      <source xml:lang="en">Downloading and unpacking the CLI package</source>
     </trans-unit>
     <trans-unit id="++CODE++adbcc35e97d53bc1acdeb5a1bf4ea403d362f3fb6074a2edc4206716cafb4191">
       <source xml:lang="en">Downloading from {0} to {1}</source>
@@ -3754,6 +3796,9 @@
       <source xml:lang="en">Failed to delete {0}.</source>
       <note>Failed to delete {0}.</note>
     </trans-unit>
+    <trans-unit id="++CODE++0e5682bd6846b320b3c20b7e81d3a887e9e0edea8e3e12ff1a42d650d166cf6c">
+      <source xml:lang="en">Failed to download the Data API builder CLI. Please check your network connection.</source>
+    </trans-unit>
     <trans-unit id="++CODE++f7a651621eb764f916f46ebe62caf229dac567051acd6540f0e2b87d50e3f59c">
       <source xml:lang="en">Failed to drop database &apos;{0}&apos;. {1}</source>
       <note>{0} is the database name
@@ -3984,6 +4029,9 @@
     <trans-unit id="++CODE++ec9bd65d522eb7ea1df233fd4d1d793a112679dbf05cd753e77dd65f5adc38ce">
       <source xml:lang="en">Failed to start the DAB container.</source>
     </trans-unit>
+    <trans-unit id="++CODE++5c17965622983d7609326136700351ac959d559bc092c37d288ff42c8fb4a6ab">
+      <source xml:lang="en">Failed to start the Data API builder engine.</source>
+    </trans-unit>
     <trans-unit id="++CODE++8d966abf7ce439608c05903323ea676d64af27e6119ddcc6edebd6db2cd5c479">
       <source xml:lang="en">Failed to start {0}.</source>
       <note>Failed to start {0}.</note>
@@ -4013,6 +4061,9 @@
     </trans-unit>
     <trans-unit id="++CODE++f1b9a1054c1b8d303c21a78abec22481d5d6c9e56dc0d06d19ff3f2a70815de4">
       <source xml:lang="en">Failed to update the .sqlproj after moving the file: {0}</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3da3d1bf74778c00be7d4094e931f49f5fc1d9532d1dbc01d55a2ca34921984c">
+      <source xml:lang="en">Failed to write the Data API builder configuration file.</source>
     </trans-unit>
     <trans-unit id="++CODE++60a33e6cf5151f2d52eddae9685cfa270426aa89d8dbc7dfb854606f1d1a40fe">
       <source xml:lang="en">False</source>
@@ -4395,6 +4446,12 @@
     </trans-unit>
     <trans-unit id="++CODE++a43e5c073e9835ad6459998e88e6ad71d7b49f1a2fb3d0cd076b5bc0e1724fa7">
       <source xml:lang="en">Get security-related recommendations, such as avoiding SQL injection or excessive permissions</source>
+    </trans-unit>
+    <trans-unit id="++CODE++68d329969e77edfb8153e6ca614c82e901435d0d3def01bb59341fd555d821e0">
+      <source xml:lang="en">Getting Data API builder CLI</source>
+    </trans-unit>
+    <trans-unit id="++CODE++14999af228be42ee1b1416c75be3e2e2679235dd464d1419388e8053829b70ef">
+      <source xml:lang="en">Getting Data API builder ready</source>
     </trans-unit>
     <trans-unit id="++CODE++455754ccf3a6df55b0fe352903062c9adb22d5ce025f6c0b0b8b2a59c6e3a7fc">
       <source xml:lang="en">Getting Docker Ready...</source>
@@ -4829,6 +4886,9 @@
     </trans-unit>
     <trans-unit id="++CODE++c7d299ed6b2896187b535a86fd6b04f01669a9b72528a8f2021fff2f42d9f6e3">
       <source xml:lang="en">Last Page</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e50ad98d51d6c665dad03d3a770a4c3346d6e449ff0c88ad895cd9f03c045684">
+      <source xml:lang="en">Launching the engine process</source>
     </trans-unit>
     <trans-unit id="++CODE++8d8cd546b58d91c300d3149ef40b8d98d3061dc38f15ea937d2ed785a3f25771">
       <source xml:lang="en">Learn More</source>
@@ -5633,6 +5693,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ec6464b2feeed0b33e9708ee331e698c5fd334fc406c62fd856681d6bd292b2a">
       <source xml:lang="en">No (default)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6b6502c5e24875e7e79fd9b5bece6a2d06188effd61f5578718cf5f2fb7a9c22">
+      <source xml:lang="en">No .NET runtime was found to run the Data API builder CLI. Install .NET and try again.</source>
     </trans-unit>
     <trans-unit id="++CODE++af62d5c5fc57bafe879cd3a63346b4135adb2042b15590584cd6fdd26f4cd0ab">
       <source xml:lang="en">No .sqlproj file selected; please select one.</source>
@@ -6985,6 +7048,9 @@
     <trans-unit id="++CODE++f8266045b5596ddc5cd3d4af27e2af2af3242d50c27ef97945b665ad805b41f2">
       <source xml:lang="en">Resize the active result grid column</source>
     </trans-unit>
+    <trans-unit id="++CODE++610d2469ca9f85e91ba3c5aff68859fe46b822e0477dd30a07e4b26c3c7ecaa1">
+      <source xml:lang="en">Resolving a runtime that can run the CLI</source>
+    </trans-unit>
     <trans-unit id="++CODE++ae6d9c313ef115d3be932d158acd74f5ab4db5c068cdc2c10ade081168b185d5">
       <source xml:lang="en">Resource Group</source>
     </trans-unit>
@@ -7170,6 +7236,9 @@
     <trans-unit id="++CODE++0bc00be2d21a631fedf64e0302de168c6a49105158a47fc837faf0df12f53fe4">
       <source xml:lang="en">Run saved SQL instantly with custom keyboard shortcuts. Use {arg} to insert selected query-editor text; otherwise, it is appended to the query.</source>
     </trans-unit>
+    <trans-unit id="++CODE++3a5c6f7694e6b79d4a4b5f16765912115902c0d08963fba6a8cc8258318c8a42">
+      <source xml:lang="en">Run with the Data API builder CLI</source>
+    </trans-unit>
     <trans-unit id="++CODE++18af8fd62b2930a61322517ce9e800c2f93abd52a7276963fac72b18f76cb44f">
       <source xml:lang="en">Run your first query</source>
     </trans-unit>
@@ -7196,6 +7265,9 @@
     <trans-unit id="++CODE++c650e15b69c35c39b6ff6743c908ed1db08e9d4840abb2ebfce8303e88b9507a">
       <source xml:lang="en">Running: {0}</source>
       <note>{0} is how long the query has been running</note>
+    </trans-unit>
+    <trans-unit id="++CODE++352c59bc5b59bba13bb085699f2c07a1103715439ec1a8d57b294dc06d2fbd1b">
+      <source xml:lang="en">Runs Data API builder as a local process on this machine. No Docker required.</source>
     </trans-unit>
     <trans-unit id="++CODE++1535db1c91172380e70396d4a07899000757727b521ac651eb91dbcaee2460e4">
       <source xml:lang="en">Runs Data API builder in a container on this machine, published on a local port.</source>
@@ -8241,6 +8313,9 @@
     <trans-unit id="++CODE++d1b24d5bbf5df0c21eb556a585b4c43387f0582dc39fffcdac7fe563361e7366">
       <source xml:lang="en">Starting DAB container</source>
     </trans-unit>
+    <trans-unit id="++CODE++395d24fb8fa72b65bf141f8edf73f77594688b9c3cee265c680809003f46ada9">
+      <source xml:lang="en">Starting Data API builder</source>
+    </trans-unit>
     <trans-unit id="++CODE++e8463e680c32abe75224a03ee5b03d4781e812c3180fb6e0a9c992730879574f">
       <source xml:lang="en">Starting Docker Desktop</source>
     </trans-unit>
@@ -8587,8 +8662,30 @@
     <trans-unit id="++CODE++ad21b866cd78c8e2444ffe9593f592e88ed2fa82e200191a85e10725a0e321a7">
       <source xml:lang="en">The .NET SDK cannot be located. Project build will not work. Please install .NET 8 SDK or higher or update the .NET SDK location in settings if already installed.</source>
     </trans-unit>
+    <trans-unit id="++CODE++ce5d55bb752536f83184e27b9bbd84d15f4fe753e2551472518d8f0e68fb80a5">
+      <source xml:lang="en">The .NET runtime has not been resolved yet. Run the prerequisite checks again.</source>
+    </trans-unit>
     <trans-unit id="++CODE++c2deec07495a278190de83a0820519064e332fc00b050c4fd053bae70c44da8e">
       <source xml:lang="en">The Application (Client) ID of your Microsoft Entra app registration.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4b322ab456c5f1d7a9a9be01df5778e65771785eab5f5f93637487f24f24793d">
+      <source xml:lang="en">The Data API builder CLI exited with code {0}.</source>
+      <note>{0} is the process exit code</note>
+    </trans-unit>
+    <trans-unit id="++CODE++61f87c003e1cd80e47b70c628e2f057439b9839b1e65f7e896ade78f455fd463">
+      <source xml:lang="en">The Data API builder CLI is not available. Run the prerequisite checks again.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++10ec47f707e2ceda7f9f3ba5115bfd4c906b40f01260a2005ef4dc82206a2f07">
+      <source xml:lang="en">The Data API builder configuration is not valid.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++56fd12d1814f45e445ae980300dfd1116341d74906f20c1a15a33e850468adbc">
+      <source xml:lang="en">The Data API builder engine did not answer in time.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7d5c5022125c3e8297cfd53b8df2ecd886e783e6179acd8054c68c60b155ca71">
+      <source xml:lang="en">The Data API builder engine did not become ready within the timeout period.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f26f1d9a3c097de8f5554d8ac33c7a0103d627cd3af000dde8bc6ef696ecea8e">
+      <source xml:lang="en">The Data API builder engine did not start.</source>
     </trans-unit>
     <trans-unit id="++CODE++b0ccb68c36737cb5ef6c7a74871ab7845533f64d89c74dd7db735bb555c401e1">
       <source xml:lang="en">The Query Profiler now supports SQL database in Microsoft Fabric connections, with new Azure SQL Database templates including {code-snippet-0} for lightweight T-SQL profiling.</source>
@@ -8649,6 +8746,10 @@
     </trans-unit>
     <trans-unit id="++CODE++4ed30ce390b4a87aa521240a8313735faff4c4cb4df0c01292ffdaf5b9a44c58">
       <source xml:lang="en">The description of the primary key.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7d461990f839b0bf2ac4825e909940b31fbe37f7b1da2ee5a4091bfb27cf40cb">
+      <source xml:lang="en">The engine for {0} will be stopped and its generated configuration removed, and its endpoints will stop responding.</source>
+      <note>{0} is the deployment name</note>
     </trans-unit>
     <trans-unit id="++CODE++ff83ab307bf5543897d2c5781d880385ba86a704904fb08dc5c67c990688d5ec">
       <source xml:lang="en">The expression defining the check constraint.</source>
@@ -8813,6 +8914,9 @@
     <trans-unit id="++CODE++39689cd482388c355f7e0721e799cc73bb6a968b7f8c6f81d99778ca62ce8ab4">
       <source xml:lang="en">This deployment is no longer tracked. Refresh the deployments list and try again.</source>
     </trans-unit>
+    <trans-unit id="++CODE++424524b73f7b54ca2663888521169681b82129343191178726fb2d93a58fc294">
+      <source xml:lang="en">This deployment&apos;s configuration file is missing, so it cannot be started. Redeploy it instead.</source>
+    </trans-unit>
     <trans-unit id="++CODE++025b2c9cebc8d4e8ce463364bc4906b4c1d91cf3176080d240db88df9057713a">
       <source xml:lang="en">This discards all entity, action, column, and advanced settings for this database, including changes made by Copilot, and rebuilds them from the current schema.</source>
     </trans-unit>
@@ -8849,6 +8953,10 @@
     </trans-unit>
     <trans-unit id="++CODE++03126be5685aeff8f0cfd24c8347e944469c6d847936baf9d95cde004b33d295">
       <source xml:lang="en">This will reset all rules to their default severity and disable &apos;Enable Code Analysis on Build&apos;. This cannot be undone. Would you like to continue?</source>
+    </trans-unit>
+    <trans-unit id="++CODE++44b0a413f8d05eb0ef3f3d9fed2fd83c57f36fb8d949d4bbf51ec80a24ccf64a">
+      <source xml:lang="en">This will run Data API builder as a local process, exposing {0} APIs based on your configuration.</source>
+      <note>{0} is a list of API types, e.g. &apos;REST and GraphQL&apos;</note>
     </trans-unit>
     <trans-unit id="++CODE++33b93476cf597a3330653b66a658983d892ac264b5d6029a2dc642b9b1f30870">
       <source xml:lang="en">Time</source>
@@ -9250,6 +9358,9 @@
     <trans-unit id="++CODE++d31cf428966542cd931bd382d445f06e61e26c9a6c5aaf4227dffd0bfd18e97c">
       <source xml:lang="en">Using {0} to process your request...</source>
       <note>{0} is the model name that will be processing the request</note>
+    </trans-unit>
+    <trans-unit id="++CODE++b84c66ad40ee1cc20942fe07d1bad88916d0a664bb3f5688ab8a84a0ab5e3cf3">
+      <source xml:lang="en">Validating configuration</source>
     </trans-unit>
     <trans-unit id="++CODE++23a86f5a2daebf62665f27e6c911523cf8c7fa74b48dd330ca058d0285defb0c">
       <source xml:lang="en">Validation failed</source>

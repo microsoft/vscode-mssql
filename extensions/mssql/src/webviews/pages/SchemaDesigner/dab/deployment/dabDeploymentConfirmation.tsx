@@ -39,6 +39,7 @@ const useStyles = makeStyles({
 
 interface DabDeploymentConfirmationProps {
     apiTypes: Dab.ApiType[];
+    target: Dab.DabDeploymentTarget;
     onConfirm: () => void;
     onCancel: () => void;
 }
@@ -56,29 +57,43 @@ function formatApiTypesList(apiTypes: Dab.ApiType[]): string {
 
 export const DabDeploymentConfirmation = ({
     apiTypes,
+    target,
     onConfirm,
     onCancel,
 }: DabDeploymentConfirmationProps) => {
     const classes = useStyles();
+    const isCli = target === Dab.DabDeploymentTarget.DabCli;
 
     return (
         <>
-            <DialogTitle>{locConstants.schemaDesigner.deployDabContainer}</DialogTitle>
+            <DialogTitle>
+                {isCli
+                    ? locConstants.schemaDesigner.deployDabCli
+                    : locConstants.schemaDesigner.deployDabContainer}
+            </DialogTitle>
             <DialogContent className={classes.content}>
                 <div className={classes.confirmationInfo}>
                     <Info20Regular className={classes.infoIcon} />
                     <div>
                         <Text weight="semibold">
-                            {locConstants.schemaDesigner.localContainerDeployment}
+                            {isCli
+                                ? locConstants.schemaDesigner.deploymentTargetDabCli
+                                : locConstants.schemaDesigner.localContainerDeployment}
                         </Text>
                         <Text block style={{ marginTop: "8px" }}>
-                            {locConstants.schemaDesigner.deployDabContainerDescription(
-                                formatApiTypesList(apiTypes),
-                            )}
+                            {isCli
+                                ? locConstants.schemaDesigner.deployDabCliDescription(
+                                      formatApiTypesList(apiTypes),
+                                  )
+                                : locConstants.schemaDesigner.deployDabContainerDescription(
+                                      formatApiTypesList(apiTypes),
+                                  )}
                         </Text>
                         <Text block style={{ marginTop: "8px" }}>
                             <strong>{locConstants.schemaDesigner.requirements}</strong>{" "}
-                            {locConstants.schemaDesigner.dockerDesktopRequirement}
+                            {isCli
+                                ? locConstants.schemaDesigner.dotnetRequirement
+                                : locConstants.schemaDesigner.dockerDesktopRequirement}
                         </Text>
                     </div>
                 </div>

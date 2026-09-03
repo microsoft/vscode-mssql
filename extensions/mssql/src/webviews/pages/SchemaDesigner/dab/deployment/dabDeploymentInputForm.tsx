@@ -34,6 +34,7 @@ const useStyles = makeStyles({
 });
 
 interface DabDeploymentInputFormProps {
+    target: Dab.DabDeploymentTarget;
     initialParams: Dab.DabDeploymentParams;
     validateParams: (
         containerName: string,
@@ -44,12 +45,14 @@ interface DabDeploymentInputFormProps {
 }
 
 export const DabDeploymentInputForm = ({
+    target,
     initialParams,
     validateParams,
     onSubmit,
     onCancel,
 }: DabDeploymentInputFormProps) => {
     const classes = useStyles();
+    const isCli = target === Dab.DabDeploymentTarget.DabCli;
 
     const [containerName, setContainerName] = useState(initialParams.containerName);
     const [port, setPort] = useState(initialParams.port.toString());
@@ -176,10 +179,18 @@ export const DabDeploymentInputForm = ({
 
     return (
         <>
-            <DialogTitle>{locConstants.schemaDesigner.containerSettings}</DialogTitle>
+            <DialogTitle>
+                {isCli
+                    ? locConstants.schemaDesigner.deploymentSettings
+                    : locConstants.schemaDesigner.containerSettings}
+            </DialogTitle>
             <DialogContent className={classes.content}>
                 <Field
-                    label={locConstants.schemaDesigner.containerName}
+                    label={
+                        isCli
+                            ? locConstants.schemaDesigner.deploymentName
+                            : locConstants.schemaDesigner.containerName
+                    }
                     validationState={containerNameError ? "error" : undefined}
                     validationMessage={containerNameError}>
                     <Input
@@ -188,7 +199,9 @@ export const DabDeploymentInputForm = ({
                         disabled={isInitializing}
                     />
                     <Text className={classes.fieldHint}>
-                        {locConstants.schemaDesigner.containerNameHint}
+                        {isCli
+                            ? locConstants.schemaDesigner.deploymentNameHint
+                            : locConstants.schemaDesigner.containerNameHint}
                     </Text>
                 </Field>
 
@@ -216,7 +229,9 @@ export const DabDeploymentInputForm = ({
                     onClick={handleSubmit}
                     disabled={isInitializing || isSubmitting}
                     icon={isSubmitting ? <Spinner size="tiny" /> : undefined}>
-                    {locConstants.localContainers.createContainer}
+                    {isCli
+                        ? locConstants.common.next
+                        : locConstants.localContainers.createContainer}
                 </Button>
             </DialogActions>
         </>

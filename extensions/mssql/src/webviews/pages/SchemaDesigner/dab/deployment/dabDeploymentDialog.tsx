@@ -43,10 +43,10 @@ export const DabDeploymentDialog = () => {
         loadDabDeployments,
     } = context;
 
-    const { dialogView, dialogStep, currentDeploymentStep, stepStatuses, mode } =
+    const { dialogView, dialogStep, currentDeploymentStep, stepStatuses, mode, target } =
         dabDeploymentState;
-    const prereqSteps = getPrereqSteps(stepStatuses);
-    const deploySteps = getDeploySteps(stepStatuses);
+    const prereqSteps = getPrereqSteps(stepStatuses, target);
+    const deploySteps = getDeploySteps(stepStatuses, target);
     const isRedeploy = mode === Dab.DabDeploymentMode.Redeploy;
 
     // Determine which step to run based on current state
@@ -73,15 +73,14 @@ export const DabDeploymentDialog = () => {
         }
 
         // Determine if current step is within the range for this dialog step
-        const isPrereqStep = currentDeploymentStep <= Dab.DabDeploymentStepOrder.checkDockerEngine;
-        const isDeployStep = currentDeploymentStep >= Dab.DabDeploymentStepOrder.pullImage;
+        const isPrereqStep = Dab.isDabPrerequisiteStep(target, currentDeploymentStep);
 
         if (dialogStep === Dab.DabDeploymentDialogStep.Prerequisites && isPrereqStep) {
             void runDabDeploymentStep(currentDeploymentStep);
-        } else if (dialogStep === Dab.DabDeploymentDialogStep.Deployment && isDeployStep) {
+        } else if (dialogStep === Dab.DabDeploymentDialogStep.Deployment && !isPrereqStep) {
             void runDabDeploymentStep(currentDeploymentStep);
         }
-    }, [dialogView, dialogStep, currentDeploymentStep, stepStatuses, runDabDeploymentStep]);
+    }, [dialogView, dialogStep, currentDeploymentStep, stepStatuses, target, runDabDeploymentStep]);
 
     const handleConfirm = () => {
         setDabDeploymentDialogStep(Dab.DabDeploymentDialogStep.Prerequisites);
@@ -129,6 +128,7 @@ export const DabDeploymentDialog = () => {
                 return (
                     <DabDeploymentConfirmation
                         apiTypes={context.dabConfig?.apiTypes ?? []}
+                        target={target}
                         onConfirm={handleConfirm}
                         onCancel={handleClose}
                     />
@@ -136,6 +136,7 @@ export const DabDeploymentDialog = () => {
             case Dab.DabDeploymentDialogStep.Prerequisites:
                 return (
                     <DabDeploymentPrerequisites
+                        target={target}
                         stepStatuses={prereqSteps}
                         onNext={handlePrerequisitesNext}
                         onRetry={handleRetry}
@@ -145,6 +146,7 @@ export const DabDeploymentDialog = () => {
             case Dab.DabDeploymentDialogStep.ParameterInput:
                 return (
                     <DabDeploymentInputForm
+                        target={target}
                         initialParams={dabDeploymentState.params}
                         validateParams={validateDabDeploymentParams}
                         onSubmit={handleParamsSubmit}
@@ -172,6 +174,7 @@ export const DabDeploymentDialog = () => {
             case Dab.DabDeploymentDialogStep.Complete:
                 return (
                     <DabDeploymentComplete
+                        target={target}
                         apiUrl={dabDeploymentState.apiUrl}
                         error={dabDeploymentState.error}
                         onRetry={async () => {
@@ -200,7 +203,7 @@ export const DabDeploymentDialog = () => {
             case Dab.DabDeploymentDialogView.TargetSelection:
                 return (
                     <DabDeploymentTargetPicker
-                        onSelectTarget={() => startNewDabDeployment()}
+                        onSelectTarget={(selectedTarget) => startNewDabDeployment(selectedTarget)}
                         onBack={() => setDabDeploymentDialogView(Dab.DabDeploymentDialogView.List)}
                         onCancel={handleClose}
                     />

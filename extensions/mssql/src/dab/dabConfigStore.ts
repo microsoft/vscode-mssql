@@ -166,7 +166,7 @@ export class DabConfigStore {
     }
 
     /**
-     * Records a newly deployed container. A record for the same container name
+     * Records a newly deployed container or engine. A record with the same name
      * is replaced rather than duplicated, which is what happens when a user
      * removes a container outside VS Code and deploys the same name again.
      */
@@ -183,7 +183,7 @@ export class DabConfigStore {
         };
 
         const deployments = (await this.getDeployments(key)).filter(
-            (existing) => existing.containerName !== record.containerName,
+            (existing) => existing.name !== record.name,
         );
         await this.writeDeployments(key, [...deployments, record]);
         return record;
@@ -219,6 +219,23 @@ export class DabConfigStore {
         }
 
         await this.writeDeployments(key, remaining);
+    }
+
+    /**
+     * Directory holding a CLI deployment's generated config. The engine reads
+     * this file for as long as it runs, so it lives alongside the deployment
+     * record rather than in a temp directory.
+     */
+    public getCliDeploymentDirectory(key: DabStoreKey, name: string): string {
+        return path.join(this.keyDirectory(key), "cli", sanitizePathSegment(name));
+    }
+
+    /** Removes a CLI deployment's directory, config file and all. */
+    public async deleteCliDeployment(key: DabStoreKey, name: string): Promise<void> {
+        await fsPromises.rm(this.getCliDeploymentDirectory(key, name), {
+            recursive: true,
+            force: true,
+        });
     }
 
     private async writeDeployments(
@@ -273,6 +290,15 @@ export class DabConfigStore {
             );
         }
     }
+}
+
+/**
+ * Keeps a deployment name usable as a single directory name. Names are already
+ * validated against the container-name pattern before reaching here; this makes
+ * a stored record that predates or bypasses that validation harmless.
+ */
+function sanitizePathSegment(value: string): string {
+    return value.replace(/[^A-Za-z0-9_.-]/g, "_") || "deployment";
 }
 
 function isMissingFileError(error: unknown): boolean {

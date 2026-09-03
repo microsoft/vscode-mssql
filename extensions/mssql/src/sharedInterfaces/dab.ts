@@ -779,6 +779,31 @@ export namespace Dab {
     export const DAB_DEFAULT_CONTAINER_NAME = "dab-container";
 
     /**
+     * Default deployment name prefix for DAB CLI deployments.
+     */
+    export const DAB_DEFAULT_CLI_DEPLOYMENT_NAME = "dab-cli";
+
+    /**
+     * NuGet package that ships the DAB CLI.
+     */
+    export const DAB_CLI_PACKAGE_ID = "Microsoft.DataApiBuilder";
+
+    /**
+     * DAB CLI version to run. Pinned, unlike the container image, because a
+     * tracked CLI deployment keeps running the version it was deployed with:
+     * a CLI release must not change what an existing deployment does until the
+     * pin is deliberately moved.
+     */
+    export const DAB_CLI_VERSION = "1.7.81";
+
+    /**
+     * Environment variable the generated CLI config resolves its connection
+     * string from, so the credential is passed to the engine process instead of
+     * being written to disk.
+     */
+    export const DAB_CLI_CONNECTION_STRING_ENV_VAR = "DAB_CONNECTION_STRING";
+
+    /**
      * Enumeration representing the order of steps in the DAB deployment process
      */
     export enum DabDeploymentStepOrder {
@@ -794,6 +819,16 @@ export namespace Dab {
         startContainer = 4,
         /** Check if DAB container is ready */
         checkContainer = 5,
+        /** Download and unpack the pinned DAB CLI package */
+        acquireDabCli = 6,
+        /** Resolve a .NET runtime that can run the DAB CLI */
+        checkDotnetRuntime = 7,
+        /** Write the config file and validate it with the CLI */
+        validateCliConfig = 8,
+        /** Launch the DAB engine process */
+        startCliEngine = 9,
+        /** Check if the DAB engine is answering */
+        checkCliEngine = 10,
     }
 
     /**
@@ -815,7 +850,10 @@ export namespace Dab {
      * exists so further targets can be added without reshaping the dialog.
      */
     export enum DabDeploymentTarget {
+        /** DAB runs in a local Docker container. */
         Docker = "docker",
+        /** DAB runs as a local process, started by the DAB CLI. */
+        DabCli = "dabCli",
     }
 
     /**
@@ -825,6 +863,74 @@ export namespace Dab {
     export enum DabDeploymentMode {
         Create = "create",
         Redeploy = "redeploy",
+    }
+
+    /**
+     * The steps each deployment target runs, split into the prerequisite checks
+     * shown before the settings form and the work done after it.
+     *
+     * The CLI acquires its package before resolving a runtime because the
+     * package's runtimeconfig is what says which runtime version is needed.
+     */
+    export const dabDeploymentStepsByTarget: Record<
+        DabDeploymentTarget,
+        { prerequisites: DabDeploymentStepOrder[]; deployment: DabDeploymentStepOrder[] }
+    > = {
+        [DabDeploymentTarget.Docker]: {
+            prerequisites: [
+                DabDeploymentStepOrder.dockerInstallation,
+                DabDeploymentStepOrder.startDockerDesktop,
+                DabDeploymentStepOrder.checkDockerEngine,
+            ],
+            deployment: [
+                DabDeploymentStepOrder.pullImage,
+                DabDeploymentStepOrder.startContainer,
+                DabDeploymentStepOrder.checkContainer,
+            ],
+        },
+        [DabDeploymentTarget.DabCli]: {
+            prerequisites: [
+                DabDeploymentStepOrder.acquireDabCli,
+                DabDeploymentStepOrder.checkDotnetRuntime,
+            ],
+            deployment: [
+                DabDeploymentStepOrder.validateCliConfig,
+                DabDeploymentStepOrder.startCliEngine,
+                DabDeploymentStepOrder.checkCliEngine,
+            ],
+        },
+    };
+
+    /** Every step a target runs, in order. */
+    export function getDabDeploymentSteps(target: DabDeploymentTarget): DabDeploymentStepOrder[] {
+        const steps = dabDeploymentStepsByTarget[target];
+        return [...steps.prerequisites, ...steps.deployment];
+    }
+
+    /** True when the step belongs to the target's prerequisite phase. */
+    export function isDabPrerequisiteStep(
+        target: DabDeploymentTarget,
+        step: DabDeploymentStepOrder,
+    ): boolean {
+        return dabDeploymentStepsByTarget[target].prerequisites.includes(step);
+    }
+
+    /** The step that follows this one, or undefined when the target is finished. */
+    export function getNextDabDeploymentStep(
+        target: DabDeploymentTarget,
+        step: DabDeploymentStepOrder,
+    ): DabDeploymentStepOrder | undefined {
+        const steps = getDabDeploymentSteps(target);
+        return steps[steps.indexOf(step) + 1];
+    }
+
+    /** True when a successful run of this step means the deployment is live. */
+    export function isFinalDabDeploymentStep(
+        target: DabDeploymentTarget,
+        step: DabDeploymentStepOrder,
+    ): boolean {
+        const deploymentSteps = dabDeploymentStepsByTarget[target].deployment;
+        return deploymentSteps[deploymentSteps.length - 1] === step;
     }
 
     /**
@@ -887,6 +993,10 @@ export namespace Dab {
          * Which of the dialog's top-level views is showing
          */
         dialogView: DabDeploymentDialogView;
+        /**
+         * Where the wizard is deploying to. Decides which steps run.
+         */
+        target: DabDeploymentTarget;
         /**
          * Whether the wizard is creating a container or redeploying one
          */
@@ -955,25 +1065,25 @@ export namespace Dab {
     /**
      * Creates a default deployment state
      */
-    export function createDefaultDeploymentState(): DabDeploymentState {
+    export function createDefaultDeploymentState(
+        target: DabDeploymentTarget = DabDeploymentTarget.Docker,
+    ): DabDeploymentState {
+        const steps = getDabDeploymentSteps(target);
         return {
             isDialogOpen: false,
             dialogView: DabDeploymentDialogView.List,
+            target,
             mode: DabDeploymentMode.Create,
             dialogStep: DabDeploymentDialogStep.Confirmation,
-            currentDeploymentStep: DabDeploymentStepOrder.dockerInstallation,
+            currentDeploymentStep: steps[0],
             params: {
-                containerName: DAB_DEFAULT_CONTAINER_NAME,
+                containerName:
+                    target === DabDeploymentTarget.DabCli
+                        ? DAB_DEFAULT_CLI_DEPLOYMENT_NAME
+                        : DAB_DEFAULT_CONTAINER_NAME,
                 port: DAB_DEFAULT_PORT,
             },
-            stepStatuses: [
-                { step: DabDeploymentStepOrder.dockerInstallation, status: ApiStatus.NotStarted },
-                { step: DabDeploymentStepOrder.startDockerDesktop, status: ApiStatus.NotStarted },
-                { step: DabDeploymentStepOrder.checkDockerEngine, status: ApiStatus.NotStarted },
-                { step: DabDeploymentStepOrder.pullImage, status: ApiStatus.NotStarted },
-                { step: DabDeploymentStepOrder.startContainer, status: ApiStatus.NotStarted },
-                { step: DabDeploymentStepOrder.checkContainer, status: ApiStatus.NotStarted },
-            ],
+            stepStatuses: steps.map((step) => ({ step, status: ApiStatus.NotStarted })),
             isDeploying: false,
         };
     }
@@ -990,6 +1100,11 @@ export namespace Dab {
          * The step to run
          */
         step: DabDeploymentStepOrder;
+        /**
+         * Where the deployment is running. Defaults to Docker for callers that
+         * predate the CLI target.
+         */
+        target?: DabDeploymentTarget;
         /**
          * Deployment parameters (needed for some steps)
          */
@@ -1176,10 +1291,23 @@ export namespace Dab {
     export interface DabDeploymentRecord {
         /** Stable identifier for the record, independent of the container. */
         id: string;
-        /** Docker container name. */
-        containerName: string;
+        /** Where this deployment runs. */
+        target: DabDeploymentTarget;
+        /** Docker container name, or the deployment name for a CLI deployment. */
+        name: string;
         /** Host port the DAB API is published on. */
         port: number;
+        /**
+         * CLI only: process id of the engine, used to stop it. Status is
+         * resolved by probing the port rather than this pid, so a recycled pid
+         * can never make a dead deployment look alive.
+         */
+        processId?: number;
+        /**
+         * CLI only: path of the generated config file the engine runs. Its
+         * presence is what makes a stopped deployment startable again.
+         */
+        configPath?: string;
         /**
          * API types the container was deployed with. Kept on the record so the
          * endpoints can be listed without regenerating the deployed config.
@@ -1263,9 +1391,14 @@ export namespace Dab {
 
     export interface PrepareRedeploymentResponse extends DeploymentActionResponse {
         /**
-         * Container name and port to redeploy with. Present only on success.
+         * Name and port to redeploy with. Present only on success.
          */
         params?: DabDeploymentParams;
+        /**
+         * Target to redeploy to, so the wizard runs the steps this deployment
+         * was originally made with. Present only on success.
+         */
+        target?: DabDeploymentTarget;
     }
 
     /**

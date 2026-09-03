@@ -91,6 +91,7 @@ const useStyles = makeStyles({
 });
 
 interface DabDeploymentCompleteProps {
+    target: Dab.DabDeploymentTarget;
     apiUrl?: string;
     error?: string;
     onRetry: () => void;
@@ -98,6 +99,7 @@ interface DabDeploymentCompleteProps {
 }
 
 export const DabDeploymentComplete = ({
+    target,
     apiUrl,
     error,
     onRetry,
@@ -199,7 +201,9 @@ export const DabDeploymentComplete = ({
                                 />
                             </div>
                             <Text weight="semibold" size={400}>
-                                {locConstants.schemaDesigner.dabContainerRunning}
+                                {target === Dab.DabDeploymentTarget.DabCli
+                                    ? locConstants.schemaDesigner.dabEngineRunning
+                                    : locConstants.schemaDesigner.dabContainerRunning}
                             </Text>
                             <Text>{locConstants.schemaDesigner.apisAvailableAt}</Text>
                             <div className={classes.apiUrlList}>

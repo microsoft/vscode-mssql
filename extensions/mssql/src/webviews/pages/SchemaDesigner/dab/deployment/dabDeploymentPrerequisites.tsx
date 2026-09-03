@@ -16,6 +16,7 @@ import { areStepsComplete, hasStepErrored } from "./dabDeploymentUtils";
 import { DabStepCard } from "./dabStepCard";
 
 interface DabDeploymentPrerequisitesProps {
+    target: Dab.DabDeploymentTarget;
     stepStatuses: Dab.DabDeploymentStepStatus[];
     onNext: () => void;
     onRetry: () => void;
@@ -23,6 +24,7 @@ interface DabDeploymentPrerequisitesProps {
 }
 
 export const DabDeploymentPrerequisites = ({
+    target,
     stepStatuses,
     onNext,
     onRetry,
@@ -30,10 +32,15 @@ export const DabDeploymentPrerequisites = ({
 }: DabDeploymentPrerequisitesProps) => {
     const isComplete = areStepsComplete(stepStatuses);
     const hasError = hasStepErrored(stepStatuses);
+    const isCli = target === Dab.DabDeploymentTarget.DabCli;
 
     return (
         <>
-            <DialogTitle>{locConstants.localContainers.gettingDockerReady}</DialogTitle>
+            <DialogTitle>
+                {isCli
+                    ? locConstants.schemaDesigner.gettingDabCliReady
+                    : locConstants.localContainers.gettingDockerReady}
+            </DialogTitle>
             <DialogContent style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                 <Text>{locConstants.localContainers.checkingPrerequisites}</Text>
                 <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>

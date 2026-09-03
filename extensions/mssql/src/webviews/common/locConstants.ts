@@ -2277,6 +2277,7 @@ export class LocConstants {
             deploymentStatusRunning: l10n.t("Running"),
             deploymentStatusStopped: l10n.t("Stopped"),
             deploymentStatusMissing: l10n.t("Container no longer exists"),
+            deploymentStatusMissingCli: l10n.t("Configuration no longer exists"),
             deploymentStatusUnknown: l10n.t("Status unavailable"),
             deploymentConfigUpToDate: l10n.t("Up to date"),
             deploymentConfigOutdated: l10n.t("Config changed"),
@@ -2310,6 +2311,13 @@ export class LocConstants {
                     args: [containerName],
                     comment: ["{0} is the Docker container name"],
                 }),
+            deleteCliDeploymentConfirmMessage: (name: string) =>
+                l10n.t({
+                    message:
+                        "The engine for {0} will be stopped and its generated configuration removed, and its endpoints will stop responding.",
+                    args: [name],
+                    comment: ["{0} is the deployment name"],
+                }),
             showEndpoints: l10n.t("Show endpoints"),
             hideEndpoints: l10n.t("Hide endpoints"),
             endpointsUnavailableWhenStopped: l10n.t("Start the container to use these endpoints."),
@@ -2328,6 +2336,39 @@ export class LocConstants {
                     args: [containerName],
                     comment: ["{0} is the Docker container name"],
                 }),
+
+            // DAB CLI deployment
+            deploymentTargetDabCli: l10n.t("Data API builder CLI"),
+            deploymentTargetDabCliDescription: l10n.t(
+                "Runs Data API builder as a local process on this machine. No Docker required.",
+            ),
+            deployDabCli: l10n.t("Run with the Data API builder CLI"),
+            deployDabCliDescription: (apiTypes: string) =>
+                l10n.t({
+                    message:
+                        "This will run Data API builder as a local process, exposing {0} APIs based on your configuration.",
+                    args: [apiTypes],
+                    comment: ["{0} is a list of API types, e.g. 'REST and GraphQL'"],
+                }),
+            dotnetRequirement: l10n.t(
+                "A .NET runtime is required. The extension downloads the Data API builder CLI and resolves a runtime for it.",
+            ),
+            gettingDabCliReady: l10n.t("Getting Data API builder ready"),
+            gettingDabCli: l10n.t("Getting Data API builder CLI"),
+            downloadingDabCli: l10n.t("Downloading and unpacking the CLI package"),
+            checkingDotnetRuntime: l10n.t("Checking .NET runtime"),
+            resolvingDotnetRuntime: l10n.t("Resolving a runtime that can run the CLI"),
+            validatingDabConfig: l10n.t("Validating configuration"),
+            checkingGeneratedConfig: l10n.t("Checking the generated configuration"),
+            startingDabEngine: l10n.t("Starting Data API builder"),
+            launchingDabEngine: l10n.t("Launching the engine process"),
+            checkingEngineReadiness: l10n.t("Checking engine readiness"),
+            deploymentSettings: l10n.t("Deployment settings"),
+            deploymentName: l10n.t("Name"),
+            deploymentNameHint: l10n.t("A name for this deployment"),
+            dabEngineRunning: l10n.t("Data API builder is running!"),
+            deploymentTargetLabelDocker: l10n.t("Docker"),
+            deploymentTargetLabelDabCli: l10n.t("DAB CLI"),
 
             // DAB reset configuration
             resetConfig: l10n.t("Reset"),

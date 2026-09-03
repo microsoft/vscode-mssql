@@ -272,3 +272,79 @@ suite("DAB shared interface helpers", () => {
         expect(result.config.entities[1].sourceType).to.equal(Dab.EntitySourceType.View);
     });
 });
+
+suite("DAB deployment step sequencing", () => {
+    const targets = [Dab.DabDeploymentTarget.Docker, Dab.DabDeploymentTarget.DabCli];
+
+    test("every target has prerequisite and deployment phases", () => {
+        for (const target of targets) {
+            const steps = Dab.dabDeploymentStepsByTarget[target];
+            expect(steps.prerequisites, `${target} prerequisites`).to.not.be.empty;
+            expect(steps.deployment, `${target} deployment steps`).to.not.be.empty;
+        }
+    });
+
+    test("targets do not share any step", () => {
+        const dockerSteps = Dab.getDabDeploymentSteps(Dab.DabDeploymentTarget.Docker);
+        const cliSteps = Dab.getDabDeploymentSteps(Dab.DabDeploymentTarget.DabCli);
+
+        expect(
+            dockerSteps.filter((step) => cliSteps.includes(step)),
+            "A shared step would run the wrong target's work",
+        ).to.be.empty;
+    });
+
+    test("walking getNextDabDeploymentStep visits every step once, in order", () => {
+        for (const target of targets) {
+            const expected = Dab.getDabDeploymentSteps(target);
+            const visited: Dab.DabDeploymentStepOrder[] = [];
+
+            let step: Dab.DabDeploymentStepOrder | undefined = expected[0];
+            while (step !== undefined) {
+                visited.push(step);
+                step = Dab.getNextDabDeploymentStep(target, step);
+            }
+
+            expect(visited, `${target} step walk`).to.deep.equal(expected);
+        }
+    });
+
+    test("only the last deployment step is final", () => {
+        for (const target of targets) {
+            const steps = Dab.getDabDeploymentSteps(target);
+            const finalSteps = steps.filter((step) => Dab.isFinalDabDeploymentStep(target, step));
+
+            expect(finalSteps, `${target} final step`).to.deep.equal([steps[steps.length - 1]]);
+        }
+    });
+
+    test("prerequisite steps come before deployment steps", () => {
+        for (const target of targets) {
+            const steps = Dab.getDabDeploymentSteps(target);
+            const prerequisiteFlags = steps.map((step) => Dab.isDabPrerequisiteStep(target, step));
+            const firstDeploymentIndex = prerequisiteFlags.indexOf(false);
+
+            expect(
+                prerequisiteFlags.slice(firstDeploymentIndex).some(Boolean),
+                `${target} must not return to prerequisites mid-deployment`,
+            ).to.be.false;
+        }
+    });
+
+    test("the default deployment state matches its target's steps", () => {
+        for (const target of targets) {
+            const state = Dab.createDefaultDeploymentState(target);
+            const steps = Dab.getDabDeploymentSteps(target);
+
+            expect(state.target).to.equal(target);
+            expect(state.stepStatuses.map((status) => status.step)).to.deep.equal(steps);
+            expect(state.currentDeploymentStep, `${target} starts at its first step`).to.equal(
+                steps[0],
+            );
+        }
+    });
+
+    test("the default deployment state is Docker when no target is given", () => {
+        expect(Dab.createDefaultDeploymentState().target).to.equal(Dab.DabDeploymentTarget.Docker);
+    });
+});

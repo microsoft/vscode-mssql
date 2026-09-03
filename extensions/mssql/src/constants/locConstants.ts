@@ -1968,6 +1968,44 @@ export class LocalContainers {
     public static dabDeploymentStoreUnavailable = l10n.t(
         "Deployments cannot be tracked because the extension's storage location is unavailable.",
     );
+    // DAB CLI deployment strings
+    public static dabCliAcquireFailed = l10n.t(
+        "Failed to download the Data API builder CLI. Please check your network connection.",
+    );
+    public static dabCliNotAcquired = l10n.t(
+        "The Data API builder CLI is not available. Run the prerequisite checks again.",
+    );
+    public static dabCliDotnetNotFound = l10n.t(
+        "No .NET runtime was found to run the Data API builder CLI. Install .NET and try again.",
+    );
+    public static dabCliInstallDotnet = l10n.t("Download .NET");
+    public static dabCliDotnetNotResolved = l10n.t(
+        "The .NET runtime has not been resolved yet. Run the prerequisite checks again.",
+    );
+    public static dabCliConfigWriteFailed = l10n.t(
+        "Failed to write the Data API builder configuration file.",
+    );
+    public static dabCliConfigInvalid = l10n.t("The Data API builder configuration is not valid.");
+    public static dabCliStartFailed = l10n.t("Failed to start the Data API builder engine.");
+    public static dabCliEngineNotReady = l10n.t(
+        "The Data API builder engine did not become ready within the timeout period.",
+    );
+    public static dabCliStartMissingParams = l10n.t(
+        "Deployment name, port, and configuration are required to start the engine.",
+    );
+    public static dabCliEngineDidNotStart = l10n.t("The Data API builder engine did not start.");
+    public static dabCliEngineReadyTimeout = l10n.t(
+        "The Data API builder engine did not answer in time.",
+    );
+    public static dabCliExitedWithCode = (code: number | null) =>
+        l10n.t({
+            message: "The Data API builder CLI exited with code {0}.",
+            args: [code ?? -1],
+            comment: ["{0} is the process exit code"],
+        });
+    public static dabCliDeploymentNotStartable = l10n.t(
+        "This deployment's configuration file is missing, so it cannot be started. Redeploy it instead.",
+    );
 }
 
 export class UserSurvey {

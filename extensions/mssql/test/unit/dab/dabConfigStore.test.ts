@@ -223,7 +223,8 @@ suite("DabConfigStore Tests", () => {
         test("deleteConfig leaves tracked deployments alone", async () => {
             await store.saveConfig(testKey, createTestConfig());
             await store.addDeployment(testKey, {
-                containerName: "dab-container",
+                target: Dab.DabDeploymentTarget.Docker,
+                name: "dab-container",
                 port: 5000,
                 apiTypes: [Dab.ApiType.Rest],
                 configHash: "hash-1",
@@ -242,7 +243,8 @@ suite("DabConfigStore Tests", () => {
 
         test("addDeployment stamps an id and timestamps", async () => {
             const record = await store.addDeployment(testKey, {
-                containerName: "dab-container",
+                target: Dab.DabDeploymentTarget.Docker,
+                name: "dab-container",
                 port: 5000,
                 apiTypes: [Dab.ApiType.Rest],
                 configHash: "hash-1",
@@ -255,33 +257,39 @@ suite("DabConfigStore Tests", () => {
 
         test("addDeployment replaces an existing record for the same container name", async () => {
             await store.addDeployment(testKey, {
-                containerName: "dab-container",
+                target: Dab.DabDeploymentTarget.Docker,
+                name: "dab-container",
                 port: 5000,
                 apiTypes: [Dab.ApiType.Rest],
                 configHash: "hash-1",
             });
             const replacement = await store.addDeployment(testKey, {
-                containerName: "dab-container",
+                target: Dab.DabDeploymentTarget.Docker,
+                name: "dab-container",
                 port: 5000,
                 apiTypes: [Dab.ApiType.Mcp],
                 configHash: "hash-2",
             });
 
             const deployments = await store.getDeployments(testKey);
-            expect(deployments, "The same container must not be tracked twice").to.have.lengthOf(1);
+            expect(deployments, "The same deployment must not be tracked twice").to.have.lengthOf(
+                1,
+            );
             expect(deployments[0].id).to.equal(replacement.id);
             expect(deployments[0].configHash).to.equal("hash-2");
         });
 
         test("addDeployment keeps records for other containers", async () => {
             await store.addDeployment(testKey, {
-                containerName: "dab-container-1",
+                target: Dab.DabDeploymentTarget.Docker,
+                name: "dab-container-1",
                 port: 5000,
                 apiTypes: [Dab.ApiType.Rest],
                 configHash: "hash-1",
             });
             await store.addDeployment(testKey, {
-                containerName: "dab-container-2",
+                target: Dab.DabDeploymentTarget.Docker,
+                name: "dab-container-2",
                 port: 5001,
                 apiTypes: [Dab.ApiType.Rest],
                 configHash: "hash-1",
@@ -292,7 +300,8 @@ suite("DabConfigStore Tests", () => {
 
         test("updateDeployment applies a partial update", async () => {
             const record = await store.addDeployment(testKey, {
-                containerName: "dab-container",
+                target: Dab.DabDeploymentTarget.Docker,
+                name: "dab-container",
                 port: 5000,
                 apiTypes: [Dab.ApiType.Rest],
                 configHash: "hash-1",
@@ -318,13 +327,15 @@ suite("DabConfigStore Tests", () => {
 
         test("removeDeployment stops tracking one deployment", async () => {
             const first = await store.addDeployment(testKey, {
-                containerName: "dab-container-1",
+                target: Dab.DabDeploymentTarget.Docker,
+                name: "dab-container-1",
                 port: 5000,
                 apiTypes: [Dab.ApiType.Rest],
                 configHash: "hash-1",
             });
             await store.addDeployment(testKey, {
-                containerName: "dab-container-2",
+                target: Dab.DabDeploymentTarget.Docker,
+                name: "dab-container-2",
                 port: 5001,
                 apiTypes: [Dab.ApiType.Rest],
                 configHash: "hash-1",
@@ -334,7 +345,7 @@ suite("DabConfigStore Tests", () => {
 
             const deployments = await store.getDeployments(testKey);
             expect(deployments).to.have.lengthOf(1);
-            expect(deployments[0].containerName).to.equal("dab-container-2");
+            expect(deployments[0].name).to.equal("dab-container-2");
         });
 
         test("removeDeployment succeeds for an unknown deployment", async () => {
@@ -345,7 +356,8 @@ suite("DabConfigStore Tests", () => {
 
         test("reports a malformed deployments file as nothing tracked", async () => {
             await store.addDeployment(testKey, {
-                containerName: "dab-container",
+                target: Dab.DabDeploymentTarget.Docker,
+                name: "dab-container",
                 port: 5000,
                 apiTypes: [Dab.ApiType.Rest],
                 configHash: "hash-1",
