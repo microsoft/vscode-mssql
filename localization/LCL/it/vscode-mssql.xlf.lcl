@@ -1867,6 +1867,9 @@
       <Item ItemId=";bundle.++CODE++0fdea2ab7469cfd94d44d8c7d77dd529199dc868fd6bc8b1d9c3c331744edeb0" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Auth mode]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Modalità di autenticazione]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3079,6 +3082,9 @@
       <Item ItemId=";bundle.++CODE++1a6f33ce99a271f6bf6f94ed11bc223cd8a7fc7e5594d15119cfe82f465cb514" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Filter columns...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Filtra colonne...]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3499,6 +3505,9 @@
       <Item ItemId=";bundle.++CODE++1f44d9cdb4b2b64253e0642a79bda7f3738c87e3a22ce505d6454ee7a10d1623" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Select at least one logical key column before applying or deploying this exposed table or view.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Selezionare almeno una colonna chiave logica prima di applicare o distribuire la tabella o la vista esposta.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3739,6 +3748,9 @@
       <Item ItemId=";bundle.++CODE++212c177c0fb717020548b59a64c5ea3dab99e4fa463b7a996a3c4bfb2af3d443" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[MSSQL metadata cache cleared.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Cache dei metadati MSSQL cancellata.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -4060,6 +4072,9 @@
       <Item ItemId=";bundle.++CODE++2382ba5d273153b70b946e94dce6917ebe7aa25b0d46f4cc7b31ec891ec8784e" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Custom tool creates a dedicated MCP tool for this stored procedure.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Lo strumento personalizzato crea uno strumento MCP dedicato per la stored procedure.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -4471,6 +4486,9 @@
       <Item ItemId=";bundle.++CODE++27f5e6eb93673ec8555f139d6bd2a5f727cfeabefe8c913a9832a141f55fca1a" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[captured {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[acquisizione di {0}]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -6286,6 +6304,9 @@
       <Item ItemId=";bundle.++CODE++38ccbbcbe0241e051909d6867d0528e4eff3bed6cbd9360cbaa67a0301f67066" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Include {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Includi {0}]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -7453,6 +7474,9 @@
       <Item ItemId=";bundle.++CODE++441818ccc4c33fe807938249c80e7be1eddc196d87077b06367d567dc08eaf05" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Not exposed]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Non esposto]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -9061,6 +9085,9 @@
       <Item ItemId=";bundle.++CODE++51ca74e23be7acf03bd1740c2091cbf8a1124e81866eb6ed6b2e937136cb5f67" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Customize column access]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Personalizzazione dell'accesso alle colonne]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -10471,6 +10498,9 @@
       <Item ItemId=";bundle.++CODE++5ed61b23a6cc6bb55c21dc48803bfd68b6ec2bbe196fc8867cf8a52965f287a7" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Clear cached metadata for a connection]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Cancellare i metadati memorizzati nella cache per una connessione]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -12853,6 +12883,9 @@
       <Item ItemId=";bundle.++CODE++748f1779a56584b54a1ebea2ed54d4ed5a28d6480654284f36b3c9ccc02e1ddc" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The metadata cache is not enabled. Enable mssql.metadataCache.enabled and reload the window.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[La cache dei metadati non è abilitata. Abilitare mssql.metadataCache.enabled e ricaricare la finestra.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -13903,6 +13936,9 @@
       <Item ItemId=";bundle.++CODE++7e6fefff0f0aeb6ca93086d3855d0406bdd0ee53b56771f8c794cf07af6598b7" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Hidden]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Nascosto]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -14440,6 +14476,9 @@
       <Item ItemId=";bundle.++CODE++8336175b8ad79d9ee20c64d8271504a8d4cddaf613f831c0be0465ed761ef21d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Logical key]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Chiave logica]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -14509,6 +14548,9 @@
       <Item ItemId=";bundle.++CODE++843e65c123943ded912c77e1bc283de1b9fb26e1ee2a1ba2401c286edfa16cda" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Exposed via]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Esposto tramite]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -14938,6 +14980,9 @@
       <Item ItemId=";bundle.++CODE++88c59d6325c5f9cb638b3671a4ed7680c56c924d8b07a98dadce93466d269197" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Enable MCP in API Type to expose this entity through MCP.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Abilitare MCP come tipo di API per esporre l'entità tramite MCP.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -15538,6 +15583,9 @@
       <Item ItemId=";bundle.++CODE++8eb3ea9bbde631592dfac3150044fabe4678c820a107c026035c13bf0c8ba9d7" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Auth]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Autenticazione]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -15661,6 +15709,9 @@
       <Item ItemId=";bundle.++CODE++90395d452a308fcb26c44a7a5fb70916b2aaf592fccdd187ac7c6e1192b217c1" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Anon]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Anon]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -15964,6 +16015,9 @@
       <Item ItemId=";bundle.++CODE++92b96197f4ff0a723964fe779267ba475892eb8f744fe5482fd3c6bc752892a3" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No columns were discovered for this entity.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Nessuna colonna è stata individuata per l'entità.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -16276,6 +16330,9 @@
       <Item ItemId=";bundle.++CODE++9687fa49cbabe130e6700fb6dba29d6650f2a4f3ed416a9956a1f494c16a5c36" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Expose]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Esponi]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -17416,6 +17473,9 @@
       <Item ItemId=";bundle.++CODE++a0bd6e6936bbac62dd89c1012d9ccddc307a904c3cb34cbceed2500075fe3b5d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Required parameter]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Parametro obbligatorio]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -18052,6 +18112,9 @@
       <Item ItemId=";bundle.++CODE++a624c53f324c90b7a7da7401d49f23d00dc78cdad529bbb41bdd319c1e6f4cbb" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[DML tools expose this entity through generic MCP tools.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Gli strumenti DML espongono l'entità tramite strumenti MCP generici.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -18067,6 +18130,9 @@
       <Item ItemId=";bundle.++CODE++a66b489150eac01cbefbd7ab03abcf4527a72a38c9956636647b07d9d31f530f" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Toggle all {0} in schema {1}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Attivare/disattivare ogni {0} nello schema {1}]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -18172,12 +18238,18 @@
       <Item ItemId=";bundle.++CODE++a722617da5b3a5acc85fb6be7668c28e2befae5576d896b99eb4ea97eebb676b" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[MSSQL metadata cache entry cleared.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Voce della cache dei metadati MSSQL cancellata.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";bundle.++CODE++a724eec1c740993b1bd30143c1d2ef8b6a4f3560e19c4e2355e786a18d3ce48e" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[DML tools expose this stored procedure through generic execute tools.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Gli strumenti DML espongono la stored procedure tramite strumenti di esecuzione generici.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -18742,6 +18814,9 @@
       <Item ItemId=";bundle.++CODE++aced1f6eb816646c06bf8c07537b988d6170549fb090727e92423ce063207afd" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No columns match the current filter.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Nessuna colonna corrisponde al filtro corrente.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -19180,6 +19255,9 @@
       <Item ItemId=";bundle.++CODE++b19e02e9502bbe5ac59dff4b2d4160768a4a7b8feff5693e5769613562290a45" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Alias]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Alias]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -20464,6 +20542,9 @@
       <Item ItemId=";bundle.++CODE++bbf15d3d65d70f80283cf7adfe4537ecd273144eb51643167de4c12967f470e7" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Customize columns]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Personalizza colonne]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -20875,6 +20956,9 @@
       <Item ItemId=";bundle.++CODE++bf42d779f126ae3f936e2ed856401f447e8c5b071da8d1001f276728942fd678" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Expose this entity through MCP]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Esporre l'entità tramite MCP]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -20908,6 +20992,9 @@
       <Item ItemId=";bundle.++CODE++bfd23a1362b4cd5f3c66dc3b8860ed4511a3ef7e1f8d69db59f764e0fc65851b" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[MCP DML tools]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Strumenti DML MCP]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -21166,6 +21253,9 @@
       <Item ItemId=";bundle.++CODE++c2a1a3e03cf67c0ac40fabfee38ee5346f05417614d1a55e7eed85e87de976d7" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No parameters were discovered for this stored procedure.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Non sono stati individuati parametri per la stored procedure.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -23482,6 +23572,9 @@
       <Item ItemId=";bundle.++CODE++d85cdd4a3e9b81d2f16b2dad8854d17525cd7dfdab8d72741b36e86805bc2519" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Exposed]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Esposto]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -25612,6 +25705,9 @@
       <Item ItemId=";bundle.++CODE++eae47ccdd51f34b36191e508f439eb4539be120218976462316ea74d1011cc2a" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Exec]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Esecuzione]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -26050,12 +26146,18 @@
       <Item ItemId=";bundle.++CODE++ef4130dc48f45fbb30ce483736bd294e6080ba15a8f915f61c7b91e914733d02" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Metadata requires mssql.enableExperimentalFeatures and mssql.sqlDataPlane.enabled to be enabled.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[I metadati richiedono che mssql.enableExperimentalFeatures e mssql.sqlDataPlane.enabled siano abilitati.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";bundle.++CODE++ef5bb5141fd8afa4951e5674000f5cb3307e6b129c57298ff8f5853ed1f893ae" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No permissions]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Nessuna autorizzazione]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -27877,6 +27979,9 @@
       <Item ItemId=";package.mssql.cancelContainerOperation" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Cancel]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Annulla]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -28894,8 +28999,8 @@
       <Item ItemId=";package.mssql.enableExperimentalFeatures.description" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Enables the umbrella for experimental features in the MSSQL extension. Private-preview feature settings must also be enabled individually. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.]]></Val>
-          <Tgt Cat="Text" Stat="Update" Orig="New">
-            <Val><![CDATA[Abilita le funzionalità sperimentali nell'estensione MSSQL. Le funzionalità non sono pronte per la produzione e potrebbero presentare bug o problemi. Riavvia Visual Studio Code dopo aver modificato questa impostazione.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Abilita l'ombrello per le funzionalità sperimentali nell'estensione MSSQL. Le impostazioni delle funzionalità di anteprima privata devono essere abilitate anche singolarmente. Le funzionalità non sono pronte per la produzione e potrebbero presentare bug o problemi. Riavviare Visual Studio Code dopo aver modificato questa impostazione.]]></Val>
           </Tgt>
           <Prev Cat="Text">
             <Val><![CDATA[Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.]]></Val>
@@ -29563,60 +29668,90 @@
       <Item ItemId=";package.mssql.metadata.pollSeconds.description" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Internal preview setting: base interval in seconds for metadata drift checks. Set to 0 to disable polling. Per-database backoff, window-focus suspension, and serverless safeguards also apply. Reload the window after changing this setting.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Impostazione di anteprima interna: intervallo di base in secondi per i controlli della deriva dei metadati. Impostare su 0 per disabilitare il polling. Si applicano anche il backoff per database, la sospensione dell'ottimizzazione della finestra e le misure di protezione serverless. Ricaricare la finestra dopo aver modificato l'impostazione.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.metadataCache.clearAll" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Metadata Cache: Clear All]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Cache dei metadati: cancellare tutto]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.metadataCache.clearForConnection" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Metadata Cache: Clear for Connection]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Cache dei metadati: cancellare per la connessione]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.metadataCache.disableOfflineMode" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Metadata Cache: Disable Offline Mode]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Cache dei metadati: disabilitare la modalità offline]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.metadataCache.enableOfflineMode" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Metadata Cache: Enable Offline Mode]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Cache dei metadati: abilitare la modalità offline]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.metadataCache.enabled.description" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Private preview. Persist structural metadata catalog snapshots locally for metadata-backed preview features. Requires mssql.enableExperimentalFeatures and mssql.sqlDataPlane.enabled. Snapshots contain schemas, objects, columns, and keys, but never descriptions, default or computed SQL definitions, module definitions, query results, credentials, or other secrets. Reload the window after changing any required setting.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Anteprima privata. Salva localmente gli snapshot del catalogo dei metadati strutturali per le funzionalità di anteprima basate sui metadati. Richiede che mssql.enableExperimentalFeatures e mssql.sqlDataPlane.enabled. Gli snapshot contengono schemi, oggetti, colonne e chiavi, ma mai descrizioni, definizioni SQL predefinite o calcolate, definizioni dei moduli, risultati delle query, credenziali o altri segreti. Ricaricare la finestra dopo aver modificato tutte le impostazioni richieste.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.metadataCache.maxAgeDays.description" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Evict persisted metadata snapshots older than this many days.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Termina gli snapshot dei metadati persistenti precedenti a questo numero di giorni.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.metadataCache.maxBytes.description" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Maximum total size in bytes for persisted metadata snapshots. Least-recently-used entries are evicted first.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Dimensione totale massima in byte per gli snapshot dei metadati persistenti. Le voci utilizzate meno di recente vengono rimosse per prime.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.metadataCache.offlineMode.description" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Serve metadata only from persisted snapshots without contacting the server. Requires the experimental-features, SQL Data Plane, and metadata-cache settings. Status surfaces disclose snapshot age, and operations requiring fresh metadata refuse stale or unavailable data.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Fornisce i metadati solo da snapshot persistenti senza contattare il server. Richiede le impostazioni di funzionalità sperimentali, piano dati SQL e cache dei metadati. Le superfici di stato rivelano l'età dello snapshot e le operazioni che richiedono metadati aggiornati rifiutano costantemente i dati non disponibili.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.metadataCache.showStatus" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Metadata Cache: Show Status]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Cache dei metadati: mostrare stato]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -31045,8 +31180,8 @@
       <Item ItemId=";package.mssql.sqlDataPlane.enabled.description" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Private preview. Enable the STS v2-backed SQL Data Plane for preview consumers. Requires mssql.enableExperimentalFeatures and SQL Tools Service 6.0.20260825.2 or later; older bundled services are launched without the STS v2 lane. Reload the window after changing either setting. Existing query, connection, language service, and Object Explorer behavior remains unchanged.]]></Val>
-          <Tgt Cat="Text" Stat="Update" Orig="New">
-            <Val><![CDATA[Abilitare il piano dati SQL sperimentale supportato da STS v2 per gli utenti di anteprima. Richiede SQL Tools Service 6.0.20260825.2 o versione successiva; i servizi inclusi meno recenti vengono avviati senza il percorso STS v2. Ricaricare la finestra dopo aver modificato l'impostazione. Il comportamento esistente di query, connessione, servizio di linguaggio ed Esplora oggetti rimane invariato.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Anteprima privata. Abilitare il piano dati SQL supportato da STS v2 per gli utenti di anteprima. Richiede mssql.enableExperimentalFeatures e SQL Tools Service 6.0.20260825.2 o versione successiva; i servizi inclusi meno recenti vengono avviati senza la corsia STS v2. Ricaricare la finestra dopo aver modificato una delle impostazioni. Il comportamento esistente di query, connessione, servizio di linguaggio ed Esplora oggetti rimane invariato.]]></Val>
           </Tgt>
           <Prev Cat="Text">
             <Val><![CDATA[Enable the experimental, STS v2-backed SQL Data Plane for preview consumers. Requires SQL Tools Service 6.0.20260825.2 or later; older bundled services are launched without the STS v2 lane. Reload the window after changing this setting. Existing query, connection, language service, and Object Explorer behavior remains unchanged.]]></Val>
