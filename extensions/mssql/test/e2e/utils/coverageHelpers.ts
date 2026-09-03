@@ -5,7 +5,9 @@
 
 import path from "path";
 import fs from "fs";
-import { FrameLocator } from "@playwright/test";
+import type { FrameLocator } from "@playwright/test";
+import type { CoverageMapData } from "istanbul-lib-coverage";
+import { mergeCoverageData } from "./coverageMerge";
 
 const istanbulCLIOutput = path.join(process.cwd(), "coverage", "webviews-coverage");
 
@@ -36,8 +38,10 @@ export async function writeCoverage(iframe: FrameLocator, testname: string) {
             // If the file already exists, merge the coverage data
             if (fs.existsSync(coverageFilePath)) {
                 try {
-                    const existingCoverage = JSON.parse(fs.readFileSync(coverageFilePath, "utf-8"));
-                    mergedCoverage = { ...existingCoverage, ...coverage };
+                    const existingCoverage = JSON.parse(
+                        fs.readFileSync(coverageFilePath, "utf-8"),
+                    ) as CoverageMapData;
+                    mergedCoverage = mergeCoverageData(existingCoverage, coverage);
                 } catch (error) {
                     console.error("Error reading existing coverage file:", error);
                 }

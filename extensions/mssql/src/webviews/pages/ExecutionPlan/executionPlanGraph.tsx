@@ -249,6 +249,14 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
     const inputRef = useRef<any | null>(null);
     const graph = executionPlanState?.executionPlanGraphs?.[graphIndex];
 
+    const resetTransientUiState = useCallback(() => {
+        setZoomNumber(100);
+        setCustomZoomClicked(false);
+        setFindNodeClicked(false);
+        setHighlightOpsClicked(false);
+        setPropertiesClicked(false);
+    }, []);
+
     useEffect(() => {
         if (!executionPlanState || !graph) {
             return;
@@ -271,18 +279,25 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
         );
     }, [executionPlanState, graph, graphIndex]);
 
-    const handleRendererReady = useCallback((controller: ExecutionPlanGraphController | null) => {
-        setExecutionPlanView(controller);
-        if (controller) {
-            setFindNodeOptions(controller.getUniqueElementProperties());
-            setCost(controller.getTotalRelativeCost());
-            setZoomNumber(controller.getZoomLevel());
-        } else {
-            setFindNodeOptions([]);
-            setCost(0);
-            setZoomNumber(100);
-        }
-    }, []);
+    useEffect(() => {
+        resetTransientUiState();
+    }, [graph, resetTransientUiState]);
+
+    const handleRendererReady = useCallback(
+        (controller: ExecutionPlanGraphController | null) => {
+            setExecutionPlanView(controller);
+            if (controller) {
+                setFindNodeOptions(controller.getUniqueElementProperties());
+                setCost(controller.getTotalRelativeCost());
+                setZoomNumber(controller.getZoomLevel());
+            } else {
+                setFindNodeOptions([]);
+                setCost(0);
+                resetTransientUiState();
+            }
+        },
+        [resetTransientUiState],
+    );
 
     useEffect(() => {
         if (inputRef && inputRef.current) {
