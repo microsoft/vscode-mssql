@@ -40,13 +40,6 @@ export class ObjectExplorerUtils {
     // TODO: this function emulates one in STS; replace with call to STS to avoid mixups
     public static getNodeUriFromProfile(profile: IConnectionProfile): string {
         let uri: string;
-        if (profile.connectionString) {
-            let fields = profile.connectionString
-                .split(";")
-                .filter((s) => !s.toLowerCase().includes("password"));
-            uri = fields.join(";");
-            return uri;
-        }
         if (
             profile.authenticationType === Constants.sqlAuthentication ||
             profile.authenticationType === Constants.azureServicePrincipal

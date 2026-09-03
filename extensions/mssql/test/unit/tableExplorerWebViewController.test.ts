@@ -54,7 +54,6 @@ suite("TableExplorerWebViewController - Reducers", () => {
         authenticationType: "SqlLogin",
         user: "test-user",
         password: "test-password",
-        connectionString: "",
         profileName: "test-profile",
         savePassword: true,
         emptyPasswordInput: false,

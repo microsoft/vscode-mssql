@@ -70,16 +70,26 @@ export class ConnectionConfig implements IConnectionConfig {
     private _hasDisplayedGroupParentWarning: boolean = false;
     private _hasDisplayedOrphanedConnectionWarning: boolean = false;
     private _hasDisplayedDefaultConnectionIdWarning: boolean = false;
+    private _ignoredConnectionProfileKeys = new Set<string>();
 
     /**
      * Constructor
      */
-    public constructor() {
-        this._logger = logger.withPrefix("ConnectionConfig");
+    public constructor(loggerOverride?: ILogger) {
+        this._logger = loggerOverride ?? logger.withPrefix("ConnectionConfig");
         void this.initialize();
     }
 
     private async initialize(): Promise<void> {
+        for (const profile of this.getRawConnectionsFromSettings()) {
+            if ((profile as unknown as Record<string, unknown>)["connectionString"] !== undefined) {
+                this._logger.warn(
+                    `Connection string found in connection profile '${profile.profileName || profile.server || profile.id || "unknown"}'. Recreate the connection to continue using it; this profile will be ignored.`,
+                );
+                this._ignoredConnectionProfileKeys.add(this.getConnectionProfileKey(profile));
+            }
+        }
+
         await this.addOrUpdateRootGroup();
         await this.assignConnectionGroupMissingIds();
         await this.assignConnectionMissingIds();
@@ -223,12 +233,7 @@ export class ConnectionConfig implements IConnectionConfig {
         if (profiles.length > 0) {
             profiles = profiles.filter((conn) => {
                 // filter out any connection missing a connection string and server name or the sample that's shown by default
-                if (
-                    !(
-                        conn.connectionString ||
-                        (!!conn.server && conn.server !== LocalizedConstants.SampleServerName)
-                    )
-                ) {
+                if (!conn.server || conn.server === LocalizedConstants.SampleServerName) {
                     vscode.window.showErrorMessage(
                         LocalizedConstants.Connection.missingConnectionInformation(conn.id),
                     );
@@ -496,18 +501,10 @@ export class ConnectionConfig implements IConnectionConfig {
         return found;
     }
 
-    /** Compare function for sorting by profile name if available, otherwise fall back to server name or connection string */
+    /** Compare function for sorting by profile name if available, otherwise fall back to server name. */
     private compareConnectionProfile(connA: IConnectionProfile, connB: IConnectionProfile): number {
-        const nameA = connA.profileName
-            ? connA.profileName
-            : connA.server
-              ? connA.server
-              : connA.connectionString;
-        const nameB = connB.profileName
-            ? connB.profileName
-            : connB.server
-              ? connB.server
-              : connB.connectionString;
+        const nameA = connA.profileName || connA.server;
+        const nameB = connB.profileName || connB.server;
 
         return nameA.localeCompare(nameB);
     }
@@ -730,7 +727,20 @@ export class ConnectionConfig implements IConnectionConfig {
             return { ...profile, configSource: ConfigurationTarget.Workspace as ConfigTarget };
         });
 
-        return [...globalConnections, ...workspaceConnections];
+        return [...globalConnections, ...workspaceConnections].filter(
+            (profile) =>
+                !this._ignoredConnectionProfileKeys.has(this.getConnectionProfileKey(profile)),
+        );
+    }
+
+    private getConnectionProfileKey(profile: IConnectionProfile): string {
+        if (profile.id) {
+            return profile.id;
+        }
+
+        const profileWithoutConfigSource = { ...profile };
+        delete profileWithoutConfigSource.configSource;
+        return JSON.stringify(profileWithoutConfigSource);
     }
 
     /**

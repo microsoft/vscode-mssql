@@ -54,7 +54,6 @@ import { Deferred } from "../protocol";
 import { cmdOpenAzureDataStudioMigration, defaultDatabase } from "../constants/constants";
 import * as AzureConstants from "../azure/constants";
 import { AddFirewallRuleState } from "../sharedInterfaces/addFirewallRule";
-import * as Utils from "../models/utils";
 import {
     createConnectionGroup,
     getDefaultConnectionGroupDialogProps,
@@ -1178,8 +1177,6 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             }
         }
 
-        cleanedConnection.connectionString = undefined;
-
         if (cleanedConnection.secureEnclaves !== "Enabled") {
             cleanedConnection.attestationProtocol = undefined;
             cleanedConnection.enclaveAttestationUrl = undefined;
@@ -1303,10 +1300,6 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             savedConnection.profileName !== recentConnection.profileName
         ) {
             return false;
-        }
-
-        if (savedConnection.connectionString || recentConnection.connectionString) {
-            return savedConnection.connectionString === recentConnection.connectionString;
         }
 
         if (savedConnection.server !== recentConnection.server) {
@@ -1924,20 +1917,13 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         connection: IConnectionInfo,
     ): Promise<IConnectionDialogProfile> {
         // Load the password if it's saved
-        if (Utils.isEmpty(connection.connectionString)) {
-            if (!connection.password) {
-                // look up password in credential store if one isn't already set
-                const password =
-                    await this._mainController.connectionManager.connectionStore.lookupPassword(
-                        connection,
-                        false /* isConnectionString */,
-                    );
-                connection.password = password;
-            }
-        } else {
-            this.logger.debug(
-                "Connection string connection found in Connection Dialog initialization; should have been converted.",
-            );
+        if (!connection.password) {
+            // look up password in credential store if one isn't already set
+            const password =
+                await this._mainController.connectionManager.connectionStore.lookupPassword(
+                    connection,
+                );
+            connection.password = password;
         }
 
         // The server is serialized to config in "server,port" form; split the port into its own

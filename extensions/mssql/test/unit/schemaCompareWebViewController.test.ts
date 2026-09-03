@@ -293,7 +293,6 @@ suite("SchemaCompareWebViewController Tests", () => {
             multipleActiveResultSets: undefined,
             packetSize: undefined,
             typeSystemVersion: undefined,
-            connectionString: "",
             profileName: "",
             id: "",
             groupId: "",

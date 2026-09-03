@@ -46,10 +46,7 @@ export interface IConnectionStore {
     addSavedPassword(
         credentialsItem: IConnectionCredentialsQuickPickItem,
     ): Promise<IConnectionCredentialsQuickPickItem>;
-    lookupPassword(
-        connectionCredentials: IConnectionInfo,
-        isConnectionString?: boolean,
-    ): Promise<string>;
+    lookupPassword(connectionCredentials: IConnectionInfo): Promise<string>;
     storeSessionPassword(connectionCredentials: IConnectionInfo, password: string): void;
     shouldLookupSavedPassword(connectionCreds: IConnectionProfile): boolean;
     saveProfile(
@@ -61,7 +58,6 @@ export interface IConnectionStore {
     clearRecentlyUsed(): Promise<boolean>;
     removeRecentlyUsed(conn: IConnectionProfile, keepCredentialStore?: boolean): Promise<void>;
     saveProfilePasswordIfNeeded(profile: IConnectionProfile): Promise<boolean>;
-    saveProfileWithConnectionString(profile: IConnectionProfile): Promise<boolean>;
     removeProfile(profile: IConnectionProfile, keepCredentialStore?: boolean): Promise<boolean>;
     deleteCredential(profile: IConnectionProfile): Promise<void>;
     removeProfilePassword(connection: IConnectionInfo): Promise<void>;
@@ -132,9 +128,6 @@ export class ConnectionStore implements IConnectionStore {
     }
     public static get CRED_ITEMTYPE_PREFIX(): string {
         return "itemtype:";
-    }
-    public static get CRED_CONNECTION_STRING_PREFIX(): string {
-        return "isConnectionString:";
     }
     public static get CRED_PROFILE_PREFIX(): string {
         return "profile_id:";
@@ -208,9 +201,8 @@ export class ConnectionStore implements IConnectionStore {
         database?: string,
         user?: string,
         itemType?: string,
-        isConnectionString?: boolean,
     ): string {
-        if (Utils.isEmpty(server) && !isConnectionString) {
+        if (Utils.isEmpty(server)) {
             throw new ValidationException("Missing Server Name, which is required");
         }
         let cred: string[] = [ConnectionStore.CRED_PREFIX];
@@ -222,13 +214,6 @@ export class ConnectionStore implements IConnectionStore {
         ConnectionStore.pushIfNonEmpty(server, ConnectionStore.CRED_SERVER_PREFIX, cred);
         ConnectionStore.pushIfNonEmpty(database, ConnectionStore.CRED_DB_PREFIX, cred);
         ConnectionStore.pushIfNonEmpty(user, ConnectionStore.CRED_USER_PREFIX, cred);
-        if (isConnectionString) {
-            ConnectionStore.pushIfNonEmpty(
-                "true",
-                ConnectionStore.CRED_CONNECTION_STRING_PREFIX,
-                cred,
-            );
-        }
 
         return cred.join(ConnectionStore.CRED_SEPARATOR);
     }
@@ -304,12 +289,8 @@ export class ConnectionStore implements IConnectionStore {
     /**
      * Lookup password in credential store.
      * @param connectionCredentials Connection credentials of profile for password lookup
-     * @param isConnectionString Whether this is a connection string lookup
      */
-    public async lookupPassword(
-        connectionCredentials: IConnectionInfo,
-        isConnectionString: boolean = false,
-    ): Promise<string> {
+    public async lookupPassword(connectionCredentials: IConnectionInfo): Promise<string> {
         const profile = connectionCredentials as IConnectionProfile;
         let savedCredential: Credential;
 
@@ -345,7 +326,6 @@ export class ConnectionStore implements IConnectionStore {
             connectionCredentials.database,
             connectionCredentials.user,
             ConnectionStore.CRED_PROFILE_USER,
-            isConnectionString,
         );
 
         // We try to read from the credential store with the legacy format id
@@ -582,19 +562,11 @@ export class ConnectionStore implements IConnectionStore {
         return await this.doSaveCredential(profile, CredentialsQuickPickItemType.Profile);
     }
 
-    public async saveProfileWithConnectionString(profile: IConnectionProfile): Promise<boolean> {
-        if (!profile.connectionString) {
-            return Promise.resolve(true);
-        }
-        return await this.doSaveCredential(profile, CredentialsQuickPickItemType.Profile, true);
-    }
-
     private async doSaveCredential(
         conn: IConnectionInfo,
         type: CredentialsQuickPickItemType,
-        isConnectionString: boolean = false,
     ): Promise<boolean> {
-        let password = isConnectionString ? conn.connectionString : conn.password;
+        let password = conn.password;
 
         if (Utils.isEmpty(password)) {
             return true;

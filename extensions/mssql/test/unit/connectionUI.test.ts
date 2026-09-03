@@ -114,7 +114,7 @@ suite("Connection UI tests", () => {
             quickPickItemType: CredentialsQuickPickItemType.NewConnection,
             label: undefined,
         };
-        const mockConnection = { connectionString: "test" };
+        const mockConnection = { server: "test" };
 
         promptStub.resolves(mockConnection);
 
@@ -127,7 +127,7 @@ suite("Connection UI tests", () => {
 
     test("showConnections with recent and edit connection", async () => {
         const testCreds = new ConnectionCredentials();
-        testCreds.connectionString = "test";
+        testCreds.server = "test";
         const item: IConnectionCredentialsQuickPickItem = {
             connectionCreds: testCreds,
             quickPickItemType: CredentialsQuickPickItemType.Mru,
