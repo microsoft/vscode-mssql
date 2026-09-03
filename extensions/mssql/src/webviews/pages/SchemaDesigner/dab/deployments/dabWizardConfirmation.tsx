@@ -10,6 +10,14 @@ import { locConstants } from "../../../../common/locConstants";
 import { DabDialogContent, DabDialogTitle } from "./dabDialogLayout";
 
 const useStyles = makeStyles({
+    /**
+     * Centres the panel in the frame's height. The shared centred variant is
+     * not used because it also centres text, and this panel reads from its
+     * left edge.
+     */
+    contentLayout: {
+        justifyContent: "center",
+    },
     content: {
         display: "flex",
         flexDirection: "column",
@@ -72,7 +80,7 @@ export const DabWizardConfirmation = ({
                     ? locConstants.schemaDesigner.deployDabCli
                     : locConstants.schemaDesigner.deployDabContainer}
             </DabDialogTitle>
-            <DabDialogContent>
+            <DabDialogContent className={classes.contentLayout}>
                 <div className={classes.confirmationInfo}>
                     <Info20Regular className={classes.infoIcon} />
                     <div>
