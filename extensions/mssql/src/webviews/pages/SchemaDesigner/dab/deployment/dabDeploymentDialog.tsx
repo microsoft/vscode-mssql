@@ -11,7 +11,6 @@ import { DabDeploymentConfirmation } from "./dabDeploymentConfirmation";
 import { DabDeploymentPrerequisites } from "./dabDeploymentPrerequisites";
 import { DabDeploymentInputForm } from "./dabDeploymentInputForm";
 import { DabDeploymentProgress } from "./dabDeploymentProgress";
-import { DabDeploymentComplete } from "./dabDeploymentComplete";
 import { DabDeploymentsList } from "./dabDeploymentsList";
 import { DabDeploymentTargetPicker } from "./dabDeploymentTargetPicker";
 import { getPrereqSteps, getDeploySteps } from "./dabDeploymentUtils";
@@ -144,6 +143,9 @@ export const DabDeploymentDialog = () => {
                         apiTypes={context.dabConfig?.apiTypes ?? []}
                         target={target}
                         onConfirm={handleConfirm}
+                        onBack={() =>
+                            setDabDeploymentDialogView(Dab.DabDeploymentDialogView.TargetSelection)
+                        }
                         onCancel={handleClose}
                     />
                 );
@@ -154,6 +156,13 @@ export const DabDeploymentDialog = () => {
                         stepStatuses={prereqSteps}
                         onNext={handlePrerequisitesNext}
                         onRetry={handleRetry}
+                        onBack={() =>
+                            isRedeploy
+                                ? setDabDeploymentDialogView(Dab.DabDeploymentDialogView.List)
+                                : setDabDeploymentDialogStep(
+                                      Dab.DabDeploymentDialogStep.Confirmation,
+                                  )
+                        }
                         onCancel={handleClose}
                     />
                 );
@@ -164,6 +173,9 @@ export const DabDeploymentDialog = () => {
                         initialParams={dabDeploymentState.params}
                         validateParams={validateDabDeploymentParams}
                         onSubmit={handleParamsSubmit}
+                        onBack={() =>
+                            setDabDeploymentDialogStep(Dab.DabDeploymentDialogStep.Prerequisites)
+                        }
                         onCancel={handleClose}
                     />
                 );
@@ -172,9 +184,7 @@ export const DabDeploymentDialog = () => {
                     <DabDeploymentProgress
                         containerName={dabDeploymentState.params.containerName}
                         stepStatuses={deploySteps}
-                        onNext={() =>
-                            setDabDeploymentDialogStep(Dab.DabDeploymentDialogStep.Complete)
-                        }
+                        onNext={() => void handleShowDeployments()}
                         onRetry={async () => {
                             await retryDabDeploymentSteps();
                         }}
@@ -183,19 +193,6 @@ export const DabDeploymentDialog = () => {
                             setDabDeploymentDialogStep(Dab.DabDeploymentDialogStep.ParameterInput);
                         }}
                         onCancel={handleClose}
-                    />
-                );
-            case Dab.DabDeploymentDialogStep.Complete:
-                return (
-                    <DabDeploymentComplete
-                        target={target}
-                        apiUrl={dabDeploymentState.apiUrl}
-                        error={dabDeploymentState.error}
-                        onRetry={async () => {
-                            await retryDabDeploymentSteps();
-                            setDabDeploymentDialogStep(Dab.DabDeploymentDialogStep.Deployment);
-                        }}
-                        onFinish={() => void handleShowDeployments()}
                     />
                 );
             default:

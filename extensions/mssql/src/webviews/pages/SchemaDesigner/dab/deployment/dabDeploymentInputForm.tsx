@@ -6,8 +6,6 @@
 import {
     Button,
     DialogActions,
-    DialogContent,
-    DialogTitle,
     Field,
     Input,
     makeStyles,
@@ -19,12 +17,12 @@ import debounce from "lodash/debounce";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { locConstants } from "../../../../common/locConstants";
 import { Dab } from "../../../../../sharedInterfaces/dab";
+import { DabDialogContent, DabDialogTitle } from "./dabDialogLayout";
 
 const useStyles = makeStyles({
     content: {
-        display: "flex",
-        flexDirection: "column",
         gap: "16px",
+        textAlign: "left",
     },
     fieldHint: {
         fontSize: "12px",
@@ -41,6 +39,7 @@ interface DabDeploymentInputFormProps {
         port: number,
     ) => Promise<Dab.ValidateDeploymentParamsResponse>;
     onSubmit: (params: Dab.DabDeploymentParams) => void;
+    onBack: () => void;
     onCancel: () => void;
 }
 
@@ -49,6 +48,7 @@ export const DabDeploymentInputForm = ({
     initialParams,
     validateParams,
     onSubmit,
+    onBack,
     onCancel,
 }: DabDeploymentInputFormProps) => {
     const classes = useStyles();
@@ -179,12 +179,12 @@ export const DabDeploymentInputForm = ({
 
     return (
         <>
-            <DialogTitle>
+            <DabDialogTitle>
                 {isCli
                     ? locConstants.schemaDesigner.deploymentSettings
                     : locConstants.schemaDesigner.containerSettings}
-            </DialogTitle>
-            <DialogContent className={classes.content}>
+            </DabDialogTitle>
+            <DabDialogContent className={classes.content}>
                 <Field
                     label={
                         isCli
@@ -219,8 +219,11 @@ export const DabDeploymentInputForm = ({
                         {locConstants.schemaDesigner.portHint}
                     </Text>
                 </Field>
-            </DialogContent>
+            </DabDialogContent>
             <DialogActions>
+                <Button appearance="secondary" onClick={onBack} disabled={isSubmitting}>
+                    {locConstants.common.back}
+                </Button>
                 <Button appearance="secondary" onClick={onCancel} disabled={isSubmitting}>
                     {locConstants.common.cancel}
                 </Button>

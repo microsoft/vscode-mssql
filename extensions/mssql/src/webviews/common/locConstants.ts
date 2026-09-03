@@ -2245,11 +2245,7 @@ export class LocConstants {
             port: l10n.t("Port"),
             portInvalid: l10n.t("Port must be between 1 and 65535"),
             portHint: l10n.t("Port to expose the API on (default: 5000)"),
-            deploymentComplete: l10n.t("Deployment Complete"),
             deploymentFailed: l10n.t("Deployment Failed"),
-            dabContainerRunning: l10n.t("DAB container is running!"),
-            apiAvailableAt: l10n.t("Your API is available at:"),
-            apisAvailableAt: l10n.t("Your APIs are available at the following endpoints:"),
             copyUrl: (apiType: string) =>
                 l10n.t({
                     message: "Copy {0} URL",
@@ -2264,14 +2260,8 @@ export class LocConstants {
 
             // DAB Deployments dialog
             deployments: l10n.t("Deployments"),
-            deploymentsDescription: l10n.t(
-                "Containers you have deployed for this database. Redeploy one to bring it up to date with your current configuration.",
-            ),
             createNewDeployment: l10n.t("Create new"),
             noDeployments: l10n.t("No deployments yet"),
-            noDeploymentsDescription: l10n.t(
-                "Deploy your configuration to a local Docker container to get REST, GraphQL, and MCP endpoints for this database.",
-            ),
             loadingDeployments: l10n.t("Loading deployments"),
             refreshDeployments: l10n.t("Refresh"),
             deploymentStatusRunning: l10n.t("Running"),
@@ -2366,7 +2356,6 @@ export class LocConstants {
             deploymentSettings: l10n.t("Deployment settings"),
             deploymentName: l10n.t("Name"),
             deploymentNameHint: l10n.t("A name for this deployment"),
-            dabEngineRunning: l10n.t("Data API builder is running!"),
             deploymentTargetLabelDocker: l10n.t("Docker"),
             deploymentTargetLabelDabCli: l10n.t("DAB CLI"),
 

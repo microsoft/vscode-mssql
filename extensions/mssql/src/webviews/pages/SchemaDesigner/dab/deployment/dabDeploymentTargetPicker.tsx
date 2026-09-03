@@ -3,58 +3,86 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {
-    Button,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
-    makeStyles,
-    Text,
-    tokens,
-} from "@fluentui/react-components";
-import { Box20Regular, Rocket20Regular } from "@fluentui/react-icons";
+import { Button, Card, DialogActions, makeStyles, Text, tokens } from "@fluentui/react-components";
 import { locConstants } from "../../../../common/locConstants";
 import { Dab } from "../../../../../sharedInterfaces/dab";
+import { DockerIcon } from "../../../../common/icons/docker";
+import { KeyCode } from "../../../../common/keys";
+import { DabDialogContent, DabDialogTitle } from "./dabDialogLayout";
+
+const dabLogo = require("../icons/dab-logo.png");
 
 const useStyles = makeStyles({
-    content: {
+    // Mirrors the deployment page's target cards so choosing where to run DAB
+    // looks like choosing where to create a database.
+    cardRow: {
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(260px, 300px))",
+        justifyContent: "center",
+        gap: "12px",
+        width: "100%",
+        alignItems: "stretch",
+    },
+    cardDiv: {
         display: "flex",
         flexDirection: "column",
-        gap: "12px",
-    },
-    description: {
-        color: tokens.colorNeutralForeground2,
-    },
-    targetCard: {
-        display: "flex",
         alignItems: "flex-start",
-        gap: "12px",
-        padding: "12px",
-        borderRadius: "6px",
-        border: `1px solid ${tokens.colorNeutralStroke2}`,
-        backgroundColor: tokens.colorNeutralBackground2,
-        textAlign: "left",
+        justifyContent: "flex-start",
+        padding: "22px 24px",
+        gap: "14px",
         width: "100%",
+        maxWidth: "300px",
+        minHeight: "220px",
+        borderRadius: "18px",
+        border: `1px solid ${tokens.colorNeutralStroke2}`,
+        backgroundColor: tokens.colorNeutralBackground1,
+        boxShadow: tokens.shadow4,
+        boxSizing: "border-box",
+        justifySelf: "center",
         cursor: "pointer",
+        transitionProperty: "transform, box-shadow, border-color",
+        transitionDuration: tokens.durationNormal,
+        transitionTimingFunction: tokens.curveEasyEase,
         ":hover": {
-            backgroundColor: tokens.colorNeutralBackground2Hover,
+            transform: "translateY(-2px)",
+            boxShadow: tokens.shadow8,
+            border: `1px solid ${tokens.colorNeutralStroke1}`,
         },
     },
-    targetIcon: {
-        color: tokens.colorNeutralForeground2,
-        marginTop: "2px",
+    iconBadge: {
+        width: "56px",
+        height: "56px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        borderRadius: "14px",
+        backgroundColor: "color-mix(in srgb, var(--vscode-focusBorder) 12%, transparent)",
+        color: "var(--vscode-focusBorder)",
+        flexShrink: 0,
     },
-    targetText: {
+    cardIcon: {
+        width: "32px",
+        height: "32px",
+    },
+    cardContent: {
         display: "flex",
         flexDirection: "column",
-        gap: "2px",
+        alignItems: "flex-start",
+        gap: "8px",
+        width: "100%",
     },
-    targetTitle: {
+    cardHeader: {
         fontWeight: 600,
+        fontSize: "18px",
+        lineHeight: "24px",
+        color: tokens.colorNeutralForeground1,
     },
-    targetDescription: {
-        fontSize: "12px",
+    cardDescription: {
+        fontWeight: 400,
+        fontSize: "14px",
+        lineHeight: "22px",
         color: tokens.colorNeutralForeground3,
+        textAlign: "left",
     },
 });
 
@@ -65,8 +93,8 @@ interface DabDeploymentTargetPickerProps {
 }
 
 /**
- * Asks where the deployment should run. Only local Docker is available today;
- * the picker exists so further targets slot in without reshaping the flow.
+ * Asks where the deployment should run. Further targets slot into the card grid
+ * without reshaping the flow.
  */
 export const DabDeploymentTargetPicker = ({
     onSelectTarget,
@@ -78,46 +106,47 @@ export const DabDeploymentTargetPicker = ({
     const targets = [
         {
             target: Dab.DabDeploymentTarget.Docker,
-            Icon: Box20Regular,
             title: locConstants.schemaDesigner.deploymentTargetDocker,
             description: locConstants.schemaDesigner.deploymentTargetDockerDescription,
+            icon: <DockerIcon className={classes.cardIcon} role="img" aria-hidden />,
         },
         {
             target: Dab.DabDeploymentTarget.DabCli,
-            Icon: Rocket20Regular,
             title: locConstants.schemaDesigner.deploymentTargetDabCli,
             description: locConstants.schemaDesigner.deploymentTargetDabCliDescription,
+            icon: <img src={dabLogo} className={classes.cardIcon} alt="" />,
         },
     ];
 
     return (
         <>
-            <DialogTitle>{locConstants.schemaDesigner.selectDeploymentTarget}</DialogTitle>
-            <DialogContent className={classes.content}>
-                <Text className={classes.description}>
-                    {locConstants.schemaDesigner.selectDeploymentTargetDescription}
-                </Text>
-                {targets.map((target) => (
-                    <div
-                        key={target.target}
-                        className={classes.targetCard}
-                        role="button"
-                        tabIndex={0}
-                        onClick={() => onSelectTarget(target.target)}
-                        onKeyDown={(event) => {
-                            if (event.key === "Enter" || event.key === " ") {
-                                event.preventDefault();
-                                onSelectTarget(target.target);
-                            }
-                        }}>
-                        <target.Icon className={classes.targetIcon} />
-                        <div className={classes.targetText}>
-                            <Text className={classes.targetTitle}>{target.title}</Text>
-                            <Text className={classes.targetDescription}>{target.description}</Text>
-                        </div>
-                    </div>
-                ))}
-            </DialogContent>
+            <DabDialogTitle>{locConstants.schemaDesigner.selectDeploymentTarget}</DabDialogTitle>
+            <DabDialogContent>
+                <div className={classes.cardRow}>
+                    {targets.map((target) => (
+                        <Card
+                            key={target.target}
+                            className={classes.cardDiv}
+                            onClick={() => onSelectTarget(target.target)}
+                            onKeyDown={(event) => {
+                                if (event.code === KeyCode.Enter || event.code === KeyCode.Space) {
+                                    event.preventDefault();
+                                    onSelectTarget(target.target);
+                                }
+                            }}
+                            tabIndex={0}
+                            role="button">
+                            <div className={classes.iconBadge}>{target.icon}</div>
+                            <div className={classes.cardContent}>
+                                <Text className={classes.cardHeader}>{target.title}</Text>
+                                <Text className={classes.cardDescription}>
+                                    {target.description}
+                                </Text>
+                            </div>
+                        </Card>
+                    ))}
+                </div>
+            </DabDialogContent>
             <DialogActions>
                 <Button appearance="secondary" onClick={onBack}>
                     {locConstants.schemaDesigner.backToDeployments}

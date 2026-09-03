@@ -7,8 +7,6 @@ import {
     Badge,
     Button,
     DialogActions,
-    DialogContent,
-    DialogTitle,
     makeStyles,
     Spinner,
     Text,
@@ -31,6 +29,7 @@ import { Dab } from "../../../../../sharedInterfaces/dab";
 import { ApiStatus } from "../../../../../sharedInterfaces/webview";
 import { useDabContext } from "../dabContext";
 import { DabDeploymentEndpoints } from "./dabDeploymentEndpoints";
+import { DabDialogContent, DabDialogTitle } from "./dabDialogLayout";
 
 const useStyles = makeStyles({
     content: {
@@ -96,9 +95,9 @@ const useStyles = makeStyles({
         alignItems: "center",
         justifyContent: "center",
         gap: "8px",
-        padding: "24px",
         textAlign: "center",
         flex: 1,
+        minHeight: 0,
     },
     errorText: {
         color: tokens.colorStatusDangerForeground1,
@@ -364,11 +363,8 @@ export const DabDeploymentsList = ({ onCreateNew, onClose }: DabDeploymentsListP
 
     return (
         <>
-            <DialogTitle>{locConstants.schemaDesigner.deployments}</DialogTitle>
-            <DialogContent className={classes.content}>
-                <Text className={classes.description}>
-                    {locConstants.schemaDesigner.deploymentsDescription}
-                </Text>
+            <DabDialogTitle>{locConstants.schemaDesigner.deployments}</DabDialogTitle>
+            <DabDialogContent centered={false}>
                 <div className={classes.toolbar}>
                     <Button appearance="primary" icon={<Add16Regular />} onClick={onCreateNew}>
                         {locConstants.schemaDesigner.createNewDeployment}
@@ -398,16 +394,13 @@ export const DabDeploymentsList = ({ onCreateNew, onClose }: DabDeploymentsListP
                 {isEmpty && (
                     <div className={classes.centered}>
                         <Text weight="semibold">{locConstants.schemaDesigner.noDeployments}</Text>
-                        <Text className={classes.metaText}>
-                            {locConstants.schemaDesigner.noDeploymentsDescription}
-                        </Text>
                     </div>
                 )}
 
                 {dabDeployments.length > 0 && (
                     <div className={classes.list}>{dabDeployments.map(renderRow)}</div>
                 )}
-            </DialogContent>
+            </DabDialogContent>
             <DialogActions>
                 <Button appearance="secondary" onClick={onClose}>
                     {locConstants.common.close}

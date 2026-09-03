@@ -3,18 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {
-    Button,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
-    makeStyles,
-    Text,
-    tokens,
-} from "@fluentui/react-components";
+import { Button, DialogActions, makeStyles, Text, tokens } from "@fluentui/react-components";
 import { Info20Regular } from "@fluentui/react-icons";
 import { Dab } from "../../../../../sharedInterfaces/dab";
 import { locConstants } from "../../../../common/locConstants";
+import { DabDialogContent, DabDialogTitle } from "./dabDialogLayout";
 
 const useStyles = makeStyles({
     content: {
@@ -41,6 +34,7 @@ interface DabDeploymentConfirmationProps {
     apiTypes: Dab.ApiType[];
     target: Dab.DabDeploymentTarget;
     onConfirm: () => void;
+    onBack: () => void;
     onCancel: () => void;
 }
 
@@ -59,6 +53,7 @@ export const DabDeploymentConfirmation = ({
     apiTypes,
     target,
     onConfirm,
+    onBack,
     onCancel,
 }: DabDeploymentConfirmationProps) => {
     const classes = useStyles();
@@ -66,12 +61,12 @@ export const DabDeploymentConfirmation = ({
 
     return (
         <>
-            <DialogTitle>
+            <DabDialogTitle>
                 {isCli
                     ? locConstants.schemaDesigner.deployDabCli
                     : locConstants.schemaDesigner.deployDabContainer}
-            </DialogTitle>
-            <DialogContent className={classes.content}>
+            </DabDialogTitle>
+            <DabDialogContent>
                 <div className={classes.confirmationInfo}>
                     <Info20Regular className={classes.infoIcon} />
                     <div>
@@ -97,8 +92,11 @@ export const DabDeploymentConfirmation = ({
                         </Text>
                     </div>
                 </div>
-            </DialogContent>
+            </DabDialogContent>
             <DialogActions>
+                <Button appearance="secondary" onClick={onBack}>
+                    {locConstants.common.back}
+                </Button>
                 <Button appearance="secondary" onClick={onCancel}>
                     {locConstants.common.cancel}
                 </Button>

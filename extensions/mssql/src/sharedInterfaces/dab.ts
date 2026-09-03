@@ -955,8 +955,6 @@ export namespace Dab {
         ParameterInput = 2,
         /** Deployment progress steps */
         Deployment = 3,
-        /** Completion or error state */
-        Complete = 4,
     }
 
     /**

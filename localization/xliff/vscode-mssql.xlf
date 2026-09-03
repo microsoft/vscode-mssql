@@ -1944,9 +1944,6 @@
       <source xml:lang="en">Container {0} no longer exists.</source>
       <note>{0} is the Docker container name</note>
     </trans-unit>
-    <trans-unit id="++CODE++1bc57bf01de754434f6bab83ce5e1c3a346f9360b5046b893bffda15ea2e3bef">
-      <source xml:lang="en">Containers you have deployed for this database. Redeploy one to bring it up to date with your current configuration.</source>
-    </trans-unit>
     <trans-unit id="++CODE++e846628c8d11bbf73a6ca39eb691f5f7802ba88cf1fb0c482997d928b1504fcb">
       <source xml:lang="en">Containment Type</source>
     </trans-unit>
@@ -2332,9 +2329,6 @@
     <trans-unit id="++CODE++e7aa1ff656ae01487b19a24f178526fa3b74963ac0bfb6cff35b047b62d8be4b">
       <source xml:lang="en">DAB container failed to become ready within the timeout period.</source>
     </trans-unit>
-    <trans-unit id="++CODE++4e639b73088f5575d27eeb76cc69d222f4587c494af6bebace73a891c65491a3">
-      <source xml:lang="en">DAB container is running!</source>
-    </trans-unit>
     <trans-unit id="++CODE++edb45df4d9dc81d0ba51ac48d83da35e32f4a62efc89a3d227df9e1794fee394">
       <source xml:lang="en">DAB container logs</source>
     </trans-unit>
@@ -2387,9 +2381,6 @@
     </trans-unit>
     <trans-unit id="++CODE++2154b11388f741094808a9e344ab0be7e4be3d2a989551deec3b43f35fc729e3">
       <source xml:lang="en">Data API builder Configuration</source>
-    </trans-unit>
-    <trans-unit id="++CODE++d90dacedab33faee6e7e3d4aec2d222b63b231958e052de1a3f5a55ffc80c982">
-      <source xml:lang="en">Data API builder is running!</source>
     </trans-unit>
     <trans-unit id="++CODE++18c1620276c4ac7ddaec590de6087601cbfad39f0ef20e19c41db887fb760c00">
       <source xml:lang="en">Data API builder opened. Continue with {0} operations ({1}/{2}).</source>
@@ -2621,9 +2612,6 @@
     <trans-unit id="++CODE++97dc38d5949112e250523663a3556643b30754a83c8305adb6e79d88b13b200d">
       <source xml:lang="en">Deploy to Existing Database</source>
     </trans-unit>
-    <trans-unit id="++CODE++b53247f1fa123b7ebe5e88a79823396fc3a3424177806a56b231487b72a2e41e">
-      <source xml:lang="en">Deploy your configuration to a local Docker container to get REST, GraphQL, and MCP endpoints for this database.</source>
-    </trans-unit>
     <trans-unit id="++CODE++75605e8fd5394c88086006f3ed265d8f5f725fdfb8827963a1be8f8348d31bee">
       <source xml:lang="en">Deploy, extract, import, or export data-tier applications on the selected database</source>
     </trans-unit>
@@ -2633,9 +2621,6 @@
     </trans-unit>
     <trans-unit id="++CODE++77073cfc37f467e01ede7dd225bc91824e5fcb320f5723a633d43bd93b8a070b">
       <source xml:lang="en">Deploying DACPAC...</source>
-    </trans-unit>
-    <trans-unit id="++CODE++a6587d759edaef774b88015d9298a0965eeec92561af3c20bc4171eecdf27f5b">
-      <source xml:lang="en">Deployment Complete</source>
     </trans-unit>
     <trans-unit id="++CODE++05081f14d114ed28b2997927154de0eb554e2938d0254935df8bf9b4a129769f">
       <source xml:lang="en">Deployment Failed</source>
@@ -9580,12 +9565,6 @@
     </trans-unit>
     <trans-unit id="++CODE++72f5c8fcf386f50a0af8057b25cbd6d2cbfe99d41c859934b12e7592b60b2690">
       <source xml:lang="en">You must review and accept the terms to proceed</source>
-    </trans-unit>
-    <trans-unit id="++CODE++f86597d07cc9ee182bac4dce2a2850eb6cc8509b3199ec6ab9d6e3e89fff8aae">
-      <source xml:lang="en">Your API is available at:</source>
-    </trans-unit>
-    <trans-unit id="++CODE++218a10d5a69c30b5a238c1ef9158c0427b0a183bc40cb11117e8eb7563807c9a">
-      <source xml:lang="en">Your APIs are available at the following endpoints:</source>
     </trans-unit>
     <trans-unit id="++CODE++fd7b1bde88541fa18fcf29098d6ac35bf9b6e18c9e393c1762bc119ff95a47fe">
       <source xml:lang="en">Your Docker Engine currently runs Windows containers. SQL Server only supports Linux containers. Would you like to switch to Linux containers?</source>

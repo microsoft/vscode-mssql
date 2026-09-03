@@ -527,13 +527,16 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                     const nextStep = Dab.getNextDabDeploymentStep(prev.target, step) ?? step;
 
                     if (Dab.isFinalDabDeploymentStep(prev.target, step)) {
+                        // A finished deployment belongs in the list, where its
+                        // endpoints and actions live; there is no separate
+                        // completion page to land on.
                         return {
                             ...prev,
                             stepStatuses: updatedStatuses,
                             currentDeploymentStep: nextStep,
                             isDeploying: false,
                             apiUrl: response.apiUrl,
-                            dialogStep: Dab.DabDeploymentDialogStep.Complete,
+                            dialogView: Dab.DabDeploymentDialogView.List,
                         };
                     }
 
