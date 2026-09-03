@@ -763,7 +763,7 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
                 .map((item, index) => ({
                     kind: "diff" as const,
                     ...item,
-                    position: index,
+                    position: item.position ?? index,
                 }))
                 .filter((item) => {
                     if (selectedSchemas.size > 0 && !selectedSchemas.has(getSchemaName(item))) {
