@@ -3,8 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import "./executionPlan.css";
-
 import {
     Badge,
     Button,
@@ -14,13 +12,7 @@ import {
     Spinner,
     tokens,
 } from "@fluentui/react-components";
-import {
-    Checkmark16Regular,
-    Checkmark20Regular,
-    Dismiss16Regular,
-    Dismiss20Regular,
-    Lightbulb16Filled,
-} from "@fluentui/react-icons";
+import { Checkmark16Regular, Dismiss16Regular, Lightbulb16Filled } from "@fluentui/react-icons";
 import {
     KeyboardEvent as ReactKeyboardEvent,
     lazy,
@@ -40,7 +32,6 @@ import {
 } from "./executionPlanQuery";
 import { FindNode } from "./findNodes";
 import { HighlightExpensiveOperations } from "./highlightExpensiveOperations";
-import { LegacyIconStack } from "./legacyIconMenu";
 import { PropertiesPane } from "./properties";
 import { ReactFlowIconStack } from "./reactFlowIconMenu";
 import { ExecutionPlanContext } from "./executionPlanStateProvider";
@@ -60,11 +51,6 @@ const ReactFlowExecutionPlan = lazy(async () => {
     return { default: module.ReactFlowExecutionPlan };
 });
 
-const LegacyExecutionPlanRenderer = lazy(async () => {
-    const module = await import("./legacyExecutionPlanRenderer");
-    return { default: module.LegacyExecutionPlanRenderer };
-});
-
 const useStyles = makeStyles({
     panelContainer: {
         display: "flex",
@@ -80,19 +66,6 @@ const useStyles = makeStyles({
         flexGrow: 1,
         width: "100%",
         minHeight: "300px",
-    },
-    inputContainer: {
-        position: "absolute",
-        top: 0,
-        right: "35px",
-        padding: "10px",
-        border: "1px solid #ccc",
-        zIndex: "1",
-        boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
-        display: "flex",
-        alignItems: "center",
-        gap: "2px",
-        opacity: 1,
     },
     previewInputContainer: {
         position: "absolute",
@@ -118,10 +91,6 @@ const useStyles = makeStyles({
         flexShrink: 0,
         padding: "6px 8px 7px",
         borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
-    },
-    legacyQueryCostContainer: {
-        opacity: 1,
-        padding: "5px",
     },
     queryCostSummary: {
         color: tokens.colorNeutralForeground1,
@@ -196,10 +165,6 @@ const useStyles = makeStyles({
         width: "100%",
         overflowX: "auto",
     },
-    legacyGraphContainer: {
-        height: "100%",
-        width: "100%",
-    },
     resizable: {
         position: "absolute",
         top: 0,
@@ -245,9 +210,6 @@ const useStyles = makeStyles({
             backgroundColor: "var(--vscode-focusBorder)",
         },
     },
-    spacer: {
-        padding: "1px",
-    },
 });
 
 interface ExecutionPlanGraphProps {
@@ -285,10 +247,15 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
     const [containerHeight, setContainerHeight] = useState("100%");
     const resizableRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<any | null>(null);
-    const useReactFlow = executionPlanState?.isBetaExecutionPlanEnabled === true;
     const graph = executionPlanState?.executionPlanGraphs?.[graphIndex];
-    const [reactFlowFailed, setReactFlowFailed] = useState(false);
-    const isReactFlowActive = useReactFlow && !reactFlowFailed;
+
+    const resetTransientUiState = useCallback(() => {
+        setZoomNumber(100);
+        setCustomZoomClicked(false);
+        setFindNodeClicked(false);
+        setHighlightOpsClicked(false);
+        setPropertiesClicked(false);
+    }, []);
 
     useEffect(() => {
         if (!executionPlanState || !graph) {
@@ -313,29 +280,24 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
     }, [executionPlanState, graph, graphIndex]);
 
     useEffect(() => {
-        setReactFlowFailed(false);
-    }, [graph, useReactFlow]);
+        resetTransientUiState();
+    }, [graph, resetTransientUiState]);
 
-    useEffect(() => {
-        setZoomNumber(100);
-        setCustomZoomClicked(false);
-        setFindNodeClicked(false);
-        setHighlightOpsClicked(false);
-        setPropertiesClicked(false);
-    }, [isReactFlowActive]);
-
-    const handleRendererReady = useCallback((controller: ExecutionPlanGraphController | null) => {
-        setExecutionPlanView(controller);
-        if (controller) {
-            setFindNodeOptions(controller.getUniqueElementProperties());
-            setCost(controller.getTotalRelativeCost());
-            setZoomNumber(controller.getZoomLevel());
-        } else {
-            setFindNodeOptions([]);
-            setCost(0);
-            setZoomNumber(100);
-        }
-    }, []);
+    const handleRendererReady = useCallback(
+        (controller: ExecutionPlanGraphController | null) => {
+            setExecutionPlanView(controller);
+            if (controller) {
+                setFindNodeOptions(controller.getUniqueElementProperties());
+                setCost(controller.getTotalRelativeCost());
+                setZoomNumber(controller.getZoomLevel());
+            } else {
+                setFindNodeOptions([]);
+                setCost(0);
+                resetTransientUiState();
+            }
+        },
+        [resetTransientUiState],
+    );
 
     useEffect(() => {
         if (inputRef && inputRef.current) {
@@ -422,11 +384,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                 }}>
                 <div
                     id="queryCostContainer"
-                    className={
-                        isReactFlowActive
-                            ? classes.queryCostContainer
-                            : classes.legacyQueryCostContainer
-                    }
+                    className={classes.queryCostContainer}
                     style={{
                         background: tokens.colorNeutralBackground2,
                         // 35px is the width of the side toolbar with some extra room for padding
@@ -443,68 +401,52 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                             ? `${getQueryCostString()}, ${query}, ${locConstants.executionPlan.missingIndexRecommendations}`
                             : `${getQueryCostString()}, ${query}`
                     }>
-                    {isReactFlowActive ? (
-                        <>
-                            <div className={classes.queryCostSummary}>{getQueryCostString()}</div>
-                            <SqlText
-                                className={classes.queryText}
-                                text={query}
-                                singleLine
-                                showLineBreaks
-                                title={query}
-                            />
-                            {recommendations.length > 0 && (
-                                <div
-                                    className={classes.recommendations}
-                                    role="group"
-                                    aria-label={
-                                        locConstants.executionPlan.missingIndexRecommendations
-                                    }>
-                                    {recommendations.map((recommendation, index) => (
-                                        <Button
-                                            key={index}
-                                            appearance="subtle"
-                                            className={classes.recommendationButton}
-                                            icon={
-                                                <Lightbulb16Filled
-                                                    className={classes.recommendationIcon}
-                                                />
-                                            }
-                                            aria-label={recommendation.accessibleName}
-                                            title={`${recommendation.accessibleName}\n\n${locConstants.executionPlan.openIndexRecommendationScript}`}
-                                            onClick={() =>
-                                                handleRecommendationClick(recommendation)
-                                            }>
-                                            <span className={classes.recommendationLabel}>
-                                                {locConstants.executionPlan.missingIndex}
-                                            </span>
-                                            {recommendation.impact !== undefined && (
-                                                <Badge
-                                                    appearance="tint"
-                                                    color="success"
-                                                    size="small"
-                                                    className={classes.recommendationImpact}>
-                                                    {locConstants.executionPlan.missingIndexImpact(
-                                                        recommendation.impact.toFixed(1),
-                                                    )}
-                                                </Badge>
+                    <div className={classes.queryCostSummary}>{getQueryCostString()}</div>
+                    <SqlText
+                        className={classes.queryText}
+                        text={query}
+                        singleLine
+                        showLineBreaks
+                        title={query}
+                    />
+                    {recommendations.length > 0 && (
+                        <div
+                            className={classes.recommendations}
+                            role="group"
+                            aria-label={locConstants.executionPlan.missingIndexRecommendations}>
+                            {recommendations.map((recommendation, index) => (
+                                <Button
+                                    key={index}
+                                    appearance="subtle"
+                                    className={classes.recommendationButton}
+                                    icon={
+                                        <Lightbulb16Filled className={classes.recommendationIcon} />
+                                    }
+                                    aria-label={recommendation.accessibleName}
+                                    title={`${recommendation.accessibleName}\n\n${locConstants.executionPlan.openIndexRecommendationScript}`}
+                                    onClick={() => handleRecommendationClick(recommendation)}>
+                                    <span className={classes.recommendationLabel}>
+                                        {locConstants.executionPlan.missingIndex}
+                                    </span>
+                                    {recommendation.impact !== undefined && (
+                                        <Badge
+                                            appearance="tint"
+                                            color="success"
+                                            size="small"
+                                            className={classes.recommendationImpact}>
+                                            {locConstants.executionPlan.missingIndexImpact(
+                                                recommendation.impact.toFixed(1),
                                             )}
-                                            <SqlText
-                                                className={classes.recommendationScript}
-                                                text={recommendation.script}
-                                                singleLine
-                                            />
-                                        </Button>
-                                    ))}
-                                </div>
-                            )}
-                        </>
-                    ) : (
-                        <>
-                            {getQueryCostString()}
-                            <br />
-                            {query}
-                        </>
+                                        </Badge>
+                                    )}
+                                    <SqlText
+                                        className={classes.recommendationScript}
+                                        text={recommendation.script}
+                                        singleLine
+                                    />
+                                </Button>
+                            ))}
+                        </div>
                     )}
                 </div>
                 <div
@@ -516,20 +458,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                             ? `calc(100% - ${propertiesWidth}px - 35px)`
                             : "calc(100% - 35px)",
                     }}>
-                    {!isReactFlowActive && graph && (
-                        <Suspense
-                            fallback={
-                                <Spinner label={locConstants.executionPlan.loadingExecutionPlan} />
-                            }>
-                            <LegacyExecutionPlanRenderer
-                                root={graph.root}
-                                themeKind={themeKind}
-                                className={classes.legacyGraphContainer}
-                                onReady={handleRendererReady}
-                            />
-                        </Suspense>
-                    )}
-                    {isReactFlowActive && graph && (
+                    {graph && (
                         <WebviewErrorBoundary
                             fallback={
                                 <div
@@ -538,11 +467,10 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                                         padding: "16px",
                                         color: tokens.colorPaletteRedForeground1,
                                     }}>
-                                    {locConstants.executionPlan.reactFlowRendererError}
+                                    {locConstants.executionPlan.executionPlanRendererError}
                                 </div>
                             }
                             onError={(error, errorInfo) => {
-                                setReactFlowFailed(true);
                                 setExecutionPlanView(null);
                                 extensionRpc.log.error(
                                     "React Flow execution plan renderer failed",
@@ -566,136 +494,80 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                         </WebviewErrorBoundary>
                     )}
                 </div>
-                {customZoomClicked &&
-                    (isReactFlowActive ? (
-                        <VscodeFloatingWidget
-                            id="customZoomInputContainer"
-                            className={classes.previewInputContainer}
-                            role="group"
-                            aria-label={locConstants.executionPlan.customZoom}
-                            onKeyDown={(event) => {
-                                if (event.key === "Escape") {
-                                    event.preventDefault();
-                                    setCustomZoomClicked(false);
-                                }
-                            }}>
-                            <Input
-                                ref={inputRef}
-                                id="customZoomInputBox"
-                                type="text"
-                                size="small"
-                                className={classes.previewZoomInput}
-                                defaultValue={Math.floor(zoomNumber).toString()}
-                                contentAfter={<span className={classes.previewInputSuffix}>%</span>}
-                                input={{
-                                    inputMode: "decimal",
-                                    style: {
-                                        textOverflow: "ellipsis",
-                                    },
-                                }}
-                                title={locConstants.executionPlan.customZoom}
-                                aria-label={locConstants.executionPlan.customZoom}
-                                onChange={(event) => {
-                                    const value = Number(event.target.value);
-                                    if (Number.isFinite(value)) {
-                                        setZoomNumber(Math.min(200, Math.max(1, value)));
-                                    }
-                                }}
-                                onKeyDown={(event) => {
-                                    if (event.key === "Enter") {
-                                        event.preventDefault();
-                                        void handleCustomZoomInput();
-                                    }
-                                }}
-                            />
-                            <VscodeFloatingWidgetAction
-                                onClick={handleCustomZoomInput}
-                                title={locConstants.common.apply}
-                                aria-label={locConstants.common.apply}
-                                icon={<Checkmark16Regular />}
-                            />
-                            <VscodeFloatingWidgetAction
-                                icon={<Dismiss16Regular />}
-                                title={locConstants.common.close}
-                                aria-label={locConstants.common.close}
-                                onClick={() => setCustomZoomClicked(false)}
-                            />
-                        </VscodeFloatingWidget>
-                    ) : (
-                        <div
-                            id="customZoomInputContainer"
-                            className={classes.inputContainer}
-                            style={{
-                                background: tokens.colorNeutralBackground1,
+                {customZoomClicked && (
+                    <VscodeFloatingWidget
+                        id="customZoomInputContainer"
+                        className={classes.previewInputContainer}
+                        role="group"
+                        aria-label={locConstants.executionPlan.customZoom}
+                        onKeyDown={(event) => {
+                            if (event.key === "Escape") {
+                                event.preventDefault();
+                                setCustomZoomClicked(false);
+                            }
+                        }}>
+                        <Input
+                            ref={inputRef}
+                            id="customZoomInputBox"
+                            type="text"
+                            size="small"
+                            className={classes.previewZoomInput}
+                            defaultValue={Math.floor(zoomNumber).toString()}
+                            contentAfter={<span className={classes.previewInputSuffix}>%</span>}
+                            input={{
+                                inputMode: "decimal",
+                                style: {
+                                    textOverflow: "ellipsis",
+                                },
                             }}
-                            tabIndex={0}>
-                            <Input
-                                ref={inputRef}
-                                id="customZoomInputBox"
-                                type="number"
-                                size="small"
-                                min={1}
-                                tabIndex={0}
-                                title={locConstants.executionPlan.customZoom}
-                                aria-label={locConstants.executionPlan.customZoom}
-                                defaultValue={Math.floor(zoomNumber).toString()}
-                                input={{
-                                    style: {
-                                        width: "85px",
-                                        textOverflow: "ellipsis",
-                                    },
-                                }}
-                                onChange={(e) => setZoomNumber(Number(e.target.value))}
-                                style={{
-                                    width: "100px",
-                                    height: "25px",
-                                    fontSize: "12px",
-                                }}
-                            />
-                            <div className={classes.spacer}></div>
-                            <Button
-                                onClick={handleCustomZoomInput}
-                                size="small"
-                                appearance="subtle"
-                                title={locConstants.common.apply}
-                                aria-label={locConstants.common.apply}
-                                icon={<Checkmark20Regular />}
-                            />
-                            <Button
-                                icon={<Dismiss20Regular />}
-                                size="small"
-                                appearance="subtle"
-                                title={locConstants.common.close}
-                                aria-label={locConstants.common.close}
-                                onClick={() => setCustomZoomClicked(false)}
-                            />
-                        </div>
-                    ))}
-                {findNodeClicked && executionPlanView && (
-                    <div tabIndex={isReactFlowActive ? undefined : 0}>
-                        <FindNode
-                            // guaranteed to be non-null, because the plan will only
-                            // show if it's non-null
-                            executionPlanView={executionPlanView!}
-                            setExecutionPlanView={setExecutionPlanView}
-                            findNodeOptions={findNodeOptions}
-                            setFindNodeClicked={setFindNodeClicked}
-                            inputRef={inputRef}
-                            useReactFlow={isReactFlowActive}
+                            title={locConstants.executionPlan.customZoom}
+                            aria-label={locConstants.executionPlan.customZoom}
+                            onChange={(event) => {
+                                const value = Number(event.target.value);
+                                if (Number.isFinite(value)) {
+                                    setZoomNumber(Math.min(200, Math.max(1, value)));
+                                }
+                            }}
+                            onKeyDown={(event) => {
+                                if (event.key === "Enter") {
+                                    event.preventDefault();
+                                    void handleCustomZoomInput();
+                                }
+                            }}
                         />
-                    </div>
+                        <VscodeFloatingWidgetAction
+                            onClick={handleCustomZoomInput}
+                            title={locConstants.common.apply}
+                            aria-label={locConstants.common.apply}
+                            icon={<Checkmark16Regular />}
+                        />
+                        <VscodeFloatingWidgetAction
+                            icon={<Dismiss16Regular />}
+                            title={locConstants.common.close}
+                            aria-label={locConstants.common.close}
+                            onClick={() => setCustomZoomClicked(false)}
+                        />
+                    </VscodeFloatingWidget>
+                )}
+                {findNodeClicked && executionPlanView && (
+                    <FindNode
+                        // guaranteed to be non-null, because the plan will only
+                        // show if it's non-null
+                        executionPlanView={executionPlanView!}
+                        setExecutionPlanView={setExecutionPlanView}
+                        findNodeOptions={findNodeOptions}
+                        setFindNodeClicked={setFindNodeClicked}
+                        inputRef={inputRef}
+                    />
                 )}
                 {highlightOpsClicked && executionPlanView && (
-                    <div tabIndex={isReactFlowActive ? undefined : 0}>
-                        <HighlightExpensiveOperations
-                            // guaranteed to be non-null
-                            executionPlanView={executionPlanView!}
-                            setExecutionPlanView={setExecutionPlanView}
-                            setHighlightOpsClicked={setHighlightOpsClicked}
-                            inputRef={inputRef}
-                            useReactFlow={isReactFlowActive}
-                        />
-                    </div>
+                    <HighlightExpensiveOperations
+                        // guaranteed to be non-null
+                        executionPlanView={executionPlanView!}
+                        setExecutionPlanView={setExecutionPlanView}
+                        setHighlightOpsClicked={setHighlightOpsClicked}
+                        inputRef={inputRef}
+                    />
                 )}
                 {propertiesClicked && executionPlanView && (
                     <div
@@ -703,25 +575,15 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                         style={{ width: `${propertiesWidth}px` }}
                         ref={resizableRef}>
                         <div
-                            className={
-                                isReactFlowActive
-                                    ? mergeClasses(classes.resizer, classes.previewResizer)
-                                    : classes.resizer
-                            }
-                            role={isReactFlowActive ? "separator" : undefined}
-                            aria-orientation={isReactFlowActive ? "vertical" : undefined}
-                            aria-label={
-                                isReactFlowActive
-                                    ? `${locConstants.queryResult.resize} ${locConstants.executionPlan.properties}`
-                                    : undefined
-                            }
-                            aria-valuemin={isReactFlowActive ? 295 : undefined}
-                            aria-valuenow={
-                                isReactFlowActive ? Math.round(propertiesWidth) : undefined
-                            }
-                            tabIndex={isReactFlowActive ? 0 : undefined}
+                            className={mergeClasses(classes.resizer, classes.previewResizer)}
+                            role="separator"
+                            aria-orientation="vertical"
+                            aria-label={`${locConstants.queryResult.resize} ${locConstants.executionPlan.properties}`}
+                            aria-valuemin={295}
+                            aria-valuenow={Math.round(propertiesWidth)}
+                            tabIndex={0}
                             onMouseDown={onMouseDown}
-                            onKeyDown={isReactFlowActive ? onResizerKeyDown : undefined}
+                            onKeyDown={onResizerKeyDown}
                         />
                         <div style={{ height: "100%" }} tabIndex={0}>
                             <PropertiesPane
@@ -729,44 +591,27 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                                 executionPlanView={executionPlanView!}
                                 setPropertiesClicked={setPropertiesClicked}
                                 inputRef={inputRef}
-                                useReactFlow={isReactFlowActive}
                             />
                         </div>
                     </div>
                 )}
             </div>
             {executionPlanView && (
-                <>
-                    {isReactFlowActive ? (
-                        <ReactFlowIconStack
-                            executionPlanView={executionPlanView}
-                            setExecutionPlanView={setExecutionPlanView}
-                            setZoomNumber={setZoomNumber}
-                            customZoomClicked={customZoomClicked}
-                            setCustomZoomClicked={setCustomZoomClicked}
-                            findNodeClicked={findNodeClicked}
-                            setFindNodeClicked={setFindNodeClicked}
-                            highlightOpsClicked={highlightOpsClicked}
-                            setHighlightOpsClicked={setHighlightOpsClicked}
-                            propertiesClicked={propertiesClicked}
-                            setPropertiesClicked={setPropertiesClicked}
-                            query={query}
-                            xml={xml}
-                        />
-                    ) : (
-                        <LegacyIconStack
-                            executionPlanView={executionPlanView}
-                            setExecutionPlanView={setExecutionPlanView}
-                            setZoomNumber={setZoomNumber}
-                            setCustomZoomClicked={setCustomZoomClicked}
-                            setFindNodeClicked={setFindNodeClicked}
-                            setHighlightOpsClicked={setHighlightOpsClicked}
-                            setPropertiesClicked={setPropertiesClicked}
-                            query={query}
-                            xml={xml}
-                        />
-                    )}
-                </>
+                <ReactFlowIconStack
+                    executionPlanView={executionPlanView}
+                    setExecutionPlanView={setExecutionPlanView}
+                    setZoomNumber={setZoomNumber}
+                    customZoomClicked={customZoomClicked}
+                    setCustomZoomClicked={setCustomZoomClicked}
+                    findNodeClicked={findNodeClicked}
+                    setFindNodeClicked={setFindNodeClicked}
+                    highlightOpsClicked={highlightOpsClicked}
+                    setHighlightOpsClicked={setHighlightOpsClicked}
+                    propertiesClicked={propertiesClicked}
+                    setPropertiesClicked={setPropertiesClicked}
+                    query={query}
+                    xml={xml}
+                />
             )}
         </div>
     );

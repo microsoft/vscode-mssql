@@ -3,8 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-// The renderer stays JavaScript-lazy, but its small stylesheets are part of each host page's
-// main bundle so rendering a plan never depends on a second stylesheet request.
-import "../../index.css";
-import "@xyflow/react/dist/style.css";
-import "./reactFlowExecutionPlan.css";
+import { createCoverageMap, type CoverageMapData } from "istanbul-lib-coverage";
+
+export function mergeCoverageData(
+    existingCoverage: CoverageMapData,
+    currentCoverage: CoverageMapData,
+): CoverageMapData {
+    const coverageMap = createCoverageMap(existingCoverage);
+    coverageMap.merge(currentCoverage);
+    return coverageMap.toJSON();
+}

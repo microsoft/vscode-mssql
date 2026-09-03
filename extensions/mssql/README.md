@@ -157,7 +157,7 @@ Configure the MSSQL extension in user preferences (`Cmd+,`) or workspace setting
   "mssql.enableConnectionPooling": false,                  // Enable connection pooling for improved performance
   "mssql.azureActiveDirectory": "AuthCodeGrant",           // Azure AD auth method: "AuthCodeGrant" or "DeviceCode"
   "mssql.useMsalEntraMfaAuth": false,                      // Whether to use MSAL for Microsoft Entra MFA authentication instead of accounts signed into VS Code
-  "mssql.newEditorConnectionBehavior": "transferACtive",   // How to connect a newly-opened .SQL file or query editor: "none" | "transferActive" | "defaultConnection"
+  "mssql.newEditorConnectionBehavior": "transferActive",   // How to connect a newly-opened .SQL file or query editor: "none" | "transferActive" | "defaultConnection"
   "mssql.defaultConnectionId": "",                         // Connection ID (GUID) of the connection to auto-connect new editors with. Only applicable when "mssql.newEditorConnectionBehavior" is set to "defaultConnection"
 }
 
@@ -219,7 +219,6 @@ Configure the MSSQL extension in user preferences (`Cmd+,`) or workspace setting
 {
   "mssql.openQueryResultsInTabByDefault": false,           // Open query results in a tab instead of side panel
   "mssql.preview.betaResultsGrid": true,                   // (Preview) New results grid; set to false to use the legacy grid
-  "mssql.preview.betaExecutionPlan": true,                 // (Preview) New execution plan experience; set to false to use the legacy experience
   "mssql.resultsFontFamily": null,                         // Font family for results grid (null = VS Code default)
   "mssql.resultsFontSize": null,                           // Font size for results grid in pixels (null = VS Code default)
   "mssql.defaultQueryResultsViewMode": "Grid",             // Default results view: "Grid" or "Text"
