@@ -1113,6 +1113,10 @@
     "Deployments cannot be tracked because the extension's storage location is unavailable.": "Deployments cannot be tracked because the extension's storage location is unavailable.",
     "Failed to download the Data API builder CLI. Please check your network connection.": "Failed to download the Data API builder CLI. Please check your network connection.",
     "Failed to prepare the Data API builder CLI.": "Failed to prepare the Data API builder CLI.",
+    "Data API builder does not publish a build for {0}, so it cannot run directly on this machine. Try deploying to a container instead./{0} is a .NET runtime identifier, such as osx-arm64": {
+        "message": "Data API builder does not publish a build for {0}, so it cannot run directly on this machine. Try deploying to a container instead.",
+        "comment": ["{0} is a .NET runtime identifier, such as osx-arm64"]
+    },
     "The Data API builder CLI is not available. Run the prerequisite checks again.": "The Data API builder CLI is not available. Run the prerequisite checks again.",
     "No .NET runtime was found to run the Data API builder CLI. Install .NET and try again.": "No .NET runtime was found to run the Data API builder CLI. Install .NET and try again.",
     "Download .NET": "Download .NET",
@@ -4076,6 +4080,8 @@
     "Checking container readiness": "Checking container readiness",
     "Verifying the API is ready to accept requests": "Verifying the API is ready to accept requests",
     "Container logs": "Container logs",
+    "Show full error message": "Show full error message",
+    "Hide full error message": "Hide full error message",
     "To compare two schemas, first select a source schema and target schema, then press compare.": "To compare two schemas, first select a source schema and target schema, then press compare.",
     "Select Source Schema": "Select Source Schema",
     "Select Target Schema": "Select Target Schema",
@@ -4246,8 +4252,6 @@
     "Create Container": "Create Container",
     "Setting up": "Setting up",
     "Getting container ready for connections": "Getting container ready for connections",
-    "Hide full error message": "Hide full error message",
-    "Show full error message": "Show full error message",
     "Previous step failed. Please check the error message and try again.": "Previous step failed. Please check the error message and try again.",
     "+ Add Fabric Account": "+ Add Fabric Account",
     "Export Infrastructure as Code": "Export Infrastructure as Code",

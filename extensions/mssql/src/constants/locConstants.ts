@@ -1973,6 +1973,13 @@ export class LocalContainers {
         "Failed to download the Data API builder CLI. Please check your network connection.",
     );
     public static dabCliPrepareFailed = l10n.t("Failed to prepare the Data API builder CLI.");
+    public static dabCliArchitectureUnsupported = (runtimeIdentifier: string) =>
+        l10n.t({
+            message:
+                "Data API builder does not publish a build for {0}, so it cannot run directly on this machine. Try deploying to a container instead.",
+            args: [runtimeIdentifier],
+            comment: ["{0} is a .NET runtime identifier, such as osx-arm64"],
+        });
     public static dabCliNotAcquired = l10n.t(
         "The Data API builder CLI is not available. Run the prerequisite checks again.",
     );

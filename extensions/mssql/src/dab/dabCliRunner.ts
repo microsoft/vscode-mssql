@@ -85,19 +85,41 @@ export class DabCliRunner {
             this._installation = await acquireDabCli(this.storagePath, this.logger);
             return { success: true };
         } catch (error) {
-            // Only a failed download is a network problem; unpacking and
-            // resolving the right runtime package fail for their own reasons,
-            // and saying otherwise sends people to check the wrong thing.
-            const isDownloadFailure =
-                error instanceof DabCliAcquisitionError && error.stage === "download";
+            // The dialog shows a short summary, so the cause is logged here as
+            // well; otherwise the only record of it is a field on the response.
+            this.logger.error(
+                `Could not acquire the Data API builder CLI: ${getErrorMessage(error)}`,
+            );
 
             return {
                 success: false,
-                error: isDownloadFailure
-                    ? LocalContainers.dabCliDownloadFailed
-                    : LocalContainers.dabCliPrepareFailed,
+                error: this.getAcquisitionErrorMessage(error),
                 fullErrorText: getErrorMessage(error),
             };
+        }
+    }
+
+    /**
+     * The sentence to show for a failed acquisition.
+     *
+     * Each stage fails for its own reason, and naming the wrong one sends
+     * people to check something that was never the problem: a network check
+     * does not help when the machine's architecture has no build at all.
+     */
+    private getAcquisitionErrorMessage(error: unknown): string {
+        if (!(error instanceof DabCliAcquisitionError)) {
+            return LocalContainers.dabCliPrepareFailed;
+        }
+
+        switch (error.stage) {
+            case "download":
+                return LocalContainers.dabCliDownloadFailed;
+            case "unsupported":
+                return error.runtimeIdentifier
+                    ? LocalContainers.dabCliArchitectureUnsupported(error.runtimeIdentifier)
+                    : LocalContainers.dabCliPrepareFailed;
+            default:
+                return LocalContainers.dabCliPrepareFailed;
         }
     }
 

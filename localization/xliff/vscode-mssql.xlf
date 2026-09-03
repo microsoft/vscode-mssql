@@ -2413,6 +2413,10 @@
     <trans-unit id="++CODE++3c26053c4678fe4e3f992866121ffa0360ca6b3ab11b54e65f7bc7c89ce9f36b">
       <source xml:lang="en">Data API builder could not sign in to the database. It signs in separately from this extension, using the Azure CLI. Run &apos;az login&apos;, then run this step again.</source>
     </trans-unit>
+    <trans-unit id="++CODE++fc99f6bfe5e11ec996bb6edec67dd66123056685de26c34d516169c667267486">
+      <source xml:lang="en">Data API builder does not publish a build for {0}, so it cannot run directly on this machine. Try deploying to a container instead.</source>
+      <note>{0} is a .NET runtime identifier, such as osx-arm64</note>
+    </trans-unit>
     <trans-unit id="++CODE++d90dacedab33faee6e7e3d4aec2d222b63b231958e052de1a3f5a55ffc80c982">
       <source xml:lang="en">Data API builder is running!</source>
     </trans-unit>
