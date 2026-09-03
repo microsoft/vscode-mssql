@@ -2414,7 +2414,7 @@ export class LocConstants {
             selectSourceSchema: l10n.t("Select Source Schema"),
             selectTargetSchema: l10n.t("Select Target Schema"),
             noDifferences: l10n.t("No schema differences were found."),
-            initializingComparison: l10n.t("Initializing comparison, this might take a while..."),
+            initializingComparison: l10n.t("Comparing..."),
             applyingChanges: l10n.t("Applying changes, this might take a while..."),
             applySucceededRunAgain: l10n.t(
                 "Changes applied successfully. Run Schema Compare again to see updated differences.",
@@ -2504,6 +2504,44 @@ export class LocConstants {
             add: l10n.t("Add"),
             change: l10n.t("Change"),
             delete: l10n.t("Delete"),
+            differencesSummary: (count: number) =>
+                l10n.t({
+                    message: "{0} differences",
+                    args: [count],
+                    comment: ["{0} is the total number of schema differences"],
+                }),
+            addedDifferencesSummary: (count: number) =>
+                l10n.t({
+                    message: "{0} add",
+                    args: [count],
+                    comment: ["{0} is the number of objects that will be added"],
+                }),
+            changedDifferencesSummary: (count: number) =>
+                l10n.t({
+                    message: "{0} change",
+                    args: [count],
+                    comment: ["{0} is the number of objects that will be changed"],
+                }),
+            deletedDifferencesSummary: (count: number) =>
+                l10n.t({
+                    message: "{0} delete",
+                    args: [count],
+                    comment: ["{0} is the number of objects that will be deleted"],
+                }),
+            filterObjects: l10n.t("Filter objects"),
+            filterDifferences: l10n.t("Filter"),
+            allSchemas: l10n.t("All schemas"),
+            allObjectTypes: l10n.t("All object types"),
+            clearFilters: l10n.t("Clear filters"),
+            selectedDifferencesSummary: (selectedCount: number, totalCount: number) =>
+                l10n.t({
+                    message: "{0} of {1} selected",
+                    args: [selectedCount, totalCount],
+                    comment: [
+                        "{0} is the number of included schema differences",
+                        "{1} is the total number of schema differences",
+                    ],
+                }),
             selectSource: l10n.t("Select Source"),
             selectTarget: l10n.t("Select Target"),
             close: l10n.t("Close"),
@@ -2599,6 +2637,7 @@ export class LocConstants {
             includeExcludeAllOperationInProgress: l10n.t(
                 "Processing include or exclude all differences operation.",
             ),
+            updatingDifferenceSelection: l10n.t("Updating difference selection."),
         };
     }
 

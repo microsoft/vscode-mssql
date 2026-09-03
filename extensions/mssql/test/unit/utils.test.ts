@@ -509,6 +509,32 @@ suite("ConnectionMatcher", () => {
                 },
                 expected: Utils.MatchScore.AllAvailableProps,
             },
+            // Test equivalent server port formats used by saved profiles and .scmp files
+            {
+                conn1: {
+                    ...sqlAuthConn,
+                    server: "localhost",
+                    port: 2433,
+                },
+                conn2: {
+                    ...sqlAuthConn,
+                    server: "localhost,2433",
+                },
+                expected: Utils.MatchScore.AllAvailableProps,
+            },
+            // Test different server ports
+            {
+                conn1: {
+                    ...sqlAuthConn,
+                    server: "localhost",
+                    port: 1433,
+                },
+                conn2: {
+                    ...sqlAuthConn,
+                    server: "localhost,2433",
+                },
+                expected: Utils.MatchScore.NotMatch,
+            },
             // Test server and database match, but not auth
             {
                 conn1: sqlAuthConn,
@@ -629,6 +655,20 @@ suite("ConnectionMatcher", () => {
             profile: undefined,
             score: Utils.MatchScore.NotMatch,
         });
+    });
+
+    test("matches active SCMP connections when the port is stored separately", () => {
+        const activeConnection = {
+            ...sqlAuthConn,
+            server: "localhost",
+            port: 2433,
+        };
+        const scmpConnection = {
+            ...sqlAuthConn,
+            server: "localhost,2433",
+        };
+
+        expect(Utils.isSameScmpConnection(activeConnection, scmpConnection)).to.be.true;
     });
 });
 

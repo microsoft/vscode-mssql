@@ -22,7 +22,11 @@ import {
     SchemaUpdateAction,
     TaskExecutionMode,
 } from "../../src/enums";
-import { SchemaCompareWebViewState } from "../../src/sharedInterfaces/schemaCompare";
+import {
+    SchemaCompareIncludeExcludeAllRequest,
+    SchemaCompareIncludeExcludeNodeRequest,
+    SchemaCompareWebViewState,
+} from "../../src/sharedInterfaces/schemaCompare";
 import * as scUtils from "../../src/schemaCompare/schemaCompareUtils";
 import { UserSurvey } from "../../src/nps/userSurvey";
 import { IconUtils } from "../../src/utils/iconUtils";
@@ -49,6 +53,7 @@ suite("SchemaCompareWebViewController Tests", () => {
     let connectionManagerStub: sinon.SinonStubbedInstance<ConnectionManager>;
     let connectionStoreStub: sinon.SinonStubbedInstance<ConnectionStore>;
     let connectionChangedEmitter: vscode.EventEmitter<void>;
+    let requestHandlers: Map<string, (payload: any) => any>;
     const schemaCompareWebViewTitle = "Schema Compare";
     const operationId = "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE";
     let generateOperationIdStub: sinon.SinonStub<[], string>;
@@ -189,6 +194,12 @@ suite("SchemaCompareWebViewController Tests", () => {
 
     setup(() => {
         sandbox = sinon.createSandbox();
+        requestHandlers = new Map();
+        sandbox
+            .stub(SchemaCompareWebViewController.prototype, "onRequest")
+            .callsFake((type, handler) => {
+                requestHandlers.set(type.method, (payload) => handler(payload, undefined));
+            });
 
         mockInitialState = {
             isSqlProjectExtensionInstalled: false,
@@ -196,7 +207,7 @@ suite("SchemaCompareWebViewController Tests", () => {
             isApplyInProgress: false,
             applySucceeded: false,
             applyFailed: false,
-            isIncludeExcludeAllOperationInProgress: false,
+            isEndpointSelectionInProgress: false,
             connections: {},
             databases: [],
             databaseListConnectionId: "",
@@ -615,24 +626,33 @@ suite("SchemaCompareWebViewController Tests", () => {
             ...targetEndpointInfo,
             connectionDetails: undefined,
         };
-        const payload = {
+        const stalePayload = {
             deploymentOptions,
-            sourceEndpointInfo,
+            sourceEndpointInfo: {
+                ...sourceEndpointInfo,
+                projectFilePath: "/stale/source.sqlproj",
+            },
+            targetEndpointInfo: databaseTargetEndpoint,
+        };
+        const state = structuredClone(mockInitialState);
+        state.sourceEndpointInfo = databaseSourceEndpointInfo;
+        state.targetEndpointInfo = databaseTargetEndpoint;
+
+        const result = await controller["_reducerHandlers"].get("compare")(state, stalePayload);
+
+        const expectedPayload = {
+            deploymentOptions,
+            sourceEndpointInfo: databaseSourceEndpointInfo,
             targetEndpointInfo: databaseTargetEndpoint,
         };
 
-        const result = await controller["_reducerHandlers"].get("compare")(
-            mockInitialState,
-            payload,
-        );
-
         expect(
             compareStub,
-            "compare should use the active connection owner URI without connection details",
+            "compare should use the confirmed endpoints from controller state",
         ).to.have.been.calledWith(
             operationId,
             TaskExecutionMode.execute,
-            payload,
+            expectedPayload,
             schemaCompareService,
         );
 
@@ -641,6 +661,21 @@ suite("SchemaCompareWebViewController Tests", () => {
         );
 
         compareStub.restore();
+    });
+
+    test("compare reducer - endpoint selection in progress - does not compare stale endpoints", async () => {
+        const compareStub = sandbox.stub(scUtils, "compare");
+        const state = structuredClone(mockInitialState);
+        state.isEndpointSelectionInProgress = true;
+
+        const result = await controller["_reducerHandlers"].get("compare")(state, {
+            deploymentOptions,
+            sourceEndpointInfo,
+            targetEndpointInfo,
+        });
+
+        expect(compareStub).not.to.have.been.called;
+        expect(result).to.equal(state);
     });
 
     test("generateScript reducer - when called - completes successfully", async () => {
@@ -774,15 +809,21 @@ suite("SchemaCompareWebViewController Tests", () => {
         ).to.deep.equal(mockInitialState.defaultDeploymentOptionsResult);
     });
 
-    test("includeExcludeNode reducer - when called - completes successfully", async () => {
+    test("includeExcludeNode request - returns updates for the selected node and dependencies", async () => {
         const expectedResultMock = {
             success: true,
             errorMessage: "",
-            affectedDependencies: [],
+            affectedDependencies: [
+                {
+                    ...differences[1],
+                    // These arrays are deserialized by JSON-RPC and therefore are different
+                    // references from the arrays in the controller state.
+                    sourceValue: [...differences[1].sourceValue],
+                },
+            ],
             blockingDependencies: [],
         };
-
-        const publishProjectChangesStub = sandbox
+        const includeExcludeNodeStub = sandbox
             .stub(scUtils, "includeExcludeNode")
             .resolves(expectedResultMock);
 
@@ -803,16 +844,15 @@ suite("SchemaCompareWebViewController Tests", () => {
             includeRequest: true,
         };
 
-        const actualResult = await controller["_reducerHandlers"].get("includeExcludeNode")(
-            mockInitialState,
-            payload,
-        );
+        controller.state = structuredClone(mockInitialState);
+        controller.state.schemaCompareResult.differences[0].included = false;
+        const handler = requestHandlers.get(SchemaCompareIncludeExcludeNodeRequest.type.method);
+        const actualResult = await handler(payload);
 
-        expect(publishProjectChangesStub, "includeExcludeNode should be called once").to.have.been
+        expect(includeExcludeNodeStub, "includeExcludeNode should be called once").to.have.been
             .calledOnce;
-
         expect(
-            publishProjectChangesStub,
+            includeExcludeNodeStub,
             "includeExcludeNode should be called with correct arguments",
         ).to.have.been.calledWith(
             operationId,
@@ -821,13 +861,96 @@ suite("SchemaCompareWebViewController Tests", () => {
             schemaCompareService,
             sinon.match.any,
         );
+        expect(actualResult).to.deep.include({ success: true, reason: undefined });
+        expect(actualResult.updates).to.deep.equal([
+            { id: 0, included: true },
+            { id: 1, included: true },
+        ]);
+        expect(controller.state.schemaCompareResult.differences[0].included).to.be.true;
+        expect(controller.state.schemaCompareResult.differences[1].included).to.be.true;
+    });
 
-        expect(
-            actualResult.schemaCompareIncludeExcludeResult,
-            "includeExcludeNode should return expected result",
-        ).to.deep.equal(expectedResultMock);
+    test("includeExcludeNode request - returns the exact blocking objects", async () => {
+        const showWarningMessageStub = sandbox.stub(vscode.window, "showWarningMessage");
+        const expectedResultMock = {
+            success: false,
+            errorMessage: undefined,
+            affectedDependencies: [],
+            blockingDependencies: [
+                {
+                    ...differences[1],
+                    sourceValue: [...differences[1].sourceValue],
+                },
+            ],
+        };
+        sandbox.stub(scUtils, "includeExcludeNode").resolves(expectedResultMock);
+        controller.state = structuredClone(mockInitialState);
 
-        publishProjectChangesStub.restore();
+        const handler = requestHandlers.get(SchemaCompareIncludeExcludeNodeRequest.type.method);
+        const actualResult = await handler({
+            id: 0,
+            diffEntry: controller.state.schemaCompareResult.differences[0],
+            includeRequest: false,
+        });
+
+        expect(actualResult).to.deep.equal({
+            success: false,
+            updates: [],
+            blockingDependencies: [{ id: 1, name: "dbo.Customers" }],
+            reason: "blockingDependencies",
+            errorMessage: undefined,
+        });
+        expect(controller.state.schemaCompareResult.differences[0].included).to.be.true;
+        expect(showWarningMessageStub).to.have.been.calledOnce;
+    });
+
+    test("includeExcludeNode request - serializes concurrent service calls", async () => {
+        const expectedResult = {
+            success: true,
+            errorMessage: "",
+            affectedDependencies: [],
+            blockingDependencies: [],
+        };
+        let resolveFirst: (result: typeof expectedResult) => void;
+        let resolveSecond: (result: typeof expectedResult) => void;
+        const firstResult = new Promise<typeof expectedResult>((resolve) => {
+            resolveFirst = resolve;
+        });
+        const secondResult = new Promise<typeof expectedResult>((resolve) => {
+            resolveSecond = resolve;
+        });
+        const includeExcludeNodeStub = sandbox
+            .stub(scUtils, "includeExcludeNode")
+            .onFirstCall()
+            .returns(firstResult)
+            .onSecondCall()
+            .returns(secondResult);
+        controller.state = structuredClone(mockInitialState);
+        const handler = requestHandlers.get(SchemaCompareIncludeExcludeNodeRequest.type.method);
+        const firstPayload = {
+            id: 0,
+            diffEntry: controller.state.schemaCompareResult.differences[0],
+            includeRequest: false,
+        };
+        const secondPayload = {
+            id: 1,
+            diffEntry: controller.state.schemaCompareResult.differences[1],
+            includeRequest: false,
+        };
+
+        const firstOperation = handler(firstPayload);
+        const secondOperation = handler(secondPayload);
+
+        await Promise.resolve();
+        expect(includeExcludeNodeStub).to.have.been.calledOnce;
+
+        resolveFirst!(expectedResult);
+        await firstOperation;
+        await Promise.resolve();
+        expect(includeExcludeNodeStub).to.have.been.calledTwice;
+
+        resolveSecond!(expectedResult);
+        await secondOperation;
     });
 
     test("openScmp reducer - when called - completes successfully", async () => {
@@ -974,6 +1097,94 @@ suite("SchemaCompareWebViewController Tests", () => {
         expect(actualResult.schemaCompareOpenScmpResult).to.deep.equal(expectedResultMock);
 
         openScmpStub.restore();
+    });
+
+    test("SCMP endpoint profile matching falls back to parsed connection fields", async () => {
+        const endpoint = {
+            endpointType: 0,
+            serverName: "localhost,2433",
+            databaseName: "OpsAnalytics",
+            connectionDetails: {
+                options: {
+                    connectionString:
+                        "Data Source=localhost,2433;Initial Catalog=OpsAnalytics;User ID=sa",
+                    server: "localhost,2433",
+                    database: "OpsAnalytics",
+                    authenticationType: "SqlLogin",
+                    user: "sa",
+                },
+            },
+        } as unknown as mssql.SchemaCompareEndpointInfo;
+        const savedProfile = {
+            server: "localhost",
+            port: "2433",
+            database: "OpsAnalytics",
+            authenticationType: "SqlLogin",
+            user: "sa",
+            id: "docker-profile",
+        } as unknown as IConnectionProfile;
+
+        connectionManagerStub.findMatchingProfile
+            .onFirstCall()
+            .resolves({ profile: undefined, score: utils.MatchScore.NotMatch })
+            .onSecondCall()
+            .resolves({
+                profile: savedProfile,
+                score: utils.MatchScore.ServerDatabaseAndAuth,
+            });
+        connectionManagerStub.getUriForScmpConnection.returns(undefined);
+        connectionManagerStub.connect.resolves(true);
+
+        await controller["constructEndpointInfo"](endpoint, "source");
+
+        expect(connectionManagerStub.findMatchingProfile).to.have.been.calledTwice;
+        expect(connectionManagerStub.findMatchingProfile.firstCall.args[0]).to.include({
+            connectionString: "Data Source=localhost,2433;Initial Catalog=OpsAnalytics;User ID=sa",
+            server: "localhost,2433",
+            database: "OpsAnalytics",
+        });
+        expect(connectionManagerStub.findMatchingProfile.secondCall.args[0]).to.deep.include({
+            server: "localhost,2433",
+            database: "OpsAnalytics",
+        });
+        expect(connectionManagerStub.findMatchingProfile.secondCall.args[0].connectionString).to.be
+            .undefined;
+    });
+
+    test("SCMP endpoint profile matching preserves exact connection string identity", async () => {
+        const connectionString =
+            "Data Source=localhost,2433;Initial Catalog=OpsAnalytics;User ID=sa";
+        const endpoint = {
+            endpointType: 0,
+            serverName: "localhost,2433",
+            databaseName: "OpsAnalytics",
+            connectionDetails: {
+                options: {
+                    connectionString,
+                    server: "localhost,2433",
+                    database: "OpsAnalytics",
+                    authenticationType: "SqlLogin",
+                    user: "sa",
+                },
+            },
+        } as unknown as mssql.SchemaCompareEndpointInfo;
+        const savedProfile = {
+            connectionString,
+            id: "connection-string-profile",
+        } as unknown as IConnectionProfile;
+
+        connectionManagerStub.findMatchingProfile.resolves({
+            profile: savedProfile,
+            score: utils.MatchScore.AllAvailableProps,
+        });
+        connectionManagerStub.getUriForScmpConnection.returns(undefined);
+        connectionManagerStub.connect.resolves(true);
+
+        await controller["constructEndpointInfo"](endpoint, "source");
+
+        expect(connectionManagerStub.findMatchingProfile).to.have.been.calledOnceWith(
+            sinon.match({ connectionString }),
+        );
     });
 
     test("saveScmp reducer - when called - completes successfully", async () => {
@@ -1443,6 +1654,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         expect(confirmedResult.sourceEndpointInfo.connectionId).to.equal("saved-connection-id");
         expect(confirmedResult.sourceEndpointInfo.databaseName).to.equal("db1");
         expect(confirmedResult.sourceEndpointInfo.connectionDetails).to.be.undefined;
+        expect(confirmedResult.isEndpointSelectionInProgress).to.be.false;
     });
 
     test("confirmSelectedDatabase reducer - reports a missing saved connection", async () => {
@@ -1464,7 +1676,7 @@ suite("SchemaCompareWebViewController Tests", () => {
                 locConstants.SchemaCompare.savedConnectionNotFound("missing-connection-id"),
             ),
         );
-        expect(result.sourceEndpointInfo).to.deep.equal(mockInitialState.sourceEndpointInfo);
+        expect(result.isEndpointSelectionInProgress).to.be.false;
     });
 
     test("listDatabasesForActiveServer reducer - reconnects an edited saved connection", async () => {
@@ -1710,7 +1922,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         ).to.deep.equal(expectedResult);
     });
 
-    test("includeExcludeAllNodes reducer - when includeRequest is false - all nodes are excluded", async () => {
+    test("includeExcludeAllNodes request - when includeRequest is false - all nodes are excluded", async () => {
         const payload = {
             includeRequest: false,
         };
@@ -1771,23 +1983,22 @@ suite("SchemaCompareWebViewController Tests", () => {
             .stub(scUtils, "includeExcludeAllNodes")
             .resolves(expectedResult);
 
-        const actualResult = await controller["_reducerHandlers"].get("includeExcludeAllNodes")(
-            mockInitialState,
-            payload,
-        );
+        controller.state = structuredClone(mockInitialState);
+        const handler = requestHandlers.get(SchemaCompareIncludeExcludeAllRequest.type.method);
+        const actualResult = await handler(payload);
 
         expect(includeExcludeAllStub, "includeExcludeAllNodes should be called once").to.have.been
             .calledOnce;
 
         expect(
-            actualResult.schemaCompareResult.differences,
+            actualResult.differences,
             "includeExcludeAllNodes should return the expected result",
         ).to.deep.equal(expectedResult.allIncludedOrExcludedDifferences);
 
         includeExcludeAllStub.restore();
     });
 
-    test("includeExcludeAllNodes reducer - when includeRequest is true - all nodes are included", async () => {
+    test("includeExcludeAllNodes request - when includeRequest is true - all nodes are included", async () => {
         const payload = {
             includeRequest: true,
         };
@@ -1848,16 +2059,15 @@ suite("SchemaCompareWebViewController Tests", () => {
             .stub(scUtils, "includeExcludeAllNodes")
             .resolves(expectedResult);
 
-        const actualResult = await controller["_reducerHandlers"].get("includeExcludeAllNodes")(
-            mockInitialState,
-            payload,
-        );
+        controller.state = structuredClone(mockInitialState);
+        const handler = requestHandlers.get(SchemaCompareIncludeExcludeAllRequest.type.method);
+        const actualResult = await handler(payload);
 
         expect(includeExcludeAllStub, "includeExcludeAllNodes should be called once").to.have.been
             .calledOnce;
 
         expect(
-            actualResult.schemaCompareResult.differences,
+            actualResult.differences,
             "includeExcludeAllNodes should return the expected result",
         ).to.deep.equal(expectedResult.allIncludedOrExcludedDifferences);
 

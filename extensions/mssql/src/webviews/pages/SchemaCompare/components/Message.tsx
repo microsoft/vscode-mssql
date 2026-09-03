@@ -9,11 +9,17 @@ import { makeStyles, Spinner, Text } from "@fluentui/react-components";
 
 const useStyles = makeStyles({
     container: {
-        marginTop: "32px",
+        position: "absolute",
+        inset: 0,
         display: "flex",
         gap: "16px",
         flexDirection: "column",
-        alignItems: "stretch",
+        alignItems: "center",
+        justifyContent: "center",
+        textAlign: "center",
+        padding: "24px",
+        boxSizing: "border-box",
+        pointerEvents: "none",
     },
 });
 
