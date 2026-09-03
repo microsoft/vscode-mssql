@@ -976,7 +976,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         openScmpStub.restore();
     });
 
-    test("SCMP endpoint profile matching ignores the embedded connection string", async () => {
+    test("SCMP endpoint profile matching falls back to parsed connection fields", async () => {
         const endpoint = {
             endpointType: 0,
             serverName: "localhost,2433",
@@ -995,28 +995,72 @@ suite("SchemaCompareWebViewController Tests", () => {
         const savedProfile = {
             server: "localhost",
             port: "2433",
+            database: "OpsAnalytics",
             authenticationType: "SqlLogin",
             user: "sa",
             id: "docker-profile",
         } as unknown as IConnectionProfile;
 
+        connectionManagerStub.findMatchingProfile
+            .onFirstCall()
+            .resolves({ profile: undefined, score: utils.MatchScore.NotMatch })
+            .onSecondCall()
+            .resolves({
+                profile: savedProfile,
+                score: utils.MatchScore.ServerDatabaseAndAuth,
+            });
+        connectionManagerStub.getUriForScmpConnection.returns(undefined);
+        connectionManagerStub.connect.resolves(true);
+
+        await controller["constructEndpointInfo"](endpoint, "source");
+
+        expect(connectionManagerStub.findMatchingProfile).to.have.been.calledTwice;
+        expect(connectionManagerStub.findMatchingProfile.firstCall.args[0]).to.include({
+            connectionString: "Data Source=localhost,2433;Initial Catalog=OpsAnalytics;User ID=sa",
+            server: "localhost,2433",
+            database: "OpsAnalytics",
+        });
+        expect(connectionManagerStub.findMatchingProfile.secondCall.args[0]).to.deep.include({
+            server: "localhost,2433",
+            database: "OpsAnalytics",
+        });
+        expect(connectionManagerStub.findMatchingProfile.secondCall.args[0].connectionString).to.be
+            .undefined;
+    });
+
+    test("SCMP endpoint profile matching preserves exact connection string identity", async () => {
+        const connectionString =
+            "Data Source=localhost,2433;Initial Catalog=OpsAnalytics;User ID=sa";
+        const endpoint = {
+            endpointType: 0,
+            serverName: "localhost,2433",
+            databaseName: "OpsAnalytics",
+            connectionDetails: {
+                options: {
+                    connectionString,
+                    server: "localhost,2433",
+                    database: "OpsAnalytics",
+                    authenticationType: "SqlLogin",
+                    user: "sa",
+                },
+            },
+        } as unknown as mssql.SchemaCompareEndpointInfo;
+        const savedProfile = {
+            connectionString,
+            id: "connection-string-profile",
+        } as unknown as IConnectionProfile;
+
         connectionManagerStub.findMatchingProfile.resolves({
             profile: savedProfile,
-            score: utils.MatchScore.ServerDatabaseAndAuth,
+            score: utils.MatchScore.AllAvailableProps,
         });
         connectionManagerStub.getUriForScmpConnection.returns(undefined);
         connectionManagerStub.connect.resolves(true);
 
         await controller["constructEndpointInfo"](endpoint, "source");
 
-        expect(connectionManagerStub.findMatchingProfile).to.have.been.calledWithMatch(
-            sinon.match((profile: IConnectionProfile) => {
-                return (
-                    profile.connectionString === undefined &&
-                    profile.server === "localhost,2433" &&
-                    profile.database === "OpsAnalytics"
-                );
-            }),
+        expect(connectionManagerStub.findMatchingProfile).to.have.been.calledOnceWith(
+            sinon.match({ connectionString }),
         );
     });
 

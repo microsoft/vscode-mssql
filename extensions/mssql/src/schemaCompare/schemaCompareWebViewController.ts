@@ -2658,11 +2658,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 `Processing Database endpoint for ${caller} - OperationId: ${this.operationId}`,
             );
 
-            const connectionOptions = { ...(endpoint.connectionDetails?.options ?? {}) };
-            // The original SCMP connection string is useful for reconnecting, but saved profile
-            // matching treats connection strings as exact identities. Match using the parsed
-            // fields so an equivalent saved profile can be found.
-            delete connectionOptions.connectionString;
+            const connectionOptions = endpoint.connectionDetails?.options ?? {};
             const connInfo = {
                 ...connectionOptions,
                 server: connectionOptions.server || endpoint.serverName,
@@ -2673,8 +2669,22 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 `Has connectionDetails: ${!!endpoint.connectionDetails}, Has options: ${!!endpoint.connectionDetails?.options} - OperationId: ${this.operationId}`,
             );
 
-            const { profile: connectionProfile, score } =
-                await this.connectionMgr.findMatchingProfile(connInfo as IConnectionProfile);
+            let profileMatch = await this.connectionMgr.findMatchingProfile(
+                connInfo as IConnectionProfile,
+            );
+            if (
+                (!profileMatch.profile || profileMatch.score === utils.MatchScore.NotMatch) &&
+                connInfo.connectionString
+            ) {
+                // Prefer an exact connection-string identity, then fall back to the parsed fields
+                // so equivalent saved profiles can still be found.
+                const parsedConnInfo = { ...connInfo };
+                delete parsedConnInfo.connectionString;
+                profileMatch = await this.connectionMgr.findMatchingProfile(
+                    parsedConnInfo as IConnectionProfile,
+                );
+            }
+            const { profile: connectionProfile, score } = profileMatch;
             let isConnected = false;
 
             if (connectionProfile && score !== utils.MatchScore.NotMatch) {
