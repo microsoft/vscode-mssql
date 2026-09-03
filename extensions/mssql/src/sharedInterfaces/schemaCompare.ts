@@ -24,6 +24,7 @@ import {
     TaskExecutionMode,
 } from "../enums";
 import { FormItemOptions } from "./form";
+import { RequestType } from "vscode-jsonrpc";
 
 export {
     ExtractTarget,
@@ -45,7 +46,7 @@ export interface SchemaCompareWebViewState {
     isApplyInProgress: boolean;
     applySucceeded: boolean;
     applyFailed: boolean;
-    isIncludeExcludeAllOperationInProgress: boolean;
+    isEndpointSelectionInProgress?: boolean;
     connections: { [connectionId: string]: SchemaCompareServer };
     databases: FormItemOptions[];
     databaseListConnectionId: string;
@@ -149,16 +150,6 @@ export interface SchemaCompareReducers {
 
     resetOptions: {};
 
-    includeExcludeNode: {
-        id: number;
-        diffEntry: DiffEntry;
-        includeRequest: boolean;
-    };
-
-    includeExcludeAllNodes: {
-        includeRequest: boolean;
-    };
-
     openScmp: {};
 
     saveScmp: {};
@@ -167,6 +158,10 @@ export interface SchemaCompareReducers {
 }
 
 export interface SchemaCompareContextProps extends CoreRPCs {
+    differences: DiffEntry[];
+    pendingDifferenceIds: ReadonlySet<number>;
+    isIncludeExcludeAllInProgress: boolean;
+
     isSqlProjectExtensionInstalled: () => void;
 
     listActiveServers: () => void;
@@ -226,13 +221,73 @@ export interface SchemaCompareContextProps extends CoreRPCs {
 
     resetOptions: () => void;
 
-    includeExcludeNode: (id: number, diffEntry: DiffEntry, includeRequest: boolean) => void;
+    includeExcludeNode: (
+        id: number,
+        diffEntry: DiffEntry,
+        includeRequest: boolean,
+    ) => Promise<void>;
 
-    includeExcludeAllNodes: (includeRequest: boolean) => void;
+    includeExcludeAllNodes: (includeRequest: boolean) => Promise<void>;
 
     openScmp: () => void;
 
     saveScmp: () => void;
 
     cancel: () => void;
+}
+
+export type SchemaCompareIncludeExcludeRejectionReason =
+    | "blockingDependencies"
+    | "notExcludable"
+    | "differenceNotFound"
+    | "serviceError";
+
+export interface SchemaCompareDifferenceUpdate {
+    id: number;
+    included: boolean;
+}
+
+export interface SchemaCompareBlockingDependency {
+    id?: number;
+    name: string;
+}
+
+export interface SchemaCompareIncludeExcludeNodeParams {
+    id: number;
+    diffEntry: DiffEntry;
+    includeRequest: boolean;
+}
+
+export interface SchemaCompareIncludeExcludeNodeResponse {
+    success: boolean;
+    updates: SchemaCompareDifferenceUpdate[];
+    blockingDependencies: SchemaCompareBlockingDependency[];
+    reason?: SchemaCompareIncludeExcludeRejectionReason;
+    errorMessage?: string;
+}
+
+export namespace SchemaCompareIncludeExcludeNodeRequest {
+    export const type = new RequestType<
+        SchemaCompareIncludeExcludeNodeParams,
+        SchemaCompareIncludeExcludeNodeResponse,
+        void
+    >("schemaCompare/includeExcludeNodeWebview");
+}
+
+export interface SchemaCompareIncludeExcludeAllParams {
+    includeRequest: boolean;
+}
+
+export interface SchemaCompareIncludeExcludeAllResponse {
+    success: boolean;
+    differences: DiffEntry[];
+    errorMessage?: string;
+}
+
+export namespace SchemaCompareIncludeExcludeAllRequest {
+    export const type = new RequestType<
+        SchemaCompareIncludeExcludeAllParams,
+        SchemaCompareIncludeExcludeAllResponse,
+        void
+    >("schemaCompare/includeExcludeAllWebview");
 }

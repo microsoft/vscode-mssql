@@ -6,9 +6,10 @@
 import * as sc from "../../../sharedInterfaces/schemaCompare";
 import * as mssql from "vscode-mssql";
 
-import { createContext, useMemo } from "react";
+import { createContext, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { getCoreRPCs } from "../../common/utils";
+import { useSchemaCompareSelector } from "./schemaCompareSelector";
 
 const schemaCompareContext = createContext<sc.SchemaCompareContextProps>(
     {} as sc.SchemaCompareContextProps,
@@ -23,10 +24,127 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
         sc.SchemaCompareWebViewState,
         sc.SchemaCompareReducers
     >();
+    const schemaCompareResult = useSchemaCompareSelector((state) => state.schemaCompareResult);
+    const [differences, setDifferences] = useState<mssql.DiffEntry[]>(
+        schemaCompareResult?.differences ?? [],
+    );
+    const confirmedDifferencesRef = useRef(differences);
+    const pendingSelectionsRef = useRef(new Map<number, boolean>());
+    const isIncludeExcludeAllInProgressRef = useRef(false);
+    const [pendingDifferenceIds, setPendingDifferenceIds] = useState<ReadonlySet<number>>(
+        new Set(),
+    );
+    const [isIncludeExcludeAllInProgress, setIsIncludeExcludeAllInProgress] = useState(false);
+
+    const updateDifferences = useCallback(
+        (updater: (current: mssql.DiffEntry[]) => mssql.DiffEntry[]) => {
+            setDifferences((current) => {
+                const updated = updater(current);
+                return updated;
+            });
+        },
+        [],
+    );
+
+    const renderConfirmedDifferences = useCallback(() => {
+        const updated = confirmedDifferencesRef.current.map((difference, index) => {
+            const pendingSelection = pendingSelectionsRef.current.get(index);
+            return pendingSelection === undefined
+                ? difference
+                : { ...difference, included: pendingSelection };
+        });
+        setDifferences(updated);
+    }, []);
+
+    useEffect(() => {
+        if (pendingSelectionsRef.current.size > 0 || isIncludeExcludeAllInProgressRef.current) {
+            return;
+        }
+        const updated = schemaCompareResult?.differences ?? [];
+        confirmedDifferencesRef.current = updated;
+        setDifferences(updated);
+    }, [schemaCompareResult]);
+
+    const includeExcludeNode = useCallback(
+        async (id: number, diffEntry: mssql.DiffEntry, includeRequest: boolean): Promise<void> => {
+            if (isIncludeExcludeAllInProgressRef.current || pendingSelectionsRef.current.has(id)) {
+                return;
+            }
+
+            pendingSelectionsRef.current.set(id, includeRequest);
+            setPendingDifferenceIds(new Set(pendingSelectionsRef.current.keys()));
+            renderConfirmedDifferences();
+
+            try {
+                const response = await extensionRpc.sendRequest(
+                    sc.SchemaCompareIncludeExcludeNodeRequest.type,
+                    { id, diffEntry, includeRequest },
+                );
+
+                if (response.success) {
+                    const updates = new Map(
+                        response.updates.map((update) => [update.id, update.included]),
+                    );
+                    confirmedDifferencesRef.current = confirmedDifferencesRef.current.map(
+                        (difference, index) => {
+                            const included = updates.get(index);
+                            return included === undefined
+                                ? difference
+                                : { ...difference, included };
+                        },
+                    );
+                    renderConfirmedDifferences();
+                }
+            } catch {
+                // The extension host owns user-facing error notifications for this request.
+            } finally {
+                pendingSelectionsRef.current.delete(id);
+                setPendingDifferenceIds(new Set(pendingSelectionsRef.current.keys()));
+                renderConfirmedDifferences();
+            }
+        },
+        [extensionRpc, renderConfirmedDifferences],
+    );
+
+    const includeExcludeAllNodes = useCallback(
+        async (includeRequest: boolean): Promise<void> => {
+            if (isIncludeExcludeAllInProgressRef.current || pendingSelectionsRef.current.size > 0) {
+                return;
+            }
+
+            isIncludeExcludeAllInProgressRef.current = true;
+            setIsIncludeExcludeAllInProgress(true);
+            updateDifferences((current) =>
+                current.map((difference) => ({ ...difference, included: includeRequest })),
+            );
+
+            try {
+                const response = await extensionRpc.sendRequest(
+                    sc.SchemaCompareIncludeExcludeAllRequest.type,
+                    { includeRequest },
+                );
+                if (response.success) {
+                    confirmedDifferencesRef.current = response.differences;
+                    setDifferences(response.differences);
+                } else {
+                    renderConfirmedDifferences();
+                }
+            } catch {
+                renderConfirmedDifferences();
+            } finally {
+                isIncludeExcludeAllInProgressRef.current = false;
+                setIsIncludeExcludeAllInProgress(false);
+            }
+        },
+        [extensionRpc, renderConfirmedDifferences, updateDifferences],
+    );
 
     const commands = useMemo<sc.SchemaCompareContextProps>(
         () => ({
             ...getCoreRPCs(extensionRpc),
+            differences,
+            pendingDifferenceIds,
+            isIncludeExcludeAllInProgress,
             isSqlProjectExtensionInstalled: function (): void {
                 extensionRpc.action("isSqlProjectExtensionInstalled", {});
             },
@@ -159,22 +277,8 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
             resetOptions: function (): void {
                 extensionRpc.action("resetOptions", {});
             },
-            includeExcludeNode: function (
-                id: number,
-                diffEntry: mssql.DiffEntry,
-                includeRequest: boolean,
-            ): void {
-                extensionRpc.action("includeExcludeNode", {
-                    id: id,
-                    diffEntry: diffEntry,
-                    includeRequest: includeRequest,
-                });
-            },
-            includeExcludeAllNodes: function (includeRequest: boolean): void {
-                extensionRpc.action("includeExcludeAllNodes", {
-                    includeRequest: includeRequest,
-                });
-            },
+            includeExcludeNode,
+            includeExcludeAllNodes,
             openScmp: function (): void {
                 extensionRpc.action("openScmp", {});
             },
@@ -185,7 +289,14 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
                 extensionRpc.action("cancel", {});
             },
         }),
-        [extensionRpc],
+        [
+            differences,
+            extensionRpc,
+            includeExcludeAllNodes,
+            includeExcludeNode,
+            isIncludeExcludeAllInProgress,
+            pendingDifferenceIds,
+        ],
     );
 
     return (
