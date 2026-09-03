@@ -44,10 +44,15 @@ export function validateIndexes(context: IndexDiagnosticContext): void {
         const indexNameNode = firstDescendantOfKind(index, "IdentifierName");
         if (!target || !indexNameNode) continue;
         const targetName = compactMultipartName(context.source(target));
-        const targetColumns = context.relationColumnsAt(
-            multipartIdentifierParts(targetName),
-            index.start,
-        );
+        const targetParts = multipartIdentifierParts(context.source(target));
+        if (targetParts.length > 3) {
+            context.add(
+                "TypeNameMaxPrefixError",
+                `The type name '${targetName}' contains more than the maximum number of prefixes. The maximum is 2.`,
+                target,
+            );
+        }
+        const targetColumns = context.relationColumnsAt(targetParts, index.start);
         const keyList = firstDescendantOfKind(index, "IndexColumnList");
         const include = firstDescendantOfKind(index, "IncludeClause");
         const keyColumns = keyList
@@ -125,7 +130,18 @@ export function validateIndexes(context: IndexDiagnosticContext): void {
         const where = firstDescendantOfKind(index, "WhereClause");
         if (where) {
             const expression = firstDescendantOfKind(where, "Expression");
-            if (!expression || !hasBooleanOperator(context.source(expression))) {
+            const disjunction = expression && firstDescendantOfKind(expression, "Or");
+            if (disjunction) {
+                context.add(
+                    "IncorrectSyntaxNear",
+                    `Incorrect syntax near '${context.source(disjunction)}'.`,
+                    disjunction,
+                );
+            } else if (
+                !expression ||
+                !hasBooleanOperator(context.source(expression)) ||
+                !isValidFilteredIndexPredicate(expression)
+            ) {
                 const indexName = normalizeIdentifier(context.source(indexNameNode));
                 context.add(
                     "IncorrectWhereClauseForFilteredIndex",
@@ -137,7 +153,7 @@ export function validateIndexes(context: IndexDiagnosticContext): void {
     }
     validateIndexCatalog(context);
     for (const index of context.nodes("CreateSemanticIndexStatement")) {
-        if (firstDescendantOfKind(index, "SemanticExternalModel")) continue;
+        if (hasSemanticExternalModel(context, index)) continue;
         const withClause = firstDescendantOfKind(index, "SemanticIndexWithClause") ?? index;
         context.add(
             "MissingSemanticIndexOption",
@@ -145,6 +161,35 @@ export function validateIndexes(context: IndexDiagnosticContext): void {
             withClause,
         );
     }
+}
+
+function isValidFilteredIndexPredicate(expression: SyntaxNode): boolean {
+    const prohibitedKinds = [
+        "Plus",
+        "Minus",
+        "Star",
+        "Slash",
+        "PercentSign",
+        "FunctionCall",
+        "CaseExpression",
+        "ParenthesizedQuery",
+        "QueryExpression",
+    ] as const;
+    if (prohibitedKinds.some((kind) => firstDescendantOfKind(expression, kind))) return false;
+
+    const children = [...expression.children()];
+    const starts = [0];
+    for (const [index, child] of children.entries()) {
+        if (child.kind === "And") starts.push(index + 1);
+    }
+    return starts.every((start) => {
+        const first = children[start];
+        if (!first) return false;
+        if (first.kind === "ColumnReference") return true;
+        if (first.kind !== "OpenParen") return false;
+        const nested = children.slice(start).find((child) => child.kind === "Expression");
+        return nested ? isValidFilteredIndexPredicate(nested) : false;
+    });
 }
 
 function validateIndexCatalog(context: IndexDiagnosticContext): void {
@@ -376,4 +421,16 @@ function indexedViewInvalidColumnType(typeDisplay: string | undefined): boolean 
 
 function offlineOnlyIncludedColumnType(typeDisplay: string | undefined): boolean {
     return typeDisplay !== undefined && indexColumnTypeFacts(typeDisplay).requiresOfflineBuild;
+}
+
+/**
+ * The model binding is written either as its own option or, when another option word shares the
+ * position, as a generic assignment. Both spell the same binding, so both satisfy the requirement.
+ */
+function hasSemanticExternalModel(context: IndexDiagnosticContext, index: SyntaxNode): boolean {
+    if (firstDescendantOfKind(index, "SemanticExternalModel")) return true;
+    return descendantsOfKind(index, "GenericOptionName").some(
+        (name) =>
+            normalizeIdentifier(context.source(name).trim()).toUpperCase() === "EXTERNAL_MODEL",
+    );
 }

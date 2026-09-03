@@ -288,31 +288,28 @@ function validateApproximateQuery(
     const approximate = descendants(node, "ApproximateKeyword");
     if (approximate.length === 0) return;
     const marker = approximate[0]!;
-    const fetch =
-        ancestorOfKind(marker.parent(), ["ApproximateFetchClause"]) ??
-        ancestorOfKind(marker.parent(), ["OffsetFetchClause"]);
-    const label = fetch ? "FETCH APPROX" : "TOP WITH APPROX";
+    const approximateForms = "TOP ... WITH APPROX[IMATE] and FETCH APPROX[IMATE]";
     const vectorSources = descendants(node, "VectorSearchTableSource");
     if (vectorSources.length === 0) {
         diagnostics.push(
             error(
                 "VEC003",
-                `${label} requires VECTOR_SEARCH in the FROM clause.`,
+                `${approximateForms} are only allowed when the query's FROM clause includes a VECTOR_SEARCH table-valued function.`,
                 marker.start,
                 marker.end,
             ),
         );
         return;
     }
-    if (fetch?.kind === "OffsetFetchClause") {
-        diagnostics.push(
-            error("VEC003", "FETCH APPROX cannot be combined with OFFSET.", fetch.start, fetch.end),
-        );
-    }
     const top = ancestorOfKind(marker.parent(), ["TopClause"]);
     if (top && hasDescendant(top, "Percent")) {
         diagnostics.push(
-            error("VEC003", "TOP WITH APPROX cannot be combined with PERCENT.", top.start, top.end),
+            error(
+                "VEC003",
+                "TOP ... WITH APPROX[IMATE] cannot be combined with PERCENT.",
+                top.start,
+                top.end,
+            ),
         );
     }
     const order = firstDescendant(node, "OrderByClause");
@@ -321,7 +318,7 @@ function validateApproximateQuery(
         diagnostics.push(
             error(
                 "VEC003",
-                `${label} requires ORDER BY on the VECTOR_SEARCH distance column.`,
+                `${approximateForms} require an ORDER BY clause.`,
                 marker.start,
                 marker.end,
             ),
@@ -332,7 +329,7 @@ function validateApproximateQuery(
         diagnostics.push(
             error(
                 "VEC003",
-                `${label} ORDER BY must have exactly one item.`,
+                `${approximateForms} require exactly one ORDER BY item.`,
                 order.start,
                 order.end,
             ),
@@ -344,7 +341,7 @@ function validateApproximateQuery(
         diagnostics.push(
             error(
                 "VEC003",
-                `${label} ORDER BY must be ascending (ASC).`,
+                `${approximateForms} require ORDER BY to be ascending (ASC).`,
                 items[0]!.start,
                 items[0]!.end,
             ),
@@ -356,14 +353,15 @@ function validateApproximateQuery(
         diagnostics.push(
             error(
                 "VEC003",
-                `${label} ORDER BY must reference the VECTOR_SEARCH distance column.`,
+                `${approximateForms} require ORDER BY to reference the VECTOR_SEARCH 'distance' column (e.g. '<vs_alias>.distance').`,
                 items[0]!.start,
                 items[0]!.end,
             ),
         );
     } else if (parts.length > 1) {
         const aliases = vectorSources
-            .map((source) => firstDescendant(source, "TableAlias"))
+            .map((source) => firstDescendant(source, "VectorSearchTail"))
+            .map((tail) => tail && firstDescendant(tail, "TableAlias"))
             .filter((alias): alias is SyntaxNode => alias !== undefined)
             .map((alias) =>
                 sourceText(syntax, alias)
@@ -375,7 +373,7 @@ function validateApproximateQuery(
             diagnostics.push(
                 error(
                     "VEC003",
-                    `${label} ORDER BY alias must match a VECTOR_SEARCH alias.`,
+                    `${approximateForms} require ORDER BY to reference the VECTOR_SEARCH alias's 'distance' column; '${parts.at(-2)!}' is not a VECTOR_SEARCH alias in this query.`,
                     items[0]!.start,
                     items[0]!.end,
                 ),

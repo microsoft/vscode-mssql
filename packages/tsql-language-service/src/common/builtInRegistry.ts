@@ -275,6 +275,17 @@ const documentedRoutines: readonly BuiltInEntry[] = [
         returnType: "nvarchar or varchar",
         minimumCompatibility: 140,
     }),
+    routine("APPROX_COUNT_DISTINCT", {
+        parameters: ["expression"],
+        documentation: "Returns the approximate number of distinct non-null values in a group.",
+        returnType: "bigint",
+        minimumCompatibility: 150,
+    }),
+    routine("CHECKSUM_AGG", {
+        parameters: ["expression"],
+        documentation: "Returns the checksum of the values in a group.",
+        returnType: "int",
+    }),
     routine("COUNT", {
         parameters: ["expression"],
         documentation: "Returns the number of values in a group.",

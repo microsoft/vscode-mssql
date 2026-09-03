@@ -91,8 +91,7 @@ SELECT * FROM VECTOR_SEARCH(
         );
         assert.ok(
             missingSource.some(
-                ({ code, message }) =>
-                    code === "VEC003" && message.includes("requires VECTOR_SEARCH"),
+                ({ code, message }) => code === "VEC003" && message.includes("only allowed"),
             ),
         );
 
@@ -104,7 +103,72 @@ ORDER BY ann.id DESC, ann.distance;`);
             .filter(({ code }) => code === "VEC003")
             .map(({ message }) => message);
         assert.ok(messages.some((message) => message.includes("cannot be combined with PERCENT")));
-        assert.ok(messages.some((message) => message.includes("exactly one item")));
+        assert.ok(messages.some((message) => message.includes("exactly one ORDER BY item")));
+    });
+
+    test("uses canonical approximate-query diagnostics", async () => {
+        const source = `FROM VECTOR_SEARCH(
+  TABLE=dbo.Products AS source,
+  COLUMN=Embedding,
+  SIMILAR_TO=@query,
+  METRIC='cosine'
+) AS ann`;
+        const cases = [
+            [
+                "SELECT TOP 5 WITH APPROX id FROM dbo.Products ORDER BY id;",
+                "TOP ... WITH APPROX[IMATE] and FETCH APPROX[IMATE] are only allowed when the query's FROM clause includes a VECTOR_SEARCH table-valued function.",
+            ],
+            [
+                `SELECT TOP 5 WITH APPROX ann.distance ${source};`,
+                "TOP ... WITH APPROX[IMATE] and FETCH APPROX[IMATE] require an ORDER BY clause.",
+            ],
+            [
+                `SELECT TOP 5 WITH APPROX ann.distance ${source} ORDER BY ann.distance, ann.distance;`,
+                "TOP ... WITH APPROX[IMATE] and FETCH APPROX[IMATE] require exactly one ORDER BY item.",
+            ],
+            [
+                `SELECT TOP 5 WITH APPROX ann.distance ${source} ORDER BY ann.distance DESC;`,
+                "TOP ... WITH APPROX[IMATE] and FETCH APPROX[IMATE] require ORDER BY to be ascending (ASC).",
+            ],
+            [
+                `SELECT TOP 5 WITH APPROX ann.distance ${source} ORDER BY ann.id;`,
+                "TOP ... WITH APPROX[IMATE] and FETCH APPROX[IMATE] require ORDER BY to reference the VECTOR_SEARCH 'distance' column (e.g. '<vs_alias>.distance').",
+            ],
+            [
+                `SELECT TOP 5 WITH APPROX ann.distance ${source} ORDER BY wrong.distance;`,
+                "TOP ... WITH APPROX[IMATE] and FETCH APPROX[IMATE] require ORDER BY to reference the VECTOR_SEARCH alias's 'distance' column; 'wrong' is not a VECTOR_SEARCH alias in this query.",
+            ],
+            [
+                `SELECT TOP 5 PERCENT WITH APPROX ann.distance ${source} ORDER BY ann.distance;`,
+                "TOP ... WITH APPROX[IMATE] cannot be combined with PERCENT.",
+            ],
+        ] as const;
+        for (const [sql, expected] of cases) {
+            assert.deepEqual(
+                (await analyze(sql))
+                    .filter(({ code }) => code === "VEC003")
+                    .map(({ message }) => message),
+                [expected],
+                sql,
+            );
+        }
+    });
+
+    test("accepts FETCH APPROX after its OFFSET clause", async () => {
+        const diagnostics = await analyze(`
+SELECT ann.distance
+FROM VECTOR_SEARCH(TABLE=dbo.Products, COLUMN=Embedding, SIMILAR_TO=@query, METRIC='cosine') AS ann
+ORDER BY ann.distance OFFSET 0 ROWS FETCH APPROX FIRST 5 ROWS ONLY;`);
+        assert.deepEqual(
+            diagnostics.filter(({ code }) => code === "VEC003"),
+            [],
+        );
+        assert.equal(
+            diagnostics.some(({ message }) =>
+                message.includes('"ann.distance" could not be bound'),
+            ),
+            false,
+        );
     });
 
     // Verifies vector scalar arity and vector-index METRIC requirements survive the architecture change.

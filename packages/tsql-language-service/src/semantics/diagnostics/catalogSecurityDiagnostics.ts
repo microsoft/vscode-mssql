@@ -47,6 +47,11 @@ export function validateSecurables(context: CatalogSecurityDiagnosticContext): v
         const nameNode = firstDescendantOfKind(option, "IdentifierName");
         if (nameNode) reportMissingSecurable(context, nameNode, "credential", undefined);
     }
+    for (const option of context.nodes("LoginCredentialOption")) {
+        if (!/^\s*CREDENTIAL\b/iu.test(context.source(option))) continue;
+        const nameNode = descendantsOfKind(option, "IdentifierName").at(-1);
+        if (nameNode) reportMissingSecurable(context, nameNode, "credential", undefined);
+    }
 }
 
 /** Reports collation names absent from an authoritative server collation catalog. */

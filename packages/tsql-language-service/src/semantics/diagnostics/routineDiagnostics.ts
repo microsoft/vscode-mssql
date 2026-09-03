@@ -39,6 +39,8 @@ export interface RoutineDiagnosticContext extends DiagnosticFamilyContext {
 export function validateBuiltInRoutineNames(context: DiagnosticFamilyContext): void {
     for (const call of context.nodes("FunctionCall")) {
         if (containsSyntaxError(call)) continue;
+        const containingColumn = ancestorOfKind(call, ["ColumnDefinition"]);
+        if (containingColumn && containsSyntaxError(containingColumn)) continue;
         const nameNode = firstDescendantOfKind(call, "MultipartIdentifier");
         if (!nameNode) continue;
         const displayName = compactMultipartName(context.source(nameNode));
@@ -67,6 +69,7 @@ export function validateBuiltInRoutineNames(context: DiagnosticFamilyContext): v
 /** Validates EXECUTE targets, positional/named arguments, output parameters, and required values. */
 export function validateExecutions(context: RoutineDiagnosticContext): void {
     for (const execute of context.nodes("ExecuteStatement")) {
+        validateExecuteArgumentFormat(context, execute);
         for (const argument of descendantsOwnedByKind(execute, "ExecuteArgument", execute)) {
             const option = firstDescendantOfKind(argument, "ExecuteArgumentOption");
             if (option && directChildrenOfKind(option, "ReadOnly").length > 0) {
@@ -145,7 +148,6 @@ function validateExecuteArguments(
         parameters.map((parameter) => [context.fold(parameter.name), parameter]),
     );
     const supplied = new Set<string>();
-    let namedSeen = false;
     for (const [index, argument] of arguments_.entries()) {
         const namedArgument = firstDescendantOfKind(argument, "NamedExecuteArgument");
         const variable = namedArgument && firstDescendantOfKind(namedArgument, "Variable");
@@ -156,16 +158,8 @@ function validateExecuteArguments(
                 supplied.add(context.fold(positional.name));
                 context.validateNonScalarArgumentType(argument, positional, false);
             }
-            if (namedSeen) {
-                context.add(
-                    "InconsistentParameterFormat",
-                    `Must pass parameter number ${index + 1} and subsequent parameters as '@name = value'. After the form '@name = value' has been used, all subsequent parameters must be passed in the form '@name = value'.`,
-                    argument,
-                );
-            }
             continue;
         }
-        namedSeen = true;
         const key = context.fold(named);
         if (supplied.has(key)) {
             context.add(
@@ -208,6 +202,27 @@ function validateExecuteArguments(
             `Procedure or function '${procedureName}' expects parameter '${parameter.name}', which was not supplied.`,
             execute,
         );
+    }
+}
+
+function validateExecuteArgumentFormat(
+    context: RoutineDiagnosticContext,
+    execute: SyntaxNode,
+): void {
+    const arguments_ = descendantsOwnedByKind(execute, "ExecuteArgument", execute);
+    let namedSeen = false;
+    for (const [index, argument] of arguments_.entries()) {
+        if (firstDescendantOfKind(argument, "NamedExecuteArgument")) {
+            namedSeen = true;
+            continue;
+        }
+        if (!namedSeen) continue;
+        context.add(
+            "InconsistentParameterFormat",
+            `Must pass parameter number ${index + 1} and subsequent parameters as '@name = value'. After the form '@name = value' has been used, all subsequent parameters must be passed in the form '@name = value'.`,
+            argument,
+        );
+        break;
     }
 }
 

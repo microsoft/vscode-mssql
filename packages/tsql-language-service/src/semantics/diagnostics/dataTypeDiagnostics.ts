@@ -64,6 +64,7 @@ export function validateDataTypesAndColumns(context: DataTypeDiagnosticContext):
         const column = parentOfKind(dataType, "ColumnDefinition");
         const parameter = parentOfKind(dataType, "ProcedureParameter");
         const variable = parentOfKind(dataType, "VariableDeclaration");
+        if (parameter && !firstDescendantOfKind(parameter, "Variable")) continue;
         const collation = column
             ? descendantsOwnedByKind(column, "ColumnOption", column).find(
                   (option) =>
@@ -161,6 +162,9 @@ export function validateDataTypesAndColumns(context: DataTypeDiagnosticContext):
         );
         const facts = columnDefinitionTextFacts(context.source(column));
         if (!typeNode) {
+            // A computed column takes its type from the expression it is defined as, so only a
+            // column with neither a type nor an expression is missing one.
+            if (firstDescendantOfKind(column, "As")) continue;
             context.add(
                 "DataTypeMissing",
                 `The definition for column '${name}' must include a data type.`,
@@ -231,9 +235,19 @@ function validateDataTypeArguments(
     name: string,
     arguments_: readonly number[],
 ): void {
+    // A non-integral or overflowing argument is diagnosed by the syntax pass. Do not reinterpret
+    // its numeric spelling as a valid length, precision, or scale and produce secondary errors.
+    if (hasInvalidIntegerArgument(context, dataType)) return;
     const [first, second] = arguments_;
+    if (first === 0 && !scaleArgumentTypes.has(name)) {
+        context.add(
+            "InvalidLengthOrPrecision",
+            "Length or precision specification 0 is invalid.",
+            dataType,
+        );
+    }
     if (["decimal", "numeric"].includes(name)) {
-        if (first !== undefined && (first < 1 || first > 38)) {
+        if (first !== undefined && first !== 0 && (first < 1 || first > 38)) {
             context.add(
                 "InvalidLengthOrPrecision",
                 `Length or precision specification ${first} is invalid.`,
@@ -278,13 +292,32 @@ function validateDataTypeArguments(
     ) {
         context.add("InvalidScale", `Specified scale ${first} is invalid.`, dataType);
     }
-    if (name === "float" && first !== undefined && (first < 1 || first > 53)) {
+    if (name === "float" && first !== undefined && first !== 0 && (first < 1 || first > 53)) {
         context.add(
             "InvalidLengthOrPrecision",
             `Length or precision specification ${first} is invalid.`,
             dataType,
         );
     }
+}
+
+function hasInvalidIntegerArgument(
+    context: DataTypeDiagnosticContext,
+    dataType: SyntaxNode,
+): boolean {
+    const argumentList = firstDescendantOfKind(dataType, "ArgumentList");
+    if (!argumentList) return false;
+    return directChildrenOfKind(argumentList, "Expression").some((argument) => {
+        const source = context.source(argument).trim();
+        if (/^[+-]?\d+\.\d+$/u.test(source)) return true;
+        if (!/^[+-]?\d+$/u.test(source)) return false;
+        try {
+            const value = BigInt(source);
+            return value < -2_147_483_648n || value > 2_147_483_647n;
+        } catch {
+            return true;
+        }
+    });
 }
 
 function firstArgumentNode(dataType: SyntaxNode): SyntaxNode | undefined {

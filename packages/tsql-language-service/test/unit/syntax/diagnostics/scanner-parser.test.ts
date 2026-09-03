@@ -37,7 +37,7 @@ SELECT 'last' AS line1,
                 },
                 {
                     code: "syntax",
-                    message: "Incorrect syntax near the keyword 'AS'.",
+                    message: "Incorrect syntax near 'AS'.",
                     source: "AS",
                 },
                 {
@@ -47,7 +47,7 @@ SELECT 'last' AS line1,
                 },
                 {
                     code: "syntax",
-                    message: "Incorrect syntax near the keyword 'AS'.",
+                    message: "Incorrect syntax near 'AS'.",
                     source: "AS",
                 },
                 {
@@ -65,11 +65,37 @@ SELECT 'last' AS line1,
         assert.deepEqual(parse(sql).diagnostics, [
             {
                 code: "UnclosedQuotationMark",
-                message: "Unclosed quotation mark after the character string 'unfinished'.",
+                message: "Unclosed quotation mark after the character string ''unfinished'.",
                 severity: "error",
                 range: { start: 7, end: sql.length },
             },
         ]);
+    });
+
+    test("reports unclosed quoted and bracketed identifiers", () => {
+        const cases = [
+            ['SET QUOTED_IDENTIFIER ON; SELECT * FROM db."foo', '"foo'],
+            ["SELECT * FROM db.[foo", "[foo"],
+            ["SELECT * FROM [t]]", "[t]]"],
+        ] as const;
+
+        for (const [sql, value] of cases) {
+            assert.deepEqual(
+                parse(sql).diagnostics.map(({ code, message, range }) => ({
+                    code,
+                    message,
+                    text: sql.slice(range.start, range.end),
+                })),
+                [
+                    {
+                        code: "UnclosedQuotationMark",
+                        message: `Unclosed quotation mark after the character string '${value}'.`,
+                        text: value,
+                    },
+                ],
+                sql,
+            );
+        }
     });
 
     // SQL numeric literals enforce SQL Server's maximum 38-digit representation boundary.
@@ -89,6 +115,45 @@ SELECT 'last' AS line1,
             parse("SET TEXTSIZE 1.5;").diagnostics.map(({ message }) => message),
             ["The integer value 1.5 is out of range."],
         );
+    });
+
+    test("reports non-integral and overflowing data type arguments", () => {
+        const sql = `CREATE TABLE t(
+    a decimal(5.5, 10),
+    b decimal(10, 2.5),
+    c varchar(2147483648),
+    d time(5.5)
+);`;
+        assert.deepEqual(
+            parse(sql)
+                .diagnostics.filter(({ code }) => code === "IntegerValueOutOfRange")
+                .map(({ message }) => message),
+            [
+                "The integer value 5.5 is out of range.",
+                "The integer value 2.5 is out of range.",
+                "The integer value 2147483648 is out of range.",
+                "The integer value 5.5 is out of range.",
+            ],
+        );
+    });
+
+    test("enforces the signed 32-bit range in integer-only contexts", () => {
+        const cases = [
+            ["SET TEXTSIZE 2147483648;", "2147483648"],
+            ["SET TEXTSIZE -2147483649;", "2147483649"],
+        ] as const;
+        for (const [sql, value] of cases) {
+            assert.deepEqual(
+                parse(sql).diagnostics.map(({ code, message }) => ({ code, message })),
+                [
+                    {
+                        code: "IntegerValueOutOfRange",
+                        message: `The integer value ${value} is out of range.`,
+                    },
+                ],
+            );
+        }
+        assert.deepEqual(parse("SET TEXTSIZE -2147483648;").diagnostics, []);
     });
 
     // The ODBC escape grammar deliberately accepts an identifier so the validator can name it.
@@ -114,7 +179,7 @@ SELECT 'last' AS line1,
         assert.deepEqual(parse("SELECT 1 FROM FROM dbo.Items;").diagnostics, [
             {
                 code: "syntax",
-                message: "Incorrect syntax near the keyword 'FROM'.",
+                message: "Incorrect syntax near 'FROM'.",
                 severity: "error",
                 range: { start: 14, end: 18 },
             },
@@ -129,7 +194,9 @@ SELECT 1 FOR XML EXPLICIT, ELEMENTS;
 SELECT 1 FOR XML AUTO, INCLUDE_NULL_VALUES;
 SELECT 1 FOR XML AUTO, WITHOUT_ARRAY_WRAPPER;
 SELECT 1 FOR JSON AUTO, BINARY BASE64;
-SELECT 1 FOR JSON AUTO, TYPE;`;
+SELECT 1 FOR JSON AUTO, TYPE;
+SELECT 1 FOR JSON PATH, XMLSCHEMA;
+SELECT 1 FOR JSON PATH, XMLDATA;`;
         assert.deepEqual(
             parse(sql).diagnostics.map(({ message }) => message),
             [
@@ -140,6 +207,8 @@ SELECT 1 FOR JSON AUTO, TYPE;`;
                 "WITHOUT_ARRAY_WRAPPER is only allowed in FOR JSON.",
                 "BINARY BASE64 option is not allowed in FOR JSON.",
                 "TYPE option is not allowed in FOR JSON.",
+                "Inline schema is not supported with FOR XML PATH.",
+                "Inline schema is not supported with FOR XML PATH.",
             ],
         );
     });

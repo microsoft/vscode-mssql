@@ -15,6 +15,7 @@ import {
     multipartIdentifierPartRange,
     multipartIdentifierParts,
     normalizeIdentifier,
+    tsqlIdentifierPattern,
 } from "../identifiers.js";
 import { rowsetNameNode, rowsetNameOwnerKinds } from "../model/nameNodes.js";
 import type { DiagnosticFamilyContext } from "./contracts.js";
@@ -186,21 +187,51 @@ export function validateOptions(context: DiagnosticFamilyContext): void {
 
     for (const clause of context.nodes("LoginCreationClause")) {
         const modifiers = directChildrenOfKind(clause, "LoginPasswordModifier");
-        validateDuplicateOptions(context, modifiers);
-        const hashed = modifiers.find(
-            (modifier) => firstWord(context.source(modifier)).toUpperCase() === "HASHED",
-        );
-        if (hashed && modifiers.some((modifier) => modifier.start < hashed.start)) {
-            context.add(
-                "IncorrectOptionOrder",
-                "'HASHED' is specified at incorrect location.",
-                hashed,
-            );
-        }
+        validateLoginPasswordModifiers(context, clause, modifiers, false);
+        const principalClause = firstDescendantOfKind(clause, "PrincipalOptionClause");
         validateDuplicateOptions(context, [
             ...directChildrenOfKind(clause, "LoginPasswordOption"),
             ...directChildrenOfKind(clause, "PrincipalOption"),
+            ...(principalClause ? directChildrenOfKind(principalClause, "PrincipalOption") : []),
         ]);
+        const credentialClause = firstDescendantOfKind(clause, "LoginCredentialClause");
+        if (credentialClause) {
+            for (const option of directChildrenOfKind(credentialClause, "LoginCredentialOption")) {
+                const name = leadingOptionName(context.source(option));
+                if (name === "CREDENTIAL") continue;
+                const nameNode = firstDescendantOfKind(option, "IdentifierName") ?? option;
+                const spelling = context.source(nameNode).trim();
+                context.add(
+                    "OptionNotRecognized",
+                    `'${spelling}' is not a recognized option.`,
+                    nameNode,
+                );
+            }
+            validateDuplicateOptions(
+                context,
+                directChildrenOfKind(credentialClause, "LoginCredentialOption"),
+            );
+        }
+    }
+
+    for (const option of context.nodes("AlterLoginOption")) {
+        const modifiers = directChildrenOfKind(option, "AlterLoginPasswordModifier");
+        if (firstDescendantOfKind(option, "Password")) {
+            validateLoginPasswordModifiers(context, option, modifiers, true);
+        }
+    }
+    for (const clause of context.nodes("AlterLoginClause")) {
+        validateDuplicateOptions(context, directChildrenOfKind(clause, "AlterLoginOption"));
+    }
+
+    for (const clause of context.nodes("TriggerAppendClause")) {
+        const statement = parentOfKind(clause, "CreateTriggerStatement");
+        const option = firstDescendantOfKind(clause, "IdentifierName");
+        if (!statement || !option) continue;
+        const name = normalizeIdentifier(context.source(option)).toUpperCase();
+        const forTrigger = directChildrenOfKind(statement, "For").length > 0;
+        if (name === "APPEND" && forTrigger) continue;
+        context.add("OptionNotRecognized", `'${name}' is not a recognized option.`, option);
     }
 }
 
@@ -246,8 +277,18 @@ export function validatePermissiveKeywordTails(context: DiagnosticFamilyContext)
         const nameNode = directChildrenOfKind(option, "IdentifierName")[0];
         if (!nameNode) continue;
         const spelling = context.source(nameNode).trim();
-        if (normalizeIdentifier(spelling).toUpperCase() === "INLINE") continue;
-        context.add("IncorrectSyntaxNear", `Incorrect syntax near '${spelling}'.`, nameNode);
+        const name = normalizeIdentifier(spelling).toUpperCase();
+        const assigned = firstDescendantOfKind(option, "Equal") !== undefined;
+        if (name === "INLINE") {
+            if (assigned) continue;
+        } else if (assigned) {
+            // INLINE is the only function option written as an assignment, so any other word in
+            // that position is rejected where it stands rather than named as an option.
+            context.add("IncorrectSyntaxNear", `Incorrect syntax near '${spelling}'.`, nameNode);
+            continue;
+        }
+        if (recognizedModuleOptions.has(name)) continue;
+        context.add("OptionNotRecognized", `'${spelling}' is not a recognized option.`, nameNode);
     }
 
     for (const nameNode of context.nodes("GenericOptionName")) {
@@ -360,12 +401,100 @@ function validateDuplicateOptions(
 }
 
 function optionName(context: DiagnosticFamilyContext, option: SyntaxNode): string | undefined {
+    if (option.kind === "FunctionOption") {
+        return moduleOptionDisplayName(context.source(option));
+    }
+    if (option.kind === "PrincipalOption") {
+        const body = [...option.children()][0];
+        const name = body && [...body.children()][0];
+        return name ? firstWord(context.source(name)).toUpperCase() : undefined;
+    }
+    if (option.kind === "LoginCredentialOption" || option.kind === "AlterLoginOption") {
+        return leadingOptionName(context.source(option));
+    }
     const named =
         firstDescendantOfKind(option, "GenericOptionName") ??
         firstDescendantOfKind(option, "IdentifierName") ??
         [...option.children()][0];
     return named ? firstWord(context.source(named)).toUpperCase() : undefined;
 }
+
+function validateLoginPasswordModifiers(
+    context: DiagnosticFamilyContext,
+    passwordOption: SyntaxNode,
+    modifiers: readonly SyntaxNode[],
+    alter: boolean,
+): void {
+    validateDuplicateOptions(context, modifiers);
+    const names = modifiers.map((modifier) => leadingOptionName(context.source(modifier)));
+    const hashedIndex = names.indexOf("HASHED");
+    if (hashedIndex > 0) {
+        context.add(
+            "IncorrectOptionOrder",
+            "'HASHED' is specified at incorrect location.",
+            modifiers[hashedIndex]!,
+        );
+    }
+
+    const password =
+        firstDescendantOfKind(passwordOption, "StringLiteral") ??
+        firstDescendantOfKind(passwordOption, "BinaryLiteral");
+    if (password && (password.kind === "BinaryLiteral") !== hashedIndex >= 0) {
+        const spelling = context.source(password);
+        context.add("IncorrectSyntaxNear", `Incorrect syntax near '${spelling}'.`, password);
+    }
+
+    for (const modifier of modifiers) {
+        const name = leadingOptionName(context.source(modifier));
+        const unknown = firstDescendantOfKind(modifier, "LoginPasswordUnknownModifier");
+        const oldPassword = firstDescendantOfKind(modifier, "OldPassword");
+        const unlock = firstDescendantOfKind(modifier, "Unlock");
+        if (unknown && !loginPasswordModifierNames.has(name ?? "")) {
+            const spelling = context.source(
+                firstDescendantOfKind(unknown, "LoginPasswordUnknownWord") ?? unknown,
+            );
+            context.add(
+                "OptionNotRecognized",
+                `'${spelling}' is not a recognized option.`,
+                unknown,
+            );
+        } else if (!alter && oldPassword) {
+            context.add(
+                "OptionNotRecognized",
+                "'OLD_PASSWORD' is not a recognized option.",
+                oldPassword,
+            );
+            const equal = firstDescendantOfKind(modifier, "Equal");
+            if (equal) context.add("IncorrectSyntaxNear", "Incorrect syntax near '='.", equal);
+        } else if (alter && oldPassword) {
+            const value =
+                firstDescendantOfKind(modifier, "StringLiteral") ??
+                firstDescendantOfKind(modifier, "BinaryLiteral");
+            if (value?.kind === "BinaryLiteral") {
+                context.add(
+                    "OptionNotRecognized",
+                    "'OLD_PASSWORD' is not a recognized option.",
+                    oldPassword,
+                );
+                context.add(
+                    "IncorrectSyntaxNear",
+                    `Incorrect syntax near '${context.source(value)}'.  Expecting STRING, or TEXT_LEX.`,
+                    value,
+                );
+            }
+        } else if (alter && hashedIndex >= 0 && (unlock || name === "UNLOCK")) {
+            context.add("OptionNotRecognized", "'UNLOCK' is not a recognized option.", modifier);
+        }
+    }
+}
+
+const leadingOptionWord = new RegExp(`^\\s*(${tsqlIdentifierPattern.unquoted})`, "iu");
+
+function leadingOptionName(source: string): string | undefined {
+    return leadingOptionWord.exec(source)?.[1]?.toUpperCase();
+}
+
+const loginPasswordModifierNames = new Set(["HASHED", "MUST_CHANGE", "OLD_PASSWORD", "UNLOCK"]);
 
 function moduleOptionDisplayName(source: string): string {
     const value = source.trim();

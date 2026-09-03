@@ -98,6 +98,14 @@ suite("T-SQL security object validation", () => {
                 },
             ],
         );
+        assert.deepEqual(
+            codes(
+                await analyze(
+                    "CREATE LOGIN l FROM CERTIFICATE ServerCert WITH CREDENTIAL = MissingCredential;",
+                ),
+            ),
+            ["CouldNotFindCredential"],
+        );
     });
 
     // Every security object the catalog contains in the right scope stays silent.

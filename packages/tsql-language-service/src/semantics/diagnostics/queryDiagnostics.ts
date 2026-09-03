@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import {
+    containsSyntaxError,
     descendantsOwnedByKind,
     descendantsOfKind,
     directOwnedDescendantsOfKind,
@@ -126,6 +127,34 @@ export function validateBooleanContexts(context: DiagnosticFamilyContext): void 
         for (const owner of context.nodes(kind)) {
             if (kind === "WhereClause" && parentOfKind(owner, "CreateIndexStatement")) continue;
             const expression = firstDescendantOfKind(owner, "Expression");
+            if (expression) {
+                // A damaged condition is already reported by syntax recovery; typing what is left
+                // of it would only restate that error in the semantic pass.
+                if (containsSyntaxError(owner)) continue;
+                expressions.push(expression);
+            } else if (kind !== "QualifiedJoin") {
+                context.add(
+                    "BooleanConditionExpected",
+                    "An expression of non-boolean type specified in a context where a condition is expected.",
+                    { start: owner.end, end: owner.end },
+                );
+            }
+        }
+    }
+    for (const root of context.nodes("ExpressionRoot")) {
+        if (containsSyntaxError(root)) continue;
+        const expression = firstDescendantOfKind(root, "Expression");
+        if (expression) expressions.push(expression);
+    }
+    for (const caseExpression of context.nodes("CaseExpression")) {
+        const firstBodyChild = [...caseExpression.children()].find(
+            (child) => child.kind !== "Case",
+        );
+        if (firstBodyChild?.kind !== "WhenClause") continue;
+        for (const when of [...caseExpression.children()].filter(
+            (child) => child.kind === "WhenClause",
+        )) {
+            const expression = firstDescendantOfKind(when, "Expression");
             if (expression) expressions.push(expression);
         }
     }

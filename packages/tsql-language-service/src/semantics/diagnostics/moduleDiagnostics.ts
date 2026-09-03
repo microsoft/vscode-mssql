@@ -89,6 +89,18 @@ export function validateModuleDefinitions(context: ModuleDiagnosticContext): voi
                 }
             }
             const options = descendantsOwnedByKind(module, "FunctionOption", module);
+            for (const parameter of descendantsOwnedByKind(module, "ProcedureParameter", module)) {
+                const output = [...parameter.children()].find(
+                    (child) => child.kind === "Out" || child.kind === "Output",
+                );
+                if (output) {
+                    context.add(
+                        "OptionNotRecognized",
+                        "'OUTPUT' is not a recognized option.",
+                        output,
+                    );
+                }
+            }
             const returnsNull = options.find(
                 (option) =>
                     moduleOptionKey(context.source(option)) === "RETURNS NULL ON NULL INPUT",
@@ -122,8 +134,15 @@ export function validateModuleDefinitions(context: ModuleDiagnosticContext): voi
                       : tableFunctionOptions
                   : scalarFunctionOptions;
             for (const option of options) {
-                if (allowed.has(moduleOptionKey(context.source(option)))) continue;
-                if (directChildrenOfKind(option, "IdentifierName").length > 0) continue;
+                const key = moduleOptionKey(context.source(option));
+                if (key === "INLINE" && !firstDescendantOfKind(option, "Equal")) continue;
+                if (allowed.has(key)) continue;
+                if (
+                    directChildrenOfKind(option, "IdentifierName").length > 0 &&
+                    !knownFunctionOptions.has(key)
+                ) {
+                    continue;
+                }
                 context.add(
                     "InvalidOptionInCreateFunction",
                     'An invalid option was specified for the statement "CREATE/ALTER FUNCTION".',
@@ -487,17 +506,21 @@ const scalarFunctionOptions = new Set([
     "CALLED ON NULL INPUT",
     "INLINE",
 ]);
-const tableFunctionOptions = new Set(["ENCRYPTION", "SCHEMABINDING", "EXECUTE AS", "INLINE"]);
-const inlineTableFunctionOptions = new Set([
-    "ENCRYPTION",
-    "SCHEMABINDING",
-    "NATIVE_COMPILATION",
-    "INLINE",
-]);
+const tableFunctionOptions = new Set(["ENCRYPTION", "SCHEMABINDING", "EXECUTE AS"]);
+const inlineTableFunctionOptions = new Set(["ENCRYPTION", "SCHEMABINDING", "NATIVE_COMPILATION"]);
 const externalScalarFunctionOptions = new Set([
     "EXECUTE AS",
     "RETURNS NULL ON NULL INPUT",
     "CALLED ON NULL INPUT",
-    "INLINE",
 ]);
-const externalTableFunctionOptions = new Set(["EXECUTE AS", "INLINE"]);
+const externalTableFunctionOptions = new Set(["EXECUTE AS"]);
+const knownFunctionOptions = new Set([
+    "CALLED ON NULL INPUT",
+    "ENCRYPTION",
+    "EXECUTE AS",
+    "INLINE",
+    "NATIVE_COMPILATION",
+    "RECOMPILE",
+    "RETURNS NULL ON NULL INPUT",
+    "SCHEMABINDING",
+]);

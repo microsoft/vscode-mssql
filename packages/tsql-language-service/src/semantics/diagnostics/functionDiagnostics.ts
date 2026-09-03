@@ -195,7 +195,9 @@ const datePartFunctions = new Set([
 
 const isJsonValueTypes = new Set(["ARRAY", "OBJECT", "SCALAR", "VALUE"]);
 
+// Each date part is listed with every documented abbreviation, down to the single letters.
 const dateParts = new Set([
+    "D",
     "DAY",
     "DAYOFYEAR",
     "DD",
@@ -209,6 +211,8 @@ const dateParts = new Set([
     "MICROSECOND",
     "MCS",
     "MILLISECOND",
+    "M",
+    "MI",
     "MINUTE",
     "MM",
     "MONTH",
@@ -224,10 +228,12 @@ const dateParts = new Set([
     "S",
     "TZOFFSET",
     "TZ",
+    "W",
     "WEEK",
     "WEEKDAY",
     "WK",
     "WW",
+    "Y",
     "YEAR",
     "YY",
     "YYYY",

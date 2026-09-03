@@ -284,15 +284,10 @@ const databasePrefixedModuleKinds = new Set<SyntaxKind>([
     "CreateViewStatement",
 ]);
 
-const invalidAliasBaseTypes = new Set([
-    "geography",
-    "geometry",
-    "hierarchyid",
-    "json",
-    "sysname",
-    "vector",
-    "xml",
-]);
+// The spatial and hierarchy types are CLR types and the XML type carries a schema collection, so
+// none of them can stand as the base of an alias. Every other system type can, including the ones
+// added most recently.
+const invalidAliasBaseTypes = new Set(["geography", "geometry", "hierarchyid", "xml"]);
 
 function validateDatabasePrefix(
     context: DiagnosticFamilyContext,

@@ -5,6 +5,7 @@
 
 import {
     containsSyntaxError,
+    descendantsOfKind,
     descendantsOwnedByKind,
     directChildrenOfKind,
     parentOfKind,
@@ -17,7 +18,7 @@ import type { DiagnosticFamilyContext } from "./contracts.js";
 // negative, malformed, and incremental constraint tests.
 const storedComputedColumnConstraint =
     /^\s*(?:CONSTRAINT\s+\S+\s+)?(?:CHECK|FOREIGN\s+KEY|REFERENCES|NOT\s+NULL)\b/iu;
-const keyConstraint = /^\s*(?:PRIMARY\s+KEY|UNIQUE)\b/iu;
+const keyConstraint = /^\s*(?:CONSTRAINT\s+\S+\s+)?(?:PRIMARY\s+KEY|UNIQUE)\b/iu;
 
 /** Validates non-persisted computed-column constraint restrictions. */
 export function validateComputedColumnConstraints(context: DiagnosticFamilyContext): void {
@@ -50,6 +51,36 @@ export function validateConstraintIndexOptions(context: DiagnosticFamilyContext)
                 forbiddenIndexOptions.has(name) || (inCreate && buildOnlyIndexOptions.has(name));
             if (rejected) {
                 context.add("UnrecognizedOption", `'${name}' is not a recognized option.`, option);
+            }
+        }
+        for (const option of descendantsOfKind(clause, "LegacyConstraintIndexOption")) {
+            if (directChildrenOfKind(option, "FillFactor").length === 0) continue;
+            const decimal = directChildrenOfKind(option, "DecimalLiteral")[0];
+            if (decimal) {
+                context.add(
+                    "IntegerValueOutOfRange",
+                    `The integer value ${context.source(decimal)} is out of range.`,
+                    decimal,
+                );
+                continue;
+            }
+            const integer = directChildrenOfKind(option, "IntegerLiteral")[0];
+            if (!integer) continue;
+            const value = Number(context.source(integer));
+            if (value > 2_147_483_647) {
+                context.add(
+                    "IntegerValueOutOfRange",
+                    `The integer value ${context.source(integer)} is out of range.`,
+                    integer,
+                );
+                continue;
+            }
+            if (value < 1 || value > 100) {
+                context.add(
+                    "InvalidFillFactorPercentage",
+                    `Fillfactor ${value} is not a valid percentage; fillfactor must be between 1 and 100.`,
+                    integer,
+                );
             }
         }
     }

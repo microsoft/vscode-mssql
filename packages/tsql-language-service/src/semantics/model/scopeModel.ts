@@ -232,6 +232,8 @@ function relationFor(
             return variableRelation(input, node, scopeId);
         case "FunctionTableSource":
             return functionRelation(input, node, scopeId);
+        case "SemanticSearchTableSource":
+            return semanticSearchRelation(input, node, scopeId);
         case "VectorSearchTableSource":
             return vectorRelation(input, node, scopeId);
         case "DerivedTable":
@@ -243,6 +245,24 @@ function relationFor(
         default:
             return undefined;
     }
+}
+
+function semanticSearchRelation(
+    input: ScopeModelInput,
+    node: SyntaxNode,
+    scopeId: string,
+): BoundRelation | undefined {
+    const alias = directChild(node, "TableAlias");
+    const aliasName = alias && lastDescendant(alias, "IdentifierName");
+    const exposedName = aliasName
+        ? normalizeIdentifier(source(input, aliasName))
+        : "SEMANTIC_SEARCH";
+    return relation(node, scopeId, {
+        id: `relation:${rangeKey(node)}`,
+        kind: "tableFunction",
+        exposedName,
+        columns: "unknown",
+    });
 }
 
 /**
@@ -365,7 +385,13 @@ function variableRelation(
     const variable = firstDescendant(node, "Variable");
     if (!variable) return undefined;
     const name = source(input, variable);
-    const columns = localColumnsForName(input, [name], node.start);
+    const exposedColumns = firstDescendant(node, "ColumnNameList");
+    const columns = exposedColumns
+        ? descendants(exposedColumns, "IdentifierName").map((column) => ({
+              name: normalizeIdentifier(source(input, column)),
+              typeDisplay: "xml",
+          }))
+        : localColumnsForName(input, [name], node.start);
     return relation(node, scopeId, {
         id: `relation:${rangeKey(node)}`,
         kind: "variable",
@@ -475,7 +501,8 @@ function vectorRelation(
     node: SyntaxNode,
     scopeId: string,
 ): BoundRelation | undefined {
-    const exposedName = aliasOf(input, node);
+    const tail = firstDescendant(node, "VectorSearchTail");
+    const exposedName = tail ? aliasOf(input, tail) : undefined;
     if (!exposedName) return undefined;
     return relation(node, scopeId, {
         id: `relation:${rangeKey(node)}`,

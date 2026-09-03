@@ -246,7 +246,12 @@ DatabaseCollationClause { CollateClause }
 CreateDatabaseAddendum { For IdentifierName | As Snapshot Of MultipartIdentifier }
 
 // ALTER DATABASE separates file mutations from option-state transitions and their rollback policy.
-AlterDatabaseStatement { Alter Database (IdentifierName | Current) AlterDatabaseAction }
+AlterDatabaseStatement {
+  Alter Database (
+    (IdentifierName | Current) AlterDatabaseAction
+    | Current For Secondary Set DatabaseOptionList OptionalDatabaseTermination
+  )
+}
 DropDatabaseStatement { Drop Database IfExistsClause? IdentifierName (Comma IdentifierName)* }
 
 // Dedicated-pool RENAME OBJECT changes a table name and permits the documented optional :: marker.
@@ -473,9 +478,14 @@ LoginCreationClause {
         optionalDdlTail<LoginCredentialClause>
     )
 }
-LoginCredentialClause { With Credential Equal IdentifierName }
+LoginCredentialClause { With LoginCredentialOption (Comma LoginCredentialOption)* }
+LoginCredentialOption { (Credential | IdentifierName) Equal OptionValue }
 LoginPasswordOption { Password Equal (StringLiteral | BinaryLiteral) }
-LoginPasswordModifier { Hashed | MustChange }
+LoginPasswordModifier {
+  !loginPasswordKnown (Hashed | MustChange | OldPassword Equal (StringLiteral | BinaryLiteral))
+  | LoginPasswordUnknownModifier
+}
+LoginPasswordUnknownModifier { LoginPasswordUnknownWord }
 UserCreationClause {
   (For | From) (Login IdentifierName | Certificate IdentifierName | Asymmetric Key IdentifierName | External Provider)
   optionalDdlTail<PrincipalOptionClause>
@@ -484,12 +494,15 @@ UserCreationClause {
 }
 PrincipalOptionClause { With PrincipalOption (Comma PrincipalOption)* }
 PrincipalOption {
-  Password Equal Expression (OldPassword Equal Expression)? | PrincipalNonPasswordOption
+  Password Equal Expression (OldPassword Equal Expression)?
+  | PrincipalNonPasswordOption
 }
 PrincipalNonPasswordOption {
   // A contained user names its language by LCID as well as by name, and clears its default schema
   // with NULL. Neither value shape is accepted by the other options.
-  DefaultDatabase Equal IdentifierName | DefaultSchema Equal (IdentifierName | Null)
+  // A switch-valued principal option keeps its own shape so a newer option word still parses.
+  IdentifierName Equal (On | Off)
+  | DefaultDatabase Equal IdentifierName | DefaultSchema Equal (IdentifierName | Null)
   | Login Equal IdentifierName
   | DefaultLanguage Equal (IdentifierName | IntegerLiteral)
   | Name Equal IdentifierName | Sid Equal BinaryLiteral
@@ -504,7 +517,10 @@ AlterLoginOption {
   Password Equal (StringLiteral | BinaryLiteral) AlterLoginPasswordModifier*
   | PrincipalNonPasswordOption | No Credential
 }
-AlterLoginPasswordModifier { MustChange | Unlock | Hashed | OldPassword Equal StringLiteral }
+AlterLoginPasswordModifier {
+  !loginPasswordKnown (MustChange | Unlock | Hashed | OldPassword Equal (StringLiteral | BinaryLiteral))
+  | LoginPasswordUnknownModifier
+}
 
 // ADD/DROP SIGNATURE protects one signable object with one or more certificates, asymmetric
 // keys, or a password. COUNTER SIGNATURE uses the same object and cryptographic shapes.
@@ -556,6 +572,7 @@ PermissionWord {
   // Permission names spelled with a reserved word, as in GRANT CREATE PROCEDURE or GRANT BACKUP
   // LOG. A reserved word specializes with no identifier fallback, so each one has to be named here.
   | Backup | Default | File | Full | Function | Group | Proc | Procedure | Restore | Rule | Trigger
+  | Bulk | Drop | Kill | Option
   | IdentifierName
 }
 PermissionTarget { On (SecurableClass DoubleColon)? SecurableName ColumnNameList? }
@@ -645,13 +662,13 @@ DropExternalStreamStatement { Drop External Stream MultipartIdentifier }
 // SQL Server 2025 external models bind an embedding model endpoint or local runtime definition.
 CreateExternalModelStatement {
   Create External Model IdentifierName (Authorization IdentifierName)?
-  With OpenParen ExternalModelOption (Comma ExternalModelOption)* CloseParen
+  With OpenParen (ExternalModelOption (Comma ExternalModelOption)*)? CloseParen
 }
 
 // ALTER EXTERNAL MODEL replaces one or more endpoint/model settings in one SET list.
 AlterExternalModelStatement {
   Alter External Model IdentifierName
-  Set OpenParen ExternalModelOption (Comma ExternalModelOption)* CloseParen
+  Set OpenParen (ExternalModelOption (Comma ExternalModelOption)*)? CloseParen
 }
 
 // DROP EXTERNAL MODEL removes one model definition.
@@ -1452,10 +1469,12 @@ WorkloadClassifierStatement {
   | Drop Workload Classifier IdentifierName
 }
 
-// Column master keys retain provider and key-path assignments used by Always Encrypted.
+// Column master keys retain provider and key-path assignments used by Always Encrypted. The key is
+// named with or without the DEFINITION word that its option spelling also uses.
 ColumnMasterKeyStatement {
-  Create Column Master Key IdentifierName With OpenParen GenericOptionList CloseParen
-  | Drop Column Master Key IdentifierName
+  Create Column Master Key Definition? IdentifierName
+    With OpenParen GenericOptionList CloseParen
+  | Drop Column Master Key Definition? IdentifierName
 }
 
 // Column encryption keys contain one or more encrypted values or one ALTER value action.
@@ -1465,7 +1484,15 @@ ColumnEncryptionKeyStatement {
   | Alter Column Encryption Key IdentifierName (Add | Drop) Value ColumnEncryptionKeyValue
   | Drop Column Encryption Key IdentifierName
 }
-ColumnEncryptionKeyValue { OpenParen GenericOptionList CloseParen }
+ColumnEncryptionKeyValue {
+  OpenParen ColumnEncryptionKeyOption (Comma ColumnEncryptionKeyOption)* CloseParen
+}
+ColumnEncryptionKeyOption {
+  Algorithm Equal StringLiteral
+  | EncryptedValue Equal BinaryLiteral
+  | ColumnMasterKey Equal IdentifierName
+  | Column Master Key Definition Equal IdentifierName
+}
 
 // XML indexes retain primary, secondary, and selective path declarations and index options.
 XmlIndexStatement {
@@ -1593,7 +1620,7 @@ ProcedureNumberClause { Semicolon IntegerLiteral }
 // SQL Server accepts both the conventional bare parameter list and a parenthesized list.
 ProcedureParameterClause {
   ProcedureParameterList
-  | OpenParen ProcedureParameterList? CloseParen
+  | OpenParen ProcedureParameterList CloseParen
 }
 
 // Procedure parameters support nullability, defaults, VARYING cursors, and OUTPUT markers.
@@ -1612,7 +1639,7 @@ ProcedureOption { IdentifierName | Execute As ModulePrincipal }
 ModulePrincipal { Caller | Self | Owner | StringLiteral }
 
 // Transact-SQL bodies are recursively mounted; CLR modules preserve their three-part entry point.
-ModuleBody { ExternalModuleBody | BlockChunk }
+ModuleBody { ExternalModuleBody | GroupedQueryChunk | BlockChunk }
 ExternalModuleBody { External Name ClrTypeName }
 
 // CREATE FUNCTION covers scalar, inline-table, and multi-statement table return forms.
@@ -1636,15 +1663,18 @@ FunctionDefinition {
   | FunctionParameterList? Returns FunctionTableReturnType FunctionWithClause?
     FunctionOrderClause? FunctionTableBody
 }
-// Inline table functions may omit AS; multi-statement and CLR bodies retain the AS introducer.
+// AS introduces a Transact-SQL function body. A CLR body names its entry point with or without it.
 FunctionTableBody {
   As FunctionBody
+  | ExternalModuleBody
   | Return (SelectStatement | ReturnedQuery)
 }
 // Fabric external functions bind the SQL signature to a one- or multipart remote function name.
 ExternalFunctionBody { External Function MultipartIdentifier }
 FunctionScalarBody {
   As (ExternalFunctionBody | FunctionBody)
+  | ExternalFunctionBody
+  | ExternalModuleBody
   | FunctionWithClause As FunctionBody
 }
 FunctionTableReturnType { Table TableDefinition? | Variable Table TableDefinition }
@@ -1652,14 +1682,17 @@ FunctionTableReturnType { Table TableDefinition? | Variable Table TableDefinitio
 FunctionOrderClause { Order OpenParen OrderExpression (Comma OrderExpression)* CloseParen }
 FunctionWithClause { With FunctionOption (Comma FunctionOption)* }
 FunctionOption {
-  Encryption | SchemaBinding | NativeCompilation | Execute As ModulePrincipal
-  | IdentifierName Equal (On | Off)
+  Encryption | SchemaBinding | NativeCompilation | Recompile | Execute As ModulePrincipal
+  | IdentifierName (Equal (On | Off))?
   | Returns Null On Null Input | Called On Null Input
 }
 FunctionBody { Return (SelectStatement | ReturnedQuery) | ModuleBody }
 // A returned query may introduce XML namespaces before its SELECT without widening all subqueries.
+// An inline function's returned query may introduce namespaces or common table expressions before
+// its SELECT without widening every other parenthesized query.
 ReturnedQuery {
-  OpenParen XmlNamespacesWithClause? QueryExpression OrderByClause? ForClause? OptionClause? CloseParen
+  OpenParen (XmlNamespacesWithClause | WithClause)? QueryExpression OrderByClause? ForClause?
+    OptionClause? CloseParen
 }
 
 // CREATE TRIGGER models DML triggers with timing, events, options, and a mounted SQL body.
@@ -2206,7 +2239,7 @@ TableConstraintBody {
   | Check (Not For Replication)? OpenParen Expression CloseParen
   | Default DefaultExpression For IdentifierName optionalDdlTail<DefaultWithValues>
   | Connection OpenParen GraphConnection (Comma GraphConnection)* CloseParen
-    (On Delete Cascade)?
+    (On Delete (Cascade | No Action))?
 }
 GraphConnection { MultipartIdentifier To MultipartIdentifier }
 
@@ -2346,7 +2379,9 @@ OptionValue {
   OffWithoutDataRecovery OpenParen GenericOptionList CloseParen |
   On | Off | Continue | Shutdown | None | Table | All | Literal IdentifierName? | IdentifierName |
   Variable |
-  Plus IntegerLiteral | Minus IntegerLiteral |
+  // A signed option value carries the same optional unit word an unsigned one does, as in
+  // MAX_DURATION = -5 MINUTES.
+  Plus IntegerLiteral IdentifierName? | Minus IntegerLiteral IdentifierName? |
   OpenParen GenericOptionList? CloseParen
 }
 
@@ -2470,32 +2505,39 @@ CreateSemanticIndexStatement {
   SemanticIndexWithClause SemanticIndexStorageClause?
 }
 
-// Semantic columns independently select search, type-column, language, and chunking behavior.
-SemanticIndexColumn {
-  IdentifierName
-  (SearchType Equal IdentifierName)?
-  (Type Column IdentifierName)?
-  (Language (IdentifierName | IntegerLiteral))?
-  (ChunkUsing OpenParen GenericOptionList CloseParen)?
+// Semantic columns independently select search, type-column, language, and chunking behavior. The
+// per-column settings are written in any order and are not separated.
+SemanticIndexColumn { IdentifierName SemanticIndexColumnOption* }
+SemanticIndexColumnOption {
+  SearchType Equal? IdentifierName
+  | Type Column IdentifierName
+  | Language (IdentifierName | IntegerLiteral | StringLiteral)
+  | ChunkUsing OpenParen GenericOptionList CloseParen
 }
 
-// Semantic index options describe model binding and physical vector/full-text behavior.
-SemanticIndexWithClause {
-  With OpenParen SemanticIndexOption (Comma SemanticIndexOption)* CloseParen
-}
+// Semantic index options describe model binding and physical vector/full-text behavior. They are
+// written one after another, with a comma permitted but not required between them. Their values
+// are spelled out here rather than shared with the generic option grammar, whose unit-suffixed
+// literal would be indistinguishable from the next option's name.
+SemanticIndexWithClause { With OpenParen SemanticIndexOption+ CloseParen }
 SemanticIndexOption {
-  ExternalModel Equal SemanticExternalModel
-  | VectorIndex OpenParen GenericOptionList CloseParen
-  | FullTextStopList Equal (Off | System | IdentifierName)
-  | MaxDop Equal IntegerLiteral
-  | DropExisting Equal (On | Off)
-  | GenericOption
+  Comma? (
+    ExternalModel Equal SemanticExternalModel
+    | VectorIndex OpenParen SemanticIndexVectorOption+ CloseParen
+    | FullTextStopList Equal (Off | System | IdentifierName)
+    | MaxDop Equal IntegerLiteral
+    | DropExisting Equal SemanticIndexOptionValue
+    | GenericOptionName Equal SemanticIndexOptionValue
+  )
 }
+SemanticIndexVectorOption { Comma? GenericOptionName Equal SemanticIndexOptionValue }
+SemanticIndexOptionValue { On | Off | Literal | IdentifierName | Variable }
 SemanticExternalModel {
   (IdentifierName | OpenParen IdentifierName CloseParen)
   (OpenParen Parameters Equal StringLiteral CloseParen)?
 }
-SemanticIndexStorageClause { On IdentifierName }
+// The filegroup a semantic index lands on is named with or without the FILEGROUP word.
+SemanticIndexStorageClause { On Filegroup? (IdentifierName | Default) }
 
 // WITH index options uses SQL Server's named option list.
 IndexWithClause { With OpenParen IndexOption (Comma IndexOption)* CloseParen }
@@ -2960,6 +3002,7 @@ TableSourcePrimary {
   | OpenDataSourceSource
   | OpenXmlSource
   | FullTextTableSource
+  | SemanticSearchTableSource
   | VectorSearchTableSource
   | PredictTableSource
   | FunctionTableSource
@@ -3091,6 +3134,24 @@ FullTextTableOptions {
   )
 }
 FullTextTableValue { Literal | Variable | IdentifierName }
+
+// SEMANTIC_SEARCH binds one source table and column list before optional ranking controls.
+SemanticSearchTableSource {
+  SemanticSearch OpenParen
+  Table Equal SemanticSearchTableArgument Comma
+  Column Equal OpenParen IdentifierName (Comma IdentifierName)* CloseParen Comma
+  SearchString Equal Expression
+  (Comma RerankingStrategy Equal SemanticSearchReranker)?
+  (Comma TopN Equal Expression)?
+  (Comma Weight Equal Expression)?
+  CloseParen functionTableSourceTail
+}
+SemanticSearchTableArgument { MultipartIdentifier TableAlias? }
+SemanticSearchReranker {
+  Reranker OpenParen Rrf
+  (Comma Config OpenParen SmoothingFactor Equal Expression CloseParen)?
+  CloseParen
+}
 
 // VECTOR_SEARCH keeps its named argument surface recoverable so semantic validation can report
 // missing, misspelled, duplicated, or misordered parameters with useful diagnostics.
@@ -3906,13 +3967,20 @@ IdentifierName { Identifier | BracketedIdentifier | DoubleQuotedIdentifier | Tem
   LegacyStringAlias
 }
 
+// The recovery token excludes known modifiers so its branch cannot steal their typed nodes. The
+// specializer answers from a per-parse feature gate first, so an ordinary document never asks the
+// LR state about an identifier that no login clause could reach.
+@external specialize { Identifier } unknownLoginPasswordModifier from "../keywordSpecializer" {
+  LoginPasswordUnknownWord
+}
+
 @external extend { Identifier } contextualKeyword from "../keywordSpecializer" {
   Abort, Absent, Action, Always, Approx, Approximate, Array,
   Apply, At, Atomic, Auto, Base64, Binary, Called, Caller, Catch, Changes, ChangeTable, ChunkUsing, Clone, Copy,
   CheckExpiration, CheckPolicy, Columnstore, Committed, Connect, Contained, Contains, Content, Cookie, Cube, Delay, DelayedDurability, Disable, Durability, Dynamic, Edge, Errlvl,
   DropExisting, Enable, Embeddings, Encrypted, ExternalModel, ApiFormat, Location, Model, ModelType, LocalRuntimePath, FastForward, FileStreamOn, FileTable, First, Following, FullTextStopList,
   ForwardOnly, Function, FipsFlagger, Generated, Global, Graph, Grouping, Groups, Hidden, High, IdentityInsert, FileStream, ColumnSet, AllSparseColumns,
-  Include, Increment, Io, Isolation, Json, JsonArray, JsonArrayAgg, JsonObject, JsonObjectAgg, JsonQuery, JsonValue, Keyset, Language, Level, Local, FreeText, AiGenerateEmbeddings,
+  Include, Increment, Io, Isolation, Json, JsonArray, JsonArrayAgg, JsonObject, JsonObjectAgg, JsonQuery, JsonValue, Keyset, Language, Level, Local, FreeText, AiGenerateEmbeddings, SemanticSearch,
   LastNode, Login, Low, Masked, Matched, MaxDop, MaxValue, MinValue, Name, Next, No, Node, Normal, Off, Offset, Offsets,
   Dialog,
   OffWithoutDataRecovery, Only, Optimistic, Out, Output, Partition, Partitions, Pause, Period, Persisted, Readpast, Tablock,
@@ -3922,7 +3990,7 @@ IdentifierName { Identifier | BracketedIdentifier | DoubleQuotedIdentifier | Tem
   Throw, Ties, Time, Timer, Timeout, TransactionId, Try, TryCast, Parse, TryParse, ReadWriteFilegroups,
   TypeWarning, Unbounded, Uncommitted,
   Synonym, Type, Using, Value, Vector, VectorIndex, VectorSearch, Version, Window, Within, Work, Xml, Cache, Cycle,
-  Active, After, Absolute, Affinity, Aggregate, Algorithm, Any, Application, Assembly, Asymmetric, Attested, Audit, Authentication, Availability, BeginDialog, Binding, Buffer, BulkLogged, Catalog, Classification, Counter, Event, Session, Signature, Sensitivity, Notification, FanIn, Extract, Fn,
+  Active, After, Absolute, Affinity, Aggregate, Algorithm, EncryptedValue, ColumnMasterKey, Any, Application, Assembly, Asymmetric, Attested, Audit, Authentication, Availability, BeginDialog, Binding, Buffer, BulkLogged, Catalog, Classification, Counter, Event, Session, Signature, Sensitivity, Notification, FanIn, Extract, Fn,
   Broker, Priority, Conversation, PriorityLevel, ContractName, RemoteServiceName, LocalServiceName, Before, Block, Filter, Predicate, Correlated,
   Get, Move,
   Cleanup, Description, Document, Error,
@@ -3937,7 +4005,7 @@ IdentifierName { Identifier | BracketedIdentifier | DoubleQuotedIdentifier | Tem
   StatisticalSemantics, Stop, StopList, Symmetric, System, Timestamp, UpdateText, WriteText, XmlData, XmlSchema,
   SchemaBinding, Scheme, SimilarTo, Simple, Size, Split, StartId, Take, Tape, TopN, Ownership, Transfer, Url, Used, Governor, Workload,
   Char, Character, Double, FillFactor, National, Precision, SortedData, SortedDataReorg, Varchar,
-  Both, Hint, Leading, Restrict, Trailing, Trim,
+  Both, Hint, Leading, Restrict, Trailing, Trim, SearchString, RerankingStrategy, Reranker, Rrf, Config, SmoothingFactor, Weight,
   Input, Unchecked, Undefined, Unlock, Validation, ValidXml, Varying, VerifyOnly, Visibility, WellFormedXml, Windows, Without, WithoutArrayWrapper, Wrapper, XmlNamespaces, XQuery, Xsinil
 }
 
@@ -3950,6 +4018,8 @@ IdentifierName { Identifier | BracketedIdentifier | DoubleQuotedIdentifier | Tem
   graphMatch @cut,
   // CREATE SCHEMA owns the elements that follow its header rather than ending before them.
   schemaElement @right,
+  // Known login password modifiers win over the recovery branch for unknown option words.
+  loginPasswordKnown @cut,
   // ELSE binds to the nearest unmatched IF.
   danglingElse @right,
   // Calls must shift an opening parenthesis before reducing the shared multipart name.

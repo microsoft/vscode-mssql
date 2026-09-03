@@ -26,7 +26,9 @@ const statementStarters = new Set([
     "deallocate",
     "declare",
     "delete",
+    "disable",
     "drop",
+    "enable",
     "exec",
     "execute",
     "fetch",
@@ -98,8 +100,12 @@ export const statementToken = new ExternalTokenizer((input) => {
 
 /** Scans one statement-leading parenthesized SELECT for the dedicated grouped-query parser. */
 export const groupedQueryToken = new ExternalTokenizer((input, stack) => {
-    if (!isStatementLeading(stack)) return;
     if (!looksLikeGroupedSelect(input)) return;
+    // A parenthesized SELECT is a statement of its own only where a statement may begin. A module
+    // body written as AS (SELECT ...) is the one inline position that also mounts one, so the
+    // costly LR check runs only after one of those two cheap lexical facts holds.
+    if (!isStatementLeading(stack) && !followsModuleBodyAs(input)) return;
+    if (!stack.canShift(GroupedQueryChunk)) return;
     const boundary = findBoundary(input, "grouped");
     if (boundary <= 0) return;
     input.advance(boundary);
@@ -410,6 +416,30 @@ function isStatementLeading(stack: Stack): boolean {
 interface SqlLexicalContext {
     readonly lineLeading: boolean;
     readonly statementLeading: boolean;
+}
+
+/** True when the word directly before this parenthesis is the AS that introduces a module body. */
+function followsModuleBodyAs(input: InputStream): boolean {
+    let offset = -1;
+    while (isWhitespace(input.peek(offset))) offset--;
+    const letterS = input.peek(offset);
+    const letterA = input.peek(offset - 1);
+    if (letterS !== 115 && letterS !== 83) return false;
+    if (letterA !== 97 && letterA !== 65) return false;
+    const before = input.peek(offset - 2);
+    return before < 0 || !isIdentifierCharacterCode(before);
+}
+
+function isIdentifierCharacterCode(code: number): boolean {
+    return (
+        (code >= 48 && code <= 57) ||
+        (code >= 65 && code <= 90) ||
+        (code >= 97 && code <= 122) ||
+        code === 35 ||
+        code === 64 ||
+        code === 95 ||
+        code >= 128
+    );
 }
 
 function isLineLeadingWord(input: InputStream, start: number): boolean {

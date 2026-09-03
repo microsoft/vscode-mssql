@@ -122,6 +122,9 @@ function colorizedToken(range: TextRange, resolved: Classification): ColorizedTo
 /**
  * Runs the syntax snapshot already reported as an unclosed string, clipped to the requested range.
  * Nothing inside one may be classified as a symbol.
+ *
+ * An unclosed delimited identifier carries the same diagnostic but not the same coloring: a hostile
+ * name must not repaint the statements after it, so only a run opened by a quote is taken here.
  */
 function unterminatedStringRanges(
     input: ColorizationInput,
@@ -130,6 +133,7 @@ function unterminatedStringRanges(
     const ranges: TextRange[] = [];
     for (const diagnostic of input.syntax.diagnostics) {
         if (diagnostic.code !== unclosedStringDiagnosticCode) continue;
+        if (input.syntax.document.text[diagnostic.range.start] !== "'") continue;
         const start = Math.max(diagnostic.range.start, range.start);
         const end = Math.min(diagnostic.range.end, range.end);
         if (start < end) ranges.push({ start, end });

@@ -34,6 +34,18 @@ END;`,
         );
     });
 
+    test("treats the variable in a CREATE RULE condition as rule-local", async () => {
+        const diagnostics = await analyze(
+            "CREATE RULE positive_amount AS @amount >= $1000;",
+            metadata({}),
+        );
+
+        assert.deepEqual(
+            diagnostics.filter(({ code }) => code === "ScalarVariableRequired"),
+            [],
+        );
+    });
+
     // Loaded source shapes support invalid, ambiguous, and prefix diagnostics.
     test("validates qualified and unqualified column references", async () => {
         const provider = metadata({

@@ -87,13 +87,43 @@ export function validateXmlTableMethods(context: MemberDiagnosticContext): void 
         if (!context.isInstanceTableMethod(source, parts)) continue;
         const alias = directChildrenOfKind(source, "TableAlias")[0];
         const columns = directChildrenOfKind(source, "ColumnNameList")[0];
-        if (alias && columns) continue;
+        if (alias && columns && hasNamedColumn(context, columns)) {
+            continue;
+        }
         context.add(
             "TVFMethodMustBeAliased",
             "The table (and its columns) returned by a table-valued method need to be aliased.",
             nameNode,
         );
     }
+    for (const source of context.nodes("VariableTableSource")) {
+        const variable = directChildrenOfKind(source, "Variable")[0];
+        const member = directChildrenOfKind(source, "IdentifierName")[0];
+        if (!variable || !member) continue;
+        const type = context.variableTypeAt(context.source(variable), variable.start);
+        if (
+            receiverType(context, type)?.kind !== "xml" ||
+            normalizeIdentifier(context.source(member)).toUpperCase() !== "NODES"
+        ) {
+            continue;
+        }
+        const alias = directChildrenOfKind(source, "TableAlias")[0];
+        const columns = directChildrenOfKind(source, "ColumnNameList")[0];
+        if (alias && columns && hasNamedColumn(context, columns)) {
+            continue;
+        }
+        context.add(
+            "TVFMethodMustBeAliased",
+            "The table (and its columns) returned by a table-valued method need to be aliased.",
+            member,
+        );
+    }
+}
+
+function hasNamedColumn(context: MemberDiagnosticContext, columns: SyntaxNode): boolean {
+    return directChildrenOfKind(columns, "IdentifierName").some(
+        (column) => normalizeIdentifier(context.source(column)).length > 0,
+    );
 }
 
 function firstMemberAccess(

@@ -3,7 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { firstDescendantOfKind, parentOfKind } from "../../syntax/treeUtilities.js";
+import {
+    ancestorOfKind,
+    directChildrenOfKind,
+    firstDescendantOfKind,
+    parentOfKind,
+} from "../../syntax/treeUtilities.js";
 import type { TextRange } from "../../text/index.js";
 import { isNamedRoutineArgumentLabel } from "../routineCall.js";
 import type { DiagnosticFamilyContext } from "./contracts.js";
@@ -45,6 +50,7 @@ export function validateVariables(context: VariableDiagnosticContext): void {
         const name = context.source(variable);
         if (name.startsWith("@@")) continue;
         if (parentOfKind(variable, "VariableTableSource")) continue;
+        if (ancestorOfKind(variable, ["SemanticSearchTableSource"])) continue;
         const namedArgument = parentOfKind(variable, "NamedExecuteArgument");
         if (
             namedArgument &&
@@ -53,6 +59,14 @@ export function validateVariables(context: VariableDiagnosticContext): void {
             continue;
         }
         if (isNamedRoutineArgumentLabel(variable)) continue;
+        const ruleOrDefault = parentOfKind(variable, "RuleDefaultStatement");
+        if (
+            ruleOrDefault &&
+            directChildrenOfKind(ruleOrDefault, "Create").length > 0 &&
+            directChildrenOfKind(ruleOrDefault, "Rule").length > 0
+        ) {
+            continue;
+        }
         if (!context.variableDeclaredAt(name, variable.start, false)) {
             context.add(
                 "ScalarVariableRequired",

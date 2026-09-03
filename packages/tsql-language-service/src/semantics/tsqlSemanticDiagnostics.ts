@@ -20,6 +20,7 @@ import {
     descendantsOfKind as descendants,
     descendantsOwnedByKind as descendantsOwnedBy,
     directChildrenOfKind as directChildren,
+    directChildOfKind as directChild,
     directOwnedDescendantsOfKind as directOwnedDescendants,
     firstDescendantOfKind as firstDescendant,
     lastDescendantOfKind as lastDescendant,
@@ -289,6 +290,9 @@ class ValidationContext {
             const variable = firstDescendant(node, "Variable");
             if (!variable) continue;
             const name = this.source(variable);
+            if (firstDescendant(node, "Dot") && this.variableAt(name, variable.start, false)) {
+                continue;
+            }
             if (!this.variableAt(name, variable.start, true)) {
                 this.add(
                     "TableVariableRequired",
@@ -751,6 +755,7 @@ class ValidationContext {
         if (parts.at(-1)?.startsWith("#") && !localEvent?.create) return;
         if (
             node.kind === "FunctionTableSource" &&
+            parts.length === 1 &&
             builtInTableFunctions.has(parts.at(-1)!.toUpperCase())
         ) {
             return;
@@ -998,6 +1003,17 @@ class ValidationContext {
     }
 
     private isXmlNodesSource(source: QuerySource): boolean {
+        if (source.node.kind === "VariableTableSource") {
+            const variable = firstDescendant(source.node, "Variable");
+            const member = directChildren(source.node, "IdentifierName")[0];
+            return Boolean(
+                variable &&
+                    member &&
+                    this.equal(this.source(member), "nodes") &&
+                    this.variableTypeAt(this.source(variable), variable.start)?.toLowerCase() ===
+                        "xml",
+            );
+        }
         if (source.node.kind !== "FunctionTableSource") return false;
         const name = firstDescendant(source.node, "MultipartIdentifier");
         if (!name) return false;
@@ -1118,9 +1134,13 @@ class ValidationContext {
             ...descendantsOwnedBy(query, "VariableTableSource", query),
             ...descendantsOwnedBy(query, "DerivedTable", query),
             ...descendantsOwnedBy(query, "NestedDmlTableSource", query),
+            ...descendantsOwnedBy(query, "SemanticSearchTableSource", query),
             ...descendantsOwnedBy(query, "VectorSearchTableSource", query),
         ]) {
-            const aliasNode = firstDescendant(node, "TableAlias");
+            const aliasNode =
+                node.kind === "SemanticSearchTableSource"
+                    ? directChild(node, "TableAlias")
+                    : firstDescendant(node, "TableAlias");
             const aliasName = aliasNode && lastDescendant(aliasNode, "IdentifierName");
             const variable =
                 node.kind === "VariableTableSource" ? firstDescendant(node, "Variable") : undefined;
@@ -1128,7 +1148,9 @@ class ValidationContext {
             const parts = nameNode ? multipartIdentifierParts(this.source(nameNode)) : [];
             const baseName = variable
                 ? this.source(variable)
-                : (parts.at(-1) ?? `derived@${node.start}`);
+                : node.kind === "SemanticSearchTableSource"
+                  ? "SEMANTIC_SEARCH"
+                  : (parts.at(-1) ?? `derived@${node.start}`);
             const exposedName = aliasName
                 ? normalizeIdentifier(this.source(aliasName))
                 : normalizeIdentifier(baseName);
@@ -1168,6 +1190,16 @@ class ValidationContext {
         variableName?: string,
     ): readonly ColumnMetadata[] | undefined {
         if (source.kind === "VariableTableSource" && variableName) {
+            if (firstDescendant(source, "Dot")) {
+                const names = firstDescendant(source, "ColumnNameList");
+                const columns = names
+                    ? descendants(names, "IdentifierName").map((name) => ({
+                          name: normalizeIdentifier(this.source(name)),
+                          typeDisplay: "xml",
+                      }))
+                    : [];
+                return columns.length > 0 ? columns : undefined;
+            }
             return this.variableAt(variableName, source.start, true)?.columns;
         }
         if (source.kind === "VectorSearchTableSource") {
@@ -1185,6 +1217,7 @@ class ValidationContext {
                 { name: "distance", typeDisplay: "float", nullable: false },
             ];
         }
+        if (source.kind === "SemanticSearchTableSource") return undefined;
         if (source.kind === "DerivedTable") {
             return projectedColumns(this._syntax, source);
         }
@@ -2285,6 +2318,7 @@ function isFunctionOptionArgument(syntax: SyntaxSnapshot, node: SyntaxNode): boo
 }
 
 const builtInTableFunctions = new Set([
+    "AI_GENERATE_CHUNKS",
     "CHANGETABLE",
     "GENERATE_SERIES",
     "OPENJSON",

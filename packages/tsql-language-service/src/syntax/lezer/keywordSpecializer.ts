@@ -19,7 +19,7 @@ const parserLocalContextWords = new Set(
      ansiwarnings apply arithabort arithignore at caller catch changes changetable columnstore
      committed concatnullyieldsnull cookie cube cursorcloseoncommit datefirst dateformat
      chunkusing copy deadlockpriority delay delayeddurability disable dropexisting dynamic edge enable embeddings encrypted externalmodel apiformat model modeltype localruntimepath fastforward
-     approx approximate vectorsearch similarto metric topn startid forceannonly
+     approx approximate vectorsearch semanticsearch searchstring rerankingstrategy reranker rrf config smoothingfactor weight similarto metric topn startid forceannonly
      filestreamon filetable fanin federation enforced dump load init resize forceseek mark keys respect ignore noreset nulls first fmtonly following forceplan forappend forwardonly freetext function generated global graph hash
      fulltextstoplist grouping groups hidden high identityinsert filestream columnset allsparsecolumns implicittransactions include increment io isolation json jsonarray jsonarrayagg jsonobject jsonobjectagg jsonquery jsonvalue keyset
      language lastnode level local locktimeout loop login low masked matched materialized maxvalue minvalue name next no nocount noexec node normal
@@ -29,7 +29,7 @@ const parserLocalContextWords = new Set(
      send sequence sequencenumber serializable sets shortestpath showplanall showplantext showplanxml snapshot source sparse start
      searchtype semantic static statistics stream switch synonym systemtime target textimageon throw ties time timeout transactionid try parse tryparse readwritefilegroups
      trycast type typewarning unbounded uncommitted using value vector vectorindex version window within xactabort xml xmldata xmlschema fipsflagger
-     cache cycle absent active after absolute affinity aggregate algorithm any array assembly asymmetric atomic attested audit authentication auto availability base64 before begindialog binding binary block broker priority conversation prioritylevel contractname remoteservicename localservicename buffer bulklogged called catalog classification counter signature sensitivity checkexpiration checkpolicy clear clone close cluster collection configuration connect contained contains content context cpu diagnostics filter predicate correlated
+     cache cycle absent active after absolute affinity aggregate algorithm encryptedvalue columnmasterkey any array assembly asymmetric atomic attested audit authentication auto availability base64 before begindialog binding binary block broker priority conversation prioritylevel contractname remoteservicename localservicename buffer bulklogged called catalog classification counter signature sensitivity checkexpiration checkpolicy clear clone close cluster collection configuration connect contained contains content context cpu diagnostics filter predicate correlated
      containment contract control credential cryptographic data document datasource deallocate decryption defaultdatabase defaultlanguage dependents disk elements empty environmentvariables event explicit
      classifier predict rewindonly some
      endpoint executable extract extension fn connection definition
@@ -61,6 +61,28 @@ export function contextualKeyword(value: string, stack: Stack): number {
 
 export function legacyStringAlias(_value: string, stack: Stack): number {
     return stack.canShift(terms.LegacyStringAlias) ? terms.LegacyStringAlias : -1;
+}
+
+const knownLoginPasswordModifiers = new Set(["hashed", "mustchange", "oldpassword", "unlock"]);
+
+let loginModifiersReachable = false;
+
+/**
+ * Announces whether the text about to be parsed can reach a login password clause at all.
+ *
+ * The recovery token below stands where any word may appear, so without this gate every identifier
+ * in every document would consult the LR state to rule it out. The parse is synchronous, so the
+ * flag holds for exactly the text it was set for.
+ */
+export function setLoginModifiersReachable(reachable: boolean): void {
+    loginModifiersReachable = reachable;
+}
+
+/** Reads a word after a login password as the unknown-modifier the recovery branch accepts. */
+export function unknownLoginPasswordModifier(value: string, stack: Stack): number {
+    if (!loginModifiersReachable) return -1;
+    if (knownLoginPasswordModifiers.has(normalize(value))) return -1;
+    return stack.canShift(terms.LoginPasswordUnknownWord) ? terms.LoginPasswordUnknownWord : -1;
 }
 
 function keywordTermSubset(words: Iterable<string>): ReadonlyMap<string, number> {

@@ -9,6 +9,7 @@ import type { DiagnosticFamilyContext } from "./contracts.js";
 /** Reports empty delimited identifiers from the parser's identifier nodes. */
 export function validateIdentifierNames(context: DiagnosticFamilyContext): void {
     for (const identifier of context.nodes("IdentifierName")) {
+        if (identifier.start === identifier.end) continue;
         if (normalizeIdentifier(context.source(identifier)).length > 0) continue;
         context.add(
             "ObjectNameIsMissingOrEmpty",

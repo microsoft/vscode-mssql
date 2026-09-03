@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import type { SyntaxNode } from "../../syntax/index.js";
 import { containsSyntaxError, directChildrenOfKind } from "../../syntax/treeUtilities.js";
 import type { DiagnosticFamilyContext } from "./contracts.js";
 
@@ -23,12 +22,12 @@ const cursorOptionNames = new Set([
     "TYPE_WARNING",
 ]);
 const isoCursorOptionNames = new Set(["INSENSITIVE", "SCROLL"]);
-const conflictingGroups = [
+const conflictingGroups: readonly (readonly string[])[] = [
     ["GLOBAL", "LOCAL"],
     ["FORWARD_ONLY", "SCROLL"],
     ["STATIC", "KEYSET", "DYNAMIC", "FAST_FORWARD"],
     ["READ_ONLY", "SCROLL_LOCKS", "OPTIMISTIC"],
-] as const;
+];
 
 /** Validates ISO and extended DECLARE CURSOR option families from structured option nodes. */
 export function validateCursorOptions(context: DiagnosticFamilyContext): void {
@@ -66,17 +65,21 @@ export function validateCursorOptions(context: DiagnosticFamilyContext): void {
             }
         }
         for (const group of conflictingGroups) {
-            let first: { readonly name: string; readonly node: SyntaxNode } | undefined;
+            let first: { readonly spelling: string; readonly rank: number } | undefined;
             for (const option of options) {
-                const name = context.source(option).trim().toUpperCase();
-                if (!group.some((candidate) => candidate === name)) continue;
+                const spelling = context.source(option).trim();
+                const rank = group.indexOf(spelling.toUpperCase());
+                if (rank < 0) continue;
                 if (!first) {
-                    first = { name, node: option };
+                    first = { spelling, rank };
                     continue;
                 }
+                // The pair is named in the option family's own order, not in writing order.
+                const [left, right] =
+                    first.rank <= rank ? [first.spelling, spelling] : [spelling, first.spelling];
                 context.add(
                     "ConflictingCursorOption",
-                    `Conflicting cursor options ${first.name} and ${name}.`,
+                    `Conflicting cursor options ${left} and ${right}.`,
                     option,
                 );
             }

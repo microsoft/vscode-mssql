@@ -15,8 +15,11 @@ import { assertDefined } from "../../support/assertions.ts";
 // expectation below was taken from ScriptDOM's own output for the same input.
 const { analyze } = createSemanticHarness({ uri: "file:///permissive-tails.sql" });
 
-const codesAndMessages = async (sql: string): Promise<readonly (readonly [string, string])[]> =>
-    (await analyze(sql)).map(({ code, message }) => [code, message] as const);
+const codesAndMessages = async (
+    sql: string,
+    options?: { readonly allowSyntaxDiagnostics?: boolean },
+): Promise<readonly (readonly [string, string])[]> =>
+    (await analyze(sql, options)).map(({ code, message }) => [code, message] as const);
 
 suite("T-SQL permissive keyword tail validation", () => {
     test("reports the first KILL word the product could not reconcile", async () => {
@@ -61,9 +64,12 @@ suite("T-SQL permissive keyword tail validation", () => {
             ),
             [["IncorrectSyntaxNear", "Incorrect syntax near 'ON'."]],
         );
+        // The unknown option word itself is a syntax diagnostic; the partition tail stays a
+        // semantic one, so only the semantic half is compared here.
         assert.deepEqual(
             await codesAndMessages(
                 "ALTER INDEX i1 ON t1 REBUILD WITH (BOGUS_OPTION = ROW ON PARTITIONS (2));",
+                { allowSyntaxDiagnostics: true },
             ),
             [["IncorrectSyntaxNear", "Incorrect syntax near 'ON'."]],
         );
@@ -88,16 +94,42 @@ suite("T-SQL permissive keyword tail validation", () => {
         );
     });
 
-    test("accepts INLINE in every function shape", async () => {
+    // INLINE controls scalar user-defined function inlining, so it belongs to a Transact-SQL
+    // scalar function and to no other function shape.
+    test("accepts INLINE on a Transact-SQL scalar function only", async () => {
         for (const sql of [
             "CREATE FUNCTION dbo.f1() RETURNS int WITH INLINE = ON AS BEGIN RETURN 1 END;",
             "CREATE FUNCTION dbo.f1() RETURNS int WITH INLINE = OFF AS BEGIN RETURN 1 END;",
+        ]) {
+            assert.deepEqual(await analyze(sql), [], sql);
+        }
+        for (const sql of [
             "CREATE FUNCTION dbo.f1() RETURNS TABLE WITH INLINE = ON AS RETURN (SELECT 1 AS c);",
             "CREATE FUNCTION dbo.f1() RETURNS @t TABLE (c int) WITH INLINE = ON AS BEGIN RETURN END;",
             "CREATE FUNCTION dbo.f1() RETURNS int WITH INLINE = ON AS EXTERNAL NAME asm.cls.mth;",
         ]) {
-            assert.deepEqual(await analyze(sql), [], sql);
+            assert.deepEqual(
+                await codesAndMessages(sql),
+                [
+                    [
+                        "InvalidOptionInCreateFunction",
+                        'An invalid option was specified for the statement "CREATE/ALTER FUNCTION".',
+                    ],
+                ],
+                sql,
+            );
         }
+    });
+
+    // A bare word is an option name the product does not recognize; a word assigned a value is
+    // rejected as syntax, because INLINE is the only assigned function option.
+    test("separates an unrecognized function option from an unexpected assignment", async () => {
+        assert.deepEqual(
+            await codesAndMessages(
+                "CREATE FUNCTION dbo.f1() RETURNS int WITH INLINE AS BEGIN RETURN 1 END;",
+            ),
+            [["OptionNotRecognized", "'INLINE' is not a recognized option."]],
+        );
     });
 
     // SERVER CERTIFICATE and SERVER ASYMMETRIC KEY belong to a backup ENCRYPTION option. The

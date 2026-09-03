@@ -74,6 +74,7 @@ suite("T-SQL index and temporal diagnostics", () => {
         const diagnostics = await analyze(
             "CREATE SEMANTIC INDEX ix ON dbo.Documents (Body) WITH (MAXDOP = 4);",
             metadata(),
+            { allowSyntaxDiagnostics: true },
         );
 
         assert.deepEqual(

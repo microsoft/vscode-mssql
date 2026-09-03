@@ -64,12 +64,13 @@ suite("T-SQL CREATE SCHEMA header validation", () => {
         );
     });
 
-    // A damaged header belongs to syntax recovery rather than to this rule.
-    test("does not diagnose a damaged header", () => {
+    // A header damaged after AUTHORIZATION still has no name, so the rule reports alongside the
+    // recovery diagnostic rather than deferring to it.
+    test("diagnoses a damaged header alongside recovery", () => {
         const diagnostics = parse("CREATE SCHEMA AUTHORIZATION;").diagnostics;
 
         assert.ok(diagnostics.some(({ code }) => code === "syntax"));
-        assert.ok(diagnostics.every(({ code }) => code !== "NameOrAuthorizationKeywordRequired"));
+        assert.ok(diagnostics.some(({ code }) => code === "NameOrAuthorizationKeywordRequired"));
     });
 
     // Incremental reparse must produce the identical diagnostic set.

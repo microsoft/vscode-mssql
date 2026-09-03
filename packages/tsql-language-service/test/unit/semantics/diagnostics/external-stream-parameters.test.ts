@@ -145,6 +145,22 @@ suite("T-SQL external stream parameter validation", () => {
             assert.deepEqual(await analyze(sql, { allowSyntaxDiagnostics: true }), [], sql);
         }
     });
+
+    test("retains required parameters after a committed malformed option list", async () => {
+        const sql = `CREATE EXTERNAL STREAM dbo.Events WITH (
+LOCATION = 'events',
+OUTPUT_OPTIONS = 'drop'
+DATA_SOURCE = src
+);`;
+        assert.deepEqual(await analyze(sql, { allowSyntaxDiagnostics: true }), [
+            {
+                code: "RequiredParam",
+                message: "The external stream option 'DATA_SOURCE' must be included in the ddl.",
+                severity: "error",
+                text: "CREATE EXTERNAL STREAM dbo.Events WITH (\nLOCATION = 'events',\nOUTPUT_OPTIONS = 'drop'",
+            },
+        ]);
+    });
 });
 
 suite("T-SQL external stream incremental equivalence", () => {

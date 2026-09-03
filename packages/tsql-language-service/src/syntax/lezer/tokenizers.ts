@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ExternalTokenizer, type InputStream, type Stack } from "@lezer/lr";
+import { isReservedKeyword } from "../keywords.js";
 import {
     AtTimeZone,
     BlockComment,
@@ -72,6 +73,8 @@ const moneySigns = new Set([
  */
 export const leadingDotToken = new ExternalTokenizer((input, stack) => {
     if (input.next !== period) return;
+    // A dot before a digit opens a decimal literal such as .10, not a name.
+    if (isDigit(input.peek(1))) return;
     if (!stack.canShift(LeadingDot)) return;
     // A name already in progress continues with an ordinary dot; only a name that has not started
     // yet may begin with one.
@@ -109,10 +112,15 @@ export const sqlServerTokens = new ExternalTokenizer((input, stack) => {
     if (moneySigns.has(input.next) && stack.canShift(MoneyLiteral) && readMoneyLiteral(input))
         return;
     if (readInvalidExecuteModuleOption(input, stack)) return;
-    // Labels are statement-leading constructs. Checking the lexical line state avoids both
-    // misclassifying identifier/colon pairs inside expressions and an expensive LR canShift call
-    // for every identifier in the document.
-    if (isLineLeading(stack) && isIdentifierStart(input.next) && readLabel(input)) return;
+    // Most labels lead a line. An inline label is also legal, so consult the LR state only after a
+    // cheap lexical check has proved that this identifier is followed by one colon.
+    if (
+        isIdentifierStart(input.next) &&
+        (isLineLeading(stack) || (looksLikeLabel(input) && stack.canShift(Label))) &&
+        readLabel(input)
+    ) {
+        return;
+    }
     if ((input.next === lowerA || input.next === upperA) && readAtTimeZone(input)) return;
     if (
         (input.next === lowerM || input.next === upperM) &&
@@ -223,11 +231,7 @@ function looksLikeUpdatePredicate(input: InputStream): boolean {
 }
 
 function readViewCheckWith(input: InputStream): boolean {
-    if (!matchesWord(input, 0, "with")) return false;
-    let offset = "with".length;
-    if (!isSqlWhitespace(input.peek(offset))) return false;
-    while (isSqlWhitespace(input.peek(offset))) offset++;
-    if (!matchesWord(input, offset, "check")) return false;
+    if (!looksLikeViewCheckWith(input)) return false;
     input.advance("with".length);
     input.acceptToken(ViewCheckWith);
     return true;
@@ -237,8 +241,38 @@ function looksLikeViewCheckWith(input: InputStream): boolean {
     if (!matchesWord(input, 0, "with")) return false;
     let offset = "with".length;
     if (!isSqlWhitespace(input.peek(offset))) return false;
-    while (isSqlWhitespace(input.peek(offset))) offset++;
+    offset = skipTriviaOffset(input, offset);
     return matchesWord(input, offset, "check");
+}
+
+/** Advances past whitespace and comments, which may separate any two words of a clause. */
+function skipTriviaOffset(input: InputStream, start: number): number {
+    let offset = start;
+    for (;;) {
+        while (isSqlWhitespace(input.peek(offset))) offset++;
+        if (input.peek(offset) === hyphen && input.peek(offset + 1) === hyphen) {
+            while (input.peek(offset) >= 0 && input.peek(offset) !== lineFeed) offset++;
+            continue;
+        }
+        if (input.peek(offset) === forwardSlash && input.peek(offset + 1) === asterisk) {
+            offset += 2;
+            let depth = 1;
+            while (depth > 0 && input.peek(offset) >= 0) {
+                if (input.peek(offset) === forwardSlash && input.peek(offset + 1) === asterisk) {
+                    depth++;
+                    offset += 2;
+                } else if (
+                    input.peek(offset) === asterisk &&
+                    input.peek(offset + 1) === forwardSlash
+                ) {
+                    depth--;
+                    offset += 2;
+                } else offset++;
+            }
+            continue;
+        }
+        return offset;
+    }
 }
 
 function matchesWord(input: InputStream, start: number, expected: string): boolean {
@@ -258,6 +292,26 @@ function readLabel(input: InputStream): boolean {
     input.advance(offset + 1);
     input.acceptToken(Label);
     return true;
+}
+
+/**
+ * A label is an identifier, so a reserved word followed by a colon is not one. SELECT * FROM:
+ * sysobjects is the SQL 80 colon FROM form, not a statement label named FROM.
+ */
+function looksLikeLabel(input: InputStream): boolean {
+    let offset = 1;
+    while (isIdentifierCode(input.peek(offset))) offset++;
+    const word = readWordText(input, 0, offset);
+    while (isHorizontalSpace(input.peek(offset))) offset++;
+    if (input.peek(offset) !== colon || input.peek(offset + 1) === colon) return false;
+    return !isReservedKeyword(word);
+}
+
+function readWordText(input: InputStream, start: number, end: number): string {
+    let text = "";
+    for (let offset = start; offset < end; offset++)
+        text += String.fromCharCode(input.peek(offset));
+    return text;
 }
 
 function readAtTimeZone(input: InputStream): boolean {
@@ -342,10 +396,6 @@ function readBatchSeparator(input: InputStream): boolean {
     return true;
 }
 
-function isDigit(code: number): boolean {
-    return code >= digitZero && code <= digitNine;
-}
-
 function isHorizontalSpace(code: number): boolean {
     return (
         (code >= 0x0000 && code <= 0x0008) ||
@@ -367,6 +417,10 @@ function isHorizontalSpace(code: number): boolean {
 
 function isLineEnd(code: number): boolean {
     return code < 0 || code === carriageReturn || code === lineFeed;
+}
+
+function isDigit(code: number): boolean {
+    return code >= digitZero && code <= digitNine;
 }
 
 function isSqlWhitespace(code: number): boolean {

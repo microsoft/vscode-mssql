@@ -67,6 +67,26 @@ SELECT * FROM dbo.Target WHERE Id = 1;`,
             ["BooleanConditionExpected", "BooleanConditionExpected"],
         );
     });
+
+    test("validates procedural and searched CASE boolean contexts", async () => {
+        const provider = metadata({
+            objects: [table("target", "dbo", "Target")],
+            columns: new Map([["target", [{ name: "Id", typeDisplay: "int" }]]]),
+        });
+        const sql = `IF 1 SELECT 1;
+WHILE @condition SELECT 1;
+SELECT CASE WHEN value THEN 1 ELSE 0 END;
+SELECT CASE value WHEN 1 THEN 1 ELSE 0 END;
+IF 1 = 1 SELECT 1;
+SELECT * FROM dbo.Target WHERE;`;
+        const diagnostics = await analyze(sql, provider, { allowSyntaxDiagnostics: true });
+        assert.deepEqual(
+            diagnostics
+                .filter(({ code }) => code === "BooleanConditionExpected")
+                .map(({ range }) => sql.slice(range.start, range.end)),
+            ["1", "@condition", "value", ""],
+        );
+    });
     // Database references are diagnosed only when the pinned database list is authoritative.
     test("validates USE and multipart database references", async () => {
         const diagnostics = await analyze(
@@ -192,7 +212,7 @@ DECLARE bad_cursor CURSOR LOCAL GLOBAL FORWARD_ONLY SCROLL STATIC KEYSET READ_ON
             [
                 {
                     code: "ConflictingCursorOption",
-                    message: "Conflicting cursor options LOCAL and GLOBAL.",
+                    message: "Conflicting cursor options GLOBAL and LOCAL.",
                 },
                 {
                     code: "ConflictingCursorOption",
@@ -263,6 +283,55 @@ SELECT 1 FROM #XmlInput CROSS APPLY XmlData.nodes('/');`,
                     code: "InvalidColumnXmlNodeUse",
                     message:
                         "The column 'Spec' that was returned from the nodes() method cannot be used directly. It can only be used with one of the four XML data type methods, exist(), nodes(), query(), and value(), or in IS NULL and IS NOT NULL checks.",
+                },
+                {
+                    code: "TVFMethodMustBeAliased",
+                    message:
+                        "The table (and its columns) returned by a table-valued method need to be aliased.",
+                },
+            ],
+        );
+    });
+
+    test("validates aliases on XML nodes rowsets invoked through variables", async () => {
+        const diagnostics = await analyze(
+            `DECLARE @document xml = '';
+SELECT 1 FROM @document.nodes('/') AS T(node_value);
+SELECT 1 FROM @document.nodes('/') AS T;
+SELECT 1 FROM @document.nodes('/');`,
+            metadata(),
+        );
+
+        assert.deepEqual(
+            diagnostics.map(({ code, message }) => ({ code, message })),
+            [
+                {
+                    code: "TVFMethodMustBeAliased",
+                    message:
+                        "The table (and its columns) returned by a table-valued method need to be aliased.",
+                },
+                {
+                    code: "TVFMethodMustBeAliased",
+                    message:
+                        "The table (and its columns) returned by a table-valued method need to be aliased.",
+                },
+            ],
+        );
+    });
+
+    test("reports an empty XML nodes column alias without an empty-name semantic error", async () => {
+        const sql = "DECLARE @document xml = ''; SELECT 1 FROM @document.nodes('/') AS T();";
+        const snapshot = await analyze(sql, metadata(), {
+            allowSyntaxDiagnostics: true,
+            snapshot: true,
+        });
+        const diagnostics = [...snapshot.syntax.diagnostics, ...snapshot.semantics.diagnostics];
+        assert.deepEqual(
+            diagnostics.map(({ code, message }) => ({ code, message })),
+            [
+                {
+                    code: "syntax",
+                    message: "Incorrect syntax near ')'.  Expecting ID, or QUOTED_ID.",
                 },
                 {
                     code: "TVFMethodMustBeAliased",

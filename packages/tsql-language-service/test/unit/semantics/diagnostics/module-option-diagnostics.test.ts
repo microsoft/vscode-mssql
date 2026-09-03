@@ -104,6 +104,74 @@ AFTER INSERT AS BEGIN RETURN; END;`),
         );
     });
 
+    test("classifies invalid options on external functions", async () => {
+        for (const option of [
+            "ENCRYPTION",
+            "SCHEMABINDING",
+            "NATIVE_COMPILATION",
+            "RECOMPILE",
+            "INLINE=ON",
+        ]) {
+            assert.deepEqual(
+                (
+                    await analyze(
+                        `CREATE FUNCTION f() RETURNS int WITH ${option} AS EXTERNAL NAME a.b.c;`,
+                    )
+                ).map(({ code, message }) => [code, message]),
+                [
+                    [
+                        "InvalidOptionInCreateFunction",
+                        'An invalid option was specified for the statement "CREATE/ALTER FUNCTION".',
+                    ],
+                ],
+                option,
+            );
+        }
+        for (const option of ["ENCRYPTION", "SCHEMABINDING", "NATIVE_COMPILATION", "RECOMPILE"]) {
+            assert.deepEqual(
+                (
+                    await analyze(
+                        `CREATE FUNCTION f() RETURNS TABLE(c int) WITH ${option} AS EXTERNAL NAME a.b.c;`,
+                    )
+                ).map(({ code }) => code),
+                ["InvalidOptionInCreateFunction"],
+                `table-valued ${option}`,
+            );
+        }
+        assert.deepEqual(
+            (await analyze("CREATE FUNCTION f() RETURNS int WITH BAR AS EXTERNAL NAME a.b.c;")).map(
+                ({ code, message }) => [code, message],
+            ),
+            [["OptionNotRecognized", "'BAR' is not a recognized option."]],
+        );
+    });
+
+    test("rejects INLINE assignments on table-valued functions", async () => {
+        for (const sql of [
+            "CREATE FUNCTION f() RETURNS TABLE WITH INLINE=ON AS RETURN SELECT 1 AS value;",
+            "CREATE FUNCTION f() RETURNS @result TABLE(value int) WITH INLINE=OFF AS BEGIN RETURN; END;",
+        ]) {
+            assert.deepEqual(
+                (await analyze(sql)).map(({ code, message }) => [code, message]),
+                [
+                    [
+                        "InvalidOptionInCreateFunction",
+                        'An invalid option was specified for the statement "CREATE/ALTER FUNCTION".',
+                    ],
+                ],
+                sql,
+            );
+        }
+        assert.deepEqual(
+            (
+                await analyze(
+                    "CREATE FUNCTION f() RETURNS TABLE WITH INLINE AS RETURN SELECT 1 AS value;",
+                )
+            ).map(({ code, message }) => [code, message]),
+            [["OptionNotRecognized", "'INLINE' is not a recognized option."]],
+        );
+    });
+
     // A repeat is only reported for an option the statement actually allows, and a misplaced
     // option reports the statement mismatch rather than a duplicate.
     test("reports one classification per option", async () => {
