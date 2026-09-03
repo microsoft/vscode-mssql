@@ -12,13 +12,15 @@ import { DabDeploymentPrerequisites } from "./dabDeploymentPrerequisites";
 import { DabDeploymentInputForm } from "./dabDeploymentInputForm";
 import { DabDeploymentProgress } from "./dabDeploymentProgress";
 import { DabDeploymentComplete } from "./dabDeploymentComplete";
+import { DabDeploymentsList } from "./dabDeploymentsList";
+import { DabDeploymentTargetPicker } from "./dabDeploymentTargetPicker";
 import { getPrereqSteps, getDeploySteps } from "./dabDeploymentUtils";
 import { useDabContext } from "../dabContext";
 
 const useStyles = makeStyles({
     surface: {
-        width: "600px",
-        maxWidth: "600px",
+        width: "640px",
+        maxWidth: "640px",
         maxHeight: "80vh",
     },
 });
@@ -29,25 +31,32 @@ export const DabDeploymentDialog = () => {
     const {
         dabDeploymentState,
         closeDabDeploymentDialog,
+        setDabDeploymentDialogView,
         setDabDeploymentDialogStep,
         updateDabDeploymentParams,
         validateDabDeploymentParams,
         runDabDeploymentStep,
         resetDabDeploymentState,
+        startNewDabDeployment,
+        restartDabDeploymentFlow,
         retryDabDeploymentSteps,
+        loadDabDeployments,
     } = context;
 
-    const { dialogStep, currentDeploymentStep, stepStatuses } = dabDeploymentState;
+    const { dialogView, dialogStep, currentDeploymentStep, stepStatuses, mode } =
+        dabDeploymentState;
     const prereqSteps = getPrereqSteps(stepStatuses);
     const deploySteps = getDeploySteps(stepStatuses);
+    const isRedeploy = mode === Dab.DabDeploymentMode.Redeploy;
 
     // Determine which step to run based on current state
     // This effect runs when relevant state changes and runs one step at a time
     useEffect(() => {
-        // Only run steps during Prerequisites or Deployment dialog steps
+        // Only run steps while the wizard is showing its step-driven views
         if (
-            dialogStep !== Dab.DabDeploymentDialogStep.Prerequisites &&
-            dialogStep !== Dab.DabDeploymentDialogStep.Deployment
+            dialogView !== Dab.DabDeploymentDialogView.Wizard ||
+            (dialogStep !== Dab.DabDeploymentDialogStep.Prerequisites &&
+                dialogStep !== Dab.DabDeploymentDialogStep.Deployment)
         ) {
             return;
         }
@@ -72,7 +81,7 @@ export const DabDeploymentDialog = () => {
         } else if (dialogStep === Dab.DabDeploymentDialogStep.Deployment && isDeployStep) {
             void runDabDeploymentStep(currentDeploymentStep);
         }
-    }, [dialogStep, currentDeploymentStep, stepStatuses, runDabDeploymentStep]);
+    }, [dialogView, dialogStep, currentDeploymentStep, stepStatuses, runDabDeploymentStep]);
 
     const handleConfirm = () => {
         setDabDeploymentDialogStep(Dab.DabDeploymentDialogStep.Prerequisites);
@@ -84,8 +93,7 @@ export const DabDeploymentDialog = () => {
     };
 
     const handleRetry = () => {
-        resetDabDeploymentState();
-        setDabDeploymentDialogStep(Dab.DabDeploymentDialogStep.Prerequisites);
+        restartDabDeploymentFlow();
     };
 
     const handleClose = () => {
@@ -93,8 +101,30 @@ export const DabDeploymentDialog = () => {
         resetDabDeploymentState();
     };
 
-    const renderContent = () => {
-        switch (dabDeploymentState.dialogStep) {
+    /**
+     * A finished deployment belongs in the list, where it can be redeployed or
+     * removed later. Refreshing first means the new container is already there
+     * when the list renders.
+     */
+    const handleShowDeployments = async () => {
+        await loadDabDeployments();
+        setDabDeploymentDialogView(Dab.DabDeploymentDialogView.List);
+    };
+
+    /**
+     * Prerequisites are already satisfied for a redeployment's container name
+     * and port, so redeploying skips the parameter form and reuses them.
+     */
+    const handlePrerequisitesNext = () => {
+        setDabDeploymentDialogStep(
+            isRedeploy
+                ? Dab.DabDeploymentDialogStep.Deployment
+                : Dab.DabDeploymentDialogStep.ParameterInput,
+        );
+    };
+
+    const renderWizard = () => {
+        switch (dialogStep) {
             case Dab.DabDeploymentDialogStep.Confirmation:
                 return (
                     <DabDeploymentConfirmation
@@ -107,9 +137,7 @@ export const DabDeploymentDialog = () => {
                 return (
                     <DabDeploymentPrerequisites
                         stepStatuses={prereqSteps}
-                        onNext={() =>
-                            setDabDeploymentDialogStep(Dab.DabDeploymentDialogStep.ParameterInput)
-                        }
+                        onNext={handlePrerequisitesNext}
                         onRetry={handleRetry}
                         onCancel={handleClose}
                     />
@@ -150,9 +178,35 @@ export const DabDeploymentDialog = () => {
                             await retryDabDeploymentSteps();
                             setDabDeploymentDialogStep(Dab.DabDeploymentDialogStep.Deployment);
                         }}
-                        onFinish={handleClose}
+                        onFinish={() => void handleShowDeployments()}
                     />
                 );
+            default:
+                return null;
+        }
+    };
+
+    const renderContent = () => {
+        switch (dialogView) {
+            case Dab.DabDeploymentDialogView.List:
+                return (
+                    <DabDeploymentsList
+                        onCreateNew={() =>
+                            setDabDeploymentDialogView(Dab.DabDeploymentDialogView.TargetSelection)
+                        }
+                        onClose={handleClose}
+                    />
+                );
+            case Dab.DabDeploymentDialogView.TargetSelection:
+                return (
+                    <DabDeploymentTargetPicker
+                        onSelectTarget={() => startNewDabDeployment()}
+                        onBack={() => setDabDeploymentDialogView(Dab.DabDeploymentDialogView.List)}
+                        onCancel={handleClose}
+                    />
+                );
+            case Dab.DabDeploymentDialogView.Wizard:
+                return renderWizard();
             default:
                 return null;
         }

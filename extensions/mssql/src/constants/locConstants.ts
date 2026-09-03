@@ -1947,6 +1947,27 @@ export class LocalContainers {
         "DAB container failed to become ready within the timeout period.",
     );
     public static dabStopContainerError = l10n.t("Failed to stop and remove DAB container.");
+    public static dabContainerNotFound = (containerName: string) =>
+        l10n.t({
+            message: "Container {0} no longer exists.",
+            args: [containerName],
+            comment: ["{0} is the Docker container name"],
+        });
+    public static dabStartExistingContainerError = l10n.t("Failed to start the DAB container.");
+    public static dabStopExistingContainerError = l10n.t("Failed to stop the DAB container.");
+    public static dabDeploymentNotFound = l10n.t(
+        "This deployment is no longer tracked. Refresh the deployments list and try again.",
+    );
+    public static dabRedeployPortUnavailable = (port: number, containerName: string) =>
+        l10n.t({
+            message:
+                "Port {0} is no longer available, so {1} cannot be redeployed on it. Free the port, or create a new deployment on a different port.",
+            args: [port, containerName],
+            comment: ["{0} is the port number", "{1} is the Docker container name"],
+        });
+    public static dabDeploymentStoreUnavailable = l10n.t(
+        "Deployments cannot be tracked because the extension's storage location is unavailable.",
+    );
 }
 
 export class UserSurvey {

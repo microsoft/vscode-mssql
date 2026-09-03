@@ -2262,6 +2262,81 @@ export class LocConstants {
             viewSwagger: l10n.t("View Swagger"),
             openNitro: l10n.t("Open Nitro"),
 
+            // DAB Deployments dialog
+            deployments: l10n.t("Deployments"),
+            deploymentsDescription: l10n.t(
+                "Containers you have deployed for this database. Redeploy one to bring it up to date with your current configuration.",
+            ),
+            createNewDeployment: l10n.t("Create new"),
+            noDeployments: l10n.t("No deployments yet"),
+            noDeploymentsDescription: l10n.t(
+                "Deploy your configuration to a local Docker container to get REST, GraphQL, and MCP endpoints for this database.",
+            ),
+            loadingDeployments: l10n.t("Loading deployments"),
+            refreshDeployments: l10n.t("Refresh"),
+            deploymentStatusRunning: l10n.t("Running"),
+            deploymentStatusStopped: l10n.t("Stopped"),
+            deploymentStatusMissing: l10n.t("Container no longer exists"),
+            deploymentStatusUnknown: l10n.t("Status unavailable"),
+            deploymentConfigUpToDate: l10n.t("Up to date"),
+            deploymentConfigOutdated: l10n.t("Config changed"),
+            deploymentConfigOutdatedTooltip: l10n.t(
+                "Your configuration has changed since this container was deployed. Redeploy to apply the changes.",
+            ),
+            deployedOn: (timestamp: string) =>
+                l10n.t({
+                    message: "Deployed {0}",
+                    args: [timestamp],
+                    comment: ["{0} is a localized date and time"],
+                }),
+            deploymentPort: (port: number) =>
+                l10n.t({
+                    message: "Port {0}",
+                    args: [port],
+                    comment: ["{0} is the host port number"],
+                }),
+            redeploy: l10n.t("Redeploy"),
+            redeployTooltip: l10n.t(
+                "Replace this container with a new one on the same name and port, running your current configuration.",
+            ),
+            startContainer: l10n.t("Start"),
+            stopContainer: l10n.t("Stop"),
+            deleteDeployment: l10n.t("Delete"),
+            deleteDeploymentConfirmTitle: l10n.t("Delete deployment?"),
+            deleteDeploymentConfirmMessage: (containerName: string) =>
+                l10n.t({
+                    message:
+                        "The container {0} will be stopped and removed, and its endpoints will stop responding.",
+                    args: [containerName],
+                    comment: ["{0} is the Docker container name"],
+                }),
+            showEndpoints: l10n.t("Show endpoints"),
+            hideEndpoints: l10n.t("Hide endpoints"),
+            endpointsUnavailableWhenStopped: l10n.t("Start the container to use these endpoints."),
+            selectDeploymentTarget: l10n.t("Select a deployment target"),
+            selectDeploymentTargetDescription: l10n.t(
+                "Choose where to run Data API builder for this database.",
+            ),
+            deploymentTargetDocker: l10n.t("Local Docker container"),
+            deploymentTargetDockerDescription: l10n.t(
+                "Runs Data API builder in a container on this machine, published on a local port.",
+            ),
+            backToDeployments: l10n.t("Back to deployments"),
+            redeployingContainer: (containerName: string) =>
+                l10n.t({
+                    message: "Redeploying {0}",
+                    args: [containerName],
+                    comment: ["{0} is the Docker container name"],
+                }),
+
+            // DAB reset configuration
+            resetConfig: l10n.t("Reset"),
+            resetConfigTooltip: l10n.t("Reset the configuration to the defaults for this schema"),
+            resetConfigConfirmTitle: l10n.t("Reset DAB configuration?"),
+            resetConfigConfirmMessage: l10n.t(
+                "This discards all entity, action, column, and advanced settings for this database, including changes made by Copilot, and rebuilds them from the current schema.",
+            ),
+
             // DAB Unsupported Reasons
             unsupportedNoPrimaryKey: (sourceType: string = "Table") =>
                 l10n.t({

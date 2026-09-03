@@ -1099,6 +1099,18 @@
     "Failed to start DAB container. Please check the Docker logs for details.": "Failed to start DAB container. Please check the Docker logs for details.",
     "DAB container failed to become ready within the timeout period.": "DAB container failed to become ready within the timeout period.",
     "Failed to stop and remove DAB container.": "Failed to stop and remove DAB container.",
+    "Container {0} no longer exists./{0} is the Docker container name": {
+        "message": "Container {0} no longer exists.",
+        "comment": ["{0} is the Docker container name"]
+    },
+    "Failed to start the DAB container.": "Failed to start the DAB container.",
+    "Failed to stop the DAB container.": "Failed to stop the DAB container.",
+    "This deployment is no longer tracked. Refresh the deployments list and try again.": "This deployment is no longer tracked. Refresh the deployments list and try again.",
+    "Port {0} is no longer available, so {1} cannot be redeployed on it. Free the port, or create a new deployment on a different port./{0} is the port number{1} is the Docker container name": {
+        "message": "Port {0} is no longer available, so {1} cannot be redeployed on it. Free the port, or create a new deployment on a different port.",
+        "comment": ["{0} is the port number", "{1} is the Docker container name"]
+    },
+    "Deployments cannot be tracked because the extension's storage location is unavailable.": "Deployments cannot be tracked because the extension's storage location is unavailable.",
     "Overall, how satisfied are you with the MSSQL extension?": "Overall, how satisfied are you with the MSSQL extension?",
     "How likely it is that you would recommend the MSSQL extension to a friend or colleague?": "How likely it is that you would recommend the MSSQL extension to a friend or colleague?",
     "What can we do to improve?": "What can we do to improve?",
@@ -3936,6 +3948,49 @@
     "Add MCP server to workspace configuration": "Add MCP server to workspace configuration",
     "View Swagger": "View Swagger",
     "Open Nitro": "Open Nitro",
+    "Deployments": "Deployments",
+    "Containers you have deployed for this database. Redeploy one to bring it up to date with your current configuration.": "Containers you have deployed for this database. Redeploy one to bring it up to date with your current configuration.",
+    "Create new": "Create new",
+    "No deployments yet": "No deployments yet",
+    "Deploy your configuration to a local Docker container to get REST, GraphQL, and MCP endpoints for this database.": "Deploy your configuration to a local Docker container to get REST, GraphQL, and MCP endpoints for this database.",
+    "Loading deployments": "Loading deployments",
+    "Container no longer exists": "Container no longer exists",
+    "Status unavailable": "Status unavailable",
+    "Up to date": "Up to date",
+    "Config changed": "Config changed",
+    "Your configuration has changed since this container was deployed. Redeploy to apply the changes.": "Your configuration has changed since this container was deployed. Redeploy to apply the changes.",
+    "Deployed {0}/{0} is a localized date and time": {
+        "message": "Deployed {0}",
+        "comment": ["{0} is a localized date and time"]
+    },
+    "Port {0}/{0} is the host port number": {
+        "message": "Port {0}",
+        "comment": ["{0} is the host port number"]
+    },
+    "Redeploy": "Redeploy",
+    "Replace this container with a new one on the same name and port, running your current configuration.": "Replace this container with a new one on the same name and port, running your current configuration.",
+    "Start": "Start",
+    "Stop": "Stop",
+    "Delete deployment?": "Delete deployment?",
+    "The container {0} will be stopped and removed, and its endpoints will stop responding./{0} is the Docker container name": {
+        "message": "The container {0} will be stopped and removed, and its endpoints will stop responding.",
+        "comment": ["{0} is the Docker container name"]
+    },
+    "Show endpoints": "Show endpoints",
+    "Hide endpoints": "Hide endpoints",
+    "Start the container to use these endpoints.": "Start the container to use these endpoints.",
+    "Select a deployment target": "Select a deployment target",
+    "Choose where to run Data API builder for this database.": "Choose where to run Data API builder for this database.",
+    "Local Docker container": "Local Docker container",
+    "Runs Data API builder in a container on this machine, published on a local port.": "Runs Data API builder in a container on this machine, published on a local port.",
+    "Back to deployments": "Back to deployments",
+    "Redeploying {0}/{0} is the Docker container name": {
+        "message": "Redeploying {0}",
+        "comment": ["{0} is the Docker container name"]
+    },
+    "Reset the configuration to the defaults for this schema": "Reset the configuration to the defaults for this schema",
+    "Reset DAB configuration?": "Reset DAB configuration?",
+    "This discards all entity, action, column, and advanced settings for this database, including changes made by Copilot, and rebuilds them from the current schema.": "This discards all entity, action, column, and advanced settings for this database, including changes made by Copilot, and rebuilds them from the current schema.",
     "{0} must define one or more key fields to be used with Data API builder/{0} is the DAB source type, e.g. Table or View": {
         "message": "{0} must define one or more key fields to be used with Data API builder",
         "comment": ["{0} is the DAB source type, e.g. Table or View"]
@@ -3976,7 +4031,6 @@
     "Include Object Types": "Include Object Types",
     "Select all options": "Select all options",
     "Include all object types": "Include all object types",
-    "Stop": "Stop",
     "Generate script to deploy changes to target": "Generate script to deploy changes to target",
     "Apply changes to target": "Apply changes to target",
     "Apply changes to {0}/{0} is the target connection name, optionally followed by a colon and the selected database name": {
@@ -4147,7 +4201,6 @@
     "Create New Server": "Create New Server",
     "Server Name": "Server Name",
     "Enter server name": "Enter server name",
-    "Create new": "Create new",
     "User Name": "User Name",
     "Enter user name": "Enter user name",
     "Behavior when free offer limit is reached": "Behavior when free offer limit is reached",
@@ -4559,7 +4612,6 @@
     "Folder path is required": "Folder path is required",
     "File name is required": "File name is required",
     "New Session": "New Session",
-    "Start": "Start",
     "Pause": "Pause",
     "Resume": "Resume",
     "Clear Data": "Clear Data",

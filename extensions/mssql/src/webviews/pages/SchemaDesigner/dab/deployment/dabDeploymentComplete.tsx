@@ -24,6 +24,7 @@ import { useCallback, useMemo, useState } from "react";
 import { locConstants } from "../../../../common/locConstants";
 import { Dab } from "../../../../../sharedInterfaces/dab";
 import { useDabContext } from "../dabContext";
+import { DabEndpoint, DabEndpointAction, getDabEndpoints } from "./dabEndpoints";
 
 const useStyles = makeStyles({
     content: {
@@ -96,21 +97,6 @@ interface DabDeploymentCompleteProps {
     onFinish: () => void;
 }
 
-type ApiEndpointAction = "copy" | "addToVSCode" | "openUrl";
-
-interface ApiEndpointOpenUrlConfig {
-    url: string;
-    label: string;
-}
-
-interface ApiEndpoint {
-    type: Dab.ApiType;
-    label: string;
-    url: string;
-    actions: ApiEndpointAction[];
-    openUrlConfig?: ApiEndpointOpenUrlConfig;
-}
-
 export const DabDeploymentComplete = ({
     apiUrl,
     error,
@@ -123,46 +109,10 @@ export const DabDeploymentComplete = ({
     const [mcpAdded, setMcpAdded] = useState(false);
     const [mcpError, setMcpError] = useState<string | null>(null);
 
-    const endpoints = useMemo<ApiEndpoint[]>(() => {
-        if (!apiUrl || !dabConfig) {
-            return [];
-        }
-        const enabledTypes = dabConfig.apiTypes;
-        const result: ApiEndpoint[] = [];
-        if (enabledTypes.includes(Dab.ApiType.Rest)) {
-            result.push({
-                type: Dab.ApiType.Rest,
-                label: locConstants.schemaDesigner.restApi,
-                url: `${apiUrl}/api`,
-                actions: ["openUrl", "copy"],
-                openUrlConfig: {
-                    url: `${apiUrl}/swagger/index.html`,
-                    label: locConstants.schemaDesigner.viewSwagger,
-                },
-            });
-        }
-        if (enabledTypes.includes(Dab.ApiType.GraphQL)) {
-            result.push({
-                type: Dab.ApiType.GraphQL,
-                label: locConstants.schemaDesigner.graphql,
-                url: `${apiUrl}/graphql`,
-                actions: ["openUrl", "copy"],
-                openUrlConfig: {
-                    url: `${apiUrl}/graphql`,
-                    label: locConstants.schemaDesigner.openNitro,
-                },
-            });
-        }
-        if (enabledTypes.includes(Dab.ApiType.Mcp)) {
-            result.push({
-                type: Dab.ApiType.Mcp,
-                label: locConstants.schemaDesigner.mcp,
-                url: `${apiUrl}/mcp`,
-                actions: ["addToVSCode"],
-            });
-        }
-        return result;
-    }, [apiUrl, dabConfig]);
+    const endpoints = useMemo(
+        () => getDabEndpoints(apiUrl, dabConfig?.apiTypes),
+        [apiUrl, dabConfig],
+    );
 
     const handleAddMcpServer = useCallback(
         async (serverUrl: string) => {
@@ -178,7 +128,7 @@ export const DabDeploymentComplete = ({
     );
 
     const renderAction = useCallback(
-        (ep: ApiEndpoint, action: ApiEndpointAction) => {
+        (ep: DabEndpoint, action: DabEndpointAction) => {
             switch (action) {
                 case "copy":
                     return (

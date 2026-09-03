@@ -658,6 +658,14 @@ export namespace Dab {
         export const type = new NotificationType<CacheConfigParams>("dab/cacheConfig");
     }
 
+    /**
+     * Discards the stored configuration for this database. The webview rebuilds
+     * defaults from the current schema and saves them through the usual path.
+     */
+    export namespace ResetConfigNotification {
+        export const type = new NotificationType<void>("dab/resetConfig");
+    }
+
     // ============================================
     // Notifications (Webview -> Extension)
     // ============================================
@@ -789,6 +797,37 @@ export namespace Dab {
     }
 
     /**
+     * Top-level view of the deployments dialog. The dialog either lists the
+     * deployments tracked for this database, asks which target to deploy to,
+     * or runs the deployment wizard in place.
+     */
+    export enum DabDeploymentDialogView {
+        /** Tracked deployments, with their live container state. */
+        List = 0,
+        /** Target picker shown after "Create new". */
+        TargetSelection = 1,
+        /** Prerequisite checks, parameter input, progress, and completion. */
+        Wizard = 2,
+    }
+
+    /**
+     * Where a deployment runs. Only local Docker is supported today; the picker
+     * exists so further targets can be added without reshaping the dialog.
+     */
+    export enum DabDeploymentTarget {
+        Docker = "docker",
+    }
+
+    /**
+     * Whether the wizard is creating a new container or replacing an existing
+     * one under the same name and port.
+     */
+    export enum DabDeploymentMode {
+        Create = "create",
+        Redeploy = "redeploy",
+    }
+
+    /**
      * Enumeration representing the current view/step in the deployment dialog
      */
     export enum DabDeploymentDialogStep {
@@ -844,6 +883,18 @@ export namespace Dab {
          * Whether the deployment dialog is open
          */
         isDialogOpen: boolean;
+        /**
+         * Which of the dialog's top-level views is showing
+         */
+        dialogView: DabDeploymentDialogView;
+        /**
+         * Whether the wizard is creating a container or redeploying one
+         */
+        mode: DabDeploymentMode;
+        /**
+         * Tracked deployment the wizard is redeploying, when in redeploy mode
+         */
+        activeDeploymentId?: string;
         /**
          * Current dialog step
          */
@@ -907,6 +958,8 @@ export namespace Dab {
     export function createDefaultDeploymentState(): DabDeploymentState {
         return {
             isDialogOpen: false,
+            dialogView: DabDeploymentDialogView.List,
+            mode: DabDeploymentMode.Create,
             dialogStep: DabDeploymentDialogStep.Confirmation,
             currentDeploymentStep: DabDeploymentStepOrder.dockerInstallation,
             params: {
@@ -945,6 +998,11 @@ export namespace Dab {
          * DAB config (needed for starting the container)
          */
         config?: DabConfig;
+        /**
+         * Deployment being redeployed. When set, a successful readiness check
+         * updates that tracking record instead of adding a new one.
+         */
+        deploymentId?: string;
     }
 
     export interface RunDeploymentStepResponse {
@@ -1094,6 +1152,136 @@ export namespace Dab {
     }
 
     // ============================================
+    // Deployment tracking
+    // ============================================
+
+    /**
+     * Live state of a tracked deployment's container, as reported by Docker.
+     */
+    export enum DabDeploymentContainerStatus {
+        /** Container exists and is running. */
+        Running = "running",
+        /** Container exists but is not running. */
+        Stopped = "stopped",
+        /** Container no longer exists; only the tracking record remains. */
+        Missing = "missing",
+        /** Docker could not be reached, so the real state is unknown. */
+        Unknown = "unknown",
+    }
+
+    /**
+     * A DAB container deployed from the designer, persisted per server/database
+     * so it can be managed again in a later session.
+     */
+    export interface DabDeploymentRecord {
+        /** Stable identifier for the record, independent of the container. */
+        id: string;
+        /** Docker container name. */
+        containerName: string;
+        /** Host port the DAB API is published on. */
+        port: number;
+        /**
+         * API types the container was deployed with. Kept on the record so the
+         * endpoints can be listed without regenerating the deployed config.
+         */
+        apiTypes: ApiType[];
+        /** Hash of the generated DAB config this container is running. */
+        configHash: string;
+        /** ISO timestamp of the first deployment of this container. */
+        createdUtc: string;
+        /** ISO timestamp of the most recent deployment or redeployment. */
+        deployedUtc: string;
+    }
+
+    /**
+     * A tracked deployment paired with the state the deployments list needs.
+     */
+    export interface DabDeploymentListItem extends DabDeploymentRecord {
+        /** Live container state at the time the list was built. */
+        status: DabDeploymentContainerStatus;
+        /**
+         * True when the designer config no longer matches what this container
+         * is running, so redeploying would change what the API serves.
+         */
+        isConfigOutdated: boolean;
+        /** Base URL the API is published on. */
+        apiUrl: string;
+    }
+
+    export interface GetDeploymentsParams {
+        /**
+         * Current designer config, used to decide which deployments are running
+         * an outdated configuration.
+         */
+        config?: DabConfig;
+    }
+
+    export interface GetDeploymentsResponse {
+        deployments: DabDeploymentListItem[];
+        /** Error message when the list could not be built. */
+        error?: string;
+    }
+
+    export namespace GetDeploymentsRequest {
+        export const type = new RequestType<GetDeploymentsParams, GetDeploymentsResponse, void>(
+            "dab/getDeployments",
+        );
+    }
+
+    /**
+     * Identifies a tracked deployment to act on.
+     */
+    export interface DeploymentActionParams {
+        deploymentId: string;
+    }
+
+    export interface DeploymentActionResponse {
+        success: boolean;
+        error?: string;
+    }
+
+    /** Stops and removes the container, then stops tracking the deployment. */
+    export namespace DeleteDeploymentRequest {
+        export const type = new RequestType<DeploymentActionParams, DeploymentActionResponse, void>(
+            "dab/deleteDeployment",
+        );
+    }
+
+    /** Starts an existing stopped container without redeploying it. */
+    export namespace StartDeploymentContainerRequest {
+        export const type = new RequestType<DeploymentActionParams, DeploymentActionResponse, void>(
+            "dab/startDeploymentContainer",
+        );
+    }
+
+    /** Stops a running container, leaving it in place. */
+    export namespace StopDeploymentContainerRequest {
+        export const type = new RequestType<DeploymentActionParams, DeploymentActionResponse, void>(
+            "dab/stopDeploymentContainer",
+        );
+    }
+
+    export interface PrepareRedeploymentResponse extends DeploymentActionResponse {
+        /**
+         * Container name and port to redeploy with. Present only on success.
+         */
+        params?: DabDeploymentParams;
+    }
+
+    /**
+     * Verifies the deployment's port is still free and removes the existing
+     * container so the normal deployment steps can recreate it under the same
+     * name and port. Fails without touching the container when the port has
+     * been taken by something else.
+     */
+    export namespace PrepareRedeploymentRequest {
+        export const type = new RequestType<
+            DeploymentActionParams,
+            PrepareRedeploymentResponse,
+            void
+        >("dab/prepareRedeployment");
+    }
+    // ============================================
     // Service interface
     // ============================================
 
@@ -1150,6 +1338,38 @@ export namespace Dab {
          * @param containerName Name of the container to stop
          */
         stopDeployment(containerName: string): Promise<StopDeploymentResponse>;
+
+        /**
+         * Hashes the DAB config file a deployment would produce, with the
+         * connection string excluded. Two configs that make DAB serve the same
+         * thing hash the same, whatever connection generated them, so a hash
+         * stored with a deployment stays comparable across sessions.
+         */
+        computeConfigHash(config: DabConfig): string;
+
+        /**
+         * Reports the live state of a previously deployed container
+         * @param containerName Name of the container to inspect
+         */
+        getContainerStatus(containerName: string): Promise<DabDeploymentContainerStatus>;
+
+        /**
+         * Starts an existing stopped container without redeploying it
+         * @param containerName Name of the container to start
+         */
+        startContainer(containerName: string): Promise<DeploymentActionResponse>;
+
+        /**
+         * Stops a running container, leaving it in place
+         * @param containerName Name of the container to stop
+         */
+        stopContainer(containerName: string): Promise<DeploymentActionResponse>;
+
+        /**
+         * Reports whether a host port is still free for a container to publish
+         * @param port The host port to check
+         */
+        isPortAvailable(port: number): Promise<boolean>;
     }
 
     // ============================================

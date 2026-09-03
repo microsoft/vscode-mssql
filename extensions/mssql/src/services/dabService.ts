@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { createHash } from "crypto";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
@@ -20,9 +21,13 @@ import {
 import {
     checkIfDabContainerIsReady,
     findAvailableDabPort,
+    getDabContainerStatus,
+    isDabPortAvailable,
     pullDabContainerImage,
+    startDabContainer,
     startDabDockerContainer,
     stopAndRemoveDabContainer,
+    stopDabContainer,
     validateDabContainerName,
 } from "../dab/dabContainer";
 import { LocalContainers } from "../constants/locConstants";
@@ -35,6 +40,33 @@ import { getErrorMessage, uuid } from "../utils/utils";
 const LOCALHOST_ADDRESSES = ["localhost", "127.0.0.1", "(local)", "."];
 const SQL_SERVER_CONNECTION_PROPERTY_PATTERN =
     /((?:Server|Data Source)\s*=\s*)("[^"]*"|'[^']*'|[^;]+)/i;
+
+/**
+ * Stands in for the real connection string when hashing a config, so a hash
+ * stored with a deployment stays comparable across connections and sessions.
+ */
+const CONFIG_HASH_CONNECTION_PLACEHOLDER = "<connection-string>";
+
+/**
+ * Serializes a parsed config with object keys in a stable order. Array order is
+ * preserved because it is meaningful in DAB config (permission actions, REST
+ * methods, and fields are already normalized upstream).
+ */
+function canonicalizeJson(value: unknown): string {
+    if (Array.isArray(value)) {
+        return `[${value.map(canonicalizeJson).join(",")}]`;
+    }
+
+    if (value !== null && typeof value === "object") {
+        const entries = Object.entries(value as Record<string, unknown>)
+            .filter(([, entryValue]) => entryValue !== undefined)
+            .sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0))
+            .map(([key, entryValue]) => `${JSON.stringify(key)}:${canonicalizeJson(entryValue)}`);
+        return `{${entries.join(",")}}`;
+    }
+
+    return JSON.stringify(value) ?? "null";
+}
 
 export class DabService implements Dab.IDabService {
     private _configFileBuilder = new DabConfigFileBuilder();
@@ -131,6 +163,72 @@ export class DabService implements Dab.IDabService {
             success: result.success ?? false,
             error: result.error,
         };
+    }
+
+    /**
+     * Hashes the DAB config file this configuration would produce.
+     *
+     * The connection string is replaced with a fixed placeholder and object
+     * keys are sorted before hashing, so the hash covers only what DAB will
+     * actually serve: reordering entities, or connecting with a different
+     * login, does not make a running deployment look outdated.
+     *
+     * @param config The DAB configuration to hash
+     */
+    public computeConfigHash(config: Dab.DabConfig): string {
+        const configContent = this._configFileBuilder.build(config, {
+            connectionString: CONFIG_HASH_CONNECTION_PLACEHOLDER,
+        });
+
+        return createHash("sha256")
+            .update(canonicalizeJson(JSON.parse(configContent)), "utf8")
+            .digest("hex");
+    }
+
+    /**
+     * Reports the live state of a previously deployed container.
+     *
+     * @param containerName Name of the container to inspect
+     */
+    public async getContainerStatus(
+        containerName: string,
+    ): Promise<Dab.DabDeploymentContainerStatus> {
+        return getDabContainerStatus(containerName);
+    }
+
+    /**
+     * Starts an existing stopped container without redeploying it.
+     *
+     * @param containerName Name of the container to start
+     */
+    public async startContainer(containerName: string): Promise<Dab.DeploymentActionResponse> {
+        const result = await startDabContainer(containerName);
+        return {
+            success: result.success ?? false,
+            error: result.error,
+        };
+    }
+
+    /**
+     * Stops a running container, leaving it in place so it can be started again.
+     *
+     * @param containerName Name of the container to stop
+     */
+    public async stopContainer(containerName: string): Promise<Dab.DeploymentActionResponse> {
+        const result = await stopDabContainer(containerName);
+        return {
+            success: result.success ?? false,
+            error: result.error,
+        };
+    }
+
+    /**
+     * Reports whether a host port is still free for a container to publish.
+     *
+     * @param port The host port to check
+     */
+    public async isPortAvailable(port: number): Promise<boolean> {
+        return isDabPortAvailable(port);
     }
 
     /**

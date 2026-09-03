@@ -683,4 +683,99 @@ suite("DabService Tests", () => {
             expect(result.success).to.be.false;
         });
     });
+    suite("computeConfigHash", () => {
+        test("should be stable for the same configuration", () => {
+            const config = createTestConfig();
+
+            expect(dabService.computeConfigHash(config)).to.equal(
+                dabService.computeConfigHash(createTestConfig()),
+            );
+        });
+
+        test("should ignore entity ordering", () => {
+            const first = createTestEntity({ id: "id-1", tableName: "Users" });
+            const second = createTestEntity({
+                id: "id-2",
+                tableName: "Orders",
+                advancedSettings: {
+                    entityName: "Orders",
+                    authorizationRole: Dab.AuthorizationRole.Anonymous,
+                },
+            });
+
+            expect(
+                dabService.computeConfigHash(createTestConfig({ entities: [first, second] })),
+                "Reordering entities does not change what DAB serves",
+            ).to.equal(
+                dabService.computeConfigHash(createTestConfig({ entities: [second, first] })),
+            );
+        });
+
+        test("should change when the exposed API types change", () => {
+            expect(
+                dabService.computeConfigHash(createTestConfig({ apiTypes: [Dab.ApiType.Rest] })),
+            ).to.not.equal(
+                dabService.computeConfigHash(
+                    createTestConfig({ apiTypes: [Dab.ApiType.Rest, Dab.ApiType.GraphQL] }),
+                ),
+            );
+        });
+
+        test("should change when an entity's actions change", () => {
+            const readOnly = createTestEntity({ enabledActions: [Dab.EntityAction.Read] });
+            const readWrite = createTestEntity({
+                enabledActions: [Dab.EntityAction.Read, Dab.EntityAction.Create],
+            });
+
+            expect(
+                dabService.computeConfigHash(createTestConfig({ entities: [readOnly] })),
+            ).to.not.equal(
+                dabService.computeConfigHash(createTestConfig({ entities: [readWrite] })),
+            );
+        });
+    });
+
+    suite("container lifecycle", () => {
+        test("getContainerStatus should report the container state", async () => {
+            sandbox
+                .stub(dabContainer, "getDabContainerStatus")
+                .resolves(Dab.DabDeploymentContainerStatus.Running);
+
+            expect(await dabService.getContainerStatus("dab-container")).to.equal(
+                Dab.DabDeploymentContainerStatus.Running,
+            );
+        });
+
+        test("startContainer should surface the failure reason", async () => {
+            sandbox
+                .stub(dabContainer, "startDabContainer")
+                .resolves({ success: false, error: "Container no longer exists." });
+
+            const result = await dabService.startContainer("dab-container");
+
+            expect(result.success).to.be.false;
+            expect(result.error).to.equal("Container no longer exists.");
+        });
+
+        test("startContainer should treat an undefined success as failure", async () => {
+            sandbox.stub(dabContainer, "startDabContainer").resolves({ success: undefined as any });
+
+            expect((await dabService.startContainer("dab-container")).success).to.be.false;
+        });
+
+        test("stopContainer should report success", async () => {
+            sandbox.stub(dabContainer, "stopDabContainer").resolves({ success: true });
+
+            expect((await dabService.stopContainer("dab-container")).success).to.be.true;
+        });
+
+        test("isPortAvailable should defer to the host port probe", async () => {
+            const isDabPortAvailableStub = sandbox
+                .stub(dabContainer, "isDabPortAvailable")
+                .resolves(false);
+
+            expect(await dabService.isPortAvailable(5000)).to.be.false;
+            expect(isDabPortAvailableStub.calledOnceWithExactly(5000)).to.be.true;
+        });
+    });
 });

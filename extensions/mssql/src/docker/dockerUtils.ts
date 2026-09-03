@@ -6,6 +6,7 @@
 import * as vscode from "vscode";
 import * as path from "path";
 import { spawn } from "child_process";
+import { createServer } from "net";
 import { arch, platform } from "os";
 import { PassThrough } from "stream";
 import fixPath from "fix-path";
@@ -850,22 +851,60 @@ export async function checkIfConnectionIsDockerContainer(machineName: string): P
 }
 
 /**
- * Finds an available port for a new Docker container, starting from the specified port.
- * It checks the currently running containers and their exposed ports to find an unused port.
+ * How many candidate ports to probe before giving up. Scanning to
+ * MAX_PORT_NUMBER would mean tens of thousands of socket binds on a machine
+ * where the whole range above the start port is busy.
  */
-export async function findAvailablePort(startPort: number): Promise<number> {
+const MAX_PORT_PROBE_ATTEMPTS = 200;
+
+/**
+ * Checks whether the host can still publish the given port.
+ *
+ * Docker port bindings are not the whole story: a port claimed by any other
+ * process on the machine is one `docker create` will refuse to bind, so the
+ * port has to be probed directly. Binding on all interfaces is deliberately
+ * conservative — a port held only on a loopback address is reported as
+ * unavailable, which costs a usable port but never suggests a broken one.
+ */
+export async function isHostPortAvailable(port: number): Promise<boolean> {
+    return new Promise<boolean>((resolve) => {
+        const server = createServer();
+        server.unref();
+        server.once("error", () => resolve(false));
+        server.listen({ port, exclusive: true }, () => {
+            server.close(() => resolve(true));
+        });
+    });
+}
+
+/**
+ * Finds an available port for a new Docker container, starting from the specified port.
+ * A port is available only when no container has it bound and no process on the
+ * host is already listening on it.
+ */
+export async function findAvailablePort(
+    startPort: number,
+    /** Overridable so tests can drive port availability without real sockets. */
+    isPortFree: (port: number) => Promise<boolean> = isHostPortAvailable,
+): Promise<number> {
     try {
         const dockerClient = getDockerodeClient();
         const containerInfos = await dockerClient.listContainers({ all: true });
         const containerIds = containerInfos
             .map((containerInfo) => containerInfo.Id)
             .filter((id): id is string => Boolean(id));
-        if (!containerIds.length) return startPort;
 
-        const usedPorts = await getUsedPortsFromContainers(containerIds);
+        const usedPorts = containerIds.length
+            ? await getUsedPortsFromContainers(containerIds)
+            : new Set<number>();
 
-        for (let port = startPort; port <= MAX_PORT_NUMBER; port++) {
-            if (!usedPorts.has(port)) {
+        const lastPort = Math.min(startPort + MAX_PORT_PROBE_ATTEMPTS - 1, MAX_PORT_NUMBER);
+        for (let port = startPort; port <= lastPort; port++) {
+            if (usedPorts.has(port)) {
+                continue;
+            }
+
+            if (await isPortFree(port)) {
                 return port;
             }
         }

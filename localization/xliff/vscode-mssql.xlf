@@ -826,6 +826,9 @@
     <trans-unit id="++CODE++760bb46db5b9f7594d6a52062c3f044fac1a2dc55ec95bfd659eb345bd1425fa">
       <source xml:lang="en">Back to Schema</source>
     </trans-unit>
+    <trans-unit id="++CODE++958bd39b8c9507522a7a8e9591f1b534ef96708d873950c0ad91d4db1a452473">
+      <source xml:lang="en">Back to deployments</source>
+    </trans-unit>
     <trans-unit id="++CODE++e6885d7f1ab90cd7529fb7e3690957e6324d73e7a2dc017014bb9667d7524a76">
       <source xml:lang="en">Back to preview</source>
     </trans-unit>
@@ -1283,6 +1286,9 @@
     <trans-unit id="++CODE++4ccc2e9603461fb60e8f8e5a5b8dbddd023bb4a1423c348bc99e0714f6c3812e">
       <source xml:lang="en">Choose the behavior for new editors</source>
     </trans-unit>
+    <trans-unit id="++CODE++50ccae2402463062c4e42c7c9ec72243a183ba61fc2f56c3e41bc7ef605acbcd">
+      <source xml:lang="en">Choose where to run Data API builder for this database.</source>
+    </trans-unit>
     <trans-unit id="++CODE++988c00d268f2867e2e35f7c7de12ddee2e7c5516193dc246ff16186208f335d2">
       <source xml:lang="en">Choose whether this stored procedure appears as a GraphQL mutation or query. DAB defaults to mutation.</source>
     </trans-unit>
@@ -1583,6 +1589,9 @@
     </trans-unit>
     <trans-unit id="++CODE++cbd2167917b36ef54fa6044f33009b01e0793c6fda74f2488762f9cdb26793fc">
       <source xml:lang="en">Compute + Storage</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7771f1f8f1ff048b4107e7d29f178ba80d2db1e9ba0afc744097ea074cb3b01c">
+      <source xml:lang="en">Config changed</source>
     </trans-unit>
     <trans-unit id="++CODE++7ddbffc16744c2642445a4ec489967d4201fe93f5ec6af10738ba783cbd78680">
       <source xml:lang="en">Config copied to clipboard</source>
@@ -1909,6 +1918,16 @@
     </trans-unit>
     <trans-unit id="++CODE++bbcce2214819b0c2d1ab53dff1f116b6071d1223a513c97750b73e775ac8ca49">
       <source xml:lang="en">Container name, port, and config content are required to start the container.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6afdf49d00bde2bc467f3cec19bb85b59741fbf80180c91ea58de6599f494046">
+      <source xml:lang="en">Container no longer exists</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ec959d6a5a283eaa094720f71457b35ef140f83d240d53d757000a127ff78889">
+      <source xml:lang="en">Container {0} no longer exists.</source>
+      <note>{0} is the Docker container name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++1bc57bf01de754434f6bab83ce5e1c3a346f9360b5046b893bffda15ea2e3bef">
+      <source xml:lang="en">Containers you have deployed for this database. Redeploy one to bring it up to date with your current configuration.</source>
     </trans-unit>
     <trans-unit id="++CODE++e846628c8d11bbf73a6ca39eb691f5f7802ba88cf1fb0c482997d928b1504fcb">
       <source xml:lang="en">Containment Type</source>
@@ -2524,6 +2543,9 @@
     <trans-unit id="++CODE++3e12474b79fc61d3695fc46a2588df801c380eccc6edc9cb20dd223f4e9ed76e">
       <source xml:lang="en">Delete backup and restore history</source>
     </trans-unit>
+    <trans-unit id="++CODE++9c6060316cb89a17616309dfa9b9ce524f7fdd29639b433015ba722294337b51">
+      <source xml:lang="en">Delete deployment?</source>
+    </trans-unit>
     <trans-unit id="++CODE++5fc8c270921fb866e4aa1b9356162c9f6d09f36b054ef907670ae5a323a5c194">
       <source xml:lang="en">Delete filter</source>
     </trans-unit>
@@ -2572,8 +2594,15 @@
     <trans-unit id="++CODE++97dc38d5949112e250523663a3556643b30754a83c8305adb6e79d88b13b200d">
       <source xml:lang="en">Deploy to Existing Database</source>
     </trans-unit>
+    <trans-unit id="++CODE++b53247f1fa123b7ebe5e88a79823396fc3a3424177806a56b231487b72a2e41e">
+      <source xml:lang="en">Deploy your configuration to a local Docker container to get REST, GraphQL, and MCP endpoints for this database.</source>
+    </trans-unit>
     <trans-unit id="++CODE++75605e8fd5394c88086006f3ed265d8f5f725fdfb8827963a1be8f8348d31bee">
       <source xml:lang="en">Deploy, extract, import, or export data-tier applications on the selected database</source>
+    </trans-unit>
+    <trans-unit id="++CODE++41290df4862974921fc4ad9785582a5ffee91f074b2911c3c0ace78722a18796">
+      <source xml:lang="en">Deployed {0}</source>
+      <note>{0} is a localized date and time</note>
     </trans-unit>
     <trans-unit id="++CODE++77073cfc37f467e01ede7dd225bc91824e5fcb320f5723a633d43bd93b8a070b">
       <source xml:lang="en">Deploying DACPAC...</source>
@@ -2595,6 +2624,12 @@
     </trans-unit>
     <trans-unit id="++CODE++cc51187ae9dbe9ccc606865c0177000cdeca2af5bca1c36c7f3065882c6ee18b">
       <source xml:lang="en">Deployment in progress</source>
+    </trans-unit>
+    <trans-unit id="++CODE++842a4697fd0dddaa2ffb9e593abdfcc1963640b7e3b28eb5e5ae1624a18eaf46">
+      <source xml:lang="en">Deployments</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e2d63f5e06d035a1e421efa44a7f1f92ec06b908d7ef82cb6ca89c2b8ee192ec">
+      <source xml:lang="en">Deployments cannot be tracked because the extension&apos;s storage location is unavailable.</source>
     </trans-unit>
     <trans-unit id="++CODE++526e0087cc3f254d9f86f6c7d8e23d954c4dfda2b312efc29194ae8a860106ba">
       <source xml:lang="en">Description</source>
@@ -3946,12 +3981,18 @@
     <trans-unit id="++CODE++08e3cce193c1731c751f4e68352687632cb9edb3e01e8bc9200742d0bd5f7b2c">
       <source xml:lang="en">Failed to start query.</source>
     </trans-unit>
+    <trans-unit id="++CODE++ec9bd65d522eb7ea1df233fd4d1d793a112679dbf05cd753e77dd65f5adc38ce">
+      <source xml:lang="en">Failed to start the DAB container.</source>
+    </trans-unit>
     <trans-unit id="++CODE++8d966abf7ce439608c05903323ea676d64af27e6119ddcc6edebd6db2cd5c479">
       <source xml:lang="en">Failed to start {0}.</source>
       <note>Failed to start {0}.</note>
     </trans-unit>
     <trans-unit id="++CODE++ddbc5bf2f979708863241a3af69d9f9122e3b1180b3942e5ef94b4500188000b">
       <source xml:lang="en">Failed to stop and remove DAB container.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++45084af75704dd211915415afc4cd6d35c552ebe62bfbfe314688f5cfa972df2">
+      <source xml:lang="en">Failed to stop the DAB container.</source>
     </trans-unit>
     <trans-unit id="++CODE++de0b1da84a5d216abd9f65d2a4f32a258f97126fc0bb19e0fb9fecd1e89ea514">
       <source xml:lang="en">Failed to stop {0}.</source>
@@ -4455,6 +4496,9 @@
     </trans-unit>
     <trans-unit id="++CODE++c646b55d1fd317086a616548a2cc0b1606ecdc5a99bd2d3dcb43368fcb37ad30">
       <source xml:lang="en">Hide column</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4baf7a099b1735625d09c0b739ab0661d25b8db0dd3f09330f6521bd686f66fe">
+      <source xml:lang="en">Hide endpoints</source>
     </trans-unit>
     <trans-unit id="++CODE++89276817789cad555d1e4daf6c6e0b6eac110c7073bd4b23e08ef8a6e7aad4c6">
       <source xml:lang="en">Hide full error message</source>
@@ -5002,6 +5046,9 @@
     <trans-unit id="++CODE++d1fdc252fab1c642cc1b487dbb6658fd77d5831e03b3d391b4c73b01226d75ff">
       <source xml:lang="en">Loading deployment</source>
     </trans-unit>
+    <trans-unit id="++CODE++5ad473588c959848c56bd2257ed21db4d4125cffd27edd2d3b6582f7afce2253">
+      <source xml:lang="en">Loading deployments</source>
+    </trans-unit>
     <trans-unit id="++CODE++c4b5594f53462fcb5025d55e2ad5ba368c8fbb12de5a8701276b5477f7dd07fb">
       <source xml:lang="en">Loading execution plan...</source>
     </trans-unit>
@@ -5081,6 +5128,9 @@
     </trans-unit>
     <trans-unit id="++CODE++67b84cd4159ae33eb03a5cc9398bc77383d9ab5e73a5faf7189b775384dc09a1">
       <source xml:lang="en">Local Container Deployment</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3354da6f24cc9e0b4acf2080b9856a0ee5c185787090822b133a1c34effcd3dd">
+      <source xml:lang="en">Local Docker container</source>
     </trans-unit>
     <trans-unit id="++CODE++2c91c2c68950d956381637d4e22e626dbf560a93aa4fc8126d755251a70230ea">
       <source xml:lang="en">Local SQL Server database container</source>
@@ -5737,6 +5787,9 @@
     <trans-unit id="++CODE++c5dc54683e13edaa795870a0a2523c2c23ee2a6595b5ceb984a7d2639237a77e">
       <source xml:lang="en">No databases with backups found</source>
     </trans-unit>
+    <trans-unit id="++CODE++e83dea6df0d276f8e91bea5268c2287724da6e27b8e9419218d698b8cc09a460">
+      <source xml:lang="en">No deployments yet</source>
+    </trans-unit>
     <trans-unit id="++CODE++9a5ffa9a03deee764163c794a73832d859a2df314715bb7c281f4eaac7919f3f">
       <source xml:lang="en">No elements found</source>
     </trans-unit>
@@ -6355,6 +6408,10 @@
     <trans-unit id="++CODE++de9d0069c353909a19960efae7bb5fd1e1462dfa95644ed05a3b1f9609c63f38">
       <source xml:lang="en">Port to expose the API on (default: 5000)</source>
     </trans-unit>
+    <trans-unit id="++CODE++d9f4fe3d6486cd5830be1c0cb68d7b2505057e7bc665c6e0503b8a005ec0cf5d">
+      <source xml:lang="en">Port {0}</source>
+      <note>{0} is the host port number</note>
+    </trans-unit>
     <trans-unit id="++CODE++3a58feb1e22248ce4bb3611c187647b0c0f63250987596ac368c0191403c6367">
       <source xml:lang="en">Port {0} is already in use</source>
       <note>{0} is the port number</note>
@@ -6362,6 +6419,11 @@
     <trans-unit id="++CODE++a1c60409bfd9bcd53f31a132bd46b1f125ebf2b16012ceb2bf16baacc460e61c">
       <source xml:lang="en">Port {0} is already in use. Please choose a different port.</source>
       <note>{0} is the port number</note>
+    </trans-unit>
+    <trans-unit id="++CODE++e559ae2c187c6c6dcbc066101d69ec2aa61464cb16175cdb622287b2e8b5c153">
+      <source xml:lang="en">Port {0} is no longer available, so {1} cannot be redeployed on it. Free the port, or create a new deployment on a different port.</source>
+      <note>{0} is the port number
+{1} is the Docker container name</note>
     </trans-unit>
     <trans-unit id="++CODE++c56a86c298eb5a88289af29ba70d8dfdfbf42f6a0c6cf7fe8317a824db4eb767">
       <source xml:lang="en">Possible Data Loss detected. Please review the changes.</source>
@@ -6739,6 +6801,13 @@
     <trans-unit id="++CODE++2098dff03cd74580320592a1308c8be37e30454e389e06fc2ddf1315b4e48551">
       <source xml:lang="en">Recovery state</source>
     </trans-unit>
+    <trans-unit id="++CODE++ee4c77e2b3b6bfaa712c2e2e3b1416127bc738993ca7f8b09b42e6a179bde808">
+      <source xml:lang="en">Redeploy</source>
+    </trans-unit>
+    <trans-unit id="++CODE++23e40a67c278a8a66cd5a8bbc80182380a6c7b33b291e7c68d50504637dc5d17">
+      <source xml:lang="en">Redeploying {0}</source>
+      <note>{0} is the Docker container name</note>
+    </trans-unit>
     <trans-unit id="++CODE++74273989b0966e2369b6d01aadb23af4ad6a9e724643fa88f2bde99202a36708">
       <source xml:lang="en">Redo</source>
     </trans-unit>
@@ -6867,6 +6936,9 @@
       <note>{0} is the current database name
 {1} is the new database name</note>
     </trans-unit>
+    <trans-unit id="++CODE++6be4a48af21f057f95228c735626f18c8bc96d306afa6ab163770f2f5c73265f">
+      <source xml:lang="en">Replace this container with a new one on the same name and port, running your current configuration.</source>
+    </trans-unit>
     <trans-unit id="++CODE++0b73ca14b5d89fd5c289af312a66842146e766baf6c5018848b36f086944cb0b">
       <source xml:lang="en">Replication</source>
     </trans-unit>
@@ -6891,8 +6963,14 @@
     <trans-unit id="++CODE++daee7606b339f3c339076fe2c9f372a3ff40c8ee896005d829c7481b64ca5303">
       <source xml:lang="en">Reset</source>
     </trans-unit>
+    <trans-unit id="++CODE++3db74f2a8f6102d4675b34a023b195df9cebec8b629b14fa62d57849a49bb7cc">
+      <source xml:lang="en">Reset DAB configuration?</source>
+    </trans-unit>
     <trans-unit id="++CODE++b0b75e297ad9735605b50a4457fc9ebf3ac736f3fe1a96c37e516bde80c0b529">
       <source xml:lang="en">Reset all variables</source>
+    </trans-unit>
+    <trans-unit id="++CODE++291afc74d5a450bbd0b7f7b0113afdab45aa05c5cad2bea333ca7bc4b177cadb">
+      <source xml:lang="en">Reset the configuration to the defaults for this schema</source>
     </trans-unit>
     <trans-unit id="++CODE++37ba78770ece89995a12bcd4cc2a30a8fe4e5338f09c5a6534ccbc4f272825de">
       <source xml:lang="en">Reset to Defaults?</source>
@@ -7118,6 +7196,9 @@
     <trans-unit id="++CODE++c650e15b69c35c39b6ff6743c908ed1db08e9d4840abb2ebfce8303e88b9507a">
       <source xml:lang="en">Running: {0}</source>
       <note>{0} is how long the query has been running</note>
+    </trans-unit>
+    <trans-unit id="++CODE++1535db1c91172380e70396d4a07899000757727b521ac651eb91dbcaee2460e4">
+      <source xml:lang="en">Runs Data API builder in a container on this machine, published on a local port.</source>
     </trans-unit>
     <trans-unit id="++CODE++4870950395d377ccb78a99509d402224e9dde215522464fe53d7423a5e6ac8b2">
       <source xml:lang="en">SDK-style project</source>
@@ -7586,6 +7667,9 @@
     <trans-unit id="++CODE++b7e789f7e9607ec14fce47c70aa688cd870e8a299d73eecf40e06d4d4af58162">
       <source xml:lang="en">Select a database for profiling (Azure SQL requires a specific database)</source>
     </trans-unit>
+    <trans-unit id="++CODE++d9e5e69540871a387c5d20d2ae4ad26a58613e40b8f16e0712ec3c0dcc7ff96a">
+      <source xml:lang="en">Select a deployment target</source>
+    </trans-unit>
     <trans-unit id="++CODE++7b75dbfbfa94648cb2dc0bdd07902822febebcb1410a01746d0cf1ee01d33e71">
       <source xml:lang="en">Select a file</source>
     </trans-unit>
@@ -7959,6 +8043,9 @@
     <trans-unit id="++CODE++87e6b9fe0c51b9ad481c1e47b40fbc5a13ea3464c5131908b81cb2b21cd33822">
       <source xml:lang="en">Show all columns</source>
     </trans-unit>
+    <trans-unit id="++CODE++b16fe7caa99853b93586ff9f7c883be10c62c4d1cedd735733ae1a3435b09a99">
+      <source xml:lang="en">Show endpoints</source>
+    </trans-unit>
     <trans-unit id="++CODE++7f642b55cbf51cf21e5b6a0861e2a93abf8fbe5a8b5d04a9ed9d7a97040549d1">
       <source xml:lang="en">Show full error message</source>
     </trans-unit>
@@ -8124,6 +8211,9 @@
     <trans-unit id="++CODE++44d2a0a2acc914c78aa0e8c8159f46438f59c7964dcde4aa05b490fb1d6d99c7">
       <source xml:lang="en">Start profiling session</source>
     </trans-unit>
+    <trans-unit id="++CODE++d2b1116f23fecfb0a2b5846b774cd71210432457a65afd58eb782b5f122280f3">
+      <source xml:lang="en">Start the container to use these endpoints.</source>
+    </trans-unit>
     <trans-unit id="++CODE++f98d8beeeedee01c720a55b91742e6560515ae435c07a7fbfb8151f445e428ec">
       <source xml:lang="en">Start with the core pieces to develop and publish schemas for Azure SQL Edge Database</source>
     </trans-unit>
@@ -8169,6 +8259,9 @@
     </trans-unit>
     <trans-unit id="++CODE++920e413c7d411b61ef3e8c63b1cb6ad058d5f95f8b481dbafe60248387d8c355">
       <source xml:lang="en">Status</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7eb5af92e49c32f0e22097bda3e39b3b9b3bcdeb80d5c278b5d74504b96c2beb">
+      <source xml:lang="en">Status unavailable</source>
     </trans-unit>
     <trans-unit id="++CODE++5d22a056f5f5f92e185435b509187fc8e61f15a5b85e6b08cda8d8811880cfc3">
       <source xml:lang="en">Status: {0}</source>
@@ -8538,6 +8631,10 @@
       <note>{0} is the container name
 {1} is the list of connection display names</note>
     </trans-unit>
+    <trans-unit id="++CODE++1a187c0bb776eac7a356f6623badf4084f701ae47f405cfc74374c79fbf44ddb">
+      <source xml:lang="en">The container {0} will be stopped and removed, and its endpoints will stop responding.</source>
+      <note>{0} is the Docker container name</note>
+    </trans-unit>
     <trans-unit id="++CODE++90a4ba6d5483f640dbf83e90ca81103b564ff6be1e78dc9caf91eea1c299757e">
       <source xml:lang="en">The custom cloud choice is not configured. Please configure the setting `{0}`.</source>
     </trans-unit>
@@ -8712,6 +8809,12 @@
     </trans-unit>
     <trans-unit id="++CODE++a616eb2bf2f817c4898b6d9709fa799bf564dc58ec7bdb879358e3f47795106e">
       <source xml:lang="en">This database name is already in use. Please choose a different name.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++39689cd482388c355f7e0721e799cc73bb6a968b7f8c6f81d99778ca62ce8ab4">
+      <source xml:lang="en">This deployment is no longer tracked. Refresh the deployments list and try again.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++025b2c9cebc8d4e8ce463364bc4906b4c1d91cf3176080d240db88df9057713a">
+      <source xml:lang="en">This discards all entity, action, column, and advanced settings for this database, including changes made by Copilot, and rebuilds them from the current schema.</source>
     </trans-unit>
     <trans-unit id="++CODE++cb4eade41a7e9bf4aecf7539c5167bf881e1dac0fd35c216a8fbf4b1b4d3fa84">
       <source xml:lang="en">This file name is reserved for use by Windows. Choose another name and try again</source>
@@ -9034,6 +9137,9 @@
     </trans-unit>
     <trans-unit id="++CODE++31ab92c035a309794019f563cf5059e4ecc3e8ce19afc665de2b384d99e0fb61">
       <source xml:lang="en">Up to 10 databases with 100K vCore seconds, 32 GB storage, and backups renewed monthly.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ce29b7f85b9eaf7dac52e625accb4b0cb56a856ebe9a9de9a09b613b6d978dca">
+      <source xml:lang="en">Up to date</source>
     </trans-unit>
     <trans-unit id="++CODE++c1c1009d3f37ec058070a62e22caf9ac9dae2169d452487c5c271a8bcf57a291">
       <source xml:lang="en">Update</source>
@@ -9384,6 +9490,9 @@
     </trans-unit>
     <trans-unit id="++CODE++a687a5a3cf1800c09d10d73ae6c128de7b617482ef262db645470c6f4ae9d54d">
       <source xml:lang="en">Your client IP address does not have access to the server. Add a Microsoft Entra account and create a new firewall rule to enable access.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0e041c039ffe50cb5992d3b630ec285c42343b01216f9bafc00114fd6c42a303">
+      <source xml:lang="en">Your configuration has changed since this container was deployed. Redeploy to apply the changes.</source>
     </trans-unit>
     <trans-unit id="++CODE++72d3d1e6e874aa94ab02c4aac4ea2399ce299ddcad4b38a795754c92e158ac4d">
       <source xml:lang="en">Your current IP {0} will be added automatically.</source>
