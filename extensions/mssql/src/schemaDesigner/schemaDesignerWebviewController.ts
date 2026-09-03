@@ -13,7 +13,10 @@ import { homedir } from "os";
 import { getErrorMessage, getUniqueFilePath, uuid } from "../utils/utils";
 import { sendActionEvent, startActivity } from "extension-toolkit/vscode";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-import { configSchemaDesignerEnableExpandCollapseButtons } from "../constants/constants";
+import {
+    configSchemaDesignerEnableDeploymentsView,
+    configSchemaDesignerEnableExpandCollapseButtons,
+} from "../constants/constants";
 import type { IConnectionInfo, IServerInfo } from "vscode-mssql";
 import { DatabaseEngineEdition } from "../databaseProjects/common/enums";
 import { AuthenticationType } from "../sharedInterfaces/connectionDialog";
@@ -35,6 +38,12 @@ function isExpandCollapseButtonsEnabled(): boolean {
     return vscode.workspace
         .getConfiguration()
         .get<boolean>(configSchemaDesignerEnableExpandCollapseButtons) as boolean;
+}
+
+function isDeploymentsViewEnabled(): boolean {
+    return !!vscode.workspace
+        .getConfiguration()
+        .get<boolean>(configSchemaDesignerEnableDeploymentsView);
 }
 
 function isCopilotChatInstalled(): boolean {
@@ -133,6 +142,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             SCHEMA_DESIGNER_VIEW_ID,
             {
                 enableExpandCollapseButtons: isExpandCollapseButtonsEnabled(),
+                enableDeploymentsView: isDeploymentsViewEnabled(),
                 isCopilotChatInstalled: isCopilotChatInstalled(),
                 copilotChatDiscoveryDismissed: getCopilotChatDiscoveryDismissedState(context),
                 activeView: SchemaDesigner.SchemaDesignerActiveView.SchemaDesigner,
@@ -1121,6 +1131,13 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                 this.updateState({
                     ...this.state,
                     enableExpandCollapseButtons: newValue,
+                });
+            }
+
+            if (e.affectsConfiguration(configSchemaDesignerEnableDeploymentsView)) {
+                this.updateState({
+                    ...this.state,
+                    enableDeploymentsView: isDeploymentsViewEnabled(),
                 });
             }
         });

@@ -2955,6 +2955,12 @@
                     "description": "%mssql.dab.cliPackageFeedUrl%",
                     "scope": "window"
                 },
+                "mssql.schemaDesigner.enableDeploymentsView": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "%mssql.schemaDesigner.enableDeploymentsView%",
+                    "scope": "window"
+                },
                 "mssql.schemaDesigner.enableExpandCollapseButtons": {
                     "type": "boolean",
                     "default": true,

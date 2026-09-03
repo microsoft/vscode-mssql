@@ -42,6 +42,7 @@ import { locConstants } from "../../../common/locConstants";
 import { SegmentedControl } from "../../../common/segmentedControl";
 import { Dab } from "../../../../sharedInterfaces/dab";
 import { useDabContext } from "./dabContext";
+import { useSchemaDesignerSelector } from "../schemaDesignerSelector";
 import { SchemaDesignerWebviewCopilotChatEntry } from "../copilot/schemaDesignerWebviewCopilotChatEntry";
 import {
     DabEntityAuthFilter,
@@ -328,6 +329,12 @@ export function DabToolbar({
         resetDabConfig,
     } = context;
 
+    // Deployments stands in for Deploy while this is on. The deployments list
+    // starts a new deployment itself, so the flow behind Deploy is still
+    // reachable and neither dialog changes.
+    const showDeploymentsInPlaceOfDeploy =
+        useSchemaDesignerSelector((s) => s?.enableDeploymentsView) ?? false;
+
     const [showApiTypeWarning, setShowApiTypeWarning] = useState(false);
     const [filterOpen, setFilterOpen] = useState(false);
     const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
@@ -515,34 +522,35 @@ export function DabToolbar({
                         {locConstants.schemaDesigner.resetConfig}
                     </Button>
                     <Button
-                        appearance="secondary"
+                        appearance={showDeploymentsInPlaceOfDeploy ? "primary" : "secondary"}
                         icon={<DeploymentsIcon />}
                         size="small"
                         title={locConstants.schemaDesigner.deployments}
                         onClick={openDabDeploymentsDialog}>
                         {locConstants.schemaDesigner.deployments}
                     </Button>
-                    {isDeployDisabled ? (
-                        <Tooltip content={getDeployTooltip()} relationship="label">
-                            <span>
-                                <Button
-                                    appearance="primary"
-                                    icon={<PlayIcon />}
-                                    size="small"
-                                    disabled>
-                                    {locConstants.schemaDesigner.deploy}
-                                </Button>
-                            </span>
-                        </Tooltip>
-                    ) : (
-                        <Button
-                            appearance="primary"
-                            icon={<PlayIcon />}
-                            size="small"
-                            onClick={openDabDeploymentDialog}>
-                            {locConstants.schemaDesigner.deploy}
-                        </Button>
-                    )}
+                    {!showDeploymentsInPlaceOfDeploy &&
+                        (isDeployDisabled ? (
+                            <Tooltip content={getDeployTooltip()} relationship="label">
+                                <span>
+                                    <Button
+                                        appearance="primary"
+                                        icon={<PlayIcon />}
+                                        size="small"
+                                        disabled>
+                                        {locConstants.schemaDesigner.deploy}
+                                    </Button>
+                                </span>
+                            </Tooltip>
+                        ) : (
+                            <Button
+                                appearance="primary"
+                                icon={<PlayIcon />}
+                                size="small"
+                                onClick={openDabDeploymentDialog}>
+                                {locConstants.schemaDesigner.deploy}
+                            </Button>
+                        ))}
                 </div>
             </div>
 

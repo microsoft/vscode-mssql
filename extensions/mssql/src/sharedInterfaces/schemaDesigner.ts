@@ -409,6 +409,12 @@ export namespace SchemaDesigner {
 
     export interface SchemaDesignerWebviewState {
         enableExpandCollapseButtons?: boolean;
+        /**
+         * True when the toolbar offers Deployments in place of Deploy. The
+         * deployments list starts a new deployment itself, so the flow behind
+         * Deploy stays reachable either way.
+         */
+        enableDeploymentsView?: boolean;
         isCopilotChatInstalled?: boolean;
         copilotChatDiscoveryDismissed?: CopilotChat.DiscoveryDismissedState;
         activeView?: SchemaDesignerActiveView;

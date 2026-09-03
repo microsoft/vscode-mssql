@@ -21,7 +21,10 @@ import { ReducerRequest } from "../../src/sharedInterfaces/webview";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import MainController from "../../src/controllers/mainController";
 import * as copilotUtils from "../../src/copilot/copilotUtils";
-import { DefaultSqlPortNumber } from "../../src/constants/constants";
+import {
+    configSchemaDesignerEnableDeploymentsView,
+    DefaultSqlPortNumber,
+} from "../../src/constants/constants";
 import {
     observeWebviewReady,
     stubExtensionContext,
@@ -1514,6 +1517,27 @@ suite("SchemaDesignerWebviewController tests", () => {
                 expect(result.success).to.be.false;
                 expect(result.error).to.equal("No workspace folder is open.");
             });
+        });
+    });
+
+    suite("enableDeploymentsView", () => {
+        /** Answers one setting deliberately and every other one as enabled. */
+        function stubSetting(key: string, value: boolean) {
+            (vscode.workspace.getConfiguration as sinon.SinonStub).returns({
+                get: (requested: string) => (requested === key ? value : true),
+            } as any);
+        }
+
+        test("should carry the setting into the initial state when enabled", () => {
+            stubSetting(configSchemaDesignerEnableDeploymentsView, true);
+
+            expect(createController().state.enableDeploymentsView).to.be.true;
+        });
+
+        test("should carry the setting into the initial state when disabled", () => {
+            stubSetting(configSchemaDesignerEnableDeploymentsView, false);
+
+            expect(createController().state.enableDeploymentsView).to.be.false;
         });
     });
 
