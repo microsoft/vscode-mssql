@@ -104,15 +104,34 @@ suite("DAB NuGet Feed Tests", () => {
     });
 
     suite("getNuGetConfigPaths", () => {
+        // An absolute path on whichever platform the tests run on. A
+        // Windows-shaped literal is a relative path on Linux and macOS, which
+        // the walk resolves against the working directory and then climbs, so
+        // the directories under test would be the runner's own.
+        const workspacePath = path.resolve(path.join(path.sep, "src", "project"));
+
+        /** Every directory the walk covers, from the filesystem root down. */
+        function walkedDirectories(): Set<string> {
+            const directories = new Set<string>();
+            let current = workspacePath;
+            while (true) {
+                directories.add(current);
+                const parent = path.dirname(current);
+                if (parent === current) {
+                    return directories;
+                }
+                current = parent;
+            }
+        }
+
         test("puts directory configuration after user configuration", () => {
-            const workspacePath = path.join("C:", "src", "project");
             const paths = getNuGetConfigPaths(workspacePath);
 
-            // Anything under the walked workspace tree is directory
-            // configuration; everything else is machine or user level.
+            // Anything in the walked tree is directory configuration;
+            // everything else is machine or user level.
+            const directories = walkedDirectories();
             const isDirectoryConfig = (candidate: string) =>
-                path.dirname(candidate).endsWith(`${path.sep}src`) ||
-                path.dirname(candidate) === workspacePath;
+                directories.has(path.dirname(candidate));
 
             const lastNonDirectoryIndex = paths.reduce(
                 (last, candidate, index) => (isDirectoryConfig(candidate) ? last : index),
@@ -127,16 +146,15 @@ suite("DAB NuGet Feed Tests", () => {
         });
 
         test("walks from the filesystem root down to the workspace", () => {
-            const paths = getNuGetConfigPaths(path.join("C:", "src", "project"));
-            const projectIndex = paths.findIndex((candidate) =>
-                candidate.includes(path.join("src", "project")),
+            const paths = getNuGetConfigPaths(workspacePath);
+            const projectIndex = paths.findIndex(
+                (candidate) => path.dirname(candidate) === workspacePath,
             );
             const parentIndex = paths.findIndex(
-                (candidate) =>
-                    candidate.includes(path.join("C:", "src")) &&
-                    !candidate.includes(path.join("src", "project")),
+                (candidate) => path.dirname(candidate) === path.dirname(workspacePath),
             );
 
+            expect(parentIndex, "The workspace's parent must be walked").to.be.greaterThan(-1);
             expect(projectIndex).to.be.greaterThan(parentIndex);
         });
 
