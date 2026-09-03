@@ -12,8 +12,6 @@ import {
     DialogContent,
     DialogSurface,
     DialogTitle,
-    Field,
-    Input,
     makeStyles,
     mergeClasses,
     Menu,
@@ -167,11 +165,6 @@ const useStyles = makeStyles({
         color: tokens.colorStatusDangerForeground1,
         fontSize: "12px",
     },
-    deleteConfirmBody: {
-        display: "flex",
-        flexDirection: "column",
-        gap: "12px",
-    },
 });
 
 function getStatusLabel(
@@ -247,7 +240,6 @@ export const DabDeploymentsList = ({ onCreateNew, onClose }: DabDeploymentsListP
 
     const [busyDeploymentId, setBusyDeploymentId] = useState<string | undefined>();
     const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | undefined>();
-    const [deleteConfirmationText, setDeleteConfirmationText] = useState("");
     const [expandedIds, setExpandedIds] = useState<string[]>([]);
     const [rowErrors, setRowErrors] = useState<Record<string, string | undefined>>({});
 
@@ -509,10 +501,7 @@ export const DabDeploymentsList = ({ onCreateNew, onClose }: DabDeploymentsListP
                                 </MenuItem>
                                 <MenuItem
                                     icon={<Delete16Regular />}
-                                    onClick={() => {
-                                        setDeleteConfirmationText("");
-                                        setConfirmingDeleteId(deployment.id);
-                                    }}>
+                                    onClick={() => setConfirmingDeleteId(deployment.id)}>
                                     {locConstants.schemaDesigner.deleteDeployment}
                                 </MenuItem>
                             </MenuList>
@@ -536,11 +525,6 @@ export const DabDeploymentsList = ({ onCreateNew, onClose }: DabDeploymentsListP
     const deploymentAwaitingDelete = dabDeployments.find(
         (deployment) => deployment.id === confirmingDeleteId,
     );
-    // Deleting stops a running API and, for the CLI, removes its generated
-    // config. Typing the name makes that a deliberate act rather than one
-    // stray click in a menu.
-    const canConfirmDelete =
-        !!deploymentAwaitingDelete && deleteConfirmationText === deploymentAwaitingDelete.name;
 
     return (
         <>
@@ -595,7 +579,7 @@ export const DabDeploymentsList = ({ onCreateNew, onClose }: DabDeploymentsListP
                         <DialogTitle>
                             {locConstants.schemaDesigner.deleteDeploymentConfirmTitle}
                         </DialogTitle>
-                        <DialogContent className={classes.deleteConfirmBody}>
+                        <DialogContent>
                             <Text>
                                 {deploymentAwaitingDelete?.target === Dab.DabDeploymentTarget.DabCli
                                     ? locConstants.schemaDesigner.deleteCliDeploymentConfirmMessage(
@@ -605,23 +589,6 @@ export const DabDeploymentsList = ({ onCreateNew, onClose }: DabDeploymentsListP
                                           deploymentAwaitingDelete?.name ?? "",
                                       )}
                             </Text>
-                            <Field
-                                label={locConstants.schemaDesigner.deleteDeploymentNameLabel}
-                                hint={locConstants.schemaDesigner.deleteDeploymentTypeToConfirm(
-                                    deploymentAwaitingDelete?.name ?? "",
-                                )}>
-                                <Input
-                                    value={deleteConfirmationText}
-                                    autoFocus
-                                    onChange={(_, data) => setDeleteConfirmationText(data.value)}
-                                    onKeyDown={(event) => {
-                                        if (event.key === "Enter" && canConfirmDelete) {
-                                            event.preventDefault();
-                                            void confirmDelete();
-                                        }
-                                    }}
-                                />
-                            </Field>
                         </DialogContent>
                         <DialogActions>
                             <Button
@@ -631,7 +598,6 @@ export const DabDeploymentsList = ({ onCreateNew, onClose }: DabDeploymentsListP
                             </Button>
                             <Button
                                 appearance="primary"
-                                disabled={!canConfirmDelete}
                                 icon={<Delete16Regular />}
                                 onClick={() => void confirmDelete()}>
                                 {locConstants.schemaDesigner.deleteDeployment}

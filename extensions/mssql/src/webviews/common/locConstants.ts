@@ -2332,13 +2332,6 @@ export class LocConstants {
             deploymentConfigOutdatedBody: l10n.t(
                 "This deployment is running an earlier version of your configuration. Redeploy it to serve the current one.",
             ),
-            deleteDeploymentTypeToConfirm: (name: string) =>
-                l10n.t({
-                    message: "Type {0} to confirm.",
-                    args: [name],
-                    comment: ["{0} is the deployment name the user must type"],
-                }),
-            deleteDeploymentNameLabel: l10n.t("Deployment name"),
             deleteCliDeploymentConfirmMessage: (name: string) =>
                 l10n.t({
                     message:

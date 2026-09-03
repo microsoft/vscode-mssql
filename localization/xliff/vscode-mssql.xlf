@@ -2672,9 +2672,6 @@
     <trans-unit id="++CODE++cc51187ae9dbe9ccc606865c0177000cdeca2af5bca1c36c7f3065882c6ee18b">
       <source xml:lang="en">Deployment in progress</source>
     </trans-unit>
-    <trans-unit id="++CODE++e01636273fd0e5f5d3beda9a1c861cbdbbc5c3d7eaefeed59429f0d90947691f">
-      <source xml:lang="en">Deployment name</source>
-    </trans-unit>
     <trans-unit id="++CODE++d39279795c068e7eae0fac751fc1ff7e722232cb6f15f871494b4d70e46a7f9c">
       <source xml:lang="en">Deployment name, port, and configuration are required to start the engine.</source>
     </trans-unit>
@@ -9128,10 +9125,6 @@
     </trans-unit>
     <trans-unit id="++CODE++baaddf70fb5d432b8bd948ef91d6f910124a6d138edae4d5f000c4610ddc8eae">
       <source xml:lang="en">Type</source>
-    </trans-unit>
-    <trans-unit id="++CODE++a5d32f402ac443625efce54dabaa7134cb0692ab7e0297051801b19a1101d5aa">
-      <source xml:lang="en">Type {0} to confirm.</source>
-      <note>{0} is the deployment name the user must type</note>
     </trans-unit>
     <trans-unit id="++CODE++eab9bd4ed6506f418e00977a0a7bcc445774cac844a2f6debffeff1efc0b75f2">
       <source xml:lang="en">TypeORM</source>

@@ -4010,11 +4010,6 @@
     "Its container has been removed. Redeploy to create it again.": "Its container has been removed. Redeploy to create it again.",
     "Its generated configuration has been removed. Redeploy to create it again.": "Its generated configuration has been removed. Redeploy to create it again.",
     "This deployment is running an earlier version of your configuration. Redeploy it to serve the current one.": "This deployment is running an earlier version of your configuration. Redeploy it to serve the current one.",
-    "Type {0} to confirm./{0} is the deployment name the user must type": {
-        "message": "Type {0} to confirm.",
-        "comment": ["{0} is the deployment name the user must type"]
-    },
-    "Deployment name": "Deployment name",
     "The engine for {0} will be stopped and its generated configuration removed, and its endpoints will stop responding./{0} is the deployment name": {
         "message": "The engine for {0} will be stopped and its generated configuration removed, and its endpoints will stop responding.",
         "comment": ["{0} is the deployment name"]
