@@ -10,6 +10,7 @@ import * as path from "path";
 import { extractZipArchive } from "../../../src/dab/dabCliArchive";
 import { getAzureCliInstallLink, isDatabaseConnectionFailure } from "../../../src/dab/dabCliRunner";
 import {
+    declaresRuntimeIdentifierPackages,
     getCurrentRuntimeIdentifier,
     getDabCliInstallPath,
     getDabCliPackageUrl,
@@ -108,6 +109,31 @@ suite("DAB CLI Tool Tests", () => {
                 readRuntimePackageId(toolSettings, "win-arm64"),
                 "An arm64 host has no build to download, and must be told so",
             ).to.be.undefined;
+        });
+
+        // The manifest the CLI package shipped before 2.1: one assembly that
+        // runs anywhere, carried by the stub itself.
+        const architectureNeutralToolSettings = `<?xml version="1.0" encoding="utf-8"?>
+<DotNetCliTool Version="1">
+  <Commands>
+    <Command Name="dab" EntryPoint="Microsoft.DataApiBuilder.dll" Runner="dotnet" />
+  </Commands>
+</DotNetCliTool>`;
+
+        test("recognises a manifest that splits the tool by runtime", () => {
+            expect(declaresRuntimeIdentifierPackages(toolSettings)).to.be.true;
+        });
+
+        test("recognises an architecture-neutral manifest", () => {
+            expect(
+                declaresRuntimeIdentifierPackages(architectureNeutralToolSettings),
+                "A manifest naming no runtime packages carries the tool itself, and must not be read as a runtime this machine is missing",
+            ).to.be.false;
+        });
+
+        test("reads an architecture-neutral manifest written with a byte order mark", () => {
+            expect(declaresRuntimeIdentifierPackages(`﻿${architectureNeutralToolSettings}`)).to.be
+                .false;
         });
 
         test("builds a runtime identifier for this machine", () => {

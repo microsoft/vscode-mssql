@@ -41,13 +41,20 @@ const DOTNET_TOOL_SETTINGS_NAME = "DotnetToolSettings.xml";
 /**
  * Which part of acquisition failed, so the reported cause is the real one
  * rather than a guess at the network.
+ *
+ * `unsupported` is not a step that went wrong: it means Data API builder ships
+ * nothing this machine can run, which retrying will never change. It is kept
+ * apart from `resolve` so the user is told that rather than being pointed at a
+ * package that simply does not exist for them.
  */
-export type DabCliAcquisitionStage = "download" | "unpack" | "resolve";
+export type DabCliAcquisitionStage = "download" | "unpack" | "resolve" | "unsupported";
 
 export class DabCliAcquisitionError extends Error {
     constructor(
         public readonly stage: DabCliAcquisitionStage,
         message: string,
+        /** Runtime this machine needed, set when that is what went unmet. */
+        public readonly runtimeIdentifier?: string,
     ) {
         super(message);
         this.name = "DabCliAcquisitionError";
@@ -172,8 +179,7 @@ export function readRuntimePackageId(
     settingsXml: string,
     runtimeIdentifier: string,
 ): string | undefined {
-    const document = new DOMParser().parseFromString(stripByteOrderMark(settingsXml), "text/xml");
-    const packages = document.getElementsByTagName("RuntimeIdentifierPackage");
+    const packages = readRuntimeIdentifierPackages(settingsXml);
 
     for (let index = 0; index < packages.length; index++) {
         if (packages[index].getAttribute("RuntimeIdentifier") === runtimeIdentifier) {
@@ -182,6 +188,27 @@ export function readRuntimePackageId(
     }
 
     return undefined;
+}
+
+/**
+ * Whether the manifest splits the tool across runtime-specific packages.
+ *
+ * Two shapes ship under the same package id. A version 1 manifest names no
+ * runtime packages because the stub itself carries one architecture-neutral
+ * assembly; a version 2 manifest lists a package per runtime and the stub
+ * carries nothing runnable. Which shape is in hand decides whether a runtime
+ * the manifest omits means "unpack what is already here" or "there is no build
+ * for this machine", so it is read rather than assumed from the version.
+ *
+ * @param settingsXml Contents of the tool manifest
+ */
+export function declaresRuntimeIdentifierPackages(settingsXml: string): boolean {
+    return readRuntimeIdentifierPackages(settingsXml).length > 0;
+}
+
+function readRuntimeIdentifierPackages(settingsXml: string) {
+    const document = new DOMParser().parseFromString(stripByteOrderMark(settingsXml), "text/xml");
+    return document.getElementsByTagName("RuntimeIdentifierPackage");
 }
 
 /** Resolves an already-unpacked installation, or undefined when there is none. */
@@ -301,34 +328,41 @@ export async function acquireDabCli(
 
     const runtimeIdentifier = getCurrentRuntimeIdentifier();
     let runtimePackageId: string | undefined;
+    let isSplitByRuntime: boolean;
     try {
-        runtimePackageId = readRuntimePackageId(
-            await fsPromises.readFile(settingsPath, "utf8"),
-            runtimeIdentifier,
-        );
+        const settingsXml = await fsPromises.readFile(settingsPath, "utf8");
+        isSplitByRuntime = declaresRuntimeIdentifierPackages(settingsXml);
+        runtimePackageId = readRuntimePackageId(settingsXml, runtimeIdentifier);
     } catch (error) {
         throw new DabCliAcquisitionError(
             "resolve",
             `Failed to read ${DOTNET_TOOL_SETTINGS_NAME}: ${getErrorMessage(error)}`,
         );
     }
-    if (!runtimePackageId) {
-        // Data API builder publishes x64 runtimes only, so an arm64 host has
-        // nothing to run. Saying which runtime is missing beats a later failure
-        // about an assembly that was never going to be there.
+
+    if (isSplitByRuntime && !runtimePackageId) {
+        // The runtime-split releases are built per architecture and cover x64
+        // only, so an arm64 host has nothing to run. Saying which runtime is
+        // missing beats a later failure about an assembly that was never going
+        // to be there.
         throw new DabCliAcquisitionError(
-            "resolve",
+            "unsupported",
             `The Data API builder CLI does not publish a build for ${runtimeIdentifier}.`,
+            runtimeIdentifier,
         );
     }
 
-    await downloadAndUnpack(runtimePackageId, version, feedUrl, installPath, logger);
+    // Nothing more to fetch when the tool is architecture-neutral: the stub
+    // already unpacked above is the tool.
+    if (runtimePackageId) {
+        await downloadAndUnpack(runtimePackageId, version, feedUrl, installPath, logger);
+    }
 
     const assemblyPath = await findFile(installPath, DAB_CLI_ASSEMBLY_NAME);
     if (!assemblyPath) {
         throw new DabCliAcquisitionError(
             "resolve",
-            `${runtimePackageId} did not contain ${DAB_CLI_ASSEMBLY_NAME}.`,
+            `${runtimePackageId ?? Dab.DAB_CLI_PACKAGE_ID} did not contain ${DAB_CLI_ASSEMBLY_NAME}.`,
         );
     }
 
