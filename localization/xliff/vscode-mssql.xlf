@@ -2407,6 +2407,12 @@
     <trans-unit id="++CODE++2154b11388f741094808a9e344ab0be7e4be3d2a989551deec3b43f35fc729e3">
       <source xml:lang="en">Data API builder Configuration</source>
     </trans-unit>
+    <trans-unit id="++CODE++012710b34d59a963ef63b6b02134fee38a19a64d5260225088039675d944327b">
+      <source xml:lang="en">Data API builder could not connect to the database. Check that the server is reachable and that the connection&apos;s credentials are still valid, then run this step again.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c81d9791604a0050c5854c67ea1a6c84903774d7160a12908a63de477df45f10">
+      <source xml:lang="en">Data API builder could not sign in to the database. It signs in as you rather than reusing this extension&apos;s sign-in, so it needs an Entra sign-in on this machine: run &apos;az login&apos; in a terminal, then run this step again.</source>
+    </trans-unit>
     <trans-unit id="++CODE++d90dacedab33faee6e7e3d4aec2d222b63b231958e052de1a3f5a55ffc80c982">
       <source xml:lang="en">Data API builder is running!</source>
     </trans-unit>
@@ -4763,6 +4769,9 @@
     </trans-unit>
     <trans-unit id="++CODE++336a8af254446c5c9006e090f430a9f283960aeefdd0dc52cf0401fa2c19ac03">
       <source xml:lang="en">Install Docker</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ea37170478c135fe5621105f676ae5cdb160b763078a28d661098d6d6b2959b2">
+      <source xml:lang="en">Install the Azure CLI</source>
     </trans-unit>
     <trans-unit id="++CODE++bacb967a562a0c1059bd81be06c024c01789e81d12dd3fe6e3d74ae2641c9566">
       <source xml:lang="en">Install the MSSQL Database Management Keymap extension</source>

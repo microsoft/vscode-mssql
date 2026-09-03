@@ -414,18 +414,28 @@ suite("DAB target support by authentication", () => {
         ).to.be.false;
     });
 
-    test("Entra authentication supports no target", () => {
+    test("Entra authentication works with the CLI", () => {
         for (const authType of [
             AuthenticationType.AzureMFA,
             AuthenticationType.ActiveDirectoryDefault,
+            AuthenticationType.AzureMFAAndUser,
+            AuthenticationType.ActiveDirectoryServicePrincipal,
         ]) {
-            for (const target of targets) {
-                expect(
-                    Dab.isDabTargetSupportedForAuthentication(target, authType),
-                    `${target} with ${authType}`,
-                ).to.be.false;
-            }
+            expect(
+                Dab.isDabTargetSupportedForAuthentication(Dab.DabDeploymentTarget.DabCli, authType),
+                `the CLI with ${authType}`,
+            ).to.be.true;
         }
+    });
+
+    test("Entra authentication cannot use a container", () => {
+        expect(
+            Dab.isDabTargetSupportedForAuthentication(
+                Dab.DabDeploymentTarget.Docker,
+                AuthenticationType.AzureMFA,
+            ),
+            "A container cannot see the host's Entra sign-in",
+        ).to.be.false;
     });
 
     test("an unknown or missing authentication type supports no target", () => {
@@ -492,5 +502,61 @@ suite("DAB deployment entry points", () => {
                 ).to.deep.equal(steps);
             }
         }
+    });
+});
+
+suite("DAB CLI connection string", () => {
+    test("passes a SQL authentication connection through untouched", () => {
+        const connectionString = "Server=localhost,1433;Database=Db;User ID=sa;Password=p;";
+
+        expect(
+            Dab.buildDabCliConnectionString(connectionString, AuthenticationType.SqlLogin),
+        ).to.equal(connectionString);
+    });
+
+    test("passes a Windows authentication connection through untouched", () => {
+        const connectionString = "Server=localhost;Database=Db;Integrated Security=True;";
+
+        expect(
+            Dab.buildDabCliConnectionString(connectionString, AuthenticationType.Integrated),
+        ).to.equal(connectionString);
+    });
+
+    test("strips credentials for Entra so the engine acquires its own token", () => {
+        // The engine only reaches for a token when nothing else in the string
+        // says who is connecting.
+        const result = Dab.buildDabCliConnectionString(
+            "Server=x.database.windows.net;Database=Db;User ID=me@contoso.com;Authentication=ActiveDirectoryInteractive;Encrypt=True;",
+            AuthenticationType.AzureMFA,
+        );
+
+        expect(result).to.equal("Server=x.database.windows.net;Database=Db;Encrypt=True");
+    });
+
+    test("keeps the properties that are not credentials", () => {
+        const result = Dab.buildDabCliConnectionString(
+            "Server=x;Database=Db;Password=p;TrustServerCertificate=True;Connect Timeout=30;",
+            AuthenticationType.ActiveDirectoryDefault,
+        );
+
+        expect(result).to.contain("TrustServerCertificate=True");
+        expect(result).to.contain("Connect Timeout=30");
+        expect(result).to.not.contain("Password");
+    });
+
+    test("matches credential properties regardless of spelling or case", () => {
+        const result = Dab.buildDabCliConnectionString(
+            "Server=x;Database=Db; UID =me; PWD =secret;Trusted_Connection=True;",
+            AuthenticationType.AzureMFA,
+        );
+
+        expect(result).to.equal("Server=x;Database=Db");
+    });
+
+    test("reports which authentication types are Entra", () => {
+        expect(Dab.isEntraAuthentication(AuthenticationType.AzureMFA)).to.be.true;
+        expect(Dab.isEntraAuthentication(AuthenticationType.SqlLogin)).to.be.false;
+        expect(Dab.isEntraAuthentication(AuthenticationType.Integrated)).to.be.false;
+        expect(Dab.isEntraAuthentication(undefined)).to.be.false;
     });
 });

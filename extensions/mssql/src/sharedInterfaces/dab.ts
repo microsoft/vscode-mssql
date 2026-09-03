@@ -971,13 +971,31 @@ export namespace Dab {
     };
 
     /**
+     * Entra authentication types. The engine cannot be handed this extension's
+     * token — it has no way to receive one, and a token would expire under a
+     * deployment that outlives the window — so it signs in for itself from the
+     * credentials already present on the machine.
+     */
+    const ENTRA_AUTHENTICATION_TYPES: string[] = [
+        AuthenticationType.AzureMFA,
+        AuthenticationType.ActiveDirectoryDefault,
+        AuthenticationType.AzureMFAAndUser,
+        AuthenticationType.ActiveDirectoryServicePrincipal,
+    ];
+
+    /** True when a connection signs in through Microsoft Entra. */
+    export function isEntraAuthentication(authenticationType: string | undefined): boolean {
+        return !!authenticationType && ENTRA_AUTHENTICATION_TYPES.includes(authenticationType);
+    }
+
+    /**
      * Whether a deployment target can carry this connection's authentication
      * through to the running engine.
      *
-     * The CLI runs as the signed-in user, so Windows Authentication reaches SQL
-     * Server as that user. A container runs outside the Windows session and has
-     * no way to present those credentials. Neither can complete an interactive
-     * Entra sign-in from a background process.
+     * The CLI runs on the host as the signed-in user, so Windows Authentication
+     * reaches SQL Server as that user and an Entra sign-in already present on
+     * the machine can be picked up. A container can do neither: it runs outside
+     * the Windows session and cannot see the host's credentials.
      *
      * @param target Deployment target being considered
      * @param authenticationType Authentication type of the connection
@@ -990,10 +1008,57 @@ export namespace Dab {
             return true;
         }
 
+        if (target !== DabDeploymentTarget.DabCli) {
+            return false;
+        }
+
         return (
-            authenticationType === AuthenticationType.Integrated &&
-            target === DabDeploymentTarget.DabCli
+            authenticationType === AuthenticationType.Integrated ||
+            isEntraAuthentication(authenticationType)
         );
+    }
+
+    /**
+     * Connection string properties that name who is connecting. They are
+     * stripped for an Entra deployment: the engine acquires its own token, and
+     * it only does so when the connection string names no other credential.
+     */
+    const CREDENTIAL_CONNECTION_PROPERTIES = [
+        "user id",
+        "uid",
+        "user",
+        "password",
+        "pwd",
+        "authentication",
+        "integrated security",
+        "trusted_connection",
+    ];
+
+    /**
+     * Prepares the connection string the CLI engine runs with.
+     *
+     * For Entra the credential properties are removed so the engine falls back
+     * to acquiring a token from the machine's existing sign-in. Every other
+     * authentication type is passed through untouched.
+     *
+     * @param connectionString Connection string of the designer's connection
+     * @param authenticationType Authentication type of that connection
+     */
+    export function buildDabCliConnectionString(
+        connectionString: string,
+        authenticationType: string | undefined,
+    ): string {
+        if (!isEntraAuthentication(authenticationType)) {
+            return connectionString;
+        }
+
+        return connectionString
+            .split(";")
+            .filter((property) => {
+                const key = property.split("=")[0]?.trim().toLowerCase();
+                return !!property.trim() && !CREDENTIAL_CONNECTION_PROPERTIES.includes(key ?? "");
+            })
+            .join(";");
     }
 
     /** Every step a target runs, in order. */

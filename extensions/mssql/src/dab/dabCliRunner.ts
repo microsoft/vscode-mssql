@@ -30,6 +30,24 @@ import {
 /** Where to send a user who has no usable .NET runtime. */
 export const dotnetDownloadLink = "https://dotnet.microsoft.com/download";
 
+/** Where to send a user who needs an Entra sign-in on the machine. */
+export const azureCliDownloadLink = "https://aka.ms/installazurecli";
+
+/**
+ * The engine reports every failure to open a database connection with this
+ * sentence, and reports nothing else with it, so it distinguishes a connection
+ * problem the user can fix from a configuration problem they cannot.
+ *
+ * Matched as written because the engine emits it from a constant in English
+ * and does not localize its output.
+ */
+const DAB_CONNECTION_FAILURE_MARKER = "A valid Connection String should be provided.";
+
+/** True when the CLI's output says it could not open a database connection. */
+export function isDatabaseConnectionFailure(output: string | undefined): boolean {
+    return !!output?.includes(DAB_CONNECTION_FAILURE_MARKER);
+}
+
 /** File name the generated config is written as, matching DAB's convention. */
 export const DAB_CLI_CONFIG_FILE_NAME = "dab-config.json";
 
@@ -114,11 +132,14 @@ export class DabCliRunner {
      * @param configPath Where to write the config file
      * @param configContent Generated DAB config, with the connection string as an @env reference
      * @param environment Port and connection string for the CLI process
+     * @param authenticationType Authentication type of the connection, used to
+     * explain a failure to connect in terms the user can act on
      */
     public async validateConfig(
         configPath: string,
         configContent: string,
         environment: DabCliProcessEnvironment,
+        authenticationType?: string,
     ): Promise<Dab.RunDeploymentStepResponse> {
         const readiness = this.getRunnableCli();
         if (!readiness.cli) {
@@ -148,6 +169,27 @@ export class DabCliRunner {
 
         if (result.success) {
             return { success: true };
+        }
+
+        // A configuration the engine cannot validate and a database it cannot
+        // reach are different problems: one needs the config changed, the other
+        // needs the connection fixed and the step run again.
+        if (isDatabaseConnectionFailure(result.engineLogs)) {
+            const isEntra = Dab.isEntraAuthentication(authenticationType);
+            return {
+                success: false,
+                error: isEntra
+                    ? LocalContainers.dabCliEntraConnectionFailed
+                    : LocalContainers.dabCliDatabaseConnectionFailed,
+                ...(isEntra
+                    ? {
+                          errorLink: azureCliDownloadLink,
+                          errorLinkText: LocalContainers.dabCliInstallAzureCli,
+                      }
+                    : {}),
+                fullErrorText: result.fullErrorText ?? result.error,
+                containerLogs: result.engineLogs,
+            };
         }
 
         return {

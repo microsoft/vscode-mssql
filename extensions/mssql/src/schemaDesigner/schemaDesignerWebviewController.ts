@@ -659,6 +659,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                               payload.params
                                   ? this.getDabCliConfigPath(payload.params.containerName)
                                   : undefined,
+                              this.resolveAuthenticationType(),
                           )
                         : await this._dabService.runDeploymentStep(
                               payload.step,
@@ -1393,10 +1394,14 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             return { success: false, error: LocConstants.SchemaDesigner.dabDeploymentNotSupported };
         }
 
-        const result = await this._dabService.startCliDeployment(record, {
-            connectionString: this.connectionString,
-            sqlServerContainerName: this._sqlServerContainerName,
-        });
+        const result = await this._dabService.startCliDeployment(
+            record,
+            {
+                connectionString: this.connectionString,
+                sqlServerContainerName: this._sqlServerContainerName,
+            },
+            this.resolveAuthenticationType(),
+        );
 
         if (result.success) {
             await store.updateDeployment(key, record.id, { processId: result.processId });

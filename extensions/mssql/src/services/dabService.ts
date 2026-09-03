@@ -298,6 +298,8 @@ export class DabService implements Dab.IDabService {
      * @param config DAB config, needed from the validate step onward
      * @param connectionInfo Connection whose string is passed to the engine
      * @param configPath Where the generated config lives for this deployment
+     * @param authenticationType Authentication type of the connection, which
+     * decides what the engine is given to sign in with
      */
     public async runCliDeploymentStep(
         step: Dab.DabDeploymentStepOrder,
@@ -305,6 +307,7 @@ export class DabService implements Dab.IDabService {
         config?: Dab.DabConfig,
         connectionInfo?: Dab.DabConnectionInfo,
         configPath?: string,
+        authenticationType?: string,
     ): Promise<Dab.RunDeploymentStepResponse & { processId?: number }> {
         const runner = this.cliRunner;
         if (!runner) {
@@ -328,10 +331,18 @@ export class DabService implements Dab.IDabService {
                     return { success: false, error: generated.error };
                 }
 
-                return runner.validateConfig(configPath, generated.configContent, {
-                    port: params.port,
-                    connectionString: connectionInfo.connectionString,
-                });
+                return runner.validateConfig(
+                    configPath,
+                    generated.configContent,
+                    {
+                        port: params.port,
+                        connectionString: Dab.buildDabCliConnectionString(
+                            connectionInfo.connectionString,
+                            authenticationType,
+                        ),
+                    },
+                    authenticationType,
+                );
             }
 
             case Dab.DabDeploymentStepOrder.startCliEngine: {
@@ -341,7 +352,10 @@ export class DabService implements Dab.IDabService {
 
                 return runner.startEngine(configPath, {
                     port: params.port,
-                    connectionString: connectionInfo.connectionString,
+                    connectionString: Dab.buildDabCliConnectionString(
+                        connectionInfo.connectionString,
+                        authenticationType,
+                    ),
                 });
             }
 
@@ -402,6 +416,7 @@ export class DabService implements Dab.IDabService {
     public async startCliDeployment(
         record: Dab.DabDeploymentRecord,
         connectionInfo: Dab.DabConnectionInfo,
+        authenticationType?: string,
     ): Promise<Dab.DeploymentActionResponse & { processId?: number }> {
         const runner = this.cliRunner;
         if (!runner) {
@@ -424,7 +439,10 @@ export class DabService implements Dab.IDabService {
 
         const startResult = await runner.startEngine(record.configPath, {
             port: record.port,
-            connectionString: connectionInfo.connectionString,
+            connectionString: Dab.buildDabCliConnectionString(
+                connectionInfo.connectionString,
+                authenticationType,
+            ),
         });
         if (!startResult.success) {
             return { success: false, error: startResult.error };

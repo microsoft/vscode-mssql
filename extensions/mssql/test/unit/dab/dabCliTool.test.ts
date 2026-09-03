@@ -8,6 +8,7 @@ import * as fs from "fs/promises";
 import * as os from "os";
 import * as path from "path";
 import { extractZipArchive } from "../../../src/dab/dabCliArchive";
+import { isDatabaseConnectionFailure } from "../../../src/dab/dabCliRunner";
 import {
     getCurrentRuntimeIdentifier,
     getDabCliInstallPath,
@@ -259,5 +260,40 @@ suite("DAB CLI Archive Tests", () => {
         expect(parentEntries, "Nothing may be written outside the destination").to.not.contain(
             "escaped.txt",
         );
+    });
+});
+
+suite("DAB CLI connection failure detection", () => {
+    test("recognises the engine's connection failure", () => {
+        // Captured from the engine: a login that the server rejected.
+        expect(
+            isDatabaseConnectionFailure(
+                "fail: A valid Connection String should be provided. Database connection failed due to: Login failed for user ''.",
+            ),
+        ).to.be.true;
+    });
+
+    test("recognises a failure to reach the server", () => {
+        // Captured from the engine: a host that does not resolve.
+        expect(
+            isDatabaseConnectionFailure(
+                "fail: A valid Connection String should be provided. Database connection failed due to: A network-related or instance-specific error occurred while establishing a connection to SQL Server.",
+            ),
+        ).to.be.true;
+    });
+
+    test("does not mistake a schema failure for a connection failure", () => {
+        // The guidance tells people to fix their sign-in, which would be wrong
+        // advice for a configuration the engine read perfectly well.
+        expect(
+            isDatabaseConnectionFailure(
+                "fail: > Total schema validation errors: 64\n> JSON does not match all schemas from 'allOf'. Invalid schema indexes: 1. at 29:31",
+            ),
+        ).to.be.false;
+    });
+
+    test("treats absent output as no connection failure", () => {
+        expect(isDatabaseConnectionFailure(undefined)).to.be.false;
+        expect(isDatabaseConnectionFailure("")).to.be.false;
     });
 });
