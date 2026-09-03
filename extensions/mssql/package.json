@@ -2951,7 +2951,7 @@
                 },
                 "mssql.dab.cliPackageFeedUrl": {
                     "type": "string",
-                    "default": "https://api.nuget.org/v3-flatcontainer",
+                    "default": "",
                     "description": "%mssql.dab.cliPackageFeedUrl%",
                     "scope": "window"
                 },

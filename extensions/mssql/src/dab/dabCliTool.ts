@@ -26,6 +26,7 @@ import { VscodeHttpClient } from "extension-toolkit/vscode";
 import { ILogger } from "../sharedInterfaces/logger";
 import { configDabCliPackageFeedUrl } from "../constants/constants";
 import { Dab } from "../sharedInterfaces/dab";
+import { resolveDabCliFeedUrl } from "./dabNuGetFeed";
 import { getErrorMessage } from "../utils/utils";
 import { extractZipArchive } from "./dabCliArchive";
 
@@ -67,15 +68,14 @@ export function getDabCliPackageUrl(
 }
 
 /**
- * Reads the configured package feed, falling back to nuget.org when the
- * setting is unset or blank.
+ * Reads the feed setting, or undefined when the user has not set one and the
+ * feed should be discovered from NuGet configuration instead.
  */
-export function getConfiguredDabCliFeedUrl(): string {
-    const configured = vscode.workspace
-        .getConfiguration()
-        .get<string>(configDabCliPackageFeedUrl)
-        ?.trim();
-    return configured || Dab.DAB_CLI_DEFAULT_PACKAGE_FEED_URL;
+export function getConfiguredDabCliFeedUrl(): string | undefined {
+    return (
+        vscode.workspace.getConfiguration().get<string>(configDabCliPackageFeedUrl)?.trim() ||
+        undefined
+    );
 }
 
 /** Directory a given CLI version is unpacked into. */
@@ -172,7 +172,8 @@ export async function acquireDabCli(
     await fsPromises.rm(installPath, { recursive: true, force: true });
     await fsPromises.mkdir(installPath, { recursive: true });
 
-    const packageUrl = getDabCliPackageUrl(version, getConfiguredDabCliFeedUrl());
+    const feedUrl = await resolveDabCliFeedUrl(getConfiguredDabCliFeedUrl(), logger);
+    const packageUrl = getDabCliPackageUrl(version, feedUrl);
     const packagePath = path.join(installPath, `${Dab.DAB_CLI_PACKAGE_ID}.${version}.nupkg`);
 
     logger.info(`Downloading DAB CLI ${version} from ${packageUrl}`);

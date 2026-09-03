@@ -10740,7 +10740,7 @@
       <source xml:lang="en">Next Steps with MSSQL for Visual Studio Code</source>
     </trans-unit>
     <trans-unit id="mssql.dab.cliPackageFeedUrl">
-      <source xml:lang="en">NuGet flat container URL the Data API builder CLI package is downloaded from. Change this when nuget.org is unavailable and a mirror is used instead.</source>
+      <source xml:lang="en">NuGet flat container URL the Data API builder CLI package is downloaded from. Leave empty to use the package sources from your NuGet configuration, falling back to nuget.org.</source>
     </trans-unit>
     <trans-unit id="mssql.logRetentionMinutes">
       <source xml:lang="en">Number of minutes to retain log files for backend services. Default is 1 week.</source>
