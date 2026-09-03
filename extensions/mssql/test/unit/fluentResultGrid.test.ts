@@ -252,6 +252,42 @@ suite("Fluent Result Grid", () => {
             expect(getRows).to.have.callCount(4);
             dataView.dispose();
         });
+
+        test("retries an unchanged window after its in-flight load fails", async () => {
+            const rejectRequests: Array<(reason?: unknown) => void> = [];
+            const getRows = sandbox.stub().callsFake(
+                () =>
+                    new Promise<DbCellValue[][]>((_resolve, reject) => {
+                        rejectRequests.push(reject);
+                    }),
+            );
+            const dataView = createFluentResultGridDataView({
+                dataSource: {
+                    kind: "windowed",
+                    rowCount: 100,
+                    getRows,
+                },
+                columnCount: 1,
+                windowSize: 50,
+            });
+            const rowStore = (
+                dataView as unknown as {
+                    rowStore: { resetAroundIndex: (index: number) => void };
+                }
+            ).rowStore;
+
+            dataView.getItem(0);
+            rowStore.resetAroundIndex(0);
+            expect(getRows).to.have.callCount(2);
+
+            rejectRequests.forEach((reject) => reject(new Error("load failed")));
+            await Promise.resolve();
+            await Promise.resolve();
+
+            rowStore.resetAroundIndex(0);
+            expect(getRows).to.have.callCount(4);
+            dataView.dispose();
+        });
     });
 
     suite("transforms", () => {

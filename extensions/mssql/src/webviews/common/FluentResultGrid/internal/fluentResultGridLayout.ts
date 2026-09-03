@@ -64,7 +64,6 @@ export function useFluentResultGridLayout({
     const frozenPaneWheelCleanupRef = useRef<(() => void) | undefined>(undefined);
     const autoSizeRequestIdRef = useRef(0);
     const autoSizeCanvasContextRef = useRef<CanvasRenderingContext2D | null | undefined>(undefined);
-    const autoSizeFontRef = useRef<string | undefined>(undefined);
 
     const getAutoSizeCanvasContext = useCallback(() => {
         if (autoSizeCanvasContextRef.current === undefined) {
@@ -76,16 +75,13 @@ export function useFluentResultGridLayout({
             return undefined;
         }
 
-        if (autoSizeFontRef.current === undefined) {
-            const computedStyle = containerRef.current
-                ? window.getComputedStyle(containerRef.current)
-                : undefined;
-            const fontSize =
-                parseInt(computedStyle?.fontSize ?? "", 10) || FLUENT_RESULT_GRID_DEFAULT_FONT_SIZE;
-            const fontFamily = computedStyle?.fontFamily ?? "monospace";
-            autoSizeFontRef.current = `${fontSize}px ${fontFamily}`;
-        }
-        canvasContext.font = autoSizeFontRef.current;
+        const computedStyle = containerRef.current
+            ? window.getComputedStyle(containerRef.current)
+            : undefined;
+        const fontSize =
+            parseInt(computedStyle?.fontSize ?? "", 10) || FLUENT_RESULT_GRID_DEFAULT_FONT_SIZE;
+        const fontFamily = computedStyle?.fontFamily || "monospace";
+        canvasContext.font = `${fontSize}px ${fontFamily}`;
         return canvasContext;
     }, [containerRef]);
 
