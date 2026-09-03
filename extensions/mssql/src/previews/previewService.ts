@@ -13,7 +13,6 @@ import * as vscode from "vscode";
 export enum PreviewFeature {
     BetaResultsGrid = "betaResultsGrid",
     BetaObjectExplorerFilter = "betaObjectExplorerFilter",
-    UseVscodeAccountsForEntraMFA = "useVscodeAccountsForEntraMFA",
 }
 
 /**

@@ -1991,13 +1991,10 @@
                     "description": "%mssql.preview.betaResultsGrid.description%",
                     "scope": "application"
                 },
-                "mssql.preview.useVscodeAccountsForEntraMFA": {
-                    "type": [
-                        "boolean",
-                        "null"
-                    ],
-                    "default": true,
-                    "description": "%mssql.preview.useVscodeAccountsForEntraMFA.description%",
+                "mssql.useMsalEntraMfaAuth": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "%mssql.useMsalEntraMfaAuth.description%",
                     "scope": "application"
                 },
                 "mssql.openQueryResultsInTabByDefault": {
