@@ -35,7 +35,7 @@ export const DabDeploymentProgress = ({
             <DabDialogTitle>
                 {locConstants.localContainers.settingUp} {containerName}...
             </DabDialogTitle>
-            <DabDialogContent>
+            <DabDialogContent constrainWidth>
                 <Text>{locConstants.localContainers.gettingContainerReadyForConnection}</Text>
                 <div style={{ display: "flex", flexDirection: "column", gap: 0, width: "100%" }}>
                     {stepStatuses.map((stepStatus) => (

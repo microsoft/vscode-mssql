@@ -364,7 +364,7 @@ export const DabDeploymentsList = ({ onCreateNew, onClose }: DabDeploymentsListP
     return (
         <>
             <DabDialogTitle>{locConstants.schemaDesigner.deployments}</DabDialogTitle>
-            <DabDialogContent centered={false}>
+            <DabDialogContent>
                 <div className={classes.toolbar}>
                     <Button appearance="primary" icon={<Add16Regular />} onClick={onCreateNew}>
                         {locConstants.schemaDesigner.createNewDeployment}

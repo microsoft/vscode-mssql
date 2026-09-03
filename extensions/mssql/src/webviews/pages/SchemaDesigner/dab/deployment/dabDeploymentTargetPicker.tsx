@@ -16,9 +16,10 @@ const useStyles = makeStyles({
     // looks like choosing where to create a database.
     cardRow: {
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(260px, 300px))",
-        justifyContent: "center",
-        gap: "12px",
+        // Fixed at two columns so the targets always sit beside each other
+        // rather than wrapping into a stack on a narrower surface.
+        gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+        gap: "16px",
         width: "100%",
         alignItems: "stretch",
     },
@@ -30,8 +31,7 @@ const useStyles = makeStyles({
         padding: "22px 24px",
         gap: "14px",
         width: "100%",
-        maxWidth: "300px",
-        minHeight: "220px",
+        minHeight: "200px",
         borderRadius: "18px",
         border: `1px solid ${tokens.colorNeutralStroke2}`,
         backgroundColor: tokens.colorNeutralBackground1,
@@ -80,7 +80,7 @@ const useStyles = makeStyles({
         fontWeight: 400,
         fontSize: "14px",
         lineHeight: "22px",
-        color: tokens.colorNeutralForeground3,
+        color: tokens.colorNeutralForeground2,
         textAlign: "left",
     },
 });

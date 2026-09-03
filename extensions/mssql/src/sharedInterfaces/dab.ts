@@ -778,10 +778,37 @@ export namespace Dab {
      */
     export const DAB_DEFAULT_CONTAINER_NAME = "dab-container";
 
+    /** Prefix every generated deployment name carries. */
+    export const DAB_DEPLOYMENT_NAME_PREFIX = "DAB";
+
+    /** Longest database fragment a generated deployment name embeds. */
+    export const DAB_DEPLOYMENT_NAME_DB_MAX_LENGTH = 20;
+
     /**
-     * Default deployment name prefix for DAB CLI deployments.
+     * Builds the database fragment of a deployment name.
+     *
+     * Docker container names allow only a narrow character set, so anything
+     * else is dropped rather than substituted; a name that reduces to nothing
+     * falls back to a fixed word so the result is still a legal container name.
+     *
+     * @param databaseName Database the deployment serves
      */
-    export const DAB_DEFAULT_CLI_DEPLOYMENT_NAME = "dab-cli";
+    export function buildDabDeploymentNameFragment(databaseName: string): string {
+        const fragment = (databaseName ?? "")
+            .replace(/[^A-Za-z0-9]/g, "")
+            .slice(0, DAB_DEPLOYMENT_NAME_DB_MAX_LENGTH);
+        return fragment || "db";
+    }
+
+    /**
+     * Builds a deployment name of the form `DAB_<database>_<n>`.
+     *
+     * @param databaseName Database the deployment serves
+     * @param index Discriminator making the name unique
+     */
+    export function buildDabDeploymentName(databaseName: string, index: number): string {
+        return `${DAB_DEPLOYMENT_NAME_PREFIX}_${buildDabDeploymentNameFragment(databaseName)}_${index}`;
+    }
 
     /**
      * NuGet package that ships the DAB CLI.
@@ -1085,10 +1112,10 @@ export namespace Dab {
             dialogStep: DabDeploymentDialogStep.Confirmation,
             currentDeploymentStep: steps[0],
             params: {
-                containerName:
-                    target === DabDeploymentTarget.DabCli
-                        ? DAB_DEFAULT_CLI_DEPLOYMENT_NAME
-                        : DAB_DEFAULT_CONTAINER_NAME,
+                // Left blank: the settings form asks the extension for a
+                // generated name on mount, so seeding a placeholder here would
+                // only flash a name that is about to be replaced.
+                containerName: "",
                 port: DAB_DEFAULT_PORT,
             },
             stepStatuses: steps.map((step) => ({ step, status: ApiStatus.NotStarted })),

@@ -421,3 +421,41 @@ export async function stopDabContainer(containerName: string): Promise<DockerCom
 export async function isDabPortAvailable(port: number): Promise<boolean> {
     return isHostPortAvailable(port);
 }
+
+/**
+ * Generates a deployment name of the form `DAB_<database>_<n>`.
+ *
+ * The discriminator is the lowest number not already taken by a Docker
+ * container or by a deployment this extension tracks, so a name is never
+ * reused by a deployment the user can still see.
+ *
+ * @param databaseName Database the deployment serves
+ * @param trackedNames Names of deployments already tracked for this database
+ */
+export async function generateDabDeploymentName(
+    databaseName: string,
+    trackedNames: string[] = [],
+): Promise<string> {
+    const taken = new Set(trackedNames);
+
+    try {
+        const dockerClient = getDockerodeClient();
+        const containerInfos = await dockerClient.listContainers({ all: true });
+        for (const containerInfo of containerInfos) {
+            for (const name of containerInfo.Names ?? []) {
+                taken.add(name.replace(/^\//, ""));
+            }
+        }
+    } catch (e) {
+        // Docker being unavailable only matters for the Docker target, and the
+        // prerequisite steps report that; a CLI deployment still needs a name.
+        dockerLogger.debug(`Could not list containers while naming: ${getErrorMessage(e)}`);
+    }
+
+    for (let index = 1; ; index++) {
+        const candidate = Dab.buildDabDeploymentName(databaseName, index);
+        if (!taken.has(candidate)) {
+            return candidate;
+        }
+    }
+}

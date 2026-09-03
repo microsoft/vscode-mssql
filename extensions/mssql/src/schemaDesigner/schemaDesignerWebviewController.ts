@@ -21,6 +21,7 @@ import { ConnectionStrategy } from "../controllers/sqlDocumentService";
 import { UserSurvey } from "../nps/userSurvey";
 import { DabMetadataService, type IDabMetadataService } from "../dab/dabMetadataService";
 import { DabConfigStore, type DabStoreKey } from "../dab/dabConfigStore";
+import { generateDabDeploymentName } from "../dab/dabContainer";
 import { DabService } from "../services/dabService";
 import { Dab } from "../sharedInterfaces/dab";
 import { CopilotChat } from "../sharedInterfaces/copilotChat";
@@ -697,7 +698,10 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
         });
 
         this.onRequest(Dab.ValidateDeploymentParamsRequest.type, async (payload) => {
-            return this._dabService.validateDeploymentParams(payload.containerName, payload.port);
+            // An empty name means the form is asking for a default; generate one
+            // from the database so both targets read as DAB_<database>_<n>.
+            const containerName = payload.containerName || (await this.generateDabDeploymentName());
+            return this._dabService.validateDeploymentParams(containerName, payload.port);
         });
 
         this.onRequest(Dab.StopDeploymentRequest.type, async (payload) => {
@@ -1320,6 +1324,29 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
         } finally {
             this._pendingDabCliProcessId = undefined;
         }
+    }
+
+    /**
+     * Generates a deployment name that collides with neither an existing Docker
+     * container nor a deployment already tracked for this database.
+     */
+    private async generateDabDeploymentName(): Promise<string> {
+        let trackedNames: string[] = [];
+        const store = this._dabConfigStore;
+        const key = this.dabStoreKey;
+        if (store && key) {
+            try {
+                trackedNames = (await store.getDeployments(key)).map(
+                    (deployment) => deployment.name,
+                );
+            } catch (error) {
+                this.logger.warn(
+                    `Could not read tracked deployments while naming: ${getErrorMessage(error)}`,
+                );
+            }
+        }
+
+        return generateDabDeploymentName(this.databaseName, trackedNames);
     }
 
     /** Config file path for a CLI deployment of this name. */

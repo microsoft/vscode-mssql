@@ -19,9 +19,14 @@ const useStyles = makeStyles({
         display: "flex",
         alignItems: "flex-start",
         gap: "12px",
-        padding: "12px",
+        padding: "16px",
         backgroundColor: tokens.colorNeutralBackground3,
-        borderRadius: "4px",
+        borderRadius: "6px",
+        // Body copy sits at the readable size and contrast rather than the
+        // muted small text this box used to carry.
+        fontSize: tokens.fontSizeBase300,
+        lineHeight: tokens.lineHeightBase300,
+        color: tokens.colorNeutralForeground1,
     },
     infoIcon: {
         color: tokens.colorBrandForeground1,
@@ -66,7 +71,7 @@ export const DabDeploymentConfirmation = ({
                     ? locConstants.schemaDesigner.deployDabCli
                     : locConstants.schemaDesigner.deployDabContainer}
             </DabDialogTitle>
-            <DabDialogContent>
+            <DabDialogContent constrainWidth>
                 <div className={classes.confirmationInfo}>
                     <Info20Regular className={classes.infoIcon} />
                     <div>

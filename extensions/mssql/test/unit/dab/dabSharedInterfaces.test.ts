@@ -348,3 +348,35 @@ suite("DAB deployment step sequencing", () => {
         expect(Dab.createDefaultDeploymentState().target).to.equal(Dab.DabDeploymentTarget.Docker);
     });
 });
+
+suite("DAB deployment naming", () => {
+    test("builds a name of the form DAB_<database>_<n>", () => {
+        expect(Dab.buildDabDeploymentName("AdventureWorks2022", 1)).to.equal(
+            "DAB_AdventureWorks2022_1",
+        );
+    });
+
+    test("drops characters a container name cannot carry", () => {
+        expect(Dab.buildDabDeploymentName("My DB (prod)!", 2)).to.equal("DAB_MyDBprod_2");
+    });
+
+    test("truncates a long database name", () => {
+        const name = Dab.buildDabDeploymentName("A".repeat(60), 1);
+
+        expect(name).to.equal(`DAB_${"A".repeat(Dab.DAB_DEPLOYMENT_NAME_DB_MAX_LENGTH)}_1`);
+    });
+
+    test("falls back when a database name reduces to nothing", () => {
+        expect(Dab.buildDabDeploymentName("---", 1)).to.equal("DAB_db_1");
+    });
+
+    test("always produces a legal Docker container name", () => {
+        const dockerNamePattern = /^[a-zA-Z0-9][a-zA-Z0-9_.-]*$/;
+        for (const database of ["AdventureWorks2022", "My DB (prod)!", "---", "0", "ünïcodé"]) {
+            expect(
+                Dab.buildDabDeploymentName(database, 3),
+                `"${database}" must yield a usable container name`,
+            ).to.match(dockerNamePattern);
+        }
+    });
+});

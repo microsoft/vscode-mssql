@@ -7,10 +7,12 @@
  * Shared layout for the deployments dialog's views.
  *
  * The dialog has a fixed frame, so each view fills it the same way: the title
- * sits at the top, the body grows to take the remaining height with its content
- * centered in it, and the actions row stays pinned to the bottom. Without this
- * the shorter steps would leave their content hugging the title and their
- * buttons floating in the middle of the surface.
+ * sits at the top, the body grows to take the remaining height, and the actions
+ * row stays pinned to the bottom.
+ *
+ * Content starts at the top left, which is where a wizard step is read from.
+ * Centering is opt-in and used only where there is a single short message to
+ * present, such as the empty deployments list.
  */
 
 import { DialogContent, DialogTitle, makeStyles, mergeClasses } from "@fluentui/react-components";
@@ -24,42 +26,43 @@ const useStyles = makeStyles({
         minHeight: 0,
         overflow: "hidden",
     },
-    /** Centers a short view's content in the space the frame gives it. */
+    /** Content reads from the top left, the default for a wizard step. */
+    start: {
+        justifyContent: "flex-start",
+        alignItems: "stretch",
+        gap: "16px",
+        textAlign: "left",
+    },
+    /** Centers a single short message in the space the frame gives it. */
     centered: {
         justifyContent: "center",
         alignItems: "center",
-    },
-    /** Caps the readable width of centered content in an 800px surface. */
-    centeredInner: {
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        gap: "16px",
-        width: "100%",
-        maxWidth: "560px",
+        gap: "8px",
         textAlign: "center",
     },
-    /** A view that manages its own scrolling, such as the deployments list. */
-    filled: {
-        justifyContent: "flex-start",
-        alignItems: "stretch",
-        gap: "12px",
+    /** Keeps prose to a comfortable measure on an 800px surface. */
+    measure: {
+        maxWidth: "620px",
+        width: "100%",
     },
 });
 
 interface DabDialogContentProps {
     /**
-     * When true the content is centered in the frame, which suits the short
-     * steps. Views that fill the frame themselves pass false.
+     * Centers the content instead of starting it at the top left. Reserved for
+     * a view that shows one short message.
      */
     centered?: boolean;
+    /** Constrains prose to a readable measure rather than the full width. */
+    constrainWidth?: boolean;
     className?: string;
     children: ReactNode;
 }
 
 /** The dialog body between the title and the actions row. */
 export const DabDialogContent = ({
-    centered = true,
+    centered = false,
+    constrainWidth = false,
     className,
     children,
 }: DabDialogContentProps) => {
@@ -69,10 +72,11 @@ export const DabDialogContent = ({
         <DialogContent
             className={mergeClasses(
                 classes.content,
-                centered ? classes.centered : classes.filled,
+                centered ? classes.centered : classes.start,
+                constrainWidth && classes.measure,
                 className,
             )}>
-            {centered ? <div className={classes.centeredInner}>{children}</div> : children}
+            {children}
         </DialogContent>
     );
 };

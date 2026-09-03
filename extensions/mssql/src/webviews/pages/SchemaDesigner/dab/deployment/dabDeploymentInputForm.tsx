@@ -21,13 +21,13 @@ import { DabDialogContent, DabDialogTitle } from "./dabDialogLayout";
 
 const useStyles = makeStyles({
     content: {
-        gap: "16px",
-        textAlign: "left",
+        gap: "20px",
     },
     fieldHint: {
-        fontSize: "12px",
-        color: tokens.colorNeutralForeground3,
-        marginTop: "2px",
+        fontSize: tokens.fontSizeBase200,
+        lineHeight: tokens.lineHeightBase200,
+        color: tokens.colorNeutralForeground2,
+        marginTop: "4px",
     },
 });
 
@@ -184,7 +184,7 @@ export const DabDeploymentInputForm = ({
                     ? locConstants.schemaDesigner.deploymentSettings
                     : locConstants.schemaDesigner.containerSettings}
             </DabDialogTitle>
-            <DabDialogContent className={classes.content}>
+            <DabDialogContent constrainWidth className={classes.content}>
                 <Field
                     label={
                         isCli
