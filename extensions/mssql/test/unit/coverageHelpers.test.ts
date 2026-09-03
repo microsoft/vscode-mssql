@@ -4,7 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from "chai";
+import type { FrameLocator } from "@playwright/test";
 import type { CoverageMapData, FileCoverageData } from "istanbul-lib-coverage";
+import { getWebviewCoverage } from "../e2e/utils/coverageHelpers";
 import { mergeCoverageData } from "../e2e/utils/coverageMerge";
 
 function createCoverageData(filePath: string, visits: number): CoverageMapData {
@@ -26,6 +28,20 @@ function createCoverageData(filePath: string, visits: number): CoverageMapData {
 }
 
 suite("Webview coverage helpers", () => {
+    test("getWebviewCoverage reads the serializable payload inside the iframe context", async () => {
+        const expected = createCoverageData("/workspace/executionPlanGraph.tsx", 1);
+        const iframe = {
+            owner: () => ({
+                evaluate: async (callback: (element: HTMLIFrameElement) => CoverageMapData) =>
+                    callback({
+                        contentWindow: { __coverage__: expected },
+                    } as unknown as HTMLIFrameElement),
+            }),
+        } as unknown as FrameLocator;
+
+        expect(await getWebviewCoverage(iframe)).to.deep.equal(expected);
+    });
+
     test("mergeCoverageData accumulates visits for the same instrumented file", () => {
         const filePath = "/workspace/executionPlanGraph.tsx";
 
