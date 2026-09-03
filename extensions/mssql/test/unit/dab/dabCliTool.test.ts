@@ -28,6 +28,23 @@ suite("DAB CLI Tool Tests", () => {
         test("uses the pinned version by default", () => {
             expect(getDabCliPackageUrl(Dab.DAB_CLI_VERSION)).to.contain(Dab.DAB_CLI_VERSION);
         });
+
+        test("downloads from a configured mirror when one is given", () => {
+            const url = getDabCliPackageUrl("2.0.12", "https://contoso.example/nuget/v3/flat2");
+
+            expect(
+                url,
+                "Environments that disable nuget.org must be able to point elsewhere",
+            ).to.equal(
+                "https://contoso.example/nuget/v3/flat2/microsoft.dataapibuilder/2.0.12/microsoft.dataapibuilder.2.0.12.nupkg",
+            );
+        });
+
+        test("tolerates a trailing slash on the feed URL", () => {
+            expect(getDabCliPackageUrl("2.0.12", "https://contoso.example/flat2/")).to.equal(
+                getDabCliPackageUrl("2.0.12", "https://contoso.example/flat2"),
+            );
+        });
     });
 
     suite("getDabCliInstallPath", () => {

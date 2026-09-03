@@ -2949,6 +2949,12 @@
                     "description": "%mssql.enableQueryHistoryFeature%",
                     "scope": "window"
                 },
+                "mssql.dab.cliPackageFeedUrl": {
+                    "type": "string",
+                    "default": "https://api.nuget.org/v3-flatcontainer",
+                    "description": "%mssql.dab.cliPackageFeedUrl%",
+                    "scope": "window"
+                },
                 "mssql.schemaDesigner.enableExpandCollapseButtons": {
                     "type": "boolean",
                     "default": true,

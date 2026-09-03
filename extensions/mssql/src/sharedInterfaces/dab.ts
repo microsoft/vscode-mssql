@@ -793,8 +793,18 @@ export namespace Dab {
      * tracked CLI deployment keeps running the version it was deployed with:
      * a CLI release must not change what an existing deployment does until the
      * pin is deliberately moved.
+     *
+     * Keep this a version that has cleared any mirror's publication delay;
+     * feeds that proxy nuget.org commonly hold new packages back for days.
      */
-    export const DAB_CLI_VERSION = "1.7.81";
+    export const DAB_CLI_VERSION = "2.0.12";
+
+    /**
+     * Default flat container the CLI package is downloaded from. Environments
+     * that disable nuget.org in favor of a mirror override this through the
+     * `mssql.dab.cliPackageFeedUrl` setting.
+     */
+    export const DAB_CLI_DEFAULT_PACKAGE_FEED_URL = "https://api.nuget.org/v3-flatcontainer";
 
     /**
      * Environment variable the generated CLI config resolves its connection

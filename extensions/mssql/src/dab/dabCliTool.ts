@@ -19,16 +19,15 @@
  * extension manages rather than whatever happens to be on PATH.
  */
 
+import * as vscode from "vscode";
 import * as fsPromises from "fs/promises";
 import * as path from "path";
 import { VscodeHttpClient } from "extension-toolkit/vscode";
 import { ILogger } from "../sharedInterfaces/logger";
+import { configDabCliPackageFeedUrl } from "../constants/constants";
 import { Dab } from "../sharedInterfaces/dab";
 import { getErrorMessage } from "../utils/utils";
 import { extractZipArchive } from "./dabCliArchive";
-
-/** NuGet's flat container, the stable URL shape for downloading a package. */
-const NUGET_FLAT_CONTAINER_URL = "https://api.nuget.org/v3-flatcontainer";
 
 /** Assembly name of the CLI inside the package. */
 const DAB_CLI_ASSEMBLY_NAME = "Microsoft.DataApiBuilder.dll";
@@ -52,11 +51,31 @@ export interface DabCliInstallation {
 /**
  * Builds the download URL for a package version. NuGet requires the id and
  * version to be lower-cased in flat container URLs.
+ *
+ * @param version Package version to download
+ * @param feedUrl Flat container base URL, so an environment that mirrors or
+ * blocks nuget.org can point at the feed it actually has
  */
-export function getDabCliPackageUrl(version: string): string {
+export function getDabCliPackageUrl(
+    version: string,
+    feedUrl: string = Dab.DAB_CLI_DEFAULT_PACKAGE_FEED_URL,
+): string {
     const packageId = Dab.DAB_CLI_PACKAGE_ID.toLowerCase();
     const packageVersion = version.toLowerCase();
-    return `${NUGET_FLAT_CONTAINER_URL}/${packageId}/${packageVersion}/${packageId}.${packageVersion}.nupkg`;
+    const base = feedUrl.replace(/\/+$/, "");
+    return `${base}/${packageId}/${packageVersion}/${packageId}.${packageVersion}.nupkg`;
+}
+
+/**
+ * Reads the configured package feed, falling back to nuget.org when the
+ * setting is unset or blank.
+ */
+export function getConfiguredDabCliFeedUrl(): string {
+    const configured = vscode.workspace
+        .getConfiguration()
+        .get<string>(configDabCliPackageFeedUrl)
+        ?.trim();
+    return configured || Dab.DAB_CLI_DEFAULT_PACKAGE_FEED_URL;
 }
 
 /** Directory a given CLI version is unpacked into. */
@@ -153,7 +172,7 @@ export async function acquireDabCli(
     await fsPromises.rm(installPath, { recursive: true, force: true });
     await fsPromises.mkdir(installPath, { recursive: true });
 
-    const packageUrl = getDabCliPackageUrl(version);
+    const packageUrl = getDabCliPackageUrl(version, getConfiguredDabCliFeedUrl());
     const packagePath = path.join(installPath, `${Dab.DAB_CLI_PACKAGE_ID}.${version}.nupkg`);
 
     logger.info(`Downloading DAB CLI ${version} from ${packageUrl}`);
