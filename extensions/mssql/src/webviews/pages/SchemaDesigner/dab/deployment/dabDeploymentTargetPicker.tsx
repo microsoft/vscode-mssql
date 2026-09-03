@@ -3,13 +3,23 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Button, Card, DialogActions, makeStyles, Text, tokens } from "@fluentui/react-components";
+import {
+    Button,
+    Card,
+    DialogActions,
+    makeStyles,
+    mergeClasses,
+    Text,
+    tokens,
+} from "@fluentui/react-components";
+import { Warning16Regular } from "@fluentui/react-icons";
 import { locConstants } from "../../../../common/locConstants";
 import { Dab } from "../../../../../sharedInterfaces/dab";
 import { DabLogoIcon } from "../../../../common/icons/dabLogo";
 import { DockerIcon } from "../../../../common/icons/docker";
 import { KeyCode } from "../../../../common/keys";
 import { DabDialogContent, DabDialogTitle } from "./dabDialogLayout";
+import { useDabContext } from "../dabContext";
 
 const useStyles = makeStyles({
     // Mirrors the deployment page's target cards so choosing where to run DAB
@@ -83,6 +93,33 @@ const useStyles = makeStyles({
         color: tokens.colorNeutralForeground2,
         textAlign: "left",
     },
+    cardDisabled: {
+        cursor: "not-allowed",
+        opacity: 0.6,
+        boxShadow: "none",
+        ":hover": {
+            transform: "none",
+            boxShadow: "none",
+            border: `1px solid ${tokens.colorNeutralStroke2}`,
+        },
+    },
+    cardBlockedReason: {
+        display: "flex",
+        alignItems: "flex-start",
+        gap: "6px",
+        marginTop: "4px",
+    },
+    warningIcon: {
+        color: tokens.colorStatusWarningForeground1,
+        flexShrink: 0,
+        marginTop: "3px",
+    },
+    cardBlockedText: {
+        fontSize: "12px",
+        lineHeight: "18px",
+        color: tokens.colorStatusWarningForeground1,
+        textAlign: "left",
+    },
 });
 
 interface DabDeploymentTargetPickerProps {
@@ -101,19 +138,22 @@ export const DabDeploymentTargetPicker = ({
     onCancel,
 }: DabDeploymentTargetPickerProps) => {
     const classes = useStyles();
+    const { dabTargetSupport } = useDabContext();
 
+    // The CLI leads: it works with every connection the container does and with
+    // Windows Authentication besides, so it is the one that always applies.
     const targets = [
-        {
-            target: Dab.DabDeploymentTarget.Docker,
-            title: locConstants.schemaDesigner.deploymentTargetDocker,
-            description: locConstants.schemaDesigner.deploymentTargetDockerDescription,
-            icon: <DockerIcon className={classes.cardIcon} role="img" aria-hidden />,
-        },
         {
             target: Dab.DabDeploymentTarget.DabCli,
             title: locConstants.schemaDesigner.deploymentTargetDabCli,
             description: locConstants.schemaDesigner.deploymentTargetDabCliDescription,
             icon: <DabLogoIcon className={classes.cardIcon} role="img" aria-hidden />,
+        },
+        {
+            target: Dab.DabDeploymentTarget.Docker,
+            title: locConstants.schemaDesigner.deploymentTargetDocker,
+            description: locConstants.schemaDesigner.deploymentTargetDockerDescription,
+            icon: <DockerIcon className={classes.cardIcon} role="img" aria-hidden />,
         },
     ];
 
@@ -122,28 +162,49 @@ export const DabDeploymentTargetPicker = ({
             <DabDialogTitle>{locConstants.schemaDesigner.selectDeploymentTarget}</DabDialogTitle>
             <DabDialogContent>
                 <div className={classes.cardRow}>
-                    {targets.map((target) => (
-                        <Card
-                            key={target.target}
-                            className={classes.cardDiv}
-                            onClick={() => onSelectTarget(target.target)}
-                            onKeyDown={(event) => {
-                                if (event.code === KeyCode.Enter || event.code === KeyCode.Space) {
-                                    event.preventDefault();
-                                    onSelectTarget(target.target);
-                                }
-                            }}
-                            tabIndex={0}
-                            role="button">
-                            <div className={classes.iconBadge}>{target.icon}</div>
-                            <div className={classes.cardContent}>
-                                <Text className={classes.cardHeader}>{target.title}</Text>
-                                <Text className={classes.cardDescription}>
-                                    {target.description}
-                                </Text>
-                            </div>
-                        </Card>
-                    ))}
+                    {targets.map((target) => {
+                        const support = dabTargetSupport[target.target];
+                        const isSupported = support?.isSupported !== false;
+                        const select = () => isSupported && onSelectTarget(target.target);
+
+                        return (
+                            <Card
+                                key={target.target}
+                                className={mergeClasses(
+                                    classes.cardDiv,
+                                    !isSupported && classes.cardDisabled,
+                                )}
+                                onClick={select}
+                                onKeyDown={(event) => {
+                                    if (
+                                        event.code === KeyCode.Enter ||
+                                        event.code === KeyCode.Space
+                                    ) {
+                                        event.preventDefault();
+                                        select();
+                                    }
+                                }}
+                                tabIndex={isSupported ? 0 : -1}
+                                aria-disabled={!isSupported}
+                                role="button">
+                                <div className={classes.iconBadge}>{target.icon}</div>
+                                <div className={classes.cardContent}>
+                                    <Text className={classes.cardHeader}>{target.title}</Text>
+                                    <Text className={classes.cardDescription}>
+                                        {target.description}
+                                    </Text>
+                                    {!isSupported && support?.reason && (
+                                        <div className={classes.cardBlockedReason}>
+                                            <Warning16Regular className={classes.warningIcon} />
+                                            <Text className={classes.cardBlockedText}>
+                                                {support.reason}
+                                            </Text>
+                                        </div>
+                                    )}
+                                </div>
+                            </Card>
+                        );
+                    })}
                 </div>
             </DabDialogContent>
             <DialogActions>

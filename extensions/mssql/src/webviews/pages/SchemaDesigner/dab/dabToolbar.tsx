@@ -319,7 +319,7 @@ export function DabToolbar({
     const context = useDabContext();
     const {
         dabConfig,
-        isDabDeploymentSupported,
+        dabTargetSupport,
         updateDabApiTypes,
         dabTextFilter,
         setDabTextFilter,
@@ -456,11 +456,15 @@ export function DabToolbar({
             entity.sourceType !== Dab.EntitySourceType.StoredProcedure &&
             !Dab.hasLogicalKey(entity),
     );
-    const isDeployDisabled = !isDabDeploymentSupported || !hasApiTypes || hasMissingKeyEntity;
+    // Deploy runs the Docker target, so it gates on that target rather than on
+    // whether any target at all is available.
+    const dockerSupport = dabTargetSupport[Dab.DabDeploymentTarget.Docker];
+    const isDockerSupported = dockerSupport?.isSupported !== false;
+    const isDeployDisabled = !isDockerSupported || !hasApiTypes || hasMissingKeyEntity;
 
     const getDeployTooltip = (): string => {
-        if (!isDabDeploymentSupported) {
-            return locConstants.schemaDesigner.dabDeploymentNotSupported;
+        if (!isDockerSupported) {
+            return dockerSupport?.reason ?? locConstants.schemaDesigner.dabDeploymentNotSupported;
         }
         if (!hasApiTypes) {
             return locConstants.schemaDesigner.atLeastOneApiTypeRequired;

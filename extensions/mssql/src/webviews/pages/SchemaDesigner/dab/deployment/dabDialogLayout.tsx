@@ -40,11 +40,6 @@ const useStyles = makeStyles({
         gap: "8px",
         textAlign: "center",
     },
-    /** Keeps prose to a comfortable measure on an 800px surface. */
-    measure: {
-        maxWidth: "620px",
-        width: "100%",
-    },
 });
 
 interface DabDialogContentProps {
@@ -53,8 +48,6 @@ interface DabDialogContentProps {
      * a view that shows one short message.
      */
     centered?: boolean;
-    /** Constrains prose to a readable measure rather than the full width. */
-    constrainWidth?: boolean;
     className?: string;
     children: ReactNode;
 }
@@ -62,7 +55,6 @@ interface DabDialogContentProps {
 /** The dialog body between the title and the actions row. */
 export const DabDialogContent = ({
     centered = false,
-    constrainWidth = false,
     className,
     children,
 }: DabDialogContentProps) => {
@@ -73,7 +65,6 @@ export const DabDialogContent = ({
             className={mergeClasses(
                 classes.content,
                 centered ? classes.centered : classes.start,
-                constrainWidth && classes.measure,
                 className,
             )}>
             {children}

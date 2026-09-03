@@ -8,7 +8,12 @@ import * as fs from "fs/promises";
 import * as os from "os";
 import * as path from "path";
 import { extractZipArchive } from "../../../src/dab/dabCliArchive";
-import { getDabCliInstallPath, getDabCliPackageUrl } from "../../../src/dab/dabCliTool";
+import {
+    getCurrentRuntimeIdentifier,
+    getDabCliInstallPath,
+    getDabCliPackageUrl,
+    readRuntimePackageId,
+} from "../../../src/dab/dabCliTool";
 import { Dab } from "../../../src/sharedInterfaces/dab";
 
 suite("DAB CLI Tool Tests", () => {
@@ -54,6 +59,55 @@ suite("DAB CLI Tool Tests", () => {
 
             expect(first).to.not.equal(second);
             expect(first).to.equal(path.join("/storage", "dab-cli", "1.0.0"));
+        });
+    });
+    suite("runtime-specific packages", () => {
+        // The manifest the CLI package actually ships from 2.1 onward.
+        const toolSettings = `<?xml version="1.0" encoding="utf-8"?>
+<DotNetCliTool Version="2">
+  <Commands>
+    <Command Name="dab" />
+  </Commands>
+  <RuntimeIdentifierPackages>
+    <RuntimeIdentifierPackage RuntimeIdentifier="win-x64" Id="Microsoft.DataApiBuilder.win-x64" />
+    <RuntimeIdentifierPackage RuntimeIdentifier="linux-x64" Id="Microsoft.DataApiBuilder.linux-x64" />
+    <RuntimeIdentifierPackage RuntimeIdentifier="osx-x64" Id="Microsoft.DataApiBuilder.osx-x64" />
+  </RuntimeIdentifierPackages>
+</DotNetCliTool>`;
+
+        test("reads the package for each published runtime", () => {
+            expect(readRuntimePackageId(toolSettings, "win-x64")).to.equal(
+                "Microsoft.DataApiBuilder.win-x64",
+            );
+            expect(readRuntimePackageId(toolSettings, "linux-x64")).to.equal(
+                "Microsoft.DataApiBuilder.linux-x64",
+            );
+            expect(readRuntimePackageId(toolSettings, "osx-x64")).to.equal(
+                "Microsoft.DataApiBuilder.osx-x64",
+            );
+        });
+
+        test("reports a runtime the tool does not publish", () => {
+            expect(
+                readRuntimePackageId(toolSettings, "win-arm64"),
+                "An arm64 host has no build to download, and must be told so",
+            ).to.be.undefined;
+        });
+
+        test("builds a runtime identifier for this machine", () => {
+            expect(getCurrentRuntimeIdentifier()).to.match(/^(win|linux|osx)-(x64|arm64)$/);
+        });
+
+        test("downloads a runtime package by its own id at the CLI's version", () => {
+            expect(
+                getDabCliPackageUrl(
+                    "2.1.3-rc",
+                    "https://contoso.example/flat2",
+                    "Microsoft.DataApiBuilder.win-x64",
+                ),
+            ).to.equal(
+                "https://contoso.example/flat2/microsoft.dataapibuilder.win-x64/2.1.3-rc/microsoft.dataapibuilder.win-x64.2.1.3-rc.nupkg",
+            );
         });
     });
 });

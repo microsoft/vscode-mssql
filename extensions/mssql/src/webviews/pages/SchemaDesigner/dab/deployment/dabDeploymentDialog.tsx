@@ -11,6 +11,7 @@ import { DabDeploymentConfirmation } from "./dabDeploymentConfirmation";
 import { DabDeploymentPrerequisites } from "./dabDeploymentPrerequisites";
 import { DabDeploymentInputForm } from "./dabDeploymentInputForm";
 import { DabDeploymentProgress } from "./dabDeploymentProgress";
+import { DabDeploymentComplete } from "./dabDeploymentComplete";
 import { DabDeploymentsList } from "./dabDeploymentsList";
 import { DabDeploymentTargetPicker } from "./dabDeploymentTargetPicker";
 import { getPrereqSteps, getDeploySteps } from "./dabDeploymentUtils";
@@ -61,6 +62,9 @@ export const DabDeploymentDialog = () => {
     const prereqSteps = getPrereqSteps(stepStatuses, target);
     const deploySteps = getDeploySteps(stepStatuses, target);
     const isRedeploy = mode === Dab.DabDeploymentMode.Redeploy;
+    // Deploying from the toolbar has no deployments list behind it, so it keeps
+    // its own beginning and end and never navigates into the list.
+    const isStandalone = dabDeploymentState.entryPoint === Dab.DabDeploymentEntryPoint.Standalone;
 
     // Determine which step to run based on current state
     // This effect runs when relevant state changes and runs one step at a time
@@ -184,7 +188,11 @@ export const DabDeploymentDialog = () => {
                     <DabDeploymentProgress
                         containerName={dabDeploymentState.params.containerName}
                         stepStatuses={deploySteps}
-                        onNext={() => void handleShowDeployments()}
+                        onNext={() =>
+                            isStandalone
+                                ? setDabDeploymentDialogStep(Dab.DabDeploymentDialogStep.Complete)
+                                : void handleShowDeployments()
+                        }
                         onRetry={async () => {
                             await retryDabDeploymentSteps();
                         }}
@@ -193,6 +201,19 @@ export const DabDeploymentDialog = () => {
                             setDabDeploymentDialogStep(Dab.DabDeploymentDialogStep.ParameterInput);
                         }}
                         onCancel={handleClose}
+                    />
+                );
+            case Dab.DabDeploymentDialogStep.Complete:
+                return (
+                    <DabDeploymentComplete
+                        target={target}
+                        apiUrl={dabDeploymentState.apiUrl}
+                        error={dabDeploymentState.error}
+                        onRetry={async () => {
+                            await retryDabDeploymentSteps();
+                            setDabDeploymentDialogStep(Dab.DabDeploymentDialogStep.Deployment);
+                        }}
+                        onFinish={handleClose}
                     />
                 );
             default:

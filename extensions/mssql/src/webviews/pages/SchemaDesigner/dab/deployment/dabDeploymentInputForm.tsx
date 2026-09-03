@@ -22,6 +22,9 @@ import { DabDialogContent, DabDialogTitle } from "./dabDialogLayout";
 const useStyles = makeStyles({
     content: {
         gap: "20px",
+        // A form reads better at a fixed measure than stretched across the
+        // dialog, so it keeps its own width rather than filling the frame.
+        maxWidth: "420px",
     },
     fieldHint: {
         fontSize: tokens.fontSizeBase200,
@@ -184,7 +187,7 @@ export const DabDeploymentInputForm = ({
                     ? locConstants.schemaDesigner.deploymentSettings
                     : locConstants.schemaDesigner.containerSettings}
             </DabDialogTitle>
-            <DabDialogContent constrainWidth className={classes.content}>
+            <DabDialogContent className={classes.content}>
                 <Field
                     label={
                         isCli

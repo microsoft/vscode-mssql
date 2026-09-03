@@ -5,6 +5,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { Dab } from "../../../../sharedInterfaces/dab";
+import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { registerSchemaDesignerDabToolHandlers } from "../schemaDesignerRpcHandlers";
 import { useSchemaDesignerSelector } from "../schemaDesignerSelector";
@@ -13,6 +14,7 @@ import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 interface DabContextProps {
     isInitialized: boolean;
     isDabDeploymentSupported: boolean;
+    dabTargetSupport: Record<string, SchemaDesigner.DabTargetSupport>;
     copyToClipboard: (text: string, copyTextType: Dab.CopyTextType) => void;
     openUrl: (url: string, apiType?: Dab.ApiType) => void;
     openLogsInNewTab: (logsContent: string) => void;
@@ -71,6 +73,7 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
         schemaDesignerContext;
     const isDabDeploymentSupported =
         useSchemaDesignerSelector((s) => s?.isDabDeploymentSupported) ?? false;
+    const dabTargetSupport = useSchemaDesignerSelector((s) => s?.dabTargetSupport) ?? {};
     const currentFilteredTables = useSchemaDesignerSelector((s) => s?.currentFilteredTables) ?? [];
 
     const [dabConfig, setDabConfig] = useState<Dab.DabConfig | null>(null);
@@ -401,12 +404,19 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
         [extensionRpc],
     );
 
+    /**
+     * Opens the toolbar's Deploy flow: a self-contained Docker deployment that
+     * starts at its confirmation step and ends on its own completion screen.
+     * It deliberately never enters the deployments views, so that experience
+     * can be switched off without this flow losing a beginning or an end.
+     */
     const openDabDeploymentDialog = useCallback(() => {
         setDabDeploymentState({
             ...Dab.createDefaultDeploymentState(Dab.DabDeploymentTarget.Docker),
             isDialogOpen: true,
             dialogView: Dab.DabDeploymentDialogView.Wizard,
             dialogStep: Dab.DabDeploymentDialogStep.Confirmation,
+            entryPoint: Dab.DabDeploymentEntryPoint.Standalone,
         });
     }, []);
 
@@ -527,16 +537,22 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                     const nextStep = Dab.getNextDabDeploymentStep(prev.target, step) ?? step;
 
                     if (Dab.isFinalDabDeploymentStep(prev.target, step)) {
-                        // A finished deployment belongs in the list, where its
-                        // endpoints and actions live; there is no separate
-                        // completion page to land on.
+                        // Started from the deployments dialog, a finished
+                        // deployment belongs back in the list where its
+                        // endpoints and actions live. The standalone flow has no
+                        // list to return to, so it ends on its own screen.
+                        const isStandalone =
+                            prev.entryPoint === Dab.DabDeploymentEntryPoint.Standalone;
+
                         return {
                             ...prev,
                             stepStatuses: updatedStatuses,
                             currentDeploymentStep: nextStep,
                             isDeploying: false,
                             apiUrl: response.apiUrl,
-                            dialogView: Dab.DabDeploymentDialogView.List,
+                            ...(isStandalone
+                                ? { dialogStep: Dab.DabDeploymentDialogStep.Complete }
+                                : { dialogView: Dab.DabDeploymentDialogView.List }),
                         };
                     }
 
@@ -584,6 +600,7 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
             isDialogOpen: true,
             dialogView: Dab.DabDeploymentDialogView.Wizard,
             dialogStep: Dab.DabDeploymentDialogStep.Confirmation,
+            entryPoint: Dab.DabDeploymentEntryPoint.Deployments,
         });
     }, []);
 
@@ -597,6 +614,7 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
             isDialogOpen: prev.isDialogOpen,
             dialogView: prev.dialogView,
             target: prev.target,
+            entryPoint: prev.entryPoint,
             mode: prev.mode,
             activeDeploymentId: prev.activeDeploymentId,
             params: prev.params,
@@ -760,6 +778,7 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
             value={{
                 isInitialized,
                 isDabDeploymentSupported,
+                dabTargetSupport,
                 copyToClipboard,
                 openUrl,
                 openLogsInNewTab,

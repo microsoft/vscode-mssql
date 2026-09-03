@@ -22,6 +22,7 @@
 import * as vscode from "vscode";
 import * as fsPromises from "fs/promises";
 import * as path from "path";
+import { DOMParser } from "@xmldom/xmldom";
 import { VscodeHttpClient } from "extension-toolkit/vscode";
 import { ILogger } from "../sharedInterfaces/logger";
 import { configDabCliPackageFeedUrl } from "../constants/constants";
@@ -33,6 +34,9 @@ import { extractZipArchive } from "./dabCliArchive";
 /** Assembly name of the CLI inside the package. */
 const DAB_CLI_ASSEMBLY_NAME = "Microsoft.DataApiBuilder.dll";
 const DAB_CLI_RUNTIME_CONFIG_NAME = "Microsoft.DataApiBuilder.runtimeconfig.json";
+
+/** Tool manifest naming the runtime-specific packages that carry the binaries. */
+const DOTNET_TOOL_SETTINGS_NAME = "DotnetToolSettings.xml";
 
 /** Marker written once a package has been fully unpacked. */
 const INSTALL_COMPLETE_MARKER = ".installed";
@@ -56,12 +60,15 @@ export interface DabCliInstallation {
  * @param version Package version to download
  * @param feedUrl Flat container base URL, so an environment that mirrors or
  * blocks nuget.org can point at the feed it actually has
+ * @param packageIdentifier Package to download; the runtime-specific packages
+ * share the CLI's version but not its id
  */
 export function getDabCliPackageUrl(
     version: string,
     feedUrl: string = Dab.DAB_CLI_DEFAULT_PACKAGE_FEED_URL,
+    packageIdentifier: string = Dab.DAB_CLI_PACKAGE_ID,
 ): string {
-    const packageId = Dab.DAB_CLI_PACKAGE_ID.toLowerCase();
+    const packageId = packageIdentifier.toLowerCase();
     const packageVersion = version.toLowerCase();
     const base = feedUrl.replace(/\/+$/, "");
     return `${base}/${packageId}/${packageVersion}/${packageId}.${packageVersion}.nupkg`;
@@ -84,37 +91,69 @@ export function getDabCliInstallPath(rootPath: string, version: string): string 
 }
 
 /**
- * Finds the CLI assembly inside an unpacked package. The target framework
- * folder changes between DAB releases, so it is discovered rather than assumed.
+ * Runtime identifier for this machine, in the form the tool manifest uses.
  */
-async function findCliAssembly(installPath: string): Promise<string | undefined> {
-    const toolsPath = path.join(installPath, "tools");
-    let frameworkDirs: string[];
+export function getCurrentRuntimeIdentifier(): string {
+    const os =
+        process.platform === "win32" ? "win" : process.platform === "darwin" ? "osx" : "linux";
+    const architecture = process.arch === "arm64" ? "arm64" : "x64";
+    return `${os}-${architecture}`;
+}
+
+/**
+ * Walks an unpacked package for a file, whatever target framework or runtime
+ * folder it landed in. Those folder names change between releases, so they are
+ * discovered rather than assumed.
+ */
+async function findFile(rootPath: string, fileName: string): Promise<string | undefined> {
+    let entries: string[];
     try {
-        frameworkDirs = await fsPromises.readdir(toolsPath);
+        entries = await fsPromises.readdir(rootPath);
     } catch {
         return undefined;
     }
 
-    for (const frameworkDir of frameworkDirs) {
-        // Tool packages lay out as tools/<tfm>/<rid>/, with "any" as the rid for
-        // framework-dependent tools.
-        const frameworkPath = path.join(toolsPath, frameworkDir);
-        let ridDirs: string[];
-        try {
-            ridDirs = await fsPromises.readdir(frameworkPath);
-        } catch {
+    for (const entry of entries) {
+        const entryPath = path.join(rootPath, entry);
+        const stat = await fsPromises.stat(entryPath).catch(() => undefined);
+        if (!stat) {
             continue;
         }
 
-        for (const ridDir of ridDirs) {
-            const candidate = path.join(frameworkPath, ridDir, DAB_CLI_ASSEMBLY_NAME);
-            try {
-                await fsPromises.access(candidate);
-                return candidate;
-            } catch {
-                // Keep looking; another framework folder may hold the assembly.
+        if (stat.isDirectory()) {
+            const found = await findFile(entryPath, fileName);
+            if (found) {
+                return found;
             }
+        } else if (entry === fileName) {
+            return entryPath;
+        }
+    }
+
+    return undefined;
+}
+
+/**
+ * Reads the runtime-specific package the tool manifest names for a runtime
+ * identifier.
+ *
+ * The CLI package is a stub: the binaries live in per-runtime packages listed
+ * in its DotnetToolSettings.xml, which is what `dotnet tool install` resolves
+ * behind the scenes.
+ *
+ * @param settingsXml Contents of the tool manifest
+ * @param runtimeIdentifier Runtime to look up
+ */
+export function readRuntimePackageId(
+    settingsXml: string,
+    runtimeIdentifier: string,
+): string | undefined {
+    const document = new DOMParser().parseFromString(settingsXml, "text/xml");
+    const packages = document.getElementsByTagName("RuntimeIdentifierPackage");
+
+    for (let index = 0; index < packages.length; index++) {
+        if (packages[index].getAttribute("RuntimeIdentifier") === runtimeIdentifier) {
+            return packages[index].getAttribute("Id") ?? undefined;
         }
     }
 
@@ -134,7 +173,7 @@ async function resolveExistingInstallation(
         return undefined;
     }
 
-    const assemblyPath = await findCliAssembly(installPath);
+    const assemblyPath = await findFile(installPath, DAB_CLI_ASSEMBLY_NAME);
     if (!assemblyPath) {
         return undefined;
     }
@@ -148,8 +187,55 @@ async function resolveExistingInstallation(
 }
 
 /**
+ * Downloads a package into a directory and unpacks its tool payload.
+ *
+ * @param packageId Package to download
+ * @param version Version to download
+ * @param feedUrl Flat container to download from
+ * @param destination Directory to unpack into
+ * @param logger Logger for download diagnostics
+ */
+async function downloadAndUnpack(
+    packageId: string,
+    version: string,
+    feedUrl: string,
+    destination: string,
+    logger: ILogger,
+): Promise<void> {
+    const packageUrl = getDabCliPackageUrl(version, feedUrl, packageId);
+    const packagePath = path.join(destination, `${packageId}.${version}.nupkg`);
+
+    logger.info(`Downloading ${packageId} ${version} from ${packageUrl}`);
+    try {
+        // The VS Code client so the download honors the user's proxy settings.
+        const httpClient = new VscodeHttpClient({ logger });
+        const result = await httpClient.downloadToPath(packageUrl, packagePath);
+        if (!result.ok) {
+            throw new Error(`${result.status} ${result.statusText}`);
+        }
+    } catch (error) {
+        throw new Error(`Failed to download ${packageId}: ${getErrorMessage(error)}`);
+    }
+
+    try {
+        // A .nupkg is a zip; only the tool payload is needed.
+        await extractZipArchive(packagePath, destination, (entryName) =>
+            entryName.startsWith("tools/"),
+        );
+    } catch (error) {
+        throw new Error(`Failed to unpack ${packageId}: ${getErrorMessage(error)}`);
+    } finally {
+        await fsPromises.unlink(packagePath).catch(() => {});
+    }
+}
+
+/**
  * Downloads and unpacks the pinned DAB CLI, or returns the existing
  * installation when that version is already unpacked.
+ *
+ * The CLI package is a stub whose tool manifest names a separate package per
+ * runtime identifier; the binaries live there. Both are fetched, which is what
+ * `dotnet tool install` does internally.
  *
  * @param rootPath Extension global storage path to install under
  * @param logger Logger for download and extraction diagnostics
@@ -173,37 +259,34 @@ export async function acquireDabCli(
     await fsPromises.mkdir(installPath, { recursive: true });
 
     const feedUrl = await resolveDabCliFeedUrl(getConfiguredDabCliFeedUrl(), logger);
-    const packageUrl = getDabCliPackageUrl(version, feedUrl);
-    const packagePath = path.join(installPath, `${Dab.DAB_CLI_PACKAGE_ID}.${version}.nupkg`);
+    await downloadAndUnpack(Dab.DAB_CLI_PACKAGE_ID, version, feedUrl, installPath, logger);
 
-    logger.info(`Downloading DAB CLI ${version} from ${packageUrl}`);
-    try {
-        // The VS Code client so the download honors the user's proxy settings.
-        const httpClient = new VscodeHttpClient({ logger });
-        const result = await httpClient.downloadToPath(packageUrl, packagePath);
-        if (!result.ok) {
-            throw new Error(`${result.status} ${result.statusText}`);
-        }
-    } catch (error) {
-        throw new Error(`Failed to download the Data API builder CLI: ${getErrorMessage(error)}`);
-    }
-
-    try {
-        // A .nupkg is a zip; only the tool payload is needed.
-        await extractZipArchive(packagePath, installPath, (entryName) =>
-            entryName.startsWith("tools/"),
-        );
-    } catch (error) {
-        throw new Error(`Failed to unpack the Data API builder CLI: ${getErrorMessage(error)}`);
-    } finally {
-        await fsPromises.unlink(packagePath).catch(() => {});
-    }
-
-    const assemblyPath = await findCliAssembly(installPath);
-    if (!assemblyPath) {
+    const settingsPath = await findFile(installPath, DOTNET_TOOL_SETTINGS_NAME);
+    if (!settingsPath) {
         throw new Error(
-            `The Data API builder CLI package did not contain ${DAB_CLI_ASSEMBLY_NAME}.`,
+            `The Data API builder CLI package did not contain ${DOTNET_TOOL_SETTINGS_NAME}.`,
         );
+    }
+
+    const runtimeIdentifier = getCurrentRuntimeIdentifier();
+    const runtimePackageId = readRuntimePackageId(
+        await fsPromises.readFile(settingsPath, "utf8"),
+        runtimeIdentifier,
+    );
+    if (!runtimePackageId) {
+        // Data API builder publishes x64 runtimes only, so an arm64 host has
+        // nothing to run. Saying which runtime is missing beats a later failure
+        // about an assembly that was never going to be there.
+        throw new Error(
+            `The Data API builder CLI does not publish a build for ${runtimeIdentifier}.`,
+        );
+    }
+
+    await downloadAndUnpack(runtimePackageId, version, feedUrl, installPath, logger);
+
+    const assemblyPath = await findFile(installPath, DAB_CLI_ASSEMBLY_NAME);
+    if (!assemblyPath) {
+        throw new Error(`${runtimePackageId} did not contain ${DAB_CLI_ASSEMBLY_NAME}.`);
     }
 
     await fsPromises.writeFile(path.join(installPath, INSTALL_COMPLETE_MARKER), version, "utf8");

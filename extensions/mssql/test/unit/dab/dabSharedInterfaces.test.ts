@@ -5,6 +5,7 @@
 
 import { expect } from "chai";
 import { Dab } from "../../../src/sharedInterfaces/dab";
+import { AuthenticationType } from "../../../src/sharedInterfaces/connectionDialog";
 
 function createSourceObject(overrides?: Partial<Dab.DabSourceObject>): Dab.DabSourceObject {
     return {
@@ -377,6 +378,119 @@ suite("DAB deployment naming", () => {
                 Dab.buildDabDeploymentName(database, 3),
                 `"${database}" must yield a usable container name`,
             ).to.match(dockerNamePattern);
+        }
+    });
+});
+
+suite("DAB target support by authentication", () => {
+    const targets = [Dab.DabDeploymentTarget.DabCli, Dab.DabDeploymentTarget.Docker];
+
+    test("SQL authentication works with every target", () => {
+        for (const target of targets) {
+            expect(
+                Dab.isDabTargetSupportedForAuthentication(target, AuthenticationType.SqlLogin),
+                `${target} with SQL authentication`,
+            ).to.be.true;
+        }
+    });
+
+    test("Windows authentication works with the CLI", () => {
+        expect(
+            Dab.isDabTargetSupportedForAuthentication(
+                Dab.DabDeploymentTarget.DabCli,
+                AuthenticationType.Integrated,
+            ),
+            "The CLI runs as the signed-in user, so it can pass Windows credentials through",
+        ).to.be.true;
+    });
+
+    test("Windows authentication cannot use a container", () => {
+        expect(
+            Dab.isDabTargetSupportedForAuthentication(
+                Dab.DabDeploymentTarget.Docker,
+                AuthenticationType.Integrated,
+            ),
+            "A container runs outside the Windows session",
+        ).to.be.false;
+    });
+
+    test("Entra authentication supports no target", () => {
+        for (const authType of [
+            AuthenticationType.AzureMFA,
+            AuthenticationType.ActiveDirectoryDefault,
+        ]) {
+            for (const target of targets) {
+                expect(
+                    Dab.isDabTargetSupportedForAuthentication(target, authType),
+                    `${target} with ${authType}`,
+                ).to.be.false;
+            }
+        }
+    });
+
+    test("an unknown or missing authentication type supports no target", () => {
+        for (const target of targets) {
+            expect(Dab.isDabTargetSupportedForAuthentication(target, undefined)).to.be.false;
+            expect(Dab.isDabTargetSupportedForAuthentication(target, "Something")).to.be.false;
+        }
+    });
+});
+
+suite("DAB supported data types", () => {
+    test("json and vector are exposable", () => {
+        // Supported by the engine from 2.1 onward.
+        expect(Dab.isDataTypeSupportedForDab("json")).to.be.true;
+        expect(Dab.isDataTypeSupportedForDab("vector")).to.be.true;
+    });
+
+    test("types the engine still refuses stay blocked", () => {
+        for (const dataType of ["xml", "sql_variant", "rowversion", "geography", "hierarchyid"]) {
+            expect(
+                Dab.isDataTypeSupportedForDab(dataType),
+                `${dataType} is still unsupported by the engine`,
+            ).to.be.false;
+        }
+    });
+
+    test("both deployment targets run one engine version", () => {
+        expect(Dab.DAB_CLI_VERSION).to.equal(Dab.DAB_ENGINE_VERSION);
+        expect(Dab.DAB_CONTAINER_IMAGE).to.contain(`:${Dab.DAB_ENGINE_VERSION}`);
+        expect(
+            Dab.DAB_CONTAINER_IMAGE,
+            "A floating tag would let the container drift from the CLI",
+        ).to.not.contain(":latest");
+    });
+});
+
+suite("DAB deployment entry points", () => {
+    test("the deployments dialog is the default entry point", () => {
+        expect(Dab.createDefaultDeploymentState().entryPoint).to.equal(
+            Dab.DabDeploymentEntryPoint.Deployments,
+        );
+    });
+
+    test("the standalone flow keeps a completion step to finish on", () => {
+        // The toolbar's Deploy flow has no deployments list to return to, so
+        // the completion step has to remain reachable independently of it.
+        expect(Dab.DabDeploymentDialogStep.Complete).to.not.be.undefined;
+    });
+
+    test("a target's steps do not depend on the entry point", () => {
+        for (const target of [Dab.DabDeploymentTarget.Docker, Dab.DabDeploymentTarget.DabCli]) {
+            const steps = Dab.getDabDeploymentSteps(target);
+            for (const entryPoint of [
+                Dab.DabDeploymentEntryPoint.Standalone,
+                Dab.DabDeploymentEntryPoint.Deployments,
+            ]) {
+                const state = {
+                    ...Dab.createDefaultDeploymentState(target),
+                    entryPoint,
+                };
+                expect(
+                    state.stepStatuses.map((status) => status.step),
+                    `${target} from ${entryPoint}`,
+                ).to.deep.equal(steps);
+            }
         }
     });
 });

@@ -38,7 +38,7 @@ export const DabDeploymentPrerequisites = ({
                     ? locConstants.schemaDesigner.gettingDabCliReady
                     : locConstants.localContainers.gettingDockerReady}
             </DabDialogTitle>
-            <DabDialogContent constrainWidth>
+            <DabDialogContent>
                 <Text>{locConstants.localContainers.checkingPrerequisites}</Text>
                 <div style={{ display: "flex", flexDirection: "column", gap: 0, width: "100%" }}>
                     {stepStatuses.map((stepStatus) => (

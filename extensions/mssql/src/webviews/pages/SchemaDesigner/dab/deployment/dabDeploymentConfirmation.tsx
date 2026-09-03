@@ -39,7 +39,8 @@ interface DabDeploymentConfirmationProps {
     apiTypes: Dab.ApiType[];
     target: Dab.DabDeploymentTarget;
     onConfirm: () => void;
-    onBack: () => void;
+    /** Omitted when nothing precedes this step. */
+    onBack?: () => void;
     onCancel: () => void;
 }
 
@@ -71,7 +72,7 @@ export const DabDeploymentConfirmation = ({
                     ? locConstants.schemaDesigner.deployDabCli
                     : locConstants.schemaDesigner.deployDabContainer}
             </DabDialogTitle>
-            <DabDialogContent constrainWidth>
+            <DabDialogContent>
                 <div className={classes.confirmationInfo}>
                     <Info20Regular className={classes.infoIcon} />
                     <div>
@@ -99,9 +100,11 @@ export const DabDeploymentConfirmation = ({
                 </div>
             </DabDialogContent>
             <DialogActions>
-                <Button appearance="secondary" onClick={onBack}>
-                    {locConstants.common.back}
-                </Button>
+                {onBack && (
+                    <Button appearance="secondary" onClick={onBack}>
+                        {locConstants.common.back}
+                    </Button>
+                )}
                 <Button appearance="secondary" onClick={onCancel}>
                     {locConstants.common.cancel}
                 </Button>

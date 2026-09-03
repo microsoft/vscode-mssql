@@ -1127,6 +1127,8 @@
         "message": "The Data API builder CLI exited with code {0}.",
         "comment": ["{0} is the process exit code"]
     },
+    "A container cannot use Windows Authentication, because it runs outside your Windows session. Deploy with the Data API builder CLI instead, which runs as you.": "A container cannot use Windows Authentication, because it runs outside your Windows session. Deploy with the Data API builder CLI instead, which runs as you.",
+    "This connection's authentication type is not supported for local deployment. Only SQL Authentication and Windows Authentication can be used.": "This connection's authentication type is not supported for local deployment. Only SQL Authentication and Windows Authentication can be used.",
     "This deployment's configuration file is missing, so it cannot be started. Redeploy it instead.": "This deployment's configuration file is missing, so it cannot be started. Redeploy it instead.",
     "Overall, how satisfied are you with the MSSQL extension?": "Overall, how satisfied are you with the MSSQL extension?",
     "How likely it is that you would recommend the MSSQL extension to a friend or colleague?": "How likely it is that you would recommend the MSSQL extension to a friend or colleague?",
@@ -3952,7 +3954,11 @@
     "Name for the Docker container running DAB": "Name for the Docker container running DAB",
     "Port must be between 1 and 65535": "Port must be between 1 and 65535",
     "Port to expose the API on (default: 5000)": "Port to expose the API on (default: 5000)",
+    "Deployment Complete": "Deployment Complete",
     "Deployment Failed": "Deployment Failed",
+    "DAB container is running!": "DAB container is running!",
+    "Data API builder is running!": "Data API builder is running!",
+    "Your APIs are available at the following endpoints:": "Your APIs are available at the following endpoints:",
     "Copy {0} URL/{0} is the API type name, e.g. REST API or GraphQL": {
         "message": "Copy {0} URL",
         "comment": ["{0} is the API type name, e.g. REST API or GraphQL"]

@@ -2003,6 +2003,12 @@ export class LocalContainers {
             args: [code ?? -1],
             comment: ["{0} is the process exit code"],
         });
+    public static dabDockerWindowsAuthNotSupported = l10n.t(
+        "A container cannot use Windows Authentication, because it runs outside your Windows session. Deploy with the Data API builder CLI instead, which runs as you.",
+    );
+    public static dabTargetAuthNotSupported = l10n.t(
+        "This connection's authentication type is not supported for local deployment. Only SQL Authentication and Windows Authentication can be used.",
+    );
     public static dabCliDeploymentNotStartable = l10n.t(
         "This deployment's configuration file is missing, so it cannot be started. Redeploy it instead.",
     );

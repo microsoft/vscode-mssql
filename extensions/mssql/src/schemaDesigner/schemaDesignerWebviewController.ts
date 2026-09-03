@@ -175,6 +175,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
         this.updateState({
             ...this.state,
             isDabDeploymentSupported: this.resolveIsDabDeploymentSupported(),
+            dabTargetSupport: this.resolveDabTargetSupport(),
         });
 
         this.setupRequestHandlers();
@@ -625,8 +626,11 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
                     },
                 },
             );
-            if (!this.resolveIsDabDeploymentSupported()) {
-                const message = LocConstants.SchemaDesigner.dabDeploymentNotSupported;
+            const targetSupport =
+                this.resolveDabTargetSupport()[payload.target ?? Dab.DabDeploymentTarget.Docker];
+            if (!targetSupport?.isSupported) {
+                const message =
+                    targetSupport?.reason ?? LocConstants.SchemaDesigner.dabDeploymentNotSupported;
                 void vscode.window.showErrorMessage(message);
                 deploymentStepActivity.endFailed(undefined, false, undefined, undefined, {
                     hasContainerLogs: "false",
@@ -1632,8 +1636,40 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
      * Docker container that cannot perform interactive Azure AD authentication.
      */
     private resolveIsDabDeploymentSupported(): boolean {
+        return Object.values(this.resolveDabTargetSupport()).some((target) => target.isSupported);
+    }
+
+    /**
+     * Works out which deployment targets this connection can use.
+     *
+     * The CLI runs as the signed-in user, so it can carry Windows
+     * Authentication through to SQL Server. A container cannot: it runs outside
+     * the user's Windows session with no way to present their credentials.
+     * Neither can complete an interactive Entra sign-in from a background
+     * process, so those connections support no target.
+     */
+    private resolveDabTargetSupport(): Record<string, SchemaDesigner.DabTargetSupport> {
         const authType = this.resolveAuthenticationType();
-        return authType === AuthenticationType.SqlLogin;
+        const isWindowsAuth = authType === AuthenticationType.Integrated;
+
+        const describe = (target: Dab.DabDeploymentTarget): SchemaDesigner.DabTargetSupport => {
+            if (Dab.isDabTargetSupportedForAuthentication(target, authType)) {
+                return { isSupported: true };
+            }
+
+            return {
+                isSupported: false,
+                reason:
+                    isWindowsAuth && target === Dab.DabDeploymentTarget.Docker
+                        ? LocConstants.LocalContainers.dabDockerWindowsAuthNotSupported
+                        : LocConstants.LocalContainers.dabTargetAuthNotSupported,
+            };
+        };
+
+        return {
+            [Dab.DabDeploymentTarget.DabCli]: describe(Dab.DabDeploymentTarget.DabCli),
+            [Dab.DabDeploymentTarget.Docker]: describe(Dab.DabDeploymentTarget.Docker),
+        };
     }
 
     private resolveAuthenticationType(): string | undefined {

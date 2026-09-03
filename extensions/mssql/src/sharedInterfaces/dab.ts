@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { NotificationType, RequestType } from "vscode-jsonrpc";
+import { AuthenticationType } from "./connectionDialog";
 import { SchemaDesigner } from "./schemaDesigner";
 import { ApiStatus, Status } from "./webview";
 
@@ -755,11 +756,22 @@ export namespace Dab {
     // ============================================
 
     /**
-     * DAB container image from Microsoft Container Registry.
-     * Uses :latest tag intentionally so users always get the newest Data API builder
-     * features and bug fixes without manual version management.
+     * Engine version both deployment targets run.
+     *
+     * The designer decides which column types it will expose based on what the
+     * engine supports, so the container and the CLI must not drift apart.
      */
-    export const DAB_CONTAINER_IMAGE = "mcr.microsoft.com/azure-databases/data-api-builder:latest";
+    export const DAB_ENGINE_VERSION = "2.1.3-rc";
+
+    /**
+     * DAB container image from Microsoft Container Registry.
+     *
+     * Pinned to the same version as the CLI so both targets run one engine: a
+     * data type the designer allows has to be servable wherever it is deployed.
+     * The :latest tag cannot be used for that, since it tracks the newest
+     * stable and would leave the container behind the CLI.
+     */
+    export const DAB_CONTAINER_IMAGE = `mcr.microsoft.com/azure-databases/data-api-builder:${DAB_ENGINE_VERSION}`;
 
     /**
      * Platform to use when pulling the DAB container image.
@@ -816,15 +828,12 @@ export namespace Dab {
     export const DAB_CLI_PACKAGE_ID = "Microsoft.DataApiBuilder";
 
     /**
-     * DAB CLI version to run. Pinned, unlike the container image, because a
-     * tracked CLI deployment keeps running the version it was deployed with:
-     * a CLI release must not change what an existing deployment does until the
-     * pin is deliberately moved.
+     * DAB CLI version to run, the same engine version as the container image.
      *
      * Keep this a version that has cleared any mirror's publication delay;
      * feeds that proxy nuget.org commonly hold new packages back for days.
      */
-    export const DAB_CLI_VERSION = "2.0.12";
+    export const DAB_CLI_VERSION = DAB_ENGINE_VERSION;
 
     /**
      * Default flat container the CLI package is downloaded from. Environments
@@ -894,6 +903,21 @@ export namespace Dab {
     }
 
     /**
+     * How the deployment flow was entered.
+     *
+     * Deploying from the toolbar is a self-contained flow that ends on its own
+     * completion screen; the deployments dialog owns a list to return to. The
+     * distinction lets the deployments experience be switched off without
+     * leaving the toolbar's Deploy button with nowhere to finish.
+     */
+    export enum DabDeploymentEntryPoint {
+        /** The toolbar's Deploy button, with no deployments list behind it. */
+        Standalone = "standalone",
+        /** The deployments dialog. */
+        Deployments = "deployments",
+    }
+
+    /**
      * Whether the wizard is creating a new container or replacing an existing
      * one under the same name and port.
      */
@@ -937,6 +961,32 @@ export namespace Dab {
             ],
         },
     };
+
+    /**
+     * Whether a deployment target can carry this connection's authentication
+     * through to the running engine.
+     *
+     * The CLI runs as the signed-in user, so Windows Authentication reaches SQL
+     * Server as that user. A container runs outside the Windows session and has
+     * no way to present those credentials. Neither can complete an interactive
+     * Entra sign-in from a background process.
+     *
+     * @param target Deployment target being considered
+     * @param authenticationType Authentication type of the connection
+     */
+    export function isDabTargetSupportedForAuthentication(
+        target: DabDeploymentTarget,
+        authenticationType: string | undefined,
+    ): boolean {
+        if (authenticationType === AuthenticationType.SqlLogin) {
+            return true;
+        }
+
+        return (
+            authenticationType === AuthenticationType.Integrated &&
+            target === DabDeploymentTarget.DabCli
+        );
+    }
 
     /** Every step a target runs, in order. */
     export function getDabDeploymentSteps(target: DabDeploymentTarget): DabDeploymentStepOrder[] {
@@ -982,6 +1032,8 @@ export namespace Dab {
         ParameterInput = 2,
         /** Deployment progress steps */
         Deployment = 3,
+        /** Completion or error state, shown only by the standalone flow */
+        Complete = 4,
     }
 
     /**
@@ -1032,6 +1084,10 @@ export namespace Dab {
          * Where the wizard is deploying to. Decides which steps run.
          */
         target: DabDeploymentTarget;
+        /**
+         * How the flow was entered, which decides where it finishes.
+         */
+        entryPoint: DabDeploymentEntryPoint;
         /**
          * Whether the wizard is creating a container or redeploying one
          */
@@ -1108,6 +1164,7 @@ export namespace Dab {
             isDialogOpen: false,
             dialogView: DabDeploymentDialogView.List,
             target,
+            entryPoint: DabDeploymentEntryPoint.Deployments,
             mode: DabDeploymentMode.Create,
             dialogStep: DabDeploymentDialogStep.Confirmation,
             currentDeploymentStep: steps[0],
@@ -1560,10 +1617,8 @@ export namespace Dab {
         "sys.geography",
         "sys.geometry",
         "sys.hierarchyid",
-        "json",
         "rowversion",
         "sql_variant",
-        "vector",
         "xml",
     ];
 

@@ -2245,7 +2245,11 @@ export class LocConstants {
             port: l10n.t("Port"),
             portInvalid: l10n.t("Port must be between 1 and 65535"),
             portHint: l10n.t("Port to expose the API on (default: 5000)"),
+            deploymentComplete: l10n.t("Deployment Complete"),
             deploymentFailed: l10n.t("Deployment Failed"),
+            dabContainerRunning: l10n.t("DAB container is running!"),
+            dabEngineRunning: l10n.t("Data API builder is running!"),
+            apisAvailableAt: l10n.t("Your APIs are available at the following endpoints:"),
             copyUrl: (apiType: string) =>
                 l10n.t({
                     message: "Copy {0} URL",
