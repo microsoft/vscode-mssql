@@ -18,10 +18,24 @@ import { getPrereqSteps, getDeploySteps } from "./dabDeploymentUtils";
 import { useDabContext } from "../dabContext";
 
 const useStyles = makeStyles({
+    // Matches the publish dialog's frame so the two read as the same surface.
     surface: {
-        width: "640px",
-        maxWidth: "640px",
-        maxHeight: "80vh",
+        width: "800px",
+        maxWidth: "800px",
+        height: "640px",
+        maxHeight: "calc(100vh - 64px)",
+    },
+    body: {
+        height: "100%",
+        maxHeight: "100%",
+        display: "flex",
+        flexDirection: "column",
+        // The actions row is always last. Pinning it to the bottom keeps the
+        // shorter views from leaving their buttons floating mid-dialog now
+        // that the frame has a fixed height.
+        "> :last-child": {
+            marginTop: "auto",
+        },
     },
 });
 
@@ -225,7 +239,7 @@ export const DabDeploymentDialog = () => {
                 }
             }}>
             <DialogSurface className={classes.surface}>
-                <DialogBody>{renderContent()}</DialogBody>
+                <DialogBody className={classes.body}>{renderContent()}</DialogBody>
             </DialogSurface>
         </Dialog>
     );

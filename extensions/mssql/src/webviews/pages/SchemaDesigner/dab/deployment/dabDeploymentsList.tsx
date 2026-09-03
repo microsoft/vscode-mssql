@@ -37,7 +37,10 @@ const useStyles = makeStyles({
         display: "flex",
         flexDirection: "column",
         gap: "12px",
-        minHeight: "200px",
+        // Fill the dialog frame and let only the row list scroll.
+        flex: 1,
+        minHeight: 0,
+        overflow: "hidden",
     },
     description: {
         color: tokens.colorNeutralForeground2,
@@ -52,7 +55,8 @@ const useStyles = makeStyles({
         display: "flex",
         flexDirection: "column",
         gap: "8px",
-        maxHeight: "40vh",
+        flex: 1,
+        minHeight: 0,
         overflowY: "auto",
     },
     row: {
