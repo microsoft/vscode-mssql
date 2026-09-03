@@ -6,8 +6,25 @@
 import {
     Badge,
     Button,
+    Dialog,
     DialogActions,
+    DialogBody,
+    DialogContent,
+    DialogSurface,
+    DialogTitle,
+    Field,
+    Input,
     makeStyles,
+    mergeClasses,
+    Menu,
+    MenuItem,
+    MenuList,
+    MenuPopover,
+    MenuTrigger,
+    MessageBar,
+    MessageBarActions,
+    MessageBarBody,
+    MessageBarTitle,
     Spinner,
     Text,
     tokens,
@@ -20,6 +37,7 @@ import {
     ChevronDown16Regular,
     ChevronRight16Regular,
     Delete16Regular,
+    MoreHorizontal20Regular,
     Play16Regular,
     Stop16Regular,
 } from "@fluentui/react-icons";
@@ -28,6 +46,8 @@ import { locConstants } from "../../../../common/locConstants";
 import { Dab } from "../../../../../sharedInterfaces/dab";
 import { ApiStatus } from "../../../../../sharedInterfaces/webview";
 import { useDabContext } from "../dabContext";
+import { DabLogoIcon } from "../../../../common/icons/dabLogo";
+import { DockerIcon } from "../../../../common/icons/docker";
 import { DabDeploymentEndpoints } from "./dabDeploymentEndpoints";
 import { DabDialogContent, DabDialogTitle } from "./dabDialogLayout";
 
@@ -60,18 +80,67 @@ const useStyles = makeStyles({
     },
     row: {
         display: "flex",
-        flexDirection: "column",
-        gap: "8px",
-        padding: "10px 12px",
+        alignItems: "flex-start",
+        gap: "12px",
+        padding: "12px",
         borderRadius: "6px",
         border: `1px solid ${tokens.colorNeutralStroke2}`,
         backgroundColor: tokens.colorNeutralBackground2,
+    },
+    /** Where the deployment runs, shown as its mark rather than a word. */
+    /** Status and platform read together at the start of the row. */
+    rowIdentity: {
+        display: "flex",
+        alignItems: "center",
+        gap: "8px",
+        flexShrink: 0,
+        // Aligns with the first line of the body rather than the whole block.
+        paddingTop: "2px",
+    },
+    statusDot: {
+        width: "8px",
+        height: "8px",
+        borderRadius: "50%",
+        flexShrink: 0,
+    },
+    statusDotRunning: {
+        backgroundColor: tokens.colorStatusSuccessForeground1,
+    },
+    statusDotStopped: {
+        backgroundColor: tokens.colorStatusDangerForeground1,
+    },
+    targetIconGlyph: {
+        width: "24px",
+        height: "24px",
+    },
+    targetIcon: {
+        width: "28px",
+        height: "28px",
+        flexShrink: 0,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    rowBody: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "8px",
+        flex: 1,
+        minWidth: 0,
     },
     rowHeader: {
         display: "flex",
         alignItems: "center",
         gap: "8px",
         flexWrap: "wrap",
+    },
+    outdatedBar: {
+        // The warning owns a line of its own so the redeploy it asks for is
+        // next to the reason, not buried in a menu.
+        width: "100%",
+    },
+    endpointsToggle: {
+        alignSelf: "flex-start",
     },
     containerName: {
         fontWeight: 600,
@@ -80,12 +149,7 @@ const useStyles = makeStyles({
         fontSize: "12px",
         color: tokens.colorNeutralForeground3,
     },
-    rowActions: {
-        display: "flex",
-        alignItems: "center",
-        gap: "4px",
-        flexWrap: "wrap",
-    },
+
     spacer: {
         flex: 1,
     },
@@ -103,31 +167,12 @@ const useStyles = makeStyles({
         color: tokens.colorStatusDangerForeground1,
         fontSize: "12px",
     },
-    confirmRow: {
+    deleteConfirmBody: {
         display: "flex",
-        alignItems: "center",
-        gap: "8px",
-        flexWrap: "wrap",
+        flexDirection: "column",
+        gap: "12px",
     },
 });
-
-/** Status badge colors, so a row's state reads at a glance. */
-const statusBadgeColor: Record<
-    Dab.DabDeploymentContainerStatus,
-    "success" | "informative" | "danger" | "warning"
-> = {
-    [Dab.DabDeploymentContainerStatus.Running]: "success",
-    [Dab.DabDeploymentContainerStatus.Stopped]: "informative",
-    [Dab.DabDeploymentContainerStatus.Missing]: "danger",
-    [Dab.DabDeploymentContainerStatus.Unknown]: "warning",
-};
-
-/** Short label naming where a deployment runs. */
-function getTargetLabel(target: Dab.DabDeploymentTarget): string {
-    return target === Dab.DabDeploymentTarget.DabCli
-        ? locConstants.schemaDesigner.deploymentTargetLabelDabCli
-        : locConstants.schemaDesigner.deploymentTargetLabelDocker;
-}
 
 function getStatusLabel(
     status: Dab.DabDeploymentContainerStatus,
@@ -147,6 +192,39 @@ function getStatusLabel(
         default:
             return locConstants.schemaDesigner.deploymentStatusUnknown;
     }
+}
+
+/** Largest whole unit that fits, so ages read the way people say them. */
+const RELATIVE_TIME_UNITS: [Intl.RelativeTimeFormatUnit, number][] = [
+    ["year", 365 * 24 * 60 * 60],
+    ["month", 30 * 24 * 60 * 60],
+    ["week", 7 * 24 * 60 * 60],
+    ["day", 24 * 60 * 60],
+    ["hour", 60 * 60],
+    ["minute", 60],
+];
+
+/**
+ * Renders how long ago a deployment happened, in the viewer's locale.
+ *
+ * The exact timestamp stays available in a tooltip: the age answers "is this
+ * current?" at a glance, while the precise time is what someone correlating
+ * with a log needs.
+ */
+function formatTimeAgo(isoTimestamp: string): string {
+    const elapsedSeconds = (Date.now() - new Date(isoTimestamp).getTime()) / 1000;
+    if (!Number.isFinite(elapsedSeconds) || elapsedSeconds < 60) {
+        return locConstants.schemaDesigner.justNow;
+    }
+
+    const formatter = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" });
+    for (const [unit, unitSeconds] of RELATIVE_TIME_UNITS) {
+        if (elapsedSeconds >= unitSeconds) {
+            return formatter.format(-Math.floor(elapsedSeconds / unitSeconds), unit);
+        }
+    }
+
+    return locConstants.schemaDesigner.justNow;
 }
 
 interface DabDeploymentsListProps {
@@ -169,6 +247,7 @@ export const DabDeploymentsList = ({ onCreateNew, onClose }: DabDeploymentsListP
 
     const [busyDeploymentId, setBusyDeploymentId] = useState<string | undefined>();
     const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | undefined>();
+    const [deleteConfirmationText, setDeleteConfirmationText] = useState("");
     const [expandedIds, setExpandedIds] = useState<string[]>([]);
     const [rowErrors, setRowErrors] = useState<Record<string, string | undefined>>({});
 
@@ -206,6 +285,14 @@ export const DabDeploymentsList = ({ onCreateNew, onClose }: DabDeploymentsListP
     const isLoading = dabDeploymentsStatus === ApiStatus.Loading && dabDeployments.length === 0;
     const isEmpty = dabDeploymentsStatus === ApiStatus.Loaded && dabDeployments.length === 0;
 
+    /** The mark of the platform a deployment runs on. */
+    const renderTargetIcon = (target: Dab.DabDeploymentTarget) =>
+        target === Dab.DabDeploymentTarget.DabCli ? (
+            <DabLogoIcon className={classes.targetIconGlyph} role="img" aria-hidden />
+        ) : (
+            <DockerIcon className={classes.targetIconGlyph} role="img" aria-hidden />
+        );
+
     const renderRow = (deployment: Dab.DabDeploymentListItem) => {
         const isBusy = busyDeploymentId === deployment.id;
         const isExpanded = expandedIds.includes(deployment.id);
@@ -216,150 +303,178 @@ export const DabDeploymentsList = ({ onCreateNew, onClose }: DabDeploymentsListP
 
         return (
             <div key={deployment.id} className={classes.row}>
-                <div className={classes.rowHeader}>
-                    <Text className={classes.containerName}>{deployment.name}</Text>
-                    <Text className={classes.metaText}>
-                        {locConstants.schemaDesigner.deploymentPort(deployment.port)}
-                    </Text>
-                    <Badge appearance="outline" color="informative">
-                        {getTargetLabel(deployment.target)}
-                    </Badge>
-                    <Badge appearance="tint" color={statusBadgeColor[deployment.status]}>
-                        {getStatusLabel(deployment.status, deployment.target)}
-                    </Badge>
-                    {deployment.isConfigOutdated ? (
-                        <Tooltip
-                            content={locConstants.schemaDesigner.deploymentConfigOutdatedTooltip}
-                            relationship="label">
-                            <Badge appearance="tint" color="warning">
-                                {locConstants.schemaDesigner.deploymentConfigOutdated}
-                            </Badge>
-                        </Tooltip>
-                    ) : (
-                        <Badge appearance="tint" color="brand">
-                            {locConstants.schemaDesigner.deploymentConfigUpToDate}
-                        </Badge>
-                    )}
-                    <div className={classes.spacer} />
-                    <Text className={classes.metaText}>
-                        {locConstants.schemaDesigner.deployedOn(
-                            new Date(deployment.deployedUtc).toLocaleString(),
-                        )}
-                    </Text>
-                </div>
-
-                {confirmingDeleteId === deployment.id ? (
-                    <div className={classes.confirmRow}>
-                        <Text className={classes.metaText}>
-                            {deployment.target === Dab.DabDeploymentTarget.DabCli
-                                ? locConstants.schemaDesigner.deleteCliDeploymentConfirmMessage(
-                                      deployment.name,
-                                  )
-                                : locConstants.schemaDesigner.deleteDeploymentConfirmMessage(
-                                      deployment.name,
-                                  )}
-                        </Text>
-                        <div className={classes.spacer} />
-                        <Button
-                            size="small"
-                            appearance="secondary"
-                            disabled={isBusy}
-                            onClick={() => setConfirmingDeleteId(undefined)}>
-                            {locConstants.common.cancel}
-                        </Button>
-                        <Button
-                            size="small"
-                            appearance="primary"
-                            disabled={isBusy}
-                            icon={isBusy ? <Spinner size="tiny" /> : undefined}
-                            onClick={async () => {
-                                await runAction(deployment.id, deleteDabDeployment);
-                                setConfirmingDeleteId(undefined);
-                            }}>
-                            {locConstants.schemaDesigner.deleteDeployment}
-                        </Button>
+                <Tooltip
+                    content={getStatusLabel(deployment.status, deployment.target)}
+                    relationship="description">
+                    <div className={classes.rowIdentity}>
+                        <div
+                            className={mergeClasses(
+                                classes.statusDot,
+                                isRunning ? classes.statusDotRunning : classes.statusDotStopped,
+                            )}
+                            role="img"
+                            aria-label={getStatusLabel(deployment.status, deployment.target)}
+                        />
+                        <div className={classes.targetIcon}>
+                            {renderTargetIcon(deployment.target)}
+                        </div>
                     </div>
-                ) : (
-                    <div className={classes.rowActions}>
-                        {!isMissing && (
-                            <Button
-                                size="small"
-                                appearance="subtle"
-                                icon={
-                                    isExpanded ? (
-                                        <ChevronDown16Regular />
-                                    ) : (
-                                        <ChevronRight16Regular />
-                                    )
-                                }
-                                onClick={() => toggleExpanded(deployment.id)}>
-                                {isExpanded
-                                    ? locConstants.schemaDesigner.hideEndpoints
-                                    : locConstants.schemaDesigner.showEndpoints}
-                            </Button>
+                </Tooltip>
+
+                <div className={classes.rowBody}>
+                    <div className={classes.rowHeader}>
+                        <Text className={classes.containerName}>{deployment.name}</Text>
+                        <Text className={classes.metaText}>
+                            {locConstants.schemaDesigner.deploymentPort(deployment.port)}
+                        </Text>
+                        {!deployment.isConfigOutdated && (
+                            <Badge appearance="tint" color="brand">
+                                {locConstants.schemaDesigner.deploymentConfigUpToDate}
+                            </Badge>
                         )}
                         <div className={classes.spacer} />
-                        {isStopped && (
-                            <Button
-                                size="small"
-                                appearance="subtle"
-                                icon={<Play16Regular />}
-                                disabled={isBusy}
-                                onClick={() =>
-                                    void runAction(deployment.id, startDabDeploymentContainer)
-                                }>
-                                {locConstants.schemaDesigner.startContainer}
-                            </Button>
-                        )}
-                        {isRunning && (
-                            <Button
-                                size="small"
-                                appearance="subtle"
-                                icon={<Stop16Regular />}
-                                disabled={isBusy}
-                                onClick={() =>
-                                    void runAction(deployment.id, stopDabDeploymentContainer)
-                                }>
-                                {locConstants.schemaDesigner.stopContainer}
-                            </Button>
-                        )}
                         <Tooltip
-                            content={locConstants.schemaDesigner.redeployTooltip}
-                            relationship="label">
-                            <Button
-                                size="small"
-                                appearance={deployment.isConfigOutdated ? "primary" : "secondary"}
-                                icon={<ArrowSync16Regular />}
-                                disabled={isBusy}
-                                onClick={() =>
-                                    void runAction(deployment.id, redeployDabDeployment)
-                                }>
-                                {locConstants.schemaDesigner.redeploy}
-                            </Button>
+                            content={locConstants.schemaDesigner.deployedAt(
+                                new Date(deployment.deployedUtc).toLocaleString(),
+                            )}
+                            relationship="description">
+                            <Text className={classes.metaText}>
+                                {locConstants.schemaDesigner.deployedOn(
+                                    formatTimeAgo(deployment.deployedUtc),
+                                )}
+                            </Text>
                         </Tooltip>
+                    </div>
+
+                    {deployment.isConfigOutdated && (
+                        <MessageBar
+                            intent="warning"
+                            layout="multiline"
+                            className={classes.outdatedBar}>
+                            <MessageBarBody>
+                                <MessageBarTitle>
+                                    {locConstants.schemaDesigner.deploymentConfigOutdatedTitle}
+                                </MessageBarTitle>
+                                {locConstants.schemaDesigner.deploymentConfigOutdatedBody}
+                            </MessageBarBody>
+                            <MessageBarActions>
+                                <Button
+                                    size="small"
+                                    appearance="primary"
+                                    icon={<ArrowSync16Regular />}
+                                    disabled={isBusy}
+                                    onClick={() =>
+                                        void runAction(deployment.id, redeployDabDeployment)
+                                    }>
+                                    {locConstants.schemaDesigner.redeploy}
+                                </Button>
+                            </MessageBarActions>
+                        </MessageBar>
+                    )}
+
+                    {!isMissing && (
                         <Button
                             size="small"
                             appearance="subtle"
-                            icon={<Delete16Regular />}
-                            disabled={isBusy}
-                            onClick={() => setConfirmingDeleteId(deployment.id)}>
-                            {locConstants.schemaDesigner.deleteDeployment}
+                            className={classes.endpointsToggle}
+                            icon={isExpanded ? <ChevronDown16Regular /> : <ChevronRight16Regular />}
+                            onClick={() => toggleExpanded(deployment.id)}>
+                            {isExpanded
+                                ? locConstants.schemaDesigner.hideEndpoints
+                                : locConstants.schemaDesigner.showEndpoints}
                         </Button>
-                    </div>
-                )}
+                    )}
 
-                {isExpanded && !isMissing && (
-                    <DabDeploymentEndpoints
-                        apiUrl={deployment.apiUrl}
-                        apiTypes={deployment.apiTypes}
-                        isDisabled={!isRunning}
-                    />
-                )}
+                    {isExpanded && !isMissing && (
+                        <DabDeploymentEndpoints
+                            apiUrl={deployment.apiUrl}
+                            apiTypes={deployment.apiTypes}
+                            isDisabled={!isRunning}
+                        />
+                    )}
 
-                {rowError && <Text className={classes.errorText}>{rowError}</Text>}
+                    {rowError && <Text className={classes.errorText}>{rowError}</Text>}
+                </div>
+
+                {isBusy ? (
+                    <Spinner size="tiny" />
+                ) : (
+                    <Menu>
+                        <MenuTrigger disableButtonEnhancement>
+                            <Button
+                                appearance="subtle"
+                                icon={<MoreHorizontal20Regular />}
+                                aria-label={locConstants.schemaDesigner.deploymentActions}
+                                title={locConstants.schemaDesigner.deploymentActions}
+                            />
+                        </MenuTrigger>
+                        <MenuPopover>
+                            <MenuList>
+                                {isStopped && (
+                                    <MenuItem
+                                        icon={<Play16Regular />}
+                                        onClick={() =>
+                                            void runAction(
+                                                deployment.id,
+                                                startDabDeploymentContainer,
+                                            )
+                                        }>
+                                        {locConstants.schemaDesigner.startContainer}
+                                    </MenuItem>
+                                )}
+                                {isRunning && (
+                                    <MenuItem
+                                        icon={<Stop16Regular />}
+                                        onClick={() =>
+                                            void runAction(
+                                                deployment.id,
+                                                stopDabDeploymentContainer,
+                                            )
+                                        }>
+                                        {locConstants.schemaDesigner.stopContainer}
+                                    </MenuItem>
+                                )}
+                                <MenuItem
+                                    icon={<ArrowSync16Regular />}
+                                    onClick={() =>
+                                        void runAction(deployment.id, redeployDabDeployment)
+                                    }>
+                                    {locConstants.schemaDesigner.redeploy}
+                                </MenuItem>
+                                <MenuItem
+                                    icon={<Delete16Regular />}
+                                    onClick={() => {
+                                        setDeleteConfirmationText("");
+                                        setConfirmingDeleteId(deployment.id);
+                                    }}>
+                                    {locConstants.schemaDesigner.deleteDeployment}
+                                </MenuItem>
+                            </MenuList>
+                        </MenuPopover>
+                    </Menu>
+                )}
             </div>
         );
     };
+
+    const confirmDelete = async () => {
+        const deploymentId = confirmingDeleteId;
+        if (!deploymentId) {
+            return;
+        }
+
+        setConfirmingDeleteId(undefined);
+        await runAction(deploymentId, deleteDabDeployment);
+    };
+
+    const deploymentAwaitingDelete = dabDeployments.find(
+        (deployment) => deployment.id === confirmingDeleteId,
+    );
+    // Deleting stops a running API and, for the CLI, removes its generated
+    // config. Typing the name makes that a deliberate act rather than one
+    // stray click in a menu.
+    const canConfirmDelete =
+        !!deploymentAwaitingDelete && deleteConfirmationText === deploymentAwaitingDelete.name;
 
     return (
         <>
@@ -401,6 +516,65 @@ export const DabDeploymentsList = ({ onCreateNew, onClose }: DabDeploymentsListP
                     <div className={classes.list}>{dabDeployments.map(renderRow)}</div>
                 )}
             </DabDialogContent>
+            <Dialog
+                open={!!deploymentAwaitingDelete}
+                modalType="alert"
+                onOpenChange={(_, data) => {
+                    if (!data.open) {
+                        setConfirmingDeleteId(undefined);
+                    }
+                }}>
+                <DialogSurface>
+                    <DialogBody>
+                        <DialogTitle>
+                            {locConstants.schemaDesigner.deleteDeploymentConfirmTitle}
+                        </DialogTitle>
+                        <DialogContent className={classes.deleteConfirmBody}>
+                            <Text>
+                                {deploymentAwaitingDelete?.target === Dab.DabDeploymentTarget.DabCli
+                                    ? locConstants.schemaDesigner.deleteCliDeploymentConfirmMessage(
+                                          deploymentAwaitingDelete?.name ?? "",
+                                      )
+                                    : locConstants.schemaDesigner.deleteDeploymentConfirmMessage(
+                                          deploymentAwaitingDelete?.name ?? "",
+                                      )}
+                            </Text>
+                            <Field
+                                label={locConstants.schemaDesigner.deleteDeploymentNameLabel}
+                                hint={locConstants.schemaDesigner.deleteDeploymentTypeToConfirm(
+                                    deploymentAwaitingDelete?.name ?? "",
+                                )}>
+                                <Input
+                                    value={deleteConfirmationText}
+                                    autoFocus
+                                    onChange={(_, data) => setDeleteConfirmationText(data.value)}
+                                    onKeyDown={(event) => {
+                                        if (event.key === "Enter" && canConfirmDelete) {
+                                            event.preventDefault();
+                                            void confirmDelete();
+                                        }
+                                    }}
+                                />
+                            </Field>
+                        </DialogContent>
+                        <DialogActions>
+                            <Button
+                                appearance="secondary"
+                                onClick={() => setConfirmingDeleteId(undefined)}>
+                                {locConstants.common.cancel}
+                            </Button>
+                            <Button
+                                appearance="primary"
+                                disabled={!canConfirmDelete}
+                                icon={<Delete16Regular />}
+                                onClick={() => void confirmDelete()}>
+                                {locConstants.schemaDesigner.deleteDeployment}
+                            </Button>
+                        </DialogActions>
+                    </DialogBody>
+                </DialogSurface>
+            </Dialog>
+
             <DialogActions>
                 <Button appearance="secondary" onClick={onClose}>
                     {locConstants.common.close}

@@ -3978,10 +3978,15 @@
     "Up to date": "Up to date",
     "Config changed": "Config changed",
     "Your configuration has changed since this container was deployed. Redeploy to apply the changes.": "Your configuration has changed since this container was deployed. Redeploy to apply the changes.",
-    "Deployed {0}/{0} is a localized date and time": {
+    "Deployed {0}/{0} is a relative time such as '5 minutes ago'": {
         "message": "Deployed {0}",
-        "comment": ["{0} is a localized date and time"]
+        "comment": ["{0} is a relative time such as '5 minutes ago'"]
     },
+    "Deployed at {0}/{0} is a localized absolute date and time": {
+        "message": "Deployed at {0}",
+        "comment": ["{0} is a localized absolute date and time"]
+    },
+    "just now": "just now",
     "Port {0}/{0} is the host port number": {
         "message": "Port {0}",
         "comment": ["{0} is the host port number"]
@@ -3995,6 +4000,14 @@
         "message": "The container {0} will be stopped and removed, and its endpoints will stop responding.",
         "comment": ["{0} is the Docker container name"]
     },
+    "More actions": "More actions",
+    "Configuration has changed": "Configuration has changed",
+    "This deployment is running an earlier version of your configuration. Redeploy it to serve the current one.": "This deployment is running an earlier version of your configuration. Redeploy it to serve the current one.",
+    "Type {0} to confirm./{0} is the deployment name the user must type": {
+        "message": "Type {0} to confirm.",
+        "comment": ["{0} is the deployment name the user must type"]
+    },
+    "Deployment name": "Deployment name",
     "The engine for {0} will be stopped and its generated configuration removed, and its endpoints will stop responding./{0} is the deployment name": {
         "message": "The engine for {0} will be stopped and its generated configuration removed, and its endpoints will stop responding.",
         "comment": ["{0} is the deployment name"]
@@ -4031,8 +4044,6 @@
     "Checking engine readiness": "Checking engine readiness",
     "Deployment settings": "Deployment settings",
     "A name for this deployment": "A name for this deployment",
-    "Docker": "Docker",
-    "DAB CLI": "DAB CLI",
     "Reset the configuration to the defaults for this schema": "Reset the configuration to the defaults for this schema",
     "Reset DAB configuration?": "Reset DAB configuration?",
     "This discards all entity, action, column, and advanced settings for this database, including changes made by Copilot, and rebuilds them from the current schema.": "This discards all entity, action, column, and advanced settings for this database, including changes made by Copilot, and rebuilds them from the current schema.",

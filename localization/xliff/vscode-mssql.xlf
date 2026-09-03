@@ -1633,6 +1633,9 @@
     <trans-unit id="++CODE++7ddbffc16744c2642445a4ec489967d4201fe93f5ec6af10738ba783cbd78680">
       <source xml:lang="en">Config copied to clipboard</source>
     </trans-unit>
+    <trans-unit id="++CODE++e962c61e868414967e841ebed66902435177a9fbb216e0742a075e682a47eb73">
+      <source xml:lang="en">Configuration has changed</source>
+    </trans-unit>
     <trans-unit id="++CODE++bf0c5eefb35a2a14ae8ea5fa2d7747fff0157874c2640e9a31397ed840b8d5b3">
       <source xml:lang="en">Configuration no longer exists</source>
     </trans-unit>
@@ -2345,9 +2348,6 @@
     <trans-unit id="++CODE++c525ed2944e05f661b7bc658ddccb355cd47a8daab5629ce4310c575aa58e2a1">
       <source xml:lang="en">Customize keyboard shortcuts</source>
     </trans-unit>
-    <trans-unit id="++CODE++422979c51c0af204281c88c2e286e6d5d44fb3b9be6b6a21e3fc964a167372d1">
-      <source xml:lang="en">DAB CLI</source>
-    </trans-unit>
     <trans-unit id="++CODE++e7aa1ff656ae01487b19a24f178526fa3b74963ac0bfb6cff35b047b62d8be4b">
       <source xml:lang="en">DAB container failed to become ready within the timeout period.</source>
     </trans-unit>
@@ -2643,9 +2643,13 @@
     <trans-unit id="++CODE++75605e8fd5394c88086006f3ed265d8f5f725fdfb8827963a1be8f8348d31bee">
       <source xml:lang="en">Deploy, extract, import, or export data-tier applications on the selected database</source>
     </trans-unit>
-    <trans-unit id="++CODE++41290df4862974921fc4ad9785582a5ffee91f074b2911c3c0ace78722a18796">
+    <trans-unit id="++CODE++a7e07c22703de9d73d67247e3b0aa4c39c469d01e09bbb67c033dccb76ed9d60">
+      <source xml:lang="en">Deployed at {0}</source>
+      <note>{0} is a localized absolute date and time</note>
+    </trans-unit>
+    <trans-unit id="++CODE++6917f5e712a4993af96c63563bb6f77689af01cea41fdd4bad4708e3f2749d8b">
       <source xml:lang="en">Deployed {0}</source>
-      <note>{0} is a localized date and time</note>
+      <note>{0} is a relative time such as &apos;5 minutes ago&apos;</note>
     </trans-unit>
     <trans-unit id="++CODE++77073cfc37f467e01ede7dd225bc91824e5fcb320f5723a633d43bd93b8a070b">
       <source xml:lang="en">Deploying DACPAC...</source>
@@ -2667,6 +2671,9 @@
     </trans-unit>
     <trans-unit id="++CODE++cc51187ae9dbe9ccc606865c0177000cdeca2af5bca1c36c7f3065882c6ee18b">
       <source xml:lang="en">Deployment in progress</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e01636273fd0e5f5d3beda9a1c861cbdbbc5c3d7eaefeed59429f0d90947691f">
+      <source xml:lang="en">Deployment name</source>
     </trans-unit>
     <trans-unit id="++CODE++d39279795c068e7eae0fac751fc1ff7e722232cb6f15f871494b4d70e46a7f9c">
       <source xml:lang="en">Deployment name, port, and configuration are required to start the engine.</source>
@@ -2827,9 +2834,6 @@
     </trans-unit>
     <trans-unit id="++CODE++3c96c6d1388e41b0724659fa022b1843dea4a84d175a1d571bf72382fc0c3581">
       <source xml:lang="en">Do you want to enable &apos;Trust server certificate&apos; on this connection and retry?</source>
-    </trans-unit>
-    <trans-unit id="++CODE++e6169e958b37ce8662817b0f3e0bf450a174742fafc527800e67f430738b4b63">
-      <source xml:lang="en">Docker</source>
     </trans-unit>
     <trans-unit id="++CODE++f1286712850b10aee8607a93c2120e10316b5962b73c377860cd5cded5b98184">
       <source xml:lang="en">Docker Desktop must be installed and running on your machine.</source>
@@ -5515,6 +5519,9 @@
     </trans-unit>
     <trans-unit id="++CODE++0149b409a73e8498a5256e13dbf70225738e9e1fed0d976e20ad8ef338cc2d22">
       <source xml:lang="en">More Query Actions</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f8d46c2570e70736d62beb6e2e8df321d7cb4842a2b894f2025c47b31871d9f1">
+      <source xml:lang="en">More actions</source>
     </trans-unit>
     <trans-unit id="++CODE++0c94b5f19becc4862e3862d599e2d386c40079841aba3ab70d05241df1ff6802">
       <source xml:lang="en">More actions for {0}</source>
@@ -8936,6 +8943,9 @@
     <trans-unit id="++CODE++39689cd482388c355f7e0721e799cc73bb6a968b7f8c6f81d99778ca62ce8ab4">
       <source xml:lang="en">This deployment is no longer tracked. Refresh the deployments list and try again.</source>
     </trans-unit>
+    <trans-unit id="++CODE++20766bf27fdaeb9525112dbbed778777df1e9fcb91315521e19232d83cb0d63e">
+      <source xml:lang="en">This deployment is running an earlier version of your configuration. Redeploy it to serve the current one.</source>
+    </trans-unit>
     <trans-unit id="++CODE++424524b73f7b54ca2663888521169681b82129343191178726fb2d93a58fc294">
       <source xml:lang="en">This deployment&apos;s configuration file is missing, so it cannot be started. Redeploy it instead.</source>
     </trans-unit>
@@ -9103,6 +9113,10 @@
     </trans-unit>
     <trans-unit id="++CODE++baaddf70fb5d432b8bd948ef91d6f910124a6d138edae4d5f000c4610ddc8eae">
       <source xml:lang="en">Type</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a5d32f402ac443625efce54dabaa7134cb0692ab7e0297051801b19a1101d5aa">
+      <source xml:lang="en">Type {0} to confirm.</source>
+      <note>{0} is the deployment name the user must type</note>
     </trans-unit>
     <trans-unit id="++CODE++eab9bd4ed6506f418e00977a0a7bcc445774cac844a2f6debffeff1efc0b75f2">
       <source xml:lang="en">TypeORM</source>
@@ -9748,6 +9762,9 @@
     </trans-unit>
     <trans-unit id="++CODE++053647276061b7d42afcaab6e846a76c03cf9c3c023ec3d982e296bb30dd6094">
       <source xml:lang="en">items selected</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7ddb44d8a533a7535d85cedddf35d7f3414632ad4e10a0d7ca697723e1d97993">
+      <source xml:lang="en">just now</source>
     </trans-unit>
     <trans-unit id="++CODE++44eaba29486899334009b57f2ba4ef6c871017792c74e6e829958164087f3ea0">
       <source xml:lang="en">label: {0} does not exist in the options value name lookup</source>

@@ -2278,12 +2278,19 @@ export class LocConstants {
             deploymentConfigOutdatedTooltip: l10n.t(
                 "Your configuration has changed since this container was deployed. Redeploy to apply the changes.",
             ),
-            deployedOn: (timestamp: string) =>
+            deployedOn: (relativeTime: string) =>
                 l10n.t({
                     message: "Deployed {0}",
-                    args: [timestamp],
-                    comment: ["{0} is a localized date and time"],
+                    args: [relativeTime],
+                    comment: ["{0} is a relative time such as '5 minutes ago'"],
                 }),
+            deployedAt: (timestamp: string) =>
+                l10n.t({
+                    message: "Deployed at {0}",
+                    args: [timestamp],
+                    comment: ["{0} is a localized absolute date and time"],
+                }),
+            justNow: l10n.t("just now"),
             deploymentPort: (port: number) =>
                 l10n.t({
                     message: "Port {0}",
@@ -2305,6 +2312,18 @@ export class LocConstants {
                     args: [containerName],
                     comment: ["{0} is the Docker container name"],
                 }),
+            deploymentActions: l10n.t("More actions"),
+            deploymentConfigOutdatedTitle: l10n.t("Configuration has changed"),
+            deploymentConfigOutdatedBody: l10n.t(
+                "This deployment is running an earlier version of your configuration. Redeploy it to serve the current one.",
+            ),
+            deleteDeploymentTypeToConfirm: (name: string) =>
+                l10n.t({
+                    message: "Type {0} to confirm.",
+                    args: [name],
+                    comment: ["{0} is the deployment name the user must type"],
+                }),
+            deleteDeploymentNameLabel: l10n.t("Deployment name"),
             deleteCliDeploymentConfirmMessage: (name: string) =>
                 l10n.t({
                     message:
@@ -2360,8 +2379,6 @@ export class LocConstants {
             deploymentSettings: l10n.t("Deployment settings"),
             deploymentName: l10n.t("Name"),
             deploymentNameHint: l10n.t("A name for this deployment"),
-            deploymentTargetLabelDocker: l10n.t("Docker"),
-            deploymentTargetLabelDabCli: l10n.t("DAB CLI"),
 
             // DAB reset configuration
             resetConfig: l10n.t("Reset"),
