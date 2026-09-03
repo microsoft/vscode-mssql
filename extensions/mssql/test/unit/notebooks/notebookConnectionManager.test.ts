@@ -69,7 +69,6 @@ function makeConnectionInfo(overrides?: Partial<IConnectionInfo>): IConnectionIn
         multipleActiveResultSets: undefined,
         packetSize: undefined,
         typeSystemVersion: undefined,
-        connectionString: undefined,
         containerName: undefined,
         ...overrides,
     };

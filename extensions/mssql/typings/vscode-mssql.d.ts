@@ -297,11 +297,6 @@ declare module "vscode-mssql" {
         typeSystemVersion: string | undefined;
 
         /**
-         * Gets or sets the connection string to use for this connection.
-         */
-        connectionString: string | undefined;
-
-        /**
          * Gets or sets the name of the connection's container; undefined if the
          * connection is not hosted by a container
          */

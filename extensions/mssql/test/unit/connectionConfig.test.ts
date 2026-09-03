@@ -14,7 +14,7 @@ import { IConnectionGroup, IConnectionProfile } from "../../src/models/interface
 import * as Constants from "../../src/constants/constants";
 import * as LocalizedConstants from "../../src/constants/locConstants";
 import { deepClone } from "../../src/models/utils";
-import { stubMessageBoxes } from "./utils";
+import { createStubLogger, stubMessageBoxes } from "./utils";
 
 const { expect } = chai;
 
@@ -194,6 +194,38 @@ suite("ConnectionConfig Tests", () => {
             expect(savedProfiles).to.have.lengthOf(1);
             expect(savedProfiles[0].id).to.not.be.undefined;
             expect(savedProfiles[0].groupId).to.equal(ConnectionConfig.ROOT_GROUP_ID);
+        });
+
+        test("Initialization ignores legacy connection string profiles", async () => {
+            const mockLogger = createStubLogger(sandbox);
+            mockGlobalConfigData.set(Constants.connectionGroupsArrayName, [
+                { name: "ROOT", id: ConnectionConfig.ROOT_GROUP_ID },
+            ]);
+            mockGlobalConfigData.set(Constants.connectionsArrayName, [
+                {
+                    id: "legacy-profile-id",
+                    groupId: ConnectionConfig.ROOT_GROUP_ID,
+                    connectionString: "Server=legacy-server;Integrated Security=true",
+                    profileName: "Legacy Profile",
+                },
+                {
+                    id: "valid-profile-id",
+                    groupId: ConnectionConfig.ROOT_GROUP_ID,
+                    server: "valid-server",
+                    authenticationType: "Integrated",
+                    profileName: "Valid Profile",
+                },
+            ]);
+
+            const connConfig = new ConnectionConfig(mockLogger);
+            await connConfig.initialized;
+
+            const profiles = await connConfig.getConnections();
+            expect(profiles.map((profile) => profile.id)).to.deep.equal(["valid-profile-id"]);
+            expect(mockLogger.warn).to.have.been.calledOnceWith(
+                sinon.match("Connection string found in connection profile 'Legacy Profile'"),
+            );
+            expect(mockLogger.warn).to.have.been.calledWith(sinon.match("Recreate the connection"));
         });
 
         test("Initialization doesn't make changes when all IDs are present", async () => {
