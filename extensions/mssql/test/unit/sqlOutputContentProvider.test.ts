@@ -676,6 +676,40 @@ suite("SqlOutputProvider Tests using mocks", () => {
         });
     });
 
+    test("Error messages use the absolute selection supplied by SQL Tools Service", async () => {
+        const uri = "test_uri";
+        const errorMessage = "Msg 102, Level 15, State 1, Line 30\nIncorrect syntax near 'FROM'.";
+        const errorSelection: ISelectionData = {
+            startLine: 29,
+            startColumn: 0,
+            endLine: 29,
+            endColumn: 0,
+        };
+        sandbox.stub(QueryRunner.prototype, "runQuery").resolves();
+
+        await contentProvider.runQuery(statusViewInstance, uri, undefined, "test_title");
+        const runner = contentProvider.getQueryRunner(uri);
+        runner.handleMessage({
+            ownerUri: uri,
+            message: {
+                message: errorMessage,
+                isError: true,
+                time: new Date().toISOString(),
+                batchId: 0,
+                errorSelection,
+            },
+        });
+
+        const state = contentProvider.queryResultWebviewController.getQueryResultState(uri);
+        expect(state.messages).to.have.length(1);
+        expect(state.messages[0].selection).to.deep.equal(errorSelection);
+        expect(state.messages[0].link).to.deep.equal({
+            text: "Line 30",
+            uri,
+        });
+        expect(state.messages[0]).not.to.have.property("errorSelection");
+    });
+
     test("runCurrentStatement calls runStatement with correct options when actual plan is enabled", async () => {
         const uri = "test_uri";
         const title = "test_title";

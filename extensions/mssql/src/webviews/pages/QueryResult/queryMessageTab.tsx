@@ -79,24 +79,35 @@ export const QueryMessageTab = () => {
             renderHeaderCell: () => <>{locConstants.queryResult.message}</>,
             renderCell: (item) => {
                 if (item.link?.text && item.selection) {
+                    const navigate = async () => {
+                        await context.extensionRpc.sendRequest(qr.SetEditorSelectionRequest.type, {
+                            uri: item.link?.uri,
+                            selectionData: item.selection,
+                        });
+                    };
+                    // Structured query errors link only their line segment. Other messages append
+                    // their link, which is how the batch start message reads.
+                    const linkStart = item.message.indexOf(item.link.text);
                     return (
                         <DataGridCell focusMode="group" style={{ minHeight: "18px" }}>
-                            <div style={{ whiteSpace: "pre" }}>
-                                {item.message}{" "}
-                                <Link
-                                    className={classes.messagesLink}
-                                    onClick={async () => {
-                                        await context.extensionRpc.sendRequest(
-                                            qr.SetEditorSelectionRequest.type,
-                                            {
-                                                uri: item.link?.uri,
-                                                selectionData: item.selection,
-                                            },
-                                        );
-                                    }}
-                                    inline>
-                                    {item?.link?.text}
+                            <div
+                                style={{
+                                    whiteSpace: "pre",
+                                    color: item.isError
+                                        ? "var(--vscode-errorForeground)"
+                                        : undefined,
+                                }}>
+                                {linkStart === -1 ? (
+                                    <>{item.message} </>
+                                ) : (
+                                    item.message.slice(0, linkStart)
+                                )}
+                                <Link className={classes.messagesLink} onClick={navigate} inline>
+                                    {item.link.text}
                                 </Link>
+                                {linkStart === -1
+                                    ? undefined
+                                    : item.message.slice(linkStart + item.link.text.length)}
                             </div>
                         </DataGridCell>
                     );
