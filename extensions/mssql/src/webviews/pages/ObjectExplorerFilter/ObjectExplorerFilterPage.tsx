@@ -111,7 +111,6 @@ export const ObjectExplorerFilterPage = () => {
     const context = useContext(ObjectExplorerFilterContext);
     const filterProperties = useObjectExplorerFilterSelector((s) => s?.filterProperties);
     const existingFilters = useObjectExplorerFilterSelector((s) => s?.existingFilters);
-    const isPreviewEnabled = useObjectExplorerFilterSelector((s) => s?.isPreviewEnabled) ?? false;
     const filterPresets = useObjectExplorerFilterSelector((s) => s?.filterPresets);
     const nodePath = useObjectExplorerFilterSelector((s) => s?.nodePath);
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
@@ -297,7 +296,6 @@ export const ObjectExplorerFilterPage = () => {
                     choices: getFilterChoices(property) ?? [],
                     operatorOptions,
                     selectedOperator,
-                    description: property.description,
                 };
             }) ?? []
         );
@@ -543,19 +541,19 @@ export const ObjectExplorerFilterPage = () => {
         }
 
         const normalizedSaveName = saveName.trim();
-        if (isPreviewEnabled && saveFilter && !normalizedSaveName) {
+        if (saveFilter && !normalizedSaveName) {
             setErrorMessage(locConstants.objectExplorerFiltering.filterNameRequired);
             requestAnimationFrame(() => document.getElementById("save-filter-name")?.focus());
             return;
         }
 
-        if (isPreviewEnabled && saveFilter && filters.length === 0) {
+        if (saveFilter && filters.length === 0) {
             setErrorMessage(locConstants.objectExplorerFiltering.filterValueRequiredToSave);
             requestPrimaryFilterFocus();
             return;
         }
 
-        context.submit(filters, isPreviewEnabled && saveFilter ? normalizedSaveName : undefined);
+        context.submit(filters, saveFilter ? normalizedSaveName : undefined);
     };
 
     const getFilterDisplayValue = (filter: NodeFilter): string => {
@@ -651,21 +649,29 @@ export const ObjectExplorerFilterPage = () => {
                 </Button>
             </Tooltip>
             <Tooltip
-                content={locConstants.objectExplorerFiltering.applyTooltip(
-                    locConstants.objectExplorerFiltering.enter,
-                )}
+                content={
+                    saveFilter
+                        ? locConstants.objectExplorerFiltering.saveAndApplyTooltip(
+                              locConstants.objectExplorerFiltering.enter,
+                          )
+                        : locConstants.objectExplorerFiltering.applyTooltip(
+                              locConstants.objectExplorerFiltering.enter,
+                          )
+                }
                 relationship="description">
                 <Button
                     type="submit"
                     appearance="primary"
                     aria-keyshortcuts="Enter"
-                    disabled={isPreviewEnabled && saveFilter && !saveName.trim()}
+                    disabled={saveFilter && !saveName.trim()}
                     title={
-                        isPreviewEnabled && saveFilter && !saveName.trim()
+                        saveFilter && !saveName.trim()
                             ? locConstants.objectExplorerFiltering.filterNameRequired
                             : undefined
                     }>
-                    {locConstants.objectExplorerFiltering.apply}
+                    {saveFilter
+                        ? locConstants.objectExplorerFiltering.saveAndApply
+                        : locConstants.objectExplorerFiltering.apply}
                 </Button>
             </Tooltip>
         </div>
@@ -676,74 +682,60 @@ export const ObjectExplorerFilterPage = () => {
             <DialogPageShell
                 icon={<FilterFunnelIcon16Regular />}
                 title={locConstants.objectExplorerFiltering.filterSettings}
-                subtitle={isPreviewEnabled ? nodePathBreadcrumb : nodePath}
+                subtitle={nodePathBreadcrumb}
                 errorMessage={errorMessage}
-                maxContentWidth={isPreviewEnabled ? 1120 : "medium"}
-                iconSize={isPreviewEnabled ? 18 : undefined}
-                compactHeader={isPreviewEnabled}
-                footerStart={isPreviewEnabled ? undefined : clearButton}
-                footerEnd={isPreviewEnabled ? undefined : dialogButtons}>
-                {isPreviewEnabled ? (
-                    <div className={classes.contentLayout}>
-                        <div className={classes.editorColumn}>
-                            <div className={classes.saveOptions}>
-                                <Checkbox
-                                    checked={saveFilter}
-                                    label={locConstants.objectExplorerFiltering.saveThisFilter}
-                                    onChange={(_event, data) =>
-                                        setSaveFilter(data.checked === true)
-                                    }
-                                />
-                                {saveFilter && (
-                                    <Field
-                                        label={locConstants.objectExplorerFiltering.filterName}
-                                        required>
-                                        <Input
-                                            id="save-filter-name"
-                                            className={classes.saveName}
-                                            value={saveName}
-                                            placeholder={
-                                                locConstants.objectExplorerFiltering
-                                                    .filterNamePlaceholder
-                                            }
-                                            onChange={(_event, data) => setSaveName(data.value)}
-                                        />
-                                    </Field>
-                                )}
-                            </div>
-                            <ObjectExplorerFilterContent
-                                uiFilters={uiFilters}
-                                setUiFilters={updateUiFilters}
-                                getFilterOperatorString={getFilterOperatorString}
-                                primaryFilterIndex={primaryFilterIndex}
-                                setPrimaryFilterElement={setPrimaryFilterElement}
+                maxContentWidth={1120}
+                iconSize={18}
+                compactHeader>
+                <div className={classes.contentLayout}>
+                    <div className={classes.editorColumn}>
+                        <div className={classes.saveOptions}>
+                            <Checkbox
+                                checked={saveFilter}
+                                label={locConstants.objectExplorerFiltering.saveThisFilter}
+                                onChange={(_event, data) => setSaveFilter(data.checked === true)}
                             />
-                            <div className={classes.previewFooter}>
-                                {clearButton}
-                                {dialogButtons}
-                            </div>
+                            {saveFilter && (
+                                <Field
+                                    label={locConstants.objectExplorerFiltering.filterName}
+                                    required>
+                                    <Input
+                                        id="save-filter-name"
+                                        className={classes.saveName}
+                                        value={saveName}
+                                        placeholder={
+                                            locConstants.objectExplorerFiltering
+                                                .filterNamePlaceholder
+                                        }
+                                        onChange={(_event, data) => setSaveName(data.value)}
+                                    />
+                                </Field>
+                            )}
                         </div>
-                        <aside className={classes.reusableFiltersColumn}>
-                            <ObjectExplorerFilterPresets
-                                presets={filterPresets}
-                                selectedPresetId={selectedPresetId}
-                                getDetails={getPresetDetails}
-                                onSelect={selectPreset}
-                                onSetPinned={context.setPresetPinned}
-                                onDelete={deletePreset}
-                                onRename={context.renamePreset}
-                            />
-                        </aside>
+                        <ObjectExplorerFilterContent
+                            uiFilters={uiFilters}
+                            setUiFilters={updateUiFilters}
+                            getFilterOperatorString={getFilterOperatorString}
+                            primaryFilterIndex={primaryFilterIndex}
+                            setPrimaryFilterElement={setPrimaryFilterElement}
+                        />
+                        <div className={classes.previewFooter}>
+                            {clearButton}
+                            {dialogButtons}
+                        </div>
                     </div>
-                ) : (
-                    <ObjectExplorerFilterContent
-                        uiFilters={uiFilters}
-                        setUiFilters={updateUiFilters}
-                        getFilterOperatorString={getFilterOperatorString}
-                        primaryFilterIndex={primaryFilterIndex}
-                        setPrimaryFilterElement={setPrimaryFilterElement}
-                    />
-                )}
+                    <aside className={classes.reusableFiltersColumn}>
+                        <ObjectExplorerFilterPresets
+                            presets={filterPresets}
+                            selectedPresetId={selectedPresetId}
+                            getDetails={getPresetDetails}
+                            onSelect={selectPreset}
+                            onSetPinned={context.setPresetPinned}
+                            onDelete={deletePreset}
+                            onRename={context.renamePreset}
+                        />
+                    </aside>
+                </div>
             </DialogPageShell>
         </form>
     );

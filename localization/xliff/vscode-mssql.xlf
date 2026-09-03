@@ -5434,9 +5434,6 @@
     <trans-unit id="++CODE++b76bc80b8a0e64a7d4bdcb44be4f61adea3c7657d8ab9c599ab349d1d772d7b1">
       <source xml:lang="en">Move selection to the last cell in the row</source>
     </trans-unit>
-    <trans-unit id="++CODE++8710c37bff459c290072633f29a51f66f7ffc220d8594a461ea44aff3640e749">
-      <source xml:lang="en">Move to Recent</source>
-    </trans-unit>
     <trans-unit id="++CODE++27b4c707cf413882a14ef7b762694ed52bbf69755646afa8cf1972dec4cf3c92">
       <source xml:lang="en">Move to Root</source>
     </trans-unit>
@@ -6299,9 +6296,6 @@
     <trans-unit id="++CODE++4c09d189302f2506e79be79caf623ccc300816ff936119f9dc5f5bbfd9ee5b0a">
       <source xml:lang="en">Pick from multiple SQL Server versions, including SQL Server 2025 with built-in AI capabilities like vector search and JSON enhancements.</source>
     </trans-unit>
-    <trans-unit id="++CODE++7402b850c8ea04211c0bde6a01e934211ac94feed7e01d1d719473b9a453b644">
-      <source xml:lang="en">Pin to Saved</source>
-    </trans-unit>
     <trans-unit id="++CODE++2d88a61abeffd59a3bd59240d49c72a6b54deaecde6c449c2a4fd88f698d2628">
       <source xml:lang="en">Please Accept the SQL Server EULA</source>
     </trans-unit>
@@ -6842,6 +6836,9 @@
     <trans-unit id="++CODE++18720329ca307c792fee6c6c1f707145c981d07c2b5a1b7127732ccd6e7203eb">
       <source xml:lang="en">Remove from favorites</source>
     </trans-unit>
+    <trans-unit id="++CODE++45a768226b6eb7eca5f849cc961fce9ec9c5c278deae1db8acfddce9cd5f43c5">
+      <source xml:lang="en">Remove from saved filters</source>
+    </trans-unit>
     <trans-unit id="++CODE++d5001dd4aab39b12094fd9e9b68e3b8ab67a6437c8eeaf592f0943dcd5851890">
       <source xml:lang="en">Remove sort</source>
     </trans-unit>
@@ -7268,6 +7265,13 @@
     <trans-unit id="++CODE++072fb040dae019a32d416f0ad48852b98a2544da0e126c054ea338011ae0d63a">
       <source xml:lang="en">Save Secret</source>
     </trans-unit>
+    <trans-unit id="++CODE++6b93458b8efd284fb830885ed38c172565b677f208e972fbace1b47f79415423">
+      <source xml:lang="en">Save and Apply</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d5080bf6371aad6675debbdfd41ebeb56f3766b1ab3785a741578f53f03b4235">
+      <source xml:lang="en">Save and Apply ({0})</source>
+      <note>{0} is the keyboard shortcut for saving and applying the filter</note>
+    </trans-unit>
     <trans-unit id="++CODE++e50761ebedbdddb4dd4afb99a7c0964cf8bfed33ec03cb39f5a08e65812c795a">
       <source xml:lang="en">Save as CSV</source>
     </trans-unit>
@@ -7301,6 +7305,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e7e6421e77a208718956538ea14f589ab43207800d985563be7e407d0a369c96">
       <source xml:lang="en">Save connection profile changes without establishing a connection</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9fe5192ce42624a022d06949c749cfa30da826dd75f0390fef7baf5436c1a4db">
+      <source xml:lang="en">Save filter</source>
     </trans-unit>
     <trans-unit id="++CODE++e86cf7b88cde4602bf09208d61b915b3990896c08dfc027f85aaf61296311506">
       <source xml:lang="en">Save password</source>
@@ -10396,9 +10403,6 @@
     </trans-unit>
     <trans-unit id="mssql.enableConnectionPooling">
       <source xml:lang="en">Enables connection pooling to improve overall connectivity performance. This setting is disabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: &apos;MS SQL: Clear Pooled Connections&apos;. Note: May keep serverless databases active and prevent auto-pausing.</source>
-    </trans-unit>
-    <trans-unit id="mssql.preview.betaObjectExplorerFilter.description">
-      <source xml:lang="en">Enables the preview Object Explorer filter experience with saved filter presets and recently applied filters. Disable this setting to use the existing Object Explorer filter experience.</source>
     </trans-unit>
     <trans-unit id="mssql.preview.betaExecutionPlan.description">
       <source xml:lang="en">Enables the preview query execution plan experience with improved layout, keyboard navigation, tooltips, SQL text display, and toolbar interactions. Disable this setting to use the existing execution plan experience.</source>

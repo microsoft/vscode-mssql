@@ -244,7 +244,6 @@
     "mssql.Configuration": "MSSQL",
     "mssql.chooseAuthMethod": "Chooses which Authentication method to use",
     "mssql.preview.betaResultsGrid.description": "Enables the preview query results grid experience with improved state management and more column customization options, including showing, hiding, and freezing columns.",
-    "mssql.preview.betaObjectExplorerFilter.description": "Enables the preview Object Explorer filter experience with saved filter presets and recently applied filters. Disable this setting to use the existing Object Explorer filter experience.",
     "mssql.preview.betaExecutionPlan.description": "Enables the preview query execution plan experience with improved layout, keyboard navigation, tooltips, SQL text display, and toolbar interactions. Disable this setting to use the existing execution plan experience.",
     "mssql.useMsalEntraMfaAuth.description": "Uses MSAL for Microsoft Entra MFA authentication instead of VS Code signed-in accounts. Restart Visual Studio Code after changing this setting.",
     "mssql.authCodeGrant.description": "Prompts users to sign in using their browser.",
