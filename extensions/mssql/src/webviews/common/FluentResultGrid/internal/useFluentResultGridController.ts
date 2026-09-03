@@ -41,6 +41,7 @@ import {
 } from "./fluentResultGridHeaderController";
 import {
     FLUENT_RESULT_GRID_DEFAULT_FROZEN_COLUMN_INDEX,
+    areFluentResultGridColumnLayoutsEqual,
     createFluentResultGridIdentitySignature,
     getFluentResultGridRowHeight,
     getFluentResultGridStateForEmit,
@@ -312,11 +313,14 @@ export function useFluentResultGridController({
                     if (initialState.columnWidths?.length) {
                         layoutController.cancelAutoSizeColumns();
                     }
+                    const currentColumns = grid.getColumns() as Column<FluentResultGridDataRow>[];
                     const restoredColumns = restoreFluentResultGridColumnWidths(
-                        grid.getColumns() as Column<FluentResultGridDataRow>[],
+                        currentColumns,
                         initialState,
                     );
-                    grid.setColumns(restoredColumns);
+                    if (!areFluentResultGridColumnLayoutsEqual(currentColumns, restoredColumns)) {
+                        grid.setColumns(restoredColumns);
+                    }
                 }
 
                 dataController.filterStateRef.current = initialState?.filters ?? {};
@@ -336,15 +340,23 @@ export function useFluentResultGridController({
                 let restoredColumns = grid.getColumns() as Column<FluentResultGridDataRow>[];
                 if (Array.isArray(initialState?.hiddenColumnIds)) {
                     const hiddenColumnIds = new Set(initialState.hiddenColumnIds);
-                    restoredColumns = restoredColumns.map((column) =>
-                        isFluentResultGridDataColumn(column)
-                            ? {
-                                  ...column,
-                                  hidden: hiddenColumnIds.has(column.id.toString()),
-                              }
-                            : column,
-                    );
-                    grid.setColumns(restoredColumns);
+                    const columnsWithRestoredVisibility = restoredColumns.map((column) => {
+                        if (!isFluentResultGridDataColumn(column)) {
+                            return column;
+                        }
+
+                        const hidden = hiddenColumnIds.has(column.id.toString());
+                        return Boolean(column.hidden) === hidden ? column : { ...column, hidden };
+                    });
+                    if (
+                        !areFluentResultGridColumnLayoutsEqual(
+                            restoredColumns,
+                            columnsWithRestoredVisibility,
+                        )
+                    ) {
+                        grid.setColumns(columnsWithRestoredVisibility);
+                    }
+                    restoredColumns = columnsWithRestoredVisibility;
                 }
 
                 const restoredFrozenColumnIndex = normalizeFluentResultGridFrozenColumnIndex(

@@ -25,6 +25,7 @@ import { perfMarkAfterNextPaint } from "../../common/perfMarks";
 import { eventMatchesShortcut } from "../../common/keyboardUtils";
 import { WebviewAction } from "../../../sharedInterfaces/webview";
 import debounce from "lodash/debounce";
+import { LazyMount } from "../../common/lazyMount";
 
 const useStyles = makeStyles({
     gridViewContainer: {
@@ -58,6 +59,7 @@ type ResultGridComponent = ForwardRefExoticComponent<
 
 export interface QueryResultsGridViewProps {
     GridComponent: ResultGridComponent;
+    deferOffscreenGridRendering?: boolean;
     showExternalCommandBar?: boolean;
 }
 
@@ -71,6 +73,7 @@ const BASE_ROW_PADDING = 12;
 
 export const QueryResultsGridView = ({
     GridComponent,
+    deferOffscreenGridRendering = false,
     showExternalCommandBar = true,
 }: QueryResultsGridViewProps) => {
     const classes = useStyles();
@@ -535,15 +538,17 @@ export const QueryResultsGridView = ({
                                 "--results-row-padding": `${gridSettings?.rowPadding ?? 0}px`,
                             } as React.CSSProperties
                         }>
-                        <div
+                        <LazyMount
+                            enabled={deferOffscreenGridRendering && !isMaximized}
+                            rootRef={gridViewContainerRef}
+                            containerRef={containerRef}
                             style={{
                                 flex: 1,
                                 minWidth: 0,
                                 minHeight: 0,
                                 height: "100%",
                                 overflow: "hidden",
-                            }}
-                            ref={containerRef}>
+                            }}>
                             <GridComponent
                                 gridId={gridKey}
                                 key={gridKey}
@@ -563,7 +568,7 @@ export const QueryResultsGridView = ({
                                     handleGridSelectionChange(gridKey, hasSelection)
                                 }
                             />
-                        </div>
+                        </LazyMount>
                         {showExternalCommandBar && (
                             <CommandBar
                                 uri={uri}

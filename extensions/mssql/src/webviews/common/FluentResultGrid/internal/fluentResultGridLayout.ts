@@ -63,6 +63,31 @@ export function useFluentResultGridLayout({
 }): FluentResultGridLayoutController {
     const frozenPaneWheelCleanupRef = useRef<(() => void) | undefined>(undefined);
     const autoSizeRequestIdRef = useRef(0);
+    const autoSizeCanvasContextRef = useRef<CanvasRenderingContext2D | null | undefined>(undefined);
+    const autoSizeFontRef = useRef<string | undefined>(undefined);
+
+    const getAutoSizeCanvasContext = useCallback(() => {
+        if (autoSizeCanvasContextRef.current === undefined) {
+            autoSizeCanvasContextRef.current = document.createElement("canvas").getContext("2d");
+        }
+
+        const canvasContext = autoSizeCanvasContextRef.current;
+        if (!canvasContext) {
+            return undefined;
+        }
+
+        if (autoSizeFontRef.current === undefined) {
+            const computedStyle = containerRef.current
+                ? window.getComputedStyle(containerRef.current)
+                : undefined;
+            const fontSize =
+                parseInt(computedStyle?.fontSize ?? "", 10) || FLUENT_RESULT_GRID_DEFAULT_FONT_SIZE;
+            const fontFamily = computedStyle?.fontFamily ?? "monospace";
+            autoSizeFontRef.current = `${fontSize}px ${fontFamily}`;
+        }
+        canvasContext.font = autoSizeFontRef.current;
+        return canvasContext;
+    }, [containerRef]);
 
     const refreshFrozenColumnLayout = useCallback(
         (grid: SlickGrid) => {
@@ -202,19 +227,12 @@ export function useFluentResultGridLayout({
                 return true;
             }
 
-            const canvasContext = document.createElement("canvas").getContext("2d");
+            const canvasContext = getAutoSizeCanvasContext();
             if (!canvasContext) {
                 return true;
             }
 
-            const computedStyle = containerRef.current
-                ? window.getComputedStyle(containerRef.current)
-                : undefined;
-            const fontSize =
-                parseInt(computedStyle?.fontSize ?? "", 10) || FLUENT_RESULT_GRID_DEFAULT_FONT_SIZE;
-            const fontFamily = computedStyle?.fontFamily ?? "monospace";
-            canvasContext.font = `${fontSize}px ${fontFamily}`;
-
+            let columnsChanged = false;
             const resizedColumns = grid.getColumns().map((column, columnIndex) => {
                 if (column.id === FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_ID || columnIndex === 0) {
                     return column;
@@ -239,27 +257,32 @@ export function useFluentResultGridLayout({
                       }, 0)
                     : 0;
 
-                return {
-                    ...column,
-                    width: Math.max(
-                        FLUENT_RESULT_GRID_MIN_COLUMN_WIDTH,
-                        Math.min(
-                            FLUENT_RESULT_GRID_MAX_COLUMN_WIDTH,
-                            Math.ceil(Math.max(headerWidth, dataWidth)) + 1,
-                        ),
+                const width = Math.max(
+                    FLUENT_RESULT_GRID_MIN_COLUMN_WIDTH,
+                    Math.min(
+                        FLUENT_RESULT_GRID_MAX_COLUMN_WIDTH,
+                        Math.ceil(Math.max(headerWidth, dataWidth)) + 1,
                     ),
-                };
+                );
+                if (column.width === width) {
+                    return column;
+                }
+
+                columnsChanged = true;
+                return { ...column, width };
             });
 
             if (requestId !== undefined && autoSizeRequestIdRef.current !== requestId) {
                 return true;
             }
 
-            grid.setColumns(resizedColumns);
-            grid.invalidate();
+            if (columnsChanged) {
+                grid.setColumns(resizedColumns);
+                grid.invalidate();
+            }
             return true;
         },
-        [autoSizeColumnsMode, containerRef, dataView, latestRowCountRef, reactGridRef],
+        [autoSizeColumnsMode, dataView, getAutoSizeCanvasContext, latestRowCountRef, reactGridRef],
     );
 
     const scheduleAutoSizeColumns = useCallback(
@@ -312,17 +335,10 @@ export function useFluentResultGridLayout({
      */
     const autoSizeColumnByContent = useCallback(
         async (grid: SlickGrid, columnId: string): Promise<void> => {
-            const canvasContext = document.createElement("canvas").getContext("2d");
+            const canvasContext = getAutoSizeCanvasContext();
             if (!canvasContext) {
                 return;
             }
-
-            const computedStyle = containerRef.current
-                ? window.getComputedStyle(containerRef.current)
-                : undefined;
-            const fontSize =
-                parseInt(computedStyle?.fontSize ?? "", 10) || FLUENT_RESULT_GRID_DEFAULT_FONT_SIZE;
-            canvasContext.font = `${fontSize}px ${computedStyle?.fontFamily ?? "monospace"}`;
 
             await autoSizeFluentResultGridColumnByContent({
                 grid,
@@ -341,7 +357,7 @@ export function useFluentResultGridLayout({
                 measureText: (text) => canvasContext.measureText(text).width,
             });
         },
-        [containerRef, dataView, latestRowCountRef],
+        [dataView, getAutoSizeCanvasContext, latestRowCountRef],
     );
 
     return {
