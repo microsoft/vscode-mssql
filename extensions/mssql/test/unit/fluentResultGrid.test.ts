@@ -21,6 +21,7 @@ import {
 } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridTransforms";
 import {
     FLUENT_RESULT_GRID_DEFAULT_FROZEN_COLUMN_INDEX,
+    areFluentResultGridColumnLayoutsEqual,
     getFluentResultGridCurrentViewState,
     getFluentResultGridInitialFrozenColumnIndex,
     normalizeFluentResultGridFrozenColumnIndex,
@@ -81,6 +82,7 @@ import {
 import { isFluentResultGridResizeHandleEvent } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridHeaderController";
 import { FluentResultGridSelectionModel } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridSelectionModel";
 import { dispatchFluentResultGridSelectionChange } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridSlickLifecycle";
+import { createFluentResultGridDataView } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridDataView";
 
 chai.use(sinonChai);
 const { expect } = chai;
@@ -212,6 +214,97 @@ suite("Fluent Result Grid", () => {
             expect(changedSchema).to.not.equal(first);
             expect(changedSchema.value).to.not.equal(first.value);
         });
+    });
+
+    suite("data view", () => {
+        test("reuses loaded or in-flight windows until a reload is explicitly requested", async () => {
+            const getRows = sandbox
+                .stub()
+                .callsFake(async (offset: number, count: number) =>
+                    Array.from({ length: count }, (_value, index) => [
+                        cell((offset + index).toString()),
+                    ]),
+                );
+            const dataView = createFluentResultGridDataView({
+                dataSource: {
+                    kind: "windowed",
+                    rowCount: 100,
+                    getRows,
+                },
+                columnCount: 1,
+                windowSize: 50,
+            });
+
+            dataView.getItem(0);
+            expect(getRows).to.have.callCount(2);
+
+            dataView.setLength(101, false);
+            dataView.getItem(0);
+            expect(getRows).to.have.callCount(2);
+
+            await Promise.resolve();
+            await Promise.resolve();
+            dataView.setLength(102, false);
+            dataView.getItem(0);
+            expect(getRows).to.have.callCount(2);
+
+            dataView.refresh(0);
+            expect(getRows).to.have.callCount(4);
+            dataView.dispose();
+        });
+
+        const incompleteResponses: Array<{
+            name: string;
+            response: DbCellValue[][] | Error | undefined;
+        }> = [
+            { name: "an empty response", response: [] },
+            { name: "a partial response", response: [[cell("partial")]] },
+            { name: "a malformed response", response: undefined },
+            { name: "a rejected request", response: new Error("load failed") },
+        ];
+
+        for (const { name, response } of incompleteResponses) {
+            test(`retries an unchanged window through getItem after ${name}`, async () => {
+                let firstWindowRequestCount = 0;
+                const getRows = sandbox.stub().callsFake(async (offset: number, count: number) => {
+                    if (offset === 0 && firstWindowRequestCount++ === 0) {
+                        if (response instanceof Error) {
+                            throw response;
+                        }
+
+                        return response as DbCellValue[][];
+                    }
+
+                    return Array.from({ length: count }, (_value, index) => [
+                        cell((offset + index).toString()),
+                    ]);
+                });
+                const dataView = createFluentResultGridDataView({
+                    dataSource: {
+                        kind: "windowed",
+                        rowCount: 100,
+                        getRows,
+                    },
+                    columnCount: 1,
+                    windowSize: 50,
+                });
+
+                dataView.getItem(0);
+                expect(getRows).to.have.callCount(2);
+
+                await Promise.resolve();
+                await Promise.resolve();
+                dataView.getItem(0);
+                expect(getRows).to.have.callCount(3);
+
+                await Promise.resolve();
+                await Promise.resolve();
+                const loadedRow = dataView.getItem(0);
+                expect(getRows).to.have.callCount(3);
+                expect(loadedRow["0"]).to.include({ displayValue: "0" });
+                dataView.dispose();
+            });
+        }
     });
 
     suite("transforms", () => {
@@ -398,6 +491,29 @@ suite("Fluent Result Grid", () => {
     });
 
     suite("state helpers", () => {
+        test("compares the column layout fields that require a SlickGrid reset", () => {
+            const columns = [
+                { id: "rowNumbers", field: "rowNumbers", width: 36 },
+                { id: "0", field: "0", width: 120, hidden: false },
+            ];
+
+            expect(
+                areFluentResultGridColumnLayoutsEqual(columns, [
+                    { ...columns[0] },
+                    { ...columns[1], hidden: undefined },
+                ]),
+            ).to.equal(true);
+            expect(
+                areFluentResultGridColumnLayoutsEqual(columns, [
+                    columns[0],
+                    { ...columns[1], width: 160 },
+                ]),
+            ).to.equal(false);
+            expect(
+                areFluentResultGridColumnLayoutsEqual(columns, [columns[1], columns[0]]),
+            ).to.equal(false);
+        });
+
         test("persists and restores the row number column width", () => {
             const currentColumns = [
                 { ...createFluentResultGridRowNumberColumn(), width: 80 },

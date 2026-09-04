@@ -134,6 +134,24 @@ export function restoreFluentResultGridColumnWidths(
     });
 }
 
+export function areFluentResultGridColumnLayoutsEqual(
+    currentColumns: readonly Column<FluentResultGridDataRow>[],
+    nextColumns: readonly Column<FluentResultGridDataRow>[],
+): boolean {
+    return (
+        currentColumns.length === nextColumns.length &&
+        currentColumns.every((column, index) => {
+            const nextColumn = nextColumns[index];
+            return (
+                nextColumn !== undefined &&
+                column.id === nextColumn.id &&
+                column.width === nextColumn.width &&
+                Boolean(column.hidden) === Boolean(nextColumn.hidden)
+            );
+        })
+    );
+}
+
 function isFluentResultGridStateDataColumn(column: Column<FluentResultGridDataRow>): boolean {
     return column.id !== FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_ID && !column.excludeFromGridMenu;
 }
