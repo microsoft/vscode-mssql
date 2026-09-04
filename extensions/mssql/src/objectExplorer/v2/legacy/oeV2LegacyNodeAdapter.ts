@@ -20,6 +20,7 @@ import { OeV2Node } from "../tree/oeV2Node";
 const NODE_TYPE_BY_KIND: Partial<Record<OeV2Node["kind"], string>> = {
     connectedServer: "Server",
     disconnectedConnection: "disconnectedServer",
+    lostConnection: "disconnectedServer",
     database: "Database",
     object: "Table", // policy limits object-kind handoff to tables (editTable)
 };
@@ -45,8 +46,10 @@ export function toLegacyTreeNode(
     }
     const database = node.database ?? (profile as { database?: string }).database;
     // Classic profiles carry the database the command should target.
-    const scopedProfile =
-        database !== undefined ? ({ ...profile, database } as IConnectionProfile) : profile;
+    const scopedProfile = {
+        ...profile,
+        ...(database !== undefined ? { database } : {}),
+    } as IConnectionProfile;
     const label =
         node.kind === "object" && node.schema && node.objectName
             ? `${node.schema}.${node.objectName}`

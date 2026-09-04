@@ -47,7 +47,12 @@ import {
 import { folderDef, isSystemDatabaseName, OeV2ScopeFacts, resolveFolders } from "./oeV2Hierarchy";
 import type { FreshCatalogResult } from "../../../services/metadata/cache/metadataFreshness";
 import { OeV2Node } from "./oeV2Node";
-import { childrenOfGroup, ConnectionNodeFacts, rootChildren } from "./oeV2NodeFactory";
+import {
+    childrenOfGroup,
+    connectionNode,
+    ConnectionNodeFacts,
+    rootChildren,
+} from "./oeV2NodeFactory";
 import { errorNode, loadingNode, noItemsNode, statusNode } from "./oeV2Readiness";
 
 export interface DataPlaneProbe {
@@ -116,6 +121,26 @@ export class OeV2TreeController {
         this.fireChange();
     }
 
+    /** Re-render only transient connection rows (for elapsed-time labels). */
+    async refreshTransientConnections(): Promise<void> {
+        const tree = await this.profileTree();
+        for (const profile of tree.profiles) {
+            const facts = this.connectionFacts(profile.profileId);
+            if (facts?.state !== "connecting" && facts?.state !== "disconnecting") {
+                continue;
+            }
+            const tiedWith = tree.profiles
+                .filter(
+                    (candidate) =>
+                        candidate !== profile &&
+                        candidate.groupId === profile.groupId &&
+                        candidate.displayName === profile.displayName,
+                )
+                .map((candidate) => candidate.stored);
+            this.fireChange(connectionNode(profile, facts, tiedWith));
+        }
+    }
+
     // -- folder filters (in-memory over pinned metadata — design §10.8) -------
 
     private folderFilters = new Map<string, string>();
@@ -149,15 +174,21 @@ export class OeV2TreeController {
         database: string,
         term: string,
         limit = 50,
-    ): Promise<{ schema: string; name: string; kind: string }[]> {
+    ): Promise<{ schema: string; name: string; kind: string }[] | undefined> {
         const runtime = this.runtimes.get(connectionId);
         if (!runtime) {
             return [];
         }
-        await runtime.coordinator.ensureDatabase(database).catch(() => undefined);
+        const lease = await boundedWait(
+            runtime.coordinator.ensureDatabase(database),
+            this.deps.waits?.expandMs ?? EXPAND_WAIT_MS,
+        );
+        if (!lease) {
+            return undefined;
+        }
         const snapshot = runtime.coordinator.databaseSnapshot(database);
         if (!snapshot) {
-            return [];
+            return undefined;
         }
         return snapshot
             .search(term, limit)

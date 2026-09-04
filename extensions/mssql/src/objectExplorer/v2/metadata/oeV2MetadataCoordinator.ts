@@ -81,15 +81,24 @@ export class OeV2MetadataCoordinator {
             return this.serverLease;
         }
         if (!this.serverPending) {
-            this.serverPending = this.store.acquireServer(this.prepared).then((lease) => {
-                if (this.disposed) {
-                    lease.dispose();
-                    throw new Error("coordinator disposed");
-                }
-                this.serverLease = lease;
-                this.subscriptions.push(lease.onDidChange(() => this.notify()));
-                return lease;
-            });
+            let pending: Promise<ServerCatalogLease>;
+            pending = this.store
+                .acquireServer(this.prepared)
+                .then((lease) => {
+                    if (this.disposed) {
+                        lease.dispose();
+                        throw new Error("coordinator disposed");
+                    }
+                    this.serverLease = lease;
+                    this.subscriptions.push(lease.onDidChange(() => this.notify()));
+                    return lease;
+                })
+                .finally(() => {
+                    if (this.serverPending === pending) {
+                        this.serverPending = undefined;
+                    }
+                });
+            this.serverPending = pending;
         }
         return this.serverPending;
     }
@@ -153,8 +162,12 @@ export class OeV2MetadataCoordinator {
                         throw new Error("coordinator disposed");
                     }
                     this.databaseLeases.set(database, lease);
-                    this.databasePending.delete(database);
                     return lease;
+                })
+                .finally(() => {
+                    if (this.databasePending.get(database) === pending) {
+                        this.databasePending.delete(database);
+                    }
                 });
             this.databasePending.set(database, pending);
         }

@@ -116,6 +116,12 @@ export class OeV2SessionRegistry {
             // failure to callers awaiting the outcome.
             return existing.pending ?? snapshotOf(existing);
         }
+        if (existing) {
+            // A lost/failed/disconnected entry may still own a session or a
+            // state listener. Retire it before replacing the map slot so a
+            // reconnect cannot orphan data-plane state.
+            await this.retire(existing);
+        }
         const entry: Entry = {
             connectionId,
             prepared,
@@ -243,8 +249,9 @@ export class OeV2SessionRegistry {
     /** Records a profile/auth preparation failure so command UI can show its reason. */
     recordPreparationFailure(connectionId: string, failureReason: string, error: unknown): void {
         const previous = this.entries.get(connectionId);
-        previous?.stateSubscription?.dispose();
-        void previous?.session?.close().catch(() => undefined);
+        if (previous) {
+            void this.retire(previous);
+        }
         this.entries.set(connectionId, {
             connectionId,
             prepared: undefined,
@@ -277,10 +284,7 @@ export class OeV2SessionRegistry {
         }
         entry.state = "disconnecting";
         this.notify(connectionId);
-        entry.stateSubscription?.dispose();
-        entry.stateSubscription = undefined;
-        await entry.session?.close().catch(() => undefined);
-        entry.session = undefined;
+        await this.retire(entry);
         entry.state = "disconnected";
         diag.emit({
             feature: "objectExplorer",
@@ -293,11 +297,18 @@ export class OeV2SessionRegistry {
 
     dispose(): void {
         for (const entry of this.entries.values()) {
-            entry.stateSubscription?.dispose();
-            void entry.session?.close().catch(() => undefined);
+            void this.retire(entry);
         }
         this.entries.clear();
         this.listeners.clear();
+    }
+
+    private async retire(entry: Entry): Promise<void> {
+        entry.stateSubscription?.dispose();
+        entry.stateSubscription = undefined;
+        const session = entry.session;
+        entry.session = undefined;
+        await session?.close().catch(() => undefined);
     }
 }
 

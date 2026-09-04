@@ -26,13 +26,14 @@ import {
 } from "../../services/metadata/profileAuthAdapter";
 import { SqlDataPlaneService } from "../../services/sqlDataPlane/sqlDataPlaneService";
 import { vscodeFallbackInteraction } from "../../services/sqlDataPlane/vscodeFallbackInteraction";
+import type { IConnectionProfile } from "../../models/interfaces";
+import type { IConnectionStore } from "../../models/connectionStore";
 import { ObjectExplorerV2Provider } from "./objectExplorerV2Provider";
 import { OeV2MetadataCoordinator } from "./metadata/oeV2MetadataCoordinator";
 import { oeV2Settings } from "./settings";
 import { ConnectionProfileSource, readProfileTree } from "./sessions/oeV2ProfileAdapter";
 import { OeV2SessionRegistry } from "./sessions/oeV2SessionRegistry";
 import { registerOeV2NativeCommands } from "./commands/oeV2NativeCommands";
-import { policiesForNode } from "./commands/oeV2LegacyCommandPolicy";
 import {
     HandoffConnectionSeam,
     OeV2ClassicHandoffService,
@@ -47,7 +48,9 @@ import { OeV2TreeController } from "./tree/oeV2TreeController";
 
 export interface OeV2ActivationDeps {
     readonly instantiationService: IInstantiationService;
-    readonly profiles: ConnectionProfileSource & ProfileSecretSource;
+    readonly profiles: ConnectionProfileSource &
+        ProfileSecretSource &
+        Pick<IConnectionStore, "removeProfile">;
     readonly tokens?: ProfileTokenSource;
     /** Classic connection seam for the EXPLICIT legacy handoff door (B20). */
     readonly legacyConnections?: HandoffConnectionSeam;
@@ -66,17 +69,16 @@ export function activateObjectExplorerV2(
     let registry: OeV2SessionRegistry | undefined;
     let handoff: OeV2ClassicHandoffService | undefined;
     let activeView: vscode.TreeView<OeV2Node> | undefined;
+    let statusChannel: vscode.OutputChannel | undefined;
 
     const removeSavedProfile = async (connectionId: string): Promise<void> => {
-        const config = (deps.groupConfig ?? (() => undefined))();
-        if (!config) {
-            return;
-        }
-        const profile = (await config.getConnections()).find(
+        const profile = (await deps.profiles.readAllConnections(false)).find(
             (candidate) => stableProfileId(candidate as never) === connectionId,
         );
         if (profile) {
-            await config.removeConnection(profile as never);
+            // ConnectionStore owns the complete removal contract: settings,
+            // MRU history, and any saved credential.
+            await deps.profiles.removeProfile(profile as IConnectionProfile, false);
         }
     };
     const register = () => {
@@ -173,7 +175,7 @@ export function activateObjectExplorerV2(
     // slow-connect elapsed description ("connecting… (12s)") stays live.
     const connectingTicker = setInterval(() => {
         if (registry?.anyConnecting()) {
-            controller?.refresh();
+            void controller?.refreshTransientConnections();
         }
     }, 2000);
     (connectingTicker as { unref?: () => void }).unref?.();
@@ -235,13 +237,16 @@ export function activateObjectExplorerV2(
                         throw new Error("no connected server node after connect");
                     }
                     const security = (await controller.children(server)).find(
-                        (node) => node.label === "Security",
+                        (node) =>
+                            node.path.kind === "serverFolder" && node.path.folder === "security",
                     );
                     if (!security) {
                         throw new Error("no Security folder on a server-scoped connection");
                     }
                     const logins = (await controller.children(security)).find(
-                        (node) => node.label === "Logins",
+                        (node) =>
+                            node.path.kind === "serverFolder" &&
+                            node.path.folder === "security/logins",
                     );
                     if (!logins) {
                         throw new Error("no Logins folder under Security");
@@ -302,6 +307,10 @@ export function activateObjectExplorerV2(
             instantiationService: deps.instantiationService,
             groupConfig: deps.groupConfig ?? (() => undefined),
             isEnabled: deps.isEnabled,
+            beforeDeleteConnection: async (connectionId) => {
+                await handoff?.close(connectionId);
+                await controller?.disconnectProfile(connectionId);
+            },
         }),
         // B26: view-title New Connection — the SHARED classic dialog; the
         // config watcher's single-new-profile rule connects it in v2.
@@ -372,7 +381,7 @@ export function activateObjectExplorerV2(
                     return;
                 }
                 const connected = await controller.connectProfile(connectionId);
-                if (!connected) {
+                if (!connected && registry?.stateOf(connectionId) === "failed") {
                     const session = registry?.get(connectionId);
                     void vscode.window.showErrorMessage(
                         ObjectExplorerV2.couldNotConnect(session?.failureReason),
@@ -457,40 +466,6 @@ export function activateObjectExplorerV2(
                 await vscode.commands.executeCommand("mssql.editConnection", profile);
             },
         ),
-        vscode.commands.registerCommand(
-            "mssql.objectExplorerV2.legacyActions",
-            async (node?: OeV2Node) => {
-                if (!deps.isEnabled()) {
-                    return;
-                }
-                if (!node?.connectionId || !controller) {
-                    return;
-                }
-                const policies = policiesForNode(node.kind, node.database);
-                if (policies.length === 0 || !handoff) {
-                    void vscode.window.showInformationMessage(ObjectExplorerV2.noLegacyActions);
-                    return;
-                }
-                const picked = await vscode.window.showQuickPick(
-                    policies.map((policy) => ({
-                        label: ObjectExplorerV2.legacyActionLabel(policy.feature),
-                        policy,
-                    })),
-                    { title: ObjectExplorerV2.legacyActionsTitle },
-                );
-                if (!picked) {
-                    return;
-                }
-                // B25: same redirect library as the direct commands.
-                const outcome = await redirectToClassic(picked.policy.feature, node, {
-                    facts: controller,
-                    handoff,
-                });
-                if (!outcome.ok && outcome.error) {
-                    void vscode.window.showErrorMessage(outcome.error);
-                }
-            },
-        ),
         // B25 (K4): first-class admin commands through the redirect library —
         // classic registrations/handlers untouched, targeting via oe2:cmd
         // context flags from the command registry.
@@ -515,7 +490,9 @@ export function activateObjectExplorerV2(
             if (!deps.isEnabled()) {
                 return;
             }
-            const channel = vscode.window.createOutputChannel(ObjectExplorerV2.outputChannelName);
+            statusChannel ??= vscode.window.createOutputChannel(ObjectExplorerV2.outputChannelName);
+            const channel = statusChannel;
+            channel.clear();
             const dataPlane = SqlDataPlaneService.get();
             channel.appendLine(`privatePreview.enabled: ${deps.isEnabled()}`);
             channel.appendLine(`dataPlane.enabled: ${dataPlane.enabled}`);
@@ -526,6 +503,12 @@ export function activateObjectExplorerV2(
             );
             channel.show(true);
         }),
+        {
+            dispose: () => {
+                statusChannel?.dispose();
+                statusChannel = undefined;
+            },
+        },
         vscode.commands.registerCommand("mssql.objectExplorerV2.openClassicObjectExplorer", () => {
             if (!deps.isEnabled()) {
                 return;

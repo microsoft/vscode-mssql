@@ -7,7 +7,7 @@
  * The STS v1 connection-redirect library (OE_V1_PARITY_PLAN §2.5, K4): the
  * ONE code path that launches a legacy command from an OE v2 node. It
  * resolves the policy, opens (or reuses) the handoff connection through
- * OeV2ClassicHandoffService — silent handoff with idle TTL —
+ * OeV2ClassicHandoffService — silent, explicitly-owned handoff —
  * adapts the node per handoff level, and invokes the classic command. The
  * legacy handlers never learn how they were launched, and OE v2 never
  * touches the v1 connection object directly.
@@ -16,6 +16,7 @@
 import * as vscode from "vscode";
 import { IConnectionProfile } from "../../../models/interfaces";
 import { diag } from "../../../diagnostics/diagnosticsCore";
+import { ObjectExplorerV2 } from "../../../constants/locConstants";
 import { LEGACY_COMMAND_POLICIES, LegacyCommandPolicy } from "../commands/oeV2LegacyCommandPolicy";
 import { OeV2Node } from "../tree/oeV2Node";
 import { OeV2ClassicHandoffService } from "./oeV2ClassicHandoffService";
@@ -60,21 +61,28 @@ export async function redirectToClassic(
 ): Promise<RedirectOutcome> {
     const policy = LEGACY_COMMAND_POLICIES.find((entry) => entry.feature === feature);
     if (!policy || !node.connectionId) {
-        return { ok: false, error: "This action is not available here." };
+        return { ok: false, error: ObjectExplorerV2.legacyActionUnavailable };
     }
     if (!policy.nodeKinds.includes(node.kind)) {
-        return { ok: false, error: "This action is not available on this node." };
+        return { ok: false, error: ObjectExplorerV2.legacyActionNotOnThisNode };
+    }
+    if (
+        node.kind === "object" &&
+        policy.objectKinds !== undefined &&
+        (node.path.kind !== "object" || !policy.objectKinds.includes(node.path.objectKind))
+    ) {
+        return { ok: false, error: ObjectExplorerV2.legacyActionNotOnThisNode };
     }
     // Defense in depth behind the menu gating: a database-scoped feature on
     // a top-level connection needs the connection to BE a database (K4).
     if (policy.databaseScoped && node.kind === "connectedServer" && node.database === undefined) {
-        return { ok: false, error: "This action needs a database — use a database node." };
+        return { ok: false, error: ObjectExplorerV2.legacyActionNeedsDatabase };
     }
     const facts = await deps.facts.handoffFacts(node.connectionId);
     if (!facts) {
-        return { ok: false, error: "Connect this profile in Object Explorer v2 first." };
+        return { ok: false, error: ObjectExplorerV2.legacyActionConnectFirst };
     }
-    const profile = facts.stored as unknown as IConnectionProfile;
+    const profile = { ...(facts.stored as IConnectionProfile) };
     // h0 features work from the adapted node's profile/metadata alone (or
     // open their own connection) — no classic handoff connection is created.
     const ownerUri =
@@ -105,18 +113,22 @@ export async function redirectToClassic(
         } else {
             const adapted = toLegacyTreeNode(effectiveNode(policy, node), ownerUri, profile);
             if (!adapted) {
-                throw new Error("node kind not adaptable");
+                throw new Error(ObjectExplorerV2.legacyNodeNotAdaptable);
             }
-            await vscode.commands.executeCommand(policy.classicCommand, adapted);
+            await vscode.commands.executeCommand(
+                policy.classicCommand,
+                adapted,
+                ...(policy.additionalCommandArguments ?? []),
+            );
         }
         return { ok: true };
     } catch (error) {
         // Guarded route: synthetic nodes are best-effort (§12.3).
         return {
             ok: false,
-            error: `The legacy feature could not run with an Object Explorer v2 node (${
-                error instanceof Error ? error.message : String(error)
-            }). Use Classic Object Explorer for this command.`,
+            error: ObjectExplorerV2.legacyFeatureFailed(
+                error instanceof Error ? error.message : String(error),
+            ),
         };
     }
 }

@@ -28,6 +28,8 @@ export interface OeV2GroupCommandDeps {
     /** The shared classic config — undefined when not injected (tests). */
     readonly groupConfig: () => ConnectionConfig | undefined;
     readonly isEnabled?: () => boolean;
+    /** Tear down v2/handoff state before a profile is deleted with its group. */
+    readonly beforeDeleteConnection?: (connectionId: string) => Promise<void>;
 }
 
 function emitGroupMutation(op: string, result: "ok" | "canceled" | "failed"): void {
@@ -72,6 +74,28 @@ export function wouldCreateCycle(
         cursor = groups.find((group) => group.id === cursor)?.parentId;
     }
     return false;
+}
+
+/** Stable profile ids contained by a group and all of its descendants. */
+export function connectionIdsInGroupSubtree(
+    groups: readonly { id: string; parentId?: string }[],
+    connections: readonly { id?: string; groupId?: string }[],
+    groupId: string,
+): string[] {
+    const subtree = new Set([groupId]);
+    let changed = true;
+    while (changed) {
+        changed = false;
+        for (const group of groups) {
+            if (group.parentId && subtree.has(group.parentId) && !subtree.has(group.id)) {
+                subtree.add(group.id);
+                changed = true;
+            }
+        }
+    }
+    return connections
+        .filter((profile) => profile.groupId !== undefined && subtree.has(profile.groupId))
+        .map((profile) => stableProfileId(profile));
 }
 
 export function registerOeV2GroupCommands(deps: OeV2GroupCommandDeps): vscode.Disposable {
@@ -172,6 +196,12 @@ export function registerOeV2GroupCommands(deps: OeV2GroupCommandDeps): vscode.Di
             if (!mode) {
                 emitGroupMutation("delete", "canceled");
                 return;
+            }
+            if (mode === "delete" && deps.beforeDeleteConnection) {
+                const connectionIds = connectionIdsInGroupSubtree(groups, connections, groupId);
+                await Promise.all(
+                    connectionIds.map((connectionId) => deps.beforeDeleteConnection!(connectionId)),
+                );
             }
             await config.removeGroup(groupId, mode);
             emitGroupMutation("delete", "ok");
@@ -287,7 +317,15 @@ export class OeV2DragAndDropController implements vscode.TreeDragAndDropControll
         }
         let payload: { type: string; id: string };
         try {
-            payload = JSON.parse(await raw.asString()) as { type: string; id: string };
+            const parsed = JSON.parse(await raw.asString()) as unknown;
+            if (typeof parsed !== "object" || parsed === null) {
+                return;
+            }
+            const candidate = parsed as Record<string, unknown>;
+            if (typeof candidate.type !== "string" || typeof candidate.id !== "string") {
+                return;
+            }
+            payload = { type: candidate.type, id: candidate.id };
         } catch {
             return;
         }

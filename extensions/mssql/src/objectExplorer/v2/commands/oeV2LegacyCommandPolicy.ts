@@ -13,14 +13,13 @@
  */
 
 import { OeV2NodeKind } from "../tree/oeV2Node";
+import { OeV2ObjectKind } from "../tree/oeV2Path";
 
 export type HandoffLevel = "h0" | "h1" | "h2";
 
 export interface LegacyCommandPolicy {
     /** Stable feature key (diagnostics carry this, not labels). */
     readonly feature: string;
-    /** Quick-pick label. */
-    readonly label: string;
     /** Classic command id invoked after handoff. */
     readonly classicCommand: string;
     /**
@@ -32,14 +31,17 @@ export interface LegacyCommandPolicy {
     readonly level: HandoffLevel;
     /** Node kinds this feature applies to. */
     readonly nodeKinds: readonly OeV2NodeKind[];
+    /** Optional object-kind restriction for policies that accept object nodes. */
+    readonly objectKinds?: readonly OeV2ObjectKind[];
     /** Requires a database-scoped node (adapter sets Database identity). */
     readonly databaseScoped?: boolean;
+    /** Positional arguments required by a classic handler after its node. */
+    readonly additionalCommandArguments?: readonly unknown[];
 }
 
 export const LEGACY_COMMAND_POLICIES: readonly LegacyCommandPolicy[] = [
     {
         feature: "backupDatabase",
-        label: "Backup Database… (legacy)",
         classicCommand: "mssql.backupDatabase",
         level: "h2",
         // connectedServer ONLY when the connection is DB-scoped (the node
@@ -49,32 +51,33 @@ export const LEGACY_COMMAND_POLICIES: readonly LegacyCommandPolicy[] = [
     },
     {
         feature: "restoreDatabase",
-        label: "Restore Database… (legacy)",
         classicCommand: "mssql.restoreDatabase",
         level: "h2",
         nodeKinds: ["connectedServer", "database"],
     },
     {
         feature: "profiler",
-        label: "Launch Profiler (legacy)",
         classicCommand: "mssql.profiler.launchFromObjectExplorer",
         level: "h2",
         nodeKinds: ["connectedServer", "database"],
     },
     {
         feature: "schemaCompare",
-        label: "Schema Compare (legacy)",
         classicCommand: "mssql.schemaCompare",
         level: "h2",
         // v1 parity: Compare Schemas… appears on servers AND databases.
         nodeKinds: ["connectedServer", "database"],
+        // The classic handler only inspects source/target when it receives at
+        // least two positional arguments. Preserve the selected v2 node as
+        // the source and leave the target unset.
+        additionalCommandArguments: [undefined],
     },
     {
         feature: "editTable",
-        label: "Edit Table (legacy Table Designer)",
         classicCommand: "mssql.editTable",
         level: "h2",
         nodeKinds: ["object"],
+        objectKinds: ["table"],
     },
     // v1 menu parity batch: the remaining classic commands from the three
     // core menus (connection/database/table). Handler-verified levels:
@@ -83,14 +86,13 @@ export const LEGACY_COMMAND_POLICIES: readonly LegacyCommandPolicy[] = [
     // the profile (the handoff connection provides both).
     {
         feature: "tableExplorer",
-        label: "Edit Table Data… (legacy)",
         classicCommand: "mssql.tableExplorer",
         level: "h0",
         nodeKinds: ["object"],
+        objectKinds: ["table"],
     },
     {
         feature: "schemaDesigner",
-        label: "Visualize and Design Schema… (legacy)",
         classicCommand: "mssql.schemaDesigner",
         level: "h2",
         nodeKinds: ["database", "connectedServer"],
@@ -98,7 +100,6 @@ export const LEGACY_COMMAND_POLICIES: readonly LegacyCommandPolicy[] = [
     },
     {
         feature: "buildDataApi",
-        label: "Build Data API… (legacy)",
         classicCommand: "mssql.buildDataApi",
         level: "h2",
         nodeKinds: ["database", "connectedServer"],
@@ -106,63 +107,61 @@ export const LEGACY_COMMAND_POLICIES: readonly LegacyCommandPolicy[] = [
     },
     {
         feature: "renameDatabase",
-        label: "Rename Database… (legacy)",
         classicCommand: "mssql.renameDatabase",
         level: "h2",
         nodeKinds: ["database"],
     },
     {
         feature: "dropDatabase",
-        label: "Drop Database… (legacy)",
         classicCommand: "mssql.dropDatabase",
         level: "h2",
         nodeKinds: ["database"],
     },
     {
         feature: "flatFileImport",
-        label: "Import Data… (legacy)",
         classicCommand: "mssql.flatFileImport",
         level: "h2",
         nodeKinds: ["connectedServer", "database"],
     },
     {
         feature: "dacpacDialog",
-        label: "DACPAC/BACPAC Operations… (legacy)",
         classicCommand: "mssql.dacpacDialog.launch",
         level: "h2",
         nodeKinds: ["connectedServer", "database"],
     },
     {
         feature: "copyConnectionString",
-        label: "Copy Connection String (legacy)",
         classicCommand: "mssql.copyConnectionString",
         level: "h0",
-        nodeKinds: ["connectedServer", "disconnectedConnection"],
+        nodeKinds: ["connectedServer", "disconnectedConnection", "lostConnection"],
     },
     {
         feature: "chatWithDatabase",
-        label: "Open in GitHub Copilot Chat (legacy)",
         classicCommand: "mssql.objectExplorerChatWithDatabase",
         level: "h0",
         nodeKinds: ["connectedServer", "database", "object"],
+        objectKinds: ["table"],
     },
     {
         feature: "chatWithDatabaseAgent",
-        label: "Open in GitHub Copilot Agent (legacy)",
         classicCommand: "mssql.objectExplorerChatWithDatabaseInAgentMode",
         level: "h0",
         nodeKinds: ["connectedServer", "database", "object"],
+        objectKinds: ["table"],
     },
     {
         feature: "createNotebook",
-        label: "New SQL Notebook (legacy)",
         classicCommand: "mssql.notebooks.createNotebook",
         level: "h0",
         nodeKinds: ["connectedServer", "database"],
     },
 ];
 
-export function policiesForNode(kind: OeV2NodeKind, nodeDatabase?: string): LegacyCommandPolicy[] {
+export function policiesForNode(
+    kind: OeV2NodeKind,
+    nodeDatabase?: string,
+    objectKind?: OeV2ObjectKind,
+): LegacyCommandPolicy[] {
     return LEGACY_COMMAND_POLICIES.filter((policy) => {
         if (!policy.nodeKinds.includes(kind)) {
             return false;
@@ -170,6 +169,13 @@ export function policiesForNode(kind: OeV2NodeKind, nodeDatabase?: string): Lega
         // Database-scoped features on a top-level connection need the
         // connection itself to be DB-scoped (K4 backup rule).
         if (policy.databaseScoped && kind === "connectedServer" && nodeDatabase === undefined) {
+            return false;
+        }
+        if (
+            kind === "object" &&
+            policy.objectKinds !== undefined &&
+            (objectKind === undefined || !policy.objectKinds.includes(objectKind))
+        ) {
             return false;
         }
         return true;

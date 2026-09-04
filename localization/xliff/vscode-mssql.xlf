@@ -92,6 +92,9 @@
     <trans-unit id="++CODE++d29a0939bcb51176dd565a5e2d33214ce5204806b384bd80a72cb40861cdc7b9">
       <source xml:lang="en">(empty)</source>
     </trans-unit>
+    <trans-unit id="++CODE++34292f4267fcc40572e19d90988467838747a21321372edf934e1d1c0f3e65f2">
+      <source xml:lang="en">(not set)</source>
+    </trans-unit>
     <trans-unit id="++CODE++c996dc204bdf4ab7850b9b8d20c0baa7cbd108c34ea800853047a049691c3b9f">
       <source xml:lang="en">(return value)</source>
     </trans-unit>
@@ -875,9 +878,6 @@
       <source xml:lang="en">Backup Database - {0}</source>
       <note>{0} is the database name</note>
     </trans-unit>
-    <trans-unit id="++CODE++43f844b784afddde98c90e4267956538c635e29e5fc73304c278d86d692443c4">
-      <source xml:lang="en">Backup Database… (legacy)</source>
-    </trans-unit>
     <trans-unit id="++CODE++55e3ec5a66490b401352f97b8c81d967c3e0f06782815833b8ebef7c4113a1f3">
       <source xml:lang="en">Backup File</source>
     </trans-unit>
@@ -995,9 +995,6 @@
     </trans-unit>
     <trans-unit id="++CODE++8e86ef922196322045f4a646ef811f7df15a59da3a33b8180732d68155a7a652">
       <source xml:lang="en">Build Data API</source>
-    </trans-unit>
-    <trans-unit id="++CODE++5e3a18d69dca444d0ac1e3209f81a1729f8b53589b80e8112db9d6d10f167de1">
-      <source xml:lang="en">Build Data API… (legacy)</source>
     </trans-unit>
     <trans-unit id="++CODE++566ea12984a4e3c41f444143aa587ddc245400b46fd8225ff9719cf7904e193d">
       <source xml:lang="en">Build Elements</source>
@@ -1707,6 +1704,9 @@
     <trans-unit id="++CODE++ee4f8cf15984e2a10f54dd947303b40318e5503eb1116a815d634bd45dcc55da">
       <source xml:lang="en">Connect the active SQL document to a database</source>
     </trans-unit>
+    <trans-unit id="++CODE++3fdbe57593c6d64d856e2ed2dd8c554c6a02f5b70e07928ca40d95c29a90ccb1">
+      <source xml:lang="en">Connect this profile in Object Explorer v2 first.</source>
+    </trans-unit>
     <trans-unit id="++CODE++150851f09acf7f6f4d53e35fb619389c38558ea5b98d3a13efaf84b3eda50422">
       <source xml:lang="en">Connect to Database</source>
     </trans-unit>
@@ -2034,9 +2034,6 @@
     </trans-unit>
     <trans-unit id="++CODE++96060c7cd5841d631c4c2cf65834a41409b3005fd80c393f48e902ade8901239">
       <source xml:lang="en">Copy Column Name</source>
-    </trans-unit>
-    <trans-unit id="++CODE++8e2fd9faa95472d2d40827b043bab046076df7ee27d990243b85d0e4398e81a8">
-      <source xml:lang="en">Copy Connection String (legacy)</source>
     </trans-unit>
     <trans-unit id="++CODE++e172d8c5fbb864a5f85d4926588ef06167cdd4a29ddffdf07714bf25336c2269">
       <source xml:lang="en">Copy Headers</source>
@@ -2392,9 +2389,6 @@
     </trans-unit>
     <trans-unit id="++CODE++859430fa647177df2bca8384a1b91e9f607ab6c35eba8d61c1ff399e80cf0ac2">
       <source xml:lang="en">DACPAC path not found. Please build the project first.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++780c0cd66522cb9aa442c0fe3246bef20fc913f773de99bba46f6fdad2dc0547">
-      <source xml:lang="en">DACPAC/BACPAC Operations… (legacy)</source>
     </trans-unit>
     <trans-unit id="++CODE++a624c53f324c90b7a7da7401d49f23d00dc78cdad529bbb41bdd319c1e6f4cbb">
       <source xml:lang="en">DML tools expose this entity through generic MCP tools.</source>
@@ -2930,9 +2924,6 @@
     <trans-unit id="++CODE++9efa6488b1453597a16946eec3bec93d89632493aae8e137b09ed9ffcaf70e7b">
       <source xml:lang="en">Drop Database Options</source>
     </trans-unit>
-    <trans-unit id="++CODE++29716a1c00c7caf04c7b10bc8aeade44de05b5e06273ca6c614cde0f76d5fd79">
-      <source xml:lang="en">Drop Database… (legacy)</source>
-    </trans-unit>
     <trans-unit id="++CODE++0301e63bd19eb739abb705445f40ef5338164e75b5ccdaed58dc76bbebeb4f06">
       <source xml:lang="en">Drop active connections</source>
     </trans-unit>
@@ -2971,12 +2962,6 @@
     </trans-unit>
     <trans-unit id="++CODE++3ed3609cfd38169ffe27957c6ef1ad4df5bdf9c403542839533396143d436b41">
       <source xml:lang="en">Edit Table</source>
-    </trans-unit>
-    <trans-unit id="++CODE++442e0c9cf9e688960aba00a6c94eced2cbe55952b2b94c749fccbf2b28688e83">
-      <source xml:lang="en">Edit Table (legacy Table Designer)</source>
-    </trans-unit>
-    <trans-unit id="++CODE++e034ed187c64af4bc123fadd1002e8cc77fa41757089f0efbfc413d2184b6f1d">
-      <source xml:lang="en">Edit Table Data… (legacy)</source>
     </trans-unit>
     <trans-unit id="++CODE++150306f3e1fcaf1151d7ad284dea56d8ed1f23566fc18dfe02709310c2bb0a41">
       <source xml:lang="en">Edit an existing connection profile</source>
@@ -4576,6 +4561,9 @@
     <trans-unit id="++CODE++38ee89c32a2a983a8b02689b35c8cdb60f5d9949c4e128a77cc3e79785c02b51">
       <source xml:lang="en">Grid View</source>
     </trans-unit>
+    <trans-unit id="++CODE++34ca0e76608842ff3e7d924a455a396a82f471052c15e3f2ed7f090ac702e5c1">
+      <source xml:lang="en">Group</source>
+    </trans-unit>
     <trans-unit id="++CODE++956a51f6b098a41b7c3108015f0790bb24af7693717b07cee39d5df6a5da1826">
       <source xml:lang="en">Group by</source>
     </trans-unit>
@@ -4679,9 +4667,6 @@
     </trans-unit>
     <trans-unit id="++CODE++f297587645cd5e7ce0a5f6f74be689bc53dd731e24a946c15ed70df07f084e83">
       <source xml:lang="en">Import Data</source>
-    </trans-unit>
-    <trans-unit id="++CODE++b6eef179a8808488a28c925868f6859fc9ca367b133b48d93d0fe530aeeb488c">
-      <source xml:lang="en">Import Data… (legacy)</source>
     </trans-unit>
     <trans-unit id="++CODE++459f619c9ccfe5e3fa7210a22a69e5a512c7c7c7c0ee12e38b2ff119582bc322">
       <source xml:lang="en">Import Elements</source>
@@ -4948,9 +4933,6 @@
     <trans-unit id="++CODE++c7d299ed6b2896187b535a86fd6b04f01669a9b72528a8f2021fff2f42d9f6e3">
       <source xml:lang="en">Last Page</source>
     </trans-unit>
-    <trans-unit id="++CODE++8b4e0e36a7476c99a078eed44af0725428e6e29d21a972fa97c8ba683446413a">
-      <source xml:lang="en">Launch Profiler (legacy)</source>
-    </trans-unit>
     <trans-unit id="++CODE++8d8cd546b58d91c300d3149ef40b8d98d3061dc38f15ea937d2ed785a3f25771">
       <source xml:lang="en">Learn More</source>
     </trans-unit>
@@ -4965,9 +4947,6 @@
     </trans-unit>
     <trans-unit id="++CODE++998276d04826bfa9ef42b723a5004ca0d28262fbf2b15899520378a43d93ecc9">
       <source xml:lang="en">Leave the source database in the restoring state</source>
-    </trans-unit>
-    <trans-unit id="++CODE++d0f8e1e86e1cfed9254b1d386ce3742635c1b26e5a51b490d12ac45899146357">
-      <source xml:lang="en">Legacy actions (creates a classic connection)</source>
     </trans-unit>
     <trans-unit id="++CODE++adc95605a1b30c73959fbaf21e60f9723efe855c482fa336a957924d4ea0a08b">
       <source xml:lang="en">Length</source>
@@ -5451,6 +5430,9 @@
     <trans-unit id="++CODE++b6e29fa9fd99bf4b7a398cae3d0fb3814a855748cb0f5235c6e208b725dceb53">
       <source xml:lang="en">Metadata failed to load. Refresh to retry.</source>
     </trans-unit>
+    <trans-unit id="++CODE++06e6e74306ccdd0c5d833cc7fc90541609e6c70004ba66e7853289f501943750">
+      <source xml:lang="en">Metadata is still loading. Wait a moment, then try the search again.</source>
+    </trans-unit>
     <trans-unit id="++CODE++dc316e911d9fd3ce9a79dfdd03cbe714cae7e1ebaa450eccf69a937a88eca611">
       <source xml:lang="en">Metadata not validated — {0} (refresh to retry).</source>
     </trans-unit>
@@ -5743,9 +5725,6 @@
     <trans-unit id="++CODE++0d4d95a7a2955bb82377a0ca37dbb8a946344dd95c092820b5ece489c29e7403">
       <source xml:lang="en">New Query Profiler - Select Template</source>
     </trans-unit>
-    <trans-unit id="++CODE++be57be60bd4883083c87a9dd75c93ba3d739798e3960aa5c90a241ac43d9690d">
-      <source xml:lang="en">New SQL Notebook (legacy)</source>
-    </trans-unit>
     <trans-unit id="++CODE++f0ebbe4b20d0db8c4c52feb9dc715d1db281ae429389480780ce9120113da253">
       <source xml:lang="en">New SQL database</source>
     </trans-unit>
@@ -5964,9 +5943,6 @@
     </trans-unit>
     <trans-unit id="++CODE++6c351c116cc7feeaf5724426f891c890b4f7d9cb8baab5f2ec1d6c512cc016b6">
       <source xml:lang="en">No items</source>
-    </trans-unit>
-    <trans-unit id="++CODE++19a6d6126b1ed8aa03054039bcf8a79542524db198b93a12bb645420040e0417">
-      <source xml:lang="en">No legacy actions are available for this node in the Object Explorer v2 preview.</source>
     </trans-unit>
     <trans-unit id="++CODE++985ed9835264ebdfa8f578536196c1d3f0a23b500b824b417300dd7e954b0042">
       <source xml:lang="en">No log entries yet.</source>
@@ -6355,14 +6331,8 @@
     <trans-unit id="++CODE++f395ae5e32b4cc24f8030096918e6a2318d4be5fb9274dbeedc0002ce9840bb7">
       <source xml:lang="en">Open in Editor</source>
     </trans-unit>
-    <trans-unit id="++CODE++4ac009034e6a248019d914946453b9ec2b19023be0227272338ba004402c2234">
-      <source xml:lang="en">Open in GitHub Copilot Agent (legacy)</source>
-    </trans-unit>
     <trans-unit id="++CODE++908e4d79c8e37a885368e9bf598eaa4f2287067f58bd19a7837c959b83cd2ba7">
       <source xml:lang="en">Open in GitHub Copilot Chat</source>
-    </trans-unit>
-    <trans-unit id="++CODE++876e9549537ac4745c8f4afbbb3e2db132fdff8ac08ad7e55f25fe907ca50538">
-      <source xml:lang="en">Open in GitHub Copilot Chat (legacy)</source>
     </trans-unit>
     <trans-unit id="++CODE++35e74c3a943dcaf90a91c99a242ea7dbfb3ead16a012ba5a7d6a747a96e01d64">
       <source xml:lang="en">Open in New Tab</source>
@@ -7117,9 +7087,6 @@
     <trans-unit id="++CODE++90d9ab3255a92db5b378418ece6b230df904cb32837a59f146c96966f659a683">
       <source xml:lang="en">Rename Database</source>
     </trans-unit>
-    <trans-unit id="++CODE++6371d0d7a1bb48c939741c2c9a176a877e7040636ceefa38cb626c17c134d488">
-      <source xml:lang="en">Rename Database… (legacy)</source>
-    </trans-unit>
     <trans-unit id="++CODE++39b10e9a29841c96618fdf773450de8dbc3c86e0d4392b03e0c13ae1c6dfd938">
       <source xml:lang="en">Rename Options</source>
     </trans-unit>
@@ -7207,9 +7174,6 @@
     </trans-unit>
     <trans-unit id="++CODE++fcc2107b5a260d3c07480870a91a7634f1520f7d2afa98f70ff1ce21e36132b1">
       <source xml:lang="en">Restore Database</source>
-    </trans-unit>
-    <trans-unit id="++CODE++5c53e2b1d038e4eb1e8d2928478a1b0aad9eeda8795778693efe1d42c6b98160">
-      <source xml:lang="en">Restore Database… (legacy)</source>
     </trans-unit>
     <trans-unit id="++CODE++a1fd0aa6b9bdf8696143377ec1bf93d31e265ac3127aaee41867716f69f4405e">
       <source xml:lang="en">Restore NuGet packages</source>
@@ -7621,6 +7585,9 @@
     <trans-unit id="++CODE++28b9471fbcdd3a3ce3799551c1cee3825afe4ea4ce67688c764bd4a364028bd9">
       <source xml:lang="en">Scaffold backend components (e.g., data-access layers) based on your current database context</source>
     </trans-unit>
+    <trans-unit id="++CODE++c5c6084fc2ed72c9077174293c38ff283ba1bd013dab36a98ee8645928fe543c">
+      <source xml:lang="en">Scalar-valued Function</source>
+    </trans-unit>
     <trans-unit id="++CODE++f102986b39effb31080ae442f61febe7ed58df1515c0711ccfadfe0311ccec81">
       <source xml:lang="en">Scale</source>
     </trans-unit>
@@ -7641,9 +7608,6 @@
     </trans-unit>
     <trans-unit id="++CODE++154e484fc5e1a7cb4991c071caef673c453eaa7dcfef4321db537c576a5c56cf">
       <source xml:lang="en">Schema Compare</source>
-    </trans-unit>
-    <trans-unit id="++CODE++d305bde21bdefb306656cda9a594ac10f326d57d5c3212f17c9707b701665104">
-      <source xml:lang="en">Schema Compare (legacy)</source>
     </trans-unit>
     <trans-unit id="++CODE++57232ac852b468be7624e8edcfabbb24ac13076a47e75fb4121be42bc813c881">
       <source xml:lang="en">Schema Compare Options</source>
@@ -8657,6 +8621,9 @@
     <trans-unit id="++CODE++2550007022b2cb525a426176b9fd9615b9fac3cc51d6abd99ac96f59ea33ce3a">
       <source xml:lang="en">Synchronous resize</source>
     </trans-unit>
+    <trans-unit id="++CODE++efc322f05ea68ca0a81289f2fc6413432846509f4ef0eca79d408649a59cb535">
+      <source xml:lang="en">Synonym</source>
+    </trans-unit>
     <trans-unit id="++CODE++181e7ec5a25b8b2b3a19b5ae1324f83e6b73357d6729eea93928a647c9ce374b">
       <source xml:lang="en">Synonyms</source>
     </trans-unit>
@@ -8734,6 +8701,9 @@
     </trans-unit>
     <trans-unit id="++CODE++8fab4bd488d20e2d89e0ad477d6b803104326f3b79c38dcfe0498a5c205ea891">
       <source xml:lang="en">Table-Valued Function</source>
+    </trans-unit>
+    <trans-unit id="++CODE++faabc93f06d549cd20f593cc04fd8eb77be6d9ce9a8312efdeb9fbada3029e01">
+      <source xml:lang="en">Table-valued Function</source>
     </trans-unit>
     <trans-unit id="++CODE++e3fe2a3fe52c9c35874478d22328281ebf754f1b35747152c13e441a9eed92df">
       <source xml:lang="en">Tables</source>
@@ -8928,6 +8898,9 @@
     <trans-unit id="++CODE++0f98888ce39572ae27e642dd46baba8dbf179c6b3c42c522cde8ad1f43323b11">
       <source xml:lang="en">The language model did not return any output.</source>
     </trans-unit>
+    <trans-unit id="++CODE++cdb9528c32d9febfbae3c99e3f6b5116bdcd8d0bcc77222f534e4c0ea80e8525">
+      <source xml:lang="en">The legacy feature could not run with an Object Explorer v2 node ({0}). Use Classic Object Explorer for this command.</source>
+    </trans-unit>
     <trans-unit id="++CODE++fcd9241097659a9ae58a06bd9b762b5aded99a3f82d97e73e75279b098e00c6d">
       <source xml:lang="en">The mapping between foreign key columns and primary key columns.</source>
     </trans-unit>
@@ -8987,6 +8960,9 @@
     <trans-unit id="++CODE++e0e95ce8d59c3985439194900fd3997b4d86e45ed92f82a44ac0c897018d7fb1">
       <source xml:lang="en">The selected file is not a valid XEL file.</source>
     </trans-unit>
+    <trans-unit id="++CODE++0ebd2333e11b1d113f00dafa6be2b2cd317fcfc2c35c3985f2b580bd13581d18">
+      <source xml:lang="en">The selected node cannot be used with this legacy feature.</source>
+    </trans-unit>
     <trans-unit id="++CODE++e2efd136048806149ca845f8521dbad2967230b47a2030b5b01614f9d5779620">
       <source xml:lang="en">The selected profile authenticates using Entra ID &apos;{0}&apos; but that account is not signed into the MSSQL extension. Edit the connection or sign into MSSQL with that account to connect.</source>
       <note>{0} is the account ID or label</note>
@@ -9043,6 +9019,15 @@
     </trans-unit>
     <trans-unit id="++CODE++61294a599c4ab1debbddc1cb4688c8843d5a58e74ae7b9352d0eeb95dd9497c2">
       <source xml:lang="en">There was an error updating the project: {0}</source>
+    </trans-unit>
+    <trans-unit id="++CODE++18ed82a9118c40f6f10f5294e16fdd48d4b5e3979134318ea1cb9c4de7680136">
+      <source xml:lang="en">This action is not available here.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5ed085ee8e061c24b610b07dd219c647fec9fb0ee9ec92be312d733defc17705">
+      <source xml:lang="en">This action is not available on this node.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7f3b508c5df6af5c73b74af4fa1b87ddac20dfc3d6592207e9ecd25162e112d4">
+      <source xml:lang="en">This action needs a database. Use a database node.</source>
     </trans-unit>
     <trans-unit id="++CODE++2dfd619510d128a32109e18f1206eb1170ff96be2c7672f8f2f9541f6e28391d">
       <source xml:lang="en">This connection does not have a display name in Azure Data Studio.</source>
@@ -9614,9 +9599,6 @@
     <trans-unit id="++CODE++eab0f257866b670694bf52eec427b7799ca53883151d4d4526b0e57660ce65ab">
       <source xml:lang="en">Visualize and Design Schema</source>
     </trans-unit>
-    <trans-unit id="++CODE++6ad3142f5f687afef0994ced8196602bc2d42f627d4d8d4c0888dabdc5d50526">
-      <source xml:lang="en">Visualize and Design Schema… (legacy)</source>
-    </trans-unit>
     <trans-unit id="++CODE++9f01c06e42657754f1351fdd6c5c8fa9c5a15dc9bcaff5446038222ba1d3e694">
       <source xml:lang="en">Visualize and design your database with Schema Designer</source>
     </trans-unit>
@@ -9836,6 +9818,9 @@
     <trans-unit id="++CODE++beeb20fbd67695085c26c5dfa7b5ece4d1985d201cb6f0dd9aa66a36ed987ce5">
       <source xml:lang="en">contains</source>
     </trans-unit>
+    <trans-unit id="++CODE++20a184a438e20d13accd7dcd04d971f32559ce1459b939e19144c731a9fc1669">
+      <source xml:lang="en">copying</source>
+    </trans-unit>
     <trans-unit id="++CODE++d47e636a4b383a2f7c545dc630a55ae2ba8ff9a849d71b09aae2ec437e5550e5">
       <source xml:lang="en">dacpac Files</source>
     </trans-unit>
@@ -9863,6 +9848,9 @@
     </trans-unit>
     <trans-unit id="++CODE++9213fe0ba9ab011cd201be662e521ffae88e0c1824e6ee49dd9d525fd3f115ce">
       <source xml:lang="en">e.g. My tables</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b955e6cd0808744cf5cba260906e156ab4c43076b4c933dea0a1df1baae2a4bb">
+      <source xml:lang="en">emergency</source>
     </trans-unit>
     <trans-unit id="++CODE++c6072170d758e5358d717360829bd1f9b1603b355b5f7fe375d1aabdca7a20de">
       <source xml:lang="en">encrypt</source>
@@ -9948,6 +9936,12 @@
     <trans-unit id="++CODE++28391d3bc64ec15cbb090426b04aa6b7649c3cc85f11230bb0105e02d15e3624">
       <source xml:lang="en">of</source>
     </trans-unit>
+    <trans-unit id="++CODE++8e2c7ac508139a02af859de64a4743c1f3946837279332c35ec8f5ddf20654ae">
+      <source xml:lang="en">offline</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3600751a6ee418c4d4580b750bcf11fc81829935c8044f2c3c50ed76cfa76451">
+      <source xml:lang="en">offline secondary</source>
+    </trans-unit>
     <trans-unit id="++CODE++7175517a370b5cd2e664e3fd29c4ea9db5ce17058eb9772fe090a5485e49dad6">
       <source xml:lang="en">or</source>
     </trans-unit>
@@ -9963,8 +9957,17 @@
     <trans-unit id="++CODE++4fed3970dcc0d31dccddbf69ef55b00f32d2ca787f1757894914bc0365ea7aa5">
       <source xml:lang="en">read-only</source>
     </trans-unit>
+    <trans-unit id="++CODE++776477ae292948ef829d3a791d16060bb7ff8397f8ac4daae8cfb1e8128d124e">
+      <source xml:lang="en">recovering</source>
+    </trans-unit>
+    <trans-unit id="++CODE++977bfd12e6b880f9b0fe909559eb6ae3f029d09996e8c8aee485c37f6e489917">
+      <source xml:lang="en">recovery pending</source>
+    </trans-unit>
     <trans-unit id="++CODE++35a1031e991d85c2d12e5768b98c031dcc6394f3ccfb766314b8a3d0ab2242db">
       <source xml:lang="en">resource group</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a6771d72e2cc2a5767025932fceb81cd1cb0278c2823fd7bfc529ec1f5a058dd">
+      <source xml:lang="en">restoring</source>
     </trans-unit>
     <trans-unit id="++CODE++add93534eeb463800fe0ed0946048d33636dd2a014fab92e8a37f77ce98c740b">
       <source xml:lang="en">sec</source>
@@ -9983,6 +9986,9 @@
     </trans-unit>
     <trans-unit id="++CODE++a8fa7fd60893411a49907b5545ccf9c47ed8073cc38e2ac3b79c4f6156cd7755">
       <source xml:lang="en">subscription</source>
+    </trans-unit>
+    <trans-unit id="++CODE++982776aa0b872d5a1b4d12327c58492b1ac9fe4a811210efa911a0447e085b85">
+      <source xml:lang="en">suspect</source>
     </trans-unit>
     <trans-unit id="++CODE++9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08">
       <source xml:lang="en">test</source>
@@ -10989,9 +10995,6 @@
     </trans-unit>
     <trans-unit id="mssql.editTable">
       <source xml:lang="en">Modify Table Structure...</source>
-    </trans-unit>
-    <trans-unit id="mssql.objectExplorerV2.legacyActions">
-      <source xml:lang="en">More Actions...</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorerV2.moveToGroup">
       <source xml:lang="en">Move to Group...</source>

@@ -398,7 +398,6 @@
     "mssql.objectExplorerV2.copyName": "Copy Name",
     "mssql.objectExplorerV2.filter": "Filter...",
     "mssql.objectExplorerV2.clearFilters": "Clear Filters",
-    "mssql.objectExplorerV2.legacyActions": "More Actions...",
     "mssql.objectExplorerV2.backupDatabase": "Backup Database...",
     "mssql.objectExplorerV2.restoreDatabase": "Restore Database...",
     "mssql.objectExplorerV2.launchProfiler": "Launch Query Profiler...",

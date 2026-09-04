@@ -657,6 +657,11 @@
                     "group": "3_oe2_filter@1"
                 },
                 {
+                    "command": "mssql.objectExplorerV2.copyName",
+                    "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:canCopyName\\b/",
+                    "group": "1_MSSQL_primary@94"
+                },
+                {
                     "command": "mssql.objectExplorerV2.copyQualifiedName",
                     "when": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled && view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:canCopyQualifiedName\\b/",
                     "group": "1_MSSQL_primary@95"
@@ -1194,10 +1199,6 @@
                     "when": "false"
                 },
                 {
-                    "command": "mssql.objectExplorerV2.legacyActions",
-                    "when": "false"
-                },
-                {
                     "command": "mssql.objectExplorerV2.backupDatabase",
                     "when": "false"
                 },
@@ -1582,12 +1583,6 @@
             {
                 "command": "mssql.objectExplorerV2.search",
                 "title": "%mssql.searchDatabase%",
-                "category": "MS SQL",
-                "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled"
-            },
-            {
-                "command": "mssql.objectExplorerV2.legacyActions",
-                "title": "%mssql.objectExplorerV2.legacyActions%",
                 "category": "MS SQL",
                 "enablement": "mssql.privatePreview.objectExplorerV2Active && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.objectExplorer.v2.enabled"
             },

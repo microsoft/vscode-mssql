@@ -96,6 +96,15 @@ export type OeV2Path =
     | { kind: "error"; scope: string; connectionId?: string; code?: string };
 
 const VERSION = "oe2:";
+const OBJECT_KINDS = new Set<OeV2ObjectKind>([
+    "table",
+    "view",
+    "procedure",
+    "scalarFunction",
+    "tableFunction",
+    "synonym",
+]);
+const OBJECT_FOLDERS = new Set<OeV2ObjectFolder>(["columns", "keys", "foreignKeys", "parameters"]);
 
 const enc = (segment: string): string => encodeURIComponent(segment);
 const dec = (segment: string): string => decodeURIComponent(segment);
@@ -199,20 +208,30 @@ export function decodePath(id: string): OeV2Path | undefined {
     const parts = id.slice(VERSION.length).split("/");
     const kind = parts[0];
     try {
+        const requireLength = (expected: number): void => {
+            if (parts.length !== expected) {
+                throw new Error("malformed OE v2 path");
+            }
+        };
         switch (kind) {
             case "root":
+                requireLength(1);
                 return { kind: "root" };
             case "connectionGroup":
+                requireLength(2);
                 return { kind, groupId: dec(parts[1]) };
             case "connection":
+                requireLength(2);
                 return { kind, connectionId: dec(parts[1]) };
             case "serverFolder":
+                requireLength(3);
                 return {
                     kind,
                     connectionId: dec(parts[1]),
                     folder: dec(parts[2]),
                 };
             case "serverObjectItem":
+                requireLength(4);
                 return {
                     kind,
                     connectionId: dec(parts[1]),
@@ -220,6 +239,7 @@ export function decodePath(id: string): OeV2Path | undefined {
                     name: dec(parts[3]),
                 };
             case "databaseObjectItem":
+                requireLength(5);
                 return {
                     kind,
                     connectionId: dec(parts[1]),
@@ -228,8 +248,10 @@ export function decodePath(id: string): OeV2Path | undefined {
                     name: dec(parts[4]),
                 };
             case "database":
+                requireLength(3);
                 return { kind, connectionId: dec(parts[1]), database: dec(parts[2]) };
             case "databaseFolder":
+                requireLength(4);
                 return {
                     kind,
                     connectionId: dec(parts[1]),
@@ -237,6 +259,7 @@ export function decodePath(id: string): OeV2Path | undefined {
                     folder: dec(parts[3]),
                 };
             case "schema":
+                requireLength(4);
                 return {
                     kind,
                     connectionId: dec(parts[1]),
@@ -244,6 +267,7 @@ export function decodePath(id: string): OeV2Path | undefined {
                     schema: dec(parts[3]),
                 };
             case "schemaFolder":
+                requireLength(5);
                 return {
                     kind,
                     connectionId: dec(parts[1]),
@@ -251,26 +275,40 @@ export function decodePath(id: string): OeV2Path | undefined {
                     schema: dec(parts[3]),
                     folder: dec(parts[4]),
                 };
-            case "object":
+            case "object": {
+                requireLength(6);
+                const objectKind = parts[5] as OeV2ObjectKind;
+                if (!OBJECT_KINDS.has(objectKind)) {
+                    return undefined;
+                }
                 return {
                     kind,
                     connectionId: dec(parts[1]),
                     database: dec(parts[2]),
                     schema: dec(parts[3]),
                     name: dec(parts[4]),
-                    objectKind: parts[5] as OeV2ObjectKind,
+                    objectKind,
                 };
-            case "objectFolder":
+            }
+            case "objectFolder": {
+                requireLength(7);
+                const objectKind = parts[5] as OeV2ObjectKind;
+                const folder = parts[6] as OeV2ObjectFolder;
+                if (!OBJECT_KINDS.has(objectKind) || !OBJECT_FOLDERS.has(folder)) {
+                    return undefined;
+                }
                 return {
                     kind,
                     connectionId: dec(parts[1]),
                     database: dec(parts[2]),
                     schema: dec(parts[3]),
                     name: dec(parts[4]),
-                    objectKind: parts[5] as OeV2ObjectKind,
-                    folder: parts[6] as OeV2ObjectFolder,
+                    objectKind,
+                    folder,
                 };
+            }
             case "column":
+                requireLength(6);
                 return {
                     kind,
                     connectionId: dec(parts[1]),
@@ -280,6 +318,7 @@ export function decodePath(id: string): OeV2Path | undefined {
                     column: dec(parts[5]),
                 };
             case "parameter": {
+                requireLength(7);
                 const ordinal = Number(parts[6]);
                 if (!Number.isInteger(ordinal)) {
                     return undefined;
@@ -295,6 +334,7 @@ export function decodePath(id: string): OeV2Path | undefined {
                 };
             }
             case "status": {
+                requireLength(3);
                 const connectionId = dec(parts[2] ?? "");
                 return {
                     kind,
@@ -303,6 +343,7 @@ export function decodePath(id: string): OeV2Path | undefined {
                 };
             }
             case "error": {
+                requireLength(4);
                 const connectionId = dec(parts[2] ?? "");
                 const code = dec(parts[3] ?? "");
                 return {

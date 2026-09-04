@@ -335,7 +335,10 @@ export function systemDatabasesFolderChildren(
 export function databaseNode(connectionId: string, info: ServerDatabaseInfo): OeV2Node {
     const path: OeV2Path = { kind: "database", connectionId, database: info.name };
     const inaccessible = info.accessState === "inaccessible";
-    const stateNote = info.state && info.state !== "ONLINE" ? info.state.toLowerCase() : undefined;
+    const stateNote =
+        info.state && info.state !== "ONLINE"
+            ? ObjectExplorerV2.databaseStateLabel(info.state)
+            : undefined;
     const description = [
         stateNote,
         inaccessible ? ObjectExplorerV2.noAccess : undefined,
@@ -407,6 +410,9 @@ function catalogGate(
         return [errorNode(scope, ObjectExplorerV2.metadataFailed, connectionId)];
     }
     const sectionState = (snapshot.readiness as Record<string, string>)[section];
+    if (sectionState === "absent" || sectionState === "loading") {
+        return [loadingNode(scope, connectionId)];
+    }
     if (sectionState === "failed") {
         return [errorNode(scope, ObjectExplorerV2.metadataSectionFailed(section), connectionId)];
     }
@@ -465,20 +471,15 @@ export function databaseFolderChildren(
         if (gate) {
             return [...before, ...gate, ...after];
         }
-        content = withStaleNotice(
+        content = databaseFolderContent(
             scope,
             connectionId,
-            databaseFolderContent(
-                scope,
-                connectionId,
-                database,
-                def,
-                snapshot!,
-                groupBySchema,
-                schema,
-                aux,
-            ),
-            freshness,
+            database,
+            def,
+            snapshot!,
+            groupBySchema,
+            schema,
+            aux,
         );
     } else if (def.facetFlag === "isExternal" && def.objectKinds) {
         // External Tables (v1 parity): items are REAL catalog objects
@@ -492,30 +493,36 @@ export function databaseFolderChildren(
         const objects = snapshot!
             .listObjects(schema, [...def.objectKinds])
             .filter((info) => (facetsById.get(info.objectId)?.[def.facetFlag] ?? 0) === 1);
-        content = withStaleNotice(
-            scope,
-            connectionId,
-            objects.length === 0
-                ? [noItemsNode(scope, connectionId)]
-                : objects.map((info) =>
-                      objectNode(
-                          connectionId,
-                          database,
-                          info.schema,
-                          info.name,
-                          info.kind as OeV2ObjectKind,
-                          facetPresentation(facetsById.get(info.objectId)),
-                      ),
-                  ),
-            freshness,
-        );
+        if (groupBySchema && schema === undefined) {
+            const schemas = new Set(objects.map((info) => info.schema));
+            content =
+                schemas.size === 0
+                    ? [noItemsNode(scope, connectionId)]
+                    : [...schemas]
+                          .sort(oeV2OrdinalCompare)
+                          .map((name) => schemaFolderNode(connectionId, database, name, def.id));
+        } else {
+            content =
+                objects.length === 0
+                    ? [noItemsNode(scope, connectionId)]
+                    : objects.map((info) =>
+                          objectNode(
+                              connectionId,
+                              database,
+                              info.schema,
+                              info.name,
+                              info.kind as OeV2ObjectKind,
+                              facetPresentation(facetsById.get(info.objectId)),
+                          ),
+                      );
+        }
     } else if (def.section === "aux") {
         // Pure parent folder: registry children ARE the content.
         content = before.length + after.length === 0 ? [noItemsNode(scope, connectionId)] : [];
     } else {
         content = databaseAuxLeafContent(scope, connectionId, database, def, facts, aux);
     }
-    return [...before, ...content, ...after];
+    return withStaleNotice(scope, connectionId, [...before, ...content, ...after], freshness);
 }
 
 /** K3 exclusion: history/dropped/external rows never render in the main
@@ -623,28 +630,9 @@ function databaseFolderContent(
         if (withObjects.size === 0) {
             return [noItemsNode(scope, connectionId)];
         }
-        return [...withObjects].sort().map((name) => {
-            const path: OeV2Path = {
-                kind: "schemaFolder",
-                connectionId,
-                database,
-                schema: name,
-                folder: def.id,
-            };
-            return {
-                id: encodePath(path),
-                path,
-                kind: "schema",
-                label: name,
-                collapsible: true,
-                connectionId,
-                database,
-                schema: name,
-                readiness: NOT_APPLICABLE,
-                capabilities: {},
-                icon: "Schema",
-            } satisfies OeV2Node;
-        });
+        return [...withObjects]
+            .sort(oeV2OrdinalCompare)
+            .map((name) => schemaFolderNode(connectionId, database, name, def.id));
     }
     const objects = snapshot
         .listObjects(schema, objectKinds)
@@ -662,6 +650,47 @@ function databaseFolderContent(
             facetPresentation(facets.get(info.objectId)),
         ),
     );
+}
+
+/** Same deterministic, case-folded ordering used by CatalogSnapshot lists. */
+function oeV2OrdinalCompare(a: string, z: string): number {
+    const foldedA = a.toLowerCase();
+    const foldedZ = z.toLowerCase();
+    if (foldedA < foldedZ) {
+        return -1;
+    }
+    if (foldedA > foldedZ) {
+        return 1;
+    }
+    return a < z ? -1 : a > z ? 1 : 0;
+}
+
+function schemaFolderNode(
+    connectionId: string,
+    database: string,
+    schema: string,
+    folder: string,
+): OeV2Node {
+    const path: OeV2Path = {
+        kind: "schemaFolder",
+        connectionId,
+        database,
+        schema,
+        folder,
+    };
+    return {
+        id: encodePath(path),
+        path,
+        kind: "schema",
+        label: schema,
+        collapsible: true,
+        connectionId,
+        database,
+        schema,
+        readiness: NOT_APPLICABLE,
+        capabilities: {},
+        icon: "Schema",
+    };
 }
 
 /** Item icons per database aux folder (classic media/objectTypes assets). */
@@ -1044,9 +1073,7 @@ function objectFolderContent(
                   });
         }
         case "parameters": {
-            const parameters = snapshot!
-                .getParameters(objectId)
-                .filter((parameter) => parameter.ordinal > 0 || parameter.name !== "");
+            const parameters = snapshot!.getParameters(objectId);
             return parameters.length === 0
                 ? [noItemsNode(scope, path.connectionId)]
                 : parameters.map((parameter) => {

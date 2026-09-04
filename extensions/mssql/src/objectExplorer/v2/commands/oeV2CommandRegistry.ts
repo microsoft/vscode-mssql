@@ -44,7 +44,6 @@ export interface OeV2CommandPlacement {
 export interface OeV2CommandDef {
     /** Command id registered with VS Code. */
     readonly id: string;
-    readonly title: string;
     /** Policy feature key (legacyRedirect routes) or native handler key. */
     readonly feature: string;
     readonly route: "legacyRedirect" | "native";
@@ -69,7 +68,6 @@ export const OE_V2_COMMANDS: readonly OeV2CommandDef[] = [
     // -------------------------------------------------------- 2b_tableActions
     {
         id: "mssql.objectExplorerV2.editTableData",
-        title: "Edit Table Data...",
         feature: "tableExplorer",
         route: "legacyRedirect",
         placements: [
@@ -78,7 +76,6 @@ export const OE_V2_COMMANDS: readonly OeV2CommandDef[] = [
     },
     {
         id: "mssql.objectExplorerV2.editTable",
-        title: "Modify Table Structure...",
         feature: "editTable",
         route: "legacyRedirect",
         placements: [
@@ -88,7 +85,6 @@ export const OE_V2_COMMANDS: readonly OeV2CommandDef[] = [
     // ------------------------------------------------------ 2a_databaseDesign
     {
         id: "mssql.objectExplorerV2.schemaDesigner",
-        title: "Visualize and Design Schema...",
         feature: "schemaDesigner",
         route: "legacyRedirect",
         placements: [
@@ -101,7 +97,6 @@ export const OE_V2_COMMANDS: readonly OeV2CommandDef[] = [
     },
     {
         id: "mssql.objectExplorerV2.buildDataApi",
-        title: "Build Data API...",
         feature: "buildDataApi",
         route: "legacyRedirect",
         placements: [
@@ -117,7 +112,6 @@ export const OE_V2_COMMANDS: readonly OeV2CommandDef[] = [
         id: "mssql.objectExplorerV2.search",
         // v1 wording: the native metadata-store search fully replaces the
         // classic Search Database Objects dialog on database contexts.
-        title: "Search Database Objects...",
         feature: "search",
         route: "native",
         placements: [
@@ -126,7 +120,6 @@ export const OE_V2_COMMANDS: readonly OeV2CommandDef[] = [
     },
     {
         id: "mssql.objectExplorerV2.launchProfiler",
-        title: "Launch Query Profiler...",
         feature: "profiler",
         route: "legacyRedirect",
         placements: [
@@ -145,7 +138,6 @@ export const OE_V2_COMMANDS: readonly OeV2CommandDef[] = [
     // ------------------------------------- 3_instanceActions / 4_maintenance
     {
         id: "mssql.objectExplorerV2.renameDatabase",
-        title: "Rename Database...",
         feature: "renameDatabase",
         route: "legacyRedirect",
         placements: [
@@ -160,7 +152,6 @@ export const OE_V2_COMMANDS: readonly OeV2CommandDef[] = [
     },
     {
         id: "mssql.objectExplorerV2.backupDatabase",
-        title: "Backup Database...",
         feature: "backupDatabase",
         route: "legacyRedirect",
         placements: [
@@ -171,7 +162,6 @@ export const OE_V2_COMMANDS: readonly OeV2CommandDef[] = [
     },
     {
         id: "mssql.objectExplorerV2.restoreDatabase",
-        title: "Restore Database...",
         feature: "restoreDatabase",
         route: "legacyRedirect",
         placements: [
@@ -189,7 +179,6 @@ export const OE_V2_COMMANDS: readonly OeV2CommandDef[] = [
     },
     {
         id: "mssql.objectExplorerV2.importData",
-        title: "Import Data...",
         feature: "flatFileImport",
         route: "legacyRedirect",
         placements: [
@@ -207,7 +196,6 @@ export const OE_V2_COMMANDS: readonly OeV2CommandDef[] = [
     },
     {
         id: "mssql.objectExplorerV2.dropDatabase",
-        title: "Drop Database...",
         feature: "dropDatabase",
         route: "legacyRedirect",
         placements: [
@@ -221,7 +209,6 @@ export const OE_V2_COMMANDS: readonly OeV2CommandDef[] = [
     // -------------------------------------------------- 2_connection extras
     {
         id: "mssql.objectExplorerV2.copyConnectionString",
-        title: "Copy Connection String",
         feature: "copyConnectionString",
         route: "legacyRedirect",
         placements: [
@@ -229,14 +216,15 @@ export const OE_V2_COMMANDS: readonly OeV2CommandDef[] = [
                 flag: "copyConnectionString",
                 menuGroup: "2_MSSQL_connection@4",
                 appliesTo: (facts) =>
-                    facts.kind === "connectedServer" || facts.kind === "disconnectedConnection",
+                    facts.kind === "connectedServer" ||
+                    facts.kind === "disconnectedConnection" ||
+                    facts.kind === "lostConnection",
             },
         ],
     },
     // ------------------------------------------------------------ 6_copilot
     {
         id: "mssql.objectExplorerV2.chatWithDatabase",
-        title: "Open in GitHub Copilot Chat",
         feature: "chatWithDatabase",
         route: "legacyRedirect",
         placements: [
@@ -251,7 +239,6 @@ export const OE_V2_COMMANDS: readonly OeV2CommandDef[] = [
     },
     {
         id: "mssql.objectExplorerV2.chatWithDatabaseAgent",
-        title: "Open in GitHub Copilot Agent",
         feature: "chatWithDatabaseAgent",
         route: "legacyRedirect",
         placements: [
@@ -267,7 +254,6 @@ export const OE_V2_COMMANDS: readonly OeV2CommandDef[] = [
     // -------------------------------------------------- 7_compareAndDacpac
     {
         id: "mssql.objectExplorerV2.schemaCompare",
-        title: "Compare Schemas...",
         feature: "schemaCompare",
         route: "legacyRedirect",
         placements: [
@@ -280,7 +266,6 @@ export const OE_V2_COMMANDS: readonly OeV2CommandDef[] = [
     },
     {
         id: "mssql.objectExplorerV2.dacpacDialog",
-        title: "DACPAC/BACPAC Operations...",
         feature: "dacpacDialog",
         route: "legacyRedirect",
         placements: [
@@ -294,7 +279,6 @@ export const OE_V2_COMMANDS: readonly OeV2CommandDef[] = [
     // ------------------------------------------- 8_sqlProjectsAndNotebooks
     {
         id: "mssql.objectExplorerV2.newNotebook",
-        title: "New SQL Notebook",
         feature: "createNotebook",
         route: "legacyRedirect",
         placements: [

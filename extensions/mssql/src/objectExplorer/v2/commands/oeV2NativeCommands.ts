@@ -114,10 +114,11 @@ export function registerOeV2NativeCommands(
                 if (!controller || !node?.connectionId || !node.database) {
                     return;
                 }
-                const term = await vscode.window.showInputBox({
+                const input = await vscode.window.showInputBox({
                     title: ObjectExplorerV2.searchDatabaseTitle(node.database),
                     prompt: ObjectExplorerV2.searchNamePrefixPrompt,
                 });
+                const term = input?.trim();
                 if (!term) {
                     return;
                 }
@@ -127,6 +128,12 @@ export function registerOeV2NativeCommands(
                     term,
                 );
                 emitCommand("search", "native", node);
+                if (matches === undefined) {
+                    void vscode.window.showInformationMessage(
+                        ObjectExplorerV2.metadataStillLoading,
+                    );
+                    return;
+                }
                 if (matches.length === 0) {
                     void vscode.window.showInformationMessage(
                         ObjectExplorerV2.noObjectsMatch(term),
@@ -136,7 +143,7 @@ export function registerOeV2NativeCommands(
                 const picked = await vscode.window.showQuickPick(
                     matches.map((match) => ({
                         label: `${match.schema}.${match.name}`,
-                        description: match.kind,
+                        description: ObjectExplorerV2.objectKindLabel(match.kind),
                         match,
                     })),
                     { title: ObjectExplorerV2.searchResultsTitle(term) },

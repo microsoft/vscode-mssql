@@ -29,6 +29,8 @@ import { OeV2ClassicHandoffService } from "../../src/objectExplorer/v2/legacy/oe
 import { connectionNode, nodeContextValue } from "../../src/objectExplorer/v2/tree/oeV2NodeFactory";
 import { NOT_APPLICABLE, OeV2Node } from "../../src/objectExplorer/v2/tree/oeV2Node";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
+import { ObjectExplorerV2 } from "../../src/constants/locConstants";
+import { initializeIconUtils } from "./utils";
 
 function databaseNode(): OeV2Node {
     return {
@@ -115,6 +117,9 @@ suite("Object Explorer v2 command registry (B25)", () => {
         ]);
         expect(commandFlagsFor({ kind: "object", objectKind: "view" })).to.deep.equal([]);
         expect(commandFlagsFor({ kind: "databaseFolder", database: "AppDb" })).to.deep.equal([]);
+        expect(commandFlagsFor({ kind: "lostConnection" })).to.deep.equal([
+            "oe2:cmd=copyConnectionString",
+        ]);
     });
 
     test("container connections retain their saved-profile identity without lifecycle commands", () => {
@@ -190,6 +195,10 @@ suite("Object Explorer v2 command registry (B25)", () => {
         const onDbScoped = policiesForNode("connectedServer", "AppDb").map((p) => p.feature);
         expect(onDbScoped).to.include("backupDatabase");
         expect(policiesForNode("database").map((p) => p.feature)).to.include("backupDatabase");
+        expect(policiesForNode("object", undefined, "table").map((p) => p.feature)).to.include(
+            "editTable",
+        );
+        expect(policiesForNode("object", undefined, "view")).to.deep.equal([]);
     });
 
     test("commandTargetFor extracts the full node identity", () => {
@@ -209,6 +218,7 @@ suite("Object Explorer v2 legacy redirect (B25)", () => {
     let execute: sinon.SinonStub;
 
     setup(() => {
+        initializeIconUtils(); // TreeNodeInfo resolves icons in its constructor.
         execute = sinon.stub(vscode.commands, "executeCommand").resolves(undefined);
     });
 
@@ -255,7 +265,7 @@ suite("Object Explorer v2 legacy redirect (B25)", () => {
         const ensureSpy = sinon.spy(deps.handoff, "ensureOwnerUri");
         const outcome = await redirectToClassic("backupDatabase", serverNode(), deps);
         expect(outcome.ok).to.equal(false);
-        expect(outcome.error).to.include("database");
+        expect(outcome.error).to.equal(ObjectExplorerV2.legacyActionNeedsDatabase);
         expect(ensureSpy.called).to.equal(false);
         sinon.assert.notCalled(execute);
     });
@@ -266,6 +276,42 @@ suite("Object Explorer v2 legacy redirect (B25)", () => {
         const [command, arg] = execute.firstCall.args as [string, TreeNodeInfo];
         expect(command).to.equal("mssql.restoreDatabase");
         expect(arg.nodeType).to.equal("Server");
+    });
+
+    test("schema compare receives the selected node plus an unset target", async () => {
+        const outcome = await redirectToClassic("schemaCompare", databaseNode(), fakeDeps());
+        expect(outcome.ok).to.equal(true);
+        expect(execute.firstCall.args).to.have.length(3);
+        expect(execute.firstCall.args[0]).to.equal("mssql.schemaCompare");
+        expect(execute.firstCall.args[1]).to.be.instanceOf(TreeNodeInfo);
+        expect(execute.firstCall.args[2]).to.equal(undefined);
+    });
+
+    test("copy connection string accepts a lost connection", async () => {
+        const lost = { ...serverNode(), kind: "lostConnection" as const };
+        const outcome = await redirectToClassic("copyConnectionString", lost, fakeDeps());
+        expect(outcome.ok).to.equal(true);
+        expect(execute.firstCall.args[0]).to.equal("mssql.copyConnectionString");
+        expect((execute.firstCall.args[1] as TreeNodeInfo).nodeType).to.equal("disconnectedServer");
+    });
+
+    test("redirect never passes the cached profile object to the handoff seam", async () => {
+        const stored = { server: "srv", authenticationType: "Integrated" };
+        let handedOff: unknown;
+        const outcome = await redirectToClassic("restoreDatabase", serverNode(), {
+            facts: {
+                handoffFacts: async () => ({ stored, fingerprint: "sfp_test" }),
+            },
+            handoff: {
+                ensureOwnerUri: async (_id, _fingerprint, profile) => {
+                    handedOff = profile;
+                    return "oe2://handoff/abc";
+                },
+            } as unknown as OeV2ClassicHandoffService,
+        });
+        expect(outcome.ok).to.equal(true);
+        expect(handedOff).to.not.equal(stored);
+        expect(handedOff).to.deep.equal(stored);
     });
 
     test("unavailable handoff is a quiet no-op; classic failure is a guarded error", async () => {

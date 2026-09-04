@@ -12,9 +12,10 @@
  * for legacy features, so there is no user-facing confirmation; the Debug
  * Console shows both connections via the handoff/legacyConnection events
  * below plus the classic connection's own STS diag spans. Guardrails:
- * idle TTL disposal, closed on v2 disconnect, one handoff connection per
- * v2 connection, every use measured; browse paths cannot reach this
- * module (lint + spies).
+ * closed on v2 disconnect/remove/deactivation, one handoff connection per
+ * v2 connection, every use measured; browse paths cannot reach this module
+ * (lint + spies). There is deliberately no idle timer: classic dialogs may
+ * retain the owner URI for longer than an arbitrary timeout.
  */
 
 import { diag } from "../../../diagnostics/diagnosticsCore";
@@ -28,13 +29,9 @@ export interface HandoffConnectionSeam {
 
 interface HandoffEntry {
     ownerUri: string;
-    profile: IConnectionProfile;
-    idleTimer: ReturnType<typeof setTimeout> | undefined;
 }
 
 export interface OeV2HandoffOptions {
-    /** Idle ms before the handoff connection is dropped (default 10 min). */
-    idleTtlMs?: number;
     /** Owner-URI suffix source (tests inject deterministic values). */
     uriNonce?: () => string;
 }
@@ -59,20 +56,23 @@ export class OeV2ClassicHandoffService {
     ): Promise<string | undefined> {
         const existing = this.entries.get(connectionId);
         if (existing) {
-            this.touch(existing, connectionId);
             this.emitHandoff(feature, "reused");
             return existing.ownerUri;
         }
         const nonce = this.options.uriNonce?.() ?? randomUUID();
         const ownerUri = `objectexplorerv2://handoff/${fingerprint.slice(0, 12)}/${nonce}`;
-        const connected = await this.connections.connect(ownerUri, profile).catch(() => false);
+        // ConnectionManager normalizes credentials in place (including a
+        // resolved password), so it must never receive the profile-tree's
+        // cached object by reference.
+        const connected = await this.connections
+            .connect(ownerUri, { ...profile })
+            .catch(() => false);
         if (!connected) {
             this.emitHandoff(feature, "connectFailed");
             return undefined;
         }
-        const entry: HandoffEntry = { ownerUri, profile, idleTimer: undefined };
+        const entry: HandoffEntry = { ownerUri };
         this.entries.set(connectionId, entry);
-        this.touch(entry, connectionId);
         diag.emit({
             feature: "objectExplorer",
             kind: "event",
@@ -96,9 +96,6 @@ export class OeV2ClassicHandoffService {
             return;
         }
         this.entries.delete(connectionId);
-        if (entry.idleTimer) {
-            clearTimeout(entry.idleTimer);
-        }
         await this.connections.disconnect(entry.ownerUri).catch(() => undefined);
     }
 
@@ -106,15 +103,6 @@ export class OeV2ClassicHandoffService {
         for (const connectionId of [...this.entries.keys()]) {
             void this.close(connectionId);
         }
-    }
-
-    private touch(entry: HandoffEntry, connectionId: string): void {
-        if (entry.idleTimer) {
-            clearTimeout(entry.idleTimer);
-        }
-        const ttl = this.options.idleTtlMs ?? 600_000;
-        entry.idleTimer = setTimeout(() => void this.close(connectionId), ttl);
-        (entry.idleTimer as { unref?: () => void }).unref?.();
     }
 
     private emitHandoff(feature: string, outcome: string): void {

@@ -13,6 +13,7 @@
  */
 
 import { stableProfileId } from "../../../services/metadata/profileAuthAdapter";
+import { ObjectExplorerV2 } from "../../../constants/locConstants";
 import { connectionDisplayLabel } from "../tree/oeV2ConnectionLabel";
 
 export interface OeV2StoredProfile {
@@ -85,7 +86,7 @@ export async function readProfileTree(source: ConnectionProfileSource): Promise<
         .filter((group) => group.id)
         .map((group) => ({
             groupId: group.id!,
-            name: group.name ?? "Group",
+            name: group.name ?? ObjectExplorerV2.unnamedGroup,
             ...(group.parentId ? { parentId: group.parentId } : {}),
             ...(group.color ? { color: group.color } : {}),
         }));

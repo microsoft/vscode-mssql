@@ -1133,31 +1133,35 @@ export class ObjectExplorerV2 {
         ["Column Master Keys", l10n.t("Column Master Keys")],
         ["Column Encryption Keys", l10n.t("Column Encryption Keys")],
     ]);
-    private static readonly legacyActionLabels = new Map<string, string>([
-        ["backupDatabase", l10n.t("Backup Database… (legacy)")],
-        ["restoreDatabase", l10n.t("Restore Database… (legacy)")],
-        ["profiler", l10n.t("Launch Profiler (legacy)")],
-        ["schemaCompare", l10n.t("Schema Compare (legacy)")],
-        ["editTable", l10n.t("Edit Table (legacy Table Designer)")],
-        ["tableExplorer", l10n.t("Edit Table Data… (legacy)")],
-        ["schemaDesigner", l10n.t("Visualize and Design Schema… (legacy)")],
-        ["buildDataApi", l10n.t("Build Data API… (legacy)")],
-        ["renameDatabase", l10n.t("Rename Database… (legacy)")],
-        ["dropDatabase", l10n.t("Drop Database… (legacy)")],
-        ["flatFileImport", l10n.t("Import Data… (legacy)")],
-        ["dacpacDialog", l10n.t("DACPAC/BACPAC Operations… (legacy)")],
-        ["copyConnectionString", l10n.t("Copy Connection String (legacy)")],
-        ["chatWithDatabase", l10n.t("Open in GitHub Copilot Chat (legacy)")],
-        ["chatWithDatabaseAgent", l10n.t("Open in GitHub Copilot Agent (legacy)")],
-        ["createNotebook", l10n.t("New SQL Notebook (legacy)")],
+    private static readonly objectKindLabels = new Map<string, string>([
+        ["table", l10n.t("Table")],
+        ["view", l10n.t("View")],
+        ["procedure", l10n.t("Stored Procedure")],
+        ["scalarFunction", l10n.t("Scalar-valued Function")],
+        ["tableFunction", l10n.t("Table-valued Function")],
+        ["synonym", l10n.t("Synonym")],
+    ]);
+    private static readonly databaseStateLabels = new Map<string, string>([
+        ["RESTORING", l10n.t("restoring")],
+        ["RECOVERING", l10n.t("recovering")],
+        ["RECOVERY_PENDING", l10n.t("recovery pending")],
+        ["SUSPECT", l10n.t("suspect")],
+        ["EMERGENCY", l10n.t("emergency")],
+        ["OFFLINE", l10n.t("offline")],
+        ["COPYING", l10n.t("copying")],
+        ["OFFLINE_SECONDARY", l10n.t("offline secondary")],
     ]);
 
     public static folderLabel(label: string): string {
         return this.folderLabels.get(label) ?? label;
     }
 
-    public static legacyActionLabel(feature: string): string {
-        return this.legacyActionLabels.get(feature) ?? feature;
+    public static objectKindLabel(kind: string): string {
+        return this.objectKindLabels.get(kind) ?? kind;
+    }
+
+    public static databaseStateLabel(state: string): string {
+        return this.databaseStateLabels.get(state) ?? state;
     }
 
     public static loading = l10n.t("Loading…");
@@ -1194,10 +1198,6 @@ export class ObjectExplorerV2 {
     public static savedConnectionNotFound = l10n.t(
         "That connection could not be found in saved connections.",
     );
-    public static noLegacyActions = l10n.t(
-        "No legacy actions are available for this node in the Object Explorer v2 preview.",
-    );
-    public static legacyActionsTitle = l10n.t("Legacy actions (creates a classic connection)");
     public static outputChannelName = l10n.t("MSSQL Object Explorer v2");
     public static filterTitle = l10n.t("Filter Object Explorer v2 Folder");
     public static filterPrompt = l10n.t("Enter text to match object names");
@@ -1233,6 +1233,22 @@ export class ObjectExplorerV2 {
     public static output = l10n.t("OUTPUT");
     public static outputLowercase = l10n.t("output");
     public static unknown = l10n.t("(unknown)");
+    public static notSet = l10n.t("(not set)");
+    public static unnamedGroup = l10n.t("Group");
+    public static metadataStillLoading = l10n.t(
+        "Metadata is still loading. Wait a moment, then try the search again.",
+    );
+    public static legacyActionUnavailable = l10n.t("This action is not available here.");
+    public static legacyActionNotOnThisNode = l10n.t("This action is not available on this node.");
+    public static legacyActionNeedsDatabase = l10n.t(
+        "This action needs a database. Use a database node.",
+    );
+    public static legacyActionConnectFirst = l10n.t(
+        "Connect this profile in Object Explorer v2 first.",
+    );
+    public static legacyNodeNotAdaptable = l10n.t(
+        "The selected node cannot be used with this legacy feature.",
+    );
 
     public static couldNotConnect(reason?: string): string {
         return reason
@@ -1250,6 +1266,12 @@ export class ObjectExplorerV2 {
     }
     public static connectFailed(reason: string): string {
         return l10n.t("Connect failed: {0}.", reason);
+    }
+    public static legacyFeatureFailed(reason: string): string {
+        return l10n.t(
+            "The legacy feature could not run with an Object Explorer v2 node ({0}). Use Classic Object Explorer for this command.",
+            reason,
+        );
     }
     public static noFilterMatches(filter: string): string {
         return l10n.t("No matches for filter '{0}'. Use Clear Filters to remove it.", filter);

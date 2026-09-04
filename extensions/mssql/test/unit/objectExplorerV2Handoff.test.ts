@@ -6,7 +6,7 @@
 /**
  * OE v2 explicit legacy handoff (B20): the policy table drives exposure,
  * the handoff service silently creates exactly one guarded classic
- * connection per v2 connection (secret-free owner URIs, idle TTL,
+ * connection per v2 connection (secret-free owner URIs,
  * close-on-disconnect, failure isolation), and the H2 adapter synthesizes
  * classic nodes only for adaptable kinds.
  */
@@ -26,8 +26,6 @@ import { OeV2Node } from "../../src/objectExplorer/v2/tree/oeV2Node";
 import { encodePath } from "../../src/objectExplorer/v2/tree/oeV2Path";
 import { initializeIconUtils } from "./utils";
 
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
 const PROFILE = {
     server: "secret-server.example.internal",
     database: "AppDb",
@@ -35,10 +33,15 @@ const PROFILE = {
 } as unknown as IConnectionProfile;
 
 function seam(overrides?: Partial<HandoffConnectionSeam>) {
-    const calls: { connect: string[]; disconnect: string[] } = { connect: [], disconnect: [] };
+    const calls: { connect: string[]; disconnect: string[]; profiles: IConnectionProfile[] } = {
+        connect: [],
+        disconnect: [],
+        profiles: [],
+    };
     const connections: HandoffConnectionSeam = {
-        connect: async (ownerUri) => {
+        connect: async (ownerUri, profile) => {
             calls.connect.push(ownerUri);
+            calls.profiles.push(profile);
             return true;
         },
         disconnect: async (ownerUri) => {
@@ -86,14 +89,18 @@ suite("Object Explorer v2 legacy handoff (B20)", () => {
             "chatWithDatabaseAgent",
             "createNotebook",
         ]);
-        expect(policiesForNode("object").map((p) => p.feature)).to.deep.equal([
+        expect(policiesForNode("object", undefined, "table").map((p) => p.feature)).to.deep.equal([
             "editTable",
             "tableExplorer",
             "chatWithDatabase",
             "chatWithDatabaseAgent",
         ]);
+        expect(policiesForNode("object", undefined, "view")).to.deep.equal([]);
         expect(policiesForNode("databaseFolder")).to.deep.equal([]);
         expect(policiesForNode("disconnectedConnection").map((p) => p.feature)).to.deep.equal([
+            "copyConnectionString",
+        ]);
+        expect(policiesForNode("lostConnection").map((p) => p.feature)).to.deep.equal([
             "copyConnectionString",
         ]);
         for (const policy of LEGACY_COMMAND_POLICIES) {
@@ -118,6 +125,8 @@ suite("Object Explorer v2 legacy handoff (B20)", () => {
         expect(ownerUri).to.not.contain("secret-server");
         expect(ownerUri).to.not.contain("user@example.com");
         expect(calls.connect).to.deep.equal([ownerUri]);
+        expect(calls.profiles[0]).to.not.equal(PROFILE);
+        expect(calls.profiles[0]).to.deep.equal(PROFILE);
 
         // second feature on the same connection REUSES (no second connect)
         const again = await service.ensureOwnerUri("p1", "sfp_abcdef123456", PROFILE, "backup");
@@ -131,7 +140,7 @@ suite("Object Explorer v2 legacy handoff (B20)", () => {
         service.dispose();
     });
 
-    test("handoff: connect failure is isolated; idle TTL closes automatically", async () => {
+    test("handoff: connect failure is isolated", async () => {
         const failing = seam({
             connect: async () => {
                 throw new Error("classic connect exploded");
@@ -142,15 +151,7 @@ suite("Object Explorer v2 legacy handoff (B20)", () => {
             undefined,
         );
         expect(service.hasHandoff("p1")).to.equal(false);
-
-        const { connections, calls } = seam();
-        const ttlService = new OeV2ClassicHandoffService(connections, { idleTtlMs: 5 });
-        const uri = await ttlService.ensureOwnerUri("p1", "sfp_x", PROFILE, "profiler");
-        expect(uri).to.not.equal(undefined);
-        await sleep(30);
-        expect(ttlService.hasHandoff("p1")).to.equal(false);
-        expect(calls.disconnect).to.have.length(1);
-        ttlService.dispose();
+        service.dispose();
     });
 
     test("H2 adapter: adaptable kinds get classic identity; others refuse", () => {
@@ -159,6 +160,7 @@ suite("Object Explorer v2 legacy handoff (B20)", () => {
         expect(adapted.nodeType).to.equal("Database");
         expect(adapted.sessionId).to.equal("owner-uri");
         expect((adapted.connectionProfile as { database?: string }).database).to.equal("AppDb");
+        expect(adapted.connectionProfile).to.not.equal(PROFILE);
 
         const folder: OeV2Node = {
             ...databaseNode(),

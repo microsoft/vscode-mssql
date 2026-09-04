@@ -4,9 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 /**
- * OeV2Node (oe_view_design §9.1): the pure tree record. NOT a
- * vscode.TreeItem — the provider converts at the edge. Pure modules under
- * tree/ never import vscode, classic OE types, or data-plane singletons.
+ * OeV2Node (oe_view_design §9.1): the plain tree record. NOT a
+ * vscode.TreeItem — the provider converts at the edge. Tree modules may use
+ * shared localization constants, but never import VS Code UI types, classic
+ * OE types, or data-plane singletons.
  */
 
 import { OeV2Path } from "./oeV2Path";

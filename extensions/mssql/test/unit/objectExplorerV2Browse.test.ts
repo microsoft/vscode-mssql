@@ -153,6 +153,7 @@ function dbScripts(tableName: string, opts: DbScriptOptions = {}): FakeScript[] 
                     rows: [
                         [105, 1, "@CustomerId", "int", 4, 10, 0, false],
                         [105, 2, "@Total", "decimal", 9, 18, 2, true],
+                        [106, 0, "", "decimal", 9, 18, 2, true],
                     ],
                 },
                 { type: "complete", status: "succeeded" },
@@ -408,6 +409,217 @@ suite("Object Explorer v2 browse (B18)", () => {
         h.controller.dispose();
     });
 
+    test("a second connect during an in-flight open JOINS it (wizard vs auto-connect race)", async () => {
+        let resolveOpen!: (value: { session: ISqlSession }) => void;
+        let opens = 0;
+        const registry = new OeV2SessionRegistry(() => {
+            opens++;
+            return new Promise((resolve) => (resolveOpen = resolve));
+        });
+        const prepared = {
+            serverFingerprint: "fp_join_test",
+        } as Parameters<OeV2SessionRegistry["connect"]>[1];
+        const first = registry.connect("p1", prepared);
+        const second = registry.connect("p1", prepared);
+        const session = {
+            info: {},
+            close: async () => undefined,
+            onDidChangeState: () => ({ dispose: () => undefined }),
+        } as unknown as ISqlSession;
+        resolveOpen({ session });
+        expect((await first).state).to.equal("connected");
+        expect((await second).state).to.equal("connected");
+        expect(opens).to.equal(1);
+        registry.dispose();
+    });
+
+    test("cancel while connecting returns to disconnected; the late session self-closes", async () => {
+        let closed = 0;
+        let resolveOpen!: (value: { session: ISqlSession }) => void;
+        const registry = new OeV2SessionRegistry(
+            () => new Promise((resolve) => (resolveOpen = resolve)),
+        );
+        const prepared = {
+            serverFingerprint: "fp_cancel_test",
+        } as Parameters<OeV2SessionRegistry["connect"]>[1];
+        const pending = registry.connect("p1", prepared);
+        expect(registry.stateOf("p1")).to.equal("connecting");
+
+        expect(registry.cancelConnect("p1")).to.equal(true);
+        expect(registry.stateOf("p1")).to.equal("disconnected");
+        expect(registry.cancelConnect("p1")).to.equal(false);
+
+        const session = {
+            info: {},
+            close: async () => {
+                closed++;
+            },
+            onDidChangeState: () => ({ dispose: () => undefined }),
+        } as unknown as ISqlSession;
+        resolveOpen({ session });
+        const outcome = await pending;
+        expect(outcome.state).to.equal("disconnected");
+        expect(outcome.failureReason).to.equal(undefined);
+        expect(registry.stateOf("p1")).to.equal("disconnected");
+        expect(closed).to.equal(1);
+        registry.dispose();
+    });
+
+    test("reconnecting a lost connection retires its previous session and listener", async () => {
+        let stateListener: ((change: { current: string; reason?: string }) => void) | undefined;
+        let firstClosed = 0;
+        let firstSubscriptionDisposed = 0;
+        const sessions: ISqlSession[] = [
+            {
+                info: {},
+                close: async () => {
+                    firstClosed++;
+                },
+                onDidChangeState: (listener) => {
+                    stateListener = listener as typeof stateListener;
+                    return { dispose: () => firstSubscriptionDisposed++ };
+                },
+            } as unknown as ISqlSession,
+            {
+                info: {},
+                close: async () => undefined,
+                onDidChangeState: () => ({ dispose: () => undefined }),
+            } as unknown as ISqlSession,
+        ];
+        const registry = new OeV2SessionRegistry(async () => ({ session: sessions.shift()! }));
+        const prepared = {
+            serverFingerprint: "fp_lost_test",
+        } as Parameters<OeV2SessionRegistry["connect"]>[1];
+
+        expect((await registry.connect("p1", prepared)).state).to.equal("connected");
+        stateListener?.({ current: "lost", reason: "network" });
+        expect(registry.stateOf("p1")).to.equal("lost");
+        expect((await registry.connect("p1", prepared)).state).to.equal("connected");
+        expect(firstClosed).to.equal(1);
+        expect(firstSubscriptionDisposed).to.equal(1);
+        registry.dispose();
+    });
+
+    test("connect → server node; Databases folder renders catalog states honestly", async () => {
+        const h = harness();
+        const { dbFolder } = await browseToDatabases(h);
+        const databases = await h.controller.children(dbFolder);
+        expect(databases.map((n) => n.label)).to.deep.equal([
+            "System Databases",
+            "AppDb",
+            "Locked",
+            "OtherDb",
+        ]);
+        const system = await h.controller.children(databases[0]);
+        expect(system.map((n) => n.label)).to.deep.equal(["master"]);
+        expect(system[0].kind).to.equal("database");
+        const locked = databases.find((n) => n.label === "Locked")!;
+        expect(locked.collapsible).to.equal(false);
+        expect(locked.readiness.kind).to.equal("permissionDenied");
+        expect(locked.description).to.contain("no access");
+
+        h.settings.showSystemDatabases = false;
+        const filtered = await h.controller.children(dbFolder);
+        expect(filtered.map((n) => n.label)).to.deep.equal(["AppDb", "Locked", "OtherDb"]);
+        h.controller.dispose();
+    });
+
+    test("server catalog failure renders an error child, never an empty list", async () => {
+        const failing = new FakeBackend({
+            scripts: [
+                {
+                    match: (text) => text.includes("sys.databases"),
+                    events: [
+                        { type: "message", kind: "error", text: "permission denied" },
+                        { type: "complete", status: "failed" },
+                    ],
+                },
+            ],
+        });
+        const h = harness();
+        const service = new RoutingService({}, failing);
+        const store = new MetadataStore(async () => service, { pollSeconds: 0 });
+        const registry = new OeV2SessionRegistry(async (params) => ({
+            session: await service.openSession(params),
+        }));
+        const controller = new OeV2TreeController({
+            profiles: {
+                readAllConnectionGroups: async () => [{ id: "ROOT", name: "ROOT" }],
+                readAllConnections: async () => [
+                    { id: "p1", server: "srv", profileName: "P1", groupId: "ROOT" },
+                ],
+            },
+            secrets: { lookupPassword: async () => "" },
+            dataPlane: { enabled: () => true, availabilityState: () => "available" },
+            sessions: registry,
+            coordinatorFactory: (prepared) => new OeV2MetadataCoordinator(store, prepared),
+            settings: () => h.settings,
+        });
+        expect(await controller.connectProfile("p1")).to.equal(true);
+        const roots = await controller.children();
+        const server = roots.find((n) => n.kind === "connectedServer")!;
+        const [dbFolder] = await controller.children(server);
+        await controller.refreshNode(dbFolder).catch(() => undefined);
+        const children = await controller.children(dbFolder);
+        expect(children).to.have.length(1);
+        expect(children[0].kind).to.equal("error");
+        expect(children[0].label).to.contain("Databases unavailable");
+        controller.dispose();
+        h.controller.dispose();
+    });
+
+    test("database → structural folders → objects, functions merge kinds, schemas list", async () => {
+        const h = harness();
+        const { dbFolder } = await browseToDatabases(h);
+        const appDb = (await h.controller.children(dbFolder)).find((n) => n.label === "AppDb")!;
+        const folders = await h.controller.children(appDb);
+        expect(folders.map((n) => n.label)).to.deep.equal([
+            "Tables",
+            "Views",
+            "Synonyms",
+            "Programmability",
+            "Service Broker",
+            "Storage",
+            "Security",
+        ]);
+        await h.controller.refreshNode(appDb);
+
+        const tables = await h.controller.children(folders[0]);
+        expect(tables.map((n) => n.label)).to.deep.equal(["dbo.Customers", "dbo.Orders"]);
+        expect(tables[0].icon).to.equal("Table");
+
+        const views = await h.controller.children(folders[1]);
+        expect(views.map((n) => n.label)).to.deep.equal(["dbo.OrdersView"]);
+
+        const programmability = await h.controller.children(folders[3]);
+        expect(programmability.map((n) => n.label)).to.deep.equal([
+            "Stored Procedures",
+            "Functions",
+            "Database Triggers",
+            "Assemblies",
+            "Types",
+            "Sequences",
+        ]);
+        const functions = await h.controller.children(programmability[1]);
+        expect(functions.map((n) => n.label)).to.deep.equal(["sales.Totals"]);
+        expect(functions[0].icon).to.equal("TableValuedFunction");
+        const functionFolders = await h.controller.children(functions[0]);
+        const returnValue = await h.controller.children(functionFolders[1]);
+        expect(returnValue.map((n) => n.label)).to.deep.equal(["(return value)"]);
+
+        const security = await h.controller.children(folders[6]);
+        const schemasFolder = security.find((n) => n.label === "Schemas")!;
+        const schemas = await h.controller.children(schemasFolder);
+        expect(schemas.map((n) => n.label)).to.deep.equal(["dbo", "sales"]);
+
+        h.settings.groupBySchema = true;
+        const grouped = await h.controller.children(folders[0]);
+        expect(grouped.map((n) => `${n.kind}:${n.label}`)).to.deep.equal(["schema:dbo"]);
+        const inSchema = await h.controller.children(grouped[0]);
+        expect(inSchema.map((n) => n.label)).to.deep.equal(["dbo.Customers", "dbo.Orders"]);
+        h.controller.dispose();
+    });
+
     test("object children: columns w/ badges, keys w/ PK+UQ, FKs w/ pairs, params w/ output", async () => {
         const h = harness();
         const { dbFolder } = await browseToDatabases(h);
@@ -582,11 +794,61 @@ suite("Object Explorer v2 browse (B18)", () => {
         expect(restored.map((n) => n.label)).to.deep.equal(["dbo.Customers", "dbo.Orders"]);
 
         const matches = await h.controller.searchObjects("p1", "AppDb", "Ord");
-        expect(matches.map((m) => `${m.schema}.${m.name}`)).to.deep.equal([
+        expect(matches?.map((m) => `${m.schema}.${m.name}`)).to.deep.equal([
             "dbo.Orders",
             "dbo.OrdersView",
         ]);
         h.controller.dispose();
+    });
+});
+
+suite("Object Explorer v2 metadata coordinator retries", () => {
+    test("rejected server/database acquisitions are not cached", async () => {
+        let serverAttempts = 0;
+        let databaseAttempts = 0;
+        const serverLease = {
+            onDidChange: () => ({ dispose: () => undefined }),
+            dispose: () => undefined,
+        };
+        const databaseLease = { dispose: () => undefined };
+        const store = {
+            acquireServer: async () => {
+                serverAttempts++;
+                if (serverAttempts === 1) {
+                    throw new Error("first server acquisition failed");
+                }
+                return serverLease;
+            },
+            acquireDatabase: async () => {
+                databaseAttempts++;
+                if (databaseAttempts === 1) {
+                    throw new Error("first database acquisition failed");
+                }
+                return databaseLease;
+            },
+        } as unknown as MetadataStore;
+        const coordinator = new OeV2MetadataCoordinator(store, {} as never);
+
+        let serverRejected = false;
+        try {
+            await coordinator.ensureServer();
+        } catch {
+            serverRejected = true;
+        }
+        expect(serverRejected).to.equal(true);
+        expect(await coordinator.ensureServer()).to.equal(serverLease);
+        expect(serverAttempts).to.equal(2);
+
+        let databaseRejected = false;
+        try {
+            await coordinator.ensureDatabase("AppDb");
+        } catch {
+            databaseRejected = true;
+        }
+        expect(databaseRejected).to.equal(true);
+        expect(await coordinator.ensureDatabase("AppDb")).to.equal(databaseLease);
+        expect(databaseAttempts).to.equal(2);
+        coordinator.dispose();
     });
 });
 

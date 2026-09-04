@@ -3,66 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-/**
- * Readiness → child-node policy (oe_view_design §9.4/§13): only an explicitly
- * empty result (`readyEmpty`) or a `ready` result with zero children produces a
- * no-items child. Loading, failed, stale, partial, permission denied,
- * unsupported, and data-plane-unavailable states remain distinct from emptiness.
- */
+/** Synthetic readiness/status leaves used by the OE v2 render paths. */
 
-import { OeV2Node, OeV2Readiness } from "./oeV2Node";
+import { OeV2Node } from "./oeV2Node";
 import { encodePath } from "./oeV2Path";
 import { ObjectExplorerV2 } from "../../../constants/locConstants";
-
-export type ChildSynthesis =
-    | { kind: "children" } // render the real children
-    | { kind: "noItems" }
-    | { kind: "loading" }
-    | { kind: "status"; message: string; retryable: boolean }
-    | { kind: "error"; message: string; retryable: boolean };
-
-/** Decide what a container renders for a given readiness state. */
-export function synthesizeChildren(readiness: OeV2Readiness, childCount: number): ChildSynthesis {
-    switch (readiness.kind) {
-        case "ready":
-            return childCount === 0 ? { kind: "noItems" } : { kind: "children" };
-        case "readyEmpty":
-            return { kind: "noItems" };
-        case "loading":
-            return { kind: "loading" };
-        case "stale":
-        case "partial":
-            // Render what we have; the container ALSO shows a status child.
-            return { kind: "children" };
-        case "failed":
-            return {
-                kind: "error",
-                message: readiness.message ?? ObjectExplorerV2.metadataLoadFailed,
-                retryable: readiness.retryable ?? true,
-            };
-        case "permissionDenied":
-            return {
-                kind: "status",
-                message: readiness.message ?? ObjectExplorerV2.permissionDenied,
-                retryable: false,
-            };
-        case "unsupported":
-            return {
-                kind: "status",
-                message: readiness.message ?? ObjectExplorerV2.unsupportedConnection,
-                retryable: false,
-            };
-        case "dataPlaneUnavailable":
-            return {
-                kind: "status",
-                message: readiness.message ?? ObjectExplorerV2.dataPlaneUnavailable,
-                retryable: true,
-            };
-        case "notApplicable":
-        default:
-            return { kind: "children" };
-    }
-}
 
 /** Synthetic leaf nodes for the non-children syntheses. */
 export function statusNode(scope: string, message: string, connectionId?: string): OeV2Node {

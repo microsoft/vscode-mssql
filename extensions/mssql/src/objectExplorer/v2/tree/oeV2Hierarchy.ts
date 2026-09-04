@@ -709,7 +709,7 @@ export function resolveFolders(
             }
             return true;
         })
-        .sort((a, z) => (a.sortLast === z.sortLast ? a.order - z.order : a.sortLast ? 1 : -1));
+        .sort((a, z) => (!!a.sortLast === !!z.sortLast ? a.order - z.order : a.sortLast ? 1 : -1));
 }
 
 /** master/model/msdb/tempdb (the STS IsSystemDatabaseConnection analog). */
