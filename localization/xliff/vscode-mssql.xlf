@@ -10742,6 +10742,9 @@
     <trans-unit id="mssql.manageProfiles">
       <source xml:lang="en">Manage Connection Profiles</source>
     </trans-unit>
+    <trans-unit id="mssql.schemaDesigner.enableDeploymentsView">
+      <source xml:lang="en">Manage Data API builder deployments in Schema Designer. Deployments outlive the session, run on the CLI as well as in a container, and are started, stopped and deleted from one list.</source>
+    </trans-unit>
     <trans-unit id="mssql.query.maxXmlCharsToStore">
       <source xml:lang="en">Maximum number of characters to store for each value in XML columns after running a query. Default value: 2,097,152. Valid value range: 1 to 2,147,483,647.</source>
     </trans-unit>
@@ -10915,9 +10918,6 @@
     </trans-unit>
     <trans-unit id="mssql.renameDatabase">
       <source xml:lang="en">Rename Database...</source>
-    </trans-unit>
-    <trans-unit id="mssql.schemaDesigner.enableDeploymentsView">
-      <source xml:lang="en">Replace the Deploy button in Schema Designer with Deployments. Deployments are kept between sessions, run on the Data API builder CLI as well as in a container, and are started, stopped and deleted from one list.</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.Tooltip.replicationLabel">
       <source xml:lang="en">Replication</source>
