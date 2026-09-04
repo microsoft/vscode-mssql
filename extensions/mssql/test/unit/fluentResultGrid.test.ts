@@ -24,8 +24,10 @@ import {
     areFluentResultGridColumnLayoutsEqual,
     getFluentResultGridCurrentViewState,
     getFluentResultGridInitialFrozenColumnIndex,
+    getFluentResultGridStateForEmit,
     normalizeFluentResultGridFrozenColumnIndex,
     restoreFluentResultGridColumnWidths,
+    restoreFluentResultGridVerticalScrollPosition,
     stabilizeFluentResultGridColumnInfo,
 } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridState";
 import { isFluentResultGridHostCommand } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridCommandUtils";
@@ -540,6 +542,60 @@ suite("Fluent Result Grid", () => {
             expect(viewState.rowNumberColumnWidth).to.equal(80);
             expect(restoredColumns[0].width).to.equal(80);
             expect(restoredColumns[1].width).to.equal(160);
+        });
+
+        test("persists the pixel offset within the top visible row", () => {
+            const columns = [{ id: "0", field: "0", width: 120 }];
+            const grid = {
+                getCellNodeBox: sandbox.stub().withArgs(10, 0).returns({ top: 260 }),
+                getColumns: sandbox.stub().returns(columns),
+                getOptions: sandbox.stub().returns({ frozenColumn: 0, rowHeight: 26 }),
+                getSelectionModel: sandbox.stub().returns(undefined),
+                getViewport: sandbox.stub().returns({ top: 10, leftPx: 40 }),
+                getViewportNode: sandbox.stub().withArgs(0, 10).returns({ scrollTop: 285.5 }),
+            } as unknown as SlickGrid;
+
+            const state = getFluentResultGridStateForEmit({
+                grid,
+                columnCount: 1,
+                frozenColumnIndex: FLUENT_RESULT_GRID_DEFAULT_FROZEN_COLUMN_INDEX,
+                filters: {},
+                sort: undefined,
+            });
+
+            expect(state.scrollPosition).to.deep.equal({
+                scrollLeft: 40,
+                scrollTop: 10,
+                scrollTopOffset: 25.5,
+            });
+        });
+
+        test("restores the top row and its pixel offset when available", () => {
+            const scrollRowToTop = sandbox.stub();
+            const scrollTo = sandbox.stub();
+            const render = sandbox.stub();
+            const grid = {
+                getOptions: sandbox.stub().returns({ rowHeight: 26 }),
+                render,
+                scrollRowToTop,
+                scrollTo,
+            } as unknown as SlickGrid;
+
+            restoreFluentResultGridVerticalScrollPosition(grid, {
+                scrollLeft: 0,
+                scrollTop: 10,
+                scrollTopOffset: 25.5,
+            });
+
+            expect(scrollTo).to.have.been.calledWith(285.5);
+            expect(render).to.have.been.called;
+            expect(scrollRowToTop).not.to.have.been.called;
+
+            restoreFluentResultGridVerticalScrollPosition(grid, {
+                scrollLeft: 0,
+                scrollTop: 4,
+            });
+            expect(scrollRowToTop).to.have.been.calledWith(4);
         });
 
         test("persists selection columns by source identity after a reorder", () => {
