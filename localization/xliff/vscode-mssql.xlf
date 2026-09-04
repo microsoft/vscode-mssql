@@ -10743,7 +10743,7 @@
       <source xml:lang="en">Manage Connection Profiles</source>
     </trans-unit>
     <trans-unit id="mssql.schemaDesigner.enableDeploymentsView">
-      <source xml:lang="en">Manage Data API builder deployments in Schema Designer. Deployments outlive the session, run on the CLI as well as in a container, and are started, stopped and deleted from one list.</source>
+      <source xml:lang="en">Manage Data API builder deployments in Schema Designer. Deploy your configuration with either the Data API builder CLI or Docker, and keep those deployments between sessions.</source>
     </trans-unit>
     <trans-unit id="mssql.query.maxXmlCharsToStore">
       <source xml:lang="en">Maximum number of characters to store for each value in XML columns after running a query. Default value: 2,097,152. Valid value range: 1 to 2,147,483,647.</source>
