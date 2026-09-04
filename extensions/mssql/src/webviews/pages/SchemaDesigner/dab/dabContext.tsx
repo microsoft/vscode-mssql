@@ -15,6 +15,8 @@ interface DabContextProps {
     isInitialized: boolean;
     isDabDeploymentSupported: boolean;
     dabTargetSupport: Record<string, SchemaDesigner.DabTargetSupport>;
+    /** True unless this connection's authentication rules the container out. */
+    isDockerTargetSupported: boolean;
     copyToClipboard: (text: string, copyTextType: Dab.CopyTextType) => void;
     openUrl: (url: string, apiType?: Dab.ApiType) => void;
     openLogsInNewTab: (logsContent: string) => void;
@@ -75,6 +77,10 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
     const isDabDeploymentSupported =
         useSchemaDesignerSelector((s) => s?.isDabDeploymentSupported) ?? false;
     const dabTargetSupport = useSchemaDesignerSelector((s) => s?.dabTargetSupport) ?? {};
+    // Read as supported until the extension says otherwise, so a state that
+    // has not arrived yet does not read as a refusal.
+    const isDockerTargetSupported =
+        dabTargetSupport[Dab.DabDeploymentTarget.Docker]?.isSupported !== false;
     const currentFilteredTables = useSchemaDesignerSelector((s) => s?.currentFilteredTables) ?? [];
 
     const [dabConfig, setDabConfig] = useState<Dab.DabConfig | null>(null);
@@ -782,6 +788,7 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                 isInitialized,
                 isDabDeploymentSupported,
                 dabTargetSupport,
+                isDockerTargetSupported,
                 copyToClipboard,
                 openUrl,
                 openLogsInNewTab,
