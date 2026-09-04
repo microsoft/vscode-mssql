@@ -20,7 +20,7 @@ import {
     capabilitiesFor,
     contextValueFor,
 } from "../../src/objectExplorer/v2/tree/oeV2Capabilities";
-import { rootChildren } from "../../src/objectExplorer/v2/tree/oeV2NodeFactory";
+import { connectionNode, rootChildren } from "../../src/objectExplorer/v2/tree/oeV2NodeFactory";
 import { OeV2TreeController } from "../../src/objectExplorer/v2/tree/oeV2TreeController";
 import { OeV2SessionRegistry } from "../../src/objectExplorer/v2/sessions/oeV2SessionRegistry";
 import {
@@ -146,7 +146,7 @@ suite("Object Explorer v2 shell (B17)", () => {
         expect(broken.profiles).to.deep.equal([]);
     });
 
-    test("capabilities: context values serialize flags, not classic type strings", () => {
+    test("capabilities: context values serialize flags, not classic type strings", async () => {
         const caps = capabilitiesFor("disconnectedConnection");
         expect(caps.canConnect).to.equal(true);
         const context = contextValueFor("disconnectedConnection", caps);
@@ -160,6 +160,17 @@ suite("Object Explorer v2 shell (B17)", () => {
         });
         expect(handoff).to.contain("oe2:handoff=profiler");
         expect(handoff).to.contain("oe2:handoff=backup");
+
+        const tree = await readProfileTree(fakeSource());
+        const disconnecting = connectionNode(
+            tree.profiles.find((profile) => profile.profileId === "p1")!,
+            { state: "disconnecting" },
+        );
+        expect(disconnecting.kind).to.equal("connectingConnection");
+        expect(disconnecting.capabilities.canCancelConnect).to.equal(undefined);
+        expect(contextValueFor(disconnecting.kind, disconnecting.capabilities)).not.to.contain(
+            "oe2:canCancelConnect",
+        );
     });
 
     test("controller: unavailable data plane is explicit; roots come from the store; NO V1 calls", async () => {

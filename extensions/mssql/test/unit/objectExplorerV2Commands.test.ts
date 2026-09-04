@@ -16,6 +16,8 @@ import {
 } from "../../src/objectExplorer/v2/commands/sqlIdentifierFormatter";
 import { stableProfileId } from "../../src/services/metadata/profileAuthAdapter";
 import { readProfileTree } from "../../src/objectExplorer/v2/sessions/oeV2ProfileAdapter";
+import { copyNameForNode } from "../../src/objectExplorer/v2/commands/oeV2NativeCommands";
+import { OeV2Node } from "../../src/objectExplorer/v2/tree/oeV2Node";
 
 suite("Object Explorer v2 command primitives (B19)", () => {
     test("bracketQuote: adversarial identifiers are contained", () => {
@@ -59,5 +61,20 @@ suite("Object Explorer v2 command primitives (B19)", () => {
         expect(roots.map((n) => `${n.kind}:${n.label}`)).to.deep.equal([
             "disconnectedConnection:NoGroup",
         ]);
+    });
+
+    test("copy name uses the selected leaf label, not inherited parent identity", () => {
+        const node = (kind: OeV2Node["kind"], label: string, objectName?: string) =>
+            ({ kind, label, objectName }) as OeV2Node;
+
+        expect(copyNameForNode(node("object", "dbo.Orders (External)", "Orders"))).to.equal(
+            "Orders",
+        );
+        expect(copyNameForNode(node("databaseObject", "dbo.Audit", "Audit"))).to.equal("Audit");
+        expect(copyNameForNode(node("column", "OrderId", "Orders"))).to.equal("OrderId");
+        expect(copyNameForNode(node("parameter", "@customerId", "GetOrders"))).to.equal(
+            "@customerId",
+        );
+        expect(copyNameForNode(node("key", "PK_Orders"))).to.equal("PK_Orders");
     });
 });

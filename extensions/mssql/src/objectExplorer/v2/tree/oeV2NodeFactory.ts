@@ -110,7 +110,10 @@ export function connectionNode(
         ...(profile.database ? { database: profile.database } : {}),
         ...(containerName ? { containerName } : {}),
         readiness: NOT_APPLICABLE,
-        capabilities: capabilitiesFor(kind),
+        // A disconnect cannot be canceled through the session registry. It
+        // shares the transient node kind for rendering, but exposes no Cancel
+        // Connection capability while teardown is in flight.
+        capabilities: facts.state === "disconnecting" ? {} : capabilitiesFor(kind),
         icon:
             facts.state === "connected"
                 ? containerName

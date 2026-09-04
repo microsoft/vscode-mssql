@@ -31,6 +31,13 @@ function emitCommand(command: string, route: "native" | "unavailable", node?: Oe
     });
 }
 
+/** Unqualified name of the selected node, never one inherited from its parent. */
+export function copyNameForNode(node?: OeV2Node): string | undefined {
+    return node?.kind === "object" || node?.kind === "databaseObject"
+        ? (node.objectName ?? node.label)
+        : node?.label;
+}
+
 export function registerOeV2NativeCommands(
     context: vscode.ExtensionContext,
     getController: () => OeV2TreeController | undefined,
@@ -45,7 +52,7 @@ export function registerOeV2NativeCommands(
                 if (!isEnabled()) {
                     return;
                 }
-                const name = node?.objectName ?? node?.schema ?? node?.database ?? node?.label;
+                const name = copyNameForNode(node);
                 if (name) {
                     await vscode.env.clipboard.writeText(name);
                     emitCommand("copyName", "native", node);
