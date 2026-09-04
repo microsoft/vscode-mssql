@@ -481,7 +481,10 @@ export namespace GetRowsRequest {
 export interface SetGridScrollPositionParams {
     uri: string;
     gridId: string;
+    /** Index of the top visible row. */
     scrollTop: number;
+    /** Pixel offset within the top visible row. */
+    scrollTopOffset?: number;
     scrollLeft: number;
 }
 
@@ -499,7 +502,10 @@ export interface GetGridScrollPositionParams {
 }
 
 export interface GetGridScrollPositionResponse {
+    /** Index of the top visible row. */
     scrollTop: number;
+    /** Pixel offset within the top visible row. */
+    scrollTopOffset?: number;
     scrollLeft: number;
 }
 
