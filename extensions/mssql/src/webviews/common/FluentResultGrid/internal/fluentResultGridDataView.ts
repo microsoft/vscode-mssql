@@ -250,6 +250,10 @@ class FluentResultGridDataWindow<T extends Slick.SlickData> {
     }
 
     public getItem(index: number): T {
+        if (this.contains(index) && !this.rows && !this.isLoading) {
+            this.positionWindow(this.offset, this.length, this.getEndIndex());
+        }
+
         return this.rows?.[index - this.offset] ?? this.createPlaceholderRow(index);
     }
 
@@ -293,11 +297,15 @@ class FluentResultGridDataWindow<T extends Slick.SlickData> {
         this.isLoading = true;
         Promise.resolve(this.loadRows(nextOffset, nextLength)).then(
             (rows) => {
-                if (currentRequestId !== this.requestId || !Array.isArray(rows)) {
+                if (currentRequestId !== this.requestId) {
                     return;
                 }
 
                 this.isLoading = false;
+                if (!Array.isArray(rows) || rows.length !== nextLength) {
+                    return;
+                }
+
                 this.rows = rows;
                 this.loadCompleteCallback(this.offset, this.offset + this.length);
             },
@@ -799,6 +807,10 @@ export function createFluentResultGridDataView<T extends Slick.SlickData = Fluen
             dataSource.rowCount,
             async (offset, count) => {
                 const rows = await dataSource.getRows(offset, count);
+                if (!Array.isArray(rows)) {
+                    return rows;
+                }
+
                 return rows.map((row, rowOffset) =>
                     rowFactory.createRow(row, offset + rowOffset, columnCount),
                 );
