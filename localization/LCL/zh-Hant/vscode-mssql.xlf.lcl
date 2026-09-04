@@ -30217,15 +30217,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";package.mssql.preview.useVscodeAccountsForEntraMFA.description" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Uses VS Code signed-in accounts for Microsoft Entra ID MFA authentication to SQL. Restart Visual Studio Code after changing this setting.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[使用 VS Code 登入帳號進行 Microsoft Entra ID MFA 驗證以連接 SQL。變更此設定後重新啟動 Visual Studio Code。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";package.mssql.profiler.eventBufferSize" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Maximum number of events to keep in memory for the Profiler. When this limit is reached, older events are dropped. Increase this value if you need to retain more events during profiling sessions.]]></Val>
@@ -31389,6 +31380,15 @@
           <Val><![CDATA[When enabled, automatically transfer the active connection to newly opened SQL files. When disabled, you must explicitly connect to a database for each SQL file.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[啟用後，會自動將目前連線轉移到新開啟的 SQL 檔案。停用時，您必須針對每個 SQL 檔案明確連接資料庫。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.useMsalEntraMfaAuth.description" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Uses MSAL for Microsoft Entra MFA authentication instead of VS Code signed-in accounts. Restart Visual Studio Code after changing this setting.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[使用 MSAL 進行 Microsoft Entra MFA 驗證，而不是使用 VS Code 的登入帳戶。變更此設定後重新啟動 Visual Studio Code。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />

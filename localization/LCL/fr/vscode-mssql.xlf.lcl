@@ -30217,15 +30217,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";package.mssql.preview.useVscodeAccountsForEntraMFA.description" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Uses VS Code signed-in accounts for Microsoft Entra ID MFA authentication to SQL. Restart Visual Studio Code after changing this setting.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Utilise les comptes connectés de VS Code pour l'authentification MFA Microsoft Entra ID auprès de SQL. Redémarrez Visual Studio Code après avoir modifié ce paramètre.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";package.mssql.profiler.eventBufferSize" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Maximum number of events to keep in memory for the Profiler. When this limit is reached, older events are dropped. Increase this value if you need to retain more events during profiling sessions.]]></Val>
@@ -31389,6 +31380,15 @@
           <Val><![CDATA[When enabled, automatically transfer the active connection to newly opened SQL files. When disabled, you must explicitly connect to a database for each SQL file.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Lorsque cette option est activée, transférez automatiquement la connexion active vers les fichiers SQL nouvellement ouverts. Lorsque cette option est désactivée, vous devez vous connecter explicitement à une base de données pour chaque fichier SQL.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.useMsalEntraMfaAuth.description" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Uses MSAL for Microsoft Entra MFA authentication instead of VS Code signed-in accounts. Restart Visual Studio Code after changing this setting.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Utilise MSAL pour l’authentification MFA de Microsoft Entra au lieu des comptes connectés VS Code. Redémarrez Visual Studio Code après avoir modifié ce paramètre.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />

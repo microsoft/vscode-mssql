@@ -30217,15 +30217,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";package.mssql.preview.useVscodeAccountsForEntraMFA.description" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Uses VS Code signed-in accounts for Microsoft Entra ID MFA authentication to SQL. Restart Visual Studio Code after changing this setting.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[SQL に対する Microsoft Entra ID MFA 認証の VS Code サインインしたアカウントを使用します。この設定を変更した後、Visual Studio Code を再起動します。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";package.mssql.profiler.eventBufferSize" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Maximum number of events to keep in memory for the Profiler. When this limit is reached, older events are dropped. Increase this value if you need to retain more events during profiling sessions.]]></Val>
@@ -31389,6 +31380,15 @@
           <Val><![CDATA[When enabled, automatically transfer the active connection to newly opened SQL files. When disabled, you must explicitly connect to a database for each SQL file.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[有効にすると、アクティブな接続が新しく開かれた SQL ファイルに自動的に転送されます。無効の場合は、各 SQL ファイルのデータベースに明示的に接続する必要があります。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.useMsalEntraMfaAuth.description" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Uses MSAL for Microsoft Entra MFA authentication instead of VS Code signed-in accounts. Restart Visual Studio Code after changing this setting.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[VS Code でサインインしているアカウントの代わりに、Microsoft Entra MFA認証に MSAL を使用します。この設定を変更した後、Visual Studio Code を再起動してください。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
