@@ -26,6 +26,7 @@ import { eventMatchesShortcut } from "../../common/keyboardUtils";
 import { WebviewAction } from "../../../sharedInterfaces/webview";
 import debounce from "lodash/debounce";
 import { LazyMount } from "../../common/lazyMount";
+import { locConstants } from "../../common/locConstants";
 
 const useStyles = makeStyles({
     gridViewContainer: {
@@ -177,8 +178,9 @@ export const QueryResultsGridView = ({
         resultSetSummaries,
     ]);
 
-    // Perf-harness render-complete mark: fires only when the perf bridge is
-    // enabled (PERF_MODE runs); otherwise perfMarkAfterNextPaint is inert.
+    // Perf-harness first-readable-results mark: deferred offscreen result sets may still be
+    // unmounted at this boundary. The row and result-set counts are structural metadata, not
+    // mounted counts. This fires only when the perf bridge is enabled (PERF_MODE runs).
     const lastPerfMarkKey = useRef<string | undefined>(undefined);
     useEffect(() => {
         if (isExecuting === true) {
@@ -567,6 +569,19 @@ export const QueryResultsGridView = ({
                             }
                             rootRef={gridViewContainerRef}
                             containerRef={containerRef}
+                            placeholderProps={{
+                                "aria-busy": true,
+                                "aria-label": locConstants.queryResult.resultSet(
+                                    item.batchId,
+                                    item.resultId,
+                                ),
+                                role: "region",
+                                tabIndex: 0,
+                            }}
+                            onPlaceholderFocus={() => {
+                                gridIndexToFocusRef.current = index;
+                                setGridIndexToFocus(index);
+                            }}
                             style={{
                                 flex: 1,
                                 minWidth: 0,

@@ -9,15 +9,24 @@ import {
     useRef,
     useState,
     type CSSProperties,
+    type FocusEventHandler,
+    type HTMLAttributes,
     type ReactNode,
     type RefObject,
 } from "react";
+
+type LazyMountPlaceholderProps = Pick<
+    HTMLAttributes<HTMLDivElement>,
+    "aria-label" | "aria-busy" | "role" | "tabIndex"
+>;
 
 export interface LazyMountProps {
     children: ReactNode;
     className?: string;
     containerRef?: RefObject<HTMLDivElement | null>;
     enabled?: boolean;
+    onPlaceholderFocus?: FocusEventHandler<HTMLDivElement>;
+    placeholderProps?: LazyMountPlaceholderProps;
     rootRef?: RefObject<Element | null>;
     style?: CSSProperties;
 }
@@ -42,6 +51,8 @@ export function LazyMount({
     className,
     containerRef,
     enabled = true,
+    onPlaceholderFocus,
+    placeholderProps,
     rootRef,
     style,
 }: LazyMountProps) {
@@ -69,6 +80,14 @@ export function LazyMount({
             }
         },
         [containerRef],
+    );
+
+    const handlePlaceholderFocus = useCallback<FocusEventHandler<HTMLDivElement>>(
+        (event) => {
+            onPlaceholderFocus?.(event);
+            mountChildren();
+        },
+        [mountChildren, onPlaceholderFocus],
     );
 
     useLayoutEffect(() => {
@@ -116,7 +135,12 @@ export function LazyMount({
     }, [enabled, mountChildren, rootRef]);
 
     return (
-        <div ref={setContainer} className={className} style={style}>
+        <div
+            {...(!hasMounted ? placeholderProps : undefined)}
+            ref={setContainer}
+            className={className}
+            style={style}
+            onFocus={!hasMounted ? handlePlaceholderFocus : undefined}>
             {hasMounted ? children : null}
         </div>
     );
