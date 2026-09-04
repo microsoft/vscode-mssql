@@ -10917,7 +10917,7 @@
       <source xml:lang="en">Rename Database...</source>
     </trans-unit>
     <trans-unit id="mssql.schemaDesigner.enableDeploymentsView">
-      <source xml:lang="en">Replace the Deploy button in Schema Designer with Deployments, which lists the Data API builder deployments for this database and starts new ones</source>
+      <source xml:lang="en">Replace the Deploy button in Schema Designer with Deployments. Deployments are kept between sessions, run on the Data API builder CLI as well as in a container, and are started, stopped and deleted from one list.</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.Tooltip.replicationLabel">
       <source xml:lang="en">Replication</source>

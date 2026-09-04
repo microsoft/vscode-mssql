@@ -329,7 +329,7 @@
     "mssql.connectionSharing.clearAllConnectionSharingPermissions": "Clear All Connection Sharing Permissions",
     "mssql.statusBar.connectionInfoMaxLength.description": "The maximum number of characters to display for the connection info in the status bar. Set to -1 for no limit.",
     "mssql.dab.cliPackageFeedUrl": "NuGet flat container URL the Data API builder CLI package is downloaded from. Leave empty to use the package sources from your NuGet configuration, falling back to nuget.org.",
-    "mssql.schemaDesigner.enableDeploymentsView": "Replace the Deploy button in Schema Designer with Deployments, which lists the Data API builder deployments for this database and starts new ones",
+    "mssql.schemaDesigner.enableDeploymentsView": "Replace the Deploy button in Schema Designer with Deployments. Deployments are kept between sessions, run on the Data API builder CLI as well as in a container, and are started, stopped and deleted from one list.",
     "mssql.schemaDesigner.enableExpandCollapseButtons": "Enable expand/collapse buttons in Schema Designer table nodes when tables have more than 10 columns",
     "mssql.connectionManagement.rememberPasswordsUntilRestart": "Temporarily store passwords for connections with 'Saved Passwords' disabled, until the extension is restarted. This prevents repeated password prompts when reusing connections within the same session.",
     "mssql.autoRevealResultsPanel": "Automatically reveal the results panel when switching to an editor with query results. Only applies when 'Open Results in Tab' is enabled.",
