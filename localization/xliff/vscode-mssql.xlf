@@ -1681,6 +1681,9 @@
     <trans-unit id="++CODE++b34d1cdc1ec3705ae1fac0b6b10b411a0d5f271dfc967f647c99784ba9a323bb">
       <source xml:lang="en">Connect to a database</source>
     </trans-unit>
+    <trans-unit id="++CODE++319fd56a6ab647e30c6f7f884069a327250bfe1e6d09e28b8ef533b154753826">
+      <source xml:lang="en">Connect to a server in Object Explorer or open a connected query editor to search database objects.</source>
+    </trans-unit>
     <trans-unit id="++CODE++b2c490a777ddf796ff31f0e2a230e002b1329f808ec37cf885ad1bfcd7696ca3">
       <source xml:lang="en">Connect to server {0} and database {1}?</source>
       <note>{0} is the server name

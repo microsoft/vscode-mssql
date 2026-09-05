@@ -3450,16 +3450,47 @@ export default class MainController implements vscode.Disposable {
         tableExplorerWebView.revealToForeground();
     }
 
-    public async onSearchDatabase(node?: any): Promise<void> {
+    public async onSearchDatabase(node?: TreeNodeInfo): Promise<void> {
+        const connectionCredentials = this.getSearchDatabaseConnection(node);
+        if (!connectionCredentials) {
+            void vscode.window.showErrorMessage(
+                LocalizedConstants.SearchDatabase.noConnectionAvailable,
+            );
+            return;
+        }
+
         const searchDatabaseWebView = new SearchDatabaseWebViewController(
             this._context,
             this.metadataService,
             this._connectionMgr,
-            node,
+            connectionCredentials,
             this._scriptingService,
         );
 
         searchDatabaseWebView.revealToForeground();
+    }
+
+    /**
+     * Resolves the connection to search against: the Object Explorer node's connection when the
+     * command is invoked from the tree, otherwise the active editor's connection (for example
+     * when invoked from a keyboard shortcut or the command palette).
+     */
+    private getSearchDatabaseConnection(node?: TreeNodeInfo): IConnectionInfo | undefined {
+        if (node?.connectionProfile) {
+            const databaseName = ObjectExplorerUtils.getDatabaseName(node);
+            return {
+                ...node.connectionProfile,
+                database:
+                    databaseName && databaseName !== LocalizedConstants.defaultDatabaseLabel
+                        ? databaseName
+                        : node.connectionProfile.database,
+            };
+        }
+
+        const activeEditorUri = Utils.getActiveTextEditorUri();
+        return activeEditorUri
+            ? this._connectionMgr.getConnectionInfo(activeEditorUri)?.credentials
+            : undefined;
     }
 
     /**
