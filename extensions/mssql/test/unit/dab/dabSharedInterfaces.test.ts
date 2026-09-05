@@ -5,6 +5,7 @@
 
 import { expect } from "chai";
 import { Dab } from "../../../src/sharedInterfaces/dab";
+import { AuthenticationType } from "../../../src/sharedInterfaces/connectionDialog";
 
 function createSourceObject(overrides?: Partial<Dab.DabSourceObject>): Dab.DabSourceObject {
     return {
@@ -270,5 +271,292 @@ suite("DAB shared interface helpers", () => {
             "DisplayName",
         ]);
         expect(result.config.entities[1].sourceType).to.equal(Dab.EntitySourceType.View);
+    });
+});
+
+suite("DAB deployment step sequencing", () => {
+    const targets = [Dab.DabDeploymentTarget.Docker, Dab.DabDeploymentTarget.DabCli];
+
+    test("every target has prerequisite and deployment phases", () => {
+        for (const target of targets) {
+            const steps = Dab.dabDeploymentStepsByTarget[target];
+            expect(steps.prerequisites, `${target} prerequisites`).to.not.be.empty;
+            expect(steps.deployment, `${target} deployment steps`).to.not.be.empty;
+        }
+    });
+
+    test("targets do not share any step", () => {
+        const dockerSteps = Dab.getDabDeploymentSteps(Dab.DabDeploymentTarget.Docker);
+        const cliSteps = Dab.getDabDeploymentSteps(Dab.DabDeploymentTarget.DabCli);
+
+        expect(
+            dockerSteps.filter((step) => cliSteps.includes(step)),
+            "A shared step would run the wrong target's work",
+        ).to.be.empty;
+    });
+
+    test("walking getNextDabDeploymentStep visits every step once, in order", () => {
+        for (const target of targets) {
+            const expected = Dab.getDabDeploymentSteps(target);
+            const visited: Dab.DabDeploymentStepOrder[] = [];
+
+            let step: Dab.DabDeploymentStepOrder | undefined = expected[0];
+            while (step !== undefined) {
+                visited.push(step);
+                step = Dab.getNextDabDeploymentStep(target, step);
+            }
+
+            expect(visited, `${target} step walk`).to.deep.equal(expected);
+        }
+    });
+
+    test("only the last deployment step is final", () => {
+        for (const target of targets) {
+            const steps = Dab.getDabDeploymentSteps(target);
+            const finalSteps = steps.filter((step) => Dab.isFinalDabDeploymentStep(target, step));
+
+            expect(finalSteps, `${target} final step`).to.deep.equal([steps[steps.length - 1]]);
+        }
+    });
+
+    test("prerequisite steps come before deployment steps", () => {
+        for (const target of targets) {
+            const steps = Dab.getDabDeploymentSteps(target);
+            const prerequisiteFlags = steps.map((step) => Dab.isDabPrerequisiteStep(target, step));
+            const firstDeploymentIndex = prerequisiteFlags.indexOf(false);
+
+            expect(
+                prerequisiteFlags.slice(firstDeploymentIndex).some(Boolean),
+                `${target} must not return to prerequisites mid-deployment`,
+            ).to.be.false;
+        }
+    });
+
+    test("the default deployment state matches its target's steps", () => {
+        for (const target of targets) {
+            const state = Dab.createDefaultDeploymentState(target);
+            const steps = Dab.getDabDeploymentSteps(target);
+
+            expect(state.target).to.equal(target);
+            expect(state.stepStatuses.map((status) => status.step)).to.deep.equal(steps);
+            expect(state.currentDeploymentStep, `${target} starts at its first step`).to.equal(
+                steps[0],
+            );
+        }
+    });
+
+    test("the default deployment state is Docker when no target is given", () => {
+        expect(Dab.createDefaultDeploymentState().target).to.equal(Dab.DabDeploymentTarget.Docker);
+    });
+});
+
+suite("DAB deployment naming", () => {
+    test("builds a name of the form DAB_<database>_<n>", () => {
+        expect(Dab.buildDabDeploymentName("AdventureWorks2022", 1)).to.equal(
+            "DAB_AdventureWorks2022_1",
+        );
+    });
+
+    test("drops characters a container name cannot carry", () => {
+        expect(Dab.buildDabDeploymentName("My DB (prod)!", 2)).to.equal("DAB_MyDBprod_2");
+    });
+
+    test("truncates a long database name", () => {
+        const name = Dab.buildDabDeploymentName("A".repeat(60), 1);
+
+        expect(name).to.equal(`DAB_${"A".repeat(Dab.DAB_DEPLOYMENT_NAME_DB_MAX_LENGTH)}_1`);
+    });
+
+    test("falls back when a database name reduces to nothing", () => {
+        expect(Dab.buildDabDeploymentName("---", 1)).to.equal("DAB_db_1");
+    });
+
+    test("always produces a legal Docker container name", () => {
+        const dockerNamePattern = /^[a-zA-Z0-9][a-zA-Z0-9_.-]*$/;
+        for (const database of ["AdventureWorks2022", "My DB (prod)!", "---", "0", "ünïcodé"]) {
+            expect(
+                Dab.buildDabDeploymentName(database, 3),
+                `"${database}" must yield a usable container name`,
+            ).to.match(dockerNamePattern);
+        }
+    });
+});
+
+suite("DAB target support by authentication", () => {
+    const targets = [Dab.DabDeploymentTarget.DabCli, Dab.DabDeploymentTarget.Docker];
+
+    test("SQL authentication works with every target", () => {
+        for (const target of targets) {
+            expect(
+                Dab.isDabTargetSupportedForAuthentication(target, AuthenticationType.SqlLogin),
+                `${target} with SQL authentication`,
+            ).to.be.true;
+        }
+    });
+
+    test("Windows authentication works with the CLI", () => {
+        expect(
+            Dab.isDabTargetSupportedForAuthentication(
+                Dab.DabDeploymentTarget.DabCli,
+                AuthenticationType.Integrated,
+            ),
+            "The CLI runs as the signed-in user, so it can pass Windows credentials through",
+        ).to.be.true;
+    });
+
+    test("Windows authentication cannot use a container", () => {
+        expect(
+            Dab.isDabTargetSupportedForAuthentication(
+                Dab.DabDeploymentTarget.Docker,
+                AuthenticationType.Integrated,
+            ),
+            "A container runs outside the Windows session",
+        ).to.be.false;
+    });
+
+    test("Entra authentication works with the CLI", () => {
+        for (const authType of [
+            AuthenticationType.AzureMFA,
+            AuthenticationType.ActiveDirectoryDefault,
+            AuthenticationType.AzureMFAAndUser,
+            AuthenticationType.ActiveDirectoryServicePrincipal,
+        ]) {
+            expect(
+                Dab.isDabTargetSupportedForAuthentication(Dab.DabDeploymentTarget.DabCli, authType),
+                `the CLI with ${authType}`,
+            ).to.be.true;
+        }
+    });
+
+    test("Entra authentication cannot use a container", () => {
+        expect(
+            Dab.isDabTargetSupportedForAuthentication(
+                Dab.DabDeploymentTarget.Docker,
+                AuthenticationType.AzureMFA,
+            ),
+            "A container cannot see the host's Entra sign-in",
+        ).to.be.false;
+    });
+
+    test("an unknown or missing authentication type supports no target", () => {
+        for (const target of targets) {
+            expect(Dab.isDabTargetSupportedForAuthentication(target, undefined)).to.be.false;
+            expect(Dab.isDabTargetSupportedForAuthentication(target, "Something")).to.be.false;
+        }
+    });
+});
+
+suite("DAB supported data types", () => {
+    test("json and vector are exposable", () => {
+        // Supported by the engine from 2.1 onward.
+        expect(Dab.isDataTypeSupportedForDab("json")).to.be.true;
+        expect(Dab.isDataTypeSupportedForDab("vector")).to.be.true;
+    });
+
+    test("types the engine still refuses stay blocked", () => {
+        for (const dataType of ["xml", "sql_variant", "rowversion", "geography", "hierarchyid"]) {
+            expect(
+                Dab.isDataTypeSupportedForDab(dataType),
+                `${dataType} is still unsupported by the engine`,
+            ).to.be.false;
+        }
+    });
+
+    test("both deployment targets run one engine version", () => {
+        expect(Dab.DAB_CLI_VERSION).to.equal(Dab.DAB_ENGINE_VERSION);
+        expect(Dab.DAB_CONTAINER_IMAGE).to.contain(`:${Dab.DAB_ENGINE_VERSION}`);
+        expect(
+            Dab.DAB_CONTAINER_IMAGE,
+            "A floating tag would let the container drift from the CLI",
+        ).to.not.contain(":latest");
+    });
+});
+
+suite("DAB deployment entry points", () => {
+    test("the deployments dialog is the default entry point", () => {
+        expect(Dab.createDefaultDeploymentState().entryPoint).to.equal(
+            Dab.DabDeploymentEntryPoint.Deployments,
+        );
+    });
+
+    test("the standalone flow keeps a completion step to finish on", () => {
+        // The toolbar's Deploy flow has no deployments list to return to, so
+        // the completion step has to remain reachable independently of it.
+        expect(Dab.DabDeploymentDialogStep.Complete).to.not.be.undefined;
+    });
+
+    test("a target's steps do not depend on the entry point", () => {
+        for (const target of [Dab.DabDeploymentTarget.Docker, Dab.DabDeploymentTarget.DabCli]) {
+            const steps = Dab.getDabDeploymentSteps(target);
+            for (const entryPoint of [
+                Dab.DabDeploymentEntryPoint.Standalone,
+                Dab.DabDeploymentEntryPoint.Deployments,
+            ]) {
+                const state = {
+                    ...Dab.createDefaultDeploymentState(target),
+                    entryPoint,
+                };
+                expect(
+                    state.stepStatuses.map((status) => status.step),
+                    `${target} from ${entryPoint}`,
+                ).to.deep.equal(steps);
+            }
+        }
+    });
+});
+
+suite("DAB CLI connection string", () => {
+    test("passes a SQL authentication connection through untouched", () => {
+        const connectionString = "Server=localhost,1433;Database=Db;User ID=sa;Password=p;";
+
+        expect(
+            Dab.buildDabCliConnectionString(connectionString, AuthenticationType.SqlLogin),
+        ).to.equal(connectionString);
+    });
+
+    test("passes a Windows authentication connection through untouched", () => {
+        const connectionString = "Server=localhost;Database=Db;Integrated Security=True;";
+
+        expect(
+            Dab.buildDabCliConnectionString(connectionString, AuthenticationType.Integrated),
+        ).to.equal(connectionString);
+    });
+
+    test("strips credentials for Entra so the engine acquires its own token", () => {
+        // The engine only reaches for a token when nothing else in the string
+        // says who is connecting.
+        const result = Dab.buildDabCliConnectionString(
+            "Server=x.database.windows.net;Database=Db;User ID=me@contoso.com;Authentication=ActiveDirectoryInteractive;Encrypt=True;",
+            AuthenticationType.AzureMFA,
+        );
+
+        expect(result).to.equal("Server=x.database.windows.net;Database=Db;Encrypt=True");
+    });
+
+    test("keeps the properties that are not credentials", () => {
+        const result = Dab.buildDabCliConnectionString(
+            "Server=x;Database=Db;Password=p;TrustServerCertificate=True;Connect Timeout=30;",
+            AuthenticationType.ActiveDirectoryDefault,
+        );
+
+        expect(result).to.contain("TrustServerCertificate=True");
+        expect(result).to.contain("Connect Timeout=30");
+        expect(result).to.not.contain("Password");
+    });
+
+    test("matches credential properties regardless of spelling or case", () => {
+        const result = Dab.buildDabCliConnectionString(
+            "Server=x;Database=Db; UID =me; PWD =secret;Trusted_Connection=True;",
+            AuthenticationType.AzureMFA,
+        );
+
+        expect(result).to.equal("Server=x;Database=Db");
+    });
+
+    test("reports which authentication types are Entra", () => {
+        expect(Dab.isEntraAuthentication(AuthenticationType.AzureMFA)).to.be.true;
+        expect(Dab.isEntraAuthentication(AuthenticationType.SqlLogin)).to.be.false;
+        expect(Dab.isEntraAuthentication(AuthenticationType.Integrated)).to.be.false;
+        expect(Dab.isEntraAuthentication(undefined)).to.be.false;
     });
 });

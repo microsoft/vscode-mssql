@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { createHash } from "crypto";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
@@ -20,11 +21,18 @@ import {
 import {
     checkIfDabContainerIsReady,
     findAvailableDabPort,
+    getDabContainerStatus,
+    isDabPortAvailable,
     pullDabContainerImage,
+    startDabContainer,
     startDabDockerContainer,
     stopAndRemoveDabContainer,
+    stopDabContainer,
     validateDabContainerName,
 } from "../dab/dabContainer";
+import { DabCliRunner, DAB_CLI_CONFIG_FILE_NAME } from "../dab/dabCliRunner";
+import { isDabCliEngineResponding, stopDabCliEngine } from "../dab/dabCliProcess";
+import { ILogger } from "../sharedInterfaces/logger";
 import { LocalContainers } from "../constants/locConstants";
 import { Dab } from "../sharedInterfaces/dab";
 import { getErrorMessage, uuid } from "../utils/utils";
@@ -36,8 +44,55 @@ const LOCALHOST_ADDRESSES = ["localhost", "127.0.0.1", "(local)", "."];
 const SQL_SERVER_CONNECTION_PROPERTY_PATTERN =
     /((?:Server|Data Source)\s*=\s*)("[^"]*"|'[^']*'|[^;]+)/i;
 
+/**
+ * Stands in for the real connection string when hashing a config, so a hash
+ * stored with a deployment stays comparable across connections and sessions.
+ */
+const CONFIG_HASH_CONNECTION_PLACEHOLDER = "<connection-string>";
+
+/**
+ * Serializes a parsed config with object keys in a stable order. Array order is
+ * preserved because it is meaningful in DAB config (permission actions, REST
+ * methods, and fields are already normalized upstream).
+ */
+function canonicalizeJson(value: unknown): string {
+    if (Array.isArray(value)) {
+        return `[${value.map(canonicalizeJson).join(",")}]`;
+    }
+
+    if (value !== null && typeof value === "object") {
+        const entries = Object.entries(value as Record<string, unknown>)
+            .filter(([, entryValue]) => entryValue !== undefined)
+            .sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0))
+            .map(([key, entryValue]) => `${JSON.stringify(key)}:${canonicalizeJson(entryValue)}`);
+        return `{${entries.join(",")}}`;
+    }
+
+    return JSON.stringify(value) ?? "null";
+}
+
 export class DabService implements Dab.IDabService {
     private _configFileBuilder = new DabConfigFileBuilder();
+    private _cliRunner: DabCliRunner | undefined;
+
+    /**
+     * @param cliContext Storage path and logger used by the DAB CLI target.
+     * Omitted by callers that only use the Docker target.
+     */
+    constructor(private readonly cliContext?: { storagePath: string; logger: ILogger }) {}
+
+    /**
+     * The CLI runner for this session, created on first use so a Docker-only
+     * session never touches CLI state.
+     */
+    private get cliRunner(): DabCliRunner | undefined {
+        if (!this.cliContext) {
+            return undefined;
+        }
+
+        this._cliRunner ??= new DabCliRunner(this.cliContext.storagePath, this.cliContext.logger);
+        return this._cliRunner;
+    }
 
     public generateConfig(
         config: Dab.DabConfig,
@@ -105,8 +160,13 @@ export class DabService implements Dab.IDabService {
         const containerNameValidation = await validateDabContainerName(containerName);
         const isContainerNameValid = containerNameValidation === containerName;
 
-        const suggestedPort = await findAvailableDabPort(port);
-        const isPortValid = suggestedPort === port;
+        const availablePort = await findAvailableDabPort(port);
+        // A negative result means the scan found nothing free. Suggesting it
+        // would put -1 in the port field, so the requested port is echoed back
+        // and reported as unusable instead.
+        const foundPort = availablePort >= 0;
+        const suggestedPort = foundPort ? availablePort : port;
+        const isPortValid = foundPort && availablePort === port;
 
         return {
             isContainerNameValid,
@@ -132,6 +192,287 @@ export class DabService implements Dab.IDabService {
             error: result.error,
         };
     }
+
+    /**
+     * Hashes the DAB config file this configuration would produce.
+     *
+     * The connection string is replaced with a fixed placeholder and object
+     * keys are sorted before hashing, so the hash covers only what DAB will
+     * actually serve: reordering entities, or connecting with a different
+     * login, does not make a running deployment look outdated.
+     *
+     * @param config The DAB configuration to hash
+     */
+    public computeConfigHash(config: Dab.DabConfig): string {
+        const configContent = this._configFileBuilder.build(config, {
+            connectionString: CONFIG_HASH_CONNECTION_PLACEHOLDER,
+        });
+
+        return createHash("sha256")
+            .update(canonicalizeJson(JSON.parse(configContent)), "utf8")
+            .digest("hex");
+    }
+
+    /**
+     * Reports the live state of a previously deployed container.
+     *
+     * @param containerName Name of the container to inspect
+     */
+    public async getContainerStatus(
+        containerName: string,
+    ): Promise<Dab.DabDeploymentContainerStatus> {
+        return getDabContainerStatus(containerName);
+    }
+
+    /**
+     * Starts an existing stopped container without redeploying it.
+     *
+     * @param containerName Name of the container to start
+     */
+    public async startContainer(containerName: string): Promise<Dab.DeploymentActionResponse> {
+        const result = await startDabContainer(containerName);
+        return {
+            success: result.success ?? false,
+            error: result.error,
+        };
+    }
+
+    /**
+     * Stops a running container, leaving it in place so it can be started again.
+     *
+     * @param containerName Name of the container to stop
+     */
+    public async stopContainer(containerName: string): Promise<Dab.DeploymentActionResponse> {
+        const result = await stopDabContainer(containerName);
+        return {
+            success: result.success ?? false,
+            error: result.error,
+        };
+    }
+
+    /**
+     * Reports whether a host port is still free for a container to publish.
+     *
+     * @param port The host port to check
+     */
+    public async isPortAvailable(port: number): Promise<boolean> {
+        return isDabPortAvailable(port);
+    }
+
+    // #region DAB CLI target
+
+    /**
+     * Generates the DAB config for a CLI deployment.
+     *
+     * Unlike the container config, the connection string is emitted as an
+     * `@env` reference: the engine resolves it from its own environment, so the
+     * credential is never written to the config file on disk. No Docker host
+     * rewriting happens either, because the engine runs on the host and can
+     * reach localhost directly.
+     *
+     * @param config The DAB configuration to generate from
+     */
+    public generateCliConfig(config: Dab.DabConfig): Dab.GenerateConfigResponse {
+        try {
+            return {
+                configContent: this._configFileBuilder.build(config, {
+                    connectionString: `@env('${Dab.DAB_CLI_CONNECTION_STRING_ENV_VAR}')`,
+                }),
+                success: true,
+            };
+        } catch (error) {
+            return { configContent: "", success: false, error: getErrorMessage(error) };
+        }
+    }
+
+    /** Path of the config file for a CLI deployment's directory. */
+    public getCliConfigPath(deploymentDirectory: string): string {
+        return path.join(deploymentDirectory, DAB_CLI_CONFIG_FILE_NAME);
+    }
+
+    /**
+     * Runs one step of a DAB CLI deployment.
+     *
+     * @param step The step to run
+     * @param params Deployment name and port
+     * @param config DAB config, needed from the validate step onward
+     * @param connectionInfo Connection whose string is passed to the engine
+     * @param configPath Where the generated config lives for this deployment
+     * @param authenticationType Authentication type of the connection, which
+     * decides what the engine is given to sign in with
+     */
+    public async runCliDeploymentStep(
+        step: Dab.DabDeploymentStepOrder,
+        params?: Dab.DabDeploymentParams,
+        config?: Dab.DabConfig,
+        connectionInfo?: Dab.DabConnectionInfo,
+        configPath?: string,
+        authenticationType?: string,
+    ): Promise<Dab.RunDeploymentStepResponse & { processId?: number }> {
+        const runner = this.cliRunner;
+        if (!runner) {
+            return { success: false, error: LocalContainers.dabDeploymentStoreUnavailable };
+        }
+
+        switch (step) {
+            case Dab.DabDeploymentStepOrder.acquireDabCli:
+                return runner.acquireCli();
+
+            case Dab.DabDeploymentStepOrder.checkDotnetRuntime:
+                return runner.resolveRuntime();
+
+            case Dab.DabDeploymentStepOrder.validateCliConfig: {
+                if (!params || !config || !connectionInfo || !configPath) {
+                    return { success: false, error: LocalContainers.dabCliStartMissingParams };
+                }
+
+                const generated = this.generateCliConfig(config);
+                if (!generated.success) {
+                    return { success: false, error: generated.error };
+                }
+
+                return runner.validateConfig(
+                    configPath,
+                    generated.configContent,
+                    {
+                        port: params.port,
+                        connectionString: Dab.buildDabCliConnectionString(
+                            connectionInfo.connectionString,
+                            authenticationType,
+                        ),
+                    },
+                    authenticationType,
+                );
+            }
+
+            case Dab.DabDeploymentStepOrder.startCliEngine: {
+                if (!params || !connectionInfo || !configPath) {
+                    return { success: false, error: LocalContainers.dabCliStartMissingParams };
+                }
+
+                return runner.startEngine(configPath, {
+                    port: params.port,
+                    connectionString: Dab.buildDabCliConnectionString(
+                        connectionInfo.connectionString,
+                        authenticationType,
+                    ),
+                });
+            }
+
+            case Dab.DabDeploymentStepOrder.checkCliEngine: {
+                if (!params) {
+                    return { success: false, error: LocalContainers.dabCliStartMissingParams };
+                }
+
+                return runner.checkEngine(params.port);
+            }
+
+            default:
+                return {
+                    success: false,
+                    error: LocalContainers.dabUnknownDeploymentStep(step),
+                };
+        }
+    }
+
+    /**
+     * Resolves the state of a CLI deployment.
+     *
+     * The port is the source of truth: a stored process id can be reused by an
+     * unrelated process, but an answer on the port means the engine is serving.
+     * A deployment that is not answering is startable as long as its config
+     * file survives, and missing once that file is gone.
+     *
+     * @param record The tracked deployment to inspect
+     */
+    public async getCliDeploymentStatus(
+        record: Dab.DabDeploymentRecord,
+    ): Promise<Dab.DabDeploymentContainerStatus> {
+        if (await isDabCliEngineResponding(record.port)) {
+            return Dab.DabDeploymentContainerStatus.Running;
+        }
+
+        if (!record.configPath) {
+            return Dab.DabDeploymentContainerStatus.Missing;
+        }
+
+        try {
+            await fs.promises.access(record.configPath);
+            return Dab.DabDeploymentContainerStatus.Stopped;
+        } catch {
+            return Dab.DabDeploymentContainerStatus.Missing;
+        }
+    }
+
+    /**
+     * Starts a tracked CLI deployment again from its saved config.
+     *
+     * The CLI and runtime are re-resolved first because a deployment started in
+     * an earlier session leaves nothing resolved in this one.
+     *
+     * @param record The tracked deployment to start
+     * @param connectionInfo Connection whose string is passed to the engine
+     */
+    public async startCliDeployment(
+        record: Dab.DabDeploymentRecord,
+        connectionInfo: Dab.DabConnectionInfo,
+        authenticationType?: string,
+    ): Promise<Dab.DeploymentActionResponse & { processId?: number }> {
+        const runner = this.cliRunner;
+        if (!runner) {
+            return { success: false, error: LocalContainers.dabDeploymentStoreUnavailable };
+        }
+
+        if (!record.configPath) {
+            return { success: false, error: LocalContainers.dabCliDeploymentNotStartable };
+        }
+
+        const acquireResult = await runner.acquireCli();
+        if (!acquireResult.success) {
+            return { success: false, error: acquireResult.error };
+        }
+
+        const runtimeResult = await runner.resolveRuntime();
+        if (!runtimeResult.success) {
+            return { success: false, error: runtimeResult.error };
+        }
+
+        const startResult = await runner.startEngine(record.configPath, {
+            port: record.port,
+            connectionString: Dab.buildDabCliConnectionString(
+                connectionInfo.connectionString,
+                authenticationType,
+            ),
+        });
+        if (!startResult.success) {
+            return { success: false, error: startResult.error };
+        }
+
+        const readyResult = await runner.checkEngine(record.port);
+        return readyResult.success
+            ? { success: true, processId: startResult.processId }
+            : { success: false, error: readyResult.error };
+    }
+
+    /**
+     * Stops a running CLI deployment's engine.
+     *
+     * @param record The tracked deployment to stop
+     */
+    public async stopCliDeployment(
+        record: Dab.DabDeploymentRecord,
+    ): Promise<Dab.DeploymentActionResponse> {
+        if (!record.processId) {
+            // Nothing was launched from this window; the engine is already gone
+            // or belongs to a session that has since ended.
+            return { success: true };
+        }
+
+        const result = await stopDabCliEngine(record.processId);
+        return { success: result.success, error: result.error };
+    }
+
+    // #endregion
 
     /**
      * Gets error link information for a specific deployment step.

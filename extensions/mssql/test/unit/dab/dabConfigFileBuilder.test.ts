@@ -633,6 +633,9 @@ suite("DabConfigFileBuilder Tests", () => {
                 const parsed = JSON.parse(result);
 
                 expect(parsed.entities["Users"].mcp).to.deep.equal({
+                    // A table states custom-tool as false so the schema's
+                    // stored-procedure rule does not fire against it.
+                    "custom-tool": false,
                     "dml-tools": true,
                 });
             });
@@ -1213,6 +1216,95 @@ suite("DabConfigFileBuilder Tests", () => {
                 expect(order.permissions[0].role).to.equal("authenticated");
                 expect(order.permissions[0].actions).to.deep.equal(["read"]);
             });
+        });
+    });
+    suite("mcp schema conformance", () => {
+        /**
+         * The published schema gates custom-tool behind
+         * `if custom-tool is true then source.type must be stored-procedure`.
+         * An absent custom-tool satisfies that condition vacuously, so every
+         * entity carrying mcp has to state the flag or `dab validate` rejects
+         * the whole config.
+         */
+        function assertMcpPassesSchemaRule(configContent: string): void {
+            const parsed = JSON.parse(configContent);
+            for (const [name, entity] of Object.entries<any>(parsed.entities)) {
+                if (typeof entity.mcp !== "object" || entity.mcp === null) {
+                    continue;
+                }
+
+                expect(entity.mcp, `${name} must state custom-tool`).to.have.property(
+                    "custom-tool",
+                );
+
+                if (entity.mcp["custom-tool"] === true) {
+                    expect(
+                        entity.source.type,
+                        `${name} enables custom-tool so it must be a stored procedure`,
+                    ).to.equal("stored-procedure");
+                }
+            }
+        }
+
+        test("a table entity states custom-tool as false", () => {
+            const result = builder.build(
+                createTestConfig({
+                    apiTypes: [Dab.ApiType.Mcp],
+                    entities: [createTestEntity()],
+                }),
+                defaultConnectionInfo,
+            );
+
+            const entity = Object.values<any>(JSON.parse(result).entities)[0];
+            expect(entity.mcp["custom-tool"]).to.be.false;
+            assertMcpPassesSchemaRule(result);
+        });
+
+        test("a view entity states custom-tool as false", () => {
+            const result = builder.build(
+                createTestConfig({
+                    apiTypes: [Dab.ApiType.Mcp],
+                    entities: [createTestEntity({ sourceType: Dab.EntitySourceType.View })],
+                }),
+                defaultConnectionInfo,
+            );
+
+            const entity = Object.values<any>(JSON.parse(result).entities)[0];
+            expect(entity.mcp["custom-tool"]).to.be.false;
+            assertMcpPassesSchemaRule(result);
+        });
+
+        test("a mixed config satisfies the schema rule for every entity", () => {
+            const result = builder.build(
+                createTestConfig({
+                    apiTypes: [Dab.ApiType.Rest, Dab.ApiType.GraphQL, Dab.ApiType.Mcp],
+                    entities: [
+                        createTestEntity({ id: "t1", tableName: "Users" }),
+                        createTestEntity({
+                            id: "v1",
+                            tableName: "ActiveUsers",
+                            sourceType: Dab.EntitySourceType.View,
+                            advancedSettings: {
+                                entityName: "ActiveUsers",
+                                authorizationRole: Dab.AuthorizationRole.Anonymous,
+                            },
+                        }),
+                        createTestEntity({
+                            id: "sp1",
+                            tableName: "uspGetUsers",
+                            sourceType: Dab.EntitySourceType.StoredProcedure,
+                            enabledActions: [Dab.EntityAction.Execute],
+                            advancedSettings: {
+                                entityName: "uspGetUsers",
+                                authorizationRole: Dab.AuthorizationRole.Anonymous,
+                            },
+                        }),
+                    ],
+                }),
+                defaultConnectionInfo,
+            );
+
+            assertMcpPassesSchemaRule(result);
         });
     });
 });

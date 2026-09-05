@@ -2248,7 +2248,7 @@ export class LocConstants {
             deploymentComplete: l10n.t("Deployment Complete"),
             deploymentFailed: l10n.t("Deployment Failed"),
             dabContainerRunning: l10n.t("DAB container is running!"),
-            apiAvailableAt: l10n.t("Your API is available at:"),
+            dabEngineRunning: l10n.t("Data API builder is running!"),
             apisAvailableAt: l10n.t("Your APIs are available at the following endpoints:"),
             copyUrl: (apiType: string) =>
                 l10n.t({
@@ -2261,6 +2261,140 @@ export class LocConstants {
             mcpServerAdded: l10n.t("Added"),
             viewSwagger: l10n.t("View Swagger"),
             openNitro: l10n.t("Open Nitro"),
+
+            // DAB Deployments dialog
+            deployments: l10n.t("Deployments"),
+            createNewDeployment: l10n.t("Create new"),
+            noDeployments: l10n.t("No deployments yet"),
+            loadingDeployments: l10n.t("Loading deployments"),
+            refreshDeployments: l10n.t("Refresh"),
+            deploymentStatusRunning: l10n.t("Running"),
+            deploymentStatusStopped: l10n.t("Stopped"),
+            deploymentStatusMissing: l10n.t("Container no longer exists"),
+            deploymentStatusMissingCli: l10n.t("Configuration no longer exists"),
+            deploymentStatusUnknown: l10n.t("Status unavailable"),
+            deploymentConfigUpToDate: l10n.t("Up to date"),
+            deploymentConfigOutdated: l10n.t("Config changed"),
+            deploymentConfigOutdatedTooltip: l10n.t(
+                "Your configuration has changed since this container was deployed. Redeploy to apply the changes.",
+            ),
+            deployedOn: (relativeTime: string) =>
+                l10n.t({
+                    message: "Deployed {0}",
+                    args: [relativeTime],
+                    comment: ["{0} is a relative time such as '5 minutes ago'"],
+                }),
+            deployedAt: (timestamp: string) =>
+                l10n.t({
+                    message: "Deployed at {0}",
+                    args: [timestamp],
+                    comment: ["{0} is a localized absolute date and time"],
+                }),
+            justNow: l10n.t("just now"),
+            deploymentPort: (port: number) =>
+                l10n.t({
+                    message: "Port {0}",
+                    args: [port],
+                    comment: ["{0} is the host port number"],
+                }),
+            redeploy: l10n.t("Redeploy"),
+            redeployTooltip: l10n.t(
+                "Replace this container with a new one on the same name and port, running your current configuration.",
+            ),
+            startContainer: l10n.t("Start"),
+            stopContainer: l10n.t("Stop"),
+            deleteDeployment: l10n.t("Delete"),
+            deleteDeploymentConfirmTitle: l10n.t("Delete deployment?"),
+            deleteDeploymentConfirmMessage: (containerName: string) =>
+                l10n.t({
+                    message:
+                        "The container {0} will be stopped and removed, and its endpoints will stop responding.",
+                    args: [containerName],
+                    comment: ["{0} is the Docker container name"],
+                }),
+            deploymentActions: l10n.t("More actions"),
+            deploymentConfigOutdatedTitle: l10n.t("Configuration has changed"),
+            deploymentNotRunningTitle: l10n.t("Not running"),
+            deploymentNotRunningBody: l10n.t(
+                "This deployment is not serving requests. Start it to bring its endpoints back.",
+            ),
+            deploymentNotRunningOutdatedBody: l10n.t(
+                "This deployment is not serving requests, and it is running an earlier version of your configuration.",
+            ),
+            updateAndStart: l10n.t("Update and start"),
+            deploymentMissingTitle: l10n.t("This deployment no longer exists"),
+            deploymentMissingBodyDocker: l10n.t(
+                "Its container has been removed. Redeploy to create it again.",
+            ),
+            deploymentMissingBodyCli: l10n.t(
+                "Its generated configuration has been removed. Redeploy to create it again.",
+            ),
+            deploymentConfigOutdatedBody: l10n.t(
+                "This deployment is running an earlier version of your configuration. Redeploy it to serve the current one.",
+            ),
+            deleteCliDeploymentConfirmMessage: (name: string) =>
+                l10n.t({
+                    message:
+                        "The engine for {0} will be stopped and its generated configuration removed, and its endpoints will stop responding.",
+                    args: [name],
+                    comment: ["{0} is the deployment name"],
+                }),
+            showEndpoints: l10n.t("Show endpoints"),
+            hideEndpoints: l10n.t("Hide endpoints"),
+            endpointsUnavailableWhenStopped: l10n.t("Start the container to use these endpoints."),
+            selectDeploymentTarget: l10n.t("Select a deployment target"),
+            selectDeploymentTargetDescription: l10n.t(
+                "Choose where to run Data API builder for this database.",
+            ),
+            deploymentTargetDocker: l10n.t("Local Docker container"),
+            deploymentTargetDockerDescription: l10n.t(
+                "Runs Data API builder in a container on this machine, published on a local port.",
+            ),
+            backToDeployments: l10n.t("Back to deployments"),
+            redeployingContainer: (containerName: string) =>
+                l10n.t({
+                    message: "Redeploying {0}",
+                    args: [containerName],
+                    comment: ["{0} is the Docker container name"],
+                }),
+
+            // DAB CLI deployment
+            deploymentTargetDabCli: l10n.t("Data API builder CLI"),
+            deploymentTargetDabCliDescription: l10n.t(
+                "Runs Data API builder as a local process on this machine. No Docker required.",
+            ),
+            deployDabCli: l10n.t("Run with the Data API builder CLI"),
+            deployDabCliDescription: (apiTypes: string) =>
+                l10n.t({
+                    message:
+                        "This will run Data API builder as a local process, exposing {0} APIs based on your configuration.",
+                    args: [apiTypes],
+                    comment: ["{0} is a list of API types, e.g. 'REST and GraphQL'"],
+                }),
+            dotnetRequirement: l10n.t(
+                "A .NET runtime is required. The extension downloads the Data API builder CLI and resolves a runtime for it.",
+            ),
+            gettingDabCliReady: l10n.t("Getting Data API builder ready"),
+            gettingDabCli: l10n.t("Getting Data API builder CLI"),
+            downloadingDabCli: l10n.t("Downloading and unpacking the CLI package"),
+            checkingDotnetRuntime: l10n.t("Checking .NET runtime"),
+            resolvingDotnetRuntime: l10n.t("Resolving a runtime that can run the CLI"),
+            validatingDabConfig: l10n.t("Validating configuration"),
+            checkingGeneratedConfig: l10n.t("Checking the generated configuration"),
+            startingDabEngine: l10n.t("Starting Data API builder"),
+            launchingDabEngine: l10n.t("Launching the engine process"),
+            checkingEngineReadiness: l10n.t("Checking engine readiness"),
+            deploymentSettings: l10n.t("Deployment settings"),
+            deploymentName: l10n.t("Name"),
+            deploymentNameHint: l10n.t("A name for this deployment"),
+
+            // DAB reset configuration
+            resetConfig: l10n.t("Reset"),
+            resetConfigTooltip: l10n.t("Reset the configuration to the defaults for this schema"),
+            resetConfigConfirmTitle: l10n.t("Reset DAB configuration?"),
+            resetConfigConfirmMessage: l10n.t(
+                "This discards all entity, action, column, and advanced settings for this database, including changes made by Copilot, and rebuilds them from the current schema.",
+            ),
 
             // DAB Unsupported Reasons
             unsupportedNoPrimaryKey: (sourceType: string = "Table") =>
@@ -2294,6 +2428,8 @@ export class LocConstants {
             checkingContainerReadiness: l10n.t("Checking container readiness"),
             verifyingApiReady: l10n.t("Verifying the API is ready to accept requests"),
             containerLogs: l10n.t("Container logs"),
+            showFullErrorMessage: l10n.t("Show full error message"),
+            hideFullErrorMessage: l10n.t("Hide full error message"),
         };
     }
 

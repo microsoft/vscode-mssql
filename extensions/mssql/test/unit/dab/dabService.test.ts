@@ -9,6 +9,10 @@ import { DabService } from "../../../src/services/dabService";
 import { Dab } from "../../../src/sharedInterfaces/dab";
 import * as dockerUtils from "../../../src/docker/dockerUtils";
 import * as dabContainer from "../../../src/dab/dabContainer";
+import * as dabCliProcess from "../../../src/dab/dabCliProcess";
+import * as fs from "fs";
+import * as os from "os";
+import * as path from "path";
 import { DefaultSqlPortNumber } from "../../../src/constants/constants";
 
 function createTestEntity(overrides?: Partial<Dab.DabEntityConfig>): Dab.DabEntityConfig {
@@ -38,6 +42,20 @@ function createTestConfig(overrides?: Partial<Dab.DabConfig>): Dab.DabConfig {
         apiTypes: [Dab.ApiType.Rest],
         entities: [createTestEntity()],
         ...overrides,
+    };
+}
+
+function createTestDeploymentRecord(): Dab.DabDeploymentRecord {
+    return {
+        id: "deployment-1",
+        target: Dab.DabDeploymentTarget.DabCli,
+        name: "dab-cli-1",
+        port: 5001,
+        apiTypes: [Dab.ApiType.Rest],
+        configHash: "hash-1",
+        createdUtc: "2026-09-02T10:00:00.000Z",
+        deployedUtc: "2026-09-02T10:00:00.000Z",
+        processId: 4242,
     };
 }
 
@@ -681,6 +699,217 @@ suite("DabService Tests", () => {
             const result = await dabService.stopDeployment("test-container");
 
             expect(result.success).to.be.false;
+        });
+    });
+    suite("computeConfigHash", () => {
+        test("should be stable for the same configuration", () => {
+            const config = createTestConfig();
+
+            expect(dabService.computeConfigHash(config)).to.equal(
+                dabService.computeConfigHash(createTestConfig()),
+            );
+        });
+
+        test("should ignore entity ordering", () => {
+            const first = createTestEntity({ id: "id-1", tableName: "Users" });
+            const second = createTestEntity({
+                id: "id-2",
+                tableName: "Orders",
+                advancedSettings: {
+                    entityName: "Orders",
+                    authorizationRole: Dab.AuthorizationRole.Anonymous,
+                },
+            });
+
+            expect(
+                dabService.computeConfigHash(createTestConfig({ entities: [first, second] })),
+                "Reordering entities does not change what DAB serves",
+            ).to.equal(
+                dabService.computeConfigHash(createTestConfig({ entities: [second, first] })),
+            );
+        });
+
+        test("should change when the exposed API types change", () => {
+            expect(
+                dabService.computeConfigHash(createTestConfig({ apiTypes: [Dab.ApiType.Rest] })),
+            ).to.not.equal(
+                dabService.computeConfigHash(
+                    createTestConfig({ apiTypes: [Dab.ApiType.Rest, Dab.ApiType.GraphQL] }),
+                ),
+            );
+        });
+
+        test("should change when an entity's actions change", () => {
+            const readOnly = createTestEntity({ enabledActions: [Dab.EntityAction.Read] });
+            const readWrite = createTestEntity({
+                enabledActions: [Dab.EntityAction.Read, Dab.EntityAction.Create],
+            });
+
+            expect(
+                dabService.computeConfigHash(createTestConfig({ entities: [readOnly] })),
+            ).to.not.equal(
+                dabService.computeConfigHash(createTestConfig({ entities: [readWrite] })),
+            );
+        });
+    });
+
+    suite("container lifecycle", () => {
+        test("getContainerStatus should report the container state", async () => {
+            sandbox
+                .stub(dabContainer, "getDabContainerStatus")
+                .resolves(Dab.DabDeploymentContainerStatus.Running);
+
+            expect(await dabService.getContainerStatus("dab-container")).to.equal(
+                Dab.DabDeploymentContainerStatus.Running,
+            );
+        });
+
+        test("startContainer should surface the failure reason", async () => {
+            sandbox
+                .stub(dabContainer, "startDabContainer")
+                .resolves({ success: false, error: "Container no longer exists." });
+
+            const result = await dabService.startContainer("dab-container");
+
+            expect(result.success).to.be.false;
+            expect(result.error).to.equal("Container no longer exists.");
+        });
+
+        test("startContainer should treat an undefined success as failure", async () => {
+            sandbox.stub(dabContainer, "startDabContainer").resolves({ success: undefined as any });
+
+            expect((await dabService.startContainer("dab-container")).success).to.be.false;
+        });
+
+        test("stopContainer should report success", async () => {
+            sandbox.stub(dabContainer, "stopDabContainer").resolves({ success: true });
+
+            expect((await dabService.stopContainer("dab-container")).success).to.be.true;
+        });
+
+        test("isPortAvailable should defer to the host port probe", async () => {
+            const isDabPortAvailableStub = sandbox
+                .stub(dabContainer, "isDabPortAvailable")
+                .resolves(false);
+
+            expect(await dabService.isPortAvailable(5000)).to.be.false;
+            expect(isDabPortAvailableStub.calledOnceWithExactly(5000)).to.be.true;
+        });
+    });
+    suite("DAB CLI target", () => {
+        test("generateCliConfig keeps the connection string out of the file", () => {
+            const result = dabService.generateCliConfig(createTestConfig());
+
+            expect(result.success).to.be.true;
+            expect(result.configContent).to.contain(
+                `@env('${Dab.DAB_CLI_CONNECTION_STRING_ENV_VAR}')`,
+            );
+            expect(
+                result.configContent,
+                "A credential must never reach the generated file",
+            ).to.not.contain("Password");
+        });
+
+        test("generateCliConfig does not rewrite the host for Docker", () => {
+            const result = dabService.generateCliConfig(createTestConfig());
+
+            expect(
+                result.configContent,
+                "The engine runs on the host, so localhost needs no rewriting",
+            ).to.not.contain("host.docker.internal");
+        });
+
+        test("getCliDeploymentStatus reports Running when the port answers", async () => {
+            sandbox.stub(dabCliProcess, "isDabCliEngineResponding").resolves(true);
+
+            const status = await dabService.getCliDeploymentStatus({
+                ...createTestDeploymentRecord(),
+                configPath: undefined,
+            });
+
+            expect(status).to.equal(Dab.DabDeploymentContainerStatus.Running);
+        });
+
+        test("getCliDeploymentStatus reports Missing when nothing answers and no config remains", async () => {
+            sandbox.stub(dabCliProcess, "isDabCliEngineResponding").resolves(false);
+
+            const status = await dabService.getCliDeploymentStatus({
+                ...createTestDeploymentRecord(),
+                configPath: undefined,
+            });
+
+            expect(status).to.equal(Dab.DabDeploymentContainerStatus.Missing);
+        });
+
+        test("getCliDeploymentStatus reports Missing when the config file is gone", async () => {
+            sandbox.stub(dabCliProcess, "isDabCliEngineResponding").resolves(false);
+
+            const status = await dabService.getCliDeploymentStatus({
+                ...createTestDeploymentRecord(),
+                configPath: path.join(os.tmpdir(), "dab-cli-test-missing", "dab-config.json"),
+            });
+
+            expect(status).to.equal(Dab.DabDeploymentContainerStatus.Missing);
+        });
+
+        test("getCliDeploymentStatus reports Stopped when the config survives", async () => {
+            sandbox.stub(dabCliProcess, "isDabCliEngineResponding").resolves(false);
+            const configDirectory = await fs.promises.mkdtemp(
+                path.join(os.tmpdir(), "dab-cli-status-"),
+            );
+            const configPath = path.join(configDirectory, "dab-config.json");
+            await fs.promises.writeFile(configPath, "{}", "utf8");
+
+            try {
+                const status = await dabService.getCliDeploymentStatus({
+                    ...createTestDeploymentRecord(),
+                    configPath,
+                });
+
+                expect(
+                    status,
+                    "A saved config is what makes a stopped deployment startable",
+                ).to.equal(Dab.DabDeploymentContainerStatus.Stopped);
+            } finally {
+                await fs.promises.rm(configDirectory, { recursive: true, force: true });
+            }
+        });
+
+        test("stopCliDeployment succeeds when no process was recorded", async () => {
+            const stopStub = sandbox.stub(dabCliProcess, "stopDabCliEngine");
+
+            const result = await dabService.stopCliDeployment({
+                ...createTestDeploymentRecord(),
+                processId: undefined,
+            });
+
+            expect(result.success).to.be.true;
+            expect(stopStub.called, "Nothing to stop means no kill is attempted").to.be.false;
+        });
+
+        test("stopCliDeployment stops the recorded process", async () => {
+            const stopStub = sandbox
+                .stub(dabCliProcess, "stopDabCliEngine")
+                .resolves({ success: true });
+
+            const result = await dabService.stopCliDeployment({
+                ...createTestDeploymentRecord(),
+                processId: 4242,
+            });
+
+            expect(result.success).to.be.true;
+            expect(stopStub.calledOnceWithExactly(4242)).to.be.true;
+        });
+
+        test("CLI steps report a clear failure without a storage context", async () => {
+            const serviceWithoutStorage = new DabService();
+
+            const result = await serviceWithoutStorage.runCliDeploymentStep(
+                Dab.DabDeploymentStepOrder.acquireDabCli,
+            );
+
+            expect(result.success).to.be.false;
+            expect(result.error).to.be.a("string").and.not.empty;
         });
     });
 });

@@ -1947,6 +1947,86 @@ export class LocalContainers {
         "DAB container failed to become ready within the timeout period.",
     );
     public static dabStopContainerError = l10n.t("Failed to stop and remove DAB container.");
+    public static dabContainerNotFound = (containerName: string) =>
+        l10n.t({
+            message: "Container {0} no longer exists.",
+            args: [containerName],
+            comment: ["{0} is the Docker container name"],
+        });
+    public static dabStartExistingContainerError = l10n.t("Failed to start the DAB container.");
+    public static dabStopExistingContainerError = l10n.t("Failed to stop the DAB container.");
+    public static dabDeploymentNotFound = l10n.t(
+        "This deployment is no longer tracked. Refresh the deployments list and try again.",
+    );
+    public static dabRedeployPortUnavailable = (port: number, containerName: string) =>
+        l10n.t({
+            message:
+                "Port {0} is no longer available, so {1} cannot be redeployed on it. Free the port, or create a new deployment on a different port.",
+            args: [port, containerName],
+            comment: ["{0} is the port number", "{1} is the Docker container name"],
+        });
+    public static dabDeploymentStoreUnavailable = l10n.t(
+        "Deployments cannot be tracked because the extension's storage location is unavailable.",
+    );
+    // DAB CLI deployment strings
+    public static dabCliDownloadFailed = l10n.t(
+        "Failed to download the Data API builder CLI. Please check your network connection.",
+    );
+    public static dabCliPrepareFailed = l10n.t("Failed to prepare the Data API builder CLI.");
+    public static dabCliArchitectureUnsupported = (runtimeIdentifier: string) =>
+        l10n.t({
+            message:
+                "Data API builder does not publish a build for {0}, so it cannot run directly on this machine. Try deploying to a container instead.",
+            args: [runtimeIdentifier],
+            comment: ["{0} is a .NET runtime identifier, such as osx-arm64"],
+        });
+    public static dabCliNotAcquired = l10n.t(
+        "The Data API builder CLI is not available. Run the prerequisite checks again.",
+    );
+    public static dabCliDotnetNotFound = l10n.t(
+        "No .NET runtime was found to run the Data API builder CLI. Install .NET and try again.",
+    );
+    public static dabCliInstallDotnet = l10n.t("Download .NET");
+    public static dabCliDotnetNotResolved = l10n.t(
+        "The .NET runtime has not been resolved yet. Run the prerequisite checks again.",
+    );
+    public static dabCliConfigWriteFailed = l10n.t(
+        "Failed to write the Data API builder configuration file.",
+    );
+    public static dabCliConfigInvalid = l10n.t("The Data API builder configuration is not valid.");
+    public static dabCliDatabaseConnectionFailed = l10n.t(
+        "Data API builder could not reach the database. Check that the server is running and the connection still works, then run this step again.",
+    );
+    public static dabCliEntraConnectionFailed = l10n.t(
+        "Data API builder could not sign in to the database. It signs in separately from this extension, using the Azure CLI. Run 'az login', then run this step again.",
+    );
+    public static dabCliInstallAzureCli = l10n.t("Install the Azure CLI");
+    public static dabCliStartFailed = l10n.t("Failed to start the Data API builder engine.");
+    public static dabCliEngineNotReady = l10n.t(
+        "The Data API builder engine did not become ready within the timeout period.",
+    );
+    public static dabCliStartMissingParams = l10n.t(
+        "Deployment name, port, and configuration are required to start the engine.",
+    );
+    public static dabCliEngineDidNotStart = l10n.t("The Data API builder engine did not start.");
+    public static dabCliEngineReadyTimeout = l10n.t(
+        "The Data API builder engine did not answer in time.",
+    );
+    public static dabCliExitedWithCode = (code: number | null) =>
+        l10n.t({
+            message: "The Data API builder CLI exited with code {0}.",
+            args: [code ?? -1],
+            comment: ["{0} is the process exit code"],
+        });
+    public static dabDockerWindowsAuthNotSupported = l10n.t(
+        "A container cannot use Windows Authentication, because it runs outside your Windows session. Deploy with the Data API builder CLI instead, which runs as you.",
+    );
+    public static dabTargetAuthNotSupported = l10n.t(
+        "This connection's authentication type is not supported for local deployment. Only SQL Authentication and Windows Authentication can be used.",
+    );
+    public static dabCliDeploymentNotStartable = l10n.t(
+        "This deployment's configuration file is missing, so it cannot be started. Redeploy it instead.",
+    );
 }
 
 export class UserSurvey {
