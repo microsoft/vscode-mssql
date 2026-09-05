@@ -4012,6 +4012,11 @@
     "Save .scmp file": "Save .scmp file",
     "Save source and target, options, and excluded elements": "Save source and target, options, and excluded elements",
     "Group differences by": "Group differences by",
+    "Layout": "Layout",
+    "Classic": "Classic",
+    "Simplified": "Simplified",
+    "Schema differences": "Schema differences",
+    "Object": "Object",
     "Source Name": "Source Name",
     "Target Name": "Target Name",
     "Change": "Change",
@@ -4035,6 +4040,27 @@
     "All schemas": "All schemas",
     "All object types": "All object types",
     "Clear filters": "Clear filters",
+    "Include or exclude all differences": "Include or exclude all differences",
+    "Included in script": "Included in script",
+    "Excluded from script": "Excluded from script",
+    "included in script": "included in script",
+    "excluded from script": "excluded from script",
+    "{0}, {1}, {2}, {3}/{0} is the schema object type{1} is the schema object name{2} is the update action{3} indicates whether the difference is included in the generated script": {
+        "message": "{0}, {1}, {2}, {3}",
+        "comment": [
+            "{0} is the schema object type",
+            "{1} is the schema object name",
+            "{2} is the update action",
+            "{3} indicates whether the difference is included in the generated script"
+        ]
+    },
+    "{0}, {1} differences/{0} is the schema difference group name{1} is the number of differences in the group": {
+        "message": "{0}, {1} differences",
+        "comment": [
+            "{0} is the schema difference group name",
+            "{1} is the number of differences in the group"
+        ]
+    },
     "{0} of {1} selected/{0} is the number of included schema differences{1} is the total number of schema differences": {
         "message": "{0} of {1} selected",
         "comment": [
@@ -4048,7 +4074,17 @@
     "Database Project": "Database Project",
     "Target": "Target",
     "Comparison Details": "Comparison Details",
+    "{0} / {1}/{0} is the one-based position of the selected schema difference{1} is the total number of visible schema differences": {
+        "message": "{0} / {1}",
+        "comment": [
+            "{0} is the one-based position of the selected schema difference",
+            "{1} is the total number of visible schema differences"
+        ]
+    },
     "Affected child objects": "Affected child objects",
+    "Constraints added": "Constraints added",
+    "Constraints changed": "Constraints changed",
+    "Constraints dropped": "Constraints dropped",
     "Constraints added: {0}/{0} is a comma-separated list of fully-qualified object names (e.g. '[dbo].[PK_Customers], [dbo].[UQ_Customers_Email]') that will be added under the selected parent object when the diff is applied.": {
         "message": "Constraints added: {0}",
         "comment": [

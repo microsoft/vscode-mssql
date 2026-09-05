@@ -47,6 +47,7 @@ import {
     normalizeFluentResultGridFrozenColumnIndex,
     normalizeFluentResultGridRowPadding,
     restoreFluentResultGridColumnWidths,
+    restoreFluentResultGridVerticalScrollPosition,
     stabilizeFluentResultGridColumnInfo,
     type FluentResultGridColumnInfoSnapshot,
 } from "./fluentResultGridState";
@@ -373,7 +374,10 @@ export function useFluentResultGridController({
                 if (initialState?.scrollPosition) {
                     requestAnimationFrame(() => {
                         if (initialState.scrollPosition) {
-                            grid.scrollRowToTop(initialState.scrollPosition.scrollTop);
+                            restoreFluentResultGridVerticalScrollPosition(
+                                grid,
+                                initialState.scrollPosition,
+                            );
                             layoutController.restoreHorizontalScrollPosition(
                                 grid,
                                 initialState.scrollPosition.scrollLeft,

@@ -16,6 +16,8 @@ import {
     SchemaCompareIncludeExcludeAllRequest,
     SchemaCompareIncludeExcludeNodeRequest,
     SchemaCompareIncludeExcludeNodeResponse,
+    SchemaCompareGroupBy,
+    SchemaCompareLayout,
     SchemaCompareReducers,
     SchemaCompareServer,
     SchemaCompareWebViewState,
@@ -54,6 +56,8 @@ import { getConnectionDisplayName } from "../models/connectionInfo";
 import { buildDatabaseOptions } from "../utils/databaseUtils";
 
 const SCHEMA_COMPARE_VIEW_ID = "schemaCompare";
+const SCHEMA_COMPARE_LAYOUT_STATE_KEY = "mssql.schemaCompare.layout";
+const SCHEMA_COMPARE_GROUP_BY_STATE_KEY = "mssql.schemaCompare.groupBy";
 
 export class SchemaCompareWebViewController extends WebviewPanelController<
     SchemaCompareWebViewState,
@@ -92,6 +96,14 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             SCHEMA_COMPARE_VIEW_ID,
             SCHEMA_COMPARE_VIEW_ID,
             {
+                layout: context.globalState.get<SchemaCompareLayout>(
+                    SCHEMA_COMPARE_LAYOUT_STATE_KEY,
+                    "classic",
+                ),
+                groupBy: context.globalState.get<SchemaCompareGroupBy>(
+                    SCHEMA_COMPARE_GROUP_BY_STATE_KEY,
+                    "type",
+                ),
                 isSqlProjectExtensionInstalled: false,
                 isComparisonInProgress: false,
                 isApplyInProgress: false,
@@ -448,6 +460,23 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
     }
 
     private registerRpcHandlers(): void {
+        this.registerReducer("setLayout", async (state, payload) => {
+            state.layout = payload.layout;
+            await this._context.globalState.update(SCHEMA_COMPARE_LAYOUT_STATE_KEY, payload.layout);
+            this.updateState(state);
+            return state;
+        });
+
+        this.registerReducer("setGroupBy", async (state, payload) => {
+            state.groupBy = payload.groupBy;
+            await this._context.globalState.update(
+                SCHEMA_COMPARE_GROUP_BY_STATE_KEY,
+                payload.groupBy,
+            );
+            this.updateState(state);
+            return state;
+        });
+
         this.registerReducer("isSqlProjectExtensionInstalled", async (state) => {
             this.logger.debug(
                 `Checking if SQL Database Projects extension is installed - OperationId: ${this.operationId}`,
