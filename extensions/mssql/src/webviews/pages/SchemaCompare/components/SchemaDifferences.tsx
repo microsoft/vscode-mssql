@@ -1180,12 +1180,18 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
 
             switch (event.key) {
                 case "ArrowLeft":
-                    if (item.kind === "group" && !item.collapsed) {
+                    if (item.kind !== "group") {
+                        return;
+                    }
+                    if (!item.collapsed) {
                         toggleGroupCollapsed(item.key);
                     }
                     break;
                 case "ArrowRight":
-                    if (item.kind === "group" && item.collapsed) {
+                    if (item.kind !== "group") {
+                        return;
+                    }
+                    if (item.collapsed) {
                         toggleGroupCollapsed(item.key);
                     }
                     break;
@@ -1301,9 +1307,6 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
                     onClick={(event: React.MouseEvent<HTMLDivElement>) => {
                         event.currentTarget.focus();
                         setFocusedRowKey(rowKey);
-                        if (item.position !== undefined) {
-                            onDiffSelected(item.position);
-                        }
                     }}
                     onFocus={(event: React.FocusEvent<HTMLDivElement>) => {
                         if (event.target !== event.currentTarget) {
