@@ -20,6 +20,10 @@
     "Private": "Private",
     "Remove": "Remove",
     "Port must be a number between 1 and 65535": "Port must be a number between 1 and 65535",
+    "Provisioning {0}/{0} is the server, container, or database target being provisioned": {
+        "message": "Provisioning {0}",
+        "comment": ["{0} is the server, container, or database target being provisioned"]
+    },
     "SQL Tools (MSSQL)": "SQL Tools (MSSQL)",
     "Create Database": "Create Database",
     "Drop Database": "Drop Database",
@@ -911,11 +915,27 @@
     "Unable to determine the server authentication type.": "Unable to determine the server authentication type.",
     "Max vCores": "Max vCores",
     "Select Max vCores": "Select Max vCores",
+    "Azure SQL database '{0}' was provisioned successfully./{0} is the database name": {
+        "message": "Azure SQL database '{0}' was provisioned successfully.",
+        "comment": ["{0} is the database name"]
+    },
+    "Failed to provision Azure SQL database '{0}': {1}/{0} is the database name{1} is the error message": {
+        "message": "Failed to provision Azure SQL database '{0}': {1}",
+        "comment": ["{0} is the database name", "{1} is the error message"]
+    },
     "Enter Database Name": "Enter Database Name",
     "Database Description": "Database Description",
     "Enter Database Description": "Enter Database Description",
     "Please select a workspace where you have sufficient permissions (Contributor or higher)": "Please select a workspace where you have sufficient permissions (Contributor or higher)",
     "This database name is already in use. Please choose a different name.": "This database name is already in use. Please choose a different name.",
+    "Fabric SQL database '{0}' was provisioned successfully./{0} is the database name": {
+        "message": "Fabric SQL database '{0}' was provisioned successfully.",
+        "comment": ["{0} is the database name"]
+    },
+    "Failed to provision Fabric SQL database '{0}': {1}/{0} is the database name{1} is the error message": {
+        "message": "Failed to provision Fabric SQL database '{0}': {1}",
+        "comment": ["{0} is the database name", "{1} is the error message"]
+    },
     "Count: {0}  Distinct Count: {1}  Null Count: {2}/{0} is the count, {1} is the distinct count, and {2} is the null count": {
         "message": "Count: {0}  Distinct Count: {1}  Null Count: {2}",
         "comment": ["{0} is the count, {1} is the distinct count, and {2} is the null count"]
@@ -1041,6 +1061,14 @@
     "Readying container for connections.": "Readying container for connections.",
     "Connecting to Container": "Connecting to Container",
     "Connecting to your SQL Server Docker container": "Connecting to your SQL Server Docker container",
+    "SQL Server container '{0}' was provisioned successfully./{0} is the container name": {
+        "message": "SQL Server container '{0}' was provisioned successfully.",
+        "comment": ["{0} is the container name"]
+    },
+    "Failed to provision SQL Server container '{0}': {1}/{0} is the container name{1} is the error message": {
+        "message": "Failed to provision SQL Server container '{0}': {1}",
+        "comment": ["{0} is the container name", "{1} is the error message"]
+    },
     "Please make your password 8-128 characters long.": "Please make your password 8-128 characters long.",
     "Your password must contain characters from at least three of the following categories: uppercase letters, lowercase letters, numbers (0-9), and special characters (!, $, #, %, etc.).": "Your password must contain characters from at least three of the following categories: uppercase letters, lowercase letters, numbers (0-9), and special characters (!, $, #, %, etc.).",
     "Failed to pull SQL Server image. Please check your network connection and try again.": "Failed to pull SQL Server image. Please check your network connection and try again.",
