@@ -3,14 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useSchemaCompareSelector } from "../schemaCompareSelector";
+import { schemaCompareContext } from "../SchemaCompareStateProvider";
 import { useVscodeWebview } from "../../../common/vscodeWebviewProvider";
 import {
     SchemaCompareReducers,
     SchemaCompareWebViewState,
     SchemaUpdateAction,
 } from "../../../../sharedInterfaces/schemaCompare";
-import { Button, makeStyles, Text, Tooltip, tokens } from "@fluentui/react-components";
+import { Button, makeStyles, Spinner, Text, Tooltip, tokens } from "@fluentui/react-components";
+import { useContext, useEffect } from "react";
 import { ArrowLeft16Regular, ArrowRight16Regular } from "@fluentui/react-icons";
 import { locConstants as loc } from "../../../common/locConstants";
 import { getDiffEditorModels, groupConstraintChildrenByAction } from "./compareDiffEditorUtils";
@@ -78,10 +79,16 @@ const CompareDiffEditor = ({
     hasNext,
 }: Props) => {
     const classes = useStyles();
-    const schemaCompareResult = useSchemaCompareSelector((s) => s.schemaCompareResult);
+    const context = useContext(schemaCompareContext);
     const { themeKind } = useVscodeWebview<SchemaCompareWebViewState, SchemaCompareReducers>();
-    const compareResult = schemaCompareResult;
-    const diff = compareResult?.differences[selectedDiffId];
+    const diff = context.differences[selectedDiffId];
+    const isLoading = context.loadingDifferenceDetailIds.has(selectedDiffId);
+
+    useEffect(() => {
+        if (diff?.hasDetails === false) {
+            void context.loadDifferenceDetails(selectedDiffId);
+        }
+    }, [context.loadDifferenceDetails, diff, selectedDiffId]);
     const { original, modified } = getDiffEditorModels(diff);
 
     const affectedChildrenByAction = groupConstraintChildrenByAction(diff);
@@ -120,22 +127,26 @@ const CompareDiffEditor = ({
                 </div>
             )}
             <div className={`${classes.editorHost} ${classes.deploymentDirectionIndicators}`}>
-                <SchemaCompareMonacoDiffEditor
-                    height="100%"
-                    width="100%"
-                    language="sql"
-                    original={original}
-                    modified={modified}
-                    themeKind={themeKind}
-                    options={{
-                        automaticLayout: true,
-                        renderSideBySide: renderSideBySide ?? true,
-                        renderIndicators: true,
-                        renderOverviewRuler: true,
-                        overviewRulerLanes: 0,
-                        readOnly: true,
-                    }}
-                />
+                {isLoading ? (
+                    <Spinner label={loc.common.loadingWithEllipsis} />
+                ) : (
+                    <SchemaCompareMonacoDiffEditor
+                        height="100%"
+                        width="100%"
+                        language="sql"
+                        original={original}
+                        modified={modified}
+                        themeKind={themeKind}
+                        options={{
+                            automaticLayout: true,
+                            renderSideBySide: renderSideBySide ?? true,
+                            renderIndicators: true,
+                            renderOverviewRuler: true,
+                            overviewRulerLanes: 0,
+                            readOnly: true,
+                        }}
+                    />
+                )}
             </div>
         </div>
     );

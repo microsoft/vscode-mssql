@@ -35,6 +35,10 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
         new Set(),
     );
     const [isIncludeExcludeAllInProgress, setIsIncludeExcludeAllInProgress] = useState(false);
+    const loadingDifferenceDetailIdsRef = useRef(new Set<number>());
+    const [loadingDifferenceDetailIds, setLoadingDifferenceDetailIds] = useState<
+        ReadonlySet<number>
+    >(new Set());
 
     const updateDifferences = useCallback(
         (updater: (current: mssql.DiffEntry[]) => mssql.DiffEntry[]) => {
@@ -124,8 +128,18 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
                     { includeRequest },
                 );
                 if (response.success) {
-                    confirmedDifferencesRef.current = response.differences;
-                    setDifferences(response.differences);
+                    const includedById = new Map(
+                        response.updates.map((update) => [update.id, update.included]),
+                    );
+                    confirmedDifferencesRef.current = confirmedDifferencesRef.current.map(
+                        (difference, id) => {
+                            const included = includedById.get(id);
+                            return included === undefined
+                                ? difference
+                                : { ...difference, included };
+                        },
+                    );
+                    setDifferences(confirmedDifferencesRef.current);
                 } else {
                     renderConfirmedDifferences();
                 }
@@ -139,10 +153,49 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
         [extensionRpc, renderConfirmedDifferences, updateDifferences],
     );
 
+    const loadDifferenceDetails = useCallback(
+        async (id: number): Promise<void> => {
+            const current = confirmedDifferencesRef.current[id];
+            if (
+                !current ||
+                current.hasDetails !== false ||
+                loadingDifferenceDetailIdsRef.current.has(id)
+            ) {
+                return;
+            }
+
+            loadingDifferenceDetailIdsRef.current.add(id);
+            setLoadingDifferenceDetailIds(new Set(loadingDifferenceDetailIdsRef.current));
+            try {
+                const response = await extensionRpc.sendRequest(
+                    sc.SchemaCompareGetDifferenceDetailsRequest.type,
+                    { id },
+                );
+                if (response.success && response.difference) {
+                    const existing = confirmedDifferencesRef.current[id];
+                    if (existing) {
+                        confirmedDifferencesRef.current = confirmedDifferencesRef.current.map(
+                            (difference, index) =>
+                                index === id
+                                    ? { ...response.difference!, included: existing.included }
+                                    : difference,
+                        );
+                        renderConfirmedDifferences();
+                    }
+                }
+            } finally {
+                loadingDifferenceDetailIdsRef.current.delete(id);
+                setLoadingDifferenceDetailIds(new Set(loadingDifferenceDetailIdsRef.current));
+            }
+        },
+        [extensionRpc, renderConfirmedDifferences],
+    );
+
     const commands = useMemo<sc.SchemaCompareContextProps>(
         () => ({
             ...getCoreRPCs(extensionRpc),
             differences,
+            loadingDifferenceDetailIds,
             pendingDifferenceIds,
             isIncludeExcludeAllInProgress,
             isSqlProjectExtensionInstalled: function (): void {
@@ -279,6 +332,7 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
             },
             includeExcludeNode,
             includeExcludeAllNodes,
+            loadDifferenceDetails,
             openScmp: function (): void {
                 extensionRpc.action("openScmp", {});
             },
@@ -296,6 +350,8 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
             includeExcludeNode,
             isIncludeExcludeAllInProgress,
             pendingDifferenceIds,
+            loadDifferenceDetails,
+            loadingDifferenceDetailIds,
         ],
     );
 

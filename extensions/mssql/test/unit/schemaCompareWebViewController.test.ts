@@ -24,6 +24,7 @@ import {
 } from "../../src/enums";
 import {
     SchemaCompareIncludeExcludeAllRequest,
+    SchemaCompareGetDifferenceDetailsRequest,
     SchemaCompareIncludeExcludeNodeRequest,
     SchemaCompareWebViewState,
 } from "../../src/sharedInterfaces/schemaCompare";
@@ -902,6 +903,33 @@ suite("SchemaCompareWebViewController Tests", () => {
         });
         expect(controller.state.schemaCompareResult.differences[0].included).to.be.true;
         expect(showWarningMessageStub).to.have.been.calledOnce;
+    });
+
+    test("getDifferenceDetails request - caches scripts and preserves checkbox state", async () => {
+        controller.state = structuredClone(mockInitialState);
+        controller.state.schemaCompareResult.differences[0].included = false;
+        const detailedDifference = {
+            ...structuredClone(differences[0]),
+            hasDetails: true,
+            included: true,
+            children: [{ ...structuredClone(differences[1]), hasDetails: true }],
+        };
+        const getDetailsStub = schemaCompareService.getDifferenceDetails as sinon.SinonStub;
+        getDetailsStub.resolves({
+            success: true,
+            errorMessage: "",
+            difference: detailedDifference,
+        });
+
+        const handler = requestHandlers.get(SchemaCompareGetDifferenceDetailsRequest.type.method);
+        const response = await handler({ id: 0 });
+
+        expect(getDetailsStub).to.have.been.calledOnceWith(operationId, 0);
+        expect(response.success).to.be.true;
+        expect(response.difference.hasDetails).to.be.true;
+        expect(response.difference.included).to.be.false;
+        expect(controller.state.schemaCompareResult.differences[0].children).to.have.length(1);
+        expect(controller.state.schemaCompareResult.differences[0].included).to.be.false;
     });
 
     test("includeExcludeNode request - serializes concurrent service calls", async () => {
@@ -1979,9 +2007,15 @@ suite("SchemaCompareWebViewController Tests", () => {
             success: true,
         };
 
-        const includeExcludeAllStub = sandbox
-            .stub(scUtils, "includeExcludeAllNodes")
-            .resolves(expectedResult);
+        const includeExcludeAllStub = sandbox.stub(scUtils, "includeExcludeAllNodes").resolves({
+            ...expectedResult,
+            allIncludedOrExcludedDifferences: expectedResult.allIncludedOrExcludedDifferences.map(
+                (difference) => ({
+                    ...difference,
+                    sourceScript: null,
+                }),
+            ),
+        });
 
         controller.state = structuredClone(mockInitialState);
         const handler = requestHandlers.get(SchemaCompareIncludeExcludeAllRequest.type.method);
@@ -1991,9 +2025,19 @@ suite("SchemaCompareWebViewController Tests", () => {
             .calledOnce;
 
         expect(
-            actualResult.differences,
-            "includeExcludeAllNodes should return the expected result",
-        ).to.deep.equal(expectedResult.allIncludedOrExcludedDifferences);
+            actualResult.updates,
+            "includeExcludeAllNodes should return lightweight inclusion updates",
+        ).to.deep.equal([
+            { id: 0, included: false },
+            { id: 1, included: false },
+            { id: 2, included: false },
+        ]);
+        expect(
+            controller.state.schemaCompareResult?.differences.map(
+                (difference) => difference.sourceScript,
+            ),
+            "includeExcludeAllNodes should preserve scripts already held by the webview state",
+        ).to.deep.equal(differences.map((difference) => difference.sourceScript));
 
         includeExcludeAllStub.restore();
     });
@@ -2055,9 +2099,15 @@ suite("SchemaCompareWebViewController Tests", () => {
             success: true,
         };
 
-        const includeExcludeAllStub = sandbox
-            .stub(scUtils, "includeExcludeAllNodes")
-            .resolves(expectedResult);
+        const includeExcludeAllStub = sandbox.stub(scUtils, "includeExcludeAllNodes").resolves({
+            ...expectedResult,
+            allIncludedOrExcludedDifferences: expectedResult.allIncludedOrExcludedDifferences.map(
+                (difference) => ({
+                    ...difference,
+                    sourceScript: null,
+                }),
+            ),
+        });
 
         controller.state = structuredClone(mockInitialState);
         const handler = requestHandlers.get(SchemaCompareIncludeExcludeAllRequest.type.method);
@@ -2067,9 +2117,19 @@ suite("SchemaCompareWebViewController Tests", () => {
             .calledOnce;
 
         expect(
-            actualResult.differences,
-            "includeExcludeAllNodes should return the expected result",
-        ).to.deep.equal(expectedResult.allIncludedOrExcludedDifferences);
+            actualResult.updates,
+            "includeExcludeAllNodes should return lightweight inclusion updates",
+        ).to.deep.equal([
+            { id: 0, included: true },
+            { id: 1, included: true },
+            { id: 2, included: true },
+        ]);
+        expect(
+            controller.state.schemaCompareResult?.differences.map(
+                (difference) => difference.sourceScript,
+            ),
+            "includeExcludeAllNodes should preserve scripts already held by the webview state",
+        ).to.deep.equal(differences.map((difference) => difference.sourceScript));
 
         includeExcludeAllStub.restore();
     });
