@@ -10,8 +10,8 @@ import {
     SchemaCompareWebViewState,
     SchemaUpdateAction,
 } from "../../../../sharedInterfaces/schemaCompare";
-import { Button, makeStyles, Text, Tooltip, tokens } from "@fluentui/react-components";
-import { ArrowLeft16Regular, ArrowRight16Regular } from "@fluentui/react-icons";
+import { Button, makeStyles, Text, Tooltip } from "@fluentui/react-components";
+import { ArrowLeft16Regular, ArrowRight16Regular, Info16Regular } from "@fluentui/react-icons";
 import { locConstants as loc } from "../../../common/locConstants";
 import { getDiffEditorModels, groupConstraintChildrenByAction } from "./compareDiffEditorUtils";
 import { DefinitionPanel } from "../../../common/definitionPanel";
@@ -42,17 +42,47 @@ const useStyles = makeStyles({
         },
     },
     affectedChildrenContainer: {
-        // Subtle banner above the diff editor that lists the names of the diff's
-        // hierarchical-child changes (constraints under a table, columns under a view, etc.)
-        // so the user can see what other objects this diff will touch when applied.
-        padding: "4px 12px",
-        backgroundColor: tokens.colorNeutralBackground2,
-        borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
+        display: "flex",
+        alignItems: "flex-start",
+        gap: "8px",
+        padding: "8px 14px",
+        backgroundColor: "var(--vscode-textBlockQuote-background)",
+        borderBottom: "1px solid var(--vscode-editorGroup-border)",
+        borderLeft: "2px solid var(--vscode-charts-yellow)",
+    },
+    affectedChildrenIcon: {
+        flex: "0 0 auto",
+        marginTop: "1px",
+        color: "var(--vscode-charts-yellow)",
+    },
+    affectedChildrenLines: {
+        minWidth: 0,
     },
     affectedChildrenLine: {
         display: "block",
         fontSize: "12px",
         lineHeight: "1.5",
+    },
+    affectedChildrenLabel: {
+        fontWeight: 600,
+    },
+    affectedChildrenNames: {
+        fontFamily: "var(--vscode-editor-font-family)",
+        fontSize: "11.5px",
+        color: "var(--vscode-descriptionForeground)",
+    },
+    selectedDifferenceName: {
+        maxWidth: "320px",
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+        fontFamily: "var(--vscode-editor-font-family)",
+        color: "var(--vscode-descriptionForeground)",
+    },
+    differencePosition: {
+        whiteSpace: "nowrap",
+        color: "var(--vscode-descriptionForeground)",
+        fontVariantNumeric: "tabular-nums",
     },
 });
 
@@ -64,6 +94,8 @@ interface Props {
     onNext: () => void;
     hasPrevious: boolean;
     hasNext: boolean;
+    currentPosition: number;
+    totalDifferences: number;
 }
 
 const COMPARISON_DETAILS_TAB_ID = "comparisonDetails";
@@ -76,6 +108,8 @@ const CompareDiffEditor = ({
     onNext,
     hasPrevious,
     hasNext,
+    currentPosition,
+    totalDifferences,
 }: Props) => {
     const classes = useStyles();
     const schemaCompareResult = useSchemaCompareSelector((s) => s.schemaCompareResult);
@@ -83,6 +117,9 @@ const CompareDiffEditor = ({
     const compareResult = schemaCompareResult;
     const diff = compareResult?.differences[selectedDiffId];
     const { original, modified } = getDiffEditorModels(diff);
+    const selectedDifferenceName = (
+        diff?.sourceValue?.length ? diff.sourceValue : diff?.targetValue
+    )?.join(".");
 
     const affectedChildrenByAction = groupConstraintChildrenByAction(diff);
     const hasAffectedChildren = (Object.values(affectedChildrenByAction) as string[][]).some(
@@ -90,33 +127,54 @@ const CompareDiffEditor = ({
     );
 
     const content = (
-        <div className={classes.editorContainer}>
+        <div
+            className={classes.editorContainer}
+            data-schema-compare-details
+            role="region"
+            tabIndex={-1}
+            aria-label={loc.schemaCompare.compareDetails}>
             {hasAffectedChildren && (
                 <div
                     className={classes.affectedChildrenContainer}
                     role="region"
                     aria-label={loc.schemaCompare.affectedChildrenRegionLabel}>
-                    {!!affectedChildrenByAction[SchemaUpdateAction.Add]?.length && (
-                        <Text className={classes.affectedChildrenLine}>
-                            {loc.schemaCompare.affectedChildrenAdded(
-                                affectedChildrenByAction[SchemaUpdateAction.Add]!.join(", "),
-                            )}
-                        </Text>
-                    )}
-                    {!!affectedChildrenByAction[SchemaUpdateAction.Change]?.length && (
-                        <Text className={classes.affectedChildrenLine}>
-                            {loc.schemaCompare.affectedChildrenChanged(
-                                affectedChildrenByAction[SchemaUpdateAction.Change]!.join(", "),
-                            )}
-                        </Text>
-                    )}
-                    {!!affectedChildrenByAction[SchemaUpdateAction.Delete]?.length && (
-                        <Text className={classes.affectedChildrenLine}>
-                            {loc.schemaCompare.affectedChildrenDropped(
-                                affectedChildrenByAction[SchemaUpdateAction.Delete]!.join(", "),
-                            )}
-                        </Text>
-                    )}
+                    <Info16Regular className={classes.affectedChildrenIcon} aria-hidden />
+                    <div className={classes.affectedChildrenLines}>
+                        {!!affectedChildrenByAction[SchemaUpdateAction.Add]?.length && (
+                            <Text className={classes.affectedChildrenLine}>
+                                <span className={classes.affectedChildrenLabel}>
+                                    {loc.schemaCompare.constraintsAddedLabel}:{" "}
+                                </span>
+                                <span className={classes.affectedChildrenNames}>
+                                    {affectedChildrenByAction[SchemaUpdateAction.Add]!.join(", ")}
+                                </span>
+                            </Text>
+                        )}
+                        {!!affectedChildrenByAction[SchemaUpdateAction.Change]?.length && (
+                            <Text className={classes.affectedChildrenLine}>
+                                <span className={classes.affectedChildrenLabel}>
+                                    {loc.schemaCompare.constraintsChangedLabel}:{" "}
+                                </span>
+                                <span className={classes.affectedChildrenNames}>
+                                    {affectedChildrenByAction[SchemaUpdateAction.Change]!.join(
+                                        ", ",
+                                    )}
+                                </span>
+                            </Text>
+                        )}
+                        {!!affectedChildrenByAction[SchemaUpdateAction.Delete]?.length && (
+                            <Text className={classes.affectedChildrenLine}>
+                                <span className={classes.affectedChildrenLabel}>
+                                    {loc.schemaCompare.constraintsDroppedLabel}:{" "}
+                                </span>
+                                <span className={classes.affectedChildrenNames}>
+                                    {affectedChildrenByAction[SchemaUpdateAction.Delete]!.join(
+                                        ", ",
+                                    )}
+                                </span>
+                            </Text>
+                        )}
+                    </div>
                 </div>
             )}
             <div className={`${classes.editorHost} ${classes.deploymentDirectionIndicators}`}>
@@ -151,6 +209,11 @@ const CompareDiffEditor = ({
                     content,
                     headerActions: (
                         <>
+                            {selectedDifferenceName && (
+                                <Text className={classes.selectedDifferenceName}>
+                                    {selectedDifferenceName}
+                                </Text>
+                            )}
                             <Tooltip content={loc.common.previous} relationship="label">
                                 <Button
                                     size="small"
@@ -161,6 +224,14 @@ const CompareDiffEditor = ({
                                     onClick={onPrevious}
                                 />
                             </Tooltip>
+                            {totalDifferences > 0 && (
+                                <Text className={classes.differencePosition}>
+                                    {loc.schemaCompare.differencePosition(
+                                        currentPosition,
+                                        totalDifferences,
+                                    )}
+                                </Text>
+                            )}
                             <Tooltip content={loc.common.next} relationship="label">
                                 <Button
                                     size="small"
