@@ -463,7 +463,6 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         this.registerReducer("setLayout", async (state, payload) => {
             state.layout = payload.layout;
             await this._context.globalState.update(SCHEMA_COMPARE_LAYOUT_STATE_KEY, payload.layout);
-            this.updateState(state);
             return state;
         });
 
@@ -473,7 +472,6 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 SCHEMA_COMPARE_GROUP_BY_STATE_KEY,
                 payload.groupBy,
             );
-            this.updateState(state);
             return state;
         });
 

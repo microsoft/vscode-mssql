@@ -23,9 +23,13 @@ export function getSchemaDifferenceNavigationTarget(
             return Math.max(currentIndex - 1, 0);
         case "ArrowDown":
             return Math.min(currentIndex + 1, rowKinds.length - 1);
-        case "Home":
-            return rowKinds.indexOf("diff");
-        case "End":
-            return rowKinds.lastIndexOf("diff");
+        case "Home": {
+            const firstDifferenceIndex = rowKinds.indexOf("diff");
+            return firstDifferenceIndex >= 0 ? firstDifferenceIndex : undefined;
+        }
+        case "End": {
+            const lastDifferenceIndex = rowKinds.lastIndexOf("diff");
+            return lastDifferenceIndex >= 0 ? lastDifferenceIndex : undefined;
+        }
     }
 }

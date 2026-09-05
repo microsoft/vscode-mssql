@@ -670,7 +670,9 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
                     counts.set(difference.name, (counts.get(difference.name) ?? 0) + 1);
                 }
             });
-            return [...counts.entries()].map(([key, count]) => ({ key, label: key, count }));
+            return [...counts.entries()]
+                .sort(([left], [right]) => left.localeCompare(right))
+                .map(([key, count]) => ({ key, label: key, count }));
         }, [differences]);
 
         const toggleFilterValue = (
