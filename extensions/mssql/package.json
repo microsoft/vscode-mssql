@@ -2561,6 +2561,36 @@
                     ],
                     "scope": "resource"
                 },
+                "mssql.saveAsExcel.includeHeaders": {
+                    "type": "boolean",
+                    "description": "%mssql.saveAsExcel.includeHeaders%",
+                    "default": true,
+                    "scope": "resource"
+                },
+                "mssql.saveAsExcel.freezeHeaderRow": {
+                    "type": "boolean",
+                    "markdownDescription": "%mssql.saveAsExcel.freezeHeaderRow%",
+                    "default": false,
+                    "scope": "resource"
+                },
+                "mssql.saveAsExcel.boldHeaderRow": {
+                    "type": "boolean",
+                    "markdownDescription": "%mssql.saveAsExcel.boldHeaderRow%",
+                    "default": false,
+                    "scope": "resource"
+                },
+                "mssql.saveAsExcel.autoFilterHeaderRow": {
+                    "type": "boolean",
+                    "markdownDescription": "%mssql.saveAsExcel.autoFilterHeaderRow%",
+                    "default": false,
+                    "scope": "resource"
+                },
+                "mssql.saveAsExcel.autoSizeColumns": {
+                    "type": "boolean",
+                    "description": "%mssql.saveAsExcel.autoSizeColumns%",
+                    "default": false,
+                    "scope": "resource"
+                },
                 "mssql.copyIncludeHeaders": {
                     "type": "boolean",
                     "description": "%mssql.copyIncludeHeaders%",
