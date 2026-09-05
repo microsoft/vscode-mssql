@@ -552,7 +552,7 @@
       </trans-unit>
       <trans-unit id="++CODE++c41468c144a7b98197e8c756c135db6069fdaa622c54b2bfe84e601f07dbb13c">
         <source xml:lang="en">All schemas</source>
-        <target state="new">All schemas</target>
+        <target state="translated">Tous les schémas</target>
       </trans-unit>
       <trans-unit id="++CODE++b339f58d00ef993ac62d6cdf1341fd6dd3351e51031e9e04da27b34d4bb793ce">
         <source xml:lang="en">All selected</source>
@@ -12857,7 +12857,7 @@ Voulez-vous vraiment continuer ?</target>
         <source xml:lang="en">{0} of {1} selected</source>
         <note>{0} is the number of included schema differences
 {1} is the total number of schema differences</note>
-        <target state="new">{0} of {1} selected</target>
+        <target state="translated">{0} sur {1} sélectionnés</target>
       </trans-unit>
       <trans-unit id="++CODE++fd20691998de3c939ec5fca7c6823619440671dfbe0927a4cf15a4eb6b792dc7">
         <source xml:lang="en">{0} of {1} tenants</source>
@@ -14403,7 +14403,7 @@ Consultez le plan estimé sans exécuter la requête, ou consultez le plan de re
       </trans-unit>
       <trans-unit id="mssql.useMsalEntraMfaAuth.description">
         <source xml:lang="en">Uses MSAL for Microsoft Entra MFA authentication instead of VS Code signed-in accounts. Restart Visual Studio Code after changing this setting.</source>
-        <target state="new">Uses MSAL for Microsoft Entra MFA authentication instead of VS Code signed-in accounts. Restart Visual Studio Code after changing this setting.</target>
+        <target state="translated">Utilise MSAL pour l’authentification MFA de Microsoft Entra au lieu des comptes connectés VS Code. Redémarrez Visual Studio Code après avoir modifié ce paramètre.</target>
       </trans-unit>
       <trans-unit id="mssql.viewBackgroundTaskLogs">
         <source xml:lang="en">View Task Logs</source>

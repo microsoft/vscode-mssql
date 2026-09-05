@@ -544,7 +544,7 @@
       </trans-unit>
       <trans-unit id="++CODE++003c8c9a9b2a9babfada323e12b8162dd8662ac3ff0515baaa891a698e4c7ce2">
         <source xml:lang="en">All object types</source>
-        <target state="new">All object types</target>
+        <target state="translated">모든 개체 유형</target>
       </trans-unit>
       <trans-unit id="++CODE++08d0861fba87c9910b6c76342c1783be7d5504ff5248fbacd869963a7322992d">
         <source xml:lang="en">All permissions for extensions to access your connections have been cleared.</source>
@@ -552,7 +552,7 @@
       </trans-unit>
       <trans-unit id="++CODE++c41468c144a7b98197e8c756c135db6069fdaa622c54b2bfe84e601f07dbb13c">
         <source xml:lang="en">All schemas</source>
-        <target state="new">All schemas</target>
+        <target state="translated">모든 스키마</target>
       </trans-unit>
       <trans-unit id="++CODE++b339f58d00ef993ac62d6cdf1341fd6dd3351e51031e9e04da27b34d4bb793ce">
         <source xml:lang="en">All selected</source>
@@ -1420,7 +1420,7 @@ VS Code에서 컨테이너와 해당 연결이 모두 제거됩니다.</target>
         <source xml:lang="en">Cannot exclude {0}. Blocking included objects: {1}</source>
         <note>{0} is the name of the entry
 {1} is a comma-separated list of objects preventing exclusion.</note>
-        <target state="new">Cannot exclude {0}. Blocking included objects: {1}</target>
+        <target state="translated">{0}을(를) 제외할 수 없습니다. 차단하는 포함된 개체: {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++5bf30206188ff92ec48bba56b2bf99fcb46ba9c20a05460485cf684b81a9c54b">
         <source xml:lang="en">Cannot exclude {0}. Included dependents exist</source>
@@ -1441,7 +1441,7 @@ VS Code에서 컨테이너와 해당 연결이 모두 제거됩니다.</target>
         <source xml:lang="en">Cannot include {0}. Blocking excluded objects: {1}</source>
         <note>{0} is the name of the entry
 {1} is a comma-separated list of objects preventing inclusion.</note>
-        <target state="new">Cannot include {0}. Blocking excluded objects: {1}</target>
+        <target state="translated">{0}을(를) 포함할 수 없습니다. 차단하는 제외된 개체: {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++01adf8aae81a6ef23bd48a183bc221def8cebdf0dc5490668df49f07e3eb3615">
         <source xml:lang="en">Cannot include {0}. Excluded dependents exist</source>
@@ -2090,7 +2090,7 @@ VS Code에서 컨테이너와 해당 연결이 모두 제거됩니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++9fb1b0a3d5937c4d492e2d8e65acae3e3d8eb9bab5422aa3b80eb895872ef088">
         <source xml:lang="en">Comparing...</source>
-        <target state="new">Comparing...</target>
+        <target state="translated">비교하는 중...</target>
       </trans-unit>
       <trans-unit id="++CODE++5b79ce1b6eead3275d92572d5997ed876b99fe9d47141f8b785abf94a4ff52c0">
         <source xml:lang="en">Comparison Details</source>
@@ -5437,7 +5437,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++b04aaacdddfa1ffa2cb8eb7fc21999b65bff22bfa2ebb98670a5b7ac3e814d20">
         <source xml:lang="en">Filter objects</source>
-        <target state="new">Filter objects</target>
+        <target state="translated">필터 개체</target>
       </trans-unit>
       <trans-unit id="++CODE++5e8d7eea75a574fd6922c307c83c7f88891a7cb299cc402fbdbe1acbf97c63ec">
         <source xml:lang="en">Filter operator</source>
@@ -11959,7 +11959,7 @@ Are you sure you want to continue?</source>
       </trans-unit>
       <trans-unit id="++CODE++6218b100b8a4c67c9320a4fb52d7607549374b56dfff2d2f899f07c103a3d138">
         <source xml:lang="en">Updating difference selection.</source>
-        <target state="new">Updating difference selection.</target>
+        <target state="translated">차이 선택을 업데이트하는 중입니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++9a6565ec4e8fda62572630799ef7a2581b04afa9e96adf8cc413237611337e62">
         <source xml:lang="en">Updating {0} from {1}...</source>
@@ -12683,12 +12683,12 @@ Are you sure you want to continue?</source>
       <trans-unit id="++CODE++68c99e5db3559eb62326c3b7301e8095a49498d224646828d21ca2ab5d1593df">
         <source xml:lang="en">{0} add</source>
         <note>{0} is the number of objects that will be added</note>
-        <target state="new">{0} add</target>
+        <target state="translated">{0}개 추가</target>
       </trans-unit>
       <trans-unit id="++CODE++9eebfe447b7a74e2e125af9d7a8e876515fc0d48e56a086a85b8e8e4b5c4aa04">
         <source xml:lang="en">{0} change</source>
         <note>{0} is the number of objects that will be changed</note>
-        <target state="new">{0} change</target>
+        <target state="translated">변경 내용 {0}개</target>
       </trans-unit>
       <trans-unit id="++CODE++4f044358b3c661463f0d081556f19d4015b61fa2a493069920dcddeca01a410c">
         <source xml:lang="en">{0} change(s)</source>
@@ -12747,7 +12747,7 @@ Are you sure you want to continue?</source>
       <trans-unit id="++CODE++4403a9fe3d4bba7fff847b64e5cf18c5ee9711a981d3ca74abb8a8ed015959ae">
         <source xml:lang="en">{0} delete</source>
         <note>{0} is the number of objects that will be deleted</note>
-        <target state="new">{0} delete</target>
+        <target state="translated">{0}개 삭제</target>
       </trans-unit>
       <trans-unit id="++CODE++0362d3ecbb7ec63592961e75fdb3b9cce59a91db85f4b99e2ba5106d1bf167ed">
         <source xml:lang="en">{0} deleted successfully.</source>
@@ -12757,7 +12757,7 @@ Are you sure you want to continue?</source>
       <trans-unit id="++CODE++4439a2124618f359ca56b36355f08329d4f03137e5721c2c05ada1e28f009291">
         <source xml:lang="en">{0} differences</source>
         <note>{0} is the total number of schema differences</note>
-        <target state="new">{0} differences</target>
+        <target state="translated">차이 {0}개</target>
       </trans-unit>
       <trans-unit id="++CODE++7f79912e776b14c310615f10e26f6ea1eca71fcacafb73e275603e152cb9f04d">
         <source xml:lang="en">{0} docs</source>
@@ -12857,7 +12857,7 @@ Are you sure you want to continue?</source>
         <source xml:lang="en">{0} of {1} selected</source>
         <note>{0} is the number of included schema differences
 {1} is the total number of schema differences</note>
-        <target state="new">{0} of {1} selected</target>
+        <target state="translated">{0}/{1} 선택함</target>
       </trans-unit>
       <trans-unit id="++CODE++fd20691998de3c939ec5fca7c6823619440671dfbe0927a4cf15a4eb6b792dc7">
         <source xml:lang="en">{0} of {1} tenants</source>
@@ -14403,7 +14403,7 @@ See the estimated plan without running the query, or view the actual query plan 
       </trans-unit>
       <trans-unit id="mssql.useMsalEntraMfaAuth.description">
         <source xml:lang="en">Uses MSAL for Microsoft Entra MFA authentication instead of VS Code signed-in accounts. Restart Visual Studio Code after changing this setting.</source>
-        <target state="new">Uses MSAL for Microsoft Entra MFA authentication instead of VS Code signed-in accounts. Restart Visual Studio Code after changing this setting.</target>
+        <target state="translated">VS Code 로그인 계정 대신 Microsoft Entra MFA 인증에 MSAL을 사용합니다. 이 설정을 변경한 후 Visual Studio Code를 다시 시작하세요.</target>
       </trans-unit>
       <trans-unit id="mssql.viewBackgroundTaskLogs">
         <source xml:lang="en">View Task Logs</source>
