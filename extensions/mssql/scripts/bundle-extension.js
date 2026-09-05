@@ -4,6 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 const { createNodeExtensionConfig, run } = require("../../../scripts/esbuild-utils");
+const logger = require("../../../scripts/terminal-logger");
+const { channelExclusionPlugin, resolveBuildChannel } = require("./build-channels");
+
+// Build channel: --channel=<name> or MSSQL_BUILD_CHANNEL; defaults to
+// "development" (everything included). Excluded non-production areas are
+// stubbed out of the bundle entirely — see src/nonproduction/README.md.
+const buildChannel = resolveBuildChannel();
+logger.info(`Build channel: ${buildChannel}`);
 
 // Build configuration
 void run(
@@ -20,10 +28,14 @@ void run(
                 ".json": "json",
                 ".node": "file",
             },
-            metafile: !isProd,
+            define: {
+                "process.env.MSSQL_BUILD_CHANNEL": JSON.stringify(buildChannel),
+            },
+            metafile: true,
             minify: isProd,
             nodePaths: ["./node_modules"],
             outdir: "dist",
+            plugins: [channelExclusionPlugin(buildChannel)],
             sourcemap: !isProd,
             sourcesContent: false,
             tsconfig: "./tsconfig.extension.json",

@@ -22,6 +22,8 @@ import { stubTelemetry } from "./utils";
 const { expect } = chai;
 chai.use(sinonChai);
 
+const defaultCompletionSoundPath = path.join("/extension", "media", "query-complete.wav");
+
 suite("QueryCompletionSoundService", () => {
     let sandbox: sinon.SinonSandbox;
     let getConfigurationStub: sinon.SinonStub;
@@ -146,7 +148,7 @@ suite("QueryCompletionSoundService", () => {
             "/sounds/large.wav",
         ]);
         expect(spawnProcessStub).to.have.been.calledWith("/usr/bin/afplay", [
-            "/extension/media/query-complete.wav",
+            defaultCompletionSoundPath,
         ]);
         expect(loggerErrorStub).to.have.been.calledWith(
             'The configured query completion sound "/sounds/large.wav" is larger than 400 KB and will not be played. Using default sound instead.',
@@ -183,7 +185,7 @@ suite("QueryCompletionSoundService", () => {
 
         expect(statFileStub).not.to.have.been.called;
         expect(spawnProcessStub).to.have.been.calledWith("/usr/bin/afplay", [
-            "/extension/media/query-complete.wav",
+            defaultCompletionSoundPath,
         ]);
         expect(loggerWarnStub).to.have.been.calledWith(
             'The configured query completion sound "/sounds/complete.mp3" is not a WAV file. Using default sound.',
@@ -198,7 +200,7 @@ suite("QueryCompletionSoundService", () => {
         await createService().play();
 
         expect(spawnProcessStub).to.have.been.calledWith("/usr/bin/afplay", [
-            "/extension/media/query-complete.wav",
+            defaultCompletionSoundPath,
         ]);
     });
 
@@ -234,7 +236,7 @@ suite("QueryCompletionSoundService", () => {
             ),
             sinon.match({
                 env: sinon.match({
-                    MSSQL_QUERY_COMPLETION_SOUND: "/extension/media/query-complete.wav",
+                    MSSQL_QUERY_COMPLETION_SOUND: defaultCompletionSoundPath,
                 }),
             }),
         );
@@ -281,7 +283,7 @@ suite("QueryCompletionSoundService", () => {
             "/sounds/complete.wav",
         ]);
         expect(spawnProcessStub).to.have.been.calledWith("/usr/bin/afplay", [
-            "/extension/media/query-complete.wav",
+            defaultCompletionSoundPath,
         ]);
         expect(sendErrorEvent).not.to.have.been.called;
         expect(loggerWarnStub).to.have.been.calledWith(

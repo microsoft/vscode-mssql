@@ -120,4 +120,12 @@ suite("Extension API Tests", () => {
             false,
         );
     });
+
+    test("publishes the default-off activation snapshot used to gate AI completion UI", () => {
+        expect(vscode.commands.executeCommand).to.have.been.calledWith(
+            "setContext",
+            PrivatePreviewContextKey.AiInlineCompletionsActive,
+            false,
+        );
+    });
 });
