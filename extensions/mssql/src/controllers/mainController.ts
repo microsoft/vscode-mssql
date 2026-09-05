@@ -26,6 +26,7 @@ import * as Utils from "../models/utils";
 import { AccountSignInTreeNode } from "../objectExplorer/nodes/accountSignInTreeNode";
 import { ConnectTreeNode } from "../objectExplorer/nodes/connectTreeNode";
 import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
+import { activateObjectExplorerV2 } from "../objectExplorer/v2/activation";
 import { readMetadataCacheSettings } from "../services/metadata/cache/metadataCacheSettings";
 import { MetadataStore } from "../services/metadata/metadataStore";
 import { MetadataStoreService } from "../services/metadata/metadataStoreService";
@@ -1531,6 +1532,27 @@ export default class MainController implements vscode.Disposable {
             ),
         });
         this._context.subscriptions.push(this.objectExplorerTree);
+
+        const objectExplorerV2Enabled = () =>
+            previewService.isPrivatePreviewEnabled(
+                PrivatePreviewFeature.SqlDataPlane,
+                PrivatePreviewFeature.ObjectExplorerV2,
+            );
+        const objectExplorerV2ActiveAtActivation = objectExplorerV2Enabled();
+        void vscode.commands.executeCommand(
+            "setContext",
+            PrivatePreviewContextKey.ObjectExplorerV2Active,
+            objectExplorerV2ActiveAtActivation,
+        );
+        if (objectExplorerV2ActiveAtActivation) {
+            activateObjectExplorerV2(this._context, {
+                instantiationService: this._instantiationService,
+                profiles: this._connectionMgr.connectionStore,
+                legacyConnections: this._connectionMgr,
+                groupConfig: () => this._connectionMgr.connectionStore.connectionConfig,
+                isEnabled: objectExplorerV2Enabled,
+            });
+        }
 
         // Register command for table node double-click action
         let lastTableClickTime = 0;

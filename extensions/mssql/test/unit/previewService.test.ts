@@ -140,6 +140,32 @@ suite("PreviewFeaturesService", () => {
                 ),
             ).to.be.true;
         });
+
+        test("requires the SQL Data Plane path before Object Explorer v2", () => {
+            stubMssqlConfig(true, {}, { [PrivatePreviewFeature.ObjectExplorerV2]: true });
+            expect(
+                service.isPrivatePreviewEnabled(
+                    PrivatePreviewFeature.SqlDataPlane,
+                    PrivatePreviewFeature.ObjectExplorerV2,
+                ),
+            ).to.be.false;
+
+            getConfigurationStub.reset();
+            stubMssqlConfig(
+                true,
+                {},
+                {
+                    [PrivatePreviewFeature.SqlDataPlane]: true,
+                    [PrivatePreviewFeature.ObjectExplorerV2]: true,
+                },
+            );
+            expect(
+                service.isPrivatePreviewEnabled(
+                    PrivatePreviewFeature.SqlDataPlane,
+                    PrivatePreviewFeature.ObjectExplorerV2,
+                ),
+            ).to.be.true;
+        });
     });
 
     suite("Beta execution plan", () => {
