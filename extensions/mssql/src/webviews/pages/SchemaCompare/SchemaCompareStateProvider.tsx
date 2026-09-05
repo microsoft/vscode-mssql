@@ -145,6 +145,12 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
             differences,
             pendingDifferenceIds,
             isIncludeExcludeAllInProgress,
+            setLayout: function (layout: sc.SchemaCompareLayout): void {
+                extensionRpc.action("setLayout", { layout });
+            },
+            setGroupBy: function (groupBy: sc.SchemaCompareGroupBy): void {
+                extensionRpc.action("setGroupBy", { groupBy });
+            },
             isSqlProjectExtensionInstalled: function (): void {
                 extensionRpc.action("isSqlProjectExtensionInstalled", {});
             },

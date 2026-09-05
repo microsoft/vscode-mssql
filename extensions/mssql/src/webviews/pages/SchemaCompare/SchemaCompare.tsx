@@ -15,8 +15,7 @@ import { useSchemaCompareSelector } from "./schemaCompareSelector";
 import Message from "./components/Message";
 import { makeStyles } from "@fluentui/react-components";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
-
-export type SchemaCompareGroupBy = "none" | "type" | "action" | "schema";
+import { SchemaCompareLayout } from "../../../sharedInterfaces/schemaCompare";
 
 const useStyles = makeStyles({
     container: {
@@ -57,7 +56,8 @@ export const SchemaComparePage = () => {
     const [showDrawer, setShowDrawer] = useState(false);
     const [showOptionsDrawer, setShowOptionsDrawer] = useState(false);
     const [endpointType, setEndpointType] = useState<"source" | "target">("source");
-    const [groupBy, setGroupBy] = useState<SchemaCompareGroupBy>("type");
+    const groupBy = useSchemaCompareSelector((s) => s.groupBy);
+    const layout = useSchemaCompareSelector((s) => s.layout);
     const [showComparisonDetails, setShowComparisonDetails] = useState(true);
     const [navigableDiffIds, setNavigableDiffIds] = useState<number[]>([]);
 
@@ -73,6 +73,13 @@ export const SchemaComparePage = () => {
     const handleDiffSelected = (id: number): void => {
         setSelectedDiffId(id);
         setShowComparisonDetails(true);
+    };
+
+    const handleOpenComparisonDetails = (): void => {
+        setShowComparisonDetails(true);
+        requestAnimationFrame(() => {
+            document.querySelector<HTMLElement>("[data-schema-compare-details]")?.focus();
+        });
     };
 
     const handlePreviousDiff = (): void => {
@@ -135,8 +142,15 @@ export const SchemaComparePage = () => {
                                     selectedDiffId={selectedDiffId}
                                     onDiffSelected={handleDiffSelected}
                                     groupBy={groupBy}
-                                    onGroupByChange={setGroupBy}
+                                    onGroupByChange={(nextGroupBy) =>
+                                        context.setGroupBy(nextGroupBy)
+                                    }
+                                    layout={layout}
+                                    onLayoutChange={(nextLayout: SchemaCompareLayout) =>
+                                        context.setLayout(nextLayout)
+                                    }
                                     onNavigableDiffIdsChange={setNavigableDiffIds}
+                                    onOpenComparisonDetails={handleOpenComparisonDetails}
                                 />
                             </Panel>
 
@@ -150,6 +164,11 @@ export const SchemaComparePage = () => {
                                         onNext={handleNextDiff}
                                         hasPrevious={navigableDiffIds.length > 1}
                                         hasNext={navigableDiffIds.length > 1}
+                                        currentPosition={Math.max(
+                                            navigableDiffIds.indexOf(selectedDiffId) + 1,
+                                            1,
+                                        )}
+                                        totalDifferences={navigableDiffIds.length}
                                     />
                                 </>
                             )}
