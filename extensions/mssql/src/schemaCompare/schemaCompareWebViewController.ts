@@ -13,9 +13,11 @@ import { WebviewPanelController } from "../controllers/webviewPanelController";
 import {
     ExtractTarget,
     SchemaCompareEndpointType,
+    SchemaCompareDifferenceUpdate,
     SchemaCompareIncludeExcludeAllRequest,
     SchemaCompareIncludeExcludeNodeRequest,
     SchemaCompareIncludeExcludeNodeResponse,
+    SchemaCompareGetDifferenceDetailsRequest,
     SchemaCompareReducers,
     SchemaCompareServer,
     SchemaCompareWebViewState,
@@ -1893,8 +1895,34 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             };
         });
 
+        this.onRequest(SchemaCompareGetDifferenceDetailsRequest.type, async (payload) => {
+            const requestedOperationId = this.operationId;
+            const result = await this.schemaCompareService.getDifferenceDetails(
+                requestedOperationId,
+                payload.id,
+            );
+
+            if (
+                !result.success ||
+                !result.difference ||
+                requestedOperationId !== this.operationId ||
+                !this.state.schemaCompareResult?.differences[payload.id]
+            ) {
+                return {
+                    success: false,
+                    errorMessage: result.errorMessage,
+                };
+            }
+
+            const current = this.state.schemaCompareResult.differences[payload.id];
+            const difference = { ...result.difference, included: current.included };
+            this.state.schemaCompareResult.differences[payload.id] = difference;
+            return { success: true, difference };
+        });
+
         this.onRequest(SchemaCompareIncludeExcludeAllRequest.type, async (payload) => {
             const state = this.state;
+            let updates: SchemaCompareDifferenceUpdate[] = [];
             this.logger.debug(
                 `${payload.includeRequest ? "Including" : "Excluding"} all nodes - OperationId: ${this.operationId}`,
             );
@@ -1947,28 +1975,35 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 );
 
                 if (result.success) {
-                    const count = result.allIncludedOrExcludedDifferences?.length || 0;
+                    const returnedDifferences = result.allIncludedOrExcludedDifferences ?? [];
+                    updates = returnedDifferences.map((difference, id) => ({
+                        id,
+                        included: difference.included,
+                    }));
+                    const count = updates.length;
                     this.logger.debug(
                         `Successfully ${payload.includeRequest ? "included" : "excluded"} all nodes (${count} differences) - OperationId: ${this.operationId}`,
                     );
 
-                    if (result.allIncludedOrExcludedDifferences) {
-                        const includedAfter = result.allIncludedOrExcludedDifferences.filter(
-                            (d) => d.included,
-                        ).length;
-                        this.logger.debug(
-                            `Result includes ${includedAfter} included differences out of ${count} total - OperationId: ${this.operationId}`,
+                    const includedAfter = updates.filter((update) => update.included).length;
+                    this.logger.debug(
+                        `Result includes ${includedAfter} included differences out of ${count} total - OperationId: ${this.operationId}`,
+                    );
+
+                    if (state.schemaCompareResult) {
+                        const includedById = new Map(
+                            updates.map((update) => [update.id, update.included]),
                         );
+                        state.schemaCompareResult.differences =
+                            state.schemaCompareResult.differences.map((difference, id) => {
+                                const included = includedById.get(id);
+                                return included === undefined
+                                    ? difference
+                                    : { ...difference, included };
+                            });
                     }
 
-                    this.logger.debug(
-                        `Replacing state differences with result - OperationId: ${this.operationId}`,
-                    );
-                    state.schemaCompareResult.differences = result.allIncludedOrExcludedDifferences;
-
-                    const includedCount =
-                        result.allIncludedOrExcludedDifferences?.filter((d) => d.included).length ||
-                        0;
+                    const includedCount = includedAfter;
                     const excludedCount = count - includedCount;
 
                     endActivity.end(ActivityStatus.Succeeded, {
@@ -2005,7 +2040,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
 
                     return {
                         success: false,
-                        differences: state.schemaCompareResult?.differences ?? [],
+                        updates: [],
                         errorMessage: result.errorMessage,
                     };
                 }
@@ -2040,14 +2075,14 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
 
                 return {
                     success: false,
-                    differences: state.schemaCompareResult?.differences ?? [],
+                    updates: [],
                     errorMessage: getErrorMessage(error),
                 };
             }
 
             return {
                 success: true,
-                differences: state.schemaCompareResult?.differences ?? [],
+                updates,
             };
         });
 

@@ -52,6 +52,14 @@ export namespace SchemaCompareIncludeExcludeNodeRequest {
     >("schemaCompare/includeExcludeNode");
 }
 
+export namespace SchemaCompareGetDifferenceDetailsRequest {
+    export const type = new RequestType<
+        mssql.SchemaCompareDifferenceDetailsParams,
+        mssql.SchemaCompareDifferenceDetailsResult,
+        void
+    >("schemaCompare/getDifferenceDetails");
+}
+
 export namespace SchemaCompareOpenScmpRequest {
     export const type = new RequestType<
         mssql.SchemaCompareOpenScmpParams,

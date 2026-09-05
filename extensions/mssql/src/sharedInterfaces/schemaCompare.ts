@@ -159,6 +159,7 @@ export interface SchemaCompareReducers {
 
 export interface SchemaCompareContextProps extends CoreRPCs {
     differences: DiffEntry[];
+    loadingDifferenceDetailIds: ReadonlySet<number>;
     pendingDifferenceIds: ReadonlySet<number>;
     isIncludeExcludeAllInProgress: boolean;
 
@@ -229,6 +230,8 @@ export interface SchemaCompareContextProps extends CoreRPCs {
 
     includeExcludeAllNodes: (includeRequest: boolean) => Promise<void>;
 
+    loadDifferenceDetails: (id: number) => Promise<void>;
+
     openScmp: () => void;
 
     saveScmp: () => void;
@@ -274,13 +277,31 @@ export namespace SchemaCompareIncludeExcludeNodeRequest {
     >("schemaCompare/includeExcludeNodeWebview");
 }
 
+export interface SchemaCompareDifferenceDetailsParams {
+    id: number;
+}
+
+export interface SchemaCompareDifferenceDetailsResponse {
+    success: boolean;
+    difference?: DiffEntry;
+    errorMessage?: string;
+}
+
+export namespace SchemaCompareGetDifferenceDetailsRequest {
+    export const type = new RequestType<
+        SchemaCompareDifferenceDetailsParams,
+        SchemaCompareDifferenceDetailsResponse,
+        void
+    >("schemaCompare/getDifferenceDetailsWebview");
+}
+
 export interface SchemaCompareIncludeExcludeAllParams {
     includeRequest: boolean;
 }
 
 export interface SchemaCompareIncludeExcludeAllResponse {
     success: boolean;
-    differences: DiffEntry[];
+    updates: SchemaCompareDifferenceUpdate[];
     errorMessage?: string;
 }
 
