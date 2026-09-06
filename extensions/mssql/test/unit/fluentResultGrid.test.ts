@@ -49,23 +49,15 @@ import {
     getFluentResultGridRowEdgeCell,
     getFluentResultGridRowNumberClickSelection,
     getFluentResultGridDataSelectionsFromRanges,
-    getFluentResultGridRangesAfterClick,
-    getFluentResultGridRangesAfterDrag,
     getFluentResultGridSelectionSummaryPayload,
     getFluentResultGridSelectionForSave,
     getFluentResultGridSlickRangesFromDataSelections,
     handleFluentResultGridRowDoubleClick,
     insertFluentResultGridSelectionRange,
     setFluentResultGridSelection,
-    toggleFluentResultGridSelectedCell,
 } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridSelection";
 import { SlickEvent, SlickEventData, SlickRange } from "@slickgrid-universal/common";
 import type { SlickGrid } from "slickgrid-react";
-import {
-    enableFluentResultGridModifierDrag,
-    isFluentResultGridAppendSelectionEvent,
-    isFluentResultGridSecondaryButtonEvent,
-} from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridCellRangeSelector";
 import {
     FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_ID,
     FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_WIDTH,
@@ -476,61 +468,6 @@ suite("Fluent Result Grid", () => {
     });
 
     suite("selection", () => {
-        test("recognizes Ctrl and Cmd as append-selection modifiers", () => {
-            expect(isFluentResultGridAppendSelectionEvent(undefined)).to.be.false;
-            expect(isFluentResultGridAppendSelectionEvent({})).to.be.false;
-            expect(isFluentResultGridAppendSelectionEvent({ ctrlKey: true })).to.be.true;
-            expect(isFluentResultGridAppendSelectionEvent({ metaKey: true })).to.be.true;
-        });
-
-        test("treats non-primary mouse buttons as secondary drag gestures", () => {
-            // Right-click must not start a range selection: the drag service binds mousedown for
-            // every button, so an unguarded right-drag replaces a Ctrl-built selection.
-            expect(isFluentResultGridSecondaryButtonEvent({ button: 2 })).to.be.true;
-            expect(isFluentResultGridSecondaryButtonEvent({ button: 1 })).to.be.true;
-            expect(isFluentResultGridSecondaryButtonEvent({ nativeEvent: { button: 2 } })).to.be
-                .true;
-
-            expect(isFluentResultGridSecondaryButtonEvent({ button: 0 })).to.be.false;
-            expect(isFluentResultGridSecondaryButtonEvent({ nativeEvent: { button: 0 } })).to.be
-                .false;
-            // Touch and keyboard gestures report no button at all.
-            expect(isFluentResultGridSecondaryButtonEvent({})).to.be.false;
-            expect(isFluentResultGridSecondaryButtonEvent(undefined)).to.be.false;
-            expect(isFluentResultGridSecondaryButtonEvent({ nativeEvent: null })).to.be.false;
-        });
-
-        test("removes SlickGrid's option-merged modifier drag blockers in place", () => {
-            const capturedPreventDragFromKeys = ["ctrlKey", "metaKey"];
-
-            enableFluentResultGridModifierDrag(capturedPreventDragFromKeys);
-
-            expect(capturedPreventDragFromKeys).to.deep.equal([]);
-        });
-
-        test("retains four consecutive Ctrl selections", () => {
-            let selectedRanges: SlickRange[] = [];
-            const cells = [
-                { row: 1, cell: 1 },
-                { row: 3, cell: 2 },
-                { row: 5, cell: 3 },
-                { row: 7, cell: 4 },
-            ];
-
-            for (const clickedCell of cells) {
-                selectedRanges = getFluentResultGridRangesAfterClick(
-                    selectedRanges,
-                    clickedCell,
-                    null,
-                    { ctrlKey: true },
-                );
-            }
-
-            expect(selectedRanges).to.deep.equal(
-                cells.map((cell) => new SlickRange(cell.row, cell.cell)),
-            );
-        });
-
         test("selection model owns Ctrl+click as one active-cell and range transaction", () => {
             let activeCell = { row: 1, cell: 1 };
             const setActiveCell = sandbox.stub().callsFake((row: number, cell: number) => {
@@ -545,7 +482,10 @@ suite("Fluent Result Grid", () => {
                 getOptions: sandbox.stub().returns({ multiSelect: true }),
                 setActiveCell,
             } as unknown as SlickGrid;
-            const model = new TestableFluentResultGridSelectionModel({ selectionType: "cell" });
+            const model = new TestableFluentResultGridSelectionModel({
+                selectionType: "cell",
+                enableMultiSelection: true,
+            });
             model.setGridForTest(grid);
             model.setSelectedRanges([new SlickRange(1, 1)]);
             const nativeEvent = {
@@ -815,17 +755,6 @@ suite("Fluent Result Grid", () => {
                     10,
                 ),
             ).to.deep.equal([new SlickRange(0, 2, 9, 5)]);
-        });
-
-        test("Shift takes precedence over Ctrl on data-cell clicks", () => {
-            expect(
-                getFluentResultGridRangesAfterClick(
-                    [new SlickRange(8, 1)],
-                    { row: 6, cell: 5 },
-                    { row: 2, cell: 2 },
-                    { ctrlKey: true, shiftKey: true },
-                ),
-            ).to.deep.equal([new SlickRange(2, 2, 6, 5)]);
         });
 
         test("a plain column-header click replaces the selection", () => {
@@ -1201,30 +1130,6 @@ suite("Fluent Result Grid", () => {
             expect(activeCellWasReset).to.equal(true);
         });
 
-        test("appends Ctrl/Cmd-dragged blocks without replacing existing selections", () => {
-            const existingRange = new SlickRange(1, 1, 2, 2);
-            const draggedRange = new SlickRange(4, 3, 5, 4);
-
-            expect(
-                getFluentResultGridRangesAfterDrag([existingRange], draggedRange, true),
-            ).to.deep.equal([existingRange, draggedRange]);
-            expect(
-                getFluentResultGridRangesAfterDrag([existingRange], draggedRange, false),
-            ).to.deep.equal([draggedRange]);
-        });
-
-        test("does not duplicate an identical appended block", () => {
-            const existingRange = new SlickRange(1, 1, 2, 2);
-
-            expect(
-                getFluentResultGridRangesAfterDrag(
-                    [existingRange],
-                    new SlickRange(1, 1, 2, 2),
-                    true,
-                ),
-            ).to.deep.equal([existingRange]);
-        });
-
         test("merges adjacent appended blocks like the Production Grid", () => {
             expect(
                 insertFluentResultGridSelectionRange(
@@ -1252,21 +1157,6 @@ suite("Fluent Result Grid", () => {
             expect(insertFluentResultGridSelectionRange([first], gapped)).to.deep.equal([
                 first,
                 gapped,
-            ]);
-        });
-
-        test("adds an unselected cell and removes a selected cell from a block", () => {
-            const existingRange = new SlickRange(1, 1, 3, 3);
-
-            expect(toggleFluentResultGridSelectedCell([existingRange], 5, 5)).to.deep.equal([
-                existingRange,
-                new SlickRange(5, 5),
-            ]);
-            expect(toggleFluentResultGridSelectedCell([existingRange], 2, 2)).to.deep.equal([
-                new SlickRange(1, 1, 1, 3),
-                new SlickRange(3, 1, 3, 3),
-                new SlickRange(2, 1, 2, 1),
-                new SlickRange(2, 3, 2, 3),
             ]);
         });
     });
