@@ -155,6 +155,7 @@ export const cmdCancelContainerOperation = "mssql.cancelContainerOperation";
 export const cmdHandleSummaryOperation = "mssql.handleSummaryOperation";
 export const cmdMoveToSchema = "mssql.moveToSchema";
 export const cmdOpenChangelog = "mssql.openChangelog";
+export const cmdOpenOverview = "mssql.openOverview";
 export const cmdOpenAzureDataStudioMigration = "mssql.openAzureDataStudioMigration";
 export const cmdOpenInMssqlExtensionFromAzureResources =
     "mssql.openInMssqlExtensionFromAzureResources";
@@ -351,6 +352,8 @@ export const configCustomEnvironment = "mssql.customEnvironment";
 export const configShortcuts = "mssql.shortcuts";
 export const configQuickQueries = "mssql.quickQueries";
 export const configShowChangelogOnUpdate = "mssql.showChangelogOnUpdate";
+export const configEnableOverviewPage = "mssql.enableOverviewPage";
+export const configShowOverviewOnStartup = "mssql.showOverviewOnStartup";
 /** @deprecated Use configNewEditorConnectionBehavior instead. */
 export const configTransferActiveEditorConnections = "mssql.transferActiveEditorConnections";
 export const configNewEditorConnectionBehavior = "mssql.newEditorConnectionBehavior";

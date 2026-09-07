@@ -35,6 +35,7 @@
     "mssql.commandPaletteQueryHistory": "Open Query History in Command Palette",
     "mssql.removeObjectExplorerNode": "Remove Connection",
     "mssql.refreshObjectExplorerNode": "Refresh",
+    "extension.start": "Start",
     "extension.connections": "Connections",
     "extension.queryHistory": "Query History",
     "extension.backgroundTasks": "Background Tasks",
@@ -342,6 +343,7 @@
     "mssql.customEnvironment.fabricDataWarehouseDnsSuffix": "Sovereign cloud equivalent for `.datawarehouse.fabric.microsoft.com` (including leading dot)",
     "mssql.customEnvironment.dynamicsCrmDnsSuffix": "Sovereign cloud equivalent for `.crm.dynamics.com` (including leading dot)",
     "mssql.openChangelog": "Open Changelog",
+    "mssql.openOverview": "Open Overview",
     "mssql.openAzureDataStudioMigration": "Migrate from Azure Data Studio",
     "mssql.shortcutsConfiguration.open": "Open Shortcuts Configuration",
     "mssql.quickQueries": "Configure up to 10 Quick Queries that execute from commands.",
@@ -385,5 +387,7 @@
     "mssql.metadataCache.maxAgeDays.description": "Evict persisted metadata snapshots older than this many days.",
     "mssql.metadataCache.maxBytes.description": "Maximum total size in bytes for persisted metadata snapshots. Least-recently-used entries are evicted first.",
     "mssql.metadataCache.offlineMode.description": "Serve metadata only from persisted snapshots without contacting the server. Requires the experimental-features, SQL Data Plane, and metadata-cache settings. Status surfaces disclose snapshot age, and operations requiring fresh metadata refuse stale or unavailable data.",
-    "mssql.metadata.pollSeconds.description": "Internal preview setting: base interval in seconds for metadata drift checks. Set to 0 to disable polling. Per-database backoff, window-focus suspension, and serverless safeguards also apply. Reload the window after changing this setting."
+    "mssql.metadata.pollSeconds.description": "Internal preview setting: base interval in seconds for metadata drift checks. Set to 0 to disable polling. Per-database backoff, window-focus suspension, and serverless safeguards also apply. Reload the window after changing this setting.",
+    "mssql.enableOverviewPage": "Enable the Overview page (preview)",
+    "mssql.showOverviewOnStartup": "Show the Overview page when VS Code starts"
 }

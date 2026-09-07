@@ -134,6 +134,10 @@ import { SqlSymbolRenameProvider } from "../languageservice/sqlSymbolRenameProvi
 import { SqlMoveToSchemaProvider } from "../languageservice/sqlMoveToSchemaProvider";
 import { SearchDatabaseWebViewController } from "../searchDatabase/searchDatabaseWebViewController";
 import { ChangelogWebviewController } from "./changelogWebviewController";
+import { OverviewWebviewController } from "./overviewWebviewController";
+import { RecentSqlFilesStore } from "../models/recentSqlFilesStore";
+import { DeploymentType } from "../sharedInterfaces/deployment";
+import { StartViewProvider } from "../overview/startViewProvider";
 import { AzureDataStudioMigrationWebviewController } from "./azureDataStudioMigrationWebviewController";
 import { ShortcutsConfigurationWebviewController } from "./shortcutsConfigurationWebviewController";
 import { ILogger } from "../sharedInterfaces/logger";
@@ -170,6 +174,8 @@ export default class MainController implements vscode.Disposable {
     private _sqlDocumentService: SqlDocumentService;
     private _objectExplorerProvider: ObjectExplorerProvider;
     private _queryHistoryProvider: QueryHistoryProvider;
+    private _overviewController: OverviewWebviewController | undefined;
+    private _recentSqlFilesStore: RecentSqlFilesStore;
     private _backgroundTaskLogContentProvider: BackgroundTaskLogContentProvider;
     private _backgroundTasksProvider: BackgroundTasksProvider;
     private _scriptingService: ScriptingService;
@@ -345,10 +351,14 @@ export default class MainController implements vscode.Disposable {
             this.registerCommandWithArgs(Constants.cmdDeployNewDatabase);
             this._event.on(Constants.cmdDeployNewDatabase, (args?: any) => {
                 let initialConnectionGroup: string | undefined;
-                if (args && args instanceof ConnectionGroupNode) {
+                let initialDeploymentType: DeploymentType | undefined;
+                if (args instanceof ConnectionGroupNode) {
                     initialConnectionGroup = args.connectionGroup?.id;
+                } else if (typeof args?.deploymentType === "number") {
+                    // Callers that already know the deployment type skip the chooser page.
+                    initialDeploymentType = args.deploymentType;
                 }
-                this.onDeployNewDatabase(initialConnectionGroup);
+                this.onDeployNewDatabase(initialConnectionGroup, initialDeploymentType);
             });
             this.registerCommand(Constants.cmdRunCurrentStatement);
             this._event.on(Constants.cmdRunCurrentStatement, () => {
@@ -433,6 +443,18 @@ export default class MainController implements vscode.Disposable {
             this._event.on(Constants.cmdOpenChangelog, async () => {
                 const changelogController = new ChangelogWebviewController(this._context);
                 await changelogController.revealToForeground();
+            });
+            this.registerCommand(Constants.cmdOpenOverview);
+            this._event.on(Constants.cmdOpenOverview, async () => {
+                // The Overview page is a singleton: reopening it reveals the existing panel
+                // rather than stacking duplicates of a welcome page.
+                if (!this._overviewController || this._overviewController.isDisposed) {
+                    this._overviewController = new OverviewWebviewController(
+                        this._context,
+                        this._recentSqlFilesStore,
+                    );
+                }
+                this._overviewController.revealToForeground();
             });
             this.registerCommand(Constants.cmdOpenAzureDataStudioMigration);
             this._event.on(Constants.cmdOpenAzureDataStudioMigration, async () => {
@@ -688,6 +710,8 @@ export default class MainController implements vscode.Disposable {
 
             this.initializeQueryHistory();
             this.initializeBackgroundTasks();
+            this.initializeRecentSqlFiles();
+            this.initializeStartView();
 
             this.sqlTasksService = new SqlTasksService(
                 SqlToolsServerClient.instance,
@@ -2620,6 +2644,25 @@ export default class MainController implements vscode.Disposable {
     }
 
     /**
+     * Starts tracking recently opened SQL files for the Overview page.
+     */
+    private initializeRecentSqlFiles(): void {
+        this._recentSqlFilesStore = new RecentSqlFilesStore(this._context);
+        this._recentSqlFilesStore.register();
+        this._context.subscriptions.push(this._recentSqlFilesStore);
+    }
+
+    /**
+     * Registers the Start view that sits above Connections. The view itself is shown or hidden
+     * by its `when` clause in package.json, so the provider is always registered.
+     */
+    private initializeStartView(): void {
+        this._context.subscriptions.push(
+            vscode.window.registerTreeDataProvider("mssqlStart", new StartViewProvider()),
+        );
+    }
+
+    /**
      * Initializes the Query History commands
      */
     private initializeQueryHistory(): void {
@@ -2942,13 +2985,17 @@ export default class MainController implements vscode.Disposable {
         return true;
     }
 
-    public onDeployNewDatabase(initialConnectionGroup?: string): void {
+    public onDeployNewDatabase(
+        initialConnectionGroup?: string,
+        initialDeploymentType?: DeploymentType,
+    ): void {
         sendActionEvent(TelemetryViews.Deployment, TelemetryActions.OpenDeployment);
 
         const reactPanel = new DeploymentWebviewController(
             this._context,
             this,
             initialConnectionGroup,
+            initialDeploymentType,
         );
         reactPanel.revealToForeground();
     }

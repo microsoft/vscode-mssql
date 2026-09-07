@@ -32,6 +32,11 @@ export class DeploymentWebviewState
     loadState: ApiStatus = ApiStatus.Loading;
     errorMessage?: string;
     deploymentType: DeploymentType = DeploymentType.LocalContainers;
+    /**
+     * When set, the webview skips the deployment-type chooser and opens straight into this
+     * type's wizard. Used by callers that already know which deployment the user picked.
+     */
+    initialDeploymentType?: DeploymentType;
     dialog: IDialogProps | undefined;
     deploymentTypeState: DeploymentTypeState = {} as DeploymentTypeState;
     formState: DeploymentFormState = {} as DeploymentFormState;

@@ -5,7 +5,6 @@
 
 import { Changelog } from "../constants/locConstants";
 import {
-    ChangelogActionId,
     ChangelogDontShowAgainRequest,
     ChangelogLinkRequest,
     ChangelogLinkRequestParams,
@@ -16,6 +15,7 @@ import {
 import { WebviewPanelController } from "./webviewPanelController";
 import * as vscode from "vscode";
 import { changelogConfig } from "../configurations/changelog";
+import { resolveChangelogAction } from "../configurations/changelogActions";
 import * as constants from "../constants/constants";
 import { sendActionEvent } from "extension-toolkit/vscode";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
@@ -55,36 +55,7 @@ export class ChangelogWebviewController extends WebviewPanelController<
         });
 
         this.onRequest(RunChangelogActionRequest.type, async (action) => {
-            let command: string;
-            let args: unknown[] = [];
-            switch (action) {
-                case ChangelogActionId.OpenShortcutsConfiguration:
-                    command = constants.cmdOpenShortcutsConfiguration;
-                    break;
-                case ChangelogActionId.DeployNewDatabase:
-                    command = constants.cmdDeployNewDatabase;
-                    break;
-                case ChangelogActionId.CreateNotebook:
-                    command = constants.cmdNotebooksCreate;
-                    break;
-                case ChangelogActionId.OpenAzureDataStudioMigration:
-                    command = constants.cmdOpenAzureDataStudioMigration;
-                    break;
-                case ChangelogActionId.OpenDacpacDialog:
-                    command = constants.cmdDacpacDialog;
-                    break;
-                case ChangelogActionId.OpenMssqlWalkthrough:
-                    command = "workbench.action.openWalkthrough";
-                    args = [`${constants.extensionId}#mssql.getStarted`];
-                    break;
-                case ChangelogActionId.OpenCopilotWalkthrough:
-                    command = "workbench.action.openWalkthrough";
-                    args = ["GitHub.copilot-chat#copilotWelcome"];
-                    break;
-                default:
-                    throw new Error("Unknown changelog action");
-            }
-
+            const { command, args } = resolveChangelogAction(action);
             await vscode.commands.executeCommand(command, ...args);
             sendActionEvent(TelemetryViews.ChangelogPage, TelemetryActions.ExecuteCommand, {
                 additionalProps: {
