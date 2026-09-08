@@ -996,9 +996,7 @@ export class LocConstants {
             collapse: l10n.t("Collapse"),
             subtreeCostLabel: l10n.t("Estimated Subtree Cost"),
             operatorCostLabel: l10n.t("Estimated Operator Cost"),
-            reactFlowRendererError: l10n.t(
-                "The React Flow execution plan preview could not render this plan.",
-            ),
+            executionPlanRendererError: l10n.t("This execution plan could not be rendered."),
             executionPlanGraph: (planNumber: number) =>
                 l10n.t({
                     message: "Execution plan {0}, use arrow keys to navigate between nodes",
