@@ -72,6 +72,16 @@ export function getSelectedColumnIndices<T extends Slick.SlickData>(
     return [...selected].sort((a, b) => a - b);
 }
 
+export function isCellSelected(ranges: ISlickRange[], row: number, colIndex: number): boolean {
+    return ranges.some(
+        (rng) =>
+            row >= rng.fromRow &&
+            row <= rng.toRow &&
+            colIndex >= rng.fromCell &&
+            colIndex <= rng.toCell,
+    );
+}
+
 export function isSingleRowSelection(ranges: ISlickRange[]): boolean {
     return ranges.length === 1 && ranges[0].fromRow === ranges[0].toRow;
 }
@@ -231,7 +241,11 @@ export function generateInsertForRows<T extends Slick.SlickData>(
     for (const range of ranges) {
         for (let r = range.fromRow; r <= range.toRow; r++) {
             const values = colMeta.map(({ index }) =>
-                formatSqlValue(getColumnValuePair(index, r, columns, dataProvider, columnInfo)),
+                isCellSelected(ranges, r, index)
+                    ? formatSqlValue(
+                          getColumnValuePair(index, r, columns, dataProvider, columnInfo),
+                      )
+                    : "NULL",
             );
             valueRows.push(`    (${values.join(", ")})`);
         }

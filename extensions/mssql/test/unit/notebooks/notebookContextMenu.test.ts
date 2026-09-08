@@ -23,8 +23,12 @@ function makeCol(index: number, name: string, toolTip?: string): Slick.Column<Sl
     } as Slick.Column<Slick.SlickData>;
 }
 
-function makeDbCol(dataTypeName: string): IDbColumn {
-    return { dataTypeName } as IDbColumn;
+function makeDbCol(
+    dataTypeName: string,
+    baseTableName?: string,
+    baseSchemaName?: string,
+): IDbColumn {
+    return { dataTypeName, baseTableName, baseSchemaName } as IDbColumn;
 }
 
 function makeCell(displayValue: string, isNull = false) {
@@ -386,7 +390,9 @@ suite("NotebookContextMenu formatters", () => {
             const cols = [makeCol(0, "Name")];
             const rows: CellRow[] = [{ "0": makeCell("Alice") }];
             const result = fmt.insertInto(menu, [makeRange(0, 0, 0, 0)], cols, makeProvider(rows));
-            expect(result).to.equal("INSERT INTO TableName ([Name])\r\nVALUES\r\n    ('Alice');");
+            expect(result).to.equal(
+                "INSERT INTO UnknownTable ([Name])\r\nVALUES\r\n    ('Alice');",
+            );
         });
 
         test("leaves numeric column values unquoted", () => {
@@ -394,7 +400,7 @@ suite("NotebookContextMenu formatters", () => {
             const cols = [makeCol(0, "Id")];
             const rows: CellRow[] = [{ "0": makeCell("42") }];
             const result = fmt.insertInto(menu, [makeRange(0, 0, 0, 0)], cols, makeProvider(rows));
-            expect(result).to.equal("INSERT INTO TableName ([Id])\r\nVALUES\r\n    (42);");
+            expect(result).to.equal("INSERT INTO UnknownTable ([Id])\r\nVALUES\r\n    (42);");
         });
 
         test("emits NULL for null cells", () => {
@@ -402,7 +408,7 @@ suite("NotebookContextMenu formatters", () => {
             const cols = [makeCol(0, "Name")];
             const rows: CellRow[] = [{ "0": makeCell("", true) }];
             const result = fmt.insertInto(menu, [makeRange(0, 0, 0, 0)], cols, makeProvider(rows));
-            expect(result).to.equal("INSERT INTO TableName ([Name])\r\nVALUES\r\n    (NULL);");
+            expect(result).to.equal("INSERT INTO UnknownTable ([Name])\r\nVALUES\r\n    (NULL);");
         });
 
         test("single-quotes numeric values in E-notation", () => {
@@ -410,7 +416,9 @@ suite("NotebookContextMenu formatters", () => {
             const cols = [makeCol(0, "Val")];
             const rows: CellRow[] = [{ "0": makeCell("1.5E+10") }];
             const result = fmt.insertInto(menu, [makeRange(0, 0, 0, 0)], cols, makeProvider(rows));
-            expect(result).to.equal("INSERT INTO TableName ([Val])\r\nVALUES\r\n    ('1.5E+10');");
+            expect(result).to.equal(
+                "INSERT INTO UnknownTable ([Val])\r\nVALUES\r\n    ('1.5E+10');",
+            );
         });
 
         test("escapes single quotes inside string values", () => {
@@ -419,7 +427,7 @@ suite("NotebookContextMenu formatters", () => {
             const rows: CellRow[] = [{ "0": makeCell("O'Brien") }];
             const result = fmt.insertInto(menu, [makeRange(0, 0, 0, 0)], cols, makeProvider(rows));
             expect(result).to.equal(
-                "INSERT INTO TableName ([Name])\r\nVALUES\r\n    ('O''Brien');",
+                "INSERT INTO UnknownTable ([Name])\r\nVALUES\r\n    ('O''Brien');",
             );
         });
 
@@ -433,7 +441,7 @@ suite("NotebookContextMenu formatters", () => {
             ];
             const result = fmt.insertInto(menu, [makeRange(0, 2, 0, 0)], cols, makeProvider(rows));
             expect(result).to.equal(
-                "INSERT INTO TableName ([Id])\r\nVALUES\r\n    (1),\r\n    (2),\r\n    (3);",
+                "INSERT INTO UnknownTable ([Id])\r\nVALUES\r\n    (1),\r\n    (2),\r\n    (3);",
             );
         });
 
@@ -443,7 +451,7 @@ suite("NotebookContextMenu formatters", () => {
             const rows: CellRow[] = [{ "0": makeCell("1"), "1": makeCell("Alice") }];
             const result = fmt.insertInto(menu, [makeRange(0, 0, 0, 1)], cols, makeProvider(rows));
             expect(result).to.equal(
-                "INSERT INTO TableName ([Id], [Name])\r\nVALUES\r\n    (1, 'Alice');",
+                "INSERT INTO UnknownTable ([Id], [Name])\r\nVALUES\r\n    (1, 'Alice');",
             );
         });
 
@@ -475,8 +483,8 @@ suite("NotebookContextMenu formatters", () => {
                 cols,
                 makeProvider(rows),
             );
-            expect(result.match(/INSERT INTO TableName/g)).to.have.lengthOf(2);
-            expect(result).to.include("    (999);\r\n\r\nINSERT INTO TableName ([Id])");
+            expect(result.match(/INSERT INTO UnknownTable/g)).to.have.lengthOf(2);
+            expect(result).to.include("    (999);\r\n\r\nINSERT INTO UnknownTable ([Id])");
             expect(result.endsWith("    (1000);")).to.equal(true);
         });
 
@@ -495,6 +503,24 @@ suite("NotebookContextMenu formatters", () => {
                 makeProvider(rows),
             );
             expect(result).to.equal("");
+        });
+
+        test("uses the real table name when column metadata provides one", () => {
+            const menu = makeMenu([makeDbCol("nvarchar", "Customers")]);
+            const cols = [makeCol(0, "Name")];
+            const rows: CellRow[] = [{ "0": makeCell("Alice") }];
+            const result = fmt.insertInto(menu, [makeRange(0, 0, 0, 0)], cols, makeProvider(rows));
+            expect(result).to.equal("INSERT INTO [Customers] ([Name])\r\nVALUES\r\n    ('Alice');");
+        });
+
+        test("schema-qualifies the table name when baseSchemaName is present", () => {
+            const menu = makeMenu([makeDbCol("nvarchar", "Customers", "dbo")]);
+            const cols = [makeCol(0, "Name")];
+            const rows: CellRow[] = [{ "0": makeCell("Alice") }];
+            const result = fmt.insertInto(menu, [makeRange(0, 0, 0, 0)], cols, makeProvider(rows));
+            expect(result).to.equal(
+                "INSERT INTO [dbo].[Customers] ([Name])\r\nVALUES\r\n    ('Alice');",
+            );
         });
     });
 
@@ -563,7 +589,7 @@ suite("NotebookContextMenu formatters", () => {
                 makeProvider(wideRows()),
             );
             expect(result).to.contain(
-                "INSERT INTO TableName ([FirstName], [DateOfBirth], [Email])",
+                "INSERT INTO UnknownTable ([FirstName], [DateOfBirth], [Email])",
             );
             expect(result).to.contain("('John', '2003-11-09', 'john.smith@example.com')");
             expect(result).to.contain("('Mariah', '2004-01-30', 'mariah.jones@example.com')");
@@ -579,7 +605,7 @@ suite("NotebookContextMenu formatters", () => {
             const ranges = [makeRange(0, 0, 0, 0), makeRange(1, 1, 1, 1)];
             const result = fmt.insertInto(menu, ranges, cols, makeProvider(rows));
             expect(result).to.equal(
-                "INSERT INTO TableName ([A], [B])\r\nVALUES\r\n    ('a0', NULL),\r\n    (NULL, 'b1');",
+                "INSERT INTO UnknownTable ([A], [B])\r\nVALUES\r\n    ('a0', NULL),\r\n    (NULL, 'b1');",
             );
         });
 
