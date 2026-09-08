@@ -12852,6 +12852,11 @@ Are you sure you want to continue?</source>
         <note>{0} is the number of invalid accounts that have been removed</note>
         <target state="translated">已移除 {0} 無效的 Entra 帳戶；您可能需要執行 `MS SQL: 清除 Microsoft Entra 帳戶權杖快取`，然後重新登入。</target>
       </trans-unit>
+      <trans-unit id="++CODE++f6c28fcc89c496f47616db462f5bd4632eee12be2c297424b5b67daee0a610b7">
+        <source xml:lang="en">{0} is a logical key column and can't be hidden.</source>
+        <note>{0} is the backing database column name</note>
+        <target state="new">{0} is a logical key column and can't be hidden.</target>
+      </trans-unit>
       <trans-unit id="++CODE++8ee4e65df77291c702e67b2a14060cddd3d53d15c05a64ed6a95e8ef5c53441b">
         <source xml:lang="en">{0} is a primary key column and can't be disabled.</source>
         <note>{0} is the backing database column name</note>
