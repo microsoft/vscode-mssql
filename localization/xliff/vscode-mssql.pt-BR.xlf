@@ -11258,10 +11258,6 @@ Consulta: {2}</target>
         <source xml:lang="en">The Query Profiler now supports SQL database in Microsoft Fabric connections, with new Azure SQL Database templates including {code-snippet-0} for lightweight T-SQL profiling.</source>
         <target state="translated">O Query Profiler agora dá suporte ao banco de dados SQL em conexões do Microsoft Fabric, com novos modelos de Banco de Dados SQL do Azure, incluindo {code-snippet-0} para criação de perfil T-SQL leve.</target>
       </trans-unit>
-      <trans-unit id="++CODE++5398977f3c4aae70864004d20248ee2d42a55e18b27aacd47584245aff84c300">
-        <source xml:lang="en">The React Flow execution plan preview could not render this plan.</source>
-        <target state="translated">A visualização do plano de execução do React Flow não pôde renderizar esse plano.</target>
-      </trans-unit>
       <trans-unit id="++CODE++ba973d3ac7388307810e82027b3e31a9c129166646b4dda5ec93c249f05e7431">
         <source xml:lang="en">The SQL Server extension couldn't start because its required background service failed to launch. Install the offline VSIX for your operating system, or check your network connection and try again. Details: {0}</source>
         <note>{0} is the error message</note>
@@ -11546,6 +11542,10 @@ Tem certeza de que quer continuar?</target>
       <trans-unit id="++CODE++a616eb2bf2f817c4898b6d9709fa799bf564dc58ec7bdb879358e3f47795106e">
         <source xml:lang="en">This database name is already in use. Please choose a different name.</source>
         <target state="translated">Este nome de banco de dados já está em uso. Escolha um nome diferente.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++11b581f8a3000e049c063b239ba309ad25c53dadcf317b81e608a44404703d57">
+        <source xml:lang="en">This execution plan could not be rendered.</source>
+        <target state="new">This execution plan could not be rendered.</target>
       </trans-unit>
       <trans-unit id="++CODE++cb4eade41a7e9bf4aecf7539c5167bf881e1dac0fd35c216a8fbf4b1b4d3fa84">
         <source xml:lang="en">This file name is reserved for use by Windows. Choose another name and try again</source>
@@ -13761,10 +13761,6 @@ Quando terminar de fazer suas alterações, clique no botão "Publicar" para env
       <trans-unit id="mssql.preview.betaObjectExplorerFilter.description">
         <source xml:lang="en">Enables the preview Object Explorer filter experience with saved filter presets and recently applied filters. Disable this setting to use the existing Object Explorer filter experience.</source>
         <target state="translated">Habilita a experiência de visualização do filtro do Pesquisador de Objetos, com predefinições de filtro salvas e filtros aplicados recentemente. Desabilite essa configuração para usar a experiência de filtro do Pesquisador de Objetos existente.</target>
-      </trans-unit>
-      <trans-unit id="mssql.preview.betaExecutionPlan.description">
-        <source xml:lang="en">Enables the preview query execution plan experience with improved layout, keyboard navigation, tooltips, SQL text display, and toolbar interactions. Disable this setting to use the existing execution plan experience.</source>
-        <target state="translated">Habilita a experiência de visualização do plano de execução de consultas, com layout aprimorado, navegação pelo teclado, dicas de ferramenta, exibição de texto SQL e interações com a barra de ferramentas. Desabilite essa configuração para usar a experiência de plano de execução existente.</target>
       </trans-unit>
       <trans-unit id="mssql.preview.betaResultsGrid.description">
         <source xml:lang="en">Enables the preview query results grid experience with improved state management and more column customization options, including showing, hiding, and freezing columns.</source>
