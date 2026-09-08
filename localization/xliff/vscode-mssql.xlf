@@ -4325,14 +4325,26 @@
     <trans-unit id="++CODE++fe9fa5778e6299904ef31d5f6e87aed494f00eb96d5aba3ab8b23beed99759c9">
       <source xml:lang="en">General Purpose</source>
     </trans-unit>
+    <trans-unit id="++CODE++a19ab110f76736a8553345a37aaddc0b174a73a654eebfa999f1cb487b7ae449">
+      <source xml:lang="en">Generate DELETE</source>
+    </trans-unit>
     <trans-unit id="++CODE++752307275e5358665596d28a3080462e4933b77005bbbf2ba1eca87f1dca1fcc">
       <source xml:lang="en">Generate Data API builder configurations using natural language through GitHub Copilot chat and agent tools. Describe your API requirements and let GitHub Copilot scaffold the configuration for you.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5314535b79e44b7ecd4e523208715409906adff33ab3ad9d9f81ed0b6c7d3645">
+      <source xml:lang="en">Generate INSERT</source>
     </trans-unit>
     <trans-unit id="++CODE++3fe2318b777a1d9c6304a9e2bff0d636f51cfb872de17793c8962acbdc1370cd">
       <source xml:lang="en">Generate REST, GraphQL, and MCP endpoints from your SQL database objects (tables). You can modify the configuration manually or through GitHub Copilot to plan and generate updates - then deploy locally with Docker.</source>
     </trans-unit>
+    <trans-unit id="++CODE++917118b9799070668366dcb33fa626258638ea06bd47d503ac660ce167cef557">
+      <source xml:lang="en">Generate SELECT</source>
+    </trans-unit>
     <trans-unit id="++CODE++e7789e4d6916633a7461743194a10f2bc4d20b06c2e329b35c7a2da87aa8cbae">
       <source xml:lang="en">Generate Script</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bbab552abe41f3eaa7197b32d720a69456ae20c49481e23554b00b989ae25953">
+      <source xml:lang="en">Generate UPDATE</source>
     </trans-unit>
     <trans-unit id="++CODE++733db825a41becaf624d0bcff31bacf744e7bcdb3412fffbb0fb12afdd89a1a8">
       <source xml:lang="en">Generate mock data and seed scripts to support testing and development environments</source>

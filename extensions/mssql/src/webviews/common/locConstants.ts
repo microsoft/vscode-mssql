@@ -1190,6 +1190,10 @@ export class LocConstants {
             copyAsJson: l10n.t("Copy as JSON"),
             copyAsInClause: l10n.t("Copy as IN clause"),
             copyAsInsertInto: l10n.t("Copy as INSERT INTO"),
+            generateSelect: l10n.t("Generate SELECT"),
+            generateUpdate: l10n.t("Generate UPDATE"),
+            generateDelete: l10n.t("Generate DELETE"),
+            generateInsert: l10n.t("Generate INSERT"),
             copyAsInClauseRequiresSingleColumn: l10n.t(
                 "Copying as an IN clause requires selecting exactly one column.",
             ),

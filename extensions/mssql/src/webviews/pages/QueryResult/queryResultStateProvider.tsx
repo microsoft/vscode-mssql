@@ -48,6 +48,11 @@ type ResizeColumnDialogState = {
     onDismiss: () => void;
 };
 
+export interface GridContextMenuActionVisibility {
+    showRowActions: boolean;
+    showInsertAction: boolean;
+}
+
 export interface QueryResultReactProvider
     extends Omit<ExecutionPlanProvider, "getExecutionPlan">,
         CoreRPCs {
@@ -59,6 +64,7 @@ export interface QueryResultReactProvider
         x: number,
         y: number,
         onAction: (action: GridContextMenuAction) => void | Promise<void>,
+        actionVisibility?: GridContextMenuActionVisibility,
     ) => void;
     hideGridContextMenu: () => void;
     showColumnFilterPopup: (options: ColumnFilterPopupOptions) => void;
@@ -110,7 +116,13 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
         x: number;
         y: number;
         onAction?: (action: GridContextMenuAction) => void | Promise<void>;
-    }>({ open: false, x: 0, y: 0 });
+        actionVisibility: GridContextMenuActionVisibility;
+    }>({
+        open: false,
+        x: 0,
+        y: 0,
+        actionVisibility: { showRowActions: false, showInsertAction: false },
+    });
 
     const [filterPopupState, setFilterPopupState] = useState<ColumnFilterPopupOptions | undefined>(
         undefined,
@@ -176,9 +188,18 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
             },
 
             // Grid context menu API
-            showGridContextMenu: (x: number, y: number, onAction) => {
+            showGridContextMenu: (x: number, y: number, onAction, actionVisibility) => {
                 hideFilterPopup();
-                setMenuState({ open: true, x, y, onAction });
+                setMenuState({
+                    open: true,
+                    x,
+                    y,
+                    onAction,
+                    actionVisibility: actionVisibility ?? {
+                        showRowActions: false,
+                        showInsertAction: false,
+                    },
+                });
             },
             hideGridContextMenu: () => {
                 setMenuState((s) => ({ ...s, open: false }));
@@ -294,6 +315,7 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
                     x={menuState.x}
                     y={menuState.y}
                     open={menuState.open}
+                    actionVisibility={menuState.actionVisibility}
                     onAction={async (action) => {
                         await menuState.onAction?.(action);
                         setMenuState((s) => ({ ...s, open: false }));
