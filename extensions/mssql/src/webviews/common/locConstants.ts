@@ -2199,6 +2199,12 @@ export class LocConstants {
                     args: [columnName],
                     comment: ["{0} is the backing database column name"],
                 }),
+            logicalKeyColumnExposureLocked: (columnName: string) =>
+                l10n.t({
+                    message: "{0} is a logical key column and can't be hidden.",
+                    args: [columnName],
+                    comment: ["{0} is the backing database column name"],
+                }),
             actionForEntity: (action: string, entityName: string) =>
                 l10n.t({
                     message: "{0} action for {1}",

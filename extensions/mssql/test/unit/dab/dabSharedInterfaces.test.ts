@@ -215,6 +215,37 @@ suite("DAB shared interface helpers", () => {
         ).to.deep.equal([Dab.ApiType.Rest, Dab.ApiType.GraphQL, Dab.ApiType.Mcp]);
     });
 
+    test("effective exposure respects global API types without changing column preferences", () => {
+        const entity = Dab.createDefaultConfigFromSources([createSourceObject()]).entities[0];
+        const nameColumn = entity.columns.find((column) => column.name === "Name");
+        if (!nameColumn) {
+            throw new Error("Expected Name column");
+        }
+
+        expect(Dab.isEntityEffectivelyExposed(entity, [Dab.ApiType.Rest])).to.equal(true);
+        expect(Dab.isColumnEffectivelyExposed(entity, nameColumn, [Dab.ApiType.Rest])).to.equal(
+            true,
+        );
+        expect(Dab.isEntityEffectivelyExposed(entity, [])).to.equal(false);
+        expect(Dab.isColumnEffectivelyExposed(entity, nameColumn, [])).to.equal(false);
+        expect(nameColumn.isExposed).to.equal(true);
+    });
+
+    test("logical keys are effectively exposed only while their entity is exposed", () => {
+        const entity = Dab.createDefaultConfigFromSources([createSourceObject()]).entities[0];
+        const keyColumn = entity.columns.find((column) => column.name === "Id");
+        if (!keyColumn) {
+            throw new Error("Expected Id column");
+        }
+        keyColumn.isExposed = false;
+
+        expect(Dab.isColumnEffectivelyExposed(entity, keyColumn, [Dab.ApiType.Rest])).to.equal(
+            true,
+        );
+        expect(Dab.isColumnEffectivelyExposed(entity, keyColumn, [])).to.equal(false);
+        expect(keyColumn.isExposed).to.equal(false);
+    });
+
     test("syncConfigWithSources removes missing entities, adds new ones, and refreshes metadata", () => {
         const currentConfig = Dab.createDefaultConfigFromSources([
             createSourceObject({ id: "TABLE:DBO.USERS" }),
