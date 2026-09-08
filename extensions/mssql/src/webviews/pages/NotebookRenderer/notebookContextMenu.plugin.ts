@@ -8,6 +8,11 @@ import { IDisposableDataProvider } from "../QueryResult/table/dataProvider";
 import type { IDbColumn } from "../../../sharedInterfaces/queryResult";
 import type { NotebookCopyAsCsvOptions } from "../../../sharedInterfaces/notebookQueryResult";
 import { getEOL, isMac } from "../../common/utils";
+import {
+    generateInsertForRows,
+    isNumericSqlType as sharedIsNumericSqlType,
+    sqlStr as sharedSqlStr,
+} from "../../common/sqlScriptGenerator";
 
 const getModKeyLabel = () => (isMac() ? "⌘" : "Ctrl+");
 
@@ -23,20 +28,6 @@ enum NotebookContextMenuAction {
 }
 
 export class NotebookContextMenu<T extends Slick.SlickData> {
-    private static readonly NUMERIC_SQL_TYPES = new Set([
-        "int",
-        "bigint",
-        "smallint",
-        "tinyint",
-        "decimal",
-        "numeric",
-        "float",
-        "real",
-        "money",
-        "smallmoney",
-        "bit",
-    ]);
-
     private static readonly JSON_NUMBER_TYPES = new Set([
         "int",
         "bigint",
@@ -50,8 +41,6 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
         "smallmoney",
     ]);
     private static readonly JSON_NUMBER_PATTERN = /^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?$/;
-    private static readonly SQL_NUMBER_PATTERN = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/;
-    private static readonly INSERT_ROW_LIMIT = 1000;
 
     constructor(
         private readonly columnInfo: IDbColumn[] = [],
@@ -702,7 +691,7 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
             if (rangeCols.length !== 1) return null;
             if (col === undefined) {
                 col = rangeCols[0];
-                isNumeric = this.isNumericSqlType(this.getColumnInfo(col)?.dataTypeName);
+                isNumeric = sharedIsNumericSqlType(this.getColumnInfo(col)?.dataTypeName);
             } else if (rangeCols[0].field !== col.field) {
                 return null;
             }
@@ -713,9 +702,9 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
                 const rawVal = cellVal?.displayValue ?? "";
                 const val = cellVal?.isNull
                     ? "NULL"
-                    : isNumeric && NotebookContextMenu.SQL_NUMBER_PATTERN.test(rawVal)
+                    : isNumeric && /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(rawVal)
                       ? rawVal
-                      : this.sqlStr(rawVal);
+                      : sharedSqlStr(rawVal);
                 valueLines.push(val);
             }
         }
@@ -735,67 +724,6 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
         columns: Slick.Column<T>[],
         dataProvider: IDisposableDataProvider<T>,
     ): string {
-        const colMeta = this.getSelectedColumnIndices(ranges, columns).map((c) => {
-            const col = columns[c];
-            return {
-                col,
-                index: c,
-                isNumeric: this.isNumericSqlType(this.getColumnInfo(col)?.dataTypeName),
-            };
-        });
-
-        const valueRows: string[] = [];
-        for (const range of ranges) {
-            for (let r = range.fromRow; r <= range.toRow; r++) {
-                const item = dataProvider.getItem(r) as Slick.SlickData;
-                const values = colMeta.map(({ col, index, isNumeric }) => {
-                    if (!this.isCellSelected(ranges, r, index)) {
-                        return "NULL";
-                    }
-                    const cellVal = item?.[col.field!];
-                    if (cellVal?.isNull) return "NULL";
-                    const val = cellVal?.displayValue ?? "";
-                    return isNumeric && NotebookContextMenu.SQL_NUMBER_PATTERN.test(val)
-                        ? val
-                        : this.sqlStr(val);
-                });
-                valueRows.push(`    (${values.join(", ")})`);
-            }
-        }
-
-        if (colMeta.length === 0 || valueRows.length === 0) {
-            return "";
-        }
-
-        const colNames = colMeta
-            .map(({ col }) => this.escapeSqlIdentifier(col.toolTip ?? col.name ?? col.field ?? ""))
-            .join(", ");
-        const statements: string[] = [];
-        for (
-            let start = 0;
-            start < valueRows.length;
-            start += NotebookContextMenu.INSERT_ROW_LIMIT
-        ) {
-            const batch = valueRows.slice(start, start + NotebookContextMenu.INSERT_ROW_LIMIT);
-            const rowLines = batch.map((row, i) => row + (i < batch.length - 1 ? "," : ";"));
-            statements.push(
-                [`INSERT INTO TableName (${colNames})`, "VALUES", ...rowLines].join(getEOL()),
-            );
-        }
-        return statements.join(getEOL() + getEOL());
-    }
-
-    private isNumericSqlType(dataTypeName: string | undefined): boolean {
-        return (
-            !!dataTypeName && NotebookContextMenu.NUMERIC_SQL_TYPES.has(dataTypeName.toLowerCase())
-        );
-    }
-
-    private sqlStr(v: string): string {
-        return "'" + v.replace(/'/g, "''") + "'";
-    }
-
-    private escapeSqlIdentifier(value: string): string {
-        return `[${value.replaceAll("]", "]]")}]`;
+        return generateInsertForRows(ranges, columns, dataProvider, this.columnInfo);
     }
 }

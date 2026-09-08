@@ -381,6 +381,17 @@ export namespace CopyAsInsertIntoRequest {
     export const type = new RequestType<CopyAsInsertIntoRequest, void, void>("copyAsInsertInto");
 }
 
+export interface OpenGeneratedQueryRequestParams {
+    uri: string;
+    sql: string;
+}
+
+export namespace OpenGeneratedQueryRequest {
+    export const type = new RequestType<OpenGeneratedQueryRequestParams, void, void>(
+        "openGeneratedQuery",
+    );
+}
+
 export interface CopyColumnNameRequestParams {
     columnName: string;
 }
@@ -569,4 +580,8 @@ export enum GridContextMenuAction {
     CopyAsJson = "copy-as-json",
     CopyAsInClause = "copy-as-in-clause",
     CopyAsInsertInto = "copy-as-insert-into",
+    GenerateSelect = "generate-select",
+    GenerateUpdate = "generate-update",
+    GenerateDelete = "generate-delete",
+    GenerateInsert = "generate-insert",
 }

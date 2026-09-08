@@ -11,15 +11,27 @@ import {
     CopyHeadersRequest,
     CopySelectionRequest,
     GridContextMenuAction,
+    OpenGeneratedQueryRequest,
     ResultSetSummary,
 } from "../../../../../sharedInterfaces/queryResult";
 import { QueryResultReactProvider } from "../../queryResultStateProvider";
 import { HybridDataProvider } from "../hybridDataProvider";
+import type { IDisposableDataProvider } from "../dataProvider";
 import {
     convertDisplayedSelectionToActual,
     selectEntireGrid,
+    tryCombineSelections,
     tryCombineSelectionsForResults,
 } from "../utils";
+import {
+    generateDelete,
+    generateInsertForRows,
+    generateSelect,
+    generateUpdate,
+    getSelectedColumnIndices,
+    isFullRowSelected,
+    isSingleRowSelection,
+} from "../../../../common/sqlScriptGenerator";
 
 export class ContextMenu<T extends Slick.SlickData> {
     private grid!: Slick.Grid<T>;
@@ -62,6 +74,13 @@ export class ContextMenu<T extends Slick.SlickData> {
         const adjustedX = Math.min(Math.max(mouseEvent.pageX, margin), maxX);
         const adjustedY = Math.min(Math.max(mouseEvent.pageY, margin), maxY);
 
+        const gridColumns = this.grid.getColumns();
+        const dataSelection = tryCombineSelections(
+            this.grid.getSelectionModel().getSelectedRanges(),
+        );
+        const isSingleRow = isSingleRowSelection(dataSelection);
+        const isFullRow = isSingleRow && isFullRowSelected(dataSelection, gridColumns);
+
         // Ask outer React app to show menu at coordinates
         this.queryResultContext.showGridContextMenu(
             adjustedX,
@@ -70,6 +89,7 @@ export class ContextMenu<T extends Slick.SlickData> {
                 await this.handleMenuAction(action);
                 this.queryResultContext.hideGridContextMenu();
             },
+            { showRowActions: isSingleRow && !isFullRow, showInsertAction: isFullRow },
         );
     }
 
@@ -170,6 +190,63 @@ export class ContextMenu<T extends Slick.SlickData> {
                 );
                 this.queryResultContext.showCopyIndicator();
                 break;
+            case GridContextMenuAction.GenerateSelect:
+            case GridContextMenuAction.GenerateUpdate:
+            case GridContextMenuAction.GenerateDelete:
+            case GridContextMenuAction.GenerateInsert: {
+                log.trace(`${action} action triggered`);
+                const gridColumns = this.grid.getColumns();
+                const dataSelection = tryCombineSelections(
+                    this.grid.getSelectionModel().getSelectedRanges(),
+                );
+                if (!isSingleRowSelection(dataSelection)) {
+                    log.warn("Generate query actions require a single-row selection");
+                    break;
+                }
+                const [range] = dataSelection;
+                const dataProvider = this.grid.getData() as IDisposableDataProvider<T>;
+                const columnInfo = this.resultSetSummary.columnInfo;
+                const row = range.fromRow;
+                const selectedColumnIndices = getSelectedColumnIndices([range], gridColumns);
+
+                let sql: string;
+                if (action === GridContextMenuAction.GenerateSelect) {
+                    sql = generateSelect(
+                        row,
+                        selectedColumnIndices,
+                        gridColumns,
+                        dataProvider,
+                        columnInfo,
+                    );
+                } else if (action === GridContextMenuAction.GenerateUpdate) {
+                    sql = generateUpdate(
+                        row,
+                        selectedColumnIndices,
+                        gridColumns,
+                        dataProvider,
+                        columnInfo,
+                    );
+                } else if (action === GridContextMenuAction.GenerateDelete) {
+                    sql = generateDelete(
+                        row,
+                        selectedColumnIndices,
+                        gridColumns,
+                        dataProvider,
+                        columnInfo,
+                    );
+                } else {
+                    sql = generateInsertForRows([range], gridColumns, dataProvider, columnInfo);
+                }
+
+                await this.queryResultContext.extensionRpc.sendRequest(
+                    OpenGeneratedQueryRequest.type,
+                    {
+                        uri: this.uri,
+                        sql,
+                    },
+                );
+                break;
+            }
             default:
                 log.warn(`Unknown action: ${action}`);
         }

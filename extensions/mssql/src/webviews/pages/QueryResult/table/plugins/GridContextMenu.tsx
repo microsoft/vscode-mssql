@@ -4,17 +4,26 @@
  *--------------------------------------------------------------------------------------------*/
 
 import React, { useMemo, useRef } from "react";
-import { Menu, MenuList, MenuItem, MenuPopover, MenuTrigger } from "@fluentui/react-components";
+import {
+    Menu,
+    MenuList,
+    MenuItem,
+    MenuPopover,
+    MenuTrigger,
+    MenuDivider,
+} from "@fluentui/react-components";
 import { locConstants } from "../../../../common/locConstants";
 import { GridContextMenuAction } from "../../../../../sharedInterfaces/queryResult";
 import { useVscodeWebview } from "../../../../common/vscodeWebviewProvider";
 import { WebviewAction } from "../../../../../sharedInterfaces/webview";
 import { useContextMenuStyles } from "../../../../common/styles";
+import type { GridContextMenuActionVisibility } from "../../queryResultStateProvider";
 
 export interface GridContextMenuProps {
     x: number;
     y: number;
     open: boolean;
+    actionVisibility: GridContextMenuActionVisibility;
     onAction: (action: GridContextMenuAction) => void;
     onClose: () => void;
 }
@@ -30,6 +39,7 @@ export const GridContextMenu: React.FC<GridContextMenuProps> = ({
     x,
     y,
     open,
+    actionVisibility,
     onAction,
     onClose,
 }) => {
@@ -142,6 +152,35 @@ export const GridContextMenu: React.FC<GridContextMenuProps> = ({
                                 </MenuList>
                             </MenuPopover>
                         </Menu>
+                        {(actionVisibility.showRowActions || actionVisibility.showInsertAction) && (
+                            <MenuDivider />
+                        )}
+                        {actionVisibility.showRowActions && (
+                            <>
+                                <MenuItem
+                                    className={styles.menuItem}
+                                    onClick={() => onAction(GridContextMenuAction.GenerateSelect)}>
+                                    {locConstants.queryResult.generateSelect}
+                                </MenuItem>
+                                <MenuItem
+                                    className={styles.menuItem}
+                                    onClick={() => onAction(GridContextMenuAction.GenerateUpdate)}>
+                                    {locConstants.queryResult.generateUpdate}
+                                </MenuItem>
+                                <MenuItem
+                                    className={styles.menuItem}
+                                    onClick={() => onAction(GridContextMenuAction.GenerateDelete)}>
+                                    {locConstants.queryResult.generateDelete}
+                                </MenuItem>
+                            </>
+                        )}
+                        {actionVisibility.showInsertAction && (
+                            <MenuItem
+                                className={styles.menuItem}
+                                onClick={() => onAction(GridContextMenuAction.GenerateInsert)}>
+                                {locConstants.queryResult.generateInsert}
+                            </MenuItem>
+                        )}
                     </MenuList>
                 </MenuPopover>
             </Menu>
