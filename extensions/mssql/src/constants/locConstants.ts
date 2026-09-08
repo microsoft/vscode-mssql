@@ -7,6 +7,293 @@ import { l10n } from "vscode";
 import * as os from "os";
 import { getErrorMessage } from "../utils/utils";
 
+export class SqlFeatures {
+    public static profilerDelete = l10n.t("Delete session");
+    public static profilerDeleteTitle = (name: string) =>
+        l10n.t('Delete event session "{0}"?', name);
+    public static profilerDeleteDetail = (server: string, name: string, running: string) =>
+        l10n.t(
+            "Server: {0}\nSession: {1}\nServer capture: {2}\n\nThis stops capture if running and removes the session definition from the server. Other viewers using this session will be affected. Events retained in this viewer remain available to inspect and export. Existing event files are not deleted.",
+            server,
+            name,
+            running,
+        );
+    public static profilerRunning = l10n.t("Running");
+    public static profilerStopped = l10n.t("Stopped");
+    public static profilerSessionUnavailable = l10n.t(
+        "This session is no longer visible on the server. Refresh the session list and review access.",
+    );
+    public static profilerDeleteUnverified = l10n.t(
+        "The session is still visible after deletion. Refresh and check its state before retrying.",
+    );
+
+    public static tableDraftMissing = l10n.t(
+        "An edit is missing its original row snapshot. Your drafts have been retained; saving cannot safely continue.",
+    );
+    public static tableDraftChangedDuringSave = l10n.t(
+        "The draft changed while the save was completing. Review the remaining changes before saving again.",
+    );
+    public static tableSavedReloadFailed = l10n.t(
+        "The save was acknowledged, but the table could not be reloaded. Reload the table to verify server-generated values.",
+    );
+    public static tableOutcomeReconciled = l10n.t(
+        "The table was re-read, but the original save outcome is still not provable. Review the retained draft before discarding it.",
+    );
+    public static tableConflictUnavailable = l10n.t(
+        "The current server value could not be read. Keep the draft and refresh before resolving the conflict.",
+    );
+    public static tableConflictValuesAvailable = l10n.t(
+        "The server value is shown alongside the original and proposed values.",
+    );
+    public static tableConflictRowMissing = l10n.t(
+        "The original row is no longer visible at its original identity. It may have been deleted or its key may have changed.",
+    );
+    public static tableInsertOutcomeUnproven = l10n.t(
+        "An insert has no stable server identity to inspect yet, so this reconciliation cannot prove whether it was applied.",
+    );
+    public static tableOutcomeEvidenceUnavailable = l10n.t(
+        "The server could not be read during reconciliation. The save outcome remains unknown.",
+    );
+    public static tableOutcomeObservationMissing = l10n.t(
+        "The save was acknowledged, but the server did not return a complete identity observation for this row. Generated values remain unverified.",
+    );
+    public static tableOutcomeObservationIncomplete = l10n.t(
+        "The save was acknowledged, but the returned row identity was incomplete. Generated values remain unverified.",
+    );
+    public static tableOutcomeReadIncomplete = l10n.t(
+        "The save was acknowledged, but the follow-up row read was incomplete. Generated values remain unverified.",
+    );
+    public static tableSavedReconciliationFailed = l10n.t(
+        "The save was acknowledged, but affected rows could not be fully verified. Review the evidence or explicitly accept the acknowledged result before making more changes.",
+    );
+    public static tableOutcomeRowNotFound = l10n.t(
+        "The submitted row is not visible at its original identity. This observation does not prove whether the save was applied.",
+    );
+    public static tableOutcomeMatchingNotProof = l10n.t(
+        "The current row matches the submitted values, but matching values alone do not prove this save was applied.",
+    );
+    public static tableOutcomeDifferentState = l10n.t(
+        "The current row differs from the submitted values. The save outcome remains unknown.",
+    );
+    public static tableSaveAcknowledged = l10n.t(
+        "The save was acknowledged and the submitted drafts were reconciled.",
+    );
+    public static tableRequiredColumn = (column: string) =>
+        l10n.t('Column "{0}" is required for a new row.', column);
+    public static tableNullColumn = (column: string) =>
+        l10n.t('Column "{0}" does not accept NULL.', column);
+    public static tableDefaultColumn = (column: string) =>
+        l10n.t('Column "{0}" does not have a default value.', column);
+    public static tableLengthExceeded = (column: string) =>
+        l10n.t('Value for "{0}" exceeds the column length.', column);
+    public static tableUnknownColumn = (column: string) =>
+        l10n.t('Column "{0}" is not part of this table.', column);
+    public static jobUnavailable = l10n.t(
+        "The selected job is no longer visible. Refresh the job list and review access.",
+    );
+    public static jobChangedDuringReview = l10n.t(
+        "The job definition or access changed during review. Refresh and review the action again.",
+    );
+    public static jobActionAccessUnestablished = l10n.t(
+        "Permission to apply this action could not be established from the job ownership, Agent roles and procedure permissions. Generate SQL for an administrator to review; custom permissions may require further verification.",
+    );
+    public static agentActions = {
+        start: l10n.t("Run job"),
+        stop: l10n.t("Stop job"),
+        enable: l10n.t("Enable job"),
+        disable: l10n.t("Disable job"),
+        delete: l10n.t("Delete job"),
+    };
+    public static agentActionEffects = {
+        start: l10n.t(
+            "Requests immediate execution. Job steps may change data; accepting the request does not establish that the job finishes successfully.",
+        ),
+        stop: l10n.t(
+            "Requests that the running job stop. Changes already committed by its steps are not rolled back.",
+        ),
+        enable: l10n.t("Enables the job. An attached schedule may run it when next due."),
+        disable: l10n.t(
+            "Disables future scheduled execution. A currently running execution is not stopped.",
+        ),
+        delete: l10n.t("Deletes this job and its execution history. Schedules are preserved."),
+    };
+    public static reviewJobAction = (action: string, name: string) =>
+        l10n.t('{0}: "{1}"', action, name);
+    public static reviewJobActionDetails = (effect: string, sql: string) =>
+        l10n.t("{0}\n\n{1}", effect, sql);
+    public static agentActionAccepted = (action: string, name: string) =>
+        l10n.t(
+            '{0} request accepted for "{1}". Check current activity and history for the outcome.',
+            action,
+            name,
+        );
+    public static invalidJobSchedule = l10n.t(
+        "The job schedule is invalid. Review its name, dates, time, recurrence and selected weekdays.",
+    );
+    public static invalidJobRetries = l10n.t(
+        "Retry attempts and intervals must be whole numbers from 0 to 2147483647.",
+    );
+    public static reviewJob = (name: string) => l10n.t("Review creation of job {0}", name);
+    public static jobCreated = (name: string) => l10n.t('Job "{0}" created.', name);
+    public static jobCreationUnverified = l10n.t(
+        "The server did not return a created job ID. Refresh the job list before retrying.",
+    );
+    public static jobNameRequired = l10n.t("A job needs a name.");
+    public static jobStepsRequired = l10n.t("A job needs at least one step with a command to run.");
+    public static jobDatabaseRequired = l10n.t(
+        "Choose a database for every T-SQL job step before reviewing the job.",
+    );
+    public static agentUnavailable = l10n.t("This server has no SQL Server Agent.");
+    public static chooseDatabase = l10n.t("Choose a database for Query Store");
+    public static noUserDatabases = l10n.t(
+        "No accessible user databases were found. Connect to a user database or ask an administrator to review database access.",
+    );
+    public static reviewQueryStore = (database: string) =>
+        l10n.t("Review Query Store change for {0}", database);
+    public static apply = l10n.t("Apply");
+    public static generateSql = l10n.t("Generate SQL");
+    public static queryStoreUnavailable = l10n.t(
+        "Query Store configuration is unavailable for this target. Choose a supported user database.",
+    );
+    public static queryStoreStateChanged = l10n.t(
+        "Query Store settings or access changed. Review the current state before applying again.",
+    );
+    public static queryStoreVerified = l10n.t("Query Store reached the requested operation mode.");
+    public static queryStoreNotVerified = l10n.t(
+        "The change was submitted, but Query Store has not reached the requested mode. Review its current state and reported reasons.",
+    );
+    public static queryStoreConfigurePermission = l10n.t(
+        "Configuration permission is unavailable. Generate the reviewed SQL for an administrator.",
+    );
+    public static queryStoreMaintenanceUnavailable = l10n.t(
+        "This Query Store maintenance operation is not supported for the current target.",
+    );
+    public static queryStoreMaintenanceActions = {
+        disable: l10n.t("Disable collection"),
+        flush: l10n.t("Flush Query Store"),
+        clearHistory: l10n.t("Clear Query Store history"),
+    } as const;
+    public static queryStoreMaintenanceEffects = {
+        disable: (sql: string) =>
+            l10n.t(
+                "Stops Query Store collection for this database. Retained history is not deleted.\n\n{0}",
+                sql,
+            ),
+        flush: (sql: string) =>
+            l10n.t(
+                "Persists supported in-memory Query Store data. This does not clear history or generate workload.\n\n{0}",
+                sql,
+            ),
+        clearHistory: (sql: string) =>
+            l10n.t(
+                "Removes retained Query Store history for this database. This cannot be undone by the panel.\n\n{0}",
+                sql,
+            ),
+    } as const;
+    public static reviewQueryStoreMaintenance = (action: string, database: string) =>
+        l10n.t("Review Query Store action {0} for {1}", action, database);
+    public static queryStoreMaintenanceAccepted = (action: string) =>
+        l10n.t(
+            "Query Store action submitted: {0}. Recheck the actual state before relying on it.",
+            action,
+        );
+    public static queryStoreInterventionUnavailable = l10n.t(
+        "This Query Store intervention is unavailable for the current target or version.",
+    );
+    public static queryStoreForcePlan = l10n.t("Force this plan");
+    public static queryStoreUnforcePlan = l10n.t("Unforce this plan");
+    public static reviewQueryStorePlanAction = (action: string, queryId: number, planId: number) =>
+        l10n.t("Review Query Store action {0} for query {1}, plan {2}", action, queryId, planId);
+    public static queryStorePlanVerified = (action: string) =>
+        l10n.t("Query Store verified the plan action: {0}.", action);
+    public static queryStoreHintUnavailable = l10n.t(
+        "Query Store hints are unavailable for this target or SQL Server version.",
+    );
+    public static queryStoreInterventionPermission = l10n.t(
+        "Review and apply plan or hint changes requires database configuration permission.",
+    );
+    public static queryStoreSetHint = l10n.t("Set Query Store hint");
+    public static queryStoreClearHint = l10n.t("Clear Query Store hint");
+    public static reviewQueryStoreHint = (action: string, queryId: number) =>
+        l10n.t("Review Query Store hint action {0} for query {1}", action, queryId);
+    public static queryStoreHintVerified = (action: string) =>
+        l10n.t("Query Store verified the hint action: {0}.", action);
+    public static queryStorePlanIdentityInvalid = l10n.t(
+        "Select a concrete Query Store query and plan before opening the plan inspector.",
+    );
+    public static queryStorePlanUnavailable = l10n.t(
+        "The selected Query Store plan could not be read.",
+    );
+    public static queryStorePlanIncomplete = l10n.t(
+        "The stored plan is incomplete or clipped and cannot be analyzed as a complete plan.",
+    );
+    public static queryReportedErrors = l10n.t("The query reported errors.");
+    public static queryOutcomeUnknown = l10n.t(
+        "The query outcome is unknown. Check the server before retrying changes.",
+    );
+    public static connectFirst = l10n.t("Connect to a SQL Server to use this feature.");
+    public static connect = l10n.t("Connect");
+    public static selectConnection = l10n.t("Select a connection");
+    public static selectConnectionPlaceholder = l10n.t("Which connection should this feature use?");
+    public static connected = l10n.t("Connected");
+    public static savedConnection = l10n.t("Saved connection");
+    public static activity = l10n.t("SQL Activity");
+    public static queryStore = l10n.t("Query Store");
+    public static agent = l10n.t("SQL Server Agent");
+    public static title = (feature: string, connection: string) =>
+        l10n.t("{0}: {1}", feature, connection);
+    public static diagnosticsIdentifying = l10n.t("Still identifying the server.");
+    public static diagnosticsChooseJob = l10n.t("Choose a job first.");
+    public static diagnosticsWaitCounterInterval = l10n.t("Wait counter interval");
+    public static diagnosticsStorageCounterInterval = l10n.t("File I/O counter interval");
+    public static diagnosticsQueryStoreWindow = (timezone: string) =>
+        l10n.t("{0} Query Store investigation window", timezone);
+    public static diagnosticsQueryStoreComparisonWindow = l10n.t(
+        "Recent and baseline Query Store windows",
+    );
+    public static diagnosticsQueryStoreLookback = (hours: number) =>
+        l10n.t("{0} hour Query Store lookback", hours);
+    public static diagnosticsWaitCounterReset = l10n.t(
+        "Since the server or database wait counter reset",
+    );
+    public static diagnosticsStorageCounterReset = l10n.t(
+        "Since the database file I/O counter reset",
+    );
+    public static diagnosticsQueryStoreCoverage = l10n.t(
+        "Available Query Store intervals only; gaps are not backfilled.",
+    );
+    public static diagnosticsCsv = {
+        snapshotMetadata: l10n.t("Snapshot metadata"),
+        query: l10n.t("Query"),
+        collected: l10n.t("Collected"),
+        completeness: l10n.t("Completeness"),
+        scope: l10n.t("Scope"),
+        window: l10n.t("Window"),
+        referenceTime: l10n.t("Reference time"),
+        currentInterval: l10n.t("Includes current aggregation interval"),
+        metric: l10n.t("Metric"),
+        aggregation: l10n.t("Aggregation"),
+        filters: l10n.t("Filters"),
+        units: l10n.t(
+            "Query Store duration and CPU values are microseconds; wait values are milliseconds; reads and executions are counts.",
+        ),
+        rowCap: l10n.t("Row cap"),
+        exclusions: l10n.t("Exclusions"),
+        coverage: l10n.t("Coverage"),
+        coverageObserved: l10n.t("Observed intervals"),
+        coverageExpected: l10n.t("Available intervals"),
+        coverageBaselineObserved: l10n.t("Baseline observed intervals"),
+        coverageBaselineExpected: l10n.t("Baseline available intervals"),
+        none: l10n.t("none"),
+    } as const;
+    public static dataPlaneRequired = l10n.t(
+        "This feature requires the SQL data plane. Enable mssql.sqlDataPlane.enabled and reconnect.",
+    );
+    public static openSettings = l10n.t("Open settings");
+    public static openFailed = (feature: string, reason: string) =>
+        l10n.t("Could not open {0}: {1}", feature, reason);
+}
+
 // Warning: Only update these strings if you are sure you want to affect _all_ locations they're shared between.
 export class Common {
     public static remindMeLater = l10n.t("Remind Me Later");

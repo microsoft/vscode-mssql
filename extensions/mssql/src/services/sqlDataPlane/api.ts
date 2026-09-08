@@ -291,6 +291,16 @@ export interface ISqlSession extends DataPlaneDisposable {
     readonly onServerInfoMessage: DataPlaneEvent<ServerMessage>;
 
     execute(text: string, opts: ExecuteOptions, sink: IQueryEventSink): QueryHandle;
+    /**
+     * Reads a chunk of an oversized cell the backend retained for a query that asked for it.
+     * Absent on backends that cannot retain cells, so callers must check before using it.
+     */
+    fetchCell?(
+        queryId: string,
+        cellRef: string,
+        offset: number,
+        length: number,
+    ): Promise<{ v: string; eof: boolean }>;
     close(opts?: CloseOptions): Promise<void>;
 }
 
@@ -311,6 +321,12 @@ export interface ExecuteOptions {
     /** Request complete typed SQL geometry/geography WKB for this query (D-0020). */
     spatialEncoding?: "wkb-v1";
     priority?: "interactive" | "background";
+    /**
+     * Keep cells that exceed `maxCellBytes` on the backend so the whole value can be fetched
+     * afterwards with `fetchCell`, instead of arriving clipped with no way to recover the rest.
+     * Honored only by backends that advertise it; ignored elsewhere.
+     */
+    retainOversizedCells?: boolean;
     /** Diag/replay label — metadata only, never SQL-derived text. */
     tag?: string;
     commandKind?: "user" | "metadata" | "plan" | "parse" | "replay" | "centralUpload";

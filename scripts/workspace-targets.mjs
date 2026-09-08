@@ -8,6 +8,14 @@ export const workspaceTargets = [
         scripts: ["build", "watch", "test", "lint"],
     },
     {
+        target: "sql-feature",
+        kind: "package",
+        aliases: ["sql-feature"],
+        packageName: "sql-feature",
+        directory: "packages/sql-feature",
+        scripts: ["build", "watch", "test", "lint"],
+    },
+    {
         target: "mssql",
         kind: "extension",
         aliases: ["mssql"],
@@ -16,9 +24,9 @@ export const workspaceTargets = [
         scripts: ["build", "watch", "test", "smoketest", "lint", "package"],
         supportsProdBuild: true,
         dependencies: {
-            build: ["extension-toolkit"],
-            watch: ["extension-toolkit"],
-            lint: ["extension-toolkit"],
+            build: ["extension-toolkit", "sql-feature"],
+            watch: ["extension-toolkit", "sql-feature"],
+            lint: ["extension-toolkit", "sql-feature"],
         },
     },
     {

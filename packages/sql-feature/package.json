@@ -1,0 +1,78 @@
+{
+    "name": "sql-feature",
+    "version": "0.0.1",
+    "private": true,
+    "description": "SQL Server feature engines: editing, activity, Query Store, SQL Agent and profiling",
+    "license": "SEE LICENSE IN ../../LICENSE.txt",
+    "exports": {
+        "./core": {
+            "types": "./dist/core/index.d.ts",
+            "require": "./dist/core/index.js",
+            "default": "./dist/core/index.js"
+        },
+        "./edit": {
+            "types": "./dist/edit/index.d.ts",
+            "require": "./dist/edit/index.js",
+            "default": "./dist/edit/index.js"
+        },
+        "./diagnostics/dmv": {
+            "types": "./dist/diagnostics/dmv/index.d.ts",
+            "require": "./dist/diagnostics/dmv/index.js",
+            "default": "./dist/diagnostics/dmv/index.js"
+        },
+        "./diagnostics/querystore": {
+            "types": "./dist/diagnostics/querystore/index.d.ts",
+            "require": "./dist/diagnostics/querystore/index.js",
+            "default": "./dist/diagnostics/querystore/index.js"
+        },
+        "./diagnostics/profiler": {
+            "types": "./dist/diagnostics/profiler/index.d.ts",
+            "require": "./dist/diagnostics/profiler/index.js",
+            "default": "./dist/diagnostics/profiler/index.js"
+        },
+        "./agent": {
+            "types": "./dist/agent/index.d.ts",
+            "require": "./dist/agent/index.js",
+            "default": "./dist/agent/index.js"
+        }
+    },
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "build": "tsc -p tsconfig.json",
+        "build:test": "tsc -p tsconfig.test.json",
+        "watch": "tsc -watch -p tsconfig.json --preserveWatchOutput",
+        "lint": "eslint --quiet --cache ./src ./test",
+        "pretest": "npm run build && npm run build:test",
+        "test": "node --test \"dist-test/test/**/*.test.js\"",
+        "verify": "node scripts/verify-against-server.mjs",
+        "verify:querystore": "npm run build && node scripts/verify-query-store.mjs"
+    },
+    "devDependencies": {
+        "@types/node": "^22.13.14",
+        "typescript": "^5.8.3"
+    },
+    "typesVersions": {
+        "*": {
+            "core": [
+                "dist/core/index.d.ts"
+            ],
+            "edit": [
+                "dist/edit/index.d.ts"
+            ],
+            "diagnostics/dmv": [
+                "dist/diagnostics/dmv/index.d.ts"
+            ],
+            "diagnostics/querystore": [
+                "dist/diagnostics/querystore/index.d.ts"
+            ],
+            "diagnostics/profiler": [
+                "dist/diagnostics/profiler/index.d.ts"
+            ],
+            "agent": [
+                "dist/agent/index.d.ts"
+            ]
+        }
+    }
+}

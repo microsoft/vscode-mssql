@@ -788,6 +788,26 @@ export class Sts2Session implements ISqlSession {
         };
     }
 
+    /**
+     * Reads part of an oversized cell the service retained for a query.
+     *
+     * The service keys retention by its own query id and drops everything on dispose, so this
+     * only works between the rows page carrying the marker and the query being disposed.
+     */
+    async fetchCell(
+        queryId: string,
+        cellRef: string,
+        offset: number,
+        length: number,
+    ): Promise<{ v: string; eof: boolean }> {
+        return this.rpc.sendRequest<{ v: string; eof: boolean }>(STS2_METHODS.queryCell, {
+            queryId,
+            cellRef,
+            offset,
+            length,
+        });
+    }
+
     execute(text: string, opts: ExecuteOptions, sink: IQueryEventSink): QueryHandle {
         if (this.state !== "open") {
             throw new SqlDataPlaneError(
@@ -1011,6 +1031,12 @@ export class Sts2Query {
             if (this.opts.spatialEncoding === "wkb-v1" && this.backend.spatialWkbNegotiated) {
                 options.spatialEncoding = "wkb-v1";
                 this.spatialWkbActive = true;
+            }
+            // Oversized-cell retention (v2/query.cell): the service keeps whole values for this
+            // query so a truncated cell can be completed afterwards rather than lost. Costs
+            // server memory, so it is only sent when the caller actually asked.
+            if (this.opts.retainOversizedCells) {
+                options.retainOversizedCells = true;
             }
             const result = await this.rpc.sendRequest<V2QueryExecuteResult>(
                 STS2_METHODS.queryExecute,

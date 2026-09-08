@@ -147,6 +147,32 @@ export default [
         },
     },
 
+    // SQL feature engines
+    {
+        files: ["packages/sql-feature/src/**/*.ts", "packages/sql-feature/test/**/*.ts"],
+        ignores: [...(includeIgnoreFile(gitignorePath).ignores || [])],
+        languageOptions: {
+            ecmaVersion: "latest",
+            sourceType: "module",
+            parser: tseslint.parser,
+            parserOptions: {
+                tsconfigRootDir: __dirname,
+                project: "./packages/sql-feature/tsconfig.test.json",
+            },
+        },
+        plugins: {
+            notice,
+            jsdoc,
+            ["@typescript-eslint"]: tseslint.plugin,
+            ...eslintPluginPrettierRecommended.plugins,
+            "@stylistic": stylistic,
+            "custom-eslint-rules": customRules,
+        },
+        rules: {
+            ...sharedRules,
+        },
+    },
+
     // mssql extension - with React support
     {
         files: [

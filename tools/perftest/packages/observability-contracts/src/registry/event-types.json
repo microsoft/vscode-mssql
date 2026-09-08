@@ -816,6 +816,33 @@
             "notes": "DacFxService operations (sts.dacfx.<OperationType>) AND designer DesignServices work (sts.dacfx.tableDesigner.*, sts.dacfx.schemaDesigner.*)."
         },
         {
+            "prefix": "sqlDiag.",
+            "kind": "event",
+            "phase": "instant",
+            "feature": "sqlDiagnostics",
+            "processRoles": ["extensionHost"],
+            "timingClass": "epochAligned",
+            "measurementEligible": false,
+            "attrs": {
+                "status": "safeEnum",
+                "queryId": "safeEnum",
+                "platform": "safeEnum",
+                "edition": "structuralMetadata",
+                "rows": "structuralMetadata",
+                "count": "structuralMetadata",
+                "durationMs": "structuralMetadata",
+                "bytes": "structuralMetadata",
+                "events": "structuralMetadata",
+                "attempt": "structuralMetadata",
+                "reason": "safeEnum",
+                "session": "objectName",
+                "server": "serverName",
+                "error": "userText"
+            },
+            "attrsComplete": false,
+            "notes": "DMV, Query Store, SQL Agent and profiler activity emitted by the sql-diagnostics package from the extension host. Spans append .begin/.end to these names."
+        },
+        {
             "name": "sts2.query.stats",
             "kind": "event",
             "phase": "instant",

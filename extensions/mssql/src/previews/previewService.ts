@@ -25,6 +25,11 @@ export enum PreviewFeature {
 export enum PrivatePreviewFeature {
     SqlDataPlane = "mssql.sqlDataPlane.enabled",
     MetadataCache = "mssql.metadataCache.enabled",
+    /**
+     * Routes Table Explorer to the data-plane editing engine instead of the SQL Tools Service
+     * edit session. Requested alongside SqlDataPlane, which the engine runs on.
+     */
+    TableEditor = "mssql.tableExplorer.useDataPlaneEngine",
 }
 
 /**

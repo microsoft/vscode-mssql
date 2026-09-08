@@ -78,6 +78,10 @@
     "mssql.rebuildIntelliSenseCache": "Refresh IntelliSense Cache",
     "mssql.logDebugInfo": "[Optional] Log debug output to the VS Code console (Help -> Toggle Developer Tools)",
     "mssql.maxRecentConnections": "The maximum number of recently used connections to store in the connection list.",
+    "mssql.sqlDiagnostics.open": "Open SQL Diagnostics",
+    "mssql.tableExplorer.useDataPlaneEngine": "Open tables with the SQL data plane editing engine, which saves atomically, detects concurrent changes, and pages by key rather than by offset. Requires experimental features and the SQL data plane. When off, the SQL Tools Service edit session is used.",
+    "mssql.sqlProfiler.open": "Profiler: Start New Capture",
+    "mssql.sqlProfiler.openFile": "Profiler: Open Capture or XEL File",
     "mssql.profiler.eventBufferSize": "Maximum number of events to keep in memory for the Profiler. When this limit is reached, older events are dropped. Increase this value if you need to retain more events during profiling sessions.",
     "mssql.connections": "Connection profiles defined in 'User Settings' are shown under 'MS SQL: Connect' command in the command palette.",
     "mssql.connectionGroups": "Connection groups",
@@ -385,5 +389,8 @@
     "mssql.metadataCache.maxAgeDays.description": "Evict persisted metadata snapshots older than this many days.",
     "mssql.metadataCache.maxBytes.description": "Maximum total size in bytes for persisted metadata snapshots. Least-recently-used entries are evicted first.",
     "mssql.metadataCache.offlineMode.description": "Serve metadata only from persisted snapshots without contacting the server. Requires the experimental-features, SQL Data Plane, and metadata-cache settings. Status surfaces disclose snapshot age, and operations requiring fresh metadata refuse stale or unavailable data.",
-    "mssql.metadata.pollSeconds.description": "Internal preview setting: base interval in seconds for metadata drift checks. Set to 0 to disable polling. Per-database backoff, window-focus suspension, and serverless safeguards also apply. Reload the window after changing this setting."
+    "mssql.metadata.pollSeconds.description": "Internal preview setting: base interval in seconds for metadata drift checks. Set to 0 to disable polling. Per-database backoff, window-focus suspension, and serverless safeguards also apply. Reload the window after changing this setting.",
+    "mssql.sqlActivity.open": "Open SQL Activity",
+    "mssql.queryStore.open": "Open Query Store",
+    "mssql.sqlAgent.open": "Open SQL Server Agent"
 }

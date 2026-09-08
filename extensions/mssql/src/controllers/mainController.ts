@@ -35,6 +35,10 @@ import {
     StoredConnectionProfile,
 } from "../services/metadata/profileAuthAdapter";
 import { SqlDataPlaneService } from "../services/sqlDataPlane/sqlDataPlaneService";
+import { TableEditorWebviewController } from "../tableExplorer/tableEditorWebviewController";
+import { SqlDiagnosticsController } from "../sqlDiagnostics/sqlDiagnosticsController";
+import { SqlProfilerController } from "../sqlDiagnostics/sqlProfilerController";
+import { DiagnosticsSessionOpener } from "../sqlDiagnostics/sessionOpener";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import CodeAdapter from "../prompts/adapter";
@@ -1176,8 +1180,33 @@ export default class MainController implements vscode.Disposable {
             );
         });
 
+        this.initializeSqlDiagnostics();
+
         this._initialized = true;
         return true;
+    }
+
+    /**
+     * Registers the SQL Diagnostics and profiler panels.
+     *
+     * Both run entirely on the SQL data plane, so they are registered unconditionally and refuse
+     * politely when it is off. Registering them behind the setting would leave the commands
+     * missing from the palette with no explanation.
+     */
+    private initializeSqlDiagnostics(): void {
+        const opener = new DiagnosticsSessionOpener(
+            this._connectionMgr.connectionStore as unknown as ProfileSecretSource,
+            () =>
+                Object.values(this._connectionMgr.activeConnections).map(
+                    (connection) => connection.credentials as StoredConnectionProfile,
+                ),
+        );
+        const dataPlaneEnabled = () => SqlDataPlaneService.get().enabled;
+
+        this._context.subscriptions.push(
+            new SqlDiagnosticsController(this._context, dataPlaneEnabled, opener),
+            new SqlProfilerController(this._context, dataPlaneEnabled, opener),
+        );
     }
 
     /**
@@ -3440,6 +3469,20 @@ export default class MainController implements vscode.Disposable {
     }
 
     public async onTableExplorer(node?: any): Promise<void> {
+        // With the TableEditor private preview on, tables open on the data-plane editing engine
+        // instead of the SQL Tools Service edit session. The old path stays the default, so a
+        // problem with the new engine is a setting away from being avoided.
+        if (
+            previewService.isPrivatePreviewEnabled(
+                PrivatePreviewFeature.SqlDataPlane,
+                PrivatePreviewFeature.TableEditor,
+            )
+        ) {
+            if (await this.openDataPlaneTableEditor(node)) {
+                return;
+            }
+        }
+
         const tableExplorerWebView = new TableExplorerWebViewController(
             this._context,
             this.tableExplorerService,
@@ -3448,6 +3491,53 @@ export default class MainController implements vscode.Disposable {
         );
 
         tableExplorerWebView.revealToForeground();
+    }
+
+    /**
+     * Opens a table on the data-plane engine.
+     *
+     * Returns false when it cannot, so the caller falls back to the existing editor rather than
+     * leaving the user with nothing. A fallback is reported, because silently opening a
+     * different editor than the setting asked for would be baffling.
+     */
+    private async openDataPlaneTableEditor(node?: any): Promise<boolean> {
+        const schemaName = node?.metadata?.schema;
+        const tableName = node?.metadata?.name;
+        const profile = node?.connectionProfile as StoredConnectionProfile | undefined;
+
+        if (!schemaName || !tableName || !profile) {
+            return false;
+        }
+
+        try {
+            const opener = new DiagnosticsSessionOpener(
+                this._connectionMgr.connectionStore as unknown as ProfileSecretSource,
+                () => [],
+            );
+            const database = ObjectExplorerUtils.getDatabaseName(node);
+            const opened = await opener.open(profile, database);
+            if (!opened) {
+                return false;
+            }
+
+            const editor = new TableEditorWebviewController(this._context, {
+                session: opened.session,
+                serverName: profile.server ?? "",
+                databaseName: database,
+                schemaName,
+                tableName,
+            });
+            editor.revealToForeground();
+            return true;
+        } catch (error) {
+            this._logger.error(
+                `Data-plane table editor could not open, falling back: ${getErrorMessage(error)}`,
+            );
+            void vscode.window.showWarningMessage(
+                `Opening ${schemaName}.${tableName} with the data plane failed, so the standard editor was used instead. ${getErrorMessage(error)}`,
+            );
+            return false;
+        }
     }
 
     public async onSearchDatabase(node?: any): Promise<void> {

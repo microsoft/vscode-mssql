@@ -19,6 +19,1049 @@ export class LocConstants {
         LocConstants._instance = new LocConstants();
     }
 
+    public get profilerSessions() {
+        return {
+            deleteSession: l10n.t("Delete session…"),
+            deleting: (name: string) => l10n.t('Reviewing or deleting session "{0}"…', name),
+            deleted: (name: string) =>
+                l10n.t(
+                    'Session "{0}" was deleted. Captured events remain available to inspect and export.',
+                    name,
+                ),
+            failed: (name: string, error: string) =>
+                l10n.t('Could not complete deletion of session "{0}": {1}', name, error),
+            running: (name: string) => l10n.t("{0} (running)", name),
+            clearEvents: l10n.t("Clear events"),
+        };
+    }
+
+    public get tableCellEditor() {
+        return {
+            loading: l10n.t("Loading the complete value…"),
+            failed: l10n.t("The complete value could not be loaded. Retry before editing."),
+            retry: l10n.t("Retry"),
+            actions: l10n.t("Cell actions"),
+            setNull: l10n.t("Set to null"),
+            defaultValue: l10n.t("Default"),
+            revert: l10n.t("Revert cell"),
+            generatedValue: l10n.t("Generated on save"),
+            requiredValue: l10n.t("Required"),
+            trueValue: l10n.t("True"),
+            falseValue: l10n.t("False"),
+            nullValue: l10n.t("NULL"),
+            incompleteValue: l10n.t("Incomplete preview. Open to load the complete value."),
+            cancel: l10n.t("Cancel"),
+            apply: l10n.t("Apply"),
+        };
+    }
+
+    public get tableEditor() {
+        return {
+            loading: l10n.t("Loading"),
+            loadingRows: l10n.t("Loading rows"),
+            noRowsMatch: l10n.t("No rows match these filters."),
+            noRows: l10n.t("This table has no rows."),
+            readOnly: l10n.t("Read-only"),
+            openFullValue: l10n.t("Open the full value"),
+            removeFilter: l10n.t("Remove filter"),
+            addFilter: l10n.t("Add filter"),
+            applyFilter: l10n.t("Apply filter"),
+            clearFilter: l10n.t("Clear filters"),
+            save: l10n.t("Save"),
+            saving: l10n.t("Saving"),
+            saveChanges: (count: number) => l10n.t("Save {0} changes", count),
+            undo: l10n.t("Undo"),
+            redo: l10n.t("Redo"),
+            changes: (count: number) => l10n.t("Changes ({0})", count),
+            issuesCount: (count: number) => l10n.t("Issues ({0})", count),
+            noChanges: l10n.t("No changes staged."),
+            noIssues: l10n.t("No current issues."),
+            pasteRejected: l10n.t("Paste was rejected. No cells were changed."),
+            rowChange: (rowId: number, operation: string, columns: string) =>
+                l10n.t("Row {0} · {1} · {2}", rowId, operation, columns),
+            operations: {
+                insert: l10n.t("Insert"),
+                update: l10n.t("Update"),
+                delete: l10n.t("Delete"),
+            },
+            inspectorChanges: l10n.t("Changes"),
+            inspectorIssues: l10n.t("Issues"),
+            discard: l10n.t("Discard"),
+            newRow: l10n.t("New row"),
+            insertionHint: l10n.t(
+                "Add a row to begin an insert. An untouched surface is not saved.",
+            ),
+            insertionActive: l10n.t("New row ready. Enter a value or choose how to insert it."),
+            insertUsingDefaults: l10n.t("Insert using defaults"),
+            pendingInserts: (count: number) => l10n.t("{0} pending inserts", count),
+            refresh: l10n.t("Refresh"),
+            filter: (count: number) => l10n.t("Filter ({0})", count),
+            filterLabel: l10n.t("Filter"),
+            script: l10n.t("Script"),
+            previousPage: l10n.t("Previous page"),
+            nextPage: l10n.t("Next page"),
+            page: (page: number) => l10n.t("Page {0}", page),
+            rowsOnPage: (count: number) => l10n.t("{0} rows on this page", count),
+            countAllRows: l10n.t("Count all rows"),
+            matchingRows: (count: string) => l10n.t("{0} matching", count),
+            primaryKey: l10n.t("Primary key"),
+            uniqueIndex: l10n.t("Unique index"),
+            noKey: l10n.t("No key"),
+            notEditable: l10n.t("Not editable"),
+            defaultScript: l10n.t("-- No changes staged. Edit a cell to see the statements."),
+            deleteRow: l10n.t("Delete row"),
+            revertRow: l10n.t("Revert row"),
+            issues: l10n.t("Issues"),
+            reconcile: l10n.t("Reconcile"),
+            conflictComparison: l10n.t("Conflict comparison"),
+            column: l10n.t("Column"),
+            rowEvidence: (rowId: number) => l10n.t("Row {0}:", rowId),
+            originalValue: l10n.t("Original"),
+            serverValue: l10n.t("On server now"),
+            proposedValue: l10n.t("Your change"),
+            keepServer: l10n.t("Keep server value"),
+            reapplyConflict: l10n.t("Reapply my change"),
+            reconciliationEvidence: l10n.t("Reconciliation evidence"),
+            notAvailable: l10n.t("Not available"),
+            savedReload: l10n.t("Reload"),
+            savedReconciliationFailed: l10n.t(
+                "Save acknowledged, but affected rows could not be fully verified.",
+            ),
+            acceptReconciliation: l10n.t("Accept acknowledged save"),
+            refreshDraft: l10n.t("Refresh while retaining drafts"),
+            rollbackFailure: l10n.t(
+                "No submitted changes were applied. Your drafts were retained.",
+            ),
+            conflict: l10n.t(
+                "The server changed this row. Review the retained draft before retrying.",
+            ),
+            unknownOutcome: l10n.t(
+                "The save outcome is unknown. Reconcile the table before retrying.",
+            ),
+            saved: l10n.t("Save acknowledged."),
+            emptyString: l10n.t("Empty string"),
+            operators: {
+                equals: l10n.t("equals"),
+                notEquals: l10n.t("does not equal"),
+                greaterThan: l10n.t("is greater than"),
+                greaterThanOrEqual: l10n.t("is at least"),
+                lessThan: l10n.t("is less than"),
+                lessThanOrEqual: l10n.t("is at most"),
+                contains: l10n.t("contains"),
+                notContains: l10n.t("does not contain"),
+                startsWith: l10n.t("starts with"),
+                endsWith: l10n.t("ends with"),
+                isNull: l10n.t("is empty"),
+                isNotNull: l10n.t("is not empty"),
+            },
+        };
+    }
+
+    public get agentHistory() {
+        return {
+            started: l10n.t("Started"),
+            outcome: l10n.t("Execution outcome"),
+            duration: l10n.t("Duration"),
+            attempts: l10n.t("Retained step records"),
+            unassigned: l10n.t("History without a matching completed execution"),
+            steps: l10n.t("Step attempts"),
+            retention: l10n.t(
+                "Executions are grouped from retained history. Row limits or history cleanup can leave missing steps or summaries. Unmatched records do not establish that a job is currently running.",
+            ),
+            noSteps: l10n.t(
+                "No step records were retained in this result for the selected execution.",
+            ),
+        };
+    }
+
+    public get agentActions() {
+        return {
+            manage: l10n.t("Manage job"),
+            start: l10n.t("Run"),
+            stop: l10n.t("Stop"),
+            enable: l10n.t("Enable"),
+            disable: l10n.t("Disable"),
+            delete: l10n.t("Delete"),
+        };
+    }
+
+    public get agentReadiness() {
+        return {
+            unsupported: l10n.t(
+                "SQL Server Agent is unavailable on this target. Use a supported SQL Server edition or Azure SQL Managed Instance. Azure SQL Database uses a separate Elastic Jobs service.",
+            ),
+            service: {
+                running: l10n.t(
+                    "SQL Server Agent is running. Individual jobs can still be disabled or fail during execution.",
+                ),
+                stopped: l10n.t(
+                    "SQL Server Agent is stopped. Scheduled jobs will not run. Ask the server administrator to start the service; job definitions and retained history can still be inspected.",
+                ),
+                other: l10n.t(
+                    "SQL Server Agent is paused or changing state. Recheck before relying on scheduled execution.",
+                ),
+                unknown: l10n.t(
+                    "The Agent service state could not be established. This does not mean it is stopped. Ask an administrator to check its state and your service-monitoring permissions.",
+                ),
+            },
+            visibility: {
+                all: l10n.t(
+                    "Your Agent role supports viewing all jobs. Managing a particular job still depends on ownership and the requested action.",
+                ),
+                owned: l10n.t(
+                    "Your Agent role is intended for jobs you own. An empty list does not establish that the server has no jobs.",
+                ),
+                unknown: l10n.t(
+                    "Job visibility is not established. Custom permissions may apply. Ask an administrator to review your msdb access and the appropriate SQL Agent role.",
+                ),
+            },
+            jobsError: l10n.t(
+                "The job list could not be read. Review database access before retrying.",
+            ),
+            details: l10n.t("Readiness check details"),
+            permissions: l10n.t("Administrator guidance: job permissions"),
+            serviceHelp: l10n.t("Administrator guidance: Agent service"),
+            recheck: l10n.t("Recheck readiness"),
+        };
+    }
+
+    public get agentSchedule() {
+        return {
+            monthly: l10n.t("Monthly"),
+            everyMonths: l10n.t("Every N months"),
+            monthDay: l10n.t("Day of month"),
+            monthEnd: l10n.t(
+                "A day such as the 31st does not occur in every month. Review the expected run dates before enabling the job.",
+            ),
+            repeat: l10n.t("Repeat within the day"),
+            repeatEvery: l10n.t("Repeat every"),
+            repeatUnit: l10n.t("Repeat unit"),
+            units: {
+                seconds: l10n.t("Seconds"),
+                minutes: l10n.t("Minutes"),
+                hours: l10n.t("Hours"),
+            },
+            endTime: l10n.t("Stop repeating at"),
+            title: l10n.t("Schedule"),
+            frequency: l10n.t("Frequency"),
+            manual: l10n.t("Manual only"),
+            once: l10n.t("One time"),
+            daily: l10n.t("Daily"),
+            weekly: l10n.t("Weekly"),
+            name: l10n.t("Schedule name"),
+            startDate: l10n.t("Start date"),
+            startTime: l10n.t("Run time"),
+            endDate: l10n.t("End date (optional)"),
+            everyDays: l10n.t("Every N days"),
+            everyWeeks: l10n.t("Every N weeks"),
+            weekdays: l10n.t("Days of the week"),
+            days: [
+                l10n.t("Sunday"),
+                l10n.t("Monday"),
+                l10n.t("Tuesday"),
+                l10n.t("Wednesday"),
+                l10n.t("Thursday"),
+                l10n.t("Friday"),
+                l10n.t("Saturday"),
+            ],
+            timeBasis: l10n.t(
+                "Dates and times use the SQL Agent server's local clock. An enabled job can run when this schedule becomes due.",
+            ),
+            invalid: l10n.t(
+                "Provide a schedule name, valid dates and time, a positive whole-number recurrence, and at least one day for weekly schedules. The end date cannot precede the start date. Repeating time windows must end after they start; seconds intervals must be at least 10. Monthly days must be 1–31.",
+            ),
+        };
+    }
+
+    public get agentCreation() {
+        return {
+            title: l10n.t("New SQL Agent job"),
+            jobName: l10n.t("Job name"),
+            description: l10n.t("Description"),
+            stepName: l10n.t("Step name"),
+            database: l10n.t("Database"),
+            command: l10n.t("T-SQL to run"),
+            enabled: l10n.t("Enabled"),
+            cancel: l10n.t("Cancel"),
+            step: (number: number) => l10n.t("Step {0}", number),
+            retryAttempts: l10n.t("Retry attempts"),
+            retryInterval: l10n.t("Minutes between retries"),
+            retryHelp: l10n.t(
+                "Zero attempts disables retries. Retried steps can repeat changes already made by a failed attempt. After retries are exhausted, the job ends with failure.",
+            ),
+            addStep: l10n.t("Add step"),
+            removeStep: l10n.t("Remove step"),
+            moveUp: l10n.t("Move up"),
+            moveDown: l10n.t("Move down"),
+            routing: l10n.t(
+                "Steps run in the order shown. A successful step continues to the next step; a failure ends the job with failure after any configured retries.",
+            ),
+            review: l10n.t("Review creation"),
+            reviewing: l10n.t("Reviewing creation…"),
+            handoff: l10n.t(
+                "Review the SQL before applying, or generate a script for an administrator. Your draft is kept until creation succeeds.",
+            ),
+        };
+    }
+
+    public get sqlFeatures() {
+        return {
+            dmv: l10n.t("SQL Activity"),
+            querystore: l10n.t("Query Store"),
+            agent: l10n.t("SQL Server Agent"),
+        };
+    }
+
+    public get sqlFeaturePage() {
+        return {
+            refresh: l10n.t("Refresh"),
+            openSql: l10n.t("Open SQL"),
+            exportCsv: l10n.t("Export CSV"),
+            running: l10n.t("Running"),
+            incomplete: l10n.t(
+                "Some values were too large to return in full and are shown truncated.",
+            ),
+            rows: (count: number, duration: number) =>
+                l10n.t("{0} rows · {1} ms", count.toLocaleString(), Math.round(duration)),
+            snapshot: {
+                complete: l10n.t("Complete snapshot"),
+                empty: l10n.t("Complete snapshot with no matching rows"),
+                partial: l10n.t("Partial snapshot"),
+                unknown: l10n.t("Snapshot outcome unknown"),
+                collected: (start: string, end: string) =>
+                    l10n.t("Collected {0} to {1}", start, end),
+                scope: (server: string, database: string) =>
+                    l10n.t("Scope: {0}, database {1}", server, database),
+                point: l10n.t("Point-in-time observation"),
+                sinceReset: l10n.t("Cumulative values since the last counter reset"),
+                window: (start: string, end: string) => l10n.t("Window: {0} to {1}", start, end),
+                baselineWindow: (start: string, end: string) =>
+                    l10n.t("Baseline: {0} to {1}", start, end),
+                coverage: (observed: number, expected: number) =>
+                    l10n.t("Coverage: {0} of {1} intervals", observed, expected),
+                baselineCoverage: (observed: number, expected: number) =>
+                    l10n.t("Baseline coverage: {0} of {1} intervals", observed, expected),
+                coverageNote: (note: string) => l10n.t("Coverage note: {0}", note),
+                metric: (value: string) => l10n.t("Metric: {0}", value),
+                metricNames: {
+                    duration: l10n.t("Duration"),
+                    cpu: l10n.t("CPU"),
+                    reads: l10n.t("Logical reads"),
+                    executions: l10n.t("Executions"),
+                    waits: l10n.t("Waits"),
+                    storage: l10n.t("Storage"),
+                },
+                aggregation: (value: string) => l10n.t("Aggregation: {0}", value),
+                aggregationNames: {
+                    raw: l10n.t("Raw values"),
+                    sum: l10n.t("Total"),
+                    maximum: l10n.t("Maximum"),
+                    weightedMean: l10n.t("Execution-weighted mean"),
+                    pooledVariation: l10n.t("Pooled variation"),
+                },
+                aggregationDetails: {
+                    raw: l10n.t("Values are shown as returned by the server."),
+                    sum: l10n.t(
+                        "Totals combine each recorded average with its execution count; averages are not averaged again.",
+                    ),
+                    maximum: l10n.t(
+                        "Maximum is the highest compatible recorded maximum in the selected evidence.",
+                    ),
+                    weightedMean: l10n.t(
+                        "Weighted mean = sum(recorded average × executions) / sum(executions).",
+                    ),
+                    pooledVariation: l10n.t(
+                        "Pooled variation includes within-group and between-group differences; it is not an average of interval standard deviations.",
+                    ),
+                },
+                filter: (value: string) => l10n.t("Filter: {0}", value),
+                exclusions: (value: string) => l10n.t("Excluded: {0}", value),
+                rowLimit: (count: number) => l10n.t("Row cap: {0}", count),
+                rowLimitNote: l10n.t(
+                    "The displayed rows are capped; totals, counts, and coverage describe the rows returned in this snapshot, not omitted matches.",
+                ),
+                comparison: {
+                    baseline: l10n.t(
+                        "Baseline sample; collect another compatible sample for a delta.",
+                    ),
+                    delta: (baseline: string) =>
+                        l10n.t("Delta from baseline collected {0}", baseline),
+                    invalid: (reason: string) => l10n.t("Comparison unavailable: {0}", reason),
+                    counterReset: l10n.t("a wait counter reset between samples"),
+                    incomplete: l10n.t("one of the samples was incomplete"),
+                    invalidValue: l10n.t("a sample contained an invalid counter value"),
+                },
+            },
+            noRows: l10n.t("No rows matched this investigation."),
+            empty: {
+                dmv: {
+                    overview: l10n.t(
+                        "No user requests were visible at collection time. Start another observation while reproducing the issue.",
+                    ),
+                    blocking: l10n.t(
+                        "No blocking relationships were observed in this sample. Intermittent blocking may require repeated observations.",
+                    ),
+                    workload: l10n.t(
+                        "No completed statements were returned from the current plan cache. Refresh after the workload finishes, or use Query Store for retained history.",
+                    ),
+                    waits: l10n.t(
+                        "No included wait counters were returned for this sample. The background-wait filter and counter reset history affect what is visible.",
+                    ),
+                    storage: l10n.t(
+                        "No file I/O observations were returned. This does not establish that storage is healthy or idle.",
+                    ),
+                    indexes: l10n.t(
+                        "No missing-index candidates were returned. This does not establish that existing indexes are optimal.",
+                    ),
+                },
+                querystore: {
+                    overview: l10n.t(
+                        "Query Store is available, but no matching workload history was found in the selected window and filters.",
+                    ),
+                    regressions: l10n.t(
+                        "No comparable Query Store executions were found for the selected baseline and recent windows.",
+                    ),
+                    variation: l10n.t(
+                        "No queries with enough retained executions for a variation comparison were found in this window.",
+                    ),
+                    forced: l10n.t(
+                        "No forced plans were returned for the selected Query Store scope.",
+                    ),
+                    waits: l10n.t(
+                        "No Query Store wait evidence matched the selected window and filters.",
+                    ),
+                },
+                agent: {
+                    jobs: l10n.t(
+                        "No visible jobs matched the current scope. This does not establish that the Agent instance has no jobs.",
+                    ),
+                    running: l10n.t(
+                        "No jobs were observed running in the current Agent activity sample.",
+                    ),
+                    status: l10n.t(
+                        "No service-status row was returned. The Agent service state remains unknown.",
+                    ),
+                    steps: l10n.t(
+                        "No retained steps were returned for the selected job. Refresh the job definition and review access.",
+                    ),
+                    history: l10n.t(
+                        "No retained execution history was returned for this job and filter. This does not establish that the job never ran.",
+                    ),
+                },
+                partial: l10n.t(
+                    "The collection returned no complete rows. Review the incomplete evidence and retry before drawing conclusions.",
+                ),
+                unknown: l10n.t(
+                    "The collection outcome is unknown, so an empty result cannot be interpreted as an observed absence of evidence.",
+                ),
+            },
+            chooseInvestigation: l10n.t("Choose an investigation."),
+            notAvailableOnServer: l10n.t("Not available on this server"),
+            identifying: l10n.t("Identifying the target…"),
+            connectedServer: l10n.t("Connected server"),
+            database: (name: string) => l10n.t("Database: {0}", name),
+            noAgent: l10n.t("SQL Server Agent is unavailable"),
+            sample: l10n.t(
+                "This view is a point-in-time sample. An empty result means no matching evidence was visible when it ran.",
+            ),
+            evidence: l10n.t("Evidence"),
+            available: (count: number) => l10n.t("{0} investigations available", count),
+            unavailable: (count: number) => l10n.t("{0} investigations need attention", count),
+            dmvReadiness: {
+                checking: l10n.t("Checking DMV access…"),
+                ready: l10n.t("Ready"),
+                denied: (permission: string) => l10n.t("Permission needed: {0}", permission),
+                unsupported: l10n.t("Unsupported for this platform or scope"),
+                unknown: l10n.t("Readiness could not be established"),
+                failed: l10n.t("Collection failed; retry or review the error details"),
+                accessResolution: l10n.t(
+                    "The required DMV permission was denied. Ask an administrator for the narrowest applicable access, then recheck SQL Activity.",
+                ),
+                copyAdminRequest: l10n.t("Copy administrator request"),
+                adminRequestCopied: l10n.t("Administrator request copied to the clipboard."),
+                adminRequestCopyFailed: l10n.t(
+                    "The administrator request could not be copied. Review the permission shown above and ask an administrator directly.",
+                ),
+                adminRequest: (permission: string, target: string) =>
+                    l10n.t(
+                        "Please review SQL Activity access for {0}. Grant {1} at this target only, then recheck the DMV readiness state.",
+                        target,
+                        permission,
+                    ),
+                serverTarget: (name: string) => l10n.t("server {0}", name),
+                databaseTarget: (name: string) => l10n.t("database {0}", name),
+                overview: l10n.t("Overview"),
+                requests: l10n.t("Requests and blocking"),
+                workload: l10n.t("Query workload"),
+                waits: l10n.t("Waits"),
+                storage: l10n.t("Storage I/O"),
+                indexes: l10n.t("Index candidates"),
+            },
+            dmvFindings: {
+                title: l10n.t("Observed evidence"),
+                evidence: (count: number) => l10n.t("{0} supporting rows", count),
+                limited: l10n.t(
+                    "This is bounded evidence from the selected collection. It is not a diagnosis or a complete history.",
+                ),
+                activity: (count: number) =>
+                    l10n.t("{0} active user requests were visible at collection time.", count),
+                blocking: (relationships: number, depth: number) =>
+                    l10n.t(
+                        "{0} blocking relationships were observed, reaching depth {1}.",
+                        relationships,
+                        depth,
+                    ),
+                cycle: (count: number) =>
+                    l10n.t("{0} relationship rows indicate a bounded blocking cycle.", count),
+                invisibleParent: (count: number) =>
+                    l10n.t(
+                        "{0} relationship rows refer to a blocker outside the visible request/session snapshot.",
+                        count,
+                    ),
+                specialIdentifier: (count: number) =>
+                    l10n.t("{0} relationship rows use a special blocker identifier.", count),
+                workload: (count: number) =>
+                    l10n.t(
+                        "The result contains {0} plan-cache workload rows. Eviction or recompilation can remove evidence.",
+                        count,
+                    ),
+                wait: {
+                    locking: (count: number, milliseconds: number) =>
+                        l10n.t(
+                            "Locking waits: {0} rows, {1} ms of included wait time.",
+                            count,
+                            milliseconds,
+                        ),
+                    dataIo: (count: number, milliseconds: number) =>
+                        l10n.t(
+                            "Data-page I/O waits: {0} rows, {1} ms of included wait time.",
+                            count,
+                            milliseconds,
+                        ),
+                    logIo: (count: number, milliseconds: number) =>
+                        l10n.t(
+                            "Log flush waits: {0} rows, {1} ms of included wait time.",
+                            count,
+                            milliseconds,
+                        ),
+                    client: (count: number, milliseconds: number) =>
+                        l10n.t(
+                            "Result-consumption waits: {0} rows, {1} ms of included wait time.",
+                            count,
+                            milliseconds,
+                        ),
+                    cpu: (count: number, milliseconds: number) =>
+                        l10n.t(
+                            "Scheduler-yield waits: {0} rows, {1} ms of included wait time.",
+                            count,
+                            milliseconds,
+                        ),
+                    parallelism: (count: number, milliseconds: number) =>
+                        l10n.t(
+                            "Parallel-worker waits: {0} rows, {1} ms of included wait time.",
+                            count,
+                            milliseconds,
+                        ),
+                    workers: (count: number, milliseconds: number) =>
+                        l10n.t(
+                            "Worker-availability waits: {0} rows, {1} ms of included wait time.",
+                            count,
+                            milliseconds,
+                        ),
+                    memory: (count: number, milliseconds: number) =>
+                        l10n.t(
+                            "Memory-grant waits: {0} rows, {1} ms of included wait time.",
+                            count,
+                            milliseconds,
+                        ),
+                    unknown: (count: number, milliseconds: number) =>
+                        l10n.t(
+                            "Unclassified waits: {0} rows, {1} ms of included wait time.",
+                            count,
+                            milliseconds,
+                        ),
+                },
+                readNotMeasured: (count: number) =>
+                    l10n.t(
+                        "Read latency was not measured for {0} files because they had no reads.",
+                        count,
+                    ),
+                writeNotMeasured: (count: number) =>
+                    l10n.t(
+                        "Write latency was not measured for {0} files because they had no writes.",
+                        count,
+                    ),
+                index: (count: number) =>
+                    l10n.t(
+                        "{0} missing-index candidates were returned. Validate workload, overlap, write cost, and existing indexes before applying changes.",
+                        count,
+                    ),
+            },
+            dmvBlockingTree: {
+                title: l10n.t("Blocking relationships"),
+                node: (session: string, blocker: string) =>
+                    l10n.t("Session {0}, blocked by {1}", session, blocker),
+                visible: l10n.t("Visible relationship"),
+                cycle: l10n.t("Cycle detected in the bounded collection"),
+                invisible: l10n.t("Parent is outside the visible request/session snapshot"),
+                special: l10n.t("Special blocker identifier"),
+                limitation: l10n.t(
+                    "This tree represents the selected point-in-time sample. It does not identify a safe remediation or a complete server-wide chain.",
+                ),
+            },
+            workloadMetric: l10n.t("Rank by"),
+            workloadDuration: l10n.t("Duration"),
+            workloadCpu: l10n.t("CPU"),
+            workloadReads: l10n.t("Logical reads"),
+            activity: {
+                overview: l10n.t("Overview"),
+                requests: l10n.t("Requests and blocking"),
+                workload: l10n.t("Query workload"),
+                waits: l10n.t("Waits"),
+                storage: l10n.t("Storage I/O"),
+                indexes: l10n.t("Index candidates"),
+                overviewDescription: l10n.t("A bounded sample of current activity."),
+                requestsDescription: l10n.t("See active requests and blocking relationships."),
+                workloadDescription: l10n.t("Rank cached statements by a selected metric."),
+                waitsDescription: l10n.t("Inspect cumulative waits and their categories."),
+                storageDescription: l10n.t("Compare file I/O volume and latency."),
+                indexesDescription: l10n.t("Review optimizer index candidates cautiously."),
+            },
+            queryStore: {
+                overview: l10n.t("Workload overview"),
+                history: l10n.t("Workload history"),
+                allQueries: l10n.t("All queries"),
+                regressions: l10n.t("Regressions"),
+                variation: l10n.t("High variation"),
+                forced: l10n.t("Forced plans"),
+                waits: l10n.t("Waits"),
+                overviewDescription: l10n.t("Review retained workload by time window."),
+                historyDescription: l10n.t(
+                    "Compare retained metric values by Query Store aggregation interval. Missing intervals remain gaps.",
+                ),
+                allQueriesDescription: l10n.t(
+                    "Review query-level evidence for all matching retained statements, subject to the result cap.",
+                ),
+                regressionsDescription: l10n.t("Compare adjacent retained execution windows."),
+                variationDescription: l10n.t("Find queries with inconsistent duration."),
+                forcedDescription: l10n.t("Inspect plans pinned by an administrator."),
+                waitsDescription: l10n.t("Review retained wait evidence by query and category."),
+                window: l10n.t("History window"),
+                day: l10n.t("24 hours"),
+                week: l10n.t("7 days"),
+                month: l10n.t("30 days"),
+                metric: l10n.t("Metric"),
+                duration: l10n.t("Duration"),
+                cpu: l10n.t("CPU"),
+                reads: l10n.t("Logical reads"),
+                executions: l10n.t("Executions"),
+                aggregation: l10n.t("Aggregation"),
+                total: l10n.t("Total"),
+                weightedMean: l10n.t("Execution-weighted mean"),
+                maximum: l10n.t("Maximum"),
+                pooledVariation: l10n.t("Pooled variation"),
+                executionType: l10n.t("Execution type"),
+                executionTypeValues: {
+                    all: l10n.t("All executions"),
+                    successful: l10n.t("Successful executions"),
+                    aborted: l10n.t("Aborted executions"),
+                    exception: l10n.t("Exception executions"),
+                },
+                waitCategory: l10n.t("Wait category"),
+                waitCategoryPlaceholder: l10n.t("Exact Query Store wait category, such as Lock"),
+                sourceFilter: l10n.t("Query source"),
+                sourceValues: {
+                    all: l10n.t("All sources"),
+                    user: l10n.t("User queries"),
+                    internal: l10n.t("Internal queries"),
+                },
+                allExecutions: l10n.t("All executions"),
+                successfulExecutions: l10n.t("Successful executions"),
+                abortedExecutions: l10n.t("Aborted executions"),
+                exceptionExecutions: l10n.t("Exception executions"),
+                textFilter: l10n.t("Statement contains"),
+                textFilterPlaceholder: l10n.t("Filter by text in the captured statement"),
+                applyFilters: l10n.t("Apply filters"),
+                clearFilters: l10n.t("Clear filters"),
+                customWindow: l10n.t("Custom window"),
+                startAt: l10n.t("Start (UTC)"),
+                endAt: l10n.t("End (UTC)"),
+                baselineStartAt: l10n.t("Baseline start (UTC)"),
+                baselineEndAt: l10n.t("Baseline end (UTC)"),
+                invalidWindow: l10n.t("Enter valid UTC start and end instants."),
+                queryIdFilter: l10n.t("Query ID"),
+                queryIdPlaceholder: l10n.t("Filter by Query Store query ID"),
+                tableTitle: l10n.t("Accessible result table"),
+                tableDescription: l10n.t(
+                    "Use this table to inspect the same Query Store snapshot without relying on the virtualized grid.",
+                ),
+                showTable: l10n.t("Show accessible table"),
+                hideTable: l10n.t("Hide accessible table"),
+                inspect: l10n.t("Inspect"),
+                inspectRow: (queryId: string) => l10n.t("Inspect Query Store row {0}", queryId),
+                tableCaption: (queryId: string, count: number) =>
+                    l10n.t("Query Store results for {0}, {1} rows", queryId, count),
+                historyIntervalValue: (interval: string, value: string) =>
+                    l10n.t("Interval {0}: {1}", interval, value),
+                missingInterval: l10n.t("No retained interval"),
+                missingIntervalValue: l10n.t("Gap in Query Store history"),
+                emptyRecovery: l10n.t(
+                    "No matching Query Store history was returned for this window and filter set.",
+                ),
+                emptyRegression: l10n.t(
+                    "No comparable Query Store regression was returned for these windows and filters.",
+                ),
+                emptyRegressionEvidence: l10n.t(
+                    "A regression ratio is only reported when both windows have retained evidence and meet the minimum execution threshold. This result does not establish that performance was unchanged.",
+                ),
+                emptyFutureCollection: l10n.t(
+                    "Enabling collection does not backfill earlier executions. Run the normal workload, then refresh; the selected capture policy may omit infrequent or low-cost statements.",
+                ),
+                emptyCapturePolicy: (mode: string) =>
+                    l10n.t(
+                        "Current capture policy: {0}. Review eligibility before broadening it.",
+                        mode,
+                    ),
+                emptyWaitPolicy: l10n.t(
+                    "Wait evidence is separate from duration history. It may be unavailable, disabled, or absent for this window without preventing duration investigation.",
+                ),
+                resetInvestigation: l10n.t("Reset filters and use 24 hours"),
+                recommendationsTitle: l10n.t("Evidence-backed next checks"),
+                nextCheck: l10n.t("Next check"),
+                limitation: l10n.t("Evidence limitation"),
+                regressionObservation: (
+                    queryId: string,
+                    factor: string,
+                    recentExecutions: string,
+                    baselineExecutions: string,
+                ) =>
+                    l10n.t(
+                        "Query {0} measured {1} times the selected metric in the recent window. Recent executions: {2}; baseline executions: {3}.",
+                        queryId,
+                        factor,
+                        recentExecutions,
+                        baselineExecutions,
+                    ),
+                regressionNextCheck: l10n.t(
+                    "Inspect the explicit stored plans and compare their retained evidence. The ratio does not establish a plan switch or cause.",
+                ),
+                variationObservation: (queryId: string, coefficient: string, executions: string) =>
+                    l10n.t(
+                        "Query {0} has a variation coefficient of {1} across {2} retained executions.",
+                        queryId,
+                        coefficient,
+                        executions,
+                    ),
+                variationNextCheck: l10n.t(
+                    "Compare the selected plans and intervals before attributing variation to parameters, blocking, or another cause.",
+                ),
+                waitObservation: (
+                    queryId: string,
+                    category: string,
+                    total: string,
+                    average: string,
+                    executions: string,
+                ) =>
+                    l10n.t(
+                        "Query {0} recorded {1} wait time for {2}; average wait was {3} across {4} executions.",
+                        queryId,
+                        total,
+                        category,
+                        average,
+                        executions,
+                    ),
+                waitNextCheck: l10n.t(
+                    "Use the selected wait category and execution denominator for context, then inspect current DMV blocking separately. Cumulative waits do not prove a current blocker.",
+                ),
+                coverageLimitation: (observed: string, available: string) =>
+                    l10n.t(
+                        "Only {0} of {1} retained intervals contributed to this observation; missing history is not backfilled.",
+                        observed,
+                        available,
+                    ),
+            },
+            agent: {
+                overview: l10n.t("Jobs"),
+                running: l10n.t("Running jobs"),
+                status: l10n.t("Service status"),
+                steps: l10n.t("Job steps"),
+                history: l10n.t("Execution history"),
+                overviewDescription: l10n.t(
+                    "See enabled state, activity, outcomes, and schedules.",
+                ),
+                runningDescription: l10n.t("Inspect jobs executing in the current Agent session."),
+                statusDescription: l10n.t("Check service state without inferring job outcomes."),
+                stepsDescription: l10n.t("Inspect the selected job's ordered steps."),
+                historyDescription: l10n.t("Group retained executions and step attempts."),
+                chooseJob: l10n.t("Choose a job"),
+                newJob: l10n.t("New job"),
+                start: l10n.t("Run"),
+                stop: l10n.t("Stop"),
+                manage: l10n.t("Manage"),
+                jobToManage: l10n.t("Job to manage"),
+            },
+        };
+    }
+
+    public get sqlFeatureResults() {
+        return {
+            results: l10n.t("Diagnostic results"),
+            details: l10n.t("Row details"),
+            openText: l10n.t("Open text in editor"),
+            incomplete: l10n.t(
+                "This result contains truncated values. Displayed text may be incomplete.",
+            ),
+        };
+    }
+
+    public get sqlWaits() {
+        return {
+            showBackground: l10n.t("Include background waits"),
+            context: l10n.t(
+                "Cumulative task waits since startup or reset, not a measurement of current load. Share uses all wait types included by the filter before the row limit. Task waits can overlap and exceed wall-clock time.",
+            ),
+            guidance: {
+                locking: l10n.t(
+                    "Lock waits: inspect the blocking chain, open transactions, and the statements holding locks. A cumulative total does not identify a current blocker.",
+                ),
+                dataIo: l10n.t(
+                    "Data-page I/O waits: compare file read latency with query read volume and memory pressure. These waits alone do not prove slow storage.",
+                ),
+                logIo: l10n.t(
+                    "Log flush waits: review log-file latency, transaction size, and commit frequency before considering a change.",
+                ),
+                client: l10n.t(
+                    "Result-consumption waits: check how quickly the application reads results, result size, and network throughput. This is not proof of a network fault.",
+                ),
+                cpu: l10n.t(
+                    "Scheduler yield: correlate with runnable tasks and CPU-consuming queries. Yielding alone does not establish CPU saturation.",
+                ),
+                parallelism: l10n.t(
+                    "Parallel-worker coordination: inspect query plans and workload behavior. This wait alone does not justify changing parallelism settings.",
+                ),
+                workers: l10n.t(
+                    "Worker availability: inspect concurrent requests and blocking that may be retaining workers.",
+                ),
+                memory: l10n.t(
+                    "Memory grants: inspect pending grants, requested versus used memory, and concurrent memory-intensive queries.",
+                ),
+                unknown: l10n.t(
+                    "No specific interpretation is available for this wait type. Check its documented meaning and correlate it with the affected workload.",
+                ),
+            },
+        };
+    }
+
+    public get queryStoreReadiness() {
+        return {
+            chooseDatabase: l10n.t("Choose database…"),
+            status: {
+                unsupported: l10n.t(
+                    "Query Store is unavailable for this target. Open a supported user database to continue.",
+                ),
+                unknown: l10n.t(
+                    "Query Store state could not be established. Recheck or ask an administrator to review access.",
+                ),
+                off: l10n.t(
+                    "Query Store is off. Set up collection to record query performance history.",
+                ),
+                collecting: l10n.t(
+                    "Query Store is collecting. Capture policy determines which queries are recorded.",
+                ),
+                readOnly: l10n.t(
+                    "Collection is paused by configuration. Retained history is available to investigate.",
+                ),
+                readOnlyUnexpected: l10n.t(
+                    "Query Store requested read-write mode but is read-only. Review the reasons below.",
+                ),
+                error: l10n.t(
+                    "Query Store reports an internal error. Review the server state with an administrator before changing settings.",
+                ),
+                secondary: l10n.t(
+                    "Query Store is in secondary capture mode. Configuration may be managed on the primary replica.",
+                ),
+            },
+            access: {
+                resolution: l10n.t(
+                    "Resolve Query Store metadata access before changing settings. The current collection state is not known.",
+                ),
+                denied: l10n.t(
+                    "Query Store metadata access was denied. Ask an administrator for the minimum database-scoped read permission, then recheck.",
+                ),
+                inconclusive: l10n.t(
+                    "Query Store metadata access could not be established. Recheck before treating the collection state as known.",
+                ),
+            },
+            reasons: {
+                1: l10n.t("The database is read-only."),
+                2: l10n.t("The database is in single-user mode."),
+                4: l10n.t("The database is in emergency mode."),
+                8: l10n.t("This database is a secondary replica."),
+                65536: l10n.t(
+                    "Query Store has reached its storage limit. Review the storage budget and cleanup settings.",
+                ),
+                131072: l10n.t("The number of statements has reached an internal memory limit."),
+                262144: l10n.t(
+                    "In-memory data awaiting persistence has reached a limit. Recheck after persistence completes.",
+                ),
+                524288: l10n.t("The database has reached its disk size limit."),
+            } as Record<number, string>,
+            unknownReasons: (bits: number) =>
+                l10n.t(
+                    "Additional read-only reason flags: {0}. Review the server documentation.",
+                    bits,
+                ),
+            review: l10n.t("Review collection setup…"),
+            recheck: l10n.t("Recheck"),
+            admin: l10n.t(
+                "Configuration permission is unavailable. Generate SQL for an administrator to review.",
+            ),
+            copyAdminRequest: l10n.t("Copy administrator request"),
+            adminRequestCopied: l10n.t("Administrator request copied to the clipboard."),
+            adminRequestCopyFailed: l10n.t(
+                "The administrator request could not be copied. Use Generate SQL to create a reviewable script.",
+            ),
+            adminRequest: (database: string) =>
+                l10n.t(
+                    "Please review Query Store access for database {0}. Grant VIEW DATABASE STATE for history investigation and ALTER on this database only when configuration changes are approved. Then recheck Query Store state.",
+                    database,
+                ),
+            unknownDatabase: l10n.t("the selected database"),
+            capture: (mode: string) => l10n.t("Capture policy: {0}", mode),
+            captureEligibility: l10n.t(
+                "Capture policy filters which new statements are recorded. A policy other than ALL can omit infrequent or low-cost queries; it does not mean retained history was deleted.",
+            ),
+            waitCapture: (mode: string) => l10n.t("Wait statistics capture: {0}", mode),
+            waitCaptureUnavailable: l10n.t(
+                "Wait history may be unavailable or incomplete while duration history remains usable. Enabling wait capture does not backfill earlier waits.",
+            ),
+            storage: (used: number, limit: number) =>
+                l10n.t("Storage: {0} MB / {1} MB", used, limit),
+            restricted: l10n.t(
+                "Capture is set to NONE. New queries are not captured; already captured queries can still have statistics collected.",
+            ),
+            actual: (value: string) => l10n.t("Actual operation mode: {0}", value),
+            desired: (value: string) => l10n.t("Requested operation mode: {0}", value),
+            maintenanceTitle: l10n.t("Maintenance"),
+            maintenanceDescription: l10n.t(
+                "These actions are separate from settings Save. Review each database operation before applying it.",
+            ),
+            maintenance: {
+                disable: l10n.t("Disable collection"),
+                flush: l10n.t("Flush data"),
+                clearHistory: l10n.t("Clear history"),
+            },
+            maintenanceReview: (action: string) => l10n.t("Review {0}", action),
+            maintenanceConfirm: (action: string) =>
+                l10n.t("This operation will run {0} for the selected database.", action),
+            maintenanceVerified: (action: string) =>
+                l10n.t("Query Store verified the completed action: {0}.", action),
+            maintenanceAcceptedUnverified: (action: string) =>
+                l10n.t(
+                    "Query Store accepted the action: {0}. Completion cannot be verified from the available state read; recheck before relying on it.",
+                    action,
+                ),
+        };
+    }
+
+    public get queryStoreSettings() {
+        return {
+            title: l10n.t("Query Store settings"),
+            operationMode: l10n.t("Operation mode"),
+            captureMode: l10n.t("Query capture policy"),
+            cleanupMode: l10n.t("Size-based cleanup"),
+            waitCaptureMode: l10n.t("Wait statistics capture"),
+            runtimeIntervalMinutes: l10n.t("Runtime aggregation interval (minutes)"),
+            flushIntervalSeconds: l10n.t("Data flush interval (seconds)"),
+            maxStorageMb: l10n.t("Maximum storage (MB)"),
+            retentionDays: l10n.t("History retention (days)"),
+            preserve: l10n.t(
+                "Only changed settings are submitted. Clear an input to leave its existing value unchanged.",
+            ),
+            change: (current: string, proposed: string) =>
+                l10n.t("Current: {0}; proposed: {1}", current, proposed),
+            notReported: l10n.t("Not reported"),
+            keep: l10n.t("Keep current value"),
+            review: l10n.t("Review changes…"),
+            invalidValue: l10n.t("Enter a whole-number value within the supported range."),
+            invalidRuntimeInterval: l10n.t(
+                "Choose a supported history granularity: 1, 5, 10, 15, 30, 60, or 1440 minutes.",
+            ),
+            options: {
+                READ_WRITE: l10n.t("Read write"),
+                READ_ONLY: l10n.t("Read only"),
+                AUTO: l10n.t("Automatic"),
+                ALL: l10n.t("All"),
+                NONE: l10n.t("None"),
+                ON: l10n.t("On"),
+                OFF: l10n.t("Off"),
+            } as Record<string, string>,
+        };
+    }
+
+    public get queryStorePlan() {
+        return {
+            title: l10n.t("Query Store plan inspector"),
+            selected: (queryId: number, planId: number) =>
+                l10n.t("Query {0}, plan {1}", queryId, planId),
+            plans: (queryId: number) => l10n.t("Stored plans for query {0}", queryId),
+            selectPlan: (planId: number) => l10n.t("Inspect plan {0}", planId),
+            comparePlan: (planId: number) => l10n.t("Compare plan {0}", planId),
+            comparisonTitle: l10n.t("Selected plan comparison"),
+            comparison: (firstPlanId: number, secondPlanId: number, ratio: number) =>
+                l10n.t(
+                    "Plan {0} measured {2} times the selected metric of plan {1} in the selected window.",
+                    firstPlanId,
+                    secondPlanId,
+                    ratio,
+                ),
+            comparisonUnavailable: (reason: string) =>
+                l10n.t("Plan comparison unavailable: {0}", reason),
+            comparisonReasons: {
+                plansMissing: l10n.t(
+                    "Select two stored plans with runtime evidence to compare them.",
+                ),
+                planExecutionsInsufficient: l10n.t(
+                    "Both selected plans need enough executions in the selected window.",
+                ),
+                planMetricUnavailable: l10n.t(
+                    "One selected plan has no positive comparable metric.",
+                ),
+            } as Record<string, string>,
+            comparisonLimit: l10n.t(
+                "This compares selected-window runtime evidence only. It does not establish a plan switch, cause, or future outcome.",
+            ),
+            evidence: (executions: number, intervals: number) =>
+                l10n.t("{0} executions across {1} observed intervals", executions, intervals),
+            observed: (start: string, end: string) =>
+                l10n.t("Runtime evidence: {0} to {1}", start, end),
+            noPlans: l10n.t("No stored plans were returned for this query."),
+            planForced: l10n.t("Forced"),
+            planNotForced: l10n.t("Not forced"),
+            forceFailureCount: (count: number) => l10n.t("{0} force failures", count),
+            loading: l10n.t("Reading the selected stored plan…"),
+            open: l10n.t("Open complete plan XML"),
+            incomplete: l10n.t(
+                "The plan was not opened because the returned XML is incomplete or clipped.",
+            ),
+            missing: l10n.t("No stored plan was returned for this query and plan identity."),
+            forced: l10n.t("This plan is currently forced."),
+            notForced: l10n.t("This plan is not forced."),
+            forceFailure: (reason: string) => l10n.t("Last force failure: {0}", reason),
+            force: l10n.t("Force plan"),
+            unforce: l10n.t("Unforce plan"),
+            hint: l10n.t("Query Store hint"),
+            hintState: (state: string) => l10n.t("Hint state: {0}", state),
+            hintPlaceholder: l10n.t("Enter a supported Query Store hint expression"),
+            saveHint: l10n.t("Review hint"),
+            clearHint: l10n.t("Review hint removal"),
+            hintUnavailable: l10n.t("Hints are unavailable for this target or version."),
+            interventionPermission: l10n.t(
+                "Review and apply plan or hint changes requires database configuration permission.",
+            ),
+        };
+    }
+
     // Warning: Only update these strings if you are sure you want to affect _all_ locations they're shared between.
     public get common() {
         return {

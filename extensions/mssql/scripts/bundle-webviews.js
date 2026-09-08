@@ -40,6 +40,12 @@ void run(
                 profiler: "src/webviews/pages/Profiler/index.tsx",
                 azureDataStudioMigration: "src/webviews/pages/AzureDataStudioMigration/index.tsx",
                 shortcutsConfiguration: "src/webviews/pages/ShortcutsConfiguration/index.tsx",
+                sqlDiagnostics: "src/webviews/pages/SqlDiagnostics/index.tsx",
+                sqlActivity: "src/webviews/pages/SqlActivity/index.tsx",
+                queryStore: "src/webviews/pages/QueryStore/index.tsx",
+                sqlAgent: "src/webviews/pages/SqlAgent/index.tsx",
+                sqlProfiler: "src/webviews/pages/SqlProfiler/index.tsx",
+                tableEditor: "src/webviews/pages/TableEditor/index.tsx",
             },
             loader: {
                 ".tsx": "tsx",

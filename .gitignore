@@ -1,6 +1,7 @@
 # Build outputs
 out
 dist
+dist-test
 BuildDirectory
 !extensions/mssql/BuildDirectory/
 extensions/mssql/BuildDirectory/*

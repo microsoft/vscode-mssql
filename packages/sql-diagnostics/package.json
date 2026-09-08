@@ -1,0 +1,31 @@
+{
+    "name": "sql-diagnostics",
+    "version": "0.0.1",
+    "private": true,
+    "description": "SQL Server diagnostics: DMV and Query Store catalogs, SQL Agent operations, and Extended Events parsing",
+    "license": "SEE LICENSE IN ../../LICENSE.txt",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "require": "./dist/index.js",
+            "default": "./dist/index.js"
+        }
+    },
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "build": "tsc -p tsconfig.json",
+        "watch": "tsc -watch -p tsconfig.json --preserveWatchOutput",
+        "lint": "eslint --quiet --cache ./src ./test",
+        "pretest": "npm run build && npm run build:test",
+        "test": "node --test \"dist-test/test/**/*.test.js\"",
+        "build:test": "tsc -p tsconfig.test.json"
+    },
+    "devDependencies": {
+        "@types/node": "^22.13.14",
+        "typescript": "^5.8.3"
+    }
+}

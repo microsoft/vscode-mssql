@@ -179,13 +179,14 @@
         "promisify-child-process": "^3.1.1",
         "semver": "^7.7.4",
         "shallow-equal": "^3.1.0",
+        "sql-feature": "file:../../packages/sql-feature",
         "strip-json-comments": "^5.0.1",
         "tar": "^7.5.21",
         "tmp": "^0.2.7",
         "vscode-jsonrpc": "^9.0.0",
         "vscode-languageclient": "10.0.0",
-        "xml-formatter": "^3.6.7",
         "which": "^6.0.1",
+        "xml-formatter": "^3.6.7",
         "yallist": "^5.0.0",
         "yauzl": "^3.3.1"
     },
@@ -941,6 +942,21 @@
                     "command": "mssql.cancelBackgroundTask",
                     "when": "view == backgroundTasks && viewItem =~ /\\bcancelable=true\\b/",
                     "group": "inline@3"
+                },
+                {
+                    "command": "mssql.sqlActivity.open",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Server)\\b/ && !(viewItem =~ /\\btype=Database\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
+                    "group": "sqlFeatures"
+                },
+                {
+                    "command": "mssql.sqlAgent.open",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Server)\\b/ && !(viewItem =~ /\\btype=Database\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
+                    "group": "sqlFeatures"
+                },
+                {
+                    "command": "mssql.queryStore.open",
+                    "when": "view == objectExplorer && (viewItem =~ /\\btype=(Database)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
+                    "group": "sqlFeatures"
                 }
             ],
             "commandPalette": [
@@ -1763,6 +1779,21 @@
                 "category": "MS SQL"
             },
             {
+                "command": "mssql.sqlDiagnostics.open",
+                "title": "%mssql.sqlDiagnostics.open%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.sqlProfiler.open",
+                "title": "%mssql.sqlProfiler.open%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.sqlProfiler.openFile",
+                "title": "%mssql.sqlProfiler.openFile%",
+                "category": "MS SQL"
+            },
+            {
                 "command": "mssql.openAzureDataStudioMigration",
                 "title": "%mssql.openAzureDataStudioMigration%",
                 "category": "MS SQL"
@@ -1842,6 +1873,21 @@
                 "title": "%mssql.metadataCache.disableOfflineMode%",
                 "category": "MS SQL",
                 "enablement": "mssql.privatePreview.metadataCacheActive && config.mssql.enableExperimentalFeatures && config.mssql.sqlDataPlane.enabled && config.mssql.metadataCache.enabled && config.mssql.metadataCache.offlineMode"
+            },
+            {
+                "command": "mssql.sqlActivity.open",
+                "title": "%mssql.sqlActivity.open%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.queryStore.open",
+                "title": "%mssql.queryStore.open%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.sqlAgent.open",
+                "title": "%mssql.sqlAgent.open%",
+                "category": "MS SQL"
             }
         ],
         "keybindings": [
@@ -2107,6 +2153,12 @@
                     "type": "number",
                     "default": 5,
                     "description": "%mssql.maxRecentConnections%",
+                    "scope": "window"
+                },
+                "mssql.tableExplorer.useDataPlaneEngine": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "%mssql.tableExplorer.useDataPlaneEngine%",
                     "scope": "window"
                 },
                 "mssql.profiler.eventBufferSize": {

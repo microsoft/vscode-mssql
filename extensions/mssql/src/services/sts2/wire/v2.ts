@@ -34,6 +34,7 @@ export const STS2_METHODS = {
     queryAck: "v2/query.ack",
     queryCancel: "v2/query.cancel",
     queryDispose: "v2/query.dispose",
+    queryCell: "v2/query.cell",
     diagnosticsPing: "v2/diagnostics.ping",
     diagnosticsHealth: "v2/diagnostics.health",
     diagnosticsState: "v2/diagnostics.state",

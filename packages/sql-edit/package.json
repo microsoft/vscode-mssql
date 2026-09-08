@@ -1,0 +1,32 @@
+{
+    "name": "sql-edit",
+    "version": "0.0.1",
+    "private": true,
+    "description": "SQL Server table editing engine: metadata, key strategy, keyset paging, and transactional DML over the SQL data plane",
+    "license": "SEE LICENSE IN ../../LICENSE.txt",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "require": "./dist/index.js",
+            "default": "./dist/index.js"
+        }
+    },
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "build": "tsc -p tsconfig.json",
+        "build:test": "tsc -p tsconfig.test.json",
+        "watch": "tsc -watch -p tsconfig.json --preserveWatchOutput",
+        "lint": "eslint --quiet --cache ./src ./test",
+        "pretest": "npm run build && npm run build:test",
+        "test": "node --test \"dist-test/test/**/*.test.js\"",
+        "verify": "node scripts/verify-against-server.mjs"
+    },
+    "devDependencies": {
+        "@types/node": "^22.13.14",
+        "typescript": "^5.8.3"
+    }
+}
