@@ -1310,6 +1310,9 @@
     <trans-unit id="++CODE++c7a8b036403ce2f163af46818ab619f6fdb6da9e16e6eb28bc547ecebcd7ad0b">
       <source xml:lang="en">Circular reference from project {0} to project {1}</source>
     </trans-unit>
+    <trans-unit id="++CODE++ae25d6481fc1741ffee4a95cd05de7b6375f7e1b0c63c006640b366094f2c4a9">
+      <source xml:lang="en">Classic</source>
+    </trans-unit>
     <trans-unit id="++CODE++83b12c2216efb4fdc924e1deb5182e905e4926ed0c1c324d467107f46d5a26a9">
       <source xml:lang="en">Clear</source>
     </trans-unit>
@@ -1890,13 +1893,22 @@
     <trans-unit id="++CODE++917801babf61b34ef1c1d96e3219bc6ba28693c81f2c5af5cc00a31d0793a317">
       <source xml:lang="en">Consider adding a name for this foreign key</source>
     </trans-unit>
+    <trans-unit id="++CODE++465eabab9bde19760846b72eb06f2498233548cac46595d805aa574d504110c3">
+      <source xml:lang="en">Constraints added</source>
+    </trans-unit>
     <trans-unit id="++CODE++1fb78b59d106ba2e4cd956f77e6e0c4bb1090e2d57ac69e73e49aef3fc65d6aa">
       <source xml:lang="en">Constraints added: {0}</source>
       <note>{0} is a comma-separated list of fully-qualified object names (e.g. &apos;[dbo].[PK_Customers], [dbo].[UQ_Customers_Email]&apos;) that will be added under the selected parent object when the diff is applied.</note>
     </trans-unit>
+    <trans-unit id="++CODE++eebd192e7f23ac2257f5366c5833064a3ea5639b4d7d4d1d29445c28ab012505">
+      <source xml:lang="en">Constraints changed</source>
+    </trans-unit>
     <trans-unit id="++CODE++bbbe9ad1983802ef25e78bbea25d0abdc86664e6a53f1459d4cc71cda0a25d8e">
       <source xml:lang="en">Constraints changed: {0}</source>
       <note>{0} is a comma-separated list of fully-qualified object names that will be altered under the selected parent object when the diff is applied.</note>
+    </trans-unit>
+    <trans-unit id="++CODE++7bee7db8de36619306e87e8f4dc35cad5737ee07d864839c4bc4bff0da4c3a2a">
+      <source xml:lang="en">Constraints dropped</source>
     </trans-unit>
     <trans-unit id="++CODE++c9d2fd860eb492e6f42e47058e7242c10daec76480b280a0886b242619243760">
       <source xml:lang="en">Constraints dropped: {0}</source>
@@ -3349,6 +3361,9 @@
     <trans-unit id="++CODE++01ae099f23b8fe85d27a9e26613eb2624bd76e11505385e3493f316afde824c2">
       <source xml:lang="en">Exclude Object Types</source>
     </trans-unit>
+    <trans-unit id="++CODE++8a2a30d7fa1829a6ecfc36aa01d3b7cef61dccb6291e254b5a66b77a6b5f8a60">
+      <source xml:lang="en">Excluded from script</source>
+    </trans-unit>
     <trans-unit id="++CODE++5f6395cfa3be1b2b7783b923ebc2736c923aeda2142cc740137eb871f8ec0e1f">
       <source xml:lang="en">Excluding folders is not yet supported</source>
     </trans-unit>
@@ -4628,6 +4643,9 @@
     <trans-unit id="++CODE++ac665fafc5f9732c9d322749a1f726be51f8b31d2ec83ecde83a6e1d2b632eda">
       <source xml:lang="en">Include all object types</source>
     </trans-unit>
+    <trans-unit id="++CODE++4ec34472d661ee6006e436cc302b6d561780eb0b22d21c9e9110b4ff31856a71">
+      <source xml:lang="en">Include or exclude all differences</source>
+    </trans-unit>
     <trans-unit id="++CODE++3f763b9cd0ea6431ca045177a0ef88702e20d566b4634c7efad944d1a4b1ef4d">
       <source xml:lang="en">Include permissions</source>
     </trans-unit>
@@ -4637,6 +4655,9 @@
     <trans-unit id="++CODE++38ccbbcbe0241e051909d6867d0528e4eff3bed6cbd9360cbaa67a0301f67066">
       <source xml:lang="en">Include {0}</source>
       <note>{0} is the entity name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++8ae992fb19afbb34eedcd3f9183663145da97e5b1b40e449360bea6af64e8646">
+      <source xml:lang="en">Included in script</source>
     </trans-unit>
     <trans-unit id="++CODE++a19caa35e133f5a0e94975762741c4c73b09c8a830908934206474fea30817b0">
       <source xml:lang="en">Incomplete or orphaned connections</source>
@@ -4804,6 +4825,9 @@
     </trans-unit>
     <trans-unit id="++CODE++c7d299ed6b2896187b535a86fd6b04f01669a9b72528a8f2021fff2f42d9f6e3">
       <source xml:lang="en">Last Page</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a511909161e1b84fb81b52028fc2ce79525a96b40ccda823caa4a66ee64772b5">
+      <source xml:lang="en">Layout</source>
     </trans-unit>
     <trans-unit id="++CODE++8d8cd546b58d91c300d3149ef40b8d98d3061dc38f15ea937d2ed785a3f25771">
       <source xml:lang="en">Learn More</source>
@@ -6023,6 +6047,9 @@
     </trans-unit>
     <trans-unit id="++CODE++17353b3f8f54bed0a811ad1ed6fb9f3505a0e039df3b934afb3e8bc11976a2ca">
       <source xml:lang="en">OLTP, built on Azure SQL</source>
+    </trans-unit>
+    <trans-unit id="++CODE++62a6da8735c18e2d66fe5de3dc5440252a1da49e3cbaa7c1d2d5068ad73ffba0">
+      <source xml:lang="en">Object</source>
     </trans-unit>
     <trans-unit id="++CODE++501ec8c3629bcdcd52b9d7895c90d04b0c0b969f1134ba024efe021f0a25d867">
       <source xml:lang="en">Object Explorer Filter</source>
@@ -7425,6 +7452,9 @@
     <trans-unit id="++CODE++22c32b443d8259ab1a9f2a388a56124f882e9356d7aeb64f41eb84ba2bdf48fd">
       <source xml:lang="en">Schema designer updated successfully.</source>
     </trans-unit>
+    <trans-unit id="++CODE++60aa3ddef33b076337901e45e7a08cee2075647c667509cb22451a7069ff608c">
+      <source xml:lang="en">Schema differences</source>
+    </trans-unit>
     <trans-unit id="++CODE++c55acbc843338cecc106d5428a6c2c6cd65129c6b5c440b6477f06206d844ded">
       <source xml:lang="en">Schema is required</source>
     </trans-unit>
@@ -8065,6 +8095,9 @@
     </trans-unit>
     <trans-unit id="++CODE++f6dd83003322db3c5d5ef293a8dc73363ae462529918cc8d17cc94f9988c0d45">
       <source xml:lang="en">Simple Container Management</source>
+    </trans-unit>
+    <trans-unit id="++CODE++aa86409ea7e147ea5324e4a83d49efc512f2527f7dbada91558cde583e1a8ec2">
+      <source xml:lang="en">Simplified</source>
     </trans-unit>
     <trans-unit id="++CODE++ab3134048412e796a4a423dc1963ca8ff12b535d546d314470407639777e0ac5">
       <source xml:lang="en">Smart performance</source>
@@ -9496,6 +9529,9 @@
     <trans-unit id="++CODE++e93cb41d4a7d2395d9bdfe4d8616f9b52762523bb44e75bf7701cd9d2e0d1cb7">
       <source xml:lang="en">equals</source>
     </trans-unit>
+    <trans-unit id="++CODE++2fbc383d3c49b83614aa419376b80ee04d986dfed814dfde2ce26e437635aa69">
+      <source xml:lang="en">excluded from script</source>
+    </trans-unit>
     <trans-unit id="++CODE++3b9c358f36f0a31b6ad3e14f309c7cf198ac9246e8316f9ce543d5b19ac02b80">
       <source xml:lang="en">file</source>
     </trans-unit>
@@ -9510,6 +9546,9 @@
     </trans-unit>
     <trans-unit id="++CODE++1b52f3a2e15148731314bf167145c54565ed2385a862b5eb7771eaf719e4f82e">
       <source xml:lang="en">hr</source>
+    </trans-unit>
+    <trans-unit id="++CODE++12dddf96612d48df0ad871a9612802de0957a3781556820e44215c68f824363a">
+      <source xml:lang="en">included in script</source>
     </trans-unit>
     <trans-unit id="++CODE++075b0e112ce5f3585bf21875b678fb678865a30c79d482cd01098957e6497c28">
       <source xml:lang="en">intelliSenseUpdated</source>
@@ -9615,6 +9654,11 @@
       <note>{0} is the task status
 {1} is the completion percent
 {2} is the task message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++60f820e33dc2ebb9ace1ef9c084e6b0ce9c75e159edf59e955aa68a7b304783b">
+      <source xml:lang="en">{0} / {1}</source>
+      <note>{0} is the one-based position of the selected schema difference
+{1} is the total number of visible schema differences</note>
     </trans-unit>
     <trans-unit id="++CODE++08fefe04a78a12b9e4ac61ac107a5237d5d6993e0dc8c6706949b4c9fe54ca6f">
       <source xml:lang="en">{0} If the project was created in SSDT, it will continue to work in both tools. Do you want to update the project?</source>
@@ -9856,6 +9900,18 @@
       <source xml:lang="en">{0}, +{1} more</source>
       <note>{0} is the first changed property label
 {1} is the count of additional changed properties</note>
+    </trans-unit>
+    <trans-unit id="++CODE++cb0ea8066d092cc06095c116bd7b79ac93cc34d4c899ce19e465ac677f75bb27">
+      <source xml:lang="en">{0}, {1} differences</source>
+      <note>{0} is the schema difference group name
+{1} is the number of differences in the group</note>
+    </trans-unit>
+    <trans-unit id="++CODE++65f24f2f0e7e273592ce9abfdfe98800fe149834a4413bcf8565044f33eddbd9">
+      <source xml:lang="en">{0}, {1}, {2}, {3}</source>
+      <note>{0} is the schema object type
+{1} is the schema object name
+{2} is the update action
+{3} indicates whether the difference is included in the generated script</note>
     </trans-unit>
     <trans-unit id="++CODE++fbf6567d7b396892abbe6cccf81dca280649e099b853b805be1beb6af53d9229">
       <source xml:lang="en">{0}. {1}</source>

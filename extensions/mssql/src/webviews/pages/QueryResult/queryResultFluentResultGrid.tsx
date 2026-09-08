@@ -647,6 +647,7 @@ const QueryResultFluentResultGrid = forwardRef<ResultGridHandle, ResultGridProps
                         gridId: props.gridId,
                         scrollLeft: state.scrollPosition.scrollLeft,
                         scrollTop: state.scrollPosition.scrollTop,
+                        scrollTopOffset: state.scrollPosition.scrollTopOffset,
                     },
                 );
             }
