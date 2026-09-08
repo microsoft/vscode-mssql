@@ -2740,10 +2740,21 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             );
 
             const connectionOptions = endpoint.connectionDetails?.options ?? {};
+            const { connectionString, ...explicitConnectionOptions } = connectionOptions;
+            const parsedConnectionOptions = connectionString
+                ? (await this.connectionMgr.parseConnectionString(connectionString)).options
+                : {};
             const connInfo = {
-                ...connectionOptions,
-                server: connectionOptions.server || endpoint.serverName,
-                database: connectionOptions.database || endpoint.databaseName,
+                ...explicitConnectionOptions,
+                ...parsedConnectionOptions,
+                server:
+                    parsedConnectionOptions.server ??
+                    explicitConnectionOptions.server ??
+                    endpoint.serverName,
+                database:
+                    parsedConnectionOptions.database ??
+                    explicitConnectionOptions.database ??
+                    endpoint.databaseName,
             } as mssql.IConnectionInfo;
 
             this.logger.debug(
