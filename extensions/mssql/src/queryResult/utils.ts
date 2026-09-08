@@ -17,6 +17,7 @@ import { sendActionEvent } from "extension-toolkit/vscode";
 import * as qr from "../sharedInterfaces/queryResult";
 import { QueryResultWebviewPanelController } from "./queryResultWebviewPanelController";
 import { QueryResultWebviewController } from "./queryResultWebViewController";
+import { ConnectionStrategy } from "../controllers/sqlDocumentService";
 import store, { QueryResultSingletonStore } from "./singletonStore";
 import * as LocalizedConstants from "../constants/locConstants";
 import { formatXml } from "../utils/utils";
@@ -274,6 +275,20 @@ export function registerCommonRequestHandlers(
                 message.resultId,
                 message.selection,
             );
+    });
+
+    webviewController.onRequest(qr.OpenGeneratedQueryRequest.type, async (message) => {
+        sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.CopyResults, {
+            additionalProps: {
+                correlationId: correlationId,
+                format: "generated-query",
+            },
+        });
+        await webviewViewController.sqlDocumentService.newQuery({
+            content: message.sql,
+            connectionStrategy: ConnectionStrategy.CopyFromUri,
+            sourceUri: message.uri,
+        });
     });
 
     webviewController.onRequest(qr.CopyColumnNameRequest.type, async (message) => {
