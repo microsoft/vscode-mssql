@@ -2753,18 +2753,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             let profileMatch = await this.connectionMgr.findMatchingProfile(
                 connInfo as IConnectionProfile,
             );
-            if (
-                (!profileMatch.profile || profileMatch.score === utils.MatchScore.NotMatch) &&
-                connInfo.connectionString
-            ) {
-                // Prefer an exact connection-string identity, then fall back to the parsed fields
-                // so equivalent saved profiles can still be found.
-                const parsedConnInfo = { ...connInfo };
-                delete parsedConnInfo.connectionString;
-                profileMatch = await this.connectionMgr.findMatchingProfile(
-                    parsedConnInfo as IConnectionProfile,
-                );
-            }
+
             const { profile: connectionProfile, score } = profileMatch;
             let isConnected = false;
 
