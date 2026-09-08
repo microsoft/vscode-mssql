@@ -15,6 +15,13 @@ const colors = {
     cyan: "\x1b[36m",
 };
 
+const useColor = process.stdout.isTTY && !process.env.NO_COLOR && process.env.FORCE_COLOR !== "0";
+if (!useColor) {
+    for (const color of Object.keys(colors)) {
+        colors[color] = "";
+    }
+}
+
 /**
  * Enhanced logging utility for build scripts
  * Provides consistent, colored terminal output with meaningful icons
@@ -60,7 +67,11 @@ const logger = {
     /**
      * Log a separator line for visual organization
      */
-    separator: () => console.log(`${colors.cyan}${"─".repeat(60)}${colors.reset}`),
+    separator: () => {
+        if (useColor) {
+            console.log(`${colors.cyan}${"─".repeat(60)}${colors.reset}`);
+        }
+    },
 
     /**
      * Log a header with separator lines above and below
