@@ -893,6 +893,7 @@ export function QueryResultFluentResultGridView() {
             defaultCommands={defaultCommands}>
             <QueryResultsGridView
                 GridComponent={QueryResultFluentResultGrid}
+                deferOffscreenGridRendering
                 showExternalCommandBar={false}
             />
         </FluentResultGridProvider>
