@@ -3,15 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {
-    Badge,
-    Button,
-    Input,
-    makeStyles,
-    mergeClasses,
-    Spinner,
-    tokens,
-} from "@fluentui/react-components";
+import { Badge, Button, Input, makeStyles, Spinner, tokens } from "@fluentui/react-components";
 import { Checkmark16Regular, Dismiss16Regular, Lightbulb16Filled } from "@fluentui/react-icons";
 import {
     KeyboardEvent as ReactKeyboardEvent,
@@ -67,21 +59,21 @@ const useStyles = makeStyles({
         width: "100%",
         minHeight: "300px",
     },
-    previewInputContainer: {
+    inputContainer: {
         position: "absolute",
         top: "4px",
         right: "39px",
         zIndex: 5,
         maxWidth: "calc(100% - 51px)",
     },
-    previewZoomInput: {
+    zoomInput: {
         width: "72px",
         minWidth: "72px",
         height: "26px",
         boxSizing: "border-box",
         fontSize: "12px",
     },
-    previewInputSuffix: {
+    inputSuffix: {
         color: "var(--vscode-descriptionForeground)",
         fontSize: "12px",
     },
@@ -178,13 +170,9 @@ const useStyles = makeStyles({
     },
     resizer: {
         position: "absolute",
-        left: 0,
         height: "100%",
-        width: "15px",
         cursor: "ew-resize",
         backgroundColor: "transparent",
-    },
-    previewResizer: {
         left: "-5px",
         zIndex: 4,
         width: "11px",
@@ -497,7 +485,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                 {customZoomClicked && (
                     <VscodeFloatingWidget
                         id="customZoomInputContainer"
-                        className={classes.previewInputContainer}
+                        className={classes.inputContainer}
                         role="group"
                         aria-label={locConstants.executionPlan.customZoom}
                         onKeyDown={(event) => {
@@ -511,9 +499,9 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                             id="customZoomInputBox"
                             type="text"
                             size="small"
-                            className={classes.previewZoomInput}
+                            className={classes.zoomInput}
                             defaultValue={Math.floor(zoomNumber).toString()}
-                            contentAfter={<span className={classes.previewInputSuffix}>%</span>}
+                            contentAfter={<span className={classes.inputSuffix}>%</span>}
                             input={{
                                 inputMode: "decimal",
                                 style: {
@@ -575,7 +563,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                         style={{ width: `${propertiesWidth}px` }}
                         ref={resizableRef}>
                         <div
-                            className={mergeClasses(classes.resizer, classes.previewResizer)}
+                            className={classes.resizer}
                             role="separator"
                             aria-orientation="vertical"
                             aria-label={`${locConstants.queryResult.resize} ${locConstants.executionPlan.properties}`}

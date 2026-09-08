@@ -51,19 +51,19 @@ const useStyles = makeStyles({
     button: {
         cursor: "pointer",
     },
-    previewToolbarIcon: {
+    toolbarIcon: {
         display: "block",
         width: "16px",
         height: "16px",
         flexShrink: 0,
     },
-    previewStickyHeader: {
+    stickyHeader: {
         position: "sticky",
         top: 0,
         zIndex: 3,
         backgroundColor: "var(--vscode-editor-background)",
     },
-    previewPropertiesHeader: {
+    propertiesHeader: {
         boxSizing: "border-box",
         display: "flex",
         alignItems: "center",
@@ -74,7 +74,7 @@ const useStyles = makeStyles({
         borderBottom:
             "1px solid var(--vscode-panel-border, var(--vscode-widget-border, transparent))",
     },
-    previewHeaderTitle: {
+    headerTitle: {
         minWidth: 0,
         overflow: "hidden",
         fontSize: "13px",
@@ -83,7 +83,7 @@ const useStyles = makeStyles({
         textOverflow: "ellipsis",
         whiteSpace: "nowrap",
     },
-    previewNameContainer: {
+    nameContainer: {
         boxSizing: "border-box",
         width: "100%",
         height: "28px",
@@ -97,17 +97,17 @@ const useStyles = makeStyles({
         textOverflow: "ellipsis",
         whiteSpace: "nowrap",
     },
-    previewGridContainer: {
+    gridContainer: {
         width: "100%",
         backgroundColor: "var(--vscode-editor-background)",
     },
-    previewGrid: {
+    grid: {
         width: "100%",
         color: "var(--vscode-editor-foreground)",
         fontFamily: "var(--vscode-font-family)",
         fontSize: "12px",
     },
-    previewTableHeader: {
+    tableHeader: {
         position: "sticky",
         top: "92px",
         zIndex: 2,
@@ -121,13 +121,13 @@ const useStyles = makeStyles({
         fontSize: "12px",
         fontWeight: 600,
     },
-    previewHeaderRow: {
+    headerRow: {
         width: "100%",
         minHeight: "28px",
         height: "28px",
         overflow: "hidden",
     },
-    previewHeaderCell: {
+    headerCell: {
         boxSizing: "border-box",
         minWidth: 0,
         height: "28px",
@@ -141,7 +141,7 @@ const useStyles = makeStyles({
                 "1px solid var(--vscode-panel-border, var(--vscode-widget-border, transparent))",
         },
     },
-    previewHeaderText: {
+    headerText: {
         display: "block",
         width: "100%",
         minWidth: 0,
@@ -149,7 +149,7 @@ const useStyles = makeStyles({
         textOverflow: "ellipsis",
         whiteSpace: "nowrap",
     },
-    previewTableRow: {
+    tableRow: {
         minHeight: "26px",
         height: "26px",
         overflow: "hidden",
@@ -163,12 +163,12 @@ const useStyles = makeStyles({
             boxShadow: "inset 0 0 0 1px var(--vscode-focusBorder)",
         },
     },
-    previewGroupRow: {
+    groupRow: {
         backgroundColor:
             "var(--vscode-sideBarSectionHeader-background, var(--vscode-list-inactiveSelectionBackground))",
         fontWeight: 600,
     },
-    previewTableCell: {
+    tableCell: {
         boxSizing: "border-box",
         height: "26px",
         minHeight: "26px",
@@ -184,13 +184,13 @@ const useStyles = makeStyles({
             fontFamily: "var(--vscode-editor-font-family, Monaco, Menlo, Consolas, monospace)",
         },
     },
-    previewCellLayout: {
+    cellLayout: {
         width: "100%",
         minWidth: 0,
         padding: 0,
         overflow: "hidden",
     },
-    previewNameContent: {
+    nameContent: {
         boxSizing: "border-box",
         display: "flex",
         alignItems: "center",
@@ -198,7 +198,7 @@ const useStyles = makeStyles({
         minWidth: 0,
         overflow: "hidden",
     },
-    previewCellText: {
+    cellText: {
         display: "block",
         width: "100%",
         minWidth: 0,
@@ -206,11 +206,11 @@ const useStyles = makeStyles({
         textOverflow: "ellipsis",
         whiteSpace: "nowrap",
     },
-    previewNameText: {
+    nameText: {
         flex: "1 1 0%",
         width: "auto",
     },
-    previewDisclosureButton: {
+    disclosureButton: {
         width: "16px",
         minWidth: "16px",
         height: "16px",
@@ -222,7 +222,7 @@ const useStyles = makeStyles({
         color: "inherit",
         boxShadow: "none",
     },
-    previewDisclosureSpacer: {
+    disclosureSpacer: {
         display: "block",
         width: "20px",
         minWidth: "20px",
@@ -236,8 +236,6 @@ const useStyles = makeStyles({
     toolbar: {
         display: "flex",
         alignItems: "center",
-    },
-    previewToolbar: {
         boxSizing: "border-box",
         height: "32px",
         minHeight: "32px",
@@ -245,7 +243,7 @@ const useStyles = makeStyles({
         borderBottom:
             "1px solid var(--vscode-panel-border, var(--vscode-widget-border, transparent))",
     },
-    previewDismissButton: {
+    dismissButton: {
         width: "24px",
         minWidth: "24px",
         height: "24px",
@@ -253,7 +251,7 @@ const useStyles = makeStyles({
     },
 });
 
-const previewColumnSizingOptions: TableColumnSizingOptions = {
+const columnSizingOptions: TableColumnSizingOptions = {
     name: {
         minWidth: 140,
         defaultWidth: 170,
@@ -483,7 +481,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
         createTableColumn<ep.ExecutionPlanPropertyTableItem>({
             columnId: "name",
             renderHeaderCell: () => (
-                <span className={classes.previewHeaderText} title={NAME}>
+                <span className={classes.headerText} title={NAME}>
                     {NAME}
                 </span>
             ),
@@ -492,16 +490,16 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                 return (
                     <TableCellLayout
                         truncate
-                        className={classes.previewCellLayout}
+                        className={classes.cellLayout}
                         title={item.name || undefined}>
                         <div
-                            className={classes.previewNameContent}
+                            className={classes.nameContent}
                             style={{ paddingLeft: `${item.level * 16}px` }}>
                             {item.children.length > 0 ? (
                                 <Button
                                     appearance="subtle"
                                     size="small"
-                                    className={classes.previewDisclosureButton}
+                                    className={classes.disclosureButton}
                                     aria-label={
                                         isExpanded
                                             ? locConstants.executionPlan.collapse
@@ -522,17 +520,10 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                                 />
                             ) : (
                                 item.level > 0 && (
-                                    <span
-                                        className={classes.previewDisclosureSpacer}
-                                        aria-hidden="true"
-                                    />
+                                    <span className={classes.disclosureSpacer} aria-hidden="true" />
                                 )
                             )}
-                            <span
-                                className={mergeClasses(
-                                    classes.previewCellText,
-                                    classes.previewNameText,
-                                )}>
+                            <span className={mergeClasses(classes.cellText, classes.nameText)}>
                                 {item.name}
                             </span>
                         </div>
@@ -543,16 +534,16 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
         createTableColumn<ep.ExecutionPlanPropertyTableItem>({
             columnId: "value",
             renderHeaderCell: () => (
-                <span className={classes.previewHeaderText} title={VALUE}>
+                <span className={classes.headerText} title={VALUE}>
                     {VALUE}
                 </span>
             ),
             renderCell: (item) => (
                 <TableCellLayout
                     truncate
-                    className={classes.previewCellLayout}
+                    className={classes.cellLayout}
                     title={item.value || undefined}>
-                    <span className={classes.previewCellText}>{item.value}</span>
+                    <span className={classes.cellText}>{item.value}</span>
                 </TableCellLayout>
             ),
         }),
@@ -568,14 +559,14 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                 borderLeft:
                     "1px solid var(--vscode-sideBar-border, var(--vscode-editorGroup-border, transparent))",
             }}>
-            <div className={classes.previewStickyHeader}>
-                <div className={classes.previewPropertiesHeader}>
-                    <div className={classes.previewHeaderTitle} aria-label={PROPERTIES}>
+            <div className={classes.stickyHeader}>
+                <div className={classes.propertiesHeader}>
+                    <div className={classes.headerTitle} aria-label={PROPERTIES}>
                         {PROPERTIES}
                     </div>
                     <div>
                         <Button
-                            className={classes.previewDismissButton}
+                            className={classes.dismissButton}
                             appearance="subtle"
                             size="small"
                             onClick={() => setPropertiesClicked(false)}
@@ -586,47 +577,41 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                         />
                     </div>
                 </div>
-                <div className={classes.previewNameContainer} aria-label={name} title={name}>
+                <div className={classes.nameContainer} aria-label={name} title={name}>
                     {name}
                 </div>
-                <Toolbar
-                    className={mergeClasses(classes.toolbar, classes.previewToolbar)}
-                    size="small">
+                <Toolbar className={classes.toolbar} size="small">
                     <ToolbarButton
                         className={classes.button}
-                        icon={
-                            <ArrowSortDownLines16Regular className={classes.previewToolbarIcon} />
-                        }
+                        icon={<ArrowSortDownLines16Regular className={classes.toolbarIcon} />}
                         onClick={() => handleSort(ep.SortOption.Importance)}
                         title={IMPORTANCE}
                         aria-label={IMPORTANCE}
                     />
                     <ToolbarButton
                         className={classes.button}
-                        icon={<TextSortAscending16Regular className={classes.previewToolbarIcon} />}
+                        icon={<TextSortAscending16Regular className={classes.toolbarIcon} />}
                         onClick={() => handleSort(ep.SortOption.Alphabetical)}
                         title={ALPHABETICAL}
                         aria-label={ALPHABETICAL}
                     />
                     <ToolbarButton
                         className={classes.button}
-                        icon={
-                            <TextSortDescending16Regular className={classes.previewToolbarIcon} />
-                        }
+                        icon={<TextSortDescending16Regular className={classes.toolbarIcon} />}
                         onClick={() => handleSort(ep.SortOption.ReverseAlphabetical)}
                         title={REVERSE_ALPHABETICAL}
                         aria-label={REVERSE_ALPHABETICAL}
                     />
                     <ToolbarButton
                         className={classes.button}
-                        icon={<ExpandAllIcon16Regular className={classes.previewToolbarIcon} />}
+                        icon={<ExpandAllIcon16Regular className={classes.toolbarIcon} />}
                         onClick={handleExpandAll}
                         title={EXPAND_ALL}
                         aria-label={EXPAND_ALL}
                     />
                     <ToolbarButton
                         className={classes.button}
-                        icon={<CollapseAllIcon16Regular className={classes.previewToolbarIcon} />}
+                        icon={<CollapseAllIcon16Regular className={classes.toolbarIcon} />}
                         onClick={handleCollapseAll}
                         title={COLLAPSE_ALL}
                         aria-label={COLLAPSE_ALL}
@@ -637,9 +622,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                         className={classes.inputbox}
                         value={inputValue}
                         placeholder={FILTER_ANY_FIELD}
-                        contentBefore={
-                            <FilterIcon16Regular className={classes.previewToolbarIcon} />
-                        }
+                        contentBefore={<FilterIcon16Regular className={classes.toolbarIcon} />}
                         onChange={(e) => {
                             setInputValue(e.target.value);
                             void handleFilter(e.target.value);
@@ -647,21 +630,21 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                     />
                 </Toolbar>
             </div>
-            <div className={classes.previewGridContainer}>
+            <div className={classes.gridContainer}>
                 <DataGrid
-                    className={classes.previewGrid}
+                    className={classes.grid}
                     items={visibleItems}
                     columns={columns}
                     focusMode="composite"
                     resizableColumns={true}
-                    columnSizingOptions={previewColumnSizingOptions}
+                    columnSizingOptions={columnSizingOptions}
                     size="small"
                     role="treegrid"
                     aria-label={`${PROPERTIES}: ${name}`}>
-                    <DataGridHeader className={classes.previewTableHeader}>
-                        <DataGridRow className={classes.previewHeaderRow}>
+                    <DataGridHeader className={classes.tableHeader}>
+                        <DataGridRow className={classes.headerRow}>
                             {({ renderHeaderCell }) => (
-                                <DataGridHeaderCell className={classes.previewHeaderCell}>
+                                <DataGridHeaderCell className={classes.headerCell}>
                                     {renderHeaderCell()}
                                 </DataGridHeaderCell>
                             )}
@@ -682,11 +665,11 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                                     handlePropertyRowKeyDown(event, item)
                                 }
                                 className={mergeClasses(
-                                    classes.previewTableRow,
-                                    item.children.length > 0 && classes.previewGroupRow,
+                                    classes.tableRow,
+                                    item.children.length > 0 && classes.groupRow,
                                 )}>
                                 {({ renderCell }) => (
-                                    <DataGridCell className={classes.previewTableCell}>
+                                    <DataGridCell className={classes.tableCell}>
                                         {renderCell(item)}
                                     </DataGridCell>
                                 )}

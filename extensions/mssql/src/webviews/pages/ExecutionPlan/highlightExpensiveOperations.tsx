@@ -20,14 +20,14 @@ import {
 import { SearchableDropdown } from "../../common/searchableDropdown.component";
 
 const useStyles = makeStyles({
-    previewInputContainer: {
+    inputContainer: {
         position: "absolute",
         top: "4px",
         right: "39px",
         zIndex: 5,
         maxWidth: "calc(100% - 51px)",
     },
-    previewLabel: {
+    label: {
         padding: "0 4px",
         color: "var(--vscode-editorWidget-foreground)",
         whiteSpace: "nowrap",
@@ -123,7 +123,7 @@ export const HighlightExpensiveOperations: React.FC<HighlightExpensiveOperations
     return (
         <VscodeFloatingWidget
             id="highlightExpensiveOpsContainer"
-            className={classes.previewInputContainer}
+            className={classes.inputContainer}
             role="group"
             aria-label={locConstants.executionPlan.metric}
             onKeyDown={(event) => {
@@ -132,7 +132,7 @@ export const HighlightExpensiveOperations: React.FC<HighlightExpensiveOperations
                     void handleHighlightClose();
                 }
             }}>
-            <span className={classes.previewLabel}>{locConstants.executionPlan.metric}</span>
+            <span className={classes.label}>{locConstants.executionPlan.metric}</span>
             <SearchableDropdown
                 id="highlightExpensiveOpsDropdown"
                 size="small"

@@ -18,26 +18,26 @@ import {
 import { SearchableDropdown } from "../../common/searchableDropdown.component";
 
 const useStyles = makeStyles({
-    previewInputContainer: {
+    inputContainer: {
         position: "absolute",
         top: "4px",
         right: "39px",
         zIndex: 5,
         maxWidth: "calc(100% - 51px)",
     },
-    previewComparisonControl: {
+    comparisonControl: {
         width: "96px",
         minWidth: "96px",
         height: "26px",
         boxSizing: "border-box",
     },
-    previewValueControl: {
+    valueControl: {
         width: "156px",
         minWidth: "112px",
         height: "26px",
         boxSizing: "border-box",
     },
-    previewResultCount: {
+    resultCount: {
         color: "var(--vscode-descriptionForeground)",
         fontSize: "11px",
         paddingRight: "2px",
@@ -151,7 +151,7 @@ export const FindNode: React.FC<FindNodeProps> = ({
     return (
         <VscodeFloatingWidget
             id="findNodeInputContainer"
-            className={classes.previewInputContainer}
+            className={classes.inputContainer}
             role="search"
             aria-label={locConstants.executionPlan.findNodes}
             onKeyDown={(event) => {
@@ -185,7 +185,7 @@ export const FindNode: React.FC<FindNodeProps> = ({
             <Dropdown
                 id="findNodeComparisonDropdown"
                 size="small"
-                className={classes.previewComparisonControl}
+                className={classes.comparisonControl}
                 style={{
                     width: "96px",
                     minWidth: "96px",
@@ -210,12 +210,12 @@ export const FindNode: React.FC<FindNodeProps> = ({
                 id="findNodeInputBox"
                 size="small"
                 type="text"
-                className={classes.previewValueControl}
+                className={classes.valueControl}
                 value={findNodeSearchValue}
                 placeholder={locConstants.executionPlan.value}
                 contentAfter={
                     resultSummary ? (
-                        <span className={classes.previewResultCount} aria-live="polite">
+                        <span className={classes.resultCount} aria-live="polite">
                             {resultSummary}
                         </span>
                     ) : undefined
