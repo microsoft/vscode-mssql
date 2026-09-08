@@ -524,13 +524,14 @@ export function useFluentResultGridController({
                 selectActiveCell: true,
                 selectActiveRow: false,
                 selectionType: "cell",
+                // Ctrl/Cmd click and Ctrl/Cmd drag append to the selection instead of replacing it.
+                enableMultiSelection: true,
             },
             // Cell values are rendered in child elements. SlickGrid's default only starts a drag
             // when the event target is the cell itself, making selection depend on whether the
             // pointer starts over text or padding.
             allowDragFromClosest: "div.slick-cell",
-            // Ctrl/Cmd is used to append a dragged block. SlickGrid's option merge retains its
-            // default blocked keys here, so the initialized array is cleared in the lifecycle.
+            // Ctrl/Cmd is used to append a dragged block, so no key blocks a drag.
             preventDragFromKeys: [],
             skipFreezeColumnValidation: true,
         }),

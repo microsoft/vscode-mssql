@@ -137,7 +137,7 @@
         "sinon": "^21.0.3",
         "sinon-chai": "^4.0.1",
         "slickgrid": "github:Microsoft/SlickGrid.ADS#v2.3.51",
-        "slickgrid-react": "10.8.2",
+        "slickgrid-react": "^10.10.0",
         "source-map-support": "^0.5.21",
         "ts-node": "^10.9.2",
         "typescript": "^5.8.3",
@@ -184,8 +184,8 @@
         "tmp": "^0.2.7",
         "vscode-jsonrpc": "^9.0.0",
         "vscode-languageclient": "10.0.0",
-        "xml-formatter": "^3.6.7",
         "which": "^6.0.1",
+        "xml-formatter": "^3.6.7",
         "yallist": "^5.0.0",
         "yauzl": "^3.3.1"
     },
