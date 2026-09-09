@@ -25,6 +25,7 @@ import { ApiStatus } from "../sharedInterfaces/webview";
 import { getErrorMessage } from "../utils/utils";
 import { getLogger } from "./logger";
 import * as Utils from "./utils";
+import { parseSingleTableFromClause } from "../queryResult/fromClauseTableParser";
 // Use CommonJS import here because lodash/throttle is CJS; default ESM-style import
 // can transpile to throttle_1.default and fail at runtime in unit tests.
 import throttle = require("lodash/throttle");
@@ -287,6 +288,21 @@ export class SqlOutputContentProvider {
         void this._queryResultsMap
             .get(uri)
             .queryRunner.copyResultsAsInsertInto(selection, batchId, resultId);
+    }
+
+    public async resolveTableNameRequestHandler(
+        uri: string,
+        batchId: number,
+    ): Promise<{ tableName?: string; schemaName?: string }> {
+        const queryRunner = this._queryResultsMap.get(uri)?.queryRunner;
+        if (!queryRunner) {
+            return {};
+        }
+        const queryText = await queryRunner.getBatchQueryText(batchId);
+        if (!queryText) {
+            return {};
+        }
+        return parseSingleTableFromClause(queryText) ?? {};
     }
 
     public generateSelectionSummaryData(

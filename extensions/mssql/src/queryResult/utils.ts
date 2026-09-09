@@ -291,6 +291,12 @@ export function registerCommonRequestHandlers(
         });
     });
 
+    webviewController.onRequest(qr.ResolveTableNameRequest.type, async (message) => {
+        return await webviewViewController
+            .getSqlOutputContentProvider()
+            .resolveTableNameRequestHandler(message.uri, message.batchId);
+    });
+
     webviewController.onRequest(qr.CopyColumnNameRequest.type, async (message) => {
         await vscode.env.clipboard.writeText(message.columnName);
     });

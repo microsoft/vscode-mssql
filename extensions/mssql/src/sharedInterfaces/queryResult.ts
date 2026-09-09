@@ -392,6 +392,24 @@ export namespace OpenGeneratedQueryRequest {
     );
 }
 
+export interface ResolveTableNameRequestParams {
+    uri: string;
+    batchId: number;
+}
+
+export interface ResolveTableNameResponse {
+    tableName?: string;
+    schemaName?: string;
+}
+
+export namespace ResolveTableNameRequest {
+    export const type = new RequestType<
+        ResolveTableNameRequestParams,
+        ResolveTableNameResponse,
+        void
+    >("resolveTableName");
+}
+
 export interface CopyColumnNameRequestParams {
     columnName: string;
 }
