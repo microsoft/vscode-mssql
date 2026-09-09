@@ -99,4 +99,10 @@ suite("parseSingleTableFromClause", () => {
     test("returns undefined when there is no FROM clause", () => {
         expect(parseSingleTableFromClause("SELECT 1")).to.equal(undefined);
     });
+
+    test("returns undefined for four-part (linked-server) table reference", () => {
+        expect(parseSingleTableFromClause("SELECT * FROM Server.MyDb.dbo.Customers")).to.equal(
+            undefined,
+        );
+    });
 });

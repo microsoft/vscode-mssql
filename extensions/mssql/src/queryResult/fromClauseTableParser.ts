@@ -55,6 +55,12 @@ export function parseSingleTableFromClause(
         return undefined;
     }
 
+    // Check if there's a dot immediately following the matched chain, indicating more parts
+    // (e.g., linked-server references like Server.MyDb.dbo.Customers have 4 parts)
+    if (clause[identifierChain.length] === ".") {
+        return undefined;
+    }
+
     const parts = identifierChain.match(new RegExp(identifierPattern.source, "g")) ?? [];
     if (parts.length === 0) {
         return undefined;
