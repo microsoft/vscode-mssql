@@ -6,6 +6,39 @@
 import * as mssql from "vscode-mssql";
 import { SchemaUpdateAction } from "../../../../sharedInterfaces/schemaCompare";
 
+const DIFF_COLOR_PAIRS: ReadonlyArray<readonly [string, string]> = [
+    ["diffEditor.insertedTextBackground", "diffEditor.removedTextBackground"],
+    ["diffEditor.insertedLineBackground", "diffEditor.removedLineBackground"],
+    ["diffEditor.insertedTextBorder", "diffEditor.removedTextBorder"],
+    ["diffEditorGutter.insertedLineBackground", "diffEditorGutter.removedLineBackground"],
+    ["diffEditorOverview.insertedForeground", "diffEditorOverview.removedForeground"],
+];
+
+export const reverseSchemaCompareDiffColors = (
+    colors: Record<string, string>,
+): Record<string, string> => {
+    const reversedColors = { ...colors };
+
+    for (const [insertedColor, removedColor] of DIFF_COLOR_PAIRS) {
+        const insertedValue = colors[insertedColor];
+        const removedValue = colors[removedColor];
+
+        if (removedValue) {
+            reversedColors[insertedColor] = removedValue;
+        } else {
+            delete reversedColors[insertedColor];
+        }
+
+        if (insertedValue) {
+            reversedColors[removedColor] = insertedValue;
+        } else {
+            delete reversedColors[removedColor];
+        }
+    }
+
+    return reversedColors;
+};
+
 /**
  * DacFx ObjectType TypeName values for the constraint kinds that can appear under a SqlTable
  * in a Schema Compare diff. These match exactly the strings emitted by
@@ -106,3 +139,15 @@ export const getAggregatedScript = (
     }
     return script;
 };
+
+/**
+ * Builds Monaco's models in their visual order: source on the left as the original model and
+ * target on the right as the modified model. Schema Compare supplies source-to-target colors
+ * separately because Monaco's default inserted/removed colors describe original-to-modified.
+ */
+export const getDiffEditorModels = (
+    diff: mssql.DiffEntry | undefined,
+): { original: string; modified: string } => ({
+    original: getAggregatedScript(diff, true),
+    modified: getAggregatedScript(diff, false),
+});

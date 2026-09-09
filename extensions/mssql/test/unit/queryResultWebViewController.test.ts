@@ -35,7 +35,6 @@ suite("QueryResultWebviewController", () => {
     };
     let onDidChangeConfigurationHandler: ((e: vscode.ConfigurationChangeEvent) => void) | undefined;
     let openResultsInTabByDefault = false;
-    let betaExecutionPlanEnabled = false;
     let vscodeWorkspace: ReturnType<typeof stubVscodeWorkspace>;
 
     const testUri = "file:///test.sql";
@@ -81,9 +80,6 @@ suite("QueryResultWebviewController", () => {
             get: sandbox.stub().callsFake((key: string, defaultValue?: unknown) => {
                 if (key === Constants.configOpenQueryResultsInTabByDefault) {
                     return openResultsInTabByDefault;
-                }
-                if (key === getPreviewConfigKey(PreviewFeature.BetaExecutionPlan)) {
-                    return betaExecutionPlanEnabled;
                 }
                 return defaultValue;
             }),
@@ -155,27 +151,6 @@ suite("QueryResultWebviewController", () => {
         await Promise.resolve();
 
         expect(createPanelControllerStub).to.have.been.calledWithExactly(testUri);
-    });
-
-    test("initializes and propagates the React Flow execution plan preview setting", () => {
-        const executionPlanUri = "file:///execution-plan.sql";
-        controller.addQueryResultState(executionPlanUri, "execution-plan", true);
-
-        expect(
-            controller.getQueryResultState(executionPlanUri).executionPlanState
-                .isBetaExecutionPlanEnabled,
-        ).to.be.false;
-
-        betaExecutionPlanEnabled = true;
-        onDidChangeConfigurationHandler?.({
-            affectsConfiguration: (section: string) =>
-                section === getPreviewConfigKey(PreviewFeature.BetaExecutionPlan),
-        } as vscode.ConfigurationChangeEvent);
-
-        expect(
-            controller.getQueryResultState(executionPlanUri).executionPlanState
-                .isBetaExecutionPlanEnabled,
-        ).to.be.true;
     });
 
     test("reports results grid mode changes made through settings", () => {

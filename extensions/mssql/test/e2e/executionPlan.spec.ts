@@ -17,14 +17,13 @@ import path from "path";
 test.describe("MSSQL Extension - Query Plan", async () => {
     let vsCodePage: Page;
     let iframe: FrameLocator;
-    let queryPlanMXGraph: Locator;
+    let queryPlanContainer: Locator;
     let currentZoom = 100;
 
     const getContext = useSharedVsCodeLifecycle({
         launchOptions: {
             initialConfig: {
                 "mssql.showChangelogOnUpdate": false,
-                "mssql.preview.betaExecutionPlan": true,
             },
         },
         afterLaunch: async ({ page }) => {
@@ -51,8 +50,8 @@ test.describe("MSSQL Extension - Query Plan", async () => {
                 state: "visible",
                 timeout: 30 * 1000,
             });
-            queryPlanMXGraph = iframe.locator("#queryPlanParent1");
-            await expect(queryPlanMXGraph).toBeVisible();
+            queryPlanContainer = iframe.locator("#queryPlanParent1");
+            await expect(queryPlanContainer).toBeVisible();
         },
         afterEach: async ({ page: vsCodePage }) => {
             await refocusQueryPlanTab(vsCodePage);
@@ -245,7 +244,7 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         );
         await findNodeDownButtonLocator.click();
         await findNodeDownButtonLocator.click();
-        const selectedNode = queryPlanMXGraph.locator(".execution-plan-flow-node.selected");
+        const selectedNode = queryPlanContainer.locator(".execution-plan-flow-node.selected");
         await expect(selectedNode).toContainText("Compute Scalar");
 
         const findNodeUpButtonLocator = iframe.locator(
@@ -379,7 +378,7 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         const highlightOpsApplyButton = highlightOpsComponent.getByRole("button", {
             name: "Apply",
         });
-        const highlightedNode = queryPlanMXGraph.locator(".execution-plan-flow-node.highlighted");
+        const highlightedNode = queryPlanContainer.locator(".execution-plan-flow-node.highlighted");
         const selectMetric = async (metric: string) => {
             await highlightOpsInputBox.click();
             const searchBox = iframe.getByRole("searchbox").last();

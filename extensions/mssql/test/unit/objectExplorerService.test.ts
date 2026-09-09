@@ -25,7 +25,10 @@ import { ConnectionNode } from "../../src/objectExplorer/nodes/connectionNode";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { CloseSessionRequest } from "../../src/models/contracts/objectExplorer/closeSessionRequest";
 import { Deferred } from "../../src/protocol";
-import { ExpandRequest } from "../../src/models/contracts/objectExplorer/expandNodeRequest";
+import {
+    ExpandRequest,
+    ExpandResponse,
+} from "../../src/models/contracts/objectExplorer/expandNodeRequest";
 import {
     ActivityObject,
     ActivityStatus,
@@ -60,12 +63,11 @@ import {
     initializeIconUtils,
     stubLogger,
     stubMessageBoxes,
-    stubPreviewService,
+    stubUseMsalEntraMfaAuthConfig,
 } from "./utils";
 import { ObjectExplorerUtils } from "../../src/objectExplorer/objectExplorerUtils";
 import * as vscodeEntraMfaUtils from "../../src/azure/vscodeEntraMfaUtils";
 import * as azureHelpers from "../../src/connectionconfig/azureHelpers";
-import { PreviewFeature } from "../../src/previews/previewService";
 const { MissingEntraAuthAccountError } = vscodeEntraMfaUtils;
 
 chai.use(sinonChai);
@@ -205,6 +207,7 @@ suite("OE Service Tests", () => {
         let sandbox: sinon.SinonSandbox;
         let endStub: sinon.SinonStub;
         let endFailedStub: sinon.SinonStub;
+        let updateStub: sinon.SinonStub;
         let startActivityStub: sinon.SinonStub;
 
         setup(() => {
@@ -219,12 +222,13 @@ suite("OE Service Tests", () => {
             mockConnectionStore.readAllConnectionGroups.resolves([createMockRootConnectionGroup()]);
             endStub = sandbox.stub();
             endFailedStub = sandbox.stub();
+            updateStub = sandbox.stub();
             startActivityStub = sandbox.stub(telemetry, "startActivity").returns({
                 end: endStub,
                 endFailed: endFailedStub,
                 correlationId: "",
                 startTime: 0,
-                update: sandbox.stub(),
+                update: updateStub,
             });
             objectExplorerService = new ObjectExplorerService(mockConnectionManager, () => {});
             objectExplorerService.initialized.resolve();
@@ -519,6 +523,12 @@ suite("OE Service Tests", () => {
             expect(mockClient.sendRequest.args[1][0], "Retry request is a refresh").to.equal(
                 RefreshRequest.type,
             );
+            expect(
+                updateStub,
+                "Telemetry should record that the retry uses a refresh",
+            ).to.have.been.calledOnceWithExactly({
+                additionalProps: { isRefresh: "true" },
+            });
 
             expect(
                 mockConnectionManager.shouldRetryForPausedServerlessDatabase.calledOnce,
@@ -831,6 +841,78 @@ suite("OE Service Tests", () => {
             expect(
                 (objectExplorerService as any)._refreshQueuedAfterInFlight.has(connectionNode),
                 "Queued refresh marker should be cleared",
+            ).to.be.false;
+        });
+
+        test("a filtered refresh settles even when the expand outlasts the tree refresh debounce", async () => {
+            // Loading updates make VS Code request the node's children again. Simulate a slow
+            // filtered refresh and verify those callbacks do not keep queuing more refreshes.
+            const TREE_REFRESH_DELAY_MS = 5;
+            const EXPAND_LATENCY_MS = 40;
+            const MAX_SIMULATED_TREE_FETCHES = 100;
+            const clock = sandbox.useFakeTimers();
+            sandbox.stub(ObjectExplorerUtils, "iconPath").callsFake(() => undefined);
+
+            const connectionProfile = createMockConnectionProfile({ id: "conn1" });
+            let simulatedTreeFetches = 0;
+
+            // Stands in for ObjectExplorerProvider.refresh(), which fires onDidChangeTreeData and
+            // makes VS Code re-fetch the node's children after a short debounce.
+            const loopingService = new ObjectExplorerService(mockConnectionManager, (node) => {
+                if (simulatedTreeFetches >= MAX_SIMULATED_TREE_FETCHES) {
+                    return;
+                }
+                simulatedTreeFetches++;
+                setTimeout(() => void loopingService.getChildren(node), TREE_REFRESH_DELAY_MS);
+            });
+            loopingService.initialized.resolve();
+            setUpOETreeRoot(loopingService, [connectionProfile]);
+
+            const connectionNode = (loopingService as any)._connectionNodes.get(
+                connectionProfile.id,
+            ) as ConnectionNode;
+            connectionNode.sessionId = "session123";
+
+            const respondAfterLatency = () => {
+                setTimeout(
+                    () =>
+                        loopingService.handleExpandNodeNotification({
+                            sessionId: connectionNode.sessionId,
+                            nodePath: connectionNode.nodePath,
+                            nodes: [],
+                            errorMessage: "",
+                        } as ExpandResponse),
+                    EXPAND_LATENCY_MS,
+                );
+                return Promise.resolve(true);
+            };
+            mockClient.sendRequest
+                .withArgs(RefreshRequest.type, sinon.match.any)
+                .callsFake(respondAfterLatency);
+            mockClient.sendRequest
+                .withArgs(ExpandRequest.type, sinon.match.any)
+                .callsFake(respondAfterLatency);
+
+            // Applying a filter sets the filters, then refreshes the node.
+            connectionNode.filters = [
+                { name: "Name", operator: 9, value: "cdwi" },
+            ] as import("vscode-mssql").NodeFilter[];
+            connectionNode.shouldRefresh = true;
+            void loopingService.getChildren(connectionNode);
+
+            await clock.tickAsync(400);
+
+            expect(
+                mockClient.sendRequest,
+                "One filter apply should send exactly one refresh, not a self-sustaining loop",
+            ).to.have.been.calledOnceWithExactly(RefreshRequest.type, sinon.match.any);
+            expect(
+                connectionNode.shouldRefresh,
+                "Refresh flag should be cleared once the refresh has been dispatched",
+            ).to.be.false;
+            expect(
+                (loopingService as any)._refreshQueuedAfterInFlight.has(connectionNode),
+                "No refresh should remain queued after the load settles",
             ).to.be.false;
         });
 
@@ -2857,9 +2939,7 @@ suite("OE Service Tests", () => {
             });
 
             test("should prompt with Sign In and Edit options when MissingVsCodeEntraAuthError is thrown", async () => {
-                stubPreviewService(sandbox, {
-                    [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
-                });
+                stubUseMsalEntraMfaAuthConfig(sandbox, false);
                 const authError = new MissingEntraAuthAccountError("Account not available");
                 mockConnectionManager.prepareConnectionInfo.rejects(authError);
                 // User dismisses the dialog
@@ -2889,9 +2969,7 @@ suite("OE Service Tests", () => {
             });
 
             test("should call signIn and retry prepareConnectionInfo when user chooses Sign In and Retry", async () => {
-                stubPreviewService(sandbox, {
-                    [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
-                });
+                stubUseMsalEntraMfaAuthConfig(sandbox, false);
                 const authError = new MissingEntraAuthAccountError("Account not available");
                 const connectionProfile = createMockConnectionProfile({
                     authenticationType: "AzureMFA",
@@ -2927,9 +3005,7 @@ suite("OE Service Tests", () => {
             });
 
             test("should return undefined if retry after sign-in also fails", async () => {
-                stubPreviewService(sandbox, {
-                    [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
-                });
+                stubUseMsalEntraMfaAuthConfig(sandbox, false);
                 const authError = new MissingEntraAuthAccountError("Account not available");
                 const connectionProfile = createMockConnectionProfile({
                     authenticationType: "AzureMFA",
@@ -2955,9 +3031,7 @@ suite("OE Service Tests", () => {
             });
 
             test("should open connection dialog when user chooses Edit Connection Profile", async () => {
-                stubPreviewService(sandbox, {
-                    [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
-                });
+                stubUseMsalEntraMfaAuthConfig(sandbox, false);
                 const authError = new MissingEntraAuthAccountError("Account not available");
                 mockConnectionManager.prepareConnectionInfo.rejects(authError);
 
@@ -2987,9 +3061,7 @@ suite("OE Service Tests", () => {
             });
 
             test("should return undefined without prompting when user dismisses the error dialog", async () => {
-                stubPreviewService(sandbox, {
-                    [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
-                });
+                stubUseMsalEntraMfaAuthConfig(sandbox, false);
                 const authError = new MissingEntraAuthAccountError("Account not available");
                 mockConnectionManager.prepareConnectionInfo.rejects(authError);
                 messageBoxes.showErrorMessage.resolves(undefined);
@@ -3009,9 +3081,7 @@ suite("OE Service Tests", () => {
             });
 
             test("should return undefined for non-MissingVsCodeEntraAuthError errors when Entra MFA is enabled", async () => {
-                stubPreviewService(sandbox, {
-                    [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
-                });
+                stubUseMsalEntraMfaAuthConfig(sandbox, false);
                 const genericError = new Error("Some unexpected error");
                 mockConnectionManager.prepareConnectionInfo.rejects(genericError);
 
@@ -3027,10 +3097,8 @@ suite("OE Service Tests", () => {
                 ).to.be.false;
             });
 
-            test("should prompt with Sign In and Edit options and use addAccount when useVscodeAccountsForEntraMfa is disabled", async () => {
-                stubPreviewService(sandbox, {
-                    [PreviewFeature.UseVscodeAccountsForEntraMFA]: false,
-                });
+            test("should prompt with Sign In and Edit options and use addAccount when MSAL Entra MFA authentication is enabled", async () => {
+                stubUseMsalEntraMfaAuthConfig(sandbox, true);
 
                 const authError = new MissingEntraAuthAccountError("Account not available");
                 mockConnectionManager.prepareConnectionInfo.rejects(authError);
@@ -3055,10 +3123,8 @@ suite("OE Service Tests", () => {
                 ).to.be.false;
             });
 
-            test("should call addAccount and retry when useVscodeAccountsForEntraMfa is disabled and user chooses Sign In", async () => {
-                stubPreviewService(sandbox, {
-                    [PreviewFeature.UseVscodeAccountsForEntraMFA]: false,
-                });
+            test("should call addAccount and retry when MSAL Entra MFA authentication is enabled and user chooses Sign In", async () => {
+                stubUseMsalEntraMfaAuthConfig(sandbox, true);
 
                 const authError = new MissingEntraAuthAccountError("Account not available");
                 const connectionProfile = createMockConnectionProfile({

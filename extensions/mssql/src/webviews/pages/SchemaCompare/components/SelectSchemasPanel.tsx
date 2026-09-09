@@ -5,38 +5,34 @@
 
 import * as mssql from "vscode-mssql";
 import { useContext } from "react";
-import { Button, makeStyles, mergeClasses, shorthands, useId } from "@fluentui/react-components";
+import { Button, makeStyles, Tooltip, useId } from "@fluentui/react-components";
+import { ArrowSwap16Regular } from "@fluentui/react-icons";
 import SelectSchemaInput from "./SelectSchemaInput";
 import { schemaCompareContext } from "../SchemaCompareStateProvider";
 import { useSchemaCompareSelector } from "../schemaCompareSelector";
 import { locConstants as loc } from "../../../common/locConstants";
 
 const useStyles = makeStyles({
-    topMargin: {
-        ...shorthands.margin("32px", "32px", "0"),
-    },
-
-    marginRight: {
-        marginRight: "32px",
-    },
-
-    layoutHorizontally: {
+    root: {
         display: "flex",
-        flexDirection: "row",
+        flexWrap: "wrap",
+        alignItems: "flex-end",
+        gap: "10px 14px",
+        padding: "12px 14px",
     },
-
-    center: {
-        justifyContent: "center",
+    switchButton: {
+        flex: "0 0 24px",
+        minWidth: "24px",
+        width: "24px",
+        height: "28px",
     },
-
-    button: {
-        height: "32px",
-        position: "relative",
-        top: "20px",
-    },
-
-    buttonLeftMargin: {
-        marginLeft: "32px",
+    compareButton: {
+        flex: "0 0 112px",
+        minWidth: "112px",
+        width: "112px",
+        height: "28px",
+        paddingLeft: "16px",
+        paddingRight: "16px",
     },
 });
 
@@ -68,16 +64,27 @@ const SelectSchemasPanel = ({ onSelectSchemaClicked }: Props) => {
     );
     const isComparisonInProgress = useSchemaCompareSelector((s) => s.isComparisonInProgress);
     const isApplyInProgress = useSchemaCompareSelector((s) => s.isApplyInProgress);
+    const isEndpointSelectionInProgress = useSchemaCompareSelector(
+        (s) => s.isEndpointSelectionInProgress === true,
+    );
 
     let sourceEndpointDisplay = getEndpointDisplayName(sourceEndpointInfo);
     let targetEndpointDisplay = getEndpointDisplayName(targetEndpointInfo);
 
     const handleCompare = () => {
+        if (isEndpointSelectionInProgress) {
+            return;
+        }
+
         context.compare(
             sourceEndpointInfo,
             targetEndpointInfo,
             defaultDeploymentOptionsResult.defaultDeploymentOptions,
         );
+    };
+
+    const handleSwitchEndpoints = () => {
+        context.switchEndpoints(targetEndpointInfo, sourceEndpointInfo);
     };
 
     const isEndpointEmpty = (endpoint: mssql.SchemaCompareEndpointInfo): boolean => {
@@ -91,36 +98,58 @@ const SelectSchemasPanel = ({ onSelectSchemaClicked }: Props) => {
     };
 
     return (
-        <div
-            className={mergeClasses(classes.layoutHorizontally, classes.center, classes.topMargin)}>
+        <div className={classes.root}>
             <SelectSchemaInput
                 id={sourceId}
                 label={loc.schemaCompare.source}
                 buttonAriaLabel={loc.schemaCompare.selectSourceSchema}
                 value={sourceEndpointDisplay}
-                disableBrowseButton={isComparisonInProgress || isApplyInProgress}
+                endpointType={sourceEndpointInfo?.endpointType}
+                disableBrowseButton={
+                    isComparisonInProgress || isApplyInProgress || isEndpointSelectionInProgress
+                }
                 selectFile={() => onSelectSchemaClicked("source")}
-                className={classes.marginRight}
             />
+
+            <Tooltip content={loc.schemaCompare.switchSourceAndTarget} relationship="label">
+                <Button
+                    className={classes.switchButton}
+                    size="small"
+                    appearance="subtle"
+                    icon={<ArrowSwap16Regular />}
+                    onClick={handleSwitchEndpoints}
+                    disabled={
+                        isComparisonInProgress ||
+                        isApplyInProgress ||
+                        isEndpointSelectionInProgress ||
+                        (isEndpointEmpty(sourceEndpointInfo) && isEndpointEmpty(targetEndpointInfo))
+                    }
+                />
+            </Tooltip>
 
             <SelectSchemaInput
                 id={targetId}
                 label={loc.schemaCompare.target}
                 buttonAriaLabel={loc.schemaCompare.selectTargetSchema}
                 value={targetEndpointDisplay}
-                disableBrowseButton={isComparisonInProgress || isApplyInProgress}
+                endpointType={targetEndpointInfo?.endpointType}
+                disableBrowseButton={
+                    isComparisonInProgress || isApplyInProgress || isEndpointSelectionInProgress
+                }
                 selectFile={() => onSelectSchemaClicked("target")}
             />
 
             <Button
-                className={mergeClasses(classes.button, classes.buttonLeftMargin)}
-                size="medium"
+                className={classes.compareButton}
+                appearance="primary"
+                size="small"
                 onClick={handleCompare}
                 disabled={
                     isEndpointEmpty(sourceEndpointInfo) ||
                     isEndpointEmpty(targetEndpointInfo) ||
                     isComparisonInProgress ||
-                    isApplyInProgress
+                    isApplyInProgress ||
+                    isEndpointSelectionInProgress
                 }>
                 {loc.schemaCompare.compare}
             </Button>

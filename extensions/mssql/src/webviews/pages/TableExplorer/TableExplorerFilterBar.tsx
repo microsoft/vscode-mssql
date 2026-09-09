@@ -21,6 +21,7 @@ import {
     FilterOperator,
     operatorTakesValue,
 } from "../../../tableExplorer/tableQueryComposer";
+import { clearTableExplorerFilters } from "./tableDataGridUtils";
 
 export type { AppliedFilter, FilterConjunction, FilterOperator };
 
@@ -36,8 +37,8 @@ interface ColumnOption {
 
 interface TableExplorerFilterBarProps {
     columns: ColumnOption[];
-    onApply: (filters: AppliedFilter[]) => void;
-    onClear: () => void;
+    onApply: (filters: AppliedFilter[]) => Promise<void>;
+    onClear: () => Promise<void>;
     disabled?: boolean;
     initialFilters?: AppliedFilter[];
     isOpen?: boolean;
@@ -259,12 +260,13 @@ export const TableExplorerFilterBar: React.FC<TableExplorerFilterBarProps> = ({
                 value,
                 conjunction,
             }));
-        onApply(applied);
+        void onApply(applied).catch(() => undefined);
     };
 
     const handleClear = () => {
-        setRows([]);
-        onClear();
+        void clearTableExplorerFilters(initialFilters.length > 0, () => setRows([]), onClear).catch(
+            () => undefined,
+        );
     };
 
     // Check if current filters differ from the initialFilters (last applied)

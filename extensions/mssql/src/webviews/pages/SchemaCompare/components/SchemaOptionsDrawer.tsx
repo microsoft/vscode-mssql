@@ -7,7 +7,6 @@ import { useContext, useEffect, useState } from "react";
 import {
     Button,
     Checkbox,
-    Drawer,
     DrawerBody,
     DrawerFooter,
     DrawerHeader,
@@ -15,12 +14,14 @@ import {
     InfoLabel,
     Label,
     makeStyles,
+    OverlayDrawer,
     SearchBox,
     SelectTabData,
     SelectTabEvent,
     Tab,
     TabList,
     TabValue,
+    tokens,
 } from "@fluentui/react-components";
 import { Dismiss24Regular } from "@fluentui/react-icons";
 import { locConstants as loc } from "../../../common/locConstants";
@@ -29,20 +30,47 @@ import { useSchemaCompareSelector } from "../schemaCompareSelector";
 import { DacDeployOptionPropertyBoolean } from "vscode-mssql";
 
 const useStyles = makeStyles({
+    drawer: {
+        width: "640px",
+        maxWidth: "calc(100vw - 32px)",
+        backgroundColor: "var(--vscode-editor-background)",
+        display: "flex",
+        flexDirection: "column",
+        fontFamily: "var(--vscode-font-family)",
+        fontSize: tokens.fontSizeBase300,
+        "& input, & button": {
+            fontFamily: "var(--vscode-font-family)",
+        },
+        "& .fui-Checkbox__label, & .fui-Button, & .fui-Input__input": {
+            fontSize: "13px",
+            lineHeight: "18px",
+        },
+    },
+    drawerHeader: {
+        backgroundColor: "var(--vscode-editorWidget-background, var(--vscode-editor-background))",
+        borderBottom: "1px solid var(--vscode-editorGroup-border)",
+        padding: "16px 24px",
+    },
     drawerBody: {
         display: "flex",
         flexDirection: "column",
+        flex: 1,
+        minHeight: 0,
         height: "100%",
         overflow: "hidden",
+        padding: "24px",
+        boxSizing: "border-box",
+        backgroundColor: "var(--vscode-editor-background)",
     },
 
     searchContainer: {
-        margin: "10px 0",
         width: "100%",
+        marginBottom: "16px",
     },
 
     tabContainer: {
         flexShrink: 0,
+        borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
     },
 
     tabContentContainer: {
@@ -54,10 +82,9 @@ const useStyles = makeStyles({
     },
 
     masterCheckboxContainer: {
-        margin: "10px 0",
-        borderBottom: "1px solid var(--colorNeutralStroke2)",
-        marginBottom: "0px",
-        backgroundColor: "var(--colorNeutralBackground2)",
+        padding: "12px 8px",
+        borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
+        backgroundColor: tokens.colorNeutralBackground2,
         position: "sticky",
         top: 0,
         zIndex: 1,
@@ -80,6 +107,25 @@ const useStyles = makeStyles({
     listItemContainer: {
         display: "flex",
         alignItems: "center",
+        minHeight: "34px",
+        padding: "0 8px",
+    },
+    drawerFooter: {
+        alignSelf: "stretch",
+        justifyContent: "flex-end",
+        columnGap: "12px",
+        padding: "12px 24px",
+        marginTop: 0,
+        backgroundColor: "var(--vscode-editorWidget-background, var(--vscode-editor-background))",
+        borderTop: "1px solid var(--vscode-editorGroup-border)",
+    },
+    resetButton: {
+        marginRight: "auto",
+        minWidth: "112px",
+    },
+    actionButton: {
+        minWidth: "112px",
+        whiteSpace: "nowrap",
     },
 });
 
@@ -209,13 +255,12 @@ const SchemaOptionsDrawer = (props: Props) => {
     const objectTypesMasterState = getObjectTypesMasterCheckboxState();
 
     return (
-        <Drawer
-            separator
+        <OverlayDrawer
             open={props.show}
             onOpenChange={(_, { open: show }) => props.showDrawer(show)}
             position="end"
-            size="medium">
-            <DrawerHeader>
+            className={classes.drawer}>
+            <DrawerHeader className={classes.drawerHeader}>
                 <DrawerHeaderTitle
                     action={
                         <Button
@@ -328,11 +373,21 @@ const SchemaOptionsDrawer = (props: Props) => {
                     </div>
                 )}
             </DrawerBody>
-            <DrawerFooter>
-                <Button appearance="secondary" onClick={() => context.resetOptions()}>
+            <DrawerFooter className={classes.drawerFooter}>
+                <Button
+                    className={classes.resetButton}
+                    appearance="secondary"
+                    onClick={() => context.resetOptions()}>
                     {loc.schemaCompare.reset}
                 </Button>
                 <Button
+                    className={classes.actionButton}
+                    appearance="secondary"
+                    onClick={() => props.showDrawer(false)}>
+                    {loc.schemaCompare.cancel}
+                </Button>
+                <Button
+                    className={classes.actionButton}
                     appearance="primary"
                     onClick={() => {
                         context.confirmSchemaOptions(optionsChanged);
@@ -340,11 +395,8 @@ const SchemaOptionsDrawer = (props: Props) => {
                     }}>
                     {loc.schemaCompare.ok}
                 </Button>
-                <Button appearance="secondary" onClick={() => props.showDrawer(false)}>
-                    {loc.schemaCompare.cancel}
-                </Button>
             </DrawerFooter>
-        </Drawer>
+        </OverlayDrawer>
     );
 };
 

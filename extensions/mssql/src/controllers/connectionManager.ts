@@ -69,7 +69,7 @@ import { getServerTypes, canCheckDatabasePauseStatus } from "../models/connectio
 import * as AzureConstants from "../azure/constants";
 import { ChangePasswordService } from "../services/changePasswordService";
 import { checkIfConnectionIsDockerContainer } from "../docker/dockerUtils";
-import { PreviewFeature, previewService } from "../previews/previewService";
+import { getUseMsalEntraMfaAuthConfig } from "../azure/utils";
 
 /**
  * Maximum number of connection retries when a target serverless Azure SQL database is
@@ -633,9 +633,7 @@ export default class ConnectionManager {
         const self = this;
         return (params: ConnectionContracts.RefreshTokenParams): void => {
             void (async () => {
-                const useVscodeAccountsForEntraMFA = previewService.isFeatureEnabled(
-                    PreviewFeature.UseVscodeAccountsForEntraMFA,
-                );
+                const useVscodeAccountsForEntraMFA = !getUseMsalEntraMfaAuthConfig();
 
                 // Always send a tokenRefreshed notification back to STS so it can unblock
                 // IntelliSense (via TokenUpdateUris). On failure, send empty token/expiresOn=0;
@@ -1272,7 +1270,7 @@ export default class ConnectionManager {
 
         // 2. If the user is using VS Code accounts for Entra MFA, use that flow to refresh the token.
         // STS cannot read VS Code auth sessions, so this path still needs to pass a token.
-        if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
+        if (!getUseMsalEntraMfaAuthConfig()) {
             const expiry = Utils.epochToDisplay(connectionInfo.expiresOn * 1000);
 
             if (
@@ -2542,7 +2540,7 @@ export default class ConnectionManager {
             let acquireToken: (accountId: string, tenantId: string) => Promise<IToken | undefined>;
             let onSignIn: () => Promise<string | undefined>;
 
-            if (previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)) {
+            if (!getUseMsalEntraMfaAuthConfig()) {
                 this._logger.debug("AKV token request received (VS Code accounts path)");
                 getAccounts = async () => {
                     const accounts = await VsCodeAzureHelper.getAccounts();

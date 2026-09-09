@@ -1218,18 +1218,18 @@
         "message": "Schema Compare failed: '{0}'",
         "comment": ["{0} is the error message returned from the compare operation"]
     },
-    "Cannot exclude {0}. Included dependents exist, such as {1}/{0} is the name of the entry{1} is the name of the blocking dependency preventing exclusion.": {
-        "message": "Cannot exclude {0}. Included dependents exist, such as {1}",
+    "Cannot exclude {0}. Blocking included objects: {1}/{0} is the name of the entry{1} is a comma-separated list of objects preventing exclusion.": {
+        "message": "Cannot exclude {0}. Blocking included objects: {1}",
         "comment": [
             "{0} is the name of the entry",
-            "{1} is the name of the blocking dependency preventing exclusion."
+            "{1} is a comma-separated list of objects preventing exclusion."
         ]
     },
-    "Cannot include {0}. Excluded dependents exist, such as {1}/{0} is the name of the entry{1} is the name of the blocking dependency preventing inclusion.": {
-        "message": "Cannot include {0}. Excluded dependents exist, such as {1}",
+    "Cannot include {0}. Blocking excluded objects: {1}/{0} is the name of the entry{1} is a comma-separated list of objects preventing inclusion.": {
+        "message": "Cannot include {0}. Blocking excluded objects: {1}",
         "comment": [
             "{0} is the name of the entry",
-            "{1} is the name of the blocking dependency preventing inclusion."
+            "{1} is a comma-separated list of objects preventing inclusion."
         ]
     },
     "Cannot exclude {0}. Included dependents exist/{0} is the name of the entry": {
@@ -2698,11 +2698,16 @@
     "Move Down": "Move Down",
     "Filter Settings": "Filter Settings",
     "Clear All": "Clear All",
+    "Save and Apply": "Save and Apply",
     "Enter": "Enter",
     "Escape": "Escape",
     "Apply ({0})/{0} is the keyboard shortcut for applying the filter": {
         "message": "Apply ({0})",
         "comment": ["{0} is the keyboard shortcut for applying the filter"]
+    },
+    "Save and Apply ({0})/{0} is the keyboard shortcut for saving and applying the filter": {
+        "message": "Save and Apply ({0})",
+        "comment": ["{0} is the keyboard shortcut for saving and applying the filter"]
     },
     "Close ({0})/{0} is the keyboard shortcut for closing the filter dialog": {
         "message": "Close ({0})",
@@ -2718,8 +2723,8 @@
     "e.g. My tables": "e.g. My tables",
     "Enter a name to save this filter.": "Enter a name to save this filter.",
     "Add at least one filter value before saving this filter.": "Add at least one filter value before saving this filter.",
-    "Pin to Saved": "Pin to Saved",
-    "Move to Recent": "Move to Recent",
+    "Save filter": "Save filter",
+    "Remove from saved filters": "Remove from saved filters",
     "Delete filter": "Delete filter",
     "Rename filter": "Rename filter",
     "Delete reusable filter?": "Delete reusable filter?",
@@ -3250,7 +3255,7 @@
     "Filter for any field...": "Filter for any field...",
     "Estimated Subtree Cost": "Estimated Subtree Cost",
     "Estimated Operator Cost": "Estimated Operator Cost",
-    "The React Flow execution plan preview could not render this plan.": "The React Flow execution plan preview could not render this plan.",
+    "This execution plan could not be rendered.": "This execution plan could not be rendered.",
     "Execution plan {0}, use arrow keys to navigate between nodes/{0} is the one-based execution plan number": {
         "message": "Execution plan {0}, use arrow keys to navigate between nodes",
         "comment": ["{0} is the one-based execution plan number"]
@@ -3789,18 +3794,24 @@
     "Enable REST in API Type to expose this entity through REST.": "Enable REST in API Type to expose this entity through REST.",
     "Expose this entity through GraphQL": "Expose this entity through GraphQL",
     "Enable GraphQL in API Type to expose this entity through GraphQL.": "Enable GraphQL in API Type to expose this entity through GraphQL.",
+    "Expose this entity through MCP": "Expose this entity through MCP",
+    "Enable MCP in API Type to expose this entity through MCP.": "Enable MCP in API Type to expose this entity through MCP.",
     "Stored procedure REST methods": "Stored procedure REST methods",
     "Select the HTTP method that can execute this stored procedure. DAB defaults to POST.": "Select the HTTP method that can execute this stored procedure. DAB defaults to POST.",
     "Stored procedure GraphQL operation": "Stored procedure GraphQL operation",
     "Choose whether this stored procedure appears as a GraphQL mutation or query. DAB defaults to mutation.": "Choose whether this stored procedure appears as a GraphQL mutation or query. DAB defaults to mutation.",
     "Mutation": "Mutation",
     "MCP custom tool": "MCP custom tool",
+    "MCP DML tools": "MCP DML tools",
     "Expose as MCP custom tool": "Expose as MCP custom tool",
     "Creates a dedicated MCP tool for this stored procedure. When disabled, the procedure can still be available through generic MCP execute tools if MCP is enabled.": "Creates a dedicated MCP tool for this stored procedure. When disabled, the procedure can still be available through generic MCP execute tools if MCP is enabled.",
     "Expose as MCP DML tools": "Expose as MCP DML tools",
     "Allows MCP clients to use generic create, read, update, and delete tools for this table.": "Allows MCP clients to use generic create, read, update, and delete tools for this table.",
     "Enable MCP in API Type to use this DML tools setting.": "Enable MCP in API Type to use this DML tools setting.",
     "Enable MCP in API Type to use this custom tool setting.": "Enable MCP in API Type to use this custom tool setting.",
+    "DML tools expose this entity through generic MCP tools.": "DML tools expose this entity through generic MCP tools.",
+    "DML tools expose this stored procedure through generic execute tools.": "DML tools expose this stored procedure through generic execute tools.",
+    "Custom tool creates a dedicated MCP tool for this stored procedure.": "Custom tool creates a dedicated MCP tool for this stored procedure.",
     "{0} is not enabled globally/{0} is the API type, e.g. REST, GraphQL, or MCP": {
         "message": "{0} is not enabled globally",
         "comment": ["{0} is the API type, e.g. REST, GraphQL, or MCP"]
@@ -3818,12 +3829,17 @@
     "Filter entities...": "Filter entities...",
     "Filter entities": "Filter entities",
     "Object type": "Object type",
+    "Exposed via": "Exposed via",
+    "Auth mode": "Auth mode",
+    "Not exposed": "Not exposed",
+    "No permissions": "No permissions",
     "Warnings": "Warnings",
     "{0} of {1} enabled/{0} is the number of enabled entities{1} is the total number of entities": {
         "message": "{0} of {1} enabled",
         "comment": ["{0} is the number of enabled entities", "{1} is the total number of entities"]
     },
     "Read": "Read",
+    "Exec": "Exec",
     "Tables": "Tables",
     "Views": "Views",
     "Stored Procedures": "Stored Procedures",
@@ -3856,9 +3872,11 @@
     "Make everything read-only": "Make everything read-only",
     "Enable all CRUD operations": "Enable all CRUD operations",
     "Include all columns": "Include all columns",
+    "Customize column access": "Customize column access",
     "Entity name used in API routes": "Entity name used in API routes",
     "View Config": "View Config",
     "At least one API type must be selected.": "At least one API type must be selected.",
+    "Select at least one logical key column before applying or deploying this exposed table or view.": "Select at least one logical key column before applying or deploying this exposed table or view.",
     "Authentication not supported": "Authentication not supported",
     "In the Data API builder experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.": "In the Data API builder experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.",
     "Unsupported data types detected": "Unsupported data types detected",
@@ -3869,15 +3887,30 @@
     "Identity": "Identity",
     "REST": "REST",
     "Entity Name": "Entity Name",
-    "Used in API routes and responses": "Used in API routes and responses",
     "Permissions": "Permissions",
     "Define who can access this endpoint": "Define who can access this endpoint",
     "Define who can execute this stored procedure": "Define who can execute this stored procedure",
     "Disabled globally": "Disabled globally",
     "Anonymous": "Anonymous",
+    "Anon": "Anon",
     "No authentication required": "No authentication required",
     "Authenticated": "Authenticated",
+    "Auth": "Auth",
     "Requires user authentication": "Requires user authentication",
+    "Actions": "Actions",
+    "Customize columns": "Customize columns",
+    "Alias": "Alias",
+    "Key": "Key",
+    "Logical key": "Logical key",
+    "Expose": "Expose",
+    "Exposed": "Exposed",
+    "Hidden": "Hidden",
+    "Required parameter": "Required parameter",
+    "Optional": "Optional",
+    "No columns were discovered for this entity.": "No columns were discovered for this entity.",
+    "Filter columns...": "Filter columns...",
+    "No columns match the current filter.": "No columns match the current filter.",
+    "No parameters were discovered for this stored procedure.": "No parameters were discovered for this stored procedure.",
     "Custom REST Path": "Custom REST Path",
     "Optional - Override default api/entityName path": "Optional - Override default api/entityName path",
     "Custom GraphQL Type": "Custom GraphQL Type",
@@ -3897,8 +3930,16 @@
         "message": "Toggle all entities in {0}",
         "comment": ["{0} is the schema name"]
     },
+    "Toggle all {0} in schema {1}/{0} is the source type{1} is the schema name": {
+        "message": "Toggle all {0} in schema {1}",
+        "comment": ["{0} is the source type", "{1} is the schema name"]
+    },
     "Enable {0}/{0} is the entity name": {
         "message": "Enable {0}",
+        "comment": ["{0} is the entity name"]
+    },
+    "Include {0}/{0} is the entity name": {
+        "message": "Include {0}",
         "comment": ["{0} is the entity name"]
     },
     "Toggle columns for {0}/{0} is the entity name": {
@@ -3911,6 +3952,10 @@
     },
     "{0} is a primary key column and can't be disabled./{0} is the backing database column name": {
         "message": "{0} is a primary key column and can't be disabled.",
+        "comment": ["{0} is the backing database column name"]
+    },
+    "{0} is a logical key column and can't be hidden./{0} is the backing database column name": {
+        "message": "{0} is a logical key column and can't be hidden.",
         "comment": ["{0} is the backing database column name"]
     },
     "{0} action for {1}/{0} is the action name (Create, Read, etc.){1} is the entity name": {
@@ -3980,7 +4025,7 @@
     "Select Source Schema": "Select Source Schema",
     "Select Target Schema": "Select Target Schema",
     "No schema differences were found.": "No schema differences were found.",
-    "Initializing comparison, this might take a while...": "Initializing comparison, this might take a while...",
+    "Comparing...": "Comparing...",
     "Applying changes, this might take a while...": "Applying changes, this might take a while...",
     "Changes applied successfully. Run Schema Compare again to see updated differences.": "Changes applied successfully. Run Schema Compare again to see updated differences.",
     "Apply failed. Fix the error and retry, or run Schema Compare again.": "Apply failed. Fix the error and retry, or run Schema Compare again.",
@@ -4028,16 +4073,79 @@
     "Save .scmp file": "Save .scmp file",
     "Save source and target, options, and excluded elements": "Save source and target, options, and excluded elements",
     "Group differences by": "Group differences by",
+    "Layout": "Layout",
+    "Classic": "Classic",
+    "Simplified": "Simplified",
+    "Schema differences": "Schema differences",
+    "Object": "Object",
     "Source Name": "Source Name",
     "Target Name": "Target Name",
     "Change": "Change",
+    "{0} differences/{0} is the total number of schema differences": {
+        "message": "{0} differences",
+        "comment": ["{0} is the total number of schema differences"]
+    },
+    "{0} add/{0} is the number of objects that will be added": {
+        "message": "{0} add",
+        "comment": ["{0} is the number of objects that will be added"]
+    },
+    "{0} change/{0} is the number of objects that will be changed": {
+        "message": "{0} change",
+        "comment": ["{0} is the number of objects that will be changed"]
+    },
+    "{0} delete/{0} is the number of objects that will be deleted": {
+        "message": "{0} delete",
+        "comment": ["{0} is the number of objects that will be deleted"]
+    },
+    "Filter objects": "Filter objects",
+    "All schemas": "All schemas",
+    "All object types": "All object types",
+    "Clear filters": "Clear filters",
+    "Include or exclude all differences": "Include or exclude all differences",
+    "Included in script": "Included in script",
+    "Excluded from script": "Excluded from script",
+    "included in script": "included in script",
+    "excluded from script": "excluded from script",
+    "{0}, {1}, {2}, {3}/{0} is the schema object type{1} is the schema object name{2} is the update action{3} indicates whether the difference is included in the generated script": {
+        "message": "{0}, {1}, {2}, {3}",
+        "comment": [
+            "{0} is the schema object type",
+            "{1} is the schema object name",
+            "{2} is the update action",
+            "{3} indicates whether the difference is included in the generated script"
+        ]
+    },
+    "{0}, {1} differences/{0} is the schema difference group name{1} is the number of differences in the group": {
+        "message": "{0}, {1} differences",
+        "comment": [
+            "{0} is the schema difference group name",
+            "{1} is the number of differences in the group"
+        ]
+    },
+    "{0} of {1} selected/{0} is the number of included schema differences{1} is the total number of schema differences": {
+        "message": "{0} of {1} selected",
+        "comment": [
+            "{0} is the number of included schema differences",
+            "{1} is the total number of schema differences"
+        ]
+    },
     "Select Source": "Select Source",
     "Select Target": "Select Target",
     "Data-tier Application File (.dacpac)": "Data-tier Application File (.dacpac)",
     "Database Project": "Database Project",
     "Target": "Target",
     "Comparison Details": "Comparison Details",
+    "{0} / {1}/{0} is the one-based position of the selected schema difference{1} is the total number of visible schema differences": {
+        "message": "{0} / {1}",
+        "comment": [
+            "{0} is the one-based position of the selected schema difference",
+            "{1} is the total number of visible schema differences"
+        ]
+    },
     "Affected child objects": "Affected child objects",
+    "Constraints added": "Constraints added",
+    "Constraints changed": "Constraints changed",
+    "Constraints dropped": "Constraints dropped",
     "Constraints added: {0}/{0} is a comma-separated list of fully-qualified object names (e.g. '[dbo].[PK_Customers], [dbo].[UQ_Customers_Email]') that will be added under the selected parent object when the diff is applied.": {
         "message": "Constraints added: {0}",
         "comment": [
@@ -4057,7 +4165,22 @@
         ]
     },
     "There was an error updating the project": "There was an error updating the project",
+    "Cannot exclude {0}. Included dependents exist, such as {1}/{0} is the name of the entry{1} is the name of the blocking dependency preventing exclusion.": {
+        "message": "Cannot exclude {0}. Included dependents exist, such as {1}",
+        "comment": [
+            "{0} is the name of the entry",
+            "{1} is the name of the blocking dependency preventing exclusion."
+        ]
+    },
+    "Cannot include {0}. Excluded dependents exist, such as {1}/{0} is the name of the entry{1} is the name of the blocking dependency preventing inclusion.": {
+        "message": "Cannot include {0}. Excluded dependents exist, such as {1}",
+        "comment": [
+            "{0} is the name of the entry",
+            "{1} is the name of the blocking dependency preventing inclusion."
+        ]
+    },
     "Processing include or exclude all differences operation.": "Processing include or exclude all differences operation.",
+    "Updating difference selection.": "Updating difference selection.",
     "Publish Project - {0}/{0} is the name of the project being published": {
         "message": "Publish Project - {0}",
         "comment": ["{0} is the name of the project being published"]
@@ -4200,7 +4323,6 @@
     "Tags": "Tags",
     "Add tag": "Add tag",
     "Remove tag": "Remove tag",
-    "Key": "Key",
     "Tag keys must be unique.": "Tag keys must be unique.",
     "Firewall": "Firewall",
     "General Purpose": "General Purpose",
@@ -4359,7 +4481,6 @@
     "Logical operator": "Logical operator",
     "Filter value": "Filter value",
     "Add filter": "Add filter",
-    "Clear filters": "Clear filters",
     "Remove filter": "Remove filter",
     "value": "value",
     "equals": "equals",
@@ -4390,7 +4511,6 @@
     "Functions": "Functions",
     "Schemas": "Schemas",
     "Search by object name or type (e.g. t:<name>, v:, f:, or sp:)": "Search by object name or type (e.g. t:<name>, v:, f:, or sp:)",
-    "Actions": "Actions",
     "No objects found": "No objects found",
     "Try adjusting your search or filters": "Try adjusting your search or filters",
     "Filter by name": "Filter by name",

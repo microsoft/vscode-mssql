@@ -98,6 +98,7 @@ export class LocConstants {
             clearAll: l10n.t("Clear All"),
             ok: l10n.t("OK"),
             apply: l10n.t("Apply"),
+            saveAndApply: l10n.t("Save and Apply"),
             enter: l10n.t("Enter"),
             escape: l10n.t("Escape"),
             applyTooltip: (shortcut: string) =>
@@ -105,6 +106,12 @@ export class LocConstants {
                     message: "Apply ({0})",
                     args: [shortcut],
                     comment: ["{0} is the keyboard shortcut for applying the filter"],
+                }),
+            saveAndApplyTooltip: (shortcut: string) =>
+                l10n.t({
+                    message: "Save and Apply ({0})",
+                    args: [shortcut],
+                    comment: ["{0} is the keyboard shortcut for saving and applying the filter"],
                 }),
             closeTooltip: (shortcut: string) =>
                 l10n.t({
@@ -124,8 +131,8 @@ export class LocConstants {
             filterValueRequiredToSave: l10n.t(
                 "Add at least one filter value before saving this filter.",
             ),
-            pinFilter: l10n.t("Pin to Saved"),
-            unpinFilter: l10n.t("Move to Recent"),
+            saveFilter: l10n.t("Save filter"),
+            removeFromSavedFilters: l10n.t("Remove from saved filters"),
             deleteFilter: l10n.t("Delete filter"),
             renameFilter: l10n.t("Rename filter"),
             confirmDeleteFilterTitle: l10n.t("Delete reusable filter?"),
@@ -996,9 +1003,7 @@ export class LocConstants {
             collapse: l10n.t("Collapse"),
             subtreeCostLabel: l10n.t("Estimated Subtree Cost"),
             operatorCostLabel: l10n.t("Estimated Operator Cost"),
-            reactFlowRendererError: l10n.t(
-                "The React Flow execution plan preview could not render this plan.",
-            ),
+            executionPlanRendererError: l10n.t("This execution plan could not be rendered."),
             executionPlanGraph: (planNumber: number) =>
                 l10n.t({
                     message: "Execution plan {0}, use arrow keys to navigate between nodes",
@@ -1937,6 +1942,10 @@ export class LocConstants {
             enableGraphQLForEntityHelp: l10n.t(
                 "Enable GraphQL in API Type to expose this entity through GraphQL.",
             ),
+            enableMcpForEntity: l10n.t("Expose this entity through MCP"),
+            enableMcpForEntityHelp: l10n.t(
+                "Enable MCP in API Type to expose this entity through MCP.",
+            ),
             storedProcedureRestMethods: l10n.t("Stored procedure REST methods"),
             storedProcedureRestMethodsHelp: l10n.t(
                 "Select the HTTP method that can execute this stored procedure. DAB defaults to POST.",
@@ -1948,6 +1957,7 @@ export class LocConstants {
             graphqlMutation: l10n.t("Mutation"),
             graphqlQuery: l10n.t("Query"),
             mcpCustomTool: l10n.t("MCP custom tool"),
+            mcpDmlTools: l10n.t("MCP DML tools"),
             exposeAsMcpCustomTool: l10n.t("Expose as MCP custom tool"),
             exposeAsMcpCustomToolHelp: l10n.t(
                 "Creates a dedicated MCP tool for this stored procedure. When disabled, the procedure can still be available through generic MCP execute tools if MCP is enabled.",
@@ -1961,6 +1971,13 @@ export class LocConstants {
             ),
             enableMcpForCustomToolHelp: l10n.t(
                 "Enable MCP in API Type to use this custom tool setting.",
+            ),
+            mcpDmlToolsHelp: l10n.t("DML tools expose this entity through generic MCP tools."),
+            mcpStoredProcedureDmlToolsHelp: l10n.t(
+                "DML tools expose this stored procedure through generic execute tools.",
+            ),
+            mcpCustomToolHelp: l10n.t(
+                "Custom tool creates a dedicated MCP tool for this stored procedure.",
             ),
             apiTypeNotEnabledGlobally: (apiType: string) =>
                 l10n.t({
@@ -1987,6 +2004,10 @@ export class LocConstants {
             filterEntitiesTitle: l10n.t("Filter entities"),
             status: l10n.t("Status"),
             objectType: l10n.t("Object type"),
+            exposedVia: l10n.t("Exposed via"),
+            authMode: l10n.t("Auth mode"),
+            notExposed: l10n.t("Not exposed"),
+            noPermissions: l10n.t("No permissions"),
             clearAllFilters: l10n.t("Clear all"),
             entityStatusFilterLabel: (status: "all" | "enabled" | "disabled" | "warnings") => {
                 switch (status) {
@@ -2013,6 +2034,7 @@ export class LocConstants {
             read: l10n.t("Read"),
             update: l10n.t("Update"),
             execute: l10n.t("Execute"),
+            executeShort: l10n.t("Exec"),
             view: l10n.t("View"),
             storedProcedure: l10n.t("Stored Procedure"),
             tables: l10n.t("Tables"),
@@ -2059,6 +2081,7 @@ export class LocConstants {
             makeReadOnly: l10n.t("Make everything read-only"),
             enableAllCruds: l10n.t("Enable all CRUD operations"),
             includeAllColumns: l10n.t("Include all columns"),
+            customizeColumnAccess: l10n.t("Customize column access"),
             entityNameDescription: l10n.t("Entity name used in API routes"),
             viewConfig: l10n.t("View Config"),
             deploy: l10n.t("Deploy"),
@@ -2066,6 +2089,9 @@ export class LocConstants {
                 "Local container deployment is currently only supported with SQL Authentication connections.",
             ),
             atLeastOneApiTypeRequired: l10n.t("At least one API type must be selected."),
+            missingLogicalKeyRequired: l10n.t(
+                "Select at least one logical key column before applying or deploying this exposed table or view.",
+            ),
             authenticationNotSupported: l10n.t("Authentication not supported"),
             dabDeploymentNotSupportedBanner: l10n.t(
                 "In the Data API builder experience, local container deployment is only available for connections using SQL Authentication. Your current connection type is not supported.",
@@ -2081,7 +2107,6 @@ export class LocConstants {
             identity: l10n.t("Identity"),
             rest: l10n.t("REST"),
             entityName: l10n.t("Entity Name"),
-            entityNameHelp: l10n.t("Used in API routes and responses"),
             authorizationRole: l10n.t("Permissions"),
             authorizationRoleHelp: l10n.t("Define who can access this endpoint"),
             authorizationRoleStoredProcedureHelp: l10n.t(
@@ -2089,9 +2114,31 @@ export class LocConstants {
             ),
             disabledGlobally: l10n.t("Disabled globally"),
             anonymous: l10n.t("Anonymous"),
+            anonymousShort: l10n.t("Anon"),
             anonymousDescription: l10n.t("No authentication required"),
             authenticated: l10n.t("Authenticated"),
+            authenticatedShort: l10n.t("Auth"),
             authenticatedDescription: l10n.t("Requires user authentication"),
+            allowedActions: l10n.t("Actions"),
+            customizeColumns: l10n.t("Customize columns"),
+            done: l10n.t("Done"),
+            description: l10n.t("Description"),
+            parameters: l10n.t("Parameters"),
+            alias: l10n.t("Alias"),
+            key: l10n.t("Key"),
+            logicalKey: l10n.t("Logical key"),
+            expose: l10n.t("Expose"),
+            exposed: l10n.t("Exposed"),
+            hidden: l10n.t("Hidden"),
+            required: l10n.t("Required"),
+            requiredParameter: l10n.t("Required parameter"),
+            optional: l10n.t("Optional"),
+            noColumnsDiscovered: l10n.t("No columns were discovered for this entity."),
+            filterColumns: l10n.t("Filter columns..."),
+            noColumnsMatchFilter: l10n.t("No columns match the current filter."),
+            noParametersDiscovered: l10n.t(
+                "No parameters were discovered for this stored procedure.",
+            ),
             customRestPath: l10n.t("Custom REST Path"),
             customRestPathHelp: l10n.t("Optional - Override default api/entityName path"),
             customGraphQLType: l10n.t("Custom GraphQL Type"),
@@ -2121,9 +2168,21 @@ export class LocConstants {
                     args: [schemaName],
                     comment: ["{0} is the schema name"],
                 }),
+            toggleAllEntitiesInObjectGroup: (sourceType: string, schemaName: string) =>
+                l10n.t({
+                    message: "Toggle all {0} in schema {1}",
+                    args: [sourceType, schemaName],
+                    comment: ["{0} is the source type", "{1} is the schema name"],
+                }),
             enableEntity: (entityName: string) =>
                 l10n.t({
                     message: "Enable {0}",
+                    args: [entityName],
+                    comment: ["{0} is the entity name"],
+                }),
+            includeEntity: (entityName: string) =>
+                l10n.t({
+                    message: "Include {0}",
                     args: [entityName],
                     comment: ["{0} is the entity name"],
                 }),
@@ -2142,6 +2201,12 @@ export class LocConstants {
             primaryKeyColumnExposureLocked: (columnName: string) =>
                 l10n.t({
                     message: "{0} is a primary key column and can't be disabled.",
+                    args: [columnName],
+                    comment: ["{0} is the backing database column name"],
+                }),
+            logicalKeyColumnExposureLocked: (columnName: string) =>
+                l10n.t({
+                    message: "{0} is a logical key column and can't be hidden.",
                     args: [columnName],
                     comment: ["{0} is the backing database column name"],
                 }),
@@ -2251,7 +2316,7 @@ export class LocConstants {
             selectSourceSchema: l10n.t("Select Source Schema"),
             selectTargetSchema: l10n.t("Select Target Schema"),
             noDifferences: l10n.t("No schema differences were found."),
-            initializingComparison: l10n.t("Initializing comparison, this might take a while..."),
+            initializingComparison: l10n.t("Comparing..."),
             applyingChanges: l10n.t("Applying changes, this might take a while..."),
             applySucceededRunAgain: l10n.t(
                 "Changes applied successfully. Run Schema Compare again to see updated differences.",
@@ -2333,7 +2398,12 @@ export class LocConstants {
                 "Save source and target, options, and excluded elements",
             ),
             groupDifferencesBy: l10n.t("Group differences by"),
+            layout: l10n.t("Layout"),
+            classicLayout: l10n.t("Classic"),
+            simplifiedLayout: l10n.t("Simplified"),
+            schemaDifferences: l10n.t("Schema differences"),
             type: l10n.t("Type"),
+            object: l10n.t("Object"),
             sourceName: l10n.t("Source Name"),
             include: l10n.t("Include"),
             action: l10n.t("Action"),
@@ -2341,6 +2411,72 @@ export class LocConstants {
             add: l10n.t("Add"),
             change: l10n.t("Change"),
             delete: l10n.t("Delete"),
+            differencesSummary: (count: number) =>
+                l10n.t({
+                    message: "{0} differences",
+                    args: [count],
+                    comment: ["{0} is the total number of schema differences"],
+                }),
+            addedDifferencesSummary: (count: number) =>
+                l10n.t({
+                    message: "{0} add",
+                    args: [count],
+                    comment: ["{0} is the number of objects that will be added"],
+                }),
+            changedDifferencesSummary: (count: number) =>
+                l10n.t({
+                    message: "{0} change",
+                    args: [count],
+                    comment: ["{0} is the number of objects that will be changed"],
+                }),
+            deletedDifferencesSummary: (count: number) =>
+                l10n.t({
+                    message: "{0} delete",
+                    args: [count],
+                    comment: ["{0} is the number of objects that will be deleted"],
+                }),
+            filterObjects: l10n.t("Filter objects"),
+            filterDifferences: l10n.t("Filter"),
+            allSchemas: l10n.t("All schemas"),
+            allObjectTypes: l10n.t("All object types"),
+            clearFilters: l10n.t("Clear filters"),
+            includeAllDifferences: l10n.t("Include or exclude all differences"),
+            includedInScript: l10n.t("Included in script"),
+            excludedFromScript: l10n.t("Excluded from script"),
+            differenceRowLabel: (type: string, name: string, action: string, included: boolean) =>
+                l10n.t({
+                    message: "{0}, {1}, {2}, {3}",
+                    args: [
+                        type,
+                        name,
+                        action,
+                        included ? l10n.t("included in script") : l10n.t("excluded from script"),
+                    ],
+                    comment: [
+                        "{0} is the schema object type",
+                        "{1} is the schema object name",
+                        "{2} is the update action",
+                        "{3} indicates whether the difference is included in the generated script",
+                    ],
+                }),
+            differenceGroupLabel: (name: string, count: number) =>
+                l10n.t({
+                    message: "{0}, {1} differences",
+                    args: [name, count],
+                    comment: [
+                        "{0} is the schema difference group name",
+                        "{1} is the number of differences in the group",
+                    ],
+                }),
+            selectedDifferencesSummary: (selectedCount: number, totalCount: number) =>
+                l10n.t({
+                    message: "{0} of {1} selected",
+                    args: [selectedCount, totalCount],
+                    comment: [
+                        "{0} is the number of included schema differences",
+                        "{1} is the total number of schema differences",
+                    ],
+                }),
             selectSource: l10n.t("Select Source"),
             selectTarget: l10n.t("Select Target"),
             close: l10n.t("Close"),
@@ -2351,7 +2487,19 @@ export class LocConstants {
             source: l10n.t("Source"),
             target: l10n.t("Target"),
             compareDetails: l10n.t("Comparison Details"),
+            differencePosition: (current: number, total: number) =>
+                l10n.t({
+                    message: "{0} / {1}",
+                    args: [current, total],
+                    comment: [
+                        "{0} is the one-based position of the selected schema difference",
+                        "{1} is the total number of visible schema differences",
+                    ],
+                }),
             affectedChildrenRegionLabel: l10n.t("Affected child objects"),
+            constraintsAddedLabel: l10n.t("Constraints added"),
+            constraintsChangedLabel: l10n.t("Constraints changed"),
+            constraintsDroppedLabel: l10n.t("Constraints dropped"),
             affectedChildrenAdded: (names: string) =>
                 l10n.t({
                     message: "Constraints added: {0}",
@@ -2436,6 +2584,7 @@ export class LocConstants {
             includeExcludeAllOperationInProgress: l10n.t(
                 "Processing include or exclude all differences operation.",
             ),
+            updatingDifferenceSelection: l10n.t("Updating difference selection."),
         };
     }
 

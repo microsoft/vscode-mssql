@@ -13,6 +13,11 @@ import { WebviewPanelController } from "../controllers/webviewPanelController";
 import {
     ExtractTarget,
     SchemaCompareEndpointType,
+    SchemaCompareIncludeExcludeAllRequest,
+    SchemaCompareIncludeExcludeNodeRequest,
+    SchemaCompareIncludeExcludeNodeResponse,
+    SchemaCompareGroupBy,
+    SchemaCompareLayout,
     SchemaCompareReducers,
     SchemaCompareServer,
     SchemaCompareWebViewState,
@@ -51,6 +56,8 @@ import { getConnectionDisplayName } from "../models/connectionInfo";
 import { buildDatabaseOptions } from "../utils/databaseUtils";
 
 const SCHEMA_COMPARE_VIEW_ID = "schemaCompare";
+const SCHEMA_COMPARE_LAYOUT_STATE_KEY = "mssql.schemaCompare.layout";
+const SCHEMA_COMPARE_GROUP_BY_STATE_KEY = "mssql.schemaCompare.groupBy";
 
 export class SchemaCompareWebViewController extends WebviewPanelController<
     SchemaCompareWebViewState,
@@ -62,6 +69,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
     private readonly connectionUris = new Map<string, string>();
     private databaseListRequestGeneration = 0;
     private readonly databaseListCache = new Map<string, string[]>();
+    private _includeExcludeNodeQueue = Promise.resolve();
 
     constructor(
         context: vscode.ExtensionContext,
@@ -88,12 +96,20 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             SCHEMA_COMPARE_VIEW_ID,
             SCHEMA_COMPARE_VIEW_ID,
             {
+                layout: context.globalState.get<SchemaCompareLayout>(
+                    SCHEMA_COMPARE_LAYOUT_STATE_KEY,
+                    "classic",
+                ),
+                groupBy: context.globalState.get<SchemaCompareGroupBy>(
+                    SCHEMA_COMPARE_GROUP_BY_STATE_KEY,
+                    "type",
+                ),
                 isSqlProjectExtensionInstalled: false,
                 isComparisonInProgress: false,
                 isApplyInProgress: false,
                 applySucceeded: false,
                 applyFailed: false,
-                isIncludeExcludeAllOperationInProgress: false,
+                isEndpointSelectionInProgress: false,
                 connections: {},
                 databases: [],
                 databaseListConnectionId: "",
@@ -444,6 +460,23 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
     }
 
     private registerRpcHandlers(): void {
+        this.registerReducer("setLayout", async (state, payload) => {
+            state.layout = payload.layout;
+            await this._context.globalState.update(SCHEMA_COMPARE_LAYOUT_STATE_KEY, payload.layout);
+            this.updateState(state);
+            return state;
+        });
+
+        this.registerReducer("setGroupBy", async (state, payload) => {
+            state.groupBy = payload.groupBy;
+            await this._context.globalState.update(
+                SCHEMA_COMPARE_GROUP_BY_STATE_KEY,
+                payload.groupBy,
+            );
+            this.updateState(state);
+            return state;
+        });
+
         this.registerReducer("isSqlProjectExtensionInstalled", async (state) => {
             this.logger.debug(
                 `Checking if SQL Database Projects extension is installed - OperationId: ${this.operationId}`,
@@ -733,6 +766,8 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             this.logger.debug(
                 `Confirming selected database for ${payload.endpointType} endpoint: ${payload.databaseName} - OperationId: ${this.operationId}`,
             );
+            state.isEndpointSelectionInProgress = true;
+            this.updateState(state);
 
             let connectionUri: string;
             try {
@@ -744,6 +779,8 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 await vscode.window.showErrorMessage(
                     locConstants.SchemaCompare.connectionFailed(getErrorMessage(error)),
                 );
+                state.isEndpointSelectionInProgress = false;
+                this.updateState(state);
                 return state;
             }
 
@@ -761,6 +798,8 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                         locConstants.msgConnectionNotFound(connectionUri),
                     ),
                 );
+                state.isEndpointSelectionInProgress = false;
+                this.updateState(state);
                 return state;
             }
 
@@ -779,6 +818,8 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                         ),
                     ),
                 );
+                state.isEndpointSelectionInProgress = false;
+                this.updateState(state);
                 return state;
             }
 
@@ -814,6 +855,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 state.targetEndpointInfo = endpointInfo;
             }
 
+            state.isEndpointSelectionInProgress = false;
             this.updateState(state);
 
             return state;
@@ -1110,7 +1152,19 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         });
 
         this.registerReducer("compare", async (state, payload) => {
-            return await this.schemaCompare(payload, state, triggerSchemaCompareManual);
+            if (state.isEndpointSelectionInProgress) {
+                return state;
+            }
+
+            return await this.schemaCompare(
+                {
+                    ...payload,
+                    sourceEndpointInfo: state.sourceEndpointInfo,
+                    targetEndpointInfo: state.targetEndpointInfo,
+                },
+                state,
+                triggerSchemaCompareManual,
+            );
         });
 
         this.registerReducer("generateScript", async (state, payload) => {
@@ -1620,11 +1674,13 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             return state;
         });
 
-        this.registerReducer("includeExcludeNode", async (state, payload) => {
+        this.onRequest(SchemaCompareIncludeExcludeNodeRequest.type, async (payload) => {
+            const state = this.state;
             const diffEntry = payload.diffEntry;
             const diffEntryName = this.formatEntryName(
                 diffEntry.sourceValue ? diffEntry.sourceValue : diffEntry.targetValue,
             );
+            const updates: SchemaCompareIncludeExcludeNodeResponse["updates"] = [];
 
             this.logger.debug(
                 `${payload.includeRequest ? "Including" : "Excluding"} node: ${diffEntryName} (ID: ${payload.id}) - OperationId: ${this.operationId}`,
@@ -1664,17 +1720,33 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             this.logger.debug(
                 `Calling includeExcludeNode service - OperationId: ${this.operationId}`,
             );
-            const result = await includeExcludeNode(
-                this.operationId,
-                TaskExecutionMode.execute,
-                payload,
-                this.schemaCompareService,
-                this.logger,
-            );
+            const previousOperation = this._includeExcludeNodeQueue;
+            let releaseQueue!: () => void;
+            this._includeExcludeNodeQueue = new Promise<void>((resolve) => {
+                releaseQueue = resolve;
+            });
+            await previousOperation;
+
+            let result: mssql.SchemaCompareIncludeExcludeResult;
+            try {
+                result = await includeExcludeNode(
+                    this.operationId,
+                    TaskExecutionMode.execute,
+                    payload,
+                    this.schemaCompareService,
+                    this.logger,
+                );
+            } catch (error) {
+                void vscode.window.showWarningMessage(getErrorMessage(error));
+                throw error;
+            } finally {
+                releaseQueue();
+            }
 
             this.logger.debug(
                 `includeExcludeNode service returned - success: ${result?.success}, elapsed: ${Date.now() - startTime}ms - OperationId: ${this.operationId}`,
             );
+            state.schemaCompareIncludeExcludeResult = result;
 
             if (result.success) {
                 this.logger.debug(
@@ -1697,14 +1769,13 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                     },
                 });
 
-                state.schemaCompareIncludeExcludeResult = result;
-
                 if (state.schemaCompareResult) {
                     this.logger.debug(
                         `Updating node at index ${payload.id} - OperationId: ${this.operationId}`,
                     );
                     state.schemaCompareResult.differences[payload.id].included =
                         payload.includeRequest;
+                    updates.push({ id: payload.id, included: payload.includeRequest });
 
                     this.logger.debug(
                         `Updating ${result.affectedDependencies?.length || 0} affected dependencies in the UI state - OperationId: ${this.operationId}`,
@@ -1715,13 +1786,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                     let notFoundCount = 0;
 
                     result.affectedDependencies.forEach((difference, depIndex) => {
-                        const index = state.schemaCompareResult.differences.findIndex(
-                            (d) =>
-                                d.sourceValue === difference.sourceValue &&
-                                d.targetValue === difference.targetValue &&
-                                d.updateAction === difference.updateAction &&
-                                d.name === difference.name,
-                        );
+                        const index = this.findDifferenceIndex(difference);
 
                         if (index !== -1) {
                             foundCount++;
@@ -1733,6 +1798,9 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                             }
                             state.schemaCompareResult.differences[index].included =
                                 payload.includeRequest;
+                            if (!updates.some((update) => update.id === index)) {
+                                updates.push({ id: index, included: payload.includeRequest });
+                            }
                         } else {
                             notFoundCount++;
                             if (notFoundCount <= 3) {
@@ -1751,10 +1819,6 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 }
 
                 this.logger.debug(
-                    `Calling updateState to refresh UI - OperationId: ${this.operationId}`,
-                );
-                this.updateState(state);
-                this.logger.debug(
                     `includeExcludeNode completed successfully - OperationId: ${this.operationId}`,
                 );
             } else {
@@ -1762,17 +1826,15 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                     `Failed to ${payload.includeRequest ? "include" : "exclude"} node: ${result.errorMessage || "Unknown error"} - OperationId: ${this.operationId}`,
                 );
 
-                if (result.blockingDependencies) {
-                    const diffEntryName = this.formatEntryName(
-                        diffEntry.sourceValue ? diffEntry.sourceValue : diffEntry.targetValue,
-                    );
-
+                if (result.blockingDependencies?.length > 0) {
                     const blockingDependencyNames = result.blockingDependencies
                         .map((blockingEntry) => {
-                            return this.formatEntryName(
-                                blockingEntry.sourceValue
-                                    ? blockingEntry.sourceValue
-                                    : blockingEntry.targetValue,
+                            return (
+                                this.formatEntryName(
+                                    blockingEntry.sourceValue
+                                        ? blockingEntry.sourceValue
+                                        : blockingEntry.targetValue,
+                                ) || blockingEntry.name
                             );
                         })
                         .filter((name) => name !== "");
@@ -1780,6 +1842,17 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                     this.logger.warn(
                         `Operation blocked by dependencies: ${blockingDependencyNames.join(", ")} - OperationId: ${this.operationId}`,
                     );
+
+                    const message = payload.includeRequest
+                        ? locConstants.SchemaCompare.cannotIncludeEntryWithBlockingDependency(
+                              diffEntryName,
+                              blockingDependencyNames.join(", "),
+                          )
+                        : locConstants.SchemaCompare.cannotExcludeEntryWithBlockingDependency(
+                              diffEntryName,
+                              blockingDependencyNames.join(", "),
+                          );
+                    void vscode.window.showWarningMessage(message);
 
                     endActivity.endFailed(
                         new Error("Operation was blocked by dependencies"),
@@ -1795,27 +1868,13 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                             ),
                         },
                     );
-
-                    let message = "";
-                    if (blockingDependencyNames.length > 0) {
-                        message = payload.includeRequest
-                            ? locConstants.SchemaCompare.cannotIncludeEntryWithBlockingDependency(
-                                  diffEntryName,
-                                  blockingDependencyNames.join(", "),
-                              )
-                            : locConstants.SchemaCompare.cannotExcludeEntryWithBlockingDependency(
-                                  diffEntryName,
-                                  blockingDependencyNames.join(", "),
-                              );
-                    } else {
-                        message = payload.includeRequest
-                            ? locConstants.SchemaCompare.cannotIncludeEntry(diffEntryName)
-                            : locConstants.SchemaCompare.cannotExcludeEntry(diffEntryName);
-                    }
-
-                    vscode.window.showWarningMessage(message);
                 } else {
-                    vscode.window.showWarningMessage(result.errorMessage);
+                    const message =
+                        result.errorMessage ||
+                        (payload.includeRequest
+                            ? locConstants.SchemaCompare.cannotIncludeEntry(diffEntryName)
+                            : locConstants.SchemaCompare.cannotExcludeEntry(diffEntryName));
+                    void vscode.window.showWarningMessage(message);
 
                     endActivity.endFailed(
                         new Error(
@@ -1836,10 +1895,35 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 }
             }
 
-            return state;
+            const blockingDependencies = (result.blockingDependencies ?? []).map((difference) => {
+                const id = this.findDifferenceIndex(difference);
+                return {
+                    id: id !== undefined && id >= 0 ? id : undefined,
+                    name:
+                        this.formatEntryName(difference.sourceValue ?? difference.targetValue) ||
+                        difference.name,
+                };
+            });
+
+            const reason: SchemaCompareIncludeExcludeNodeResponse["reason"] = result.success
+                ? undefined
+                : blockingDependencies.length > 0
+                  ? "blockingDependencies"
+                  : payload.includeRequest
+                    ? "serviceError"
+                    : "notExcludable";
+
+            return {
+                success: result.success,
+                updates,
+                blockingDependencies,
+                reason,
+                errorMessage: result.errorMessage,
+            };
         });
 
-        this.registerReducer("includeExcludeAllNodes", async (state, payload) => {
+        this.onRequest(SchemaCompareIncludeExcludeAllRequest.type, async (payload) => {
+            const state = this.state;
             this.logger.debug(
                 `${payload.includeRequest ? "Including" : "Excluding"} all nodes - OperationId: ${this.operationId}`,
             );
@@ -1856,12 +1940,6 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                     `No schema compare result in state - OperationId: ${this.operationId}`,
                 );
             }
-
-            state.isIncludeExcludeAllOperationInProgress = true;
-            this.logger.debug(
-                `Set operation in progress flag, updating UI - OperationId: ${this.operationId}`,
-            );
-            this.updateState(state);
 
             const startTime = Date.now();
             const endActivity = startActivity(
@@ -1896,8 +1974,6 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 this.logger.debug(
                     `includeExcludeAllNodes service returned after ${serviceElapsed}ms - success: ${result?.success} - OperationId: ${this.operationId}`,
                 );
-
-                this.state.isIncludeExcludeAllOperationInProgress = false;
 
                 if (result.success) {
                     const count = result.allIncludedOrExcludedDifferences?.length || 0;
@@ -1955,6 +2031,12 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                             errorMessage: result.errorMessage,
                         },
                     );
+
+                    return {
+                        success: false,
+                        differences: state.schemaCompareResult?.differences ?? [],
+                        errorMessage: result.errorMessage,
+                    };
                 }
             } catch (error) {
                 const errorElapsed = Date.now() - startTime;
@@ -1985,14 +2067,17 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                     },
                 );
 
-                this.state.isIncludeExcludeAllOperationInProgress = false;
+                return {
+                    success: false,
+                    differences: state.schemaCompareResult?.differences ?? [],
+                    errorMessage: getErrorMessage(error),
+                };
             }
 
-            this.logger.debug(
-                `Updating state after includeExcludeAllNodes operation - OperationId: ${this.operationId}`,
-            );
-            this.updateState(state);
-            return state;
+            return {
+                success: true,
+                differences: state.schemaCompareResult?.differences ?? [],
+            };
         });
 
         this.registerReducer("openScmp", async (state) => {
@@ -2355,6 +2440,31 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         return nameParts.join(".");
     }
 
+    private findDifferenceIndex(difference: DiffEntry): number {
+        return (
+            this.state.schemaCompareResult?.differences.findIndex(
+                (candidate) =>
+                    this.areNamePartsEqual(candidate.sourceValue, difference.sourceValue) &&
+                    this.areNamePartsEqual(candidate.targetValue, difference.targetValue) &&
+                    candidate.updateAction === difference.updateAction &&
+                    candidate.name === difference.name,
+            ) ?? -1
+        );
+    }
+
+    private areNamePartsEqual(
+        left: string[] | undefined | null,
+        right: string[] | undefined | null,
+    ): boolean {
+        if (left === right) {
+            return true;
+        }
+        if (!left || !right || left.length !== right.length) {
+            return false;
+        }
+        return left.every((part, index) => part === right[index]);
+    }
+
     private mapExtractTargetEnum(folderStructure: string): ExtractTarget {
         switch (folderStructure) {
             case "File":
@@ -2669,8 +2779,22 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 `Has connectionDetails: ${!!endpoint.connectionDetails}, Has options: ${!!endpoint.connectionDetails?.options} - OperationId: ${this.operationId}`,
             );
 
-            const { profile: connectionProfile, score } =
-                await this.connectionMgr.findMatchingProfile(connInfo as IConnectionProfile);
+            let profileMatch = await this.connectionMgr.findMatchingProfile(
+                connInfo as IConnectionProfile,
+            );
+            if (
+                (!profileMatch.profile || profileMatch.score === utils.MatchScore.NotMatch) &&
+                connInfo.connectionString
+            ) {
+                // Prefer an exact connection-string identity, then fall back to the parsed fields
+                // so equivalent saved profiles can still be found.
+                const parsedConnInfo = { ...connInfo };
+                delete parsedConnInfo.connectionString;
+                profileMatch = await this.connectionMgr.findMatchingProfile(
+                    parsedConnInfo as IConnectionProfile,
+                );
+            }
+            const { profile: connectionProfile, score } = profileMatch;
             let isConnected = false;
 
             if (connectionProfile && score !== utils.MatchScore.NotMatch) {

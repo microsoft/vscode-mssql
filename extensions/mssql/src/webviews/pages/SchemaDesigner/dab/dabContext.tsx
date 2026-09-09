@@ -24,6 +24,7 @@ interface DabContextProps {
     toggleDabEntityAction: (entityId: string, action: Dab.EntityAction, isEnabled: boolean) => void;
     toggleDabColumnExposure: (entityId: string, columnId: string, isExposed: boolean) => void;
     updateDabEntitySettings: (entityId: string, settings: Dab.EntityAdvancedSettings) => void;
+    updateDabEntityConfig: (entity: Dab.DabEntityConfig) => void;
     dabTextFilter: string;
     setDabTextFilter: (text: string) => void;
     dabConfigTextFileContent: string;
@@ -60,6 +61,7 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
     const currentFilteredTables = useSchemaDesignerSelector((s) => s?.currentFilteredTables) ?? [];
 
     const [dabConfig, setDabConfig] = useState<Dab.DabConfig | null>(null);
+    const [dabSourceObjects, setDabSourceObjects] = useState<Dab.DabSourceObject[]>([]);
     const [dabTextFilter, setDabTextFilter] = useState<string>("");
     const [dabConfigTextFileContent, setDabConfigTextFileContent] = useState<string>("");
     const [dabDeploymentState, setDabDeploymentState] = useState<Dab.DabDeploymentState>(
@@ -68,6 +70,7 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
 
     const dabConfigRef = useRef<Dab.DabConfig | null>(dabConfig);
     const extractSchemaRef = useRef<() => ReturnType<typeof extractSchema>>(extractSchema);
+    const dabSourceObjectsRef = useRef<Dab.DabSourceObject[]>(dabSourceObjects);
 
     useEffect(() => {
         dabConfigRef.current = dabConfig;
@@ -78,15 +81,21 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
     }, [extractSchema]);
 
     useEffect(() => {
+        dabSourceObjectsRef.current = dabSourceObjects;
+    }, [dabSourceObjects]);
+
+    useEffect(() => {
         registerSchemaDesignerDabToolHandlers({
             extensionRpc,
             isInitializedRef,
             waitForInitialization,
             getCurrentDabConfig: () => dabConfigRef.current,
-            getCurrentSourceObjects: () =>
-                extractSchemaRef
+            getCurrentSourceObjects: () => [
+                ...extractSchemaRef
                     .current()
                     .tables.map((table) => Dab.createSourceObjectFromTable(table)),
+                ...dabSourceObjectsRef.current,
+            ],
             commitDabConfig: (config) => {
                 dabConfigRef.current = config;
                 setDabConfig(config);
@@ -95,13 +104,19 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
     }, [extensionRpc, waitForInitialization]);
 
     const initializeDabConfig = useCallback(() => {
-        void extensionRpc
-            .sendRequest(Dab.GetCachedConfigRequest.type)
-            .then((response) => {
+        void Promise.all([
+            extensionRpc.sendRequest(Dab.GetCachedConfigRequest.type),
+            extensionRpc.sendRequest(Dab.GetDatabaseObjectsRequest.type).catch(() => ({
+                sourceObjects: [],
+            })),
+        ])
+            .then(([response, databaseObjects]) => {
                 const schema = extractSchema();
-                const sourceObjects = schema.tables.map((table) =>
-                    Dab.createSourceObjectFromTable(table),
-                );
+                const sourceObjects = [
+                    ...schema.tables.map((table) => Dab.createSourceObjectFromTable(table)),
+                    ...databaseObjects.sourceObjects,
+                ];
+                setDabSourceObjects(databaseObjects.sourceObjects);
                 const baseConfig =
                     response.config ?? Dab.createDefaultConfigFromSources(sourceObjects);
                 const synced = Dab.syncConfigWithSources(baseConfig, sourceObjects);
@@ -120,12 +135,15 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
         }
 
         const schema = extractSchema();
-        const sourceObjects = schema.tables.map((table) => Dab.createSourceObjectFromTable(table));
+        const sourceObjects = [
+            ...schema.tables.map((table) => Dab.createSourceObjectFromTable(table)),
+            ...dabSourceObjects,
+        ];
         const synced = Dab.syncConfigWithSources(dabConfig, sourceObjects);
         if (synced.changed) {
             setDabConfig(synced.config);
         }
-    }, [dabConfig, extractSchema]);
+    }, [dabConfig, dabSourceObjects, extractSchema]);
 
     const updateDabApiTypes = useCallback((apiTypes: Dab.ApiType[]) => {
         setDabConfig((prev) => {
@@ -154,10 +172,19 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                     return {
                         ...entity,
                         isEnabled,
-                        columns: entity.columns.map((column) => ({
-                            ...column,
-                            isExposed: isEnabled,
-                        })),
+                        advancedSettings: {
+                            ...entity.advancedSettings,
+                            restEnabled: isEnabled,
+                            graphQLEnabled: isEnabled,
+                            mcpEnabled: isEnabled,
+                            mcpDmlToolsEnabled: isEnabled,
+                            ...(entity.sourceType === Dab.EntitySourceType.StoredProcedure
+                                ? {
+                                      exposeAsMcpCustomTool: false,
+                                      mcpCustomToolEnabled: false,
+                                  }
+                                : {}),
+                        },
                     };
                 }),
             };
@@ -186,7 +213,20 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                     const enabledActions = isEnabled
                         ? [...e.enabledActions, action]
                         : e.enabledActions.filter((a) => a !== action);
-                    return { ...e, enabledActions };
+                    const role = e.advancedSettings.authorizationRole;
+                    const permissions = Dab.getEntityPermissions(e).map((permission) =>
+                        permission.role === role
+                            ? { ...permission, actions: enabledActions }
+                            : permission,
+                    );
+                    return {
+                        ...e,
+                        enabledActions,
+                        advancedSettings: {
+                            ...e.advancedSettings,
+                            permissions,
+                        },
+                    };
                 });
 
                 if (!didChange) {
@@ -243,6 +283,21 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
         },
         [],
     );
+
+    const updateDabEntityConfig = useCallback((updatedEntity: Dab.DabEntityConfig) => {
+        setDabConfig((prev) => {
+            if (!prev) {
+                return prev;
+            }
+
+            return {
+                ...prev,
+                entities: prev.entities.map((entity) =>
+                    entity.id === updatedEntity.id ? updatedEntity : entity,
+                ),
+            };
+        });
+    }, []);
 
     // Auto-generate text config whenever dabConfig changes
     useEffect(() => {
@@ -506,6 +561,7 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                 toggleDabEntityAction,
                 toggleDabColumnExposure,
                 updateDabEntitySettings,
+                updateDabEntityConfig,
                 dabTextFilter,
                 setDabTextFilter,
                 dabConfigTextFileContent,

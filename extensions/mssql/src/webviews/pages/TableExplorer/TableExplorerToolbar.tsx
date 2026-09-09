@@ -36,6 +36,7 @@ import { useTableExplorerContext } from "./TableExplorerStateProvider";
 import { useTableExplorerSelector } from "./tableExplorerSelector";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 import type { DataColumnVisibility } from "./TableDataGrid";
+import { submitTableExplorerRowCountReload } from "./tableDataGridUtils";
 
 const useStyles = makeStyles({
     filterButtonActive: {
@@ -51,11 +52,12 @@ const useStyles = makeStyles({
 });
 
 interface TableExplorerToolbarProps {
-    onSaveComplete?: () => void;
+    onSave: () => Promise<void>;
+    onAddRow?: () => Promise<void>;
     cellChangeCount: number;
     deletionCount: number;
     currentRowCount?: number;
-    onLoadSubset?: (rowCount: number) => void;
+    onLoadSubset?: (rowCount: number) => Promise<boolean>;
     onExport?: (format: "csv" | "excel" | "json") => void;
     getDataColumns?: () => DataColumnVisibility[];
     onSetColumnVisibility?: (id: string, visible: boolean) => void;
@@ -124,7 +126,8 @@ const ColumnsMenu: React.FC<ColumnsMenuProps> = ({
 };
 
 export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
-    onSaveComplete,
+    onSave,
+    onAddRow,
     cellChangeCount,
     deletionCount,
     currentRowCount,
@@ -149,19 +152,26 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
     const isLoading = loadStatus === ApiStatus.Loading;
 
     const [loadRowCount, setLoadRowCount] = React.useState<string>(String(DEFAULT_ROW_COUNT));
+    const [isSaving, setIsSaving] = React.useState(false);
 
     const lastSubmittedRowCountRef = React.useRef<number>(DEFAULT_ROW_COUNT);
 
-    const handleSave = () => {
-        context.commitChanges();
-        // Call the callback to clear change tracking after save
-        if (onSaveComplete) {
-            onSaveComplete();
+    const handleSave = async () => {
+        if (isSaving) {
+            return;
+        }
+        setIsSaving(true);
+        try {
+            await onSave();
+        } catch {
+            // The controller displays the save error; keep this event handler from rejecting.
+        } finally {
+            setIsSaving(false);
         }
     };
 
     const handleAddRow = () => {
-        context.createRow();
+        void onAddRow?.().catch(() => undefined);
     };
 
     const fetchRowsForValue = (rawValue: string) => {
@@ -172,8 +182,11 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
         if (lastSubmittedRowCountRef.current === rowCountNumber) {
             return;
         }
-        lastSubmittedRowCountRef.current = rowCountNumber;
-        onLoadSubset(rowCountNumber);
+        void submitTableExplorerRowCountReload(
+            rowCountNumber,
+            lastSubmittedRowCountRef,
+            onLoadSubset,
+        ).catch(() => undefined);
     };
 
     const onRowCountChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -224,7 +237,7 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
                 title={saveButtonText}
                 icon={<SaveRegular />}
                 onClick={handleSave}
-                disabled={changeCount === 0 || isLoading}>
+                disabled={changeCount === 0 || isLoading || isSaving}>
                 {saveButtonText}
             </ToolbarButton>
             <ToolbarButton
@@ -232,7 +245,7 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
                 title={loc.tableExplorer.addRow}
                 icon={<AddRegular />}
                 onClick={handleAddRow}
-                disabled={isLoading}>
+                disabled={isLoading || isSaving}>
                 {loc.tableExplorer.addRow}
             </ToolbarButton>
             <Menu>
