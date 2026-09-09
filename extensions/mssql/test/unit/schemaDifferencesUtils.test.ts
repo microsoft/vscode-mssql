@@ -26,6 +26,12 @@ suite("SchemaDifferences keyboard navigation", () => {
         expect(getSchemaDifferenceNavigationTarget(rows, 1, "End")).to.equal(4);
     });
 
+    test("Home and End return no target when only group rows are visible", () => {
+        const groupRows = ["group", "group"] as const;
+        expect(getSchemaDifferenceNavigationTarget(groupRows, 0, "Home")).to.be.undefined;
+        expect(getSchemaDifferenceNavigationTarget(groupRows, 1, "End")).to.be.undefined;
+    });
+
     test("returns no target for an invalid current row", () => {
         expect(getSchemaDifferenceNavigationTarget(rows, -1, "ArrowDown")).to.be.undefined;
         expect(getSchemaDifferenceNavigationTarget([], 0, "Home")).to.be.undefined;
