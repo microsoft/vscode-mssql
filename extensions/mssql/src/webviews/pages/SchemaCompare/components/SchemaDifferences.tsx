@@ -65,9 +65,6 @@ type GroupRow = {
     key: string;
     label: string;
     count: number;
-    addCount: number;
-    changeCount: number;
-    deleteCount: number;
     collapsed: boolean;
 };
 type Row = DiffRow | GroupRow;
@@ -148,22 +145,6 @@ const getLabelForAction = (action: SchemaUpdateAction): string => {
     }
 };
 
-const getActionIndicatorClass = (
-    action: SchemaUpdateAction,
-    classes: ReturnType<typeof useStyles>,
-): string | undefined => {
-    switch (action) {
-        case SchemaUpdateAction.Add:
-            return classes.addIndicator;
-        case SchemaUpdateAction.Change:
-            return classes.changeIndicator;
-        case SchemaUpdateAction.Delete:
-            return classes.deleteIndicator;
-        default:
-            return undefined;
-    }
-};
-
 const highlightText = (
     text: string,
     searchText: string,
@@ -211,9 +192,6 @@ const useStyles = makeStyles({
             padding: "0 6px",
             height: `${ROW_HEIGHT}px`,
             minHeight: `${ROW_HEIGHT}px`,
-        },
-        "& [data-action-stripe='true']": {
-            padding: 0,
         },
     },
     selectedRow: {
@@ -268,28 +246,9 @@ const useStyles = makeStyles({
         whiteSpace: "nowrap",
     },
     actionSummary: {
-        display: "flex",
-        alignItems: "center",
-        gap: "4px",
         flex: "0 0 auto",
         whiteSpace: "nowrap",
         color: "var(--vscode-descriptionForeground)",
-    },
-    summaryIndicator: {
-        display: "inline-block",
-        flex: "0 0 auto",
-        width: "7px",
-        height: "7px",
-        borderRadius: "2px",
-    },
-    addIndicator: {
-        backgroundColor: "var(--vscode-charts-green)",
-    },
-    changeIndicator: {
-        backgroundColor: "var(--vscode-charts-yellow)",
-    },
-    deleteIndicator: {
-        backgroundColor: "var(--vscode-charts-red)",
     },
     filterInput: {
         flex: "0 1 240px",
@@ -435,12 +394,6 @@ const useStyles = makeStyles({
         flex: "0 0 auto",
         whiteSpace: "nowrap",
     },
-    actionCell: {
-        display: "flex",
-        alignItems: "center",
-        gap: "6px",
-        minWidth: 0,
-    },
     simplifiedObjectCell: {
         minWidth: 0,
         fontFamily: "var(--vscode-editor-font-family)",
@@ -450,18 +403,6 @@ const useStyles = makeStyles({
     },
     simplifiedRename: {
         opacity: 0.65,
-    },
-    actionStripeCell: {
-        width: "100%",
-        height: "100%",
-        minHeight: `${ROW_HEIGHT}px`,
-        padding: 0,
-    },
-    actionStripe: {
-        display: "block",
-        width: "3px",
-        height: "100%",
-        minHeight: `${ROW_HEIGHT}px`,
     },
     searchHighlight: {
         backgroundColor: "var(--vscode-editor-findMatchBackground)",
@@ -500,24 +441,6 @@ const useStyles = makeStyles({
         cursor: "pointer",
         textAlign: "left",
         userSelect: "none",
-    },
-    groupHeaderSummary: {
-        display: "flex",
-        alignItems: "center",
-        gap: "6px",
-        marginLeft: "4px",
-        flex: "0 0 auto",
-        fontFamily: "var(--vscode-editor-font-family)",
-        fontSize: "11px",
-    },
-    groupAddCount: {
-        color: "var(--vscode-charts-green)",
-    },
-    groupChangeCount: {
-        color: "var(--vscode-charts-yellow)",
-    },
-    groupDeleteCount: {
-        color: "var(--vscode-charts-red)",
     },
     groupHeaderLabel: {
         fontWeight: 600,
@@ -580,6 +503,8 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
         } | null>(undefined as unknown as null);
         const previouslyScrolledDiffId = React.useRef<number | undefined>(undefined);
         const previouslyFocusedDiffId = React.useRef(selectedDiffId);
+        const pendingRowFocusKey = React.useRef<string | undefined>(undefined);
+        const hasFocusedInitialRow = React.useRef(false);
         const [focusedRowKey, setFocusedRowKey] = React.useState<string>(`diff:${selectedDiffId}`);
 
         const resizableRef = React.useRef<HTMLDivElement | null>(
@@ -693,7 +618,18 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
 
         const handleIncludeExcludeNode = (diffEntry: DiffEntry, include: boolean) => {
             if (diffEntry.position !== undefined) {
-                void context.includeExcludeNode(diffEntry.position, diffEntry, include);
+                const rowKey = `diff:${diffEntry.position}`;
+                pendingRowFocusKey.current = rowKey;
+                setFocusedRowKey(rowKey);
+                void context
+                    .includeExcludeNode(diffEntry.position, diffEntry, include)
+                    .finally(() =>
+                        requestAnimationFrame(() => {
+                            if (document.activeElement === document.body) {
+                                focusRenderedRow(rowKey);
+                            }
+                        }),
+                    );
             }
         };
 
@@ -807,22 +743,13 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
                     if (item.kind !== "diff") return emptyCell;
                     return (
                         <DataGridCell>
-                            <div className={classes.actionCell}>
-                                <span
-                                    className={mergeClasses(
-                                        classes.summaryIndicator,
-                                        getActionIndicatorClass(item.updateAction, classes),
-                                    )}
-                                    aria-hidden
-                                />
-                                <Text truncate className={classes.hideTextOverflow}>
-                                    {highlightText(
-                                        getLabelForAction(item.updateAction),
-                                        filterText,
-                                        classes.searchHighlight,
-                                    )}
-                                </Text>
-                            </div>
+                            <Text truncate className={classes.hideTextOverflow}>
+                                {highlightText(
+                                    getLabelForAction(item.updateAction),
+                                    filterText,
+                                    classes.searchHighlight,
+                                )}
+                            </Text>
                         </DataGridCell>
                     );
                 },
@@ -848,26 +775,6 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
         ];
 
         const simplifiedColumns: TableColumnDefinition<Row>[] = [
-            createTableColumn<Row>({
-                columnId: "actionStripe",
-                renderHeaderCell: () => null,
-                renderCell: (item) => {
-                    if (item.kind !== "diff") return emptyCell;
-                    return (
-                        <DataGridCell
-                            className={classes.actionStripeCell}
-                            data-action-stripe="true"
-                            aria-hidden>
-                            <span
-                                className={mergeClasses(
-                                    classes.actionStripe,
-                                    getActionIndicatorClass(item.updateAction, classes),
-                                )}
-                            />
-                        </DataGridCell>
-                    );
-                },
-            }),
             createTableColumn<Row>({
                 columnId: "include",
                 renderHeaderCell: renderIncludeHeader,
@@ -966,6 +873,16 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
         }, [groupBy]);
 
         const toggleGroupCollapsed = (key: string) => {
+            const rowKey = `group:${key}`;
+            pendingRowFocusKey.current = rowKey;
+            setFocusedRowKey(rowKey);
+            requestAnimationFrame(() =>
+                requestAnimationFrame(() => {
+                    if (document.activeElement === document.body) {
+                        focusRenderedRow(rowKey);
+                    }
+                }),
+            );
             setCollapsedGroups((prev) => {
                 const next = new Set(prev);
                 if (next.has(key)) {
@@ -1068,15 +985,6 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
                     key,
                     label: getLabel(key),
                     count: children.length,
-                    addCount: children.filter(
-                        (child) => child.updateAction === SchemaUpdateAction.Add,
-                    ).length,
-                    changeCount: children.filter(
-                        (child) => child.updateAction === SchemaUpdateAction.Change,
-                    ).length,
-                    deleteCount: children.filter(
-                        (child) => child.updateAction === SchemaUpdateAction.Delete,
-                    ).length,
                     collapsed,
                 });
                 if (!collapsed) {
@@ -1126,6 +1034,16 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
                 ?.focus();
         };
 
+        React.useLayoutEffect(() => {
+            const rowKey = pendingRowFocusKey.current;
+            if (!rowKey) {
+                return;
+            }
+
+            pendingRowFocusKey.current = undefined;
+            focusRenderedRow(rowKey);
+        });
+
         React.useEffect(() => {
             const selectedKey = `diff:${selectedDiffId}`;
             const selectionChanged = previouslyFocusedDiffId.current !== selectedDiffId;
@@ -1149,6 +1067,23 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
             virtualizedListRef.current?.scrollToItem(index, "smart");
             requestAnimationFrame(() => focusRenderedRow(key));
         };
+
+        React.useLayoutEffect(() => {
+            if (hasFocusedInitialRow.current || width <= 0) {
+                return;
+            }
+
+            const firstDiffIndex = items.findIndex((item) => item.kind === "diff");
+            if (firstDiffIndex < 0) {
+                return;
+            }
+
+            hasFocusedInitialRow.current = true;
+            const firstDiff = items[firstDiffIndex];
+            const rowKey = getRowKey(firstDiff);
+            focusRow(firstDiff, firstDiffIndex);
+            requestAnimationFrame(() => requestAnimationFrame(() => focusRenderedRow(rowKey)));
+        }, [items, width]);
 
         const handleRowKeyDown = (event: React.KeyboardEvent<HTMLDivElement>, item: Row): void => {
             const currentIndex = items.findIndex(
@@ -1261,25 +1196,6 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
                                     {item.label}
                                 </Text>
                                 <Text className={classes.groupHeaderCount}>({item.count})</Text>
-                                {layout === "simplified" && (
-                                    <span className={classes.groupHeaderSummary} aria-hidden>
-                                        {item.addCount > 0 && (
-                                            <span className={classes.groupAddCount}>
-                                                +{item.addCount}
-                                            </span>
-                                        )}
-                                        {item.changeCount > 0 && (
-                                            <span className={classes.groupChangeCount}>
-                                                ~{item.changeCount}
-                                            </span>
-                                        )}
-                                        {item.deleteCount > 0 && (
-                                            <span className={classes.groupDeleteCount}>
-                                                −{item.deleteCount}
-                                            </span>
-                                        )}
-                                    </span>
-                                )}
                             </div>
                         </div>
                     </div>
@@ -1348,10 +1264,6 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
             },
         };
         const simplifiedColumnSizingOptions: TableColumnSizingOptions = {
-            actionStripe: {
-                minWidth: 3,
-                defaultWidth: 3,
-            },
             include: {
                 minWidth: 30,
                 defaultWidth: 34,
@@ -1418,30 +1330,12 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
                         {loc.schemaCompare.differencesSummary(totalCount)}
                     </Text>
                     <Text className={classes.actionSummary}>
-                        <span
-                            className={mergeClasses(classes.summaryIndicator, classes.addIndicator)}
-                            aria-hidden
-                        />
                         {loc.schemaCompare.addedDifferencesSummary(addCount)}
                     </Text>
                     <Text className={classes.actionSummary}>
-                        <span
-                            className={mergeClasses(
-                                classes.summaryIndicator,
-                                classes.changeIndicator,
-                            )}
-                            aria-hidden
-                        />
                         {loc.schemaCompare.changedDifferencesSummary(changeCount)}
                     </Text>
                     <Text className={classes.actionSummary}>
-                        <span
-                            className={mergeClasses(
-                                classes.summaryIndicator,
-                                classes.deleteIndicator,
-                            )}
-                            aria-hidden
-                        />
                         {loc.schemaCompare.deletedDifferencesSummary(deleteCount)}
                     </Text>
                     <div className={classes.filterControls}>
@@ -1686,9 +1580,6 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
                                         focusMode="none"
                                         className={
                                             columnId === "include" ? classes.includeCell : undefined
-                                        }
-                                        data-action-stripe={
-                                            columnId === "actionStripe" ? "true" : undefined
                                         }>
                                         {renderHeaderCell()}
                                     </DataGridHeaderCell>
