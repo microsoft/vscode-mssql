@@ -54,6 +54,8 @@ suite("SchemaCompareWebViewController Tests", () => {
     let connectionStoreStub: sinon.SinonStubbedInstance<ConnectionStore>;
     let connectionChangedEmitter: vscode.EventEmitter<void>;
     let requestHandlers: Map<string, (payload: any) => any>;
+    let globalStateGet: sinon.SinonStub;
+    let globalStateUpdate: sinon.SinonStub;
     const schemaCompareWebViewTitle = "Schema Compare";
     const operationId = "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE";
     let generateOperationIdStub: sinon.SinonStub<[], string>;
@@ -202,6 +204,8 @@ suite("SchemaCompareWebViewController Tests", () => {
             });
 
         mockInitialState = {
+            layout: "classic",
+            groupBy: "type",
             isSqlProjectExtensionInstalled: false,
             isComparisonInProgress: false,
             isApplyInProgress: false,
@@ -240,9 +244,17 @@ suite("SchemaCompareWebViewController Tests", () => {
             cancelResultStatus: undefined,
         };
 
+        globalStateGet = sandbox
+            .stub()
+            .callsFake((_key: string, defaultValue?: unknown) => defaultValue);
+        globalStateUpdate = sandbox.stub().resolves();
         mockContext = {
             extensionUri: vscode.Uri.parse("file://test"),
             extensionPath: "path",
+            globalState: {
+                get: globalStateGet,
+                update: globalStateUpdate,
+            },
         } as unknown as vscode.ExtensionContext;
 
         IconUtils.initialize(mockContext.extensionUri);
@@ -396,6 +408,41 @@ suite("SchemaCompareWebViewController Tests", () => {
         expect(controller.panel.title, "Webview Title should match").to.equal(
             schemaCompareWebViewTitle,
         );
+    });
+
+    test("controller - defaults to the classic persisted layout", () => {
+        expect(controller.state.layout).to.equal("classic");
+        expect(globalStateGet).to.have.been.calledWith("mssql.schemaCompare.layout", "classic");
+    });
+
+    test("controller - defaults to the persisted type grouping", () => {
+        expect(controller.state.groupBy).to.equal("type");
+        expect(globalStateGet).to.have.been.calledWith("mssql.schemaCompare.groupBy", "type");
+    });
+
+    test("setLayout - persists the selected layout", async () => {
+        const state = { ...mockInitialState };
+
+        const result = await controller["_reducerHandlers"].get("setLayout")(state, {
+            layout: "simplified",
+        });
+
+        expect(result.layout).to.equal("simplified");
+        expect(globalStateUpdate).to.have.been.calledWith(
+            "mssql.schemaCompare.layout",
+            "simplified",
+        );
+    });
+
+    test("setGroupBy - persists the selected grouping", async () => {
+        const state = { ...mockInitialState };
+
+        const result = await controller["_reducerHandlers"].get("setGroupBy")(state, {
+            groupBy: "schema",
+        });
+
+        expect(result.groupBy).to.equal("schema");
+        expect(globalStateUpdate).to.have.been.calledWith("mssql.schemaCompare.groupBy", "schema");
     });
 
     test("start - resolves targetContext and calls launch with correct target", async () => {

@@ -34,6 +34,9 @@ export {
     TaskExecutionMode,
 };
 
+export type SchemaCompareLayout = "classic" | "simplified";
+export type SchemaCompareGroupBy = "none" | "type" | "action" | "schema";
+
 export interface SchemaCompareServer {
     profileName: string;
     server: string;
@@ -41,6 +44,8 @@ export interface SchemaCompareServer {
 }
 
 export interface SchemaCompareWebViewState {
+    layout: SchemaCompareLayout;
+    groupBy: SchemaCompareGroupBy;
     isSqlProjectExtensionInstalled: boolean;
     isComparisonInProgress: boolean;
     isApplyInProgress: boolean;
@@ -74,6 +79,9 @@ export interface SchemaCompareWebViewState {
 }
 
 export interface SchemaCompareReducers {
+    setLayout: { layout: SchemaCompareLayout };
+    setGroupBy: { groupBy: SchemaCompareGroupBy };
+
     isSqlProjectExtensionInstalled: {};
 
     listActiveServers: {};
@@ -161,6 +169,9 @@ export interface SchemaCompareContextProps extends CoreRPCs {
     differences: DiffEntry[];
     pendingDifferenceIds: ReadonlySet<number>;
     isIncludeExcludeAllInProgress: boolean;
+
+    setLayout: (layout: SchemaCompareLayout) => void;
+    setGroupBy: (groupBy: SchemaCompareGroupBy) => void;
 
     isSqlProjectExtensionInstalled: () => void;
 
