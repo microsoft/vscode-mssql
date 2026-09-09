@@ -1516,8 +1516,15 @@ export namespace Dab {
         });
     }
 
+    export function isEntityEffectivelyExposed(
+        entity: DabEntityConfig,
+        globallyEnabledApiTypes?: readonly ApiType[],
+    ): boolean {
+        return getEntityExposedApiTypes(entity, globallyEnabledApiTypes).length > 0;
+    }
+
     export function isEntityExposed(entity: DabEntityConfig): boolean {
-        return getEntityExposedApiTypes(entity).length > 0;
+        return isEntityEffectivelyExposed(entity);
     }
 
     export function hasLogicalKey(entity: DabEntityConfig): boolean {
@@ -1544,6 +1551,17 @@ export namespace Dab {
     export function isLogicalKeyColumn(entity: DabEntityConfig, column: DabColumnConfig): boolean {
         const field = getFieldForColumn(entity, column.name);
         return field !== undefined ? field.isPrimaryKey === true : column.isPrimaryKey;
+    }
+
+    export function isColumnEffectivelyExposed(
+        entity: DabEntityConfig,
+        column: DabColumnConfig,
+        globallyEnabledApiTypes?: readonly ApiType[],
+    ): boolean {
+        return (
+            isEntityEffectivelyExposed(entity, globallyEnabledApiTypes) &&
+            (isLogicalKeyColumn(entity, column) || column.isExposed)
+        );
     }
 
     export function hasBlockingUnsupportedReason(entity: DabEntityConfig): boolean {

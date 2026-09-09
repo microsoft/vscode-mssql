@@ -15,6 +15,7 @@ import {
     EditRow,
     EditRowState,
     EditCreateRowResult,
+    EditCell,
     EditCellResult,
     EditRevertRowResult,
     EditScriptResult,
@@ -526,6 +527,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
                 rowId: 0,
                 columnId: 1,
                 newValue: "Updated",
+                requestId: 1,
             });
 
             // Assert
@@ -538,6 +540,39 @@ suite("TableExplorerWebViewController - Reducers", () => {
                 ),
             ).to.be.true;
             expect(controller.state.resultSet?.subset[0].cells[1].displayValue).to.equal("Updated");
+        });
+
+        test("should clear tracked state when the updated cell matches its original value", async () => {
+            controller.state.ownerUri = "test-owner-uri";
+            controller.state.resultSet = createMockSubsetResult(2);
+            controller.state.originalCellValues = new Map([
+                ["0-1", controller.state.resultSet.subset[0].cells[1]],
+            ]);
+            mockTableExplorerService.updateCell.resolves({
+                cell: {
+                    displayValue: "John",
+                    isNull: false,
+                    invariantCultureDisplayValue: "John",
+                    isDirty: false,
+                },
+                isRowDirty: false,
+            });
+
+            await controller["_reducerHandlers"].get("updateCell")(controller.state, {
+                rowId: 0,
+                columnId: 1,
+                newValue: "John",
+                requestId: 2,
+            });
+
+            expect(controller.state.originalCellValues.has("0-1")).to.equal(false);
+            expect(controller.state.cellUpdateAcknowledgements?.["0-1"]).to.deep.equal({
+                requestId: 2,
+                isDirty: false,
+            });
+            expect((controller.state.resultSet.subset[0].cells[1] as EditCell).isDirty).to.equal(
+                false,
+            );
         });
 
         test("should regenerate script if script pane is visible", async () => {
@@ -564,6 +599,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
                 rowId: 0,
                 columnId: 1,
                 newValue: "Updated",
+                requestId: 1,
             });
 
             // Assert
@@ -584,6 +620,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
                     rowId: 0,
                     columnId: 1,
                     newValue: "Updated",
+                    requestId: 1,
                 });
             } catch (updateError) {
                 caughtError = updateError;

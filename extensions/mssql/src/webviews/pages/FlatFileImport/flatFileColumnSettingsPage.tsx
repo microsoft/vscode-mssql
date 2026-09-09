@@ -7,10 +7,8 @@ import { useContext, useEffect, useMemo, useState } from "react";
 import {
     Checkbox,
     createTableColumn,
-    Dropdown,
     Input,
     makeStyles,
-    Option,
     Table,
     TableBody,
     TableCell,
@@ -22,6 +20,7 @@ import {
     TableRow,
     Text,
     tokens,
+    useArrowNavigationGroup,
     useTableColumnSizing_unstable,
     useTableFeatures,
 } from "@fluentui/react-components";
@@ -29,6 +28,8 @@ import { locConstants } from "../../common/locConstants";
 import { FlatFileContext } from "./flatFileStateProvider";
 import { ColumnChanges } from "../../../sharedInterfaces/flatFileImport";
 import { useFlatFileSelector } from "./flatFileSelector";
+import { getDataTypeOptions } from "./flatFileDataTypeUtils";
+import { SearchableDropdown } from "../../common/searchableDropdown.component";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -129,21 +130,16 @@ const useStyles = makeStyles({
     dropdown: {
         width: "100%",
         minWidth: "60px",
-
-        "& button": {
-            minHeight: "24px",
-            height: "24px",
-            padding: "0 6px",
-            fontSize: "11px",
-        },
+        height: "24px",
     },
 
     input: {
         width: "100%",
         minWidth: "60px",
+        height: "24px",
 
         "& input": {
-            height: "24px",
+            height: "100%",
             padding: "0 6px",
             fontSize: "11px",
         },
@@ -180,6 +176,7 @@ export const FlatFileColumnSettingsPage = ({
     onColumnChangesChanged,
 }: FlatFileColumnSettingsPageProps) => {
     const classes = useStyles();
+    const keyboardNavAttr = useArrowNavigationGroup({ axis: "grid" });
     const context = useContext(FlatFileContext);
 
     if (!context) return null;
@@ -192,42 +189,6 @@ export const FlatFileColumnSettingsPage = ({
     const NEW_PRIMARY_KEY_COL_INDEX = 2;
     const NEW_NULLABLE_COL_INDEX = 3;
 
-    const dataTypeCategoryValues = [
-        { name: "bigint", displayName: "bigint" },
-        { name: "binary(50)", displayName: "binary(50)" },
-        { name: "bit", displayName: "bit" },
-        { name: "char(10)", displayName: "char(10)" },
-        { name: "date", displayName: "date" },
-        { name: "datetime", displayName: "datetime" },
-        { name: "datetime2(7)", displayName: "datetime2(7)" },
-        { name: "datetimeoffset(7)", displayName: "datetimeoffset(7)" },
-        { name: "decimal(18, 10)", displayName: "decimal(18, 10)" },
-        { name: "float", displayName: "float" },
-        { name: "geography", displayName: "geography" },
-        { name: "geometry", displayName: "geometry" },
-        { name: "hierarchyid", displayName: "hierarchyid" },
-        { name: "int", displayName: "int" },
-        { name: "money", displayName: "money" },
-        { name: "nchar(10)", displayName: "nchar(10)" },
-        { name: "ntext", displayName: "ntext" },
-        { name: "numeric(18, 0)", displayName: "numeric(18, 0)" },
-        { name: "nvarchar(50)", displayName: "nvarchar(50)" },
-        { name: "nvarchar(MAX)", displayName: "nvarchar(MAX)" },
-        { name: "real", displayName: "real" },
-        { name: "smalldatetime", displayName: "smalldatetime" },
-        { name: "smallint", displayName: "smallint" },
-        { name: "smallmoney", displayName: "smallmoney" },
-        { name: "sql_variant", displayName: "sql_variant" },
-        { name: "text", displayName: "text" },
-        { name: "time(7)", displayName: "time(7)" },
-        { name: "timestamp", displayName: "timestamp" },
-        { name: "tinyint", displayName: "tinyint" },
-        { name: "uniqueidentifier", displayName: "uniqueidentifier" },
-        { name: "varbinary(50)", displayName: "varbinary(50)" },
-        { name: "varbinary(MAX)", displayName: "varbinary(MAX)" },
-        { name: "varchar(50)", displayName: "varchar(50)" },
-        { name: "varchar(MAX)", displayName: "varchar(MAX)" },
-    ];
     const columnInfo = [
         { header: locConstants.flatFileImport.columnName, inputType: INPUT_TYPE },
         { header: locConstants.flatFileImport.dataType, inputType: DROPDOWN_TYPE },
@@ -383,19 +344,26 @@ export const FlatFileColumnSettingsPage = ({
 
             case DROPDOWN_TYPE:
                 return (
-                    <Dropdown
-                        size="small"
-                        defaultValue={cell.value.toString()}
-                        className={classes.dropdown}
-                        onOptionSelect={(_event, data) =>
-                            handleColumnChange(rowIndex, "newDataType", data.optionValue as string)
-                        }>
-                        {dataTypeCategoryValues.map((option) => (
-                            <Option key={option.name} text={option.displayName}>
-                                {option.displayName}
-                            </Option>
-                        ))}
-                    </Dropdown>
+                    <div className={classes.dropdown}>
+                        <SearchableDropdown
+                            size="small"
+                            style={{ width: "100%", minWidth: "60px", height: "24px" }}
+                            options={getDataTypeOptions(tablePreview!.columnInfo[rowIndex]).map(
+                                (option) => ({
+                                    value: option.name,
+                                    text: option.displayName,
+                                }),
+                            )}
+                            selectedOption={{
+                                value: cell.value.toString(),
+                                text: cell.value.toString(),
+                            }}
+                            ariaLabel={locConstants.flatFileImport.dataType}
+                            onSelect={(option) =>
+                                handleColumnChange(rowIndex, "newDataType", option.value)
+                            }
+                        />
+                    </div>
                 );
 
             case CHECKBOX_TYPE:
@@ -490,8 +458,10 @@ export const FlatFileColumnSettingsPage = ({
         <div className={classes.outerDiv}>
             <div className={classes.tableDiv}>
                 <Table
+                    {...keyboardNavAttr}
+                    as="table"
                     className={classes.table}
-                    size="small"
+                    size="extra-small"
                     ref={tableFeatures.tableRef}
                     {...tableFeatures.columnSizing_unstable.getTableProps()}>
                     <TableHeader className={classes.tableHeader}>

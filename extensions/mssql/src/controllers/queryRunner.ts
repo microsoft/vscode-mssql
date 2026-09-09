@@ -1507,6 +1507,12 @@ export default class QueryRunner {
                 selection.endColumn,
             );
             editor.selection = querySelection;
+            // Scroll the target into view; without this the cursor moves but a long script stays
+            // where it was, which defeats jumping to an error far from the current position.
+            editor.revealRange(
+                querySelection,
+                vscode.TextEditorRevealType.InCenterIfOutsideViewport,
+            );
             return;
         }
     }

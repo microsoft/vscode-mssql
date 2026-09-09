@@ -6,17 +6,15 @@
 import { useContext, useEffect, useState } from "react";
 import {
     Button,
-    Drawer,
     DrawerBody,
     DrawerFooter,
     DrawerHeader,
     DrawerHeaderTitle,
     Dropdown,
-    Field,
     Input,
     InputProps,
-    Label,
     makeStyles,
+    OverlayDrawer,
     Radio,
     RadioGroup,
     useId,
@@ -25,10 +23,17 @@ import {
     SelectionEvents,
     OptionOnSelectData,
     Spinner,
+    Text,
     Tooltip,
     tokens,
 } from "@fluentui/react-components";
-import { Dismiss24Regular, ErrorCircle16Regular, FolderFilled } from "@fluentui/react-icons";
+import {
+    Database16Regular,
+    Dismiss24Regular,
+    DocumentDatabase20Regular,
+    ErrorCircle16Regular,
+    FolderOpenRegular,
+} from "@fluentui/react-icons";
 import { schemaCompareContext } from "../SchemaCompareStateProvider";
 import { useSchemaCompareSelector } from "../schemaCompareSelector";
 import { locConstants as loc } from "../../../common/locConstants";
@@ -40,40 +45,143 @@ import {
     SearchableDropdown,
     SearchableDropdownOptions,
 } from "../../../common/searchableDropdown.component";
+import { DatabaseProjectIcon } from "./DatabaseProjectIcon";
 
 const useStyles = makeStyles({
-    drawerWidth: {
-        width: "400px",
-    },
-
-    fileInputWidth: {
-        width: "300px",
-    },
-
-    positionItemsHorizontally: {
+    drawer: {
+        width: "640px",
+        maxWidth: "calc(100vw - 32px)",
+        backgroundColor: "var(--vscode-editor-background)",
         display: "flex",
-        flexDirection: "row",
+        flexDirection: "column",
+        fontFamily: "var(--vscode-font-family)",
+        fontSize: tokens.fontSizeBase300,
+        "& input, & button": {
+            fontFamily: "var(--vscode-font-family)",
+        },
+        "& .fui-Radio__label, & .fui-Button, & .fui-Input__input": {
+            fontSize: "13px",
+            lineHeight: "18px",
+        },
     },
-
-    connectionSelectionRow: {
+    drawerHeader: {
+        backgroundColor: "var(--vscode-editorWidget-background, var(--vscode-editor-background))",
+        borderBottom: "1px solid var(--vscode-editorGroup-border)",
+        padding: "16px 24px",
+    },
+    drawerBody: {
+        flex: 1,
+        minHeight: 0,
+        height: "100%",
+        overflow: "hidden",
+        backgroundColor: "var(--vscode-editor-background)",
+        padding: 0,
+        boxSizing: "border-box",
+    },
+    settingsLayout: {
         display: "flex",
-        flexDirection: "row",
-        marginBottom: "8px",
+        flexDirection: "column",
+        height: "100%",
+        minHeight: 0,
+        padding: "0 24px 24px",
+        boxSizing: "border-box",
     },
-
-    databaseSelectionRow: {
+    settingsContent: {
+        display: "flex",
+        flexDirection: "column",
+        minWidth: 0,
+        height: "100%",
+        minHeight: 0,
+        overflowY: "auto",
+        overflowX: "hidden",
+        paddingTop: "24px",
+        paddingBottom: "72px",
+        boxSizing: "border-box",
+    },
+    section: {
+        display: "flex",
+        flexDirection: "column",
+        rowGap: "14px",
+        paddingBottom: "28px",
+    },
+    sectionWithDivider: {
+        marginLeft: "-24px",
+        marginRight: "-24px",
+        paddingLeft: "24px",
+        paddingRight: "24px",
+        paddingTop: "28px",
+        borderTop: `1px solid ${tokens.colorNeutralStroke2}`,
+    },
+    sectionTitle: {
+        fontSize: tokens.fontSizeBase300,
+        lineHeight: tokens.lineHeightBase300,
+        fontWeight: tokens.fontWeightSemibold,
+        color: tokens.colorNeutralForeground1,
+    },
+    sectionBody: {
+        display: "flex",
+        flexDirection: "column",
+        rowGap: "14px",
+    },
+    fieldRow: {
+        display: "grid",
+        gridTemplateColumns: "140px minmax(0, 1fr)",
+        columnGap: "24px",
+        alignItems: "start",
+        "@media (max-width: 520px)": {
+            gridTemplateColumns: "1fr",
+            rowGap: "6px",
+        },
+    },
+    fieldLabel: {
+        paddingTop: "5px",
+        color: tokens.colorNeutralForeground1,
+        fontSize: "13px",
+        lineHeight: "18px",
+        fontWeight: tokens.fontWeightSemibold,
+    },
+    fieldControl: {
+        minWidth: 0,
+        width: "100%",
+    },
+    controlWithStatus: {
         display: "flex",
         alignItems: "center",
         gap: "8px",
+        minWidth: 0,
     },
-
-    buttonLeftMargin: {
-        marginLeft: "8px",
+    fileInput: {
+        minWidth: 0,
+        width: "100%",
     },
-
-    footer: {
-        display: "flex",
+    browseButton: {
+        minWidth: "24px",
+        width: "24px",
+        height: "24px",
+        padding: 0,
+    },
+    endpointTypeLabel: {
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "8px",
+    },
+    endpointTypeIcon: {
+        width: "16px",
+        height: "16px",
+        flexShrink: 0,
+    },
+    drawerFooter: {
+        alignSelf: "stretch",
         justifyContent: "flex-end",
+        columnGap: "12px",
+        padding: "12px 24px",
+        marginTop: 0,
+        backgroundColor: "var(--vscode-editorWidget-background, var(--vscode-editor-background))",
+        borderTop: "1px solid var(--vscode-editorGroup-border)",
+    },
+    actionButton: {
+        minWidth: "112px",
+        whiteSpace: "nowrap",
     },
 });
 
@@ -336,13 +444,16 @@ const SchemaSelectorDrawer = (props: Props) => {
 
     let isSqlProjExtensionInstalled = isSqlProjectExtensionInstalled;
     return (
-        <Drawer
-            separator
+        <OverlayDrawer
             open={props.show}
-            onOpenChange={(_, { open: show }) => props.showDrawer(show)}
+            onOpenChange={(_, data) => {
+                if (data.type !== "backdropClick") {
+                    props.showDrawer(data.open);
+                }
+            }}
             position="end"
-            size="medium">
-            <DrawerHeader>
+            className={classes.drawer}>
+            <DrawerHeader className={classes.drawerHeader}>
                 <DrawerHeaderTitle
                     action={
                         <Button
@@ -355,149 +466,223 @@ const SchemaSelectorDrawer = (props: Props) => {
                     {drawerTitle}
                 </DrawerHeaderTitle>
             </DrawerHeader>
-            <DrawerBody>
-                <Field label={loc.schemaCompare.type}>
-                    <RadioGroup
-                        value={schemaType}
-                        onChange={(_, data) => handleSchemaTypeChange(data.value)}>
-                        <Radio value="database" label={loc.schemaCompare.database} />
-                        <Radio value="dacpac" label={loc.schemaCompare.dacpacDialogFile} />
-                        {isSqlProjExtensionInstalled && (
-                            <Radio value="sqlproj" label={loc.schemaCompare.databaseProject} />
-                        )}
-                    </RadioGroup>
-                </Field>
-
-                {schemaType === "database" && (
-                    <>
-                        <Label>{loc.schemaCompare.connection}</Label>
-                        <div className={classes.connectionSelectionRow}>
-                            <SearchableDropdown
-                                style={{ width: "300px" }}
-                                options={connectionOptions}
-                                selectedOption={{
-                                    value: serverConnectionUri,
-                                    text: serverName,
-                                }}
-                                onSelect={handleDatabaseServerSelected}
-                                ariaLabel={loc.schemaCompare.connection}
-                                placeholder={loc.common.select}
-                                showPlaceholder
-                            />
-                        </div>
-                        <Label>{loc.schemaCompare.database}</Label>
-                        <div className={classes.databaseSelectionRow}>
-                            <Dropdown
-                                className={classes.fileInputWidth}
-                                value={
-                                    showDatabaseSpinner && !databaseName
-                                        ? loc.common.loadingWithEllipsis
-                                        : databaseName
-                                }
-                                selectedOptions={databaseName ? [databaseName] : []}
-                                disabled={
-                                    showDatabaseSpinner ||
-                                    Boolean(displayedDatabaseError) ||
-                                    displayedDatabases.length === 0
-                                }
-                                onOptionSelect={(event, data) =>
-                                    handleDatabaseSelected(event, data)
-                                }>
-                                {Array.from(databaseGroups.entries()).map(
-                                    ([groupName, databaseOptions]) => (
-                                        <OptionGroup key={groupName} label={groupName}>
-                                            {databaseOptions.map((database) => (
-                                                <Option key={database.value} value={database.value}>
-                                                    {database.displayName}
-                                                </Option>
-                                            ))}
-                                        </OptionGroup>
-                                    ),
-                                )}
-                            </Dropdown>
-                            {showDatabaseSpinner && (
-                                <Spinner
-                                    size="extra-tiny"
-                                    aria-label={loc.common.loadingWithEllipsis}
+            <DrawerBody className={classes.drawerBody}>
+                <div className={classes.settingsLayout}>
+                    <div className={classes.settingsContent}>
+                        <section className={classes.section}>
+                            <Text className={classes.sectionTitle}>{loc.schemaCompare.type}</Text>
+                            <RadioGroup
+                                value={schemaType}
+                                aria-label={loc.schemaCompare.type}
+                                onChange={(_, data) => handleSchemaTypeChange(data.value)}>
+                                <Radio
+                                    value="database"
+                                    label={
+                                        <span className={classes.endpointTypeLabel}>
+                                            <Database16Regular
+                                                className={classes.endpointTypeIcon}
+                                            />
+                                            {loc.schemaCompare.database}
+                                        </span>
+                                    }
                                 />
-                            )}
-                            {!showDatabaseSpinner && displayedDatabaseError && (
-                                <Tooltip content={displayedDatabaseError} relationship="label">
-                                    <span
-                                        tabIndex={0}
-                                        role="img"
-                                        aria-label={displayedDatabaseError}>
-                                        <ErrorCircle16Regular
-                                            style={{
-                                                color: tokens.colorPaletteRedForeground1,
-                                            }}
-                                        />
-                                    </span>
-                                </Tooltip>
-                            )}
-                        </div>
-                    </>
-                )}
+                                <Radio
+                                    value="dacpac"
+                                    label={
+                                        <span className={classes.endpointTypeLabel}>
+                                            <DocumentDatabase20Regular
+                                                className={classes.endpointTypeIcon}
+                                            />
+                                            {loc.schemaCompare.dacpacDialogFile}
+                                        </span>
+                                    }
+                                />
+                                {isSqlProjExtensionInstalled && (
+                                    <Radio
+                                        value="sqlproj"
+                                        label={
+                                            <span className={classes.endpointTypeLabel}>
+                                                <DatabaseProjectIcon
+                                                    className={classes.endpointTypeIcon}
+                                                />
+                                                {loc.schemaCompare.databaseProject}
+                                            </span>
+                                        }
+                                    />
+                                )}
+                            </RadioGroup>
+                        </section>
 
-                {(schemaType === "dacpac" || schemaType === "sqlproj") && (
-                    <>
-                        <Label htmlFor={fileId}>{loc.schemaCompare.file}</Label>
-                        <div className={classes.positionItemsHorizontally}>
-                            <Input
-                                id={fileId}
-                                size={props.size}
-                                disabled={props.disabled}
-                                className={classes.fileInputWidth}
-                                value={getFilePathForProjectOrDacpac()}
-                                readOnly
-                            />
-
-                            <Button
-                                className={classes.buttonLeftMargin}
-                                size="large"
-                                icon={<FolderFilled />}
-                                onClick={() => handleSelectFile(schemaType)}
-                            />
-                        </div>
-
-                        {props.endpointType === "target" && schemaType === "sqlproj" && (
-                            <>
-                                <Label htmlFor={folderStructureId}>
-                                    {loc.schemaCompare.folderStructure}
-                                </Label>
-                                <div>
-                                    <Dropdown
-                                        id={folderStructureId}
-                                        className={classes.fileInputWidth}
-                                        value={folderStructure}
-                                        selectedOptions={[folderStructure]}
-                                        onOptionSelect={(event, data) =>
-                                            handleFolderStructureSelected(event, data)
-                                        }>
-                                        {options.map((option) => {
-                                            return (
-                                                <Option key={option.value}>{option.display}</Option>
-                                            );
-                                        })}
-                                    </Dropdown>
+                        {schemaType === "database" && (
+                            <section className={`${classes.section} ${classes.sectionWithDivider}`}>
+                                <Text className={classes.sectionTitle}>
+                                    {loc.schemaCompare.database}
+                                </Text>
+                                <div className={classes.sectionBody}>
+                                    <div className={classes.fieldRow}>
+                                        <Text className={classes.fieldLabel}>
+                                            {loc.schemaCompare.connection}
+                                        </Text>
+                                        <div className={classes.fieldControl}>
+                                            <SearchableDropdown
+                                                style={{ width: "100%" }}
+                                                options={connectionOptions}
+                                                selectedOption={{
+                                                    value: serverConnectionUri,
+                                                    text: serverName,
+                                                }}
+                                                onSelect={handleDatabaseServerSelected}
+                                                ariaLabel={loc.schemaCompare.connection}
+                                                placeholder={loc.common.select}
+                                                showPlaceholder
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className={classes.fieldRow}>
+                                        <Text className={classes.fieldLabel}>
+                                            {loc.schemaCompare.database}
+                                        </Text>
+                                        <div className={classes.controlWithStatus}>
+                                            <Dropdown
+                                                className={classes.fieldControl}
+                                                aria-label={loc.schemaCompare.database}
+                                                value={
+                                                    showDatabaseSpinner && !databaseName
+                                                        ? loc.common.loadingWithEllipsis
+                                                        : databaseName
+                                                }
+                                                selectedOptions={databaseName ? [databaseName] : []}
+                                                disabled={
+                                                    showDatabaseSpinner ||
+                                                    Boolean(displayedDatabaseError) ||
+                                                    displayedDatabases.length === 0
+                                                }
+                                                onOptionSelect={(event, data) =>
+                                                    handleDatabaseSelected(event, data)
+                                                }>
+                                                {Array.from(databaseGroups.entries()).map(
+                                                    ([groupName, databaseOptions]) => (
+                                                        <OptionGroup
+                                                            key={groupName}
+                                                            label={groupName}>
+                                                            {databaseOptions.map((database) => (
+                                                                <Option
+                                                                    key={database.value}
+                                                                    value={database.value}>
+                                                                    {database.displayName}
+                                                                </Option>
+                                                            ))}
+                                                        </OptionGroup>
+                                                    ),
+                                                )}
+                                            </Dropdown>
+                                            {showDatabaseSpinner && (
+                                                <Spinner
+                                                    size="extra-tiny"
+                                                    aria-label={loc.common.loadingWithEllipsis}
+                                                />
+                                            )}
+                                            {!showDatabaseSpinner && displayedDatabaseError && (
+                                                <Tooltip
+                                                    content={displayedDatabaseError}
+                                                    relationship="label">
+                                                    <span
+                                                        tabIndex={0}
+                                                        role="img"
+                                                        aria-label={displayedDatabaseError}>
+                                                        <ErrorCircle16Regular
+                                                            style={{
+                                                                color: tokens.colorPaletteRedForeground1,
+                                                            }}
+                                                        />
+                                                    </span>
+                                                </Tooltip>
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
-                            </>
+                            </section>
                         )}
-                    </>
-                )}
+
+                        {(schemaType === "dacpac" || schemaType === "sqlproj") && (
+                            <section className={`${classes.section} ${classes.sectionWithDivider}`}>
+                                <Text className={classes.sectionTitle}>
+                                    {loc.schemaCompare.file}
+                                </Text>
+                                <div className={classes.sectionBody}>
+                                    <div className={classes.fieldRow}>
+                                        <Text className={classes.fieldLabel}>
+                                            {loc.schemaCompare.file}
+                                        </Text>
+                                        <Input
+                                            id={fileId}
+                                            aria-label={loc.schemaCompare.file}
+                                            size={props.size}
+                                            disabled={props.disabled}
+                                            className={classes.fileInput}
+                                            value={getFilePathForProjectOrDacpac()}
+                                            readOnly
+                                            contentAfter={
+                                                <Button
+                                                    type="button"
+                                                    className={classes.browseButton}
+                                                    size="small"
+                                                    appearance="subtle"
+                                                    aria-label={loc.dacpacDialog.browse}
+                                                    icon={<FolderOpenRegular />}
+                                                    onClick={() => handleSelectFile(schemaType)}
+                                                />
+                                            }
+                                        />
+                                    </div>
+
+                                    {props.endpointType === "target" &&
+                                        schemaType === "sqlproj" && (
+                                            <div className={classes.fieldRow}>
+                                                <Text className={classes.fieldLabel}>
+                                                    {loc.schemaCompare.folderStructure}
+                                                </Text>
+                                                <Dropdown
+                                                    id={folderStructureId}
+                                                    className={classes.fieldControl}
+                                                    aria-label={loc.schemaCompare.folderStructure}
+                                                    value={folderStructure}
+                                                    selectedOptions={[folderStructure]}
+                                                    onOptionSelect={(event, data) =>
+                                                        handleFolderStructureSelected(event, data)
+                                                    }>
+                                                    {options.map((option) => (
+                                                        <Option
+                                                            key={option.value}
+                                                            value={option.value}>
+                                                            {option.display}
+                                                        </Option>
+                                                    ))}
+                                                </Dropdown>
+                                            </div>
+                                        )}
+                                </div>
+                            </section>
+                        )}
+                    </div>
+                </div>
             </DrawerBody>
-            <DrawerFooter>
+            <DrawerFooter className={classes.drawerFooter}>
                 <Button
+                    className={classes.actionButton}
+                    appearance="secondary"
+                    onClick={() => props.showDrawer(false)}>
+                    {loc.schemaCompare.cancel}
+                </Button>
+                <Button
+                    className={classes.actionButton}
                     disabled={disableOkButton}
                     appearance="primary"
                     onClick={() => confirmSelectedEndpoint()}>
                     {loc.schemaCompare.ok}
                 </Button>
-                <Button appearance="secondary" onClick={() => props.showDrawer(false)}>
-                    {loc.schemaCompare.cancel}
-                </Button>
             </DrawerFooter>
-        </Drawer>
+        </OverlayDrawer>
     );
 };
 

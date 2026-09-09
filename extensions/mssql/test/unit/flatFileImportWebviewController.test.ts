@@ -72,6 +72,13 @@ suite("FlatFileImportWebviewController", () => {
         return reducer!;
     }
 
+    function getLastSchemaQueryParams(): { ownerUri: string; queryString: string } {
+        return mockClient.sendRequest.lastCall.args[1] as {
+            ownerUri: string;
+            queryString: string;
+        };
+    }
+
     setup(async () => {
         sandbox = sinon.createSandbox();
 
@@ -81,6 +88,7 @@ suite("FlatFileImportWebviewController", () => {
         mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
         mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
         mockConnectionManager.listDatabases.resolves(databases);
+        mockConnectionManager.connect.resolves(true);
 
         mockConnectionProfile = new ConnectionProfile();
         mockConnectionProfile.server = "testServer";
@@ -150,6 +158,8 @@ suite("FlatFileImportWebviewController", () => {
     });
 
     test("handleLoadSchemas loads schemas successfully", async () => {
+        mockClient.sendRequest.resetHistory();
+
         await controller["handleLoadSchemas"]();
 
         expect(controller.state.schemaLoadStatus).to.equal(ApiStatus.Loaded);
@@ -157,6 +167,13 @@ suite("FlatFileImportWebviewController", () => {
         const schemaComponent = controller.state.formComponents["tableSchema"];
         expect(schemaComponent.options.map((o) => o.value)).to.include("dbo");
         expect(controller.state.formState.tableSchema).to.equal(defaultSchema);
+        expect(mockConnectionManager.connect).to.not.have.been.called;
+        const queryParams = getLastSchemaQueryParams();
+        expect(queryParams).to.include({
+            ownerUri: "ownerUri",
+        });
+        expect(queryParams.queryString).to.include("FROM sys.schemas");
+        expect(queryParams.queryString).to.not.include("[db1].sys.schemas");
     });
 
     test("handleLoadSchemas handles error", async () => {
@@ -166,6 +183,30 @@ suite("FlatFileImportWebviewController", () => {
 
         expect(controller.state.schemaLoadStatus).to.equal(ApiStatus.Error);
         expect(controller.state.errorMessage).to.equal(Loc.FlatFileImport.fetchSchemasError);
+    });
+
+    test("handleLoadSchemas hides fixed database-role schemas but keeps custom db_ schemas", async () => {
+        mockClient.sendRequest.resolves(
+            createSchemaQueryResult([
+                "dbo",
+                "db_accessadmin",
+                "db_backupoperator",
+                "db_datareader",
+                "db_datawriter",
+                "db_ddladmin",
+                "db_denydatareader",
+                "db_denydatawriter",
+                "db_owner",
+                "db_securityadmin",
+                "db_reporting",
+            ]),
+        );
+
+        await controller["handleLoadSchemas"]();
+
+        expect(
+            controller.state.formComponents["tableSchema"].options.map((option) => option.value),
+        ).to.deep.equal(["dbo", "db_reporting"]);
     });
 
     test("formAction reducer reloads schemas when database changes", async () => {
@@ -186,6 +227,50 @@ suite("FlatFileImportWebviewController", () => {
             { displayName: "sales", value: "sales" },
             { displayName: "reporting", value: "reporting" },
         ]);
+
+        expect(mockConnectionManager.connect).to.have.been.calledOnce;
+        const schemaConnectionUri = mockConnectionManager.connect.firstCall.args[0];
+        expect(mockConnectionManager.connect).to.have.been.calledWith(
+            schemaConnectionUri,
+            sinon.match({ database: "db2" }),
+        );
+        expect(getLastSchemaQueryParams()).to.include({
+            ownerUri: schemaConnectionUri,
+        });
+    });
+
+    test("disconnects the temporary schema connection when returning to the initial database", async () => {
+        await controller["getSchemas"]("db2");
+        const schemaConnectionUri = mockConnectionManager.connect.lastCall.args[0];
+
+        await controller["getSchemas"]("db1");
+
+        expect(mockConnectionManager.disconnect).to.have.been.calledWith(schemaConnectionUri);
+        expect(getLastSchemaQueryParams()).to.include({
+            ownerUri: "ownerUri",
+        });
+    });
+
+    test("reuses the temporary schema connection for the selected database", async () => {
+        await controller["getSchemas"]("db2");
+        const schemaConnectionUri = mockConnectionManager.connect.lastCall.args[0];
+        mockConnectionManager.isConnected.withArgs(schemaConnectionUri).returns(true);
+
+        await controller["getSchemas"]("db2");
+
+        expect(mockConnectionManager.connect).to.have.been.calledOnce;
+        expect(mockConnectionManager.disconnect).to.not.have.been.calledWith(schemaConnectionUri);
+    });
+
+    test("disconnects the temporary schema connection when disposed", async () => {
+        await controller["getSchemas"]("db2");
+        const schemaConnectionUri = mockConnectionManager.connect.lastCall.args[0];
+        mockConnectionManager.disconnect.resetHistory();
+
+        controller.dispose();
+        await new Promise<void>((resolve) => queueMicrotask(resolve));
+
+        expect(mockConnectionManager.disconnect).to.have.been.calledWith(schemaConnectionUri);
     });
 
     test("setColumnChanges reducer updates state", async () => {

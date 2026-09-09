@@ -24,6 +24,7 @@ import {
     TaskExecutionMode,
 } from "../enums";
 import { FormItemOptions } from "./form";
+import { RequestType } from "vscode-jsonrpc";
 
 export {
     ExtractTarget,
@@ -33,6 +34,9 @@ export {
     TaskExecutionMode,
 };
 
+export type SchemaCompareLayout = "classic" | "simplified";
+export type SchemaCompareGroupBy = "none" | "type" | "action" | "schema";
+
 export interface SchemaCompareServer {
     profileName: string;
     server: string;
@@ -40,12 +44,14 @@ export interface SchemaCompareServer {
 }
 
 export interface SchemaCompareWebViewState {
+    layout: SchemaCompareLayout;
+    groupBy: SchemaCompareGroupBy;
     isSqlProjectExtensionInstalled: boolean;
     isComparisonInProgress: boolean;
     isApplyInProgress: boolean;
     applySucceeded: boolean;
     applyFailed: boolean;
-    isIncludeExcludeAllOperationInProgress: boolean;
+    isEndpointSelectionInProgress?: boolean;
     connections: { [connectionId: string]: SchemaCompareServer };
     databases: FormItemOptions[];
     databaseListConnectionId: string;
@@ -73,6 +79,9 @@ export interface SchemaCompareWebViewState {
 }
 
 export interface SchemaCompareReducers {
+    setLayout: { layout: SchemaCompareLayout };
+    setGroupBy: { groupBy: SchemaCompareGroupBy };
+
     isSqlProjectExtensionInstalled: {};
 
     listActiveServers: {};
@@ -149,16 +158,6 @@ export interface SchemaCompareReducers {
 
     resetOptions: {};
 
-    includeExcludeNode: {
-        id: number;
-        diffEntry: DiffEntry;
-        includeRequest: boolean;
-    };
-
-    includeExcludeAllNodes: {
-        includeRequest: boolean;
-    };
-
     openScmp: {};
 
     saveScmp: {};
@@ -167,6 +166,13 @@ export interface SchemaCompareReducers {
 }
 
 export interface SchemaCompareContextProps extends CoreRPCs {
+    differences: DiffEntry[];
+    pendingDifferenceIds: ReadonlySet<number>;
+    isIncludeExcludeAllInProgress: boolean;
+
+    setLayout: (layout: SchemaCompareLayout) => void;
+    setGroupBy: (groupBy: SchemaCompareGroupBy) => void;
+
     isSqlProjectExtensionInstalled: () => void;
 
     listActiveServers: () => void;
@@ -226,13 +232,73 @@ export interface SchemaCompareContextProps extends CoreRPCs {
 
     resetOptions: () => void;
 
-    includeExcludeNode: (id: number, diffEntry: DiffEntry, includeRequest: boolean) => void;
+    includeExcludeNode: (
+        id: number,
+        diffEntry: DiffEntry,
+        includeRequest: boolean,
+    ) => Promise<void>;
 
-    includeExcludeAllNodes: (includeRequest: boolean) => void;
+    includeExcludeAllNodes: (includeRequest: boolean) => Promise<void>;
 
     openScmp: () => void;
 
     saveScmp: () => void;
 
     cancel: () => void;
+}
+
+export type SchemaCompareIncludeExcludeRejectionReason =
+    | "blockingDependencies"
+    | "notExcludable"
+    | "differenceNotFound"
+    | "serviceError";
+
+export interface SchemaCompareDifferenceUpdate {
+    id: number;
+    included: boolean;
+}
+
+export interface SchemaCompareBlockingDependency {
+    id?: number;
+    name: string;
+}
+
+export interface SchemaCompareIncludeExcludeNodeParams {
+    id: number;
+    diffEntry: DiffEntry;
+    includeRequest: boolean;
+}
+
+export interface SchemaCompareIncludeExcludeNodeResponse {
+    success: boolean;
+    updates: SchemaCompareDifferenceUpdate[];
+    blockingDependencies: SchemaCompareBlockingDependency[];
+    reason?: SchemaCompareIncludeExcludeRejectionReason;
+    errorMessage?: string;
+}
+
+export namespace SchemaCompareIncludeExcludeNodeRequest {
+    export const type = new RequestType<
+        SchemaCompareIncludeExcludeNodeParams,
+        SchemaCompareIncludeExcludeNodeResponse,
+        void
+    >("schemaCompare/includeExcludeNodeWebview");
+}
+
+export interface SchemaCompareIncludeExcludeAllParams {
+    includeRequest: boolean;
+}
+
+export interface SchemaCompareIncludeExcludeAllResponse {
+    success: boolean;
+    differences: DiffEntry[];
+    errorMessage?: string;
+}
+
+export namespace SchemaCompareIncludeExcludeAllRequest {
+    export const type = new RequestType<
+        SchemaCompareIncludeExcludeAllParams,
+        SchemaCompareIncludeExcludeAllResponse,
+        void
+    >("schemaCompare/includeExcludeAllWebview");
 }

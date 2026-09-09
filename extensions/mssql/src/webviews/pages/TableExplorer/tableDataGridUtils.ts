@@ -11,6 +11,11 @@ interface TableExplorerCellChange {
     rowId: number;
 }
 
+interface CellUpdateAcknowledgement {
+    requestId: number;
+    isDirty: boolean;
+}
+
 export function isTableExplorerDataColumn(column: unknown): column is TableExplorerDataColumn {
     return (
         typeof column === "object" &&
@@ -62,6 +67,20 @@ export function clearRevertedCellChanges<T>(
             failedCells.delete(key);
         }
     }
+}
+
+export function removeAcknowledgedCleanCellChanges<T extends { requestId: number }>(
+    acknowledgements: Record<string, CellUpdateAcknowledgement> | undefined,
+    cellChanges: Map<string, T>,
+): boolean {
+    let changed = false;
+    for (const [cellKey, acknowledgement] of Object.entries(acknowledgements ?? {})) {
+        const trackedChange = cellChanges.get(cellKey);
+        if (!acknowledgement.isDirty && trackedChange?.requestId === acknowledgement.requestId) {
+            changed = cellChanges.delete(cellKey) || changed;
+        }
+    }
+    return changed;
 }
 
 export function tryLockTableExplorerRow(rowId: number, lockedRows: Set<number>): boolean {

@@ -2250,6 +2250,11 @@ suite("DabTool Tests", () => {
             expect(
                 disableResult.config?.entities.find((entity) => entity.id === "t1")?.isEnabled,
             ).to.equal(false);
+            expect(
+                disableResult.config?.entities
+                    .find((entity) => entity.id === "t1")
+                    ?.columns.every((column) => column.isExposed),
+            ).to.equal(true);
 
             const secondResult = await harness.applyChanges({
                 expectedVersion: disableResult.version,

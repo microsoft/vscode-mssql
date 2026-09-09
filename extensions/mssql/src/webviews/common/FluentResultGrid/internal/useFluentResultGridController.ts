@@ -41,12 +41,14 @@ import {
 } from "./fluentResultGridHeaderController";
 import {
     FLUENT_RESULT_GRID_DEFAULT_FROZEN_COLUMN_INDEX,
+    areFluentResultGridColumnLayoutsEqual,
     createFluentResultGridIdentitySignature,
     getFluentResultGridRowHeight,
     getFluentResultGridStateForEmit,
     normalizeFluentResultGridFrozenColumnIndex,
     normalizeFluentResultGridRowPadding,
     restoreFluentResultGridColumnWidths,
+    restoreFluentResultGridVerticalScrollPosition,
     stabilizeFluentResultGridColumnInfo,
     type FluentResultGridColumnInfoSnapshot,
 } from "./fluentResultGridState";
@@ -312,11 +314,14 @@ export function useFluentResultGridController({
                     if (initialState.columnWidths?.length) {
                         layoutController.cancelAutoSizeColumns();
                     }
+                    const currentColumns = grid.getColumns() as Column<FluentResultGridDataRow>[];
                     const restoredColumns = restoreFluentResultGridColumnWidths(
-                        grid.getColumns() as Column<FluentResultGridDataRow>[],
+                        currentColumns,
                         initialState,
                     );
-                    grid.setColumns(restoredColumns);
+                    if (!areFluentResultGridColumnLayoutsEqual(currentColumns, restoredColumns)) {
+                        grid.setColumns(restoredColumns);
+                    }
                 }
 
                 dataController.filterStateRef.current = initialState?.filters ?? {};
@@ -336,15 +341,23 @@ export function useFluentResultGridController({
                 let restoredColumns = grid.getColumns() as Column<FluentResultGridDataRow>[];
                 if (Array.isArray(initialState?.hiddenColumnIds)) {
                     const hiddenColumnIds = new Set(initialState.hiddenColumnIds);
-                    restoredColumns = restoredColumns.map((column) =>
-                        isFluentResultGridDataColumn(column)
-                            ? {
-                                  ...column,
-                                  hidden: hiddenColumnIds.has(column.id.toString()),
-                              }
-                            : column,
-                    );
-                    grid.setColumns(restoredColumns);
+                    const columnsWithRestoredVisibility = restoredColumns.map((column) => {
+                        if (!isFluentResultGridDataColumn(column)) {
+                            return column;
+                        }
+
+                        const hidden = hiddenColumnIds.has(column.id.toString());
+                        return Boolean(column.hidden) === hidden ? column : { ...column, hidden };
+                    });
+                    if (
+                        !areFluentResultGridColumnLayoutsEqual(
+                            restoredColumns,
+                            columnsWithRestoredVisibility,
+                        )
+                    ) {
+                        grid.setColumns(columnsWithRestoredVisibility);
+                    }
+                    restoredColumns = columnsWithRestoredVisibility;
                 }
 
                 const restoredFrozenColumnIndex = normalizeFluentResultGridFrozenColumnIndex(
@@ -373,7 +386,10 @@ export function useFluentResultGridController({
                 if (initialState?.scrollPosition) {
                     requestAnimationFrame(() => {
                         if (initialState.scrollPosition) {
-                            grid.scrollRowToTop(initialState.scrollPosition.scrollTop);
+                            restoreFluentResultGridVerticalScrollPosition(
+                                grid,
+                                initialState.scrollPosition,
+                            );
                             layoutController.restoreHorizontalScrollPosition(
                                 grid,
                                 initialState.scrollPosition.scrollLeft,
@@ -524,13 +540,14 @@ export function useFluentResultGridController({
                 selectActiveCell: true,
                 selectActiveRow: false,
                 selectionType: "cell",
+                // Ctrl/Cmd click and Ctrl/Cmd drag append to the selection instead of replacing it.
+                enableMultiSelection: true,
             },
             // Cell values are rendered in child elements. SlickGrid's default only starts a drag
             // when the event target is the cell itself, making selection depend on whether the
             // pointer starts over text or padding.
             allowDragFromClosest: "div.slick-cell",
-            // Ctrl/Cmd is used to append a dragged block. SlickGrid's option merge retains its
-            // default blocked keys here, so the initialized array is cleared in the lifecycle.
+            // Ctrl/Cmd is used to append a dragged block, so no key blocks a drag.
             preventDragFromKeys: [],
             skipFreezeColumnValidation: true,
         }),
