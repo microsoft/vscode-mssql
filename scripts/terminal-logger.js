@@ -15,7 +15,10 @@ const colors = {
     cyan: "\x1b[36m",
 };
 
-const useColor = process.stdout.isTTY && !process.env.NO_COLOR && process.env.FORCE_COLOR !== "0";
+const forceColor = process.env.FORCE_COLOR;
+const useColor =
+    !process.env.NO_COLOR &&
+    (forceColor !== undefined ? forceColor !== "0" : Boolean(process.stdout.isTTY));
 const useSeparators = process.env.NO_TERMINAL_SEPARATORS !== "1";
 if (!useColor) {
     for (const color of Object.keys(colors)) {

@@ -1,9 +1,11 @@
 #!/usr/bin/env sh
 
 # Git clients display hook output in dialogs that do not support terminal formatting.
-export NO_COLOR=1
-export FORCE_COLOR=0
-export NO_TERMINAL_SEPARATORS=1
+if [ ! -t 1 ]; then
+    export NO_COLOR=1
+    export FORCE_COLOR=0
+    export NO_TERMINAL_SEPARATORS=1
+fi
 
 if ! output=$(node scripts/localization-extract.js --staged 2>&1); then
     echo "Commit blocked: translation files could not be generated."
