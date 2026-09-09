@@ -236,6 +236,12 @@
             ],
             "objectExplorer": [
                 {
+                    "id": "mssqlStart",
+                    "name": "%extension.start%",
+                    "when": "config.mssql.enableOverviewPage",
+                    "icon": "media/applicationQuickStart_dark.svg"
+                },
+                {
                     "id": "objectExplorer",
                     "name": "%extension.connections%",
                     "icon": "media/objectTypes/Database.svg"
@@ -578,13 +584,13 @@
                 },
                 {
                     "command": "mssql.deployNewDatabase",
-                    "when": "view == objectExplorer",
+                    "when": "view == objectExplorer && !config.mssql.enableOverviewPage",
                     "title": "%mssql.newDeployment%",
                     "group": "navigation"
                 },
                 {
                     "command": "mssql.shortcutsConfiguration.open",
-                    "when": "view == objectExplorer",
+                    "when": "view == objectExplorer && !config.mssql.enableOverviewPage",
                     "title": "%mssql.shortcutsConfiguration.open%",
                     "group": "navigation"
                 }
@@ -1151,6 +1157,10 @@
                 {
                     "command": "mssql.openInMssqlExtensionFromAzureResources",
                     "when": "false"
+                },
+                {
+                    "command": "mssql.openOverview",
+                    "when": "config.mssql.enableOverviewPage"
                 }
             ],
             "webview/context": [
@@ -1750,6 +1760,11 @@
             {
                 "command": "mssql.openChangelog",
                 "title": "%mssql.openChangelog%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.openOverview",
+                "title": "%mssql.openOverview%",
                 "category": "MS SQL"
             },
             {
@@ -3301,6 +3316,16 @@
                 "mssql.showChangelogOnUpdate": {
                     "type": "boolean",
                     "description": "%mssql.showChangelogOnUpdate%",
+                    "default": true
+                },
+                "mssql.enableOverviewPage": {
+                    "type": "boolean",
+                    "description": "%mssql.enableOverviewPage%",
+                    "default": false
+                },
+                "mssql.showOverviewOnStartup": {
+                    "type": "boolean",
+                    "description": "%mssql.showOverviewOnStartup%",
                     "default": true
                 }
             }

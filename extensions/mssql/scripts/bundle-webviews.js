@@ -37,6 +37,7 @@ void run(
                 tableExplorer: "src/webviews/pages/TableExplorer/index.tsx",
                 searchDatabase: "src/webviews/pages/SearchDatabase/index.tsx",
                 changelog: "src/webviews/pages/Changelog/index.tsx",
+                overview: "src/webviews/pages/Overview/index.tsx",
                 profiler: "src/webviews/pages/Profiler/index.tsx",
                 azureDataStudioMigration: "src/webviews/pages/AzureDataStudioMigration/index.tsx",
                 shortcutsConfiguration: "src/webviews/pages/ShortcutsConfiguration/index.tsx",
