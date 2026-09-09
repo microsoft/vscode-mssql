@@ -86,6 +86,24 @@ suite("sqlScriptGenerator", () => {
                 "[dbo].[Order]] Item]",
             );
         });
+
+        test("uses fallback table name when baseTableName is empty", () => {
+            expect(
+                buildQualifiedTableName(makeDbCol("int"), {
+                    tableName: "Customers",
+                    schemaName: "dbo",
+                }),
+            ).to.equal("[dbo].[Customers]");
+        });
+
+        test("prefers baseTableName over fallback when both are present", () => {
+            expect(
+                buildQualifiedTableName(makeDbCol("int", "Id", "RealTable", "dbo"), {
+                    tableName: "FallbackTable",
+                    schemaName: "wrong",
+                }),
+            ).to.equal("[dbo].[RealTable]");
+        });
     });
 
     suite("isSingleRowSelection / isFullRowSelected", () => {
@@ -187,6 +205,46 @@ suite("sqlScriptGenerator", () => {
             expect(result).to.equal(
                 "INSERT INTO UnknownTable ([Name])\r\nVALUES\r\n    ('Alice');",
             );
+        });
+    });
+
+    suite("fallback table name threading", () => {
+        const columnInfo = [makeDbCol("nvarchar")]; // no baseTableName
+        const cols = [makeCol(0, "Name")];
+        const rows: CellRow[] = [{ "0": makeCell("Alice") }];
+        const fallback = { tableName: "Customers", schemaName: "dbo" };
+
+        test("generateSelect uses fallback table when columnInfo has none", () => {
+            const provider = makeProvider(rows);
+            const selected = getSelectedColumnIndices([makeRange(0, 0, 0, 0)], cols);
+            const result = generateSelect(0, selected, cols, provider, columnInfo, fallback);
+            expect(result).to.include("FROM [dbo].[Customers]");
+        });
+
+        test("generateUpdate uses fallback table when columnInfo has none", () => {
+            const provider = makeProvider(rows);
+            const selected = getSelectedColumnIndices([makeRange(0, 0, 0, 0)], cols);
+            const result = generateUpdate(0, selected, cols, provider, columnInfo, fallback);
+            expect(result).to.include("UPDATE [dbo].[Customers]");
+        });
+
+        test("generateDelete uses fallback table when columnInfo has none", () => {
+            const provider = makeProvider(rows);
+            const selected = getSelectedColumnIndices([makeRange(0, 0, 0, 0)], cols);
+            const result = generateDelete(0, selected, cols, provider, columnInfo, fallback);
+            expect(result).to.include("DELETE FROM [dbo].[Customers]");
+        });
+
+        test("generateInsertForRows uses fallback table when columnInfo has none", () => {
+            const provider = makeProvider(rows);
+            const result = generateInsertForRows(
+                [makeRange(0, 0, 0, 0)],
+                cols,
+                provider,
+                columnInfo,
+                fallback,
+            );
+            expect(result).to.include("INSERT INTO [dbo].[Customers]");
         });
     });
 });

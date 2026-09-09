@@ -133,14 +133,22 @@ export function formatSqlValue<T extends Slick.SlickData>(pair: ColumnValuePair<
         : sqlStr(val);
 }
 
-export function buildQualifiedTableName(dbColumn: IDbColumn | undefined): string {
-    if (!dbColumn?.baseTableName) {
+export interface FallbackTableName {
+    tableName: string;
+    schemaName?: string;
+}
+
+export function buildQualifiedTableName(
+    dbColumn: IDbColumn | undefined,
+    fallback?: FallbackTableName,
+): string {
+    const tableName = dbColumn?.baseTableName || fallback?.tableName;
+    if (!tableName) {
         return "UnknownTable";
     }
-    const table = escapeSqlIdentifier(dbColumn.baseTableName);
-    return dbColumn.baseSchemaName
-        ? `${escapeSqlIdentifier(dbColumn.baseSchemaName)}.${table}`
-        : table;
+    const schemaName = dbColumn?.baseTableName ? dbColumn.baseSchemaName : fallback?.schemaName;
+    const table = escapeSqlIdentifier(tableName);
+    return schemaName ? `${escapeSqlIdentifier(schemaName)}.${table}` : table;
 }
 
 export function buildWhereClause<T extends Slick.SlickData>(pairs: ColumnValuePair<T>[]): string {
@@ -171,6 +179,7 @@ export function generateSelect<T extends Slick.SlickData>(
     columns: Slick.Column<T>[],
     dataProvider: IDisposableDataProvider<T>,
     columnInfo: IDbColumn[],
+    fallback?: FallbackTableName,
 ): string {
     const eol = getEOL();
     const allPairs = getRowPairs(
@@ -182,7 +191,10 @@ export function generateSelect<T extends Slick.SlickData>(
     );
     const wherePairs = getRowPairs(selectedColumnIndices, row, columns, dataProvider, columnInfo);
     const colNames = allPairs.map((p) => escapeSqlIdentifier(getColumnIdentifier(p))).join(", ");
-    const table = buildQualifiedTableName(wherePairs[0]?.dbColumn ?? allPairs[0]?.dbColumn);
+    const table = buildQualifiedTableName(
+        wherePairs[0]?.dbColumn ?? allPairs[0]?.dbColumn,
+        fallback,
+    );
     return `SELECT ${colNames}${eol}FROM ${table}${eol}WHERE ${buildWhereClause(wherePairs)};`;
 }
 
@@ -192,10 +204,11 @@ export function generateDelete<T extends Slick.SlickData>(
     columns: Slick.Column<T>[],
     dataProvider: IDisposableDataProvider<T>,
     columnInfo: IDbColumn[],
+    fallback?: FallbackTableName,
 ): string {
     const eol = getEOL();
     const wherePairs = getRowPairs(selectedColumnIndices, row, columns, dataProvider, columnInfo);
-    const table = buildQualifiedTableName(wherePairs[0]?.dbColumn);
+    const table = buildQualifiedTableName(wherePairs[0]?.dbColumn, fallback);
     return `DELETE FROM ${table}${eol}WHERE ${buildWhereClause(wherePairs)};`;
 }
 
@@ -205,6 +218,7 @@ export function generateUpdate<T extends Slick.SlickData>(
     columns: Slick.Column<T>[],
     dataProvider: IDisposableDataProvider<T>,
     columnInfo: IDbColumn[],
+    fallback?: FallbackTableName,
 ): string {
     const eol = getEOL();
     const wherePairs = getRowPairs(selectedColumnIndices, row, columns, dataProvider, columnInfo);
@@ -216,7 +230,10 @@ export function generateUpdate<T extends Slick.SlickData>(
         dataProvider,
         columnInfo,
     ).filter((p) => !whereFields.has(p.column.field));
-    const table = buildQualifiedTableName(wherePairs[0]?.dbColumn ?? setPairs[0]?.dbColumn);
+    const table = buildQualifiedTableName(
+        wherePairs[0]?.dbColumn ?? setPairs[0]?.dbColumn,
+        fallback,
+    );
     const setClause = setPairs
         .map((p) => `${escapeSqlIdentifier(getColumnIdentifier(p))} = ${formatSqlValue(p)}`)
         .join(`,${eol}    `);
@@ -228,6 +245,7 @@ export function generateInsertForRows<T extends Slick.SlickData>(
     columns: Slick.Column<T>[],
     dataProvider: IDisposableDataProvider<T>,
     columnInfo: IDbColumn[],
+    fallback?: FallbackTableName,
 ): string {
     const eol = getEOL();
     const colIndices = getSelectedColumnIndices(ranges, columns);
@@ -260,7 +278,7 @@ export function generateInsertForRows<T extends Slick.SlickData>(
             escapeSqlIdentifier(dbColumn?.baseColumnName || column.toolTip || column.name || ""),
         )
         .join(", ");
-    const table = buildQualifiedTableName(colMeta[0]?.dbColumn);
+    const table = buildQualifiedTableName(colMeta[0]?.dbColumn, fallback);
     const statements: string[] = [];
     for (let start = 0; start < valueRows.length; start += INSERT_ROW_LIMIT) {
         const batch = valueRows.slice(start, start + INSERT_ROW_LIMIT);
