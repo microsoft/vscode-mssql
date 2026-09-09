@@ -89,7 +89,7 @@ suite("ContextMenu (legacy grid) generate-* actions", () => {
             getColumns: () => cols,
             getData: () => ({ getItem: (r: number) => (r === 0 ? row : {}) }),
         };
-        const sendRequest = sandbox.stub().resolves();
+        const sendRequest = sandbox.stub().resolves({});
         const queryResultContext = {
             log: { trace: sandbox.stub(), warn: sandbox.stub() },
             extensionRpc: { sendRequest },
