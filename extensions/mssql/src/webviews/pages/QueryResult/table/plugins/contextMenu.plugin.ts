@@ -12,6 +12,7 @@ import {
     CopySelectionRequest,
     GridContextMenuAction,
     OpenGeneratedQueryRequest,
+    ResolveTableNameRequest,
     ResultSetSummary,
 } from "../../../../../sharedInterfaces/queryResult";
 import { QueryResultReactProvider } from "../../queryResultStateProvider";
@@ -80,6 +81,14 @@ export class ContextMenu<T extends Slick.SlickData> {
         );
         const isSingleRow = isSingleRowSelection(dataSelection);
         const isFullRow = isSingleRow && isFullRowSelected(dataSelection, gridColumns);
+        console.log(
+            "[DEBUG handleContextMenu] dataSelection:",
+            JSON.stringify(dataSelection),
+            "isSingleRow:",
+            isSingleRow,
+            "isFullRow:",
+            isFullRow,
+        );
 
         // Ask outer React app to show menu at coordinates
         this.queryResultContext.showGridContextMenu(
@@ -209,6 +218,14 @@ export class ContextMenu<T extends Slick.SlickData> {
                 const row = range.fromRow;
                 const selectedColumnIndices = getSelectedColumnIndices([range], gridColumns);
 
+                const resolved = await this.queryResultContext.extensionRpc.sendRequest(
+                    ResolveTableNameRequest.type,
+                    { uri: this.uri, batchId: this.resultSetSummary.batchId },
+                );
+                const fallback = resolved.tableName
+                    ? { tableName: resolved.tableName, schemaName: resolved.schemaName }
+                    : undefined;
+
                 let sql: string;
                 if (action === GridContextMenuAction.GenerateSelect) {
                     sql = generateSelect(
@@ -217,6 +234,7 @@ export class ContextMenu<T extends Slick.SlickData> {
                         gridColumns,
                         dataProvider,
                         columnInfo,
+                        fallback,
                     );
                 } else if (action === GridContextMenuAction.GenerateUpdate) {
                     sql = generateUpdate(
@@ -225,6 +243,7 @@ export class ContextMenu<T extends Slick.SlickData> {
                         gridColumns,
                         dataProvider,
                         columnInfo,
+                        fallback,
                     );
                 } else if (action === GridContextMenuAction.GenerateDelete) {
                     sql = generateDelete(
@@ -233,9 +252,16 @@ export class ContextMenu<T extends Slick.SlickData> {
                         gridColumns,
                         dataProvider,
                         columnInfo,
+                        fallback,
                     );
                 } else {
-                    sql = generateInsertForRows([range], gridColumns, dataProvider, columnInfo);
+                    sql = generateInsertForRows(
+                        [range],
+                        gridColumns,
+                        dataProvider,
+                        columnInfo,
+                        fallback,
+                    );
                 }
 
                 await this.queryResultContext.extensionRpc.sendRequest(
