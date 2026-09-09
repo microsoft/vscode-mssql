@@ -62,6 +62,21 @@ suite("ProjectsController", function (): void {
 
     suite("project controller operations", function (): void {
         suite("Project file operations and prompting", function (): void {
+            test("Should refresh project scripts changed on disk", async function (): Promise<void> {
+                const projectFilePath = "C:\\test\\project.sqlproj";
+                const scriptPath = "C:\\test\\Table.sql";
+                const openProjectStub = sandbox.stub(Project, "openProject").resolves({
+                    sqlObjectScripts: [{ fsUri: vscode.Uri.file(scriptPath) }],
+                } as Project);
+                const projController = new ProjectsController(testContext.outputChannel);
+
+                const scripts = await projController.getProjectScriptFiles(projectFilePath);
+
+                expect(openProjectStub.calledOnceWithExactly(projectFilePath, false, true)).to.be
+                    .true;
+                expect(scripts).to.deep.equal([vscode.Uri.file(scriptPath).fsPath]);
+            });
+
             test("Should create new sqlproj file with correct specified target platform", async function (): Promise<void> {
                 const projController = new ProjectsController(testContext.outputChannel);
                 const projFileDir = await testUtils.generateTestFolderPath(this.test);
