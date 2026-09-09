@@ -16,7 +16,6 @@ import { TreeNodeInfo } from "./nodes/treeNodeInfo";
 import { randomUUID } from "crypto";
 import { sendActionEvent } from "extension-toolkit/vscode";
 import { ObjectExplorerFilterStore } from "./objectExplorerFilterStore";
-import { getPreviewConfigKey, PreviewFeature } from "../previews/previewService";
 
 export class ObjectExplorerFilterWebviewController extends WebviewPanelController<
     ObjectExplorerFilterState,
@@ -40,7 +39,6 @@ export class ObjectExplorerFilterWebviewController extends WebviewPanelControlle
             data ?? {
                 filterProperties: [],
                 existingFilters: [],
-                isPreviewEnabled: false,
                 filterScopeId: "",
                 filterPresets: [],
                 nodePath: "",
@@ -59,13 +57,11 @@ export class ObjectExplorerFilterWebviewController extends WebviewPanelControlle
 
         this.registerReducer("submit", async (state, payload) => {
             try {
-                if (state.isPreviewEnabled) {
-                    await this._filterStore.recordUsage(
-                        state.filterScopeId,
-                        payload.filters,
-                        payload.saveName,
-                    );
-                }
+                await this._filterStore.recordUsage(
+                    state.filterScopeId,
+                    payload.filters,
+                    payload.saveName,
+                );
             } catch (error) {
                 // Applying a filter must not depend on the optional recent-filter cache.
                 this.logger.warn("Failed to save the Object Explorer filter history", error);
@@ -151,19 +147,11 @@ export class ObjectExplorerFilter {
             treeNode.nodeType,
             treeNode.filterableProperties,
         );
-        const isPreviewEnabled =
-            vscode.workspace
-                .getConfiguration()
-                .get<boolean>(
-                    getPreviewConfigKey(PreviewFeature.BetaObjectExplorerFilter),
-                    false,
-                ) ?? false;
         const data: ObjectExplorerFilterState = {
             filterProperties: treeNode.filterableProperties,
             existingFilters: treeNode.filters,
-            isPreviewEnabled,
             filterScopeId,
-            filterPresets: isPreviewEnabled ? await filterStore.getPresets(filterScopeId) : [],
+            filterPresets: await filterStore.getPresets(filterScopeId),
             nodePath: treeNode.nodePath,
         };
         if (!this._filterWebviewController || this._filterWebviewController.isDisposed) {
