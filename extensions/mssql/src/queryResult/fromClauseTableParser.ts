@@ -29,6 +29,13 @@ export function parseSingleTableFromClause(
         return undefined;
     }
 
+    // APPLY/PIVOT/UNPIVOT/TABLESAMPLE all introduce a second table-like source
+    // that a bare single-identifier FROM clause cannot represent; bail rather
+    // than silently discarding the extra clause and guessing the first table.
+    if (/\b(apply|pivot|unpivot|tablesample)\b/i.test(stripped)) {
+        return undefined;
+    }
+
     const fromMatches = stripped.match(/\bfrom\b/gi);
     if (!fromMatches || fromMatches.length !== 1) {
         return undefined;
@@ -56,8 +63,12 @@ export function parseSingleTableFromClause(
     }
 
     // Check if there's a dot immediately following the matched chain, indicating more parts
-    // (e.g., linked-server references like Server.MyDb.dbo.Customers have 4 parts)
-    if (clause[identifierChain.length] === ".") {
+    // (e.g., linked-server references like Server.MyDb.dbo.Customers have 4 parts).
+    // Also bail if the next character is `]` or `"`: that means the identifier regex
+    // stopped early on an escaped delimiter (`]]` inside `[...]`, `""` inside `"..."`)
+    // and the "matched" identifier is actually a truncated fragment of a longer name.
+    const trailingChar = clause[identifierChain.length];
+    if (trailingChar === "." || trailingChar === "]" || trailingChar === '"') {
         return undefined;
     }
 

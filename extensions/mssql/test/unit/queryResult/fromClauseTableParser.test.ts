@@ -105,4 +105,24 @@ suite("parseSingleTableFromClause", () => {
             undefined,
         );
     });
+
+    test("returns undefined for bracketed identifier with escaped ']]'", () => {
+        expect(parseSingleTableFromClause("SELECT * FROM [My]]Table]")).to.equal(undefined);
+    });
+
+    test("returns undefined for schema-qualified bracketed identifier with escaped ']]'", () => {
+        expect(parseSingleTableFromClause("SELECT * FROM [dbo].[Order]]Item]")).to.equal(undefined);
+    });
+
+    test("returns undefined for quoted identifier with escaped '\"\"'", () => {
+        expect(parseSingleTableFromClause('SELECT * FROM "My""Table"')).to.equal(undefined);
+    });
+
+    test("returns undefined for CROSS APPLY (bare table reference form)", () => {
+        expect(parseSingleTableFromClause("SELECT * FROM A CROSS APPLY B")).to.equal(undefined);
+    });
+
+    test("returns undefined for OUTER APPLY (bare table reference form)", () => {
+        expect(parseSingleTableFromClause("SELECT * FROM A OUTER APPLY B")).to.equal(undefined);
+    });
 });
