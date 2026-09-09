@@ -81,14 +81,6 @@ export class ContextMenu<T extends Slick.SlickData> {
         );
         const isSingleRow = isSingleRowSelection(dataSelection);
         const isFullRow = isSingleRow && isFullRowSelected(dataSelection, gridColumns);
-        console.log(
-            "[DEBUG handleContextMenu] dataSelection:",
-            JSON.stringify(dataSelection),
-            "isSingleRow:",
-            isSingleRow,
-            "isFullRow:",
-            isFullRow,
-        );
 
         // Ask outer React app to show menu at coordinates
         this.queryResultContext.showGridContextMenu(
