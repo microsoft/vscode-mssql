@@ -3198,7 +3198,7 @@
     "Filter for any field...": "Filter for any field...",
     "Estimated Subtree Cost": "Estimated Subtree Cost",
     "Estimated Operator Cost": "Estimated Operator Cost",
-    "The React Flow execution plan preview could not render this plan.": "The React Flow execution plan preview could not render this plan.",
+    "This execution plan could not be rendered.": "This execution plan could not be rendered.",
     "Execution plan {0}, use arrow keys to navigate between nodes/{0} is the one-based execution plan number": {
         "message": "Execution plan {0}, use arrow keys to navigate between nodes",
         "comment": ["{0} is the one-based execution plan number"]
@@ -3895,6 +3895,10 @@
     },
     "{0} is a primary key column and can't be disabled./{0} is the backing database column name": {
         "message": "{0} is a primary key column and can't be disabled.",
+        "comment": ["{0} is the backing database column name"]
+    },
+    "{0} is a logical key column and can't be hidden./{0} is the backing database column name": {
+        "message": "{0} is a logical key column and can't be hidden.",
         "comment": ["{0} is the backing database column name"]
     },
     "{0} action for {1}/{0} is the action name (Create, Read, etc.){1} is the entity name": {

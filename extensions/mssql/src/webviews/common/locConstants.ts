@@ -996,9 +996,7 @@ export class LocConstants {
             collapse: l10n.t("Collapse"),
             subtreeCostLabel: l10n.t("Estimated Subtree Cost"),
             operatorCostLabel: l10n.t("Estimated Operator Cost"),
-            reactFlowRendererError: l10n.t(
-                "The React Flow execution plan preview could not render this plan.",
-            ),
+            executionPlanRendererError: l10n.t("This execution plan could not be rendered."),
             executionPlanGraph: (planNumber: number) =>
                 l10n.t({
                     message: "Execution plan {0}, use arrow keys to navigate between nodes",
@@ -2196,6 +2194,12 @@ export class LocConstants {
             primaryKeyColumnExposureLocked: (columnName: string) =>
                 l10n.t({
                     message: "{0} is a primary key column and can't be disabled.",
+                    args: [columnName],
+                    comment: ["{0} is the backing database column name"],
+                }),
+            logicalKeyColumnExposureLocked: (columnName: string) =>
+                l10n.t({
+                    message: "{0} is a logical key column and can't be hidden.",
                     args: [columnName],
                     comment: ["{0} is the backing database column name"],
                 }),
