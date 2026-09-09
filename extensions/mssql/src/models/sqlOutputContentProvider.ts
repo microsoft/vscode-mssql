@@ -298,11 +298,19 @@ export class SqlOutputContentProvider {
         if (!queryRunner) {
             return {};
         }
-        const queryText = await queryRunner.getBatchQueryText(batchId);
-        if (!queryText) {
+        try {
+            const queryText = await queryRunner.getBatchQueryText(batchId);
+            if (!queryText) {
+                return {};
+            }
+            return parseSingleTableFromClause(queryText) ?? {};
+        } catch {
+            // Degrade to the same "nothing resolved" shape the caller already
+            // treats as the UnknownTable fallback, rather than letting a failure
+            // (e.g. the owner document was closed) propagate through the RPC and
+            // silently abort the whole Generate action in the webview.
             return {};
         }
-        return parseSingleTableFromClause(queryText) ?? {};
     }
 
     public generateSelectionSummaryData(
