@@ -28,7 +28,11 @@ import {
     AppliedSortColumn,
     stripTrailingOrderByAndSemicolon,
 } from "../../../tableExplorer/tableQueryComposer";
-import { EditSubsetResult, ExportData } from "../../../sharedInterfaces/tableExplorer";
+import {
+    CellUpdateAcknowledgement,
+    EditSubsetResult,
+    ExportData,
+} from "../../../sharedInterfaces/tableExplorer";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import { locConstants as loc } from "../../common/locConstants";
 import TableExplorerCustomPager from "./TableExplorerCustomPager";
@@ -43,6 +47,7 @@ import {
     enqueueTableExplorerCreateRow,
     hasPendingChangesForRow,
     isTableExplorerDataColumn,
+    removeAcknowledgedCleanCellChanges,
     runBeforeTableExplorerSessionReplacement,
     snapshotCellChangesForRow,
     TableExplorerLifecycleMutex,
@@ -80,11 +85,17 @@ interface TableDataGridProps {
     failedCells?: string[];
     deletedRows?: number[];
     newRowIds?: number[];
+    cellUpdateAcknowledgements?: Record<string, CellUpdateAcknowledgement>;
     tableQuery?: string;
     sessionKey: string;
     onCreateRow?: () => Promise<void>;
     onDeleteRow?: (rowId: number) => Promise<void>;
-    onUpdateCell?: (rowId: number, columnId: number, newValue: string) => Promise<void>;
+    onUpdateCell?: (
+        rowId: number,
+        columnId: number,
+        newValue: string,
+        requestId: number,
+    ) => Promise<void>;
     onRevertCell?: (rowId: number, columnId: number) => Promise<void>;
     onRevertRow?: (rowId: number) => Promise<void>;
     onCellChangeCountChanged?: (count: number) => void;
@@ -127,6 +138,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             failedCells,
             deletedRows,
             newRowIds,
+            cellUpdateAcknowledgements,
             tableQuery,
             sessionKey,
             onCreateRow,
@@ -149,6 +161,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         const [currentTheme, setCurrentTheme] = useState<ColorThemeKind | undefined>(themeKind);
         const reactGridRef = useRef<SlickgridReactInstance | null>(null);
         const cellChangesRef = useRef<Map<string, any>>(new Map());
+        const nextCellUpdateRequestIdRef = useRef(0);
         const deletedRowsRef = useRef<Set<number>>(new Set());
         const newRowIdsRef = useRef<Set<number>>(new Set());
         const failedCellsRef = useRef<Set<string>>(new Set());
@@ -660,6 +673,18 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             }
         }, [newRowIds]);
 
+        useEffect(() => {
+            if (
+                removeAcknowledgedCleanCellChanges(
+                    cellUpdateAcknowledgements,
+                    cellChangesRef.current,
+                )
+            ) {
+                onCellChangeCountChanged?.(cellChangesRef.current.size);
+                reactGridRef.current?.slickGrid?.invalidate();
+            }
+        }, [cellUpdateAcknowledgements, onCellChangeCountChanged]);
+
         // Auto-select the first cell once the dataset has rendered. Pairs with
         // the same call inside reactGridReady to cover either ordering.
         useEffect(() => {
@@ -1002,12 +1027,14 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
 
             // Track the change using original data column index (not visible cell index)
             const changeKey = `${rowId}-${dataColumnIndex}`;
+            const requestId = ++nextCellUpdateRequestIdRef.current;
             cellChangesRef.current.set(changeKey, {
                 rowId,
                 columnIndex: dataColumnIndex,
                 columnId: column?.id,
                 field: column?.field,
                 newValue: args.item[column?.field],
+                requestId,
             });
 
             // Notify parent of change count update
@@ -1020,7 +1047,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 const newValue = args.item[column?.field];
                 void rowMutationQueueRef.current.enqueue(
                     rowId,
-                    () => onUpdateCell(rowId, dataColumnIndex, newValue),
+                    () => onUpdateCell(rowId, dataColumnIndex, newValue, requestId),
                     changeKey,
                 );
             }

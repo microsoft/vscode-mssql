@@ -20,6 +20,7 @@ import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry"
 import * as qr from "../sharedInterfaces/queryResult";
 import { ExecutionPlanService } from "../services/executionPlanService";
 import { countResultSets, isOpenQueryResultsInTabByDefaultEnabled } from "../queryResult/utils";
+import { createErrorMessageNavigation } from "../queryResult/messageLinks";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { getErrorMessage } from "../utils/utils";
 import { getLogger } from "./logger";
@@ -687,9 +688,21 @@ export class SqlOutputContentProvider {
 
                 const showBatchMessages = Utils.shouldShowBatchMessages();
                 if (message.isError || message.batchId >= 0 || showBatchMessages) {
-                    resultWebviewState.messages.push(
-                        showBatchMessages ? message : { ...message, batchId: undefined },
-                    );
+                    const { errorSelection, ...displayMessage } = message;
+                    const errorNavigation = message.isError
+                        ? createErrorMessageNavigation(
+                              message.message,
+                              errorSelection,
+                              queryRunner.uri,
+                          )
+                        : undefined;
+
+                    resultWebviewState.messages.push({
+                        ...displayMessage,
+                        batchId: showBatchMessages ? message.batchId : undefined,
+                        link: errorNavigation?.link,
+                        selection: errorNavigation?.selection,
+                    });
                 }
                 if (typeof message.rowsAffected === "number") {
                     resultWebviewState.rowsAffected = message.rowsAffected;

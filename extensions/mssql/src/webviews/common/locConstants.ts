@@ -996,9 +996,7 @@ export class LocConstants {
             collapse: l10n.t("Collapse"),
             subtreeCostLabel: l10n.t("Estimated Subtree Cost"),
             operatorCostLabel: l10n.t("Estimated Operator Cost"),
-            reactFlowRendererError: l10n.t(
-                "The React Flow execution plan preview could not render this plan.",
-            ),
+            executionPlanRendererError: l10n.t("This execution plan could not be rendered."),
             executionPlanGraph: (planNumber: number) =>
                 l10n.t({
                     message: "Execution plan {0}, use arrow keys to navigate between nodes",
@@ -2199,6 +2197,12 @@ export class LocConstants {
                     args: [columnName],
                     comment: ["{0} is the backing database column name"],
                 }),
+            logicalKeyColumnExposureLocked: (columnName: string) =>
+                l10n.t({
+                    message: "{0} is a logical key column and can't be hidden.",
+                    args: [columnName],
+                    comment: ["{0} is the backing database column name"],
+                }),
             actionForEntity: (action: string, entityName: string) =>
                 l10n.t({
                     message: "{0} action for {1}",
@@ -2305,7 +2309,7 @@ export class LocConstants {
             selectSourceSchema: l10n.t("Select Source Schema"),
             selectTargetSchema: l10n.t("Select Target Schema"),
             noDifferences: l10n.t("No schema differences were found."),
-            initializingComparison: l10n.t("Initializing comparison, this might take a while..."),
+            initializingComparison: l10n.t("Comparing..."),
             applyingChanges: l10n.t("Applying changes, this might take a while..."),
             applySucceededRunAgain: l10n.t(
                 "Changes applied successfully. Run Schema Compare again to see updated differences.",
@@ -2387,7 +2391,12 @@ export class LocConstants {
                 "Save source and target, options, and excluded elements",
             ),
             groupDifferencesBy: l10n.t("Group differences by"),
+            layout: l10n.t("Layout"),
+            classicLayout: l10n.t("Classic"),
+            simplifiedLayout: l10n.t("Simplified"),
+            schemaDifferences: l10n.t("Schema differences"),
             type: l10n.t("Type"),
+            object: l10n.t("Object"),
             sourceName: l10n.t("Source Name"),
             include: l10n.t("Include"),
             action: l10n.t("Action"),
@@ -2395,6 +2404,72 @@ export class LocConstants {
             add: l10n.t("Add"),
             change: l10n.t("Change"),
             delete: l10n.t("Delete"),
+            differencesSummary: (count: number) =>
+                l10n.t({
+                    message: "{0} differences",
+                    args: [count],
+                    comment: ["{0} is the total number of schema differences"],
+                }),
+            addedDifferencesSummary: (count: number) =>
+                l10n.t({
+                    message: "{0} add",
+                    args: [count],
+                    comment: ["{0} is the number of objects that will be added"],
+                }),
+            changedDifferencesSummary: (count: number) =>
+                l10n.t({
+                    message: "{0} change",
+                    args: [count],
+                    comment: ["{0} is the number of objects that will be changed"],
+                }),
+            deletedDifferencesSummary: (count: number) =>
+                l10n.t({
+                    message: "{0} delete",
+                    args: [count],
+                    comment: ["{0} is the number of objects that will be deleted"],
+                }),
+            filterObjects: l10n.t("Filter objects"),
+            filterDifferences: l10n.t("Filter"),
+            allSchemas: l10n.t("All schemas"),
+            allObjectTypes: l10n.t("All object types"),
+            clearFilters: l10n.t("Clear filters"),
+            includeAllDifferences: l10n.t("Include or exclude all differences"),
+            includedInScript: l10n.t("Included in script"),
+            excludedFromScript: l10n.t("Excluded from script"),
+            differenceRowLabel: (type: string, name: string, action: string, included: boolean) =>
+                l10n.t({
+                    message: "{0}, {1}, {2}, {3}",
+                    args: [
+                        type,
+                        name,
+                        action,
+                        included ? l10n.t("included in script") : l10n.t("excluded from script"),
+                    ],
+                    comment: [
+                        "{0} is the schema object type",
+                        "{1} is the schema object name",
+                        "{2} is the update action",
+                        "{3} indicates whether the difference is included in the generated script",
+                    ],
+                }),
+            differenceGroupLabel: (name: string, count: number) =>
+                l10n.t({
+                    message: "{0}, {1} differences",
+                    args: [name, count],
+                    comment: [
+                        "{0} is the schema difference group name",
+                        "{1} is the number of differences in the group",
+                    ],
+                }),
+            selectedDifferencesSummary: (selectedCount: number, totalCount: number) =>
+                l10n.t({
+                    message: "{0} of {1} selected",
+                    args: [selectedCount, totalCount],
+                    comment: [
+                        "{0} is the number of included schema differences",
+                        "{1} is the total number of schema differences",
+                    ],
+                }),
             selectSource: l10n.t("Select Source"),
             selectTarget: l10n.t("Select Target"),
             close: l10n.t("Close"),
@@ -2405,7 +2480,19 @@ export class LocConstants {
             source: l10n.t("Source"),
             target: l10n.t("Target"),
             compareDetails: l10n.t("Comparison Details"),
+            differencePosition: (current: number, total: number) =>
+                l10n.t({
+                    message: "{0} / {1}",
+                    args: [current, total],
+                    comment: [
+                        "{0} is the one-based position of the selected schema difference",
+                        "{1} is the total number of visible schema differences",
+                    ],
+                }),
             affectedChildrenRegionLabel: l10n.t("Affected child objects"),
+            constraintsAddedLabel: l10n.t("Constraints added"),
+            constraintsChangedLabel: l10n.t("Constraints changed"),
+            constraintsDroppedLabel: l10n.t("Constraints dropped"),
             affectedChildrenAdded: (names: string) =>
                 l10n.t({
                     message: "Constraints added: {0}",
@@ -2490,6 +2577,7 @@ export class LocConstants {
             includeExcludeAllOperationInProgress: l10n.t(
                 "Processing include or exclude all differences operation.",
             ),
+            updatingDifferenceSelection: l10n.t("Updating difference selection."),
         };
     }
 

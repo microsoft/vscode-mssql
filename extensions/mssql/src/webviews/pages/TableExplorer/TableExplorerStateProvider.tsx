@@ -46,8 +46,14 @@ export const TableExplorerStateProvider: React.FC<{
                 rowId: number,
                 columnId: number,
                 newValue: string,
+                requestId: number,
             ): Promise<void> {
-                await extensionRpc.actionAndWait("updateCell", { rowId, columnId, newValue });
+                await extensionRpc.actionAndWait("updateCell", {
+                    rowId,
+                    columnId,
+                    newValue,
+                    requestId,
+                });
             },
 
             revertCell: async function (rowId: number, columnId: number): Promise<void> {
