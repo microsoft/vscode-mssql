@@ -51,11 +51,13 @@ export function getDabEntityFilterCount(filters: DabEntityFilters): number {
 export function doesEntityMatchDabFilters(
     entity: Dab.DabEntityConfig,
     filters: DabEntityFilters,
+    globallyEnabledApiTypes?: readonly Dab.ApiType[],
 ): boolean {
-    if (filters.status === DabEntityStatusFilter.Enabled && !Dab.isEntityExposed(entity)) {
+    const isEffectivelyExposed = Dab.isEntityEffectivelyExposed(entity, globallyEnabledApiTypes);
+    if (filters.status === DabEntityStatusFilter.Enabled && !isEffectivelyExposed) {
         return false;
     }
-    if (filters.status === DabEntityStatusFilter.Disabled && Dab.isEntityExposed(entity)) {
+    if (filters.status === DabEntityStatusFilter.Disabled && isEffectivelyExposed) {
         return false;
     }
     if (
@@ -78,16 +80,10 @@ export function doesEntityMatchDabFilters(
     }
 
     if (filters.apiTypes.length > 0) {
-        const enabledApiTypes: Array<Dab.ApiType | "none"> = [];
-        if (Dab.isEntityRestEnabled(entity)) {
-            enabledApiTypes.push(Dab.ApiType.Rest);
-        }
-        if (Dab.isEntityGraphQLEnabled(entity)) {
-            enabledApiTypes.push(Dab.ApiType.GraphQL);
-        }
-        if (Dab.isEntityMcpEnabled(entity)) {
-            enabledApiTypes.push(Dab.ApiType.Mcp);
-        }
+        const enabledApiTypes: Array<Dab.ApiType | "none"> = Dab.getEntityExposedApiTypes(
+            entity,
+            globallyEnabledApiTypes,
+        );
         if (enabledApiTypes.length === 0) {
             enabledApiTypes.push("none");
         }
