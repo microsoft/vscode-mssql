@@ -114,9 +114,12 @@ suite("ContextMenu (legacy grid) generate-* actions", () => {
             menu as unknown as { handleMenuAction: (a: GridContextMenuAction) => Promise<void> }
         ).handleMenuAction(GridContextMenuAction.GenerateSelect);
 
-        expect(sendRequest.calledOnce).to.equal(true);
-        const [reqType, params] = sendRequest.firstCall.args;
-        expect(reqType).to.equal(OpenGeneratedQueryRequest.type);
+        expect(sendRequest.calledTwice).to.equal(true);
+        const openCall = sendRequest
+            .getCalls()
+            .find((c) => c.args[0] === OpenGeneratedQueryRequest.type);
+        expect(openCall).to.not.equal(undefined);
+        const [, params] = openCall!.args;
         expect(params.uri).to.equal("file:///test.sql");
         expect(params.sql).to.equal(
             "SELECT [Id], [Name]\r\nFROM [dbo].[Customers]\r\nWHERE [Id] = 1;",
@@ -137,7 +140,11 @@ suite("ContextMenu (legacy grid) generate-* actions", () => {
             menu as unknown as { handleMenuAction: (a: GridContextMenuAction) => Promise<void> }
         ).handleMenuAction(GridContextMenuAction.GenerateInsert);
 
-        const [, params] = sendRequest.firstCall.args;
+        const openCall = sendRequest
+            .getCalls()
+            .find((c) => c.args[0] === OpenGeneratedQueryRequest.type);
+        expect(openCall).to.not.equal(undefined);
+        const [, params] = openCall!.args;
         expect(params.sql).to.equal(
             "INSERT INTO [dbo].[Customers] ([Id], [Name])\r\nVALUES\r\n    (1, 'Alice');",
         );
