@@ -207,6 +207,7 @@ suite("OE Service Tests", () => {
         let sandbox: sinon.SinonSandbox;
         let endStub: sinon.SinonStub;
         let endFailedStub: sinon.SinonStub;
+        let updateStub: sinon.SinonStub;
         let startActivityStub: sinon.SinonStub;
 
         setup(() => {
@@ -221,12 +222,13 @@ suite("OE Service Tests", () => {
             mockConnectionStore.readAllConnectionGroups.resolves([createMockRootConnectionGroup()]);
             endStub = sandbox.stub();
             endFailedStub = sandbox.stub();
+            updateStub = sandbox.stub();
             startActivityStub = sandbox.stub(telemetry, "startActivity").returns({
                 end: endStub,
                 endFailed: endFailedStub,
                 correlationId: "",
                 startTime: 0,
-                update: sandbox.stub(),
+                update: updateStub,
             });
             objectExplorerService = new ObjectExplorerService(mockConnectionManager, () => {});
             objectExplorerService.initialized.resolve();
@@ -521,6 +523,12 @@ suite("OE Service Tests", () => {
             expect(mockClient.sendRequest.args[1][0], "Retry request is a refresh").to.equal(
                 RefreshRequest.type,
             );
+            expect(
+                updateStub,
+                "Telemetry should record that the retry uses a refresh",
+            ).to.have.been.calledOnceWithExactly({
+                additionalProps: { isRefresh: "true" },
+            });
 
             expect(
                 mockConnectionManager.shouldRetryForPausedServerlessDatabase.calledOnce,
@@ -837,21 +845,16 @@ suite("OE Service Tests", () => {
         });
 
         test("a filtered refresh settles even when the expand outlasts the tree refresh debounce", async () => {
-            /**
-             * Applying an Object Explorer filter marks the node for refresh and fires the tree
-             * data change event. VS Code answers that event by calling getChildren again, and the
-             * loading node the service returns fires the event once more. If those internal
-             * callbacks are mistaken for fresh user refreshes, each one queues another refresh and
-             * the node never leaves "Loading...". Drive that real feedback loop here with an expand
-             * slow enough to still be in flight when the tree calls back.
-             */
+            // Loading updates make VS Code request the node's children again. Simulate a slow
+            // filtered refresh and verify those callbacks do not keep queuing more refreshes.
             const TREE_REFRESH_DELAY_MS = 5;
             const EXPAND_LATENCY_MS = 40;
             const MAX_SIMULATED_TREE_FETCHES = 100;
+            const clock = sandbox.useFakeTimers();
+            sandbox.stub(ObjectExplorerUtils, "iconPath").callsFake(() => undefined);
 
             const connectionProfile = createMockConnectionProfile({ id: "conn1" });
             let simulatedTreeFetches = 0;
-            const treeRefreshTimers: NodeJS.Timeout[] = [];
 
             // Stands in for ObjectExplorerProvider.refresh(), which fires onDidChangeTreeData and
             // makes VS Code re-fetch the node's children after a short debounce.
@@ -860,9 +863,7 @@ suite("OE Service Tests", () => {
                     return;
                 }
                 simulatedTreeFetches++;
-                treeRefreshTimers.push(
-                    setTimeout(() => void loopingService.getChildren(node), TREE_REFRESH_DELAY_MS),
-                );
+                setTimeout(() => void loopingService.getChildren(node), TREE_REFRESH_DELAY_MS);
             });
             loopingService.initialized.resolve();
             setUpOETreeRoot(loopingService, [connectionProfile]);
@@ -892,31 +893,27 @@ suite("OE Service Tests", () => {
                 .withArgs(ExpandRequest.type, sinon.match.any)
                 .callsFake(respondAfterLatency);
 
-            try {
-                // What applying a filter does: set the filters, then refresh the node.
-                connectionNode.filters = [
-                    { name: "Name", operator: 9, value: "cdwi" },
-                ] as import("vscode-mssql").NodeFilter[];
-                connectionNode.shouldRefresh = true;
-                void loopingService.getChildren(connectionNode);
+            // Applying a filter sets the filters, then refreshes the node.
+            connectionNode.filters = [
+                { name: "Name", operator: 9, value: "cdwi" },
+            ] as import("vscode-mssql").NodeFilter[];
+            connectionNode.shouldRefresh = true;
+            void loopingService.getChildren(connectionNode);
 
-                await new Promise((resolve) => setTimeout(resolve, 400));
+            await clock.tickAsync(400);
 
-                expect(
-                    mockClient.sendRequest,
-                    "One filter apply should send exactly one refresh, not a self-sustaining loop",
-                ).to.have.been.calledOnceWithExactly(RefreshRequest.type, sinon.match.any);
-                expect(
-                    connectionNode.shouldRefresh,
-                    "Refresh flag should be cleared once the refresh has been dispatched",
-                ).to.be.false;
-                expect(
-                    (loopingService as any)._refreshQueuedAfterInFlight.has(connectionNode),
-                    "No refresh should remain queued after the load settles",
-                ).to.be.false;
-            } finally {
-                treeRefreshTimers.forEach((timer) => clearTimeout(timer));
-            }
+            expect(
+                mockClient.sendRequest,
+                "One filter apply should send exactly one refresh, not a self-sustaining loop",
+            ).to.have.been.calledOnceWithExactly(RefreshRequest.type, sinon.match.any);
+            expect(
+                connectionNode.shouldRefresh,
+                "Refresh flag should be cleared once the refresh has been dispatched",
+            ).to.be.false;
+            expect(
+                (loopingService as any)._refreshQueuedAfterInFlight.has(connectionNode),
+                "No refresh should remain queued after the load settles",
+            ).to.be.false;
         });
 
         test("expandNode should handle error response from SQL Tools Service", async () => {

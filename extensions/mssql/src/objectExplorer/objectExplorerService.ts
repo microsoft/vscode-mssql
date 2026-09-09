@@ -376,6 +376,9 @@ export class ObjectExplorerService {
                          * the database finishes resuming.
                          */
                         shouldRefresh = true;
+                        expandActivity.update({
+                            additionalProps: { isRefresh: shouldRefresh.toString() },
+                        });
                         continue;
                     }
                 }
@@ -621,14 +624,8 @@ export class ObjectExplorerService {
             `getNodeChildren: ${getNodeDescriptor(element)}, hadCache=${hadCache}, hasInFlight=${hasInFlight}`,
         );
 
-        /**
-         * Consume the refresh request up front and carry it forward as a local. Showing the loading
-         * node fires the tree-data-change event, which makes VS Code call back into this method
-         * while the load is still running; if the flag were still set, that internal callback would
-         * be mistaken for a second user-initiated refresh, queue another refresh, and show the
-         * loading node again — a cycle that never settles whenever the expand outlasts VS Code's
-         * tree refresh debounce.
-         */
+        // Consume the refresh before showing the loading node. That update makes VS Code request
+        // the children again, and the cleared flag prevents the callback from queuing a refresh.
         element.shouldRefresh = false;
 
         if (wasRefresh) {
