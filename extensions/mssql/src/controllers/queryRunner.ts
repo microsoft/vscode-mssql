@@ -1529,6 +1529,14 @@ export default class QueryRunner {
         if (!batchSummary) {
             return undefined;
         }
+        // Prefer the snapshot of the text that was actually executed for this run.
+        // Re-reading the live document here would risk parsing text the user has
+        // since edited but not re-run, which could resolve to a table that has
+        // nothing to do with the grid's actual data.
+        const executedQueryString = this.getQueryString(this._ownerUri);
+        if (executedQueryString !== undefined) {
+            return executedQueryString;
+        }
         const doc = await vscode.workspace.openTextDocument(vscode.Uri.parse(this._ownerUri));
         const selection = batchSummary.selection;
         if (!selection) {
