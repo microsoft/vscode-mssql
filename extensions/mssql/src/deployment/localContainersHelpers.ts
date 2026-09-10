@@ -424,7 +424,6 @@ export async function addContainerConnection(
                 shouldHandleErrors: false,
             });
             if (connected) {
-                await connectionManager.disconnect(probeUri);
                 break;
             }
         } catch {
@@ -440,6 +439,14 @@ export async function addContainerConnection(
                 setTimeout(resolve, containerConnectionRetryDelayMs * Math.pow(2, attempt)),
             );
         }
+    }
+
+    try {
+        await connectionManager.disconnect(probeUri);
+    } catch (error) {
+        dockerUtils.dockerLogger.warn(
+            `Failed to disconnect container readiness probe: ${getErrorMessage(error)}`,
+        );
     }
 
     try {

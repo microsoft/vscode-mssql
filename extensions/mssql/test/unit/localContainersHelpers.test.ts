@@ -432,55 +432,71 @@ suite("localContainers logic", () => {
         expect(sendActionEvent).to.have.been.called;
     });
 
-    test("addContainerConnection returns connection string on success", async () => {
-        const dockerProfile = {
-            containerName: "c",
-            port: 1433,
-            profileName: "p",
-            savePassword: true,
-        } as any;
+    for (const disconnectFails of [false, true]) {
+        test(`addContainerConnection succeeds when probe disconnect ${disconnectFails ? "fails" : "succeeds"}`, async () => {
+            const dockerProfile = {
+                containerName: "c",
+                port: 1433,
+                profileName: "p",
+                savePassword: true,
+            } as any;
 
-        const savedProfile = { id: "container-profile" };
-        const connectionDetails = { options: {} };
-        const saveProfileStub = sandbox.stub().resolves(savedProfile);
-        const createSessionStub = sandbox.stub().resolves();
-        const connectStub = sandbox.stub().resolves(true);
-        const disconnectStub = sandbox.stub().resolves();
-        const createConnectionDetailsStub = sandbox.stub().returns(connectionDetails);
-        const getConnectionStringStub = sandbox
-            .stub()
-            .withArgs(connectionDetails, false, false)
-            .resolves("Server=localhost,1433;User ID=sa;Trust Server Certificate=True");
+            const savedProfile = { id: "container-profile" };
+            const connectionDetails = { options: {} };
+            const saveProfileStub = sandbox.stub().resolves(savedProfile);
+            const createSessionStub = sandbox.stub().resolves();
+            const connectStub = sandbox.stub().resolves(true);
+            const disconnectStub = sandbox.stub().resolves();
+            const warnStub = sandbox.stub(dockerUtils.dockerLogger, "warn");
+            if (disconnectFails) {
+                disconnectStub.rejects(new Error("Probe disconnect failed"));
+            }
+            const createConnectionDetailsStub = sandbox.stub().returns(connectionDetails);
+            const getConnectionStringStub = sandbox
+                .stub()
+                .withArgs(connectionDetails, false, false)
+                .resolves("Server=localhost,1433;User ID=sa;Trust Server Certificate=True");
 
-        const mainController = {
-            connectionManager: {
-                connect: connectStub,
-                disconnect: disconnectStub,
-                connectionUI: { saveProfile: saveProfileStub },
-                createConnectionDetails: createConnectionDetailsStub,
-                getConnectionString: getConnectionStringStub,
-            },
-            createObjectExplorerSession: createSessionStub,
-        } as unknown as MainController;
+            const mainController = {
+                connectionManager: {
+                    connect: connectStub,
+                    disconnect: disconnectStub,
+                    connectionUI: { saveProfile: saveProfileStub },
+                    createConnectionDetails: createConnectionDetailsStub,
+                    getConnectionString: getConnectionStringStub,
+                },
+                createObjectExplorerSession: createSessionStub,
+            } as unknown as MainController;
 
-        const result = await localContainersHelpers.addContainerConnection(
-            dockerProfile,
-            mainController,
-        );
-        expect(result).to.deep.equal({
-            success: true,
-            connectionString: "Server=localhost,1433;User ID=sa;Trust Server Certificate=True",
+            const result = await localContainersHelpers.addContainerConnection(
+                dockerProfile,
+                mainController,
+            );
+            expect(result).to.deep.equal({
+                success: true,
+                connectionString: "Server=localhost,1433;User ID=sa;Trust Server Certificate=True",
+            });
+            expect(connectStub).to.have.been.calledWithMatch(
+                sinon.match.string,
+                sinon.match.object,
+                {
+                    shouldHandleErrors: false,
+                },
+            );
+            expect(disconnectStub).to.have.been.called;
+            expect(connectStub).to.have.been.calledOnce;
+            if (disconnectFails) {
+                expect(warnStub).to.have.been.calledWith(
+                    "Failed to disconnect container readiness probe: Probe disconnect failed",
+                );
+            }
+            expect(saveProfileStub).to.have.been.calledWithMatch({
+                server: "localhost,1433",
+                user: "SA",
+            });
+            expect(createSessionStub).to.have.been.calledWith(savedProfile);
         });
-        expect(connectStub).to.have.been.calledWithMatch(sinon.match.string, sinon.match.object, {
-            shouldHandleErrors: false,
-        });
-        expect(disconnectStub).to.have.been.called;
-        expect(saveProfileStub).to.have.been.calledWithMatch({
-            server: "localhost,1433",
-            user: "SA",
-        });
-        expect(createSessionStub).to.have.been.calledWith(savedProfile);
-    });
+    }
 
     test("addContainerConnection retries while container authentication initializes", async () => {
         const clock = sandbox.useFakeTimers();
