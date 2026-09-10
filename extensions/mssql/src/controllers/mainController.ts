@@ -808,6 +808,7 @@ export default class MainController implements vscode.Disposable {
 
             this._context.subscriptions.push(
                 this.azureResourcesIntegration.registerOpenInMssqlCommand(),
+                this.azureResourcesIntegration.registerOpenInFabricDatabaseHubCommand(),
             );
 
             // Register a virtual document provider once during extension activation

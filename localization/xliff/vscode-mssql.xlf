@@ -10998,6 +10998,9 @@
     <trans-unit id="mssql.viewBackgroundTaskLogs">
       <source xml:lang="en">View Task Logs</source>
     </trans-unit>
+    <trans-unit id="mssql.openInFabricDatabaseHub">
+      <source xml:lang="en">View in Fabric Database Hub</source>
+    </trans-unit>
     <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
       <source xml:lang="en">Visualize a Query Plan</source>
     </trans-unit>
