@@ -38,6 +38,7 @@ import {
     AZURE_SQL_DB_COMPONENT_ORDER,
 } from "../sharedInterfaces/azureSqlDatabase";
 import { findFirstFavoriteOption } from "../sharedInterfaces/form";
+import * as azureSql from "./azureSqlHelpers";
 
 export const DEPLOYMENT_VIEW_ID = "deployment";
 const DEPLOYMENT_FAVORITES_STATE_KEY = "mssql.deploymentResourceFavorites";
@@ -280,6 +281,7 @@ export class DeploymentWebviewController extends FormWebviewController<
         localContainers.registerLocalContainersReducers(this);
         fabricProvisioning.registerFabricProvisioningReducers(this);
         azureSqlDatabase.registerAzureSqlDatabaseReducers(this);
+        azureSql.registerAzureSqlRpcHandlers(this);
     }
 
     private applyFavoritesToFormComponents(state: DeploymentWebviewState): void {

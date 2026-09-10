@@ -9,6 +9,7 @@ import { IDialogProps } from "./connectionDialog";
 import { FirewallRuleSpec } from "./firewallRule";
 import { KnownFreeLimitExhaustionBehavior, KnownSampleName, Server } from "@azure/arm-sql";
 import { AzureSubscription, AzureTenant } from "@microsoft/vscode-azext-azureauth";
+import { RequestType } from "vscode-jsonrpc";
 
 /**
  * Ordered list of Azure component names used for cascading load/reset.
@@ -29,10 +30,70 @@ export const AzureSqlDatabaseLinks = {
         "https://learn.microsoft.com/en-us/azure/azure-sql/database/service-tiers-sql-database-vcore",
     createQuickstart:
         "https://learn.microsoft.com/en-us/azure/azure-sql/database/single-database-create-quickstart",
+    developerContainerOverview:
+        "https://microsoft.github.io/azure-sql-database-container/what-is-the-container.html",
+    developerContainerDevContainers:
+        "https://learn.microsoft.com/en-us/azure/azure-sql/database/local-dev-experience-dev-containers?view=azuresql",
+    developerContainerConfiguration:
+        "https://microsoft.github.io/azure-sql-database-container/getting-started.html",
+    dockerDesktop: "https://www.docker.com/products/docker-desktop/",
+    podmanDesktop: "https://podman-desktop.io/downloads",
+    rancherDesktop: "https://rancherdesktop.io/",
+    appleContainer: "https://github.com/apple/container/releases",
+    wslContainers: "https://learn.microsoft.com/en-us/windows/wsl/tutorials/wsl-containers",
     connectQuerySsms:
         "https://learn.microsoft.com/en-us/azure/azure-sql/database/connect-query-ssms",
     azureSqlDocs: "https://learn.microsoft.com/en-us/azure/azure-sql/database/",
 } as const;
+
+export enum ContainerEngine {
+    Docker = "docker",
+    Podman = "podman",
+    Containerd = "containerd",
+    AppleContainer = "appleContainer",
+    WslContainer = "wslContainer",
+}
+
+export enum ContainerEnginePrerequisite {
+    Installation = "installation",
+    Running = "running",
+    Configuration = "configuration",
+}
+
+export function getContainerEnginePrerequisites(
+    engine: ContainerEngine,
+): ContainerEnginePrerequisite[] {
+    const prerequisites = [
+        ContainerEnginePrerequisite.Installation,
+        ContainerEnginePrerequisite.Running,
+    ];
+
+    return engine === ContainerEngine.Docker
+        ? [...prerequisites, ContainerEnginePrerequisite.Configuration]
+        : prerequisites;
+}
+
+export interface ContainerEnginePrerequisiteResult {
+    success: boolean;
+    error?: string;
+}
+
+export namespace AzureSqlDatabaseRequests {
+    export const DetectContainerEngines = new RequestType<
+        void,
+        Record<ContainerEngine, ContainerEnginePrerequisiteResult>,
+        void
+    >("deployment/detectContainerEngines");
+
+    export const CheckContainerEnginePrerequisite = new RequestType<
+        {
+            engine: ContainerEngine;
+            prerequisite: ContainerEnginePrerequisite;
+        },
+        ContainerEnginePrerequisiteResult,
+        void
+    >("deployment/checkContainerEnginePrerequisite");
+}
 
 export class AzureSqlDatabaseState
     implements

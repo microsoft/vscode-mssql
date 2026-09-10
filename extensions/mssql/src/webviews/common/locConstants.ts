@@ -2704,6 +2704,107 @@ export class LocConstants {
             azureSqlDatabaseDescription: l10n.t(
                 "Try Azure SQL Database at no cost with our free tier offer! Provision a fully managed cloud database directly from VS Code.",
             ),
+            chooseDeploymentOption: l10n.t("Choose how to run Azure SQL Database"),
+            localContainer: l10n.t("Local container"),
+            localContainerDescription: l10n.t(
+                "Run Azure SQL Database locally — perfect for offline development, prototyping, and CI scenarios.",
+            ),
+            free: l10n.t("Free"),
+            freeDescription: l10n.t(
+                "Try Azure SQL Database at no cost with the free tier offer — a fully managed cloud database, ready for your app, ORM, or migration tools.",
+            ),
+            localContainerTbd: l10n.t("TBD"),
+            localContainerWizardTitle: l10n.t("New Azure SQL Database - Container"),
+            developerContainer: l10n.t("Azure SQL Database developer container"),
+            paasAlignedLocalDevelopment: l10n.t("PaaS-aligned local development"),
+            paasAlignedLocalDevelopmentDescription: l10n.t(
+                "Build and test against the Azure SQL Database developer container so what runs locally matches what runs in Azure—no surprises at deploy time.",
+            ),
+            crossPlatformArmAndX64: l10n.t("Cross-platform, ARM and x64"),
+            crossPlatformArmAndX64Description: l10n.t(
+                "Native ARM and x64 images so you get great performance on Apple silicon, Surface, and Linux ARM devices, and on traditional Intel/AMD machines alike.",
+            ),
+            usePreferredContainerEngine: l10n.t("Use the container engine you prefer"),
+            usePreferredContainerEngineDescription: l10n.t(
+                "Create, start, stop, and remove your container from the MSSQL extension using Docker, Podman, containerd (nerdctl), or WSL containers on Windows.",
+            ),
+            learnMoreAboutDeveloperContainer: l10n.t(
+                "Learn more about the Azure SQL Database developer container",
+            ),
+            useDevContainersWithAzureSqlDatabase: l10n.t(
+                "Use Dev Containers with Azure SQL Database",
+            ),
+            configureDeveloperContainer: l10n.t("Configure and customize the developer container"),
+            containerEngine: l10n.t("Container engine"),
+            detectingContainerEngines: l10n.t("Detecting container engines..."),
+            enginesDetected: (count: number) =>
+                count === 1
+                    ? l10n.t("1 engine detected")
+                    : l10n.t({
+                          message: "{0} engines detected",
+                          args: [count],
+                          comment: ["{0} is the number of detected container engines"],
+                      }),
+            engineNotDetected: l10n.t("Engine not detected"),
+            selectContainerEngine: l10n.t("Select a container engine"),
+            containerEngineDetectionFailed: l10n.t("Container engine detection failed."),
+            noContainerEngineFound: l10n.t("No container engine found"),
+            installContainerEngineToContinue: l10n.t("Install a container engine to continue"),
+            installContainerEngineDescription: l10n.t(
+                "The local database runs inside a container, so you'll need a container engine. Docker is pre-selected as a common default; any of the options below will work. Install one to continue.",
+            ),
+            recommended: l10n.t("Recommended"),
+            dockerDescription: l10n.t(
+                "Widely used container engine, available as Docker Desktop or Docker Engine. · Windows, macOS, Linux",
+            ),
+            getDockerDesktop: l10n.t("Get Docker Desktop"),
+            otherSupportedEngines: l10n.t("Other supported engines"),
+            podmanDescription: l10n.t(
+                "Open-source container engine, often used as a Docker alternative. · Windows, macOS, Linux",
+            ),
+            getPodmanDesktop: l10n.t("Get Podman Desktop"),
+            containerdDescription: l10n.t(
+                "Container runtime, commonly used through nerdctl or Rancher Desktop. · Windows, macOS, Linux",
+            ),
+            getRancherDesktop: l10n.t("Get Rancher Desktop"),
+            appleContainerDescription: l10n.t(
+                "Container tool from Apple for macOS on Apple silicon. · macOS 26+",
+            ),
+            getAppleContainer: l10n.t("Get Apple container"),
+            wslContainerDescription: l10n.t(
+                "Runs containers through Windows Subsystem for Linux (WSL). · Windows",
+            ),
+            setUpWslContainers: l10n.t("Set up WSL containers"),
+            docker: l10n.t("Docker"),
+            podman: l10n.t("Podman"),
+            containerd: l10n.t("containerd"),
+            appleContainer: l10n.t("Apple container"),
+            wslContainer: l10n.t("WSL container"),
+            gettingContainerEngineReady: (engine: string) =>
+                l10n.t({
+                    message: "Getting {0} ready...",
+                    args: [engine],
+                    comment: ["{0} is the name of a container engine"],
+                }),
+            checkingPrerequisites: l10n.t("Checking prerequisites"),
+            checkingIfContainerEngineIsInstalled: (engine: string) =>
+                l10n.t({
+                    message: "Checking if {0} is installed",
+                    args: [engine],
+                    comment: ["{0} is the name of a container engine"],
+                }),
+            checkingIfContainerEngineIsStarted: (engine: string) =>
+                l10n.t({
+                    message: "Checking if {0} is started",
+                    args: [engine],
+                    comment: ["{0} is the name of a container engine"],
+                }),
+            checkingContainerEngineConfiguration: (engine: string) =>
+                l10n.t({
+                    message: "Checking {0} configuration",
+                    args: [engine],
+                    comment: ["{0} is the name of a container engine"],
+                }),
             oltpAzureSql: l10n.t("OLTP, built on Azure SQL"),
             oltpAzureSqlDescription: l10n.t(
                 "Developer-friendly transactional database using the Azure SQL Database Engine — at no cost for prototyping and learning.",
