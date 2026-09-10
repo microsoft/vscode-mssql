@@ -596,6 +596,11 @@
                     "group": "1_MSSQL_primary@0"
                 },
                 {
+                    "command": "mssql.openInFabricDatabaseHub",
+                    "when": "view == azureResourceGroups && viewItem =~ /\\b(SqlDatabases)\\b/",
+                    "group": "1_MSSQL_primary@1"
+                },
+                {
                     "command": "mssql.addObjectExplorer",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(ConnectionGroup)\\b/",
                     "title": "%mssql.addObjectExplorer%",
@@ -946,6 +951,10 @@
             "commandPalette": [
                 {
                     "command": "mssql.openInMssqlExtensionFromAzureResources",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.openInFabricDatabaseHub",
                     "when": "false"
                 },
                 {
@@ -1805,6 +1814,11 @@
             {
                 "command": "mssql.openInMssqlExtensionFromAzureResources",
                 "title": "%mssql.openInMssqlExtensionFromAzureResources%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.openInFabricDatabaseHub",
+                "title": "%mssql.openInFabricDatabaseHub%",
                 "category": "MS SQL"
             },
             {

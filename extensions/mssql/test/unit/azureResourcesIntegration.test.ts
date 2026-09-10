@@ -151,4 +151,45 @@ suite("AzureResourcesExtensionIntegration Tests", () => {
         const uri = protocolHandler.handleUri.firstCall.args[0];
         expect(uri).to.be.instanceOf(vscode.Uri);
     });
+
+    test("opens an Azure SQL database in Fabric Database Hub", async () => {
+        const openExternal = sandbox.stub(vscode.env, "openExternal").resolves(true);
+        const database = mockAzureResources.azureSqlDbDatabase2;
+
+        await integration["invokeForFabricDatabaseHub"](buildResourceNode(database));
+
+        expect(openExternal).to.have.been.calledOnce;
+        const url = new URL(openExternal.firstCall.args[0].toString(true));
+        expect(url.origin).to.equal("https://msit.fabric.microsoft.com");
+        expect(url.pathname).to.equal("/workloads/fdh/databaseHub/estate");
+        expect(url.searchParams.get("databaseResourceId")).to.equal(database.id);
+        expect(JSON.parse(url.searchParams.get("estateView")!)).to.deep.equal({
+            schemaVersion: 1,
+            state: {
+                filters: [
+                    {
+                        key: "resourceType",
+                        operator: "in",
+                        value: ["AzureSql"],
+                    },
+                ],
+                category: ["all"],
+                relevance: ["all"],
+                sort: {
+                    column: "issues",
+                    direction: "descending",
+                },
+            },
+        });
+    });
+
+    test("ignores non-database Azure resources for Fabric Database Hub", async () => {
+        const openExternal = sandbox.stub(vscode.env, "openExternal").resolves(true);
+
+        await integration["invokeForFabricDatabaseHub"](
+            buildResourceNode(mockAzureResources.azureSqlDbServer),
+        );
+
+        expect(openExternal).not.to.have.been.called;
+    });
 });
