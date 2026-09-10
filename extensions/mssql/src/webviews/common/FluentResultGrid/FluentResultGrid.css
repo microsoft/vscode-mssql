@@ -374,7 +374,8 @@
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
+    /* `pre` keeps leading and repeated spaces visible; `nowrap` would collapse them. */
+    white-space: pre;
 }
 
 .fluent-result-grid .slick-cell a.grid-cell-value-container {
