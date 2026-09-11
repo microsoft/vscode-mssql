@@ -8,7 +8,6 @@ import {
     DiffEntry,
     DeploymentOptions,
     ResultStatus,
-    SchemaCompareResult,
     SchemaComparePublishProjectResult,
     SchemaCompareOptionsResult,
     SchemaCompareIncludeExcludeResult,
@@ -43,6 +42,18 @@ export interface SchemaCompareServer {
     database?: string;
 }
 
+/**
+ * Lightweight description of the current comparison result. The full difference list is
+ * kept on the extension host and fetched by the webview with
+ * {@link SchemaCompareGetDifferencesRequest} so state updates stay small.
+ */
+export interface SchemaCompareResultSummary {
+    /** Identifies one comparison run; every difference request is validated against it. */
+    comparisonId: number;
+    areEqual: boolean;
+    differenceCount: number;
+}
+
 export interface SchemaCompareWebViewState {
     layout: SchemaCompareLayout;
     groupBy: SchemaCompareGroupBy;
@@ -68,7 +79,7 @@ export interface SchemaCompareWebViewState {
     originalSourceExcludes: Map<string, DiffEntry>;
     originalTargetExcludes: Map<string, DiffEntry>;
     sourceTargetSwitched: boolean;
-    schemaCompareResult: SchemaCompareResult;
+    schemaCompareResult?: SchemaCompareResultSummary;
     publishDatabaseChangesResultStatus: ResultStatus;
     schemaComparePublishProjectResult: SchemaComparePublishProjectResult;
     schemaCompareIncludeExcludeResult: SchemaCompareIncludeExcludeResult;
@@ -161,9 +172,13 @@ export interface SchemaCompareReducers {
 
 export interface SchemaCompareContextProps extends CoreRPCs {
     differences: DiffEntry[];
+    isDifferencesLoading: boolean;
     loadingDifferenceDetailIds: ReadonlySet<number>;
     pendingDifferenceIds: ReadonlySet<number>;
     isIncludeExcludeAllInProgress: boolean;
+    isScriptGenerationInProgress: boolean;
+    /** True while any request that depends on the current comparison is in flight. */
+    isOperationInProgress: boolean;
 
     setLayout: (layout: SchemaCompareLayout) => void;
     setGroupBy: (groupBy: SchemaCompareGroupBy) => void;
@@ -251,7 +266,8 @@ export type SchemaCompareIncludeExcludeRejectionReason =
     | "blockingDependencies"
     | "notExcludable"
     | "differenceNotFound"
-    | "serviceError";
+    | "serviceError"
+    | "staleComparison";
 
 export interface SchemaCompareDifferenceUpdate {
     id: number;
@@ -263,7 +279,27 @@ export interface SchemaCompareBlockingDependency {
     name: string;
 }
 
+export interface SchemaCompareGetDifferencesWebviewParams {
+    comparisonId: number;
+}
+
+export interface SchemaCompareGetDifferencesWebviewResponse {
+    success: boolean;
+    comparisonId: number;
+    differences: DiffEntry[];
+    errorMessage?: string;
+}
+
+export namespace SchemaCompareGetDifferencesRequest {
+    export const type = new RequestType<
+        SchemaCompareGetDifferencesWebviewParams,
+        SchemaCompareGetDifferencesWebviewResponse,
+        void
+    >("schemaCompare/getDifferencesWebview");
+}
+
 export interface SchemaCompareIncludeExcludeNodeParams {
+    comparisonId: number;
     id: number;
     diffEntry: DiffEntry;
     includeRequest: boolean;
@@ -285,11 +321,12 @@ export namespace SchemaCompareIncludeExcludeNodeRequest {
     >("schemaCompare/includeExcludeNodeWebview");
 }
 
-export interface SchemaCompareDifferenceDetailsParams {
+export interface SchemaCompareGetDifferenceDetailsWebviewParams {
+    comparisonId: number;
     id: number;
 }
 
-export interface SchemaCompareDifferenceDetailsResponse {
+export interface SchemaCompareGetDifferenceDetailsWebviewResponse {
     success: boolean;
     difference?: DiffEntry;
     errorMessage?: string;
@@ -297,13 +334,14 @@ export interface SchemaCompareDifferenceDetailsResponse {
 
 export namespace SchemaCompareGetDifferenceDetailsRequest {
     export const type = new RequestType<
-        SchemaCompareDifferenceDetailsParams,
-        SchemaCompareDifferenceDetailsResponse,
+        SchemaCompareGetDifferenceDetailsWebviewParams,
+        SchemaCompareGetDifferenceDetailsWebviewResponse,
         void
     >("schemaCompare/getDifferenceDetailsWebview");
 }
 
 export interface SchemaCompareGenerateScriptParams {
+    comparisonId: number;
     targetServerName: string;
     targetDatabaseName: string;
 }
@@ -322,6 +360,7 @@ export namespace SchemaCompareGenerateScriptRequest {
 }
 
 export interface SchemaCompareIncludeExcludeAllParams {
+    comparisonId: number;
     includeRequest: boolean;
 }
 

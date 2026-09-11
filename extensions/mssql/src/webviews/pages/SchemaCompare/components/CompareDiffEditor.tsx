@@ -118,11 +118,13 @@ const CompareDiffEditor = ({
     const diff = context.differences[selectedDiffId];
     const isLoading = context.loadingDifferenceDetailIds.has(selectedDiffId);
 
+    // The provider prefetches details in the background; this makes the selected row jump the queue.
+    const loadDifferenceDetails = context.loadDifferenceDetails;
     useEffect(() => {
         if (diff?.hasDetails === false) {
-            void context.loadDifferenceDetails(selectedDiffId);
+            void loadDifferenceDetails(selectedDiffId);
         }
-    }, [context.loadDifferenceDetails, diff, selectedDiffId]);
+    }, [loadDifferenceDetails, diff, selectedDiffId]);
     const { original, modified } = getDiffEditorModels(diff);
     const selectedDifferenceName = (
         diff?.sourceValue?.length ? diff.sourceValue : diff?.targetValue

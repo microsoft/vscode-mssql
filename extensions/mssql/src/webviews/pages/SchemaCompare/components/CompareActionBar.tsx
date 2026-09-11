@@ -65,7 +65,7 @@ const CompareActionBar = (props: Props) => {
     );
     const isComparisonInProgress = useSchemaCompareSelector((s) => s.isComparisonInProgress);
     const isApplyInProgress = useSchemaCompareSelector((s) => s.isApplyInProgress);
-    const [isScriptGenerationInProgress, setIsScriptGenerationInProgress] = useState(false);
+    const isScriptGenerationInProgress = context.isScriptGenerationInProgress;
     const isEndpointSelectionInProgress = useSchemaCompareSelector(
         (s) => s.isEndpointSelectionInProgress === true,
     );
@@ -124,17 +124,9 @@ const CompareActionBar = (props: Props) => {
         context.cancel();
     };
 
-    const handleGenerateScript = async () => {
-        setIsScriptGenerationInProgress(true);
-        try {
-            // The extension host owns user-facing error notifications for this request.
-            await context.generateScript(
-                targetEndpointInfo.serverName,
-                targetEndpointInfo.databaseName,
-            );
-        } finally {
-            setIsScriptGenerationInProgress(false);
-        }
+    const handleGenerateScript = () => {
+        // The extension host owns user-facing error notifications for this request.
+        void context.generateScript(targetEndpointInfo.serverName, targetEndpointInfo.databaseName);
     };
 
     const handlePublishChanges = () => {
@@ -199,13 +191,13 @@ const CompareActionBar = (props: Props) => {
         return true;
     };
 
-    const isCheckboxOperationInProgress =
-        context.isIncludeExcludeAllInProgress || context.pendingDifferenceIds.size > 0;
+    // Covers pending checkbox changes, script generation, and the differences list loading, so
+    // nothing can start a new comparison or change endpoints while a request is in flight.
+    const isOperationInProgress = context.isOperationInProgress;
     const isApplyDisabled =
         isComparisonInProgress ||
         isApplyInProgress ||
-        isScriptGenerationInProgress ||
-        isCheckboxOperationInProgress ||
+        isOperationInProgress ||
         disableApplyButton();
     const applyButton = (
         <Button
@@ -234,9 +226,8 @@ const CompareActionBar = (props: Props) => {
                         isEndpointEmpty(targetEndpointInfo) ||
                         isComparisonInProgress ||
                         isApplyInProgress ||
-                        isScriptGenerationInProgress ||
                         isEndpointSelectionInProgress ||
-                        isCheckboxOperationInProgress
+                        isOperationInProgress
                     }>
                     {!isCompact && loc.schemaCompare.compare}
                 </Button>
@@ -265,12 +256,9 @@ const CompareActionBar = (props: Props) => {
                             <DocumentChevronDouble20Regular />
                         )
                     }
-                    onClick={() => void handleGenerateScript()}
+                    onClick={handleGenerateScript}
                     disabled={
-                        disableGenerateScriptButton() ||
-                        isApplyInProgress ||
-                        isScriptGenerationInProgress ||
-                        isCheckboxOperationInProgress
+                        disableGenerateScriptButton() || isApplyInProgress || isOperationInProgress
                     }>
                     {!isCompact && loc.schemaCompare.generateScript}
                 </Button>
@@ -295,7 +283,7 @@ const CompareActionBar = (props: Props) => {
                     disabled={
                         isComparisonInProgress ||
                         isApplyInProgress ||
-                        isCheckboxOperationInProgress ||
+                        isOperationInProgress ||
                         isEndpointEmpty(sourceEndpointInfo) ||
                         isEndpointEmpty(targetEndpointInfo)
                     }>
@@ -312,7 +300,7 @@ const CompareActionBar = (props: Props) => {
                     disabled={
                         isComparisonInProgress ||
                         isApplyInProgress ||
-                        isCheckboxOperationInProgress ||
+                        isOperationInProgress ||
                         (isEndpointEmpty(sourceEndpointInfo) && isEndpointEmpty(targetEndpointInfo))
                     }>
                     {!isCompact && loc.schemaCompare.switchDirection}
@@ -325,9 +313,7 @@ const CompareActionBar = (props: Props) => {
                     title={loc.schemaCompare.loadSourceTargetAndOptionsSavedInAnScmpFile}
                     icon={<DocumentArrowUp16Regular />}
                     onClick={handleOpenScmp}
-                    disabled={
-                        isComparisonInProgress || isApplyInProgress || isCheckboxOperationInProgress
-                    }>
+                    disabled={isComparisonInProgress || isApplyInProgress || isOperationInProgress}>
                     {!isCompact && loc.schemaCompare.openScmpFile}
                 </Button>
                 <Button
@@ -340,7 +326,7 @@ const CompareActionBar = (props: Props) => {
                     disabled={
                         isComparisonInProgress ||
                         isApplyInProgress ||
-                        isCheckboxOperationInProgress ||
+                        isOperationInProgress ||
                         isEndpointEmpty(sourceEndpointInfo) ||
                         isEndpointEmpty(targetEndpointInfo)
                     }>

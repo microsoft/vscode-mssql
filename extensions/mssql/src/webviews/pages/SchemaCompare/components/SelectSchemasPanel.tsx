@@ -68,6 +68,13 @@ const SelectSchemasPanel = ({ onSelectSchemaClicked }: Props) => {
     const isEndpointSelectionInProgress = useSchemaCompareSelector(
         (s) => s.isEndpointSelectionInProgress === true,
     );
+    // Changing endpoints or comparing discards the current result, so block both while a
+    // request against that result (checkbox change, script generation) is still in flight.
+    const isBusy =
+        isComparisonInProgress ||
+        isApplyInProgress ||
+        isEndpointSelectionInProgress ||
+        context.isOperationInProgress;
 
     let sourceEndpointDisplay = getEndpointDisplayName(sourceEndpointInfo);
     let targetEndpointDisplay = getEndpointDisplayName(targetEndpointInfo);
@@ -96,9 +103,7 @@ const SelectSchemasPanel = ({ onSelectSchemaClicked }: Props) => {
                 buttonAriaLabel={loc.schemaCompare.selectSourceSchema}
                 value={sourceEndpointDisplay}
                 endpointType={sourceEndpointInfo?.endpointType}
-                disableBrowseButton={
-                    isComparisonInProgress || isApplyInProgress || isEndpointSelectionInProgress
-                }
+                disableBrowseButton={isBusy}
                 selectFile={() => onSelectSchemaClicked("source")}
             />
 
@@ -110,9 +115,7 @@ const SelectSchemasPanel = ({ onSelectSchemaClicked }: Props) => {
                     icon={<ArrowSwap16Regular />}
                     onClick={handleSwitchEndpoints}
                     disabled={
-                        isComparisonInProgress ||
-                        isApplyInProgress ||
-                        isEndpointSelectionInProgress ||
+                        isBusy ||
                         (isEndpointEmpty(sourceEndpointInfo) && isEndpointEmpty(targetEndpointInfo))
                     }
                 />
@@ -124,9 +127,7 @@ const SelectSchemasPanel = ({ onSelectSchemaClicked }: Props) => {
                 buttonAriaLabel={loc.schemaCompare.selectTargetSchema}
                 value={targetEndpointDisplay}
                 endpointType={targetEndpointInfo?.endpointType}
-                disableBrowseButton={
-                    isComparisonInProgress || isApplyInProgress || isEndpointSelectionInProgress
-                }
+                disableBrowseButton={isBusy}
                 selectFile={() => onSelectSchemaClicked("target")}
             />
 
@@ -138,9 +139,7 @@ const SelectSchemasPanel = ({ onSelectSchemaClicked }: Props) => {
                 disabled={
                     isEndpointEmpty(sourceEndpointInfo) ||
                     isEndpointEmpty(targetEndpointInfo) ||
-                    isComparisonInProgress ||
-                    isApplyInProgress ||
-                    isEndpointSelectionInProgress
+                    isBusy
                 }>
                 {loc.schemaCompare.compare}
             </Button>

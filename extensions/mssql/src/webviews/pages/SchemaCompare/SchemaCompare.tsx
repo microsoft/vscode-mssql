@@ -13,9 +13,10 @@ import SchemaOptionsDrawer from "./components/SchemaOptionsDrawer";
 import { schemaCompareContext } from "./SchemaCompareStateProvider";
 import { useSchemaCompareSelector } from "./schemaCompareSelector";
 import Message from "./components/Message";
-import { makeStyles } from "@fluentui/react-components";
+import { makeStyles, Spinner } from "@fluentui/react-components";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { SchemaCompareLayout } from "../../../sharedInterfaces/schemaCompare";
+import { locConstants as loc } from "../../common/locConstants";
 
 const useStyles = makeStyles({
     container: {
@@ -42,6 +43,12 @@ const useStyles = makeStyles({
     resizeHandle: {
         height: "2px",
         backgroundColor: "var(--vscode-editorWidget-border)",
+    },
+    loadingContainer: {
+        display: "flex",
+        flex: 1,
+        alignItems: "center",
+        justifyContent: "center",
     },
 });
 
@@ -133,7 +140,13 @@ export const SchemaComparePage = () => {
 
             {showMessage() && <Message />}
 
-            {!showMessage() && (
+            {!showMessage() && context.isDifferencesLoading && (
+                <div className={classes.loadingContainer}>
+                    <Spinner labelPosition="below" label={loc.common.loadingWithEllipsis} />
+                </div>
+            )}
+
+            {!showMessage() && !context.isDifferencesLoading && (
                 <div className={classes.contentContainer}>
                     <div className={classes.resizableContainer}>
                         <PanelGroup direction="vertical">
