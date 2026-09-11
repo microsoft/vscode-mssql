@@ -5,17 +5,6 @@
 
 import { IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
 
-const redactConnectionStringSecrets = (connectionString?: string): string => {
-    if (!connectionString) {
-        return "";
-    }
-
-    return connectionString.replace(
-        /((?:password|pwd|access token)\s*=\s*)(?:'[^']*'|"[^"]*"|\{[^}]*\}|[^;]*)/gi,
-        "$1<redacted>",
-    );
-};
-
 export const getConnectionCardKey = (connection: IConnectionDialogProfile): string => {
     return [
         connection.id ?? "",
@@ -25,7 +14,6 @@ export const getConnectionCardKey = (connection: IConnectionDialogProfile): stri
         connection.profileName ?? "",
         connection.user ?? "",
         connection.accountId ?? "",
-        redactConnectionStringSecrets(connection.connectionString),
     ].join("|");
 };
 

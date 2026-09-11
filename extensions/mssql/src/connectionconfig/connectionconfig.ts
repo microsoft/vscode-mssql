@@ -74,8 +74,8 @@ export class ConnectionConfig implements IConnectionConfig {
     /**
      * Constructor
      */
-    public constructor() {
-        this._logger = logger.withPrefix("ConnectionConfig");
+    public constructor(loggerOverride?: ILogger) {
+        this._logger = loggerOverride ?? logger.withPrefix("ConnectionConfig");
         void this.initialize();
     }
 
@@ -83,6 +83,7 @@ export class ConnectionConfig implements IConnectionConfig {
         await this.addOrUpdateRootGroup();
         await this.assignConnectionGroupMissingIds();
         await this.assignConnectionMissingIds();
+        await this.removeConnectionStringsFromProfiles();
 
         this.initialized.resolve();
 
@@ -223,12 +224,7 @@ export class ConnectionConfig implements IConnectionConfig {
         if (profiles.length > 0) {
             profiles = profiles.filter((conn) => {
                 // filter out any connection missing a connection string and server name or the sample that's shown by default
-                if (
-                    !(
-                        conn.connectionString ||
-                        (!!conn.server && conn.server !== LocalizedConstants.SampleServerName)
-                    )
-                ) {
+                if (!conn.server || conn.server === LocalizedConstants.SampleServerName) {
                     vscode.window.showErrorMessage(
                         LocalizedConstants.Connection.missingConnectionInformation(conn.id),
                     );
@@ -496,18 +492,10 @@ export class ConnectionConfig implements IConnectionConfig {
         return found;
     }
 
-    /** Compare function for sorting by profile name if available, otherwise fall back to server name or connection string */
+    /** Compare function for sorting by profile name if available, otherwise fall back to server name. */
     private compareConnectionProfile(connA: IConnectionProfile, connB: IConnectionProfile): number {
-        const nameA = connA.profileName
-            ? connA.profileName
-            : connA.server
-              ? connA.server
-              : connA.connectionString;
-        const nameB = connB.profileName
-            ? connB.profileName
-            : connB.server
-              ? connB.server
-              : connB.connectionString;
+        const nameA = connA.profileName || connA.server;
+        const nameB = connB.profileName || connB.server;
 
         return nameA.localeCompare(nameB);
     }
@@ -677,6 +665,47 @@ export class ConnectionConfig implements IConnectionConfig {
             );
 
             await this.writeConnectionsToSettings(profiles);
+        }
+    }
+
+    private async removeConnectionStringsFromProfiles(): Promise<void> {
+        const profiles = this.getRawConnectionsFromSettings();
+        const cleanedProfiles: IConnectionProfile[] = [];
+        let madeChanges = false;
+
+        for (const profile of profiles) {
+            const rawProfile = profile as unknown as Record<string, unknown>;
+            if (!Object.prototype.hasOwnProperty.call(rawProfile, "connectionString")) {
+                cleanedProfiles.push(profile);
+                continue;
+            }
+
+            madeChanges = true;
+            const connectionDisplayName = getConnectionDisplayName(profile);
+            const connectionString = String(rawProfile["connectionString"] ?? "");
+            let message: string;
+
+            if (profile.server) {
+                delete rawProfile["connectionString"];
+                cleanedProfiles.push(profile);
+                message = LocalizedConstants.Connection.connectionStringPropertyRemoved(
+                    connectionDisplayName,
+                    connectionString,
+                );
+            } else {
+                message =
+                    LocalizedConstants.Connection.connectionDeletedAfterConnectionStringRemoval(
+                        connectionDisplayName,
+                        connectionString,
+                    );
+            }
+
+            this._logger.warn(message);
+            void vscode.window.showInformationMessage(message);
+        }
+
+        if (madeChanges) {
+            await this.writeConnectionsToSettings(cleanedProfiles);
         }
     }
 

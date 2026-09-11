@@ -8,7 +8,7 @@ import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
 import * as chai from "chai";
 import { expect } from "chai";
-import { ConnectionDetails, IToken, IConnectionInfo } from "vscode-mssql";
+import { IToken, IConnectionInfo } from "vscode-mssql";
 import { ConnectionStore } from "../../src/models/connectionStore";
 import { ILogger } from "../../src/sharedInterfaces/logger";
 import ConnectionManager, {
@@ -17,8 +17,7 @@ import ConnectionManager, {
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import StatusView from "../../src/views/statusView";
 import { CredentialStore } from "../../src/credentialstore/credentialstore";
-import { IConnectionProfile, IConnectionProfileWithSource } from "../../src/models/interfaces";
-import { ParseConnectionStringRequest } from "../../src/models/contracts/connection";
+import { IConnectionProfile } from "../../src/models/interfaces";
 import * as ConnectionContracts from "../../src/models/contracts/connection";
 import * as Constants from "../../src/constants/constants";
 import { IAccount, RequestSecurityTokenParams } from "../../src/models/contracts/azure";
@@ -55,7 +54,6 @@ suite("ConnectionManager Tests", () => {
     let mockContext: vscode.ExtensionContext;
     let mockLogger: sinon.SinonStubbedInstance<ILogger>;
     let mockCredentialStore: sinon.SinonStubbedInstance<CredentialStore>;
-    let messageBoxes: ReturnType<typeof stubMessageBoxes>;
     let mockConnectionStore: sinon.SinonStubbedInstance<ConnectionStore>;
     let mockServiceClient: sinon.SinonStubbedInstance<SqlToolsServerClient>;
     let mockStatusView: sinon.SinonStubbedInstance<StatusView>;
@@ -66,7 +64,7 @@ suite("ConnectionManager Tests", () => {
     setup(async () => {
         sandbox = sinon.createSandbox();
         mockContext = stubExtensionContext(sandbox);
-        messageBoxes = stubMessageBoxes(sandbox);
+        stubMessageBoxes(sandbox);
         mockLogger = createStubLogger(sandbox);
         mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
         mockCredentialStore = sandbox.createStubInstance(CredentialStore);
@@ -123,154 +121,11 @@ suite("ConnectionManager Tests", () => {
 
             await connectionManager.initialized; // Wait for initialization to complete
         });
-
-        test("Initialization migrates legacy Connection String connections in credential store", async () => {
-            const testServer = "localhost";
-            const testDatabase = "TestDb";
-            const testUser = "testUser";
-            const testPassword = "testPassword";
-            const testConnectionString = `Data Source=${testServer};Initial Catalog=${testDatabase};User Id=${testUser};Password=${testPassword}`;
-            const testCredentialId = `Microsoft.SqlTools|itemtype:Profile|server:${testServer}|db:${testDatabase}|user:${testUser}|isConnectionString:true`;
-            const testConnectionId = "00000000-1111-2222-3333-444444444444";
-
-            mockCredentialStore.readCredential.callsFake(async (credId: string) => {
-                return {
-                    credentialId: credId,
-                    password: testConnectionString,
-                };
-            });
-
-            mockConnectionStore.readAllConnections.resolves([
-                {
-                    id: testConnectionId,
-                    connectionString: testCredentialId,
-                    server: testServer,
-                    database: testDatabase,
-                    user: testUser,
-                } as IConnectionProfileWithSource,
-            ]);
-
-            mockConnectionStore.lookupPassword
-                .withArgs(sinon.match.any, true)
-                .resolves(testConnectionString);
-
-            let savedProfile: IConnectionProfile | undefined;
-
-            mockConnectionStore.saveProfile.callsFake(async (profile: IConnectionProfile) => {
-                savedProfile = profile;
-                return profile;
-            });
-
-            mockServiceClient.sendRequest
-                .withArgs(ParseConnectionStringRequest.type, sinon.match.any)
-                .resolves({
-                    options: {
-                        server: testServer,
-                        database: testDatabase,
-                        user: testUser,
-                        password: testPassword,
-                    },
-                } as ConnectionDetails);
-
-            connectionManager = createConnectionManager();
-
-            await connectionManager.initialized; // Wait for initialization to complete
-
-            expect(savedProfile, "Migrated profile should have been saved").to.not.be.undefined;
-
-            expect(savedProfile, "Saved profile should have the expected properties").to.deep.equal(
-                {
-                    id: testConnectionId,
-                    server: testServer,
-                    database: testDatabase,
-                    connectionString: "",
-                    savePassword: true,
-                    user: testUser,
-                    password: testPassword,
-                } as IConnectionProfile,
-            );
-        });
-
-        test("Initialization migrates legacy Connection String connections with no credential", async () => {
-            const testServer = "localhost";
-            const testDatabase = "TestDb";
-            const testConnectionString = `Data Source=${testServer};Initial Catalog=${testDatabase};Integrated Security=True;`;
-            const testConnectionId = "00000000-1111-2222-3333-444444444444";
-            mockCredentialStore.readCredential.callsFake(async (credId: string) => {
-                return {
-                    credentialId: credId,
-                    password: testConnectionString,
-                };
-            });
-
-            mockConnectionStore.readAllConnections.resolves([
-                {
-                    id: testConnectionId,
-                    connectionString: testConnectionString,
-                    server: testServer,
-                    database: testDatabase,
-                } as IConnectionProfileWithSource,
-            ]);
-
-            let savedProfile: IConnectionProfile | undefined;
-
-            mockConnectionStore.saveProfile.callsFake(async (profile: IConnectionProfile) => {
-                savedProfile = profile;
-                return profile;
-            });
-
-            mockServiceClient.sendRequest
-                .withArgs(ParseConnectionStringRequest.type, sinon.match.any)
-                .resolves({
-                    options: {
-                        server: testServer,
-                        database: testDatabase,
-                        authenticationType: "Integrated",
-                    },
-                } as ConnectionDetails);
-
-            connectionManager = createConnectionManager();
-
-            await connectionManager.initialized; // Wait for initialization to complete
-
-            expect(savedProfile, "Migrated profile should have been saved").to.not.be.undefined;
-
-            expect(savedProfile, "Saved profile should have the expected properties").to.deep.equal(
-                {
-                    id: testConnectionId,
-                    server: testServer,
-                    database: testDatabase,
-                    authenticationType: "Integrated",
-                    connectionString: "",
-                } as IConnectionProfile,
-            );
-        });
     });
 
     suite("Functionality tests", () => {
         setup(() => {
             connectionManager = createConnectionManager();
-        });
-
-        test("User is informed when legacy connection migration fails", async () => {
-            const erroringConnProfile: IConnectionProfile = {
-                connectionString: "some test connection string",
-                id: "00000000-1111-2222-3333-444444444444",
-            } as IConnectionProfile;
-
-            messageBoxes.showErrorMessage.resolves(undefined);
-
-            mockServiceClient.sendRequest
-                .withArgs(ParseConnectionStringRequest.type, sinon.match.any)
-                .rejects(new Error("Test error!"));
-
-            const result = await connectionManager["migrateLegacyConnection"](erroringConnProfile);
-
-            expect(result, "Migration should return that it errored instead of throwing").to.equal(
-                "error",
-            );
-
-            expect(messageBoxes.showErrorMessage).to.have.been.calledOnce;
         });
 
         test("strips a trailing comma from the server", () => {
@@ -967,34 +822,6 @@ suite("ConnectionManager Tests", () => {
             }
         });
 
-        test("should resolve credential-based connection string", async () => {
-            const credentialConnectionString = `${ConnectionStore.CRED_PREFIX}|isConnectionString:true`;
-            const resolvedConnectionString =
-                "Server=testServer;Database=testDB;User=testUser;Password=testPass;";
-
-            mockConnectionStore.lookupPassword.resolves(resolvedConnectionString);
-
-            const mockConnectionInfo = {
-                server: "testServer",
-                database: "testDB",
-                connectionString: credentialConnectionString,
-                savePassword: true,
-                user: "",
-                password: "",
-                email: "",
-                accountId: "",
-                tenantId: "",
-            } as unknown as IConnectionInfo;
-
-            const result = await testConnectionManager.prepareConnectionInfo(mockConnectionInfo);
-
-            expect(result.connectionString).to.equal(resolvedConnectionString);
-            expect(mockConnectionStore.lookupPassword).to.have.been.calledOnceWith(
-                mockConnectionInfo,
-                true,
-            );
-        });
-
         test("should clear Azure account token for Integrated authentication", async () => {
             const mockConnectionInfo = {
                 server: "testServer",
@@ -1034,26 +861,6 @@ suite("ConnectionManager Tests", () => {
             expect(handlePasswordBasedCredentialsStub).to.have.been.calledOnceWith(
                 mockConnectionInfo,
             );
-        });
-
-        test("should handle connection string without credential prefix", async () => {
-            const regularConnectionString =
-                "Server=testServer;Database=testDB;Integrated Security=true;";
-
-            const mockConnectionInfo = {
-                connectionString: regularConnectionString,
-                authenticationType: "",
-                user: "",
-                password: "",
-                email: "",
-                accountId: "",
-                tenantId: "",
-            } as unknown as IConnectionInfo;
-
-            const result = await testConnectionManager.prepareConnectionInfo(mockConnectionInfo);
-
-            expect(result.connectionString).to.equal(regularConnectionString);
-            expect(mockConnectionStore.lookupPassword).to.not.have.been.called;
         });
 
         test("should preserve other properties while processing", async () => {

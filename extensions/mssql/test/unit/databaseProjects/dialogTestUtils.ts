@@ -84,7 +84,6 @@ export const mockConnectionInfo: vscodeMssql.IConnectionInfo = {
     multipleActiveResultSets: false,
     packetSize: 8192,
     typeSystemVersion: "Latest",
-    connectionString: "",
     commandTimeout: undefined,
     secureEnclaves: undefined,
     columnEncryptionSetting: undefined,

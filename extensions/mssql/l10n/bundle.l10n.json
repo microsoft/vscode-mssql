@@ -1291,6 +1291,20 @@
         "message": "The connection with ID '{0}' does not have the 'server' property set and is being ignored.  Please set the 'server' property on this connection in order to use it.",
         "comment": ["{0} is the connection ID for the connection that has been ignored"]
     },
+    "The 'connectionString' property was removed from connection '{0}'. Removed connection string: '{1}'./{0} is the connection display name{1} is the connection string that was removed": {
+        "message": "The 'connectionString' property was removed from connection '{0}'. Removed connection string: '{1}'.",
+        "comment": [
+            "{0} is the connection display name",
+            "{1} is the connection string that was removed"
+        ]
+    },
+    "Connection '{0}' was deleted because its 'connectionString' property was removed and no 'server' property was defined. Removed connection string: '{1}'./{0} is the connection display name{1} is the connection string that was removed": {
+        "message": "Connection '{0}' was deleted because its 'connectionString' property was removed and no 'server' property was defined. Removed connection string: '{1}'.",
+        "comment": [
+            "{0} is the connection display name",
+            "{1} is the connection string that was removed"
+        ]
+    },
     "One or more connection groups reference parent groups that do not exist and have been ignored: {0}. Update your settings file to fix these entries./{0} is the comma separated list of connection group names": {
         "message": "One or more connection groups reference parent groups that do not exist and have been ignored: {0}. Update your settings file to fix these entries.",
         "comment": ["{0} is the comma separated list of connection group names"]
