@@ -82,6 +82,8 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
      * because it can hold every object's script; the webview fetches it on demand.
      */
     private differences: mssql.DiffEntry[] | undefined;
+    /** For each entry of `differences`, its index in the service's unfiltered difference list. */
+    private differenceServiceIndices: number[] = [];
     private readonly databaseListCache = new Map<string, string[]>();
     private _includeExcludeNodeQueue = Promise.resolve();
 
@@ -1945,13 +1947,18 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         });
 
         this.onRequest(SchemaCompareGetDifferenceDetailsRequest.type, async (payload) => {
-            if (!this.isCurrentComparison(payload.comparisonId) || !this.differences[payload.id]) {
+            const serviceIndex = this.differenceServiceIndices[payload.id];
+            if (
+                !this.isCurrentComparison(payload.comparisonId) ||
+                !this.differences[payload.id] ||
+                serviceIndex === undefined
+            ) {
                 return { success: false };
             }
 
             const result = await this.schemaCompareService.getDifferenceDetails(
                 this.operationId,
-                payload.id,
+                serviceIndex,
             );
 
             if (
@@ -2039,10 +2046,14 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 }
 
                 if (result.success) {
+                    // The service returns its unfiltered list, so map each displayed difference
+                    // back through its service index rather than assuming the positions line up.
                     const returnedDifferences = result.allIncludedOrExcludedDifferences ?? [];
-                    updates = returnedDifferences.map((difference, id) => ({
+                    updates = this.differences.map((difference, id) => ({
                         id,
-                        included: difference.included,
+                        included:
+                            returnedDifferences[this.differenceServiceIndices[id]]?.included ??
+                            difference.included,
                     }));
                     const count = updates.length;
                     this.logger.debug(
@@ -2804,11 +2815,13 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             },
         });
 
-        const finalDifferences = this.getAllObjectTypeDifferences(result);
+        const { differences: finalDifferences, serviceIndices } =
+            this.getAllObjectTypeDifferences(result);
         this.logger.debug(
             `Filtered to ${finalDifferences.length} object type differences - OperationId: ${this.operationId}`,
         );
         this.differences = finalDifferences;
+        this.differenceServiceIndices = serviceIndices;
         state.schemaCompareResult = {
             comparisonId: schemaCompareGeneration,
             areEqual: result.areEqual,
@@ -2827,6 +2840,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
     private discardDifferences(state: SchemaCompareWebViewState): number {
         this.schemaCompareGeneration += 1;
         this.differences = undefined;
+        this.differenceServiceIndices = [];
         state.schemaCompareResult = undefined;
         return this.schemaCompareGeneration;
     }
@@ -3046,32 +3060,42 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         return endpointInfo;
     }
 
-    private getAllObjectTypeDifferences(result: mssql.SchemaCompareResult): DiffEntry[] {
+    /**
+     * Keeps only the object-level differences the grid can display. The service still addresses
+     * differences by their position in its own unfiltered list, so the returned `serviceIndices`
+     * map each kept difference back to that position.
+     */
+    private getAllObjectTypeDifferences(result: mssql.SchemaCompareResult): {
+        differences: DiffEntry[];
+        serviceIndices: number[];
+    } {
         this.logger.debug(
             `Filtering differences from schema comparison result - OperationId: ${this.operationId}`,
         );
 
-        let finalDifferences: DiffEntry[] = [];
-        let differences = result.differences;
+        const finalDifferences: DiffEntry[] = [];
+        const serviceIndices: number[] = [];
+        const differences = result.differences;
 
         if (!differences) {
             this.logger.warn(
                 `No differences found in schema comparison result - OperationId: ${this.operationId}`,
             );
-            return finalDifferences;
+            return { differences: finalDifferences, serviceIndices };
         }
 
         this.logger.debug(
             `Processing ${differences.length} total differences - OperationId: ${this.operationId}`,
         );
 
-        differences.forEach((difference) => {
+        differences.forEach((difference, serviceIndex) => {
             if (difference.differenceType === SchemaDifferenceType.Object) {
                 if (
                     (difference.sourceValue !== null && difference.sourceValue.length > 0) ||
                     (difference.targetValue !== null && difference.targetValue.length > 0)
                 ) {
                     finalDifferences.push(difference);
+                    serviceIndices.push(serviceIndex);
                     this.logger.debug(
                         `Including difference: ${difference.name} with update action ${difference.updateAction} - OperationId: ${this.operationId}`,
                     );
@@ -3082,7 +3106,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         this.logger.debug(
             `Found ${finalDifferences.length} object type differences out of ${differences.length} total differences - OperationId: ${this.operationId}`,
         );
-        return finalDifferences;
+        return { differences: finalDifferences, serviceIndices };
     }
 
     private getIncludedUpdateActionCounts(

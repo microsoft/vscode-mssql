@@ -75,6 +75,7 @@ suite("SchemaCompareWebViewController Tests", () => {
     ): mssql.DiffEntry[] {
         target["schemaCompareGeneration"] = comparisonId;
         target["differences"] = seededDifferences;
+        target["differenceServiceIndices"] = seededDifferences.map((_difference, index) => index);
         target.state = {
             ...structuredClone(mockInitialState),
             schemaCompareResult: {
@@ -784,6 +785,69 @@ suite("SchemaCompareWebViewController Tests", () => {
         });
 
         compareStub.restore();
+    });
+
+    test("compare reducer - filtered differences keep addressing the service by its own index", async () => {
+        // A non-object difference at the front of the service list is not shown in the grid, so
+        // displayed row 0 is service index 1.
+        const propertyDifference = {
+            ...structuredClone(differences[0]),
+            differenceType: SchemaDifferenceType.Property,
+        };
+        const serviceDifferences = [propertyDifference, ...structuredClone(differences)];
+        sandbox.stub(scUtils, "compare").resolves({
+            operationId,
+            areEqual: false,
+            differences: serviceDifferences,
+            success: true,
+            errorMessage: "",
+        });
+        const state = structuredClone(mockInitialState);
+        state.targetEndpointInfo = { ...targetEndpointInfo, connectionDetails: undefined };
+        const result = await controller["_reducerHandlers"].get("compare")(state, {
+            deploymentOptions,
+            sourceEndpointInfo: state.sourceEndpointInfo,
+            targetEndpointInfo: state.targetEndpointInfo,
+        });
+        const currentComparisonId = result.schemaCompareResult.comparisonId;
+        expect(result.schemaCompareResult.differenceCount).to.equal(differences.length);
+
+        const getDetailsStub = schemaCompareService.getDifferenceDetails as sinon.SinonStub;
+        getDetailsStub.resolves({
+            success: true,
+            errorMessage: "",
+            difference: { ...structuredClone(differences[0]), hasDetails: true },
+        });
+        const detailsHandler = requestHandlers.get(
+            SchemaCompareGetDifferenceDetailsRequest.type.method,
+        );
+        await detailsHandler({ comparisonId: currentComparisonId, id: 0 });
+        expect(
+            getDetailsStub,
+            "details for displayed row 0 must be requested with the service's index",
+        ).to.have.been.calledOnceWith(operationId, 1);
+
+        // The service echoes its unfiltered list; only the displayed rows should be updated.
+        sandbox.stub(scUtils, "includeExcludeAllNodes").resolves({
+            success: true,
+            errorMessage: "",
+            allIncludedOrExcludedDifferences: serviceDifferences.map((difference, index) => ({
+                ...difference,
+                included: index !== 1,
+            })),
+        });
+        const includeAllHandler = requestHandlers.get(
+            SchemaCompareIncludeExcludeAllRequest.type.method,
+        );
+        const includeAllResult = await includeAllHandler({
+            comparisonId: currentComparisonId,
+            includeRequest: false,
+        });
+        expect(includeAllResult.updates).to.deep.equal([
+            { id: 0, included: false },
+            { id: 1, included: true },
+            { id: 2, included: true },
+        ]);
     });
 
     test("compare reducer - endpoint selection in progress - does not compare stale endpoints", async () => {
