@@ -1350,10 +1350,6 @@ Questa operazione rimuoverà sia il contenitore che la sua connessione da VS Cod
         <note>{0} is the error message</note>
         <target state="translated">Annullamento non riuscito: {0}</target>
       </trans-unit>
-      <trans-unit id="++CODE++bb446d765ac5ce4aed459491227b909ff24de5026f8c7ee8451c1db46a8b6ade">
-        <source xml:lang="en">Cancel query</source>
-        <target state="new">Cancel query</target>
-      </trans-unit>
       <trans-unit id="++CODE++d6efd131712ed1115d720d4cfdb68b1819ad1de1587f4c2176c9c055c7c03a67">
         <source xml:lang="en">Cancel schema compare failed: '{0}'</source>
         <note>{0} is the error message returned from the cancel operation</note>
@@ -11308,10 +11304,6 @@ Query: {2}</target>
         <source xml:lang="en">The behavior when a user tries to update a row with data that is involved in a foreign key relationship.</source>
         <target state="translated">Comportamento applicato quando un utente tenta di aggiornare una riga contenente dati che interessano una relazione di chiave esterna.</target>
       </trans-unit>
-      <trans-unit id="++CODE++d7c54293989298ee3944f49558ec6882f3cdee331b1959779bb00e2e6921be28">
-        <source xml:lang="en">The cancel request did not complete in time. The editor's execution state has been reset.</source>
-        <target state="new">The cancel request did not complete in time. The editor's execution state has been reset.</target>
-      </trans-unit>
       <trans-unit id="++CODE++b3ed9d46f7671d126e86925d532363313c1f6795e877d3d348d134f6e7051bc3">
         <source xml:lang="en">The client secret for your Microsoft Entra app registration.</source>
         <target state="translated">Il segreto client per la registrazione dell'app Microsoft Entra.</target>
@@ -11511,10 +11503,6 @@ Continuare?</target>
       <trans-unit id="++CODE++30dc10f2e5d6502d78b8e778df18e5f010e5ec3fa432d4e92c526d86a84375e0">
         <source xml:lang="en">The selected {0} file '{1}' does not exist or is not a file.</source>
         <target state="translated">Il file {0} selezionato '{1}' non esiste o non è un file.</target>
-      </trans-unit>
-      <trans-unit id="++CODE++221a6647042e962a326162fd3dcdd7a1e01f628fb4eedc3ecc4b2c33038109fe">
-        <source xml:lang="en">The service is no longer running a query for this editor. The editor's execution state has been reset.</source>
-        <target state="new">The service is no longer running a query for this editor. The editor's execution state has been reset.</target>
       </trans-unit>
       <trans-unit id="++CODE++13c88dccbc0c16d34702d4b664c78552a13156f154731119eaaa1dfc41be428d">
         <source xml:lang="en">The system database references need to be updated to build the project '{0}'. If the project was created in SSDT, it will continue to work in both tools. Do you want to update the project?</source>
