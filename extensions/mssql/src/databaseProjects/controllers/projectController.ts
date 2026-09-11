@@ -33,7 +33,6 @@ import {
 import { TelemetryActions, TelemetryReporter, TelemetryViews } from "../common/telemetry";
 import {
     AddItemOptions,
-    EntryType,
     IDatabaseReferenceProjectEntry,
     ISqlProject,
     ItemType,
@@ -42,7 +41,7 @@ import {
 import { createNewProjectFromDatabaseWithQuickpick } from "../dialogs/createProjectFromDatabaseQuickpick";
 import { UpdateProjectFromDatabaseWithQuickpick } from "../dialogs/updateProjectFromDatabaseQuickpick";
 import { addDatabaseReferenceQuickpick } from "../dialogs/addDatabaseReferenceQuickpick";
-import { FileProjectEntry, SqlProjectReferenceProjectEntry } from "../models/projectEntry";
+import { SqlProjectReferenceProjectEntry } from "../models/projectEntry";
 import { UpdateProjectAction, UpdateProjectDataModel } from "../models/api/updateProject";
 import { SqlCmdVariableTreeItem } from "../models/tree/sqlcmdVariableTreeItem";
 import { DeploymentScenario, ExtractTarget, ProjectType, TaskExecutionMode } from "../common/enums";
@@ -2246,7 +2245,9 @@ export class ProjectsController {
     }
 
     public async getProjectScriptFiles(projectFilePath: string): Promise<string[]> {
-        const project = await Project.openProject(projectFilePath);
+        // Schema Compare may request the same project repeatedly after files have changed on disk.
+        // Force STS to discard its cached project so each comparison sees the current file list.
+        const project = await Project.openProject(projectFilePath, false, true);
 
         return project.sqlObjectScripts
             .filter((f) => f.fsUri.fsPath.endsWith(constants.sqlFileExtension))
@@ -2281,34 +2282,20 @@ export class ProjectsController {
             TaskExecutionMode.execute as unknown as mssqlVscode.TaskExecutionMode,
         );
 
-        if (!result.errorMessage) {
+        if (result.success && !result.errorMessage) {
             const project = await Project.openProject(projectFilePath);
 
-            let toAdd: vscode.Uri[] = [];
-            result.addedFiles.forEach((f: any) => toAdd.push(vscode.Uri.file(f)));
-            const relativePaths = toAdd.map((f) =>
-                path.relative(project.projectFolderPath, f.fsPath),
+            const relativePathsToAdd = result.addedFiles.map((filePath) =>
+                path.relative(project.projectFolderPath, filePath),
             );
 
-            await project.addSqlObjectScripts(relativePaths);
+            await project.addSqlObjectScripts(relativePathsToAdd);
 
-            let toRemove: vscode.Uri[] = [];
-            result.deletedFiles.forEach((f: any) => toRemove.push(vscode.Uri.file(f)));
-
-            let toRemoveEntries: FileProjectEntry[] = [];
-            toRemove.forEach((f) =>
-                toRemoveEntries.push(
-                    new FileProjectEntry(
-                        f,
-                        f.fsPath.replace(projectPath + "\\", ""),
-                        EntryType.File,
-                    ),
-                ),
-            );
-
-            toRemoveEntries.forEach(
-                async (f) => await project.excludeSqlObjectScript(f.fsUri.fsPath),
-            );
+            for (const filePath of result.deletedFiles) {
+                await project.excludeSqlObjectScript(
+                    path.relative(project.projectFolderPath, filePath),
+                );
+            }
 
             await this.buildProject(project);
         }

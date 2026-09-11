@@ -6,6 +6,7 @@
 import * as sinon from "sinon";
 import { expect } from "chai";
 import * as path from "path";
+import * as vscode from "vscode";
 import * as mssql from "vscode-mssql";
 
 import * as schemaCompareUtils from "../../src/schemaCompare/schemaCompareUtils";
@@ -34,11 +35,10 @@ suite("Schema Compare Utils Tests", () => {
         sandbox.restore();
     });
 
-    test("publishProjectChanges should call schemaCompareService with project directory path", async () => {
+    test("publishProjectChanges should route through SQL Projects so the project file is updated", async () => {
         // Arrange
         const operationId = "test-operation-id";
         const projectFilePath = path.join("path", "to", "project.sqlproj");
-        const projectDirectoryPath = path.dirname(projectFilePath);
         const extractTarget = ExtractTarget.schemaObjectType;
         const taskExecutionMode = TaskExecutionMode.execute;
 
@@ -56,29 +56,62 @@ suite("Schema Compare Utils Tests", () => {
             deletedFiles: [],
         };
 
-        mockSchemaCompareService.publishProjectChanges.resolves(expectedResult);
+        const executeCommandStub = sandbox
+            .stub(vscode.commands, "executeCommand")
+            .withArgs(
+                schemaCompareUtils.sqlDatabaseProjectsPublishChanges,
+                operationId,
+                projectFilePath,
+                extractTarget,
+            )
+            .resolves(expectedResult);
 
         // Act
-        const result = await schemaCompareUtils.publishProjectChanges(
-            operationId,
-            payload,
-            mockSchemaCompareService as unknown as mssql.ISchemaCompareService,
-        );
+        const result = await schemaCompareUtils.publishProjectChanges(operationId, payload);
 
         // Assert
         expect(result).to.deep.equal(expectedResult);
-        expect(mockSchemaCompareService.publishProjectChanges.calledOnce).to.be.true;
-        expect(mockSchemaCompareService.publishProjectChanges.firstCall.args[0]).to.equal(
-            operationId,
+        expect(executeCommandStub.calledOnce).to.be.true;
+        expect(mockSchemaCompareService.publishProjectChanges.notCalled).to.be.true;
+    });
+
+    test("upgradeLegacyScmpProjectEndpoints resolves a classic project endpoint", () => {
+        const classicScmp = `<?xml version="1.0" encoding="utf-8"?>
+<SchemaComparison>
+  <SourceModelProvider>
+    <ProjectBasedModelProvider>
+      <ProjectGuid>{67CBC824-A49E-4E9B-A947-360F3DFE65C3}</ProjectGuid>
+      <Name>Database43</Name>
+    </ProjectBasedModelProvider>
+  </SourceModelProvider>
+</SchemaComparison>`;
+
+        const upgraded = schemaCompareUtils.upgradeLegacyScmpProjectEndpoints(classicScmp, [
+            {
+                projectGuid: "67cbc824-a49e-4e9b-a947-360f3dfe65c3",
+                projectName: "Database43",
+                projectFilePath: "C:\\src\\Database43\\Database43.sqlproj",
+                targetScripts: ["C:\\src\\Database43\\dbo\\Table1.sql"],
+                dataSchemaProvider: "160",
+            },
+        ]);
+
+        expect(upgraded.changed).to.be.true;
+        expect(upgraded.content).to.contain(
+            "<ProjectFilePath>C:\\src\\Database43\\Database43.sqlproj</ProjectFilePath>",
         );
-        expect(mockSchemaCompareService.publishProjectChanges.firstCall.args[1]).to.equal(
-            projectDirectoryPath,
+        expect(upgraded.content).to.contain(
+            "<TargetScripts>[C:\\src\\Database43\\dbo\\Table1.sql]</TargetScripts>",
         );
-        expect(mockSchemaCompareService.publishProjectChanges.firstCall.args[2]).to.equal(
-            extractTarget,
-        );
-        expect(mockSchemaCompareService.publishProjectChanges.firstCall.args[3]).to.equal(
-            taskExecutionMode,
-        );
+        expect(upgraded.content).to.contain("<Dsp>160</Dsp>");
+        expect(upgraded.content).to.contain("<FolderStructure>SchemaObjectType</FolderStructure>");
+    });
+
+    test("upgradeLegacyScmpProjectEndpoints reports an unresolved classic project", () => {
+        const classicScmp = `<SchemaComparison><SourceModelProvider><ProjectBasedModelProvider><ProjectGuid>{missing}</ProjectGuid><Name>MissingProject</Name></ProjectBasedModelProvider></SourceModelProvider></SchemaComparison>`;
+
+        expect(() =>
+            schemaCompareUtils.upgradeLegacyScmpProjectEndpoints(classicScmp, []),
+        ).to.throw("MissingProject");
     });
 });

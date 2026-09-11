@@ -2125,6 +2125,22 @@ export class SchemaCompare {
             args: [connectionId],
             comment: ["{0} is the saved connection ID"],
         });
+    public static classicScmpProjectNotFound = (projectName: string) =>
+        l10n.t({
+            message: "The classic .scmp project '{0}' could not be found in the current workspace.",
+            args: [projectName],
+            comment: ["{0} is the SQL project name stored in a classic .scmp file"],
+        });
+    public static classicScmpProjectAmbiguous = (projectName: string) =>
+        l10n.t({
+            message:
+                "The classic .scmp project '{0}' matches multiple projects in the current workspace. Open only the intended project and try again.",
+            args: [projectName],
+            comment: ["{0} is the SQL project name stored in a classic .scmp file"],
+        });
+    public static classicScmpSqlProjectsRequired = l10n.t(
+        "This classic .scmp file contains a SQL project reference. Install or enable the SQL Database Projects extension, then try again.",
+    );
     public static Yes = l10n.t("Yes");
     public static No = l10n.t("No");
     public static optionsChangedMessage = l10n.t(

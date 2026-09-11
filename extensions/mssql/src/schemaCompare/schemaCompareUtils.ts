@@ -8,6 +8,7 @@ import * as mssql from "vscode-mssql";
 import * as os from "os";
 import * as path from "path";
 import { promises as fs } from "fs";
+import { DOMParser, Element as XmlElement, XMLSerializer } from "@xmldom/xmldom";
 import { uuid } from "../utils/utils";
 import {
     SchemaCompareEndpointType,
@@ -27,6 +28,138 @@ import { ILogger } from "../sharedInterfaces/logger";
  */
 export const sqlDatabaseProjectsPublishChanges =
     "sqlDatabaseProjects.schemaComparePublishProjectChanges";
+const sqlDatabaseProjectsExtensionId = "ms-mssql.sql-database-projects-vscode";
+
+export interface ScmpProjectEndpointDetails {
+    projectGuid?: string;
+    projectName: string;
+    projectFilePath: string;
+    targetScripts: string[];
+    dataSchemaProvider: string;
+}
+
+/**
+ * Upgrades the project endpoints written by classic SSDT Schema Compare. Those endpoints only
+ * persist a project GUID and name; portable DacFx requires the project path, scripts, and DSP.
+ */
+export function upgradeLegacyScmpProjectEndpoints(
+    content: string,
+    projects: ScmpProjectEndpointDetails[],
+): { content: string; changed: boolean } {
+    const document = new DOMParser().parseFromString(content, "application/xml");
+    const providers = Array.from(document.getElementsByTagName("ProjectBasedModelProvider"));
+    let changed = false;
+
+    const directChildText = (element: XmlElement, name: string): string | undefined => {
+        for (let index = 0; index < element.childNodes.length; index++) {
+            const child = element.childNodes.item(index);
+            if (child?.nodeType === 1 && child.nodeName === name) {
+                return child.textContent?.trim();
+            }
+        }
+        return undefined;
+    };
+    const normalizeGuid = (value: string | undefined): string | undefined =>
+        value?.replace(/[{}]/g, "").toLowerCase();
+
+    for (const provider of providers) {
+        if (directChildText(provider, "ProjectFilePath")) {
+            continue;
+        }
+
+        const projectGuid = normalizeGuid(directChildText(provider, "ProjectGuid"));
+        const projectName = directChildText(provider, "Name") ?? "unknown project";
+        let matches = projectGuid
+            ? projects.filter((project) => normalizeGuid(project.projectGuid) === projectGuid)
+            : [];
+        if (matches.length === 0) {
+            matches = projects.filter(
+                (project) => project.projectName.toLowerCase() === projectName.toLowerCase(),
+            );
+        }
+
+        if (matches.length !== 1) {
+            throw new Error(
+                matches.length === 0
+                    ? locConstants.SchemaCompare.classicScmpProjectNotFound(projectName)
+                    : locConstants.SchemaCompare.classicScmpProjectAmbiguous(projectName),
+            );
+        }
+
+        const match = matches[0];
+        const append = (name: string, value: string) => {
+            const element = document.createElement(name);
+            element.appendChild(document.createTextNode(value));
+            provider.appendChild(element);
+        };
+        append("ProjectFilePath", match.projectFilePath);
+        append("TargetScripts", `[${match.targetScripts.join(",")}]`);
+        append("Dsp", match.dataSchemaProvider);
+        append("FolderStructure", "SchemaObjectType");
+        changed = true;
+    }
+
+    return {
+        content: changed ? new XMLSerializer().serializeToString(document) : content,
+        changed,
+    };
+}
+
+async function prepareScmpForPortableDacFx(filePath: string): Promise<{
+    filePath: string;
+    cleanup?: () => Promise<void>;
+}> {
+    const content = await fs.readFile(filePath, "utf8");
+    if (!content.includes("<ProjectBasedModelProvider") || !content.includes("<ProjectGuid")) {
+        return { filePath };
+    }
+
+    const extension = vscode.extensions.getExtension(sqlDatabaseProjectsExtensionId);
+    if (!extension) {
+        throw new Error(locConstants.SchemaCompare.classicScmpSqlProjectsRequired);
+    }
+    const projectApi = (await extension.activate()) as {
+        getProjectScriptFiles(projectFilePath: string): Promise<string[]>;
+        getProjectDatabaseSchemaProvider(projectFilePath: string): Promise<string>;
+    };
+    const projectUris = await vscode.workspace.findFiles(
+        "**/*.sqlproj",
+        "**/{node_modules,.git,bin,obj}/**",
+    );
+    const projects = await Promise.all(
+        projectUris.map(async (uri): Promise<ScmpProjectEndpointDetails> => {
+            const projectContent = await fs.readFile(uri.fsPath, "utf8");
+            const projectDocument = new DOMParser().parseFromString(
+                projectContent,
+                "application/xml",
+            );
+            const projectGuid = projectDocument
+                .getElementsByTagName("ProjectGuid")
+                .item(0)
+                ?.textContent?.trim();
+            return {
+                projectGuid,
+                projectName: path.parse(uri.fsPath).name,
+                projectFilePath: uri.fsPath,
+                targetScripts: await projectApi.getProjectScriptFiles(uri.fsPath),
+                dataSchemaProvider: await projectApi.getProjectDatabaseSchemaProvider(uri.fsPath),
+            };
+        }),
+    );
+    const upgraded = upgradeLegacyScmpProjectEndpoints(content, projects);
+    if (!upgraded.changed) {
+        return { filePath };
+    }
+
+    const temporaryPath = path.join(os.tmpdir(), `vscode-mssql-${uuid()}.scmp`);
+    await fs.writeFile(temporaryPath, upgraded.content, "utf8");
+    return {
+        filePath: temporaryPath,
+        cleanup: async () => {
+            await fs.unlink(temporaryPath).catch(() => undefined);
+        },
+    };
+}
 
 /**
  * Generates a unique operation ID.
@@ -265,20 +398,15 @@ export async function publishDatabaseChanges(
 export async function publishProjectChanges(
     operationId: string,
     payload: SchemaCompareReducers["publishProjectChanges"],
-    schemaCompareService: mssql.ISchemaCompareService,
 ): Promise<mssql.SchemaComparePublishProjectResult> {
-    // Extract the directory path from the project file path
-    // The service expects a directory path, and not a file path.
-    const projectDirectoryPath = path.dirname(payload.targetProjectPath);
-
-    const result = await schemaCompareService.publishProjectChanges(
+    // SQL Projects owns the .sqlproj and must add or remove explicit Build entries after
+    // DacFx changes the files. Calling the Schema Compare service directly bypasses that work.
+    return (await vscode.commands.executeCommand<mssql.SchemaComparePublishProjectResult>(
+        sqlDatabaseProjectsPublishChanges,
         operationId,
-        projectDirectoryPath,
+        payload.targetProjectPath,
         payload.targetFolderStructure,
-        payload.taskExecutionMode,
-    );
-
-    return result;
+    )) as mssql.SchemaComparePublishProjectResult;
 }
 
 /**
@@ -407,7 +535,13 @@ export async function openScmp(
     );
     logger?.debug(`[schemaCompareUtils] Calling schemaCompareService.openScmp`);
 
-    const result = await schemaCompareService.openScmp(filePath);
+    const preparedScmp = await prepareScmpForPortableDacFx(filePath);
+    let result: mssql.SchemaCompareOpenScmpResult;
+    try {
+        result = await schemaCompareService.openScmp(preparedScmp.filePath);
+    } finally {
+        await preparedScmp.cleanup?.();
+    }
 
     logger?.debug(
         `[schemaCompareUtils] openScmp service returned - success: ${result?.success}, hasErrorMessage: ${!!result?.errorMessage}`,
