@@ -41,15 +41,23 @@ import {
     Dismiss12Regular,
     Dismiss16Regular,
     Filter16Regular,
+    LayoutRowThree16Regular,
     Search16Regular,
     TextBulletListTree16Regular,
 } from "@fluentui/react-icons";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { SchemaUpdateAction } from "../../../../sharedInterfaces/schemaCompare";
+import {
+    SchemaCompareGroupBy,
+    SchemaCompareLayout,
+    SchemaUpdateAction,
+} from "../../../../sharedInterfaces/schemaCompare";
 import { locConstants as loc } from "../../../common/locConstants";
 import { DiffEntry } from "vscode-mssql";
 import { schemaCompareContext } from "../SchemaCompareStateProvider";
-import { SchemaCompareGroupBy } from "../SchemaCompare";
+import {
+    getSchemaDifferenceNavigationTarget,
+    SchemaDifferenceNavigationKey,
+} from "./schemaDifferencesUtils";
 
 type DiffRow = { kind: "diff" } & DiffEntry;
 type GroupRow = {
@@ -70,6 +78,8 @@ interface FilterOption {
 const FILTER_ROW_HEIGHT = 28;
 const FILTER_VISIBLE_ROWS = 5;
 const GROUP_BY_MENU_NAME = "schemaCompareGroupBy";
+const LAYOUT_MENU_NAME = "schemaCompareLayout";
+const ROW_HEIGHT = 24;
 
 const VirtualizedFilterOptions = (props: {
     options: FilterOption[];
@@ -135,22 +145,6 @@ const getLabelForAction = (action: SchemaUpdateAction): string => {
     }
 };
 
-const getActionIndicatorClass = (
-    action: SchemaUpdateAction,
-    classes: ReturnType<typeof useStyles>,
-): string | undefined => {
-    switch (action) {
-        case SchemaUpdateAction.Add:
-            return classes.addIndicator;
-        case SchemaUpdateAction.Change:
-            return classes.changeIndicator;
-        case SchemaUpdateAction.Delete:
-            return classes.deleteIndicator;
-        default:
-            return undefined;
-    }
-};
-
 const highlightText = (
     text: string,
     searchText: string,
@@ -178,8 +172,27 @@ const highlightText = (
 };
 
 const useStyles = makeStyles({
-    HeaderCellPadding: {
-        padding: "0 8px",
+    dataGrid: {
+        "& [role='row']": {
+            height: `${ROW_HEIGHT}px`,
+            minHeight: `${ROW_HEIGHT}px`,
+        },
+        "& [role='columnheader']": {
+            alignItems: "center",
+            padding: "0 6px",
+            height: `${ROW_HEIGHT}px`,
+            minHeight: `${ROW_HEIGHT}px`,
+        },
+        "& .fui-DataGridHeaderCell__button": {
+            alignItems: "center",
+            height: `${ROW_HEIGHT}px`,
+            minHeight: `${ROW_HEIGHT}px`,
+        },
+        "& [role='gridcell']": {
+            padding: "0 6px",
+            height: `${ROW_HEIGHT}px`,
+            minHeight: `${ROW_HEIGHT}px`,
+        },
     },
     selectedRow: {
         backgroundColor: "var(--vscode-list-activeSelectionBackground)",
@@ -188,6 +201,10 @@ const useStyles = makeStyles({
             backgroundColor: "var(--vscode-list-activeSelectionBackground)",
             color: "var(--vscode-list-activeSelectionForeground)",
         },
+    },
+    focusedRow: {
+        outline: "1px solid var(--vscode-focusBorder)",
+        outlineOffset: "-1px",
     },
     resizableContainer: {
         position: "relative",
@@ -199,14 +216,16 @@ const useStyles = makeStyles({
         overflow: "hidden",
         whiteSpace: "nowrap",
     },
-    alignSpinner: {
-        marginLeft: "8px",
-    },
     includeCell: {
         width: "100%",
         display: "flex",
         alignItems: "center",
-        justifyContent: "center",
+        justifyContent: "flex-start",
+        paddingLeft: "2px",
+        "& .fui-Checkbox__indicator": {
+            width: "14px",
+            height: "14px",
+        },
     },
     dataGridHeader: {
         backgroundColor: "var(--vscode-keybindingTable-headerBackground)",
@@ -227,28 +246,9 @@ const useStyles = makeStyles({
         whiteSpace: "nowrap",
     },
     actionSummary: {
-        display: "flex",
-        alignItems: "center",
-        gap: "4px",
         flex: "0 0 auto",
         whiteSpace: "nowrap",
         color: "var(--vscode-descriptionForeground)",
-    },
-    summaryIndicator: {
-        display: "inline-block",
-        flex: "0 0 auto",
-        width: "7px",
-        height: "7px",
-        borderRadius: "2px",
-    },
-    addIndicator: {
-        backgroundColor: "var(--vscode-charts-green)",
-    },
-    changeIndicator: {
-        backgroundColor: "var(--vscode-charts-yellow)",
-    },
-    deleteIndicator: {
-        backgroundColor: "var(--vscode-charts-red)",
     },
     filterInput: {
         flex: "0 1 240px",
@@ -394,11 +394,15 @@ const useStyles = makeStyles({
         flex: "0 0 auto",
         whiteSpace: "nowrap",
     },
-    actionCell: {
-        display: "flex",
-        alignItems: "center",
-        gap: "6px",
+    simplifiedObjectCell: {
         minWidth: 0,
+        fontFamily: "var(--vscode-editor-font-family)",
+    },
+    simplifiedSchema: {
+        opacity: 0.65,
+    },
+    simplifiedRename: {
+        opacity: 0.65,
     },
     searchHighlight: {
         backgroundColor: "var(--vscode-editor-findMatchBackground)",
@@ -410,6 +414,10 @@ const useStyles = makeStyles({
         borderBottom: "1px solid var(--vscode-sideBarSectionHeader-border)",
         "&:hover": {
             backgroundColor: "var(--vscode-list-hoverBackground)",
+        },
+        "&:focus": {
+            outline: "1px solid var(--vscode-focusBorder)",
+            outlineOffset: "-1px",
         },
     },
     groupHeaderCell: {
@@ -424,6 +432,8 @@ const useStyles = makeStyles({
         padding: "0 8px",
         width: "100%",
         height: "100%",
+        boxSizing: "border-box",
+        overflow: "hidden",
         background: "transparent",
         border: "none",
         color: "inherit",
@@ -434,9 +444,11 @@ const useStyles = makeStyles({
     },
     groupHeaderLabel: {
         fontWeight: 600,
+        minWidth: 0,
     },
     groupHeaderCount: {
         opacity: 0.75,
+        flex: "0 0 auto",
     },
     groupHeaderChevron: {
         display: "flex",
@@ -449,12 +461,24 @@ interface Props {
     selectedDiffId: number;
     groupBy: SchemaCompareGroupBy;
     onGroupByChange: (value: SchemaCompareGroupBy) => void;
+    layout: SchemaCompareLayout;
+    onLayoutChange: (value: SchemaCompareLayout) => void;
     onNavigableDiffIdsChange: (ids: number[]) => void;
+    onOpenComparisonDetails: () => void;
 }
 
 export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
     (
-        { onDiffSelected, selectedDiffId, groupBy, onGroupByChange, onNavigableDiffIdsChange },
+        {
+            onDiffSelected,
+            selectedDiffId,
+            groupBy,
+            onGroupByChange,
+            layout,
+            onLayoutChange,
+            onNavigableDiffIdsChange,
+            onOpenComparisonDetails,
+        },
         ref,
     ) => {
         const classes = useStyles();
@@ -478,6 +502,10 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
             ) => void;
         } | null>(undefined as unknown as null);
         const previouslyScrolledDiffId = React.useRef<number | undefined>(undefined);
+        const previouslyFocusedDiffId = React.useRef(selectedDiffId);
+        const pendingRowFocusKey = React.useRef<string | undefined>(undefined);
+        const hasFocusedInitialRow = React.useRef(false);
+        const [focusedRowKey, setFocusedRowKey] = React.useState<string>(`diff:${selectedDiffId}`);
 
         const resizableRef = React.useRef<HTMLDivElement | null>(
             undefined as unknown as HTMLDivElement | null,
@@ -567,9 +595,7 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
                     counts.set(difference.name, (counts.get(difference.name) ?? 0) + 1);
                 }
             });
-            return [...counts.entries()]
-                .sort(([left], [right]) => left.localeCompare(right))
-                .map(([key, count]) => ({ key, label: key, count }));
+            return [...counts.entries()].map(([key, count]) => ({ key, label: key, count }));
         }, [differences]);
 
         const toggleFilterValue = (
@@ -590,13 +616,87 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
 
         const handleIncludeExcludeNode = (diffEntry: DiffEntry, include: boolean) => {
             if (diffEntry.position !== undefined) {
-                void context.includeExcludeNode(diffEntry.position, diffEntry, include);
+                const rowKey = `diff:${diffEntry.position}`;
+                pendingRowFocusKey.current = rowKey;
+                setFocusedRowKey(rowKey);
+                void context
+                    .includeExcludeNode(diffEntry.position, diffEntry, include)
+                    .finally(() =>
+                        requestAnimationFrame(() => {
+                            if (document.activeElement === document.body) {
+                                focusRenderedRow(rowKey);
+                            }
+                        }),
+                    );
             }
         };
 
         const emptyCell = <DataGridCell />;
 
-        const columns: TableColumnDefinition<Row>[] = [
+        const renderIncludeHeader = () => {
+            if (context.isIncludeExcludeAllInProgress) {
+                return (
+                    <Spinner
+                        size="extra-tiny"
+                        aria-label={loc.schemaCompare.includeExcludeAllOperationInProgress}
+                    />
+                );
+            }
+
+            return (
+                <Checkbox
+                    aria-label={loc.schemaCompare.includeAllDifferences}
+                    checked={
+                        diffInclusionLevel === "allIncluded"
+                            ? true
+                            : diffInclusionLevel === "mixed"
+                              ? "mixed"
+                              : false
+                    }
+                    onChange={(_event, data) =>
+                        void context.includeExcludeAllNodes(data.checked === true)
+                    }
+                    disabled={context.pendingDifferenceIds.size > 0}
+                />
+            );
+        };
+
+        const renderIncludeCell = (item: Row) => {
+            if (item.kind !== "diff") return emptyCell;
+            const isPending =
+                item.position !== undefined && context.pendingDifferenceIds.has(item.position);
+            return (
+                <DataGridCell className={classes.includeCell}>
+                    {isPending ? (
+                        <Spinner
+                            size="extra-tiny"
+                            aria-label={loc.schemaCompare.updatingDifferenceSelection}
+                        />
+                    ) : (
+                        <Checkbox
+                            tabIndex={-1}
+                            aria-label={
+                                item.included
+                                    ? loc.schemaCompare.includedInScript
+                                    : loc.schemaCompare.excludedFromScript
+                            }
+                            checked={item.included}
+                            onClick={(event) => {
+                                event.stopPropagation();
+                                event.currentTarget.closest<HTMLElement>("[role='row']")?.focus();
+                            }}
+                            onChange={(event, data) => {
+                                event.stopPropagation();
+                                handleIncludeExcludeNode(item, data.checked === true);
+                            }}
+                            disabled={context.isIncludeExcludeAllInProgress}
+                        />
+                    )}
+                </DataGridCell>
+            );
+        };
+
+        const classicColumns: TableColumnDefinition<Row>[] = [
             createTableColumn<Row>({
                 columnId: "type",
                 renderHeaderCell: () => loc.schemaCompare.type,
@@ -631,64 +731,8 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
             }),
             createTableColumn<Row>({
                 columnId: "include",
-                renderHeaderCell: () => {
-                    if (context.isIncludeExcludeAllInProgress) {
-                        return (
-                            <div className={classes.includeCell}>
-                                <Spinner
-                                    size="extra-tiny"
-                                    aria-label={
-                                        loc.schemaCompare.includeExcludeAllOperationInProgress
-                                    }
-                                    className={classes.alignSpinner}
-                                />
-                            </div>
-                        );
-                    }
-
-                    return (
-                        <div className={classes.includeCell}>
-                            <Checkbox
-                                checked={
-                                    diffInclusionLevel === "allIncluded"
-                                        ? true
-                                        : diffInclusionLevel === "mixed"
-                                          ? "mixed"
-                                          : false
-                                }
-                                onChange={(_event, data) =>
-                                    void context.includeExcludeAllNodes(data.checked === true)
-                                }
-                                disabled={context.pendingDifferenceIds.size > 0}
-                            />
-                        </div>
-                    );
-                },
-                renderCell: (item) => {
-                    if (item.kind !== "diff") return emptyCell;
-                    const isPending =
-                        item.position !== undefined &&
-                        context.pendingDifferenceIds.has(item.position);
-                    return (
-                        <DataGridCell className={classes.includeCell}>
-                            {isPending ? (
-                                <Spinner
-                                    size="extra-tiny"
-                                    aria-label={loc.schemaCompare.updatingDifferenceSelection}
-                                />
-                            ) : (
-                                <Checkbox
-                                    checked={item.included}
-                                    onChange={(event, data) => {
-                                        event.stopPropagation();
-                                        handleIncludeExcludeNode(item, data.checked === true);
-                                    }}
-                                    disabled={context.isIncludeExcludeAllInProgress}
-                                />
-                            )}
-                        </DataGridCell>
-                    );
-                },
+                renderHeaderCell: renderIncludeHeader,
+                renderCell: renderIncludeCell,
             }),
             createTableColumn<Row>({
                 columnId: "action",
@@ -697,22 +741,13 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
                     if (item.kind !== "diff") return emptyCell;
                     return (
                         <DataGridCell>
-                            <div className={classes.actionCell}>
-                                <span
-                                    className={mergeClasses(
-                                        classes.summaryIndicator,
-                                        getActionIndicatorClass(item.updateAction, classes),
-                                    )}
-                                    aria-hidden
-                                />
-                                <Text truncate className={classes.hideTextOverflow}>
-                                    {highlightText(
-                                        getLabelForAction(item.updateAction),
-                                        filterText,
-                                        classes.searchHighlight,
-                                    )}
-                                </Text>
-                            </div>
+                            <Text truncate className={classes.hideTextOverflow}>
+                                {highlightText(
+                                    getLabelForAction(item.updateAction),
+                                    filterText,
+                                    classes.searchHighlight,
+                                )}
+                            </Text>
                         </DataGridCell>
                     );
                 },
@@ -737,6 +772,98 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
             }),
         ];
 
+        const simplifiedColumns: TableColumnDefinition<Row>[] = [
+            createTableColumn<Row>({
+                columnId: "include",
+                renderHeaderCell: renderIncludeHeader,
+                renderCell: renderIncludeCell,
+            }),
+            createTableColumn<Row>({
+                columnId: "action",
+                renderHeaderCell: () => loc.schemaCompare.action,
+                renderCell: (item) => {
+                    if (item.kind !== "diff") return emptyCell;
+                    return (
+                        <DataGridCell>
+                            <Text truncate>
+                                {highlightText(
+                                    getLabelForAction(item.updateAction),
+                                    filterText,
+                                    classes.searchHighlight,
+                                )}
+                            </Text>
+                        </DataGridCell>
+                    );
+                },
+            }),
+            createTableColumn<Row>({
+                columnId: "object",
+                renderHeaderCell: () => loc.schemaCompare.object,
+                renderCell: (item) => {
+                    if (item.kind !== "diff") return emptyCell;
+                    const sourceName = formatName(item.sourceValue);
+                    const targetName = formatName(item.targetValue);
+                    const displayName = sourceName || targetName;
+                    const [schema, ...objectNameParts] = displayName.split(".");
+                    const objectName = objectNameParts.join(".") || schema;
+                    const schemaPrefix = objectNameParts.length > 0 ? `${schema}.` : "";
+                    const isRenamed = !!sourceName && !!targetName && sourceName !== targetName;
+                    return (
+                        <DataGridCell>
+                            <Text truncate className={classes.simplifiedObjectCell}>
+                                {schemaPrefix && (
+                                    <span className={classes.simplifiedSchema}>
+                                        {highlightText(
+                                            schemaPrefix,
+                                            filterText,
+                                            classes.searchHighlight,
+                                        )}
+                                    </span>
+                                )}
+                                <span>
+                                    {highlightText(objectName, filterText, classes.searchHighlight)}
+                                </span>
+                                {isRenamed && (
+                                    <span className={classes.simplifiedRename}>
+                                        {" → "}
+                                        {highlightText(
+                                            targetName,
+                                            filterText,
+                                            classes.searchHighlight,
+                                        )}
+                                    </span>
+                                )}
+                            </Text>
+                        </DataGridCell>
+                    );
+                },
+            }),
+            ...(groupBy === "type"
+                ? []
+                : [
+                      createTableColumn<Row>({
+                          columnId: "type",
+                          renderHeaderCell: () => loc.schemaCompare.type,
+                          renderCell: (item) => {
+                              if (item.kind !== "diff") return emptyCell;
+                              return (
+                                  <DataGridCell>
+                                      <Text truncate className={classes.hideTextOverflow}>
+                                          {highlightText(
+                                              item.name,
+                                              filterText,
+                                              classes.searchHighlight,
+                                          )}
+                                      </Text>
+                                  </DataGridCell>
+                              );
+                          },
+                      }),
+                  ]),
+        ];
+
+        const columns = layout === "classic" ? classicColumns : simplifiedColumns;
+
         const [collapsedGroups, setCollapsedGroups] = React.useState<Set<string>>(new Set());
 
         React.useEffect(() => {
@@ -744,6 +871,16 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
         }, [groupBy]);
 
         const toggleGroupCollapsed = (key: string) => {
+            const rowKey = `group:${key}`;
+            pendingRowFocusKey.current = rowKey;
+            setFocusedRowKey(rowKey);
+            requestAnimationFrame(() =>
+                requestAnimationFrame(() => {
+                    if (document.activeElement === document.body) {
+                        focusRenderedRow(rowKey);
+                    }
+                }),
+            );
             setCollapsedGroups((prev) => {
                 const next = new Set(prev);
                 if (next.has(key)) {
@@ -833,7 +970,7 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
                     if (bi === -1) return -1;
                     return ai - bi;
                 });
-            } else {
+            } else if (groupBy === "schema") {
                 keys.sort((a, b) => a.localeCompare(b));
             }
 
@@ -884,26 +1021,167 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
             }
         }, [items, selectedDiffId]);
 
-        const toggleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>, diffEntry: DiffRow) => {
-            if (e.key === "Enter") {
-                if (diffEntry.position !== undefined) {
-                    onDiffSelected(diffEntry.position);
-                }
-                e.preventDefault();
+        const getRowKey = (item: Row): string =>
+            item.kind === "group" ? `group:${item.key}` : `diff:${item.position ?? ""}`;
+
+        const focusRenderedRow = (key: string): void => {
+            const renderedRows =
+                resizableRef.current?.querySelectorAll<HTMLElement>("[data-schema-row-key]");
+            Array.from(renderedRows ?? [])
+                .find((row) => row.dataset.schemaRowKey === key)
+                ?.focus();
+        };
+
+        React.useLayoutEffect(() => {
+            const rowKey = pendingRowFocusKey.current;
+            if (!rowKey) {
+                return;
             }
+
+            pendingRowFocusKey.current = undefined;
+            focusRenderedRow(rowKey);
+        });
+
+        React.useEffect(() => {
+            const selectedKey = `diff:${selectedDiffId}`;
+            const selectionChanged = previouslyFocusedDiffId.current !== selectedDiffId;
+            previouslyFocusedDiffId.current = selectedDiffId;
+            if (selectionChanged && items.some((item) => getRowKey(item) === selectedKey)) {
+                setFocusedRowKey(selectedKey);
+            } else if (!items.some((item) => getRowKey(item) === focusedRowKey)) {
+                const firstDiff = items.find((item) => item.kind === "diff");
+                setFocusedRowKey(
+                    firstDiff ? getRowKey(firstDiff) : items[0] ? getRowKey(items[0]) : "",
+                );
+            }
+        }, [items, selectedDiffId]);
+
+        const focusRow = (item: Row, index: number): void => {
+            const key = getRowKey(item);
+            setFocusedRowKey(key);
+            if (item.kind === "diff" && item.position !== undefined) {
+                onDiffSelected(item.position);
+            }
+            virtualizedListRef.current?.scrollToItem(index, "smart");
+            requestAnimationFrame(() => focusRenderedRow(key));
+        };
+
+        React.useLayoutEffect(() => {
+            if (hasFocusedInitialRow.current || width <= 0) {
+                return;
+            }
+
+            const firstDiffIndex = items.findIndex((item) => item.kind === "diff");
+            if (firstDiffIndex < 0) {
+                return;
+            }
+
+            hasFocusedInitialRow.current = true;
+            const firstDiff = items[firstDiffIndex];
+            const rowKey = getRowKey(firstDiff);
+            focusRow(firstDiff, firstDiffIndex);
+            requestAnimationFrame(() => requestAnimationFrame(() => focusRenderedRow(rowKey)));
+        }, [items, width]);
+
+        const handleRowKeyDown = (event: React.KeyboardEvent<HTMLDivElement>, item: Row): void => {
+            const currentIndex = items.findIndex(
+                (candidate) => getRowKey(candidate) === getRowKey(item),
+            );
+            if (currentIndex < 0) {
+                return;
+            }
+
+            const navigationKeys: readonly SchemaDifferenceNavigationKey[] = [
+                "ArrowUp",
+                "ArrowDown",
+                "Home",
+                "End",
+            ];
+            if (navigationKeys.includes(event.key as SchemaDifferenceNavigationKey)) {
+                const targetIndex = getSchemaDifferenceNavigationTarget(
+                    items.map((candidate) => candidate.kind),
+                    currentIndex,
+                    event.key as SchemaDifferenceNavigationKey,
+                );
+                event.preventDefault();
+                event.stopPropagation();
+                if (targetIndex !== undefined && targetIndex >= 0 && targetIndex !== currentIndex) {
+                    focusRow(items[targetIndex], targetIndex);
+                }
+                return;
+            }
+
+            switch (event.key) {
+                case "ArrowLeft":
+                    if (item.kind !== "group") {
+                        return;
+                    }
+                    if (!item.collapsed) {
+                        toggleGroupCollapsed(item.key);
+                    }
+                    break;
+                case "ArrowRight":
+                    if (item.kind !== "group") {
+                        return;
+                    }
+                    if (item.collapsed) {
+                        toggleGroupCollapsed(item.key);
+                    }
+                    break;
+                case " ":
+                    if (
+                        item.kind === "diff" &&
+                        !context.isIncludeExcludeAllInProgress &&
+                        item.position !== undefined &&
+                        !context.pendingDifferenceIds.has(item.position)
+                    ) {
+                        handleIncludeExcludeNode(item, !item.included);
+                    } else if (item.kind === "group") {
+                        toggleGroupCollapsed(item.key);
+                    }
+                    break;
+                case "Enter":
+                    if (item.kind === "diff") {
+                        if (item.position !== undefined) {
+                            onDiffSelected(item.position);
+                        }
+                        onOpenComparisonDetails();
+                    } else {
+                        toggleGroupCollapsed(item.key);
+                    }
+                    break;
+                default:
+                    return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
         };
 
         const renderRow: RowRenderer<Row> = ({ item, rowId }, style) => {
+            const rowKey = getRowKey(item);
             if (item.kind === "group") {
                 const Chevron = item.collapsed ? ChevronRightRegular : ChevronDownRegular;
                 return (
-                    <div key={rowId} role="row" style={style} className={classes.groupHeaderRow}>
+                    <div
+                        key={rowId}
+                        data-schema-row-key={rowKey}
+                        role="row"
+                        aria-label={loc.schemaCompare.differenceGroupLabel(item.label, item.count)}
+                        aria-expanded={!item.collapsed}
+                        aria-keyshortcuts="ArrowUp ArrowDown ArrowLeft ArrowRight Home End Space Enter"
+                        tabIndex={focusedRowKey === rowKey ? 0 : -1}
+                        style={style}
+                        className={classes.groupHeaderRow}
+                        onFocus={() => setFocusedRowKey(rowKey)}
+                        onClick={(event) => {
+                            event.currentTarget.focus();
+                            setFocusedRowKey(rowKey);
+                            toggleGroupCollapsed(item.key);
+                        }}
+                        onKeyDown={(event) => handleRowKeyDown(event, item)}>
                         <div role="gridcell" className={classes.groupHeaderCell}>
-                            <button
-                                type="button"
-                                aria-expanded={!item.collapsed}
-                                className={classes.groupHeaderButton}
-                                onClick={() => toggleGroupCollapsed(item.key)}>
+                            <div className={classes.groupHeaderButton}>
                                 <span className={classes.groupHeaderChevron}>
                                     <Chevron />
                                 </span>
@@ -916,7 +1194,7 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
                                     {item.label}
                                 </Text>
                                 <Text className={classes.groupHeaderCount}>({item.count})</Text>
-                            </button>
+                            </div>
                         </div>
                     </div>
                 );
@@ -925,52 +1203,91 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
             return (
                 <DataGridRow<Row>
                     key={rowId}
+                    data-schema-row-key={rowKey}
+                    tabIndex={focusedRowKey === rowKey ? 0 : -1}
                     aria-selected={item.position === selectedDiffId}
-                    className={item.position === selectedDiffId ? classes.selectedRow : undefined}
+                    aria-keyshortcuts="ArrowUp ArrowDown Home End Space Enter"
+                    aria-label={loc.schemaCompare.differenceRowLabel(
+                        item.name,
+                        formatName(item.sourceValue) || formatName(item.targetValue),
+                        getLabelForAction(item.updateAction),
+                        item.included,
+                    )}
+                    className={mergeClasses(
+                        item.position === selectedDiffId && classes.selectedRow,
+                        focusedRowKey === rowKey && classes.focusedRow,
+                    )}
                     style={style}
-                    onClick={() => {
+                    onClick={(event: React.MouseEvent<HTMLDivElement>) => {
+                        event.currentTarget.focus();
+                        setFocusedRowKey(rowKey);
                         if (item.position !== undefined) {
                             onDiffSelected(item.position);
                         }
                     }}
-                    onKeyDown={(e: React.KeyboardEvent<HTMLDivElement>) => toggleKeyDown(e, item)}>
+                    onFocus={(event: React.FocusEvent<HTMLDivElement>) => {
+                        if (event.target !== event.currentTarget) {
+                            return;
+                        }
+                        setFocusedRowKey(rowKey);
+                        if (item.position !== undefined) {
+                            onDiffSelected(item.position);
+                        }
+                    }}
+                    onKeyDown={(event: React.KeyboardEvent<HTMLDivElement>) =>
+                        handleRowKeyDown(event, item)
+                    }>
                     {({ renderCell }) => <>{renderCell(item)}</>}
                 </DataGridRow>
             );
         };
 
-        const includeColumnWidth = 60;
-        const columnPadding = 16;
-        // Balance the two columns on each side so Include starts at the grid's midpoint.
-        const sideContentWidth = Math.max(
-            (width - includeColumnWidth - columnPadding) / 2 - columnPadding * 2,
-            300,
-        );
-        const typeAndActionWidth = Math.max(100, Math.min(200, sideContentWidth * 0.3));
-        const nameWidth = Math.max(200, sideContentWidth - typeAndActionWidth);
-
-        const columnSizingOptions: TableColumnSizingOptions = {
+        const classicColumnSizingOptions: TableColumnSizingOptions = {
             type: {
-                minWidth: 100,
-                defaultWidth: typeAndActionWidth,
+                minWidth: 80,
+                defaultWidth: 120,
             },
             sourceName: {
-                minWidth: 200,
-                defaultWidth: nameWidth,
+                minWidth: 140,
+                defaultWidth: 300,
             },
             include: {
-                minWidth: 60,
-                defaultWidth: 60,
+                minWidth: 36,
+                defaultWidth: 40,
             },
             action: {
-                minWidth: 100,
-                defaultWidth: typeAndActionWidth,
+                minWidth: 75,
+                defaultWidth: 90,
             },
             targetName: {
-                minWidth: 200,
-                defaultWidth: nameWidth,
+                minWidth: 140,
+                defaultWidth: 300,
             },
         };
+        const simplifiedColumnSizingOptions: TableColumnSizingOptions = {
+            include: {
+                minWidth: 30,
+                defaultWidth: 34,
+            },
+            action: {
+                minWidth: 66,
+                defaultWidth: 90,
+            },
+            object: {
+                minWidth: 180,
+                defaultWidth: 420,
+            },
+            ...(groupBy === "type"
+                ? {}
+                : {
+                      type: {
+                          minWidth: 100,
+                          defaultWidth: 140,
+                      },
+                  }),
+        };
+        const columnSizingOptions =
+            layout === "classic" ? classicColumnSizingOptions : simplifiedColumnSizingOptions;
 
         const { totalCount, selectedCount, addCount, changeCount, deleteCount } =
             React.useMemo(() => {
@@ -1014,30 +1331,12 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
                         {loc.schemaCompare.differencesSummary(totalCount)}
                     </Text>
                     <Text className={classes.actionSummary}>
-                        <span
-                            className={mergeClasses(classes.summaryIndicator, classes.addIndicator)}
-                            aria-hidden
-                        />
                         {loc.schemaCompare.addedDifferencesSummary(addCount)}
                     </Text>
                     <Text className={classes.actionSummary}>
-                        <span
-                            className={mergeClasses(
-                                classes.summaryIndicator,
-                                classes.changeIndicator,
-                            )}
-                            aria-hidden
-                        />
                         {loc.schemaCompare.changedDifferencesSummary(changeCount)}
                     </Text>
                     <Text className={classes.actionSummary}>
-                        <span
-                            className={mergeClasses(
-                                classes.summaryIndicator,
-                                classes.deleteIndicator,
-                            )}
-                            aria-hidden
-                        />
                         {loc.schemaCompare.deletedDifferencesSummary(deleteCount)}
                     </Text>
                     <div className={classes.filterControls}>
@@ -1221,6 +1520,37 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
                                 </MenuList>
                             </MenuPopover>
                         </Menu>
+                        <Menu
+                            checkedValues={{ [LAYOUT_MENU_NAME]: [layout] }}
+                            onCheckedValueChange={(_event, data) => {
+                                const next = data.checkedItems[0] as
+                                    | SchemaCompareLayout
+                                    | undefined;
+                                if (next) {
+                                    onLayoutChange(next);
+                                }
+                            }}>
+                            <MenuTrigger disableButtonEnhancement>
+                                <Button
+                                    appearance="subtle"
+                                    size="small"
+                                    icon={<LayoutRowThree16Regular />}
+                                    aria-label={loc.schemaCompare.layout}
+                                    title={loc.schemaCompare.layout}>
+                                    {loc.schemaCompare.layout}
+                                </Button>
+                            </MenuTrigger>
+                            <MenuPopover>
+                                <MenuList>
+                                    <MenuItemRadio name={LAYOUT_MENU_NAME} value="classic">
+                                        {loc.schemaCompare.classicLayout}
+                                    </MenuItemRadio>
+                                    <MenuItemRadio name={LAYOUT_MENU_NAME} value="simplified">
+                                        {loc.schemaCompare.simplifiedLayout}
+                                    </MenuItemRadio>
+                                </MenuList>
+                            </MenuPopover>
+                        </Menu>
                     </div>
                     <Text className={classes.selectedSummary}>
                         {loc.schemaCompare.selectedDifferencesSummary(selectedCount, totalCount)}
@@ -1228,10 +1558,14 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
                 </div>
                 {width > 0 && (
                     <DataGrid
+                        key={`${layout}:${groupBy === "type" ? "grouped-type" : "with-type"}`}
+                        aria-label={loc.schemaCompare.schemaDifferences}
+                        className={classes.dataGrid}
                         items={items}
                         columns={columns}
-                        focusMode="composite"
+                        focusMode="row_unstable"
                         resizableColumns={true}
+                        resizableColumnsOptions={{ autoFitColumns: false }}
                         columnSizingOptions={columnSizingOptions}
                         getRowId={(item) => {
                             const row = item as Row;
@@ -1242,14 +1576,20 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
                         size="extra-small">
                         <DataGridHeader className={classes.dataGridHeader}>
                             <DataGridRow>
-                                {({ renderHeaderCell }) => (
-                                    <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>
+                                {({ columnId, renderHeaderCell }) => (
+                                    <DataGridHeaderCell
+                                        focusMode="none"
+                                        className={
+                                            columnId === "include" ? classes.includeCell : undefined
+                                        }>
+                                        {renderHeaderCell()}
+                                    </DataGridHeaderCell>
                                 )}
                             </DataGridRow>
                         </DataGridHeader>
                         <DataGridBody<Row>
-                            itemSize={30}
-                            height={Math.max(height - 76, 0)}
+                            itemSize={ROW_HEIGHT}
+                            height={Math.max(height - 64, 0)}
                             width={"100%"}
                             listProps={{ ref: virtualizedListRef } as never}>
                             {renderRow}

@@ -37,6 +37,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++003c8c9a9b2a9babfada323e12b8162dd8662ac3ff0515baaa891a698e4c7ce2" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[All object types]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Все типы объектов]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++004f8760d5d76c5e1465f93ee7c48c0dd97666347f270fbbc9d31bbc56482a6d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Import a .bacpac file to a new or empty database]]></Val>
@@ -7471,6 +7480,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++4403a9fe3d4bba7fff847b64e5cf18c5ee9711a981d3ca74abb8a8ed015959ae" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{0} delete]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Удален {0} элемент]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++441818ccc4c33fe807938249c80e7be1eddc196d87077b06367d567dc08eaf05" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Not exposed]]></Val>
@@ -7485,6 +7503,15 @@
           <Val><![CDATA[Listing tables for connection '{0}' (ID: {1})]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Перечисление таблиц для подключения "{0}" (ИД: {1})]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++4439a2124618f359ca56b36355f08329d4f03137e5721c2c05ada1e28f009291" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{0} differences]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Разница: {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7998,6 +8025,15 @@
           <Val><![CDATA[Required]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Обязательно]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++485f917706a9e2c6390ea44762459eb1b3b2406841638ce10cfa44ddcd06b8c3" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Cannot include {0}. Blocking excluded objects: {1}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Невозможно включить {0}. Блокировка исключенных объектов: {1}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10810,6 +10846,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++6218b100b8a4c67c9320a4fb52d7607549374b56dfff2d2f899f07c103a3d138" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Updating difference selection.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Обновление выделения различий.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++623971e6013bb7ca0de198ee8a596add57884bbf22821d9574acab573cd8ca7a" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Copilot Changes ({0})]]></Val>
@@ -11436,6 +11481,15 @@
           <Val><![CDATA[Loading backup database...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Загрузка базы данных резервных копий...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++68c99e5db3559eb62326c3b7301e8095a49498d224646828d21ca2ab5d1593df" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{0} add]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Добавлен {0} элемент]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -17065,15 +17119,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++9d044dc2d1fe411614adccd3125e540b1b0176ec4bf30509e693113050ef11b0" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Initializing comparison, this might take a while...]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Инициализируется сравнение. Это может занять некоторое время.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++9d13699b657fe91178f41ecf87e9c11095306c7b62e26f7e7a1b019df9ca50b1" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Preview Database Updates]]></Val>
@@ -17245,6 +17290,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++9eebfe447b7a74e2e125af9d7a8e876515fc0d48e56a086a85b8e8e4b5c4aa04" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{0} change]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0} изменение]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++9eed9051f40845c8f08e087a56a034b55663a939be88ba2b85bdedcfa70d58f4" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Select all cells in the active grid]]></Val>
@@ -17349,6 +17403,15 @@
           <Val><![CDATA[test]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[тест]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++9fb1b0a3d5937c4d492e2d8e65acae3e3d8eb9bab5422aa3b80eb895872ef088" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Comparing...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Идет сравнение...]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -18006,6 +18069,15 @@
           <Val><![CDATA[Select or clear all connections]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Выбрать или очистить все подключения]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++a56157f20802649ccdfce11ff7b5de262cf87bbd89026ca13a744e86fcbf890d" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Cannot exclude {0}. Blocking included objects: {1}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Невозможно исключить {0}. Блокировка включенных объектов: {1}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -19077,6 +19149,15 @@
           <Val><![CDATA[Loading results...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Загрузка результатов...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++b04aaacdddfa1ffa2cb8eb7fc21999b65bff22bfa2ebb98670a5b7ac3e814d20" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Filter objects]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Объекты фильтра]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -21178,6 +21259,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++c206624236f9198482437ab6ed5aabc7802216179533155d00191f039a4d0eaa" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{0} of {1} selected]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Выбрано {0} из {1}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++c2598c4eff93f92ad64b8b20edf4a58bf6fa0001d4725b6833595690c531bbd8" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[External Streaming Job]]></Val>
@@ -21408,6 +21498,15 @@
           <Val><![CDATA[Copy selected cells to the clipboard]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Копировать выделенные ячейки в буфер обмена]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++c41468c144a7b98197e8c756c135db6069fdaa622c54b2bfe84e601f07dbb13c" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[All schemas]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Все схемы]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -30217,15 +30316,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";package.mssql.preview.useVscodeAccountsForEntraMFA.description" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Uses VS Code signed-in accounts for Microsoft Entra ID MFA authentication to SQL. Restart Visual Studio Code after changing this setting.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Использует учетные записи VS Code для многофакторной проверки подлинности Microsoft Entra ID в SQL. Перезапустите Visual Studio Code после изменения этого параметра.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";package.mssql.profiler.eventBufferSize" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Maximum number of events to keep in memory for the Profiler. When this limit is reached, older events are dropped. Increase this value if you need to retain more events during profiling sessions.]]></Val>
@@ -31389,6 +31479,15 @@
           <Val><![CDATA[When enabled, automatically transfer the active connection to newly opened SQL files. When disabled, you must explicitly connect to a database for each SQL file.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Если эта настройка включена, активное подключение автоматически переносится в новые открытые файлы SQL. Если она отключена, для каждого файла SQL нужно явным образом подключаться к базе данных.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.useMsalEntraMfaAuth.description" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Uses MSAL for Microsoft Entra MFA authentication instead of VS Code signed-in accounts. Restart Visual Studio Code after changing this setting.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Использует MSAL для многофакторной проверки подлинности Microsoft Entra вместо учетных записей, выполнивших вход в VS Code. Перезапустите Visual Studio Code после изменения этого параметра.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />

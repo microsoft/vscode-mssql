@@ -28,6 +28,7 @@ import { locConstants } from "../../common/locConstants";
 import { FlatFileContext } from "./flatFileStateProvider";
 import { ColumnChanges } from "../../../sharedInterfaces/flatFileImport";
 import { useFlatFileSelector } from "./flatFileSelector";
+import { applyColumnChanges } from "./flatFileColumnSettingsUtils";
 import { getDataTypeOptions } from "./flatFileDataTypeUtils";
 import { SearchableDropdown } from "../../common/searchableDropdown.component";
 
@@ -271,28 +272,33 @@ export const FlatFileColumnSettingsPage = ({
     const items: FlatFileTableItem[] = useMemo(() => {
         return (
             tablePreview?.columnInfo.map((row, rowIndex) => {
+                const displayedColumn = applyColumnChanges(row, columnChanges[rowIndex]);
                 const cells = [
-                    { columnId: columns[0]?.columnId ?? "", value: row.name, type: INPUT_TYPE },
+                    {
+                        columnId: columns[0]?.columnId ?? "",
+                        value: displayedColumn.name,
+                        type: INPUT_TYPE,
+                    },
                     {
                         columnId: columns[1]?.columnId ?? "",
-                        value: row.sqlType,
+                        value: displayedColumn.sqlType,
                         type: DROPDOWN_TYPE,
                     },
                     {
                         columnId: columns[2]?.columnId ?? "",
-                        value: row.isInPrimaryKey,
+                        value: displayedColumn.isInPrimaryKey ?? false,
                         type: CHECKBOX_TYPE,
                     },
                     {
                         columnId: columns[3]?.columnId ?? "",
-                        value: row.isNullable,
+                        value: displayedColumn.isNullable,
                         type: CHECKBOX_TYPE,
                     },
                 ] as FlatFileTableCell[];
                 return { rowId: `row-${rowIndex}`, cells };
             }) || []
         );
-    }, [tablePreview?.columnInfo, columns]);
+    }, [tablePreview?.columnInfo, columns, columnChanges]);
 
     const columnSizingOptions: TableColumnSizingOptions = useMemo(() => {
         return {
@@ -335,7 +341,7 @@ export const FlatFileColumnSettingsPage = ({
                     <Input
                         size="small"
                         className={classes.input}
-                        defaultValue={cell.value.toString()}
+                        value={cell.value.toString()}
                         onChange={(_event, data) =>
                             handleColumnChange(rowIndex, "newName", data?.value || "")
                         }
