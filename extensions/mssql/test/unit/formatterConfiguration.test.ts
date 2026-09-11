@@ -34,22 +34,39 @@ const expectedFormatterDefaults: Record<string, boolean | number | string> = {
     allowExternalLanguagePaths: true,
     allowExternalLibraryPaths: true,
     asKeywordOnOwnLine: true,
+    builtInFunctionCasing: "preserve",
+    clauseBodyAlignment: "aligned",
+    columnAliasStyle: "asKeyword",
+    commaPlacement: "trailing",
+    leadingCommaSpaceCount: 1,
+    identifierBracketing: "preserve",
+    identifierCasing: "preserve",
     keywordCasing: "uppercase",
     preserveComments: true,
     indentSetClause: false,
     indentViewBody: false,
+    multilineGroupByElementsList: false,
+    multilineHavingPredicatesList: true,
     multilineInsertSourcesList: true,
     multilineInsertTargetsList: true,
+    multilineInValuesList: false,
+    multilineNestedFunctionCalls: false,
+    multilineOrderByElementsList: false,
+    multilinePartitionByElementsList: false,
+    multilineProcedureParametersList: false,
     multilineSelectElementsList: true,
     multilineSetClauseItems: true,
     multilineViewColumnsList: true,
     multilineWherePredicatesList: true,
+    multilineWithOptionsList: false,
+    newLineAfterJoinKeyword: true,
     newLineBeforeCloseParenthesisInMultilineList: true,
     newLineBeforeFromClause: true,
     newLineBeforeGroupByClause: true,
     newLineBeforeHavingClause: true,
     newLineBeforeJoinClause: true,
     newLineBeforeOffsetClause: true,
+    newLineBeforeOnClause: true,
     newLineBeforeOpenParenthesisInMultilineList: false,
     newLineBeforeOrderByClause: true,
     newLineBeforeOutputClause: true,
@@ -57,9 +74,13 @@ const expectedFormatterDefaults: Record<string, boolean | number | string> = {
     newLineBeforeWindowClause: true,
     newlineFormattedCheckConstraint: false,
     newLineFormattedIndexDefinition: false,
+    numNewlinesAfterBatches: 1,
+    numNewlinesAfterBatchStatement: 2,
     numNewlinesAfterStatement: 1,
+    persistTrailingGo: false,
     spaceBetweenDataTypeAndParameters: true,
     spaceBetweenParametersInDataType: true,
+    terminateBlockStatements: false,
 };
 
 function getConfigurationProperties(): Record<string, ConfigurationProperty> {
@@ -118,6 +139,8 @@ suite("SQL formatter configuration", () => {
             "sql150",
             "sql160",
             "sql170",
+            "sql180",
+            "sqlFabricDW",
         ]);
         expect(properties[prefix + "sqlEngineType"].enum).to.deep.equal([
             "all",
@@ -129,8 +152,44 @@ suite("SQL formatter configuration", () => {
             "lowercase",
             "pascalCase",
         ]);
-        expect(properties[prefix + "numNewlinesAfterStatement"].minimum).to.equal(0);
-        expect(properties[prefix + "numNewlinesAfterStatement"].maximum).to.equal(5);
+        expect(properties[prefix + "builtInFunctionCasing"].enum).to.deep.equal([
+            "preserve",
+            "uppercase",
+            "lowercase",
+            "pascalCase",
+        ]);
+        expect(properties[prefix + "clauseBodyAlignment"].enum).to.deep.equal([
+            "aligned",
+            "indented",
+        ]);
+        expect(properties[prefix + "columnAliasStyle"].enum).to.deep.equal([
+            "asKeyword",
+            "equalsSign",
+            "preserve",
+        ]);
+        expect(properties[prefix + "commaPlacement"].enum).to.deep.equal(["trailing", "leading"]);
+        expect(properties[prefix + "identifierBracketing"].enum).to.deep.equal([
+            "preserve",
+            "includeBrackets",
+            "excludeBrackets",
+        ]);
+        expect(properties[prefix + "identifierCasing"].enum).to.deep.equal([
+            "preserve",
+            "uppercase",
+            "lowercase",
+            "pascalCase",
+        ]);
+        expect(properties[prefix + "leadingCommaSpaceCount"].minimum).to.equal(0);
+        expect(properties[prefix + "leadingCommaSpaceCount"].maximum).to.equal(1);
+
+        for (const key of [
+            "numNewlinesAfterBatches",
+            "numNewlinesAfterBatchStatement",
+            "numNewlinesAfterStatement",
+        ]) {
+            expect(properties[prefix + key].minimum, key).to.equal(0);
+            expect(properties[prefix + key].maximum, key).to.equal(5);
+        }
     });
 
     test("identifies which formatter uses each option", () => {
