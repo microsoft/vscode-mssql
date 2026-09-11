@@ -3215,6 +3215,10 @@ export class SearchDatabase {
 
     public static failedToEstablishConnection = l10n.t("Failed to establish connection");
 
+    public static noConnectionAvailable = l10n.t(
+        "Connect to a server in Object Explorer or open a connected query editor to search database objects.",
+    );
+
     public static typeTable = l10n.t("Table");
     public static typeView = l10n.t("View");
     public static typeStoredProcedure = l10n.t("Stored Procedure");

@@ -1744,6 +1744,7 @@
         "comment": ["{0} is the server name"]
     },
     "Failed to establish connection": "Failed to establish connection",
+    "Connect to a server in Object Explorer or open a connected query editor to search database objects.": "Connect to a server in Object Explorer or open a connected query editor to search database objects.",
     "Table": "Table",
     "View": "View",
     "Stored Procedure": "Stored Procedure",
