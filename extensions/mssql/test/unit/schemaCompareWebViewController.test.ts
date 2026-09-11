@@ -1185,6 +1185,54 @@ suite("SchemaCompareWebViewController Tests", () => {
         expect(state.schemaCompareResult).to.be.undefined;
     });
 
+    test("includeExcludeNode request - comparison changes while queued - skips the service call", async () => {
+        const expectedResult = {
+            success: true,
+            errorMessage: "",
+            affectedDependencies: [],
+            blockingDependencies: [],
+        };
+        let resolveFirst: (result: typeof expectedResult) => void;
+        const includeExcludeNodeStub = sandbox
+            .stub(scUtils, "includeExcludeNode")
+            .returns(new Promise<typeof expectedResult>((resolve) => (resolveFirst = resolve)));
+        const seeded = seedDifferences(controller);
+        const state = controller.state;
+
+        const handler = requestHandlers.get(SchemaCompareIncludeExcludeNodeRequest.type.method);
+        const firstRequest = handler({
+            comparisonId,
+            id: 0,
+            diffEntry: seeded[0],
+            includeRequest: false,
+        });
+        const queuedRequest = handler({
+            comparisonId,
+            id: 1,
+            diffEntry: seeded[1],
+            includeRequest: false,
+        });
+        await Promise.resolve();
+
+        await controller["_reducerHandlers"].get("switchEndpoints")(state, {
+            newSourceEndpointInfo: state.sourceEndpointInfo,
+            newTargetEndpointInfo: databaseSourceEndpointInfo,
+        });
+        resolveFirst!(expectedResult);
+
+        const [firstResult, queuedResult] = await Promise.all([firstRequest, queuedRequest]);
+        expect(firstResult.reason).to.equal("staleComparison");
+        expect(queuedResult.reason).to.equal("staleComparison");
+        expect(
+            includeExcludeNodeStub,
+            "a queued request must not reach the service once its comparison is discarded",
+        ).to.not.have.been.calledWithMatch(
+            sinon.match.any,
+            sinon.match.any,
+            sinon.match({ id: 1 }),
+        );
+    });
+
     test("includeExcludeNode request - returns the exact blocking objects", async () => {
         const showWarningMessageStub = sandbox.stub(vscode.window, "showWarningMessage");
         const expectedResultMock = {
@@ -1621,6 +1669,44 @@ suite("SchemaCompareWebViewController Tests", () => {
         ).to.deep.equal(expectedResultMock);
 
         publishProjectChangesStub.restore();
+    });
+
+    test("cancel reducer - comparison result arriving after cancel - is discarded", async () => {
+        let resolveCompare: (result: mssql.SchemaCompareResult) => void;
+        let markCompareStarted: () => void;
+        const compareStarted = new Promise<void>((resolve) => (markCompareStarted = resolve));
+        sandbox.stub(scUtils, "compare").callsFake(() => {
+            markCompareStarted();
+            return new Promise<mssql.SchemaCompareResult>((resolve) => (resolveCompare = resolve));
+        });
+        sandbox.stub(scUtils, "cancel").resolves({ success: true, errorMessage: "" });
+
+        const state = structuredClone(mockInitialState);
+        state.schemaCompareResult = undefined;
+        state.targetEndpointInfo = { ...targetEndpointInfo, connectionDetails: undefined };
+
+        const comparison = controller["_reducerHandlers"].get("compare")(state, {
+            deploymentOptions,
+            sourceEndpointInfo: state.sourceEndpointInfo,
+            targetEndpointInfo: state.targetEndpointInfo,
+        });
+        await compareStarted;
+
+        await controller["_reducerHandlers"].get("cancel")(state, {});
+        resolveCompare!({
+            operationId,
+            areEqual: false,
+            differences: structuredClone(differences),
+            success: true,
+            errorMessage: "",
+        });
+
+        const result = await comparison;
+        expect(result.schemaCompareResult, "a canceled comparison must not show results").to.be
+            .undefined;
+        expect(result.isComparisonInProgress).to.be.false;
+        expect(getDifferences(controller), "the canceled result must not be kept on the host").to.be
+            .undefined;
     });
 
     test("cancel reducer - when called - completes successfully", async () => {

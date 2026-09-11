@@ -1720,6 +1720,19 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             this.logger.debug(
                 `Calling includeExcludeNode service - OperationId: ${this.operationId}`,
             );
+            const discardForStaleComparison = (): SchemaCompareIncludeExcludeNodeResponse => {
+                this.logger.debug(
+                    `Discarding include/exclude request for a stale comparison - OperationId: ${this.operationId}`,
+                );
+                endActivity.end(ActivityStatus.Canceled, {
+                    additionalProps: {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                    },
+                });
+                return staleResponse;
+            };
+
             const previousOperation = this._includeExcludeNodeQueue;
             let releaseQueue!: () => void;
             this._includeExcludeNodeQueue = new Promise<void>((resolve) => {
@@ -1729,6 +1742,12 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
 
             let result: mssql.SchemaCompareIncludeExcludeResult;
             try {
+                // The comparison may have changed while this request waited in the queue. The
+                // service keeps one comparison per operation id, so calling it now would change
+                // inclusion on the new comparison.
+                if (!this.isCurrentComparison(payload.comparisonId)) {
+                    return discardForStaleComparison();
+                }
                 result = await includeExcludeNode(
                     this.operationId,
                     TaskExecutionMode.execute,
@@ -1748,16 +1767,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             );
 
             if (!this.isCurrentComparison(payload.comparisonId)) {
-                this.logger.debug(
-                    `Discarding include/exclude result for a stale comparison - OperationId: ${this.operationId}`,
-                );
-                endActivity.end(ActivityStatus.Canceled, {
-                    additionalProps: {
-                        elapsedTime: (Date.now() - startTime).toString(),
-                        operationId: this.operationId,
-                    },
-                });
-                return staleResponse;
+                return discardForStaleComparison();
             }
 
             if (result.success) {
@@ -2485,7 +2495,8 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                     },
                 });
 
-                state.isComparisonInProgress = false;
+                // Invalidate the canceled comparison so a result that still arrives is ignored.
+                this.clearSchemaCompareResult(state);
                 state.cancelResultStatus = result;
                 this.updateState(state);
             } catch (error) {
@@ -2763,6 +2774,12 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             this.logger.debug(
                 `Ignoring stale schema comparison result - OperationId: ${this.operationId}`,
             );
+            endActivity.end(ActivityStatus.Canceled, {
+                additionalProps: {
+                    elapsedTime: (Date.now() - startTime).toString(),
+                    operationId: this.operationId,
+                },
+            });
             return state;
         }
 
