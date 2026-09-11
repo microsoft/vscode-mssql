@@ -2343,6 +2343,12 @@ export class LocConstants {
             selectAllOptions: l10n.t("Select all options"),
             includeAllObjectTypes: l10n.t("Include all object types"),
             optionDescription: l10n.t("Option Description"),
+            allowIncompatiblePlatformDisplayName: l10n.t(
+                "Allow incompatible platform during deployment",
+            ),
+            allowIncompatiblePlatformDescription: l10n.t(
+                "Controls whether deployment blocks because of platform compatibility checks. It does not allow Schema Compare between different Azure Synapse or Microsoft Fabric platform types.",
+            ),
             reset: l10n.t("Reset"),
             stop: l10n.t("Stop"),
             generateScript: l10n.t("Generate Script"),
