@@ -288,6 +288,59 @@ suite("Query execution stuck-state recovery (#22921)", () => {
         onComplete.dispose();
     });
 
+    test("saving an untitled editor during run setup still starts the run and releases the slot", async () => {
+        const untitledUri = "untitled:Untitled-1";
+        const fileUri = "file:///repro/saved.sql";
+        let finishSetup: () => void;
+        const setupGate = new Promise<void>((resolve) => {
+            finishSetup = resolve;
+        });
+        const onComplete = new vscode.EventEmitter<void>();
+        const mockRunner = {
+            uri: untitledUri,
+            runQuery: sandbox.stub().resolves(),
+            onComplete: onComplete.event,
+            updateQueryRunnerUri: sandbox.stub(),
+        } as unknown as QueryRunner;
+        sandbox
+            .stub(
+                contentProvider as unknown as { initializeRunnerAndWebviewState: unknown },
+                "initializeRunnerAndWebviewState",
+            )
+            .callsFake(async () => {
+                await setupGate;
+                return mockRunner;
+            });
+
+        // Run in Untitled-1 while setup (for example the reset cancel) is still in progress.
+        const run = contentProvider.runQuery(
+            statusView as unknown as StatusView,
+            untitledUri,
+            undefined,
+            title,
+        );
+        // Save As before setup finishes: the execution slot moves to the file URI.
+        await contentProvider.updateQueryRunnerUri(untitledUri, fileUri);
+        (mockRunner as unknown as { uri: string }).uri = fileUri;
+        finishSetup!();
+        await run;
+
+        expect(mockRunner.runQuery, "the run must not be treated as cancelled").to.have.been.called;
+
+        // The query finishes and the saved editor can run again.
+        onComplete.fire(undefined as unknown as void);
+        expect(contentProvider["_queryExecutionInFlightUris"].has(fileUri)).to.equal(false);
+        await contentProvider.runQuery(
+            statusView as unknown as StatusView,
+            fileUri,
+            undefined,
+            title,
+        );
+        expect(timesShown(LocConstants.msgRunQueryInProgress)).to.equal(0);
+
+        onComplete.dispose();
+    });
+
     test("cancel during run setup releases the editor and the abandoned run does not start", async () => {
         let finishReset: () => void;
         const resetGate = new Promise<void>((resolve) => {

@@ -357,14 +357,14 @@ export class SqlOutputContentProvider {
             );
 
             if (!runner) {
-                this.releaseExecutionSlot(uri, slot);
+                this.releaseExecutionSlot(slot);
                 if (promise) {
                     promise.reject(false);
                 }
                 return;
             }
 
-            if (!this.ownsExecutionSlot(uri, slot)) {
+            if (!this.ownsExecutionSlot(slot)) {
                 // The user cancelled while this run was still being set up.
                 if (promise) {
                     promise.reject(false);
@@ -389,7 +389,7 @@ export class SqlOutputContentProvider {
                 promise,
             );
         } catch (error) {
-            this.releaseExecutionSlot(uri, slot);
+            this.releaseExecutionSlot(slot);
             if (promise) {
                 promise.reject(false);
             }
@@ -427,12 +427,12 @@ export class SqlOutputContentProvider {
                 title,
             );
             if (!runner) {
-                this.releaseExecutionSlot(uri, slot);
+                this.releaseExecutionSlot(slot);
                 promise?.reject(false);
                 return;
             }
 
-            if (!this.ownsExecutionSlot(uri, slot)) {
+            if (!this.ownsExecutionSlot(slot)) {
                 // The user cancelled while this run was still being set up.
                 promise?.reject(false);
                 return;
@@ -441,7 +441,7 @@ export class SqlOutputContentProvider {
             this.releaseExecutionSlotOnComplete(runner, slot);
             await runner.runQueryString(query, promise);
         } catch (error) {
-            this.releaseExecutionSlot(uri, slot);
+            this.releaseExecutionSlot(slot);
             promise?.reject(false);
             logger.error(`Error running query string for ${uri}: ${getErrorMessage(error)}`);
         }
@@ -474,11 +474,11 @@ export class SqlOutputContentProvider {
             );
 
             if (!runner) {
-                this.releaseExecutionSlot(uri, slot);
+                this.releaseExecutionSlot(slot);
                 return;
             }
 
-            if (!this.ownsExecutionSlot(uri, slot)) {
+            if (!this.ownsExecutionSlot(slot)) {
                 // The user cancelled while this run was still being set up.
                 return;
             }
@@ -491,7 +491,7 @@ export class SqlOutputContentProvider {
                 includeActualExecutionPlanXml: includeExecutionPlanXml,
             });
         } catch (_error) {
-            this.releaseExecutionSlot(uri, slot);
+            this.releaseExecutionSlot(slot);
             throw _error;
         }
     }
@@ -511,16 +511,27 @@ export class SqlOutputContentProvider {
         return slot;
     }
 
-    private ownsExecutionSlot(uri: string, slot: symbol): boolean {
-        return this._queryExecutionInFlightUris.get(uri) === slot;
+    /**
+     * Returns the editor URI that currently holds the slot. Slots are matched by token rather than
+     * by the URI a run started with, because Save As moves a slot to the editor's new URI.
+     */
+    private findExecutionSlotUri(slot: symbol): string | undefined {
+        for (const [uri, owner] of this._queryExecutionInFlightUris) {
+            if (owner === slot) {
+                return uri;
+            }
+        }
+        return undefined;
     }
 
-    /**
-     * Releases the execution slot for an editor. With a slot token only that owner's slot is
-     * released; without one the slot is released unconditionally (user-driven recovery).
-     */
-    private releaseExecutionSlot(uri: string, slot?: symbol): void {
-        if (slot === undefined || this._queryExecutionInFlightUris.get(uri) === slot) {
+    private ownsExecutionSlot(slot: symbol): boolean {
+        return this.findExecutionSlotUri(slot) !== undefined;
+    }
+
+    /** Releases a run's execution slot, wherever Save As has moved it. */
+    private releaseExecutionSlot(slot: symbol): void {
+        const uri = this.findExecutionSlotUri(slot);
+        if (uri !== undefined) {
             this._queryExecutionInFlightUris.delete(uri);
         }
     }
@@ -532,7 +543,7 @@ export class SqlOutputContentProvider {
     private releaseExecutionSlotOnComplete(runner: QueryRunner, slot: symbol): void {
         const listener = runner.onComplete(() => {
             listener.dispose();
-            this.releaseExecutionSlot(runner.uri, slot);
+            this.releaseExecutionSlot(slot);
         });
     }
 
@@ -912,7 +923,7 @@ export class SqlOutputContentProvider {
             if (uri !== undefined && this._queryExecutionInFlightUris.has(uri)) {
                 // A run for this editor is still being set up, or its setup is stuck. Treat the
                 // cancel as abandoning that run so the editor does not stay blocked.
-                this.releaseExecutionSlot(uri);
+                this._queryExecutionInFlightUris.delete(uri);
                 return;
             }
             vscode.window.showInformationMessage(LocalizedConstants.msgCancelQueryNotRunning);
