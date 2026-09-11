@@ -65,6 +65,9 @@
         "comment": ["{0} is the document name"]
     },
     "A query is already running for this editor session. Please cancel this query or wait for its completion.": "A query is already running for this editor session. Please cancel this query or wait for its completion.",
+    "Cancel query": "Cancel query",
+    "The service is no longer running a query for this editor. The editor's execution state has been reset.": "The service is no longer running a query for this editor. The editor's execution state has been reset.",
+    "The cancel request did not complete in time. The editor's execution state has been reset.": "The cancel request did not complete in time. The editor's execution state has been reset.",
     "Started executing query at ": "Started executing query at ",
     "Line {0}/{0} is the line number": {
         "message": "Line {0}",

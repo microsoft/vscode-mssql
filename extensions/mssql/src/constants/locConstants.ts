@@ -121,6 +121,13 @@ export function msgFinishedExecute(documentName: string) {
 export let msgRunQueryInProgress = l10n.t(
     "A query is already running for this editor session. Please cancel this query or wait for its completion.",
 );
+export let msgRunQueryInProgressCancelAction = l10n.t("Cancel query");
+export let msgQueryNoLongerRunning = l10n.t(
+    "The service is no longer running a query for this editor. The editor's execution state has been reset.",
+);
+export let msgCancelQueryTimedOut = l10n.t(
+    "The cancel request did not complete in time. The editor's execution state has been reset.",
+);
 export let runQueryBatchStartMessage = l10n.t("Started executing query at ");
 export function runQueryBatchStartLine(lineNumber: number) {
     return l10n.t({

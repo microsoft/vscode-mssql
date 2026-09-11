@@ -176,6 +176,11 @@ export const defaultConnectionTimeout = 15;
 export const azureSqlDbConnectionTimeout = 30;
 export const defaultCommandTimeout = 30;
 export const stsImmediateActivityTimeout = 5000; // 5 seconds
+// Upper bound for a query cancel round-trip to SQL Tools Service before the editor is reset.
+export const queryCancelRequestTimeoutMs = 15000; // 15 seconds
+// Grace period for a completion notification to arrive after the service reported that it has
+// no running query for an editor we still consider executing.
+export const queryCancelOrphanGraceMs = 2000; // 2 seconds
 export const azureDatabase = "Azure";
 export const azureMfa = "AzureMFA";
 export const azureServicePrincipal = "ActiveDirectoryServicePrincipal";
