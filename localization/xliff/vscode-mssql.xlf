@@ -1773,6 +1773,11 @@
     <trans-unit id="++CODE++639a40e82b9a96f0cbeed5f006cf5634c8d1b990b3c83753c00a910fc268d2a6">
       <source xml:lang="en">Connection</source>
     </trans-unit>
+    <trans-unit id="++CODE++ca2dabddc14f86e23e67b73c13a2a7cdbe2207116666e122934712564be8844c">
+      <source xml:lang="en">Connection &apos;{0}&apos; was deleted because its &apos;connectionString&apos; property was removed and no &apos;server&apos; property was defined. Removed connection string: &apos;{1}&apos;.</source>
+      <note>{0} is the connection display name
+{1} is the connection string that was removed</note>
+    </trans-unit>
     <trans-unit id="++CODE++6c916d6a3ffb6e0c85ad115ae2e1f277af1bc76f11a7267fd818b798a796b26a">
       <source xml:lang="en">Connection Authentication</source>
     </trans-unit>
@@ -8509,6 +8514,11 @@
     </trans-unit>
     <trans-unit id="++CODE++33c3b491fa743d2c355067a31dceaf799d4baaef0778d786cf5aafa5406ecf47">
       <source xml:lang="en">Text tab - displays SQL text data</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fd4cd1ebcce84a342f8bfad9435dafc4703f350e443812adf3724485e42d6894">
+      <source xml:lang="en">The &apos;connectionString&apos; property was removed from connection &apos;{0}&apos;. Removed connection string: &apos;{1}&apos;.</source>
+      <note>{0} is the connection display name
+{1} is the connection string that was removed</note>
     </trans-unit>
     <trans-unit id="++CODE++ad21b866cd78c8e2444ffe9593f592e88ed2fa82e200191a85e10725a0e321a7">
       <source xml:lang="en">The .NET SDK cannot be located. Project build will not work. Please install .NET 8 SDK or higher or update the .NET SDK location in settings if already installed.</source>

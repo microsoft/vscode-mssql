@@ -70,7 +70,6 @@ export class ConnectionConfig implements IConnectionConfig {
     private _hasDisplayedGroupParentWarning: boolean = false;
     private _hasDisplayedOrphanedConnectionWarning: boolean = false;
     private _hasDisplayedDefaultConnectionIdWarning: boolean = false;
-    private _ignoredConnectionProfileKeys = new Set<string>();
 
     /**
      * Constructor
@@ -81,18 +80,10 @@ export class ConnectionConfig implements IConnectionConfig {
     }
 
     private async initialize(): Promise<void> {
-        for (const profile of this.getRawConnectionsFromSettings()) {
-            if ((profile as unknown as Record<string, unknown>)["connectionString"] !== undefined) {
-                this._logger.warn(
-                    `Connection string found in connection profile '${profile.profileName || profile.server || profile.id || "unknown"}'. Recreate the connection to continue using it; this profile will be ignored.`,
-                );
-                this._ignoredConnectionProfileKeys.add(this.getConnectionProfileKey(profile));
-            }
-        }
-
         await this.addOrUpdateRootGroup();
         await this.assignConnectionGroupMissingIds();
         await this.assignConnectionMissingIds();
+        await this.removeConnectionStringsFromProfiles();
 
         this.initialized.resolve();
 
@@ -677,6 +668,47 @@ export class ConnectionConfig implements IConnectionConfig {
         }
     }
 
+    private async removeConnectionStringsFromProfiles(): Promise<void> {
+        const profiles = this.getRawConnectionsFromSettings();
+        const cleanedProfiles: IConnectionProfile[] = [];
+        let madeChanges = false;
+
+        for (const profile of profiles) {
+            const rawProfile = profile as unknown as Record<string, unknown>;
+            if (!Object.prototype.hasOwnProperty.call(rawProfile, "connectionString")) {
+                cleanedProfiles.push(profile);
+                continue;
+            }
+
+            madeChanges = true;
+            const connectionDisplayName = getConnectionDisplayName(profile);
+            const connectionString = String(rawProfile["connectionString"] ?? "");
+            let message: string;
+
+            if (profile.server) {
+                delete rawProfile["connectionString"];
+                cleanedProfiles.push(profile);
+                message = LocalizedConstants.Connection.connectionStringPropertyRemoved(
+                    connectionDisplayName,
+                    connectionString,
+                );
+            } else {
+                message =
+                    LocalizedConstants.Connection.connectionDeletedAfterConnectionStringRemoval(
+                        connectionDisplayName,
+                        connectionString,
+                    );
+            }
+
+            this._logger.warn(message);
+            void vscode.window.showInformationMessage(message);
+        }
+
+        if (madeChanges) {
+            await this.writeConnectionsToSettings(cleanedProfiles);
+        }
+    }
+
     //#endregion
 
     //#region Config Read/Write
@@ -727,20 +759,7 @@ export class ConnectionConfig implements IConnectionConfig {
             return { ...profile, configSource: ConfigurationTarget.Workspace as ConfigTarget };
         });
 
-        return [...globalConnections, ...workspaceConnections].filter(
-            (profile) =>
-                !this._ignoredConnectionProfileKeys.has(this.getConnectionProfileKey(profile)),
-        );
-    }
-
-    private getConnectionProfileKey(profile: IConnectionProfile): string {
-        if (profile.id) {
-            return profile.id;
-        }
-
-        const profileWithoutConfigSource = { ...profile };
-        delete profileWithoutConfigSource.configSource;
-        return JSON.stringify(profileWithoutConfigSource);
+        return [...globalConnections, ...workspaceConnections];
     }
 
     /**

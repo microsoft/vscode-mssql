@@ -196,8 +196,9 @@ suite("ConnectionConfig Tests", () => {
             expect(savedProfiles[0].groupId).to.equal(ConnectionConfig.ROOT_GROUP_ID);
         });
 
-        test("Initialization ignores legacy connection string profiles", async () => {
+        test("Initialization removes and saves legacy connection string properties", async () => {
             const mockLogger = createStubLogger(sandbox);
+            const connectionString = "Server=legacy-server;Integrated Security=true";
             mockGlobalConfigData.set(Constants.connectionGroupsArrayName, [
                 { name: "ROOT", id: ConnectionConfig.ROOT_GROUP_ID },
             ]);
@@ -205,7 +206,8 @@ suite("ConnectionConfig Tests", () => {
                 {
                     id: "legacy-profile-id",
                     groupId: ConnectionConfig.ROOT_GROUP_ID,
-                    connectionString: "Server=legacy-server;Integrated Security=true",
+                    server: "explicit-server",
+                    connectionString,
                     profileName: "Legacy Profile",
                 },
                 {
@@ -220,12 +222,68 @@ suite("ConnectionConfig Tests", () => {
             const connConfig = new ConnectionConfig(mockLogger);
             await connConfig.initialized;
 
-            const profiles = await connConfig.getConnections();
-            expect(profiles.map((profile) => profile.id)).to.deep.equal(["valid-profile-id"]);
-            expect(mockLogger.warn).to.have.been.calledOnceWith(
-                sinon.match("Connection string found in connection profile 'Legacy Profile'"),
+            const savedProfiles = mockGlobalConfigData.get(
+                Constants.connectionsArrayName,
+            ) as IConnectionProfile[];
+            expect(savedProfiles.map((profile) => profile.id)).to.deep.equal([
+                "legacy-profile-id",
+                "valid-profile-id",
+            ]);
+            expect(savedProfiles[0]).to.include({ server: "explicit-server" });
+            expect(savedProfiles[0]).not.to.have.property("connectionString");
+
+            const expectedMessage = LocalizedConstants.Connection.connectionStringPropertyRemoved(
+                "Legacy Profile",
+                connectionString,
             );
-            expect(mockLogger.warn).to.have.been.calledWith(sinon.match("Recreate the connection"));
+            expect(mockLogger.warn).to.have.been.calledOnceWith(expectedMessage);
+            expect(messageBoxes.showInformationMessage).to.have.been.calledOnceWith(
+                expectedMessage,
+            );
+        });
+
+        test("Initialization deletes connection string profiles without a server", async () => {
+            const mockLogger = createStubLogger(sandbox);
+            const connectionString = "Server=legacy-server;Integrated Security=true";
+            mockGlobalConfigData.set(Constants.connectionGroupsArrayName, [
+                { name: "ROOT", id: ConnectionConfig.ROOT_GROUP_ID },
+            ]);
+            mockGlobalConfigData.set(Constants.connectionsArrayName, [
+                {
+                    id: "valid-profile-id",
+                    groupId: ConnectionConfig.ROOT_GROUP_ID,
+                    server: "valid-server",
+                    authenticationType: "Integrated",
+                    profileName: "Valid Profile",
+                },
+            ]);
+            mockWorkspaceConfigData.set(Constants.connectionsArrayName, [
+                {
+                    id: "legacy-profile-id",
+                    groupId: ConnectionConfig.ROOT_GROUP_ID,
+                    connectionString,
+                    profileName: "Legacy Profile",
+                },
+            ]);
+
+            const connConfig = new ConnectionConfig(mockLogger);
+            await connConfig.initialized;
+
+            const savedProfiles = mockGlobalConfigData.get(
+                Constants.connectionsArrayName,
+            ) as IConnectionProfile[];
+            expect(savedProfiles.map((profile) => profile.id)).to.deep.equal(["valid-profile-id"]);
+            expect(mockWorkspaceConfigData.get(Constants.connectionsArrayName)).to.deep.equal([]);
+
+            const expectedMessage =
+                LocalizedConstants.Connection.connectionDeletedAfterConnectionStringRemoval(
+                    "Legacy Profile",
+                    connectionString,
+                );
+            expect(mockLogger.warn).to.have.been.calledOnceWith(expectedMessage);
+            expect(messageBoxes.showInformationMessage).to.have.been.calledOnceWith(
+                expectedMessage,
+            );
         });
 
         test("Initialization doesn't make changes when all IDs are present", async () => {
