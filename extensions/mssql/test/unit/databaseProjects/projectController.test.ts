@@ -1365,6 +1365,100 @@ suite("ProjectsController", function (): void {
         });
 
         suite("Publishing and script generation", function (): void {
+            test("getProjectScriptFiles reloads the project from disk", async function (): Promise<void> {
+                const projectFilePath = path.join("test", "project.sqlproj");
+                const scriptPath = path.join("test", "Table.sql");
+                const project = {
+                    sqlObjectScripts: [
+                        {
+                            fsUri: vscode.Uri.file(scriptPath),
+                        },
+                    ],
+                } as Project;
+                const openProjectStub = sandbox.stub(Project, "openProject").resolves(project);
+
+                const projController = new ProjectsController(testContext.outputChannel);
+                const scripts = await projController.getProjectScriptFiles(projectFilePath);
+
+                expect(scripts).to.deep.equal([vscode.Uri.file(scriptPath).fsPath]);
+                expect(openProjectStub.calledOnceWithExactly(projectFilePath, false, true)).to.be
+                    .true;
+            });
+
+            test("schemaComparePublishProjectChanges updates project entries before building", async function (): Promise<void> {
+                const projectFilePath = path.join("C:", "test", "project.sqlproj");
+                const addedFilePath = path.join("C:", "test", "Tables", "Added.sql");
+                const deletedFilePath = path.join("C:", "test", "Tables", "Deleted.sql");
+                const project = new Project(projectFilePath);
+                const addSqlObjectScriptsStub = sandbox
+                    .stub(project, "addSqlObjectScripts")
+                    .resolves();
+                const excludeSqlObjectScriptStub = sandbox
+                    .stub(project, "excludeSqlObjectScript")
+                    .resolves();
+                sandbox.stub(Project, "openProject").resolves(project);
+
+                const publishProjectChangesStub = sandbox.stub().resolves({
+                    success: true,
+                    errorMessage: undefined,
+                    changedFiles: [],
+                    addedFiles: [addedFilePath],
+                    deletedFiles: [deletedFilePath],
+                } as vscodeMssql.SchemaComparePublishProjectResult);
+                sandbox.stub(utils, "getSchemaCompareService").resolves({
+                    publishProjectChanges: publishProjectChangesStub,
+                } as unknown as vscodeMssql.ISchemaCompareService);
+
+                const projController = new ProjectsController(testContext.outputChannel);
+                const buildProjectStub = sandbox.stub(projController, "buildProject").resolves("");
+
+                const result = await projController.schemaComparePublishProjectChanges(
+                    "operation-id",
+                    projectFilePath,
+                    ExtractTarget.schemaObjectType,
+                );
+
+                expect(result.success).to.be.true;
+                expect(
+                    addSqlObjectScriptsStub.calledOnceWithExactly([
+                        path.relative(project.projectFolderPath, addedFilePath),
+                    ]),
+                ).to.be.true;
+                expect(
+                    excludeSqlObjectScriptStub.calledOnceWithExactly(
+                        path.join("Tables", "Deleted.sql"),
+                    ),
+                ).to.be.true;
+                expect(excludeSqlObjectScriptStub.calledBefore(buildProjectStub)).to.be.true;
+            });
+
+            test("schemaComparePublishProjectChanges leaves the project unchanged on failure", async function (): Promise<void> {
+                const projectFilePath = path.join("C:", "test", "project.sqlproj");
+                const openProjectStub = sandbox.stub(Project, "openProject");
+                sandbox.stub(utils, "getSchemaCompareService").resolves({
+                    publishProjectChanges: sandbox.stub().resolves({
+                        success: false,
+                        errorMessage: undefined,
+                        changedFiles: [],
+                        addedFiles: [],
+                        deletedFiles: [],
+                    } as vscodeMssql.SchemaComparePublishProjectResult),
+                } as unknown as vscodeMssql.ISchemaCompareService);
+
+                const projController = new ProjectsController(testContext.outputChannel);
+                const buildProjectStub = sandbox.stub(projController, "buildProject").resolves("");
+
+                const result = await projController.schemaComparePublishProjectChanges(
+                    "operation-id",
+                    projectFilePath,
+                    ExtractTarget.schemaObjectType,
+                );
+
+                expect(result.success).to.be.false;
+                expect(openProjectStub.notCalled).to.be.true;
+                expect(buildProjectStub.notCalled).to.be.true;
+            });
+
             test("publishProject should invoke mssql.publishDatabaseProject command with correct project path", async function (): Promise<void> {
                 const proj = await testUtils.createTestProject(
                     this.test,

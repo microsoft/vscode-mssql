@@ -1385,15 +1385,11 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                             },
                         });
 
-                        publishResult = await publishProjectChanges(
-                            this.operationId,
-                            {
-                                targetProjectPath: state.targetEndpointInfo.projectFilePath,
-                                targetFolderStructure: state.targetEndpointInfo.extractTarget,
-                                taskExecutionMode: TaskExecutionMode.execute,
-                            },
-                            this.schemaCompareService,
-                        );
+                        publishResult = await publishProjectChanges(this.operationId, {
+                            targetProjectPath: state.targetEndpointInfo.projectFilePath,
+                            targetFolderStructure: state.targetEndpointInfo.extractTarget,
+                            taskExecutionMode: TaskExecutionMode.execute,
+                        });
 
                         endActivity.end(ActivityStatus.Succeeded, {
                             additionalProps: {
@@ -1586,11 +1582,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             );
 
             try {
-                const result = await publishProjectChanges(
-                    this.operationId,
-                    payload,
-                    this.schemaCompareService,
-                );
+                const result = await publishProjectChanges(this.operationId, payload);
 
                 if (result.success) {
                     this.logger.debug(

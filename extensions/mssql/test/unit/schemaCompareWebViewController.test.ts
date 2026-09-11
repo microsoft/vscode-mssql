@@ -832,7 +832,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         expect(
             publishProjectChangesStub.firstCall.args,
             "publishProjectChanges should be called with correct arguments",
-        ).to.deep.equal([operationId, payload, schemaCompareService]);
+        ).to.deep.equal([operationId, payload]);
 
         expect(
             actualResult.schemaComparePublishProjectResult,
