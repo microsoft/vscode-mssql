@@ -14,6 +14,7 @@ import {
     ExtractTarget,
     SchemaCompareEndpointType,
     SchemaCompareDifferenceUpdate,
+    SchemaCompareGenerateScriptRequest,
     SchemaCompareIncludeExcludeAllRequest,
     SchemaCompareIncludeExcludeNodeRequest,
     SchemaCompareIncludeExcludeNodeResponse,
@@ -70,6 +71,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
     private operationId: string;
     private readonly connectionUris = new Map<string, string>();
     private databaseListRequestGeneration = 0;
+    private schemaCompareGeneration = 0;
     private readonly databaseListCache = new Map<string, string[]>();
     private _includeExcludeNodeQueue = Promise.resolve();
 
@@ -129,7 +131,6 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 originalTargetExcludes: new Map<string, DiffEntry>(),
                 sourceTargetSwitched: false,
                 schemaCompareResult: undefined,
-                generateScriptResultStatus: undefined,
                 publishDatabaseChangesResultStatus: undefined,
                 schemaComparePublishProjectResult: undefined,
                 schemaCompareIncludeExcludeResult: undefined,
@@ -759,6 +760,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 `Clearing auxiliary endpoint info - OperationId: ${this.operationId}`,
             );
             state.auxiliaryEndpointInfo = undefined;
+            this.clearSchemaCompareResult(state);
             this.updateState(state);
 
             return state;
@@ -857,6 +859,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 state.targetEndpointInfo = endpointInfo;
             }
 
+            this.clearSchemaCompareResult(state);
             state.isEndpointSelectionInProgress = false;
             this.updateState(state);
 
@@ -1131,6 +1134,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             state.sourceEndpointInfo = payload.newSourceEndpointInfo;
             state.targetEndpointInfo = payload.newTargetEndpointInfo;
             state.endpointsSwitched = true;
+            this.clearSchemaCompareResult(state);
 
             this.updateState(state);
 
@@ -1169,22 +1173,17 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             );
         });
 
-        this.registerReducer("generateScript", async (state, payload) => {
+        this.onRequest(SchemaCompareGenerateScriptRequest.type, async (payload) => {
+            const state = this.state;
             this.logger.info(
                 `Generating script for schema changes with operation ID: ${this.operationId}`,
             );
             this.logger.debug(
-                `Generate script reducer invoked with payload - hasTargetServerName: ${!!payload?.targetServerName}, hasTargetDatabaseName: ${!!payload?.targetDatabaseName} - OperationId: ${this.operationId}`,
+                `Generate script request invoked with payload - hasTargetServerName: ${!!payload?.targetServerName}, hasTargetDatabaseName: ${!!payload?.targetDatabaseName} - OperationId: ${this.operationId}`,
             );
             this.logger.debug(
                 `Current state - sourceEndpoint: ${state.sourceEndpointInfo?.endpointType || "undefined"}, targetEndpoint: ${state.targetEndpointInfo?.endpointType || "undefined"}, hasCompareResult: ${!!state.schemaCompareResult} - OperationId: ${this.operationId}`,
             );
-
-            if (state.schemaCompareResult) {
-                this.logger.debug(
-                    `Schema compare result has ${state.schemaCompareResult.differences?.length || 0} differences - OperationId: ${this.operationId}`,
-                );
-            }
 
             const startTime = Date.now();
             const endActivity = startActivity(
@@ -1207,50 +1206,40 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 },
             );
 
-            this.logger.debug(`Starting script generation - OperationId: ${this.operationId}`);
-            this.logger.debug(
-                `Calling generateScript with TaskExecutionMode.script - OperationId: ${this.operationId}`,
-            );
-
-            const result = await generateScript(
-                this.operationId,
-                TaskExecutionMode.script,
-                payload,
-                this.schemaCompareService,
-                this.logger,
-            );
-
-            this.logger.debug(
-                `Generate script service call completed - success: ${result?.success}, hasErrorMessage: ${!!result?.errorMessage} - OperationId: ${this.operationId}`,
-            );
-
-            if (result) {
-                this.logger.debug(
-                    `Generate script result object keys: ${Object.keys(result).join(", ")} - OperationId: ${this.operationId}`,
+            let result: mssql.ResultStatus;
+            try {
+                result = await generateScript(
+                    this.operationId,
+                    TaskExecutionMode.script,
+                    payload,
+                    this.schemaCompareService,
+                    this.logger,
                 );
-                this.logger.debug(
-                    `Generate script result details: ${JSON.stringify(result)} - OperationId: ${this.operationId}`,
+            } catch (error) {
+                const errorMessage = getErrorMessage(error);
+                this.logger.error(
+                    `Generate script threw: ${errorMessage} - OperationId: ${this.operationId}`,
                 );
-            } else {
-                this.logger.warn(
-                    `Generate script returned null or undefined result - OperationId: ${this.operationId}`,
-                );
-            }
+                endActivity.endFailed(new Error(errorMessage), true, undefined, undefined, {
+                    elapsedTime: (Date.now() - startTime).toString(),
+                    operationId: this.operationId,
+                    errorMessage,
+                });
 
-            if (result && result.errorMessage) {
-                this.logger.warn(
-                    `Generate script result contains error message: ${result.errorMessage} - OperationId: ${this.operationId}`,
+                void vscode.window.showErrorMessage(
+                    locConstants.SchemaCompare.generateScriptErrorMessage(errorMessage),
                 );
+
+                return { success: false, errorMessage };
             }
 
             if (!result || !result.success) {
+                const errorMessage = result?.errorMessage || "Unknown error";
                 this.logger.error(
-                    `Failed to generate script: ${result?.errorMessage || "Unknown error"} - OperationId: ${this.operationId}`,
+                    `Failed to generate script: ${errorMessage} - OperationId: ${this.operationId}`,
                 );
                 endActivity.endFailed(
-                    new Error(
-                        `Failed to generate script: ${result?.errorMessage || "Unknown error"}`,
-                    ),
+                    new Error(`Failed to generate script: ${errorMessage}`),
                     true,
                     undefined,
                     undefined,
@@ -1260,18 +1249,14 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                     },
                 );
 
-                vscode.window.showErrorMessage(
+                void vscode.window.showErrorMessage(
                     locConstants.SchemaCompare.generateScriptErrorMessage(result?.errorMessage),
                 );
-            } else {
-                this.logger.info(
-                    `Successfully generated script - OperationId: ${this.operationId}`,
-                );
-                this.logger.debug(
-                    `Script generation completed, updating state with result - OperationId: ${this.operationId}`,
-                );
+
+                return { success: false, errorMessage: result?.errorMessage };
             }
 
+            this.logger.info(`Successfully generated script - OperationId: ${this.operationId}`);
             endActivity.end(ActivityStatus.Succeeded, {
                 additionalProps: {
                     elapsedTime: (Date.now() - startTime).toString(),
@@ -1279,15 +1264,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 },
             });
 
-            this.logger.debug(
-                `Setting state.generateScriptResultStatus with result - OperationId: ${this.operationId}`,
-            );
-            state.generateScriptResultStatus = result;
-
-            this.logger.debug(
-                `Generate script reducer completed, returning updated state - OperationId: ${this.operationId}`,
-            );
-            return state;
+            return { success: true };
         });
 
         this.registerReducer("publishChanges", async (state, payload) => {
@@ -1926,6 +1903,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
 
         this.onRequest(SchemaCompareGetDifferenceDetailsRequest.type, async (payload) => {
             const requestedOperationId = this.operationId;
+            const requestedSchemaCompareGeneration = this.schemaCompareGeneration;
             const result = await this.schemaCompareService.getDifferenceDetails(
                 requestedOperationId,
                 payload.id,
@@ -1935,6 +1913,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 !result.success ||
                 !result.difference ||
                 requestedOperationId !== this.operationId ||
+                requestedSchemaCompareGeneration !== this.schemaCompareGeneration ||
                 !this.state.schemaCompareResult?.differences[payload.id]
             ) {
                 return {
@@ -2615,6 +2594,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         state: SchemaCompareWebViewState,
         triggerSource?: string,
     ) {
+        const schemaCompareGeneration = ++this.schemaCompareGeneration;
         this.logger.info(`Starting schema comparison with operation ID: ${this.operationId}`);
         this.logger.debug(
             `Source endpoint type: ${getSchemaCompareEndpointTypeString(payload.sourceEndpointInfo.endpointType)} - OperationId: ${this.operationId}`,
@@ -2624,6 +2604,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         );
 
         state.isComparisonInProgress = true;
+        state.schemaCompareResult = undefined;
         state.applySucceeded = false;
         state.applyFailed = false;
         this.updateState(state);
@@ -2717,6 +2698,13 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             this.schemaCompareService,
         );
 
+        if (schemaCompareGeneration !== this.schemaCompareGeneration) {
+            this.logger.debug(
+                `Ignoring stale schema comparison result - OperationId: ${this.operationId}`,
+            );
+            return state;
+        }
+
         state.isComparisonInProgress = false;
 
         if (!result || !result.success) {
@@ -2776,6 +2764,12 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         this.updateState(state);
 
         return state;
+    }
+
+    private clearSchemaCompareResult(state: SchemaCompareWebViewState): void {
+        this.schemaCompareGeneration += 1;
+        state.schemaCompareResult = undefined;
+        state.isComparisonInProgress = false;
     }
 
     private async constructEndpointInfo(

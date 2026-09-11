@@ -10,6 +10,7 @@ import { ArrowSwap16Regular } from "@fluentui/react-icons";
 import SelectSchemaInput from "./SelectSchemaInput";
 import { schemaCompareContext } from "../SchemaCompareStateProvider";
 import { useSchemaCompareSelector } from "../schemaCompareSelector";
+import { isEndpointEmpty } from "../schemaCompareEndpointUtils";
 import { locConstants as loc } from "../../../common/locConstants";
 
 const useStyles = makeStyles({
@@ -85,16 +86,6 @@ const SelectSchemasPanel = ({ onSelectSchemaClicked }: Props) => {
 
     const handleSwitchEndpoints = () => {
         context.switchEndpoints(targetEndpointInfo, sourceEndpointInfo);
-    };
-
-    const isEndpointEmpty = (endpoint: mssql.SchemaCompareEndpointInfo): boolean => {
-        if (
-            endpoint &&
-            (endpoint.serverDisplayName || endpoint.packageFilePath || endpoint.projectFilePath)
-        ) {
-            return false;
-        }
-        return true;
     };
 
     return (

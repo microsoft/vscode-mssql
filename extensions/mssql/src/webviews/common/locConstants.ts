@@ -2313,6 +2313,11 @@ export class LocConstants {
             intro: l10n.t(
                 "To compare two schemas, first select a source schema and target schema, then press compare.",
             ),
+            selectSourceToCompare: l10n.t("Select a source schema, then press Compare."),
+            selectTargetToCompare: l10n.t("Select a target schema, then press Compare."),
+            readyToCompare: l10n.t(
+                "Press Compare to see the differences between the source and target schemas.",
+            ),
             selectSourceSchema: l10n.t("Select Source Schema"),
             selectTargetSchema: l10n.t("Select Target Schema"),
             noDifferences: l10n.t("No schema differences were found."),
@@ -2585,6 +2590,7 @@ export class LocConstants {
                 "Processing include or exclude all differences operation.",
             ),
             updatingDifferenceSelection: l10n.t("Updating difference selection."),
+            generatingScript: l10n.t("Generating script."),
         };
     }
 

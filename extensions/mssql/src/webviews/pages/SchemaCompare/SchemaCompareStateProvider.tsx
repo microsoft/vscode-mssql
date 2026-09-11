@@ -35,7 +35,8 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
         new Set(),
     );
     const [isIncludeExcludeAllInProgress, setIsIncludeExcludeAllInProgress] = useState(false);
-    const loadingDifferenceDetailIdsRef = useRef(new Set<number>());
+    const differenceDetailsGenerationRef = useRef(0);
+    const loadingDifferenceDetailIdsRef = useRef(new Map<number, number>());
     const [loadingDifferenceDetailIds, setLoadingDifferenceDetailIds] = useState<
         ReadonlySet<number>
     >(new Set());
@@ -61,10 +62,23 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
     }, []);
 
     useEffect(() => {
+        if (!schemaCompareResult) {
+            differenceDetailsGenerationRef.current += 1;
+            loadingDifferenceDetailIdsRef.current.clear();
+            pendingSelectionsRef.current.clear();
+            isIncludeExcludeAllInProgressRef.current = false;
+            confirmedDifferencesRef.current = [];
+            setLoadingDifferenceDetailIds(new Set());
+            setPendingDifferenceIds(new Set());
+            setIsIncludeExcludeAllInProgress(false);
+            setDifferences([]);
+            return;
+        }
+
         if (pendingSelectionsRef.current.size > 0 || isIncludeExcludeAllInProgressRef.current) {
             return;
         }
-        const updated = schemaCompareResult?.differences ?? [];
+        const updated = schemaCompareResult.differences ?? [];
         confirmedDifferencesRef.current = updated;
         setDifferences(updated);
     }, [schemaCompareResult]);
@@ -156,22 +170,27 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
     const loadDifferenceDetails = useCallback(
         async (id: number): Promise<void> => {
             const current = confirmedDifferencesRef.current[id];
+            const generation = differenceDetailsGenerationRef.current;
             if (
                 !current ||
                 current.hasDetails !== false ||
-                loadingDifferenceDetailIdsRef.current.has(id)
+                loadingDifferenceDetailIdsRef.current.get(id) === generation
             ) {
                 return;
             }
 
-            loadingDifferenceDetailIdsRef.current.add(id);
-            setLoadingDifferenceDetailIds(new Set(loadingDifferenceDetailIdsRef.current));
+            loadingDifferenceDetailIdsRef.current.set(id, generation);
+            setLoadingDifferenceDetailIds(new Set(loadingDifferenceDetailIdsRef.current.keys()));
             try {
                 const response = await extensionRpc.sendRequest(
                     sc.SchemaCompareGetDifferenceDetailsRequest.type,
                     { id },
                 );
-                if (response.success && response.difference) {
+                if (
+                    generation === differenceDetailsGenerationRef.current &&
+                    response.success &&
+                    response.difference
+                ) {
                     const existing = confirmedDifferencesRef.current[id];
                     if (existing) {
                         confirmedDifferencesRef.current = confirmedDifferencesRef.current.map(
@@ -183,13 +202,45 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
                         renderConfirmedDifferences();
                     }
                 }
+            } catch {
+                // Background detail loading is best-effort. Selecting the row can retry it.
             } finally {
-                loadingDifferenceDetailIdsRef.current.delete(id);
-                setLoadingDifferenceDetailIds(new Set(loadingDifferenceDetailIdsRef.current));
+                if (loadingDifferenceDetailIdsRef.current.get(id) === generation) {
+                    loadingDifferenceDetailIdsRef.current.delete(id);
+                    setLoadingDifferenceDetailIds(
+                        new Set(loadingDifferenceDetailIdsRef.current.keys()),
+                    );
+                }
             }
         },
         [extensionRpc, renderConfirmedDifferences],
     );
+
+    const differenceCount = schemaCompareResult?.differences.length ?? 0;
+
+    useEffect(() => {
+        if (differenceCount === 0) {
+            return;
+        }
+
+        let canceled = false;
+        const generation = differenceDetailsGenerationRef.current;
+        const frameId = requestAnimationFrame(() => {
+            void (async () => {
+                for (let id = 0; id < differenceCount; id++) {
+                    if (canceled || generation !== differenceDetailsGenerationRef.current) {
+                        return;
+                    }
+                    await loadDifferenceDetails(id);
+                }
+            })();
+        });
+
+        return () => {
+            canceled = true;
+            cancelAnimationFrame(frameId);
+        };
+    }, [differenceCount, loadDifferenceDetails]);
 
     const commands = useMemo<sc.SchemaCompareContextProps>(
         () => ({
@@ -301,8 +352,11 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
                     deploymentOptions: deploymentOptions,
                 });
             },
-            generateScript: function (targetServerName: string, targetDatabaseName: string): void {
-                extensionRpc.action("generateScript", {
+            generateScript: function (
+                targetServerName: string,
+                targetDatabaseName: string,
+            ): Promise<sc.SchemaCompareGenerateScriptResponse> {
+                return extensionRpc.sendRequest(sc.SchemaCompareGenerateScriptRequest.type, {
                     targetServerName: targetServerName,
                     targetDatabaseName: targetDatabaseName,
                 });

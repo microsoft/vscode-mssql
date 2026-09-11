@@ -69,7 +69,6 @@ export interface SchemaCompareWebViewState {
     originalTargetExcludes: Map<string, DiffEntry>;
     sourceTargetSwitched: boolean;
     schemaCompareResult: SchemaCompareResult;
-    generateScriptResultStatus: ResultStatus;
     publishDatabaseChangesResultStatus: ResultStatus;
     schemaComparePublishProjectResult: SchemaComparePublishProjectResult;
     schemaCompareIncludeExcludeResult: SchemaCompareIncludeExcludeResult;
@@ -133,11 +132,6 @@ export interface SchemaCompareReducers {
         sourceEndpointInfo: SchemaCompareEndpointInfo;
         targetEndpointInfo: SchemaCompareEndpointInfo;
         deploymentOptions: DeploymentOptions;
-    };
-
-    generateScript: {
-        targetServerName: string;
-        targetDatabaseName: string;
     };
 
     publishChanges: {
@@ -219,7 +213,10 @@ export interface SchemaCompareContextProps extends CoreRPCs {
         deploymentOptions: DeploymentOptions,
     ) => void;
 
-    generateScript: (targetServerName: string, targetDatabaseName: string) => void;
+    generateScript: (
+        targetServerName: string,
+        targetDatabaseName: string,
+    ) => Promise<SchemaCompareGenerateScriptResponse>;
 
     publishChanges: (targetServerName: string, targetDatabaseName: string) => void;
 
@@ -304,6 +301,24 @@ export namespace SchemaCompareGetDifferenceDetailsRequest {
         SchemaCompareDifferenceDetailsResponse,
         void
     >("schemaCompare/getDifferenceDetailsWebview");
+}
+
+export interface SchemaCompareGenerateScriptParams {
+    targetServerName: string;
+    targetDatabaseName: string;
+}
+
+export interface SchemaCompareGenerateScriptResponse {
+    success: boolean;
+    errorMessage?: string;
+}
+
+export namespace SchemaCompareGenerateScriptRequest {
+    export const type = new RequestType<
+        SchemaCompareGenerateScriptParams,
+        SchemaCompareGenerateScriptResponse,
+        void
+    >("schemaCompare/generateScriptWebview");
 }
 
 export interface SchemaCompareIncludeExcludeAllParams {

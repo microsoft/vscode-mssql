@@ -3,8 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as mssql from "vscode-mssql";
-import { Button, Toolbar, ToolbarDivider, makeStyles } from "@fluentui/react-components";
+import { Button, Spinner, Toolbar, ToolbarDivider, makeStyles } from "@fluentui/react-components";
 
 import {
     ArrowSwap16Filled,
@@ -21,6 +20,7 @@ import { locConstants as loc } from "../../../common/locConstants";
 import { useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { schemaCompareContext } from "../SchemaCompareStateProvider";
 import { useSchemaCompareSelector } from "../schemaCompareSelector";
+import { isEndpointEmpty } from "../schemaCompareEndpointUtils";
 import { SchemaCompareEndpointType } from "../../../../sharedInterfaces/schemaCompare";
 import { SchemaCompareApplyDialog } from "./SchemaCompareApplyDialog";
 
@@ -65,6 +65,7 @@ const CompareActionBar = (props: Props) => {
     );
     const isComparisonInProgress = useSchemaCompareSelector((s) => s.isComparisonInProgress);
     const isApplyInProgress = useSchemaCompareSelector((s) => s.isApplyInProgress);
+    const [isScriptGenerationInProgress, setIsScriptGenerationInProgress] = useState(false);
     const isEndpointSelectionInProgress = useSchemaCompareSelector(
         (s) => s.isEndpointSelectionInProgress === true,
     );
@@ -123,8 +124,17 @@ const CompareActionBar = (props: Props) => {
         context.cancel();
     };
 
-    const handleGenerateScript = () => {
-        context.generateScript(targetEndpointInfo.serverName, targetEndpointInfo.databaseName);
+    const handleGenerateScript = async () => {
+        setIsScriptGenerationInProgress(true);
+        try {
+            // The extension host owns user-facing error notifications for this request.
+            await context.generateScript(
+                targetEndpointInfo.serverName,
+                targetEndpointInfo.databaseName,
+            );
+        } finally {
+            setIsScriptGenerationInProgress(false);
+        }
     };
 
     const handlePublishChanges = () => {
@@ -145,13 +155,6 @@ const CompareActionBar = (props: Props) => {
 
     const handleSaveScmp = () => {
         context.saveScmp();
-    };
-
-    const isEndpointEmpty = (endpoint: mssql.SchemaCompareEndpointInfo): boolean => {
-        return !(
-            endpoint &&
-            (endpoint.serverDisplayName || endpoint.packageFilePath || endpoint.projectFilePath)
-        );
     };
 
     const hasIncludedDiffs = (): boolean => {
@@ -201,6 +204,7 @@ const CompareActionBar = (props: Props) => {
     const isApplyDisabled =
         isComparisonInProgress ||
         isApplyInProgress ||
+        isScriptGenerationInProgress ||
         isCheckboxOperationInProgress ||
         disableApplyButton();
     const applyButton = (
@@ -230,6 +234,7 @@ const CompareActionBar = (props: Props) => {
                         isEndpointEmpty(targetEndpointInfo) ||
                         isComparisonInProgress ||
                         isApplyInProgress ||
+                        isScriptGenerationInProgress ||
                         isEndpointSelectionInProgress ||
                         isCheckboxOperationInProgress
                     }>
@@ -250,11 +255,21 @@ const CompareActionBar = (props: Props) => {
                     appearance="subtle"
                     aria-label={loc.schemaCompare.generateScript}
                     title={loc.schemaCompare.generateScriptToDeployChangesToTarget}
-                    icon={<DocumentChevronDouble20Regular />}
-                    onClick={handleGenerateScript}
+                    icon={
+                        isScriptGenerationInProgress ? (
+                            <Spinner
+                                size="extra-tiny"
+                                aria-label={loc.schemaCompare.generatingScript}
+                            />
+                        ) : (
+                            <DocumentChevronDouble20Regular />
+                        )
+                    }
+                    onClick={() => void handleGenerateScript()}
                     disabled={
                         disableGenerateScriptButton() ||
                         isApplyInProgress ||
+                        isScriptGenerationInProgress ||
                         isCheckboxOperationInProgress
                     }>
                     {!isCompact && loc.schemaCompare.generateScript}

@@ -23,6 +23,7 @@ import {
     TaskExecutionMode,
 } from "../../src/enums";
 import {
+    SchemaCompareGenerateScriptRequest,
     SchemaCompareIncludeExcludeAllRequest,
     SchemaCompareGetDifferenceDetailsRequest,
     SchemaCompareIncludeExcludeNodeRequest,
@@ -236,7 +237,6 @@ suite("SchemaCompareWebViewController Tests", () => {
                 success: true,
                 errorMessage: "",
             },
-            generateScriptResultStatus: undefined,
             publishDatabaseChangesResultStatus: undefined,
             schemaComparePublishProjectResult: undefined,
             schemaCompareIncludeExcludeResult: undefined,
@@ -726,27 +726,20 @@ suite("SchemaCompareWebViewController Tests", () => {
         expect(result).to.equal(state);
     });
 
-    test("generateScript reducer - when called - completes successfully", async () => {
-        const expectedScriptResultMock = {
+    test("generateScript request - when called - returns success", async () => {
+        const generateScriptStub = sandbox.stub(scUtils, "generateScript").resolves({
             success: true,
             errorMessage: "",
-        };
-
-        const generateScriptStub = sandbox
-            .stub(scUtils, "generateScript")
-            .resolves(expectedScriptResultMock);
+        });
 
         const payload = {
             targetServerName: "localhost,1433",
             targetDatabaseName: "master",
         };
 
-        const result = await controller["_reducerHandlers"].get("generateScript")(
-            mockInitialState,
-            payload,
-        );
-
-        expect(generateScriptStub, "generateScript should be called once").to.have.been.calledOnce;
+        controller.state = structuredClone(mockInitialState);
+        const handler = requestHandlers.get(SchemaCompareGenerateScriptRequest.type.method);
+        const result = await handler(payload);
 
         expect(
             generateScriptStub,
@@ -759,12 +752,60 @@ suite("SchemaCompareWebViewController Tests", () => {
             sinon.match.any,
         );
 
-        expect(
-            result.generateScriptResultStatus,
-            "generateScript should return expected result",
-        ).to.deep.equal(expectedScriptResultMock);
+        expect(result, "generateScript should report success").to.deep.equal({ success: true });
 
         generateScriptStub.restore();
+    });
+
+    test("generateScript request - when the service call fails - reports the error", async () => {
+        const generateScriptStub = sandbox.stub(scUtils, "generateScript").resolves({
+            success: false,
+            errorMessage: "target unreachable",
+        });
+        const showErrorMessageStub = sandbox.stub(vscode.window, "showErrorMessage").resolves();
+
+        controller.state = structuredClone(mockInitialState);
+        const handler = requestHandlers.get(SchemaCompareGenerateScriptRequest.type.method);
+        const result = await handler({
+            targetServerName: "localhost,1433",
+            targetDatabaseName: "master",
+        });
+
+        expect(result, "generateScript should report the failure to the webview").to.deep.equal({
+            success: false,
+            errorMessage: "target unreachable",
+        });
+
+        expect(showErrorMessageStub, "the user should be told the script could not be generated").to
+            .have.been.called;
+
+        generateScriptStub.restore();
+        showErrorMessageStub.restore();
+    });
+
+    test("generateScript request - when the service call throws - resolves instead of rejecting", async () => {
+        const generateScriptStub = sandbox
+            .stub(scUtils, "generateScript")
+            .rejects(new Error("boom"));
+        const showErrorMessageStub = sandbox.stub(vscode.window, "showErrorMessage").resolves();
+
+        controller.state = structuredClone(mockInitialState);
+        const handler = requestHandlers.get(SchemaCompareGenerateScriptRequest.type.method);
+        const result = await handler({
+            targetServerName: "localhost,1433",
+            targetDatabaseName: "master",
+        });
+
+        expect(result, "a thrown error should surface as a failed response").to.deep.equal({
+            success: false,
+            errorMessage: "boom",
+        });
+
+        expect(showErrorMessageStub, "the user should be told the script could not be generated").to
+            .have.been.called;
+
+        generateScriptStub.restore();
+        showErrorMessageStub.restore();
     });
 
     test("publishDatabaseChanges reducer - when called - completes successfully", async () => {
@@ -977,6 +1018,35 @@ suite("SchemaCompareWebViewController Tests", () => {
         expect(response.difference.included).to.be.false;
         expect(controller.state.schemaCompareResult.differences[0].children).to.have.length(1);
         expect(controller.state.schemaCompareResult.differences[0].included).to.be.false;
+    });
+
+    test("getDifferenceDetails request - ignores details after endpoints change", async () => {
+        const state = structuredClone(mockInitialState);
+        controller.state = state;
+        let resolveDetails: (result: mssql.SchemaCompareDifferenceDetailsResult) => void;
+        const pendingDetails = new Promise<mssql.SchemaCompareDifferenceDetailsResult>(
+            (resolve) => (resolveDetails = resolve),
+        );
+        const getDetailsStub = schemaCompareService.getDifferenceDetails as sinon.SinonStub;
+        getDetailsStub.returns(pendingDetails);
+
+        const handler = requestHandlers.get(SchemaCompareGetDifferenceDetailsRequest.type.method);
+        const detailRequest = handler({ id: 0 });
+        await Promise.resolve();
+
+        await controller["_reducerHandlers"].get("switchEndpoints")(state, {
+            newSourceEndpointInfo: state.sourceEndpointInfo,
+            newTargetEndpointInfo: databaseSourceEndpointInfo,
+        });
+        resolveDetails!({
+            success: true,
+            errorMessage: "",
+            difference: { ...structuredClone(differences[0]), hasDetails: true },
+        });
+
+        const response = await detailRequest;
+        expect(response.success).to.be.false;
+        expect(state.schemaCompareResult).to.be.undefined;
     });
 
     test("includeExcludeNode request - serializes concurrent service calls", async () => {
@@ -1730,6 +1800,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         expect(confirmedResult.sourceEndpointInfo.databaseName).to.equal("db1");
         expect(confirmedResult.sourceEndpointInfo.connectionDetails).to.be.undefined;
         expect(confirmedResult.isEndpointSelectionInProgress).to.be.false;
+        expect(confirmedResult.schemaCompareResult).to.be.undefined;
     });
 
     test("confirmSelectedDatabase reducer - reports a missing saved connection", async () => {
@@ -1995,6 +2066,7 @@ suite("SchemaCompareWebViewController Tests", () => {
             actualResult.targetEndpointInfo,
             "confirmSelectedSchema should make auxiliary endpoint info the target endpoint info",
         ).to.deep.equal(expectedResult);
+        expect(actualResult.schemaCompareResult).to.be.undefined;
     });
 
     test("includeExcludeAllNodes request - when includeRequest is false - all nodes are excluded", async () => {
