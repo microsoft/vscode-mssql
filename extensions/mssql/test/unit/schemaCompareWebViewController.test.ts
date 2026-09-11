@@ -23,7 +23,10 @@ import {
     TaskExecutionMode,
 } from "../../src/enums";
 import {
+    SchemaCompareGenerateScriptRequest,
+    SchemaCompareGetDifferencesRequest,
     SchemaCompareIncludeExcludeAllRequest,
+    SchemaCompareGetDifferenceDetailsRequest,
     SchemaCompareIncludeExcludeNodeRequest,
     SchemaCompareWebViewState,
 } from "../../src/sharedInterfaces/schemaCompare";
@@ -58,7 +61,35 @@ suite("SchemaCompareWebViewController Tests", () => {
     let globalStateUpdate: sinon.SinonStub;
     const schemaCompareWebViewTitle = "Schema Compare";
     const operationId = "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE";
+    const comparisonId = 1;
     let generateOperationIdStub: sinon.SinonStub<[], string>;
+
+    /**
+     * Installs a comparison result on the controller the way a completed compare would: the
+     * difference list lives in the controller's private store and the synced state only holds
+     * a summary.
+     */
+    function seedDifferences(
+        target: SchemaCompareWebViewController,
+        seededDifferences: mssql.DiffEntry[] = structuredClone(differences),
+    ): mssql.DiffEntry[] {
+        target["schemaCompareGeneration"] = comparisonId;
+        target["differences"] = seededDifferences;
+        target["differenceServiceIndices"] = seededDifferences.map((_difference, index) => index);
+        target.state = {
+            ...structuredClone(mockInitialState),
+            schemaCompareResult: {
+                comparisonId,
+                areEqual: false,
+                differenceCount: seededDifferences.length,
+            },
+        };
+        return seededDifferences;
+    }
+
+    function getDifferences(target: SchemaCompareWebViewController): mssql.DiffEntry[] {
+        return target["differences"];
+    }
 
     const differences = [
         {
@@ -229,13 +260,10 @@ suite("SchemaCompareWebViewController Tests", () => {
             originalTargetExcludes: new Map<string, mssql.DiffEntry>(),
             sourceTargetSwitched: false,
             schemaCompareResult: {
-                operationId: operationId,
+                comparisonId,
                 areEqual: false,
-                differences: differences,
-                success: true,
-                errorMessage: "",
+                differenceCount: differences.length,
             },
-            generateScriptResultStatus: undefined,
             publishDatabaseChangesResultStatus: undefined,
             schemaComparePublishProjectResult: undefined,
             schemaCompareIncludeExcludeResult: undefined,
@@ -703,11 +731,123 @@ suite("SchemaCompareWebViewController Tests", () => {
             schemaCompareService,
         );
 
-        expect(result.schemaCompareResult, "compare should return expected result").to.deep.equal(
-            expectedCompareResultMock,
-        );
+        expect(
+            result.schemaCompareResult,
+            "compare should publish a summary of the result to the webview",
+        ).to.deep.equal({
+            comparisonId: controller["schemaCompareGeneration"],
+            areEqual: true,
+            differenceCount: 0,
+        });
+        expect(getDifferences(controller), "compare should keep the differences on the host").to.be
+            .empty;
 
         compareStub.restore();
+    });
+
+    test("compare reducer - keeps object differences on the host and serves them by comparison id", async () => {
+        const compareStub = sandbox.stub(scUtils, "compare").resolves({
+            operationId,
+            areEqual: false,
+            differences: structuredClone(differences),
+            success: true,
+            errorMessage: "",
+        });
+        const state = structuredClone(mockInitialState);
+        state.targetEndpointInfo = { ...targetEndpointInfo, connectionDetails: undefined };
+        const previousComparisonId = controller["schemaCompareGeneration"];
+
+        const result = await controller["_reducerHandlers"].get("compare")(state, {
+            deploymentOptions,
+            sourceEndpointInfo: state.sourceEndpointInfo,
+            targetEndpointInfo: state.targetEndpointInfo,
+        });
+
+        const newComparisonId = result.schemaCompareResult.comparisonId;
+        expect(newComparisonId, "each comparison gets a new id").to.be.greaterThan(
+            previousComparisonId,
+        );
+        expect(result.schemaCompareResult.differenceCount).to.equal(differences.length);
+
+        const handler = requestHandlers.get(SchemaCompareGetDifferencesRequest.type.method);
+        const current = await handler({ comparisonId: newComparisonId });
+        expect(current.success).to.be.true;
+        expect(current.comparisonId).to.equal(newComparisonId);
+        expect(current.differences.map((d) => d.sourceValue)).to.deep.equal(
+            differences.map((d) => d.sourceValue),
+        );
+
+        const stale = await handler({ comparisonId: previousComparisonId });
+        expect(stale, "an old comparison id must not return the new list").to.deep.equal({
+            success: false,
+            comparisonId: previousComparisonId,
+            differences: [],
+        });
+
+        compareStub.restore();
+    });
+
+    test("compare reducer - filtered differences keep addressing the service by its own index", async () => {
+        // A non-object difference at the front of the service list is not shown in the grid, so
+        // displayed row 0 is service index 1.
+        const propertyDifference = {
+            ...structuredClone(differences[0]),
+            differenceType: SchemaDifferenceType.Property,
+        };
+        const serviceDifferences = [propertyDifference, ...structuredClone(differences)];
+        sandbox.stub(scUtils, "compare").resolves({
+            operationId,
+            areEqual: false,
+            differences: serviceDifferences,
+            success: true,
+            errorMessage: "",
+        });
+        const state = structuredClone(mockInitialState);
+        state.targetEndpointInfo = { ...targetEndpointInfo, connectionDetails: undefined };
+        const result = await controller["_reducerHandlers"].get("compare")(state, {
+            deploymentOptions,
+            sourceEndpointInfo: state.sourceEndpointInfo,
+            targetEndpointInfo: state.targetEndpointInfo,
+        });
+        const currentComparisonId = result.schemaCompareResult.comparisonId;
+        expect(result.schemaCompareResult.differenceCount).to.equal(differences.length);
+
+        const getDetailsStub = schemaCompareService.getDifferenceDetails as sinon.SinonStub;
+        getDetailsStub.resolves({
+            success: true,
+            errorMessage: "",
+            difference: { ...structuredClone(differences[0]), hasDetails: true },
+        });
+        const detailsHandler = requestHandlers.get(
+            SchemaCompareGetDifferenceDetailsRequest.type.method,
+        );
+        await detailsHandler({ comparisonId: currentComparisonId, id: 0 });
+        expect(
+            getDetailsStub,
+            "details for displayed row 0 must be requested with the service's index",
+        ).to.have.been.calledOnceWith(operationId, 1);
+
+        // The service echoes its unfiltered list; only the displayed rows should be updated.
+        sandbox.stub(scUtils, "includeExcludeAllNodes").resolves({
+            success: true,
+            errorMessage: "",
+            allIncludedOrExcludedDifferences: serviceDifferences.map((difference, index) => ({
+                ...difference,
+                included: index !== 1,
+            })),
+        });
+        const includeAllHandler = requestHandlers.get(
+            SchemaCompareIncludeExcludeAllRequest.type.method,
+        );
+        const includeAllResult = await includeAllHandler({
+            comparisonId: currentComparisonId,
+            includeRequest: false,
+        });
+        expect(includeAllResult.updates).to.deep.equal([
+            { id: 0, included: false },
+            { id: 1, included: true },
+            { id: 2, included: true },
+        ]);
     });
 
     test("compare reducer - endpoint selection in progress - does not compare stale endpoints", async () => {
@@ -725,27 +865,21 @@ suite("SchemaCompareWebViewController Tests", () => {
         expect(result).to.equal(state);
     });
 
-    test("generateScript reducer - when called - completes successfully", async () => {
-        const expectedScriptResultMock = {
+    test("generateScript request - when called - returns success", async () => {
+        const generateScriptStub = sandbox.stub(scUtils, "generateScript").resolves({
             success: true,
             errorMessage: "",
-        };
-
-        const generateScriptStub = sandbox
-            .stub(scUtils, "generateScript")
-            .resolves(expectedScriptResultMock);
+        });
 
         const payload = {
+            comparisonId,
             targetServerName: "localhost,1433",
             targetDatabaseName: "master",
         };
 
-        const result = await controller["_reducerHandlers"].get("generateScript")(
-            mockInitialState,
-            payload,
-        );
-
-        expect(generateScriptStub, "generateScript should be called once").to.have.been.calledOnce;
+        seedDifferences(controller);
+        const handler = requestHandlers.get(SchemaCompareGenerateScriptRequest.type.method);
+        const result = await handler(payload);
 
         expect(
             generateScriptStub,
@@ -758,12 +892,81 @@ suite("SchemaCompareWebViewController Tests", () => {
             sinon.match.any,
         );
 
-        expect(
-            result.generateScriptResultStatus,
-            "generateScript should return expected result",
-        ).to.deep.equal(expectedScriptResultMock);
+        expect(result, "generateScript should report success").to.deep.equal({ success: true });
 
         generateScriptStub.restore();
+    });
+
+    test("generateScript request - when the service call fails - reports the error", async () => {
+        const generateScriptStub = sandbox.stub(scUtils, "generateScript").resolves({
+            success: false,
+            errorMessage: "target unreachable",
+        });
+        const showErrorMessageStub = sandbox.stub(vscode.window, "showErrorMessage").resolves();
+
+        seedDifferences(controller);
+        const handler = requestHandlers.get(SchemaCompareGenerateScriptRequest.type.method);
+        const result = await handler({
+            comparisonId,
+            targetServerName: "localhost,1433",
+            targetDatabaseName: "master",
+        });
+
+        expect(result, "generateScript should report the failure to the webview").to.deep.equal({
+            success: false,
+            errorMessage: "target unreachable",
+        });
+
+        expect(showErrorMessageStub, "the user should be told the script could not be generated").to
+            .have.been.called;
+
+        generateScriptStub.restore();
+        showErrorMessageStub.restore();
+    });
+
+    test("generateScript request - when the service call throws - resolves instead of rejecting", async () => {
+        const generateScriptStub = sandbox
+            .stub(scUtils, "generateScript")
+            .rejects(new Error("boom"));
+        const showErrorMessageStub = sandbox.stub(vscode.window, "showErrorMessage").resolves();
+
+        seedDifferences(controller);
+        const handler = requestHandlers.get(SchemaCompareGenerateScriptRequest.type.method);
+        const result = await handler({
+            comparisonId,
+            targetServerName: "localhost,1433",
+            targetDatabaseName: "master",
+        });
+
+        expect(result, "a thrown error should surface as a failed response").to.deep.equal({
+            success: false,
+            errorMessage: "boom",
+        });
+
+        expect(showErrorMessageStub, "the user should be told the script could not be generated").to
+            .have.been.called;
+
+        generateScriptStub.restore();
+        showErrorMessageStub.restore();
+    });
+
+    test("generateScript request - stale comparison id - does not call the service", async () => {
+        const generateScriptStub = sandbox.stub(scUtils, "generateScript").resolves({
+            success: true,
+            errorMessage: "",
+        });
+
+        seedDifferences(controller);
+        const handler = requestHandlers.get(SchemaCompareGenerateScriptRequest.type.method);
+        const result = await handler({
+            comparisonId: comparisonId - 1,
+            targetServerName: "localhost,1433",
+            targetDatabaseName: "master",
+        });
+
+        expect(result).to.deep.equal({ success: false });
+        expect(generateScriptStub, "a script must not be generated for a discarded comparison").to
+            .not.have.been.called;
     });
 
     test("publishDatabaseChanges reducer - when called - completes successfully", async () => {
@@ -875,6 +1078,7 @@ suite("SchemaCompareWebViewController Tests", () => {
             .resolves(expectedResultMock);
 
         const payload = {
+            comparisonId,
             id: 0,
             diffEntry: {
                 updateAction: SchemaUpdateAction.Change,
@@ -891,8 +1095,8 @@ suite("SchemaCompareWebViewController Tests", () => {
             includeRequest: true,
         };
 
-        controller.state = structuredClone(mockInitialState);
-        controller.state.schemaCompareResult.differences[0].included = false;
+        const seeded = seedDifferences(controller);
+        seeded[0].included = false;
         const handler = requestHandlers.get(SchemaCompareIncludeExcludeNodeRequest.type.method);
         const actualResult = await handler(payload);
 
@@ -913,8 +1117,120 @@ suite("SchemaCompareWebViewController Tests", () => {
             { id: 0, included: true },
             { id: 1, included: true },
         ]);
-        expect(controller.state.schemaCompareResult.differences[0].included).to.be.true;
-        expect(controller.state.schemaCompareResult.differences[1].included).to.be.true;
+        expect(getDifferences(controller)[0].included).to.be.true;
+        expect(getDifferences(controller)[1].included).to.be.true;
+    });
+
+    test("includeExcludeNode request - stale comparison id - rejects without calling the service", async () => {
+        const includeExcludeNodeStub = sandbox.stub(scUtils, "includeExcludeNode").resolves({
+            success: true,
+            errorMessage: "",
+            affectedDependencies: [],
+            blockingDependencies: [],
+        });
+        const seeded = seedDifferences(controller);
+
+        const handler = requestHandlers.get(SchemaCompareIncludeExcludeNodeRequest.type.method);
+        const actualResult = await handler({
+            comparisonId: comparisonId + 1,
+            id: 0,
+            diffEntry: seeded[0],
+            includeRequest: false,
+        });
+
+        expect(actualResult).to.deep.equal({
+            success: false,
+            updates: [],
+            blockingDependencies: [],
+            reason: "staleComparison",
+        });
+        expect(includeExcludeNodeStub).to.not.have.been.called;
+        expect(getDifferences(controller)[0].included, "the host list must not change").to.be.true;
+    });
+
+    test("includeExcludeNode request - comparison discarded while in flight - drops the result", async () => {
+        const expectedResult = {
+            success: true,
+            errorMessage: "",
+            affectedDependencies: [],
+            blockingDependencies: [],
+        };
+        let resolveResult: (result: typeof expectedResult) => void;
+        sandbox
+            .stub(scUtils, "includeExcludeNode")
+            .returns(new Promise<typeof expectedResult>((resolve) => (resolveResult = resolve)));
+        const seeded = seedDifferences(controller);
+        const state = controller.state;
+
+        const handler = requestHandlers.get(SchemaCompareIncludeExcludeNodeRequest.type.method);
+        const pending = handler({
+            comparisonId,
+            id: 0,
+            diffEntry: seeded[0],
+            includeRequest: false,
+        });
+        await Promise.resolve();
+
+        await controller["_reducerHandlers"].get("switchEndpoints")(state, {
+            newSourceEndpointInfo: state.sourceEndpointInfo,
+            newTargetEndpointInfo: databaseSourceEndpointInfo,
+        });
+        resolveResult!(expectedResult);
+
+        const actualResult = await pending;
+        expect(actualResult.success).to.be.false;
+        expect(actualResult.reason).to.equal("staleComparison");
+        expect(getDifferences(controller), "the discarded list must not be revived").to.be
+            .undefined;
+        expect(state.schemaCompareResult).to.be.undefined;
+    });
+
+    test("includeExcludeNode request - comparison changes while queued - skips the service call", async () => {
+        const expectedResult = {
+            success: true,
+            errorMessage: "",
+            affectedDependencies: [],
+            blockingDependencies: [],
+        };
+        let resolveFirst: (result: typeof expectedResult) => void;
+        const includeExcludeNodeStub = sandbox
+            .stub(scUtils, "includeExcludeNode")
+            .returns(new Promise<typeof expectedResult>((resolve) => (resolveFirst = resolve)));
+        const seeded = seedDifferences(controller);
+        const state = controller.state;
+
+        const handler = requestHandlers.get(SchemaCompareIncludeExcludeNodeRequest.type.method);
+        const firstRequest = handler({
+            comparisonId,
+            id: 0,
+            diffEntry: seeded[0],
+            includeRequest: false,
+        });
+        const queuedRequest = handler({
+            comparisonId,
+            id: 1,
+            diffEntry: seeded[1],
+            includeRequest: false,
+        });
+        await Promise.resolve();
+
+        await controller["_reducerHandlers"].get("switchEndpoints")(state, {
+            newSourceEndpointInfo: state.sourceEndpointInfo,
+            newTargetEndpointInfo: databaseSourceEndpointInfo,
+        });
+        resolveFirst!(expectedResult);
+
+        const [firstResult, queuedResult] = await Promise.all([firstRequest, queuedRequest]);
+        expect(firstResult.reason).to.equal("staleComparison");
+        expect(queuedResult.reason).to.equal("staleComparison");
+        expect(
+            includeExcludeNodeStub,
+            "a queued request must not reach the service once its comparison is discarded",
+        ).to.not.have.been.calledWithMatch(
+            sinon.match.any,
+            sinon.match.any,
+            sinon.match({ id: 1 }),
+        );
     });
 
     test("includeExcludeNode request - returns the exact blocking objects", async () => {
@@ -931,12 +1247,13 @@ suite("SchemaCompareWebViewController Tests", () => {
             ],
         };
         sandbox.stub(scUtils, "includeExcludeNode").resolves(expectedResultMock);
-        controller.state = structuredClone(mockInitialState);
+        const seeded = seedDifferences(controller);
 
         const handler = requestHandlers.get(SchemaCompareIncludeExcludeNodeRequest.type.method);
         const actualResult = await handler({
+            comparisonId,
             id: 0,
-            diffEntry: controller.state.schemaCompareResult.differences[0],
+            diffEntry: seeded[0],
             includeRequest: false,
         });
 
@@ -947,8 +1264,76 @@ suite("SchemaCompareWebViewController Tests", () => {
             reason: "blockingDependencies",
             errorMessage: undefined,
         });
-        expect(controller.state.schemaCompareResult.differences[0].included).to.be.true;
+        expect(getDifferences(controller)[0].included).to.be.true;
         expect(showWarningMessageStub).to.have.been.calledOnce;
+    });
+
+    test("getDifferenceDetails request - caches scripts and preserves checkbox state", async () => {
+        const seeded = seedDifferences(controller);
+        seeded[0].included = false;
+        const detailedDifference = {
+            ...structuredClone(differences[0]),
+            hasDetails: true,
+            included: true,
+            children: [{ ...structuredClone(differences[1]), hasDetails: true }],
+        };
+        const getDetailsStub = schemaCompareService.getDifferenceDetails as sinon.SinonStub;
+        getDetailsStub.resolves({
+            success: true,
+            errorMessage: "",
+            difference: detailedDifference,
+        });
+
+        const handler = requestHandlers.get(SchemaCompareGetDifferenceDetailsRequest.type.method);
+        const response = await handler({ comparisonId, id: 0 });
+
+        expect(getDetailsStub).to.have.been.calledOnceWith(operationId, 0);
+        expect(response.success).to.be.true;
+        expect(response.difference.hasDetails).to.be.true;
+        expect(response.difference.included).to.be.false;
+        expect(getDifferences(controller)[0].children).to.have.length(1);
+        expect(getDifferences(controller)[0].included).to.be.false;
+    });
+
+    test("getDifferenceDetails request - stale comparison id - does not call the service", async () => {
+        seedDifferences(controller);
+        const getDetailsStub = schemaCompareService.getDifferenceDetails as sinon.SinonStub;
+
+        const handler = requestHandlers.get(SchemaCompareGetDifferenceDetailsRequest.type.method);
+        const response = await handler({ comparisonId: comparisonId + 1, id: 0 });
+
+        expect(response).to.deep.equal({ success: false });
+        expect(getDetailsStub).to.not.have.been.called;
+    });
+
+    test("getDifferenceDetails request - ignores details after endpoints change", async () => {
+        seedDifferences(controller);
+        const state = controller.state;
+        let resolveDetails: (result: mssql.SchemaCompareDifferenceDetailsResult) => void;
+        const pendingDetails = new Promise<mssql.SchemaCompareDifferenceDetailsResult>(
+            (resolve) => (resolveDetails = resolve),
+        );
+        const getDetailsStub = schemaCompareService.getDifferenceDetails as sinon.SinonStub;
+        getDetailsStub.returns(pendingDetails);
+
+        const handler = requestHandlers.get(SchemaCompareGetDifferenceDetailsRequest.type.method);
+        const detailRequest = handler({ comparisonId, id: 0 });
+        await Promise.resolve();
+
+        await controller["_reducerHandlers"].get("switchEndpoints")(state, {
+            newSourceEndpointInfo: state.sourceEndpointInfo,
+            newTargetEndpointInfo: databaseSourceEndpointInfo,
+        });
+        resolveDetails!({
+            success: true,
+            errorMessage: "",
+            difference: { ...structuredClone(differences[0]), hasDetails: true },
+        });
+
+        const response = await detailRequest;
+        expect(response.success).to.be.false;
+        expect(state.schemaCompareResult).to.be.undefined;
+        expect(getDifferences(controller)).to.be.undefined;
     });
 
     test("includeExcludeNode request - serializes concurrent service calls", async () => {
@@ -972,16 +1357,18 @@ suite("SchemaCompareWebViewController Tests", () => {
             .returns(firstResult)
             .onSecondCall()
             .returns(secondResult);
-        controller.state = structuredClone(mockInitialState);
+        const seeded = seedDifferences(controller);
         const handler = requestHandlers.get(SchemaCompareIncludeExcludeNodeRequest.type.method);
         const firstPayload = {
+            comparisonId,
             id: 0,
-            diffEntry: controller.state.schemaCompareResult.differences[0],
+            diffEntry: seeded[0],
             includeRequest: false,
         };
         const secondPayload = {
+            comparisonId,
             id: 1,
-            diffEntry: controller.state.schemaCompareResult.differences[1],
+            diffEntry: seeded[1],
             includeRequest: false,
         };
 
@@ -1282,6 +1669,44 @@ suite("SchemaCompareWebViewController Tests", () => {
         ).to.deep.equal(expectedResultMock);
 
         publishProjectChangesStub.restore();
+    });
+
+    test("cancel reducer - comparison result arriving after cancel - is discarded", async () => {
+        let resolveCompare: (result: mssql.SchemaCompareResult) => void;
+        let markCompareStarted: () => void;
+        const compareStarted = new Promise<void>((resolve) => (markCompareStarted = resolve));
+        sandbox.stub(scUtils, "compare").callsFake(() => {
+            markCompareStarted();
+            return new Promise<mssql.SchemaCompareResult>((resolve) => (resolveCompare = resolve));
+        });
+        sandbox.stub(scUtils, "cancel").resolves({ success: true, errorMessage: "" });
+
+        const state = structuredClone(mockInitialState);
+        state.schemaCompareResult = undefined;
+        state.targetEndpointInfo = { ...targetEndpointInfo, connectionDetails: undefined };
+
+        const comparison = controller["_reducerHandlers"].get("compare")(state, {
+            deploymentOptions,
+            sourceEndpointInfo: state.sourceEndpointInfo,
+            targetEndpointInfo: state.targetEndpointInfo,
+        });
+        await compareStarted;
+
+        await controller["_reducerHandlers"].get("cancel")(state, {});
+        resolveCompare!({
+            operationId,
+            areEqual: false,
+            differences: structuredClone(differences),
+            success: true,
+            errorMessage: "",
+        });
+
+        const result = await comparison;
+        expect(result.schemaCompareResult, "a canceled comparison must not show results").to.be
+            .undefined;
+        expect(result.isComparisonInProgress).to.be.false;
+        expect(getDifferences(controller), "the canceled result must not be kept on the host").to.be
+            .undefined;
     });
 
     test("cancel reducer - when called - completes successfully", async () => {
@@ -1702,6 +2127,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         expect(confirmedResult.sourceEndpointInfo.databaseName).to.equal("db1");
         expect(confirmedResult.sourceEndpointInfo.connectionDetails).to.be.undefined;
         expect(confirmedResult.isEndpointSelectionInProgress).to.be.false;
+        expect(confirmedResult.schemaCompareResult).to.be.undefined;
     });
 
     test("confirmSelectedDatabase reducer - reports a missing saved connection", async () => {
@@ -1967,10 +2393,12 @@ suite("SchemaCompareWebViewController Tests", () => {
             actualResult.targetEndpointInfo,
             "confirmSelectedSchema should make auxiliary endpoint info the target endpoint info",
         ).to.deep.equal(expectedResult);
+        expect(actualResult.schemaCompareResult).to.be.undefined;
     });
 
     test("includeExcludeAllNodes request - when includeRequest is false - all nodes are excluded", async () => {
         const payload = {
+            comparisonId,
             includeRequest: false,
         };
 
@@ -2026,11 +2454,17 @@ suite("SchemaCompareWebViewController Tests", () => {
             success: true,
         };
 
-        const includeExcludeAllStub = sandbox
-            .stub(scUtils, "includeExcludeAllNodes")
-            .resolves(expectedResult);
+        const includeExcludeAllStub = sandbox.stub(scUtils, "includeExcludeAllNodes").resolves({
+            ...expectedResult,
+            allIncludedOrExcludedDifferences: expectedResult.allIncludedOrExcludedDifferences.map(
+                (difference) => ({
+                    ...difference,
+                    sourceScript: null,
+                }),
+            ),
+        });
 
-        controller.state = structuredClone(mockInitialState);
+        seedDifferences(controller);
         const handler = requestHandlers.get(SchemaCompareIncludeExcludeAllRequest.type.method);
         const actualResult = await handler(payload);
 
@@ -2038,15 +2472,48 @@ suite("SchemaCompareWebViewController Tests", () => {
             .calledOnce;
 
         expect(
-            actualResult.differences,
-            "includeExcludeAllNodes should return the expected result",
-        ).to.deep.equal(expectedResult.allIncludedOrExcludedDifferences);
+            actualResult.updates,
+            "includeExcludeAllNodes should return lightweight inclusion updates",
+        ).to.deep.equal([
+            { id: 0, included: false },
+            { id: 1, included: false },
+            { id: 2, included: false },
+        ]);
+        expect(
+            getDifferences(controller).map((difference) => difference.sourceScript),
+            "includeExcludeAllNodes should preserve scripts already cached on the host",
+        ).to.deep.equal(differences.map((difference) => difference.sourceScript));
+        expect(getDifferences(controller).map((difference) => difference.included)).to.deep.equal([
+            false,
+            false,
+            false,
+        ]);
 
         includeExcludeAllStub.restore();
     });
 
+    test("includeExcludeAllNodes request - stale comparison id - rejects without calling the service", async () => {
+        const includeExcludeAllStub = sandbox.stub(scUtils, "includeExcludeAllNodes").resolves({
+            success: true,
+            errorMessage: "",
+            allIncludedOrExcludedDifferences: [],
+        });
+        seedDifferences(controller);
+
+        const handler = requestHandlers.get(SchemaCompareIncludeExcludeAllRequest.type.method);
+        const actualResult = await handler({
+            comparisonId: comparisonId + 1,
+            includeRequest: false,
+        });
+
+        expect(actualResult).to.deep.equal({ success: false, updates: [] });
+        expect(includeExcludeAllStub).to.not.have.been.called;
+        expect(getDifferences(controller).every((difference) => difference.included)).to.be.true;
+    });
+
     test("includeExcludeAllNodes request - when includeRequest is true - all nodes are included", async () => {
         const payload = {
+            comparisonId,
             includeRequest: true,
         };
 
@@ -2102,11 +2569,18 @@ suite("SchemaCompareWebViewController Tests", () => {
             success: true,
         };
 
-        const includeExcludeAllStub = sandbox
-            .stub(scUtils, "includeExcludeAllNodes")
-            .resolves(expectedResult);
+        const includeExcludeAllStub = sandbox.stub(scUtils, "includeExcludeAllNodes").resolves({
+            ...expectedResult,
+            allIncludedOrExcludedDifferences: expectedResult.allIncludedOrExcludedDifferences.map(
+                (difference) => ({
+                    ...difference,
+                    sourceScript: null,
+                }),
+            ),
+        });
 
-        controller.state = structuredClone(mockInitialState);
+        const seeded = seedDifferences(controller);
+        seeded.forEach((difference) => (difference.included = false));
         const handler = requestHandlers.get(SchemaCompareIncludeExcludeAllRequest.type.method);
         const actualResult = await handler(payload);
 
@@ -2114,9 +2588,18 @@ suite("SchemaCompareWebViewController Tests", () => {
             .calledOnce;
 
         expect(
-            actualResult.differences,
-            "includeExcludeAllNodes should return the expected result",
-        ).to.deep.equal(expectedResult.allIncludedOrExcludedDifferences);
+            actualResult.updates,
+            "includeExcludeAllNodes should return lightweight inclusion updates",
+        ).to.deep.equal([
+            { id: 0, included: true },
+            { id: 1, included: true },
+            { id: 2, included: true },
+        ]);
+        expect(
+            getDifferences(controller).map((difference) => difference.sourceScript),
+            "includeExcludeAllNodes should preserve scripts already cached on the host",
+        ).to.deep.equal(differences.map((difference) => difference.sourceScript));
+        expect(getDifferences(controller).every((difference) => difference.included)).to.be.true;
 
         includeExcludeAllStub.restore();
     });
@@ -2694,7 +3177,8 @@ suite("SchemaCompareWebViewController Tests", () => {
             promptUserForNPSFeedback: sandbox.stub().resolves(),
         } as unknown as UserSurvey);
 
-        const state = { ...mockInitialState, targetEndpointInfo };
+        seedDifferences(controller);
+        const state = { ...controller.state, targetEndpointInfo };
         const payload = { targetServerName: "localhost,1433", targetDatabaseName: "master" };
 
         const result = await controller["_reducerHandlers"].get("publishChanges")(state, payload);
@@ -2709,6 +3193,8 @@ suite("SchemaCompareWebViewController Tests", () => {
         expect(result.applyFailed, "applyFailed should be false on success").to.be.false;
         expect(result.schemaCompareResult, "schemaCompareResult should be cleared on success").to.be
             .undefined;
+        expect(getDifferences(controller), "host differences should be cleared on success").to.be
+            .undefined;
     });
 
     test("publishChanges reducer - database target - STS failure clears diff result and sets applyFailed", async () => {
@@ -2716,7 +3202,8 @@ suite("SchemaCompareWebViewController Tests", () => {
             .stub(scUtils, "publishDatabaseChanges")
             .resolves({ success: false, errorMessage: "Apply failed" });
 
-        const state = { ...mockInitialState, targetEndpointInfo };
+        seedDifferences(controller);
+        const state = { ...controller.state, targetEndpointInfo };
         const payload = { targetServerName: "localhost,1433", targetDatabaseName: "master" };
 
         const result = await controller["_reducerHandlers"].get("publishChanges")(state, payload);
@@ -2733,5 +3220,7 @@ suite("SchemaCompareWebViewController Tests", () => {
             result.schemaCompareResult,
             "schemaCompareResult should be cleared on failure to force re-compare and prevent stale script generation",
         ).to.be.undefined;
+        expect(getDifferences(controller), "host differences should be cleared on failure").to.be
+            .undefined;
     });
 });

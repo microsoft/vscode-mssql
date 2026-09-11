@@ -13,9 +13,13 @@ import { WebviewPanelController } from "../controllers/webviewPanelController";
 import {
     ExtractTarget,
     SchemaCompareEndpointType,
+    SchemaCompareDifferenceUpdate,
+    SchemaCompareGenerateScriptRequest,
     SchemaCompareIncludeExcludeAllRequest,
     SchemaCompareIncludeExcludeNodeRequest,
     SchemaCompareIncludeExcludeNodeResponse,
+    SchemaCompareGetDifferenceDetailsRequest,
+    SchemaCompareGetDifferencesRequest,
     SchemaCompareGroupBy,
     SchemaCompareLayout,
     SchemaCompareReducers,
@@ -68,6 +72,18 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
     private operationId: string;
     private readonly connectionUris = new Map<string, string>();
     private databaseListRequestGeneration = 0;
+    /**
+     * Identifies the current comparison. Bumped whenever a comparison starts or its result is
+     * discarded so late responses from the webview or the service can be recognized and dropped.
+     */
+    private schemaCompareGeneration = 0;
+    /**
+     * Full difference list for the current comparison. Kept off the synced webview state
+     * because it can hold every object's script; the webview fetches it on demand.
+     */
+    private differences: mssql.DiffEntry[] | undefined;
+    /** For each entry of `differences`, its index in the service's unfiltered difference list. */
+    private differenceServiceIndices: number[] = [];
     private readonly databaseListCache = new Map<string, string[]>();
     private _includeExcludeNodeQueue = Promise.resolve();
 
@@ -127,7 +143,6 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 originalTargetExcludes: new Map<string, DiffEntry>(),
                 sourceTargetSwitched: false,
                 schemaCompareResult: undefined,
-                generateScriptResultStatus: undefined,
                 publishDatabaseChangesResultStatus: undefined,
                 schemaComparePublishProjectResult: undefined,
                 schemaCompareIncludeExcludeResult: undefined,
@@ -757,6 +772,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 `Clearing auxiliary endpoint info - OperationId: ${this.operationId}`,
             );
             state.auxiliaryEndpointInfo = undefined;
+            this.clearSchemaCompareResult(state);
             this.updateState(state);
 
             return state;
@@ -855,6 +871,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 state.targetEndpointInfo = endpointInfo;
             }
 
+            this.clearSchemaCompareResult(state);
             state.isEndpointSelectionInProgress = false;
             this.updateState(state);
 
@@ -1129,6 +1146,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             state.sourceEndpointInfo = payload.newSourceEndpointInfo;
             state.targetEndpointInfo = payload.newTargetEndpointInfo;
             state.endpointsSwitched = true;
+            this.clearSchemaCompareResult(state);
 
             this.updateState(state);
 
@@ -1167,22 +1185,23 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             );
         });
 
-        this.registerReducer("generateScript", async (state, payload) => {
+        this.onRequest(SchemaCompareGenerateScriptRequest.type, async (payload) => {
+            const state = this.state;
+            if (!this.isCurrentComparison(payload.comparisonId)) {
+                this.logger.debug(
+                    `Ignoring generate script request for a stale comparison - OperationId: ${this.operationId}`,
+                );
+                return { success: false };
+            }
             this.logger.info(
                 `Generating script for schema changes with operation ID: ${this.operationId}`,
             );
             this.logger.debug(
-                `Generate script reducer invoked with payload - hasTargetServerName: ${!!payload?.targetServerName}, hasTargetDatabaseName: ${!!payload?.targetDatabaseName} - OperationId: ${this.operationId}`,
+                `Generate script request invoked with payload - hasTargetServerName: ${!!payload?.targetServerName}, hasTargetDatabaseName: ${!!payload?.targetDatabaseName} - OperationId: ${this.operationId}`,
             );
             this.logger.debug(
                 `Current state - sourceEndpoint: ${state.sourceEndpointInfo?.endpointType || "undefined"}, targetEndpoint: ${state.targetEndpointInfo?.endpointType || "undefined"}, hasCompareResult: ${!!state.schemaCompareResult} - OperationId: ${this.operationId}`,
             );
-
-            if (state.schemaCompareResult) {
-                this.logger.debug(
-                    `Schema compare result has ${state.schemaCompareResult.differences?.length || 0} differences - OperationId: ${this.operationId}`,
-                );
-            }
 
             const startTime = Date.now();
             const endActivity = startActivity(
@@ -1205,50 +1224,40 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 },
             );
 
-            this.logger.debug(`Starting script generation - OperationId: ${this.operationId}`);
-            this.logger.debug(
-                `Calling generateScript with TaskExecutionMode.script - OperationId: ${this.operationId}`,
-            );
-
-            const result = await generateScript(
-                this.operationId,
-                TaskExecutionMode.script,
-                payload,
-                this.schemaCompareService,
-                this.logger,
-            );
-
-            this.logger.debug(
-                `Generate script service call completed - success: ${result?.success}, hasErrorMessage: ${!!result?.errorMessage} - OperationId: ${this.operationId}`,
-            );
-
-            if (result) {
-                this.logger.debug(
-                    `Generate script result object keys: ${Object.keys(result).join(", ")} - OperationId: ${this.operationId}`,
+            let result: mssql.ResultStatus;
+            try {
+                result = await generateScript(
+                    this.operationId,
+                    TaskExecutionMode.script,
+                    payload,
+                    this.schemaCompareService,
+                    this.logger,
                 );
-                this.logger.debug(
-                    `Generate script result details: ${JSON.stringify(result)} - OperationId: ${this.operationId}`,
+            } catch (error) {
+                const errorMessage = getErrorMessage(error);
+                this.logger.error(
+                    `Generate script threw: ${errorMessage} - OperationId: ${this.operationId}`,
                 );
-            } else {
-                this.logger.warn(
-                    `Generate script returned null or undefined result - OperationId: ${this.operationId}`,
-                );
-            }
+                endActivity.endFailed(new Error(errorMessage), true, undefined, undefined, {
+                    elapsedTime: (Date.now() - startTime).toString(),
+                    operationId: this.operationId,
+                    errorMessage,
+                });
 
-            if (result && result.errorMessage) {
-                this.logger.warn(
-                    `Generate script result contains error message: ${result.errorMessage} - OperationId: ${this.operationId}`,
+                void vscode.window.showErrorMessage(
+                    locConstants.SchemaCompare.generateScriptErrorMessage(errorMessage),
                 );
+
+                return { success: false, errorMessage };
             }
 
             if (!result || !result.success) {
+                const errorMessage = result?.errorMessage || "Unknown error";
                 this.logger.error(
-                    `Failed to generate script: ${result?.errorMessage || "Unknown error"} - OperationId: ${this.operationId}`,
+                    `Failed to generate script: ${errorMessage} - OperationId: ${this.operationId}`,
                 );
                 endActivity.endFailed(
-                    new Error(
-                        `Failed to generate script: ${result?.errorMessage || "Unknown error"}`,
-                    ),
+                    new Error(`Failed to generate script: ${errorMessage}`),
                     true,
                     undefined,
                     undefined,
@@ -1258,18 +1267,14 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                     },
                 );
 
-                vscode.window.showErrorMessage(
+                void vscode.window.showErrorMessage(
                     locConstants.SchemaCompare.generateScriptErrorMessage(result?.errorMessage),
                 );
-            } else {
-                this.logger.info(
-                    `Successfully generated script - OperationId: ${this.operationId}`,
-                );
-                this.logger.debug(
-                    `Script generation completed, updating state with result - OperationId: ${this.operationId}`,
-                );
+
+                return { success: false, errorMessage: result?.errorMessage };
             }
 
+            this.logger.info(`Successfully generated script - OperationId: ${this.operationId}`);
             endActivity.end(ActivityStatus.Succeeded, {
                 additionalProps: {
                     elapsedTime: (Date.now() - startTime).toString(),
@@ -1277,15 +1282,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 },
             });
 
-            this.logger.debug(
-                `Setting state.generateScriptResultStatus with result - OperationId: ${this.operationId}`,
-            );
-            state.generateScriptResultStatus = result;
-
-            this.logger.debug(
-                `Generate script reducer completed, returning updated state - OperationId: ${this.operationId}`,
-            );
-            return state;
+            return { success: true };
         });
 
         this.registerReducer("publishChanges", async (state, payload) => {
@@ -1313,11 +1310,9 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 },
             );
 
-            const actionCounts = this.getIncludedUpdateActionCounts(
-                state.schemaCompareResult?.differences,
-            );
+            const actionCounts = this.getIncludedUpdateActionCounts(this.differences);
 
-            if (state.schemaCompareResult?.differences) {
+            if (this.differences) {
                 const updateActionBreakdown = {
                     numDiffsDeleted: actionCounts[SchemaUpdateAction.Delete],
                     numDiffsAdded: actionCounts[SchemaUpdateAction.Add],
@@ -1445,7 +1440,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 );
                 state.isApplyInProgress = false;
                 state.applyFailed = true;
-                state.schemaCompareResult = undefined;
+                this.clearSchemaCompareResult(state);
                 return state;
             }
 
@@ -1468,7 +1463,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 );
                 state.isApplyInProgress = false;
                 state.applyFailed = true;
-                state.schemaCompareResult = undefined;
+                this.clearSchemaCompareResult(state);
                 return state;
             }
 
@@ -1487,7 +1482,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             state.isApplyInProgress = false;
             state.applySucceeded = true;
             state.applyFailed = false;
-            state.schemaCompareResult = undefined;
+            this.clearSchemaCompareResult(state);
             return state;
         });
 
@@ -1675,12 +1670,17 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         });
 
         this.onRequest(SchemaCompareIncludeExcludeNodeRequest.type, async (payload) => {
-            const state = this.state;
             const diffEntry = payload.diffEntry;
             const diffEntryName = this.formatEntryName(
                 diffEntry.sourceValue ? diffEntry.sourceValue : diffEntry.targetValue,
             );
             const updates: SchemaCompareIncludeExcludeNodeResponse["updates"] = [];
+            const staleResponse: SchemaCompareIncludeExcludeNodeResponse = {
+                success: false,
+                updates: [],
+                blockingDependencies: [],
+                reason: "staleComparison",
+            };
 
             this.logger.debug(
                 `${payload.includeRequest ? "Including" : "Excluding"} node: ${diffEntryName} (ID: ${payload.id}) - OperationId: ${this.operationId}`,
@@ -1689,15 +1689,15 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 `Diff entry type: ${payload.diffEntry.name}, update action: ${this.getSchemaUpdateActionString(payload.diffEntry.updateAction)} - OperationId: ${this.operationId}`,
             );
 
-            if (state.schemaCompareResult) {
+            if (!this.isCurrentComparison(payload.comparisonId)) {
                 this.logger.debug(
-                    `Total differences in state: ${state.schemaCompareResult.differences?.length || 0} - OperationId: ${this.operationId}`,
+                    `Ignoring include/exclude request for a stale comparison - OperationId: ${this.operationId}`,
                 );
-            } else {
-                this.logger.warn(
-                    `No schema compare result in state - OperationId: ${this.operationId}`,
-                );
+                return staleResponse;
             }
+            this.logger.debug(
+                `Total differences in state: ${this.differences.length} - OperationId: ${this.operationId}`,
+            );
 
             const startTime = Date.now();
             const endActivity = startActivity(
@@ -1720,6 +1720,19 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             this.logger.debug(
                 `Calling includeExcludeNode service - OperationId: ${this.operationId}`,
             );
+            const discardForStaleComparison = (): SchemaCompareIncludeExcludeNodeResponse => {
+                this.logger.debug(
+                    `Discarding include/exclude request for a stale comparison - OperationId: ${this.operationId}`,
+                );
+                endActivity.end(ActivityStatus.Canceled, {
+                    additionalProps: {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                    },
+                });
+                return staleResponse;
+            };
+
             const previousOperation = this._includeExcludeNodeQueue;
             let releaseQueue!: () => void;
             this._includeExcludeNodeQueue = new Promise<void>((resolve) => {
@@ -1729,6 +1742,12 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
 
             let result: mssql.SchemaCompareIncludeExcludeResult;
             try {
+                // The comparison may have changed while this request waited in the queue. The
+                // service keeps one comparison per operation id, so calling it now would change
+                // inclusion on the new comparison.
+                if (!this.isCurrentComparison(payload.comparisonId)) {
+                    return discardForStaleComparison();
+                }
                 result = await includeExcludeNode(
                     this.operationId,
                     TaskExecutionMode.execute,
@@ -1746,7 +1765,10 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             this.logger.debug(
                 `includeExcludeNode service returned - success: ${result?.success}, elapsed: ${Date.now() - startTime}ms - OperationId: ${this.operationId}`,
             );
-            state.schemaCompareIncludeExcludeResult = result;
+
+            if (!this.isCurrentComparison(payload.comparisonId)) {
+                return discardForStaleComparison();
+            }
 
             if (result.success) {
                 this.logger.debug(
@@ -1769,12 +1791,11 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                     },
                 });
 
-                if (state.schemaCompareResult) {
+                if (this.differences[payload.id]) {
                     this.logger.debug(
                         `Updating node at index ${payload.id} - OperationId: ${this.operationId}`,
                     );
-                    state.schemaCompareResult.differences[payload.id].included =
-                        payload.includeRequest;
+                    this.differences[payload.id].included = payload.includeRequest;
                     updates.push({ id: payload.id, included: payload.includeRequest });
 
                     this.logger.debug(
@@ -1796,8 +1817,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                                     `Updated dependency ${depIndex + 1}/${result.affectedDependencies.length} at index ${index} to included=${payload.includeRequest} - OperationId: ${this.operationId}`,
                                 );
                             }
-                            state.schemaCompareResult.differences[index].included =
-                                payload.includeRequest;
+                            this.differences[index].included = payload.includeRequest;
                             if (!updates.some((update) => update.id === index)) {
                                 updates.push({ id: index, included: payload.includeRequest });
                             }
@@ -1922,24 +1942,73 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             };
         });
 
+        this.onRequest(SchemaCompareGetDifferencesRequest.type, (payload) => {
+            if (!this.isCurrentComparison(payload.comparisonId)) {
+                this.logger.debug(
+                    `Ignoring differences request for a stale comparison - OperationId: ${this.operationId}`,
+                );
+                return { success: false, comparisonId: payload.comparisonId, differences: [] };
+            }
+            return {
+                success: true,
+                comparisonId: payload.comparisonId,
+                differences: this.differences,
+            };
+        });
+
+        this.onRequest(SchemaCompareGetDifferenceDetailsRequest.type, async (payload) => {
+            const serviceIndex = this.differenceServiceIndices[payload.id];
+            if (
+                !this.isCurrentComparison(payload.comparisonId) ||
+                !this.differences[payload.id] ||
+                serviceIndex === undefined
+            ) {
+                return { success: false };
+            }
+
+            const result = await this.schemaCompareService.getDifferenceDetails(
+                this.operationId,
+                serviceIndex,
+            );
+
+            if (
+                !result.success ||
+                !result.difference ||
+                !this.isCurrentComparison(payload.comparisonId) ||
+                !this.differences[payload.id]
+            ) {
+                return {
+                    success: false,
+                    errorMessage: result.errorMessage,
+                };
+            }
+
+            const difference = {
+                ...result.difference,
+                included: this.differences[payload.id].included,
+            };
+            this.differences[payload.id] = difference;
+            return { success: true, difference };
+        });
+
         this.onRequest(SchemaCompareIncludeExcludeAllRequest.type, async (payload) => {
-            const state = this.state;
+            let updates: SchemaCompareDifferenceUpdate[] = [];
             this.logger.debug(
                 `${payload.includeRequest ? "Including" : "Excluding"} all nodes - OperationId: ${this.operationId}`,
             );
 
-            if (state.schemaCompareResult) {
-                const totalDiffs = state.schemaCompareResult.differences?.length || 0;
-                const includedCount =
-                    state.schemaCompareResult.differences?.filter((d) => d.included).length || 0;
+            if (!this.isCurrentComparison(payload.comparisonId)) {
                 this.logger.debug(
-                    `Current state - Total differences: ${totalDiffs}, Currently included: ${includedCount} - OperationId: ${this.operationId}`,
+                    `Ignoring include/exclude all request for a stale comparison - OperationId: ${this.operationId}`,
                 );
-            } else {
-                this.logger.warn(
-                    `No schema compare result in state - OperationId: ${this.operationId}`,
-                );
+                return { success: false, updates: [] };
             }
+
+            const totalDiffs = this.differences.length;
+            const includedCount = this.differences.filter((d) => d.included).length;
+            this.logger.debug(
+                `Current state - Total differences: ${totalDiffs}, Currently included: ${includedCount} - OperationId: ${this.operationId}`,
+            );
 
             const startTime = Date.now();
             const endActivity = startActivity(
@@ -1951,9 +2020,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                         startTime: startTime.toString(),
                         operationId: this.operationId,
                         requestType: payload.includeRequest ? "Include all" : "Exclude all",
-                        totalDifferences: (
-                            state.schemaCompareResult?.differences?.length || 0
-                        ).toString(),
+                        totalDifferences: totalDiffs.toString(),
                     },
                 },
             );
@@ -1975,29 +2042,48 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                     `includeExcludeAllNodes service returned after ${serviceElapsed}ms - success: ${result?.success} - OperationId: ${this.operationId}`,
                 );
 
+                if (!this.isCurrentComparison(payload.comparisonId)) {
+                    this.logger.debug(
+                        `Discarding include/exclude all result for a stale comparison - OperationId: ${this.operationId}`,
+                    );
+                    endActivity.end(ActivityStatus.Canceled, {
+                        additionalProps: {
+                            elapsedTime: (Date.now() - startTime).toString(),
+                            operationId: this.operationId,
+                        },
+                    });
+                    return { success: false, updates: [] };
+                }
+
                 if (result.success) {
-                    const count = result.allIncludedOrExcludedDifferences?.length || 0;
+                    // The service returns its unfiltered list, so map each displayed difference
+                    // back through its service index rather than assuming the positions line up.
+                    const returnedDifferences = result.allIncludedOrExcludedDifferences ?? [];
+                    updates = this.differences.map((difference, id) => ({
+                        id,
+                        included:
+                            returnedDifferences[this.differenceServiceIndices[id]]?.included ??
+                            difference.included,
+                    }));
+                    const count = updates.length;
                     this.logger.debug(
                         `Successfully ${payload.includeRequest ? "included" : "excluded"} all nodes (${count} differences) - OperationId: ${this.operationId}`,
                     );
 
-                    if (result.allIncludedOrExcludedDifferences) {
-                        const includedAfter = result.allIncludedOrExcludedDifferences.filter(
-                            (d) => d.included,
-                        ).length;
-                        this.logger.debug(
-                            `Result includes ${includedAfter} included differences out of ${count} total - OperationId: ${this.operationId}`,
-                        );
-                    }
-
+                    const includedAfter = updates.filter((update) => update.included).length;
                     this.logger.debug(
-                        `Replacing state differences with result - OperationId: ${this.operationId}`,
+                        `Result includes ${includedAfter} included differences out of ${count} total - OperationId: ${this.operationId}`,
                     );
-                    state.schemaCompareResult.differences = result.allIncludedOrExcludedDifferences;
 
-                    const includedCount =
-                        result.allIncludedOrExcludedDifferences?.filter((d) => d.included).length ||
-                        0;
+                    const includedById = new Map(
+                        updates.map((update) => [update.id, update.included]),
+                    );
+                    this.differences = this.differences.map((difference, id) => {
+                        const included = includedById.get(id);
+                        return included === undefined ? difference : { ...difference, included };
+                    });
+
+                    const includedCount = includedAfter;
                     const excludedCount = count - includedCount;
 
                     endActivity.end(ActivityStatus.Succeeded, {
@@ -2034,7 +2120,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
 
                     return {
                         success: false,
-                        differences: state.schemaCompareResult?.differences ?? [],
+                        updates: [],
                         errorMessage: result.errorMessage,
                     };
                 }
@@ -2069,14 +2155,14 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
 
                 return {
                     success: false,
-                    differences: state.schemaCompareResult?.differences ?? [],
+                    updates: [],
                     errorMessage: getErrorMessage(error),
                 };
             }
 
             return {
                 success: true,
-                differences: state.schemaCompareResult?.differences ?? [],
+                updates,
             };
         });
 
@@ -2222,7 +2308,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             );
 
             // Reset the schema comparison result similarly to what happens in Azure Data Studio.
-            state.schemaCompareResult = undefined;
+            this.clearSchemaCompareResult(state);
 
             this.logger.debug(
                 `Successfully completed loading .scmp file - OperationId: ${this.operationId}`,
@@ -2409,7 +2495,8 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                     },
                 });
 
-                state.isComparisonInProgress = false;
+                // Invalidate the canceled comparison so a result that still arrives is ignored.
+                this.clearSchemaCompareResult(state);
                 state.cancelResultStatus = result;
                 this.updateState(state);
             } catch (error) {
@@ -2442,7 +2529,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
 
     private findDifferenceIndex(difference: DiffEntry): number {
         return (
-            this.state.schemaCompareResult?.differences.findIndex(
+            this.differences?.findIndex(
                 (candidate) =>
                     this.areNamePartsEqual(candidate.sourceValue, difference.sourceValue) &&
                     this.areNamePartsEqual(candidate.targetValue, difference.targetValue) &&
@@ -2580,6 +2667,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         state: SchemaCompareWebViewState,
         triggerSource?: string,
     ) {
+        const schemaCompareGeneration = this.discardDifferences(state);
         this.logger.info(`Starting schema comparison with operation ID: ${this.operationId}`);
         this.logger.debug(
             `Source endpoint type: ${getSchemaCompareEndpointTypeString(payload.sourceEndpointInfo.endpointType)} - OperationId: ${this.operationId}`,
@@ -2682,6 +2770,19 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             this.schemaCompareService,
         );
 
+        if (schemaCompareGeneration !== this.schemaCompareGeneration) {
+            this.logger.debug(
+                `Ignoring stale schema comparison result - OperationId: ${this.operationId}`,
+            );
+            endActivity.end(ActivityStatus.Canceled, {
+                additionalProps: {
+                    elapsedTime: (Date.now() - startTime).toString(),
+                    operationId: this.operationId,
+                },
+            });
+            return state;
+        }
+
         state.isComparisonInProgress = false;
 
         if (!result || !result.success) {
@@ -2731,16 +2832,43 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             },
         });
 
-        const finalDifferences = this.getAllObjectTypeDifferences(result);
+        const { differences: finalDifferences, serviceIndices } =
+            this.getAllObjectTypeDifferences(result);
         this.logger.debug(
             `Filtered to ${finalDifferences.length} object type differences - OperationId: ${this.operationId}`,
         );
-        result.differences = finalDifferences;
-        state.schemaCompareResult = result;
+        this.differences = finalDifferences;
+        this.differenceServiceIndices = serviceIndices;
+        state.schemaCompareResult = {
+            comparisonId: schemaCompareGeneration,
+            areEqual: result.areEqual,
+            differenceCount: finalDifferences.length,
+        };
         state.endpointsSwitched = false;
         this.updateState(state);
 
         return state;
+    }
+
+    /**
+     * Drops the current differences and starts a new comparison generation. Returns the new
+     * generation so a caller that starts a comparison can recognize its own result later.
+     */
+    private discardDifferences(state: SchemaCompareWebViewState): number {
+        this.schemaCompareGeneration += 1;
+        this.differences = undefined;
+        this.differenceServiceIndices = [];
+        state.schemaCompareResult = undefined;
+        return this.schemaCompareGeneration;
+    }
+
+    private clearSchemaCompareResult(state: SchemaCompareWebViewState): void {
+        this.discardDifferences(state);
+        state.isComparisonInProgress = false;
+    }
+
+    private isCurrentComparison(comparisonId: number): boolean {
+        return comparisonId === this.schemaCompareGeneration && this.differences !== undefined;
     }
 
     private async constructEndpointInfo(
@@ -2949,32 +3077,42 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         return endpointInfo;
     }
 
-    private getAllObjectTypeDifferences(result: mssql.SchemaCompareResult): DiffEntry[] {
+    /**
+     * Keeps only the object-level differences the grid can display. The service still addresses
+     * differences by their position in its own unfiltered list, so the returned `serviceIndices`
+     * map each kept difference back to that position.
+     */
+    private getAllObjectTypeDifferences(result: mssql.SchemaCompareResult): {
+        differences: DiffEntry[];
+        serviceIndices: number[];
+    } {
         this.logger.debug(
             `Filtering differences from schema comparison result - OperationId: ${this.operationId}`,
         );
 
-        let finalDifferences: DiffEntry[] = [];
-        let differences = result.differences;
+        const finalDifferences: DiffEntry[] = [];
+        const serviceIndices: number[] = [];
+        const differences = result.differences;
 
         if (!differences) {
             this.logger.warn(
                 `No differences found in schema comparison result - OperationId: ${this.operationId}`,
             );
-            return finalDifferences;
+            return { differences: finalDifferences, serviceIndices };
         }
 
         this.logger.debug(
             `Processing ${differences.length} total differences - OperationId: ${this.operationId}`,
         );
 
-        differences.forEach((difference) => {
+        differences.forEach((difference, serviceIndex) => {
             if (difference.differenceType === SchemaDifferenceType.Object) {
                 if (
                     (difference.sourceValue !== null && difference.sourceValue.length > 0) ||
                     (difference.targetValue !== null && difference.targetValue.length > 0)
                 ) {
                     finalDifferences.push(difference);
+                    serviceIndices.push(serviceIndex);
                     this.logger.debug(
                         `Including difference: ${difference.name} with update action ${difference.updateAction} - OperationId: ${this.operationId}`,
                     );
@@ -2985,7 +3123,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         this.logger.debug(
             `Found ${finalDifferences.length} object type differences out of ${differences.length} total differences - OperationId: ${this.operationId}`,
         );
-        return finalDifferences;
+        return { differences: finalDifferences, serviceIndices };
     }
 
     private getIncludedUpdateActionCounts(

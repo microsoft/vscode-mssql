@@ -3970,6 +3970,9 @@
     "Verifying the API is ready to accept requests": "Verifying the API is ready to accept requests",
     "Container logs": "Container logs",
     "To compare two schemas, first select a source schema and target schema, then press compare.": "To compare two schemas, first select a source schema and target schema, then press compare.",
+    "Select a source schema, then press Compare.": "Select a source schema, then press Compare.",
+    "Select a target schema, then press Compare.": "Select a target schema, then press Compare.",
+    "Press Compare to see the differences between the source and target schemas.": "Press Compare to see the differences between the source and target schemas.",
     "Select Source Schema": "Select Source Schema",
     "Select Target Schema": "Select Target Schema",
     "No schema differences were found.": "No schema differences were found.",
@@ -4129,6 +4132,7 @@
     },
     "Processing include or exclude all differences operation.": "Processing include or exclude all differences operation.",
     "Updating difference selection.": "Updating difference selection.",
+    "Generating script.": "Generating script.",
     "Publish Project - {0}/{0} is the name of the project being published": {
         "message": "Publish Project - {0}",
         "comment": ["{0} is the name of the project being published"]

@@ -122,6 +122,21 @@ export class SchemaCompareService implements mssql.ISchemaCompareService {
         );
     }
 
+    public getDifferenceDetails(
+        operationId: string,
+        differenceIndex: number,
+    ): Thenable<mssql.SchemaCompareDifferenceDetailsResult> {
+        const params: mssql.SchemaCompareDifferenceDetailsParams = {
+            operationId,
+            differenceIndex,
+        };
+
+        return this._client.sendRequest(
+            schemaCompareContracts.SchemaCompareGetDifferenceDetailsRequest.type,
+            params,
+        );
+    }
+
     public openScmp(filePath: string): Thenable<mssql.SchemaCompareOpenScmpResult> {
         const params: mssql.SchemaCompareOpenScmpParams = {
             filePath: filePath,

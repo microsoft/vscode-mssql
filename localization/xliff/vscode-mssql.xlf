@@ -4372,6 +4372,9 @@
     <trans-unit id="++CODE++019c93d8e0baa64c24b53c1e6f34c8faa0fcac26a0ac69fdaa46b788f6c05912">
       <source xml:lang="en">Generating report, this might take a while...</source>
     </trans-unit>
+    <trans-unit id="++CODE++b0a645b25ebc1bb0400058cfdba8e3d0622412ef0ac073432011c32ddaa5a293">
+      <source xml:lang="en">Generating script.</source>
+    </trans-unit>
     <trans-unit id="++CODE++915fc447c859d56fa8e745484ac300e07e104e9ef318105f82b578bedf32c405">
       <source xml:lang="en">Generating script...</source>
     </trans-unit>
@@ -6423,6 +6426,9 @@
     <trans-unit id="++CODE++3b91294fe7a573ba168c7b5c23b3fc93126ad6a222949deda1e517bc3a335519">
       <source xml:lang="en">Preserve the replication settings</source>
     </trans-unit>
+    <trans-unit id="++CODE++87b6ba145c833b9c75e4408f5f6f171061680b8e5c0e472c8ca67d2e925fe485">
+      <source xml:lang="en">Press Compare to see the differences between the source and target schemas.</source>
+    </trans-unit>
     <trans-unit id="++CODE++8e8d85ec52b9705310156eb6f67d11bb6b6b2220e47b0e2f337dd3bdfbfa002a">
       <source xml:lang="en">Press desired key combination and then press ENTER.</source>
     </trans-unit>
@@ -7669,6 +7675,9 @@
     <trans-unit id="++CODE++daec3468c00df36219c157514c5317f36caf6636f4d430d7b3209552c59b9a18">
       <source xml:lang="en">Select a session...</source>
     </trans-unit>
+    <trans-unit id="++CODE++69caf154f7a7ff6fa44128fd6973d20a1e51024cf0aebe70c32188609cb85201">
+      <source xml:lang="en">Select a source schema, then press Compare.</source>
+    </trans-unit>
     <trans-unit id="++CODE++f54fc9f7eb78f9523dea69c1d5f1115bb8e8acec088f8bea79aee0156f5e55cf">
       <source xml:lang="en">Select a storage account</source>
     </trans-unit>
@@ -7677,6 +7686,9 @@
     </trans-unit>
     <trans-unit id="++CODE++fac4c702f7790e41763806f2cdc67d0521f91fe1cd0cc1ac492506ea2842b5dc">
       <source xml:lang="en">Select a subscription to view servers in it.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ba9bb750744bd9e7ebb8626d0c7104abe572221c6a4f846fe7e635076be038da">
+      <source xml:lang="en">Select a target schema, then press Compare.</source>
     </trans-unit>
     <trans-unit id="++CODE++ebe0dbee443b4562c7925a01e3bc69a3d5d0a3b0e8b3e11041c69fa067b65ef7">
       <source xml:lang="en">Select a tenant</source>
