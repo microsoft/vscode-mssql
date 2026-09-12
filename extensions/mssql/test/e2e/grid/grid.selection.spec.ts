@@ -73,16 +73,19 @@ test.describe("MSSQL Extension - Preview Grid Selection", () => {
         return grid.locator(".slick-cell.active");
     }
 
-    /** Copies the selected full rows through the extension and reads their displayed IDs. */
-    async function copySelectedRowIds(): Promise<string[]> {
+    /** Waits for the asynchronous extension copy to replace any transient clipboard contents. */
+    async function expectCopiedRowIds(expectedIds: string[]): Promise<void> {
         const { electronApp, page } = getContext();
         await clearClipboard(electronApp);
         await page.keyboard.press(`${getModifierKey()}+C`);
-        await expect.poll(() => readClipboard(electronApp)).not.toBe("");
-        return (await readClipboard(electronApp))
-            .trim()
-            .split(/\r?\n/)
-            .map((row) => row.split("\t")[0].trim());
+        await expect
+            .poll(async () =>
+                (await readClipboard(electronApp))
+                    .trim()
+                    .split(/\r?\n/)
+                    .map((row) => row.split("\t")[0].trim()),
+            )
+            .toEqual(expectedIds);
     }
 
     test("stages the fixture with every row displayed", async () => {
@@ -454,12 +457,12 @@ test.describe("MSSQL Extension - Preview Grid Selection", () => {
 
         await getRowNumberCell(grid, 2).click({ modifiers: [modifier] });
         await expect(selectedCells()).toHaveCount(3 * SELECTION_COLUMN_COUNT);
-        expect(await copySelectedRowIds()).toEqual(["2", "3", "4"]);
+        await expectCopiedRowIds(["2", "3", "4"]);
 
         await getRowNumberCell(grid, 2).click({ modifiers: [modifier] });
         await expect(selectedCells()).toHaveCount(2 * SELECTION_COLUMN_COUNT);
         await expect(getCell(grid, 2, 0)).not.toHaveClass(/selected/);
-        expect(await copySelectedRowIds()).toEqual(["2", "4"]);
+        await expectCopiedRowIds(["2", "4"]);
     });
 
     test("Cmd/Ctrl and Shift row selection coalesces in sorted display order", async () => {
@@ -473,11 +476,11 @@ test.describe("MSSQL Extension - Preview Grid Selection", () => {
             await getRowNumberCell(grid, 2).click({ modifiers: [modifier] });
             await getRowNumberCell(grid, 1).click({ modifiers: [modifier] });
             await expect(selectedCells()).toHaveCount(3 * SELECTION_COLUMN_COUNT);
-            expect(await copySelectedRowIds()).toEqual(["6", "5", "4"]);
+            await expectCopiedRowIds(["6", "5", "4"]);
 
             await getRowNumberCell(grid, 3).click({ modifiers: ["Shift"] });
             await expect(selectedCells()).toHaveCount(3 * SELECTION_COLUMN_COUNT);
-            expect(await copySelectedRowIds()).toEqual(["5", "4", "3"]);
+            await expectCopiedRowIds(["5", "4", "3"]);
         } finally {
             await sortButton.click();
             await expect(getColumnHeader(grid, "id")).toHaveAttribute(
@@ -518,11 +521,11 @@ test.describe("MSSQL Extension - Preview Grid Selection", () => {
             await getRowNumberCell(grid, 2).click({ modifiers: [modifier] });
             await getRowNumberCell(grid, 1).click({ modifiers: [modifier] });
             await expect(selectedCells()).toHaveCount(3 * 3);
-            expect(await copySelectedRowIds()).toEqual(["6", "3", "1"]);
+            await expectCopiedRowIds(["6", "3", "1"]);
 
             await getRowNumberCell(grid, 2).click({ modifiers: ["Shift"] });
             await expect(selectedCells()).toHaveCount(2 * 3);
-            expect(await copySelectedRowIds()).toEqual(["3", "1"]);
+            await expectCopiedRowIds(["3", "1"]);
         } finally {
             if (await resultsFrame.getByRole("dialog", { name: "Filter Options" }).isVisible()) {
                 await page.keyboard.press("Escape");
