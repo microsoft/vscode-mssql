@@ -49,7 +49,7 @@ body .fluent-result-grid {
         --vscode-list-hoverForeground,
         var(--fluent-result-grid-foreground)
     );
-    --fluent-result-grid-list-focus-outline: var(--vscode-contrastActiveBorder, #007fd4);
+    --fluent-result-grid-list-focus-outline: var(--vscode-focusBorder, #007fd4);
     --fluent-result-grid-list-selection-outline: var(--vscode-contrastActiveBorder, #007fd4);
     --fluent-result-grid-list-hover-outline: var(--vscode-contrastActiveBorder, transparent);
     --fluent-result-grid-list-inactive-focus-outline: var(
