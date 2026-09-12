@@ -1,0 +1,136 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+import { FrameLocator, Locator } from "@playwright/test";
+import { test, expect } from "../baseFixtures";
+import { useSharedVsCodeLifecycle } from "../utils/testLifecycle";
+import { executeQueryAndWait, setQueryText, waitForResultGrid } from "../utils/testHelpers";
+import { GRID_KEYS, getGridLaunchConfig } from "./gridLaunchConfig";
+import { getCell, getColumnHeader, stageQuery } from "./gridActions";
+import {
+    ABOVE_THRESHOLD_QUERY,
+    getManyResultsQuery,
+    LARGE_QUERY,
+    MULTI_RESULT_QUERY,
+} from "./gridFixtures";
+
+test.describe("MSSQL Extension - Preview Grid Layout", () => {
+    let resultsFrame: FrameLocator;
+    let firstGrid: Locator;
+
+    const getContext = useSharedVsCodeLifecycle({
+        launchOptions: { initialConfig: getGridLaunchConfig() },
+        afterLaunch: async ({ electronApp, page }) => {
+            const staged = await stageQuery(electronApp, page, MULTI_RESULT_QUERY);
+            resultsFrame = staged.resultsFrame;
+            firstGrid = staged.grid;
+        },
+    });
+
+    test("renders three result sets and restores them after maximizing one", async () => {
+        // The preview grid deliberately lazy-mounts offscreen result sets.
+        await resultsFrame.locator('[id="0_2"]').scrollIntoViewIfNeeded();
+        const secondGrid = await waitForResultGrid(resultsFrame, "0_1", 1);
+        const thirdGrid = await waitForResultGrid(resultsFrame, "0_2", 1);
+        await expect(getCell(firstGrid, 0, 0)).toHaveText("1");
+        await expect(getCell(secondGrid, 0, 0)).toHaveText("2");
+        await expect(getCell(thirdGrid, 0, 0)).toHaveText("4");
+
+        const { page } = getContext();
+        await getCell(firstGrid, 0, 0).click();
+        await page.keyboard.press(GRID_KEYS.maximizeGrid);
+        await expect(firstGrid).toBeVisible();
+        await expect(secondGrid).toHaveCount(0);
+        await expect(thirdGrid).toHaveCount(0);
+
+        await page.keyboard.press(GRID_KEYS.maximizeGrid);
+        await expect(secondGrid).toBeVisible();
+        await expect(thirdGrid).toBeVisible();
+    });
+
+    test("switches to text results and back without rerunning the query", async () => {
+        const { page } = getContext();
+        await getCell(firstGrid, 0, 0).click();
+        await page.keyboard.press(GRID_KEYS.switchToTextView);
+        await expect(firstGrid).toHaveCount(0);
+        await expect(resultsFrame.locator(".monaco-editor").first()).toBeVisible();
+        await expect(resultsFrame.getByTestId("summary-footer")).toHaveCount(0);
+
+        await page.keyboard.press(GRID_KEYS.switchToTextView);
+        await expect(firstGrid).toHaveAttribute("data-row-count", "1");
+        await expect(getCell(firstGrid, 0, 0)).toHaveText("1");
+    });
+
+    test("keeps a result above the processing threshold virtualized", async () => {
+        const { electronApp, page } = getContext();
+        await setQueryText(electronApp, page, ABOVE_THRESHOLD_QUERY);
+        await executeQueryAndWait(page);
+        const largeGrid = await waitForResultGrid(resultsFrame, "0_0", 5001);
+
+        await expect(largeGrid).toHaveAttribute("data-row-count", "5001");
+        await expect(getCell(largeGrid, 0, 0)).toHaveText("1");
+        // SlickGrid renders only its viewport plus a buffer. The grid's own row count establishes
+        // that the unrendered rows are still in the result, rather than merely sampling the DOM.
+        await expect.poll(() => largeGrid.locator(".slick-row").count()).toBeLessThan(5001);
+
+        await getColumnHeader(largeGrid, "id").locator(".slick-header-sortbutton").click();
+        await expect(
+            page
+                .getByText("Max row count for filtering/sorting has been exceeded.", {
+                    exact: false,
+                })
+                .last(),
+        ).toBeVisible();
+        await expect(getColumnHeader(largeGrid, "id")).toHaveAttribute(
+            "data-sort-direction",
+            "none",
+        );
+        await getColumnHeader(largeGrid, "id").locator(".slick-header-filterbutton").click();
+        await expect(resultsFrame.getByRole("dialog", { name: "Filter Options" })).toHaveCount(0);
+
+        await largeGrid.evaluate((element) => {
+            for (const viewport of Array.from(element.querySelectorAll(".slick-viewport"))) {
+                viewport.scrollTo({ top: viewport.scrollHeight });
+            }
+        });
+        await expect
+            .poll(async () => Number(await getCell(largeGrid, 0, 0).innerText()))
+            .toBeGreaterThan(1);
+    });
+
+    test("keeps only a viewport of a 100k-row result rendered", async () => {
+        const { electronApp, page } = getContext();
+        await setQueryText(electronApp, page, LARGE_QUERY);
+        await executeQueryAndWait(page);
+        const largeGrid = await waitForResultGrid(resultsFrame, "0_0", 100000);
+        await expect(largeGrid).toHaveAttribute("data-row-count", "100000");
+        // SlickGrid's renderRows/getRenderedRange contract bounds live rows to the viewport and
+        // its buffer, even when the data view advertises the full result length.
+        await expect.poll(() => largeGrid.locator(".slick-row").count()).toBeLessThan(1000);
+        await largeGrid.evaluate((element) => {
+            for (const viewport of Array.from(element.querySelectorAll(".slick-viewport"))) {
+                viewport.scrollTo({ top: viewport.scrollHeight });
+            }
+        });
+        await expect
+            .poll(() =>
+                largeGrid.locator(".fluent-result-grid-row-number").last().getAttribute("title"),
+            )
+            .toBe("100000");
+    });
+
+    test("defers an offscreen result set and mounts it when scrolled into view", async () => {
+        const { electronApp, page } = getContext();
+        await setQueryText(electronApp, page, getManyResultsQuery());
+        await executeQueryAndWait(page);
+        const lastContainer = resultsFrame.locator('[id="0_19"]');
+        await expect(lastContainer).toBeAttached();
+        await expect(lastContainer.locator('[aria-busy="true"][tabindex="0"]')).toBeAttached();
+        await expect(resultsFrame.locator('[data-grid-id="0_19"]')).toHaveCount(0);
+        await lastContainer.scrollIntoViewIfNeeded();
+        const lastGrid = await waitForResultGrid(resultsFrame, "0_19", 1);
+        await expect(getCell(lastGrid, 0, 0)).toHaveText("20");
+    });
+});

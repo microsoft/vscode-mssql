@@ -596,6 +596,7 @@ export function useFluentResultGridController({
     return {
         columns,
         commandContext,
+        frozenColumnIndex,
         dataView: dataController.dataView,
         dataViewKey: dataController.dataViewKey,
         displayedRowCount: dataController.displayedRowCount,
