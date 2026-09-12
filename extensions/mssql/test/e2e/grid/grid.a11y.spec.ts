@@ -37,6 +37,13 @@ test.describe("MSSQL Extension - Preview Grid Accessibility", () => {
         await expect(getCell(grid, 0, 1)).toHaveAttribute("role", "gridcell");
     });
 
+    test("rows and cells expose their values to the accessibility tree", async () => {
+        const row = grid.getByRole("row", { name: /1 10 100 1000/ }).first();
+        await expect(row).toBeVisible();
+        await expect(row.getByRole("gridcell", { name: "10", exact: true })).toBeVisible();
+        await expect(row.getByRole("gridcell", { name: "100", exact: true })).toBeVisible();
+    });
+
     test("Tab enters the grid and reaches its toolbar; Shift+Tab returns", async () => {
         const { page } = getContext();
         const focusIsWithinGrid = () =>

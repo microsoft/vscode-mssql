@@ -6,9 +6,20 @@
 import { FrameLocator, Locator } from "@playwright/test";
 import { test, expect } from "../baseFixtures";
 import { useSharedVsCodeLifecycle } from "../utils/testLifecycle";
-import { executeQueryAndWait, setQueryText, waitForResultGrid } from "../utils/testHelpers";
+import {
+    executeQueryAndWait,
+    openNewQueryEditor,
+    setQueryText,
+    waitForResultGrid,
+} from "../utils/testHelpers";
 import { GRID_KEYS, getGridLaunchConfig } from "./gridLaunchConfig";
-import { getCell, getColumnHeader, stageQuery } from "./gridActions";
+import {
+    clickMenuItem,
+    getCell,
+    getColumnHeader,
+    openHeaderContextMenu,
+    stageQuery,
+} from "./gridActions";
 import {
     ABOVE_THRESHOLD_QUERY,
     getManyResultsQuery,
@@ -73,6 +84,38 @@ test.describe("MSSQL Extension - Preview Grid Layout", () => {
         await expect.poll(() => isFocusedWithin(thirdGrid)).toBe(true);
         await page.keyboard.press("Control+ArrowUp");
         await expect.poll(() => isFocusedWithin(secondGrid)).toBe(true);
+    });
+
+    test("resizing one result set does not resize its siblings", async () => {
+        const secondGrid = await waitForResultGrid(resultsFrame, "0_1", 1);
+        await resultsFrame.locator('[id="0_2"]').scrollIntoViewIfNeeded();
+        const thirdGrid = await waitForResultGrid(resultsFrame, "0_2", 1);
+        const columnWidth = async (target: Locator, column: string) =>
+            (await getColumnHeader(target, column).boundingBox())!.width;
+        const secondWidth = await columnWidth(secondGrid, "b");
+        const thirdWidth = await columnWidth(thirdGrid, "d");
+        await firstGrid.scrollIntoViewIfNeeded();
+        const firstWidth = await columnWidth(firstGrid, "a");
+
+        async function resizeFirstColumn(width: number): Promise<void> {
+            await openHeaderContextMenu(firstGrid, "a");
+            await clickMenuItem(resultsFrame, "Resize");
+            const dialog = resultsFrame.getByRole("dialog").filter({ hasText: "Resize" }).first();
+            await dialog.locator('input[type="number"]').fill(String(width));
+            await dialog.getByRole("button", { name: "Resize" }).last().click();
+            await expect(dialog).toBeHidden();
+        }
+
+        await resizeFirstColumn(Math.round(firstWidth + 30));
+        try {
+            await expect.poll(() => columnWidth(firstGrid, "a")).toBeGreaterThan(firstWidth + 20);
+            await resultsFrame.locator('[id="0_2"]').scrollIntoViewIfNeeded();
+            expect(Math.abs((await columnWidth(secondGrid, "b")) - secondWidth)).toBeLessThan(2);
+            expect(Math.abs((await columnWidth(thirdGrid, "d")) - thirdWidth)).toBeLessThan(2);
+        } finally {
+            await firstGrid.scrollIntoViewIfNeeded();
+            await resizeFirstColumn(Math.round(firstWidth));
+        }
     });
 
     test("renders results in batch order with heights based on row counts", async () => {
@@ -207,5 +250,33 @@ test.describe("MSSQL Extension - Preview Grid Layout", () => {
         await lastContainer.scrollIntoViewIfNeeded();
         const lastGrid = await waitForResultGrid(resultsFrame, "0_19", 1);
         await expect(getCell(lastGrid, 0, 0)).toHaveText("20");
+
+        const scrollContainer = lastContainer.locator("xpath=..");
+        const scrolledTop = await scrollContainer.evaluate((element) => element.scrollTop);
+        expect(scrolledTop).toBeGreaterThan(100);
+        const tabs = resultsFrame.getByTestId("results-tab-list");
+        await tabs.getByRole("tab", { name: "Messages" }).click();
+        await tabs.getByRole("tab", { name: /Results Preview/ }).click();
+        await expect
+            .poll(async () =>
+                scrollContainer.evaluate(
+                    (element, previousTop) => Math.abs(element.scrollTop - previousTop),
+                    scrolledTop,
+                ),
+            )
+            .toBeLessThan(5);
+        await openNewQueryEditor(page);
+        await page
+            .getByRole("tab", { name: /Untitled-1/ })
+            .first()
+            .click();
+        await expect
+            .poll(async () =>
+                scrollContainer.evaluate(
+                    (element, previousTop) => Math.abs(element.scrollTop - previousTop),
+                    scrolledTop,
+                ),
+            )
+            .toBeLessThan(5);
     });
 });
