@@ -6,6 +6,7 @@
 import * as vscode from "vscode";
 import * as path from "path";
 import { spawn } from "child_process";
+import { createServer } from "net";
 import { arch, platform } from "os";
 import { PassThrough } from "stream";
 import fixPath from "fix-path";
@@ -850,22 +851,80 @@ export async function checkIfConnectionIsDockerContainer(machineName: string): P
 }
 
 /**
- * Finds an available port for a new Docker container, starting from the specified port.
- * It checks the currently running containers and their exposed ports to find an unused port.
+ * How many candidate ports to probe before giving up. Scanning to
+ * MAX_PORT_NUMBER would mean tens of thousands of socket binds on a machine
+ * where the whole range above the start port is busy.
  */
-export async function findAvailablePort(startPort: number): Promise<number> {
+const MAX_PORT_PROBE_ATTEMPTS = 200;
+
+/**
+ * Addresses a published port has to be free on.
+ *
+ * Loopback is probed because that is where DAB publishes: containers bind
+ * 127.0.0.1 and the CLI engine listens there too, and on Windows a wildcard
+ * bind succeeds while a loopback listener holds the same port. The wildcard is
+ * probed with no address at all, which is how Node binds every interface, so a
+ * service listening broadly is caught as well.
+ */
+const HOST_PORT_PROBE_ADDRESSES: (string | undefined)[] = ["127.0.0.1", undefined];
+
+/** Reports whether a socket can be bound to one address and port. */
+function canBindAddress(host: string | undefined, port: number): Promise<boolean> {
+    return new Promise<boolean>((resolve) => {
+        const server = createServer();
+        server.unref();
+        server.once("error", () => resolve(false));
+        server.listen({ ...(host ? { host } : {}), port, exclusive: true }, () => {
+            server.close(() => resolve(true));
+        });
+    });
+}
+
+/**
+ * Checks whether the host can still publish the given port.
+ *
+ * Docker port bindings are not the whole story: a port claimed by any other
+ * process on the machine is one `docker create` will refuse to bind, and a
+ * detached engine left running by an earlier session is exactly such a process.
+ */
+export async function isHostPortAvailable(port: number): Promise<boolean> {
+    for (const host of HOST_PORT_PROBE_ADDRESSES) {
+        if (!(await canBindAddress(host, port))) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/**
+ * Finds an available port for a new Docker container, starting from the specified port.
+ * A port is available only when no container has it bound and no process on the
+ * host is already listening on it.
+ */
+export async function findAvailablePort(
+    startPort: number,
+    /** Overridable so tests can drive port availability without real sockets. */
+    isPortFree: (port: number) => Promise<boolean> = isHostPortAvailable,
+): Promise<number> {
     try {
         const dockerClient = getDockerodeClient();
         const containerInfos = await dockerClient.listContainers({ all: true });
         const containerIds = containerInfos
             .map((containerInfo) => containerInfo.Id)
             .filter((id): id is string => Boolean(id));
-        if (!containerIds.length) return startPort;
 
-        const usedPorts = await getUsedPortsFromContainers(containerIds);
+        const usedPorts = containerIds.length
+            ? await getUsedPortsFromContainers(containerIds)
+            : new Set<number>();
 
-        for (let port = startPort; port <= MAX_PORT_NUMBER; port++) {
-            if (!usedPorts.has(port)) {
+        const lastPort = Math.min(startPort + MAX_PORT_PROBE_ATTEMPTS - 1, MAX_PORT_NUMBER);
+        for (let port = startPort; port <= lastPort; port++) {
+            if (usedPorts.has(port)) {
+                continue;
+            }
+
+            if (await isPortFree(port)) {
                 return port;
             }
         }

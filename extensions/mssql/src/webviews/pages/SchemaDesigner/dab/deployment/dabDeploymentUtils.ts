@@ -39,35 +39,49 @@ export function getDabStepLabels(): Record<
             header: locConstants.schemaDesigner.checkingContainerReadiness,
             body: locConstants.schemaDesigner.verifyingApiReady,
         },
+        [Dab.DabDeploymentStepOrder.acquireDabCli]: {
+            header: locConstants.schemaDesigner.gettingDabCli,
+            body: locConstants.schemaDesigner.downloadingDabCli,
+        },
+        [Dab.DabDeploymentStepOrder.checkDotnetRuntime]: {
+            header: locConstants.schemaDesigner.checkingDotnetRuntime,
+            body: locConstants.schemaDesigner.resolvingDotnetRuntime,
+        },
+        [Dab.DabDeploymentStepOrder.validateCliConfig]: {
+            header: locConstants.schemaDesigner.validatingDabConfig,
+            body: locConstants.schemaDesigner.checkingGeneratedConfig,
+        },
+        [Dab.DabDeploymentStepOrder.startCliEngine]: {
+            header: locConstants.schemaDesigner.startingDabEngine,
+            body: locConstants.schemaDesigner.launchingDabEngine,
+        },
+        [Dab.DabDeploymentStepOrder.checkCliEngine]: {
+            header: locConstants.schemaDesigner.checkingEngineReadiness,
+            body: locConstants.schemaDesigner.verifyingApiReady,
+        },
     };
 }
 
 /**
- * Gets prerequisite step statuses from deployment state
+ * Gets prerequisite step statuses for the target being deployed to
  */
 export function getPrereqSteps(
     stepStatuses: Dab.DabDeploymentStepStatus[],
+    target: Dab.DabDeploymentTarget = Dab.DabDeploymentTarget.Docker,
 ): Dab.DabDeploymentStepStatus[] {
-    return stepStatuses.filter(
-        (s) =>
-            s.step === Dab.DabDeploymentStepOrder.dockerInstallation ||
-            s.step === Dab.DabDeploymentStepOrder.startDockerDesktop ||
-            s.step === Dab.DabDeploymentStepOrder.checkDockerEngine,
-    );
+    const prerequisites = Dab.dabDeploymentStepsByTarget[target].prerequisites;
+    return stepStatuses.filter((s) => prerequisites.includes(s.step));
 }
 
 /**
- * Gets deployment step statuses from deployment state
+ * Gets deployment step statuses for the target being deployed to
  */
 export function getDeploySteps(
     stepStatuses: Dab.DabDeploymentStepStatus[],
+    target: Dab.DabDeploymentTarget = Dab.DabDeploymentTarget.Docker,
 ): Dab.DabDeploymentStepStatus[] {
-    return stepStatuses.filter(
-        (s) =>
-            s.step === Dab.DabDeploymentStepOrder.pullImage ||
-            s.step === Dab.DabDeploymentStepOrder.startContainer ||
-            s.step === Dab.DabDeploymentStepOrder.checkContainer,
-    );
+    const deployment = Dab.dabDeploymentStepsByTarget[target].deployment;
+    return stepStatuses.filter((s) => deployment.includes(s.step));
 }
 
 /**

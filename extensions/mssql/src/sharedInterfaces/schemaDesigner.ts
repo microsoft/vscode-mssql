@@ -397,12 +397,35 @@ export namespace SchemaDesigner {
         onSchemaReady(listener: (model: SchemaDesignerSession) => void): void;
     }
 
+    /**
+     * Whether one DAB deployment target can be used with this connection, and
+     * why not when it cannot.
+     */
+    export interface DabTargetSupport {
+        isSupported: boolean;
+        /** Localized explanation, present only when unsupported. */
+        reason?: string;
+    }
+
     export interface SchemaDesignerWebviewState {
         enableExpandCollapseButtons?: boolean;
+        /**
+         * True when the toolbar offers Deployments in place of Deploy. The
+         * deployments list starts a new deployment itself, so the flow behind
+         * Deploy stays reachable either way.
+         */
+        enableDeploymentsView?: boolean;
         isCopilotChatInstalled?: boolean;
         copilotChatDiscoveryDismissed?: CopilotChat.DiscoveryDismissedState;
         activeView?: SchemaDesignerActiveView;
+        /** True when at least one deployment target can be used. */
         isDabDeploymentSupported?: boolean;
+        /**
+         * Support for each deployment target, keyed by the target's value in
+         * Dab.DabDeploymentTarget. Kept as a plain record because the DAB
+         * interfaces import this file, so it cannot import them back.
+         */
+        dabTargetSupport?: Record<string, DabTargetSupport>;
         initialFilterTables?: string[];
         currentFilteredTables?: string[];
         // When true, the Schema Designer renders as a read-only diagram —

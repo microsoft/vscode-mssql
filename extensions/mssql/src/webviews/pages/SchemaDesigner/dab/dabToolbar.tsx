@@ -7,6 +7,12 @@ import {
     Button,
     Checkbox,
     CounterBadge,
+    Dialog,
+    DialogActions,
+    DialogBody,
+    DialogContent,
+    DialogSurface,
+    DialogTitle,
     Divider,
     Input,
     makeStyles,
@@ -20,7 +26,9 @@ import {
     Tooltip,
 } from "@fluentui/react-components";
 import {
+    ArrowCounterclockwise16Regular as ResetIcon,
     ArrowLeft16Regular as ArrowLeftIcon,
+    Box16Regular as DeploymentsIcon,
     Dismiss12Regular,
     Dismiss16Regular,
     Eye16Regular as EyeIcon,
@@ -34,6 +42,7 @@ import { locConstants } from "../../../common/locConstants";
 import { SegmentedControl } from "../../../common/segmentedControl";
 import { Dab } from "../../../../sharedInterfaces/dab";
 import { useDabContext } from "./dabContext";
+import { useSchemaDesignerSelector } from "../schemaDesignerSelector";
 import { SchemaDesignerWebviewCopilotChatEntry } from "../copilot/schemaDesignerWebviewCopilotChatEntry";
 import {
     DabEntityAuthFilter,
@@ -311,15 +320,23 @@ export function DabToolbar({
     const context = useDabContext();
     const {
         dabConfig,
-        isDabDeploymentSupported,
+        isDockerTargetSupported,
         updateDabApiTypes,
         dabTextFilter,
         setDabTextFilter,
         openDabDeploymentDialog,
+        openDabDeploymentsDialog,
+        resetDabConfig,
     } = context;
+
+    // The toolbar offers one of the two experiences, never both. Deployments
+    // stands in for Deploy while this is on, and the deployments list starts a
+    // new deployment itself, so the flow behind Deploy stays reachable.
+    const showDeployments = useSchemaDesignerSelector((s) => s?.enableDeploymentsView) ?? false;
 
     const [showApiTypeWarning, setShowApiTypeWarning] = useState(false);
     const [filterOpen, setFilterOpen] = useState(false);
+    const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
     const warningTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
     const schemaListRef = useRef<HTMLDivElement | null>(null);
 
@@ -445,10 +462,12 @@ export function DabToolbar({
             entity.sourceType !== Dab.EntitySourceType.StoredProcedure &&
             !Dab.hasLogicalKey(entity),
     );
-    const isDeployDisabled = !isDabDeploymentSupported || !hasApiTypes || hasMissingKeyEntity;
+    // Deploy runs the original Docker-only flow, so it gates on that target,
+    // which is the same rule and the same message it has always shown.
+    const isDeployDisabled = !isDockerTargetSupported || !hasApiTypes || hasMissingKeyEntity;
 
     const getDeployTooltip = (): string => {
-        if (!isDabDeploymentSupported) {
+        if (!isDockerTargetSupported) {
             return locConstants.schemaDesigner.dabDeploymentNotSupported;
         }
         if (!hasApiTypes) {
@@ -491,7 +510,24 @@ export function DabToolbar({
                         onClick={onViewConfig}>
                         {locConstants.schemaDesigner.viewConfig}
                     </Button>
-                    {isDeployDisabled ? (
+                    <Button
+                        appearance="subtle"
+                        icon={<ResetIcon />}
+                        size="small"
+                        title={locConstants.schemaDesigner.resetConfigTooltip}
+                        onClick={() => setIsResetDialogOpen(true)}>
+                        {locConstants.schemaDesigner.resetConfig}
+                    </Button>
+                    {showDeployments ? (
+                        <Button
+                            appearance="primary"
+                            icon={<DeploymentsIcon />}
+                            size="small"
+                            title={locConstants.schemaDesigner.deployments}
+                            onClick={openDabDeploymentsDialog}>
+                            {locConstants.schemaDesigner.deployments}
+                        </Button>
+                    ) : isDeployDisabled ? (
                         <Tooltip content={getDeployTooltip()} relationship="label">
                             <span>
                                 <Button
@@ -854,6 +890,37 @@ export function DabToolbar({
                     {locConstants.schemaDesigner.nOfMEnabled(enabledCount, totalCount)}
                 </Text>
             </div>
+
+            <Dialog
+                open={isResetDialogOpen}
+                modalType="alert"
+                onOpenChange={(_, data) => setIsResetDialogOpen(data.open)}>
+                <DialogSurface>
+                    <DialogBody>
+                        <DialogTitle>
+                            {locConstants.schemaDesigner.resetConfigConfirmTitle}
+                        </DialogTitle>
+                        <DialogContent>
+                            <Text>{locConstants.schemaDesigner.resetConfigConfirmMessage}</Text>
+                        </DialogContent>
+                        <DialogActions>
+                            <Button
+                                appearance="secondary"
+                                onClick={() => setIsResetDialogOpen(false)}>
+                                {locConstants.common.cancel}
+                            </Button>
+                            <Button
+                                appearance="primary"
+                                onClick={() => {
+                                    resetDabConfig();
+                                    setIsResetDialogOpen(false);
+                                }}>
+                                {locConstants.schemaDesigner.resetConfig}
+                            </Button>
+                        </DialogActions>
+                    </DialogBody>
+                </DialogSurface>
+            </Dialog>
         </div>
     );
 }

@@ -8,6 +8,7 @@ import * as chai from "chai";
 import sinonChai from "sinon-chai";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
+import * as net from "net";
 import * as os from "os";
 import * as dockerUtils from "../../src/docker/dockerUtils";
 import { LocalContainers } from "../../src/constants/locConstants";
@@ -832,10 +833,11 @@ suite("Docker Utilities", () => {
             }),
         });
         sandbox.stub(dockerodeClient, "getDockerodeClient").returns(dockerClientMock as any);
+        const allHostPortsFree = async () => true;
 
         // 1. No containers running: should return 1433
         listContainersStub.onFirstCall().resolves([]);
-        let result = await dockerUtils.findAvailablePort(1433);
+        let result = await dockerUtils.findAvailablePort(1433, allHostPortsFree);
         expect(result, "Should return 1433 when no containers are running").to.equal(1433);
 
         // 2. Port 1433 is configured on a stopped container: should return next available port
@@ -852,8 +854,84 @@ suite("Docker Utilities", () => {
                 },
             },
         });
-        result = await dockerUtils.findAvailablePort(1433);
+        result = await dockerUtils.findAvailablePort(1433, allHostPortsFree);
         expect(result, "Should return 1434 when 1433 is taken").to.equal(1434);
+    });
+
+    test("findAvailablePort: should skip ports held by a non-Docker process", async () => {
+        const listContainersStub = sandbox.stub().resolves([]);
+        const dockerClientMock = createDockerClientMock({
+            listContainers: listContainersStub,
+            getContainer: sandbox.stub().returns({ inspect: sandbox.stub() }),
+        });
+        sandbox.stub(dockerodeClient, "getDockerodeClient").returns(dockerClientMock as any);
+
+        // Docker reports no containers at all, but the host already has 5000 and
+        // 5001 bound, which is what made the first suggestion unusable.
+        const portsHeldOnHost = new Set([5000, 5001]);
+        const result = await dockerUtils.findAvailablePort(
+            5000,
+            async (port) => !portsHeldOnHost.has(port),
+        );
+
+        expect(result, "Should skip host-held ports and return the first free one").to.equal(5002);
+    });
+
+    test("findAvailablePort: should return -1 when no port in the probe range is free", async () => {
+        const listContainersStub = sandbox.stub().resolves([]);
+        const dockerClientMock = createDockerClientMock({
+            listContainers: listContainersStub,
+            getContainer: sandbox.stub().returns({ inspect: sandbox.stub() }),
+        });
+        sandbox.stub(dockerodeClient, "getDockerodeClient").returns(dockerClientMock as any);
+
+        const result = await dockerUtils.findAvailablePort(5000, async () => false);
+
+        expect(result, "Should report failure rather than a port that cannot bind").to.equal(-1);
+    });
+
+    test("isHostPortAvailable: should report a port held only on loopback as unavailable", async () => {
+        // DAB publishes on 127.0.0.1 — containers bind it and the CLI engine
+        // listens there — and on Windows a wildcard bind succeeds alongside a
+        // loopback listener, so checking only the wildcard misses these.
+        const server = net.createServer();
+        await new Promise<void>((resolve, reject) => {
+            server.once("error", reject);
+            server.listen({ host: "127.0.0.1", port: 0 }, () => resolve());
+        });
+
+        const boundPort = (server.address() as net.AddressInfo).port;
+        try {
+            expect(
+                await dockerUtils.isHostPortAvailable(boundPort),
+                "A loopback listener still takes the port",
+            ).to.be.false;
+        } finally {
+            await new Promise<void>((resolve) => server.close(() => resolve()));
+        }
+    });
+
+    test("isHostPortAvailable: should report a port held by another listener as unavailable", async () => {
+        const server = net.createServer();
+        await new Promise<void>((resolve, reject) => {
+            server.once("error", reject);
+            server.listen({ port: 0 }, () => resolve());
+        });
+
+        const boundPort = (server.address() as net.AddressInfo).port;
+        try {
+            expect(
+                await dockerUtils.isHostPortAvailable(boundPort),
+                "A port with a live listener is not available",
+            ).to.be.false;
+        } finally {
+            await new Promise<void>((resolve) => server.close(() => resolve()));
+        }
+
+        expect(
+            await dockerUtils.isHostPortAvailable(boundPort),
+            "The same port is available once the listener closes",
+        ).to.be.true;
     });
 
     test("prepareForDockerContainerCommand: should prepare the command with correct parameters", async () => {
