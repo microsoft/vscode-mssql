@@ -79,6 +79,8 @@ const GRID_SHORTCUTS = {
     // View
     "event.queryResults.switchToResultsTab": "ctrl+alt+r",
     "event.queryResults.switchToMessagesTab": "ctrl+alt+y",
+    "event.queryResults.prevGrid": "ctrl+up",
+    "event.queryResults.nextGrid": "ctrl+down",
     "event.queryResults.switchToTextView": "ctrlcmd+alt+t",
     "event.queryResults.maximizeGrid": "ctrlcmd+alt+m",
 };

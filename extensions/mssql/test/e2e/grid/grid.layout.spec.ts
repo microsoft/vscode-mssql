@@ -45,9 +45,84 @@ test.describe("MSSQL Extension - Preview Grid Layout", () => {
         await expect(secondGrid).toHaveCount(0);
         await expect(thirdGrid).toHaveCount(0);
 
+        const tabs = resultsFrame.getByTestId("results-tab-list");
+        await tabs.getByRole("tab", { name: "Messages" }).click();
+        await tabs.getByRole("tab", { name: /Results Preview/ }).click();
+        await expect(firstGrid).toBeVisible();
+        await expect(secondGrid).toHaveCount(0);
+        await expect(thirdGrid).toHaveCount(0);
+
+        await getCell(firstGrid, 0, 0).click();
         await page.keyboard.press(GRID_KEYS.maximizeGrid);
         await expect(secondGrid).toBeVisible();
         await expect(thirdGrid).toBeVisible();
+    });
+
+    test("Ctrl+Down and Ctrl+Up move focus between result grids", async () => {
+        const { page } = getContext();
+        await resultsFrame.locator('[id="0_2"]').scrollIntoViewIfNeeded();
+        const secondGrid = await waitForResultGrid(resultsFrame, "0_1", 1);
+        const thirdGrid = await waitForResultGrid(resultsFrame, "0_2", 1);
+        const isFocusedWithin = (target: Locator) =>
+            target.evaluate((element) => element.contains(element.ownerDocument.activeElement));
+
+        await getCell(firstGrid, 0, 0).click();
+        await page.keyboard.press("Control+ArrowDown");
+        await expect.poll(() => isFocusedWithin(secondGrid)).toBe(true);
+        await page.keyboard.press("Control+ArrowDown");
+        await expect.poll(() => isFocusedWithin(thirdGrid)).toBe(true);
+        await page.keyboard.press("Control+ArrowUp");
+        await expect.poll(() => isFocusedWithin(secondGrid)).toBe(true);
+    });
+
+    test("renders results in batch order with heights based on row counts", async () => {
+        const { electronApp, page } = getContext();
+        await setQueryText(
+            electronApp,
+            page,
+            `SELECT 1 AS first_result;
+             SELECT 2 AS second_result UNION ALL SELECT 3 UNION ALL SELECT 4;
+             GO
+             SELECT TOP (20) ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS third_result
+             FROM sys.all_objects;`,
+        );
+        await executeQueryAndWait(page);
+        try {
+            const containers = ["0_0", "0_1", "1_0"].map((id) =>
+                resultsFrame.locator(`[id="${id}"]`),
+            );
+            await expect(containers[2]).toBeVisible();
+            await expect
+                .poll(async () =>
+                    resultsFrame
+                        .locator('[id="0_0"], [id="0_1"], [id="1_0"]')
+                        .evaluateAll((elements) => elements.map((element) => element.id)),
+                )
+                .toEqual(["0_0", "0_1", "1_0"]);
+
+            for (const [index, id, rowCount] of [
+                [0, "1", 1],
+                [1, "2", 3],
+                [2, "1", 20],
+            ] as const) {
+                await containers[index].scrollIntoViewIfNeeded();
+                const result = await waitForResultGrid(
+                    resultsFrame,
+                    ["0_0", "0_1", "1_0"][index],
+                    rowCount,
+                );
+                await expect(getCell(result, 0, 0)).toHaveText(id);
+            }
+            const heights = await Promise.all(
+                containers.map(async (container) => (await container.boundingBox())!.height),
+            );
+            expect(heights[1]).toBeGreaterThan(heights[0]);
+            expect(heights[2]).toBeGreaterThan(heights[1]);
+        } finally {
+            await setQueryText(electronApp, page, MULTI_RESULT_QUERY);
+            await executeQueryAndWait(page);
+            firstGrid = await waitForResultGrid(resultsFrame, "0_0", 1);
+        }
     });
 
     test("switches to text results and back without rerunning the query", async () => {

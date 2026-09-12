@@ -52,6 +52,8 @@ test.describe("MSSQL Extension - Preview Grid Pane", () => {
         await expect(selection).toContainText("Count: 3");
         await expect(selection).toContainText("Avg: 6.58");
         await expect(selection).toContainText("Sum: 19.75");
+        await selection.hover();
+        await expect(resultsFrame.getByRole("tooltip")).not.toContainText("Null:");
     });
 
     test("the footer shows a final execution time", async () => {

@@ -189,6 +189,46 @@ test.describe("MSSQL Extension - Preview Grid Columns", () => {
         await expect(getCell(grid, FILTERABLE_ROW_COUNT - 1, 0)).toHaveText("4");
     });
 
+    test("sorting defines an order for NULL, numbers, blanks and strings", async () => {
+        const { electronApp, page } = getContext();
+        await setQueryText(
+            electronApp,
+            page,
+            `SELECT * FROM (VALUES
+                (1, CAST(NULL AS nvarchar(20))),
+                (2, N''),
+                (3, N'2'),
+                (4, N'10'),
+                (5, N'pear')
+            ) AS t(id, value);`,
+        );
+        await executeQueryAndWait(page);
+        grid = await waitForResultGrid(resultsFrame, "0_0", 5);
+        try {
+            const sortButton = getColumnHeader(grid, "value").locator(".slick-header-sortbutton");
+            await sortButton.click();
+            await expect(getColumnHeader(grid, "value")).toHaveAttribute(
+                "data-sort-direction",
+                "asc",
+            );
+            for (const [row, id] of ["1", "3", "4", "2", "5"].entries()) {
+                await expect(getCell(grid, row, 0)).toHaveText(id);
+            }
+            await sortButton.click();
+            await expect(getColumnHeader(grid, "value")).toHaveAttribute(
+                "data-sort-direction",
+                "desc",
+            );
+            for (const [row, id] of ["5", "2", "4", "3", "1"].entries()) {
+                await expect(getCell(grid, row, 0)).toHaveText(id);
+            }
+        } finally {
+            await setQueryText(electronApp, page, FILTERABLE_QUERY);
+            await executeQueryAndWait(page);
+            grid = await waitForResultGrid(resultsFrame, "0_0", FILTERABLE_ROW_COUNT);
+        }
+    });
+
     test("sorting a second column replaces the first column's sort", async () => {
         await getColumnHeader(grid, "id").locator(".slick-header-sortbutton").click();
         await expect(getColumnHeader(grid, "id")).toHaveAttribute("data-sort-direction", "asc");
@@ -492,6 +532,34 @@ test.describe("MSSQL Extension - Preview Grid Columns", () => {
         await clearFilter();
     });
 
+    test("filter focus wraps between Clear and Close without escaping the overlay", async () => {
+        const { page } = getContext();
+        await openFilter("category");
+        const overlay = filterOverlay();
+        const clearButton = overlay.getByRole("button", { name: FILTER_STRINGS.clear });
+        const closeButton = overlay.getByRole("button", { name: "Close" });
+        await clearButton.focus();
+        await page.keyboard.press("Tab");
+        await expect(closeButton).toBeFocused();
+        await page.keyboard.press("Shift+Tab");
+        await expect(clearButton).toBeFocused();
+        await page.keyboard.press("Tab");
+        await expect(closeButton).toBeFocused();
+        await page.keyboard.press("Tab");
+        await expect(overlay.getByRole("searchbox")).toBeFocused();
+        await page.keyboard.press("Tab");
+        await expect(
+            overlay.getByRole("checkbox", { name: FILTER_STRINGS.selectAll }),
+        ).toBeFocused();
+        await page.keyboard.press("Tab");
+        await expect(overlay.getByRole("listbox", { name: "Filter Options" })).toBeFocused();
+        await page.keyboard.press("Tab");
+        await expect(overlay.getByRole("button", { name: FILTER_STRINGS.apply })).toBeFocused();
+        await page.keyboard.press("Tab");
+        await expect(clearButton).toBeFocused();
+        await clearFilter();
+    });
+
     test("selecting every value leaves no active filter", async () => {
         await openFilter("category");
         await filterOverlay().getByRole("checkbox", { name: FILTER_STRINGS.selectAll }).click();
@@ -526,6 +594,37 @@ test.describe("MSSQL Extension - Preview Grid Columns", () => {
         await expect(dialog).toBeHidden();
     });
 
+    test("double-clicking a column edge fits its header and cell content", async () => {
+        const header = getColumnHeader(grid, "category");
+        const originalWidth = (await header.boundingBox())!.width;
+        async function setWidth(width: number): Promise<void> {
+            await openHeaderContextMenu(grid, "category");
+            await clickMenuItem(resultsFrame, HEADER_MENU.resize);
+            const dialog = resultsFrame.getByRole("dialog").filter({ hasText: "Resize" }).first();
+            await dialog.locator('input[type="number"]').fill(String(width));
+            await dialog.getByRole("button", { name: "Resize" }).last().click();
+            await expect(dialog).toBeHidden();
+        }
+
+        await openHeaderContextMenu(grid, "category");
+        await clickMenuItem(resultsFrame, HEADER_MENU.resize);
+        const dialog = resultsFrame.getByRole("dialog").filter({ hasText: "Resize" }).first();
+        const minimumWidth = Number(
+            await dialog.locator('input[type="number"]').getAttribute("min"),
+        );
+        await dialog.locator('input[type="number"]').fill(String(minimumWidth));
+        await dialog.getByRole("button", { name: "Resize" }).last().click();
+        await expect(dialog).toBeHidden();
+        try {
+            await header.locator(".slick-resizable-handle").dblclick();
+            await expect
+                .poll(async () => (await header.boundingBox())?.width ?? 0)
+                .toBeGreaterThan(minimumWidth + 15);
+        } finally {
+            await setWidth(Math.round(originalWidth));
+        }
+    });
+
     test("Show all columns restores a column hidden through SlickGrid's picker", async () => {
         await openGridMenu(grid);
         const categoryPicker = resultsFrame.locator(
@@ -557,6 +656,45 @@ test.describe("MSSQL Extension - Preview Grid Columns", () => {
             await setQueryText(electronApp, page, FILTERABLE_QUERY);
             await executeQueryAndWait(page);
             grid = await waitForResultGrid(resultsFrame, "0_0", FILTERABLE_ROW_COUNT);
+        }
+    });
+
+    test("row-number column can be resized and its width survives an editor switch", async () => {
+        const { page } = getContext();
+        const rowHeader = grid.locator(".slick-header-column.fluent-result-grid-row-number-header");
+        const resizeHandle = rowHeader.locator(".slick-resizable-handle");
+        const initialWidth = (await rowHeader.boundingBox())!.width;
+
+        async function dragResizeHandle(deltaX: number): Promise<void> {
+            const box = (await resizeHandle.boundingBox())!;
+            const x = box.x + box.width / 2;
+            const y = box.y + box.height / 2;
+            await page.mouse.move(x, y);
+            await page.mouse.down();
+            await page.mouse.move(x + deltaX, y, { steps: 5 });
+            await page.mouse.up();
+        }
+
+        await dragResizeHandle(40);
+        await expect
+            .poll(async () => (await rowHeader.boundingBox())!.width)
+            .toBeGreaterThan(initialWidth + 20);
+        const resizedWidth = (await rowHeader.boundingBox())!.width;
+        try {
+            await openNewQueryEditor(page);
+            await page
+                .getByRole("tab", { name: /Untitled-1/ })
+                .first()
+                .click();
+            await expect(rowHeader).toBeVisible();
+            await expect
+                .poll(async () => (await rowHeader.boundingBox())?.width ?? 0)
+                .toBeGreaterThan(resizedWidth - 2);
+        } finally {
+            await dragResizeHandle(initialWidth - resizedWidth);
+            await expect
+                .poll(async () => (await rowHeader.boundingBox())!.width)
+                .toBeLessThan(initialWidth + 3);
         }
     });
 });
