@@ -81,6 +81,13 @@ export function featureFor(name: string): string {
     ) {
         return "metadata";
     }
+    if (
+        name.startsWith("debugConsole.") ||
+        name.startsWith("sessionDiag.") ||
+        name.startsWith("system.rich.")
+    ) {
+        return "diagnostics";
+    }
     if (name.startsWith("driver.")) return "harness";
     return "system";
 }
@@ -102,14 +109,18 @@ export const PERF_ATTR_CLASSIFICATION: Readonly<Record<string, DataClassificatio
     error: "diagnostic.metadata",
     errorClass: "diagnostic.metadata",
     errorNumber: "diagnostic.metadata",
+    events: "diagnostic.metadata",
     failed: "diagnostic.metadata",
     commandId: "diagnostic.metadata",
     hasError: "diagnostic.metadata",
     pid: "diagnostic.metadata",
     rafThrottled: "diagnostic.metadata",
     reason: "diagnostic.metadata",
+    redactions: "diagnostic.metadata",
     resultSets: "diagnostic.metadata",
     rowCount: "diagnostic.metadata",
+    captureMode: "diagnostic.metadata",
+    durationMinutes: "diagnostic.metadata",
     waitedMs: "diagnostic.metadata",
 };
 

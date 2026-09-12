@@ -52,6 +52,7 @@ import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import { getLocalizationFileContentsCached } from "./localizationCache";
 import { Perf } from "../perf/perfTelemetry";
+import { diag } from "../diagnostics/diagnosticsCore";
 import { PerfEnableNotification, PerfWebviewMarkNotification } from "../sharedInterfaces/perf";
 
 class WebviewControllerMessageReader extends AbstractMessageReader implements MessageReader {
@@ -167,36 +168,52 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
             },
         });
 
-        // Perf-harness webview mark bridge (PERF_MODE only): forward webview
-        // marks to the perf sink, and tell the webview marks are wanted once
-        // it is ready. Inert outside perf mode. The enable notification is
-        // re-sent on a short schedule because "webview ready" can precede the
-        // app's handler registration; the webview queues marks (with original
-        // timestamps) until one of the sends lands.
-        if (Perf.enabled) {
-            this.connection.onNotification(PerfWebviewMarkNotification.type, (mark) => {
-                Perf.webviewMark(mark, this._sourceFile);
-            });
-            // Unconditional schedule (not gated on whenWebviewReady, which can
-            // time out on cold first loads): sends to a not-yet-ready webview
-            // are dropped harmlessly, and the webview queues marks with their
-            // original timestamps until one enable lands.
+        // Forward webview marks whenever either the harness or an in-product
+        // diagnostics sink is active. Calls remain inert until the webview is
+        // explicitly enabled, and queued marks keep their original clocks.
+        this.connection.onNotification(PerfWebviewMarkNotification.type, (mark) => {
+            Perf.webviewMark(mark, this._sourceFile);
+        });
+        const sendEnableIfWanted = (): boolean => {
+            if (this._isDisposed || (!Perf.enabled && !diag.anySinkActive)) {
+                return false;
+            }
+            try {
+                void this.connection.sendNotification(PerfEnableNotification.type, undefined);
+            } catch {
+                // disposed between check and send; ignore
+            }
+            return true;
+        };
+        const enableTimers = new Set<NodeJS.Timeout>();
+        const clearEnableTimers = () => {
+            for (const timer of enableTimers) {
+                clearTimeout(timer);
+            }
+            enableTimers.clear();
+        };
+        const scheduleEnableNotifications = () => {
+            clearEnableTimers();
+            if (!sendEnableIfWanted()) {
+                return;
+            }
             for (const delayMs of [500, 2000, 5000, 15000, 30000]) {
                 const timer = setTimeout(() => {
-                    if (!this._isDisposed) {
-                        try {
-                            void this.connection.sendNotification(
-                                PerfEnableNotification.type,
-                                undefined,
-                            );
-                        } catch {
-                            // disposed between check and send; ignore
-                        }
-                    }
+                    enableTimers.delete(timer);
+                    sendEnableIfWanted();
                 }, delayMs);
-                this._disposables.push({ dispose: () => clearTimeout(timer) });
+                timer.unref?.();
+                enableTimers.add(timer);
             }
-        }
+        };
+        const removeSinkListener = diag.onSinkStateChanged(scheduleEnableNotifications);
+        this._disposables.push({
+            dispose: () => {
+                removeSinkListener();
+                clearEnableTimers();
+            },
+        });
+        scheduleEnableNotifications();
     }
 
     /**
