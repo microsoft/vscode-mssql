@@ -14,7 +14,7 @@ test.describe("MSSQL Extension - Preview Grid Accessibility", () => {
     let resultsFrame: FrameLocator;
     let grid: Locator;
 
-    useSharedVsCodeLifecycle({
+    const getContext = useSharedVsCodeLifecycle({
         launchOptions: { initialConfig: getGridLaunchConfig() },
         afterLaunch: async ({ electronApp, page }) => {
             const staged = await stageQuery(electronApp, page, SELECTION_QUERY, {
@@ -35,6 +35,24 @@ test.describe("MSSQL Extension - Preview Grid Accessibility", () => {
         await expect(getCell(grid, 0, 0)).toHaveAttribute("role", "gridcell");
         await expect(getCell(grid, 0, 0)).toHaveText("1");
         await expect(getCell(grid, 0, 1)).toHaveAttribute("role", "gridcell");
+    });
+
+    test("Tab enters the grid and reaches its toolbar; Shift+Tab returns", async () => {
+        const { page } = getContext();
+        const focusIsWithinGrid = () =>
+            grid.evaluate((element) => element.contains(element.ownerDocument.activeElement));
+        await getCell(grid, 0, 0).click();
+        await page.keyboard.press("Tab");
+        const toolbar = grid.locator('[data-fluent-result-grid-toolbar="true"]');
+        await expect(toolbar.locator("button:focus")).toHaveCount(1);
+        await page.keyboard.press("Shift+Tab");
+        await expect(toolbar.locator("button:focus")).toHaveCount(0);
+        await expect.poll(focusIsWithinGrid).toBe(true);
+        await expect(getCell(grid, 0, 0)).toHaveClass(/active/);
+        await page.keyboard.press("Shift+Tab");
+        await expect.poll(focusIsWithinGrid).toBe(false);
+        await page.keyboard.press("Tab");
+        await expect.poll(focusIsWithinGrid).toBe(true);
     });
 
     test("the summary footer is a polite status after execution", async () => {
