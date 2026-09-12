@@ -55,12 +55,21 @@ test.describe("MSSQL Extension - Preview Grid Export", () => {
         await expect(picker.widget).toBeVisible();
         await picker.input.fill(filePath);
         await picker.input.press("Enter");
-        await expect.poll(() => fs.existsSync(filePath)).toBe(true);
+        // The save dialog closes before the asynchronous export writes the file. A path can
+        // already exist while its contents are still empty, especially for XLSX on CI.
+        await expect
+            .poll(() => (fs.existsSync(filePath) ? fs.statSync(filePath).size : 0), {
+                timeout: 15_000,
+            })
+            .toBeGreaterThan(2);
         return filePath;
     }
 
     test("Save as CSV writes the result to the chosen path", async () => {
         const filePath = await saveFromToolbar("Save as CSV", "results.csv");
+        await expect
+            .poll(() => fs.readFileSync(filePath, "utf16le"), { timeout: 15_000 })
+            .toContain("Eli");
         const content = fs.readFileSync(filePath, "utf16le");
         expect(content).toContain("Ada");
         expect(content).toContain("Eli");
@@ -70,6 +79,18 @@ test.describe("MSSQL Extension - Preview Grid Export", () => {
 
     test("Save as JSON writes a parseable result file", async () => {
         const filePath = await saveFromToolbar("Save as JSON", "results.json");
+        await expect
+            .poll(
+                () => {
+                    try {
+                        return JSON.parse(fs.readFileSync(filePath, "utf8")) !== null;
+                    } catch {
+                        return false;
+                    }
+                },
+                { timeout: 15_000 },
+            )
+            .toBe(true);
         const content = fs.readFileSync(filePath, "utf8");
         expect(JSON.stringify(JSON.parse(content))).toContain("Ada");
         expect(content).toContain("Eli");
@@ -77,12 +98,22 @@ test.describe("MSSQL Extension - Preview Grid Export", () => {
 
     test("Save as Excel writes an XLSX workbook", async () => {
         const filePath = await saveFromToolbar("Save as Excel", "results.xlsx");
+        // The ZIP end-of-central-directory marker arrives after the workbook has been written.
+        await expect
+            .poll(
+                () => fs.readFileSync(filePath).lastIndexOf(Buffer.from([0x50, 0x4b, 0x05, 0x06])),
+                { timeout: 15_000 },
+            )
+            .toBeGreaterThan(0);
         const content = fs.readFileSync(filePath);
         expect(content.subarray(0, 2).toString("ascii")).toBe("PK");
     });
 
     test("Save as INSERT INTO writes SQL statements", async () => {
         const filePath = await saveFromToolbar("Save as INSERT INTO", "results.sql");
+        await expect
+            .poll(() => fs.readFileSync(filePath, "utf8"), { timeout: 15_000 })
+            .toContain("Ada");
         const content = fs.readFileSync(filePath, "utf8");
         expect(content).toContain("INSERT");
         expect(content).toContain("Ada");
