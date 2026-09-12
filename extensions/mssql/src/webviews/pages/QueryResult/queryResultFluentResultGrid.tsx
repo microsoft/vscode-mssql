@@ -697,7 +697,7 @@ const QueryResultFluentResultGrid = forwardRef<ResultGridHandle, ResultGridProps
                         batchId: event.batchId,
                         resultId: event.resultId,
                         selection,
-                        includeHeaders: false,
+                        includeHeaders: undefined,
                         preserveSelectionLayout: true,
                     });
                     context.showCopyIndicator();

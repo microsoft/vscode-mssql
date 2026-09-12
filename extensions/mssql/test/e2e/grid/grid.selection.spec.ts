@@ -337,6 +337,30 @@ test.describe("MSSQL Extension - Preview Grid Selection", () => {
         await expect(getCell(grid, 3, 2)).toHaveClass(/selected/);
     });
 
+    test("only left-button dragging starts a cell range", async () => {
+        const { page } = getContext();
+        const start = getCell(grid, 0, 0);
+        const end = getCell(grid, 2, 2);
+        const startBox = (await start.boundingBox())!;
+        const endBox = (await end.boundingBox())!;
+        for (const button of ["right", "middle"] as const) {
+            await start.click();
+            await page.mouse.move(
+                startBox.x + startBox.width / 2,
+                startBox.y + startBox.height / 2,
+            );
+            await page.mouse.down({ button });
+            await page.mouse.move(endBox.x + endBox.width / 2, endBox.y + endBox.height / 2, {
+                steps: 5,
+            });
+            await page.mouse.up({ button });
+
+            await expect(selectedCells()).toHaveCount(1);
+            await expect(end).not.toHaveClass(/selected/);
+            await page.keyboard.press("Escape");
+        }
+    });
+
     test("F3 opens the active column's menu", async () => {
         const { page } = getContext();
         await clickCell(grid, 1, 1);

@@ -62,6 +62,25 @@ test.describe("MSSQL Extension - Preview Grid Accessibility", () => {
         await expect.poll(focusIsWithinGrid).toBe(true);
     });
 
+    test("the active keyboard cell uses the VS Code focus border", async () => {
+        const { page } = getContext();
+        await getCell(grid, 0, 0).click();
+        await page.keyboard.press("ArrowDown");
+        const activeCell = getCell(grid, 1, 0);
+        await expect(activeCell).toHaveClass(/active/);
+        await expect(grid).toHaveClass(/focused/);
+
+        const matchesFocusBorder = await activeCell.evaluate((cell) => {
+            const probe = cell.ownerDocument.createElement("span");
+            probe.style.color = "var(--vscode-focusBorder)";
+            cell.appendChild(probe);
+            const focusColor = getComputedStyle(probe).color;
+            probe.remove();
+            return getComputedStyle(cell).outlineColor === focusColor;
+        });
+        expect(matchesFocusBorder).toBe(true);
+    });
+
     test("the summary footer is a polite status after execution", async () => {
         const footer = resultsFrame.getByTestId("summary-footer");
         await expect(footer).toHaveAttribute("role", "status");

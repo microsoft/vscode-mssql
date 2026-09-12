@@ -8,7 +8,7 @@ import { test, expect } from "../baseFixtures";
 import { useSharedVsCodeLifecycle } from "../utils/testLifecycle";
 import { executeQueryAndWait, setQueryText, waitForResultGrid } from "../utils/testHelpers";
 import { getGridLaunchConfig } from "./gridLaunchConfig";
-import { getCell, getResultsFrame, stageQuery } from "./gridActions";
+import { getCell, getColumnHeader, getResultsFrame, stageQuery } from "./gridActions";
 import {
     MIN_VECTOR_MAJOR_VERSION,
     SERVER_MAJOR_VERSION_QUERY,
@@ -70,5 +70,26 @@ test.describe("MSSQL Extension - Preview Grid Formatting", () => {
         const vectorGrid = await waitForResultGrid(resultsFrame, "0_0", 1);
         await expect(getCell(vectorGrid, 0, 0)).toContainText("0.1");
         await expect(getCell(vectorGrid, 0, 0).locator("a")).toHaveCount(0);
+    });
+
+    test("renames the legacy Showplan XML column in the grid header", async () => {
+        const { electronApp, page } = getContext();
+        await page
+            .getByRole("tab", { name: /Untitled-1/ })
+            .first()
+            .click();
+        await setQueryText(
+            electronApp,
+            page,
+            "SELECT 1 AS [Microsoft SQL Server 2005 XML Showplan];",
+        );
+        await executeQueryAndWait(page);
+        const resultsFrame = await getResultsFrame(page);
+        const showplanGrid = await waitForResultGrid(resultsFrame, "0_0", 1);
+
+        await expect(getColumnHeader(showplanGrid, "Showplan XML")).toBeVisible();
+        await expect(
+            getColumnHeader(showplanGrid, "Microsoft SQL Server 2005 XML Showplan"),
+        ).toHaveCount(0);
     });
 });

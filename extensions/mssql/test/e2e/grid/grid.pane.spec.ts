@@ -108,6 +108,7 @@ test.describe("MSSQL Extension - Preview Grid Pane", () => {
             '[data-vscode-context*="queryResultMessagesPane"]',
         );
         await expect(messagesPane).toContainText("indented   output");
+        await expect(messagesPane).toContainText("Started executing query");
         await expect(messagesPane).toContainText("Divide by zero error encountered");
         const errorCell = messagesPane.getByRole("gridcell").filter({
             hasText: "Divide by zero error encountered",
