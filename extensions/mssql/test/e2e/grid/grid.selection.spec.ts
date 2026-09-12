@@ -22,6 +22,7 @@ import {
     getColumnHeader,
     getColumnHeaderLabel,
     getRowNumberCell,
+    GRID_COMMAND_LABELS,
     GRID_MENU_LABELS,
     openGridMenu,
     resetGrid,
@@ -75,9 +76,12 @@ test.describe("MSSQL Extension - Preview Grid Selection", () => {
 
     /** Waits for the asynchronous extension copy to replace any transient clipboard contents. */
     async function expectCopiedRowIds(expectedIds: string[]): Promise<void> {
-        const { electronApp, page } = getContext();
+        const { electronApp } = getContext();
         await clearClipboard(electronApp);
-        await page.keyboard.press(`${getModifierKey()}+C`);
+        // The context-menu action uses the same selection-to-source mapping as the shortcut,
+        // without competing with VS Code's native Ctrl+C clipboard handler on Linux.
+        await selectedCells().first().click({ button: "right" });
+        await clickMenuItem(resultsFrame, GRID_COMMAND_LABELS.copy);
         await expect
             .poll(async () =>
                 (await readClipboard(electronApp))

@@ -93,6 +93,10 @@ test.describe("MSSQL Extension - Preview Grid Export", () => {
         await clickCell(grid, 1, 1, { modifiers: ["Shift"] });
         await expect(grid.locator(".slick-cell.selected")).toHaveCount(2);
         const filePath = await saveFromToolbar("Save as CSV", "selection.csv");
+        // The picker closes when the write starts; file creation can precede its contents.
+        await expect
+            .poll(() => fs.readFileSync(filePath, "utf16le"), { timeout: 15_000 })
+            .toContain("Bo");
         const content = fs.readFileSync(filePath, "utf16le");
         expect(content).toContain("Ada");
         expect(content).toContain("Bo");
