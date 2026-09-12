@@ -61,6 +61,26 @@ test.describe("MSSQL Extension - Preview Grid Pane", () => {
         await expect(time).toContainText(/\d+(?:ms|s)/);
     });
 
+    test("the footer shows a live timer and becomes polite after execution", async () => {
+        const { electronApp, page } = getContext();
+        await setQueryText(electronApp, page, "WAITFOR DELAY '00:00:03'; SELECT 1 AS id;");
+        const footer = resultsFrame.getByTestId("summary-footer");
+        const time = footer.locator('[data-metric="time"]');
+        await page.locator('[aria-label^="Execute Query"]').first().click();
+        try {
+            await expect(footer).toHaveAttribute("aria-live", "off");
+            const initialTime = await time.innerText();
+            await expect.poll(() => time.innerText()).not.toBe(initialTime);
+            await expect(footer).toHaveAttribute("aria-live", "polite", { timeout: 15_000 });
+            await waitForResultGrid(resultsFrame, "0_0", 1);
+            await expect(time).toContainText(/\d+(?:ms|s)/);
+        } finally {
+            await setQueryText(electronApp, page, MIXED_TYPES_QUERY);
+            await executeQueryAndWait(page);
+            grid = await waitForResultGrid(resultsFrame, "0_0", MIXED_TYPES_ROW_COUNT);
+        }
+    });
+
     test("selection details include min, max and null count", async () => {
         await clickCell(grid, 0, 3);
         await clickCell(grid, 4, 3, { modifiers: ["Shift"] });
