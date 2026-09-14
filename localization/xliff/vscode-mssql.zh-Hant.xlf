@@ -1741,7 +1741,7 @@ This will remove both the container and its connection from VS Code.</source>
       </trans-unit>
       <trans-unit id="++CODE++ae25d6481fc1741ffee4a95cd05de7b6375f7e1b0c63c006640b366094f2c4a9">
         <source xml:lang="en">Classic</source>
-        <target state="new">Classic</target>
+        <target state="translated">傳統</target>
       </trans-unit>
       <trans-unit id="++CODE++83b12c2216efb4fdc924e1deb5182e905e4926ed0c1c324d467107f46d5a26a9">
         <source xml:lang="en">Clear</source>
@@ -2504,7 +2504,7 @@ This will remove both the container and its connection from VS Code.</source>
       </trans-unit>
       <trans-unit id="++CODE++465eabab9bde19760846b72eb06f2498233548cac46595d805aa574d504110c3">
         <source xml:lang="en">Constraints added</source>
-        <target state="new">Constraints added</target>
+        <target state="translated">限制式已新增</target>
       </trans-unit>
       <trans-unit id="++CODE++1fb78b59d106ba2e4cd956f77e6e0c4bb1090e2d57ac69e73e49aef3fc65d6aa">
         <source xml:lang="en">Constraints added: {0}</source>
@@ -2513,7 +2513,7 @@ This will remove both the container and its connection from VS Code.</source>
       </trans-unit>
       <trans-unit id="++CODE++eebd192e7f23ac2257f5366c5833064a3ea5639b4d7d4d1d29445c28ab012505">
         <source xml:lang="en">Constraints changed</source>
-        <target state="new">Constraints changed</target>
+        <target state="translated">限制式已變更</target>
       </trans-unit>
       <trans-unit id="++CODE++bbbe9ad1983802ef25e78bbea25d0abdc86664e6a53f1459d4cc71cda0a25d8e">
         <source xml:lang="en">Constraints changed: {0}</source>
@@ -2522,7 +2522,7 @@ This will remove both the container and its connection from VS Code.</source>
       </trans-unit>
       <trans-unit id="++CODE++7bee7db8de36619306e87e8f4dc35cad5737ee07d864839c4bc4bff0da4c3a2a">
         <source xml:lang="en">Constraints dropped</source>
-        <target state="new">Constraints dropped</target>
+        <target state="translated">限制式已捨棄</target>
       </trans-unit>
       <trans-unit id="++CODE++c9d2fd860eb492e6f42e47058e7242c10daec76480b280a0886b242619243760">
         <source xml:lang="en">Constraints dropped: {0}</source>
@@ -4439,7 +4439,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++8a2a30d7fa1829a6ecfc36aa01d3b7cef61dccb6291e254b5a66b77a6b5f8a60">
         <source xml:lang="en">Excluded from script</source>
-        <target state="new">Excluded from script</target>
+        <target state="translated">排除在指令碼之外</target>
       </trans-unit>
       <trans-unit id="++CODE++5f6395cfa3be1b2b7783b923ebc2736c923aeda2142cc740137eb871f8ec0e1f">
         <source xml:lang="en">Excluding folders is not yet supported</source>
@@ -5779,7 +5779,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++b0a645b25ebc1bb0400058cfdba8e3d0622412ef0ac073432011c32ddaa5a293">
         <source xml:lang="en">Generating script.</source>
-        <target state="new">Generating script.</target>
+        <target state="translated">正在產生指令碼。</target>
       </trans-unit>
       <trans-unit id="++CODE++915fc447c859d56fa8e745484ac300e07e104e9ef318105f82b578bedf32c405">
         <source xml:lang="en">Generating script...</source>
@@ -6140,7 +6140,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++4ec34472d661ee6006e436cc302b6d561780eb0b22d21c9e9110b4ff31856a71">
         <source xml:lang="en">Include or exclude all differences</source>
-        <target state="new">Include or exclude all differences</target>
+        <target state="translated">包含或排除所有差異</target>
       </trans-unit>
       <trans-unit id="++CODE++3f763b9cd0ea6431ca045177a0ef88702e20d566b4634c7efad944d1a4b1ef4d">
         <source xml:lang="en">Include permissions</source>
@@ -6157,7 +6157,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++8ae992fb19afbb34eedcd3f9183663145da97e5b1b40e449360bea6af64e8646">
         <source xml:lang="en">Included in script</source>
-        <target state="new">Included in script</target>
+        <target state="translated">隨附於指令碼</target>
       </trans-unit>
       <trans-unit id="++CODE++a19caa35e133f5a0e94975762741c4c73b09c8a830908934206474fea30817b0">
         <source xml:lang="en">Incomplete or orphaned connections</source>
@@ -6383,7 +6383,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++a511909161e1b84fb81b52028fc2ce79525a96b40ccda823caa4a66ee64772b5">
         <source xml:lang="en">Layout</source>
-        <target state="new">Layout</target>
+        <target state="translated">版面配置</target>
       </trans-unit>
       <trans-unit id="++CODE++8d8cd546b58d91c300d3149ef40b8d98d3061dc38f15ea937d2ed785a3f25771">
         <source xml:lang="en">Learn More</source>
@@ -7987,7 +7987,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++62a6da8735c18e2d66fe5de3dc5440252a1da49e3cbaa7c1d2d5068ad73ffba0">
         <source xml:lang="en">Object</source>
-        <target state="new">Object</target>
+        <target state="translated">物件</target>
       </trans-unit>
       <trans-unit id="++CODE++501ec8c3629bcdcd52b9d7895c90d04b0c0b969f1134ba024efe021f0a25d867">
         <source xml:lang="en">Object Explorer Filter</source>
@@ -8487,7 +8487,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++87b6ba145c833b9c75e4408f5f6f171061680b8e5c0e472c8ca67d2e925fe485">
         <source xml:lang="en">Press Compare to see the differences between the source and target schemas.</source>
-        <target state="new">Press Compare to see the differences between the source and target schemas.</target>
+        <target state="translated">按下 [比較] 以查看來源和目標結構描述之間的差異。</target>
       </trans-unit>
       <trans-unit id="++CODE++8e8d85ec52b9705310156eb6f67d11bb6b6b2220e47b0e2f337dd3bdfbfa002a">
         <source xml:lang="en">Press desired key combination and then press ENTER.</source>
@@ -9075,7 +9075,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++45a768226b6eb7eca5f849cc961fce9ec9c5c278deae1db8acfddce9cd5f43c5">
         <source xml:lang="en">Remove from saved filters</source>
-        <target state="new">Remove from saved filters</target>
+        <target state="translated">從已儲存的篩除中移除</target>
       </trans-unit>
       <trans-unit id="++CODE++d5001dd4aab39b12094fd9e9b68e3b8ab67a6437c8eeaf592f0943dcd5851890">
         <source xml:lang="en">Remove sort</source>
@@ -9649,12 +9649,12 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++6b93458b8efd284fb830885ed38c172565b677f208e972fbace1b47f79415423">
         <source xml:lang="en">Save and Apply</source>
-        <target state="new">Save and Apply</target>
+        <target state="translated">儲存並套用</target>
       </trans-unit>
       <trans-unit id="++CODE++d5080bf6371aad6675debbdfd41ebeb56f3766b1ab3785a741578f53f03b4235">
         <source xml:lang="en">Save and Apply ({0})</source>
         <note>{0} is the keyboard shortcut for saving and applying the filter</note>
-        <target state="new">Save and Apply ({0})</target>
+        <target state="translated">儲存並套用 ({0})</target>
       </trans-unit>
       <trans-unit id="++CODE++e50761ebedbdddb4dd4afb99a7c0964cf8bfed33ec03cb39f5a08e65812c795a">
         <source xml:lang="en">Save as CSV</source>
@@ -9702,7 +9702,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++9fe5192ce42624a022d06949c749cfa30da826dd75f0390fef7baf5436c1a4db">
         <source xml:lang="en">Save filter</source>
-        <target state="new">Save filter</target>
+        <target state="translated">儲存篩選</target>
       </trans-unit>
       <trans-unit id="++CODE++e86cf7b88cde4602bf09208d61b915b3990896c08dfc027f85aaf61296311506">
         <source xml:lang="en">Save password</source>
@@ -9867,7 +9867,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++60aa3ddef33b076337901e45e7a08cee2075647c667509cb22451a7069ff608c">
         <source xml:lang="en">Schema differences</source>
-        <target state="new">Schema differences</target>
+        <target state="translated">結構描述差異</target>
       </trans-unit>
       <trans-unit id="++CODE++c55acbc843338cecc106d5428a6c2c6cd65129c6b5c440b6477f06206d844ded">
         <source xml:lang="en">Schema is required</source>
@@ -10146,7 +10146,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++69caf154f7a7ff6fa44128fd6973d20a1e51024cf0aebe70c32188609cb85201">
         <source xml:lang="en">Select a source schema, then press Compare.</source>
-        <target state="new">Select a source schema, then press Compare.</target>
+        <target state="translated">選取來源結構描述，然後按 [比較]。</target>
       </trans-unit>
       <trans-unit id="++CODE++f54fc9f7eb78f9523dea69c1d5f1115bb8e8acec088f8bea79aee0156f5e55cf">
         <source xml:lang="en">Select a storage account</source>
@@ -10162,7 +10162,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++ba9bb750744bd9e7ebb8626d0c7104abe572221c6a4f846fe7e635076be038da">
         <source xml:lang="en">Select a target schema, then press Compare.</source>
-        <target state="new">Select a target schema, then press Compare.</target>
+        <target state="translated">選取目標結構描述，然後按 [比較]。</target>
       </trans-unit>
       <trans-unit id="++CODE++ebe0dbee443b4562c7925a01e3bc69a3d5d0a3b0e8b3e11041c69fa067b65ef7">
         <source xml:lang="en">Select a tenant</source>
@@ -10727,7 +10727,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++aa86409ea7e147ea5324e4a83d49efc512f2527f7dbada91558cde583e1a8ec2">
         <source xml:lang="en">Simplified</source>
-        <target state="new">Simplified</target>
+        <target state="translated">簡易</target>
       </trans-unit>
       <trans-unit id="++CODE++ab3134048412e796a4a423dc1963ca8ff12b535d546d314470407639777e0ac5">
         <source xml:lang="en">Smart performance</source>
@@ -11620,7 +11620,7 @@ Are you sure you want to continue?</source>
       </trans-unit>
       <trans-unit id="++CODE++11b581f8a3000e049c063b239ba309ad25c53dadcf317b81e608a44404703d57">
         <source xml:lang="en">This execution plan could not be rendered.</source>
-        <target state="new">This execution plan could not be rendered.</target>
+        <target state="translated">無法呈現此執行計畫。</target>
       </trans-unit>
       <trans-unit id="++CODE++cb4eade41a7e9bf4aecf7539c5167bf881e1dac0fd35c216a8fbf4b1b4d3fa84">
         <source xml:lang="en">This file name is reserved for use by Windows. Choose another name and try again</source>
@@ -12628,7 +12628,7 @@ Are you sure you want to continue?</source>
       </trans-unit>
       <trans-unit id="++CODE++2fbc383d3c49b83614aa419376b80ee04d986dfed814dfde2ce26e437635aa69">
         <source xml:lang="en">excluded from script</source>
-        <target state="new">excluded from script</target>
+        <target state="translated">排除在指令碼之外</target>
       </trans-unit>
       <trans-unit id="++CODE++3b9c358f36f0a31b6ad3e14f309c7cf198ac9246e8316f9ce543d5b19ac02b80">
         <source xml:lang="en">file</source>
@@ -12652,7 +12652,7 @@ Are you sure you want to continue?</source>
       </trans-unit>
       <trans-unit id="++CODE++12dddf96612d48df0ad871a9612802de0957a3781556820e44215c68f824363a">
         <source xml:lang="en">included in script</source>
-        <target state="new">included in script</target>
+        <target state="translated">隨附於指令碼</target>
       </trans-unit>
       <trans-unit id="++CODE++075b0e112ce5f3585bf21875b678fb678865a30c79d482cd01098957e6497c28">
         <source xml:lang="en">intelliSenseUpdated</source>
@@ -12796,7 +12796,7 @@ Are you sure you want to continue?</source>
         <source xml:lang="en">{0} / {1}</source>
         <note>{0} is the one-based position of the selected schema difference
 {1} is the total number of visible schema differences</note>
-        <target state="new">{0} / {1}</target>
+        <target state="translated">{0} / {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++08fefe04a78a12b9e4ac61ac107a5237d5d6993e0dc8c6706949b4c9fe54ca6f">
         <source xml:lang="en">{0} If the project was created in SSDT, it will continue to work in both tools. Do you want to update the project?</source>
@@ -12930,7 +12930,7 @@ Are you sure you want to continue?</source>
       <trans-unit id="++CODE++f6c28fcc89c496f47616db462f5bd4632eee12be2c297424b5b67daee0a610b7">
         <source xml:lang="en">{0} is a logical key column and can't be hidden.</source>
         <note>{0} is the backing database column name</note>
-        <target state="new">{0} is a logical key column and can't be hidden.</target>
+        <target state="translated">{0} 是邏輯索引鍵資料行，無法隱藏。</target>
       </trans-unit>
       <trans-unit id="++CODE++8ee4e65df77291c702e67b2a14060cddd3d53d15c05a64ed6a95e8ef5c53441b">
         <source xml:lang="en">{0} is a primary key column and can't be disabled.</source>
@@ -13111,7 +13111,7 @@ Projects:
         <source xml:lang="en">{0}, {1} differences</source>
         <note>{0} is the schema difference group name
 {1} is the number of differences in the group</note>
-        <target state="new">{0}, {1} differences</target>
+        <target state="translated">{0}，{1} 個差異</target>
       </trans-unit>
       <trans-unit id="++CODE++65f24f2f0e7e273592ce9abfdfe98800fe149834a4413bcf8565044f33eddbd9">
         <source xml:lang="en">{0}, {1}, {2}, {3}</source>
@@ -13119,7 +13119,7 @@ Projects:
 {1} is the schema object name
 {2} is the update action
 {3} indicates whether the difference is included in the generated script</note>
-        <target state="new">{0}, {1}, {2}, {3}</target>
+        <target state="translated">{0}，{1}，{2}，{3}</target>
       </trans-unit>
       <trans-unit id="++CODE++fbf6567d7b396892abbe6cccf81dca280649e099b853b805be1beb6af53d9229">
         <source xml:lang="en">{0}. {1}</source>
@@ -13285,7 +13285,7 @@ Projects:
       </trans-unit>
       <trans-unit id="mssql.format.options.terminateBlockStatements">
         <source xml:lang="en">**Used when Preview Formatter is enabled.** Add semicolon terminators after BEGIN...END and TRY...CATCH blocks.</source>
-        <target state="new">**Used when Preview Formatter is enabled.** Add semicolon terminators after BEGIN...END and TRY...CATCH blocks.</target>
+        <target state="translated">**啟用預覽格式器時使用。** 在 BEGIN...END 和 TRY...CATCH 區塊之後新增分號結束字元。</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.alignSetClauseItem">
         <source xml:lang="en">**Used when Preview Formatter is enabled.** Align SET clause items in UPDATE statements.</source>
@@ -13309,19 +13309,19 @@ Projects:
       </trans-unit>
       <trans-unit id="mssql.format.options.identifierCasing">
         <source xml:lang="en">**Used when Preview Formatter is enabled.** Casing style for object identifiers.</source>
-        <target state="new">**Used when Preview Formatter is enabled.** Casing style for object identifiers.</target>
+        <target state="translated">**啟用預覽格式器時使用。** 物件識別碼的大小寫樣式。</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.builtInFunctionCasing">
         <source xml:lang="en">**Used when Preview Formatter is enabled.** Casing style for supported built-in function names, such as `GETDATE` and `COALESCE`.</source>
-        <target state="new">**Used when Preview Formatter is enabled.** Casing style for supported built-in function names, such as `GETDATE` and `COALESCE`.</target>
+        <target state="translated">**啟用預覽格式器時使用。** 支援的內建函式名稱的大小寫樣式，例如 'GETDATE' 和 'COALESCE'。</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.multilineGroupByElementsList">
         <source xml:lang="en">**Used when Preview Formatter is enabled.** Format GROUP BY elements as a multiline list.</source>
-        <target state="new">**Used when Preview Formatter is enabled.** Format GROUP BY elements as a multiline list.</target>
+        <target state="translated">**啟用預覽格式器時使用。** 將 GROUP BY 元素格式化為多行清單。</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.multilineHavingPredicatesList">
         <source xml:lang="en">**Used when Preview Formatter is enabled.** Format HAVING predicates separated by AND or OR on multiple lines.</source>
-        <target state="new">**Used when Preview Formatter is enabled.** Format HAVING predicates separated by AND or OR on multiple lines.</target>
+        <target state="translated">**啟用預覽格式器時使用。** 格式化多行上以 AND 或 OR 分隔的 HAVING 述詞。</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.multilineInsertTargetsList">
         <source xml:lang="en">**Used when Preview Formatter is enabled.** Format INSERT columns as multiline lists.</source>
@@ -13333,11 +13333,11 @@ Projects:
       </trans-unit>
       <trans-unit id="mssql.format.options.multilineOrderByElementsList">
         <source xml:lang="en">**Used when Preview Formatter is enabled.** Format ORDER BY elements as a multiline list.</source>
-        <target state="new">**Used when Preview Formatter is enabled.** Format ORDER BY elements as a multiline list.</target>
+        <target state="translated">**啟用預覽格式器時使用。** 將 ORDER BY 元素格式化為多行清單。</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.multilinePartitionByElementsList">
         <source xml:lang="en">**Used when Preview Formatter is enabled.** Format PARTITION BY elements in window specifications as a multiline list.</source>
-        <target state="new">**Used when Preview Formatter is enabled.** Format PARTITION BY elements in window specifications as a multiline list.</target>
+        <target state="translated">**啟用預覽格式器時使用。** 將視窗規格中的 PARTITION BY 元素格式化為多行清單。</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.multilineSelectElementsList">
         <source xml:lang="en">**Used when Preview Formatter is enabled.** Format SELECT columns as multiline lists.</source>
@@ -13357,23 +13357,23 @@ Projects:
       </trans-unit>
       <trans-unit id="mssql.format.options.columnAliasStyle">
         <source xml:lang="en">**Used when Preview Formatter is enabled.** Format column aliases using `AS`, an equals sign, or their original syntax.</source>
-        <target state="new">**Used when Preview Formatter is enabled.** Format column aliases using `AS`, an equals sign, or their original syntax.</target>
+        <target state="translated">**啟用預覽格式器時使用。** 使用 'AS'、等號或其原始語法來格式化欄別名。</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.multilineNestedFunctionCalls">
         <source xml:lang="en">**Used when Preview Formatter is enabled.** Format nested function calls on separate indented lines while keeping isolated function calls on one line.</source>
-        <target state="new">**Used when Preview Formatter is enabled.** Format nested function calls on separate indented lines while keeping isolated function calls on one line.</target>
+        <target state="translated">**啟用預覽格式器時使用。** 在個別縮排行上格式化巢狀函式呼叫，同時讓隔離的函式呼叫保留在一行上。</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.multilineProcedureParametersList">
         <source xml:lang="en">**Used when Preview Formatter is enabled.** Format procedure and function parameters on separate lines.</source>
-        <target state="new">**Used when Preview Formatter is enabled.** Format procedure and function parameters on separate lines.</target>
+        <target state="translated">**啟用預覽格式器時使用。** 格式化個別行上的程序和函式參數。</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.multilineWithOptionsList">
         <source xml:lang="en">**Used when Preview Formatter is enabled.** Format supported WITH and OPTION clause values on separate lines.</source>
-        <target state="new">**Used when Preview Formatter is enabled.** Format supported WITH and OPTION clause values on separate lines.</target>
+        <target state="translated">**啟用預覽格式器時使用。** 格式化個別行上支援的 WITH 和 OPTION 子句值。</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.multilineInValuesList">
         <source xml:lang="en">**Used when Preview Formatter is enabled.** Format values in an IN predicate as a multiline list.</source>
-        <target state="new">**Used when Preview Formatter is enabled.** Format values in an IN predicate as a multiline list.</target>
+        <target state="translated">**啟用預覽格式器時使用。** 將 IN 述詞中的值格式化為多行清單。</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.indentSetClause">
         <source xml:lang="en">**Used when Preview Formatter is enabled.** Indent SET clauses in UPDATE statements.</source>
@@ -13393,7 +13393,7 @@ Projects:
       </trans-unit>
       <trans-unit id="mssql.format.options.clauseBodyAlignment">
         <source xml:lang="en">**Used when Preview Formatter is enabled.** Keep clause bodies aligned with their keywords or place them on the next line with indentation.</source>
-        <target state="new">**Used when Preview Formatter is enabled.** Keep clause bodies aligned with their keywords or place them on the next line with indentation.</target>
+        <target state="translated">**啟用預覽格式器時使用。** 讓子句本文與其關鍵字保持一致，或將它們放在下一個縮排行。</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.keywordCasing">
         <source xml:lang="en">**Used when Preview Formatter is enabled.** Keyword casing style.</source>
@@ -13401,7 +13401,7 @@ Projects:
       </trans-unit>
       <trans-unit id="mssql.format.options.numNewlinesAfterBatches">
         <source xml:lang="en">**Used when Preview Formatter is enabled.** Number of line breaks after each GO batch separator, from 0 through 5.</source>
-        <target state="new">**Used when Preview Formatter is enabled.** Number of line breaks after each GO batch separator, from 0 through 5.</target>
+        <target state="translated">**啟用預覽格式器時使用。** 每個 GO 批次分隔符號之後的分行符號數目 (0 到 5)。</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.numNewlinesAfterStatement">
         <source xml:lang="en">**Used when Preview Formatter is enabled.** Number of line breaks after each statement, from 0 through 5.</source>
@@ -13409,11 +13409,11 @@ Projects:
       </trans-unit>
       <trans-unit id="mssql.format.options.numNewlinesAfterBatchStatement">
         <source xml:lang="en">**Used when Preview Formatter is enabled.** Number of line breaks after each top-level statement in a batch, from 0 through 5.</source>
-        <target state="new">**Used when Preview Formatter is enabled.** Number of line breaks after each top-level statement in a batch, from 0 through 5.</target>
+        <target state="translated">**啟用預覽格式器時使用。** 批次中每個最上層陳述式之後的分行符號數目 (0 到 5)。</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.leadingCommaSpaceCount">
         <source xml:lang="en">**Used when Preview Formatter is enabled.** Number of spaces after a leading comma. Valid values are 0 and 1.</source>
-        <target state="new">**Used when Preview Formatter is enabled.** Number of spaces after a leading comma. Valid values are 0 and 1.</target>
+        <target state="translated">**啟用預覽格式器時使用。** 前置逗號之後的空格數。有效值是 0 和 1。</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.asKeywordOnOwnLine">
         <source xml:lang="en">**Used when Preview Formatter is enabled.** Place AS on its own line.</source>
@@ -13469,7 +13469,7 @@ Projects:
       </trans-unit>
       <trans-unit id="mssql.format.options.commaPlacement">
         <source xml:lang="en">**Used when Preview Formatter is enabled.** Place commas at the end of list items or at the beginning of the next item.</source>
-        <target state="new">**Used when Preview Formatter is enabled.** Place commas at the end of list items or at the beginning of the next item.</target>
+        <target state="translated">**啟用預覽格式器時使用。** 將逗號放在清單項目結尾或下一個項目的開頭。</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.newlineFormattedCheckConstraint">
         <source xml:lang="en">**Used when Preview Formatter is enabled.** Place the CHECK clause of a constraint on its own line.</source>
@@ -13477,11 +13477,11 @@ Projects:
       </trans-unit>
       <trans-unit id="mssql.format.options.newLineBeforeOnClause">
         <source xml:lang="en">**Used when Preview Formatter is enabled.** Place the ON clause of a JOIN on a new line.</source>
-        <target state="new">**Used when Preview Formatter is enabled.** Place the ON clause of a JOIN on a new line.</target>
+        <target state="translated">**啟用預覽格式器時使用。** 將 JOIN 的 ON 子句放在新行。</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.newLineAfterJoinKeyword">
         <source xml:lang="en">**Used when Preview Formatter is enabled.** Place the joined table source on a new line after the JOIN keyword.</source>
-        <target state="new">**Used when Preview Formatter is enabled.** Place the joined table source on a new line after the JOIN keyword.</target>
+        <target state="translated">**啟用預覽格式器時使用。** 將聯結的表格來源放在 JOIN 關鍵字之後的新行。</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.preserveComments">
         <source xml:lang="en">**Used when Preview Formatter is enabled.** Preserve comments during formatting.</source>
@@ -13489,11 +13489,11 @@ Projects:
       </trans-unit>
       <trans-unit id="mssql.format.options.persistTrailingGo">
         <source xml:lang="en">**Used when Preview Formatter is enabled.** Preserve trailing GO batch separators from the original script.</source>
-        <target state="new">**Used when Preview Formatter is enabled.** Preserve trailing GO batch separators from the original script.</target>
+        <target state="translated">**啟用預覽格式器時使用。** 保留原始指令碼的後置 GO 批次分隔符號。</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.identifierBracketing">
         <source xml:lang="en">**Used when Preview Formatter is enabled.** Preserve, add, or remove optional square brackets around identifiers. Required brackets are retained.</source>
-        <target state="new">**Used when Preview Formatter is enabled.** Preserve, add, or remove optional square brackets around identifiers. Required brackets are retained.</target>
+        <target state="translated">**啟用預覽格式器時使用。** 保留、新增或移除識別碼周圍的選用方括號。已保留必要括弧。</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.sqlEngineType">
         <source xml:lang="en">**Used when Preview Formatter is enabled.** SQL engine type used to parse and generate formatted scripts.</source>
