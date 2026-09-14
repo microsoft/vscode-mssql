@@ -42,6 +42,8 @@ import { AzureAuthType } from "../../src/models/contracts/azure";
 import { SchemaCompareService } from "../../src/services/schemaCompareService";
 import { ConnectionStore } from "../../src/models/connectionStore";
 import * as locConstants from "../../src/constants/locConstants";
+import { ProjectProviderRegistry } from "../../src/dataWorkspace/common/projectProviderRegistry";
+import { SqlDatabaseProjectProvider } from "../../src/databaseProjects/projectProvider/projectProvider";
 
 suite("SchemaCompareWebViewController Tests", () => {
     let controller: SchemaCompareWebViewController;
@@ -446,6 +448,46 @@ suite("SchemaCompareWebViewController Tests", () => {
     test("controller - defaults to the persisted type grouping", () => {
         expect(controller.state.groupBy).to.equal("type");
         expect(globalStateGet).to.have.been.calledWith("mssql.schemaCompare.groupBy", "type");
+    });
+
+    test("project endpoint reads scripts and schema provider from the in-process provider", async () => {
+        const projectProvider = sandbox.createStubInstance(SqlDatabaseProjectProvider);
+        const projectPath = sourceEndpointInfo.projectFilePath;
+        const scripts = ["/TestSqlProject/TestProject/Address.sql"];
+        projectProvider.getProjectScriptFiles.withArgs(projectPath).resolves(scripts);
+        projectProvider.getProjectDatabaseSchemaProvider
+            .withArgs(projectPath)
+            .resolves("Sql160DatabaseSchemaProvider");
+        sandbox
+            .stub(ProjectProviderRegistry, "getProviderByProjectExtension")
+            .withArgs("sqlproj")
+            .returns(projectProvider);
+
+        const endpoint = await controller["getEndpointInfoFromProject"](projectPath);
+
+        expect(endpoint.targetScripts).to.deep.equal(scripts);
+        expect(endpoint.dataSchemaProvider).to.equal("Sql160DatabaseSchemaProvider");
+        expect(projectProvider.getProjectScriptFiles).to.have.been.calledWith(projectPath);
+        expect(projectProvider.getProjectDatabaseSchemaProvider).to.have.been.calledWith(
+            projectPath,
+        );
+    });
+
+    test("project availability reflects the registered provider", async () => {
+        const projectProvider = sandbox.createStubInstance(SqlDatabaseProjectProvider);
+        const getProvider = sandbox.stub(ProjectProviderRegistry, "getProviderByProjectExtension");
+        getProvider.withArgs("sqlproj").returns(projectProvider);
+
+        const availableState = await controller["_reducerHandlers"].get(
+            "isSqlProjectExtensionInstalled",
+        )({ ...mockInitialState }, undefined);
+        expect(availableState.isSqlProjectExtensionInstalled).to.be.true;
+
+        getProvider.withArgs("sqlproj").returns(undefined);
+        const unavailableState = await controller["_reducerHandlers"].get(
+            "isSqlProjectExtensionInstalled",
+        )({ ...mockInitialState }, undefined);
+        expect(unavailableState.isSqlProjectExtensionInstalled).to.be.false;
     });
 
     test("setLayout - persists the selected layout", async () => {
