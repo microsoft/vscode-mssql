@@ -928,3 +928,31 @@ export function validateDatabaseNameFormat(databaseName: string): {
 
     return { isValid: true, errorType: DatabaseNameValidationError.None };
 }
+
+/**
+ * Settles with the given promise, or rejects with an Error carrying `timeoutMessage` if the
+ * promise has not settled within `timeoutMs`. The timer is cleared as soon as the promise
+ * settles, so a completed operation leaves nothing pending.
+ * @param promise The operation to wait for.
+ * @param timeoutMs Maximum time to wait, in milliseconds.
+ * @param timeoutMessage Message of the Error the returned promise rejects with on timeout.
+ */
+export function withTimeout<T>(
+    promise: Thenable<T>,
+    timeoutMs: number,
+    timeoutMessage: string,
+): Promise<T> {
+    return new Promise<T>((resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error(timeoutMessage)), timeoutMs);
+        Promise.resolve(promise).then(
+            (value) => {
+                clearTimeout(timer);
+                resolve(value);
+            },
+            (error) => {
+                clearTimeout(timer);
+                reject(error);
+            },
+        );
+    });
+}
