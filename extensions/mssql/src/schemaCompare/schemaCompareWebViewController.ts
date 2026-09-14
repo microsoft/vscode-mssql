@@ -58,6 +58,8 @@ import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
 import { UserSurvey } from "../nps/userSurvey";
 import { getConnectionDisplayName } from "../models/connectionInfo";
 import { buildDatabaseOptions } from "../utils/databaseUtils";
+import { ProjectProviderRegistry } from "../dataWorkspace/common/projectProviderRegistry";
+import type { SqlDatabaseProjectProvider } from "../databaseProjects/projectProvider/projectProvider";
 
 const SCHEMA_COMPARE_VIEW_ID = "schemaCompare";
 const SCHEMA_COMPARE_LAYOUT_STATE_KEY = "mssql.schemaCompare.layout";
@@ -67,8 +69,6 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
     SchemaCompareWebViewState,
     SchemaCompareReducers
 > {
-    private static readonly SQL_DATABASE_PROJECTS_EXTENSION_ID =
-        "ms-mssql.sql-database-projects-vscode";
     private operationId: string;
     private readonly connectionUris = new Map<string, string>();
     private databaseListRequestGeneration = 0;
@@ -377,23 +377,18 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         let scriptFiles: string[] = [];
 
         try {
-            const databaseProjectsExtension = vscode.extensions.getExtension(
-                SchemaCompareWebViewController.SQL_DATABASE_PROJECTS_EXTENSION_ID,
-            );
-            if (databaseProjectsExtension) {
-                this.logger.debug(
-                    `SQL Database Projects extension found, activating... - OperationId: ${this.operationId}`,
-                );
-                scriptFiles = await (
-                    await databaseProjectsExtension.activate()
-                ).getProjectScriptFiles(projectFilePath);
+            const projectProvider = ProjectProviderRegistry.getProviderByProjectExtension(
+                "sqlproj",
+            ) as SqlDatabaseProjectProvider | undefined;
+            if (projectProvider) {
+                scriptFiles = await projectProvider.getProjectScriptFiles(projectFilePath);
 
                 this.logger.debug(
                     `Retrieved ${scriptFiles.length} script files from project - OperationId: ${this.operationId}`,
                 );
             } else {
                 this.logger.warn(
-                    `SQL Database Projects extension not found, cannot get project scripts - OperationId: ${this.operationId}`,
+                    `SQL Database Projects provider not found, cannot get project scripts - OperationId: ${this.operationId}`,
                 );
             }
         } catch (error) {
@@ -425,23 +420,18 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         let provider = "";
 
         try {
-            const databaseProjectsExtension = vscode.extensions.getExtension(
-                SchemaCompareWebViewController.SQL_DATABASE_PROJECTS_EXTENSION_ID,
-            );
+            const projectProvider = ProjectProviderRegistry.getProviderByProjectExtension(
+                "sqlproj",
+            ) as SqlDatabaseProjectProvider | undefined;
 
-            if (databaseProjectsExtension) {
-                this.logger.debug(
-                    `SQL Database Projects extension found, activating... - OperationId: ${this.operationId}`,
-                );
-                provider = await (
-                    await databaseProjectsExtension.activate()
-                ).getProjectDatabaseSchemaProvider(projectFilePath);
+            if (projectProvider) {
+                provider = await projectProvider.getProjectDatabaseSchemaProvider(projectFilePath);
                 this.logger.debug(
                     `Retrieved database schema provider: ${provider || "empty"} - OperationId: ${this.operationId}`,
                 );
             } else {
                 this.logger.warn(
-                    `SQL Database Projects extension not found, cannot get database schema provider - OperationId: ${this.operationId}`,
+                    `SQL Database Projects provider not found, cannot get database schema provider - OperationId: ${this.operationId}`,
                 );
             }
         } catch (error) {
@@ -494,7 +484,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
 
         this.registerReducer("isSqlProjectExtensionInstalled", async (state) => {
             this.logger.debug(
-                `Checking if SQL Database Projects extension is installed - OperationId: ${this.operationId}`,
+                `Checking if SQL Database Projects provider is available - OperationId: ${this.operationId}`,
             );
 
             const endActivity = startActivity(
@@ -508,24 +498,10 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 },
             );
 
-            const extension = vscode.extensions.getExtension(
-                SchemaCompareWebViewController.SQL_DATABASE_PROJECTS_EXTENSION_ID,
-            );
+            const projectProvider =
+                ProjectProviderRegistry.getProviderByProjectExtension("sqlproj");
 
-            if (extension) {
-                if (!extension.isActive) {
-                    this.logger.debug(
-                        `SQL Database Projects extension found but not activated, activating... - OperationId: ${this.operationId}`,
-                    );
-                    await extension.activate();
-
-                    endActivity.update({
-                        additionalProps: {
-                            message: "SQL Database Projects extension activated",
-                        },
-                    });
-                }
-
+            if (projectProvider) {
                 endActivity.end(ActivityStatus.Succeeded, {
                     additionalProps: {
                         operationId: this.operationId,
@@ -534,12 +510,12 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 });
 
                 this.logger.debug(
-                    `SQL Database Projects extension is installed and activated - OperationId: ${this.operationId}`,
+                    `SQL Database Projects provider is available - OperationId: ${this.operationId}`,
                 );
                 state.isSqlProjectExtensionInstalled = true;
             } else {
                 this.logger.debug(
-                    `SQL Database Projects extension is not installed - OperationId: ${this.operationId}`,
+                    `SQL Database Projects provider is not available - OperationId: ${this.operationId}`,
                 );
 
                 endActivity.end(ActivityStatus.Succeeded, {
