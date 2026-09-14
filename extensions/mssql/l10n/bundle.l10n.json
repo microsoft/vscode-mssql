@@ -3985,6 +3985,8 @@
     "Include Object Types": "Include Object Types",
     "Select all options": "Select all options",
     "Include all object types": "Include all object types",
+    "Allow incompatible platform during deployment": "Allow incompatible platform during deployment",
+    "Controls whether deployment blocks because of platform compatibility checks. It does not allow Schema Compare between different Azure Synapse or Microsoft Fabric platform types.": "Controls whether deployment blocks because of platform compatibility checks. It does not allow Schema Compare between different Azure Synapse or Microsoft Fabric platform types.",
     "Stop": "Stop",
     "Generate script to deploy changes to target": "Generate script to deploy changes to target",
     "Apply changes to target": "Apply changes to target",
