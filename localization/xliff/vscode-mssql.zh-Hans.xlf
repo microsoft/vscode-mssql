@@ -570,6 +570,10 @@
         <source xml:lang="en">Allow Nulls</source>
         <target state="translated">允许 Null</target>
       </trans-unit>
+      <trans-unit id="++CODE++ef77fd7e7de3068a3369a87288164dfc52c45a4fe4f9dde764612fd73c757c5e">
+        <source xml:lang="en">Allow incompatible platform during deployment</source>
+        <target state="new">Allow incompatible platform during deployment</target>
+      </trans-unit>
       <trans-unit id="++CODE++49ac2c72f4aa327cb385b0c76a52b02ae819504641492120e52b1070d9db5663">
         <source xml:lang="en">Allow null</source>
         <target state="translated">允许 null</target>
@@ -2592,6 +2596,10 @@ This will remove both the container and its connection from VS Code.</source>
       <trans-unit id="++CODE++04ed7bc7a0e65dc11fc23e991a54fdd2c2ea33d9919598c0cccbfd9df831f338">
         <source xml:lang="en">Control the results grid display</source>
         <target state="translated">控制结果网格显示</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3cb79d895358f3badaea5b6eb05416fa6739c8520a7e8c2ddc97d662d69c0a67">
+        <source xml:lang="en">Controls whether deployment blocks because of platform compatibility checks. It does not allow Schema Compare between different Azure Synapse or Microsoft Fabric platform types.</source>
+        <target state="new">Controls whether deployment blocks because of platform compatibility checks. It does not allow Schema Compare between different Azure Synapse or Microsoft Fabric platform types.</target>
       </trans-unit>
       <trans-unit id="++CODE++9ad6fe65e4341a2297371f3f36b2b9cf12241c8bd2fb0e6b35f96cf60b50a291">
         <source xml:lang="en">Converting the project {0} to SDK-style was unsuccessful. Changes to the .sqlproj have been rolled back.</source>
