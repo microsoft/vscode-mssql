@@ -1,115 +1,216 @@
-In order to use Integrated Authentication (aka Windows Authentication) on macOS or Linux you will need to setup a Kerberos ticket linking your current user to a Windows domain account. A summary of key steps are included below.
+# Integrated authentication with Kerberos on macOS and Linux
 
-# Setup Kerberos on Mac
+The MSSQL extension uses Kerberos for Integrated authentication (also called
+Windows Authentication) on macOS and Linux. The client must have:
 
-## Requirements
+1. A valid Kerberos credential for a Windows domain account.
+2. A SQL Server service principal name (SPN) that matches the server name and
+   port used by the connection.
 
-- Access to a Windows domain-joined machine in order to query your Kerberos Domain Controller
-- SQL Server should be configured to allow Kerberos authentication. For the client driver running on Unix, integrated authentication is only supported using Kerberos. More information on setting up Sql Server to authenticate using Kerberos can be found [here](https://support.microsoft.com/en-us/help/319723/how-to-use-kerberos-authentication-in-sql-server). There should be SPNs registered for each instance of Sql Server you are trying to connect to. Details about the format of SQL Server SPNs are listed [here](https://technet.microsoft.com/en-us/library/ms191153%28v=sql.105%29.aspx#SPN%20Formats)
--
+A successful `kinit` proves only that the client obtained a ticket-granting
+ticket (TGT). It does not prove that Active Directory can issue a ticket for the
+SQL Server service.
 
-### Checking if Sql Server has Kerberos Setup
+## Prerequisites
 
-- Login to the host machine of Sql Server. From Windows Command Prompt use the `setspn -L %COMPUTERNAME%` to list all the Service Principal Names for the host. You should see entries which begin with MSSQLSvc/HostName.Domain.com which means that Sql Server has registered an SPN and is ready to accept Kerberos authentication.
-- If you don't have access to the Host of the Sql Server, then from any other Windows OS joined to the same Active Directory, you could use the command `setspn -L <SQLSERVER_NETBIOS>` where <SQLSERVER_NETBIOS> is the computer name of the Sql server host.
+- The client can reach the domain's DNS and Kerberos services, directly or
+  through the required VPN.
+- The user's Kerberos realm and the SQL Server service account's domain are the
+  same or have an appropriate trust relationship.
+- The client's clock is synchronized with the domain.
+- A SQL Server or Active Directory administrator can verify the SQL Server
+  service account and its SPNs.
+- You know the SQL Server's fully qualified domain name (FQDN) and TCP port.
+  Port `1433` is used in the examples, but named instances and custom
+  configurations frequently use a different port.
 
-## Steps to set up Integrated Authentication
+For current server-side requirements, see
+[Register a Service Principal Name for Kerberos Connections](https://learn.microsoft.com/sql/database-engine/configure-windows/register-a-service-principal-name-for-kerberos-connections).
 
-### Step 1: Find Kerberos KDC (Key Distribution Center)
+## 1. Verify the SQL Server SPN
 
-- **Run on**: Windows, Windows command line
-- **Action**: `nltest /dsgetdc:DOMAIN.COMPANY.COM` (where “DOMAIN.COMPANY.COM” maps to your domain’s name)
-- **Sample Output**
-    ```
-    DC: \\dc-33.domain.company.com
-    Address: \\2111:4444:2111:33:1111:ecff:ffff:3333
-    ...
-    The command completed successfully
-    ```
-- **Information to extract**
-  The DC name, in this case `dc-33.domain.company.com`
+For a TCP connection to `sqlhost.domain.company.com` on port `1433`, the client
+requests a service ticket for:
 
-### Step 2: Configuring KDC in krb5.conf
+```text
+MSSQLSvc/sqlhost.domain.company.com:1433
+```
 
-- **Run on**: MAC
-- **Action**: Edit the /etc/krb5.conf in an editor of your choice. Configure the following keys
+From a domain-joined Windows machine, an administrator can query the exact SPN:
 
-    ```
-    [libdefaults]
-      default_realm = DOMAIN.COMPANY.COM
-     
-    [realms]
-    DOMAIN.COMPANY.COM = {
-       kdc = dc-33.domain.company.com
-    }
-    ```
+```cmd
+setspn -Q MSSQLSvc/sqlhost.domain.company.com:1433
+```
 
-    Then save the krb5.conf file and exit
+The administrator must verify that:
 
-    **Note** Domain must be in ALL CAPS
+- The SPN exists and exactly matches the FQDN and port used by the client.
+- The SPN is registered on the account that runs the SQL Server service. This
+  might be a computer account, domain service account, virtual account, or
+  managed service account.
+- The SPN is not registered on multiple accounts.
 
-### Step 3: Testing the Ticket Granting Ticket retrieval
+Finding an unrelated `MSSQLSvc` entry on the SQL Server host is not sufficient.
+Do not add, delete, or move an SPN without coordinating with the SQL Server and
+Active Directory administrators.
 
-- **Run on**: Mac
-- **Action**:
-    - Use the command `kinit username@DOMAIN.COMPANY.COM` to get a TGT from KDC. You will be prompted for your domain password.
-    - Use `klist` to see the available tickets. If the kinit was successful, you should see a ticket from krbtgt/DOMAIN.COMPANY.COM@ DOMAIN.COMPANY.COM.
+## 2. Configure the Kerberos client
 
-### Step 4: Connect in VSCode
+Many domain environments publish Kerberos configuration through DNS. If
+`kinit` already works for the intended realm, do not replace a working
+configuration merely to match the example below.
 
-- Create a new connection profile
-- Choose `Integrated` as the authentication type
-- If all goes well and the steps above worked, you should be able to connect successfully!
+If DNS discovery is unavailable, configure the realm and key distribution
+center (KDC) in `/etc/krb5.conf`:
 
-# Setup Kerberos on Linux
+```ini
+[libdefaults]
+  default_realm = DOMAIN.COMPANY.COM
 
-### Step 0: Install krb5-user package
+[realms]
+DOMAIN.COMPANY.COM = {
+  kdc = dc-33.domain.company.com
+}
+```
 
-- **Run on**: Linux
-- **Action**: `apt-get install krb5-user`
+Replace every sample value with the value for your environment. Kerberos realm
+names are case-sensitive; Active Directory realms are conventionally written
+in uppercase.
 
-### Step 1: Find Kerberos KDC (Key Distribution Center)
+An administrator can discover a domain controller from a domain-joined Windows
+machine:
 
-- **Run on**: Windows command line
-- **Action**: `nltest /dsgetdc:DOMAIN.COMPANY.COM` (where “DOMAIN.COMPANY.COM” maps to your domain’s name)
-- **Sample Output**
-    ```
-    DC: \\dc-33.domain.company.com
-    Address: \\2111:4444:2111:33:1111:ecff:ffff:3333
-    ...
-    The command completed successfully
-    ```
-- **Information to extract**
-  The DC name, in this case `dc-33.domain.company.com`
+```cmd
+nltest /dsgetdc:DOMAIN.COMPANY.COM
+```
 
-### Step 2: Configuring KDC in krb5.conf
+### macOS
 
-- **Run on**: Linux
-- **Action**: Edit the /etc/krb5.conf in an editor of your choice. Configure the following keys
+macOS includes Kerberos tools. Check which implementation your shell selects,
+especially if Homebrew or another Kerberos distribution is installed:
 
-    ```
-    [libdefaults]
-      default_realm = DOMAIN.COMPANY.COM
-     
-    [realms]
-    DOMAIN.COMPANY.COM = {
-       kdc = dc-33.domain.company.com
-    }
-    ```
+```sh
+type -a kinit klist
+/usr/bin/kinit username@DOMAIN.COMPANY.COM
+/usr/bin/klist
+```
 
-    Then save the krb5.conf file and exit
+Use the matching `kinit` and `klist` tools when creating and inspecting a
+credential cache.
 
-    **Note** Domain must be in ALL CAPS
+### Linux
 
-### Step 3: Testing the Ticket Granting Ticket retrieval
+Install the Kerberos client package for your distribution. For example:
 
-- **Run on**: Linux
-- **Action**:
-    - Use the command `kinit username@DOMAIN.COMPANY.COM` to get a TGT from KDC. You will be prompted for your domain password.
-    - Use `klist` to see the available tickets. If the kinit was successful, you should see a ticket from krbtgt/DOMAIN.COMPANY.COM@ DOMAIN.COMPANY.COM.
+```sh
+# Debian and Ubuntu
+sudo apt-get update
+sudo apt-get install krb5-user
 
-### Step 4: Connect in VSCode
+# Fedora and Red Hat Enterprise Linux
+sudo dnf install krb5-workstation
+```
 
-- Create a new connection profile
-- Choose `Integrated` as the authentication type
-- If all goes well and the steps above worked, you should be able to connect successfully!
+Then obtain and inspect a TGT:
+
+```sh
+kinit username@DOMAIN.COMPANY.COM
+klist
+```
+
+The output should include a valid, unexpired principal such as:
+
+```text
+krbtgt/DOMAIN.COMPANY.COM@DOMAIN.COMPANY.COM
+```
+
+## 3. Connect from VS Code
+
+1. Create or edit a connection profile.
+2. Enter the SQL Server FQDN and actual TCP port. For example:
+   `sqlhost.domain.company.com,1433`.
+3. Select **Integrated** as the authentication type.
+4. Connect.
+
+After a successful connection, confirm that SQL Server used Kerberos:
+
+```sql
+SELECT auth_scheme
+FROM sys.dm_exec_connections
+WHERE session_id = @@SPID;
+```
+
+The query should return `KERBEROS`.
+
+## Troubleshoot the credential cache
+
+The SQL Tools Service inherits its environment when VS Code starts. Setting
+`KRB5CCNAME` in an integrated terminal does not change the environment of an
+already-running extension host or SQL Tools Service.
+
+On macOS, a native `API:` cache can work with the extension. A `FILE:` cache is
+an optional diagnostic, not a requirement.
+
+To test a dedicated file-backed cache on macOS:
+
+```sh
+cache_dir="$HOME/Library/Caches/vscode-mssql"
+install -d -m 700 "$cache_dir"
+cache="FILE:$cache_dir/krb5cc-vscode-test"
+
+/usr/bin/kinit -c "$cache" username@DOMAIN.COMPANY.COM
+/usr/bin/klist -c "$cache"
+```
+
+On Linux, use a private user-owned runtime or cache directory:
+
+```sh
+cache_dir="${XDG_RUNTIME_DIR:-$HOME/.cache}/vscode-mssql"
+install -d -m 700 "$cache_dir"
+cache="FILE:$cache_dir/krb5cc-vscode-test"
+
+kinit -c "$cache" username@DOMAIN.COMPANY.COM
+klist -c "$cache"
+```
+
+Then fully quit all VS Code windows and launch the first VS Code instance from
+the same terminal:
+
+```sh
+KRB5CCNAME="$cache" code
+```
+
+If the `code` command is unavailable on macOS, run **Shell Command: Install
+'code' command in PATH** from the VS Code Command Palette first.
+
+VS Code instances normally inherit environment variables from the first
+running instance, not necessarily from the shell that opened each later
+window. See
+[Environment variables shared between VS Code instances](https://code.visualstudio.com/docs/terminal/advanced#_environment-inheritance).
+
+For Remote SSH, WSL, or a development container, the extension and SQL Tools
+Service can run remotely. Create the ticket and configure the credential cache
+on the machine where the extension runs.
+
+The credential-cache file contains usable credentials. Keep it outside source
+repositories and shared directories, and do not put a password in it or create
+it manually. `kinit` creates and populates it. When the diagnostic is complete,
+destroy only that test cache:
+
+```sh
+kdestroy -c "$cache"
+```
+
+## Troubleshooting checklist
+
+| Observation                                                                   | Check next                                                                                                                                                       |
+| ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `kinit` fails                                                                 | DNS and KDC reachability, VPN connectivity, realm configuration, clock synchronization, and credentials                                                          |
+| `klist` shows no valid `krbtgt` ticket                                        | Renew the TGT with the same Kerberos implementation that the application will use                                                                                |
+| A TGT exists, but no `MSSQLSvc/...` ticket appears after a connection attempt | Verify the exact SQL Server FQDN, TCP port, SPN ownership, and duplicate SPNs with the administrators                                                            |
+| A SQL service ticket exists, but VS Code still fails                          | Verify cache selection, fully restart VS Code, and confirm where the extension runs                                                                              |
+| A file-backed cache works but the default cache does not                      | Record the selected `kinit`/`klist` implementations, cache types, OS architecture, and extension version when reporting the issue                                |
+| Azure Data Studio or another client works                                     | Compare the exact server name, port, cache, process environment, and driver version; success in another client does not by itself identify the failing component |
+
+When sharing diagnostics, redact usernames, realms, hostnames, cache
+identifiers, and ticket contents. Do not upload credential-cache files.
