@@ -161,7 +161,7 @@ Configure the MSSQL extension in user preferences (`Cmd+,`) or workspace setting
   "mssql.defaultConnectionId": "",                         // Connection ID (GUID) of the connection to auto-connect new editors with. Only applicable when "mssql.newEditorConnectionBehavior" is set to "defaultConnection"
 }
 
-// Query Formatting (see Settings > Extensions > MSSQL for all formatter options)
+// Query Formatting (search Settings for "@ext:ms-mssql.mssql format" to see all options)
 {
   "mssql.format.options.keywordCasing": "uppercase",        // SQL keyword casing: "uppercase" | "lowercase" | "pascalCase"
   "mssql.format.options.identifierCasing": "preserve",      // Identifier casing: "preserve" | "uppercase" | "lowercase" | "pascalCase"
