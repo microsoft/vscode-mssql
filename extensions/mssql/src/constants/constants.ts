@@ -239,7 +239,7 @@ export const feedbackUrl = "https://aka.ms/vscode-mssql-bug";
 export const connectionSharingFeatureRequestUrl =
     "https://github.com/microsoft/vscode-mssql/issues/new?template=2-mssql-feature-request.yml";
 export const encryptionBlogLink = "https://aka.ms/vscodemssql-connection";
-export const integratedAuthHelpLink = "https://aka.ms/vscode-mssql-integratedauth";
+export const integratedAuthHelpLink = "https://aka.ms/vscode-mssql-kerberos";
 export const createDatabaseHelpLink =
     "https://learn.microsoft.com/sql/t-sql/statements/create-database-transact-sql";
 export const dropDatabaseHelpLink =

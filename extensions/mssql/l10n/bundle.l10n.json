@@ -669,6 +669,7 @@
     "Automatically selects an available Microsoft Entra ID identity from providers installed on your system. Click the info icon to learn more.": "Automatically selects an available Microsoft Entra ID identity from providers installed on your system. Click the info icon to learn more.",
     "Sign in with your Microsoft Entra ID account, including accounts with multi-factor authentication. Click the info icon to learn more.": "Sign in with your Microsoft Entra ID account, including accounts with multi-factor authentication. Click the info icon to learn more.",
     "Authenticate using a Microsoft Entra service principal. Enter the Application (client) ID as the user name and the client secret as the password. Click the info icon to learn more.": "Authenticate using a Microsoft Entra service principal. Enter the Application (client) ID as the user name and the client secret as the password. Click the info icon to learn more.",
+    "Kerberos must be configured to use Windows Authentication on macOS and Linux. Click the info icon to learn more.": "Kerberos must be configured to use Windows Authentication on macOS and Linux. Click the info icon to learn more.",
     "Application (Client) ID": "Application (Client) ID",
     "The Application (Client) ID of your Microsoft Entra app registration.": "The Application (Client) ID of your Microsoft Entra app registration.",
     "Client Secret": "Client Secret",
