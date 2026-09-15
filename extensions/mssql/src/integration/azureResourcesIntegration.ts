@@ -7,16 +7,12 @@ import * as vscode from "vscode";
 import { getLogger } from "../models/logger";
 
 import { AzureResource } from "@microsoft/vscode-azureresources-api";
-import {
-    cmdOpenInFabricDatabaseHub,
-    cmdOpenInMssqlExtensionFromAzureResources,
-} from "../constants/constants";
+import { cmdOpenInMssqlExtensionFromAzureResources } from "../constants/constants";
 import { AuthenticationType } from "../sharedInterfaces/connectionDialog";
 import { CloudId, getCloudProviderSettings } from "../azure/providerSettings";
 import { extractFromResourceId } from "../connectionconfig/azureHelpers";
 import { ILogger } from "../sharedInterfaces/logger";
 import { MssqlProtocolHandler } from "../mssqlProtocolHandler";
-import { getFabricDatabaseHubDatabaseLink } from "./fabricDatabaseHub";
 
 /**
  * Node from the Azure Resources tree
@@ -25,7 +21,10 @@ interface AzureResourceNode {
     readonly resource: AzureResource;
 }
 
-function isAzureResourceNode(node: unknown): node is AzureResourceNode {
+/**
+ * Returns true if the given node is an AzureResourceNode, false otherwise.
+ */
+export function isAzureResourceNode(node: unknown): node is AzureResourceNode {
     return typeof node === "object" && !!node && "resource" in node;
 }
 
@@ -43,12 +42,6 @@ export class AzureResourcesExtensionIntegration {
         );
 
         return openInMssqlExtensionCommand;
-    }
-
-    public registerOpenInFabricDatabaseHubCommand(): vscode.Disposable {
-        return vscode.commands.registerCommand(cmdOpenInFabricDatabaseHub, (node: unknown) =>
-            this.invokeForFabricDatabaseHub(node),
-        );
     }
 
     private async invokeForAzureSqlResource(node: unknown): Promise<void> {
@@ -101,17 +94,4 @@ export class AzureResourcesExtensionIntegration {
 
         await this.protocolHandler.handleUri(uri);
     }
-
-    private async invokeForFabricDatabaseHub(node: unknown): Promise<void> {
-        if (!isAzureResourceNode(node) || !isAzureSqlDatabaseResource(node.resource.id)) {
-            return;
-        }
-
-        const uri = vscode.Uri.parse(getFabricDatabaseHubDatabaseLink(node.resource.id), true);
-        await vscode.env.openExternal(uri);
-    }
-}
-
-function isAzureSqlDatabaseResource(resourceId: string): boolean {
-    return /\/providers\/microsoft\.sql\/servers\/[^/]+\/databases\/[^/]+\/?$/i.test(resourceId);
 }

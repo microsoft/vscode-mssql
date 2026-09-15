@@ -597,8 +597,18 @@
                 },
                 {
                     "command": "mssql.openInFabricDatabaseHub",
-                    "when": "view == azureResourceGroups && viewItem =~ /\\b(SqlDatabases)\\b/",
+                    "when": "view =~ /azureResourceGroups|azureFocusView/ && viewItem =~ /\\b(SqlServers|SqlDatabases)\\b/",
                     "group": "1_MSSQL_primary@1"
+                },
+                {
+                    "command": "mssql.openInFabricDatabaseHub",
+                    "when": "view == vscode-fabric.view.workspace && viewItem =~ /ItemSQLDatabase/",
+                    "group": "5@5"
+                },
+                {
+                    "command": "mssql.openInFabricDatabaseHub",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/ && viewItem =~ /\\bserverPlatform=(Azure|Fabric)\\b/ && viewItem =~ /\\bserverProduct=SQL\\b/",
+                    "group": "1_MSSQL_primary@2"
                 },
                 {
                     "command": "mssql.addObjectExplorer",
@@ -3452,6 +3462,13 @@
                                 "null"
                             ],
                             "description": "%mssql.customEnvironment.fabricScopeUriBase%"
+                        },
+                        "fabricPortalUriBase": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "description": "%mssql.customEnvironment.fabricPortalUriBase%"
                         },
                         "fabricSqlDbDnsSuffix": {
                             "type": [
