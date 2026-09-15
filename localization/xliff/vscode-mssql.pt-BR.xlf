@@ -5787,7 +5787,7 @@ Erro:
       </trans-unit>
       <trans-unit id="++CODE++b0a645b25ebc1bb0400058cfdba8e3d0622412ef0ac073432011c32ddaa5a293">
         <source xml:lang="en">Generating script.</source>
-        <target state="new">Generating script.</target>
+        <target state="translated">Gerando script.</target>
       </trans-unit>
       <trans-unit id="++CODE++915fc447c859d56fa8e745484ac300e07e104e9ef318105f82b578bedf32c405">
         <source xml:lang="en">Generating script...</source>
@@ -10154,7 +10154,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++69caf154f7a7ff6fa44128fd6973d20a1e51024cf0aebe70c32188609cb85201">
         <source xml:lang="en">Select a source schema, then press Compare.</source>
-        <target state="new">Select a source schema, then press Compare.</target>
+        <target state="translated">Selecione um esquema de origem e clique em Comparar.</target>
       </trans-unit>
       <trans-unit id="++CODE++f54fc9f7eb78f9523dea69c1d5f1115bb8e8acec088f8bea79aee0156f5e55cf">
         <source xml:lang="en">Select a storage account</source>
@@ -10170,7 +10170,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++ba9bb750744bd9e7ebb8626d0c7104abe572221c6a4f846fe7e635076be038da">
         <source xml:lang="en">Select a target schema, then press Compare.</source>
-        <target state="new">Select a target schema, then press Compare.</target>
+        <target state="translated">Selecione um esquema de destino e clique em Comparar.</target>
       </trans-unit>
       <trans-unit id="++CODE++ebe0dbee443b4562c7925a01e3bc69a3d5d0a3b0e8b3e11041c69fa067b65ef7">
         <source xml:lang="en">Select a tenant</source>
@@ -13293,7 +13293,7 @@ Projetos:
       </trans-unit>
       <trans-unit id="mssql.format.options.terminateBlockStatements">
         <source xml:lang="en">**Used when Preview Formatter is enabled.** Add semicolon terminators after BEGIN...END and TRY...CATCH blocks.</source>
-        <target state="new">**Used when Preview Formatter is enabled.** Add semicolon terminators after BEGIN...END and TRY...CATCH blocks.</target>
+        <target state="translated">**Usado quando o Formatador de Visualização está habilitado.** Adicione terminadores de ponto e vírgula após os blocos BEGIN...END e TRY...CATCH.</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.alignSetClauseItem">
         <source xml:lang="en">**Used when Preview Formatter is enabled.** Align SET clause items in UPDATE statements.</source>
@@ -13317,11 +13317,11 @@ Projetos:
       </trans-unit>
       <trans-unit id="mssql.format.options.identifierCasing">
         <source xml:lang="en">**Used when Preview Formatter is enabled.** Casing style for object identifiers.</source>
-        <target state="new">**Used when Preview Formatter is enabled.** Casing style for object identifiers.</target>
+        <target state="translated">**Usado quando o Formatador de Visualização está habilitado.** Estilo de capitalização para identificadores de objetos.</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.builtInFunctionCasing">
         <source xml:lang="en">**Used when Preview Formatter is enabled.** Casing style for supported built-in function names, such as `GETDATE` and `COALESCE`.</source>
-        <target state="new">**Used when Preview Formatter is enabled.** Casing style for supported built-in function names, such as `GETDATE` and `COALESCE`.</target>
+        <target state="translated">**Usado quando o Formatador de Visualização está habilitado.** Estilo de capitalização para nomes de funções internas com suporte, como `GETDATE` e `COALESCE`.</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.multilineGroupByElementsList">
         <source xml:lang="en">**Used when Preview Formatter is enabled.** Format GROUP BY elements as a multiline list.</source>
@@ -13329,7 +13329,7 @@ Projetos:
       </trans-unit>
       <trans-unit id="mssql.format.options.multilineHavingPredicatesList">
         <source xml:lang="en">**Used when Preview Formatter is enabled.** Format HAVING predicates separated by AND or OR on multiple lines.</source>
-        <target state="new">**Used when Preview Formatter is enabled.** Format HAVING predicates separated by AND or OR on multiple lines.</target>
+        <target state="translated">**Usado quando o Formatador de Visualização está habilitado.** Formate os predicados HAVING separados por AND ou OR em várias linhas.</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.multilineInsertTargetsList">
         <source xml:lang="en">**Used when Preview Formatter is enabled.** Format INSERT columns as multiline lists.</source>
@@ -13369,7 +13369,7 @@ Projetos:
       </trans-unit>
       <trans-unit id="mssql.format.options.multilineNestedFunctionCalls">
         <source xml:lang="en">**Used when Preview Formatter is enabled.** Format nested function calls on separate indented lines while keeping isolated function calls on one line.</source>
-        <target state="new">**Used when Preview Formatter is enabled.** Format nested function calls on separate indented lines while keeping isolated function calls on one line.</target>
+        <target state="translated">**Usado quando o Formatador de Visualização está habilitado.** Formate chamadas de funções aninhadas em linhas separadas e com recuo, mantendo as chamadas de funções isoladas em uma única linha.</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.multilineProcedureParametersList">
         <source xml:lang="en">**Used when Preview Formatter is enabled.** Format procedure and function parameters on separate lines.</source>
@@ -13401,7 +13401,7 @@ Projetos:
       </trans-unit>
       <trans-unit id="mssql.format.options.clauseBodyAlignment">
         <source xml:lang="en">**Used when Preview Formatter is enabled.** Keep clause bodies aligned with their keywords or place them on the next line with indentation.</source>
-        <target state="new">**Used when Preview Formatter is enabled.** Keep clause bodies aligned with their keywords or place them on the next line with indentation.</target>
+        <target state="translated">**Usado quando o Formatador de Visualização está habilitado.** Mantenha o corpo das cláusulas alinhado com suas palavras-chave ou coloque-o na linha seguinte com recuo.</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.keywordCasing">
         <source xml:lang="en">**Used when Preview Formatter is enabled.** Keyword casing style.</source>
@@ -13421,7 +13421,7 @@ Projetos:
       </trans-unit>
       <trans-unit id="mssql.format.options.leadingCommaSpaceCount">
         <source xml:lang="en">**Used when Preview Formatter is enabled.** Number of spaces after a leading comma. Valid values are 0 and 1.</source>
-        <target state="new">**Used when Preview Formatter is enabled.** Number of spaces after a leading comma. Valid values are 0 and 1.</target>
+        <target state="translated">**Usado quando o Formatador de Visualização está habilitado.** Número de espaços após uma vírgula à esquerda. Os valores válidos são 0 e 1.</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.asKeywordOnOwnLine">
         <source xml:lang="en">**Used when Preview Formatter is enabled.** Place AS on its own line.</source>
@@ -13485,11 +13485,11 @@ Projetos:
       </trans-unit>
       <trans-unit id="mssql.format.options.newLineBeforeOnClause">
         <source xml:lang="en">**Used when Preview Formatter is enabled.** Place the ON clause of a JOIN on a new line.</source>
-        <target state="new">**Used when Preview Formatter is enabled.** Place the ON clause of a JOIN on a new line.</target>
+        <target state="translated">Usado quando o Formatador de Visualização está habilitado. Coloque a cláusula ON de um JOIN em uma nova linha.</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.newLineAfterJoinKeyword">
         <source xml:lang="en">**Used when Preview Formatter is enabled.** Place the joined table source on a new line after the JOIN keyword.</source>
-        <target state="new">**Used when Preview Formatter is enabled.** Place the joined table source on a new line after the JOIN keyword.</target>
+        <target state="translated">**Usado quando o Formatador de Visualização está habilitado.** Coloque a origem da tabela unida em uma nova linha após a palavra-chave JOIN.</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.preserveComments">
         <source xml:lang="en">**Used when Preview Formatter is enabled.** Preserve comments during formatting.</source>
@@ -13501,7 +13501,7 @@ Projetos:
       </trans-unit>
       <trans-unit id="mssql.format.options.identifierBracketing">
         <source xml:lang="en">**Used when Preview Formatter is enabled.** Preserve, add, or remove optional square brackets around identifiers. Required brackets are retained.</source>
-        <target state="new">**Used when Preview Formatter is enabled.** Preserve, add, or remove optional square brackets around identifiers. Required brackets are retained.</target>
+        <target state="translated">**Usado quando o Formatador de Visualização está habilitado.** Preserve, adicione ou remova os colchetes opcionais ao redor dos identificadores. Os colchetes obrigatórios são mantidos.</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.sqlEngineType">
         <source xml:lang="en">**Used when Preview Formatter is enabled.** SQL engine type used to parse and generate formatted scripts.</source>
