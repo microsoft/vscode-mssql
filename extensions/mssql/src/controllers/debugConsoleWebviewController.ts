@@ -1,0 +1,709 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+/**
+ * MSSQL Debug Console host controller: bridges the diagnostics substrate
+ * (live tail, session store, perf-run import, capture policy) to the webview.
+ * The webview is a renderer — every query/aggregation runs here.
+ */
+
+import * as fs from "fs";
+import * as path from "path";
+import * as vscode from "vscode";
+import * as LocConstants from "../constants/locConstants";
+import { PrivatePreviewFeature, previewService } from "../previews/previewService";
+import {
+    DcGetHistoryRequest,
+    HistoryActionTrend,
+    HistorySessionRow,
+    DebugConsoleState,
+    DebugSource,
+    DcCaptureChangedNotification,
+    DcExportRequest,
+    DcGetCauseTreeRequest,
+    DcGetHealthRequest,
+    DcGetTraceQualityRequest,
+    DcGetOverviewRequest,
+    DcGetPerfSummaryRequest,
+    DcGetSqlActivityRequest,
+    DcGetWaterfallRequest,
+    DcImportPerfRunRequest,
+    DcListSourcesRequest,
+    DcListTracesRequest,
+    DcLivePushNotification,
+    DcQueryEventsRequest,
+    DcSetCaptureModeRequest,
+    DcSubscribeLiveRequest,
+    DcUnsubscribeLiveRequest,
+    DcBackfillGapRequest,
+    DcNavigateNotification,
+    DcPageId,
+    DiagEvent,
+    GapRecord,
+} from "../sharedInterfaces/debugConsole";
+import {
+    buildWaterfall,
+    causeTree,
+    computeKpis,
+    deriveAnomalies,
+    sqlActivityRows,
+    userActions,
+} from "../diagnostics/analysis";
+import { diag } from "../diagnostics/diagnosticsCore";
+import { DiagnosticsManager } from "../diagnostics/diagnosticsManager";
+import { PerfHistoryService } from "../diagnostics/perfHistory/perfHistoryService";
+import { importPerfMetrics, importPerfRun } from "../diagnostics/perfRunImport";
+import { SessionHistorySummary } from "../diagnostics/sessionStore";
+import { LiveTailSink } from "../diagnostics/sinks";
+import { isStsDiagListenerActive } from "../diagnostics/stsDiagListener";
+import { lintCorrelation } from "../sharedInterfaces/observabilityContract.generated";
+import {
+    PhAddSourceRequest,
+    PhCompareRepsRequest,
+    PhDeleteRunRequest,
+    PhGetDumpRequest,
+    PhGetRichDiagnosticsRequest,
+    PhGetSqlActivityRequest,
+    PhGetSummaryRequest,
+    PhGetWaterfallRequest,
+    PhIndexProgressNotification,
+    PhListSourcesRequest,
+    PhMetricSeriesRequest,
+    PhQueryRunsRequest,
+    PhQueryScenariosRequest,
+    PhRemoveSourceRequest,
+    PhRescanRequest,
+    PhScenarioDetailsRequest,
+} from "../sharedInterfaces/perfHistory";
+import { WebviewPanelController } from "./webviewPanelController";
+
+const LIVE_ARCHIVE_CAP = 100_000;
+
+export class DebugConsoleWebviewController extends WebviewPanelController<
+    DebugConsoleState,
+    void,
+    void
+> {
+    private liveArchive: DiagEvent[] = [];
+    private liveGaps: GapRecord[] = [];
+    private liveTail: LiveTailSink;
+    private subscribed = false;
+    private perfRunCounter = 0;
+    private readonly perfHistory: PerfHistoryService;
+    public disposed = false;
+
+    constructor(
+        context: vscode.ExtensionContext,
+        private readonly diagnostics: DiagnosticsManager,
+        initialPage?: DcPageId,
+    ) {
+        super(
+            context,
+            "debugConsole",
+            "debugConsole",
+            {
+                sources: [],
+                activeSourceId: `live:${diag.sessionId}`,
+                captureMode: diag.captureMode,
+                ...(diag.captureExpiresEpochMs !== undefined
+                    ? { captureExpiresEpochMs: diag.captureExpiresEpochMs }
+                    : {}),
+                provenance: diagnostics.provenance,
+                fixtureMode: false,
+                ...(initialPage !== undefined ? { initialPage } : {}),
+            },
+            {
+                title: LocConstants.DebugConsole.panelTitle,
+                viewColumn: vscode.ViewColumn.Active,
+                iconPath: {
+                    dark: vscode.Uri.joinPath(
+                        context.extensionUri,
+                        "media",
+                        "executionPlan_dark.svg",
+                    ),
+                    light: vscode.Uri.joinPath(
+                        context.extensionUri,
+                        "media",
+                        "executionPlan_light.svg",
+                    ),
+                },
+            },
+        );
+
+        // Archive sink: retains this session's events for history queries while
+        // the console is open (durable copy lives in Session Diag when enabled).
+        const archiveSinkId = "consoleArchive";
+        if (!diag.hasSink(archiveSinkId)) {
+            diag.addSink({
+                id: archiveSinkId,
+                tryWrite: (event) => {
+                    this.liveArchive.push(event);
+                    if (this.liveArchive.length > LIVE_ARCHIVE_CAP) {
+                        this.liveArchive.splice(0, this.liveArchive.length - LIVE_ARCHIVE_CAP);
+                    }
+                },
+            });
+        }
+
+        // Seed with THIS session's already-persisted events: when
+        // mssql.sessionDiag.enabled captured startup/activation before the
+        // console opened, that data appears immediately in the live source
+        // instead of only after a restart.
+        try {
+            diag.flushAll();
+            const persisted = diagnostics.store.eventsForSource(`store:${diag.sessionId}`);
+            if (persisted.length > 0) {
+                const known = new Set(this.liveArchive.map((event) => event.seq));
+                this.liveArchive = [
+                    ...persisted.filter((event) => !known.has(event.seq)),
+                    ...this.liveArchive,
+                ].slice(-LIVE_ARCHIVE_CAP);
+            }
+        } catch {
+            // seeding is best-effort; live capture continues regardless
+        }
+        this.liveTail = new LiveTailSink();
+        diag.addSink(this.liveTail);
+        const removeCaptureModeListener = diag.onCaptureModeChanged((mode) => {
+            void this.sendNotification(DcCaptureChangedNotification.type, {
+                mode,
+                ...(diag.captureExpiresEpochMs !== undefined
+                    ? { expiresEpochMs: diag.captureExpiresEpochMs }
+                    : {}),
+            });
+        });
+        this.panel.onDidDispose(() => {
+            this.disposed = true;
+            diag.removeSink(this.liveTail.id);
+            diag.removeSink(archiveSinkId);
+            removeCaptureModeListener();
+        });
+
+        // Perf Test History: source registry + incremental index + lazy artifacts.
+        this.perfHistory = new PerfHistoryService(context, (progress) => {
+            void this.sendNotification(PhIndexProgressNotification.type, progress);
+        });
+
+        this.registerHandlers();
+        this.registerPerfHistoryHandlers();
+        diag.emit({ feature: "sessionDiag", type: "debugConsole.opened" });
+    }
+
+    private registerPerfHistoryHandlers(): void {
+        this.onRequest(PhListSourcesRequest.type, async () => this.perfHistory.listSources());
+        this.onRequest(PhAddSourceRequest.type, async ({ kind }) => {
+            const outcome = await this.perfHistory.addSource(kind);
+            return { sources: await this.perfHistory.listSources(), ...outcome };
+        });
+        this.onRequest(PhRemoveSourceRequest.type, async ({ sourceId }) => {
+            await this.perfHistory.removeSource(sourceId);
+            return this.perfHistory.listSources();
+        });
+        this.onRequest(PhRescanRequest.type, async ({ sourceId }) =>
+            this.perfHistory.rescan(sourceId),
+        );
+        this.onRequest(PhGetSummaryRequest.type, async ({ sourceId }) =>
+            this.perfHistory.summary(sourceId),
+        );
+        this.onRequest(PhQueryRunsRequest.type, async (query) => this.perfHistory.queryRuns(query));
+        this.onRequest(PhQueryScenariosRequest.type, async (query) =>
+            this.perfHistory.queryScenarios(query),
+        );
+        this.onRequest(PhMetricSeriesRequest.type, async (query) =>
+            this.perfHistory.metricSeries(query),
+        );
+        this.onRequest(PhScenarioDetailsRequest.type, async (query) =>
+            this.perfHistory.scenarioDetails(query),
+        );
+        this.onRequest(PhGetWaterfallRequest.type, async (query) =>
+            this.perfHistory.waterfall(query),
+        );
+        this.onRequest(PhGetSqlActivityRequest.type, async (query) =>
+            this.perfHistory.sqlActivity(query),
+        );
+        this.onRequest(PhGetDumpRequest.type, async (query) => this.perfHistory.dump(query));
+        this.onRequest(PhGetRichDiagnosticsRequest.type, async (query) =>
+            this.perfHistory.richDiagnostics(query),
+        );
+        this.onRequest(PhCompareRepsRequest.type, async (query) =>
+            this.perfHistory.compareReps(query),
+        );
+        this.onRequest(PhDeleteRunRequest.type, async ({ sourceId, runId }) => {
+            // Destructive: removes the run directory from disk. Confirm once.
+            const deleteRun = LocConstants.DebugConsole.deleteRun;
+            const choice = await vscode.window.showWarningMessage(
+                LocConstants.DebugConsole.deleteRunConfirm(runId),
+                { modal: true },
+                deleteRun,
+            );
+            if (choice !== deleteRun) {
+                return { ok: false, error: "cancelled" };
+            }
+            return this.perfHistory.deleteRun(sourceId, runId);
+        });
+    }
+
+    private get liveSourceId(): string {
+        return `live:${diag.sessionId}`;
+    }
+
+    private eventsFor(sourceId: string): DiagEvent[] {
+        return this.diagnostics.store.eventsForSource(sourceId, this.liveArchive);
+    }
+
+    private gapsFor(sourceId: string): GapRecord[] {
+        return sourceId === this.liveSourceId ? this.liveGaps : [];
+    }
+
+    private listSources(): DebugSource[] {
+        return this.diagnostics.store.listSources({
+            sessionId: diag.sessionId,
+            eventCount: this.liveArchive.length,
+            captureMode: diag.captureMode,
+            provenance: this.diagnostics.provenance,
+        });
+    }
+
+    private registerHandlers(): void {
+        this.onRequest(DcListSourcesRequest.type, async () => this.listSources());
+
+        this.onRequest(DcQueryEventsRequest.type, async (query) =>
+            this.diagnostics.store.query(
+                this.eventsFor(query.sourceId),
+                query,
+                this.gapsFor(query.sourceId),
+            ),
+        );
+
+        this.onRequest(DcGetOverviewRequest.type, async ({ sourceId }) => {
+            const events = this.eventsFor(sourceId);
+            const gaps = this.gapsFor(sourceId);
+            return {
+                kpis: computeKpis(
+                    events,
+                    gaps,
+                    sourceId === this.liveSourceId ? diag.captureMode : "off",
+                ),
+                actions: userActions(events),
+                anomalies: deriveAnomalies(events, gaps),
+            };
+        });
+
+        this.onRequest(DcGetCauseTreeRequest.type, async ({ sourceId, eventId }) =>
+            causeTree(this.eventsFor(sourceId), eventId),
+        );
+
+        this.onRequest(DcGetWaterfallRequest.type, async ({ sourceId, traceId }) =>
+            buildWaterfall(this.eventsFor(sourceId), traceId),
+        );
+
+        this.onRequest(DcListTracesRequest.type, async ({ sourceId }) =>
+            userActions(this.eventsFor(sourceId)),
+        );
+
+        this.onRequest(DcGetSqlActivityRequest.type, async ({ sourceId }) =>
+            sqlActivityRows(this.eventsFor(sourceId)),
+        );
+
+        this.onRequest(DcSubscribeLiveRequest.type, async () => {
+            this.subscribed = true;
+            const { lastSeq } = this.liveTail.subscribe((events, gap) => {
+                if (!this.subscribed) {
+                    return;
+                }
+                if (gap) {
+                    this.liveGaps.push(gap);
+                    void this.sendNotification(DcLivePushNotification.type, {
+                        kind: "gap",
+                        gap,
+                    });
+                }
+                void this.sendNotification(DcLivePushNotification.type, {
+                    kind: "events",
+                    events,
+                    lastSeq: events.length > 0 ? events[events.length - 1].seq : 0,
+                });
+            });
+            return {
+                snapshot: this.diagnostics.store.query(
+                    this.liveArchive,
+                    { sourceId: this.liveSourceId, limit: 500 },
+                    this.liveGaps,
+                ),
+                lastSeq,
+            };
+        });
+
+        this.onRequest(DcUnsubscribeLiveRequest.type, async () => {
+            this.subscribed = false;
+            this.liveTail.unsubscribe();
+        });
+
+        // Recover a live-tail gap from the session store's journal — the
+        // payoff for always-on capture: overflow drops become recoverable.
+        this.onRequest(DcBackfillGapRequest.type, async ({ fromSeq, throughSeq }) => {
+            if (!this.diagnostics.storeActive) {
+                return {
+                    ok: false,
+                    status: "failed" as const,
+                    reason: "Session Diag store is off — enable mssql.sessionDiag.enabled to make gaps recoverable",
+                };
+            }
+            try {
+                diag.flushAll();
+                this.diagnostics.store.invalidateSession(diag.sessionId);
+                const events = this.diagnostics.store
+                    .eventsForSource(`store:${diag.sessionId}`)
+                    .filter((event) => event.seq >= fromSeq && event.seq <= throughSeq);
+                if (events.length === 0) {
+                    return {
+                        ok: false,
+                        status: "failed" as const,
+                        reason: `range ${fromSeq}–${throughSeq} not in the store (evicted by the store buffer before flush)`,
+                    };
+                }
+                const expected = throughSeq - fromSeq + 1;
+                return {
+                    ok: true,
+                    events,
+                    status:
+                        events.length >= expected ? ("succeeded" as const) : ("partial" as const),
+                    ...(events.length < expected
+                        ? { reason: `${events.length} of ${expected} recovered` }
+                        : {}),
+                };
+            } catch (error) {
+                return {
+                    ok: false,
+                    status: "failed" as const,
+                    reason: error instanceof Error ? error.message : String(error),
+                };
+            }
+        });
+
+        // Sink + store health: degradation is visible, never inferred.
+        this.onRequest(DcGetHealthRequest.type, async () => ({
+            sinks: diag.sinkHealthSnapshot(),
+            store: {
+                enabled: this.diagnostics.storeActive,
+                ...this.diagnostics.store.validateStore(),
+            },
+        }));
+        // Trace Identity V1 lint: how well-stitched is this source (or one
+        // trace)? Fog is reported, never painted over.
+        this.onRequest(DcGetTraceQualityRequest.type, async ({ sourceId, traceId }) => {
+            let events = this.eventsFor(sourceId).filter(
+                (event) => !event.tags?.includes("viewerInternal"),
+            );
+            if (traceId) {
+                events = events.filter((event) => event.traceId === traceId);
+            }
+            return lintCorrelation(events);
+        });
+
+        this.onRequest(DcSetCaptureModeRequest.type, async (request) => {
+            // Applies immediately (settings persistence happens in background).
+            this.diagnostics.applyCaptureMode(request.mode, {
+                ...(request.reason !== undefined ? { reason: request.reason } : {}),
+                ...(request.durationMinutes !== undefined
+                    ? { durationMinutes: request.durationMinutes }
+                    : {}),
+            });
+            if (request.mode === "full") {
+                diag.emit({
+                    feature: "sessionDiag",
+                    type: "sessionDiag.elevated",
+                    status: "warning",
+                    fields: {
+                        reason: {
+                            raw: request.reason ?? "elevated from Debug Console",
+                            cls: "user.text",
+                        },
+                        ...(request.durationMinutes !== undefined
+                            ? {
+                                  durationMinutes: {
+                                      raw: request.durationMinutes,
+                                      cls: "diagnostic.metadata" as const,
+                                  },
+                              }
+                            : {}),
+                    },
+                });
+            }
+            this.diagnostics.updateStatusItem();
+            return {
+                mode: diag.captureMode,
+                ...(diag.captureExpiresEpochMs !== undefined
+                    ? { expiresEpochMs: diag.captureExpiresEpochMs }
+                    : {}),
+            };
+        });
+
+        this.onRequest(DcImportPerfRunRequest.type, async () => {
+            const picked = await vscode.window.showOpenDialog({
+                canSelectFolders: true,
+                canSelectFiles: false,
+                title: LocConstants.DebugConsole.importRunTitle,
+            });
+            if (!picked || picked.length === 0) {
+                return undefined;
+            }
+            const runDir = picked[0].fsPath;
+            const imported = importPerfRun(runDir);
+            if (!imported) {
+                void vscode.window.showWarningMessage(LocConstants.DebugConsole.noMarkersFound);
+                return undefined;
+            }
+            this.perfRunCounter++;
+            this.diagnostics.store.registerPerfRun(
+                `perfrun:${this.perfRunCounter}`,
+                imported.label,
+                imported.events,
+            );
+            return this.listSources();
+        });
+
+        this.onRequest(DcGetPerfSummaryRequest.type, async () => {
+            // The root is host-owned configuration; the webview never names paths.
+            const root = vscode.workspace
+                .getConfiguration()
+                .get<string>("mssql.debugConsole.perfRunsRoot", "");
+            const imported = root ? importPerfMetrics(root) : { samples: [], runs: [] };
+            return {
+                scenarios: [...new Set(imported.samples.map((s) => s.scenarioId))].sort(),
+                metrics: [...new Set(imported.samples.map((s) => s.metricName))].sort(),
+                samples: imported.samples,
+                runs: imported.runs,
+            };
+        });
+
+        this.onRequest(DcGetHistoryRequest.type, async () => {
+            const sessions: HistorySessionRow[] = [];
+            const trendMap = new Map<
+                string,
+                {
+                    feature: string;
+                    points: HistoryActionTrend["points"];
+                }
+            >();
+            let totalEvents = 0;
+            let totalActions = 0;
+            const analyze = (
+                sourceId: string,
+                hostSessionId: string,
+                label: string,
+                createdUtc: string,
+                live: boolean,
+                captureMode: HistorySessionRow["captureMode"],
+                summary: SessionHistorySummary,
+                gaps: number,
+            ) => {
+                const actions = summary.actions;
+                sessions.push({
+                    sourceId,
+                    hostSessionId,
+                    label,
+                    createdUtc,
+                    live,
+                    events: summary.events,
+                    errors: summary.errors,
+                    gaps,
+                    captureMode,
+                    actionCount: actions.length,
+                });
+                totalEvents += summary.events;
+                totalActions += actions.length;
+                // Per-action-label medians for cross-session trends.
+                const byLabel = new Map<
+                    string,
+                    { feature: string; durations: number[]; errors: number }
+                >();
+                for (const action of actions) {
+                    if (action.durationMs === undefined) continue;
+                    const entry = byLabel.get(action.label) ?? {
+                        feature: action.feature,
+                        durations: [],
+                        errors: 0,
+                    };
+                    entry.durations.push(action.durationMs);
+                    if (action.status === "error") entry.errors++;
+                    byLabel.set(action.label, entry);
+                }
+                for (const [actionLabel, entry] of byLabel) {
+                    const sorted = [...entry.durations].sort((a, b) => a - b);
+                    const median = sorted[Math.floor((sorted.length - 1) / 2)];
+                    const trend = trendMap.get(actionLabel) ?? {
+                        feature: entry.feature,
+                        points: [],
+                    };
+                    trend.points.push({
+                        sourceId,
+                        sessionLabel: label,
+                        createdUtc,
+                        medianMs: Number(median.toFixed(1)),
+                        count: entry.durations.length,
+                        errors: entry.errors,
+                    });
+                    trendMap.set(actionLabel, trend);
+                }
+            };
+
+            // Stored sessions (newest first, bounded): per-session aggregates
+            // come from a sidecar computed once per session — History never
+            // reloads whole journals into memory. Then the live session.
+            for (const { manifest } of this.diagnostics.store.listLocalSessions().slice(0, 15)) {
+                if (manifest.sessionId === diag.sessionId) continue;
+                const sourceId = `store:${manifest.sessionId}`;
+                analyze(
+                    sourceId,
+                    manifest.sessionId,
+                    `Session ${manifest.createdUtc.slice(0, 16).replace("T", " ")}`,
+                    manifest.createdUtc,
+                    false,
+                    manifest.captureMode,
+                    this.diagnostics.store.historySummaryFor(manifest.sessionId, historySummaryOf),
+                    manifest.gapCount,
+                );
+            }
+            analyze(
+                this.liveSourceId,
+                diag.sessionId,
+                "Current session",
+                new Date().toISOString(),
+                true,
+                diag.captureMode,
+                historySummaryOf(this.liveArchive),
+                this.liveGaps.length,
+            );
+            sessions.sort((a, b) => a.createdUtc.localeCompare(b.createdUtc));
+            const trends: HistoryActionTrend[] = [...trendMap.entries()]
+                .map(([label, entry]) => ({
+                    label,
+                    feature: entry.feature,
+                    points: entry.points.sort((a, b) => a.createdUtc.localeCompare(b.createdUtc)),
+                }))
+                .filter((trend) => trend.points.length >= 1)
+                .sort((a, b) => b.points.length - a.points.length)
+                .slice(0, 8);
+            return { sessions, trends, totalEvents, totalActions };
+        });
+
+        this.onRequest(DcExportRequest.type, async ({ sourceId }) => {
+            const events = this.eventsFor(sourceId);
+            if (events.length === 0) {
+                return { events: 0, redactions: 0, error: "No events to export" };
+            }
+            // Honest label: an elevated (full) source is not redacted.
+            const fullCapture =
+                sourceId === this.liveSourceId
+                    ? diag.captureMode === "full"
+                    : this.diagnostics.store
+                          .listLocalSessions()
+                          .some(
+                              (s) =>
+                                  `store:${s.manifest.sessionId}` === sourceId &&
+                                  s.manifest.captureMode === "full",
+                          );
+            const target = await vscode.window.showSaveDialog({
+                title: fullCapture
+                    ? LocConstants.DebugConsole.exportTitleFull
+                    : LocConstants.DebugConsole.exportTitle,
+                filters: { [LocConstants.DebugConsole.jsonLinesFilter]: ["jsonl"] },
+                defaultUri: vscode.Uri.file(
+                    path.join(
+                        this.diagnostics.store.storeRoot,
+                        `mssql-diag-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-")}.jsonl`,
+                    ),
+                ),
+            });
+            if (!target) {
+                return { events: 0, redactions: 0, error: "cancelled" };
+            }
+            try {
+                diag.flushAll();
+                const redactions = events.reduce((sum, e) => sum + e.cls.redactedFields, 0);
+                fs.mkdirSync(path.dirname(target.fsPath), { recursive: true });
+                fs.writeFileSync(
+                    target.fsPath,
+                    events.map((e) => JSON.stringify(e)).join("\n") + "\n",
+                    "utf8",
+                );
+                diag.emit({
+                    feature: "sessionDiag",
+                    type: "sessionDiag.export.end",
+                    fields: {
+                        events: { raw: events.length, cls: "diagnostic.metadata" },
+                        redactions: { raw: redactions, cls: "diagnostic.metadata" },
+                    },
+                });
+                return { path: target.fsPath, events: events.length, redactions };
+            } catch (error) {
+                return { events: 0, redactions: 0, error: String(error) };
+            }
+        });
+    }
+}
+
+/** History aggregate of one session's events (the sidecar body). */
+function historySummaryOf(events: DiagEvent[]): SessionHistorySummary {
+    return {
+        schemaVersion: "mssql.diag.historySummary/1",
+        events: events.length,
+        errors: events.filter((e) => e.status === "error").length,
+        actions: userActions(events).map((action) => ({
+            label: action.label,
+            feature: action.feature,
+            status: action.status,
+            ...(action.durationMs !== undefined ? { durationMs: action.durationMs } : {}),
+        })),
+    };
+}
+
+let activeConsole: DebugConsoleWebviewController | undefined;
+let stsRestartNoticeShown = false;
+
+export function registerDebugConsole(
+    context: vscode.ExtensionContext,
+    diagnostics: DiagnosticsManager,
+): void {
+    context.subscriptions.push(
+        // Optional deep-link arg (WI-1.6): `{ page }` opens the console AT
+        // that page — a fresh console gets it as initial state, an open one
+        // is steered via dc/navigate before being revealed.
+        vscode.commands.registerCommand("mssql.openDebugConsole", (route?: { page?: DcPageId }) => {
+            if (!previewService.isPrivatePreviewEnabled(PrivatePreviewFeature.DebugConsole)) {
+                void vscode.window.showInformationMessage(
+                    LocConstants.DebugConsole.enableSettingFirst,
+                );
+                return;
+            }
+            if (!isStsDiagListenerActive() && !stsRestartNoticeShown) {
+                // Enabled after activation: the STS lane needs the listener
+                // that only starts before the service spawns.
+                stsRestartNoticeShown = true;
+                void vscode.window.showInformationMessage(LocConstants.DebugConsole.restartForSts);
+            }
+            const page = route?.page;
+            if (activeConsole && !activeConsole.disposed) {
+                if (page !== undefined) {
+                    void activeConsole.sendNotification(DcNavigateNotification.type, { page });
+                }
+                activeConsole.revealToForeground();
+                return;
+            }
+            activeConsole = new DebugConsoleWebviewController(context, diagnostics, page);
+            activeConsole.revealToForeground();
+        }),
+        vscode.workspace.onDidChangeConfiguration((change) => {
+            if (
+                (change.affectsConfiguration("mssql.enableExperimentalFeatures") ||
+                    change.affectsConfiguration("mssql.debugConsole.enabled")) &&
+                !previewService.isPrivatePreviewEnabled(PrivatePreviewFeature.DebugConsole)
+            ) {
+                activeConsole?.dispose();
+            }
+        }),
+    );
+}
