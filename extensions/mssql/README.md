@@ -161,12 +161,12 @@ Configure the MSSQL extension in user preferences (`Cmd+,`) or workspace setting
   "mssql.defaultConnectionId": "",                         // Connection ID (GUID) of the connection to auto-connect new editors with. Only applicable when "mssql.newEditorConnectionBehavior" is set to "defaultConnection"
 }
 
-// Query Formatting
+// Query Formatting (see Settings > Extensions > MSSQL for all formatter options)
 {
-  "mssql.format.options.keywordCasing": "uppercase",       // SQL keyword casing
-  "mssql.format.options.identifierCasing": "preserve",      // Preserve identifier casing
-  "mssql.format.options.commaPlacement": "trailing",        // Put commas after list items
-  "mssql.format.options.multilineSelectElementsList": true // Put SELECT columns on separate lines
+  "mssql.format.options.keywordCasing": "uppercase",        // SQL keyword casing: "uppercase" | "lowercase" | "pascalCase"
+  "mssql.format.options.identifierCasing": "preserve",      // Identifier casing: "preserve" | "uppercase" | "lowercase" | "pascalCase"
+  "mssql.format.options.commaPlacement": "trailing",        // Comma placement: "trailing" | "leading"
+  "mssql.format.options.multilineSelectElementsList": true   // Put SELECT columns on separate lines
 }
 
 // IntelliSense
