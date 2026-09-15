@@ -655,6 +655,24 @@ suite("AzureDataStudioMigrationWebviewController", () => {
         expect(settings[2].value).to.equal(false);
     });
 
+    test("parseSettings skips retired formatter settings", () => {
+        const config: Record<string, unknown> = {
+            "mssql.format.enablePreviewFormatter": false,
+            "mssql.format.alignColumnDefinitionsInColumns": true,
+            "mssql.format.datatypeCasing": "lowercase",
+            "mssql.format.keywordCasing": "lowercase",
+            "mssql.format.placeCommasBeforeNextStatement": true,
+            "mssql.format.placeSelectStatementReferencesOnNewLine": true,
+            "mssql.format.options.keywordCasing": "uppercase",
+        };
+
+        const settings = controller["parseSettings"](config);
+
+        expect(settings).to.deep.equal([
+            { key: "mssql.format.options.keywordCasing", value: "uppercase" },
+        ]);
+    });
+
     test("setImportSettings reducer toggles importSettings state", async () => {
         const state: AzureDataStudioMigrationWebviewState = {
             adsConfigPath: "",
