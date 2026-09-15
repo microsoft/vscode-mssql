@@ -51,7 +51,11 @@ import { generateConnectionComponents, groupAdvancedOptions } from "./formCompon
 import { FormWebviewController } from "../forms/formWebviewController";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import { Deferred } from "../protocol";
-import { cmdOpenAzureDataStudioMigration, defaultDatabase } from "../constants/constants";
+import {
+    cmdOpenAzureDataStudioMigration,
+    defaultDatabase,
+    integratedAuthHelpLink,
+} from "../constants/constants";
 import * as AzureConstants from "../azure/constants";
 import { AddFirewallRuleState } from "../sharedInterfaces/addFirewallRule";
 import * as Utils from "../models/utils";
@@ -89,7 +93,26 @@ import { buildDatabaseOptions } from "../utils/databaseUtils";
 
 export const CLEAR_TOKEN_CACHE = "clearTokenCache";
 export const SIGN_IN_TO_AZURE = "signInToAzure";
+export const OPEN_KERBEROS_HELP = "openKerberosHelp";
 const CONNECTION_DIALOG_VIEW_ID = "connectionDialog";
+
+/**
+ * Gets the documentation link for an authentication option.
+ */
+export function getAuthenticationInfoLink(
+    authenticationType: AuthenticationType,
+): string | undefined {
+    const infoLinkMap: Partial<Record<AuthenticationType, string>> = {
+        [AuthenticationType.Integrated]: integratedAuthHelpLink,
+        [AuthenticationType.ActiveDirectoryDefault]:
+            "https://aka.ms/vscode-mssql-auth-entra-default",
+        [AuthenticationType.AzureMFA]: "https://aka.ms/vscode-mssql-auth-entra-mfa",
+        [AuthenticationType.ActiveDirectoryServicePrincipal]:
+            "https://learn.microsoft.com/en-us/sql/connect/ado-net/sql/azure-active-directory-authentication?view=sql-server-ver17#using-service-principal-authentication",
+    };
+
+    return infoLinkMap[authenticationType];
+}
 
 export class ConnectionDialogWebviewController extends FormWebviewController<
     IConnectionDialogProfile,
@@ -912,15 +935,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         });
 
         this.onNotification(OpenOptionInfoLinkNotification.type, async (payload) => {
-            const infoLinkMap: Partial<Record<AuthenticationType, string>> = {
-                [AuthenticationType.ActiveDirectoryDefault]:
-                    "https://aka.ms/vscode-mssql-auth-entra-default",
-                [AuthenticationType.AzureMFA]: "https://aka.ms/vscode-mssql-auth-entra-mfa",
-                [AuthenticationType.ActiveDirectoryServicePrincipal]:
-                    "https://learn.microsoft.com/en-us/sql/connect/ado-net/sql/azure-active-directory-authentication?view=sql-server-ver17#using-service-principal-authentication",
-            };
-
-            const url = infoLinkMap[payload.option.value as AuthenticationType];
+            const url = getAuthenticationInfoLink(payload.option.value as AuthenticationType);
             if (url) {
                 void vscode.env.openExternal(vscode.Uri.parse(url));
             }
@@ -942,6 +957,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 if (signInButton) {
                     await signInButton.callback();
                 }
+            } else if (payload.buttonId === OPEN_KERBEROS_HELP) {
+                await vscode.env.openExternal(vscode.Uri.parse(integratedAuthHelpLink));
             } else {
                 this.logger.error(`Unknown message button clicked: ${payload.buttonId}`);
             }
@@ -1821,7 +1838,18 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             } as ChangePasswordDialogProps;
             return state;
         } else {
-            this.state.formMessage = { message: result.errorMessage };
+            this.state.formMessage = {
+                message: result.errorMessage,
+                buttons:
+                    errorType === SqlConnectionErrorType.KerberosNonWindows
+                        ? [
+                              {
+                                  id: OPEN_KERBEROS_HELP,
+                                  label: LocalizedConstants.Common.learnMore,
+                              },
+                          ]
+                        : undefined,
+            };
             this.state.connectionStatus = ApiStatus.Error;
 
             sendActionEvent(TelemetryViews.ConnectionDialog, TelemetryActions.CreateConnection, {

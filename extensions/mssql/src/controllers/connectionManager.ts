@@ -2752,7 +2752,7 @@ export async function getSqlConnectionErrorType(
         return SqlConnectionErrorType.FirewallRuleError;
     } else if (
         !platformInfo.isWindows &&
-        errorMessage?.includes(Constants.errorKerberosSubString)
+        errorMessage?.toLowerCase().includes(Constants.errorKerberosSubString.toLowerCase())
     ) {
         return SqlConnectionErrorType.KerberosNonWindows;
     } else if (
