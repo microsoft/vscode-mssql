@@ -1649,9 +1649,6 @@
     <trans-unit id="++CODE++b269dc4e81a528a4d42e9e74101923514a626f55f8dd76b1461e0690e72d041a">
       <source xml:lang="en">Commands</source>
     </trans-unit>
-    <trans-unit id="++CODE++b3909ffa40738974d9edd3a517e337d3a09d9b5cc86f967815dedbb0e8b9cdd7">
-      <source xml:lang="en">Commands and the results grid</source>
-    </trans-unit>
     <trans-unit id="++CODE++e888155d8c7d2e3c3f9eb1bf57e8d81ba1a3c182b5e94b01e09de2cb2cca81f9">
       <source xml:lang="en">Compare</source>
     </trans-unit>
@@ -5392,9 +5389,6 @@
     <trans-unit id="++CODE++b64b39db74a66e751069b0400f71efd0fb9a78f49fe418b7f73f9c96b173c105">
       <source xml:lang="en">Local container deployment is currently only supported with SQL Authentication connections.</source>
     </trans-unit>
-    <trans-unit id="++CODE++60452136dca8a27adc120f8a8484c3d3571adfd04a158ad74b6424357bb8e198">
-      <source xml:lang="en">Local container · Fabric · Azure SQL</source>
-    </trans-unit>
     <trans-unit id="++CODE++5c58ea79fda9f7b7f96fbf5def880873a4c0e072c8e025329b24835079b376bc">
       <source xml:lang="en">Local dev</source>
     </trans-unit>
@@ -8485,14 +8479,8 @@
     <trans-unit id="++CODE++5997c7a016fad02db108f90e8f6bfcc6c127d8221dc5a6ec8cae9da1eff29cb3">
       <source xml:lang="en">Show table relationships</source>
     </trans-unit>
-    <trans-unit id="++CODE++df9e5083d3059406bfa3e94479d06e95eab9d4378d9386bbab29dbdc464b43f1">
-      <source xml:lang="en">Show this page when VS Code starts</source>
-    </trans-unit>
     <trans-unit id="++CODE++21f4e12097fa6a8459168abdff5195a6e91816c15089049ccd0742dd17f28c67">
       <source xml:lang="en">Show unmasked command (reveals sensitive information)</source>
-    </trans-unit>
-    <trans-unit id="++CODE++8618bd831c57340696324206e9be61bcc0c967b17f2b80d6e3dce1e4c528ba77">
-      <source xml:lang="en">Show welcome page on start up</source>
     </trans-unit>
     <trans-unit id="++CODE++4ff3ea0e75d3a3da8e4fa737a7fce0eab8b7622e0cd027dd575c297724032694">
       <source xml:lang="en">Showing schema for connection &apos;{0}&apos; (ID: {1})</source>
@@ -10900,9 +10888,6 @@
     <trans-unit id="mssql.schemaDesigner.enableExpandCollapseButtons">
       <source xml:lang="en">Enable expand/collapse buttons in Schema Designer table nodes when tables have more than 10 columns</source>
     </trans-unit>
-    <trans-unit id="mssql.enableOverviewPage">
-      <source xml:lang="en">Enable the Overview page (preview)</source>
-    </trans-unit>
     <trans-unit id="mssql.objectExplorer.Tooltip.enabledLabel">
       <source xml:lang="en">Enabled</source>
     </trans-unit>
@@ -11449,9 +11434,6 @@
     <trans-unit id="mssql.resultsGrid.showGridLines.vertical">
       <source xml:lang="en">Show only vertical grid lines</source>
     </trans-unit>
-    <trans-unit id="mssql.showOverviewOnStartup">
-      <source xml:lang="en">Show the Overview page when VS Code starts</source>
-    </trans-unit>
     <trans-unit id="mssql.query.showActiveConnectionAsCodeLensSuggestion">
       <source xml:lang="en">Show the active SQL connection details as a CodeLens suggestion at the top of the editor for quick visibility.</source>
     </trans-unit>
@@ -11490,9 +11472,6 @@
     </trans-unit>
     <trans-unit id="mssql.customEnvironment.keyVaultEndpoint">
       <source xml:lang="en">Sovereign cloud equivalent for `https://vault.azure.net/`</source>
-    </trans-unit>
-    <trans-unit id="extension.start">
-      <source xml:lang="en">Start</source>
     </trans-unit>
     <trans-unit id="mssql.startQueryHistoryCapture">
       <source xml:lang="en">Start Query History Capture</source>

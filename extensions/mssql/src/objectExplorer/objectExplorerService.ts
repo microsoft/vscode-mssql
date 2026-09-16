@@ -63,6 +63,7 @@ import { MissingEntraAuthAccountError } from "../azure/vscodeEntraMfaUtils";
 import { AzureSqlDatabaseStatus, VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
 import { getUseMsalEntraMfaAuthConfig } from "../azure/utils";
 import { getNodeDescriptor } from "./nodes/nodeUtils";
+import { OverviewTreeNode } from "./nodes/overviewTreeNode";
 
 export class CancelableLoadingNode extends vscode.TreeItem {
     public constructor(
@@ -445,6 +446,11 @@ export class ObjectExplorerService {
         return nodeList;
     }
 
+    /** Gets the Overview shortcut shown at the top of the Connections root. */
+    private getOverviewNodes(): OverviewTreeNode[] {
+        return [new OverviewTreeNode()];
+    }
+
     /**
      * Handles a generic OE create session failure by creating a
      * sign in node
@@ -509,7 +515,7 @@ export class ObjectExplorerService {
                     childrenCount: 0,
                 },
             });
-            return this.getAddConnectionNodes();
+            return [...this.getOverviewNodes(), ...this.getAddConnectionNodes()];
         }
 
         const newConnectionGroupNodes = new Map<string, ConnectionGroupNode>();
@@ -601,7 +607,7 @@ export class ObjectExplorerService {
         this._connectionGroupNodes = newConnectionGroupNodes;
         this._connectionNodes = newConnectionNodes;
 
-        const result = [...this._rootTreeNodeArray];
+        const result = [...this.getOverviewNodes(), ...this._rootTreeNodeArray];
 
         getConnectionActivity.end(ActivityStatus.Succeeded, {
             additionalMeasurements: {

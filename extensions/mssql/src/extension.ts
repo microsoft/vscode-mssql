@@ -34,7 +34,6 @@ import { TelemetryActions, TelemetryViews } from "./sharedInterfaces/telemetry";
 import { ChatResultFeedbackKind } from "vscode";
 import { IconUtils } from "./utils/iconUtils";
 import { ChangelogWebviewController } from "./controllers/changelogWebviewController";
-import { OverviewWebviewController } from "./controllers/overviewWebviewController";
 import { initializeWebviewLocalizationCache } from "./controllers/localizationCache";
 import { UriOwnershipCoordinator } from "./uriOwnership/uriOwnershipCore";
 import {
@@ -183,8 +182,6 @@ class MssqlActivation {
         context.subscriptions.push(controller, participant, receiveFeedbackDisposable);
 
         await ChangelogWebviewController.showChangelogOnExtensionUpdate(context);
-
-        await OverviewWebviewController.showOverviewOnStartup();
 
         const dataWorkspaceApi = registerDataWorkspace(context);
         const sqlProjectsShell = vscode.extensions.getExtension(sqlDatabaseProjectsExtensionId);

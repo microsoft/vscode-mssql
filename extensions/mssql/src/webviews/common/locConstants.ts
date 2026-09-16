@@ -3843,9 +3843,6 @@ export class LocConstants {
                     args: [version],
                     comment: ["{0} is the extension version, e.g. 1.46.0"],
                 }),
-            showOnStartup: l10n.t("Show welcome page on start up"),
-            showOnStartupTooltip: l10n.t("Show this page when VS Code starts"),
-
             addConnection: l10n.t("Add connection"),
             new: l10n.t("New"),
             moreNewOptions: l10n.t("More new options"),

@@ -83,8 +83,6 @@ export interface CommandShortcut {
 export interface OverviewWebviewState {
     /** Extension version shown beside the title, e.g. "1.46.0". */
     extensionVersion: string;
-    /** Whether the Overview page opens automatically on startup. */
-    showOnStartup: boolean;
     /** Recently opened SQL files, newest first. */
     recentFiles: RecentSqlFile[];
     /** Release-note content for the What's new dialog; the same entries the Changelog page shows. */
@@ -97,8 +95,6 @@ export interface OverviewWebviewState {
 
 /** Reducers (actions that change state) the Overview controller supports. */
 export interface OverviewReducers {
-    /** Persist the "Show welcome page on start up" checkbox. */
-    setShowOnStartup: { showOnStartup: boolean };
     /** Re-run all dev container prerequisite checks. */
     checkPrerequisites: {};
     /** Install the Dev Containers extension, then re-check prerequisites. */

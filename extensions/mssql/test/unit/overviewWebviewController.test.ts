@@ -7,7 +7,6 @@ import * as chai from "chai";
 import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
 import * as vscode from "vscode";
-import * as Constants from "../../src/constants/constants";
 import * as utils from "../../src/utils/utils";
 import * as dockerUtils from "../../src/docker/dockerUtils";
 import { OverviewWebviewController } from "../../src/controllers/overviewWebviewController";
@@ -26,9 +25,6 @@ function waitForRecentFiles(): Promise<void> {
 suite("Overview Webview Controller", () => {
     let sandbox: sinon.SinonSandbox;
     let controller: OverviewWebviewController | undefined;
-    let settings: Record<string, unknown>;
-    let updateConfigurationStub: sinon.SinonStub;
-    let executeCommandStub: sinon.SinonStub;
     let recentFiles: ResolvedRecentSqlFile[];
     let recentFilesStub: sinon.SinonStub;
 
@@ -57,25 +53,7 @@ suite("Overview Webview Controller", () => {
 
         recentFiles = [];
         recentFilesStub = sinon.stub().callsFake(() => Promise.resolve(recentFiles));
-        settings = {
-            [Constants.configEnableOverviewPage]: true,
-            [Constants.configShowOverviewOnStartup]: true,
-        };
-        updateConfigurationStub = sandbox.stub().callsFake((section: string, value: unknown) => {
-            settings[section] = value;
-            return Promise.resolve();
-        });
-        sandbox.stub(vscode.workspace, "getConfiguration").returns({
-            get: sandbox
-                .stub()
-                .callsFake((section: string, fallback?: unknown) =>
-                    section in settings ? settings[section] : fallback,
-                ),
-            update: updateConfigurationStub,
-            inspect: sandbox.stub().returns({}),
-        } as unknown as vscode.WorkspaceConfiguration);
-
-        executeCommandStub = sandbox.stub(vscode.commands, "executeCommand").resolves();
+        sandbox.stub(vscode.commands, "executeCommand").resolves();
     });
 
     teardown(() => {
@@ -125,22 +103,6 @@ suite("Overview Webview Controller", () => {
         expect(controller.state.recentFiles).to.deep.equal([]);
     });
 
-    test("setShowOnStartup persists the setting globally and updates state", async () => {
-        controller = createController();
-
-        const reducer = controller["_reducerHandlers"].get("setShowOnStartup")!;
-        const nextState = (await reducer(controller.state, {
-            showOnStartup: false,
-        })) as OverviewWebviewState;
-
-        expect(updateConfigurationStub).to.have.been.calledWith(
-            Constants.configShowOverviewOnStartup,
-            false,
-            vscode.ConfigurationTarget.Global,
-        );
-        expect(nextState.showOnStartup).to.equal(false);
-    });
-
     test("checkPrerequisites reports missing dependencies when nothing is installed", async () => {
         controller = createController();
 
@@ -150,27 +112,5 @@ suite("Overview Webview Controller", () => {
         // vscode.extensions.getExtension is stubbed to return undefined for every id.
         expect(nextState.prerequisites.git).to.equal(PrerequisiteStatus.Missing);
         expect(nextState.prerequisites.devContainersExtension).to.equal(PrerequisiteStatus.Missing);
-    });
-
-    test("showOverviewOnStartup opens the page when enabled and opted in", async () => {
-        await OverviewWebviewController.showOverviewOnStartup();
-
-        expect(executeCommandStub).to.have.been.calledWith(Constants.cmdOpenOverview);
-    });
-
-    test("showOverviewOnStartup does nothing while the page is preview-gated off", async () => {
-        settings[Constants.configEnableOverviewPage] = false;
-
-        await OverviewWebviewController.showOverviewOnStartup();
-
-        expect(executeCommandStub).to.not.have.been.calledWith(Constants.cmdOpenOverview);
-    });
-
-    test("showOverviewOnStartup does nothing when the user opted out of startup", async () => {
-        settings[Constants.configShowOverviewOnStartup] = false;
-
-        await OverviewWebviewController.showOverviewOnStartup();
-
-        expect(executeCommandStub).to.not.have.been.calledWith(Constants.cmdOpenOverview);
     });
 });

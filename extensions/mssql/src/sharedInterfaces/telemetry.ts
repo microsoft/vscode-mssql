@@ -221,7 +221,6 @@ export enum TelemetryActions {
     ExecuteCommand = "ExecuteCommand",
     ChangelogDontShowAgain = "ChangelogDontShowAgain",
     CloseChangelog = "CloseChangelog",
-    ShowOverviewOnStartup = "ShowOverviewOnStartup",
     OpenRecentSqlFile = "OpenRecentSqlFile",
     InstallDevContainersExtension = "InstallDevContainersExtension",
     AddDevContainerConfiguration = "AddDevContainerConfiguration",

@@ -137,7 +137,6 @@ import { ChangelogWebviewController } from "./changelogWebviewController";
 import { OverviewWebviewController } from "./overviewWebviewController";
 import { RecentSqlFilesStore } from "../models/recentSqlFilesStore";
 import { DeploymentType } from "../sharedInterfaces/deployment";
-import { StartViewProvider } from "../overview/startViewProvider";
 import { AzureDataStudioMigrationWebviewController } from "./azureDataStudioMigrationWebviewController";
 import { ShortcutsConfigurationWebviewController } from "./shortcutsConfigurationWebviewController";
 import { ILogger } from "../sharedInterfaces/logger";
@@ -711,7 +710,6 @@ export default class MainController implements vscode.Disposable {
             this.initializeQueryHistory();
             this.initializeBackgroundTasks();
             this.initializeRecentSqlFiles();
-            this.initializeStartView();
 
             this.sqlTasksService = new SqlTasksService(
                 SqlToolsServerClient.instance,
@@ -2650,16 +2648,6 @@ export default class MainController implements vscode.Disposable {
         this._recentSqlFilesStore = new RecentSqlFilesStore(this._context);
         this._recentSqlFilesStore.register();
         this._context.subscriptions.push(this._recentSqlFilesStore);
-    }
-
-    /**
-     * Registers the Start view that sits above Connections. The view itself is shown or hidden
-     * by its `when` clause in package.json, so the provider is always registered.
-     */
-    private initializeStartView(): void {
-        this._context.subscriptions.push(
-            vscode.window.registerTreeDataProvider("mssqlStart", new StartViewProvider()),
-        );
     }
 
     /**

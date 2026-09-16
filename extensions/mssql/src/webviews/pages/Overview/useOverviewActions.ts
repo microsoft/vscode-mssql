@@ -58,13 +58,6 @@ export function useOverviewActions() {
         [extensionRpc],
     );
 
-    const setShowOnStartup = useCallback(
-        (showOnStartup: boolean) => {
-            extensionRpc.action("setShowOnStartup", { showOnStartup });
-        },
-        [extensionRpc],
-    );
-
     const checkPrerequisites = useCallback(() => {
         extensionRpc.action("checkPrerequisites", {});
     }, [extensionRpc]);
@@ -80,7 +73,6 @@ export function useOverviewActions() {
             openRecentSqlFile,
             runChangelogAction,
             addDevContainerConfiguration,
-            setShowOnStartup,
             checkPrerequisites,
             installDevContainersExtension,
         }),
@@ -90,7 +82,6 @@ export function useOverviewActions() {
             openRecentSqlFile,
             runChangelogAction,
             addDevContainerConfiguration,
-            setShowOnStartup,
             checkPrerequisites,
             installDevContainersExtension,
         ],

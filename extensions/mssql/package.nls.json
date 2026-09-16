@@ -35,7 +35,6 @@
     "mssql.commandPaletteQueryHistory": "Open Query History in Command Palette",
     "mssql.removeObjectExplorerNode": "Remove Connection",
     "mssql.refreshObjectExplorerNode": "Refresh",
-    "extension.start": "Start",
     "extension.connections": "Connections",
     "extension.queryHistory": "Query History",
     "extension.backgroundTasks": "Background Tasks",
@@ -400,7 +399,5 @@
     "mssql.metadataCache.maxAgeDays.description": "Evict persisted metadata snapshots older than this many days.",
     "mssql.metadataCache.maxBytes.description": "Maximum total size in bytes for persisted metadata snapshots. Least-recently-used entries are evicted first.",
     "mssql.metadataCache.offlineMode.description": "Serve metadata only from persisted snapshots without contacting the server. Requires the experimental-features, SQL Data Plane, and metadata-cache settings. Status surfaces disclose snapshot age, and operations requiring fresh metadata refuse stale or unavailable data.",
-    "mssql.metadata.pollSeconds.description": "Internal preview setting: base interval in seconds for metadata drift checks. Set to 0 to disable polling. Per-database backoff, window-focus suspension, and serverless safeguards also apply. Reload the window after changing this setting.",
-    "mssql.enableOverviewPage": "Enable the Overview page (preview)",
-    "mssql.showOverviewOnStartup": "Show the Overview page when VS Code starts"
+    "mssql.metadata.pollSeconds.description": "Internal preview setting: base interval in seconds for metadata drift checks. Set to 0 to disable polling. Per-database backoff, window-focus suspension, and serverless safeguards also apply. Reload the window after changing this setting."
 }

@@ -123,11 +123,9 @@ export class OverviewWebviewController extends WebviewPanelController<
     }
 
     private static buildInitialState(): OverviewWebviewState {
-        const config = vscode.workspace.getConfiguration();
         return {
             extensionVersion:
                 vscode.extensions.getExtension(constants.extensionId)?.packageJSON.version ?? "",
-            showOnStartup: config.get<boolean>(constants.configShowOverviewOnStartup, true),
             recentFiles: [],
             changelog: changelogConfig,
             commandShortcuts: OverviewWebviewController.getCommandShortcuts(),
@@ -140,22 +138,6 @@ export class OverviewWebviewController extends WebviewPanelController<
     }
 
     private initialize(): void {
-        this.registerReducer("setShowOnStartup", async (state, payload) => {
-            await vscode.workspace
-                .getConfiguration()
-                .update(
-                    constants.configShowOverviewOnStartup,
-                    payload.showOnStartup,
-                    vscode.ConfigurationTarget.Global,
-                );
-            sendActionEvent(TelemetryViews.OverviewPage, TelemetryActions.ShowOverviewOnStartup, {
-                additionalProps: {
-                    showOnStartup: String(payload.showOnStartup),
-                },
-            });
-            return { ...state, showOnStartup: payload.showOnStartup };
-        });
-
         this.registerReducer("checkPrerequisites", async (state) => {
             this.updateState({
                 ...state,
@@ -318,17 +300,5 @@ export class OverviewWebviewController extends WebviewPanelController<
         return vscode.extensions.getExtension(DEV_CONTAINERS_EXTENSION_ID)
             ? PrerequisiteStatus.Ready
             : PrerequisiteStatus.Missing;
-    }
-
-    /**
-     * Opens the Overview page on startup when the page is enabled and the user has opted in.
-     */
-    public static async showOverviewOnStartup(): Promise<void> {
-        const config = vscode.workspace.getConfiguration();
-        const isEnabled = config.get<boolean>(constants.configEnableOverviewPage, false);
-        const showOnStartup = config.get<boolean>(constants.configShowOverviewOnStartup, true);
-        if (isEnabled && showOnStartup) {
-            await vscode.commands.executeCommand(constants.cmdOpenOverview);
-        }
     }
 }

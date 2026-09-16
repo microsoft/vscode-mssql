@@ -357,8 +357,6 @@ export const configCustomEnvironment = "mssql.customEnvironment";
 export const configShortcuts = "mssql.shortcuts";
 export const configQuickQueries = "mssql.quickQueries";
 export const configShowChangelogOnUpdate = "mssql.showChangelogOnUpdate";
-export const configEnableOverviewPage = "mssql.enableOverviewPage";
-export const configShowOverviewOnStartup = "mssql.showOverviewOnStartup";
 /** @deprecated Use configNewEditorConnectionBehavior instead. */
 export const configTransferActiveEditorConnections = "mssql.transferActiveEditorConnections";
 export const configNewEditorConnectionBehavior = "mssql.newEditorConnectionBehavior";

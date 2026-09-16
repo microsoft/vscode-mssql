@@ -3502,9 +3502,6 @@ export class Overview {
     public static OverviewDocumentTitle = l10n.t("SQL Server (mssql)");
     public static OverviewTreeNodeLabel = l10n.t("Overview");
     public static OverviewTreeNodeDescription = l10n.t("Start · QuickStarts · learn & build");
-    public static ShortcutsTreeNodeLabel = l10n.t("Keyboard shortcuts");
-    public static ShortcutsTreeNodeDescription = l10n.t("Commands and the results grid");
-    public static DeploymentTreeNodeDescription = l10n.t("Local container · Fabric · Azure SQL");
     public static ShortcutExecuteQuery = l10n.t("Execute query");
     public static ShortcutConnect = l10n.t("Connect");
     public static ShortcutDisconnect = l10n.t("Disconnect");

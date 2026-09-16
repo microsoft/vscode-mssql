@@ -3,10 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Checkbox, Text, makeStyles, tokens } from "@fluentui/react-components";
+import { Text, makeStyles, tokens } from "@fluentui/react-components";
 
 import { locConstants } from "../../../common/locConstants";
-import { useOverviewActions } from "../useOverviewActions";
 import { useOverviewSelector } from "../overviewSelector";
 
 const extensionIcon = require("../../../../../images/extensionIcon.png");
@@ -57,17 +56,12 @@ const useStyles = makeStyles({
     subtitle: {
         color: tokens.colorNeutralForeground3,
     },
-    spacer: {
-        flexGrow: 1,
-    },
 });
 
 export const OverviewHeader = () => {
     const classes = useStyles();
     const loc = locConstants.overview;
-    const { setShowOnStartup } = useOverviewActions();
     const extensionVersion = useOverviewSelector((state) => state.extensionVersion);
-    const showOnStartup = useOverviewSelector((state) => state.showOnStartup);
 
     return (
         <header className={classes.root}>
@@ -83,13 +77,6 @@ export const OverviewHeader = () => {
                 </div>
                 <Text className={classes.subtitle}>{loc.subtitle}</Text>
             </div>
-            <div className={classes.spacer} />
-            <Checkbox
-                checked={showOnStartup}
-                label={loc.showOnStartup}
-                title={loc.showOnStartupTooltip}
-                onChange={(_event, data) => setShowOnStartup(Boolean(data.checked))}
-            />
         </header>
     );
 };
