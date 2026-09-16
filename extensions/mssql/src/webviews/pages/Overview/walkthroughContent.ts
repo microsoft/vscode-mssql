@@ -37,6 +37,30 @@ const featureImages: Partial<Record<string, string>> = {
     dataApiBuilder: require("../../../../images/walkthroughs/features/dab.gif"),
 };
 
+const mssqlDocsBase = "https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql";
+const mssqlOverviewDocs = `${mssqlDocsBase}/mssql-extension-visual-studio-code`;
+const databaseOperationsDocs = `${mssqlDocsBase}/mssql-database-operations`;
+const schemaDesignerDocs = `${mssqlDocsBase}/mssql-schema-designer`;
+const dataApiBuilderDocs = `${mssqlDocsBase}/mssql-data-api-builder`;
+
+/** Microsoft Learn destination for each entry in the Explore features gallery. */
+const featureDocumentationUrls: Record<string, string> = {
+    schemaDesigner: schemaDesignerDocs,
+    tableDesigner: `${mssqlOverviewDocs}#table-designer`,
+    editData: `${mssqlOverviewDocs}#view-and-edit-data`,
+    importFlatFile: `${databaseOperationsDocs}#import-flat-file`,
+    queryEditor: `${mssqlDocsBase}/connect-database-visual-studio-code`,
+    queryPlans: `${mssqlOverviewDocs}#query-plan-visualizer`,
+    queryProfiler: `${mssqlDocsBase}/mssql-query-profiler`,
+    notebooks: `${mssqlDocsBase}/mssql-sql-notebooks`,
+    dacpac: `${mssqlDocsBase}/mssql-data-tier-application`,
+    backupRestore: databaseOperationsDocs,
+    schemaCompare: `${mssqlDocsBase}/mssql-schema-compare`,
+    sqlProjects:
+        "https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/sql-database-projects/sql-database-projects-extension",
+    dataApiBuilder: dataApiBuilderDocs,
+};
+
 /** Identifies a walkthrough so a card can open the matching dialog. */
 export enum WalkthroughId {
     Connect = "connect",
@@ -159,6 +183,10 @@ function getFeatureGallery(): WalkthroughStep[] {
             description,
             category: group.category,
             image: featureImages[id],
+            action: {
+                label: loc.walkthroughLearnMoreAction,
+                url: featureDocumentationUrls[id],
+            },
         })),
     );
 }
@@ -239,8 +267,8 @@ export function getWalkthrough(id: WalkthroughId): Walkthrough {
                         title: loc.wtAppCreateDatabaseTitle,
                         description: loc.wtAppCreateDatabaseDescription,
                         action: {
-                            label: loc.wtConnectStep2Action,
-                            actionId: OverviewActionId.FocusConnections,
+                            label: loc.walkthroughLearnMoreAction,
+                            url: `${databaseOperationsDocs}#create-a-database`,
                         },
                         image: newDatabaseImage,
                     },
@@ -248,11 +276,9 @@ export function getWalkthrough(id: WalkthroughId): Walkthrough {
                         id: "designSchema",
                         title: loc.wtAppStep1Title,
                         description: loc.wtAppStep1Description,
-                        // Schema Designer is opened from a database node, so this step points
-                        // the user at the tree rather than running a command that needs one.
                         action: {
-                            label: loc.wtConnectStep2Action,
-                            actionId: OverviewActionId.FocusConnections,
+                            label: loc.walkthroughLearnMoreAction,
+                            url: schemaDesignerDocs,
                         },
                         image: schemaDesignerImage,
                     },
@@ -261,8 +287,8 @@ export function getWalkthrough(id: WalkthroughId): Walkthrough {
                         title: loc.wtAppEditDataTitle,
                         description: loc.wtAppEditDataDescription,
                         action: {
-                            label: loc.wtConnectStep2Action,
-                            actionId: OverviewActionId.FocusConnections,
+                            label: loc.walkthroughLearnMoreAction,
+                            url: `${mssqlOverviewDocs}#view-and-edit-data`,
                         },
                         image: editDataImage,
                     },
@@ -271,8 +297,8 @@ export function getWalkthrough(id: WalkthroughId): Walkthrough {
                         title: loc.wtAppStep2Title,
                         description: loc.wtAppStep2Description,
                         action: {
-                            label: loc.wtConnectStep2Action,
-                            actionId: OverviewActionId.FocusConnections,
+                            label: loc.walkthroughLearnMoreAction,
+                            url: dataApiBuilderDocs,
                         },
                         image: dataApiBuilderImage,
                     },
@@ -306,7 +332,7 @@ export function getWalkthrough(id: WalkthroughId): Walkthrough {
                         title: loc.wtCopilotStep1Title,
                         description: loc.wtCopilotStep1Description,
                         action: {
-                            label: loc.wtCopilotLearnMoreAction,
+                            label: loc.walkthroughLearnMoreAction,
                             url: overviewLinks.copilotWalkthroughDocumentation,
                         },
                         image: copilotAgentModeImage,
@@ -316,7 +342,7 @@ export function getWalkthrough(id: WalkthroughId): Walkthrough {
                         title: loc.wtCopilotStep2Title,
                         description: loc.wtCopilotStep2Description,
                         action: {
-                            label: loc.wtCopilotLearnMoreAction,
+                            label: loc.walkthroughLearnMoreAction,
                             url: overviewLinks.copilotWalkthroughDocumentation,
                         },
                     },
@@ -325,7 +351,7 @@ export function getWalkthrough(id: WalkthroughId): Walkthrough {
                         title: loc.wtCopilotStep3Title,
                         description: loc.wtCopilotStep3Description,
                         action: {
-                            label: loc.wtCopilotLearnMoreAction,
+                            label: loc.walkthroughLearnMoreAction,
                             url: overviewLinks.copilotWalkthroughDocumentation,
                         },
                     },
@@ -334,7 +360,7 @@ export function getWalkthrough(id: WalkthroughId): Walkthrough {
                         title: loc.wtCopilotStep4Title,
                         description: loc.wtCopilotStep4Description,
                         action: {
-                            label: loc.wtCopilotLearnMoreAction,
+                            label: loc.walkthroughLearnMoreAction,
                             url: overviewLinks.copilotWalkthroughDocumentation,
                         },
                     },
@@ -343,7 +369,7 @@ export function getWalkthrough(id: WalkthroughId): Walkthrough {
                         title: loc.wtCopilotStep5Title,
                         description: loc.wtCopilotStep5Description,
                         action: {
-                            label: loc.wtCopilotLearnMoreAction,
+                            label: loc.walkthroughLearnMoreAction,
                             url: overviewLinks.copilotWalkthroughDocumentation,
                         },
                     },

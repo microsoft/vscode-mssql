@@ -112,8 +112,8 @@ export class OverviewWebviewController extends WebviewPanelController<
             title: Overview.OverviewDocumentTitle,
             viewColumn: vscode.ViewColumn.Active,
             iconPath: {
-                dark: vscode.Uri.joinPath(context.extensionUri, "media", "changelog_dark.svg"),
-                light: vscode.Uri.joinPath(context.extensionUri, "media", "changelog_light.svg"),
+                dark: vscode.Uri.joinPath(context.extensionUri, "media", "rocket_dark.svg"),
+                light: vscode.Uri.joinPath(context.extensionUri, "media", "rocket_light.svg"),
             },
         });
 

@@ -296,6 +296,7 @@ export const WalkthroughDialog = ({ walkthrough, onDismiss }: WalkthroughDialogP
                             <Button
                                 className={classes.cta}
                                 appearance="primary"
+                                title={step.action.url}
                                 onClick={runStepAction}>
                                 {step.action.label}
                             </Button>

@@ -4,15 +4,18 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Link, Text, makeStyles, tokens } from "@fluentui/react-components";
-import { Database20Regular, Play20Filled, Pulse20Regular } from "@fluentui/react-icons";
+import { Play20Filled } from "@fluentui/react-icons";
 
 import { SectionHeading } from "./sectionHeading";
 import { VideoCard, getVideoCards, overviewLinks } from "../overviewContent";
 import { locConstants } from "../../../common/locConstants";
 import { useOverviewActions } from "../useOverviewActions";
-import { GithubCopilot16Regular, Schema16Regular } from "../../../common/icons/fluentIcons";
 
-const extensionIcon = require("../../../../../images/extensionIcon.png");
+const videoThumbnails: Record<VideoCard["thumbnail"], string> = {
+    copilotSql: require("../../../../../images/overview/videos/copilot-sql.png"),
+    whatsNew: require("../../../../../images/overview/videos/whats-new.png"),
+    aiReadyApp: require("../../../../../images/overview/videos/ai-ready-app.png"),
+};
 
 const useStyles = makeStyles({
     root: {
@@ -23,7 +26,7 @@ const useStyles = makeStyles({
     },
     grid: {
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
+        gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
         gap: tokens.spacingHorizontalM,
     },
     card: {
@@ -32,7 +35,7 @@ const useStyles = makeStyles({
         textAlign: "left",
         padding: 0,
         border: `1px solid ${tokens.colorNeutralStroke2}`,
-        borderRadius: tokens.borderRadiusMedium,
+        borderRadius: tokens.borderRadiusLarge,
         backgroundColor: tokens.colorNeutralBackground1,
         color: "inherit",
         textDecorationLine: "none",
@@ -50,48 +53,17 @@ const useStyles = makeStyles({
     },
     thumbnail: {
         position: "relative",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
         aspectRatio: "16 / 9",
         backgroundColor: tokens.colorNeutralBackground3,
-        color: tokens.colorNeutralForeground3,
-    },
-    thumbnailPattern: {
-        position: "absolute",
-        inset: 0,
-        backgroundImage: `linear-gradient(${tokens.colorNeutralStroke3} 1px, transparent 1px), linear-gradient(90deg, ${tokens.colorNeutralStroke3} 1px, transparent 1px)`,
-        backgroundSize: "24px 24px",
-        opacity: 0.35,
-    },
-    thumbnailFeatures: {
-        position: "absolute",
-        inset: 0,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        padding: "0 14%",
-    },
-    featureTile: {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        width: "48px",
-        height: "48px",
-        border: `1px solid ${tokens.colorNeutralStroke1}`,
-        borderRadius: tokens.borderRadiusLarge,
-        color: tokens.colorBrandForeground1,
-        backgroundColor: tokens.colorNeutralBackground1,
-        boxShadow: tokens.shadow4,
-        "& svg": {
-            width: "28px",
-            height: "28px",
-        },
+        overflow: "hidden",
     },
-    productLogo: {
-        width: "34px",
-        height: "34px",
-        objectFit: "contain",
+    thumbnailImage: {
+        width: "100%",
+        height: "100%",
+        objectFit: "cover",
     },
     playIcon: {
         position: "absolute",
@@ -104,6 +76,18 @@ const useStyles = makeStyles({
         color: tokens.colorNeutralForegroundInverted,
         backgroundColor: "rgba(0, 0, 0, 0.68)",
         boxShadow: tokens.shadow8,
+    },
+    duration: {
+        position: "absolute",
+        right: tokens.spacingHorizontalXS,
+        bottom: tokens.spacingVerticalXS,
+        padding: `1px ${tokens.spacingHorizontalXXS}`,
+        borderRadius: tokens.borderRadiusSmall,
+        color: tokens.colorNeutralForegroundInverted,
+        backgroundColor: "rgba(0, 0, 0, 0.78)",
+        fontSize: tokens.fontSizeBase100,
+        fontWeight: tokens.fontWeightSemibold,
+        lineHeight: tokens.lineHeightBase100,
     },
     meta: {
         display: "flex",
@@ -133,46 +117,16 @@ const useStyles = makeStyles({
     },
 });
 
-const VideoThumbnail = ({ kind }: { kind: VideoCard["thumbnail"] }) => {
+const VideoThumbnail = ({ video }: { video: VideoCard }) => {
     const classes = useStyles();
-
-    const features =
-        kind === "copilotSql" ? (
-            <>
-                <span className={classes.featureTile}>
-                    <GithubCopilot16Regular />
-                </span>
-                <span className={classes.featureTile}>
-                    <Database20Regular />
-                </span>
-            </>
-        ) : kind === "whatsNew" ? (
-            <>
-                <span className={classes.featureTile}>
-                    <img className={classes.productLogo} src={extensionIcon} alt="" />
-                </span>
-                <span className={classes.featureTile}>
-                    <Pulse20Regular />
-                </span>
-            </>
-        ) : (
-            <>
-                <span className={classes.featureTile}>
-                    <Schema16Regular />
-                </span>
-                <span className={classes.featureTile}>
-                    <GithubCopilot16Regular />
-                </span>
-            </>
-        );
 
     return (
         <span className={classes.thumbnail} aria-hidden="true">
-            <span className={classes.thumbnailPattern} />
-            <span className={classes.thumbnailFeatures}>{features}</span>
+            <img className={classes.thumbnailImage} src={videoThumbnails[video.thumbnail]} alt="" />
             <span className={classes.playIcon}>
                 <Play20Filled />
             </span>
+            <span className={classes.duration}>{video.duration}</span>
         </span>
     );
 };
@@ -196,7 +150,7 @@ export const VideosSection = () => {
                             event.preventDefault();
                             openLink(video.url);
                         }}>
-                        <VideoThumbnail kind={video.thumbnail} />
+                        <VideoThumbnail video={video} />
                         <span className={classes.meta}>
                             <Text className={classes.title}>{video.title}</Text>
                             <Text className={classes.subtitle}>{video.subtitle}</Text>

@@ -132,6 +132,7 @@ export interface VideoCard {
     title: string;
     subtitle: string;
     thumbnail: "copilotSql" | "whatsNew" | "aiReadyApp";
+    duration: string;
     url: string;
 }
 
@@ -143,6 +144,7 @@ export function getVideoCards(): VideoCard[] {
             title: loc.videoDataExposedTitle,
             subtitle: loc.videoDataExposedSubtitle,
             thumbnail: "copilotSql",
+            duration: "12:18",
             url: overviewLinks.landingPageVideo1,
         },
         {
@@ -150,6 +152,7 @@ export function getVideoCards(): VideoCard[] {
             title: loc.videoWhatsNewTitle,
             subtitle: loc.videoWhatsNewSubtitle,
             thumbnail: "whatsNew",
+            duration: "21:58",
             url: overviewLinks.landingPageVideo2,
         },
         {
@@ -157,6 +160,7 @@ export function getVideoCards(): VideoCard[] {
             title: loc.videoVsCodeLiveTitle,
             subtitle: loc.videoVsCodeLiveSubtitle,
             thumbnail: "aiReadyApp",
+            duration: "1:20:17",
             url: overviewLinks.landingPageVideo3,
         },
     ];

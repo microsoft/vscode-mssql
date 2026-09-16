@@ -4043,7 +4043,7 @@ export class LocConstants {
             wtCopilotStep5Description: l10n.t(
                 "Use natural language in Data API Builder chat to choose tables, set CRUD permissions, and configure REST, GraphQL, or MCP endpoints. Review the generated configuration before deploying.",
             ),
-            wtCopilotLearnMoreAction: l10n.t("Learn more"),
+            walkthroughLearnMoreAction: l10n.t("Learn more"),
 
             walkthroughConnectTitle: l10n.t("Connect & run your first query"),
             walkthroughConnectDescription: l10n.t(
