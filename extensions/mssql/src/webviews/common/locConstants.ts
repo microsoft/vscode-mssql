@@ -98,6 +98,7 @@ export class LocConstants {
             clearAll: l10n.t("Clear All"),
             ok: l10n.t("OK"),
             apply: l10n.t("Apply"),
+            saveAndApply: l10n.t("Save and Apply"),
             enter: l10n.t("Enter"),
             escape: l10n.t("Escape"),
             applyTooltip: (shortcut: string) =>
@@ -105,6 +106,12 @@ export class LocConstants {
                     message: "Apply ({0})",
                     args: [shortcut],
                     comment: ["{0} is the keyboard shortcut for applying the filter"],
+                }),
+            saveAndApplyTooltip: (shortcut: string) =>
+                l10n.t({
+                    message: "Save and Apply ({0})",
+                    args: [shortcut],
+                    comment: ["{0} is the keyboard shortcut for saving and applying the filter"],
                 }),
             closeTooltip: (shortcut: string) =>
                 l10n.t({
@@ -124,8 +131,8 @@ export class LocConstants {
             filterValueRequiredToSave: l10n.t(
                 "Add at least one filter value before saving this filter.",
             ),
-            pinFilter: l10n.t("Pin to Saved"),
-            unpinFilter: l10n.t("Move to Recent"),
+            saveFilter: l10n.t("Save filter"),
+            removeFromSavedFilters: l10n.t("Remove from saved filters"),
             deleteFilter: l10n.t("Delete filter"),
             renameFilter: l10n.t("Rename filter"),
             confirmDeleteFilterTitle: l10n.t("Delete reusable filter?"),
@@ -2306,6 +2313,11 @@ export class LocConstants {
             intro: l10n.t(
                 "To compare two schemas, first select a source schema and target schema, then press compare.",
             ),
+            selectSourceToCompare: l10n.t("Select a source schema, then press Compare."),
+            selectTargetToCompare: l10n.t("Select a target schema, then press Compare."),
+            readyToCompare: l10n.t(
+                "Press Compare to see the differences between the source and target schemas.",
+            ),
             selectSourceSchema: l10n.t("Select Source Schema"),
             selectTargetSchema: l10n.t("Select Target Schema"),
             noDifferences: l10n.t("No schema differences were found."),
@@ -2336,6 +2348,12 @@ export class LocConstants {
             selectAllOptions: l10n.t("Select all options"),
             includeAllObjectTypes: l10n.t("Include all object types"),
             optionDescription: l10n.t("Option Description"),
+            allowIncompatiblePlatformDisplayName: l10n.t(
+                "Allow incompatible platform during deployment",
+            ),
+            allowIncompatiblePlatformDescription: l10n.t(
+                "Controls whether deployment blocks because of platform compatibility checks. It does not allow Schema Compare between different Azure Synapse or Microsoft Fabric platform types.",
+            ),
             reset: l10n.t("Reset"),
             stop: l10n.t("Stop"),
             generateScript: l10n.t("Generate Script"),
@@ -2578,6 +2596,7 @@ export class LocConstants {
                 "Processing include or exclude all differences operation.",
             ),
             updatingDifferenceSelection: l10n.t("Updating difference selection."),
+            generatingScript: l10n.t("Generating script."),
         };
     }
 

@@ -20,6 +20,10 @@
     "Private": "Private",
     "Remove": "Remove",
     "Port must be a number between 1 and 65535": "Port must be a number between 1 and 65535",
+    "Provisioning {0}/{0} is the server, container, or database target being provisioned": {
+        "message": "Provisioning {0}",
+        "comment": ["{0} is the server, container, or database target being provisioned"]
+    },
     "SQL Tools (MSSQL)": "SQL Tools (MSSQL)",
     "Create Database": "Create Database",
     "Drop Database": "Drop Database",
@@ -65,6 +69,9 @@
         "comment": ["{0} is the document name"]
     },
     "A query is already running for this editor session. Please cancel this query or wait for its completion.": "A query is already running for this editor session. Please cancel this query or wait for its completion.",
+    "Cancel query": "Cancel query",
+    "The service is no longer running a query for this editor. The editor's execution state has been reset.": "The service is no longer running a query for this editor. The editor's execution state has been reset.",
+    "The cancel request did not complete in time. The editor's execution state has been reset.": "The cancel request did not complete in time. The editor's execution state has been reset.",
     "Started executing query at ": "Started executing query at ",
     "Line {0}/{0} is the line number": {
         "message": "Line {0}",
@@ -911,11 +918,27 @@
     "Unable to determine the server authentication type.": "Unable to determine the server authentication type.",
     "Max vCores": "Max vCores",
     "Select Max vCores": "Select Max vCores",
+    "Azure SQL database '{0}' was provisioned successfully./{0} is the database name": {
+        "message": "Azure SQL database '{0}' was provisioned successfully.",
+        "comment": ["{0} is the database name"]
+    },
+    "Failed to provision Azure SQL database '{0}': {1}/{0} is the database name{1} is the error message": {
+        "message": "Failed to provision Azure SQL database '{0}': {1}",
+        "comment": ["{0} is the database name", "{1} is the error message"]
+    },
     "Enter Database Name": "Enter Database Name",
     "Database Description": "Database Description",
     "Enter Database Description": "Enter Database Description",
     "Please select a workspace where you have sufficient permissions (Contributor or higher)": "Please select a workspace where you have sufficient permissions (Contributor or higher)",
     "This database name is already in use. Please choose a different name.": "This database name is already in use. Please choose a different name.",
+    "Fabric SQL database '{0}' was provisioned successfully./{0} is the database name": {
+        "message": "Fabric SQL database '{0}' was provisioned successfully.",
+        "comment": ["{0} is the database name"]
+    },
+    "Failed to provision Fabric SQL database '{0}': {1}/{0} is the database name{1} is the error message": {
+        "message": "Failed to provision Fabric SQL database '{0}': {1}",
+        "comment": ["{0} is the database name", "{1} is the error message"]
+    },
     "Count: {0}  Distinct Count: {1}  Null Count: {2}/{0} is the count, {1} is the distinct count, and {2} is the null count": {
         "message": "Count: {0}  Distinct Count: {1}  Null Count: {2}",
         "comment": ["{0} is the count, {1} is the distinct count, and {2} is the null count"]
@@ -1041,6 +1064,14 @@
     "Readying container for connections.": "Readying container for connections.",
     "Connecting to Container": "Connecting to Container",
     "Connecting to your SQL Server Docker container": "Connecting to your SQL Server Docker container",
+    "SQL Server container '{0}' was provisioned successfully./{0} is the container name": {
+        "message": "SQL Server container '{0}' was provisioned successfully.",
+        "comment": ["{0} is the container name"]
+    },
+    "Failed to provision SQL Server container '{0}': {1}/{0} is the container name{1} is the error message": {
+        "message": "Failed to provision SQL Server container '{0}': {1}",
+        "comment": ["{0} is the container name", "{1} is the error message"]
+    },
     "Please make your password 8-128 characters long.": "Please make your password 8-128 characters long.",
     "Your password must contain characters from at least three of the following categories: uppercase letters, lowercase letters, numbers (0-9), and special characters (!, $, #, %, etc.).": "Your password must contain characters from at least three of the following categories: uppercase letters, lowercase letters, numbers (0-9), and special characters (!, $, #, %, etc.).",
     "Failed to pull SQL Server image. Please check your network connection and try again.": "Failed to pull SQL Server image. Please check your network connection and try again.",
@@ -2655,11 +2686,16 @@
     "Move Down": "Move Down",
     "Filter Settings": "Filter Settings",
     "Clear All": "Clear All",
+    "Save and Apply": "Save and Apply",
     "Enter": "Enter",
     "Escape": "Escape",
     "Apply ({0})/{0} is the keyboard shortcut for applying the filter": {
         "message": "Apply ({0})",
         "comment": ["{0} is the keyboard shortcut for applying the filter"]
+    },
+    "Save and Apply ({0})/{0} is the keyboard shortcut for saving and applying the filter": {
+        "message": "Save and Apply ({0})",
+        "comment": ["{0} is the keyboard shortcut for saving and applying the filter"]
     },
     "Close ({0})/{0} is the keyboard shortcut for closing the filter dialog": {
         "message": "Close ({0})",
@@ -2675,8 +2711,8 @@
     "e.g. My tables": "e.g. My tables",
     "Enter a name to save this filter.": "Enter a name to save this filter.",
     "Add at least one filter value before saving this filter.": "Add at least one filter value before saving this filter.",
-    "Pin to Saved": "Pin to Saved",
-    "Move to Recent": "Move to Recent",
+    "Save filter": "Save filter",
+    "Remove from saved filters": "Remove from saved filters",
     "Delete filter": "Delete filter",
     "Rename filter": "Rename filter",
     "Delete reusable filter?": "Delete reusable filter?",
@@ -3974,6 +4010,9 @@
     "Verifying the API is ready to accept requests": "Verifying the API is ready to accept requests",
     "Container logs": "Container logs",
     "To compare two schemas, first select a source schema and target schema, then press compare.": "To compare two schemas, first select a source schema and target schema, then press compare.",
+    "Select a source schema, then press Compare.": "Select a source schema, then press Compare.",
+    "Select a target schema, then press Compare.": "Select a target schema, then press Compare.",
+    "Press Compare to see the differences between the source and target schemas.": "Press Compare to see the differences between the source and target schemas.",
     "Select Source Schema": "Select Source Schema",
     "Select Target Schema": "Select Target Schema",
     "No schema differences were found.": "No schema differences were found.",
@@ -3989,6 +4028,8 @@
     "Include Object Types": "Include Object Types",
     "Select all options": "Select all options",
     "Include all object types": "Include all object types",
+    "Allow incompatible platform during deployment": "Allow incompatible platform during deployment",
+    "Controls whether deployment blocks because of platform compatibility checks. It does not allow Schema Compare between different Azure Synapse or Microsoft Fabric platform types.": "Controls whether deployment blocks because of platform compatibility checks. It does not allow Schema Compare between different Azure Synapse or Microsoft Fabric platform types.",
     "Stop": "Stop",
     "Generate script to deploy changes to target": "Generate script to deploy changes to target",
     "Apply changes to target": "Apply changes to target",
@@ -4133,6 +4174,7 @@
     },
     "Processing include or exclude all differences operation.": "Processing include or exclude all differences operation.",
     "Updating difference selection.": "Updating difference selection.",
+    "Generating script.": "Generating script.",
     "Publish Project - {0}/{0} is the name of the project being published": {
         "message": "Publish Project - {0}",
         "comment": ["{0} is the name of the project being published"]
