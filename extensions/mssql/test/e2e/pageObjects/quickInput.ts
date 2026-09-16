@@ -90,10 +90,10 @@ export class QuickInput {
         await expect(this.input).toBeVisible();
     }
 
-    /** Types into the quick input box. Prefix with ">" to switch the palette to command mode. */
+    /** Sets the quick input filter. Prefix with ">" to switch the palette to command mode. */
     async filter(text: string): Promise<void> {
         await expect(this.input).toBeVisible();
-        await this.page.keyboard.type(text);
+        await this.input.fill(text);
     }
 
     /** The labels of every currently visible row, whitespace-normalized. */

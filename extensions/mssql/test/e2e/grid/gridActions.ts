@@ -128,9 +128,10 @@ export function getRowNumberCell(grid: Locator, row: number): Locator {
 
 /** A column header, matched on exact text so "id" cannot also match a column named "valid_id". */
 export function getColumnHeader(grid: Locator, columnName: string): Locator {
+    const escapedColumnName = columnName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     return grid
         .locator(".slick-header-column")
-        .filter({ hasText: new RegExp(String.raw`^\s*` + columnName + String.raw`\s*$`) })
+        .filter({ hasText: new RegExp(String.raw`^\s*` + escapedColumnName + String.raw`\s*$`) })
         .first();
 }
 

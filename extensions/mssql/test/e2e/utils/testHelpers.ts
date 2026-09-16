@@ -117,6 +117,7 @@ export async function getWebviewByTitle(
     // becomes ambiguous while the preview grid switch replaces the webview bundle.
     const innerSelector = `#active-frame[title='${title}']`;
     const outerFrames = vsCodePage.locator(".webview");
+    const outerFrameLocators = vsCodePage.frameLocator(".webview");
     let matchedIndex = -1;
 
     await expect
@@ -124,13 +125,10 @@ export async function getWebviewByTitle(
             async () => {
                 const count = await outerFrames.count();
                 for (let index = 0; index < count; index++) {
-                    // The inner iframe element lives in the outer frame's document, so it has
-                    // to be counted through contentFrame(). Counting it through the nested
-                    // frameLocator's owner() would resolve against the page instead and always
-                    // report zero.
-                    const innerCount = await outerFrames
+                    // The inner iframe element lives in the outer frame's document, so probe
+                    // each outer frame individually instead of resolving it against the page.
+                    const innerCount = await outerFrameLocators
                         .nth(index)
-                        .contentFrame()
                         .locator(`iframe${innerSelector}`)
                         .count();
                     if (innerCount > 0) {
@@ -147,7 +145,7 @@ export async function getWebviewByTitle(
         )
         .toBe(true);
 
-    return outerFrames.nth(matchedIndex).contentFrame().frameLocator(innerSelector);
+    return outerFrameLocators.nth(matchedIndex).frameLocator(innerSelector);
 }
 
 export function isMac(): boolean {

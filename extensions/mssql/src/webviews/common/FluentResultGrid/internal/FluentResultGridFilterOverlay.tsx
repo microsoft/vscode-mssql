@@ -417,13 +417,13 @@ export function FluentResultGridFilterOverlay({
 
     const handleApply = useCallback(async () => {
         await overlay.onApply(Array.from(selectedValues));
-        closeOverlay();
+        closeOverlay({ notifyDismiss: false });
     }, [closeOverlay, overlay, selectedValues]);
 
     const handleClear = useCallback(async () => {
         setSelectedValues(new Set());
         await overlay.onClear();
-        closeOverlay();
+        closeOverlay({ notifyDismiss: false });
     }, [closeOverlay, overlay]);
 
     const handleRootKeyDown = useCallback((event: ReactKeyboardEvent) => {
