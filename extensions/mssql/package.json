@@ -2614,18 +2614,6 @@
                     "default": true,
                     "scope": "window"
                 },
-                "mssql.format.alignColumnDefinitionsInColumns": {
-                    "type": "boolean",
-                    "markdownDescription": "%mssql.format.alignColumnDefinitionsInColumns%",
-                    "default": false,
-                    "scope": "window"
-                },
-                "mssql.format.enablePreviewFormatter": {
-                    "type": "boolean",
-                    "description": "%mssql.format.enablePreviewFormatter%",
-                    "default": true,
-                    "scope": "window"
-                },
                 "mssql.format.showParseErrorNotification": {
                     "type": "boolean",
                     "description": "%mssql.format.showParseErrorNotification%",
@@ -3021,40 +3009,6 @@
                 "mssql.format.options.terminateBlockStatements": {
                     "type": "boolean",
                     "markdownDescription": "%mssql.format.options.terminateBlockStatements%",
-                    "default": false,
-                    "scope": "window"
-                },
-                "mssql.format.datatypeCasing": {
-                    "type": "string",
-                    "markdownDescription": "%mssql.format.datatypeCasing%",
-                    "default": "none",
-                    "enum": [
-                        "none",
-                        "uppercase",
-                        "lowercase"
-                    ],
-                    "scope": "window"
-                },
-                "mssql.format.keywordCasing": {
-                    "type": "string",
-                    "markdownDescription": "%mssql.format.keywordCasing%",
-                    "default": "none",
-                    "enum": [
-                        "none",
-                        "uppercase",
-                        "lowercase"
-                    ],
-                    "scope": "window"
-                },
-                "mssql.format.placeCommasBeforeNextStatement": {
-                    "type": "boolean",
-                    "markdownDescription": "%mssql.format.placeCommasBeforeNextStatement%",
-                    "default": false,
-                    "scope": "window"
-                },
-                "mssql.format.placeSelectStatementReferencesOnNewLine": {
-                    "type": "boolean",
-                    "markdownDescription": "%mssql.format.placeSelectStatementReferencesOnNewLine%",
                     "default": false,
                     "scope": "window"
                 },
