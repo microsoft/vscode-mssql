@@ -159,6 +159,8 @@ import {
 } from "../sharedInterfaces/shortcutsConfiguration";
 import { AzureResourcesExtensionIntegration } from "../integration/azureResourcesIntegration";
 
+const overviewVisibilityStorageKey = "overviewVisibility";
+
 /**
  * The main controller class that initializes the extension
  */
@@ -1543,6 +1545,34 @@ export default class MainController implements vscode.Disposable {
         // Register the object explorer tree provider
         this._objectExplorerProvider =
             objectExplorerProvider ?? new ObjectExplorerProvider(this._connectionMgr);
+
+        const isOverviewVisible =
+            this._context.globalState.get<boolean>(overviewVisibilityStorageKey, true) ?? true;
+        this._objectExplorerProvider.setOverviewVisibility(isOverviewVisible);
+        await vscode.commands.executeCommand(
+            "setContext",
+            Constants.overviewVisibleContextKey,
+            isOverviewVisible,
+        );
+
+        const setOverviewVisibility = async (isVisible: boolean): Promise<void> => {
+            await this._context.globalState.update(overviewVisibilityStorageKey, isVisible);
+            await vscode.commands.executeCommand(
+                "setContext",
+                Constants.overviewVisibleContextKey,
+                isVisible,
+            );
+            this._objectExplorerProvider.setOverviewVisibility(isVisible);
+        };
+
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(Constants.cmdHideOverviewInObjectExplorer, () =>
+                setOverviewVisibility(false),
+            ),
+            vscode.commands.registerCommand(Constants.cmdShowOverviewInObjectExplorer, () =>
+                setOverviewVisibility(true),
+            ),
+        );
 
         this.objectExplorerTree = vscode.window.createTreeView("objectExplorer", {
             treeDataProvider: this._objectExplorerProvider,

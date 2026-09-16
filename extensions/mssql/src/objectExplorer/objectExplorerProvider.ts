@@ -39,6 +39,12 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
         this._onDidChangeTreeData.fire(nodeInfo);
     }
 
+    /** Updates the Overview shortcut visibility and refreshes the Connections root. */
+    public setOverviewVisibility(isVisible: boolean): void {
+        this._objectExplorerService.setOverviewVisibility(isVisible);
+        this.refresh(undefined);
+    }
+
     public getTreeItem(node: TreeNodeInfo): TreeNodeInfo {
         return node;
     }

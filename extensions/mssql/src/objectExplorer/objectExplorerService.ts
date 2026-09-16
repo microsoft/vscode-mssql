@@ -84,6 +84,7 @@ export interface CreateSessionResult {
 export class ObjectExplorerService {
     private _client: SqlToolsServiceClient;
     private _logger: ILogger;
+    private _isOverviewVisible = true;
     public initialized: Deferred<void> = new Deferred<void>();
 
     /**
@@ -448,7 +449,12 @@ export class ObjectExplorerService {
 
     /** Gets the Overview shortcut shown at the top of the Connections root. */
     private getOverviewNodes(): OverviewTreeNode[] {
-        return [new OverviewTreeNode()];
+        return this._isOverviewVisible ? [new OverviewTreeNode()] : [];
+    }
+
+    /** Controls whether the Overview shortcut is included in the Connections root. */
+    public setOverviewVisibility(isVisible: boolean): void {
+        this._isOverviewVisible = isVisible;
     }
 
     /**

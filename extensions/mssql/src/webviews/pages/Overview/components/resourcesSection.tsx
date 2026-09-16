@@ -83,9 +83,13 @@ export const ResourcesSection = () => {
             {links.map((link) => (
                 <Link
                     key={link.url}
-                    as="button"
+                    href={link.url}
+                    title={link.url}
                     className={classes.link}
-                    onClick={() => openLink(link.url)}>
+                    onClick={(event) => {
+                        event.preventDefault();
+                        openLink(link.url);
+                    }}>
                     {link.icon}
                     {link.label}
                 </Link>

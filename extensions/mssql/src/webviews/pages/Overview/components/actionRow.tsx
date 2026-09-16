@@ -18,14 +18,15 @@ import {
 } from "@fluentui/react-components";
 import {
     BookOpen20Regular,
-    Box20Regular,
-    CloudAdd20Regular,
     DocumentAdd20Regular,
     FolderOpen20Regular,
     Play20Regular,
 } from "@fluentui/react-icons";
 
 import { AddConnectionIcon } from "../../../common/icons/addConnection";
+import { AzureSqlDatabaseIcon } from "../../../common/icons/azureSqlDatabase";
+import { DockerIcon } from "../../../common/icons/docker";
+import { SqlDbInFabricIcon } from "../../../common/icons/sqlDbInFabric";
 import { OverviewActionId } from "../../../../sharedInterfaces/overview";
 import { locConstants } from "../../../common/locConstants";
 import { useOverviewActions } from "../useOverviewActions";
@@ -39,6 +40,10 @@ const useStyles = makeStyles({
     },
     freeBadge: {
         marginLeft: tokens.spacingHorizontalS,
+    },
+    deploymentIcon: {
+        width: "20px",
+        height: "20px",
     },
 });
 
@@ -74,17 +79,29 @@ export const ActionRow = () => {
                 <MenuPopover>
                     <MenuList>
                         <MenuItem
-                            icon={<Box20Regular />}
+                            icon={
+                                <DockerIcon className={classes.deploymentIcon} aria-hidden="true" />
+                            }
                             onClick={() => runAction(OverviewActionId.NewLocalContainer)}>
                             {loc.newLocalContainer}
                         </MenuItem>
                         <MenuItem
-                            icon={<CloudAdd20Regular />}
+                            icon={
+                                <SqlDbInFabricIcon
+                                    className={classes.deploymentIcon}
+                                    aria-hidden="true"
+                                />
+                            }
                             onClick={() => runAction(OverviewActionId.NewFabricDatabase)}>
                             {loc.newFabricDatabase}
                         </MenuItem>
                         <MenuItem
-                            icon={<CloudAdd20Regular />}
+                            icon={
+                                <AzureSqlDatabaseIcon
+                                    className={classes.deploymentIcon}
+                                    aria-hidden="true"
+                                />
+                            }
                             onClick={() => runAction(OverviewActionId.NewAzureSqlDatabase)}>
                             {loc.newAzureSqlDatabase}
                             <Badge

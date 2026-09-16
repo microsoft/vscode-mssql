@@ -11,31 +11,45 @@ import {
     DialogContent,
     DialogSurface,
     DialogTitle,
+    Link,
     Text,
     makeStyles,
     tokens,
 } from "@fluentui/react-components";
+import { Keyboard20Regular } from "@fluentui/react-icons";
 import { Fragment } from "react";
 
-import {
-    getShortcutGroupLabel,
-    shortcutGroups,
-} from "../../ShortcutsConfiguration/shortcutDefinitions";
 import { formatShortcut } from "../../ShortcutsConfiguration/shortcutKeyboardUtils";
 import { locConstants } from "../../../common/locConstants";
+import { overviewLinks } from "../overviewContent";
 import { useOverviewActions } from "../useOverviewActions";
 import { useOverviewSelector } from "../overviewSelector";
-import { useVscodeWebview } from "../../../common/vscodeWebviewProvider";
-import {
-    OverviewActionId,
-    OverviewReducers,
-    OverviewWebviewState,
-} from "../../../../sharedInterfaces/overview";
+import { OverviewActionId } from "../../../../sharedInterfaces/overview";
+import { WebviewAction } from "../../../../sharedInterfaces/webview";
 
 const useStyles = makeStyles({
     surface: {
         maxWidth: "820px",
         width: "92vw",
+    },
+    title: {
+        paddingBottom: tokens.spacingVerticalM,
+        borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
+    },
+    titleContent: {
+        display: "flex",
+        alignItems: "center",
+        gap: tokens.spacingHorizontalM,
+    },
+    titleIcon: {
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        width: "32px",
+        height: "32px",
+        borderRadius: tokens.borderRadiusMedium,
+        color: tokens.colorBrandForeground1,
+        backgroundColor: tokens.colorBrandBackground2,
     },
     intro: {
         fontSize: "13px",
@@ -98,6 +112,15 @@ const useStyles = makeStyles({
         fontSize: "11px",
         color: tokens.colorNeutralForeground2,
     },
+    keymapNote: {
+        marginTop: tokens.spacingVerticalM,
+        color: tokens.colorNeutralForeground3,
+        fontSize: tokens.fontSizeBase200,
+    },
+    actions: {
+        paddingTop: tokens.spacingVerticalM,
+        borderTop: `1px solid ${tokens.colorNeutralStroke2}`,
+    },
 });
 
 /** Splits a chord such as "ctrl+shift+e" into display keys. */
@@ -127,15 +150,51 @@ interface ShortcutsDialogProps {
 }
 
 /**
- * Read-only summary of the extension's default shortcuts: contributed command keybindings
- * first, then the results-pane bindings resolved for this webview.
+ * Read-only summary of the extension's default command shortcuts.
  */
 export const ShortcutsDialog = ({ onDismiss }: ShortcutsDialogProps) => {
     const classes = useStyles();
     const loc = locConstants.overview;
-    const { runAction } = useOverviewActions();
+    const { openLink, runAction } = useOverviewActions();
     const commandShortcuts = useOverviewSelector((state) => state.commandShortcuts);
-    const { keyBindings } = useVscodeWebview<OverviewWebviewState, OverviewReducers>();
+    const shortcutLabels = locConstants.shortcutsConfiguration.webviewShortcutLabels;
+    const resultPaneShortcuts = [
+        {
+            label: shortcutLabels[WebviewAction.QueryResultSwitchToResultsTab],
+            windows: ["ctrl+alt+r"],
+            mac: ["ctrl+alt+r"],
+        },
+        {
+            label: shortcutLabels[WebviewAction.QueryResultSwitchToMessagesTab],
+            windows: ["ctrl+alt+y"],
+            mac: ["ctrl+alt+y"],
+        },
+        {
+            label: shortcutLabels[WebviewAction.QueryResultSwitchToQueryPlanTab],
+            windows: ["ctrl+alt+e"],
+            mac: ["ctrl+alt+e"],
+        },
+        {
+            label: loc.shortcutsNavigateResultGrids,
+            windows: ["ctrl+up", "ctrl+down"],
+            mac: ["cmd+up", "cmd+down"],
+        },
+        {
+            label: shortcutLabels[WebviewAction.ResultGridCopySelection],
+            windows: ["ctrl+c"],
+            mac: ["cmd+c"],
+        },
+        {
+            label: shortcutLabels[WebviewAction.ResultGridSelectAll],
+            windows: ["ctrl+a"],
+            mac: ["cmd+a"],
+        },
+        {
+            label: shortcutLabels[WebviewAction.ResultGridToggleSort],
+            windows: ["alt+shift+o"],
+            mac: ["alt+shift+o"],
+        },
+    ];
 
     const openConfiguration = () => {
         runAction(OverviewActionId.OpenShortcutsConfiguration);
@@ -146,7 +205,14 @@ export const ShortcutsDialog = ({ onDismiss }: ShortcutsDialogProps) => {
         <Dialog open onOpenChange={(_event, data) => !data.open && onDismiss()}>
             <DialogSurface className={classes.surface}>
                 <DialogBody>
-                    <DialogTitle>{loc.keyboardShortcutsTitle}</DialogTitle>
+                    <DialogTitle className={classes.title}>
+                        <span className={classes.titleContent}>
+                            <span className={classes.titleIcon}>
+                                <Keyboard20Regular aria-hidden="true" />
+                            </span>
+                            {loc.keyboardShortcutsTitle}
+                        </span>
+                    </DialogTitle>
                     <DialogContent>
                         <Text className={classes.intro}>{loc.shortcutsIntro}</Text>
                         <div className={classes.tableWrapper}>
@@ -173,55 +239,53 @@ export const ShortcutsDialog = ({ onDismiss }: ShortcutsDialogProps) => {
                                         </tr>
                                     ))}
 
-                                    {shortcutGroups.map((group) => {
-                                        // Actions with no binding are skipped, so a group with
-                                        // none left must not render a bare heading.
-                                        const boundItems = group.items.filter(
-                                            (item) => keyBindings?.[item.action]?.label,
-                                        );
-                                        if (boundItems.length === 0) {
-                                            return undefined;
-                                        }
-                                        return (
-                                            <Fragment key={group.id}>
-                                                <tr>
-                                                    <td className={classes.groupCell} colSpan={3}>
-                                                        {getShortcutGroupLabel(
-                                                            group.id,
-                                                            locConstants.shortcutsConfiguration,
-                                                        )}
-                                                    </td>
-                                                </tr>
-                                                {boundItems.map((item) => {
-                                                    // `label` is the already-formatted chord.
-                                                    const chord = keyBindings[item.action].label;
-                                                    return (
-                                                        <tr key={item.action}>
-                                                            <td className={classes.cell}>
-                                                                {
-                                                                    locConstants
-                                                                        .shortcutsConfiguration
-                                                                        .webviewShortcutLabels[
-                                                                        item.action
-                                                                    ]
-                                                                }
-                                                            </td>
-                                                            <td
-                                                                className={classes.cell}
-                                                                colSpan={2}>
-                                                                <KeyChips chord={chord} />
-                                                            </td>
-                                                        </tr>
-                                                    );
-                                                })}
-                                            </Fragment>
-                                        );
-                                    })}
+                                    <tr>
+                                        <td className={classes.groupCell} colSpan={3}>
+                                            {loc.shortcutsQueryResultsPane}
+                                        </td>
+                                    </tr>
+                                    {resultPaneShortcuts.map((shortcut) => (
+                                        <tr key={shortcut.label}>
+                                            <td className={classes.cell}>{shortcut.label}</td>
+                                            <td className={classes.cell}>
+                                                <span className={classes.keys}>
+                                                    {shortcut.windows.map((chord, index) => (
+                                                        <Fragment key={chord}>
+                                                            {index > 0 && <span>/</span>}
+                                                            <KeyChips chord={chord} />
+                                                        </Fragment>
+                                                    ))}
+                                                </span>
+                                            </td>
+                                            <td className={classes.cell}>
+                                                <span className={classes.keys}>
+                                                    {shortcut.mac.map((chord, index) => (
+                                                        <Fragment key={chord}>
+                                                            {index > 0 && <span>/</span>}
+                                                            <KeyChips chord={chord} />
+                                                        </Fragment>
+                                                    ))}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    ))}
                                 </tbody>
                             </table>
                         </div>
+                        <div className={classes.keymapNote}>
+                            {loc.shortcutsKeymapPrefix}{" "}
+                            <Link
+                                href={overviewLinks.keymapExtension}
+                                title={overviewLinks.keymapExtension}
+                                onClick={(event) => {
+                                    event.preventDefault();
+                                    openLink(overviewLinks.keymapExtension);
+                                }}>
+                                {loc.shortcutsKeymapLink}
+                            </Link>
+                        </div>
                     </DialogContent>
-                    <DialogActions>
+                    <DialogActions className={classes.actions}>
                         <Button appearance="secondary" onClick={onDismiss}>
                             {locConstants.common.close}
                         </Button>

@@ -575,9 +575,19 @@
                     "when": "view == objectExplorer && config.mssql.objectExplorer.groupBySchema",
                     "title": "%mssql.objectExplorer.disableGroupBySchema%",
                     "group": "navigation"
+                },
+                {
+                    "command": "mssql.showOverviewInObjectExplorer",
+                    "when": "view == objectExplorer && !mssql.overviewVisible",
+                    "group": "1_overview"
                 }
             ],
             "view/item/context": [
+                {
+                    "command": "mssql.hideOverviewInObjectExplorer",
+                    "when": "view == objectExplorer && viewItem == overview",
+                    "group": "navigation"
+                },
                 {
                     "command": "mssql.openInMssqlExtensionFromAzureResources",
                     "when": "view == azureResourceGroups && viewItem =~ /\\b(SqlServers|SqlDatabases)\\b/",
@@ -1142,6 +1152,14 @@
                 },
                 {
                     "command": "mssql.openOverview"
+                },
+                {
+                    "command": "mssql.hideOverviewInObjectExplorer",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.showOverviewInObjectExplorer",
+                    "when": "false"
                 }
             ],
             "webview/context": [
@@ -1746,6 +1764,16 @@
             {
                 "command": "mssql.openOverview",
                 "title": "%mssql.openOverview%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.hideOverviewInObjectExplorer",
+                "title": "%mssql.hideOverviewInObjectExplorer%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.showOverviewInObjectExplorer",
+                "title": "%mssql.showOverviewInObjectExplorer%",
                 "category": "MS SQL"
             },
             {

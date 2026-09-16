@@ -186,9 +186,13 @@ export const DevContainerSetupDialog = ({ template, onDismiss }: DevContainerSet
                     </DialogContent>
                     <DialogActions fluid className={classes.actions}>
                         <Link
-                            as="button"
+                            href={getTemplateSourceUrl(template)}
+                            title={getTemplateSourceUrl(template)}
                             className={classes.learnMore}
-                            onClick={() => openLink(getTemplateSourceUrl(template))}>
+                            onClick={(event) => {
+                                event.preventDefault();
+                                openLink(getTemplateSourceUrl(template));
+                            }}>
                             {loc.learnMoreAboutTemplate}
                             <Open16Regular />
                         </Link>

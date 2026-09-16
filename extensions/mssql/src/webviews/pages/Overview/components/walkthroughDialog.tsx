@@ -7,13 +7,15 @@ import {
     Button,
     Dialog,
     DialogSurface,
+    Tab,
+    TabList,
     Text,
     makeStyles,
     mergeClasses,
     tokens,
 } from "@fluentui/react-components";
 import { Dismiss20Regular, TextBulletListSquare20Regular } from "@fluentui/react-icons";
-import { Fragment, useState } from "react";
+import { Fragment, type KeyboardEvent, useState } from "react";
 
 import { Walkthrough } from "../walkthroughContent";
 import { locConstants } from "../../../common/locConstants";
@@ -23,15 +25,19 @@ const useStyles = makeStyles({
     surface: {
         maxWidth: "1000px",
         width: "90vw",
+        height: "min(680px, 90vh)",
         padding: 0,
+        overflow: "hidden",
     },
     layout: {
         position: "relative",
         display: "grid",
         gridTemplateColumns: "260px minmax(0, 1fr)",
-        minHeight: "460px",
+        height: "100%",
+        minHeight: 0,
         "@media (max-width: 720px)": {
             gridTemplateColumns: "minmax(0, 1fr)",
+            gridTemplateRows: "auto minmax(0, 1fr)",
         },
     },
     side: {
@@ -43,6 +49,15 @@ const useStyles = makeStyles({
         borderRightStyle: "solid",
         borderRightColor: tokens.colorNeutralStroke2,
         backgroundColor: tokens.colorNeutralBackground2,
+        minHeight: 0,
+        overflow: "hidden",
+        "@media (max-width: 720px)": {
+            maxHeight: "180px",
+            borderRightWidth: 0,
+            borderBottomWidth: "1px",
+            borderBottomStyle: "solid",
+            borderBottomColor: tokens.colorNeutralStroke2,
+        },
     },
     sideHeading: {
         display: "flex",
@@ -60,12 +75,16 @@ const useStyles = makeStyles({
         color: tokens.colorNeutralForeground3,
     },
     nav: {
-        display: "flex",
-        flexDirection: "column",
-        gap: "2px",
         // The feature gallery is long; the rail scrolls rather than stretching the dialog.
         overflowY: "auto",
-        maxHeight: "60vh",
+        overflowX: "hidden",
+        minHeight: 0,
+        flex: "1 1 0",
+        padding: "2px",
+    },
+    galleryNav: {
+        overflowY: "scroll",
+        scrollbarGutter: "stable",
     },
     navGroup: {
         padding: "12px 10px 4px",
@@ -75,35 +94,9 @@ const useStyles = makeStyles({
         textTransform: "uppercase",
         color: tokens.colorNeutralForeground3,
     },
-    navButton: {
-        display: "flex",
-        alignItems: "center",
-        gap: "10px",
+    navTab: {
         width: "100%",
-        textAlign: "left",
-        padding: "9px 10px",
-        border: "none",
-        borderRadius: tokens.borderRadiusMedium,
-        backgroundColor: "transparent",
-        color: tokens.colorNeutralForeground2,
-        fontFamily: "inherit",
-        fontSize: "13px",
-        cursor: "pointer",
-        ":hover": {
-            backgroundColor: tokens.colorNeutralBackground1Hover,
-        },
-        ":focus-visible": {
-            outline: `2px solid ${tokens.colorStrokeFocus2}`,
-        },
-    },
-    navButtonActive: {
-        backgroundColor: tokens.colorNeutralBackground1Selected,
-        color: tokens.colorBrandForeground1,
-        fontWeight: tokens.fontWeightSemibold,
-    },
-    navIcon: {
-        display: "flex",
-        flexShrink: 0,
+        justifyContent: "flex-start",
     },
     main: {
         display: "flex",
@@ -111,6 +104,8 @@ const useStyles = makeStyles({
         gap: tokens.spacingVerticalM,
         padding: "22px 24px",
         minWidth: 0,
+        minHeight: 0,
+        overflowY: "auto",
     },
     kicker: {
         fontSize: "11.5px",
@@ -136,38 +131,22 @@ const useStyles = makeStyles({
         alignSelf: "flex-start",
     },
     stage: {
-        marginTop: tokens.spacingVerticalS,
         border: `1px solid ${tokens.colorNeutralStroke2}`,
         borderRadius: tokens.borderRadiusMedium,
         overflow: "hidden",
         backgroundColor: tokens.colorNeutralBackground3,
     },
-    stageBar: {
+    stageMedia: {
         display: "flex",
         alignItems: "center",
-        gap: "6px",
-        padding: "8px 12px",
-        borderBottomWidth: "1px",
-        borderBottomStyle: "solid",
-        borderBottomColor: tokens.colorNeutralStroke2,
-        backgroundColor: tokens.colorNeutralBackground4,
+        justifyContent: "center",
+        aspectRatio: "16 / 9",
+        overflow: "hidden",
     },
-    stageDot: {
-        width: "8px",
-        height: "8px",
-        borderRadius: "50%",
-        backgroundColor: tokens.colorNeutralForeground4,
-    },
-    stageTab: {
-        marginLeft: "6px",
-        fontFamily: tokens.fontFamilyMonospace,
-        fontSize: "11px",
-        color: tokens.colorNeutralForeground3,
-    },
-    // Placeholder until the recorded walkthrough is dropped in; shows the alt text only.
     stagePlaceholder: {
         display: "flex",
-        minHeight: "260px",
+        width: "100%",
+        height: "100%",
         padding: "14px 16px",
         fontSize: "13px",
         color: tokens.colorNeutralForeground2,
@@ -175,7 +154,8 @@ const useStyles = makeStyles({
     stageImage: {
         display: "block",
         width: "100%",
-        height: "auto",
+        height: "100%",
+        objectFit: "contain",
     },
     close: {
         position: "absolute",
@@ -201,6 +181,37 @@ export const WalkthroughDialog = ({ walkthrough, onDismiss }: WalkthroughDialogP
 
     const step = walkthrough.steps[selectedIndex];
 
+    const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+        if (
+            event.defaultPrevented ||
+            event.altKey ||
+            event.ctrlKey ||
+            event.metaKey ||
+            event.shiftKey
+        ) {
+            return;
+        }
+
+        const target = event.target as HTMLElement;
+        if (target.closest("[role='tablist'], input, textarea, select, [contenteditable='true']")) {
+            return;
+        }
+
+        const direction =
+            event.key === "ArrowLeft" || event.key === "ArrowUp"
+                ? -1
+                : event.key === "ArrowRight" || event.key === "ArrowDown"
+                  ? 1
+                  : 0;
+        const nextIndex = selectedIndex + direction;
+        if (direction === 0 || nextIndex < 0 || nextIndex >= walkthrough.steps.length) {
+            return;
+        }
+
+        event.preventDefault();
+        setSelectedIndex(nextIndex);
+    };
+
     const runStepAction = () => {
         if (!step.action) {
             return;
@@ -215,7 +226,7 @@ export const WalkthroughDialog = ({ walkthrough, onDismiss }: WalkthroughDialogP
 
     return (
         <Dialog open onOpenChange={(_event, data) => !data.open && onDismiss()}>
-            <DialogSurface className={classes.surface}>
+            <DialogSurface className={classes.surface} onKeyDown={handleKeyDown}>
                 <div className={classes.layout}>
                     <Button
                         className={classes.close}
@@ -230,36 +241,48 @@ export const WalkthroughDialog = ({ walkthrough, onDismiss }: WalkthroughDialogP
                             <Text className={classes.sideTitle}>{walkthrough.title}</Text>
                             <Text className={classes.sideSubtitle}>{walkthrough.subtitle}</Text>
                         </div>
-                        <div className={classes.nav} role="tablist">
+                        <TabList
+                            className={mergeClasses(
+                                classes.nav,
+                                walkthrough.kind === "gallery" && classes.galleryNav,
+                            )}
+                            vertical
+                            selectedValue={step.id}
+                            onTabSelect={(_event, data) => {
+                                const nextIndex = walkthrough.steps.findIndex(
+                                    (candidate) => candidate.id === data.value,
+                                );
+                                if (nextIndex >= 0) {
+                                    setSelectedIndex(nextIndex);
+                                }
+                            }}>
                             {walkthrough.steps.map((navStep, index) => (
                                 <Fragment key={navStep.id}>
                                     {navStep.category &&
                                         navStep.category !==
                                             walkthrough.steps[index - 1]?.category && (
-                                            <div className={classes.navGroup}>
+                                            <div className={classes.navGroup} role="presentation">
                                                 {navStep.category}
                                             </div>
                                         )}
-                                    <button
-                                        type="button"
-                                        role="tab"
-                                        aria-selected={index === selectedIndex}
-                                        className={mergeClasses(
-                                            classes.navButton,
-                                            index === selectedIndex && classes.navButtonActive,
-                                        )}
-                                        onClick={() => setSelectedIndex(index)}>
-                                        <span className={classes.navIcon}>
-                                            <TextBulletListSquare20Regular />
-                                        </span>
+                                    <Tab
+                                        id={`walkthrough-tab-${navStep.id}`}
+                                        aria-controls="walkthrough-tabpanel"
+                                        className={classes.navTab}
+                                        icon={<TextBulletListSquare20Regular />}
+                                        value={navStep.id}>
                                         {navStep.title}
-                                    </button>
+                                    </Tab>
                                 </Fragment>
                             ))}
-                        </div>
+                        </TabList>
                     </div>
 
-                    <div className={classes.main}>
+                    <div
+                        id="walkthrough-tabpanel"
+                        role="tabpanel"
+                        aria-labelledby={`walkthrough-tab-${step.id}`}
+                        className={classes.main}>
                         <Text className={classes.kicker}>
                             {walkthrough.kind === "gallery"
                                 ? step.category
@@ -278,25 +301,19 @@ export const WalkthroughDialog = ({ walkthrough, onDismiss }: WalkthroughDialogP
                             </Button>
                         )}
                         <div className={classes.stage}>
-                            <div className={classes.stageBar}>
-                                <span className={classes.stageDot} />
-                                <span className={classes.stageDot} />
-                                <span className={classes.stageDot} />
-                                <span className={classes.stageTab}>
-                                    {loc.walkthroughMediaTab(step.title)}
-                                </span>
+                            <div className={classes.stageMedia}>
+                                {step.image ? (
+                                    <img
+                                        className={classes.stageImage}
+                                        src={step.image}
+                                        alt={loc.walkthroughMediaAlt}
+                                    />
+                                ) : (
+                                    <div className={classes.stagePlaceholder}>
+                                        {loc.walkthroughMediaAlt}
+                                    </div>
+                                )}
                             </div>
-                            {step.image ? (
-                                <img
-                                    className={classes.stageImage}
-                                    src={step.image}
-                                    alt={loc.walkthroughMediaAlt}
-                                />
-                            ) : (
-                                <div className={classes.stagePlaceholder}>
-                                    {loc.walkthroughMediaAlt}
-                                </div>
-                            )}
                         </div>
                     </div>
                 </div>

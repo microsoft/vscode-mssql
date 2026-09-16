@@ -6,7 +6,6 @@
 import * as vscode from "vscode";
 import * as Constants from "../../constants/constants";
 import { Overview } from "../../constants/locConstants";
-import { IconUtils } from "../../utils/iconUtils";
 
 /** Opens the Overview page from the root of the Connections view. */
 export class OverviewTreeNode extends vscode.TreeItem {
@@ -19,9 +18,6 @@ export class OverviewTreeNode extends vscode.TreeItem {
             title: Overview.OverviewTreeNodeLabel,
             command: Constants.cmdOpenOverview,
         };
-        this.iconPath = {
-            light: IconUtils.getIcon("applicationQuickStart_light.svg"),
-            dark: IconUtils.getIcon("applicationQuickStart_dark.svg"),
-        };
+        this.iconPath = new vscode.ThemeIcon("rocket");
     }
 }

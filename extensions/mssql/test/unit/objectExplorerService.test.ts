@@ -2484,6 +2484,18 @@ suite("OE Service Tests", () => {
             expect(result[1]).to.be.instanceOf(ConnectionNode);
         });
 
+        test("getRootNodes should omit Overview when it is hidden", async () => {
+            const mockConnections = createMockConnectionProfiles(1);
+            mockConnectionStore.readAllConnections.resolves(mockConnections);
+            mockConnectionStore.readAllConnectionGroups.resolves([createMockRootConnectionGroup()]);
+            objectExplorerService.setOverviewVisibility(false);
+
+            const result = await (objectExplorerService as any).getRootNodes();
+
+            expect(result).to.have.lengthOf(1);
+            expect(result[0]).to.be.instanceOf(ConnectionNode);
+        });
+
         test("getRootNodes should handle error in connection store", async () => {
             // Setup connection store to throw error
             const testError = new Error("Failed to read connections");

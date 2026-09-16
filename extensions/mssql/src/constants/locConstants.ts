@@ -3500,7 +3500,7 @@ export class AzureDataStudioMigration {
 
 export class Overview {
     public static OverviewDocumentTitle = l10n.t("SQL Server (mssql)");
-    public static OverviewTreeNodeLabel = l10n.t("Overview");
+    public static OverviewTreeNodeLabel = l10n.t("Welcome");
     public static OverviewTreeNodeDescription = l10n.t("Start · QuickStarts · learn & build");
     public static ShortcutExecuteQuery = l10n.t("Execute query");
     public static ShortcutConnect = l10n.t("Connect");

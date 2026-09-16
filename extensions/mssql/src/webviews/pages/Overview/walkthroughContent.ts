@@ -7,12 +7,35 @@ import { OverviewActionId } from "../../../sharedInterfaces/overview";
 import { locConstants } from "../../common/locConstants";
 import { overviewLinks } from "./overviewContent";
 
-const connectToDatabaseImage = require("../../../../images/walkthroughs/connectToDatabase.png");
-const objectExplorerImage = require("../../../../images/walkthroughs/objectExplorerFilters.png");
-const runQueriesImage = require("../../../../images/walkthroughs/runQueries.png");
-const resultsGridImage = require("../../../../images/walkthroughs/sortAndFilterQueryResults.png");
-const queryPlanImage = require("../../../../images/walkthroughs/viewQueryPlan.png");
-const newTableImage = require("../../../../images/walkthroughs/createNewTable.png");
+const connectToDatabaseImage = require("../../../../images/walkthroughs/connectAndRun/connection.gif");
+const objectExplorerImage = require("../../../../images/walkthroughs/connectAndRun/object-explorer.gif");
+const runQueriesImage = require("../../../../images/walkthroughs/connectAndRun/new-query.gif");
+const resultsGridImage = require("../../../../images/walkthroughs/connectAndRun/query-results.gif");
+
+const localContainerImage = require("../../../../images/walkthroughs/buildApp/local-container.gif");
+const newDatabaseImage = require("../../../../images/walkthroughs/buildApp/new-database.gif");
+const schemaDesignerImage = require("../../../../images/walkthroughs/buildApp/schema-designer.gif");
+const editDataImage = require("../../../../images/walkthroughs/buildApp/edit-data.gif");
+const dataApiBuilderImage = require("../../../../images/walkthroughs/buildApp/dab.gif");
+const runAppImage = require("../../../../images/walkthroughs/buildApp/run-app.gif");
+
+const copilotAgentModeImage = require("../../../../images/walkthroughs/copilot/agent-mode.gif");
+
+const featureImages: Partial<Record<string, string>> = {
+    schemaDesigner: require("../../../../images/walkthroughs/features/schema-designer.gif"),
+    tableDesigner: require("../../../../images/walkthroughs/features/table-designer.gif"),
+    editData: require("../../../../images/walkthroughs/features/edit-data.gif"),
+    importFlatFile: require("../../../../images/walkthroughs/features/import-data.gif"),
+    queryEditor: require("../../../../images/walkthroughs/features/query-editor.gif"),
+    queryPlans: require("../../../../images/walkthroughs/features/query-plan.gif"),
+    queryProfiler: require("../../../../images/walkthroughs/features/query-profiler.gif"),
+    notebooks: require("../../../../images/walkthroughs/features/notebook.gif"),
+    dacpac: require("../../../../images/walkthroughs/features/dacpac-bacpac.gif"),
+    backupRestore: require("../../../../images/walkthroughs/features/backup-restore.gif"),
+    schemaCompare: require("../../../../images/walkthroughs/features/schema-compare.gif"),
+    sqlProjects: require("../../../../images/walkthroughs/features/sql-projects.gif"),
+    dataApiBuilder: require("../../../../images/walkthroughs/features/dab.gif"),
+};
 
 /** Identifies a walkthrough so a card can open the matching dialog. */
 export enum WalkthroughId {
@@ -85,11 +108,6 @@ function getFeatureGallery(): WalkthroughStep[] {
                     loc.featureImportFlatFileTitle,
                     loc.featureImportFlatFileDescription,
                 ],
-                [
-                    "generateTestData",
-                    loc.featureGenerateTestDataTitle,
-                    loc.featureGenerateTestDataDescription,
-                ],
             ],
         },
         {
@@ -140,6 +158,7 @@ function getFeatureGallery(): WalkthroughStep[] {
             title,
             description,
             category: group.category,
+            image: featureImages[id],
         })),
     );
 }
@@ -191,7 +210,7 @@ export function getWalkthrough(id: WalkthroughId): Walkthrough {
                         description: loc.wtConnectStep4Description,
                         action: {
                             label: loc.wtConnectStep4Action,
-                            actionId: OverviewActionId.ExecuteQuery,
+                            actionId: OverviewActionId.NewQuery,
                         },
                         image: resultsGridImage,
                     },
@@ -206,6 +225,26 @@ export function getWalkthrough(id: WalkthroughId): Walkthrough {
                 kind: "steps",
                 steps: [
                     {
+                        id: "createLocalContainer",
+                        title: loc.wtAppLocalContainerTitle,
+                        description: loc.wtAppLocalContainerDescription,
+                        action: {
+                            label: loc.wtAppLocalContainerAction,
+                            actionId: OverviewActionId.NewLocalContainer,
+                        },
+                        image: localContainerImage,
+                    },
+                    {
+                        id: "createDatabase",
+                        title: loc.wtAppCreateDatabaseTitle,
+                        description: loc.wtAppCreateDatabaseDescription,
+                        action: {
+                            label: loc.wtConnectStep2Action,
+                            actionId: OverviewActionId.FocusConnections,
+                        },
+                        image: newDatabaseImage,
+                    },
+                    {
                         id: "designSchema",
                         title: loc.wtAppStep1Title,
                         description: loc.wtAppStep1Description,
@@ -215,7 +254,17 @@ export function getWalkthrough(id: WalkthroughId): Walkthrough {
                             label: loc.wtConnectStep2Action,
                             actionId: OverviewActionId.FocusConnections,
                         },
-                        image: newTableImage,
+                        image: schemaDesignerImage,
+                    },
+                    {
+                        id: "editData",
+                        title: loc.wtAppEditDataTitle,
+                        description: loc.wtAppEditDataDescription,
+                        action: {
+                            label: loc.wtConnectStep2Action,
+                            actionId: OverviewActionId.FocusConnections,
+                        },
+                        image: editDataImage,
                     },
                     {
                         id: "generateDataApi",
@@ -225,21 +274,13 @@ export function getWalkthrough(id: WalkthroughId): Walkthrough {
                             label: loc.wtConnectStep2Action,
                             actionId: OverviewActionId.FocusConnections,
                         },
-                    },
-                    {
-                        id: "connectApp",
-                        title: loc.wtAppStep3Title,
-                        description: loc.wtAppStep3Description,
-                        action: {
-                            label: loc.wtConnectStep2Action,
-                            actionId: OverviewActionId.FocusConnections,
-                        },
+                        image: dataApiBuilderImage,
                     },
                     {
                         id: "runAndIterate",
                         title: loc.wtAppStep4Title,
                         description: loc.wtAppStep4Description,
-                        image: queryPlanImage,
+                        image: runAppImage,
                     },
                 ],
             };
@@ -261,39 +302,49 @@ export function getWalkthrough(id: WalkthroughId): Walkthrough {
                 kind: "steps",
                 steps: [
                     {
-                        id: "chatWithMssql",
+                        id: "agentMode",
                         title: loc.wtCopilotStep1Title,
                         description: loc.wtCopilotStep1Description,
                         action: {
-                            label: loc.wtCopilotStep1Action,
-                            actionId: OverviewActionId.OpenCopilotChat,
+                            label: loc.wtCopilotLearnMoreAction,
+                            url: overviewLinks.copilotWalkthroughDocumentation,
                         },
+                        image: copilotAgentModeImage,
                     },
                     {
-                        id: "chatWithDatabase",
+                        id: "mssqlAskMode",
                         title: loc.wtCopilotStep2Title,
                         description: loc.wtCopilotStep2Description,
                         action: {
-                            label: loc.wtConnectStep2Action,
-                            actionId: OverviewActionId.FocusConnections,
+                            label: loc.wtCopilotLearnMoreAction,
+                            url: overviewLinks.copilotWalkthroughDocumentation,
                         },
                     },
                     {
-                        id: "agentMode",
+                        id: "fixExplain",
                         title: loc.wtCopilotStep3Title,
                         description: loc.wtCopilotStep3Description,
                         action: {
-                            label: loc.wtCopilotStep1Action,
-                            actionId: OverviewActionId.OpenCopilotChat,
+                            label: loc.wtCopilotLearnMoreAction,
+                            url: overviewLinks.copilotWalkthroughDocumentation,
                         },
                     },
                     {
-                        id: "schemaAwareEdits",
+                        id: "schemaDesignerCopilot",
                         title: loc.wtCopilotStep4Title,
                         description: loc.wtCopilotStep4Description,
                         action: {
-                            label: loc.wtCopilotStep4Action,
-                            url: overviewLinks.copilotDocumentation,
+                            label: loc.wtCopilotLearnMoreAction,
+                            url: overviewLinks.copilotWalkthroughDocumentation,
+                        },
+                    },
+                    {
+                        id: "dataApiBuilderCopilot",
+                        title: loc.wtCopilotStep5Title,
+                        description: loc.wtCopilotStep5Description,
+                        action: {
+                            label: loc.wtCopilotLearnMoreAction,
+                            url: overviewLinks.copilotWalkthroughDocumentation,
                         },
                     },
                 ],

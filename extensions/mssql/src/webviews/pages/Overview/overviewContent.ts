@@ -8,7 +8,10 @@ import { locConstants } from "../../common/locConstants";
 
 /** External destinations linked from the Overview page. */
 export const overviewLinks = {
-    youTubeChannel: "https://www.youtube.com/@mssql",
+    youTubeChannel: "https://aka.ms/vscode-mssql-demos",
+    landingPageVideo1: "https://aka.ms/vscode-mssql-landing-page-video1",
+    landingPageVideo2: "https://aka.ms/vscode-mssq-landing-page-video2",
+    landingPageVideo3: "https://aka.ms/vscode-mssql-landing-page-video3",
     repository: "https://github.com/microsoft/vscode-mssql",
     documentation:
         "https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-extension-visual-studio-code",
@@ -22,6 +25,10 @@ export const overviewLinks = {
     devContainersRepository: "https://github.com/microsoft/azuresql-devcontainers",
     copilotDocumentation:
         "https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/github-copilot/overview",
+    // Placeholder until step-specific Microsoft Learn destinations are available.
+    copilotWalkthroughDocumentation: "https://learn.microsoft.com/",
+    keymapExtension:
+        "https://marketplace.visualstudio.com/items?itemName=ms-mssql.mssql-database-management-keymap",
 } as const;
 
 /** CLI equivalent of the "Add to GitHub Copilot" button, offered for scripted setups. */
@@ -123,30 +130,34 @@ export function getTemplateSourceUrl(template: DevContainerTemplate): string {
 export interface VideoCard {
     id: string;
     title: string;
-    channel: string;
+    subtitle: string;
+    thumbnail: "copilotSql" | "whatsNew" | "aiReadyApp";
     url: string;
 }
 
-export function getVideoCards(extensionVersion: string): VideoCard[] {
+export function getVideoCards(): VideoCard[] {
     const loc = locConstants.overview;
     return [
         {
+            id: "copilotSql",
+            title: loc.videoDataExposedTitle,
+            subtitle: loc.videoDataExposedSubtitle,
+            thumbnail: "copilotSql",
+            url: overviewLinks.landingPageVideo1,
+        },
+        {
             id: "whatsNew",
-            title: loc.videoWhatsNewTitle(extensionVersion),
-            channel: loc.videoChannelMssql,
-            url: overviewLinks.youTubeChannel,
+            title: loc.videoWhatsNewTitle,
+            subtitle: loc.videoWhatsNewSubtitle,
+            thumbnail: "whatsNew",
+            url: overviewLinks.landingPageVideo2,
         },
         {
-            id: "extension",
-            title: loc.videoExtensionTitle,
-            channel: loc.videoChannelMssql,
-            url: "https://youtu.be/eIkX-ypBkko",
-        },
-        {
-            id: "vsCodeLive",
+            id: "aiReadyApp",
             title: loc.videoVsCodeLiveTitle,
-            channel: loc.videoChannelVsCode,
-            url: "https://www.youtube.com/live/eKvejWoq80Q",
+            subtitle: loc.videoVsCodeLiveSubtitle,
+            thumbnail: "aiReadyApp",
+            url: overviewLinks.landingPageVideo3,
         },
     ];
 }

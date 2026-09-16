@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Link, Text, Tooltip, makeStyles, tokens } from "@fluentui/react-components";
+import { Link, Text, makeStyles, tokens } from "@fluentui/react-components";
 import { Box20Regular, Open16Regular } from "@fluentui/react-icons";
 import { useState } from "react";
 
@@ -97,21 +97,27 @@ export const DevContainersPanel = () => {
                             </span>
                             <Text className={classes.cardName}>{template.name}</Text>
                         </button>
-                        <Tooltip content={loc.viewOnGitHub} relationship="label">
-                            <Link
-                                as="button"
-                                aria-label={loc.viewOnGitHub}
-                                onClick={() => openLink(getTemplateSourceUrl(template))}>
-                                <Open16Regular />
-                            </Link>
-                        </Tooltip>
+                        <Link
+                            href={getTemplateSourceUrl(template)}
+                            title={getTemplateSourceUrl(template)}
+                            aria-label={loc.viewOnGitHub}
+                            onClick={(event) => {
+                                event.preventDefault();
+                                openLink(getTemplateSourceUrl(template));
+                            }}>
+                            <Open16Regular />
+                        </Link>
                     </div>
                 ))}
             </div>
             <Link
-                as="button"
+                href={overviewLinks.devContainersQuickstart}
+                title={overviewLinks.devContainersQuickstart}
                 className={classes.learnMore}
-                onClick={() => openLink(overviewLinks.devContainersQuickstart)}>
+                onClick={(event) => {
+                    event.preventDefault();
+                    openLink(overviewLinks.devContainersQuickstart);
+                }}>
                 {loc.devContainersLearnMore}
                 <Open16Regular />
             </Link>

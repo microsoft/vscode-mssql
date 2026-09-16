@@ -3895,12 +3895,6 @@ export class LocConstants {
 
             // Walkthrough media placeholder, pending the recorded walkthrough.
             walkthroughMediaAlt: l10n.t("Animated walkthrough of MSSQL features in VS Code"),
-            walkthroughMediaTab: (title: string) =>
-                l10n.t({
-                    message: "MSSQL: {0}",
-                    args: [title],
-                    comment: ["{0} is the feature or step name shown in the mock editor tab"],
-                }),
 
             // "Explore features" gallery
             exploreFeaturesSubtitle: l10n.t(
@@ -3912,33 +3906,53 @@ export class LocConstants {
             featureGroupMoveProtect: l10n.t("Move & protect data"),
             featureGroupBuildShip: l10n.t("Build & ship"),
             featureSchemaDesignerTitle: l10n.t("Schema Designer"),
-            featureSchemaDesignerDescription: l10n.t("Model tables and relationships visually."),
+            featureSchemaDesignerDescription: l10n.t(
+                "Use the Schema Designer to visualize your app's tables and relationships, and to add, edit, or delete them.",
+            ),
             featureTableDesignerTitle: l10n.t("Table Designer"),
-            featureTableDesignerDescription: l10n.t("Create and alter tables with a form."),
+            featureTableDesignerDescription: l10n.t(
+                "Create and manage tables with a visual interface",
+            ),
             featureEditDataTitle: l10n.t("Edit Data"),
-            featureEditDataDescription: l10n.t("Edit rows directly in a grid."),
+            featureEditDataDescription: l10n.t(
+                "Browse and modify table data inline without writing T-SQL",
+            ),
             featureImportFlatFileTitle: l10n.t("Import flat file"),
-            featureImportFlatFileDescription: l10n.t("Load CSV and flat files into a table."),
-            featureGenerateTestDataTitle: l10n.t("Generate test data"),
-            featureGenerateTestDataDescription: l10n.t("Seed realistic sample rows."),
+            featureImportFlatFileDescription: l10n.t(
+                "Import flat files (CSV, TXT) as new database tables using a guided wizard",
+            ),
             featureQueryEditorTitle: l10n.t("Query Editor"),
             featureQueryEditorDescription: l10n.t("Write T-SQL with IntelliSense."),
             featureQueryPlansTitle: l10n.t("Query Plans"),
-            featureQueryPlansDescription: l10n.t("Inspect estimated and actual plans."),
+            featureQueryPlansDescription: l10n.t(
+                "Analyze execution plans with interactive node navigation",
+            ),
             featureQueryProfilerTitle: l10n.t("Query Profiler"),
-            featureQueryProfilerDescription: l10n.t("Trace and diagnose slow queries."),
+            featureQueryProfilerDescription: l10n.t(
+                "Real-time database activity monitoring with Extended Events",
+            ),
             featureNotebooksTitle: l10n.t("SQL Notebooks"),
-            featureNotebooksDescription: l10n.t("Mix SQL, results, and Markdown."),
+            featureNotebooksDescription: l10n.t(
+                "Jupyter-based SQL notebooks with rich results and IntelliSense.",
+            ),
             featureDacpacTitle: l10n.t("DACPAC / BACPAC"),
-            featureDacpacDescription: l10n.t("Export and import schema and data."),
+            featureDacpacDescription: l10n.t(
+                "Deploy, extract, import, and export DACPAC and BACPAC files",
+            ),
             featureBackupRestoreTitle: l10n.t("Backup & restore"),
-            featureBackupRestoreDescription: l10n.t("Protect and recover databases."),
+            featureBackupRestoreDescription: l10n.t("Back up and restore SQL Server databases"),
             featureSchemaCompareTitle: l10n.t("Schema Compare"),
-            featureSchemaCompareDescription: l10n.t("Diff and sync two schemas."),
+            featureSchemaCompareDescription: l10n.t(
+                "Compare and synchronize schemas between databases or DACPACs",
+            ),
             featureSqlProjectsTitle: l10n.t("SQL Projects"),
-            featureSqlProjectsDescription: l10n.t("Source-control your schema."),
+            featureSqlProjectsDescription: l10n.t(
+                "Build, publish with the visual Publish Dialog, and analyze SQL projects with Code Analysis",
+            ),
             featureDataApiBuilderTitle: l10n.t("Data API Builder"),
-            featureDataApiBuilderDescription: l10n.t("Generate REST and GraphQL APIs."),
+            featureDataApiBuilderDescription: l10n.t(
+                "Use Database API Builder to generate a backend data API directly from your schema, exposing REST, GraphQL, or MCP endpoints.",
+            ),
 
             // Walkthrough dialog chrome
             stepOfTotal: (step: number, total: number) =>
@@ -3952,24 +3966,24 @@ export class LocConstants {
             walkthroughConnectSubtitle: l10n.t("From zero to a result set in a few steps."),
             wtConnectStep1Title: l10n.t("Create a connection"),
             wtConnectStep1Description: l10n.t(
-                "Open the Connection dialog and connect to a local container, Azure SQL, or a SQL database in Fabric.",
+                "Open the Connection dialog and connect to your SQL database",
             ),
             wtConnectStep1Action: l10n.t("Open Connection dialog"),
             wtConnectStep2Title: l10n.t("Explore in Object Explorer"),
             wtConnectStep2Description: l10n.t(
-                "Browse databases, tables, views, and programmability in the Connections tree.",
+                "Explore your databases, tables, views, and stored procedures in the Object Explorer.",
             ),
             wtConnectStep2Action: l10n.t("Open Connections"),
             wtConnectStep3Title: l10n.t("Open a new query"),
             wtConnectStep3Description: l10n.t(
-                "Start a new SQL editor bound to your active connection.",
+                "Open a new SQL editor and start writing queries with IntelliSense",
             ),
             wtConnectStep3Action: l10n.t("New query"),
             wtConnectStep4Title: l10n.t("Run and read results"),
             wtConnectStep4Description: l10n.t(
-                "Execute the query, then sort, filter, and export the results grid.",
+                "Execute with Run (or Ctrl+Shift+E) and sort, filter, and export the results grid.",
             ),
-            wtConnectStep4Action: l10n.t("Run query"),
+            wtConnectStep4Action: l10n.t("Open the query editor"),
 
             // "Build & connect an app"
             walkthroughAppTitle: l10n.t("Build & connect an app"),
@@ -3979,17 +3993,26 @@ export class LocConstants {
             walkthroughAppSubtitle: l10n.t(
                 "Go from a schema to a running data layer your app can call.",
             ),
+            wtAppLocalContainerTitle: l10n.t("Create a local container"),
+            wtAppLocalContainerDescription: l10n.t(
+                "Create a local SQL Server container for your app.",
+            ),
+            wtAppLocalContainerAction: l10n.t("Create local container"),
+            wtAppCreateDatabaseTitle: l10n.t("Create a database"),
+            wtAppCreateDatabaseDescription: l10n.t(
+                "Create a database on your local SQL Server instance.",
+            ),
             wtAppStep1Title: l10n.t("Design your schema"),
             wtAppStep1Description: l10n.t(
-                "Right-click a database in Connections and choose Schema Designer to model tables and relationships.",
+                "Use the Schema Designer to model tables and relationships for your app.",
+            ),
+            wtAppEditDataTitle: l10n.t("Add and edit data"),
+            wtAppEditDataDescription: l10n.t(
+                "Add and edit rows in your tables using the Edit Data grid.",
             ),
             wtAppStep2Title: l10n.t("Generate a data API"),
             wtAppStep2Description: l10n.t(
-                "Right-click a database and choose Build Data API to expose REST and GraphQL endpoints without boilerplate.",
-            ),
-            wtAppStep3Title: l10n.t("Connect your app"),
-            wtAppStep3Description: l10n.t(
-                "Right-click a connection and copy its connection string for .NET, Node.js, Python, or your ORM.",
+                "Point Data API Builder at your tables to expose REST and GraphQL endpoints.",
             ),
             wtAppStep4Title: l10n.t("Run and iterate"),
             wtAppStep4Description: l10n.t(
@@ -4000,24 +4023,27 @@ export class LocConstants {
             walkthroughCopilotSubtitle: l10n.t(
                 "Schema-aware chat and agent mode, scoped to your database.",
             ),
-            wtCopilotStep1Title: l10n.t("Chat with @mssql"),
+            wtCopilotStep1Title: l10n.t("Agent mode"),
             wtCopilotStep1Description: l10n.t(
-                "Use the @mssql chat participant to ask questions about your connected database in natural language.",
+                "Use GitHub Copilot agent mode to connect to your database, explore its schema, and run queries through MSSQL tools with your approval.",
             ),
-            wtCopilotStep1Action: l10n.t("Open Chat"),
-            wtCopilotStep2Title: l10n.t("Chat with this database"),
+            wtCopilotStep2Title: l10n.t("@mssql Ask mode"),
             wtCopilotStep2Description: l10n.t(
-                "Right-click a database and choose Chat with this database to open Copilot scoped to it.",
+                "Ask @mssql questions about your connected database and generate SQL with schema-aware suggestions in GitHub Copilot Ask mode.",
             ),
-            wtCopilotStep3Title: l10n.t("Use agent mode"),
+            wtCopilotStep3Title: l10n.t("Fix / Explain"),
             wtCopilotStep3Description: l10n.t(
-                "Let Copilot connect, list databases, and run queries as tools, approving each action before it runs.",
+                "Use GitHub Copilot to suggest fixes for SQL errors or explain what your query does in natural language.",
             ),
-            wtCopilotStep4Title: l10n.t("Schema-aware edits"),
+            wtCopilotStep4Title: l10n.t("Schema Designer with GitHub Copilot"),
             wtCopilotStep4Description: l10n.t(
-                "Get completions and edits that understand your tables, columns, and relationships.",
+                "Describe the tables and relationships you need in Schema Designer chat, then review the proposed changes on the canvas before publishing to your database.",
             ),
-            wtCopilotStep4Action: l10n.t("Learn more"),
+            wtCopilotStep5Title: l10n.t("Data API Builder with GitHub Copilot"),
+            wtCopilotStep5Description: l10n.t(
+                "Use natural language in Data API Builder chat to choose tables, set CRUD permissions, and configure REST, GraphQL, or MCP endpoints. Review the generated configuration before deploying.",
+            ),
+            wtCopilotLearnMoreAction: l10n.t("Learn more"),
 
             walkthroughConnectTitle: l10n.t("Connect & run your first query"),
             walkthroughConnectDescription: l10n.t(
@@ -4053,19 +4079,22 @@ export class LocConstants {
             addDevContainerConfiguration: l10n.t("Add dev container configuration"),
 
             videos: l10n.t("Videos"),
-            videoWhatsNewTitle: (version: string) =>
-                l10n.t({
-                    message: "What's new in v{0}",
-                    args: [version],
-                    comment: ["{0} is the extension version, e.g. 1.46.0"],
-                }),
-            videoExtensionTitle: l10n.t("MSSQL extension on YouTube"),
-            videoVsCodeLiveTitle: l10n.t(
-                "VS Code Live: Build AI-Ready Apps in VS Code - GitHub Copilot, Schema Designer, Data API builder",
+            videoDataExposedTitle: l10n.t("Use GitHub Copilot with SQL"),
+            videoDataExposedSubtitle: l10n.t("Build AI-ready SQL solutions in VS Code"),
+            videoWhatsNewTitle: l10n.t("Explore what's new in the MSSQL extension"),
+            videoWhatsNewSubtitle: l10n.t("Query Profiler, migration tools, and more"),
+            videoVsCodeLiveTitle: l10n.t("Build an AI-ready app"),
+            videoVsCodeLiveSubtitle: l10n.t(
+                "GitHub Copilot, Schema Designer, and Data API Builder",
             ),
-            videoChannelMssql: l10n.t("Microsoft SQL"),
-            videoChannelVsCode: l10n.t("Visual Studio Code"),
-            seeFullPlaylist: l10n.t("See the full playlist on YouTube."),
+            seeFullPlaylistPrefix: l10n.t("See the full playlist on"),
+            youtube: l10n.t("YouTube"),
+            openLinkTooltip: (label: string) =>
+                l10n.t({
+                    message: "Open {0}",
+                    args: [label],
+                    comment: ["{0} is the label of the link destination"],
+                }),
 
             recentFiles: l10n.t("Recent SQL files"),
             noRecentFiles: l10n.t("SQL files you open will show up here."),
@@ -4082,6 +4111,12 @@ export class LocConstants {
             shortcutsCommand: l10n.t("Command"),
             shortcutsWindowsLinux: l10n.t("Windows / Linux"),
             shortcutsMacOs: l10n.t("macOS"),
+            shortcutsQueryResultsPane: l10n.t("Query Results Pane"),
+            shortcutsNavigateResultGrids: l10n.t("Navigate result grids"),
+            shortcutsKeymapPrefix: l10n.t(
+                "Prefer Azure Data Studio or SSMS-style shortcuts? Install the",
+            ),
+            shortcutsKeymapLink: l10n.t("MSSQL Database Management Keymap extension."),
             openShortcutsConfiguration: l10n.t("Open Shortcuts Configuration"),
             whatsNewGotIt: l10n.t("Got it"),
             whatsNewAllReleaseNotes: l10n.t("See all release notes"),

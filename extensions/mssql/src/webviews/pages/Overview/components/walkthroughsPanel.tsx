@@ -4,22 +4,19 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { makeStyles, tokens } from "@fluentui/react-components";
-import {
-    BotSparkle20Regular,
-    DatabasePlugConnected20Regular,
-    Flow20Regular,
-} from "@fluentui/react-icons";
+import { DatabasePlugConnected20Regular, Flow20Regular } from "@fluentui/react-icons";
 import { ReactNode, useState } from "react";
 
 import { ActionCard } from "./actionCard";
 import { WalkthroughDialog } from "./walkthroughDialog";
 import { WalkthroughId, getWalkthrough } from "../walkthroughContent";
 import { locConstants } from "../../../common/locConstants";
+import { GithubCopilot16Regular } from "../../../common/icons/fluentIcons";
 
 const walkthroughIcons: Partial<Record<WalkthroughId, ReactNode>> = {
     [WalkthroughId.Connect]: <DatabasePlugConnected20Regular />,
     [WalkthroughId.App]: <Flow20Regular />,
-    [WalkthroughId.Copilot]: <BotSparkle20Regular />,
+    [WalkthroughId.Copilot]: <GithubCopilot16Regular />,
 };
 
 const useStyles = makeStyles({

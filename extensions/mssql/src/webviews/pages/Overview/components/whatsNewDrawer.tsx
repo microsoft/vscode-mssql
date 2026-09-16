@@ -206,6 +206,11 @@ export const WhatsNewDrawer = ({ onDismiss }: WhatsNewDrawerProps) => {
                         <Link
                             key={`${action.label}-${action.value}`}
                             as="button"
+                            title={
+                                action.type === "link"
+                                    ? action.value
+                                    : loc.openLinkTooltip(action.label)
+                            }
                             className={classes.actionLink}
                             onClick={() => runEntryAction(action)}>
                             {action.label}
@@ -275,6 +280,7 @@ export const WhatsNewDrawer = ({ onDismiss }: WhatsNewDrawerProps) => {
                 <div className={classes.footer}>
                     <Link
                         as="button"
+                        title={loc.openLinkTooltip(loc.whatsNewAllReleaseNotes)}
                         className={classes.footerLink}
                         onClick={() => {
                             // Opens the full Changelog webview rather than an external page.

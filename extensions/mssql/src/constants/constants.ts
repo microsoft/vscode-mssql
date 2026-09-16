@@ -156,6 +156,9 @@ export const cmdHandleSummaryOperation = "mssql.handleSummaryOperation";
 export const cmdMoveToSchema = "mssql.moveToSchema";
 export const cmdOpenChangelog = "mssql.openChangelog";
 export const cmdOpenOverview = "mssql.openOverview";
+export const cmdHideOverviewInObjectExplorer = "mssql.hideOverviewInObjectExplorer";
+export const cmdShowOverviewInObjectExplorer = "mssql.showOverviewInObjectExplorer";
+export const overviewVisibleContextKey = "mssql.overviewVisible";
 export const cmdOpenAzureDataStudioMigration = "mssql.openAzureDataStudioMigration";
 export const cmdOpenInMssqlExtensionFromAzureResources =
     "mssql.openInMssqlExtensionFromAzureResources";
