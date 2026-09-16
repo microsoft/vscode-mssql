@@ -879,28 +879,6 @@ export class ObjectExplorerService {
             }
         };
 
-        const simulatedKerberosError =
-            this._connectionManager.getSimulatedKerberosError(connectionProfile);
-
-        if (simulatedKerberosError) {
-            const failureResponse = new SessionCreatedParameters();
-            failureResponse.success = false;
-            failureResponse.errorMessage = simulatedKerberosError.errorMessage;
-
-            const shouldReconnect = await this.handleSessionCreationFailure(
-                failureResponse,
-                connectionProfile,
-                createSessionActivity,
-            );
-            createSessionActivity.endFailed();
-            finalizeSession();
-            return {
-                sessionId: undefined,
-                connectionNode: undefined,
-                shouldRetryOnFailure: shouldReconnect,
-            };
-        }
-
         // Retry loop for paused Azure serverless databases
         const maxAttempts = serverlessWakeMaxRetryAttempts + 1;
         for (let attempt = 0; attempt < maxAttempts; attempt++) {

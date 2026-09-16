@@ -76,9 +76,6 @@ import { getUseMsalEntraMfaAuthConfig } from "../azure/utils";
  * not online.
  */
 export const serverlessWakeMaxRetryAttempts = 2;
-const simulateKerberosFailureEnvironmentVariable = "MSSQL_SIMULATE_KERBEROS_FAILURE";
-const simulatedKerberosErrorMessage =
-    "Cannot authenticate using Kerberos. This is a simulated failure for testing Kerberos configuration guidance.";
 
 /**
  * Information for a document's connection. Exported for testing purposes.
@@ -1501,26 +1498,6 @@ export default class ConnectionManager {
         this._onConnectionsChangedEmitter.fire();
         this.updateConnectionsContext();
 
-        const simulatedKerberosError = this.getSimulatedKerberosError(credentials);
-        if (simulatedKerberosError) {
-            connectionInfo.connecting = false;
-            connectionInfo.errorMessage = simulatedKerberosError.errorMessage;
-            connectionInfo.messages = simulatedKerberosError.message;
-
-            if (shouldHandleErrors) {
-                await this.handleConnectionErrors(simulatedKerberosError, credentials);
-            }
-
-            connectionActivity.endFailed(
-                new Error(simulatedKerberosError.errorMessage),
-                false,
-                SqlConnectionErrorType.KerberosNonWindows,
-            );
-            this._onConnectionsChangedEmitter.fire();
-            this.updateConnectionsContext();
-            return false;
-        }
-
         // Note: must call flavor changed before connecting, or the timer showing an animation doesn't occur
         if (this.statusView) {
             this.statusView.languageFlavorChanged(fileUri, Constants.mssqlProviderName);
@@ -1717,24 +1694,6 @@ export default class ConnectionManager {
             );
             return false;
         }
-    }
-
-    /**
-     * Returns a simulated Kerberos failure when explicitly enabled for local UI testing.
-     */
-    public getSimulatedKerberosError(credentials: IConnectionInfo): SqlConnectionError | undefined {
-        if (
-            process.env[simulateKerberosFailureEnvironmentVariable] === "false" ||
-            process.platform === "win32" ||
-            credentials.authenticationType !== Constants.integratedauth
-        ) {
-            return undefined;
-        }
-
-        return {
-            errorMessage: simulatedKerberosErrorMessage,
-            message: simulatedKerberosErrorMessage,
-        };
     }
 
     /**
