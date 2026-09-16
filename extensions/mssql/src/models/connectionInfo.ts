@@ -310,12 +310,58 @@ export enum ServerType {
 }
 
 /**
+ * Connection string properties naming the server and the initial catalog, in the quoted and
+ * unquoted forms SqlClient accepts.  Used to read those values from profiles that store a whole
+ * connection string instead of discrete properties.
+ */
+const connectionStringServerPattern =
+    /(?:^|;)\s*(?:Data\s+Source|Server|Address|Addr|Network\s+Address)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^;]*?))\s*(?=;|$)/i;
+const connectionStringCatalogPattern =
+    /(?:^|;)\s*(?:Initial\s+Catalog|Database)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^;]*?))\s*(?=;|$)/i;
+
+function getConnectionStringProperty(
+    connectionString: string | undefined,
+    pattern: RegExp,
+): string | undefined {
+    const match = connectionString?.match(pattern);
+    return (match?.[1] ?? match?.[2] ?? match?.[3])?.trim() || undefined;
+}
+
+/**
+ * Gets the server a connection points at, falling back to the connection string's data source
+ * for profiles that store a whole connection string instead of discrete properties.
+ */
+export function getServerName(connection: IConnectionInfo): string | undefined {
+    return (
+        connection?.server ||
+        getConnectionStringProperty(connection?.connectionString, connectionStringServerPattern)
+    );
+}
+
+/**
+ * Gets the database a connection points at, falling back to the connection string's initial
+ * catalog for profiles that store a whole connection string instead of discrete properties.
+ */
+export function getDatabaseName(connection: IConnectionInfo): string | undefined {
+    return (
+        connection?.database ||
+        getConnectionStringProperty(connection?.connectionString, connectionStringCatalogPattern)
+    );
+}
+
+/**
  * Attempts to determine the server type(s) of a connection based on the server name.
+ *
+ * The first entry is always the hosting platform (e.g. {@link ServerType.Azure},
+ * {@link ServerType.Fabric}, {@link ServerType.Local}); when a second entry is present it is the
+ * product being targeted (e.g. {@link ServerType.Sql}, {@link ServerType.DataWarehouse}).
+ *
  * @param account If provided, the account's cloud environment will be used to determine the server type.  Otherwise, the currently-selected cloud will be used.
  * @returns Array of connection target tags that apply to the server
  */
 export function getServerTypes(connection: IConnectionInfo, account?: IAccount): ServerType[] {
-    if (connection?.server === undefined) {
+    const server = getServerName(connection);
+    if (!server) {
         return [ServerType.Unknown];
     }
 
@@ -350,7 +396,7 @@ export function getServerTypes(connection: IConnectionInfo, account?: IAccount):
         };
 
         for (const [name, types] of Object.entries(typeMappings)) {
-            if (connection.server.includes(name.startsWith(".") ? name.slice(1) : name)) {
+            if (server.includes(name.startsWith(".") ? name.slice(1) : name)) {
                 return types;
             }
         }
@@ -360,10 +406,10 @@ export function getServerTypes(connection: IConnectionInfo, account?: IAccount):
 
     // check if it's a local connection
     if (
-        connection.server.endsWith("localhost") || // might have http:
-        connection.server.includes("localhost,") || // includes port
-        connection.server === "." ||
-        connection.server.includes(".,") // includes port
+        server.endsWith("localhost") || // might have http:
+        server.includes("localhost,") || // includes port
+        server === "." ||
+        server.includes(".,") // includes port
     ) {
         return [ServerType.Local, ServerType.Sql];
     }

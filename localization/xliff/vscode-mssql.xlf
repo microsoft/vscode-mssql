@@ -10999,6 +10999,9 @@
     <trans-unit id="mssql.customEnvironment.fabricApiUriBase">
       <source xml:lang="en">Sovereign cloud equivalent for `https://api.fabric.microsoft.com/v1/`</source>
     </trans-unit>
+    <trans-unit id="mssql.customEnvironment.fabricPortalUriBase">
+      <source xml:lang="en">Sovereign cloud equivalent for `https://app.fabric.microsoft.com/`</source>
+    </trans-unit>
     <trans-unit id="mssql.customEnvironment.sqlEndpoint">
       <source xml:lang="en">Sovereign cloud equivalent for `https://database.windows.net/`</source>
     </trans-unit>
@@ -11100,6 +11103,9 @@
     </trans-unit>
     <trans-unit id="mssql.viewBackgroundTaskLogs">
       <source xml:lang="en">View Task Logs</source>
+    </trans-unit>
+    <trans-unit id="mssql.openInFabricDatabaseHub">
+      <source xml:lang="en">View in Fabric Database Hub</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
       <source xml:lang="en">Visualize a Query Plan</source>

@@ -21,7 +21,10 @@ interface AzureResourceNode {
     readonly resource: AzureResource;
 }
 
-function isAzureResourceNode(node: unknown): node is AzureResourceNode {
+/**
+ * Returns true if the given node is an AzureResourceNode, false otherwise.
+ */
+export function isAzureResourceNode(node: unknown): node is AzureResourceNode {
     return typeof node === "object" && !!node && "resource" in node;
 }
 

@@ -1,0 +1,150 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+import { getCloudProviderSettings } from "../azure/providerSettings";
+
+/**
+ * Fabric portal environments, matching the environment names the Fabric extension reports for its
+ * workspace items.
+ */
+export enum FabricEnvironment {
+    Prod = "PROD",
+    Msit = "MSIT",
+    Daily = "DAILY",
+    Dxt = "DXT",
+    Edog = "EDOG",
+    EdogOnebox = "EDOGONEBOX",
+    Onebox = "ONEBOX",
+}
+
+/**
+ * Portal URIs for Microsoft-internal pre-production rings.  These are not part of any Azure cloud,
+ * so unlike the production portal they have no home in {@link getCloudProviderSettings}.
+ */
+const preProductionPortalUriBases: Partial<Record<FabricEnvironment, string>> = {
+    [FabricEnvironment.Msit]: "https://msit.fabric.microsoft.com/",
+    [FabricEnvironment.Daily]: "https://daily.fabric.microsoft.com/",
+    [FabricEnvironment.Dxt]: "https://dxt.fabric.microsoft.com/",
+    [FabricEnvironment.Edog]: "https://edog.analysis-df.windows.net/",
+    [FabricEnvironment.EdogOnebox]: "https://edog.analysis-df.windows.net/",
+    [FabricEnvironment.Onebox]: "https://portal.analysis.windows-int.net/",
+};
+
+/** Path of the Database Hub's estate view within the Fabric portal. */
+const databaseHubEstatePath = "workloads/fdh/databaseHub/estate";
+
+/** Database kinds the Database Hub estate view can be filtered to. */
+export enum FabricDatabaseHubDatabaseType {
+    AzureSql = "azure-sql",
+    FabricSql = "fabric-sql",
+}
+
+/** Estate view `resourceType` filter value for each database kind. */
+const estateResourceTypes: Record<FabricDatabaseHubDatabaseType, string> = {
+    [FabricDatabaseHubDatabaseType.AzureSql]: "AzureSql",
+    [FabricDatabaseHubDatabaseType.FabricSql]: "FabricSql",
+};
+
+/** Fabric SQL connection catalogs append the item GUID to the Hub display name. */
+const fabricItemGuidSuffixPattern =
+    /-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Resolves the Fabric portal environment hosting a Fabric SQL server.
+ *
+ * Production endpoints sit directly under the cloud's Fabric SQL DNS suffix, while pre-production
+ * rings prefix it with the ring name (e.g. `<host>.msit-database.fabric.microsoft.com`).
+ *
+ * @returns undefined when the server is not a Fabric SQL endpoint, or names an unknown ring.
+ */
+export function getFabricEnvironment(server: string | undefined): FabricEnvironment | undefined {
+    const dnsSuffix = getCloudProviderSettings().fabric.sqlDbDnsSuffix;
+    if (!server || !dnsSuffix) {
+        return undefined;
+    }
+
+    const host = server.split(",")[0].trim().toLowerCase();
+    const bareSuffix = dnsSuffix.startsWith(".") ? dnsSuffix.slice(1) : dnsSuffix;
+    const suffixIndex = host.indexOf(bareSuffix.toLowerCase());
+    if (suffixIndex <= 0) {
+        return undefined;
+    }
+
+    const separator = host[suffixIndex - 1];
+    if (separator === ".") {
+        return FabricEnvironment.Prod;
+    }
+    if (separator !== "-") {
+        return undefined;
+    }
+
+    const ring = host.slice(host.lastIndexOf(".", suffixIndex - 1) + 1, suffixIndex - 1);
+    return parseFabricEnvironment(ring);
+}
+
+/** Resolves a Fabric environment name, however cased, to a known {@link FabricEnvironment}. */
+export function parseFabricEnvironment(
+    environment: string | undefined,
+): FabricEnvironment | undefined {
+    const name = environment?.trim().toUpperCase();
+    return Object.values(FabricEnvironment).find((known) => known === name);
+}
+
+/**
+ * Normalizes a Fabric SQL database name to the name the Database Hub displays, dropping the item
+ * GUID that Fabric SQL connection catalogs carry.
+ */
+export function getFabricSqlDatabaseDisplayName(database: string | undefined): string | undefined {
+    return database?.trim().replace(fabricItemGuidSuffixPattern, "") || undefined;
+}
+
+export interface FabricDatabaseHubLinkOptions {
+    /** Fabric portal environment to link into; defaults to {@link FabricEnvironment.Prod}. */
+    environment?: FabricEnvironment;
+    /** Database name to pre-filter the estate view by. */
+    databaseName?: string;
+    /** ARM resource ID of an Azure SQL database to deep-link the estate view to. */
+    databaseResourceId?: string;
+}
+
+/**
+ * Builds a link to the Fabric Database Hub estate view, filtered to the given kind of database.
+ *
+ * @returns undefined when the current cloud has no Fabric portal.
+ */
+export function getFabricDatabaseHubLink(
+    databaseType: FabricDatabaseHubDatabaseType,
+    options: FabricDatabaseHubLinkOptions = {},
+): string | undefined {
+    const portalUriBase =
+        preProductionPortalUriBases[options.environment ?? FabricEnvironment.Prod] ??
+        getCloudProviderSettings().fabric.fabricPortalUriBase;
+    if (!portalUriBase) {
+        return undefined;
+    }
+
+    const filters: Array<{ key: string; operator: string; value: string | string[] }> = [
+        { key: "resourceType", operator: "in", value: [estateResourceTypes[databaseType]] },
+    ];
+    const databaseName = options.databaseName?.trim();
+    if (databaseName) {
+        filters.push({ key: "search", operator: "contains", value: databaseName });
+    }
+
+    const searchParams = new URLSearchParams({
+        databaseType,
+        estateView: JSON.stringify({
+            schemaVersion: 1,
+            state: { filters, category: ["all"], relevance: ["all"], sort: null },
+        }),
+    });
+    if (options.databaseResourceId) {
+        searchParams.set("databaseResourceId", options.databaseResourceId);
+    }
+
+    const link = new URL(databaseHubEstatePath, portalUriBase);
+    link.search = searchParams.toString();
+    return link.toString();
+}
