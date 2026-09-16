@@ -572,7 +572,7 @@
       </trans-unit>
       <trans-unit id="++CODE++ef77fd7e7de3068a3369a87288164dfc52c45a4fe4f9dde764612fd73c757c5e">
         <source xml:lang="en">Allow incompatible platform during deployment</source>
-        <target state="new">Allow incompatible platform during deployment</target>
+        <target state="translated">Permitir plataforma incompatível durante a implantação</target>
       </trans-unit>
       <trans-unit id="++CODE++49ac2c72f4aa327cb385b0c76a52b02ae819504641492120e52b1070d9db5663">
         <source xml:lang="en">Allow null</source>
@@ -1049,7 +1049,7 @@ Isso removerá tanto o contêiner quanto sua conexão do VS Code.</target>
       <trans-unit id="++CODE++588333f4d266b89935941194e4f8e0f1d8aab434615c493680d7d0859b6b7081">
         <source xml:lang="en">Azure SQL database '{0}' was provisioned successfully.</source>
         <note>{0} is the database name</note>
-        <target state="new">Azure SQL database '{0}' was provisioned successfully.</target>
+        <target state="translated">Banco de dados SQL do Azure '{0}' foi provisionado com êxito.</target>
       </trans-unit>
       <trans-unit id="++CODE++d58bf1f323a38f50b921c7d963ad40d4323ebb5085fc456c8afbcc6542b0eb7a">
         <source xml:lang="en">Azure SQL databases provisioning</source>
@@ -1361,7 +1361,7 @@ Isso removerá tanto o contêiner quanto sua conexão do VS Code.</target>
       </trans-unit>
       <trans-unit id="++CODE++bb446d765ac5ce4aed459491227b909ff24de5026f8c7ee8451c1db46a8b6ade">
         <source xml:lang="en">Cancel query</source>
-        <target state="new">Cancel query</target>
+        <target state="translated">Cancelar consulta</target>
       </trans-unit>
       <trans-unit id="++CODE++d6efd131712ed1115d720d4cfdb68b1819ad1de1587f4c2176c9c055c7c03a67">
         <source xml:lang="en">Cancel schema compare failed: '{0}'</source>
@@ -2599,7 +2599,7 @@ Isso removerá tanto o contêiner quanto sua conexão do VS Code.</target>
       </trans-unit>
       <trans-unit id="++CODE++3cb79d895358f3badaea5b6eb05416fa6739c8520a7e8c2ddc97d662d69c0a67">
         <source xml:lang="en">Controls whether deployment blocks because of platform compatibility checks. It does not allow Schema Compare between different Azure Synapse or Microsoft Fabric platform types.</source>
-        <target state="new">Controls whether deployment blocks because of platform compatibility checks. It does not allow Schema Compare between different Azure Synapse or Microsoft Fabric platform types.</target>
+        <target state="translated">Controla se a implantação é bloqueada devido a verificações de compatibilidade de plataforma. Não permite a Comparação de Esquemas entre diferentes tipos de plataforma do Azure Synapse ou do Microsoft Fabric.</target>
       </trans-unit>
       <trans-unit id="++CODE++9ad6fe65e4341a2297371f3f36b2b9cf12241c8bd2fb0e6b35f96cf60b50a291">
         <source xml:lang="en">Converting the project {0} to SDK-style was unsuccessful. Changes to the .sqlproj have been rolled back.</source>
@@ -4819,7 +4819,7 @@ Erro:
       <trans-unit id="++CODE++1c7cb4f75443e75ebc87e93e015e29bdf680a2f851b09a1bb5c761639ed092fa">
         <source xml:lang="en">Fabric SQL database '{0}' was provisioned successfully.</source>
         <note>{0} is the database name</note>
-        <target state="new">Fabric SQL database '{0}' was provisioned successfully.</target>
+        <target state="translated">Banco de dados SQL do Fabric '{0}' foi provisionado com êxito.</target>
       </trans-unit>
       <trans-unit id="++CODE++3070527056fcbd2ba823f6ed6ec72a556b5d82695b4490bc28c86d210c696bad">
         <source xml:lang="en">Fabric Workspaces</source>
@@ -5141,19 +5141,19 @@ Erro:
         <source xml:lang="en">Failed to provision Azure SQL database '{0}': {1}</source>
         <note>{0} is the database name
 {1} is the error message</note>
-        <target state="new">Failed to provision Azure SQL database '{0}': {1}</target>
+        <target state="translated">Falha ao provisionar SQL do Azure banco de dados '{0}': {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++da269800efda38160dafb6420431f8bde2988bcf33504e4e13ff5af7fae7eb46">
         <source xml:lang="en">Failed to provision Fabric SQL database '{0}': {1}</source>
         <note>{0} is the database name
 {1} is the error message</note>
-        <target state="new">Failed to provision Fabric SQL database '{0}': {1}</target>
+        <target state="translated">Falha ao provisionar o banco de dados SQL do Fabric '{0}': {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++14887cba6de543fd263763a0c2952d8800157cd1ff9bc9378bc8c4f0d8200bf9">
         <source xml:lang="en">Failed to provision SQL Server container '{0}': {1}</source>
         <note>{0} is the container name
 {1} is the error message</note>
-        <target state="new">Failed to provision SQL Server container '{0}': {1}</target>
+        <target state="translated">Falha ao provisionar SQL Server contêiner '{0}': {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++07ada7fc091c333284ba42452a6d0ef44eae8f3105e07704463afe34a9d0c92d">
         <source xml:lang="en">Failed to pull DAB container image. Please check your network connection.</source>
@@ -8706,7 +8706,7 @@ Erro:
       <trans-unit id="++CODE++b8fddb7a2a0858e5c78adda3e0f311031aa9e175bf7dd618546382f69c68de5b">
         <source xml:lang="en">Provisioning {0}</source>
         <note>{0} is the server, container, or database target being provisioned</note>
-        <target state="new">Provisioning {0}</target>
+        <target state="translated">Provisionando {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++591935b15b1c88e2d5f6be0a054604fcf36f0585a6f51098fa3803826fff278c">
         <source xml:lang="en">Public</source>
@@ -9544,7 +9544,7 @@ Consulta: {2}</target>
       <trans-unit id="++CODE++82a5a935a9143edc89ac046512a9ba03026e4774cde53feb82c959225904e638">
         <source xml:lang="en">SQL Server container '{0}' was provisioned successfully.</source>
         <note>{0} is the container name</note>
-        <target state="new">SQL Server container '{0}' was provisioned successfully.</target>
+        <target state="translated">Contêiner do SQL Server '{0}' foi provisionado com êxito.</target>
       </trans-unit>
       <trans-unit id="++CODE++49946129c776c67af592a7bd5399b229d9e11260362f8dd0ee8a96778dbc3bee">
         <source xml:lang="en">SQL Server does not support Windows containers. Please switch to Linux containers in Docker Desktop settings.</source>
@@ -11356,7 +11356,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++d7c54293989298ee3944f49558ec6882f3cdee331b1959779bb00e2e6921be28">
         <source xml:lang="en">The cancel request did not complete in time. The editor's execution state has been reset.</source>
-        <target state="new">The cancel request did not complete in time. The editor's execution state has been reset.</target>
+        <target state="translated">A solicitação de cancelamento não foi concluída a tempo. O estado de execução do editor foi redefinido.</target>
       </trans-unit>
       <trans-unit id="++CODE++b3ed9d46f7671d126e86925d532363313c1f6795e877d3d348d134f6e7051bc3">
         <source xml:lang="en">The client secret for your Microsoft Entra app registration.</source>
@@ -11560,7 +11560,7 @@ Tem certeza de que quer continuar?</target>
       </trans-unit>
       <trans-unit id="++CODE++221a6647042e962a326162fd3dcdd7a1e01f628fb4eedc3ecc4b2c33038109fe">
         <source xml:lang="en">The service is no longer running a query for this editor. The editor's execution state has been reset.</source>
-        <target state="new">The service is no longer running a query for this editor. The editor's execution state has been reset.</target>
+        <target state="translated">O serviço não está mais executando uma consulta para este editor. O estado de execução do editor foi redefinido.</target>
       </trans-unit>
       <trans-unit id="++CODE++13c88dccbc0c16d34702d4b664c78552a13156f154731119eaaa1dfc41be428d">
         <source xml:lang="en">The system database references need to be updated to build the project '{0}'. If the project was created in SSDT, it will continue to work in both tools. Do you want to update the project?</source>
