@@ -2395,6 +2395,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++14887cba6de543fd263763a0c2952d8800157cd1ff9bc9378bc8c4f0d8200bf9" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to provision SQL Server container '{0}': {1}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Non è stato possibile effettuare il provisioning del contenitore SQL Server '{0}': {1}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++149f598e7edb5433f886c75bb1bf9e22c7129d29754a8bdc6223eee95384047c" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Object Type]]></Val>
@@ -3331,6 +3340,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++1c7cb4f75443e75ebc87e93e015e29bdf680a2f851b09a1bb5c761639ed092fa" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Fabric SQL database '{0}' was provisioned successfully.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Il database SQL di Fabric '{0}' è stato sottoposto a provisioning correttamente.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++1cca62dfe797128d872da26655c932ca5c53e11a3fcd3cb84cd494f46953242b" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Select project location]]></Val>
@@ -3903,6 +3921,15 @@
           <Val><![CDATA[Select the target schema]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Seleziona lo schema di destinazione]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++221a6647042e962a326162fd3dcdd7a1e01f628fb4eedc3ecc4b2c33038109fe" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The service is no longer running a query for this editor. The editor's execution state has been reset.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Il servizio non sta più eseguendo una query per questo editor. Lo stato di esecuzione dell'editor è stato reimpostato.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6711,6 +6738,15 @@
           <Val><![CDATA[Max row count for filtering/sorting has been exceeded. To update it, navigate to User Settings and change the setting: mssql.resultsGrid.inMemoryDataProcessingThreshold]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[È stato superato il numero massimo di righe per i filtri/l'ordinamento. Per aggiornarlo, passare alle impostazioni utente e modificare l'impostazione: mssql.resultsGrid.inMemoryDataProcessingThreshold]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++3cb79d895358f3badaea5b6eb05416fa6739c8520a7e8c2ddc97d662d69c0a67" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Controls whether deployment blocks because of platform compatibility checks. It does not allow Schema Compare between different Azure Synapse or Microsoft Fabric platform types.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Controlla se la distribuzione si blocca a causa dei controlli di compatibilità della piattaforma. Non consente il confronto dello schema tra diversi tipi di piattaforma di Azure Synapse o Microsoft Fabric.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -9888,6 +9924,15 @@
           <Val><![CDATA[Run your migrations]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Esegui le migrazioni]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++588333f4d266b89935941194e4f8e0f1d8aab434615c493680d7d0859b6b7081" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Azure SQL database '{0}' was provisioned successfully.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Il database SQL di Azure '{0}' è stato sottoposto a provisioning correttamente.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -13762,6 +13807,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++7ba26df4d0fbbd2bee13f3a586513471356439c4aa47b18bd9640be75254373e" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to provision Azure SQL database '{0}': {1}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Non è stato possibile eseguire il provisioning del database SQL di Azure '{0}': {1}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++7bba5bcc44de61b37dcadb5824fac7130483b749da0c5e9eea5e02765e06e37d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Displays the unified data type (including length, scale and precision) for the column]]></Val>
@@ -14541,6 +14595,15 @@
           <Val><![CDATA[Database References]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Riferimenti al database]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++82a5a935a9143edc89ac046512a9ba03026e4774cde53feb82c959225904e638" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[SQL Server container '{0}' was provisioned successfully.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Il contenitore SQL Server '{0}' è stato sottoposto a provisioning correttamente.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -20359,6 +20422,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++b8fddb7a2a0858e5c78adda3e0f311031aa9e175bf7dd618546382f69c68de5b" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Provisioning {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Provisioning di {0}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++b91185f63fbbc17c093e3d2b7a50b755ba38d0e3a2bf1c82e079236e0624c673" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Join the discussions]]></Val>
@@ -20643,6 +20715,15 @@
           <Val><![CDATA[Freeze columns]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Blocca colonne]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++bb446d765ac5ce4aed459491227b909ff24de5026f8c7ee8451c1db46a8b6ade" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Cancel query]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Annulla query]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -23731,6 +23812,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++d7c54293989298ee3944f49558ec6882f3cdee331b1959779bb00e2e6921be28" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The cancel request did not complete in time. The editor's execution state has been reset.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[La richiesta di annullamento non è stata completata in tempo. Lo stato di esecuzione dell'editor è stato reimpostato.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++d7caaddcb1559a9c6e14134143691acc8adabe992567bed4226ff812667142b2" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Enter project name]]></Val>
@@ -24015,6 +24105,15 @@
           <Val><![CDATA[Update action]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Azione di aggiornamento]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++da269800efda38160dafb6420431f8bde2988bcf33504e4e13ff5af7fae7eb46" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to provision Fabric SQL database '{0}': {1}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Non è stato possibile eseguire il provisioning del database SQL di Fabric '{0}': {1}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -26454,6 +26553,15 @@
           <Val><![CDATA[No permissions]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Nessuna autorizzazione]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++ef77fd7e7de3068a3369a87288164dfc52c45a4fe4f9dde764612fd73c757c5e" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Allow incompatible platform during deployment]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Consentire una piattaforma non compatibile durante la distribuzione]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
