@@ -12,7 +12,6 @@ import { expect } from "chai";
 import {
     CLEAR_TOKEN_CACHE,
     ConnectionDialogWebviewController,
-    getAuthenticationInfoLink,
     OPEN_KERBEROS_HELP,
 } from "../../src/connectionconfig/connectionDialogWebviewController";
 import {
@@ -71,7 +70,7 @@ import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
 import { multiple_matching_tokens_error } from "../../src/azure/constants";
 import { MsalAzureController } from "../../src/azure/msal/msalAzureController";
-import { errorPasswordExpired, integratedAuthHelpLink } from "../../src/constants/constants";
+import { errorPasswordExpired, Links } from "../../src/constants/constants";
 import { FirewallRuleSpec } from "../../src/sharedInterfaces/firewallRule";
 import { FirewallService } from "../../src/firewall/firewallService";
 import { AddFirewallRuleState } from "../../src/sharedInterfaces/addFirewallRule";
@@ -200,12 +199,6 @@ suite("ConnectionDialogWebviewController Tests", () => {
     });
 
     suite("Initialization", () => {
-        test("uses the Kerberos guidance link for Integrated authentication", () => {
-            expect(getAuthenticationInfoLink(AuthenticationType.Integrated)).to.equal(
-                integratedAuthHelpLink,
-            );
-        });
-
         test("should initialize correctly for new connection", async () => {
             const expectedInitialFormState = {
                 authenticationType: "SqlLogin",
@@ -1551,7 +1544,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 });
 
                 expect(openExternalStub).to.have.been.calledOnceWith(
-                    vscode.Uri.parse(integratedAuthHelpLink),
+                    vscode.Uri.parse(Links.authKerberosHelp),
                 );
             });
 
