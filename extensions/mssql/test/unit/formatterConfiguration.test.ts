@@ -95,11 +95,20 @@ function getPackageNls(): Record<string, string> {
 }
 
 suite("SQL formatter configuration", () => {
-    test("enables the new formatter by default", () => {
-        const previewSetting = getConfigurationProperties()["mssql.format.enablePreviewFormatter"];
-
-        expect(previewSetting.default).to.equal(true);
-        expect(previewSetting.scope).to.equal("window");
+    test("does not contribute legacy formatter settings", () => {
+        const properties = getConfigurationProperties();
+        const descriptions = getPackageNls();
+        for (const setting of [
+            "mssql.format.enablePreviewFormatter",
+            "mssql.format.alignColumnDefinitionsInColumns",
+            "mssql.format.datatypeCasing",
+            "mssql.format.keywordCasing",
+            "mssql.format.placeCommasBeforeNextStatement",
+            "mssql.format.placeSelectStatementReferencesOnNewLine",
+        ]) {
+            expect(properties, setting).not.to.have.property(setting);
+            expect(descriptions, setting).not.to.have.property(setting);
+        }
     });
 
     test("enables parse-error notifications by default", () => {
@@ -192,30 +201,19 @@ suite("SQL formatter configuration", () => {
         }
     });
 
-    test("identifies which formatter uses each option", () => {
+    test("describes the active formatter options without preview qualifiers", () => {
         const descriptions = getPackageNls();
         const properties = getConfigurationProperties();
-        const previewPrefix = "**Used when Preview Formatter is enabled.**";
-        const existingPrefix = "**Used when Preview Formatter is disabled.**";
-        const previewSettings = Object.keys(expectedFormatterDefaults).map(
+        const formatterSettings = Object.keys(expectedFormatterDefaults).map(
             (key) => `mssql.format.options.${key}`,
         );
-        const existingSettings = [
-            "mssql.format.alignColumnDefinitionsInColumns",
-            "mssql.format.datatypeCasing",
-            "mssql.format.keywordCasing",
-            "mssql.format.placeCommasBeforeNextStatement",
-            "mssql.format.placeSelectStatementReferencesOnNewLine",
-        ];
 
-        for (const setting of previewSettings) {
-            expect(descriptions[setting].startsWith(previewPrefix), setting).to.be.true;
+        for (const setting of formatterSettings) {
+            expect(descriptions[setting], setting).not.to.include("Preview Formatter");
             expect(properties[setting].markdownDescription, setting).to.equal(`%${setting}%`);
         }
-        for (const setting of existingSettings) {
-            expect(descriptions[setting].startsWith(existingPrefix), setting).to.be.true;
-            expect(properties[setting].markdownDescription, setting).to.equal(`%${setting}%`);
-        }
-        expect(descriptions["mssql.format.enablePreviewFormatter"]).not.to.include("legacy");
+        expect(descriptions["mssql.format.showParseErrorNotification"]).not.to.include(
+            "Preview Formatter",
+        );
     });
 });
