@@ -29464,681 +29464,675 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";package.mssql.format.alignColumnDefinitionsInColumns" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is disabled.** Should column definitions be aligned?]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが無効な場合に使用します。** 列の定義を揃える必要がありますか?]]></Val>
-          </Tgt>
-          <Prev Cat="Text">
-            <Val><![CDATA[Legacy formatter only: Align column definitions. Set `mssql.format.enablePreviewFormatter` to `false` to use this setting.]]></Val>
-          </Prev>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";package.mssql.format.datatypeCasing" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is disabled.** Should data types be formatted as UPPERCASE, lowercase, or none (not formatted)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが無効な場合に使用されます。** データ型を大文字、小文字、または設定なし (書式設定されていない) として書式設定する必要がありますか]]></Val>
-          </Tgt>
-          <Prev Cat="Text">
-            <Val><![CDATA[Legacy formatter only: Control data type casing. Set `mssql.format.enablePreviewFormatter` to `false` to use this setting.]]></Val>
-          </Prev>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";package.mssql.format.enablePreviewFormatter" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Use the preview SQL formatter. Disable this setting to temporarily use the existing formatter.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[プレビュー SQL フォーマッタを使用してください。既存のフォーマッタを一時的に使用するには、この設定を無効にします。]]></Val>
-          </Tgt>
-          <Prev Cat="Text">
-            <Val><![CDATA[Use the new SQL formatter. Disable this setting to temporarily use the legacy formatter.]]></Val>
-          </Prev>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";package.mssql.format.keywordCasing" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is disabled.** Should keywords be formatted as UPPERCASE, lowercase, or none (not formatted)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが無効な場合に使用されます。** キーワードを大文字、小文字、または設定なし (書式設定されていない) として書式設定する必要がありますか]]></Val>
-          </Tgt>
-          <Prev Cat="Text">
-            <Val><![CDATA[Legacy formatter only: Control keyword and IntelliSense casing. Set `mssql.format.enablePreviewFormatter` to `false` to use this setting.]]></Val>
-          </Prev>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";package.mssql.format.options.alignClauseBodies" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Align the bodies of FROM, WHERE, GROUP BY, and similar clauses.]]></Val>
+          <Val><![CDATA[Align the bodies of FROM, WHERE, GROUP BY, and similar clauses.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** FROM、WHERE、GROUP BY のような句の本文を揃えます。]]></Val>
+            <Val><![CDATA[FROM、WHERE、GROUP BY、同様の句の本体を揃えます。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Align the bodies of FROM, WHERE, GROUP BY, and similar clauses.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Align the bodies of FROM, WHERE, GROUP BY, and similar clauses.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.alignColumnDefinitionFields" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Align column-definition fields, such as names, data types, and constraints.]]></Val>
+          <Val><![CDATA[Align column-definition fields, such as names, data types, and constraints.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** 名前、データ型、制約などの列定義フィールドを配置します。]]></Val>
+            <Val><![CDATA[名前、データ型、制約などの列定義フィールドを配置します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Align column-definition fields, such as names, data types, and constraints.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Align column-definition fields, such as names, data types, and constraints.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.alignSetClauseItem" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Align SET clause items in UPDATE statements.]]></Val>
+          <Val><![CDATA[Align SET clause items in UPDATE statements.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** UPDATE ステートメントで SET 句項目を配置します。]]></Val>
+            <Val><![CDATA[UPDATE ステートメントで SET 句の項目を配置します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Align SET clause items in UPDATE statements.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Align SET clause items in UPDATE statements.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.allowExternalLanguagePaths" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Allow external language content to use file paths.]]></Val>
+          <Val><![CDATA[Allow external language content to use file paths.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** 外部言語のコンテンツでファイル パスを使用できるようにします。]]></Val>
+            <Val><![CDATA[外部言語コンテンツにファイル パスの使用を許可します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Allow external language content to use file paths.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Allow external language content to use file paths.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.allowExternalLibraryPaths" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Allow external library content to use file paths.]]></Val>
+          <Val><![CDATA[Allow external library content to use file paths.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** 外部ライブラリのコンテンツでファイル パスを使用できるようにします。]]></Val>
+            <Val><![CDATA[外部ライブラリのコンテンツにファイル パスの使用を許可します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Allow external library content to use file paths.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Allow external library content to use file paths.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.asKeywordOnOwnLine" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place AS on its own line.]]></Val>
+          <Val><![CDATA[Place AS on its own line.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**フォーマッタのプレビューが有効な場合に使用します。** AS を個別の行に配置します。]]></Val>
+            <Val><![CDATA[AS を独自の行に配置します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Place AS on its own line.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Place AS on its own line.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.builtInFunctionCasing" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Casing style for supported built-in function names, such as `GETDATE` and `COALESCE`.]]></Val>
+          <Val><![CDATA[Casing style for supported built-in function names, such as `GETDATE` and `COALESCE`.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用されます。** GETDATE や COALESCE など、サポートされている組み込み関数名の大文字/小文字のスタイル。]]></Val>
+            <Val><![CDATA[`GETDATE` や `COALESCE` など、サポートされている組み込み関数名の大文字/小文字のスタイル。]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Casing style for supported built-in function names, such as `GETDATE` and `COALESCE`.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.clauseBodyAlignment" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Keep clause bodies aligned with their keywords or place them on the next line with indentation.]]></Val>
+          <Val><![CDATA[Keep clause bodies aligned with their keywords or place them on the next line with indentation.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用されます。** 句の本体をキーワードに揃えるか、インデントを付けて次の行に配置します。]]></Val>
+            <Val><![CDATA[句の本体をキーワードに揃えるか、インデントを付けて次の行に配置します。]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Keep clause bodies aligned with their keywords or place them on the next line with indentation.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.columnAliasStyle" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format column aliases using `AS`, an equals sign, or their original syntax.]]></Val>
+          <Val><![CDATA[Format column aliases using `AS`, an equals sign, or their original syntax.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用されます。** 列のエイリアスを AS、等号、または元の構文を使用して書式設定します。]]></Val>
+            <Val><![CDATA[列のエイリアスを `AS`、等号、または元の構文を使用して書式設定します。]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Format column aliases using `AS`, an equals sign, or their original syntax.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.commaPlacement" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place commas at the end of list items or at the beginning of the next item.]]></Val>
+          <Val><![CDATA[Place commas at the end of list items or at the beginning of the next item.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用されます。** リスト項目の末尾、または次の項目の先頭にコンマを配置します。]]></Val>
+            <Val><![CDATA[リスト項目の末尾、または次の項目の先頭にコンマを配置します。]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Place commas at the end of list items or at the beginning of the next item.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.identifierBracketing" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Preserve, add, or remove optional square brackets around identifiers. Required brackets are retained.]]></Val>
+          <Val><![CDATA[Preserve, add, or remove optional square brackets around identifiers. Required brackets are retained.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用されます。** 識別子の前後にある省略可能な角かっこを保持、追加、または削除します。必須の角かっこは保持されます。]]></Val>
+            <Val><![CDATA[識別子を囲む省略可能な角かっこを保持、追加、または削除します。必須の角かっこは保持されます。]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Preserve, add, or remove optional square brackets around identifiers. Required brackets are retained.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.identifierCasing" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Casing style for object identifiers.]]></Val>
+          <Val><![CDATA[Casing style for object identifiers.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用されます。** オブジェクト識別子の大文字/小文字のスタイル。]]></Val>
+            <Val><![CDATA[オブジェクト識別子の大文字/小文字のスタイル。]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Casing style for object identifiers.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.indentSetClause" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Indent SET clauses in UPDATE statements.]]></Val>
+          <Val><![CDATA[Indent SET clauses in UPDATE statements.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** UPDATE ステートメントで SET 句をインデントします。]]></Val>
+            <Val><![CDATA[UPDATE ステートメントで SET 句をインデントします。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Indent SET clauses in UPDATE statements.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Indent SET clauses in UPDATE statements.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.indentViewBody" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Indent VIEW bodies.]]></Val>
+          <Val><![CDATA[Indent VIEW bodies.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**フォーマッタのプレビューが有効な場合に使用します。** VIEW 本文をインデントします。]]></Val>
+            <Val><![CDATA[VIEW 本体をインデントします。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Indent VIEW bodies.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Indent VIEW bodies.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.keywordCasing" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Keyword casing style.]]></Val>
+          <Val><![CDATA[Keyword casing style.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**フォーマッタのプレビューが有効な場合に使用します。** キーワードの大文字と小文字のスタイル。]]></Val>
+            <Val><![CDATA[キーワードの大文字と小文字のスタイル。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Keyword casing style.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Keyword casing style.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.leadingCommaSpaceCount" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Number of spaces after a leading comma. Valid values are 0 and 1.]]></Val>
+          <Val><![CDATA[Number of spaces after a leading comma. Valid values are 0 and 1.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用されます。** 先頭のコンマの後のスペースの数。有効な値は 0 と 1 です。]]></Val>
+            <Val><![CDATA[先頭のコンマの後のスペースの数。有効な値は 0 と 1 です。]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Number of spaces after a leading comma. Valid values are 0 and 1.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.multilineGroupByElementsList" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format GROUP BY elements as a multiline list.]]></Val>
+          <Val><![CDATA[Format GROUP BY elements as a multiline list.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用されます。** GROUP BY 要素を複数行のリストとして書式設定します。]]></Val>
+            <Val><![CDATA[GROUP BY 要素を複数行のリストとして書式設定します。]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Format GROUP BY elements as a multiline list.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.multilineHavingPredicatesList" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format HAVING predicates separated by AND or OR on multiple lines.]]></Val>
+          <Val><![CDATA[Format HAVING predicates separated by AND or OR on multiple lines.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用されます。** AND または OR で区切られた HAVING 述語を複数行にフ書式設定します。]]></Val>
+            <Val><![CDATA[AND または OR で区切られた HAVING 述語を複数行に書式設定します。]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Format HAVING predicates separated by AND or OR on multiple lines.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.multilineInValuesList" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format values in an IN predicate as a multiline list.]]></Val>
+          <Val><![CDATA[Format values in an IN predicate as a multiline list.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用されます。** IN 述語の値を複数行のリストとして書式設定します。]]></Val>
+            <Val><![CDATA[IN 述語の値を複数行のリストとして書式設定します。]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Format values in an IN predicate as a multiline list.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.multilineInsertSourcesList" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format INSERT sources as multiline lists.]]></Val>
+          <Val><![CDATA[Format INSERT sources as multiline lists.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** INSERT ソースを複数行リストとして書式設定します。]]></Val>
+            <Val><![CDATA[INSERT ソースを複数行リストとして書式設定します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Format INSERT sources as multiline lists.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Format INSERT sources as multiline lists.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.multilineInsertTargetsList" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format INSERT columns as multiline lists.]]></Val>
+          <Val><![CDATA[Format INSERT columns as multiline lists.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** INSERT 列を複数行リストとして書式設定します。]]></Val>
+            <Val><![CDATA[INSERT 列を複数行リストとして書式設定します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Format INSERT columns as multiline lists.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Format INSERT columns as multiline lists.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.multilineNestedFunctionCalls" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format nested function calls on separate indented lines while keeping isolated function calls on one line.]]></Val>
+          <Val><![CDATA[Format nested function calls on separate indented lines while keeping isolated function calls on one line.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用されます。** 入れ子になった関数呼び出しはインデントした別々の行に書式設定し、単独の関数呼び出しは 1 行に保持します。]]></Val>
+            <Val><![CDATA[入れ子になった関数呼び出しはインデントされた別々の行に書式設定し、単独の関数呼び出しは 1 行に保持します。]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Format nested function calls on separate indented lines while keeping isolated function calls on one line.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.multilineOrderByElementsList" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format ORDER BY elements as a multiline list.]]></Val>
+          <Val><![CDATA[Format ORDER BY elements as a multiline list.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用されます。** GROUP BY 要素を複数行のリストとして書式設定します。]]></Val>
+            <Val><![CDATA[ORDER BY 要素を複数行のリストとして書式設定します。]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Format ORDER BY elements as a multiline list.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.multilinePartitionByElementsList" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format PARTITION BY elements in window specifications as a multiline list.]]></Val>
+          <Val><![CDATA[Format PARTITION BY elements in window specifications as a multiline list.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用されます。** ウィンドウ仕様の PARTITION BY 要素を複数行のリストとして書式設定します。]]></Val>
+            <Val><![CDATA[ウィンドウ仕様の PARTITION BY 要素を複数行のリストとして書式設定します。]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Format PARTITION BY elements in window specifications as a multiline list.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.multilineProcedureParametersList" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format procedure and function parameters on separate lines.]]></Val>
+          <Val><![CDATA[Format procedure and function parameters on separate lines.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用されます。** プロシージャおよび関数のパラメーターを別々の行に書式設定します。]]></Val>
+            <Val><![CDATA[プロシージャおよび関数のパラメーターを別々の行に書式設定します。]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Format procedure and function parameters on separate lines.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.multilineSelectElementsList" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format SELECT columns as multiline lists.]]></Val>
+          <Val><![CDATA[Format SELECT columns as multiline lists.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** SELECT 列を複数行リストとして書式設定します。]]></Val>
+            <Val><![CDATA[SELECT 列を複数行リストとして書式設定します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Format SELECT columns as multiline lists.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Format SELECT columns as multiline lists.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.multilineSetClauseItems" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format SET clause items as multiline lists.]]></Val>
+          <Val><![CDATA[Format SET clause items as multiline lists.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** SET 句項目を複数行リストとして書式設定します。]]></Val>
+            <Val><![CDATA[SET 句項目を複数行に書式設定します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Format SET clause items as multiline lists.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Format SET clause items as multiline lists.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.multilineViewColumnsList" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format VIEW columns as multiline lists.]]></Val>
+          <Val><![CDATA[Format VIEW columns as multiline lists.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** VIEW 列を複数行リストとして書式設定します。]]></Val>
+            <Val><![CDATA[VIEW 列を複数行リストとして書式設定します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Format VIEW columns as multiline lists.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Format VIEW columns as multiline lists.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.multilineWherePredicatesList" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format WHERE predicates as multiline lists.]]></Val>
+          <Val><![CDATA[Format WHERE predicates as multiline lists.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** WHERE 述語を複数行リストとして書式設定します。]]></Val>
+            <Val><![CDATA[WHERE 述語を複数行リストとして書式設定します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Format WHERE predicates as multiline lists.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Format WHERE predicates as multiline lists.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.multilineWithOptionsList" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format supported WITH and OPTION clause values on separate lines.]]></Val>
+          <Val><![CDATA[Format supported WITH and OPTION clause values on separate lines.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用されます。** サポートされている WITH および OPTION 句の値を別々の行に書式設定します。]]></Val>
+            <Val><![CDATA[サポートされている WITH および OPTION 句の値を別々の行に書式設定します。]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Format supported WITH and OPTION clause values on separate lines.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.newLineAfterJoinKeyword" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place the joined table source on a new line after the JOIN keyword.]]></Val>
+          <Val><![CDATA[Place the joined table source on a new line after the JOIN keyword.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用されます。** JOIN キーワードの後の新しい行に結合するテーブル ソースを配置します。]]></Val>
+            <Val><![CDATA[JOIN キーワードの後の新しい行に結合するテーブル ソースを配置します。]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Place the joined table source on a new line after the JOIN keyword.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.newLineBeforeCloseParenthesisInMultilineList" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the closing parenthesis of a multiline list.]]></Val>
+          <Val><![CDATA[Place a newline before the closing parenthesis of a multiline list.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** 複数行リストの右かっこの前に改行を配置します。]]></Val>
+            <Val><![CDATA[複数行リストの終わりかっこの前に改行を配置します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Place a newline before the closing parenthesis of a multiline list.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the closing parenthesis of a multiline list.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.newLineBeforeFromClause" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the FROM clause.]]></Val>
+          <Val><![CDATA[Place a newline before the FROM clause.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** FROM 句の前に改行を配置します。]]></Val>
+            <Val><![CDATA[FROM 句の前に改行を配置します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Place a newline before the FROM clause.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the FROM clause.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.newLineBeforeGroupByClause" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the GROUP BY clause.]]></Val>
+          <Val><![CDATA[Place a newline before the GROUP BY clause.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** GROUP BY 句の前に改行を配置します。]]></Val>
+            <Val><![CDATA[GROUP BY 句の前に改行を配置します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Place a newline before the GROUP BY clause.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the GROUP BY clause.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.newLineBeforeHavingClause" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the HAVING clause.]]></Val>
+          <Val><![CDATA[Place a newline before the HAVING clause.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** HAVING 句の前に改行を配置します。]]></Val>
+            <Val><![CDATA[HAVING 句の前に改行を配置します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Place a newline before the HAVING clause.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the HAVING clause.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.newLineBeforeJoinClause" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before JOIN clauses.]]></Val>
+          <Val><![CDATA[Place a newline before JOIN clauses.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** JOIN 句の前に改行を配置します。]]></Val>
+            <Val><![CDATA[JOIN 句の前に改行を配置します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Place a newline before JOIN clauses.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before JOIN clauses.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.newLineBeforeOffsetClause" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the OFFSET clause.]]></Val>
+          <Val><![CDATA[Place a newline before the OFFSET clause.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** OFFSET 句の前に改行を配置します。]]></Val>
+            <Val><![CDATA[OFFSET 句の前に改行を配置します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Place a newline before the OFFSET clause.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the OFFSET clause.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.newLineBeforeOnClause" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place the ON clause of a JOIN on a new line.]]></Val>
+          <Val><![CDATA[Place the ON clause of a JOIN on a new line.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用されます。** JOIN の ON 句を新しい行に配置します。]]></Val>
+            <Val><![CDATA[JOIN の ON 句を新しい行に配置します。]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Place the ON clause of a JOIN on a new line.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.newLineBeforeOpenParenthesisInMultilineList" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the opening parenthesis of a multiline list.]]></Val>
+          <Val><![CDATA[Place a newline before the opening parenthesis of a multiline list.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** 複数行リストの左かっこの前に改行を配置します。]]></Val>
+            <Val><![CDATA[複数行リストの左かっこの前に改行を配置します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Place a newline before the opening parenthesis of a multiline list.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the opening parenthesis of a multiline list.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.newLineBeforeOrderByClause" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the ORDER BY clause.]]></Val>
+          <Val><![CDATA[Place a newline before the ORDER BY clause.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** ORDER BY 句の前に改行を配置します。]]></Val>
+            <Val><![CDATA[ORDER BY 句の前に改行を配置します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Place a newline before the ORDER BY clause.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the ORDER BY clause.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.newLineBeforeOutputClause" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the OUTPUT clause.]]></Val>
+          <Val><![CDATA[Place a newline before the OUTPUT clause.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** OUTPUT 句の前に改行を配置します。]]></Val>
+            <Val><![CDATA[OUTPUT 句の前に改行を配置します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Place a newline before the OUTPUT clause.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the OUTPUT clause.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.newLineBeforeWhereClause" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the WHERE clause.]]></Val>
+          <Val><![CDATA[Place a newline before the WHERE clause.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** WHERE 句の前に改行を配置します。]]></Val>
+            <Val><![CDATA[WHERE 句の前に改行を配置します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Place a newline before the WHERE clause.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the WHERE clause.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.newLineBeforeWindowClause" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the WINDOW clause.]]></Val>
+          <Val><![CDATA[Place a newline before the WINDOW clause.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** WINDOW 句の前に改行を配置します。]]></Val>
+            <Val><![CDATA[WINDOW 句の前に改行を配置します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Place a newline before the WINDOW clause.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the WINDOW clause.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.newLineFormattedIndexDefinition" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place UNIQUE, INCLUDE, and WHERE portions of inline index definitions on separate lines.]]></Val>
+          <Val><![CDATA[Place UNIQUE, INCLUDE, and WHERE portions of inline index definitions on separate lines.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** インライン インデックス定義の UNIQUE、INCLUDE、WHERE の各部分を別々の行に配置します。]]></Val>
+            <Val><![CDATA[インライン インデックス定義の UNIQUE、INCLUDE、WHERE の各部分を別々の行に配置します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Place UNIQUE, INCLUDE, and WHERE portions of inline index definitions on separate lines.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Place UNIQUE, INCLUDE, and WHERE portions of inline index definitions on separate lines.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.newlineFormattedCheckConstraint" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place the CHECK clause of a constraint on its own line.]]></Val>
+          <Val><![CDATA[Place the CHECK clause of a constraint on its own line.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** 制約の CHECK 句を個別の行に配置します。]]></Val>
+            <Val><![CDATA[制約の CHECK 句を独自の行に配置します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Place the CHECK clause of a constraint on its own line.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Place the CHECK clause of a constraint on its own line.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.numNewlinesAfterBatchStatement" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Number of line breaks after each top-level statement in a batch, from 0 through 5.]]></Val>
+          <Val><![CDATA[Number of line breaks after each top-level statement in a batch, from 0 through 5.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用されます。** バッチ内の各トップレベル ステートメントの後の改行の数 (0 から 5)。]]></Val>
+            <Val><![CDATA[バッチ内の各トップレベル ステートメントの後の改行の数 (0 から 5)。]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Number of line breaks after each top-level statement in a batch, from 0 through 5.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.numNewlinesAfterBatches" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Number of line breaks after each GO batch separator, from 0 through 5.]]></Val>
+          <Val><![CDATA[Number of line breaks after each GO batch separator, from 0 through 5.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** 各 GO バッチ区切り記号の後の改行の数 (0 から 5)。]]></Val>
+            <Val><![CDATA[各 GO バッチ区切り記号の後の改行の数 (0 から 5)。]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Number of line breaks after each GO batch separator, from 0 through 5.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.numNewlinesAfterStatement" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Number of line breaks after each statement, from 0 through 5.]]></Val>
+          <Val><![CDATA[Number of line breaks after each statement, from 0 through 5.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** 各ステートメントの後の改行の数 (0 ~ 5)。]]></Val>
+            <Val><![CDATA[各ステートメントの後の改行の数 (0 ~ 5)。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Number of line breaks after each statement, from 0 through 5.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Number of line breaks after each statement, from 0 through 5.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.persistTrailingGo" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Preserve trailing GO batch separators from the original script.]]></Val>
+          <Val><![CDATA[Preserve trailing GO batch separators from the original script.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用されます。** 元のスクリプトの末尾にある GO のバッチ区切り記号を保持します。]]></Val>
+            <Val><![CDATA[元のスクリプトの末尾にある GO のバッチ区切り記号を保持します。]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Preserve trailing GO batch separators from the original script.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.preserveComments" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Preserve comments during formatting.]]></Val>
+          <Val><![CDATA[Preserve comments during formatting.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**フォーマッタのプレビューが有効な場合に使用します。** 書式設定中にコメントを保持します。]]></Val>
+            <Val><![CDATA[書式設定中にコメントを保持します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Preserve comments during formatting.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Preserve comments during formatting.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.spaceBetweenDataTypeAndParameters" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Insert a space between a data type and its parentheses, for example `VARCHAR (255)`.]]></Val>
+          <Val><![CDATA[Insert a space between a data type and its parentheses, for example `VARCHAR (255)`.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** データ型とそのかっこの間にスペースを挿入します (例: `VARCHAR (255)`)。]]></Val>
+            <Val><![CDATA[`VARCHAR (255)` など、データ型とそのかっこの間にスペースを挿入します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Insert a space between a data type and its parentheses, for example VARCHAR (255).]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Insert a space between a data type and its parentheses, for example `VARCHAR (255)`.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.spaceBetweenParametersInDataType" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Insert spaces between parameters in a data type, for example `DECIMAL (10, 2)`.]]></Val>
+          <Val><![CDATA[Insert spaces between parameters in a data type, for example `DECIMAL (10, 2)`.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** データ型のパラメーターの間にスペースを挿入します (例: `DECIMAL (10, 2)`)。]]></Val>
+            <Val><![CDATA[`DECIMAL (10, 2)` など、データ型のパラメーター間にスペースを挿入します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Insert spaces between parameters in a data type, for example DECIMAL (10, 2).]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Insert spaces between parameters in a data type, for example `DECIMAL (10, 2)`.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.sqlEngineType" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** SQL engine type used to parse and generate formatted scripts.]]></Val>
+          <Val><![CDATA[SQL engine type used to parse and generate formatted scripts.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** 書式設定されたスクリプトの解析と生成に使用される SQL エンジンの種類。]]></Val>
+            <Val><![CDATA[書式設定されたスクリプトの解析と生成に使用される SQL エンジンの種類。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[SQL engine type used to parse and generate formatted scripts.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** SQL engine type used to parse and generate formatted scripts.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.sqlVersion" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** T-SQL version used to parse and generate formatted scripts.]]></Val>
+          <Val><![CDATA[T-SQL version used to parse and generate formatted scripts.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** 書式設定されたスクリプトの解析と生成に使用される T-SQL バージョン。]]></Val>
+            <Val><![CDATA[書式設定されたスクリプトの解析と生成に使用される T-SQL バージョン。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[T-SQL version used to parse and generate formatted scripts.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** T-SQL version used to parse and generate formatted scripts.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.terminateBlockStatements" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Add semicolon terminators after BEGIN...END and TRY...CATCH blocks.]]></Val>
+          <Val><![CDATA[Add semicolon terminators after BEGIN...END and TRY...CATCH blocks.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用されます。** BEGIN...END および TRY...CATCH ブロックの末尾にセミコロンを追加します。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";package.mssql.format.placeCommasBeforeNextStatement" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is disabled.** Should commas be placed at the beginning of each statement in a list, for example `, mycolumn2`, instead of at the end, for example `mycolumn1,`?]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが無効な場合に使用します。** リスト内の各ステートメントの末尾 (例: `mycolumn1,`) ではなく、先頭 (例: `, mycolumn2`) にコンマを配置する必要がありますか?]]></Val>
+            <Val><![CDATA[BEGIN...END および TRY...CATCH ブロックの末尾にセミコロンの終端記号を追加します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Legacy formatter only: Place commas at the beginning instead of the end of list items. Set `mssql.format.enablePreviewFormatter` to `false` to use this setting.]]></Val>
-          </Prev>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";package.mssql.format.placeSelectStatementReferencesOnNewLine" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is disabled.** Should references in a SELECT statement be split into separate lines? For `SELECT C1, C2 FROM T1`, both C1 and C2 will be on separate lines.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが無効な場合に使用されます。** SELECT ステートメント内の参照は別々の行に分割する必要がありますか?`SELECT C1, C2 FROM T1` の場合、C1 と C2 の両方が別々の行に配置されます。]]></Val>
-          </Tgt>
-          <Prev Cat="Text">
-            <Val><![CDATA[Legacy formatter only: Place SELECT statement object references on separate lines. Set `mssql.format.enablePreviewFormatter` to `false` to use this setting.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Add semicolon terminators after BEGIN...END and TRY...CATCH blocks.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.showParseErrorNotification" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Show a notification when Preview Formatter cannot fully parse the T-SQL being formatted.]]></Val>
+          <Val><![CDATA[Show a notification when the SQL formatter cannot fully parse the T-SQL being formatted.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[フォーマット中の T-SQL を プレビュー フォーマッタが完全に解析できない場合に通知を表示します。]]></Val>
+            <Val><![CDATA[フォーマット中の T-SQL を SQL フォーマッタが完全に解析できない場合に通知を表示します。]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Show a notification when Preview Formatter cannot fully parse the T-SQL being formatted.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
