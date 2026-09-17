@@ -6361,6 +6361,10 @@ Error:
         <source xml:lang="en">Keep in query pane</source>
         <target state="translated">クエリ ウィンドウに保持</target>
       </trans-unit>
+      <trans-unit id="++CODE++17372face64ed2506cefca636024341e0d6f25d3f75847b5d276c0d5cc4569c4">
+        <source xml:lang="en">Kerberos must be configured to use Windows Authentication on macOS and Linux. Click the info icon to learn more.</source>
+        <target state="new">Kerberos must be configured to use Windows Authentication on macOS and Linux. Click the info icon to learn more.</target>
+      </trans-unit>
       <trans-unit id="++CODE++99a52df3ff3d499488e2fa28150c4106a2cb5e928891a830a9aa3922b2d32160">
         <source xml:lang="en">Key</source>
         <target state="translated">キー</target>
