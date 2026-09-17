@@ -18,7 +18,7 @@ export const overviewLinks = {
     reportBug: "https://aka.ms/vscode-mssql-bug",
     requestFeature: "https://aka.ms/vscode-mssql-feature-request",
     discussions: "https://aka.ms/vscode-mssql-discussions",
-    devHub: "https://aka.ms/azure-sql-dev-hub",
+    devHub: "http://aka.ms/azuresql-hub",
     devContainersQuickstart:
         "https://learn.microsoft.com/azure/azure-sql/database/local-dev-experience-dev-containers-quickstart",
     skillsRepository: "https://github.com/microsoft/azure-sql-database-container",
