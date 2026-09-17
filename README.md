@@ -155,20 +155,18 @@ Configure the MSSQL extension in user preferences (`Cmd+,`) or workspace setting
   "mssql.maxRecentConnections": 5,                         // Number of recent connections to display (0-50)
   "mssql.connectionManagement.rememberPasswordsUntilRestart": true,  // Keep passwords in memory until VS Code restarts
   "mssql.enableConnectionPooling": false,                  // Enable connection pooling for improved performance
-  "mssql.azureActiveDirectory": "AuthCodeGrant"            // Azure AD auth method: "AuthCodeGrant" or "DeviceCode"
-  "mssql.preview.useVscodeAccountsForEntraMFA": true,      // Whether to use accounts signed into VS Code for authenticating to databases with Microsoft Entra ID Universal with MFA
-  "mssql.newEditorConnectionBehavior": "transferACtive",   // How to connect a newly-opened .SQL file or query editor: "none" | "transferActive" | "defaultConnection"
+  "mssql.azureActiveDirectory": "AuthCodeGrant",           // Azure AD auth method: "AuthCodeGrant" or "DeviceCode"
+  "mssql.useMsalEntraMfaAuth": false,                      // Whether to use MSAL for Microsoft Entra MFA authentication instead of accounts signed into VS Code
+  "mssql.newEditorConnectionBehavior": "transferActive",   // How to connect a newly-opened .SQL file or query editor: "none" | "transferActive" | "defaultConnection"
   "mssql.defaultConnectionId": "",                         // Connection ID (GUID) of the connection to auto-connect new editors with. Only applicable when "mssql.newEditorConnectionBehavior" is set to "defaultConnection"
 }
 
-// Query Formatting
+// Query Formatting (search Settings for "@ext:ms-mssql.mssql format" to see all options)
 {
-  "mssql.format.enablePreviewFormatter": true,             // (Preview) Use the new SQL formatter with additional formatting options
-  "mssql.format.alignColumnDefinitionsInColumns": false,   // Align column definitions in CREATE TABLE statements
-  "mssql.format.datatypeCasing": "none",                   // Datatype casing: "none" | "uppercase" | "lowercase"
-  "mssql.format.keywordCasing": "none",                    // SQL keyword casing: "none" | "uppercase" | "lowercase"
-  "mssql.format.placeCommasBeforeNextStatement": false,    // Place commas before next item (procedural style)
-  "mssql.format.placeSelectStatementReferencesOnNewLine": false  // Put SELECT references on new lines
+  "mssql.format.options.keywordCasing": "uppercase",        // SQL keyword casing: "uppercase" | "lowercase" | "pascalCase"
+  "mssql.format.options.identifierCasing": "preserve",      // Identifier casing: "preserve" | "uppercase" | "lowercase" | "pascalCase"
+  "mssql.format.options.commaPlacement": "trailing",        // Comma placement: "trailing" | "leading"
+  "mssql.format.options.multilineSelectElementsList": true   // Put SELECT columns on separate lines
 }
 
 // IntelliSense
@@ -219,7 +217,6 @@ Configure the MSSQL extension in user preferences (`Cmd+,`) or workspace setting
 {
   "mssql.openQueryResultsInTabByDefault": false,           // Open query results in a tab instead of side panel
   "mssql.preview.betaResultsGrid": false,                  // (Preview) Enable the new query results grid with improved state management and column show/hide/freeze options
-  "mssql.preview.betaExecutionPlan": false,                // (Preview) Enable the new execution plan viewer with improved performance
   "mssql.resultsFontFamily": null,                         // Font family for results grid (null = VS Code default)
   "mssql.resultsFontSize": null,                           // Font size for results grid in pixels (null = VS Code default)
   "mssql.defaultQueryResultsViewMode": "Grid",             // Default results view: "Grid" or "Text"
@@ -337,110 +334,9 @@ Support for this extension is provided via [GitHub issues](https://github.com/Mi
 
 ## Development & Contributing
 
-This is a multi-extension monorepo. See the [developer documentation](https://github.com/microsoft/vscode-mssql/wiki/contributing) for details on how to contribute.
-
-<details>
-<summary>Repository layout, prerequisites, and build commands</summary>
-
-### Repository Layout
-
-- `extensions/` - all of the individual VS Code extensions
-- `extensions/mssql/` - Primary MSSQL extension that provides connection management, editors, and Copilot integration
-- `extensions/sql-database-projects/` - SQL Database Projects extension focused on SQL project authoring, build, and publish experiences
-- `extensions/data-workspace/` - Data Workspace extension providing project workspace management and coordination
-- `typings/` - Shared `.d.ts` shims for first-party dependencies (azdata, dataworkspace, mssql, vscode-mssql)
-
-### Prerequisites
-
-- Node.js `>= 24`
-- npm `>= 11`
-- VS Code `>= 1.98.0`
-
-Install dependencies once from the repository root:
-
-```bash
-npm install
-```
-
-Use `npm run list:targets` to see the supported targets.
-
-All commands below should be executed from the repository root unless noted otherwise.
-
-### Root Workspace Commands
-
-```bash
-# Build everything
-npm run build
-
-# Build one or more targets
-npm run build -- --target mssql
-npm run build -- --target sql-database-projects,data-workspace
-
-# Watch everything
-npm run watch
-
-# Watch one or more targets
-npm run watch -- --target mssql
-npm run watch -- --target sql-database-projects,data-workspace
-
-# Run tests for everything or a subset
-npm run test
-npm run test -- --target data-workspace
-
-# Package one or more extensions
-npm run package -- --target mssql
-npm run package -- --target database-management-keymap
-```
-
-### MSSQL Extension (`extensions/mssql/`)
-
-```bash
-npm run watch -- --target mssql
-npm run build -- --target mssql
-npm run build -- --target mssql --prod
-npm run package -- --target mssql --online
-npm run package -- --target mssql --offline
-
-# Testing
-npm run test -- --target mssql
-npm run smoketest -- --target mssql
-```
-
-### SQL Database Projects Extension (`extensions/sql-database-projects/`)
-
-```bash
-npm run watch -- --target sql-database-projects
-npm run build -- --target sql-database-projects
-npm run package -- --target sql-database-projects
-
-# Testing
-npm run test -- --target sql-database-projects
-```
-
-### Data Workspace Extension (`extensions/data-workspace/`)
-
-```bash
-npm run watch -- --target data-workspace
-npm run build -- --target data-workspace
-npm run package -- --target data-workspace
-
-# Testing
-npm run test -- --target data-workspace
-```
-
-### Debugging From The Root Workspace
-
-1. Open the repository root in VS Code.
-2. Run `npm run watch` to watch everything, or `npm run watch -- --target <target>` to limit it
-3. Launch a run configuration from VS Code:
-    - `Run All Extensions`
-
-### Contributing Tips
-
-- When editing build or launch configuration, ensure both extensions continue to debug cleanly from the new root-level `.vscode/launch.json`.
-- Before opening a PR, document which extension you changed and how you validated it (commands above or manual scenarios).
-
-</details>
+See the [development guide](DEVELOPMENT.md) for setup, build, test, localization, and debugging
+workflows. See the [contributing guide](https://github.com/microsoft/vscode-mssql/wiki/contributing)
+for the contribution process.
 
 ## Code of Conduct
 

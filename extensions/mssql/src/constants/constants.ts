@@ -151,6 +151,7 @@ export const cmdDeployNewDatabase = "mssql.deployNewDatabase";
 export const cmdStopContainer = "mssql.stopContainer";
 export const cmdDeleteContainer = "mssql.deleteContainer";
 export const cmdStartContainer = "mssql.startContainer";
+export const cmdCancelContainerOperation = "mssql.cancelContainerOperation";
 export const cmdHandleSummaryOperation = "mssql.handleSummaryOperation";
 export const cmdMoveToSchema = "mssql.moveToSchema";
 export const cmdOpenChangelog = "mssql.openChangelog";
@@ -175,6 +176,11 @@ export const defaultConnectionTimeout = 15;
 export const azureSqlDbConnectionTimeout = 30;
 export const defaultCommandTimeout = 30;
 export const stsImmediateActivityTimeout = 5000; // 5 seconds
+// Upper bound for a query cancel round-trip to SQL Tools Service before the editor is reset.
+export const queryCancelRequestTimeoutMs = 15000; // 15 seconds
+// Grace period for a completion notification to arrive after the service reported that it has
+// no running query for an editor we still consider executing.
+export const queryCancelOrphanGraceMs = 2000; // 2 seconds
 export const azureDatabase = "Azure";
 export const azureMfa = "AzureMFA";
 export const azureServicePrincipal = "ActiveDirectoryServicePrincipal";
@@ -300,6 +306,7 @@ export const configMaxRecentConnections = "maxRecentConnections";
 export const configCopyRemoveNewLine = "copyRemoveNewLine";
 export const configSplitPaneSelection = "splitPaneSelection";
 export const configShowBatchTime = "showBatchTime";
+export const configResultsShowBatchMessages = "results.showBatchMessages";
 export const configMessagesCopyIncludeTimestamps = "messages.copyIncludeTimestamps";
 export const configPreventAutoExecuteScript = "mssql.query.preventAutoExecuteScript";
 export enum extConfigResultKeys {
@@ -317,7 +324,10 @@ export const configPersistQueryResultTabs = "persistQueryResultTabs";
 export const configQueryHistoryLimit = "queryHistoryLimit";
 export const configEnableQueryHistoryCapture = "enableQueryHistoryCapture";
 export const configEnableQueryHistoryFeature = "enableQueryHistoryFeature";
+export const configQueryCompletionSoundEnabled = "query.playCompletionSound";
+export const configQueryCompletionSoundFile = "query.completionSoundFile";
 export const configEnableExperimentalFeatures = "mssql.enableExperimentalFeatures";
+export const configUseMsalEntraMfaAuth = "mssql.useMsalEntraMfaAuth";
 export const configOpenQueryResultsInTabByDefault = "mssql.openQueryResultsInTabByDefault";
 export const configOpenQueryResultsInTabByDefaultDoNotShowPrompt =
     "mssql.openQueryResultsInTabByDefaultDoNotShowPrompt";
@@ -325,6 +335,7 @@ export const configAutoColumnSizingMode = "resultsGrid.autoSizeColumnsMode";
 export const configInMemoryDataProcessingThreshold =
     "mssql.resultsGrid.inMemoryDataProcessingThreshold";
 export const configResultsGridAlternatingRowColors = "resultsGrid.alternatingRowColors";
+export const configResultsGridFreezeFirstColumnByDefault = "resultsGrid.freezeFirstColumnByDefault";
 export const configResultsGridShowGridLines = "resultsGrid.showGridLines";
 export const configResultsGridRowPadding = "resultsGrid.rowPadding";
 export const configAutoDisableNonTSqlLanguageService = "mssql.autoDisableNonTSqlLanguageService";
@@ -335,6 +346,7 @@ export const configShowActiveConnectionAsCodeLensSuggestion =
     "mssql.query.showActiveConnectionAsCodeLensSuggestion";
 export const configStatusBarConnectionInfoMaxLength = "statusBar.connectionInfoMaxLength";
 export const configStatusBarEnableConnectionColor = "mssql.statusBar.enableConnectionColor";
+export const configStatusBarShowQueryExecutionStatus = "statusBar.showQueryExecutionStatus";
 export const configSchemaDesignerEnableExpandCollapseButtons =
     "mssql.schemaDesigner.enableExpandCollapseButtons";
 export const configSavePasswordsUntilRestart =
@@ -436,8 +448,6 @@ export const DBProjectConfigurationKey = "sqlDatabaseProjects";
 export const sqlDatabaseProjectsExtensionId = "ms-mssql.sql-database-projects-vscode";
 export const internalConnectionSharingExtensionIds: ReadonlySet<string> = new Set([
     extensionId,
-    sqlDatabaseProjectsExtensionId,
-    "ms-mssql.data-workspace-vscode",
     "ms-mssql.sql-notebook-controller",
     "microsoft.schema-compare",
 ]);

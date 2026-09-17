@@ -37,7 +37,7 @@ export async function getLocalizationFileContentsCached(): Promise<string | unde
             localizationFileCache = fileContents;
             return fileContents;
         } catch (err) {
-            logger.error(`Error reading localization file: ${getErrorMessage(err)}`);
+            logger.warn(`Error reading localization file: ${getErrorMessage(err)}`);
             throw err;
         } finally {
             localizationFileReadPromise = undefined;

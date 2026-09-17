@@ -18,6 +18,7 @@ import {
     mockServerName,
     mockSubscriptions,
 } from "./azureHelperStubs";
+import { createStubLogger } from "./utils";
 
 chai.use(sinonChai);
 
@@ -55,10 +56,7 @@ suite("AzureResourcesExtensionIntegration Tests", () => {
 
         // Silence the internal logger to avoid writing to the output channel during tests.
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (integration as any)._logger = {
-            info: sandbox.stub(),
-            error: sandbox.stub(),
-        };
+        (integration as any)._logger = createStubLogger(sandbox);
     });
 
     teardown(() => {

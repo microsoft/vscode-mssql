@@ -8,6 +8,7 @@ import * as vscode from "vscode";
 import type { PagedAsyncIterableIterator } from "@azure/core-paging";
 import { IConnectionInfo } from "vscode-mssql";
 import * as os from "os";
+import * as path from "path";
 import { FormItemSpec, FormState } from "../sharedInterfaces/form";
 import xmlFormatter from "xml-formatter";
 
@@ -32,6 +33,19 @@ export async function exists(path: string, uri?: vscode.Uri): Promise<boolean> {
             return false;
         }
     }
+}
+
+/**
+ * Expands a leading tilde path segment to the current user's home directory.
+ */
+export function expandTildePath(filePath: string): string {
+    if (filePath === "~") {
+        return os.homedir();
+    }
+    if (filePath.startsWith("~/") || filePath.startsWith(`~${path.sep}`)) {
+        return path.join(os.homedir(), filePath.slice(2));
+    }
+    return filePath;
 }
 
 /**

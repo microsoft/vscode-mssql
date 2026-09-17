@@ -10,7 +10,11 @@ import {
     tokenizeSingleLineSqlText,
     tokenizeSqlText,
 } from "../../src/webviews/common/sqlText";
-import { normalizeExecutionPlanQuery } from "../../src/webviews/pages/ExecutionPlan/executionPlanQuery";
+import {
+    normalizeExecutionPlanQuery,
+    normalizeRecommendationDisplayString,
+    parseRecommendationDisplayString,
+} from "../../src/webviews/pages/ExecutionPlan/executionPlanQuery";
 
 suite("SqlText", () => {
     test("preserves the original SQL while assigning lightweight syntax token types", () => {
@@ -90,5 +94,44 @@ suite("ExecutionPlanQuery", () => {
         expect(normalizeExecutionPlanQuery("\r\n/* keep this */\r\nselect 1")).to.equal(
             "/* keep this */\r\nselect 1",
         );
+    });
+
+    test("flattens a multi-line missing index recommendation onto a single line", () => {
+        expect(
+            normalizeRecommendationDisplayString(
+                "\r\nMissing Index (Impact 99.4173):   CREATE NONCLUSTERED INDEX\r\n\t[<Name of Missing Index>] ON [dbo].[Orders] ([CustomerID])\r\n",
+            ),
+        ).to.equal(
+            "Missing Index (Impact 99.4173): CREATE NONCLUSTERED INDEX [<Name of Missing Index>] ON [dbo].[Orders] ([CustomerID])",
+        );
+        expect(normalizeRecommendationDisplayString("")).to.equal("");
+    });
+
+    test("splits a recommendation into its impact figure and index script", () => {
+        const parsed = parseRecommendationDisplayString(
+            "Missing Index (Impact 99.535):\r\n  CREATE NONCLUSTERED INDEX [<Name of Missing Index, sysname,>]\r\n  ON [dbo].[MissingIndexDemo] ([CustomerId],[Status])",
+        );
+
+        expect(parsed.impact).to.equal(99.535);
+        expect(parsed.script).to.equal(
+            "CREATE NONCLUSTERED INDEX [<Name of Missing Index, sysname,>] ON [dbo].[MissingIndexDemo] ([CustomerId],[Status])",
+        );
+    });
+
+    test("falls back to the whole string when the prefix is not recognizable", () => {
+        // localized or unexpected server strings must stay readable rather than be mangled
+        expect(
+            parseRecommendationDisplayString("CREATE NONCLUSTERED INDEX [x] ON [y] ([z])"),
+        ).to.deep.equal({ script: "CREATE NONCLUSTERED INDEX [x] ON [y] ([z])" });
+        expect(parseRecommendationDisplayString("Missing Index (Impact 12.5):")).to.deep.equal({
+            script: "Missing Index (Impact 12.5):",
+        });
+    });
+
+    test("omits the impact badge when the prefix carries no number", () => {
+        const parsed = parseRecommendationDisplayString("Missing Index: CREATE INDEX [a] ON [b]");
+
+        expect(parsed.impact).to.equal(undefined);
+        expect(parsed.script).to.equal("CREATE INDEX [a] ON [b]");
     });
 });

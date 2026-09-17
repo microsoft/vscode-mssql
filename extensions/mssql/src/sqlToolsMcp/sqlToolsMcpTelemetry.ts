@@ -25,7 +25,10 @@ export function sendSqlToolsMcpAction(
     properties: TelemetryProps = {},
     measurements: TelemetryMeasures = {},
 ): void {
-    sendActionEvent(TelemetryViews.SqlToolsMcp, action, properties, measurements);
+    sendActionEvent(TelemetryViews.SqlToolsMcp, action, {
+        additionalProps: properties,
+        additionalMeasurements: measurements,
+    });
 }
 
 export function sendSqlToolsMcpError(
@@ -35,22 +38,18 @@ export function sendSqlToolsMcpError(
     measurements: TelemetryMeasures = {},
 ): void {
     const bridgeErrorCode = getBridgeErrorCode(error);
-    sendErrorEvent(
-        TelemetryViews.SqlToolsMcp,
-        action,
-        error instanceof Error ? error : new Error("SQL Tools MCP operation failed."),
-        false,
-        bridgeErrorCode,
-        getErrorType(error),
-        {
+    sendErrorEvent(TelemetryViews.SqlToolsMcp, action, {
+        error: error instanceof Error ? error : new Error("SQL Tools MCP operation failed."),
+        includeErrorMessage: false,
+        errorCode: bridgeErrorCode,
+        errorType: getErrorType(error),
+        additionalProps: {
             ...properties,
             ...(bridgeErrorCode ? { bridgeErrorCode } : {}),
         },
-        measurements,
-        undefined,
-        undefined,
-        false,
-    );
+        additionalMeasurements: measurements,
+        includeCallStack: false,
+    });
 }
 
 export function getQueryTelemetryProperties(

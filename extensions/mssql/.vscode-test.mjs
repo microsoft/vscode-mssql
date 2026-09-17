@@ -10,18 +10,23 @@ import { createMochaConfig, defaultCoverageConfig } from "../../scripts/vscode-t
 // Tracked in: https://github.com/microsoft/vscode/issues/319752
 // Use a short temp user-data-dir to avoid macOS's 103-char Unix socket path limit.
 const tmpBaseDir = process.platform === "darwin" ? "/tmp" : os.tmpdir();
-const userDataDir = fs.mkdtempSync(path.join(tmpBaseDir, "vsc-mssql-"));
+const userDataDirs = [
+    fs.mkdtempSync(path.join(tmpBaseDir, "vsc-mssql-")),
+    fs.mkdtempSync(path.join(tmpBaseDir, "vsc-sqlproj-")),
+];
 process.on("exit", () => {
-    fs.rmSync(userDataDir, { recursive: true, force: true });
+    for (const userDataDir of userDataDirs) {
+        fs.rmSync(userDataDir, { recursive: true, force: true });
+    }
 });
 
 export default defineConfig({
     tests: [
         {
             label: "Unit Tests",
-            files: "out/test/unit/**/*.test.js",
+            files: ["out/test/unit/*.test.js", "out/test/unit/!(databaseProjects)/**/*.test.js"],
             version: "insiders",
-            launchArgs: ["--user-data-dir", userDataDir],
+            launchArgs: ["--user-data-dir", userDataDirs[0]],
             env: {
                 VSCODE_LOG_LEVEL: "error",
             },
@@ -29,6 +34,24 @@ export default defineConfig({
                 ui: "tdd",
                 timeout: 30_000,
             }),
+        },
+        {
+            label: "SQL Database Projects Unit Tests",
+            // These tests activate MSSQL and SQL Tools Service, so keep them isolated from
+            // unit tests that stub process-global VS Code APIs.
+            files: "out/test/unit/databaseProjects/**/*.test.js",
+            version: "insiders",
+            launchArgs: ["--user-data-dir", userDataDirs[1]],
+            env: {
+                VSCODE_LOG_LEVEL: "error",
+            },
+            mocha: createMochaConfig(
+                {
+                    ui: "tdd",
+                    timeout: 30_000,
+                },
+                { junitFile: "test-reports/test-results-sql-projects.xml" },
+            ),
         },
         // {
         //     label: "Activation Tests",

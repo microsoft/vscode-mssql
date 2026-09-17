@@ -12,9 +12,9 @@
  *
  * How the PNGs were converted
  *
- * 1. Start from the original PNG in `./icons` and retain its pixel dimensions. The PNGs remain in
- *    the repository because the classic mxGraph execution plan still consumes them and because
- *    they are the source material for regenerating these vectors.
+ * 1. Start from the original PNG in `./icons` and retain its pixel dimensions. Nothing renders the
+ *    PNGs any more, but they remain in the repository as the source material for regenerating
+ *    these vectors.
  * 2. Split the raster into one-bit masks by semantic color. Neutral gray/black pixels form the
  *    `foreground` mask. Blue, purple, red, green, and yellow pixels form separate accent masks.
  *    Classify antialiased edge pixels with the nearest source-palette color so they belong to the

@@ -23,7 +23,7 @@ import {
 } from "../utils";
 import { QueryResultReactProvider } from "../../queryResultStateProvider";
 import { WebviewAction, WebviewKeyBindings } from "../../../../../sharedInterfaces/webview";
-import { eventMatchesShortcut } from "../../../../common/keyboardUtils";
+import { eventMatchesShortcut, isCtrlInsertCopyShortcut } from "../../../../common/keyboardUtils";
 
 /**
  * Implements the various additional navigation keybindings we want out of slickgrid
@@ -61,7 +61,8 @@ export class CopyKeybind<T extends Slick.SlickData> implements Slick.Plugin<T> {
             eventMatchesShortcut(
                 e,
                 this.keyBindings[WebviewAction.ResultGridCopySelection].keyCombination,
-            )
+            ) ||
+            isCtrlInsertCopyShortcut(e)
         ) {
             handled = true;
             await this.copySelection(false);

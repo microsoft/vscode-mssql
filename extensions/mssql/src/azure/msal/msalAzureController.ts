@@ -232,18 +232,13 @@ export class MsalAzureController extends AzureController {
         tenantId: string | undefined,
         settings: IAADResource,
     ): Promise<IToken | undefined> {
-        sendActionEvent(
-            TelemetryViews.AzureAccountManagement,
-            TelemetryActions.RefreshEntraToken,
-            {
+        sendActionEvent(TelemetryViews.AzureAccountManagement, TelemetryActions.RefreshEntraToken, {
+            additionalProps: {
                 authType: AzureAuthType[account?.properties?.azureAuthType] ?? "unknown",
                 cloudId: account?.key?.providerId ?? "unknown",
             },
-            undefined,
-            undefined,
-            undefined,
-            true, // include call stack
-        );
+            includeCallStack: true,
+        });
 
         let newAccount: IAccount;
         try {

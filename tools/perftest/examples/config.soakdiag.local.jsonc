@@ -1,0 +1,53 @@
+// Phase-2 M10.5: DIAGNOSTIC soak for leak attribution. 60 iterations of
+// connect→query→disconnect with V8 heap snapshots (forced-GC, start+end,
+// constructor-level growth diff) and STS gcdumps. Answers "WHAT is growing"
+// after a measurement soak returns verdict=growing.
+{
+    "schemaVersion": 2,
+    "runId": "auto",
+    "passType": "diagnostic",
+    "repetitions": 1,
+    "warmupRepetitions": 0,
+    "scenarios": ["soak-connect-query-disconnect"],
+    "vscode": {
+        "version": "stable",
+        "quality": "stable",
+        "launchMode": "directSpawn",
+        "profileMode": "scenarioDefault",
+        "workspaceRoot": "../workspaces/perf",
+        "extensions": [
+            {
+                "id": "ms-mssql.mssql",
+                "source": "developmentPath",
+                "path": "../../../extensions/mssql",
+            },
+            {
+                "id": "perftest.mssql-perf-driver",
+                "source": "developmentPath",
+                "path": "../extensions/mssql-perf-driver",
+            },
+        ],
+        "extraArgs": [],
+        "env": {
+            "PERF_SOAK_ITERATIONS": "60",
+        },
+    },
+    "sql": {
+        "provider": "external",
+        "connectionStringEnv": "STS2_SQLSERVER_CONNSTRING",
+        "snapshot": "seed-v1",
+        "cacheMode": "warm",
+        "connectionProfile": "default",
+    },
+    "environment": { "requireIdle": false },
+    "diagnostics": {
+        "markers": true,
+        "processSampler": true,
+        "heapSnapshots": true,
+        "gcDump": true,
+        "otel": "off",
+    },
+    "store": { "type": "sqlite", "path": "../perf.db" },
+    "regression": { "baseline": "none", "failOnRegression": false },
+    "output": { "dir": "../perf-runs", "keepArtifacts": "always" },
+}

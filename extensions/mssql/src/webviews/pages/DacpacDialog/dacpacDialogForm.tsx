@@ -692,7 +692,7 @@ export const DacpacDialogForm = () => {
         // Only check for errors, not warnings
         const hasErrors = Object.values(validationMessages).some((msg) => msg.severity === "error");
         Object.values(validationMessages).forEach((msg) => {
-            log?.debug(msg.message);
+            log?.trace(msg.message);
         });
         return !hasErrors;
     };

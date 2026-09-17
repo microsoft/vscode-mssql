@@ -30,6 +30,14 @@ export type NotebookQueryResultBlock =
 export interface NotebookQueryResultOutputData {
     version: 1;
     blocks: NotebookQueryResultBlock[];
+    copyAsCsvOptions?: NotebookCopyAsCsvOptions;
+}
+
+export interface NotebookCopyAsCsvOptions {
+    delimiter: string;
+    includeHeaders: boolean;
+    lineSeparator: string;
+    textIdentifier: string;
 }
 
 // Older notebook executions stored each result set as its own custom output item.
@@ -66,7 +74,12 @@ export interface NotebookSelectionSummaryMessage {
     metrics: SelectionSummaryMetrics | undefined;
 }
 
-/**
- * The union of messages the notebook result renderer posts to the extension host.
- */
-export type NotebookRendererMessage = NotebookSaveAsMessage | NotebookSelectionSummaryMessage;
+export interface NotebookShowErrorMessage {
+    type: "showError";
+    message: string;
+}
+
+export type NotebookRendererMessage =
+    | NotebookSaveAsMessage
+    | NotebookSelectionSummaryMessage
+    | NotebookShowErrorMessage;

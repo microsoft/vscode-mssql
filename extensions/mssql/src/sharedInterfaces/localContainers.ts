@@ -118,6 +118,7 @@ export interface DockerStep {
  */
 export type DockerCommandParams = {
     success: boolean;
+    canceled?: boolean;
     error?: string;
     port?: number;
     fullErrorText?: string;

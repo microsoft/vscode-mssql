@@ -1,0 +1,23 @@
+{
+    "sourceDigest": "src_sevnRvqjv6hClRtKokWLHY",
+    "contentDigest": "cnt_3VhOJJnhYPqaj5rO2isy_v",
+    "projectionDigest": "prj_A_j5dLzDz5EbhbsfNcuCTK",
+    "previewDigest": "pvw_SS3ESr5cAQRUF4CpTXKBwQ",
+    "tables": [
+        {
+            "name": "diag_events",
+            "rows": 6,
+            "bytesEstimate": 4148
+        },
+        {
+            "name": "diag_gaps",
+            "rows": 2,
+            "bytesEstimate": 424
+        },
+        {
+            "name": "diag_sessions",
+            "rows": 1,
+            "bytesEstimate": 748
+        }
+    ]
+}

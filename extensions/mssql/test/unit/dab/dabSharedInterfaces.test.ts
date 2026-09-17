@@ -143,7 +143,16 @@ suite("DAB shared interface helpers", () => {
             isSupported: true,
         });
         expect(config.entities[0].enabledActions).to.deep.equal([Dab.EntityAction.Execute]);
-        expect(config.entities[0].advancedSettings.exposeAsMcpCustomTool).to.equal(true);
+        expect(config.apiTypes).to.deep.equal([
+            Dab.ApiType.Rest,
+            Dab.ApiType.GraphQL,
+            Dab.ApiType.Mcp,
+        ]);
+        expect(config.entities[0].advancedSettings.permissions).to.deep.equal([
+            { role: Dab.AuthorizationRole.Anonymous, actions: [] },
+            { role: Dab.AuthorizationRole.Authenticated, actions: [Dab.EntityAction.Execute] },
+        ]);
+        expect(config.entities[0].advancedSettings.exposeAsMcpCustomTool).to.equal(false);
         expect(config.entities[0].parameters).to.deep.equal([
             {
                 name: "userId",
@@ -176,6 +185,65 @@ suite("DAB shared interface helpers", () => {
                 columns: "OrganizationNode (hierarchyid)",
             },
         ]);
+    });
+
+    test("getEntityExposedApiTypes intersects global and entity API settings", () => {
+        const entity = Dab.createDefaultConfigFromSources([createSourceObject()]).entities[0];
+        entity.advancedSettings = {
+            ...entity.advancedSettings,
+            restEnabled: true,
+            graphQLEnabled: false,
+            mcpEnabled: true,
+            mcpDmlToolsEnabled: true,
+        };
+
+        expect(
+            Dab.getEntityExposedApiTypes(entity, [Dab.ApiType.Rest, Dab.ApiType.GraphQL]),
+        ).to.deep.equal([Dab.ApiType.Rest]);
+        expect(
+            Dab.getEntityExposedApiTypes(entity, [Dab.ApiType.GraphQL, Dab.ApiType.Mcp]),
+        ).to.deep.equal([Dab.ApiType.Mcp]);
+        expect(Dab.getEntityExposedApiTypes(entity, [])).to.deep.equal([]);
+
+        entity.advancedSettings.graphQLEnabled = true;
+        expect(
+            Dab.getEntityExposedApiTypes(entity, [
+                Dab.ApiType.Mcp,
+                Dab.ApiType.GraphQL,
+                Dab.ApiType.Rest,
+            ]),
+        ).to.deep.equal([Dab.ApiType.Rest, Dab.ApiType.GraphQL, Dab.ApiType.Mcp]);
+    });
+
+    test("effective exposure respects global API types without changing column preferences", () => {
+        const entity = Dab.createDefaultConfigFromSources([createSourceObject()]).entities[0];
+        const nameColumn = entity.columns.find((column) => column.name === "Name");
+        if (!nameColumn) {
+            throw new Error("Expected Name column");
+        }
+
+        expect(Dab.isEntityEffectivelyExposed(entity, [Dab.ApiType.Rest])).to.equal(true);
+        expect(Dab.isColumnEffectivelyExposed(entity, nameColumn, [Dab.ApiType.Rest])).to.equal(
+            true,
+        );
+        expect(Dab.isEntityEffectivelyExposed(entity, [])).to.equal(false);
+        expect(Dab.isColumnEffectivelyExposed(entity, nameColumn, [])).to.equal(false);
+        expect(nameColumn.isExposed).to.equal(true);
+    });
+
+    test("logical keys are effectively exposed only while their entity is exposed", () => {
+        const entity = Dab.createDefaultConfigFromSources([createSourceObject()]).entities[0];
+        const keyColumn = entity.columns.find((column) => column.name === "Id");
+        if (!keyColumn) {
+            throw new Error("Expected Id column");
+        }
+        keyColumn.isExposed = false;
+
+        expect(Dab.isColumnEffectivelyExposed(entity, keyColumn, [Dab.ApiType.Rest])).to.equal(
+            true,
+        );
+        expect(Dab.isColumnEffectivelyExposed(entity, keyColumn, [])).to.equal(false);
+        expect(keyColumn.isExposed).to.equal(false);
     });
 
     test("syncConfigWithSources removes missing entities, adds new ones, and refreshes metadata", () => {

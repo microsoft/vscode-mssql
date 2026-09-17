@@ -120,12 +120,10 @@ export class WebviewPanelController<State, Reducers, Result = void> extends Webv
             {
                 title: locConstants.Webview.Restore,
                 run: async () => {
-                    sendActionEvent(
-                        TelemetryViews.WebviewController,
-                        TelemetryActions.Restore,
-                        {},
-                        {},
-                    );
+                    sendActionEvent(TelemetryViews.WebviewController, TelemetryActions.Restore, {
+                        additionalProps: {},
+                        additionalMeasurements: {},
+                    });
                     await this.createWebviewPanel();
                     this._panel.reveal(this._options.viewColumn);
                 },

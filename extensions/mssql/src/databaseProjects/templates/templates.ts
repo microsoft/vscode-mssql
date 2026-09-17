@@ -1,0 +1,257 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+import * as path from "path";
+import { promises as fs } from "fs";
+import { ItemType } from "../sqldbproj";
+import * as constants from "../common/constants";
+import { getMicrosoftBuildSqlVersion } from "../tools/netcoreTool";
+import { SqlProjects } from "../../constants/locConstants";
+
+export let newSqlProjectTemplate: string;
+export let newSdkSqlProjectTemplate: string;
+
+/**
+ * Configuration for item type default folder placement.
+ */
+export interface ItemTypeFolderConfig {
+    /** The default folder name for this item type */
+    folderName: string;
+    /** If true, the folder can be nested under schema folders (e.g., Sales/Functions). If false, only root-level folder is checked. */
+    schemaDependent: boolean;
+}
+
+/**
+ * Maps item types to their default folder locations and schema dependency.
+ * Following SSDT conventions for folder structure (ObjectType and SchemaObjectType).
+ * Add new mappings here when adding item types that should be placed in specific folders.
+ */
+export const itemTypeToFolderMap: ReadonlyMap<ItemType, ItemTypeFolderConfig> = new Map([
+    [ItemType.schema, { folderName: constants.securityFolderName, schemaDependent: false }],
+    [ItemType.table, { folderName: constants.tablesFolderName, schemaDependent: true }],
+    [ItemType.view, { folderName: constants.viewsFolderName, schemaDependent: true }],
+    [
+        ItemType.storedProcedure,
+        { folderName: constants.storedProceduresFolderName, schemaDependent: true },
+    ],
+    [ItemType.trigger, { folderName: constants.triggersFolderName, schemaDependent: true }],
+    [
+        ItemType.tableValuedFunction,
+        { folderName: constants.functionsFolderName, schemaDependent: true },
+    ],
+    [
+        ItemType.databaseTrigger,
+        { folderName: constants.databaseTriggersFolderName, schemaDependent: false },
+    ],
+    [ItemType.sequence, { folderName: constants.sequencesFolderName, schemaDependent: true }],
+]);
+
+// Object maps
+
+let scriptTypeMap: Map<string, ProjectScriptType> = new Map();
+
+export function get(key: string): ProjectScriptType {
+    if (scriptTypeMap.size === 0) {
+        throw new Error("Templates must be loaded from file before attempting to use.");
+    }
+
+    return scriptTypeMap.get(key.toLocaleLowerCase())!;
+}
+
+let scriptTypes: ProjectScriptType[] = [];
+
+export function projectScriptTypes(): ProjectScriptType[] {
+    if (scriptTypes.length === 0) {
+        throw new Error("Templates must be loaded from file before attempting to use.");
+    }
+
+    return scriptTypes;
+}
+
+export async function loadTemplates(templateFolderPath: string) {
+    reset();
+
+    await Promise.all([
+        Promise.resolve(
+            (newSqlProjectTemplate = await loadTemplate(
+                templateFolderPath,
+                "newSqlProjectTemplate.xml",
+            )),
+        ),
+        Promise.resolve(
+            (newSdkSqlProjectTemplate = macroExpansion(
+                await loadTemplate(templateFolderPath, "newSdkSqlProjectTemplate.xml"),
+                new Map([["MICROSOFT_BUILD_SQL_VERSION", getMicrosoftBuildSqlVersion()]]),
+            )),
+        ),
+        loadObjectTypeInfo(
+            ItemType.script,
+            SqlProjects.scriptFriendlyName,
+            templateFolderPath,
+            "newTsqlScriptTemplate.sql",
+        ),
+        loadObjectTypeInfo(
+            ItemType.table,
+            SqlProjects.tableFriendlyName,
+            templateFolderPath,
+            "newTsqlTableTemplate.sql",
+        ),
+        loadObjectTypeInfo(
+            ItemType.view,
+            SqlProjects.viewFriendlyName,
+            templateFolderPath,
+            "newTsqlViewTemplate.sql",
+        ),
+        loadObjectTypeInfo(
+            ItemType.storedProcedure,
+            SqlProjects.storedProcedureFriendlyName,
+            templateFolderPath,
+            "newTsqlStoredProcedureTemplate.sql",
+        ),
+        loadObjectTypeInfo(
+            ItemType.tableValuedFunction,
+            SqlProjects.tableValuedFunctionFriendlyName,
+            templateFolderPath,
+            "newTsqlTableValuedFunctionTemplate.sql",
+        ),
+        loadObjectTypeInfo(
+            ItemType.schema,
+            SqlProjects.schemaFriendlyName,
+            templateFolderPath,
+            "newTsqlSchemaTemplate.sql",
+        ),
+        loadObjectTypeInfo(
+            ItemType.preDeployScript,
+            SqlProjects.preDeployScriptFriendlyName,
+            templateFolderPath,
+            "newTsqlPreDeployScriptTemplate.sql",
+        ),
+        loadObjectTypeInfo(
+            ItemType.postDeployScript,
+            SqlProjects.postDeployScriptFriendlyName,
+            templateFolderPath,
+            "newTsqlPostDeployScriptTemplate.sql",
+        ),
+        loadObjectTypeInfo(
+            ItemType.dataSource,
+            SqlProjects.dataSourceFriendlyName,
+            templateFolderPath,
+            "newTsqlDataSourceTemplate.sql",
+        ),
+        loadObjectTypeInfo(
+            ItemType.fileFormat,
+            SqlProjects.fileFormatFriendlyName,
+            templateFolderPath,
+            "newTsqlFileFormatTemplate.sql",
+        ),
+        loadObjectTypeInfo(
+            ItemType.externalStream,
+            SqlProjects.externalStreamFriendlyName,
+            templateFolderPath,
+            "newTsqlExternalStreamTemplate.sql",
+        ),
+        loadObjectTypeInfo(
+            ItemType.externalStreamingJob,
+            SqlProjects.externalStreamingJobFriendlyName,
+            templateFolderPath,
+            "newTsqlExternalStreamingJobTemplate.sql",
+        ),
+        loadObjectTypeInfo(
+            ItemType.publishProfile,
+            SqlProjects.publishProfileFriendlyName,
+            templateFolderPath,
+            "newPublishProfileTemplate.publish.xml",
+        ),
+        loadObjectTypeInfo(
+            ItemType.trigger,
+            SqlProjects.triggerFriendlyName,
+            templateFolderPath,
+            "newTsqlTriggerTemplate.sql",
+        ),
+        loadObjectTypeInfo(
+            ItemType.databaseTrigger,
+            SqlProjects.databaseTriggerFriendlyName,
+            templateFolderPath,
+            "newTsqlDatabaseTriggerTemplate.sql",
+        ),
+        loadObjectTypeInfo(
+            ItemType.sequence,
+            SqlProjects.sequenceFriendlyName,
+            templateFolderPath,
+            "newTsqlSequenceTemplate.sql",
+        ),
+    ]);
+
+    for (const scriptType of scriptTypes) {
+        if (
+            scriptTypeMap.has(scriptType.type.toLocaleLowerCase()) ||
+            scriptTypeMap.has(scriptType.friendlyName.toLocaleLowerCase())
+        ) {
+            throw new Error(
+                `Script type map already contains ${scriptType.type} or its friendlyName.`,
+            );
+        }
+
+        scriptTypeMap.set(scriptType.type.toLocaleLowerCase(), scriptType);
+        scriptTypeMap.set(scriptType.friendlyName.toLocaleLowerCase(), scriptType);
+    }
+}
+
+export function macroExpansion(template: string, macroDict: Map<string, string>): string {
+    const macroIndicator = "@@";
+    let output = template;
+
+    for (const macro of macroDict.keys()) {
+        // check if value contains the macroIndicator, which could break expansion for successive macros
+        if (macroDict.get(macro)!.includes(macroIndicator)) {
+            throw new Error(
+                `Macro value ${macroDict.get(macro)} is invalid because it contains ${macroIndicator}`,
+            );
+        }
+
+        output = output.replace(
+            new RegExp(macroIndicator + macro + macroIndicator, "g"),
+            macroDict.get(macro)!,
+        );
+    }
+
+    return output;
+}
+
+async function loadObjectTypeInfo(
+    key: ItemType,
+    friendlyName: string,
+    templateFolderPath: string,
+    fileName: string,
+): Promise<string> {
+    const template = await loadTemplate(templateFolderPath, fileName);
+    scriptTypes.push(new ProjectScriptType(key, friendlyName, template));
+
+    return key;
+}
+
+async function loadTemplate(templateFolderPath: string, fileName: string): Promise<string> {
+    return (await fs.readFile(path.join(templateFolderPath, fileName))).toString();
+}
+
+export class ProjectScriptType {
+    type: ItemType;
+    friendlyName: string;
+    templateScript: string;
+
+    constructor(type: ItemType, friendlyName: string, templateScript: string) {
+        this.type = type;
+        this.friendlyName = friendlyName;
+        this.templateScript = templateScript;
+    }
+}
+
+/**
+ * For testing purposes only
+ */
+export function reset() {
+    scriptTypeMap = new Map();
+    scriptTypes = [];
+}

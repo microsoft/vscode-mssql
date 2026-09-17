@@ -140,27 +140,23 @@ export async function createExecutionPlanGraphs(
             newState.errorMessage = getErrorMessage(e);
             state.executionPlanState = newState;
 
-            sendErrorEvent(
-                TelemetryViews.ExecutionPlan,
-                TelemetryActions.OpenExecutionPlan,
-                e,
-                true, // includeErrorMessage
-            );
+            sendErrorEvent(TelemetryViews.ExecutionPlan, TelemetryActions.OpenExecutionPlan, {
+                error: e,
+                includeErrorMessage: true,
+            });
             return state;
         }
     }
 
-    sendActionEvent(
-        TelemetryViews.ExecutionPlan,
-        TelemetryActions.OpenExecutionPlan,
-        {
+    sendActionEvent(TelemetryViews.ExecutionPlan, TelemetryActions.OpenExecutionPlan, {
+        additionalProps: {
             source: source,
         },
-        {
+        additionalMeasurements: {
             numberOfPlans: state.executionPlanState.executionPlanGraphs.length,
             loadTimeInMs: performance.now() - startTime,
         },
-    );
+    });
 
     state.executionPlanState = newState;
     state.executionPlanState.totalCost = calculateTotalCost(state);

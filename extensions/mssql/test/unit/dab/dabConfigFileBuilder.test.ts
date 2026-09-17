@@ -9,7 +9,7 @@ import { DabConfigFileBuilder } from "../../../src/dab/dabConfigFileBuilder";
 import { Dab } from "../../../src/sharedInterfaces/dab";
 
 function createTestEntity(overrides?: Partial<Dab.DabEntityConfig>): Dab.DabEntityConfig {
-    return {
+    const entity: Dab.DabEntityConfig = {
         id: "test-id-1",
         sourceType: Dab.EntitySourceType.Table,
         sourceName: "Users",
@@ -47,6 +47,17 @@ function createTestEntity(overrides?: Partial<Dab.DabEntityConfig>): Dab.DabEnti
         },
         ...overrides,
     };
+
+    if (overrides?.isEnabled === false) {
+        entity.advancedSettings = {
+            ...entity.advancedSettings,
+            restEnabled: entity.advancedSettings.restEnabled ?? false,
+            graphQLEnabled: entity.advancedSettings.graphQLEnabled ?? false,
+            mcpEnabled: entity.advancedSettings.mcpEnabled ?? false,
+        };
+    }
+
+    return entity;
 }
 
 function createTestConfig(overrides?: Partial<Dab.DabConfig>): Dab.DabConfig {
@@ -279,6 +290,29 @@ suite("DabConfigFileBuilder Tests", () => {
                 expect(parsed.entities).to.have.property("SupportedEntity");
                 expect(parsed.entities).to.not.have.property("UnsupportedEntity");
             });
+
+            test("should exclude entities without a locally and globally enabled API surface", () => {
+                const config = createTestConfig({
+                    apiTypes: [Dab.ApiType.GraphQL],
+                    entities: [
+                        createTestEntity({
+                            advancedSettings: {
+                                entityName: "RestOnlyEntity",
+                                authorizationRole: Dab.AuthorizationRole.Anonymous,
+                                restEnabled: true,
+                                graphQLEnabled: false,
+                                mcpEnabled: false,
+                                mcpDmlToolsEnabled: false,
+                            },
+                        }),
+                    ],
+                });
+
+                const result = builder.build(config, defaultConnectionInfo);
+                const parsed = JSON.parse(result);
+
+                expect(parsed.entities).to.not.have.property("RestOnlyEntity");
+            });
         });
 
         suite("entity source mapping", () => {
@@ -305,14 +339,18 @@ suite("DabConfigFileBuilder Tests", () => {
                 expect(entity.source.object).to.equal("sales.Orders");
             });
 
-            test("should emit table primary keys as source key-fields", () => {
+            test("should emit table primary keys as fields metadata", () => {
                 const result = builder.build(createTestConfig(), defaultConnectionInfo);
                 const parsed = JSON.parse(result);
                 const entity = parsed.entities["Users"];
-                expect(entity.source["key-fields"]).to.deep.equal(["Id"]);
+                expect(entity.source).to.not.have.property("key-fields");
+                expect(entity.fields).to.deep.equal([
+                    { name: "Id", "primary-key": true },
+                    { name: "Name" },
+                ]);
             });
 
-            test("should emit composite table primary keys as source key-fields", () => {
+            test("should emit composite table primary keys as fields metadata", () => {
                 const config = createTestConfig({
                     entities: [
                         createTestEntity({
@@ -341,7 +379,95 @@ suite("DabConfigFileBuilder Tests", () => {
                 const result = builder.build(config, defaultConnectionInfo);
                 const parsed = JSON.parse(result);
                 const entity = parsed.entities["Users"];
-                expect(entity.source["key-fields"]).to.deep.equal(["Id", "Sequence"]);
+                expect(entity.source).to.not.have.property("key-fields");
+                expect(entity.fields).to.deep.equal([
+                    { name: "Id", "primary-key": true },
+                    { name: "Sequence", "primary-key": true },
+                ]);
+            });
+
+            test("should emit field alias and description metadata", () => {
+                const config = createTestConfig({
+                    entities: [
+                        createTestEntity({
+                            fields: [
+                                { name: "Id", isPrimaryKey: true, description: "Identifier" },
+                                { name: "Name", alias: "displayName", description: "Display name" },
+                            ],
+                        }),
+                    ],
+                });
+
+                const result = builder.build(config, defaultConnectionInfo);
+                const parsed = JSON.parse(result);
+                const entity = parsed.entities["Users"];
+
+                expect(entity.fields).to.deep.equal([
+                    { name: "Id", description: "Identifier", "primary-key": true },
+                    { name: "Name", alias: "displayName", description: "Display name" },
+                ]);
+            });
+
+            test("should alias GraphQL-invalid column names without colliding", () => {
+                const config = createTestConfig({
+                    apiTypes: [Dab.ApiType.GraphQL],
+                    entities: [
+                        createTestEntity({
+                            columns: [
+                                {
+                                    id: "database-version",
+                                    name: "Database Version",
+                                    dataType: "nvarchar",
+                                    isSupported: true,
+                                    isExposed: true,
+                                    isPrimaryKey: false,
+                                },
+                                {
+                                    id: "database-version-alias",
+                                    name: "Database_Version",
+                                    dataType: "nvarchar",
+                                    isSupported: true,
+                                    isExposed: true,
+                                    isPrimaryKey: false,
+                                },
+                            ],
+                        }),
+                    ],
+                });
+
+                const result = builder.build(config, defaultConnectionInfo);
+                const parsed = JSON.parse(result);
+
+                expect(parsed.entities["Users"].fields).to.deep.equal([
+                    { name: "Database Version", alias: "Database_Version_2" },
+                    { name: "Database_Version" },
+                ]);
+            });
+
+            test("should not alias GraphQL-invalid column names when GraphQL is disabled", () => {
+                const config = createTestConfig({
+                    entities: [
+                        createTestEntity({
+                            columns: [
+                                {
+                                    id: "database-version",
+                                    name: "Database Version",
+                                    dataType: "nvarchar",
+                                    isSupported: true,
+                                    isExposed: true,
+                                    isPrimaryKey: false,
+                                },
+                            ],
+                        }),
+                    ],
+                });
+
+                const result = builder.build(config, defaultConnectionInfo);
+                const parsed = JSON.parse(result);
+
+                expect(parsed.entities["Users"].fields).to.deep.equal([
+                    { name: "Database Version" },
+                ]);
             });
 
             test("should use advancedSettings.entityName as the entity key", () => {
@@ -394,69 +520,7 @@ suite("DabConfigFileBuilder Tests", () => {
                 ]);
             });
 
-            test("should alias GraphQL-invalid column names without colliding", () => {
-                const config = createTestConfig({
-                    apiTypes: [Dab.ApiType.GraphQL],
-                    entities: [
-                        createTestEntity({
-                            columns: [
-                                {
-                                    id: "database-version",
-                                    name: "Database Version",
-                                    dataType: "nvarchar",
-                                    isSupported: true,
-                                    isExposed: true,
-                                    isPrimaryKey: false,
-                                },
-                                {
-                                    id: "database-version-alias",
-                                    name: "Database_Version",
-                                    dataType: "nvarchar",
-                                    isSupported: true,
-                                    isExposed: true,
-                                    isPrimaryKey: false,
-                                },
-                            ],
-                        }),
-                    ],
-                });
-
-                const result = builder.build(config, defaultConnectionInfo);
-                const parsed = JSON.parse(result);
-
-                expect(parsed.entities["Users"].fields).to.deep.equal([
-                    {
-                        name: "Database Version",
-                        alias: "Database_Version_2",
-                    },
-                ]);
-            });
-
-            test("should not alias GraphQL-invalid column names when GraphQL is disabled", () => {
-                const config = createTestConfig({
-                    entities: [
-                        createTestEntity({
-                            columns: [
-                                {
-                                    id: "database-version",
-                                    name: "Database Version",
-                                    dataType: "nvarchar",
-                                    isSupported: true,
-                                    isExposed: true,
-                                    isPrimaryKey: false,
-                                },
-                            ],
-                        }),
-                    ],
-                });
-
-                const result = builder.build(config, defaultConnectionInfo);
-                const parsed = JSON.parse(result);
-
-                expect(parsed.entities["Users"]).not.to.have.property("fields");
-            });
-
-            test("should emit stored procedure execute permissions and MCP custom tool", () => {
+            test("should emit stored procedure execute permissions and MCP settings", () => {
                 const config = createTestConfig({
                     apiTypes: [Dab.ApiType.Rest, Dab.ApiType.GraphQL, Dab.ApiType.Mcp],
                     entities: [
@@ -492,8 +556,8 @@ suite("DabConfigFileBuilder Tests", () => {
                 expect(entity.rest).to.deep.equal({ methods: ["post"] });
                 expect(entity.graphql).to.be.undefined;
                 expect(entity.mcp).to.deep.equal({
-                    "custom-tool": true,
-                    "dml-tools": false,
+                    "custom-tool": false,
+                    "dml-tools": true,
                 });
             });
 
@@ -522,7 +586,7 @@ suite("DabConfigFileBuilder Tests", () => {
                 expect(parsed.entities["GetUsers"].mcp).to.be.undefined;
             });
 
-            test("should not emit stored procedure MCP custom tool settings when disabled", () => {
+            test("should emit stored procedure MCP settings when custom tool is disabled", () => {
                 const config = createTestConfig({
                     apiTypes: [Dab.ApiType.Rest, Dab.ApiType.Mcp],
                     entities: [
@@ -545,7 +609,10 @@ suite("DabConfigFileBuilder Tests", () => {
                 const result = builder.build(config, defaultConnectionInfo);
                 const parsed = JSON.parse(result);
 
-                expect(parsed.entities["GetUsers"].mcp).to.be.undefined;
+                expect(parsed.entities["GetUsers"].mcp).to.deep.equal({
+                    "custom-tool": false,
+                    "dml-tools": true,
+                });
             });
 
             test("should emit table MCP DML tools setting when enabled explicitly", () => {
@@ -570,7 +637,7 @@ suite("DabConfigFileBuilder Tests", () => {
                 });
             });
 
-            test("should emit table MCP DML tools setting when disabled explicitly", () => {
+            test("should disable table MCP when DML tools are disabled explicitly", () => {
                 const config = createTestConfig({
                     apiTypes: [Dab.ApiType.Rest, Dab.ApiType.Mcp],
                     entities: [
@@ -587,9 +654,7 @@ suite("DabConfigFileBuilder Tests", () => {
                 const result = builder.build(config, defaultConnectionInfo);
                 const parsed = JSON.parse(result);
 
-                expect(parsed.entities["Users"].mcp).to.deep.equal({
-                    "dml-tools": false,
-                });
+                expect(parsed.entities["Users"].mcp).to.equal(false);
             });
 
             test("should not emit table MCP DML tools setting when MCP is disabled", () => {
@@ -868,7 +933,7 @@ suite("DabConfigFileBuilder Tests", () => {
                 });
                 const result = builder.build(config, defaultConnectionInfo);
                 const parsed = JSON.parse(result);
-                expect(parsed.entities["Users"].permissions[0].actions).to.deep.equal([]);
+                expect(parsed.entities["Users"].permissions).to.deep.equal([]);
             });
 
             test("should emit field exclusions for hidden columns on create/read/update", () => {
@@ -926,6 +991,135 @@ suite("DabConfigFileBuilder Tests", () => {
                         },
                     },
                     "delete",
+                ]);
+            });
+
+            test("should emit role and action specific field includes when configured", () => {
+                const config = createTestConfig({
+                    entities: [
+                        createTestEntity({
+                            advancedSettings: {
+                                entityName: "Users",
+                                authorizationRole: Dab.AuthorizationRole.Anonymous,
+                                permissions: [
+                                    {
+                                        role: Dab.AuthorizationRole.Anonymous,
+                                        actions: [Dab.EntityAction.Read, Dab.EntityAction.Update],
+                                        fieldAccess: [
+                                            {
+                                                action: Dab.EntityAction.Read,
+                                                fields: ["Id", "Name"],
+                                            },
+                                            {
+                                                action: Dab.EntityAction.Update,
+                                                fields: ["Name"],
+                                            },
+                                        ],
+                                    },
+                                    {
+                                        role: Dab.AuthorizationRole.Authenticated,
+                                        actions: [Dab.EntityAction.Read],
+                                    },
+                                ],
+                            },
+                        }),
+                    ],
+                });
+
+                const result = builder.build(config, defaultConnectionInfo);
+                const parsed = JSON.parse(result);
+
+                expect(parsed.entities["Users"].permissions).to.deep.equal([
+                    {
+                        role: "anonymous",
+                        actions: [
+                            {
+                                action: "read",
+                                fields: {
+                                    include: ["Id", "Name"],
+                                },
+                            },
+                            {
+                                action: "update",
+                                fields: {
+                                    include: ["Name"],
+                                },
+                            },
+                        ],
+                    },
+                    {
+                        role: "authenticated",
+                        actions: ["read"],
+                    },
+                ]);
+            });
+
+            test("should keep hidden columns out of customized field includes", () => {
+                const config = createTestConfig({
+                    entities: [
+                        createTestEntity({
+                            columns: [
+                                {
+                                    id: "id",
+                                    name: "Id",
+                                    dataType: "int",
+                                    isSupported: true,
+                                    isExposed: true,
+                                    isPrimaryKey: true,
+                                },
+                                {
+                                    id: "name",
+                                    name: "Name",
+                                    dataType: "nvarchar",
+                                    isSupported: true,
+                                    isExposed: true,
+                                    isPrimaryKey: false,
+                                },
+                                {
+                                    id: "secret",
+                                    name: "SecretValue",
+                                    dataType: "nvarchar",
+                                    isSupported: true,
+                                    isExposed: false,
+                                    isPrimaryKey: false,
+                                },
+                            ],
+                            advancedSettings: {
+                                entityName: "Users",
+                                authorizationRole: Dab.AuthorizationRole.Anonymous,
+                                permissions: [
+                                    {
+                                        role: Dab.AuthorizationRole.Anonymous,
+                                        actions: [Dab.EntityAction.Create, Dab.EntityAction.Read],
+                                        fieldAccess: [
+                                            {
+                                                action: Dab.EntityAction.Create,
+                                                fields: ["Id", "SecretValue"],
+                                            },
+                                        ],
+                                    },
+                                ],
+                            },
+                        }),
+                    ],
+                });
+
+                const result = builder.build(config, defaultConnectionInfo);
+                const parsed = JSON.parse(result);
+
+                expect(parsed.entities["Users"].permissions[0].actions).to.deep.equal([
+                    {
+                        action: "create",
+                        fields: {
+                            include: ["Id"],
+                        },
+                    },
+                    {
+                        action: "read",
+                        fields: {
+                            include: ["Id", "Name"],
+                        },
+                    },
                 ]);
             });
         });

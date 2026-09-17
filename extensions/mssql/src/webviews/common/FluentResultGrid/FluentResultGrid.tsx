@@ -42,8 +42,9 @@ export const FluentResultGrid = forwardRef<FluentResultGridHandle, FluentResultG
             ref,
             () => ({
                 focusGrid: controller.focusGrid,
+                clearSelection: controller.clearSelection,
             }),
-            [controller.focusGrid],
+            [controller.clearSelection, controller.focusGrid],
         );
 
         const containerStyle = useMemo(
@@ -104,6 +105,8 @@ export const FluentResultGrid = forwardRef<FluentResultGridHandle, FluentResultG
                         customDataView={controller.dataView as any}
                         onReactGridCreated={controller.handleReactGridCreated}
                         onClick={controller.handleClick}
+                        onDblClick={controller.handleDblClick}
+                        onColumnsResizeDblClick={controller.handleColumnsResizeDblClick}
                         onContextMenu={controller.handleContextMenu}
                         onHeaderCellRendered={controller.handleHeaderCellRendered}
                         onBeforeHeaderCellDestroy={controller.handleBeforeHeaderCellDestroy}

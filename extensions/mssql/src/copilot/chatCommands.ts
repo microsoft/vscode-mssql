@@ -403,9 +403,11 @@ export async function handleChatCommand(
         // Check connection requirements - verify connection is actually active
         if (commandDef.requiresConnection && !isConnectionActive(controller, connectionUri)) {
             sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.ChatCommand, {
-                ...telemetryProperties,
-                success: "false",
-                errorType: "noConnection",
+                additionalProps: {
+                    ...telemetryProperties,
+                    success: "false",
+                    errorType: "noConnection",
+                },
             });
 
             // Add button to help user establish connection
@@ -427,8 +429,10 @@ export async function handleChatCommand(
         if (commandDef.type === CommandType.Simple && commandDef.handler) {
             await commandDef.handler(stream, controller, connectionUri);
             sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.ChatCommand, {
-                ...telemetryProperties,
-                success: "true",
+                additionalProps: {
+                    ...telemetryProperties,
+                    success: "true",
+                },
             });
             return { handled: true };
         }
@@ -436,8 +440,10 @@ export async function handleChatCommand(
         // Handle prompt substitute commands
         if (commandDef.type === CommandType.PromptSubstitute && commandDef.promptTemplate) {
             sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.ChatCommand, {
-                ...telemetryProperties,
-                success: "true",
+                additionalProps: {
+                    ...telemetryProperties,
+                    success: "true",
+                },
             });
             return {
                 handled: false, // Don't handle completely, let it continue to language model
@@ -446,25 +452,23 @@ export async function handleChatCommand(
         }
 
         sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.ChatCommand, {
-            ...telemetryProperties,
-            success: "false",
-            errorType: "unknownCommandType",
+            additionalProps: {
+                ...telemetryProperties,
+                success: "false",
+                errorType: "unknownCommandType",
+            },
         });
         return { handled: false };
     } catch (error) {
-        sendErrorEvent(
-            TelemetryViews.MssqlCopilot,
-            TelemetryActions.ChatCommand,
+        sendErrorEvent(TelemetryViews.MssqlCopilot, TelemetryActions.ChatCommand, {
             error,
-            false,
-            undefined,
-            undefined,
-            {
+            includeErrorMessage: false,
+            additionalProps: {
                 ...telemetryProperties,
                 success: "false",
                 errorType: "exception",
             },
-        );
+        });
         return {
             handled: true,
             errorMessage: `${errorLabelPrefix} ${getErrorMessage(error)}\n\n`,

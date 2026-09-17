@@ -10,8 +10,10 @@ import {
     CONSTRAINT_OBJECT_TYPE_SUFFIXES,
     formatChildName,
     getAggregatedScript,
+    getDiffEditorModels,
     groupConstraintChildrenByAction,
     isConstraintObjectType,
+    reverseSchemaCompareDiffColors,
 } from "../../src/webviews/pages/SchemaCompare/components/compareDiffEditorUtils";
 import { SchemaDifferenceType, SchemaUpdateAction } from "../../src/sharedInterfaces/schemaCompare";
 
@@ -331,6 +333,54 @@ suite("CompareDiffEditor utils — constraint filtering and script aggregation",
                 ],
             });
             expect(getAggregatedScript(diff, true)).to.equal("");
+        });
+    });
+
+    suite("getDiffEditorModels", () => {
+        test("maps source to Monaco original and target to Monaco modified", () => {
+            const diff = makeDiffEntry({
+                sourceScript: "source-script",
+                targetScript: "target-script",
+            });
+
+            expect(getDiffEditorModels(diff)).to.deep.equal({
+                original: "source-script\n\n",
+                modified: "target-script\n\n",
+            });
+        });
+
+        test("returns empty models when no difference is selected", () => {
+            expect(getDiffEditorModels(undefined)).to.deep.equal({
+                original: "",
+                modified: "",
+            });
+        });
+    });
+
+    suite("reverseSchemaCompareDiffColors", () => {
+        test("swaps inserted and removed colors without changing the input", () => {
+            const colors = {
+                "editor.background": "#000000",
+                "diffEditor.insertedTextBackground": "#00ff00",
+                "diffEditor.removedTextBackground": "#ff0000",
+            };
+
+            expect(reverseSchemaCompareDiffColors(colors)).to.deep.equal({
+                "editor.background": "#000000",
+                "diffEditor.insertedTextBackground": "#ff0000",
+                "diffEditor.removedTextBackground": "#00ff00",
+            });
+            expect(colors["diffEditor.insertedTextBackground"]).to.equal("#00ff00");
+        });
+
+        test("does not create a paired color when the source color is unavailable", () => {
+            expect(
+                reverseSchemaCompareDiffColors({
+                    "diffEditor.insertedTextBackground": "#00ff00",
+                }),
+            ).to.deep.equal({
+                "diffEditor.removedTextBackground": "#00ff00",
+            });
         });
     });
 });

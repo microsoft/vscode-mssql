@@ -47,10 +47,19 @@ export const splitMessages = (messages: qr.IMessage[] | undefined | null): qr.IM
         return [];
     }
     return messages.flatMap((message) => {
+        // Match both Windows CRLF and Unix LF line endings before rendering each display row.
         const lines = message.message.split(/\r?\n/);
-        return lines.map((line) => {
+        // A link points at one place in the message, so once the message is split it belongs to
+        // the line it was taken from. Errors span two lines and would otherwise repeat the link.
+        const linkText = message.link?.text;
+        const linkedLine = linkText ? lines.findIndex((line) => line.includes(linkText)) : 0;
+        return lines.map((line, index) => {
             let newMessage = { ...message };
             newMessage.message = line;
+            if (index !== (linkedLine === -1 ? 0 : linkedLine)) {
+                newMessage.link = undefined;
+                newMessage.selection = undefined;
+            }
             return newMessage;
         });
     });

@@ -48,7 +48,9 @@ export class ChangelogWebviewController extends WebviewPanelController<
             const uri = vscode.Uri.parse(params.url);
             await vscode.env.openExternal(uri);
             sendActionEvent(TelemetryViews.ChangelogPage, TelemetryActions.OpenLink, {
-                url: params.url,
+                additionalProps: {
+                    url: params.url,
+                },
             });
         });
 
@@ -85,7 +87,9 @@ export class ChangelogWebviewController extends WebviewPanelController<
 
             await vscode.commands.executeCommand(command, ...args);
             sendActionEvent(TelemetryViews.ChangelogPage, TelemetryActions.ExecuteCommand, {
-                command,
+                additionalProps: {
+                    command,
+                },
             });
         });
 

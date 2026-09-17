@@ -59,7 +59,7 @@ suite("Dab.validateTableForDab", () => {
         expect(result.reasons).to.be.undefined;
     });
 
-    test("should return isSupported false when table has no primary key", () => {
+    test("should return a non-blocking warning when table has no primary key", () => {
         const table = createTable({
             columns: [
                 createColumn({
@@ -73,7 +73,7 @@ suite("Dab.validateTableForDab", () => {
 
         const result = Dab.validateTableForDab(table);
 
-        expect(result.isSupported).to.be.false;
+        expect(result.isSupported).to.be.true;
         expect(result.reasons).to.have.lengthOf(1);
         expect(result.reasons![0]).to.deep.equal({ type: "noPrimaryKey" });
     });
@@ -124,12 +124,12 @@ suite("Dab.validateTableForDab", () => {
         });
     });
 
-    test("should return noPrimaryKey for a table with empty columns", () => {
+    test("should return a non-blocking noPrimaryKey warning for a table with empty columns", () => {
         const table = createTable({ columns: [] });
 
         const result = Dab.validateTableForDab(table);
 
-        expect(result.isSupported).to.be.false;
+        expect(result.isSupported).to.be.true;
         expect(result.reasons).to.have.lengthOf(1);
         expect(result.reasons![0]).to.deep.equal({ type: "noPrimaryKey" });
     });
@@ -141,7 +141,7 @@ suite("Dab.validateTableForDab", () => {
 
         const result = Dab.validateTableForDab(table);
 
-        expect(result.isSupported).to.be.false;
+        expect(result.isSupported).to.be.true;
         expect(result.reasons).to.have.lengthOf(1);
         expect(result.reasons![0]).to.deep.equal({ type: "noPrimaryKey" });
     });

@@ -33,7 +33,7 @@ const PROJECT_CONFIG = {
     "sql-database-projects": {
         projectPath: "extensions/sql-database-projects",
         xliffName: "sql-database-projects",
-        sourceFiles: ["src/common/constants.ts"],
+        sourceFiles: [],
     },
     "data-workspace": {
         projectPath: "extensions/data-workspace",

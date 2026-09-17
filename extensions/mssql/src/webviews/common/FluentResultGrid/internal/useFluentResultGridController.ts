@@ -26,7 +26,6 @@ import type {
 } from "./fluentResultGridControllerTypes";
 import {
     FLUENT_RESULT_GRID_DEFAULT_IN_MEMORY_DATA_PROCESSING_THRESHOLD,
-    FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_ID,
     FLUENT_RESULT_GRID_SCROLL_POSITION_DEBOUNCE_MS,
 } from "./fluentResultGridConstants";
 import {
@@ -42,11 +41,14 @@ import {
 } from "./fluentResultGridHeaderController";
 import {
     FLUENT_RESULT_GRID_DEFAULT_FROZEN_COLUMN_INDEX,
+    areFluentResultGridColumnLayoutsEqual,
     createFluentResultGridIdentitySignature,
     getFluentResultGridRowHeight,
     getFluentResultGridStateForEmit,
     normalizeFluentResultGridFrozenColumnIndex,
     normalizeFluentResultGridRowPadding,
+    restoreFluentResultGridColumnWidths,
+    restoreFluentResultGridVerticalScrollPosition,
     stabilizeFluentResultGridColumnInfo,
     type FluentResultGridColumnInfoSnapshot,
 } from "./fluentResultGridState";
@@ -58,10 +60,13 @@ import { useFluentResultGridCommandController } from "./fluentResultGridCommandC
 import { useFluentResultGridKeyboardController } from "./fluentResultGridKeyboardController";
 import { useFluentResultGridSlickLifecycle } from "./fluentResultGridSlickLifecycle";
 import {
+    activateFluentResultGridCellWithoutChangingSelection,
     getFirstVisibleCellInFluentResultGridRange,
     getDisplayedFluentResultGridSelectionForCopy,
     getFluentResultGridSlickRangesFromDataSelections,
+    clearFluentResultGridSelection,
 } from "./fluentResultGridSelection";
+import { getFluentResultGridColumnResizeDoubleClickTarget } from "./fluentResultGridColumnAutosize";
 import { hasActiveFluentResultGridFilters } from "./fluentResultGridTransforms";
 
 const emptyDataset: FluentResultGridDataRow[] = [];
@@ -89,6 +94,7 @@ export function useFluentResultGridController({
     initialStateReady = true,
     onCommand,
     onStateChange,
+    onSelectionChange,
     onSelectionSummaryChange,
     onInMemoryDataProcessingThresholdExceeded,
 }: FluentResultGridControllerOptions): FluentResultGridControllerResult {
@@ -273,7 +279,7 @@ export function useFluentResultGridController({
         openFilterMenuForColumn: commandController.openFilterMenuForColumn,
         openOverlay,
         resultSetSummary,
-        selectRange: commandController.selectRange,
+        selectRangesAndActivate: commandController.selectRangesAndActivate,
         sortStateRef: dataController.sortStateRef,
         strings,
         toggleSortForColumn: commandController.toggleSortForColumn,
@@ -288,24 +294,34 @@ export function useFluentResultGridController({
         reactGridRef,
     });
 
+    const clearSelection = useCallback(() => {
+        const grid = reactGridRef.current?.slickGrid;
+        if (grid) {
+            clearFluentResultGridSelection(grid);
+        }
+    }, []);
+
     const restoredInitialStateSignatureRef = useRef<string | undefined>(undefined);
     const restoreInitialState = useCallback(
         async (grid: SlickGrid) => {
             restoredStateRef.current = false;
             try {
                 const shouldAutoSizeColumns = !initialState?.columnWidths?.length;
-                if (initialState?.columnWidths?.length) {
-                    layoutController.cancelAutoSizeColumns();
-                    const restoredColumns = grid.getColumns().map((column) => {
-                        if (column.id === FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_ID) {
-                            return column;
-                        }
-
-                        const columnIndex = Number(column.field);
-                        const width = initialState.columnWidths?.[columnIndex];
-                        return typeof width === "number" ? { ...column, width } : column;
-                    });
-                    grid.setColumns(restoredColumns);
+                if (
+                    initialState?.columnWidths?.length ||
+                    typeof initialState?.rowNumberColumnWidth === "number"
+                ) {
+                    if (initialState.columnWidths?.length) {
+                        layoutController.cancelAutoSizeColumns();
+                    }
+                    const currentColumns = grid.getColumns() as Column<FluentResultGridDataRow>[];
+                    const restoredColumns = restoreFluentResultGridColumnWidths(
+                        currentColumns,
+                        initialState,
+                    );
+                    if (!areFluentResultGridColumnLayoutsEqual(currentColumns, restoredColumns)) {
+                        grid.setColumns(restoredColumns);
+                    }
                 }
 
                 dataController.filterStateRef.current = initialState?.filters ?? {};
@@ -325,15 +341,23 @@ export function useFluentResultGridController({
                 let restoredColumns = grid.getColumns() as Column<FluentResultGridDataRow>[];
                 if (Array.isArray(initialState?.hiddenColumnIds)) {
                     const hiddenColumnIds = new Set(initialState.hiddenColumnIds);
-                    restoredColumns = restoredColumns.map((column) =>
-                        isFluentResultGridDataColumn(column)
-                            ? {
-                                  ...column,
-                                  hidden: hiddenColumnIds.has(column.id.toString()),
-                              }
-                            : column,
-                    );
-                    grid.setColumns(restoredColumns);
+                    const columnsWithRestoredVisibility = restoredColumns.map((column) => {
+                        if (!isFluentResultGridDataColumn(column)) {
+                            return column;
+                        }
+
+                        const hidden = hiddenColumnIds.has(column.id.toString());
+                        return Boolean(column.hidden) === hidden ? column : { ...column, hidden };
+                    });
+                    if (
+                        !areFluentResultGridColumnLayoutsEqual(
+                            restoredColumns,
+                            columnsWithRestoredVisibility,
+                        )
+                    ) {
+                        grid.setColumns(columnsWithRestoredVisibility);
+                    }
+                    restoredColumns = columnsWithRestoredVisibility;
                 }
 
                 const restoredFrozenColumnIndex = normalizeFluentResultGridFrozenColumnIndex(
@@ -347,7 +371,7 @@ export function useFluentResultGridController({
                     const ranges = getFluentResultGridSlickRangesFromDataSelections(
                         initialState.selection,
                         grid.getDataLength(),
-                        restoredColumns.length,
+                        restoredColumns,
                     );
                     grid.getSelectionModel()?.setSelectedRanges(ranges);
 
@@ -355,14 +379,17 @@ export function useFluentResultGridController({
                         ? getFirstVisibleCellInFluentResultGridRange(grid, ranges[0])
                         : undefined;
                     if (activeCell) {
-                        grid.setActiveCell(activeCell.row, activeCell.cell);
+                        activateFluentResultGridCellWithoutChangingSelection(grid, activeCell);
                     }
                 }
 
                 if (initialState?.scrollPosition) {
                     requestAnimationFrame(() => {
                         if (initialState.scrollPosition) {
-                            grid.scrollRowToTop(initialState.scrollPosition.scrollTop);
+                            restoreFluentResultGridVerticalScrollPosition(
+                                grid,
+                                initialState.scrollPosition,
+                            );
                             layoutController.restoreHorizontalScrollPosition(
                                 grid,
                                 initialState.scrollPosition.scrollLeft,
@@ -427,6 +454,10 @@ export function useFluentResultGridController({
             enableCellNavigation: true,
             enableColumnPicker: false,
             enableColumnReorder: true,
+            // Resolved in handleColumnsResizeDblClick instead: the library's
+            // resize-by-content measures dataView.getItems(), which is empty for this
+            // grid's windowed row store and would collapse the column.
+            enableColumnResizeOnDoubleClick: false,
             enableContextMenu: false,
             enableEmptyDataWarningMessage: false,
             enableExcelCopyBuffer: false,
@@ -509,7 +540,15 @@ export function useFluentResultGridController({
                 selectActiveCell: true,
                 selectActiveRow: false,
                 selectionType: "cell",
+                // Ctrl/Cmd click and Ctrl/Cmd drag append to the selection instead of replacing it.
+                enableMultiSelection: true,
             },
+            // Cell values are rendered in child elements. SlickGrid's default only starts a drag
+            // when the event target is the cell itself, making selection depend on whether the
+            // pointer starts over text or padding.
+            allowDragFromClosest: "div.slick-cell",
+            // Ctrl/Cmd is used to append a dragged block, so no key blocks a drag.
+            preventDragFromKeys: [],
             skipFreezeColumnValidation: true,
         }),
         [
@@ -533,12 +572,26 @@ export function useFluentResultGridController({
         detachFrozenPaneWheelHandler: layoutController.detachFrozenPaneWheelHandler,
         emitStateChange,
         handleKeyDown: keyboardController.handleKeyDown,
+        onSelectionChange,
         onSelectionSummaryChange,
         persistScrollPosition,
         reactGridRef,
         restoreCurrentInitialState,
         shouldSuppressSelectionSummaryChange: () => isRestoringInitialStateRef.current,
+        transformedRowsRef: dataController.transformedRowsRef,
     });
+
+    const handleColumnsResizeDblClick = useCallback(
+        (event: CustomEvent) => {
+            const target = getFluentResultGridColumnResizeDoubleClickTarget(event.detail);
+            if (!target) {
+                return;
+            }
+
+            void layoutController.autoSizeColumnByContent(target.grid, target.columnId);
+        },
+        [layoutController],
+    );
 
     return {
         columns,
@@ -546,10 +599,13 @@ export function useFluentResultGridController({
         dataView: dataController.dataView,
         dataViewKey: dataController.dataViewKey,
         displayedRowCount: dataController.displayedRowCount,
+        clearSelection,
         focusGrid: keyboardController.focusGrid,
         gridOptions,
         handleBeforeHeaderCellDestroy: headerController.handleBeforeHeaderCellDestroy,
         handleClick: commandController.handleClick,
+        handleDblClick: commandController.handleDblClick,
+        handleColumnsResizeDblClick,
         handleCommand: commandController.handleCommand,
         handleContextMenu: commandController.handleContextMenu,
         handleGridContainerBlur: keyboardController.handleGridContainerBlur,

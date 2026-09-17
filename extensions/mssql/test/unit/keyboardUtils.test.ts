@@ -9,6 +9,7 @@ import {
     getShortcutInfo,
     parseWebviewKeyboardShortcutConfig,
     eventMatchesShortcut,
+    isCtrlInsertCopyShortcut,
 } from "../../src/webviews/common/keyboardUtils";
 import {
     WebviewAction,
@@ -30,6 +31,37 @@ suite("keyboardUtils Tests", () => {
 
     teardown(() => {
         sandbox.restore();
+    });
+
+    suite("isCtrlInsertCopyShortcut", () => {
+        test("matches Ctrl+Insert without additional modifiers", () => {
+            expect(
+                isCtrlInsertCopyShortcut({
+                    altKey: false,
+                    code: "Insert",
+                    ctrlKey: true,
+                    key: "Insert",
+                    metaKey: false,
+                    shiftKey: false,
+                }),
+            ).to.equal(true);
+        });
+
+        test("rejects Insert without Ctrl and Ctrl+Shift+Insert", () => {
+            const event = {
+                altKey: false,
+                code: "Insert",
+                ctrlKey: false,
+                key: "Insert",
+                metaKey: false,
+                shiftKey: false,
+            };
+
+            expect(isCtrlInsertCopyShortcut(event)).to.equal(false);
+            expect(isCtrlInsertCopyShortcut({ ...event, ctrlKey: true, shiftKey: true })).to.equal(
+                false,
+            );
+        });
     });
 
     suite("getShortcutInfo", () => {

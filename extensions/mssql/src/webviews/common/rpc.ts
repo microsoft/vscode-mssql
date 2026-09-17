@@ -182,11 +182,21 @@ export class WebviewRpc<Reducers> {
     public action<MethodName extends keyof Reducers>(
         method: MethodName,
         payload?: Reducers[MethodName],
-    ) {
-        void this.sendRequest(ReducerRequest.type<Reducers>(), {
+    ): void {
+        void this.actionAndWait(method, payload);
+    }
+
+    /**
+     * Call a reducer and wait for it to complete.
+     */
+    public actionAndWait<MethodName extends keyof Reducers>(
+        method: MethodName,
+        payload?: Reducers[MethodName],
+    ): Promise<void> {
+        return this.sendRequest(ReducerRequest.type<Reducers>(), {
             type: method,
             payload: payload,
-        });
+        }).then(() => undefined);
     }
 
     public sendActionEvent(event: WebviewTelemetryActionEvent) {

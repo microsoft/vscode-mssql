@@ -3,48 +3,59 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as mssql from "vscode-mssql";
-import {
-    Menu,
-    MenuDivider,
-    MenuItemRadio,
-    MenuList,
-    MenuPopover,
-    MenuTrigger,
-    Toolbar,
-    ToolbarButton,
-    ToolbarDivider,
-} from "@fluentui/react-components";
+import { Button, Spinner, Toolbar, ToolbarDivider, makeStyles } from "@fluentui/react-components";
 
 import {
-    ArrowSwapFilled,
-    ColumnDoubleCompareRegular,
-    DocumentArrowUpRegular,
-    DocumentChevronDoubleRegular,
-    PlayFilled,
-    SaveRegular,
-    SettingsRegular,
-    StopFilled,
-    TextBulletListTreeRegular,
+    ArrowSwap16Filled,
+    ColumnDoubleCompare20Regular,
+    DocumentArrowUp16Regular,
+    DocumentChevronDouble20Regular,
+    Play16Filled,
+    Save16Regular,
+    Settings16Regular,
+    Stop16Filled,
 } from "@fluentui/react-icons";
 
 import { locConstants as loc } from "../../../common/locConstants";
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { schemaCompareContext } from "../SchemaCompareStateProvider";
 import { useSchemaCompareSelector } from "../schemaCompareSelector";
+import { isEndpointEmpty } from "../schemaCompareEndpointUtils";
 import { SchemaCompareEndpointType } from "../../../../sharedInterfaces/schemaCompare";
-import { SchemaCompareGroupBy } from "../SchemaCompare";
 import { SchemaCompareApplyDialog } from "./SchemaCompareApplyDialog";
 
 interface Props {
     onOptionsClicked: () => void;
-    groupBy: SchemaCompareGroupBy;
-    onGroupByChange: (value: SchemaCompareGroupBy) => void;
 }
 
-const GROUP_BY_MENU_NAME = "schemaCompareGroupBy";
+const TOOLBAR_HYSTERESIS = 10;
+
+const useStyles = makeStyles({
+    toolbarContainer: {
+        width: "100%",
+        minHeight: "32px",
+        padding: "2px 0",
+        borderBottom: "1px solid var(--vscode-editorGroup-border)",
+    },
+    toolbar: {
+        width: "100%",
+        overflowX: "hidden",
+        overflowY: "hidden",
+        alignItems: "center",
+        gap: "2px",
+        flexWrap: "nowrap",
+        "& .fui-Button": {
+            whiteSpace: "nowrap",
+            flexShrink: 0,
+        },
+    },
+});
 
 const CompareActionBar = (props: Props) => {
+    const classes = useStyles();
+    const toolbarRef = useRef<HTMLDivElement | null>(undefined as unknown as HTMLDivElement | null);
+    const fullWidthRef = useRef(0);
+    const [isCompact, setIsCompact] = useState(false);
     const context = useContext(schemaCompareContext);
     const endpointsSwitched = useSchemaCompareSelector((s) => s.endpointsSwitched);
     const sourceEndpointInfo = useSchemaCompareSelector((s) => s.sourceEndpointInfo);
@@ -54,20 +65,54 @@ const CompareActionBar = (props: Props) => {
     );
     const isComparisonInProgress = useSchemaCompareSelector((s) => s.isComparisonInProgress);
     const isApplyInProgress = useSchemaCompareSelector((s) => s.isApplyInProgress);
+    const isScriptGenerationInProgress = context.isScriptGenerationInProgress;
+    const isEndpointSelectionInProgress = useSchemaCompareSelector(
+        (s) => s.isEndpointSelectionInProgress === true,
+    );
     const schemaCompareResult = useSchemaCompareSelector((s) => s.schemaCompareResult);
+    const differences = context.differences;
+
+    useLayoutEffect(() => {
+        const toolbar = toolbarRef.current;
+        if (!toolbar) {
+            return;
+        }
+
+        const check = () => {
+            if (isCompact) {
+                if (toolbar.clientWidth >= fullWidthRef.current + TOOLBAR_HYSTERESIS) {
+                    setIsCompact(false);
+                }
+            } else {
+                fullWidthRef.current = toolbar.scrollWidth;
+                if (toolbar.scrollWidth > toolbar.clientWidth + 1) {
+                    setIsCompact(true);
+                }
+            }
+        };
+
+        check();
+        const observer = new ResizeObserver(check);
+        observer.observe(toolbar);
+        return () => observer.disconnect();
+    }, [isCompact]);
 
     useEffect(() => {
         if (endpointsSwitched) {
-            if (sourceEndpointInfo && targetEndpointInfo) {
+            if (sourceEndpointInfo && targetEndpointInfo && !isEndpointSelectionInProgress) {
                 handleCompare();
             } else {
                 // Reset the flag when comparison doesn't run so subsequent switches trigger the effect
                 context.resetEndpointsSwitched();
             }
         }
-    }, [endpointsSwitched]);
+    }, [endpointsSwitched, isEndpointSelectionInProgress]);
 
     const handleCompare = () => {
+        if (isEndpointSelectionInProgress) {
+            return;
+        }
+
         context.compare(
             sourceEndpointInfo,
             targetEndpointInfo,
@@ -80,7 +125,8 @@ const CompareActionBar = (props: Props) => {
     };
 
     const handleGenerateScript = () => {
-        context.generateScript(targetEndpointInfo.serverName, targetEndpointInfo.databaseName);
+        // The extension host owns user-facing error notifications for this request.
+        void context.generateScript(targetEndpointInfo.serverName, targetEndpointInfo.databaseName);
     };
 
     const handlePublishChanges = () => {
@@ -103,15 +149,8 @@ const CompareActionBar = (props: Props) => {
         context.saveScmp();
     };
 
-    const isEndpointEmpty = (endpoint: mssql.SchemaCompareEndpointInfo): boolean => {
-        return !(
-            endpoint &&
-            (endpoint.serverDisplayName || endpoint.packageFilePath || endpoint.projectFilePath)
-        );
-    };
-
     const hasIncludedDiffs = (): boolean => {
-        return schemaCompareResult.differences.some((diff) => diff.included);
+        return differences.some((diff) => diff.included);
     };
 
     const disableGenerateScriptButton = (): boolean => {
@@ -124,10 +163,7 @@ const CompareActionBar = (props: Props) => {
             return true;
         } else if (isComparisonInProgress) {
             return true;
-        } else if (
-            schemaCompareResult === undefined ||
-            schemaCompareResult.differences.length === 0
-        ) {
+        } else if (schemaCompareResult === undefined || differences.length === 0) {
             return true;
         }
 
@@ -142,8 +178,7 @@ const CompareActionBar = (props: Props) => {
         if (
             targetEndpointInfo &&
             schemaCompareResult &&
-            schemaCompareResult.differences &&
-            schemaCompareResult.differences.length > 0 &&
+            differences.length > 0 &&
             Number(targetEndpointInfo.endpointType) !== SchemaCompareEndpointType.Dacpac
         ) {
             if (!hasIncludedDiffs()) {
@@ -156,143 +191,149 @@ const CompareActionBar = (props: Props) => {
         return true;
     };
 
-    const isApplyDisabled = isComparisonInProgress || isApplyInProgress || disableApplyButton();
+    // Covers pending checkbox changes, script generation, and the differences list loading, so
+    // nothing can start a new comparison or change endpoints while a request is in flight.
+    const isOperationInProgress = context.isOperationInProgress;
+    const isApplyDisabled =
+        isComparisonInProgress ||
+        isApplyInProgress ||
+        isOperationInProgress ||
+        disableApplyButton();
     const applyButton = (
-        <ToolbarButton
+        <Button
+            size="small"
+            appearance="subtle"
             aria-label={loc.schemaCompare.apply}
             title={loc.schemaCompare.applyChangesToTarget}
-            icon={<PlayFilled />}
+            icon={<Play16Filled />}
             disabled={isApplyDisabled}>
-            {loc.schemaCompare.apply}
-        </ToolbarButton>
+            {!isCompact && loc.schemaCompare.apply}
+        </Button>
     );
 
     return (
-        <Toolbar>
-            <ToolbarButton
-                aria-label={loc.schemaCompare.compare}
-                title={loc.schemaCompare.compare}
-                icon={<ColumnDoubleCompareRegular />}
-                onClick={handleCompare}
-                disabled={
-                    isEndpointEmpty(sourceEndpointInfo) ||
-                    isEndpointEmpty(targetEndpointInfo) ||
-                    isComparisonInProgress ||
-                    isApplyInProgress
-                }>
-                {loc.schemaCompare.compare}
-            </ToolbarButton>
-            <ToolbarButton
-                aria-label={loc.schemaCompare.stop}
-                title={loc.schemaCompare.stop}
-                icon={<StopFilled />}
-                onClick={handleStop}
-                disabled={!isComparisonInProgress || isApplyInProgress}>
-                {loc.schemaCompare.stop}
-            </ToolbarButton>
-            <ToolbarButton
-                aria-label={loc.schemaCompare.generateScript}
-                title={loc.schemaCompare.generateScriptToDeployChangesToTarget}
-                icon={<DocumentChevronDoubleRegular />}
-                onClick={handleGenerateScript}
-                disabled={disableGenerateScriptButton() || isApplyInProgress}>
-                {loc.schemaCompare.generateScript}
-            </ToolbarButton>
-            {targetEndpointInfo && schemaCompareResult ? (
-                <SchemaCompareApplyDialog
-                    targetEndpoint={targetEndpointInfo}
-                    differences={schemaCompareResult.differences}
-                    onApply={handlePublishChanges}
-                    disabled={isApplyDisabled}>
-                    {applyButton}
-                </SchemaCompareApplyDialog>
-            ) : (
-                applyButton
-            )}
-            <ToolbarButton
-                aria-label={loc.schemaCompare.options}
-                title={loc.schemaCompare.options}
-                icon={<SettingsRegular />}
-                onClick={handleOptionsClicked}
-                disabled={
-                    isComparisonInProgress ||
-                    isApplyInProgress ||
-                    isEndpointEmpty(sourceEndpointInfo) ||
-                    isEndpointEmpty(targetEndpointInfo)
-                }>
-                {loc.schemaCompare.options}
-            </ToolbarButton>
-            <ToolbarDivider />
-            <ToolbarButton
-                aria-label={loc.schemaCompare.switchDirection}
-                title={loc.schemaCompare.switchSourceAndTarget}
-                icon={<ArrowSwapFilled />}
-                onClick={handleSwitchEndpoints}
-                disabled={
-                    isComparisonInProgress ||
-                    isApplyInProgress ||
-                    (isEndpointEmpty(sourceEndpointInfo) && isEndpointEmpty(targetEndpointInfo))
-                }>
-                {loc.schemaCompare.switchDirection}
-            </ToolbarButton>
-            <ToolbarDivider />
-            <ToolbarButton
-                aria-label={loc.schemaCompare.openScmpFile}
-                title={loc.schemaCompare.loadSourceTargetAndOptionsSavedInAnScmpFile}
-                icon={<DocumentArrowUpRegular />}
-                onClick={handleOpenScmp}
-                disabled={isComparisonInProgress || isApplyInProgress}>
-                {loc.schemaCompare.openScmpFile}
-            </ToolbarButton>
-            <ToolbarButton
-                aria-label={loc.schemaCompare.saveScmpFile}
-                title={loc.schemaCompare.saveSourceAndTargetOptionsAndExcludedElements}
-                icon={<SaveRegular />}
-                onClick={handleSaveScmp}
-                disabled={
-                    isComparisonInProgress ||
-                    isApplyInProgress ||
-                    isEndpointEmpty(sourceEndpointInfo) ||
-                    isEndpointEmpty(targetEndpointInfo)
-                }>
-                {loc.schemaCompare.saveScmpFile}
-            </ToolbarButton>
-            <ToolbarDivider />
-            <Menu
-                checkedValues={{ [GROUP_BY_MENU_NAME]: [props.groupBy] }}
-                onCheckedValueChange={(_e, data) => {
-                    const next = data.checkedItems[0] as SchemaCompareGroupBy | undefined;
-                    if (next) {
-                        props.onGroupByChange(next);
+        <div className={classes.toolbarContainer}>
+            <Toolbar ref={toolbarRef} size="small" className={classes.toolbar}>
+                <Button
+                    size="small"
+                    appearance="primary"
+                    aria-label={loc.schemaCompare.compare}
+                    title={loc.schemaCompare.compare}
+                    icon={<ColumnDoubleCompare20Regular />}
+                    onClick={handleCompare}
+                    disabled={
+                        isEndpointEmpty(sourceEndpointInfo) ||
+                        isEndpointEmpty(targetEndpointInfo) ||
+                        isComparisonInProgress ||
+                        isApplyInProgress ||
+                        isEndpointSelectionInProgress ||
+                        isOperationInProgress
+                    }>
+                    {!isCompact && loc.schemaCompare.compare}
+                </Button>
+                <Button
+                    size="small"
+                    appearance="subtle"
+                    aria-label={loc.schemaCompare.stop}
+                    title={loc.schemaCompare.stop}
+                    icon={<Stop16Filled />}
+                    onClick={handleStop}
+                    disabled={!isComparisonInProgress || isApplyInProgress}>
+                    {!isCompact && loc.schemaCompare.stop}
+                </Button>
+                <Button
+                    size="small"
+                    appearance="subtle"
+                    aria-label={loc.schemaCompare.generateScript}
+                    title={loc.schemaCompare.generateScriptToDeployChangesToTarget}
+                    icon={
+                        isScriptGenerationInProgress ? (
+                            <Spinner
+                                size="extra-tiny"
+                                aria-label={loc.schemaCompare.generatingScript}
+                            />
+                        ) : (
+                            <DocumentChevronDouble20Regular />
+                        )
                     }
-                }}>
-                <MenuTrigger disableButtonEnhancement>
-                    <ToolbarButton
-                        aria-label={loc.common.groupBy}
-                        title={loc.schemaCompare.groupDifferencesBy}
-                        icon={<TextBulletListTreeRegular />}>
-                        {loc.common.groupBy}
-                    </ToolbarButton>
-                </MenuTrigger>
-                <MenuPopover>
-                    <MenuList>
-                        <MenuItemRadio name={GROUP_BY_MENU_NAME} value="none">
-                            {loc.common.none}
-                        </MenuItemRadio>
-                        <MenuDivider />
-                        <MenuItemRadio name={GROUP_BY_MENU_NAME} value="action">
-                            {loc.schemaCompare.action}
-                        </MenuItemRadio>
-                        <MenuItemRadio name={GROUP_BY_MENU_NAME} value="schema">
-                            {loc.schemaCompare.schema}
-                        </MenuItemRadio>
-                        <MenuItemRadio name={GROUP_BY_MENU_NAME} value="type">
-                            {loc.schemaCompare.type}
-                        </MenuItemRadio>
-                    </MenuList>
-                </MenuPopover>
-            </Menu>
-        </Toolbar>
+                    onClick={handleGenerateScript}
+                    disabled={
+                        disableGenerateScriptButton() || isApplyInProgress || isOperationInProgress
+                    }>
+                    {!isCompact && loc.schemaCompare.generateScript}
+                </Button>
+                {targetEndpointInfo && schemaCompareResult ? (
+                    <SchemaCompareApplyDialog
+                        targetEndpoint={targetEndpointInfo}
+                        differences={differences}
+                        onApply={handlePublishChanges}
+                        disabled={isApplyDisabled}>
+                        {applyButton}
+                    </SchemaCompareApplyDialog>
+                ) : (
+                    applyButton
+                )}
+                <Button
+                    size="small"
+                    appearance="subtle"
+                    aria-label={loc.schemaCompare.options}
+                    title={loc.schemaCompare.options}
+                    icon={<Settings16Regular />}
+                    onClick={handleOptionsClicked}
+                    disabled={
+                        isComparisonInProgress ||
+                        isApplyInProgress ||
+                        isOperationInProgress ||
+                        isEndpointEmpty(sourceEndpointInfo) ||
+                        isEndpointEmpty(targetEndpointInfo)
+                    }>
+                    {!isCompact && loc.schemaCompare.options}
+                </Button>
+                <ToolbarDivider />
+                <Button
+                    size="small"
+                    appearance="subtle"
+                    aria-label={loc.schemaCompare.switchDirection}
+                    title={loc.schemaCompare.switchSourceAndTarget}
+                    icon={<ArrowSwap16Filled />}
+                    onClick={handleSwitchEndpoints}
+                    disabled={
+                        isComparisonInProgress ||
+                        isApplyInProgress ||
+                        isOperationInProgress ||
+                        (isEndpointEmpty(sourceEndpointInfo) && isEndpointEmpty(targetEndpointInfo))
+                    }>
+                    {!isCompact && loc.schemaCompare.switchDirection}
+                </Button>
+                <ToolbarDivider />
+                <Button
+                    size="small"
+                    appearance="subtle"
+                    aria-label={loc.schemaCompare.openScmpFile}
+                    title={loc.schemaCompare.loadSourceTargetAndOptionsSavedInAnScmpFile}
+                    icon={<DocumentArrowUp16Regular />}
+                    onClick={handleOpenScmp}
+                    disabled={isComparisonInProgress || isApplyInProgress || isOperationInProgress}>
+                    {!isCompact && loc.schemaCompare.openScmpFile}
+                </Button>
+                <Button
+                    size="small"
+                    appearance="subtle"
+                    aria-label={loc.schemaCompare.saveScmpFile}
+                    title={loc.schemaCompare.saveSourceAndTargetOptionsAndExcludedElements}
+                    icon={<Save16Regular />}
+                    onClick={handleSaveScmp}
+                    disabled={
+                        isComparisonInProgress ||
+                        isApplyInProgress ||
+                        isOperationInProgress ||
+                        isEndpointEmpty(sourceEndpointInfo) ||
+                        isEndpointEmpty(targetEndpointInfo)
+                    }>
+                    {!isCompact && loc.schemaCompare.saveScmpFile}
+                </Button>
+            </Toolbar>
+        </div>
     );
 };
 

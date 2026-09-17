@@ -34,13 +34,13 @@ import { TestPrompter } from "./stubs";
 import {
     stubExtensionContext,
     stubMessageBoxes,
-    stubPreviewService,
     createStubLogger,
     stubInstantiationService,
+    stubUseMsalEntraMfaAuthConfig,
 } from "./utils";
 import { Deferred } from "../../src/protocol";
+import { Perf } from "../../src/perf/perfTelemetry";
 import { MsalAzureController } from "../../src/azure/msal/msalAzureController";
-import { PreviewFeature } from "../../src/previews/previewService";
 import * as vscodeEntraMfaUtils from "../../src/azure/vscodeEntraMfaUtils";
 import * as azureHelpers from "../../src/connectionconfig/azureHelpers";
 import * as telemetry from "extension-toolkit/vscode/telemetry";
@@ -282,12 +282,49 @@ suite("ConnectionManager Tests", () => {
 
             expect(credentials.server).to.equal("localhost");
         });
+
+        test("a cancelled connection completion closes its perf interval before rethrowing", async () => {
+            const perfMarkerStub = sandbox.stub(Perf, "marker");
+            const completion = new Deferred<ConnectionContracts.ConnectionCompleteParams>();
+            const failure = new Error("Connection cancelled");
+
+            const pending = connectionManager["awaitConnectionCompletion"](completion.promise);
+            completion.reject(failure);
+
+            let thrown: unknown;
+            try {
+                await pending;
+            } catch (error) {
+                thrown = error;
+            }
+
+            expect(thrown).to.equal(failure);
+            expect(perfMarkerStub).to.have.been.calledOnceWith(
+                "mssql.connection.failed",
+                "instant",
+                sinon.match({ error: true, reason: "cancelled" }),
+            );
+        });
+
+        test("a resolved connection completion emits no failure marker", async () => {
+            const perfMarkerStub = sandbox.stub(Perf, "marker");
+            const completion = new Deferred<ConnectionContracts.ConnectionCompleteParams>();
+            const params = {
+                ownerUri: "file:///test.sql",
+            } as ConnectionContracts.ConnectionCompleteParams;
+
+            const pending = connectionManager["awaitConnectionCompletion"](completion.promise);
+            completion.resolve(params);
+
+            expect(await pending).to.equal(params);
+            expect(perfMarkerStub).to.not.have.been.called;
+        });
     });
 
     suite("Token request handling", () => {
         setup(() => {
             // Test the MSAL (non-VS-Code-accounts) path
-            stubPreviewService(sandbox, { [PreviewFeature.UseVscodeAccountsForEntraMFA]: false });
+            stubUseMsalEntraMfaAuthConfig(sandbox, true);
             connectionManager = createConnectionManager();
         });
         test("should return cached token when valid", async () => {
@@ -375,9 +412,7 @@ suite("ConnectionManager Tests", () => {
         let acquireTokenStub: sinon.SinonStub;
 
         setup(() => {
-            stubPreviewService(sandbox, {
-                [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
-            });
+            stubUseMsalEntraMfaAuthConfig(sandbox, false);
             connectionManager = createConnectionManager();
             acquireTokenStub = sandbox.stub(
                 vscodeEntraMfaUtils,
@@ -507,9 +542,7 @@ suite("ConnectionManager Tests", () => {
         }
 
         setup(() => {
-            stubPreviewService(sandbox, {
-                [PreviewFeature.UseVscodeAccountsForEntraMFA]: false,
-            });
+            stubUseMsalEntraMfaAuthConfig(sandbox, true);
             connectionManager = createConnectionManager();
             sendNotificationStub = mockServiceClient.sendNotification as sinon.SinonStub;
             sendNotificationStub.reset();
@@ -628,9 +661,16 @@ suite("ConnectionManager Tests", () => {
             expect(sendErrorEventStub).to.have.been.calledWithMatch(
                 TelemetryViews.ConnectionManager,
                 TelemetryActions.RefreshTokenNotification,
-                sinon.match.instanceOf(Error),
-                sinon.match.any,
-                "serviceClientUnavailable",
+                {
+                    error: sinon.match.instanceOf(Error),
+                    includeErrorMessage: true,
+                    errorCode: "serviceClientUnavailable",
+                    additionalProps: { useVscodeAccountsForEntraMFA: "false" },
+                    additionalMeasurements: {
+                        currentTimestamp: sinon.match.number,
+                        refreshedTokenExpirationTimestamp: sinon.match.number,
+                    },
+                },
             );
             expect(sendNotificationStub).to.not.have.been.called;
         });
@@ -698,9 +738,7 @@ suite("ConnectionManager Tests", () => {
         }
 
         setup(async () => {
-            stubPreviewService(sandbox, {
-                [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
-            });
+            stubUseMsalEntraMfaAuthConfig(sandbox, false);
             connectionManager = createConnectionManager();
             acquireTokenStub = sandbox.stub(
                 vscodeEntraMfaUtils,
@@ -771,7 +809,7 @@ suite("ConnectionManager Tests", () => {
 
         setup(async () => {
             // Test the MSAL (non-VS-Code-accounts) path
-            stubPreviewService(sandbox, { [PreviewFeature.UseVscodeAccountsForEntraMFA]: false });
+            stubUseMsalEntraMfaAuthConfig(sandbox, true);
 
             mockAccountStore = sandbox.createStubInstance(AccountStore);
             mockAzureController = sandbox.createStubInstance(MsalAzureController);

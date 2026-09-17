@@ -18,12 +18,14 @@ import {
 import type { ReactGridInstanceWithSharedService } from "./fluentResultGridControllerTypes";
 import type { FluentResultGridDataView, FluentResultGridDataRow } from "./fluentResultGridDataView";
 import { getFluentResultGridAutoSizeCellText } from "./fluentResultGridFormatters";
+import { autoSizeFluentResultGridColumnByContent } from "./fluentResultGridColumnAutosize";
 
 const initialAutoSizeRetryDelaysMs = [50, 100, 250, 500, 1000];
 
 export interface FluentResultGridLayoutController {
     applyFrozenColumnIndex: (grid: SlickGrid, columnIndex: number) => void;
     attachFrozenPaneWheelHandler: (grid: SlickGrid) => void;
+    autoSizeColumnByContent: (grid: SlickGrid, columnId: string) => Promise<void>;
     cancelAutoSizeColumns: () => void;
     detachFrozenPaneWheelHandler: () => void;
     refreshFrozenColumnLayout: (grid: SlickGrid) => void;
@@ -61,6 +63,27 @@ export function useFluentResultGridLayout({
 }): FluentResultGridLayoutController {
     const frozenPaneWheelCleanupRef = useRef<(() => void) | undefined>(undefined);
     const autoSizeRequestIdRef = useRef(0);
+    const autoSizeCanvasContextRef = useRef<CanvasRenderingContext2D | null | undefined>(undefined);
+
+    const getAutoSizeCanvasContext = useCallback(() => {
+        if (autoSizeCanvasContextRef.current === undefined) {
+            autoSizeCanvasContextRef.current = document.createElement("canvas").getContext("2d");
+        }
+
+        const canvasContext = autoSizeCanvasContextRef.current;
+        if (!canvasContext) {
+            return undefined;
+        }
+
+        const computedStyle = containerRef.current
+            ? window.getComputedStyle(containerRef.current)
+            : undefined;
+        const fontSize =
+            parseInt(computedStyle?.fontSize ?? "", 10) || FLUENT_RESULT_GRID_DEFAULT_FONT_SIZE;
+        const fontFamily = computedStyle?.fontFamily || "monospace";
+        canvasContext.font = `${fontSize}px ${fontFamily}`;
+        return canvasContext;
+    }, [containerRef]);
 
     const refreshFrozenColumnLayout = useCallback(
         (grid: SlickGrid) => {
@@ -200,19 +223,12 @@ export function useFluentResultGridLayout({
                 return true;
             }
 
-            const canvasContext = document.createElement("canvas").getContext("2d");
+            const canvasContext = getAutoSizeCanvasContext();
             if (!canvasContext) {
                 return true;
             }
 
-            const computedStyle = containerRef.current
-                ? window.getComputedStyle(containerRef.current)
-                : undefined;
-            const fontSize =
-                parseInt(computedStyle?.fontSize ?? "", 10) || FLUENT_RESULT_GRID_DEFAULT_FONT_SIZE;
-            const fontFamily = computedStyle?.fontFamily ?? "monospace";
-            canvasContext.font = `${fontSize}px ${fontFamily}`;
-
+            let columnsChanged = false;
             const resizedColumns = grid.getColumns().map((column, columnIndex) => {
                 if (column.id === FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_ID || columnIndex === 0) {
                     return column;
@@ -237,27 +253,32 @@ export function useFluentResultGridLayout({
                       }, 0)
                     : 0;
 
-                return {
-                    ...column,
-                    width: Math.max(
-                        FLUENT_RESULT_GRID_MIN_COLUMN_WIDTH,
-                        Math.min(
-                            FLUENT_RESULT_GRID_MAX_COLUMN_WIDTH,
-                            Math.ceil(Math.max(headerWidth, dataWidth)) + 1,
-                        ),
+                const width = Math.max(
+                    FLUENT_RESULT_GRID_MIN_COLUMN_WIDTH,
+                    Math.min(
+                        FLUENT_RESULT_GRID_MAX_COLUMN_WIDTH,
+                        Math.ceil(Math.max(headerWidth, dataWidth)) + 1,
                     ),
-                };
+                );
+                if (column.width === width) {
+                    return column;
+                }
+
+                columnsChanged = true;
+                return { ...column, width };
             });
 
             if (requestId !== undefined && autoSizeRequestIdRef.current !== requestId) {
                 return true;
             }
 
-            grid.setColumns(resizedColumns);
-            grid.invalidate();
+            if (columnsChanged) {
+                grid.setColumns(resizedColumns);
+                grid.invalidate();
+            }
             return true;
         },
-        [autoSizeColumnsMode, containerRef, dataView, latestRowCountRef, reactGridRef],
+        [autoSizeColumnsMode, dataView, getAutoSizeCanvasContext, latestRowCountRef, reactGridRef],
     );
 
     const scheduleAutoSizeColumns = useCallback(
@@ -299,8 +320,45 @@ export function useFluentResultGridLayout({
         autoSizeRequestIdRef.current++;
     }, []);
 
+    /**
+     * Fits a single column to its content, for a double-click on that column's resize handle.
+     *
+     * SlickGrid Universal binds this gesture to its own resize-by-content, but that path measures
+     * `dataView.getItems()`, which is empty for this grid's windowed row store — it would shrink the
+     * column to its minimum. `enableColumnResizeOnDoubleClick` is therefore off and the measurement
+     * happens here against rows fetched through the data view. The result is a true fit-to-content
+     * operation, so the gesture works for both narrower and wider content.
+     */
+    const autoSizeColumnByContent = useCallback(
+        async (grid: SlickGrid, columnId: string): Promise<void> => {
+            const canvasContext = getAutoSizeCanvasContext();
+            if (!canvasContext) {
+                return;
+            }
+
+            await autoSizeFluentResultGridColumnByContent({
+                grid,
+                columnId,
+                getSampleRows: async () => {
+                    const rowCount = latestRowCountRef.current;
+                    return rowCount > 0
+                        ? dataView.getRangeAsync(
+                              0,
+                              Math.min(FLUENT_RESULT_GRID_AUTO_SIZE_SAMPLE_ROWS, rowCount),
+                          )
+                        : [];
+                },
+                getCellText: (row, columnDataIndex) =>
+                    getFluentResultGridAutoSizeCellText(row[columnDataIndex.toString()]),
+                measureText: (text) => canvasContext.measureText(text).width,
+            });
+        },
+        [dataView, getAutoSizeCanvasContext, latestRowCountRef],
+    );
+
     return {
         applyFrozenColumnIndex,
+        autoSizeColumnByContent,
         attachFrozenPaneWheelHandler,
         cancelAutoSizeColumns,
         detachFrozenPaneWheelHandler,

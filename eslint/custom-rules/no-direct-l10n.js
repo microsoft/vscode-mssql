@@ -5,7 +5,6 @@ const path = require("path");
 const ALLOWED_LOCALIZATION_FILES = new Set([
     "extensions/mssql/src/constants/locConstants.ts",
     "extensions/mssql/src/webviews/common/locConstants.ts",
-    "extensions/sql-database-projects/src/common/constants.ts",
 ]);
 
 function toPosix(filePath) {

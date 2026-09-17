@@ -61,8 +61,18 @@ import { getErrorMessage, uuid } from "../utils/utils";
 import { ConnectionConfig } from "../connectionconfig/connectionconfig";
 import { MissingEntraAuthAccountError } from "../azure/vscodeEntraMfaUtils";
 import { AzureSqlDatabaseStatus, VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
-import { PreviewFeature, previewService } from "../previews/previewService";
+import { getUseMsalEntraMfaAuthConfig } from "../azure/utils";
 import { getNodeDescriptor } from "./nodes/nodeUtils";
+
+export class CancelableLoadingNode extends vscode.TreeItem {
+    public constructor(
+        label: string,
+        public readonly cancellationTokenSource: vscode.CancellationTokenSource,
+    ) {
+        super(label, vscode.TreeItemCollapsibleState.None);
+        this.contextValue = "cancelContainerOperation";
+    }
+}
 
 export interface CreateSessionResult {
     sessionId?: string;
@@ -190,23 +200,29 @@ export class ObjectExplorerService {
     }
 
     /**
-     * Expands a node in the Object Explorer tree. If the node has the shouldRefresh flag set, it will be refreshed.
+     * Expands a node in the Object Explorer tree.
      * @param node The node to expand
      * @param sessionId The session ID to use for the expansion
+     * @param shouldRefresh Whether to re-populate the node on the server instead of expanding its
+     *   cached state. Defaults to the node's `shouldRefresh` flag for callers that still signal the
+     *   refresh that way; internal callers pass it explicitly so that clearing the flag early
+     *   cannot lose the request.
      * @returns The children of the expanded node
      */
     public async expandNode(
         node: TreeNodeInfo,
         sessionId: string,
+        shouldRefresh: boolean = node.shouldRefresh,
     ): Promise<vscode.TreeItem[] | undefined> {
         const expandActivity = startActivity(
             TelemetryViews.ObjectExplorer,
             TelemetryActions.ExpandNode,
-            undefined,
             {
-                nodeType: node.nodeType,
-                nodeSubType: node.nodeSubType,
-                isRefresh: node.shouldRefresh.toString(),
+                additionalProps: {
+                    nodeType: node.nodeType,
+                    nodeSubType: node.nodeSubType,
+                    isRefresh: shouldRefresh.toString(),
+                },
             },
         );
         this._logger.trace(`expandNode start: ${getNodeDescriptor(node)}`);
@@ -263,7 +279,7 @@ export class ObjectExplorerService {
                         `expandNode: reusing in-flight expand for ${getNodeDescriptor(node)}`,
                     );
                     response = true;
-                } else if (node.shouldRefresh) {
+                } else if (shouldRefresh) {
                     this._logger.trace(
                         `expandNode: sending RefreshRequest for ${getNodeDescriptor(node)}`,
                     );
@@ -316,8 +332,10 @@ export class ObjectExplorerService {
                         ),
                     );
                     this._treeNodeToChildrenMap.set(node, children);
-                    expandActivity.end(ActivityStatus.Succeeded, undefined, {
-                        childrenCount: children.length,
+                    expandActivity.end(ActivityStatus.Succeeded, {
+                        additionalMeasurements: {
+                            childrenCount: children.length,
+                        },
                     });
                     return children;
                 }
@@ -357,7 +375,10 @@ export class ObjectExplorerService {
                          * (clearing the cached error), which is what lets the retry succeed once
                          * the database finishes resuming.
                          */
-                        node.shouldRefresh = true;
+                        shouldRefresh = true;
+                        expandActivity.update({
+                            additionalProps: { isRefresh: shouldRefresh.toString() },
+                        });
                         continue;
                     }
                 }
@@ -463,9 +484,10 @@ export class ObjectExplorerService {
         const getConnectionActivity = startActivity(
             TelemetryViews.ObjectExplorer,
             TelemetryActions.ExpandNode,
-            undefined,
             {
-                nodeType: "root",
+                additionalProps: {
+                    nodeType: "root",
+                },
             },
         );
 
@@ -482,8 +504,10 @@ export class ObjectExplorerService {
             this._logger.debug(
                 "No saved connections or groups found. Showing add connection node.",
             );
-            getConnectionActivity.end(ActivityStatus.Succeeded, undefined, {
-                childrenCount: 0,
+            getConnectionActivity.end(ActivityStatus.Succeeded, {
+                additionalMeasurements: {
+                    childrenCount: 0,
+                },
             });
             return this.getAddConnectionNodes();
         }
@@ -579,8 +603,10 @@ export class ObjectExplorerService {
 
         const result = [...this._rootTreeNodeArray];
 
-        getConnectionActivity.end(ActivityStatus.Succeeded, undefined, {
-            nodeCount: result.length,
+        getConnectionActivity.end(ActivityStatus.Succeeded, {
+            additionalMeasurements: {
+                nodeCount: result.length,
+            },
         });
         return result;
     }
@@ -597,6 +623,10 @@ export class ObjectExplorerService {
         this._logger.trace(
             `getNodeChildren: ${getNodeDescriptor(element)}, hadCache=${hadCache}, hasInFlight=${hasInFlight}`,
         );
+
+        // Consume the refresh before showing the loading node. That update makes VS Code request
+        // the children again, and the cleared flag prevents the callback from queuing a refresh.
+        element.shouldRefresh = false;
 
         if (wasRefresh) {
             this.cleanNodeChildren(element);
@@ -621,7 +651,7 @@ export class ObjectExplorerService {
          * Tree expansion is queued, so without this if multiple connections are expanding,
          * one blocked operation can delay the other.
          */
-        void this.getOrCreateNodeChildrenWithSession(element);
+        void this.getOrCreateNodeChildrenWithSession(element, wasRefresh);
         return this.setLoadingUiForNode(element);
     }
 
@@ -631,12 +661,15 @@ export class ObjectExplorerService {
      * @param element The node to set the loading UI for
      * @returns A loading node that will be displayed in the tree
      */
-    public async setLoadingUiForNode(element: TreeNodeInfo): Promise<vscode.TreeItem[]> {
+    public async setLoadingUiForNode(
+        element: TreeNodeInfo,
+        cancellationTokenSource?: vscode.CancellationTokenSource,
+    ): Promise<vscode.TreeItem[]> {
         this._logger.trace(`setLoadingUiForNode: ${getNodeDescriptor(element)}`);
-        const loadingNode = new vscode.TreeItem(
-            element.loadingLabel ?? LocalizedConstants.ObjectExplorer.LoadingNodeLabel,
-            vscode.TreeItemCollapsibleState.None,
-        );
+        const label = element.loadingLabel ?? LocalizedConstants.ObjectExplorer.LoadingNodeLabel;
+        const loadingNode = cancellationTokenSource
+            ? new CancelableLoadingNode(label, cancellationTokenSource)
+            : new vscode.TreeItem(label, vscode.TreeItemCollapsibleState.None);
         loadingNode.iconPath = new vscode.ThemeIcon("loading~spin");
         this._treeNodeToChildrenMap.set(element, [loadingNode]);
         this._refreshCallback(element);
@@ -688,8 +721,13 @@ export class ObjectExplorerService {
      * Get or create the children of a node. If the node has a session ID, expand it.
      * If it doesn't, create a new session and expand it.
      * @param element The node to get or create children for
+     * @param shouldRefresh Whether to re-populate the node on the server instead of expanding its
+     *   cached state
      */
-    private async getOrCreateNodeChildrenWithSession(element: TreeNodeInfo): Promise<void> {
+    private async getOrCreateNodeChildrenWithSession(
+        element: TreeNodeInfo,
+        shouldRefresh = false,
+    ): Promise<void> {
         const existing = this._inFlightChildrenFetches.get(element);
 
         this._logger.trace(
@@ -703,9 +741,9 @@ export class ObjectExplorerService {
         const fetchPromise = (async () => {
             try {
                 if (element.sessionId) {
-                    await this.expandExistingNode(element);
+                    await this.expandExistingNode(element, shouldRefresh);
                 } else {
-                    await this.createSessionAndExpandNode(element);
+                    await this.createSessionAndExpandNode(element, shouldRefresh);
                 }
             } finally {
                 this._inFlightChildrenFetches.delete(element);
@@ -714,13 +752,11 @@ export class ObjectExplorerService {
                     this._logger.trace(
                         `getOrCreateNodeChildrenWithSession: starting queued refresh for ${getNodeDescriptor(element)}`,
                     );
-                    element.shouldRefresh = true;
                     element.loadingLabel = undefined;
                     this.cleanNodeChildren(element);
                     await this.setLoadingUiForNode(element);
-                    void this.getOrCreateNodeChildrenWithSession(element);
+                    void this.getOrCreateNodeChildrenWithSession(element, true);
                 } else {
-                    element.shouldRefresh = false;
                     this._logger.trace(
                         `getOrCreateNodeChildrenWithSession end: ${getNodeDescriptor(element)} - refresh callback follows`,
                     );
@@ -736,10 +772,15 @@ export class ObjectExplorerService {
     /**
      * Expand a node that already has a session ID.
      * @param element The node to expand
+     * @param shouldRefresh Whether to re-populate the node on the server instead of expanding its
+     *   cached state
      * @returns The children of the node
      */
-    private async expandExistingNode(element: TreeNodeInfo): Promise<vscode.TreeItem[]> {
-        const children = await this.expandNode(element, element.sessionId);
+    private async expandExistingNode(
+        element: TreeNodeInfo,
+        shouldRefresh = false,
+    ): Promise<vscode.TreeItem[]> {
+        const children = await this.expandNode(element, element.sessionId, shouldRefresh);
         if (children?.length === 0) {
             const noItemsNode = [new NoItemsNode(element)];
             this._treeNodeToChildrenMap.set(element, noItemsNode);
@@ -754,9 +795,14 @@ export class ObjectExplorerService {
      * If the session was created but the connected node was not created, show the sign in node.
      * Otherwise, expand the existing node.
      * @param element The node to create a session for and expand
+     * @param shouldRefresh Whether to re-populate the node on the server instead of expanding its
+     *   cached state
      * @returns The children of the node
      */
-    private async createSessionAndExpandNode(element: TreeNodeInfo): Promise<vscode.TreeItem[]> {
+    private async createSessionAndExpandNode(
+        element: TreeNodeInfo,
+        shouldRefresh = false,
+    ): Promise<vscode.TreeItem[]> {
         const sessionResult = await this.createSession(element.connectionProfile);
 
         if (sessionResult?.shouldRetryOnFailure) {
@@ -773,7 +819,7 @@ export class ObjectExplorerService {
         if (!sessionResult.connectionNode) {
             return this.createSignInNode(element);
         } else {
-            const children = this.expandExistingNode(element);
+            const children = this.expandExistingNode(element, shouldRefresh);
             setTimeout(() => this._refreshCallback(element), 0);
             return children;
         }
@@ -806,11 +852,11 @@ export class ObjectExplorerService {
         const createSessionActivity = startActivity(
             TelemetryViews.ObjectExplorer,
             TelemetryActions.CreateSession,
-            undefined,
             {
-                connectionType: connectionInfo?.authenticationType ?? "newConnection",
+                additionalProps: {
+                    connectionType: connectionInfo?.authenticationType ?? "newConnection",
+                },
             },
-            undefined,
         );
 
         const connectionProfile = await this.prepareConnectionProfile(connectionInfo);
@@ -886,7 +932,9 @@ export class ObjectExplorerService {
                     connectionProfile,
                 );
                 createSessionActivity.end(ActivityStatus.Succeeded, {
-                    connectionType: connectionProfile.authenticationType,
+                    additionalProps: {
+                        connectionType: connectionProfile.authenticationType,
+                    },
                 });
                 finalizeSession();
                 return successResponse;
@@ -949,14 +997,10 @@ export class ObjectExplorerService {
         if (!connectionProfile) {
             const connectionUI = this._connectionManager.connectionUI;
             connectionUI.openConnectionDialog();
-            sendActionEvent(
-                TelemetryViews.ObjectExplorer,
-                TelemetryActions.CreateConnection,
-                undefined,
-                undefined,
-                connectionInfo as IConnectionProfile,
-                this._connectionManager.getServerInfo(connectionInfo),
-            );
+            sendActionEvent(TelemetryViews.ObjectExplorer, TelemetryActions.CreateConnection, {
+                connectionInfo: connectionInfo as IConnectionProfile,
+                serverInfo: this._connectionManager.getServerInfo(connectionInfo),
+            });
         }
 
         if (!connectionProfile) {
@@ -978,6 +1022,12 @@ export class ObjectExplorerService {
                     containerNode,
                     this,
                 );
+                if (successfullyRunning === undefined) {
+                    containerNode.loadingLabel = undefined;
+                    this.cleanNodeChildren(containerNode);
+                    this._refreshCallback(containerNode);
+                    return undefined;
+                }
                 this._logger.debug(
                     successfullyRunning
                         ? `Failed to restart Docker container "${connectionProfile.containerName}".`
@@ -1010,11 +1060,7 @@ export class ObjectExplorerService {
                 if (choice === LocalizedConstants.ObjectExplorer.FailedOEConnectionErrorSignIn) {
                     try {
                         // User chose to sign in to the missing account; try again.
-                        if (
-                            previewService.isFeatureEnabled(
-                                PreviewFeature.UseVscodeAccountsForEntraMFA,
-                            )
-                        ) {
+                        if (!getUseMsalEntraMfaAuthConfig()) {
                             await VsCodeAzureHelper.signIn(true /* forceSignInPrompt */);
                         } else {
                             await this._connectionManager.addAccount();
@@ -1122,14 +1168,14 @@ export class ObjectExplorerService {
         telemetryActivty: ActivityObject,
     ): Promise<boolean> {
         if (failureResponse.errorNumber) {
-            telemetryActivty.update(
-                {
+            telemetryActivty.update({
+                additionalProps: {
                     connectionType: connectionProfile.authenticationType,
                 },
-                {
+                additionalMeasurements: {
                     errorNumber: failureResponse.errorNumber,
                 },
-            );
+            });
         }
 
         const errorHandlingResult = await this._connectionManager.handleConnectionErrors(
@@ -1138,9 +1184,11 @@ export class ObjectExplorerService {
         );
 
         telemetryActivty.update({
-            connectionType: connectionProfile.authenticationType,
-            errorHandled: errorHandlingResult.errorHandled,
-            isFixed: errorHandlingResult.errorHandled ? "true" : "false",
+            additionalProps: {
+                connectionType: connectionProfile.authenticationType,
+                errorHandled: errorHandlingResult.errorHandled,
+                isFixed: errorHandlingResult.errorHandled ? "true" : "false",
+            },
         });
 
         if (errorHandlingResult.isHandled) {

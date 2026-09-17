@@ -14,6 +14,7 @@ otherwise.
 5.  Microsoft SQL Server VNEXT SHARED MANAGEMENT OBJECTS COMMUNITY TECHNOLOGY PREVIEW 1 (CTP1)
 6.  Microsoft SQL Server 2016 Transact-SQL Language Service
 7.  dockerode (https://github.com/apocas/dockerode)
+8.  Notifications (https://github.com/akx/Notifications)
 
 %% Bower Package Manager for Visual Studio Code NOTICES, INFORMATION, AND LICENSE BEGIN HERE
 =========================================
@@ -311,3 +312,14 @@ This limitation applies to
 It also applies even if Microsoft knew or should have known about the possibility of the damages. The above limitation or exclusion may not apply to you because your country may not allow the exclusion or limitation of incidental, consequential or other damages.
 =========================================
 END OF MICROSOFT SQL SERVER 2016 TRANSACT-SQL LANGUAGE SERVICE NOTICES, INFORMATION, AND LICENSE
+
+%% Notifications NOTICES, INFORMATION, AND LICENSE BEGIN HERE
+=========================================
+The query completion sound is derived from Information_Block.ogg from Notifications:
+https://github.com/akx/Notifications
+
+The original sound is licensed under the Creative Commons Public Domain license:
+https://creativecommons.org/publicdomain/mark/1.0/
+
+=========================================
+END OF Notifications NOTICES, INFORMATION, AND LICENSE

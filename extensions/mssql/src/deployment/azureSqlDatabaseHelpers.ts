@@ -12,7 +12,7 @@ import {
 } from "@azure/arm-sql";
 import { getDefaultTenantId, VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
 import { getGroupIdFormItem } from "../connectionconfig/formComponentHelpers";
-import { AzureSqlDatabase, ConnectionDialog } from "../constants/locConstants";
+import { AzureSqlDatabase, Common, ConnectionDialog } from "../constants/locConstants";
 import { ILogger } from "../sharedInterfaces/logger";
 import * as asd from "../sharedInterfaces/azureSqlDatabase";
 import {
@@ -43,6 +43,9 @@ import { getErrorMessage } from "../utils/utils";
 import { AddFirewallRuleState } from "../sharedInterfaces/addFirewallRule";
 import { populateAzureAccountInfo } from "../controllers/addFirewallRuleWebviewController";
 import { Deferred } from "../protocol";
+import { BackgroundTaskState } from "../backgroundTasks/backgroundTasksService";
+import { DeploymentType } from "../sharedInterfaces/deployment";
+import { completeProvisioningTask, startProvisioningTask } from "./deploymentBackgroundTasks";
 
 // Cached logger reference for use in helper functions that don't have
 // direct access to the controller's protected logger.
@@ -235,8 +238,10 @@ export async function initializeAzureSqlDatabaseState(
     sendActionEvent(
         TelemetryViews.AzureSqlDatabase,
         TelemetryActions.StartAzureSqlDatabaseDeployment,
-        {},
-        { azureSqlDatabaseInitTimeInMs: Date.now() - startTime },
+        {
+            additionalProps: {},
+            additionalMeasurements: { azureSqlDatabaseInitTimeInMs: Date.now() - startTime },
+        },
     );
 
     return state;
@@ -345,6 +350,15 @@ export function registerAzureSqlDatabaseReducers(
 
             updateAzureSqlDatabaseState(deploymentController, azureSqlState);
 
+            const databaseName = azureSqlState.formState.databaseName;
+            const provisioningTarget = `${azureSqlState.formState.serverName}/${databaseName}`;
+            startProvisioningTask(
+                deploymentController,
+                DeploymentType.AzureSqlDatabase,
+                Common.provisioningTarget(provisioningTarget),
+                provisioningTarget,
+            );
+
             try {
                 const startTime = Date.now();
                 const subscription = getCachedSubscription(
@@ -380,13 +394,21 @@ export function registerAzureSqlDatabaseReducers(
 
                 azureSqlState.provisionLoadState = ApiStatus.Loaded;
                 updateAzureSqlDatabaseState(deploymentController, azureSqlState);
+                completeProvisioningTask(
+                    deploymentController,
+                    DeploymentType.AzureSqlDatabase,
+                    BackgroundTaskState.Succeeded,
+                    AzureSqlDatabase.provisioningTaskSucceeded(databaseName),
+                );
 
                 sendActionEvent(
                     TelemetryViews.AzureSqlDatabase,
                     TelemetryActions.ProvisionAzureSqlDatabase,
-                    {},
                     {
-                        provisionDatabaseLoadTimeInMs: Date.now() - startTime,
+                        additionalProps: {},
+                        additionalMeasurements: {
+                            provisionDatabaseLoadTimeInMs: Date.now() - startTime,
+                        },
                     },
                 );
 
@@ -394,14 +416,22 @@ export function registerAzureSqlDatabaseReducers(
             } catch (error) {
                 azureSqlState.provisionLoadState = ApiStatus.Error;
                 azureSqlState.errorMessage = getErrorMessage(error);
+                completeProvisioningTask(
+                    deploymentController,
+                    DeploymentType.AzureSqlDatabase,
+                    BackgroundTaskState.Failed,
+                    AzureSqlDatabase.provisioningTaskFailed(
+                        databaseName,
+                        azureSqlState.errorMessage,
+                    ),
+                );
                 cachedLogger?.error(
                     `Azure SQL Database provisioning failed: ${azureSqlState.errorMessage}`,
                 );
                 sendErrorEvent(
                     TelemetryViews.AzureSqlDatabase,
                     TelemetryActions.ProvisionAzureSqlDatabase,
-                    error as Error,
-                    false,
+                    { error: error as Error, includeErrorMessage: false },
                 );
             }
 
@@ -473,12 +503,10 @@ export function registerAzureSqlDatabaseReducers(
         } catch (error) {
             dialog.props.message = getErrorMessage(error);
             dialog.props.addFirewallRuleStatus = ApiStatus.Error;
-            sendErrorEvent(
-                TelemetryViews.AzureSqlDatabase,
-                TelemetryActions.AddFirewallRule,
-                error as Error,
-                false,
-            );
+            sendErrorEvent(TelemetryViews.AzureSqlDatabase, TelemetryActions.AddFirewallRule, {
+                error: error as Error,
+                includeErrorMessage: false,
+            });
         }
 
         state.deploymentTypeState = azureSqlState;
@@ -795,8 +823,10 @@ export function sendAzureSqlDatabaseCloseEventTelemetry(state: asd.AzureSqlDatab
         TelemetryViews.AzureSqlDatabase,
         TelemetryActions.FinishAzureSqlDatabaseDeployment,
         {
-            errorMessage: state.errorMessage || "",
-            provisionState: state.provisionLoadState,
+            additionalProps: {
+                errorMessage: state.errorMessage || "",
+                provisionState: state.provisionLoadState,
+            },
         },
     );
 }
@@ -821,14 +851,11 @@ async function promptForFirewallRule(
                 errorMessage,
             );
         if (!handleResult.result || !handleResult.ipAddress) {
-            sendErrorEvent(
-                TelemetryViews.AzureSqlDatabase,
-                TelemetryActions.AddFirewallRule,
-                new Error(errorMessage),
-                true,
-                undefined,
-                "parseIP",
-            );
+            sendErrorEvent(TelemetryViews.AzureSqlDatabase, TelemetryActions.AddFirewallRule, {
+                error: new Error(errorMessage),
+                includeErrorMessage: true,
+                errorType: "parseIP",
+            });
         }
 
         const dialogState: AddFirewallRuleState = {
@@ -891,12 +918,10 @@ function surfaceConnectionError(
     state.errorMessage = errorMessage;
     state.canAddFirewallRule = canAddFirewallRule;
     state.firewallErrorMessage = canAddFirewallRule ? errorMessage : "";
-    sendErrorEvent(
-        TelemetryViews.AzureSqlDatabase,
-        TelemetryActions.ConnectToAzureSqlDatabase,
-        new Error(AzureSqlDatabase.connectionFailed),
-        false,
-    );
+    sendErrorEvent(TelemetryViews.AzureSqlDatabase, TelemetryActions.ConnectToAzureSqlDatabase, {
+        error: new Error(AzureSqlDatabase.connectionFailed),
+        includeErrorMessage: false,
+    });
     updateAzureSqlDatabaseState(deploymentController, state);
 }
 
@@ -1027,8 +1052,10 @@ export async function connectToAzureSqlDatabase(
                     sendErrorEvent(
                         TelemetryViews.AzureSqlDatabase,
                         TelemetryActions.ConnectToAzureSqlDatabase,
-                        new Error("Failed to detect client IP for firewall rule"),
-                        false,
+                        {
+                            error: new Error("Failed to detect client IP for firewall rule"),
+                            includeErrorMessage: false,
+                        },
                     );
                     updateAzureSqlDatabaseState(deploymentController, state);
                     return;
@@ -1063,8 +1090,10 @@ export async function connectToAzureSqlDatabase(
                     sendErrorEvent(
                         TelemetryViews.AzureSqlDatabase,
                         TelemetryActions.ConnectToAzureSqlDatabase,
-                        new Error(`Firewall rule creation failed: ${errorMsg}`),
-                        false,
+                        {
+                            error: new Error(`Firewall rule creation failed: ${errorMsg}`),
+                            includeErrorMessage: false,
+                        },
                     );
                     updateAzureSqlDatabaseState(deploymentController, state);
                     return;
@@ -1102,9 +1131,11 @@ export async function connectToAzureSqlDatabase(
         sendActionEvent(
             TelemetryViews.AzureSqlDatabase,
             TelemetryActions.ConnectToAzureSqlDatabase,
-            {},
             {
-                connectToDatabaseLoadTimeInMs: Date.now() - startTime,
+                additionalProps: {},
+                additionalMeasurements: {
+                    connectToDatabaseLoadTimeInMs: Date.now() - startTime,
+                },
             },
         );
 
@@ -1115,8 +1146,7 @@ export async function connectToAzureSqlDatabase(
         sendErrorEvent(
             TelemetryViews.AzureSqlDatabase,
             TelemetryActions.ConnectToAzureSqlDatabase,
-            err as Error,
-            false,
+            { error: err as Error, includeErrorMessage: false },
         );
     }
 
@@ -1369,7 +1399,9 @@ function updateAzureSqlDatabaseState(
     newState: asd.AzureSqlDatabaseState,
 ) {
     deploymentController.state.deploymentTypeState = newState;
-    deploymentController.updateState(deploymentController.state);
+    if (!deploymentController.isDisposed) {
+        deploymentController.updateState(deploymentController.state);
+    }
 }
 
 async function getAzureActionButton(

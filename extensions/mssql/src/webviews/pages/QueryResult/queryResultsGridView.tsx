@@ -21,9 +21,12 @@ import * as qr from "../../../sharedInterfaces/queryResult";
 import CommandBar from "./commandBar";
 import type { ResultGridHandle, ResultGridProps } from "./resultGrid";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
+import { perfMarkAfterNextPaint } from "../../common/perfMarks";
 import { eventMatchesShortcut } from "../../common/keyboardUtils";
 import { WebviewAction } from "../../../sharedInterfaces/webview";
 import debounce from "lodash/debounce";
+import { LazyMount } from "../../common/lazyMount";
+import { locConstants } from "../../common/locConstants";
 
 const useStyles = makeStyles({
     gridViewContainer: {
@@ -57,6 +60,7 @@ type ResultGridComponent = ForwardRefExoticComponent<
 
 export interface QueryResultsGridViewProps {
     GridComponent: ResultGridComponent;
+    deferOffscreenGridRendering?: boolean;
     showExternalCommandBar?: boolean;
 }
 
@@ -70,6 +74,7 @@ const BASE_ROW_PADDING = 12;
 
 export const QueryResultsGridView = ({
     GridComponent,
+    deferOffscreenGridRendering = false,
     showExternalCommandBar = true,
 }: QueryResultsGridViewProps) => {
     const classes = useStyles();
@@ -79,6 +84,7 @@ export const QueryResultsGridView = ({
     }
     const uri = useQueryResultSelector((state) => state.uri);
     const resultSetSummaries = useQueryResultSelector((state) => state.resultSetSummaries);
+    const isExecuting = useQueryResultSelector((state) => state.isExecuting);
     const viewMode =
         useQueryResultSelector((state) => state.tabStates?.resultViewMode) ??
         qr.QueryResultViewMode.Grid;
@@ -93,6 +99,9 @@ export const QueryResultsGridView = ({
     );
     const [maximizedGridKey, setMaximizedGridKey] = useState<string | undefined>(undefined);
     const gridRefs = useRef<Array<ResultGridHandle | undefined>>([]);
+    const [gridIndexToFocus, setGridIndexToFocus] = useState<number | undefined>(undefined);
+    const gridIndexToFocusRef = useRef<number | undefined>(undefined);
+    const activeSelectionGridKeyRef = useRef<string | undefined>(undefined);
     const { keyBindings } = useVscodeWebview();
 
     // Derive a stable flat list for rendering
@@ -169,6 +178,34 @@ export const QueryResultsGridView = ({
         resultSetSummaries,
     ]);
 
+    // Perf-harness first-readable-results mark: deferred offscreen result sets may still be
+    // unmounted at this boundary. The row and result-set counts are structural metadata, not
+    // mounted counts. This fires only when the perf bridge is enabled (PERF_MODE runs).
+    const lastPerfMarkKey = useRef<string | undefined>(undefined);
+    useEffect(() => {
+        if (isExecuting === true) {
+            lastPerfMarkKey.current = undefined;
+            return;
+        }
+        if (isExecuting !== false || gridList.length === 0) {
+            return;
+        }
+        const totalRows = gridList.reduce(
+            (total, item) =>
+                total + (resultSetSummaries?.[item.batchId]?.[item.resultId]?.rowCount ?? 0),
+            0,
+        );
+        const key = `${uri}:${gridList.length}:${totalRows}`;
+        if (lastPerfMarkKey.current === key) {
+            return;
+        }
+        lastPerfMarkKey.current = key;
+        perfMarkAfterNextPaint("mssql.resultsGrid.renderComplete", {
+            rowCount: totalRows,
+            resultSets: gridList.length,
+        });
+    }, [isExecuting, gridList, resultSetSummaries, uri]);
+
     // Restore grid view container scroll position on mount
     useEffect(() => {
         async function restoreGridViewContainerScrollPosition() {
@@ -228,6 +265,44 @@ export const QueryResultsGridView = ({
         return undefined;
     }, [gridList, gridRefs]);
 
+    const focusGridAtIndex = useCallback(
+        (gridIndex: number): boolean => {
+            const gridDefinition = gridList[gridIndex];
+            if (!gridDefinition) {
+                return false;
+            }
+
+            const gridKey = `${gridDefinition.batchId}_${gridDefinition.resultId}`;
+            const gridContainer = gridContainerRefs.current.get(gridKey)?.current;
+            if (!gridContainer) {
+                return false;
+            }
+
+            gridContainer.scrollIntoView({ behavior: "smooth", block: "center" });
+            const grid = gridRefs.current[gridIndex];
+            if (grid) {
+                grid.focusGrid();
+                return true;
+            }
+
+            gridIndexToFocusRef.current = gridIndex;
+            setGridIndexToFocus(gridIndex);
+            return true;
+        },
+        [gridList],
+    );
+
+    const handleGridRef = useCallback((gridIndex: number, grid: ResultGridHandle | null) => {
+        gridRefs.current[gridIndex] = grid ?? undefined;
+        if (!grid || gridIndexToFocusRef.current !== gridIndex) {
+            return;
+        }
+
+        gridIndexToFocusRef.current = undefined;
+        setGridIndexToFocus(undefined);
+        requestAnimationFrame(() => grid.focusGrid());
+    }, []);
+
     // Keyboard shortcuts
     useEffect(() => {
         const handler = (event: KeyboardEvent) => {
@@ -266,16 +341,7 @@ export const QueryResultsGridView = ({
                 }
                 // Circular navigation
                 const newIndex = (activeGrid.gridIndex - 1 + gridList.length) % gridList.length;
-
-                // Scroll div into view before focusing grid
-                gridContainerRefs.current
-                    .get(`${activeGrid.gridDef.batchId}_${activeGrid.gridDef.resultId}`)
-                    ?.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-                const gridToFocus = gridRefs.current[newIndex];
-                if (gridToFocus) {
-                    gridToFocus.focusGrid();
-                    handled = true;
-                }
+                handled = focusGridAtIndex(newIndex);
             } else if (
                 eventMatchesShortcut(
                     event,
@@ -288,17 +354,7 @@ export const QueryResultsGridView = ({
                 }
                 // Circular navigation
                 const newIndex = (activeGrid.gridIndex + 1) % gridList.length;
-
-                // Scroll div into view before focusing grid
-                gridContainerRefs.current
-                    .get(`${activeGrid.gridDef.batchId}_${activeGrid.gridDef.resultId}`)
-                    ?.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-
-                const gridToFocus = gridRefs.current[newIndex];
-                if (gridToFocus) {
-                    gridToFocus.focusGrid();
-                    handled = true;
-                }
+                handled = focusGridAtIndex(newIndex);
             }
 
             if (handled) {
@@ -310,7 +366,7 @@ export const QueryResultsGridView = ({
         return () => {
             document.removeEventListener("keydown", handler, true);
         };
-    }, [keyBindings, gridList, getActiveGrid, viewMode, maximizedGridKey]);
+    }, [keyBindings, gridList, getActiveGrid, focusGridAtIndex, viewMode, maximizedGridKey]);
 
     const handleToggleMaximize = (gridKey: string) => {
         const isAlreadyMaximized = maximizedGridKey === gridKey;
@@ -344,6 +400,30 @@ export const QueryResultsGridView = ({
             gridRefs.current[gridIndex]?.focusGrid();
         },
         [gridRefs],
+    );
+
+    const handleGridSelectionChange = useCallback(
+        (gridKey: string, hasSelection: boolean) => {
+            if (!hasSelection) {
+                if (activeSelectionGridKeyRef.current === gridKey) {
+                    activeSelectionGridKeyRef.current = undefined;
+                }
+                return;
+            }
+
+            if (activeSelectionGridKeyRef.current === gridKey) {
+                return;
+            }
+
+            activeSelectionGridKeyRef.current = gridKey;
+            gridList.forEach((item, index) => {
+                const itemKey = `${item.batchId}_${item.resultId}`;
+                if (itemKey !== gridKey) {
+                    gridRefs.current[index]?.clearSelection?.();
+                }
+            });
+        },
+        [gridList],
     );
 
     useEffect(() => {
@@ -481,21 +561,40 @@ export const QueryResultsGridView = ({
                                 "--results-row-padding": `${gridSettings?.rowPadding ?? 0}px`,
                             } as React.CSSProperties
                         }>
-                        <div
+                        <LazyMount
+                            enabled={
+                                deferOffscreenGridRendering &&
+                                !isMaximized &&
+                                gridIndexToFocus !== index
+                            }
+                            rootRef={gridViewContainerRef}
+                            containerRef={containerRef}
+                            placeholderProps={{
+                                "aria-busy": true,
+                                "aria-label": locConstants.queryResult.resultSet(
+                                    item.batchId,
+                                    item.resultId,
+                                ),
+                                role: "region",
+                                tabIndex: 0,
+                            }}
+                            onPlaceholderFocus={() => {
+                                gridIndexToFocusRef.current = index;
+                                setGridIndexToFocus(index);
+                            }}
                             style={{
                                 flex: 1,
                                 minWidth: 0,
                                 minHeight: 0,
                                 height: "100%",
                                 overflow: "hidden",
-                            }}
-                            ref={containerRef}>
+                            }}>
                             <GridComponent
                                 gridId={gridKey}
                                 key={gridKey}
                                 gridParentRef={containerRef}
                                 ref={(gridRef) => {
-                                    gridRefs.current[index] = gridRef ?? undefined;
+                                    handleGridRef(index, gridRef);
                                 }}
                                 batchId={item.batchId}
                                 resultId={item.resultId}
@@ -505,8 +604,11 @@ export const QueryResultsGridView = ({
                                 }
                                 isMaximized={isMaximized}
                                 onToggleMaximize={() => handleToggleMaximize(gridKey)}
+                                onSelectionChange={(hasSelection) =>
+                                    handleGridSelectionChange(gridKey, hasSelection)
+                                }
                             />
-                        </div>
+                        </LazyMount>
                         {showExternalCommandBar && (
                             <CommandBar
                                 uri={uri}

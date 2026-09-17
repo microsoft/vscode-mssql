@@ -11,6 +11,33 @@ import { ConnectionCredentials } from "../../src/models/connectionCredentials";
 import { IConnectionProfile, IConnectionProfileWithSource } from "../../src/models/interfaces";
 import * as utilUtils from "../../src/utils/utils";
 import * as vscode from "vscode";
+import * as os from "os";
+import * as path from "path";
+
+suite("Utility Tests - Path handling", () => {
+    let sandbox: sinon.SinonSandbox;
+
+    setup(() => {
+        sandbox = sinon.createSandbox();
+        sandbox.stub(os, "homedir").returns("/home/test-user");
+    });
+
+    teardown(() => {
+        sandbox.restore();
+    });
+
+    test("expands a leading tilde path segment", () => {
+        expect(utilUtils.expandTildePath("~/sounds/complete.wav")).to.equal(
+            path.join("/home/test-user", "sounds", "complete.wav"),
+        );
+    });
+
+    test("does not expand a tilde that is not a path segment", () => {
+        expect(utilUtils.expandTildePath("~other/sounds/complete.wav")).to.equal(
+            "~other/sounds/complete.wav",
+        );
+    });
+});
 
 suite("Utility Tests - Timestamp handling", () => {
     test("should return false if nothing passed", () => {
@@ -482,6 +509,32 @@ suite("ConnectionMatcher", () => {
                 },
                 expected: Utils.MatchScore.AllAvailableProps,
             },
+            // Test equivalent server port formats used by saved profiles and .scmp files
+            {
+                conn1: {
+                    ...sqlAuthConn,
+                    server: "localhost",
+                    port: 2433,
+                },
+                conn2: {
+                    ...sqlAuthConn,
+                    server: "localhost,2433",
+                },
+                expected: Utils.MatchScore.AllAvailableProps,
+            },
+            // Test different server ports
+            {
+                conn1: {
+                    ...sqlAuthConn,
+                    server: "localhost",
+                    port: 1433,
+                },
+                conn2: {
+                    ...sqlAuthConn,
+                    server: "localhost,2433",
+                },
+                expected: Utils.MatchScore.NotMatch,
+            },
             // Test server and database match, but not auth
             {
                 conn1: sqlAuthConn,
@@ -603,6 +656,20 @@ suite("ConnectionMatcher", () => {
             score: Utils.MatchScore.NotMatch,
         });
     });
+
+    test("matches active SCMP connections when the port is stored separately", () => {
+        const activeConnection = {
+            ...sqlAuthConn,
+            server: "localhost",
+            port: 2433,
+        };
+        const scmpConnection = {
+            ...sqlAuthConn,
+            server: "localhost,2433",
+        };
+
+        expect(Utils.isSameScmpConnection(activeConnection, scmpConnection)).to.be.true;
+    });
 });
 
 suite("decodeQueryResultLinkFragment", () => {
@@ -683,3 +750,48 @@ export const azureAuthConn = {
 export const connStringConn = {
     connectionString: "Server=myServer;Database=myDB;Integrated Security=true;",
 } as IConnectionProfile;
+
+suite("Utility Tests - withTimeout", () => {
+    let clock: sinon.SinonFakeTimers;
+
+    setup(() => {
+        clock = sinon.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    });
+
+    teardown(() => {
+        clock.restore();
+    });
+
+    test("resolves with the value when the promise settles in time", async () => {
+        const result = await Utils.withTimeout(Promise.resolve("done"), 1000, "too slow");
+
+        expect(result).to.equal("done");
+        expect(clock.countTimers(), "the timer is cleared once the promise settles").to.equal(0);
+    });
+
+    test("propagates a rejection from the promise", async () => {
+        let caught: Error | undefined;
+        try {
+            await Utils.withTimeout(Promise.reject(new Error("boom")), 1000, "too slow");
+        } catch (error) {
+            caught = error as Error;
+        }
+
+        expect(caught?.message).to.equal("boom");
+        expect(clock.countTimers(), "the timer is cleared once the promise settles").to.equal(0);
+    });
+
+    test("rejects with the timeout message when the promise never settles", async () => {
+        let caught: Error | undefined;
+        const observed = Utils.withTimeout(new Promise<never>(() => {}), 1000, "too slow").catch(
+            (error) => {
+                caught = error as Error;
+            },
+        );
+
+        await clock.tickAsync(1001);
+        await observed;
+
+        expect(caught?.message).to.equal("too slow");
+    });
+});

@@ -27,12 +27,10 @@ export function registerFileBrowserReducers<TResult>(
             state.fileBrowserState = fileBrowserService.fileBrowserState;
             sendActionEvent(TelemetryViews.FileBrowser, TelemetryActions.FileBrowserOpen);
         } else {
-            sendErrorEvent(
-                TelemetryViews.FileBrowser,
-                TelemetryActions.FileBrowserOpen,
-                new Error(result ? result.message : "Unknown error"),
-                false, // includeErrorMessage
-            );
+            sendErrorEvent(TelemetryViews.FileBrowser, TelemetryActions.FileBrowserOpen, {
+                error: new Error(result ? result.message : "Unknown error"),
+                includeErrorMessage: false,
+            });
         }
         return state;
     });
@@ -42,12 +40,10 @@ export function registerFileBrowserReducers<TResult>(
             state.fileBrowserState = fileBrowserService.fileBrowserState;
             sendActionEvent(TelemetryViews.FileBrowser, TelemetryActions.FileBrowserExpand);
         } else {
-            sendErrorEvent(
-                TelemetryViews.FileBrowser,
-                TelemetryActions.FileBrowserExpand,
-                new Error(result ? result.message : "Unknown error"),
-                false, // includeErrorMessage
-            );
+            sendErrorEvent(TelemetryViews.FileBrowser, TelemetryActions.FileBrowserExpand, {
+                error: new Error(result ? result.message : "Unknown error"),
+                includeErrorMessage: false,
+            });
         }
         return state;
     });
@@ -68,12 +64,10 @@ export function registerFileBrowserReducers<TResult>(
             state.fileBrowserState = fileBrowserService.fileBrowserState;
             sendActionEvent(TelemetryViews.FileBrowser, TelemetryActions.FileBrowserClose);
         } else {
-            sendErrorEvent(
-                TelemetryViews.FileBrowser,
-                TelemetryActions.FileBrowserClose,
-                new Error(result ? result.message : "Unknown error"),
-                false, // includeErrorMessage
-            );
+            sendErrorEvent(TelemetryViews.FileBrowser, TelemetryActions.FileBrowserClose, {
+                error: new Error(result ? result.message : "Unknown error"),
+                includeErrorMessage: false,
+            });
         }
         return state;
     });
@@ -92,18 +86,14 @@ export function registerFileBrowserReducers<TResult>(
                     sendActionEvent(
                         TelemetryViews.FileBrowser,
                         TelemetryActions.FileBrowserDialog,
-                        { isOpen: "true" },
+                        { additionalProps: { isOpen: "true" } },
                     );
                 } else {
-                    sendErrorEvent(
-                        TelemetryViews.FileBrowser,
-                        TelemetryActions.FileBrowserDialog,
-                        new Error(result ? result.message : "Unknown error"),
-                        false, // includeErrorMessage
-                        undefined,
-                        undefined,
-                        { isOpen: "true" },
-                    );
+                    sendErrorEvent(TelemetryViews.FileBrowser, TelemetryActions.FileBrowserDialog, {
+                        error: new Error(result ? result.message : "Unknown error"),
+                        includeErrorMessage: false,
+                        additionalProps: { isOpen: "true" },
+                    });
                 }
             }
             state.fileBrowserState = fileBrowserService.fileBrowserState;
@@ -117,7 +107,9 @@ export function registerFileBrowserReducers<TResult>(
             // Close the file browser dialog
             state.dialog = undefined;
             sendActionEvent(TelemetryViews.FileBrowser, TelemetryActions.FileBrowserDialog, {
-                isOpen: "false",
+                additionalProps: {
+                    isOpen: "false",
+                },
             });
         }
         return state;

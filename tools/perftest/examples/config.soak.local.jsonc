@@ -1,0 +1,49 @@
+// Phase-2 M10: connect→query→disconnect soak. Measurement pass — latency
+// trend, failure rate, and RSS slope are official-eligible; heavy collectors
+// stay off. PERF_SOAK_ITERATIONS overrides the scenario's 1000 default for
+// quick verification runs (the override is part of the snapshotted config).
+// Leak-gate proof: set PERF_SYNTHETIC_LEAK_KB_PER_ITER (e.g. "256") to inject
+// a real, transparently-recorded leak that analysis must classify as growing.
+{
+    "schemaVersion": 2,
+    "runId": "auto",
+    "passType": "measurement",
+    "repetitions": 1,
+    "warmupRepetitions": 0,
+    "scenarios": ["soak-connect-query-disconnect"],
+    "vscode": {
+        "version": "stable",
+        "quality": "stable",
+        "launchMode": "directSpawn",
+        "profileMode": "scenarioDefault",
+        "workspaceRoot": "../workspaces/perf",
+        "extensions": [
+            {
+                "id": "ms-mssql.mssql",
+                "source": "developmentPath",
+                "path": "../../../extensions/mssql",
+            },
+            {
+                "id": "perftest.mssql-perf-driver",
+                "source": "developmentPath",
+                "path": "../extensions/mssql-perf-driver",
+            },
+        ],
+        "extraArgs": [],
+        "env": {
+            "PERF_SOAK_ITERATIONS": "60",
+        },
+    },
+    "sql": {
+        "provider": "external",
+        "connectionStringEnv": "STS2_SQLSERVER_CONNSTRING",
+        "snapshot": "seed-v1",
+        "cacheMode": "warm",
+        "connectionProfile": "default",
+    },
+    "environment": { "requireIdle": false },
+    "diagnostics": { "markers": true, "processSampler": false, "otel": "off" },
+    "store": { "type": "sqlite", "path": "../perf.db" },
+    "regression": { "baseline": "none", "failOnRegression": false },
+    "output": { "dir": "../perf-runs", "keepArtifacts": "always" },
+}

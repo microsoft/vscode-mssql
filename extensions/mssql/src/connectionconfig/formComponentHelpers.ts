@@ -72,13 +72,13 @@ export async function generateConnectionComponents(
             sendErrorEvent(
                 TelemetryViews.ConnectionDialog,
                 TelemetryActions.LoadConnectionProperties,
-                err,
-                true, // includeErrorMessage
-                undefined, // errorCode
-                undefined, // errorType
                 {
-                    connectionOptionName: option.name,
-                }, // additionalProperties
+                    error: err,
+                    includeErrorMessage: true,
+                    additionalProps: {
+                        connectionOptionName: option.name,
+                    },
+                },
             );
         }
     }
@@ -190,8 +190,7 @@ export function convertToFormComponent(
             sendErrorEvent(
                 TelemetryViews.ConnectionDialog,
                 TelemetryActions.LoadConnectionProperties,
-                new Error(error),
-                true, // includeErrorMessage
+                { error: new Error(error), includeErrorMessage: true },
             );
     }
 }

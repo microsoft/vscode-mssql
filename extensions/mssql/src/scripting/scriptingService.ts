@@ -201,11 +201,12 @@ export class ScriptingService {
         const scriptTelemetryActivity = startActivity(
             TelemetryViews.ObjectExplorer,
             TelemetryActions.ScriptNode,
-            undefined,
             {
-                operation: this.stringifyScriptOperation(operation),
-                nodeType: node.nodeType,
-                subType: node.nodeSubType,
+                additionalProps: {
+                    operation: this.stringifyScriptOperation(operation),
+                    nodeType: node.nodeType,
+                    subType: node.nodeSubType,
+                },
             },
         );
 
@@ -491,9 +492,10 @@ export class ScriptingService {
         const scriptTelemetryActivity = startActivity(
             TelemetryViews.ScriptingService,
             TelemetryActions.Script,
-            undefined,
             {
-                operation: this.stringifyScriptOperation(scriptingParams.operation),
+                additionalProps: {
+                    operation: this.stringifyScriptOperation(scriptingParams.operation),
+                },
             },
         );
         return await vscode.window.withProgress(

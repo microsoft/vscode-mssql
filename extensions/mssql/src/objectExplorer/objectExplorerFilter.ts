@@ -16,7 +16,6 @@ import { TreeNodeInfo } from "./nodes/treeNodeInfo";
 import { randomUUID } from "crypto";
 import { sendActionEvent } from "extension-toolkit/vscode";
 import { ObjectExplorerFilterStore } from "./objectExplorerFilterStore";
-import { getPreviewConfigKey, PreviewFeature } from "../previews/previewService";
 
 export class ObjectExplorerFilterWebviewController extends WebviewPanelController<
     ObjectExplorerFilterState,
@@ -40,7 +39,6 @@ export class ObjectExplorerFilterWebviewController extends WebviewPanelControlle
             data ?? {
                 filterProperties: [],
                 existingFilters: [],
-                isPreviewEnabled: false,
                 filterScopeId: "",
                 filterPresets: [],
                 nodePath: "",
@@ -59,16 +57,14 @@ export class ObjectExplorerFilterWebviewController extends WebviewPanelControlle
 
         this.registerReducer("submit", async (state, payload) => {
             try {
-                if (state.isPreviewEnabled) {
-                    await this._filterStore.recordUsage(
-                        state.filterScopeId,
-                        payload.filters,
-                        payload.saveName,
-                    );
-                }
+                await this._filterStore.recordUsage(
+                    state.filterScopeId,
+                    payload.filters,
+                    payload.saveName,
+                );
             } catch (error) {
                 // Applying a filter must not depend on the optional recent-filter cache.
-                this.logger.error("Failed to save the Object Explorer filter history", error);
+                this.logger.warn("Failed to save the Object Explorer filter history", error);
             }
             this._onSubmit.fire(payload.filters);
             this.panel.dispose();
@@ -112,7 +108,7 @@ export class ObjectExplorerFilterWebviewController extends WebviewPanelControlle
             const filterPresets = await update();
             return { ...state, filterPresets };
         } catch (error) {
-            this.logger.error("Failed to update the Object Explorer filter presets", error);
+            this.logger.warn("Failed to update the Object Explorer filter presets", error);
             return state;
         }
     }
@@ -141,27 +137,21 @@ export class ObjectExplorerFilter {
     ): Promise<vscodeMssql.NodeFilter[] | undefined> {
         const correlationId = randomUUID();
         sendActionEvent(TelemetryViews.ObjectExplorerFilter, TelemetryActions.Open, {
-            nodeType: treeNode.nodeType,
-            correlationId,
+            additionalProps: {
+                nodeType: treeNode.nodeType,
+                correlationId,
+            },
         });
         const filterStore = new ObjectExplorerFilterStore(context);
         const filterScopeId = ObjectExplorerFilterStore.getScopeId(
             treeNode.nodeType,
             treeNode.filterableProperties,
         );
-        const isPreviewEnabled =
-            vscode.workspace
-                .getConfiguration()
-                .get<boolean>(
-                    getPreviewConfigKey(PreviewFeature.BetaObjectExplorerFilter),
-                    false,
-                ) ?? false;
         const data: ObjectExplorerFilterState = {
             filterProperties: treeNode.filterableProperties,
             existingFilters: treeNode.filters,
-            isPreviewEnabled,
             filterScopeId,
-            filterPresets: isPreviewEnabled ? await filterStore.getPresets(filterScopeId) : [],
+            filterPresets: await filterStore.getPresets(filterScopeId),
             nodePath: treeNode.nodePath,
         };
         if (!this._filterWebviewController || this._filterWebviewController.isDisposed) {
@@ -195,12 +185,14 @@ export class ObjectExplorerFilter {
                             TelemetryViews.ObjectExplorerFilter,
                             TelemetryActions.Submit,
                             {
-                                nodeType: treeNode.nodeType,
-                                correlationId,
-                                filters: JSON.stringify(e.map((e) => e.name)),
-                            },
-                            {
-                                filterCount: e.length,
+                                additionalProps: {
+                                    nodeType: treeNode.nodeType,
+                                    correlationId,
+                                    filters: JSON.stringify(e.map((e) => e.name)),
+                                },
+                                additionalMeasurements: {
+                                    filterCount: e.length,
+                                },
                             },
                         );
                     }
@@ -210,8 +202,10 @@ export class ObjectExplorerFilter {
             disposables.push(
                 this._filterWebviewController.onCancel(() => {
                     sendActionEvent(TelemetryViews.ObjectExplorerFilter, TelemetryActions.Cancel, {
-                        nodeType: treeNode.nodeType,
-                        correlationId,
+                        additionalProps: {
+                            nodeType: treeNode.nodeType,
+                            correlationId,
+                        },
                     });
                     complete(undefined);
                 }),
@@ -219,8 +213,10 @@ export class ObjectExplorerFilter {
             disposables.push(
                 this._filterWebviewController.onDisposed(() => {
                     sendActionEvent(TelemetryViews.ObjectExplorerFilter, TelemetryActions.Cancel, {
-                        nodeType: treeNode.nodeType,
-                        correlationId,
+                        additionalProps: {
+                            nodeType: treeNode.nodeType,
+                            correlationId,
+                        },
                     });
                     complete(undefined);
                 }),

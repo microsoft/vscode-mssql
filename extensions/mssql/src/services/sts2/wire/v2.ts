@@ -1,0 +1,335 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+/**
+ * STS2 wire contract v2 — AD-1 pinning against `sqltoolsservice/docs/sts2/
+ * CONTRACT.md` + `CLIENT.md` + the Core reducer/driver sources (verified
+ * 2026-07-04, spec 2.0.0-preview.1). This module is the ONLY place STS2 wire
+ * DTOs exist; nothing outside `src/services/sts2/` may import it.
+ *
+ * Contract worksheet answers pinned here (addendum §6):
+ *  #2  Ack = CLIENT NOTIFICATION `v2/query.ack`, per-page (`pageSeq`) or
+ *      high-water (`throughPageSeq`). The binding uses high-water.
+ *  #3  Dispose terminality = D-0011: every accepted query yields exactly one
+ *      `v2/query.complete`; dispose of an active query yields
+ *      status "disposed".
+ *  #4  rowsAffected is STRUCTURED on `v2/query.complete` (number|number[]|null).
+ *  #5  connection.open result carries serverInfo (product/version/
+ *      engineEdition/dialect); SPID is NOT in the open result → probe path.
+ *  #10 `v2/initialize {clientName, requestedSpecVersion}` → capabilities +
+ *      limits (incl. windowPages backpressure window).
+ *  Capture is `v2/diagnostics.setCapture` (NOT session.setCapture).
+ *  #1  Verbatim messages: `v2/query.message` carries messageClass/number/
+ *      severity/text as DATA — journal redaction is independent (SPEC §8.4).
+ */
+
+export const STS2_METHODS = {
+    initialize: "v2/initialize",
+    connectionOpen: "v2/connection.open",
+    connectionCancel: "v2/connection.cancel",
+    connectionClose: "v2/connection.close",
+    queryExecute: "v2/query.execute",
+    queryAck: "v2/query.ack",
+    queryCancel: "v2/query.cancel",
+    queryDispose: "v2/query.dispose",
+    diagnosticsPing: "v2/diagnostics.ping",
+    diagnosticsHealth: "v2/diagnostics.health",
+    diagnosticsState: "v2/diagnostics.state",
+    diagnosticsSetCapture: "v2/diagnostics.setCapture",
+    // server notifications
+    queryResultSet: "v2/query.resultSet",
+    queryRows: "v2/query.rows",
+    queryMessage: "v2/query.message",
+    queryComplete: "v2/query.complete",
+    fatal: "v2/fatal",
+} as const;
+
+/** Stable error identities live in error.data.code (JSON-RPC code is numeric). */
+export const STS2_ERROR_CODES = {
+    busy: "Sts2.Busy",
+    canceled: "Sts2.Canceled",
+    connectionFailedAuth: "Sts2.ConnectionFailed.Auth",
+    connectionFailedNetwork: "Sts2.ConnectionFailed.Network",
+    connectionFailedTimeout: "Sts2.ConnectionFailed.Timeout",
+    internal: "Sts2.Internal",
+    invalidRequest: "Sts2.InvalidRequest",
+    notFound: "Sts2.NotFound",
+    queryFailedServer: "Sts2.QueryFailed.Server",
+    queryFailedTransport: "Sts2.QueryFailed.Transport",
+    unavailable: "Sts2.Unavailable",
+} as const;
+
+// ---------------------------------------------------------------------------
+// Requests
+// ---------------------------------------------------------------------------
+
+export interface V2InitializeParams {
+    clientName: string;
+    requestedSpecVersion: string;
+}
+
+export interface V2InitializeResult {
+    specVersion: string;
+    serviceVersion?: string;
+    capabilities?: Record<string, unknown>;
+    limits?: { windowPages?: number; [key: string]: unknown };
+    drivers?: string[];
+    capture?: Record<string, unknown>;
+    [key: string]: unknown;
+}
+
+/**
+ * Wire profile. Secrets travel RAW inside `auth` — the service's
+ * SecretRedactor tokenizes every auth field except kind/user BEFORE the
+ * envelope/journal exists (SPEC §8.5); the client must still never log this
+ * object (privacy canaries assert it).
+ */
+export interface V2ConnectionProfile {
+    server: string;
+    database?: string;
+    driver: "sqlclient" | "sqlite";
+    auth: {
+        kind: "sqlLogin" | "accessToken" | "integrated";
+        user?: string;
+        password?: string;
+        /** Canonical STS2 SPEC §7.4 access-token field. */
+        token?: string;
+    };
+    options?: {
+        applicationName?: string;
+        connectTimeoutMs?: number;
+        encrypt?: string;
+        trustServerCertificate?: string;
+        [key: string]: string | number | undefined;
+    };
+}
+
+export interface V2ConnectionOpenParams {
+    openId: string;
+    profile: V2ConnectionProfile;
+}
+
+export interface V2ServerInfo {
+    product?: string;
+    version?: string;
+    /** Edition DISPLAY name (serverproperty('Edition') — e.g. "SQL Azure"). */
+    engineEdition?: string;
+    /**
+     * Numeric serverproperty('EngineEdition') (additive, STS2 D-0017):
+     * 5 = Azure SQL Database, 8 = Managed Instance. Absent on older
+     * services and failed probes.
+     */
+    engineEditionId?: number;
+    dialect?: string;
+}
+
+export interface V2ConnectionOpenResult {
+    connectionId: string;
+    openId?: string;
+    serverInfo?: V2ServerInfo;
+    [key: string]: unknown;
+}
+
+export interface V2QueryExecuteParams {
+    connectionId: string;
+    sql: string;
+    /**
+     * Per-query bounds and timeout (SPEC §7.5, QO-3). Page limits and
+     * `maxCellBytes` are lower-only (absent/0 = pinned service defaults; the
+     * service never raises them); `queryTimeoutMs` 0/absent = provider
+     * default. Capped cells arrive as truncated-cell markers (V2TruncatedCell).
+     */
+    options?: {
+        pageRows?: number;
+        pageBytes?: number;
+        maxCellBytes?: number;
+        queryTimeoutMs?: number;
+        /** QO-5: switch v2/query.rows to the compact shape for this query. */
+        compactRows?: boolean;
+        vectorEncoding?: "binary-v1";
+        spatialEncoding?: "wkb-v1";
+        [key: string]: unknown;
+    };
+    [key: string]: unknown;
+}
+
+export interface V2QueryExecuteResult {
+    queryId: string;
+}
+
+/** High-water ack (per-page `pageSeq` also accepted by the service). */
+export interface V2QueryAckParams {
+    queryId: string;
+    resultSetId?: number;
+    throughPageSeq?: number;
+    pageSeq?: number;
+}
+
+// ---------------------------------------------------------------------------
+// Notifications (pinned to the STS2 camelCase wire contract)
+// ---------------------------------------------------------------------------
+
+export interface V2WireColumn {
+    name?: string;
+    /** The service serializes the engine type name as `type` (D-0018). */
+    type?: string;
+    nullable?: boolean | null;
+    precision?: number | null;
+    scale?: number | null;
+    length?: number | null;
+    collation?: string | null;
+    spatial?: {
+        kind?: "geometry" | "geography" | string;
+        encoding?: "wkb-v1" | string;
+    } | null;
+}
+
+/** Strictly normalize negotiated spatial metadata; unknown shapes are ignored. */
+export function wireColumnSpatial(
+    column: V2WireColumn,
+): { kind: "geometry" | "geography"; encoding: "wkb-v1" } | undefined {
+    const compact = column.spatial;
+    const kind = compact?.kind;
+    const encoding = compact?.encoding;
+    return (kind === "geometry" || kind === "geography") && encoding === "wkb-v1"
+        ? { kind, encoding }
+        : undefined;
+}
+
+export interface V2ResultSetNotification {
+    queryId: string;
+    resultSetId: number;
+    columns: V2WireColumn[];
+}
+
+export interface V2RowsNotification {
+    queryId: string;
+    resultSetId: number;
+    pageSeq: number;
+    rowOffset: number;
+    /**
+     * Legacy shape: cells as JSON scalars, null, or byte-capped
+     * V2TruncatedCell markers. Absent when the query opted into compact
+     * rows (QO-5) — exactly one of rows/compact is present.
+     */
+    rows?: unknown[][];
+    /** Compact shape (options.compactRows=true, D-0016): computed service-side ONCE. */
+    compact?: {
+        values: unknown[][];
+        nullBitmap?: string;
+        typeHints?: string[];
+        [key: string]: unknown;
+    };
+    /** Service-measured page bytes (compact shape only). */
+    approxBytes?: number;
+    encodedBytes?: number;
+    last?: boolean;
+}
+
+/**
+ * Byte-capped cell marker (service maxCellBytes semantics): the prefix the
+ * service kept plus honest metadata about what it dropped. Tolerantly typed —
+ * only `$t` is load-bearing for detection; the binding normalizes the rest.
+ */
+export interface V2TruncatedCell {
+    $t: "truncated";
+    of?: "string" | "binary" | string;
+    /** Full pre-truncation size in bytes. */
+    bytes?: number;
+    /** `sha256:<hex>` digest of the full value. */
+    digest?: string;
+    /** UTF-8 prefix (`of:"string"`) or base64-encoded prefix (`of:"binary"`). */
+    v?: string;
+}
+
+/** Detects the truncated-cell marker BEFORE any String() decode fallback. */
+export function isV2TruncatedCell(cell: unknown): cell is V2TruncatedCell {
+    return (
+        cell !== null && typeof cell === "object" && (cell as { $t?: unknown }).$t === "truncated"
+    );
+}
+
+export interface V2MessageNotification {
+    queryId: string;
+    messageClass: string; // "info" | "warning" | "error" (driver-defined)
+    number?: number;
+    severity?: number;
+    text: string;
+    line?: number;
+}
+
+export type V2QueryStatus = "succeeded" | "canceled" | "error" | "disposed";
+
+export interface V2CompleteNotification {
+    queryId: string;
+    status: V2QueryStatus;
+    rowsAffected: number | number[] | null;
+    /** Connection's CURRENT database at completion (ENVCHANGE truth — reflects USE). */
+    database?: string | null;
+    error?: {
+        code?: string;
+        message?: string;
+        server?: { number?: number; severity?: number; state?: number; line?: number } | null;
+    };
+}
+
+export interface V2FatalNotification {
+    reason?: string;
+    journalPath?: string;
+    [key: string]: unknown;
+}
+
+// --- helpers ----------------------------------------------------------------
+
+export function wireColumnName(column: V2WireColumn): string {
+    return column.name ?? "";
+}
+
+export function wireColumnType(column: V2WireColumn): string | undefined {
+    return column.type;
+}
+
+export function wireColumnNullable(column: V2WireColumn): boolean | undefined {
+    const value = column.nullable;
+    return value === null ? undefined : value;
+}
+
+export function wireColumnPrecision(column: V2WireColumn): number | undefined {
+    const value = column.precision;
+    return value === null || value === undefined ? undefined : value;
+}
+
+export function wireColumnScale(column: V2WireColumn): number | undefined {
+    const value = column.scale;
+    return value === null || value === undefined ? undefined : value;
+}
+
+export function wireColumnLength(column: V2WireColumn): number | undefined {
+    const value = column.length;
+    return value === null || value === undefined ? undefined : value;
+}
+
+/** Total rows affected from the structured complete payload. */
+export function totalRowsAffected(value: number | number[] | null | undefined): number | undefined {
+    if (value === null || value === undefined) {
+        return undefined;
+    }
+    if (typeof value === "number") {
+        return value >= 0 ? value : undefined;
+    }
+    const total = value.filter((n) => n >= 0).reduce((a, b) => a + b, 0);
+    return value.some((n) => n >= 0) ? total : undefined;
+}
+
+/** Stable Sts2.* identity from a JSON-RPC error object. */
+export function sts2ErrorCode(error: unknown): string | undefined {
+    return (error as { data?: { code?: string } } | undefined)?.data?.code;
+}
+
+/** JSON-RPC envelope code (distinct from stable `error.data.code`). */
+export function jsonRpcErrorCode(error: unknown): number | undefined {
+    const code = (error as { code?: unknown } | undefined)?.code;
+    return typeof code === "number" ? code : undefined;
+}

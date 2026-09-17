@@ -1,0 +1,51 @@
+// Milestone 2: vscode-mssql normal-activation scenario.
+// Loads the REAL product extension (dev path into the vscode-mssql repo,
+// built with `npm run build` there) plus the perf driver. Warmed profile:
+// the warmup rep also absorbs the one-time SQL Tools Service download.
+// Run from the perftest repo root:
+//   node packages/perftest-cli/dist/cli.js run --config examples/config.activation.local.jsonc
+{
+    "schemaVersion": 2,
+    "runId": "auto",
+    "passType": "measurement",
+    "repetitions": 3,
+    "warmupRepetitions": 1,
+    "scenarios": ["ext-normal-activation"],
+    "vscode": {
+        "version": "stable",
+        "quality": "stable",
+        "launchMode": "directSpawn",
+        "profileMode": "scenarioDefault",
+        "extensions": [
+            {
+                "id": "ms-mssql.mssql",
+                "source": "developmentPath",
+                "path": "../../../extensions/mssql",
+            },
+            {
+                "id": "perftest.mssql-perf-driver",
+                "source": "developmentPath",
+                "path": "../extensions/mssql-perf-driver",
+            },
+        ],
+        "extraArgs": [],
+        "env": {},
+    },
+    "sql": {
+        "provider": "external",
+        "snapshot": "none",
+        "cacheMode": "unknown",
+        "connectionProfile": "none",
+    },
+    "environment": {
+        "requireIdle": false,
+    },
+    "diagnostics": {
+        "markers": true,
+        "processSampler": false,
+        "otel": "off",
+    },
+    "store": { "type": "sqlite", "path": "../perf.db" },
+    "regression": { "baseline": "none", "failOnRegression": false },
+    "output": { "dir": "../perf-runs", "keepArtifacts": "always" },
+}

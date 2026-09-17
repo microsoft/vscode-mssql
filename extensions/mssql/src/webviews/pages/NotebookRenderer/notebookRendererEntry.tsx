@@ -105,7 +105,11 @@ export const activate: ActivationFunction = (context: RendererContext) => {
                 const root = createRoot(element);
                 roots.set(data.id, root);
                 root.render(
-                    <NotebookResultsOutput blocks={parsedData.blocks} postMessage={postMessage} />,
+                    <NotebookResultsOutput
+                        blocks={parsedData.blocks}
+                        copyAsCsvOptions={parsedData.copyAsCsvOptions}
+                        postMessage={postMessage}
+                    />,
                 );
             } else if (isSavedNotebookResultSetOutputData(parsedData)) {
                 const root = createRoot(element);

@@ -8,7 +8,7 @@ import { expect } from "chai";
 import * as vscode from "vscode";
 import {
     CONFIG_PREVIEW_PREFIX,
-    isBetaExecutionPlanEnabled,
+    PrivatePreviewFeature,
     PreviewFeature,
     PreviewFeaturesService,
 } from "../../src/previews/previewService";
@@ -95,19 +95,49 @@ suite("PreviewFeaturesService", () => {
         });
     });
 
-    suite("Beta execution plan", () => {
-        test("defaults to false independently of the global experimental flag", () => {
-            stubMssqlConfig(true);
+    suite("isPrivatePreviewEnabled", () => {
+        test("does not let a feature flag override the disabled umbrella", () => {
+            stubMssqlConfig(false, {}, { [PrivatePreviewFeature.SqlDataPlane]: true });
 
-            expect(isBetaExecutionPlanEnabled()).to.be.false;
+            expect(service.isPrivatePreviewEnabled(PrivatePreviewFeature.SqlDataPlane)).to.be.false;
         });
 
-        test("reads only the dedicated preview setting", () => {
-            stubMssqlConfig(false, {
-                [PreviewFeature.BetaExecutionPlan]: true,
-            });
+        test("requires the feature-specific flag when the umbrella is enabled", () => {
+            stubMssqlConfig(true);
 
-            expect(isBetaExecutionPlanEnabled()).to.be.true;
+            expect(service.isPrivatePreviewEnabled(PrivatePreviewFeature.SqlDataPlane)).to.be.false;
+        });
+
+        test("enables a feature only when the umbrella and feature flag are enabled", () => {
+            stubMssqlConfig(true, {}, { [PrivatePreviewFeature.SqlDataPlane]: true });
+
+            expect(service.isPrivatePreviewEnabled(PrivatePreviewFeature.SqlDataPlane)).to.be.true;
+        });
+
+        test("requires every feature in a private-preview dependency path", () => {
+            stubMssqlConfig(true, {}, { [PrivatePreviewFeature.SqlDataPlane]: true });
+            expect(
+                service.isPrivatePreviewEnabled(
+                    PrivatePreviewFeature.SqlDataPlane,
+                    PrivatePreviewFeature.MetadataCache,
+                ),
+            ).to.be.false;
+
+            getConfigurationStub.reset();
+            stubMssqlConfig(
+                true,
+                {},
+                {
+                    [PrivatePreviewFeature.SqlDataPlane]: true,
+                    [PrivatePreviewFeature.MetadataCache]: true,
+                },
+            );
+            expect(
+                service.isPrivatePreviewEnabled(
+                    PrivatePreviewFeature.SqlDataPlane,
+                    PrivatePreviewFeature.MetadataCache,
+                ),
+            ).to.be.true;
         });
     });
 
@@ -152,6 +182,7 @@ suite("PreviewFeaturesService", () => {
     function stubMssqlConfig(
         globalEnabled: boolean | undefined,
         featureOverrides: Partial<Record<PreviewFeature, boolean>> = {},
+        privatePreviewSettings: Partial<Record<PrivatePreviewFeature, boolean>> = {},
     ): void {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const items: { [key: string]: any } = {};
@@ -162,6 +193,10 @@ suite("PreviewFeaturesService", () => {
 
         for (const [feature, value] of Object.entries(featureOverrides)) {
             items[`${CONFIG_PREVIEW_PREFIX}${feature}`] = value;
+        }
+
+        for (const [setting, value] of Object.entries(privatePreviewSettings)) {
+            items[setting] = value;
         }
 
         const config = createWorkspaceConfiguration(items);

@@ -306,9 +306,10 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
         const activity = startActivity(
             TelemetryViews.DacpacDialog,
             TelemetryActions.DacpacDialogDeployDacpac,
-            undefined,
             {
-                isNewDatabase: params.isNewDatabase.toString(),
+                additionalProps: {
+                    isNewDatabase: params.isNewDatabase.toString(),
+                },
             },
         );
 

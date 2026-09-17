@@ -5,38 +5,35 @@
 
 import * as mssql from "vscode-mssql";
 import { useContext } from "react";
-import { Button, makeStyles, mergeClasses, shorthands, useId } from "@fluentui/react-components";
+import { Button, makeStyles, Tooltip, useId } from "@fluentui/react-components";
+import { ArrowSwap16Regular } from "@fluentui/react-icons";
 import SelectSchemaInput from "./SelectSchemaInput";
 import { schemaCompareContext } from "../SchemaCompareStateProvider";
 import { useSchemaCompareSelector } from "../schemaCompareSelector";
+import { isEndpointEmpty } from "../schemaCompareEndpointUtils";
 import { locConstants as loc } from "../../../common/locConstants";
 
 const useStyles = makeStyles({
-    topMargin: {
-        ...shorthands.margin("32px", "32px", "0"),
-    },
-
-    marginRight: {
-        marginRight: "32px",
-    },
-
-    layoutHorizontally: {
+    root: {
         display: "flex",
-        flexDirection: "row",
+        flexWrap: "wrap",
+        alignItems: "flex-end",
+        gap: "10px 14px",
+        padding: "12px 14px",
     },
-
-    center: {
-        justifyContent: "center",
+    switchButton: {
+        flex: "0 0 24px",
+        minWidth: "24px",
+        width: "24px",
+        height: "28px",
     },
-
-    button: {
-        height: "32px",
-        position: "relative",
-        top: "20px",
-    },
-
-    buttonLeftMargin: {
-        marginLeft: "32px",
+    compareButton: {
+        flex: "0 0 112px",
+        minWidth: "112px",
+        width: "112px",
+        height: "28px",
+        paddingLeft: "16px",
+        paddingRight: "16px",
     },
 });
 
@@ -68,11 +65,25 @@ const SelectSchemasPanel = ({ onSelectSchemaClicked }: Props) => {
     );
     const isComparisonInProgress = useSchemaCompareSelector((s) => s.isComparisonInProgress);
     const isApplyInProgress = useSchemaCompareSelector((s) => s.isApplyInProgress);
+    const isEndpointSelectionInProgress = useSchemaCompareSelector(
+        (s) => s.isEndpointSelectionInProgress === true,
+    );
+    // Changing endpoints or comparing discards the current result, so block both while a
+    // request against that result (checkbox change, script generation) is still in flight.
+    const isBusy =
+        isComparisonInProgress ||
+        isApplyInProgress ||
+        isEndpointSelectionInProgress ||
+        context.isOperationInProgress;
 
     let sourceEndpointDisplay = getEndpointDisplayName(sourceEndpointInfo);
     let targetEndpointDisplay = getEndpointDisplayName(targetEndpointInfo);
 
     const handleCompare = () => {
+        if (isEndpointSelectionInProgress) {
+            return;
+        }
+
         context.compare(
             sourceEndpointInfo,
             targetEndpointInfo,
@@ -80,47 +91,55 @@ const SelectSchemasPanel = ({ onSelectSchemaClicked }: Props) => {
         );
     };
 
-    const isEndpointEmpty = (endpoint: mssql.SchemaCompareEndpointInfo): boolean => {
-        if (
-            endpoint &&
-            (endpoint.serverDisplayName || endpoint.packageFilePath || endpoint.projectFilePath)
-        ) {
-            return false;
-        }
-        return true;
+    const handleSwitchEndpoints = () => {
+        context.switchEndpoints(targetEndpointInfo, sourceEndpointInfo);
     };
 
     return (
-        <div
-            className={mergeClasses(classes.layoutHorizontally, classes.center, classes.topMargin)}>
+        <div className={classes.root}>
             <SelectSchemaInput
                 id={sourceId}
                 label={loc.schemaCompare.source}
                 buttonAriaLabel={loc.schemaCompare.selectSourceSchema}
                 value={sourceEndpointDisplay}
-                disableBrowseButton={isComparisonInProgress || isApplyInProgress}
+                endpointType={sourceEndpointInfo?.endpointType}
+                disableBrowseButton={isBusy}
                 selectFile={() => onSelectSchemaClicked("source")}
-                className={classes.marginRight}
             />
+
+            <Tooltip content={loc.schemaCompare.switchSourceAndTarget} relationship="label">
+                <Button
+                    className={classes.switchButton}
+                    size="small"
+                    appearance="subtle"
+                    icon={<ArrowSwap16Regular />}
+                    onClick={handleSwitchEndpoints}
+                    disabled={
+                        isBusy ||
+                        (isEndpointEmpty(sourceEndpointInfo) && isEndpointEmpty(targetEndpointInfo))
+                    }
+                />
+            </Tooltip>
 
             <SelectSchemaInput
                 id={targetId}
                 label={loc.schemaCompare.target}
                 buttonAriaLabel={loc.schemaCompare.selectTargetSchema}
                 value={targetEndpointDisplay}
-                disableBrowseButton={isComparisonInProgress || isApplyInProgress}
+                endpointType={targetEndpointInfo?.endpointType}
+                disableBrowseButton={isBusy}
                 selectFile={() => onSelectSchemaClicked("target")}
             />
 
             <Button
-                className={mergeClasses(classes.button, classes.buttonLeftMargin)}
-                size="medium"
+                className={classes.compareButton}
+                appearance="primary"
+                size="small"
                 onClick={handleCompare}
                 disabled={
                     isEndpointEmpty(sourceEndpointInfo) ||
                     isEndpointEmpty(targetEndpointInfo) ||
-                    isComparisonInProgress ||
-                    isApplyInProgress
+                    isBusy
                 }>
                 {loc.schemaCompare.compare}
             </Button>

@@ -1,0 +1,198 @@
+{
+    "manifest": {
+        "schemaVersion": "mssql.diag.sessionManifest/1",
+        "sessionId": "sess-canary-0001",
+        "createdUtc": "2026-07-01T09:00:00.000Z",
+        "updatedUtc": "2026-07-01T09:10:00.000Z",
+        "source": "live",
+        "captureMode": "full",
+        "policyId": "capture-full/1",
+        "eventCount": 3,
+        "gapCount": 0,
+        "segments": [{ "file": "seg-000.jsonl", "firstSeq": 1, "lastSeq": 3, "events": 3 }],
+        "sizeBytes": 4096,
+        "provenance": {
+            "extensionVersion": "1.36.0",
+            "commit": "091b6712b0000000000000000000000000000000",
+            "dirty": false,
+            "environmentHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            "vscodeVersion": "1.101.0",
+            "stsVersion": "5.0.0",
+            "machineLabel": "CANARY-MACHINE-LABEL-7"
+        },
+        "status": "closed"
+    },
+    "segments": [
+        {
+            "file": "seg-000.jsonl",
+            "lines": [
+                {
+                    "schemaVersion": "mssql.diag.event/1",
+                    "eventId": "cnr-0001",
+                    "sessionId": "sess-canary-0001",
+                    "seq": 1,
+                    "epochMs": 1751360400000,
+                    "process": "extensionHost",
+                    "feature": "connection",
+                    "kind": "event",
+                    "type": "canary.credentials",
+                    "status": "ok",
+                    "payload": {
+                        "plainSecret": {
+                            "v": "CANARY-PASSWORD-hunter2-XYZZY",
+                            "cls": "secret",
+                            "handling": "plain"
+                        },
+                        "plainConnString": {
+                            "v": "Server=prod;User Id=sa;Password=CANARY-CONN-PWD-123;",
+                            "cls": "connection.string",
+                            "handling": "plain"
+                        },
+                        "bearerToken": {
+                            "v": "Bearer CANARY-TOKEN-eyJhbGciOi",
+                            "cls": "token",
+                            "handling": "plain"
+                        },
+                        "serverName": {
+                            "v": "CANARY-SERVER.contoso.com",
+                            "cls": "server.name",
+                            "handling": "plain"
+                        },
+                        "truncatedServerName": {
+                            "v": "CANARY-TRUNCATED-SERVER.contoso.com",
+                            "cls": "server.name",
+                            "handling": "truncated",
+                            "len": 4096
+                        },
+                        "databaseName": {
+                            "v": "CanaryProdDB",
+                            "cls": "database.name",
+                            "handling": "plain"
+                        },
+                        "schemaName": {
+                            "v": "canary_schema",
+                            "cls": "schema.name",
+                            "handling": "plain"
+                        },
+                        "objectName": {
+                            "v": "CanarySecretTable",
+                            "cls": "object.name",
+                            "handling": "plain"
+                        }
+                    },
+                    "cls": { "max": "secret", "redactedFields": 0, "policyId": "capture-full/1" }
+                },
+                {
+                    "schemaVersion": "mssql.diag.event/1",
+                    "eventId": "cnr-0002",
+                    "sessionId": "sess-canary-0001",
+                    "seq": 2,
+                    "epochMs": 1751360401000,
+                    "process": "sqlToolsService",
+                    "feature": "query",
+                    "kind": "sqlActivity",
+                    "type": "canary.query",
+                    "status": "ok",
+                    "entity": {
+                        "kind": "document",
+                        "id": "C:/Users/canary/secret-project/plan.sql"
+                    },
+                    "payload": {
+                        "sqlText": {
+                            "v": "SELECT ssn, salary FROM CANARY_employees WHERE name = 'O''Brien'",
+                            "cls": "sql.text",
+                            "handling": "plain"
+                        },
+                        "rowData": {
+                            "v": "123-45-6789|CANARY-ROW-VALUE",
+                            "cls": "row.data",
+                            "handling": "plain"
+                        },
+                        "modelPrompt": {
+                            "v": "CANARY-PROMPT: write sql for salaries",
+                            "cls": "model.prompt",
+                            "handling": "plain"
+                        },
+                        "modelResponse": {
+                            "v": "CANARY-RESPONSE: SELECT salary",
+                            "cls": "model.response",
+                            "handling": "plain"
+                        },
+                        "userFreeText": {
+                            "v": "CANARY-USER-NOTE about prod outage",
+                            "cls": "user.text",
+                            "handling": "plain"
+                        },
+                        "sourcePath": {
+                            "v": "D:\\CANARY\\absolute\\path\\file.sql",
+                            "cls": "source.path",
+                            "handling": "plain"
+                        },
+                        "mysteryField": {
+                            "v": "CANARY-UNKNOWN-CLASS-VALUE",
+                            "cls": "unknown",
+                            "handling": "plain"
+                        }
+                    },
+                    "cls": { "max": "row.data", "redactedFields": 0, "policyId": "capture-full/1" }
+                },
+                {
+                    "schemaVersion": "mssql.diag.event/1",
+                    "eventId": "cnr-0003",
+                    "sessionId": "sess-canary-0001",
+                    "seq": 3,
+                    "epochMs": 1751360402000,
+                    "process": "webview",
+                    "feature": "resultsGrid",
+                    "kind": "event",
+                    "type": "canary.escaperBombs",
+                    "status": "ok",
+                    "payload": {
+                        "quoteBomb": {
+                            "v": "it''s a trap: ' OR 1=1 --",
+                            "cls": "diagnostic.metadata",
+                            "handling": "plain"
+                        },
+                        "nstringBomb": {
+                            "v": "N'nested literal' ];--",
+                            "cls": "diagnostic.metadata",
+                            "handling": "plain"
+                        },
+                        "nulBomb": {
+                            "v": "before\u0000after",
+                            "cls": "diagnostic.metadata",
+                            "handling": "plain"
+                        },
+                        "surrogateBomb": {
+                            "v": "lonely-high\ud800-surrogate",
+                            "cls": "diagnostic.metadata",
+                            "handling": "plain"
+                        },
+                        "unicodeMix": {
+                            "v": "emoji 🎯 and CJK 性能テスト and rtl عربى",
+                            "cls": "diagnostic.metadata",
+                            "handling": "plain"
+                        }
+                    },
+                    "cls": {
+                        "max": "diagnostic.metadata",
+                        "redactedFields": 0,
+                        "policyId": "capture-full/1"
+                    }
+                }
+            ]
+        }
+    ],
+    "files": [
+        {
+            "relativePath": "manifest.json",
+            "sha256": "dddd000000000000000000000000000000000000000000000000000000000000",
+            "sizeBytes": 800
+        },
+        {
+            "relativePath": "events/seg-000.jsonl",
+            "sha256": "eeee000000000000000000000000000000000000000000000000000000000000",
+            "sizeBytes": 3296
+        }
+    ]
+}

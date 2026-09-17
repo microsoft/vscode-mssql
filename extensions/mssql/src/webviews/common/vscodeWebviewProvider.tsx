@@ -11,6 +11,7 @@ import { FluentProvider } from "@fluentui/react-components";
 import { LocConstants } from "./locConstants";
 import { WebviewApi } from "vscode-webview";
 import { WebviewRpc } from "./rpc";
+import { initPerfMarks } from "./perfMarks";
 import { webviewTheme } from "./theme";
 import {
     ColorThemeChangeNotification,
@@ -118,6 +119,8 @@ export function VscodeWebviewProvider<State, Reducers>({ children }: VscodeWebvi
     // Bootstrap - register notification handlers BEFORE fetching state
     useEffect(() => {
         // Register notification handlers first to prevent race conditions
+        initPerfMarks(extensionRpc as WebviewRpc<unknown>);
+
         extensionRpc.onNotification(ColorThemeChangeNotification.type, (params) => {
             setTheme(params as ColorThemeKind);
         });
@@ -132,76 +135,98 @@ export function VscodeWebviewProvider<State, Reducers>({ children }: VscodeWebvi
         });
 
         async function bootstrap() {
-            try {
-                // First paint gate: only wait for initial state.
-                const initialState = await extensionRpc.sendRequest(GetStateRequest.type<State>());
-                stateRef.current = initialState;
+            const bootstrapStart = Date.now();
+            const stages: Record<string, number> = {};
+            const mark = (stage: string) => {
+                stages[stage] = Date.now() - bootstrapStart;
+            };
 
+            // Non-critical initialization should not block first render.
+            void (async () => {
                 try {
-                    const keyboardShortcuts = await extensionRpc.sendRequest(
-                        GetKeyBindingsConfigRequest.type,
+                    const themeKind = await extensionRpc.sendRequest(GetThemeRequest.type);
+                    mark("getTheme");
+                    setTheme(themeKind);
+                } catch (error) {
+                    log.error("Theme bootstrap failed", error);
+                }
+            })();
+
+            void (async () => {
+                try {
+                    const fileContents = await extensionRpc.sendRequest(
+                        GetLocalizationRequest.type,
                     );
+                    mark("getLocalization");
+                    if (fileContents) {
+                        await l10n.config({
+                            contents: fileContents,
+                        });
+                        LocConstants.createInstance();
+                    }
+                } catch (error) {
+                    log.error("Localization bootstrap failed", error);
+                } finally {
+                    setLocalization(true);
+                    mark("localizationReady");
+                }
+            })();
+
+            try {
+                const [initialState, keyboardShortcuts, eol] = await Promise.all([
+                    extensionRpc.sendRequest(GetStateRequest.type<State>()).then((value) => {
+                        mark("getState");
+                        return value;
+                    }),
+                    extensionRpc
+                        .sendRequest(GetKeyBindingsConfigRequest.type)
+                        .then((value) => {
+                            mark("getKeyBindings");
+                            return value;
+                        })
+                        .catch((error) => {
+                            log.error("KeyBindings bootstrap failed", error);
+                            return undefined;
+                        }),
+                    extensionRpc
+                        .sendRequest(GetEOLRequest.type)
+                        .then((value) => {
+                            mark("getEOL");
+                            return value;
+                        })
+                        .catch((error) => {
+                            log.error("EOL bootstrap failed", error);
+                            return undefined;
+                        }),
+                ]);
+
+                stateRef.current = initialState;
+                if (keyboardShortcuts !== undefined) {
                     setKeyBindings(parseWebviewKeyboardShortcutConfig(keyboardShortcuts));
-                } catch (error) {
-                    log.error("KeyBindings bootstrap failed", error);
                 }
-
-                try {
-                    const eol = await extensionRpc.sendRequest(GetEOLRequest.type);
+                if (eol !== undefined) {
                     setEOL(eol);
-                } catch (error) {
-                    log.error("EOL bootstrap failed", error);
                 }
-
-                setIsBootstrapComplete(true);
-                emit();
-
-                // Non-critical initialization should not block first render.
-                void (async () => {
-                    try {
-                        const theme = await extensionRpc.sendRequest(GetThemeRequest.type);
-                        setTheme(theme);
-                    } catch (error) {
-                        log.error("Theme bootstrap failed", error);
-                    }
-                })();
-
-                void (async () => {
-                    try {
-                        const fileContents = await extensionRpc.sendRequest(
-                            GetLocalizationRequest.type,
-                        );
-                        if (fileContents) {
-                            await l10n.config({
-                                contents: fileContents,
-                            });
-                            // Brief delay to ensure l10n is properly initialized
-                            await new Promise((resolve) => setTimeout(resolve, 100));
-                            LocConstants.createInstance();
-                        }
-                    } catch (error) {
-                        log.error("Localization bootstrap failed", error);
-                    } finally {
-                        setLocalization(true);
-                    }
-                })();
-
-                void extensionRpc
-                    .sendNotification(LoadStatsNotification.type, {
-                        loadCompleteTimeStamp: Date.now(),
-                    })
-                    .catch((error) => {
-                        log.error("Load stats notification failed", error);
-                    });
             } catch (error) {
                 log.error("Bootstrap failed", error);
                 // Prevent indefinite blank screen when initial state fetch fails.
                 if (stateRef.current === undefined) {
                     stateRef.current = {} as State;
                 }
-                setIsBootstrapComplete(true);
-                emit();
             }
+
+            mark("firstPaint");
+            setIsBootstrapComplete(true);
+            emit();
+
+            void extensionRpc
+                .sendNotification(LoadStatsNotification.type, {
+                    loadCompleteTimeStamp: Date.now(),
+                    stages,
+                })
+                .catch((error) => {
+                    log.error("Load stats notification failed", error);
+                });
         }
 
         void bootstrap();

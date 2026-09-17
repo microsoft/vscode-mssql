@@ -3,16 +3,24 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import type { NotebookQueryResultBlock } from "../../../sharedInterfaces/notebookQueryResult";
+import type {
+    NotebookCopyAsCsvOptions,
+    NotebookQueryResultBlock,
+} from "../../../sharedInterfaces/notebookQueryResult";
 import { NotebookResultGrid } from "./notebookResultGrid";
 import { NotebookResultsToolbar } from "./notebookResultsToolbar";
 
 export interface NotebookResultsOutputProps {
     blocks: NotebookQueryResultBlock[];
+    copyAsCsvOptions?: NotebookCopyAsCsvOptions;
     postMessage?: (message: unknown) => void;
 }
 
-export function NotebookResultsOutput({ blocks, postMessage }: NotebookResultsOutputProps) {
+export function NotebookResultsOutput({
+    blocks,
+    copyAsCsvOptions,
+    postMessage,
+}: NotebookResultsOutputProps) {
     let resultSetCounter = 0;
     return (
         <div className="notebook-results-output">
@@ -32,6 +40,7 @@ export function NotebookResultsOutput({ blocks, postMessage }: NotebookResultsOu
                                     columnInfo={block.columnInfo}
                                     rows={block.rows}
                                     rowCount={block.rowCount}
+                                    copyAsCsvOptions={copyAsCsvOptions}
                                     postMessage={postMessage}
                                 />
                             </div>

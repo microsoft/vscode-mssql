@@ -16,7 +16,7 @@ export default class DecompressProvider implements IDecompressProvider {
         return new Promise<void>((resolve, reject) => {
             yauzl.open(pkg.tmpFile.name, { lazyEntries: true }, (err, zipfile) => {
                 if (err) {
-                    logger.info(`[ERROR] ${err}`);
+                    logger.error(`[ERROR] ${err}`);
                     reject(err);
                     return;
                 }
@@ -31,7 +31,7 @@ export default class DecompressProvider implements IDecompressProvider {
                         // Create directory
                         fs.mkdir(dirPath, { recursive: true }, (err) => {
                             if (err) {
-                                logger.info(
+                                logger.error(
                                     `[ERROR] Failed to create directory ${dirPath}: ${err}`,
                                 );
                                 reject(err);
@@ -47,7 +47,7 @@ export default class DecompressProvider implements IDecompressProvider {
                         // Ensure parent directory exists first
                         fs.mkdir(dirPath, { recursive: true }, (err) => {
                             if (err) {
-                                logger.info(
+                                logger.error(
                                     `[ERROR] Failed to create directory ${dirPath}: ${err}`,
                                 );
                                 reject(err);
@@ -57,7 +57,7 @@ export default class DecompressProvider implements IDecompressProvider {
                             // Now extract the file
                             zipfile.openReadStream(entry, (err, readStream) => {
                                 if (err) {
-                                    logger.info(`[ERROR] ${err}`);
+                                    logger.error(`[ERROR] ${err}`);
                                     reject(err);
                                     return;
                                 }
@@ -66,7 +66,7 @@ export default class DecompressProvider implements IDecompressProvider {
 
                                 // Handle write stream errors
                                 writeStream.on("error", (err) => {
-                                    logger.info(`[ERROR] Failed to write ${filePath}: ${err}`);
+                                    logger.error(`[ERROR] Failed to write ${filePath}: ${err}`);
                                     reject(err);
                                 });
 
@@ -78,7 +78,9 @@ export default class DecompressProvider implements IDecompressProvider {
 
                                 // Handle read stream errors
                                 readStream.on("error", (err) => {
-                                    logger.info(`[ERROR] Read error for ${entry.fileName}: ${err}`);
+                                    logger.error(
+                                        `[ERROR] Read error for ${entry.fileName}: ${err}`,
+                                    );
                                     reject(err);
                                 });
 
@@ -94,7 +96,7 @@ export default class DecompressProvider implements IDecompressProvider {
                 });
 
                 zipfile.on("error", (err) => {
-                    logger.info(`[ERROR] Zipfile error: ${err}`);
+                    logger.error(`[ERROR] Zipfile error: ${err}`);
                     reject(err);
                 });
             });
@@ -111,7 +113,7 @@ export default class DecompressProvider implements IDecompressProvider {
                     totalFiles++;
                 },
                 onwarn: (warn) => {
-                    logger.info(`[ERROR] ${warn}`);
+                    logger.warn(`[ERROR] ${warn}`);
                 },
             },
             () => {

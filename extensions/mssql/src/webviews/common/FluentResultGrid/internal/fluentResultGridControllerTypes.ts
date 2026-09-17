@@ -47,10 +47,13 @@ export interface FluentResultGridControllerResult {
     dataView: FluentResultGridDataView<FluentResultGridDataRow>;
     dataViewKey: number;
     displayedRowCount: number;
+    clearSelection: () => void;
     focusGrid: () => void;
     gridOptions: GridOption;
     handleBeforeHeaderCellDestroy: (event: CustomEvent) => void;
     handleClick: (event: CustomEvent) => void;
+    handleColumnsResizeDblClick: (event: CustomEvent) => void;
+    handleDblClick: (event: CustomEvent) => void;
     handleCommand: FluentResultGridProps["onCommand"];
     handleContextMenu: (event: CustomEvent) => void;
     handleGridContainerBlur: (event: ReactFocusEvent<HTMLDivElement>) => void;

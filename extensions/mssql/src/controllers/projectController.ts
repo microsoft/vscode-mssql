@@ -68,24 +68,18 @@ export class ProjectController {
             return projectProperties.dacpacOutputPath;
         } catch (error) {
             // Send error telemetry
-            sendErrorEvent(
-                TelemetryViews.SqlProjects,
-                TelemetryActions.BuildProject,
-                error instanceof Error ? error : new Error(getErrorMessage(error)),
-                false,
-            );
+            sendErrorEvent(TelemetryViews.SqlProjects, TelemetryActions.BuildProject, {
+                error: error instanceof Error ? error : new Error(getErrorMessage(error)),
+                includeErrorMessage: false,
+            });
             throw error;
         }
     }
 
-    /**
-     * Gets the path to the BuildDirectory folder from the SQL Database Projects extension
-     */
+    /** Gets the path to the BuildDirectory owned by the MSSQL runtime. */
     private getBuildDirPath(): string {
-        // Use the SQL Database Projects extension's BuildDirectory which contains the required build DLLs and targets
         const extensionPath =
-            vscode.extensions.getExtension(constants.sqlDatabaseProjectsExtensionId)
-                ?.extensionPath ?? "";
+            vscode.extensions.getExtension(constants.extensionId)?.extensionPath ?? "";
         return path.join(extensionPath, "BuildDirectory");
     }
 

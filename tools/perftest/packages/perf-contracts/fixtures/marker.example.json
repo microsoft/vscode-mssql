@@ -1,0 +1,25 @@
+{
+    "schemaVersion": 1,
+    "runId": "2026-06-29T22-00-00Z_abcd1234",
+    "repId": 1,
+    "scenarioId": "query-10k-results",
+    "name": "mssql.query.submit",
+    "phase": "instant",
+    "timestampUnixNs": "1782770400123456789",
+    "monotonicNs": "123456789",
+    "traceId": "0af7651916cd43dd8448eb211c80319c",
+    "spanId": "b7ad6b7169203331",
+    "process": {
+        "role": "extensionHost",
+        "pid": 1111,
+        "name": "vscode-mssql"
+    },
+    "thread": {
+        "id": "main",
+        "name": "main"
+    },
+    "attrs": {
+        "command": "mssql.runQuery",
+        "rowCount": 10000
+    }
+}

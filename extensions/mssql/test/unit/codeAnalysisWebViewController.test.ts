@@ -198,8 +198,11 @@ suite("CodeAnalysisWebViewController Tests", () => {
         ).to.have.been.calledWith(
             TelemetryViews.SqlProjects,
             TelemetryActions.CodeAnalysisRulesLoadError,
-            sinon.match.instanceOf(Error),
-            false,
+            {
+                error: sinon.match.instanceOf(Error),
+                includeErrorMessage: false,
+                additionalProps: { operationId: sinon.match.string },
+            },
         );
     });
 
@@ -217,7 +220,7 @@ suite("CodeAnalysisWebViewController Tests", () => {
         ).to.have.been.calledWith(
             TelemetryViews.SqlProjects,
             TelemetryActions.CodeAnalysisRulesLoaded,
-            sinon.match.has("ruleCount"),
+            sinon.match({ additionalProps: sinon.match.has("ruleCount") }),
         );
     });
 
@@ -410,7 +413,7 @@ suite("CodeAnalysisWebViewController Tests", () => {
         ).to.have.been.calledWith(
             TelemetryViews.SqlProjects,
             TelemetryActions.CodeAnalysisRulesSaved,
-            sinon.match.has("ruleCount", "2"),
+            sinon.match({ additionalProps: sinon.match.has("ruleCount", "2") }),
         );
         expect(panelStub.dispose, "panel should not be disposed when closeAfterSave is false").to
             .not.have.been.called;
@@ -473,8 +476,11 @@ suite("CodeAnalysisWebViewController Tests", () => {
         ).to.have.been.calledWith(
             TelemetryViews.SqlProjects,
             TelemetryActions.CodeAnalysisRulesSaveError,
-            sinon.match.instanceOf(Error),
-            false,
+            {
+                error: sinon.match.instanceOf(Error),
+                includeErrorMessage: false,
+                additionalProps: { operationId: sinon.match.string },
+            },
         );
     });
 

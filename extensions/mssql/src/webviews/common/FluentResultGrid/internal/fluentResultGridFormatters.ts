@@ -151,17 +151,6 @@ export function getFluentResultGridColumnFormatter(
     }) as Formatter<FluentResultGridDataRow>;
 }
 
-export function fluentResultGridRowNumberFormatter(
-    _row: number | undefined,
-    _cell: number | undefined,
-    value: unknown,
-): FormatterResultWithHtml {
-    const rowNumber = document.createElement("span");
-    rowNumber.className = "row-number fluent-result-grid-row-number";
-    rowNumber.textContent = value?.toString() ?? "";
-    return { html: rowNumber };
-}
-
 export function getFluentResultGridAutoSizeCellText(value: unknown): string {
     if (typeof value === "string") {
         return value;

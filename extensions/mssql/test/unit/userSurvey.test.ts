@@ -142,15 +142,17 @@ suite("UserSurvey Tests", () => {
             TelemetryViews.UserSurvey,
             TelemetryActions.SurveySubmit,
             {
-                surveyId: "nps",
-                q1: "answer1",
-                q2: "answer2",
-                experimentalFeaturesEnabled: "false",
-                surveySource: "testSource",
-                previewFeatureOverrides: JSON.stringify(previewOverrides),
-            },
-            {
-                q3: 3,
+                additionalProps: {
+                    surveyId: "nps",
+                    q1: "answer1",
+                    q2: "answer2",
+                    experimentalFeaturesEnabled: "false",
+                    surveySource: "testSource",
+                    previewFeatureOverrides: JSON.stringify(previewOverrides),
+                },
+                additionalMeasurements: {
+                    q3: 3,
+                },
             },
         );
     });
@@ -280,9 +282,11 @@ suite("UserSurvey Tests", () => {
                 sendActionEvent,
                 "Survey funnel telemetry should be emitted",
             ).to.have.been.calledWith(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
-                step: FunnelSteps.EligibilityCheck,
-                outcome: "exit_optedOut",
-                surveySource: testSurveySource,
+                additionalProps: {
+                    step: FunnelSteps.EligibilityCheck,
+                    outcome: "exit_optedOut",
+                    surveySource: testSurveySource,
+                },
             });
         });
 
@@ -305,9 +309,11 @@ suite("UserSurvey Tests", () => {
                 sendActionEvent,
                 "Survey funnel telemetry should be emitted",
             ).to.have.been.calledWith(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
-                step: FunnelSteps.EligibilityCheck,
-                outcome: "exit_skipVersion",
-                surveySource: testSurveySource,
+                additionalProps: {
+                    step: FunnelSteps.EligibilityCheck,
+                    outcome: "exit_skipVersion",
+                    surveySource: testSurveySource,
+                },
             });
         });
 
@@ -328,9 +334,11 @@ suite("UserSurvey Tests", () => {
                 sendActionEvent,
                 "Survey funnel telemetry should be emitted",
             ).to.have.been.calledWith(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
-                step: FunnelSteps.EligibilityCheck,
-                outcome: "exit_alreadyConsidered",
-                surveySource: testSurveySource,
+                additionalProps: {
+                    step: FunnelSteps.EligibilityCheck,
+                    outcome: "exit_alreadyConsidered",
+                    surveySource: testSurveySource,
+                },
             });
         });
 
@@ -350,9 +358,11 @@ suite("UserSurvey Tests", () => {
                 sendActionEvent,
                 "Survey funnel telemetry should be emitted",
             ).to.have.been.calledWith(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
-                step: FunnelSteps.EligibilityCheck,
-                outcome: "exit_notEnoughSessions",
-                surveySource: testSurveySource,
+                additionalProps: {
+                    step: FunnelSteps.EligibilityCheck,
+                    outcome: "exit_notEnoughSessions",
+                    surveySource: testSurveySource,
+                },
             });
         });
 
@@ -377,9 +387,11 @@ suite("UserSurvey Tests", () => {
                 sendActionEvent,
                 "Survey funnel telemetry should be emitted",
             ).to.have.been.calledWith(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
-                step: FunnelSteps.EligibilityCheck,
-                outcome: "exit_notSelectedAsCandidate",
-                surveySource: testSurveySource,
+                additionalProps: {
+                    step: FunnelSteps.EligibilityCheck,
+                    outcome: "exit_notSelectedAsCandidate",
+                    surveySource: testSurveySource,
+                },
             });
         });
     });

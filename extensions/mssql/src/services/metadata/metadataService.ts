@@ -1,0 +1,2184 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+/**
+ * MetadataService core (metadata design §5/§7–9): progressive hydration
+ * (H1 schemas → H2 objects/synonyms → H3 types/columns → H4 keys → H5/H5B
+ * FKs → H6 parameters → H7 MS_Description) streamed from ISqlSession
+ * background queries, per-section readiness with
+ * honest "failed" states, drift triggers (A: DDL sniff via the shared
+ * lexer; B: cheap digest poll while handles are alive; C: explicit
+ * refresh), and generation-bumped immutable snapshots.
+ *
+ * Session policy (§8.2): a DEDICATED metadata session per ServerKey
+ * (applicationName `vscode-mssql-metadata`), opened through the same data
+ * plane; hydration/poll queries never contend with the user's F5.
+ *
+ * Poll governance (CACHE-5, addendum H-3): per-entry jittered cadence with
+ * a no-change backoff ladder (base → 2× → 5× cap), suspension while the
+ * host window is unfocused beyond a grace (injected `isActive` fact —
+ * this module stays vscode-free), serverless editions pinned at the cap,
+ * and a cross-entry validation semaphore shared via engine options.
+ * Rename identity (H-5): the digest's DB_NAME() rider latches identity
+ * drift — poll stops, strict freshness fails actionably, never auto-rekeys.
+ */
+
+import { diag, diagnosticErrorClass, DiagSpan } from "../../diagnostics/diagnosticsCore";
+import {
+    IQueryEventSink,
+    ISqlConnectionService,
+    ISqlSession,
+    OpenSessionParams,
+} from "../sqlDataPlane/api";
+import { leadingKeyword } from "../../sql/leadingKeyword";
+import {
+    AddColumnDetail,
+    buildSchemaContext,
+    CatalogBuilder,
+    CatalogSnapshot,
+    FkActionState,
+    ObjectKind,
+    SchemaContextRequest,
+    SchemaContextResult,
+} from "./catalogModel";
+import {
+    FreshCatalogResult,
+    MetadataFreshnessPolicy,
+    MetadataValidationSummary,
+} from "./cache/metadataFreshness";
+
+export interface CatalogKey {
+    serverFingerprint: string;
+    database: string;
+}
+
+function endSpanWithErrorClass(span: DiagSpan, error: unknown): void {
+    span.end("error", {
+        errorClass: { raw: diagnosticErrorClass(error), cls: "diagnostic.metadata" },
+    });
+}
+
+const keyOf = (key: CatalogKey) => `${key.serverFingerprint}|${key.database}`;
+
+export interface MetadataStatus {
+    /**
+     * As-built vocabulary, UNTOUCHED by the cache layer (addendum C-3):
+     * "stale" means "re-hydration in flight over an existing snapshot",
+     * never "old data" — age-based staleness rides FreshCatalogResult.
+     */
+    readiness: "absent" | "loading" | "ready" | "failed" | "stale";
+    generation: number;
+    mode?: "full" | "lite" | "partial";
+    stats?: { schemas: number; objects: number; columns: number; foreignKeys: number };
+    /** Most recent T1/full validation outcome, when one has run. */
+    validation?: MetadataValidationSummary;
+}
+
+interface CatalogEntry {
+    key: CatalogKey;
+    snapshot: CatalogSnapshot | undefined;
+    generation: number;
+    status: MetadataStatus["readiness"];
+    hydrating: Promise<void> | undefined;
+    /** At most one forced pass queued behind the current hydration. */
+    forcedRefresh: Promise<void> | undefined;
+    lastDigest: string | undefined;
+    listeners: Set<(status: MetadataStatus) => void>;
+    refCount: number;
+    /** Lazy module-definition cache, cleared on every new generation (B12). */
+    moduleDefinitions: Map<number, ModuleDefinitionResult>;
+    /** In-flight lazy reads by object id (dedupe). */
+    moduleDefinitionReads: Map<number, Promise<ModuleDefinitionResult>>;
+    /**
+     * Serialization lane for ALL session work (hydration, digest polls,
+     * lazy module reads): the dedicated session allows ONE active query, so
+     * everything that executes on it runs exclusively through this lane.
+     */
+    sessionLane: Promise<void>;
+    /** Coalesced T1 validation shared by concurrent requireValidated (§4.3). */
+    validationInFlight: Promise<MetadataValidationSummary> | undefined;
+    lastValidation: MetadataValidationSummary | undefined;
+    lastValidatedAtMs: number | undefined;
+    /**
+     * Bumped when the lane watchdog abandons an operation (H-2): an
+     * abandoned hydrateCore/validate MUST NOT mutate the entry when it
+     * eventually settles — every completion path checks its epoch.
+     */
+    opEpoch: number;
+    /** Set by a watchdog fire; the NEXT lane item recycles the session. */
+    sessionWedged: boolean;
+    /**
+     * Manifest-recorded digest from a disk-published snapshot (C-4.2): the
+     * poll baseline is NEVER seeded from it — the first live digest
+     * compares AGAINST it (mismatch ⇒ the cache was already wrong ⇒ forced
+     * refresh), then it is consumed. Cleared by any full hydration.
+     */
+    manifestDigest: string | undefined;
+    /** C-4.3 failed-with-retained-snapshot retry state. */
+    failedAttempts: number;
+    retryTimer: ReturnType<typeof setTimeout> | undefined;
+    /** H-3 per-entry poll cadence: jittered timer + backoff ladder level. */
+    pollTimer: ReturnType<typeof setTimeout> | undefined;
+    pollBackoffLevel: number;
+    /**
+     * H-5 latch: the digest identity rider saw DB_NAME() ≠ key.database —
+     * the entry is lying by definition. The poll stops, strict freshness
+     * modes fail actionably, allowStale keeps serving the retained
+     * snapshot; ONLY an explicit refresh (which reopens the session BY
+     * NAME, key-correct by construction) can clear it. Never auto-rekeyed.
+     */
+    identityDrift: boolean;
+    /** Canonical DB_NAME() captured by H0 for identity comparisons. */
+    canonicalDatabase: string | undefined;
+    /** Catalog collation case rule captured by H0. */
+    catalogCaseSensitive: boolean | undefined;
+}
+
+/** Result of a lazy sys.sql_modules read (B12 scripting/definition). */
+export interface ModuleDefinitionResult {
+    text?: string;
+    /** Why text is absent — an HONEST state, never a fabricated script. */
+    unavailableReason?: "encrypted" | "permission" | "notLoaded";
+    /** Catalog generation current when the definition was read. */
+    generation: number;
+}
+
+/** Kind codes from sys.objects type. */
+const KIND_BY_TYPE: Record<string, ObjectKind> = {
+    U: "table",
+    V: "view",
+    P: "procedure",
+    FN: "scalarFunction",
+    IF: "tableFunction",
+    TF: "tableFunction",
+    SN: "synonym",
+    PC: "procedure",
+    FS: "scalarFunction",
+    FT: "tableFunction",
+    AF: "scalarFunction",
+    X: "procedure",
+};
+
+const H1_SCHEMAS = "SELECT schema_id, name FROM sys.schemas ORDER BY schema_id;";
+const H2_OBJECTS =
+    "SELECT o.object_id, o.schema_id, o.name, RTRIM(o.type) AS type, CONVERT(varchar(33), o.modify_date, 126) AS modify_date " +
+    "FROM sys.objects o WHERE o.type IN ('U','V','P','FN','IF','TF','SN','PC','FS','FT','AF','X') AND o.is_ms_shipped = 0 ORDER BY o.object_id;";
+// H3 (SV-R1 extension, visualizer addendum §5.1–§5.4): retains column_id +
+// exact type facts + default/identity/computed detail. Raw semantics only:
+// max_length stays BYTES (-1 = max); identity seed/increment CONVERT to
+// exact TEXT (sql_variant → nvarchar) — never parsed into JS numbers.
+// Matcher-collision note: additions ("sys.default_constraints",
+// "sys.identity_columns", "sys.computed_columns", "TYPE_NAME(") collide
+// with no other H-query fixture matcher; H3 keeps "sys.columns c JOIN
+// sys.types" so existing fixtures still match, and old 10-column fixture
+// rows remain valid (the parser treats missing trailing columns as
+// detail-absent).
+const H3_COLUMNS =
+    "SELECT c.object_id, c.column_id, c.name, t.name AS type_name, c.max_length, c.precision, c.scale, c.is_nullable, c.is_identity, c.is_computed, " +
+    "c.system_type_id, c.user_type_id, SCHEMA_NAME(t.schema_id) AS type_schema, TYPE_NAME(c.system_type_id) AS base_type_name, " +
+    "t.is_user_defined, t.is_assembly_type, c.collation_name, " +
+    "dc.name AS default_name, dc.definition AS default_definition, " +
+    "CONVERT(nvarchar(64), idc.seed_value) AS identity_seed, CONVERT(nvarchar(64), idc.increment_value) AS identity_increment, " +
+    "cc.definition AS computed_definition, cc.is_persisted AS computed_persisted " +
+    "FROM sys.columns c JOIN sys.types t ON c.user_type_id = t.user_type_id " +
+    "JOIN sys.objects o ON o.object_id = c.object_id AND o.type IN ('U','V','IF','TF','FT') AND o.is_ms_shipped = 0 " +
+    "LEFT JOIN sys.default_constraints dc ON dc.object_id = c.default_object_id " +
+    "LEFT JOIN sys.identity_columns idc ON idc.object_id = c.object_id AND idc.column_id = c.column_id " +
+    "LEFT JOIN sys.computed_columns cc ON cc.object_id = c.object_id AND cc.column_id = c.column_id " +
+    "WHERE ISNULL(COLUMNPROPERTY(c.object_id, c.name, 'IsHidden'), 0) = 0 " +
+    "ORDER BY c.object_id, c.column_id;";
+// H5 (SV-R1): + referential-action DESC strings (never the numeric values —
+// addendum §5.5: the catalog's 0/1 and the legacy OnAction 0/1 are SWAPPED).
+// Disabled constraints are excluded (not enforced). UNTRUSTED constraints
+// (is_not_trusted = 1: created WITH NOCHECK or re-enabled without WITH
+// CHECK) are kept — the engine still enforces them for every new write, so
+// they are real relationships for joins, the visualizer, and scripting.
+const H5_FOREIGN_KEYS =
+    "SELECT fk.object_id, fk.name, fk.parent_object_id, fk.referenced_object_id, " +
+    "fk.delete_referential_action_desc, fk.update_referential_action_desc " +
+    "FROM sys.foreign_keys fk WHERE fk.is_ms_shipped = 0 AND fk.is_disabled = 0 ORDER BY fk.object_id;";
+const H0_ENV =
+    "SELECT CAST(SERVERPROPERTY('EngineEdition') AS int) AS engine_edition, " +
+    "COALESCE(CAST(SCHEMA_NAME() AS sysname), 'dbo') AS default_schema, " +
+    "CAST(DATABASEPROPERTYEX(DB_NAME(), 'Collation') AS nvarchar(128)) AS collation_name, " +
+    "CASE WHEN N'a' = N'A' COLLATE CATALOG_DEFAULT THEN 0 ELSE 1 END AS catalog_case_sensitive, " +
+    "DB_NAME() AS current_db;";
+const H4_KEYS =
+    "SELECT ic.object_id, c.name, i.name AS index_name, i.is_primary_key, i.is_unique_constraint " +
+    "FROM sys.indexes i " +
+    "JOIN sys.index_columns ic ON ic.object_id = i.object_id AND ic.index_id = i.index_id " +
+    "JOIN sys.columns c ON c.object_id = ic.object_id AND c.column_id = ic.column_id " +
+    "WHERE i.is_primary_key = 1 OR i.is_unique_constraint = 1 " +
+    "ORDER BY ic.object_id, i.index_id, ic.key_ordinal;";
+// H5B (SV-R1): + pair ordinal and parent/referenced column_ids — the
+// rename-safe pair identities the visualizer replay correlates on (§5.1).
+const H5B_FOREIGN_KEY_COLUMNS =
+    "SELECT fkc.constraint_object_id, pc.name AS parent_column, rc.name AS referenced_column, " +
+    "fkc.constraint_column_id, fkc.parent_column_id, fkc.referenced_column_id " +
+    "FROM sys.foreign_key_columns fkc " +
+    "JOIN sys.columns pc ON pc.object_id = fkc.parent_object_id AND pc.column_id = fkc.parent_column_id " +
+    "JOIN sys.columns rc ON rc.object_id = fkc.referenced_object_id AND rc.column_id = fkc.referenced_column_id " +
+    "ORDER BY fkc.constraint_object_id, fkc.constraint_column_id;";
+const H6_PARAMETERS =
+    "SELECT p.object_id, p.parameter_id, p.name, t.name AS type_name, p.max_length, p.precision, p.scale, p.is_output, " +
+    "SCHEMA_NAME(t.schema_id) AS type_schema, t.is_user_defined " +
+    "FROM sys.parameters p JOIN sys.types t ON p.user_type_id = t.user_type_id " +
+    "JOIN sys.objects o ON o.object_id = p.object_id AND o.type IN ('P','FN','IF','TF','PC','FS','FT','AF','X') AND o.is_ms_shipped = 0 " +
+    "ORDER BY p.object_id, p.parameter_id;";
+// H7 uses COL_NAME() instead of a sys.columns join ON PURPOSE: FakeScript
+// fixtures match by substring in array order, and "sys.columns" (H3),
+// "sys.parameters" (H6), "is_primary_key" (H4) etc. would collide. Keep
+// this query free of every earlier matcher substring (see the matcher-order
+// notes in test/unit/metadataStore.test.ts and largeCatalogFixture.ts).
+const H7_DESCRIPTIONS =
+    "SELECT ep.major_id, ep.minor_id, COL_NAME(ep.major_id, ep.minor_id) AS column_name, CAST(ep.value AS nvarchar(4000)) AS description " +
+    "FROM sys.extended_properties ep " +
+    "WHERE ep.class = 1 AND ep.name = 'MS_Description' " +
+    "ORDER BY ep.major_id, ep.minor_id;";
+// CHEAP_DIGEST v2 (H-1 + H-5): schema_id and the BYTE-EXACT name (varbinary
+// cast — plain CHECKSUM over character data is collation-folded, so a
+// pure-case rename on a CI server would still hide) participate in the hash,
+// because object_id and modify_date both survive sp_rename and ALTER SCHEMA
+// TRANSFER — v1 was blind to renames performed outside this editor.
+// DB_NAME() rides along for the CACHE-5 database-rename identity check
+// (H-5): a renamed database is an identity event, not schema drift, so it
+// is NOT part of the compared digest. Still "likely unchanged", never proof:
+// column/key/FK/parameter/description drift stays invisible until T2
+// section digests. Matcher note: this SQL still contains
+// "FROM sys.objects o WHERE" (H2's substring — digest fixtures must stay
+// ordered BEFORE H2); "DB_NAME()" and "varbinary(256)" collide with no
+// earlier matcher.
+const CHEAP_DIGEST =
+    "SELECT DB_NAME() AS current_db, COUNT(*) AS object_count, " +
+    "ISNULL(CHECKSUM_AGG(CHECKSUM(o.object_id, o.schema_id, CAST(o.name AS varbinary(256)), o.modify_date)), 0) AS object_hash " +
+    "FROM sys.objects o WHERE o.type IN ('U','V','P','FN','IF','TF','SN','PC','FS','FT','AF','X') AND o.is_ms_shipped = 0;";
+// LAZY per-object module definition (B12 scripting/definition) — NOT part of
+// the H-series bulk hydration: one targeted query per requested object,
+// cached per generation. Matcher-collision note (see H7): this SQL must
+// avoid every earlier FakeScript matcher substring — "sys.sql_modules" and
+// "OBJECTPROPERTY" collide with none of them.
+const MODULE_DEFINITION = (objectId: number): string =>
+    "SELECT sm.definition, OBJECTPROPERTY(sm.object_id, 'IsEncrypted') AS is_encrypted " +
+    `FROM sys.sql_modules sm WHERE sm.object_id = ${Math.trunc(objectId)};`;
+
+/** DDL keywords that schedule a refresh (design §9.1). */
+const DDL_KEYWORDS = new Set(["CREATE", "ALTER", "DROP", "SP_RENAME"]);
+const MAYBE_DDL = new Set(["EXEC", "EXECUTE"]);
+
+/**
+ * Serverless/auto-pause-capable engine editions (H0 fact; addendum H-3.3):
+ * 5 = Azure SQL Database and 11 = Synapse serverless SQL pool. Entries on
+ * these auto-pausing targets poll at the backoff
+ * CAP so the digest never defeats auto-pause (billable wake-ups); the TTL
+ * validation model covers correctness on user activity.
+ */
+const SERVERLESS_ENGINE_EDITIONS = new Set([5, 11]);
+
+export function isAutoPauseEngineEdition(engineEdition: number): boolean {
+    return SERVERLESS_ENGINE_EDITIONS.has(engineEdition);
+}
+
+/** H-3.2 per-entry poll backoff: 60s → 120s → 300s over a 60s base. */
+export const DEFAULT_POLL_BACKOFF_MULTIPLIERS: readonly number[] = [1, 2, 5];
+
+/**
+ * H-3.4: every poll interval carries ±10% jitter so a resume/reconnect
+ * storm never phase-locks 30 databases onto the same tick. Pure and
+ * exported so the bounds are unit-testable (T-A16).
+ */
+export function jitteredPollDelayMs(
+    baseMs: number,
+    multipliers: readonly number[],
+    level: number,
+    random: () => number = Math.random,
+): number {
+    const index = Math.max(0, Math.min(level, multipliers.length - 1));
+    const jitter = 0.9 + random() * 0.2;
+    return Math.max(1, Math.round(baseMs * (multipliers[index] ?? 1) * jitter));
+}
+
+/**
+ * Store-wide validation semaphore (H-3.4): per-entry lanes serialize within
+ * a key, not across keys — the STORE constructs one limiter (default 2) and
+ * passes it into every engine's options so a laptop-resume storm cannot fan
+ * out one digest query per leased database at once. Waiters are FIFO; the
+ * slot is held for the digest query only, never across a chained refresh.
+ */
+export class MetadataValidationLimiter {
+    private active = 0;
+    private waiters: (() => void)[] = [];
+
+    constructor(private readonly maxConcurrent: number = 2) {}
+
+    async run<T>(work: () => Promise<T>): Promise<T> {
+        await this.acquire();
+        try {
+            return await work();
+        } finally {
+            this.release();
+        }
+    }
+
+    private acquire(): Promise<void> {
+        if (this.active < this.maxConcurrent) {
+            this.active++;
+            return Promise.resolve();
+        }
+        return new Promise((resolve) =>
+            this.waiters.push(() => {
+                this.active++;
+                resolve();
+            }),
+        );
+    }
+
+    private release(): void {
+        this.active--;
+        this.waiters.shift()?.();
+    }
+}
+
+/**
+ * H-6(a) APPROXIMATION, noted on purpose: the H-pass catches carry only the
+ * backend's error message text (no server error number travels through
+ * runMetadataQuery), so "permission-flavored" is a message-class heuristic.
+ * Section failures that do not match keep their honest generic "failed"
+ * state with no staleReason attached.
+ */
+function isPermissionFlavoredError(error: unknown): boolean {
+    const text = error instanceof Error ? error.message : typeof error === "string" ? error : "";
+    return /permission|denied|not authorized|unauthorized/i.test(text);
+}
+
+/**
+ * H-5 tail: session-open/hydration failures whose error class says the
+ * database itself is missing or offline map to staleReason "accessChanged"
+ * where detectable (message-class heuristic, same caveat as above).
+ */
+function isDatabaseAccessError(error: unknown): boolean {
+    const text = error instanceof Error ? error.message : typeof error === "string" ? error : "";
+    return /cannot open database|unable to open database|does not exist|offline/i.test(text);
+}
+
+/**
+ * Case sensitivity from a collation name: `_CS` collations, plus binary
+ * collations (`_BIN`/`_BIN2` compare by byte/codepoint and carry no `_CS`
+ * token — C-11; a BIN-collated catalog classified as insensitive makes
+ * resolveName accept folded-only matches the server would reject).
+ * Accent/kana/width sensitivity stay unmodeled: catalog folding is
+ * case-only, an accepted limit.
+ */
+export function collationIsCaseSensitive(collation: string): boolean {
+    return /_CS(_|$)|_BIN2?(_|$)/i.test(collation);
+}
+
+/**
+ * Normalize a sys.foreign_keys *_desc value to the FkActionState union by
+ * EXPLICIT string mapping (visualizer addendum §5.5). Anything else —
+ * missing column (old fixture shape), null, or an unrecognized value —
+ * is honestly UNKNOWN, never defaulted to NO_ACTION.
+ */
+export function fkActionFromDesc(value: unknown): FkActionState {
+    switch (value) {
+        case "NO_ACTION":
+            return "NO_ACTION";
+        case "CASCADE":
+            return "CASCADE";
+        case "SET_NULL":
+            return "SET_NULL";
+        case "SET_DEFAULT":
+            return "SET_DEFAULT";
+        default:
+            return "UNKNOWN";
+    }
+}
+
+export function typeDisplay(
+    typeName: string,
+    maxLength: number,
+    precision: number,
+    scale: number,
+    typeSchema?: string,
+    isUserDefined = false,
+): string {
+    if (isUserDefined) {
+        const quote = (value: string) => `[${value.replace(/\]/g, "]]")}]`;
+        return `${quote(typeSchema ?? "dbo")}.${quote(typeName)}`;
+    }
+    const t = typeName.toLowerCase();
+    if (["varchar", "char", "varbinary", "binary"].includes(t)) {
+        return `${t}(${maxLength < 0 ? "max" : maxLength})`;
+    }
+    if (["nvarchar", "nchar"].includes(t)) {
+        return `${t}(${maxLength < 0 ? "max" : maxLength / 2})`;
+    }
+    if (["decimal", "numeric"].includes(t)) {
+        return `${t}(${precision},${scale})`;
+    }
+    if (["datetime2", "datetimeoffset", "time"].includes(t)) {
+        return `${t}(${scale})`;
+    }
+    return t;
+}
+
+export interface MetadataSessionSource {
+    open(): Promise<ISqlSession>;
+    /**
+     * Drop the current session so the next open() creates a fresh one —
+     * the lane watchdog's recovery path (H-2: a wedged session is disposed,
+     * a fresh dedicated session is cheap). Optional for fixture sources.
+     */
+    recycle?(): void;
+}
+
+/** Dedicated-session source over the data plane (§8.2). */
+export class DataPlaneMetadataSessionSource implements MetadataSessionSource {
+    private session: ISqlSession | undefined;
+    private opening: Promise<ISqlSession> | undefined;
+    private disposed = false;
+    private openEpoch = 0;
+    constructor(
+        private readonly service: ISqlConnectionService,
+        private readonly params: OpenSessionParams,
+    ) {}
+
+    async open(): Promise<ISqlSession> {
+        if (this.disposed) {
+            throw new Error("Metadata session source disposed");
+        }
+        if (this.session && this.session.state === "open") {
+            return this.session;
+        }
+        let opening = this.opening;
+        if (!opening) {
+            const epoch = this.openEpoch;
+            opening = (async () => {
+                const session = await this.service.openSession({
+                    ...this.params,
+                    applicationName: "vscode-mssql-metadata",
+                });
+                if (this.disposed || epoch !== this.openEpoch) {
+                    await session.dispose();
+                    throw new Error(
+                        this.disposed
+                            ? "Metadata session source disposed during open"
+                            : "Metadata session source recycled during open",
+                    );
+                }
+                this.session = session;
+                return session;
+            })();
+            this.opening = opening;
+        }
+        try {
+            return await opening;
+        } finally {
+            if (this.opening === opening) {
+                this.opening = undefined;
+            }
+        }
+    }
+
+    recycle(): void {
+        this.openEpoch++;
+        this.opening = undefined;
+        void this.session?.dispose();
+        this.session = undefined;
+    }
+
+    dispose(): void {
+        this.disposed = true;
+        this.openEpoch++;
+        this.opening = undefined;
+        void this.session?.dispose();
+        this.session = undefined;
+    }
+}
+
+/**
+ * Background catalog query → rows. Awaits the HANDLE completion (not the
+ * sink callback): the session frees its active-query slot via the completion
+ * promise's reaction order, so sequential queries must synchronize on it or
+ * the next execute races into Busy. Shared by MetadataService and
+ * ServerMetadataService.
+ */
+export async function runMetadataQuery(
+    session: ISqlSession,
+    sql: string,
+    tag: string,
+): Promise<unknown[][]> {
+    const collected: unknown[][] = [];
+    let failed: string | undefined;
+    const sink: IQueryEventSink = {
+        onResultSetStarted: () => undefined,
+        onRowsPage: (page) => {
+            for (const row of page.compact.values) {
+                collected.push(row);
+            }
+        },
+        onMessage: (message) => {
+            if (message.kind === "error") {
+                failed = message.text;
+            }
+        },
+        onComplete: () => undefined,
+    };
+    const handle = session.execute(
+        sql,
+        { priority: "background", commandKind: "metadata", tag },
+        sink,
+    );
+    const summary = await handle.completion;
+    if (summary.status !== "succeeded") {
+        throw new Error(failed ?? `metadata query ${summary.status}`);
+    }
+    return collected;
+}
+
+export class MetadataService {
+    private entries = new Map<string, CatalogEntry>();
+    /** H-3.1 focus governance state (host-fact driven, engine-owned). */
+    private focusTimer: ReturnType<typeof setInterval> | undefined;
+    private inactiveSinceMs: number | undefined;
+    private pollsSuspended = false;
+    private defaultLimiter: MetadataValidationLimiter | undefined;
+    private disposed = false;
+
+    constructor(
+        private readonly sessions: MetadataSessionSource,
+        private readonly options: {
+            pollSeconds?: number;
+            /** Lane watchdog ceiling for hydration passes (default 60s). */
+            hydrationTimeoutMs?: number;
+            /** Lane watchdog ceiling for digest/lazy reads (default 15s). */
+            laneOpTimeoutMs?: number;
+            /**
+             * C-4.3 backoff for failed refreshes over a RETAINED snapshot
+             * (default 5s/30s/2min; afterwards every poll tick retries).
+             */
+            retryBackoffMs?: readonly number[];
+            /**
+             * HOST fact (H-3.1): is the hosting window focused/active? The
+             * engine stays vscode-free — the composition root injects
+             * `() => vscode.window.state.focused`. Default: always active.
+             */
+            isActive?: () => boolean;
+            /** Unfocused longer than this suspends polls (default 2 min). */
+            inactiveGraceMs?: number;
+            /** Cadence for re-checking isActive (default 5s, no SQL). */
+            focusRecheckMs?: number;
+            /** H-3.2 backoff ladder over pollSeconds (default [1, 2, 5]). */
+            pollBackoffMultipliers?: readonly number[];
+            /**
+             * Cross-entry validation semaphore (H-3.4) — the store passes
+             * ONE shared instance into every engine it composes. Absent, a
+             * private default (max 2) still bounds this engine's entries.
+             */
+            validationLimiter?: MetadataValidationLimiter;
+            /**
+             * Live network authorization. When false, hydration, validation,
+             * polling, lazy definitions, and retry timers must do no session
+             * or query work; disk snapshots remain readable.
+             */
+            isNetworkAllowed?: () => boolean;
+            /** Initial H0 identity mismatch before any catalog publication. */
+            onIdentityMismatch?: (drift: { expected: string; actual: string }) => void;
+            /**
+             * H-5: fired EXACTLY ONCE per identity-drift episode when the
+             * digest identity rider proves the physical database no longer
+             * matches key.database. The store wires this to its
+             * key-correctness counter + the sanctioned driftRename event.
+             */
+            onIdentityDrift?: (drift: { expected: string; actual: string }) => void;
+        } = {},
+    ) {}
+
+    /** Acquire (and hydrate if needed) the catalog for a key. */
+    acquire(
+        key: CatalogKey,
+        onStatus?: (status: MetadataStatus) => void,
+    ): {
+        dispose(): void;
+        refresh(): Promise<void>;
+        current(): CatalogSnapshot | undefined;
+        status(): MetadataStatus;
+        buildSchemaContext(req: SchemaContextRequest): SchemaContextResult;
+        notifyExecutedBatch(input: { text?: string; succeeded: boolean }): void;
+        /** LAZY per-object sys.sql_modules read, cached per generation (B12). */
+        getModuleDefinition(objectId: number): Promise<ModuleDefinitionResult>;
+        /** Policy-routed freshness decision (cache/drift design §5, §4.2). */
+        ensureFresh(policy: MetadataFreshnessPolicy): Promise<FreshCatalogResult>;
+    } {
+        if (this.disposed) {
+            throw new Error("MetadataService disposed");
+        }
+        const entry = this.getOrCreateEntry(key);
+        entry.refCount++;
+        if (onStatus) {
+            entry.listeners.add(onStatus);
+        }
+        if (this.networkAllowed() && (entry.status === "absent" || entry.status === "failed")) {
+            void this.hydrate(entry);
+        }
+        if (this.networkAllowed()) {
+            this.startPolling(entry);
+        }
+
+        const service = this;
+        return {
+            dispose() {
+                entry!.refCount = Math.max(0, entry!.refCount - 1);
+                if (onStatus) {
+                    entry!.listeners.delete(onStatus);
+                }
+                service.maybeStopPolling();
+            },
+            refresh: () => this.hydrate(entry!, true),
+            current: () => entry!.snapshot,
+            status: () => service.statusOf(entry!),
+            buildSchemaContext(req: SchemaContextRequest): SchemaContextResult {
+                const snapshot = entry!.snapshot;
+                if (!snapshot) {
+                    return {
+                        text: "",
+                        charCount: 0,
+                        objectsIncluded: 0,
+                        catalogGeneration: 0,
+                        truncated: false,
+                        degraded: "catalogNotReady",
+                        composition: { tables: 0, views: 0, columnsElided: 0 },
+                    };
+                }
+                const span = diag.startSpan({
+                    feature: "metadata",
+                    kind: "span",
+                    type: "metadata.contextBuild",
+                    fields: {
+                        generation: {
+                            raw: String(snapshot.generation),
+                            cls: "diagnostic.metadata",
+                        },
+                    },
+                });
+                try {
+                    const result = buildSchemaContext(snapshot, req);
+                    span.end("ok", {
+                        charCount: { raw: result.charCount, cls: "diagnostic.metadata" },
+                        objectsIncluded: {
+                            raw: result.objectsIncluded,
+                            cls: "diagnostic.metadata",
+                        },
+                        truncated: { raw: result.truncated, cls: "diagnostic.metadata" },
+                        degraded: { raw: result.degraded ?? "none", cls: "diagnostic.metadata" },
+                    });
+                    return result;
+                } catch (error) {
+                    endSpanWithErrorClass(span, error);
+                    throw error;
+                }
+            },
+            notifyExecutedBatch(input: { text?: string; succeeded: boolean }): void {
+                if (!input.succeeded || !input.text) {
+                    return;
+                }
+                // H-3.2: user execution against this database resets the
+                // poll backoff to the base cadence. An identity-drifted
+                // entry stays parked — the consumer owns reacquisition.
+                if (!entry!.identityDrift) {
+                    service.resetPollBackoff(entry!);
+                }
+                const keyword = leadingKeyword(input.text)?.toUpperCase();
+                if (!keyword) {
+                    return;
+                }
+                if (DDL_KEYWORDS.has(keyword)) {
+                    // Sniff accelerates refresh; the poll remains the backstop.
+                    if (!entry!.identityDrift) {
+                        void service.hydrate(entry!, true);
+                    }
+                } else if (MAYBE_DDL.has(keyword)) {
+                    void service.checkDigest(entry!);
+                }
+            },
+            getModuleDefinition: (objectId: number) =>
+                service.getModuleDefinition(entry!, objectId),
+            ensureFresh: (policy: MetadataFreshnessPolicy) =>
+                service.ensureFreshEntry(entry!, policy),
+        };
+    }
+
+    private getOrCreateEntry(key: CatalogKey): CatalogEntry {
+        const id = keyOf(key);
+        let entry = this.entries.get(id);
+        if (!entry) {
+            entry = {
+                key,
+                snapshot: undefined,
+                generation: 0,
+                status: "absent",
+                hydrating: undefined,
+                forcedRefresh: undefined,
+                lastDigest: undefined,
+                listeners: new Set(),
+                refCount: 0,
+                moduleDefinitions: new Map(),
+                moduleDefinitionReads: new Map(),
+                sessionLane: Promise.resolve(),
+                validationInFlight: undefined,
+                lastValidation: undefined,
+                lastValidatedAtMs: undefined,
+                opEpoch: 0,
+                sessionWedged: false,
+                manifestDigest: undefined,
+                failedAttempts: 0,
+                retryTimer: undefined,
+                pollTimer: undefined,
+                pollBackoffLevel: 0,
+                identityDrift: false,
+                canonicalDatabase: undefined,
+                catalogCaseSensitive: undefined,
+            };
+            this.entries.set(id, entry);
+        }
+        return entry;
+    }
+
+    /**
+     * Publish a DISK-loaded snapshot into an entry (CACHE-3, base §10.1 +
+     * addendum C-2.4/C-4): applies only while the entry has no snapshot —
+     * a cache load must never clobber live data. The entry's generation
+     * counter resumes at the manifest's published generation so the next
+     * live publish is strictly greater; the digest baseline is NOT seeded
+     * (C-4.2 — the first live digest compares against the manifest's, then
+     * consumes it). The caller owns scheduling the mandatory background
+     * hydration (C-4.1).
+     */
+    publishExternalSnapshot(
+        key: CatalogKey,
+        snapshot: CatalogSnapshot,
+        opts?: { manifestDigest?: string },
+    ): boolean {
+        const entry = this.getOrCreateEntry(key);
+        if (entry.snapshot !== undefined || entry.hydrating || entry.status === "loading") {
+            return false;
+        }
+        entry.snapshot = snapshot;
+        entry.generation = snapshot.generation;
+        entry.status = "ready";
+        entry.manifestDigest = opts?.manifestDigest;
+        entry.moduleDefinitions.clear();
+        this.notify(entry);
+        return true;
+    }
+
+    private statusOf(entry: CatalogEntry): MetadataStatus {
+        return {
+            readiness: entry.status,
+            generation: entry.generation,
+            ...(entry.snapshot ? { mode: entry.snapshot.mode } : {}),
+            ...(entry.snapshot ? { stats: entry.snapshot.stats } : {}),
+            ...(entry.lastValidation ? { validation: entry.lastValidation } : {}),
+        };
+    }
+
+    private notify(entry: CatalogEntry): void {
+        const status = this.statusOf(entry);
+        for (const listener of [...entry.listeners]) {
+            try {
+                listener(status);
+            } catch {
+                /* listener isolation */
+            }
+        }
+    }
+
+    /** See runMetadataQuery — kept as a method alias for the hydration code. */
+    private async rows(session: ISqlSession, sql: string, tag: string): Promise<unknown[][]> {
+        return runMetadataQuery(session, sql, tag);
+    }
+
+    /**
+     * Run session work exclusively: the dedicated session allows ONE active
+     * query, so hydration, digest polls, and lazy module reads all chain
+     * through the per-entry lane (a prior failure never blocks the lane).
+     *
+     * WATCHDOG (H-2): the lane must survive a completion that never comes —
+     * the lane continuation attaches to the RACED promise, so a hung
+     * operation fails after `timeoutMs` (error class laneTimeout), the
+     * entry's opEpoch advances (the abandoned work must not mutate the
+     * entry when it eventually settles), and the NEXT lane item recycles
+     * the session source. The watchdog never rejects the shared lane for
+     * queued waiters — it fails the one operation.
+     */
+    private runExclusive<T>(
+        entry: CatalogEntry,
+        work: () => Promise<T>,
+        watchdog?: { timeoutMs: number; opKind: string },
+    ): Promise<T> {
+        const run = entry.sessionLane
+            .catch(() => undefined)
+            .then(() => {
+                if (entry.sessionWedged) {
+                    entry.sessionWedged = false;
+                    this.sessions.recycle?.();
+                }
+                return watchdog ? this.withWatchdog(entry, work, watchdog) : work();
+            });
+        entry.sessionLane = run.then(
+            () => undefined,
+            () => undefined,
+        );
+        return run;
+    }
+
+    private withWatchdog<T>(
+        entry: CatalogEntry,
+        work: () => Promise<T>,
+        watchdog: { timeoutMs: number; opKind: string },
+    ): Promise<T> {
+        return new Promise<T>((resolve, reject) => {
+            let settled = false;
+            const timer = setTimeout(() => {
+                if (settled) {
+                    return;
+                }
+                settled = true;
+                entry.opEpoch++; // abandoned work must not mutate the entry
+                entry.sessionWedged = true; // next lane item recycles
+                diag.emit({
+                    feature: "metadata",
+                    kind: "event",
+                    type: "metadata.laneTimeout",
+                    fields: {
+                        opKind: { raw: watchdog.opKind, cls: "diagnostic.metadata" },
+                        timeoutMs: { raw: watchdog.timeoutMs, cls: "diagnostic.metadata" },
+                    },
+                });
+                reject(new Error(`laneTimeout:${watchdog.opKind}`));
+            }, watchdog.timeoutMs);
+            (timer as { unref?: () => void }).unref?.();
+            work().then(
+                (value) => {
+                    if (!settled) {
+                        settled = true;
+                        clearTimeout(timer);
+                        resolve(value);
+                    }
+                },
+                (error: unknown) => {
+                    if (!settled) {
+                        settled = true;
+                        clearTimeout(timer);
+                        reject(error instanceof Error ? error : new Error(String(error)));
+                    }
+                },
+            );
+        });
+    }
+
+    /**
+     * LAZY module-definition read (B12): one targeted sys.sql_modules query
+     * per requested object, cached per generation (the cache clears when a
+     * hydration publishes a new snapshot). Reads are serialized on the
+     * session lane behind any in-flight hydration. Failures return an honest
+     * "notLoaded" and are NOT cached; NULL definitions map to
+     * encrypted/permission — never a fabricated script.
+     */
+    async getModuleDefinition(
+        entry: CatalogEntry,
+        objectId: number,
+    ): Promise<ModuleDefinitionResult> {
+        if (!Number.isSafeInteger(objectId)) {
+            return { unavailableReason: "notLoaded", generation: entry.generation };
+        }
+        const cached = entry.moduleDefinitions.get(objectId);
+        if (cached !== undefined) {
+            return cached;
+        }
+        const inFlight = entry.moduleDefinitionReads.get(objectId);
+        if (inFlight !== undefined) {
+            return inFlight;
+        }
+        if (!this.networkAllowed()) {
+            return { unavailableReason: "notLoaded", generation: entry.generation };
+        }
+        const read = this.runExclusive(
+            entry,
+            async (): Promise<ModuleDefinitionResult> => {
+                const generation = entry.generation;
+                try {
+                    if (!this.networkAllowed()) {
+                        return { unavailableReason: "notLoaded", generation };
+                    }
+                    const session = await this.sessions.open();
+                    const rows = await this.rows(
+                        session,
+                        MODULE_DEFINITION(objectId),
+                        "metadata:moduleDefinition",
+                    );
+                    let result: ModuleDefinitionResult;
+                    if (rows.length === 0) {
+                        // Catalog visibility filtered the row: the login cannot
+                        // see the module's metadata (or it is not a module).
+                        result = { unavailableReason: "permission", generation };
+                    } else {
+                        const [definition, isEncrypted] = rows[0];
+                        if (definition === null || definition === undefined) {
+                            result = {
+                                unavailableReason:
+                                    isEncrypted === true || isEncrypted === 1
+                                        ? "encrypted"
+                                        : "permission",
+                                generation,
+                            };
+                        } else {
+                            result = { text: String(definition), generation };
+                        }
+                    }
+                    if (entry.generation === generation) {
+                        entry.moduleDefinitions.set(objectId, result);
+                    }
+                    return result;
+                } catch {
+                    return { unavailableReason: "notLoaded", generation };
+                }
+            },
+            { timeoutMs: this.options.laneOpTimeoutMs ?? 15_000, opKind: "moduleDefinition" },
+        ).catch(
+            // Only the watchdog rejects (the work catches internally): a
+            // timed-out read is an honest notLoaded, never a thrown error.
+            (): ModuleDefinitionResult => ({
+                unavailableReason: "notLoaded",
+                generation: entry.generation,
+            }),
+        );
+        entry.moduleDefinitionReads.set(objectId, read);
+        try {
+            return await read;
+        } finally {
+            entry.moduleDefinitionReads.delete(objectId);
+        }
+    }
+
+    /**
+     * Hydrations are SERIALIZED per entry. Forced triggers observed during
+     * one in-flight pass collapse into at most one follow-up pass.
+     */
+    private async hydrate(entry: CatalogEntry, force = false): Promise<void> {
+        if (this.disposed || !this.networkAllowed()) {
+            this.clearNetworkTimers(entry);
+            return;
+        }
+        const watchdog = {
+            timeoutMs: this.options.hydrationTimeoutMs ?? 60_000,
+            opKind: "hydrate",
+        };
+        if (entry.hydrating) {
+            if (!force) {
+                return entry.hydrating;
+            }
+            // Collapse every forced trigger observed during one pass into a
+            // single follow-up pass. A trigger during that follow-up may
+            // request one further pass, but a DDL burst never queues N runs.
+            entry.forcedRefresh ??= entry.hydrating
+                .catch(() => undefined)
+                .then(async () => {
+                    entry.forcedRefresh = undefined;
+                    if (!this.disposed) {
+                        await this.hydrate(entry);
+                    }
+                });
+            return entry.forcedRefresh;
+        }
+        // Hydration runs on the session lane too (lazy module reads share
+        // the single-active-query session — B12).
+        const run = this.runExclusive(entry, () => this.hydrateCore(entry), watchdog);
+        entry.hydrating = this.containLaneTimeout(entry, run);
+        return entry.hydrating;
+    }
+
+    /**
+     * A watchdog-abandoned hydration surfaces to callers as a FAILED entry,
+     * never as a rejected refresh() (the abandoned hydrateCore is epoch-
+     * barred from mutating the entry itself). Identity-guarded like every
+     * other completion path.
+     */
+    private containLaneTimeout(entry: CatalogEntry, run: Promise<void>): Promise<void> {
+        const contained = run
+            .catch(() => {
+                if (this.disposed) {
+                    return;
+                }
+                entry.status = "failed";
+                this.scheduleFailedRetry(entry);
+                this.notify(entry);
+            })
+            .finally(() => {
+                if (entry.hydrating === contained) {
+                    entry.hydrating = undefined;
+                }
+            });
+        return contained;
+    }
+
+    private async hydrateCore(entry: CatalogEntry): Promise<void> {
+        if (this.disposed || !this.networkAllowed()) {
+            return;
+        }
+        // Epoch capture (H-2): if the lane watchdog abandons this run, the
+        // epoch advances and NO completion path below may mutate the entry.
+        const epoch = entry.opEpoch;
+        entry.status = entry.snapshot ? "stale" : "loading";
+        this.notify(entry);
+        const span = diag.startSpan({
+            feature: "metadata",
+            kind: "span",
+            type: "metadata.hydrate",
+            fields: {
+                database: { raw: entry.key.database, cls: "source.path" },
+                generation: { raw: String(entry.generation + 1), cls: "diagnostic.metadata" },
+            },
+        });
+        try {
+            if (!this.networkAllowed()) {
+                return;
+            }
+            const session = await this.sessions.open();
+            const builder = new CatalogBuilder();
+
+            // H0 environment is best-effort for comparison semantics, but an
+            // observed database identity is fail-closed before H1/publication.
+            let canonicalDatabase: string | undefined;
+            let catalogCaseSensitive: boolean | undefined;
+            try {
+                const envRows = await this.rows(session, H0_ENV, "metadata:H0");
+                const env = envRows[0];
+                if (env) {
+                    const collation =
+                        env[2] === null || env[2] === undefined ? undefined : String(env[2]);
+                    catalogCaseSensitive =
+                        env[3] === true || env[3] === 1
+                            ? true
+                            : env[3] === false || env[3] === 0
+                              ? false
+                              : collation
+                                ? collationIsCaseSensitive(collation)
+                                : undefined;
+                    canonicalDatabase =
+                        env[4] === null || env[4] === undefined ? undefined : String(env[4]);
+                    builder.setEnvironment({
+                        engineEdition: Number.isFinite(Number(env[0])) ? Number(env[0]) : undefined,
+                        defaultSchema: env[1] ? String(env[1]) : undefined,
+                        collationName: collation,
+                        caseSensitive: catalogCaseSensitive,
+                    });
+                }
+            } catch {
+                // Unknown comparison semantics stay exact-only in the model.
+            }
+            if (
+                entry.key.database &&
+                canonicalDatabase !== undefined &&
+                !this.databaseNamesMatch(
+                    entry.key.database,
+                    canonicalDatabase,
+                    catalogCaseSensitive,
+                )
+            ) {
+                this.latchInitialIdentityMismatch(entry, canonicalDatabase);
+                throw new Error("Metadata database identity mismatch");
+            }
+            entry.catalogCaseSensitive = catalogCaseSensitive;
+            entry.canonicalDatabase = canonicalDatabase;
+
+            // H1 schemas
+            for (const row of await this.rows(session, H1_SCHEMAS, "metadata:H1")) {
+                builder.addSchema(Number(row[0]), String(row[1]));
+            }
+            // H2 objects (+synonym rows share the object table)
+            for (const row of await this.rows(session, H2_OBJECTS, "metadata:H2")) {
+                const kind = KIND_BY_TYPE[String(row[3])];
+                if (kind) {
+                    builder.addObject(
+                        Number(row[0]),
+                        Number(row[1]),
+                        String(row[2]),
+                        kind,
+                        row[4] === null || row[4] === undefined ? undefined : String(row[4]),
+                    );
+                }
+            }
+            // H3 columns (grouped by object_id, column_id — matches builder
+            // spans). Old 10-column fixture rows stay valid: rows without the
+            // SV-R1 detail columns hydrate with detail ABSENT (honest
+            // unknown), never with fabricated values.
+            let columnsFailed = false;
+            let columnsError: unknown;
+            try {
+                const asBool = (value: unknown) => value === true || value === 1;
+                const asText = (value: unknown) =>
+                    value === null || value === undefined ? undefined : String(value);
+                for (const row of await this.rows(session, H3_COLUMNS, "metadata:H3")) {
+                    let detail: AddColumnDetail | undefined;
+                    if (row.length > 10) {
+                        detail = {
+                            typeName: String(row[3]),
+                            systemTypeId: Number(row[10]),
+                            userTypeId: Number(row[11]),
+                            isUserDefined: asBool(row[14]),
+                            isAssemblyType: asBool(row[15]),
+                            maxLengthBytes: Number(row[4]),
+                            precision: Number(row[5]),
+                            scale: Number(row[6]),
+                        };
+                        const typeSchema = asText(row[12]);
+                        if (typeSchema !== undefined) {
+                            detail.typeSchema = typeSchema;
+                        }
+                        const baseTypeName = asText(row[13]);
+                        if (baseTypeName !== undefined) {
+                            detail.baseTypeName = baseTypeName;
+                        }
+                        const collationName = asText(row[16]);
+                        if (collationName !== undefined) {
+                            detail.collationName = collationName;
+                        }
+                        const defaultDefinition = asText(row[18]);
+                        if (defaultDefinition !== undefined) {
+                            detail.defaultDefinition = defaultDefinition;
+                            const defaultName = asText(row[17]);
+                            if (defaultName !== undefined) {
+                                detail.defaultName = defaultName;
+                            }
+                        }
+                        // Exact TEXT (§5.3): both facts or neither — a lone
+                        // seed would fabricate an increment downstream.
+                        const seedText = asText(row[19]);
+                        const incrementText = asText(row[20]);
+                        if (seedText !== undefined && incrementText !== undefined) {
+                            detail.identitySeedText = seedText;
+                            detail.identityIncrementText = incrementText;
+                        }
+                        const computedDefinition = asText(row[21]);
+                        if (computedDefinition !== undefined) {
+                            detail.computedDefinition = computedDefinition;
+                            detail.computedPersisted = asBool(row[22]);
+                        }
+                    }
+                    builder.addColumn(
+                        Number(row[0]),
+                        String(row[2]),
+                        typeDisplay(
+                            String(row[3]),
+                            Number(row[4]),
+                            Number(row[5]),
+                            Number(row[6]),
+                            row[12] === null || row[12] === undefined ? undefined : String(row[12]),
+                            asBool(row[14]),
+                        ),
+                        asBool(row[7]),
+                        asBool(row[8]),
+                        asBool(row[9]),
+                        Number(row[1]),
+                        detail,
+                    );
+                }
+            } catch (error) {
+                columnsFailed = true; // publish failed, never pretend-empty (§7.4)
+                columnsError = error;
+            }
+            // H4 key constraints (PK columns keep their dedicated marking;
+            // unique-constraint columns are recorded but never PK-marked)
+            let keysFailed = false;
+            let keysError: unknown;
+            try {
+                for (const row of await this.rows(session, H4_KEYS, "metadata:H4")) {
+                    const objectId = Number(row[0]);
+                    const columnName = String(row[1]);
+                    const isPrimaryKey = row[3] === true || row[3] === 1;
+                    const isUniqueConstraint = row[4] === true || row[4] === 1;
+                    if (isPrimaryKey) {
+                        builder.markPrimaryKeyColumn(objectId, columnName);
+                    }
+                    if (isPrimaryKey || isUniqueConstraint) {
+                        builder.addKeyConstraintColumn(
+                            objectId,
+                            String(row[2]),
+                            isPrimaryKey ? "primaryKey" : "uniqueConstraint",
+                            columnName,
+                        );
+                    }
+                }
+            } catch (error) {
+                keysFailed = true;
+                keysError = error;
+            }
+            // H5 FK edges (+ SV-R1 referential actions via desc-string
+            // mapping; old 4-column rows → UNKNOWN, never NO_ACTION)
+            let fkFailed = false;
+            let fkError: unknown;
+            try {
+                for (const row of await this.rows(session, H5_FOREIGN_KEYS, "metadata:H5")) {
+                    builder.addForeignKey(
+                        Number(row[2]),
+                        Number(row[3]),
+                        String(row[1]),
+                        Number(row[0]),
+                        fkActionFromDesc(row[4]),
+                        fkActionFromDesc(row[5]),
+                    );
+                }
+                // H5B pairs (+ SV-R1 ordinal and column ids; old 3-column
+                // rows → identities absent)
+                const asId = (value: unknown): number =>
+                    value === null || value === undefined ? -1 : Number(value);
+                for (const row of await this.rows(
+                    session,
+                    H5B_FOREIGN_KEY_COLUMNS,
+                    "metadata:H5B",
+                )) {
+                    builder.addForeignKeyColumn(
+                        Number(row[0]),
+                        String(row[1]),
+                        String(row[2]),
+                        asId(row[3]),
+                        asId(row[4]),
+                        asId(row[5]),
+                    );
+                }
+            } catch (error) {
+                fkFailed = true;
+                fkError = error;
+            }
+            // H6 routine parameters
+            let paramsFailed = false;
+            let paramsError: unknown;
+            try {
+                for (const row of await this.rows(session, H6_PARAMETERS, "metadata:H6")) {
+                    const name = row[2] === null || row[2] === undefined ? "" : String(row[2]);
+                    builder.addParameter(
+                        Number(row[0]),
+                        Number(row[1]),
+                        name,
+                        typeDisplay(
+                            String(row[3]),
+                            Number(row[4]),
+                            Number(row[5]),
+                            Number(row[6]),
+                            row[8] === null || row[8] === undefined ? undefined : String(row[8]),
+                            row[9] === true || row[9] === 1,
+                        ),
+                        row[7] === true || row[7] === 1,
+                    );
+                }
+            } catch (error) {
+                paramsFailed = true;
+                paramsError = error;
+            }
+            // H7 MS_Description extended properties (objects + columns)
+            let descriptionsFailed = false;
+            let descriptionsError: unknown;
+            try {
+                for (const row of await this.rows(session, H7_DESCRIPTIONS, "metadata:H7")) {
+                    const value = row[3] === null || row[3] === undefined ? "" : String(row[3]);
+                    if (value.length === 0) {
+                        continue;
+                    }
+                    const minorId = Number(row[1]);
+                    const columnName =
+                        row[2] === null || row[2] === undefined ? undefined : String(row[2]);
+                    if (minorId > 0 && columnName === undefined) {
+                        continue; // column dropped since the property was set
+                    }
+                    builder.addDescription(
+                        Number(row[0]),
+                        value,
+                        minorId > 0 ? columnName : undefined,
+                    );
+                }
+            } catch (error) {
+                descriptionsFailed = true; // section failed, never pretend-empty
+                descriptionsError = error;
+            }
+
+            if (entry.opEpoch !== epoch) {
+                span.fail(new Error("laneTimeout:abandoned"));
+                return; // watchdog abandoned this run — a newer op owns the entry
+            }
+            // H-6(a): remember the OUTGOING generation's per-section truth so
+            // ready→failed flips across this refresh are classifiable below.
+            const previousReadiness = entry.snapshot?.readiness;
+            entry.generation++;
+            entry.snapshot = builder.build(
+                entry.generation,
+                {
+                    schemas: "ready",
+                    objects: "ready",
+                    // Identity-only synonym rows are useful, but target
+                    // resolution and first-class table/sequence types are a
+                    // later language-service enrichment.
+                    synonyms: "lite",
+                    types: "absent",
+                    columns: columnsFailed ? "failed" : "ready",
+                    keys: keysFailed ? "failed" : "ready",
+                    foreignKeys: fkFailed ? "failed" : "ready",
+                    parameters: paramsFailed ? "failed" : "ready",
+                    descriptions: descriptionsFailed ? "failed" : "ready",
+                },
+                columnsFailed || fkFailed || keysFailed || paramsFailed || descriptionsFailed
+                    ? "partial"
+                    : "full",
+            );
+            entry.status = "ready";
+            entry.lastDigest = undefined; // re-baseline on next poll
+            entry.manifestDigest = undefined; // full refresh supersedes it
+            entry.failedAttempts = 0; // C-4.3 reset on success
+            if (entry.retryTimer) {
+                clearTimeout(entry.retryTimer);
+                entry.retryTimer = undefined;
+            }
+            entry.moduleDefinitions.clear(); // lazy cache is per generation
+            // H-3.2: a completed refresh is a drift trigger — poll cadence
+            // returns to base (and the pending timer is re-jittered so a
+            // serverless edition just learned from H0 polls at the cap).
+            // H-5: an EXPLICIT refresh that succeeded ran on a session
+            // reopened BY NAME (the drift latch wedged the old one), so its
+            // data is key-correct again and the latch clears; the restarted
+            // poll re-verifies identity on its next digest.
+            entry.identityDrift = false;
+            this.resetPollBackoff(entry);
+            // H-6(a): a section that was ready and is now failed with a
+            // permission-flavored error routes into the existing staleReason
+            // vocabulary (permissionChanged). Counted only — no identifiers.
+            let permissionFlips = 0;
+            const sectionOutcomes: readonly [string, boolean, unknown][] = [
+                ["columns", columnsFailed, columnsError],
+                ["keys", keysFailed, keysError],
+                ["foreignKeys", fkFailed, fkError],
+                ["parameters", paramsFailed, paramsError],
+                ["descriptions", descriptionsFailed, descriptionsError],
+            ];
+            for (const [section, failed, error] of sectionOutcomes) {
+                if (
+                    failed &&
+                    previousReadiness &&
+                    (previousReadiness as Record<string, string>)[section] === "ready" &&
+                    isPermissionFlavoredError(error)
+                ) {
+                    permissionFlips++;
+                }
+            }
+            // A completed full hydration is the strongest validation.
+            entry.lastValidatedAtMs = Date.now();
+            entry.lastValidation = {
+                tier: "fullRefresh",
+                result: "unchanged",
+                ...(permissionFlips > 0 ? { staleReason: "permissionChanged" as const } : {}),
+                validatedAtUtc: new Date().toISOString(),
+            };
+            if (permissionFlips > 0) {
+                diag.emit({
+                    feature: "metadata",
+                    kind: "event",
+                    type: "metadata.permissionDrift",
+                    fields: {
+                        sections: { raw: permissionFlips, cls: "diagnostic.metadata" },
+                    },
+                });
+            }
+            span.end("ok");
+        } catch (error) {
+            if (entry.opEpoch !== epoch) {
+                endSpanWithErrorClass(span, error);
+                return; // abandoned run must not stomp a newer op's state
+            }
+            entry.status = "failed";
+            if (isDatabaseAccessError(error)) {
+                // H-5 tail: database-missing/offline error classes map to
+                // the same staleReason as the rename identity check.
+                entry.lastValidatedAtMs = undefined;
+                entry.lastValidation = {
+                    tier: "fullRefresh",
+                    result: "failed",
+                    staleReason: "accessChanged",
+                    validatedAtUtc: new Date().toISOString(),
+                };
+            }
+            this.scheduleFailedRetry(entry);
+            endSpanWithErrorClass(span, error);
+        }
+        this.notify(entry);
+    }
+
+    /**
+     * C-4.3: a failed refresh over a RETAINED snapshot re-arms with backoff
+     * (5s/30s/2min, then every poll tick — the pre-fix behavior silently
+     * disabled the poll until a fresh acquire). Reset on success; the lane
+     * already caps in-flight attempts at one.
+     */
+    private scheduleFailedRetry(entry: CatalogEntry): void {
+        if (
+            this.disposed ||
+            !this.networkAllowed() ||
+            !entry.snapshot ||
+            entry.refCount <= 0 ||
+            entry.retryTimer
+        ) {
+            return;
+        }
+        const backoff = this.options.retryBackoffMs ?? [5_000, 30_000, 120_000];
+        if (entry.failedAttempts >= backoff.length) {
+            return; // poll-tick territory from here on
+        }
+        const delay = backoff[entry.failedAttempts];
+        entry.failedAttempts++;
+        entry.retryTimer = setTimeout(() => {
+            entry.retryTimer = undefined;
+            if (
+                !this.disposed &&
+                this.networkAllowed() &&
+                entry.status === "failed" &&
+                !entry.hydrating &&
+                entry.refCount > 0
+            ) {
+                void this.hydrate(entry);
+            }
+        }, delay);
+        (entry.retryTimer as { unref?: () => void }).unref?.();
+    }
+
+    /**
+     * T1 validation (cheap digest v2), COALESCED per entry (§4.3): all
+     * concurrent requireValidated callers await the same run. Never
+     * rejects — outcomes travel in the summary. A "changed" verdict awaits
+     * the chained forced refresh before resolving, so a caller that
+     * outlasts its timeout race still converges on the new generation.
+     */
+    private validateEntry(entry: CatalogEntry): Promise<MetadataValidationSummary> {
+        if (!this.networkAllowed()) {
+            return Promise.resolve({ tier: "none", result: "notChecked" });
+        }
+        if (entry.validationInFlight) {
+            return entry.validationInFlight;
+        }
+        if (entry.identityDrift) {
+            // H-5: the entry is lying by definition — no further digests
+            // run; the latched failed summary answers until an explicit
+            // refresh reopens the session by name and clears the latch.
+            return Promise.resolve(
+                entry.lastValidation ?? {
+                    tier: "cheapDatabaseDigest",
+                    result: "failed",
+                    staleReason: "accessChanged",
+                },
+            );
+        }
+        const startedAt = Date.now();
+        const finish = (
+            summary: Omit<MetadataValidationSummary, "validatedAtUtc" | "durationMs">,
+            validated: boolean,
+        ): MetadataValidationSummary => {
+            const full: MetadataValidationSummary = {
+                ...summary,
+                validatedAtUtc: new Date().toISOString(),
+                durationMs: Date.now() - startedAt,
+            };
+            if (validated) {
+                entry.lastValidatedAtMs = Date.now();
+            }
+            entry.lastValidation = full;
+            return full;
+        };
+        const run = (async (): Promise<MetadataValidationSummary> => {
+            if (!entry.snapshot || entry.status === "failed" || entry.status === "absent") {
+                // Nothing to validate — validation IS the (joined) hydration.
+                await this.hydrate(entry);
+                const ok = entry.status === "ready";
+                return finish({ tier: "fullRefresh", result: ok ? "unchanged" : "failed" }, ok);
+            }
+            try {
+                // The store-wide limiter (H-3.4) bounds concurrent digest
+                // queries ACROSS entries/engines; the slot is released
+                // before any chained refresh below so a "changed" verdict
+                // never holds a validation slot through a full hydration.
+                const probe = await this.limiter().run(() =>
+                    this.runExclusive(
+                        entry,
+                        async () => {
+                            if (!this.networkAllowed()) {
+                                throw new Error("Metadata network access disabled");
+                            }
+                            const session = await this.sessions.open();
+                            const rows = await this.rows(session, CHEAP_DIGEST, "metadata:digest");
+                            // Row shape: [current_db, object_count, object_hash];
+                            // current_db is the CACHE-5 identity rider (H-5) and
+                            // never part of the compared digest.
+                            const row = rows[0] ?? [];
+                            return {
+                                digest: `${row[1]}:${row[2]}`,
+                                currentDb:
+                                    row[0] === null || row[0] === undefined
+                                        ? undefined
+                                        : String(row[0]),
+                            };
+                        },
+                        { timeoutMs: this.options.laneOpTimeoutMs ?? 15_000, opKind: "digest" },
+                    ),
+                );
+                // H-5 identity: compare DB_NAME() to H0's canonical spelling
+                // using the catalog's case rule. A mismatch is
+                // an identity event, not schema drift — latch, stop the poll,
+                // fail strict modes actionably, keep allowStale serving.
+                if (
+                    entry.key.database &&
+                    probe.currentDb !== undefined &&
+                    !this.databaseIdentityMatches(entry, probe.currentDb)
+                ) {
+                    this.latchIdentityDrift(entry, probe.currentDb);
+                    return finish(
+                        {
+                            tier: "cheapDatabaseDigest",
+                            result: "failed",
+                            staleReason: "accessChanged",
+                        },
+                        false,
+                    );
+                }
+                // C-4.2: with no live baseline yet, a disk-published entry
+                // compares against the manifest's recorded digest — the
+                // cheapest possible "was my cache already wrong?" check.
+                const baseline = entry.lastDigest ?? entry.manifestDigest;
+                entry.manifestDigest = undefined; // consumed either way
+                entry.lastDigest = probe.digest;
+                if (baseline !== undefined && probe.digest !== baseline) {
+                    diag.emit({
+                        feature: "metadata",
+                        kind: "event",
+                        type: "metadata.drift",
+                        fields: {
+                            database: { raw: entry.key.database, cls: "source.path" },
+                            generation: {
+                                raw: String(entry.generation),
+                                cls: "diagnostic.metadata",
+                            },
+                        },
+                    });
+                    await this.hydrate(entry, true); // resets backoff on success
+                    return finish(
+                        {
+                            tier: "cheapDatabaseDigest",
+                            result: "changed",
+                            staleReason: "digestMismatch",
+                        },
+                        entry.status === "ready",
+                    );
+                }
+                // H-3.2: consecutive no-change verdicts stretch the poll
+                // cadence toward the cap (any drift trigger resets it).
+                entry.pollBackoffLevel = Math.min(
+                    entry.pollBackoffLevel + 1,
+                    this.pollMultipliers().length - 1,
+                );
+                return finish({ tier: "cheapDatabaseDigest", result: "unchanged" }, true);
+            } catch {
+                return finish(
+                    { tier: "cheapDatabaseDigest", result: "failed", staleReason: "unknown" },
+                    false,
+                );
+            }
+        })();
+        entry.validationInFlight = run;
+        void run.finally(() => {
+            if (entry.validationInFlight === run) {
+                entry.validationInFlight = undefined;
+            }
+        });
+        return run;
+    }
+
+    /**
+     * Cheap digest check (§9.2), poll/EXEC-sniff entry point: silent, never
+     * queued, skipped while hydrating — a thin wrapper over the coalesced
+     * T1 validation (the summary machinery is shared with ensureFresh).
+     */
+    private async checkDigest(entry: CatalogEntry): Promise<void> {
+        if (
+            !this.networkAllowed() ||
+            entry.status !== "ready" ||
+            entry.hydrating ||
+            entry.identityDrift
+        ) {
+            return;
+        }
+        try {
+            await this.validateEntry(entry);
+        } catch {
+            // validateEntry never rejects; defensive only (§9.2 silence).
+        }
+    }
+
+    private limiter(): MetadataValidationLimiter {
+        if (this.options.validationLimiter) {
+            return this.options.validationLimiter;
+        }
+        this.defaultLimiter ??= new MetadataValidationLimiter();
+        return this.defaultLimiter;
+    }
+
+    private databaseIdentityMatches(entry: CatalogEntry, actual: string): boolean {
+        const expected = entry.canonicalDatabase ?? entry.key.database;
+        const caseSensitive = entry.catalogCaseSensitive ?? entry.snapshot?.caseSensitive;
+        return this.databaseNamesMatch(expected, actual, caseSensitive);
+    }
+
+    private databaseNamesMatch(
+        expected: string,
+        actual: string,
+        caseSensitive: boolean | undefined,
+    ): boolean {
+        return caseSensitive === false
+            ? actual.toUpperCase() === expected.toUpperCase()
+            : actual === expected;
+    }
+
+    private latchInitialIdentityMismatch(entry: CatalogEntry, actual: string): void {
+        if (!entry.identityDrift) {
+            this.options.onIdentityMismatch?.({ expected: entry.key.database, actual });
+        }
+        entry.identityDrift = true;
+        entry.lastValidatedAtMs = undefined;
+        entry.sessionWedged = true;
+        this.clearNetworkTimers(entry);
+    }
+
+    /**
+     * H-5 latch (fires the callback EXACTLY ONCE per episode): the digest's
+     * identity rider proved the warm dedicated session no longer sits in
+     * key.database. The poll stops (the entry is lying by definition), the
+     * TTL claim is revoked, and the session is wedged so any EXPLICIT
+     * refresh reopens BY NAME — key-correct by construction. Never
+     * auto-rekeys; the consumer owns reacquisition under the new name.
+     */
+    private latchIdentityDrift(entry: CatalogEntry, actual: string): void {
+        if (entry.identityDrift) {
+            return;
+        }
+        entry.identityDrift = true;
+        entry.lastValidatedAtMs = undefined; // never claim "validated" again
+        entry.sessionWedged = true; // next lane item reopens by name
+        if (entry.pollTimer) {
+            clearTimeout(entry.pollTimer);
+            entry.pollTimer = undefined;
+        }
+        this.options.onIdentityDrift?.({
+            expected: entry.canonicalDatabase ?? entry.key.database,
+            actual,
+        });
+    }
+
+    /**
+     * H-6(b): a server-catalog accessState transition for this database is
+     * drift the digest cannot see — the store pokes the entry so its status
+     * carries staleReason "accessChanged" and the next require* revalidates
+     * instead of trusting the TTL. Counted upstream; no identifiers here.
+     */
+    noteAccessStateChanged(key: CatalogKey): void {
+        const entry = this.entries.get(keyOf(key));
+        if (!entry) {
+            return;
+        }
+        entry.lastValidatedAtMs = undefined;
+        entry.lastValidation = {
+            tier: "none",
+            result: "notChecked",
+            staleReason: "accessChanged",
+            validatedAtUtc: new Date().toISOString(),
+        };
+        if (!entry.identityDrift) {
+            this.resetPollBackoff(entry); // drift trigger (H-3.2)
+        }
+        this.notify(entry);
+    }
+
+    /**
+     * The freshness decision procedure (addendum §4.2, implemented
+     * exactly). Disk branches land in CACHE-3; offline settings in CACHE-6
+     * (mode "offlineSnapshot" is honored now). Waits are races (C-9): the
+     * underlying lane work always completes for other waiters.
+     */
+    async ensureFreshEntry(
+        entry: CatalogEntry,
+        policy: MetadataFreshnessPolicy,
+    ): Promise<FreshCatalogResult> {
+        const startedAt = Date.now();
+        const span = diag.startSpan({
+            feature: "metadata",
+            kind: "span",
+            type: "metadata.ensureFresh",
+            fields: {
+                mode: { raw: policy.mode, cls: "diagnostic.metadata" },
+                reason: { raw: policy.reason, cls: "diagnostic.metadata" },
+            },
+        });
+        try {
+            const decided = await this.decideFresh(entry, policy, startedAt);
+            const result = this.applySectionGate(decided, policy);
+            span.end("ok", {
+                freshness: { raw: result.freshness, cls: "diagnostic.metadata" },
+                source: { raw: result.source, cls: "diagnostic.metadata" },
+                waitedMs: { raw: result.waitedMs, cls: "diagnostic.metadata" },
+            });
+            return result;
+        } catch (error) {
+            endSpanWithErrorClass(span, error);
+            throw error;
+        }
+    }
+
+    private makeFresh(
+        entry: CatalogEntry,
+        startedAt: number,
+        snapshot: CatalogSnapshot | undefined,
+        source: FreshCatalogResult["source"],
+        freshness: FreshCatalogResult["freshness"],
+        extra?: Partial<FreshCatalogResult>,
+    ): FreshCatalogResult {
+        const capturedAtUtc = snapshot?.capturedAtUtc;
+        const staleAge = capturedAtUtc ? Date.now() - Date.parse(capturedAtUtc) : undefined;
+        return {
+            snapshot,
+            generation: snapshot?.generation ?? entry.generation,
+            source: snapshot ? source : "none",
+            freshness,
+            ...(capturedAtUtc ? { capturedAtUtc } : {}),
+            ...(staleAge !== undefined && Number.isFinite(staleAge)
+                ? { staleAgeMs: Math.max(0, staleAge) }
+                : {}),
+            waitedMs: Date.now() - startedAt,
+            ...extra,
+        };
+    }
+
+    private validatedWithin(entry: CatalogEntry, ttlMs: number | undefined): boolean {
+        return (
+            ttlMs !== undefined &&
+            entry.lastValidatedAtMs !== undefined &&
+            Date.now() - entry.lastValidatedAtMs <= ttlMs
+        );
+    }
+
+    private async decideFresh(
+        entry: CatalogEntry,
+        policy: MetadataFreshnessPolicy,
+        startedAt: number,
+    ): Promise<FreshCatalogResult> {
+        if (!this.networkAllowed()) {
+            this.clearNetworkTimers(entry);
+            return this.makeFresh(
+                entry,
+                startedAt,
+                entry.snapshot,
+                "offline",
+                entry.snapshot ? "stale" : "unavailable",
+            );
+        }
+        switch (policy.mode) {
+            case "allowStale": {
+                if (entry.snapshot) {
+                    let backgroundRefreshStarted = false;
+                    const ageMs = Date.now() - Date.parse(entry.snapshot.capturedAtUtc);
+                    if (
+                        policy.backgroundRefresh !== false &&
+                        policy.maxStalenessMs !== undefined &&
+                        Number.isFinite(ageMs) &&
+                        ageMs > policy.maxStalenessMs &&
+                        !entry.hydrating &&
+                        // H-5: never auto-refresh an identity-drifted entry —
+                        // only an explicit refresh may reopen by name.
+                        !entry.identityDrift
+                    ) {
+                        void this.hydrate(entry, true);
+                        backgroundRefreshStarted = true;
+                    }
+                    const freshness = entry.hydrating
+                        ? "refreshing"
+                        : this.validatedWithin(entry, policy.validationTtlMs)
+                          ? "validated"
+                          : "stale";
+                    return this.makeFresh(entry, startedAt, entry.snapshot, "memory", freshness, {
+                        ...(backgroundRefreshStarted ? { backgroundRefreshStarted } : {}),
+                    });
+                }
+                // No snapshot: join (or kick) hydration up to the wait budget.
+                const outcome = await this.raceWait(this.hydrate(entry), policy);
+                if (outcome === "done" && entry.snapshot) {
+                    return this.makeFresh(entry, startedAt, entry.snapshot, "live", "live");
+                }
+                return this.makeFresh(entry, startedAt, entry.snapshot, "memory", "unavailable");
+            }
+            case "requireValidated": {
+                if (
+                    entry.snapshot &&
+                    this.validatedWithin(entry, policy.validationTtlMs ?? 120_000)
+                ) {
+                    return this.makeFresh(entry, startedAt, entry.snapshot, "memory", "validated");
+                }
+                const validation = this.validateEntry(entry);
+                const outcome = await this.raceWait(validation, policy);
+                if (outcome === "timeout") {
+                    // C-9: stop waiting, never cancel; best snapshot + honesty.
+                    return this.makeFresh(
+                        entry,
+                        startedAt,
+                        entry.snapshot,
+                        "memory",
+                        entry.snapshot ? "stale" : "unavailable",
+                        { validation: { tier: "none", result: "notChecked" } },
+                    );
+                }
+                const summary = await validation;
+                if (summary.result === "unchanged") {
+                    return this.makeFresh(entry, startedAt, entry.snapshot, "memory", "validated", {
+                        validation: summary,
+                    });
+                }
+                if (summary.result === "changed" && entry.status === "ready") {
+                    // validateEntry awaited the chained refresh internally.
+                    return this.makeFresh(entry, startedAt, entry.snapshot, "live", "live", {
+                        validation: summary,
+                    });
+                }
+                // failed (or changed-but-refresh-failed): C-7 row — snapshot
+                // stays readable, freshness says the bar was not met. An
+                // identity-drifted entry (H-5) fails ACTIONABLY: freshness
+                // "unavailable" even with the retained snapshot present.
+                return this.makeFresh(
+                    entry,
+                    startedAt,
+                    entry.snapshot,
+                    "memory",
+                    entry.snapshot && !entry.identityDrift ? "stale" : "unavailable",
+                    { validation: summary },
+                );
+            }
+            case "requireLive": {
+                if (entry.identityDrift) {
+                    // H-5: a forced hydration would publish the RENAMED
+                    // database's catalog under the old key — refuse; the
+                    // retained snapshot still travels (C-7 shape) and the
+                    // latched summary names accessChanged.
+                    return this.makeFresh(
+                        entry,
+                        startedAt,
+                        entry.snapshot,
+                        "memory",
+                        "unavailable",
+                        {
+                            ...(entry.lastValidation ? { validation: entry.lastValidation } : {}),
+                        },
+                    );
+                }
+                const outcome = await this.raceWait(this.hydrate(entry, true), policy);
+                if (outcome === "done" && entry.status === "ready") {
+                    return this.makeFresh(entry, startedAt, entry.snapshot, "live", "live");
+                }
+                // C-7: strict callers refuse on freshness — but they still
+                // get the retained snapshot to offer the explicit offline path.
+                return this.makeFresh(entry, startedAt, entry.snapshot, "memory", "unavailable");
+            }
+            case "offlineSnapshot": {
+                // No network, ever, on this path.
+                return this.makeFresh(
+                    entry,
+                    startedAt,
+                    entry.snapshot,
+                    "offline",
+                    entry.snapshot ? "stale" : "unavailable",
+                );
+            }
+        }
+    }
+
+    /**
+     * Readiness gating AFTER the freshness decision (§4.2 tail): require*
+     * callers with unready requested sections downgrade to "unavailable"
+     * unless allowPartial; allowStale callers receive the snapshot plus
+     * per-section truth and do their own honest degradation.
+     */
+    private applySectionGate(
+        result: FreshCatalogResult,
+        policy: MetadataFreshnessPolicy,
+    ): FreshCatalogResult {
+        if (
+            !policy.sections?.length ||
+            policy.allowPartial === true ||
+            policy.mode === "allowStale" ||
+            policy.mode === "offlineSnapshot" ||
+            !result.snapshot
+        ) {
+            return result;
+        }
+        const unready = policy.sections.some((section) => {
+            const state = result.snapshot!.readiness[section];
+            return state !== "ready" && state !== "lite";
+        });
+        return unready ? { ...result, freshness: "unavailable" } : result;
+    }
+
+    /**
+     * Race a wait budget (and optional AbortSignal) against shared work —
+     * NEVER a cancellation (C-9): the work keeps running for other waiters.
+     */
+    private raceWait(
+        work: Promise<unknown>,
+        policy: MetadataFreshnessPolicy,
+    ): Promise<"done" | "timeout"> {
+        const timeoutMs = policy.timeoutMs;
+        const signal = policy.signal;
+        if (timeoutMs === undefined && !signal) {
+            return work.then(
+                () => "done" as const,
+                () => "done" as const,
+            );
+        }
+        return new Promise((resolve) => {
+            let settled = false;
+            let abortListener: (() => void) | undefined;
+            const settle = (value: "done" | "timeout") => {
+                if (!settled) {
+                    settled = true;
+                    if (timer !== undefined) {
+                        clearTimeout(timer);
+                    }
+                    if (abortListener) {
+                        signal?.removeEventListener("abort", abortListener);
+                        abortListener = undefined;
+                    }
+                    resolve(value);
+                }
+            };
+            const timer =
+                timeoutMs !== undefined
+                    ? setTimeout(() => settle("timeout"), timeoutMs)
+                    : undefined;
+            (timer as { unref?: () => void } | undefined)?.unref?.();
+            if (signal) {
+                if (signal.aborted) {
+                    settle("timeout");
+                } else {
+                    abortListener = () => settle("timeout");
+                    signal.addEventListener("abort", abortListener, { once: true });
+                }
+            }
+            work.then(
+                () => settle("done"),
+                () => settle("done"),
+            );
+        });
+    }
+
+    // -- H-3 poll governance --------------------------------------------------
+    // Per-entry cadence with backoff + jitter lives HERE in the engine; the
+    // window-focus fact is injected (isActive) and the cross-entry digest
+    // fan-out is bounded by the shared validation limiter. The store owns
+    // both injections at composition time.
+
+    private pollBaseMs(): number | undefined {
+        const seconds = this.options.pollSeconds ?? 60;
+        return seconds > 0 ? seconds * 1000 : undefined;
+    }
+
+    private pollMultipliers(): readonly number[] {
+        return this.options.pollBackoffMultipliers ?? DEFAULT_POLL_BACKOFF_MULTIPLIERS;
+    }
+
+    /**
+     * H-3.3: serverless/auto-pause editions poll AT the cap — a digest that
+     * wakes a paused database is a billable bug. Reduced polling is safe:
+     * TTL validation re-checks drift whenever a consumer actually asks.
+     */
+    private effectivePollLevel(entry: CatalogEntry): number {
+        const maxLevel = this.pollMultipliers().length - 1;
+        const edition = entry.snapshot?.engineEdition;
+        if (edition !== undefined && isAutoPauseEngineEdition(edition)) {
+            return maxLevel;
+        }
+        return Math.min(entry.pollBackoffLevel, maxLevel);
+    }
+
+    private startPolling(entry: CatalogEntry): void {
+        if (!this.networkAllowed() || this.pollBaseMs() === undefined) {
+            return;
+        }
+        this.schedulePoll(entry);
+        this.ensureFocusWatch();
+    }
+
+    private schedulePoll(entry: CatalogEntry): void {
+        const base = this.pollBaseMs();
+        if (
+            base === undefined ||
+            !this.networkAllowed() ||
+            entry.pollTimer !== undefined ||
+            entry.identityDrift ||
+            entry.refCount <= 0 ||
+            this.pollsSuspended
+        ) {
+            return;
+        }
+        const delay = jitteredPollDelayMs(
+            base,
+            this.pollMultipliers(),
+            this.effectivePollLevel(entry),
+        );
+        entry.pollTimer = setTimeout(() => {
+            entry.pollTimer = undefined;
+            void this.pollTick(entry);
+        }, delay);
+        (entry.pollTimer as { unref?: () => void }).unref?.();
+    }
+
+    private async pollTick(entry: CatalogEntry): Promise<void> {
+        if (
+            !this.networkAllowed() ||
+            entry.refCount <= 0 ||
+            entry.identityDrift ||
+            this.pollsSuspended
+        ) {
+            return; // stopped/suspended — resume or re-acquire reschedules
+        }
+        try {
+            if (
+                entry.status === "failed" &&
+                entry.snapshot &&
+                !entry.retryTimer &&
+                !entry.hydrating
+            ) {
+                // C-4.3 tail: after the backoff ladder, every poll tick
+                // retries a failed entry that still serves a snapshot.
+                await this.hydrate(entry).catch(() => undefined);
+            } else {
+                await this.checkDigest(entry);
+            }
+        } finally {
+            this.schedulePoll(entry);
+        }
+    }
+
+    /** H-3.2: drift trigger/user execution — back to base cadence NOW. */
+    private resetPollBackoff(entry: CatalogEntry): void {
+        entry.pollBackoffLevel = 0;
+        if (entry.pollTimer) {
+            clearTimeout(entry.pollTimer);
+            entry.pollTimer = undefined;
+        }
+        this.schedulePoll(entry);
+    }
+
+    private networkAllowed(): boolean {
+        return this.options.isNetworkAllowed?.() !== false;
+    }
+
+    private clearNetworkTimers(entry: CatalogEntry): void {
+        if (entry.pollTimer) {
+            clearTimeout(entry.pollTimer);
+            entry.pollTimer = undefined;
+        }
+        if (entry.retryTimer) {
+            clearTimeout(entry.retryTimer);
+            entry.retryTimer = undefined;
+        }
+    }
+
+    private hostActive(): boolean {
+        return this.options.isActive ? this.options.isActive() : true;
+    }
+
+    /** The focus watch runs no SQL — it only observes the injected fact. */
+    private ensureFocusWatch(): void {
+        if (this.focusTimer || !this.options.isActive) {
+            return;
+        }
+        const cadence = this.options.focusRecheckMs ?? 5_000;
+        this.focusTimer = setInterval(() => this.focusTick(), cadence);
+        (this.focusTimer as { unref?: () => void }).unref?.();
+    }
+
+    /**
+     * H-3.1: unfocused for longer than the grace (default 2 min) suspends
+     * every entry's poll (drift is re-checked by TTL validation on return
+     * anyway); refocus resumes with an IMMEDIATE tick per polled entry —
+     * fan-out bounded by the validation limiter, intervals re-jittered.
+     */
+    private focusTick(): void {
+        if (this.hostActive()) {
+            this.inactiveSinceMs = undefined;
+            if (this.pollsSuspended) {
+                this.pollsSuspended = false;
+                for (const entry of this.entries.values()) {
+                    if (entry.refCount > 0 && !entry.identityDrift) {
+                        void this.pollTick(entry); // immediate tick + reschedule
+                    }
+                }
+            }
+            return;
+        }
+        const now = Date.now();
+        if (this.inactiveSinceMs === undefined) {
+            this.inactiveSinceMs = now;
+            return;
+        }
+        const grace = this.options.inactiveGraceMs ?? 120_000;
+        if (!this.pollsSuspended && now - this.inactiveSinceMs > grace) {
+            this.pollsSuspended = true;
+            for (const entry of this.entries.values()) {
+                if (entry.pollTimer) {
+                    clearTimeout(entry.pollTimer);
+                    entry.pollTimer = undefined;
+                }
+            }
+        }
+    }
+
+    private maybeStopPolling(): void {
+        for (const entry of this.entries.values()) {
+            if (entry.refCount <= 0 && entry.pollTimer) {
+                clearTimeout(entry.pollTimer);
+                entry.pollTimer = undefined;
+            }
+        }
+        if (this.focusTimer && [...this.entries.values()].every((entry) => entry.refCount <= 0)) {
+            clearInterval(this.focusTimer);
+            this.focusTimer = undefined;
+            this.pollsSuspended = false;
+            this.inactiveSinceMs = undefined;
+        }
+    }
+
+    dispose(): void {
+        if (this.disposed) {
+            return;
+        }
+        this.disposed = true;
+        if (this.focusTimer) {
+            clearInterval(this.focusTimer);
+            this.focusTimer = undefined;
+        }
+        for (const entry of this.entries.values()) {
+            entry.opEpoch++;
+            entry.refCount = 0;
+            if (entry.retryTimer) {
+                clearTimeout(entry.retryTimer);
+                entry.retryTimer = undefined;
+            }
+            if (entry.pollTimer) {
+                clearTimeout(entry.pollTimer);
+                entry.pollTimer = undefined;
+            }
+            entry.listeners.clear();
+        }
+        this.entries.clear();
+    }
+}

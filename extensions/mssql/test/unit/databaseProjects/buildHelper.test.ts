@@ -1,0 +1,289 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+import { expect } from "chai";
+import * as os from "os";
+import * as fs from "fs";
+import * as sinon from "sinon";
+import * as vscode from "vscode";
+import * as path from "path";
+import { BuildHelper, NugetExtractionError } from "../../../src/databaseProjects/tools/buildHelper";
+import { VscodeHttpClient } from "extension-toolkit/vscode";
+import { TestContext, createContext } from "./testContext";
+import { ProjectType } from "vscode-mssql";
+import * as constants from "../../../src/databaseProjects/common/constants";
+import * as utils from "../../../src/databaseProjects/common/utils";
+import { SqlProjects } from "../../../src/constants/locConstants";
+
+suite("BuildHelper: Build Helper tests", function (): void {
+    let sandbox: sinon.SinonSandbox;
+
+    setup(function () {
+        sandbox = sinon.createSandbox();
+    });
+
+    teardown(function () {
+        sandbox.restore();
+    });
+
+    test("Should get correct build arguments for legacy-style projects", function (): void {
+        // update settings and validate
+        const buildHelper = new BuildHelper();
+        const resultArgs = buildHelper.constructBuildArguments(
+            "dummy\\dll path",
+            ProjectType.LegacyStyle,
+        );
+
+        // Check that it returns an array
+        expect(resultArgs).to.be.an("array");
+        expect(resultArgs.length).to.equal(3); // 3 arguments for legacy projects
+
+        // Check individual arguments
+        expect(resultArgs[0]).to.equal("/p:NetCoreBuild=true");
+
+        if (os.platform() === "win32") {
+            expect(resultArgs[1]).to.equal('/p:SystemDacpacsLocation="dummy\\\\dll path"');
+            expect(resultArgs[2]).to.equal('/p:NETCoreTargetsPath="dummy\\\\dll path"');
+        } else {
+            expect(resultArgs[1]).to.equal('/p:SystemDacpacsLocation="dummy/dll path"');
+            expect(resultArgs[2]).to.equal('/p:NETCoreTargetsPath="dummy/dll path"');
+        }
+    });
+
+    test("Should get correct build arguments for SDK-style projects", function (): void {
+        // update settings and validate
+        const buildHelper = new BuildHelper();
+        const resultArgs = buildHelper.constructBuildArguments(
+            "dummy\\dll path",
+            ProjectType.SdkStyle,
+        );
+
+        // Check that it returns an array
+        expect(resultArgs).to.be.an("array");
+        expect(resultArgs.length).to.equal(2); // 2 arguments for SDK projects (no NETCoreTargetsPath)
+
+        // Check individual arguments
+        expect(resultArgs[0]).to.equal("/p:NetCoreBuild=true");
+
+        if (os.platform() === "win32") {
+            expect(resultArgs[1]).to.equal('/p:SystemDacpacsLocation="dummy\\\\dll path"');
+        } else {
+            expect(resultArgs[1]).to.equal('/p:SystemDacpacsLocation="dummy/dll path"');
+        }
+    });
+
+    test("Should get correct build folder", function (): void {
+        const buildHelper = new BuildHelper();
+
+        // extensionBuildDirPath is set in the constructor — no network calls needed.
+        const extensionPath = vscode.extensions.getExtension("ms-mssql.mssql")?.extensionPath ?? "";
+        expect(buildHelper.extensionBuildDirPath).to.equal(
+            path.join(extensionPath, "BuildDirectory"),
+        );
+    });
+
+    test("Should have all required SystemDacpacs files for supported target platforms", async function (): Promise<void> {
+        // Get the extension's build directory path
+        const extensionPath = vscode.extensions.getExtension("ms-mssql.mssql")?.extensionPath ?? "";
+        const systemDacpacsPath = path.join(extensionPath, "BuildDirectory", "SystemDacpacs");
+
+        // Verify SystemDacpacs folder exists
+        expect(
+            fs.existsSync(systemDacpacsPath),
+            `SystemDacpacs folder should exist at ${systemDacpacsPath}`,
+        ).to.be.true;
+
+        // Verify all target platforms from targetPlatformToVersion have required dacpacs
+        for (const [platform, version] of constants.targetPlatformToVersion) {
+            // Handle Dw -> AzureDw folder name mapping
+            const folderName = version === "Dw" ? constants.AzureDwFolder : version;
+            const folderPath = path.join(systemDacpacsPath, folderName);
+
+            expect(
+                fs.existsSync(folderPath),
+                `Folder ${folderName} for platform '${platform}' should exist in SystemDacpacs`,
+            ).to.be.true;
+            expect(
+                fs.existsSync(path.join(folderPath, "master.dacpac")),
+                `master.dacpac should exist in ${folderName}`,
+            ).to.be.true;
+
+            // On-prem SQL Server versions (numeric like 110, 120, etc.) also need msdb.dacpac
+            const isOnPrem = /^\d+$/.test(version);
+            if (isOnPrem) {
+                expect(
+                    fs.existsSync(path.join(folderPath, "msdb.dacpac")),
+                    `msdb.dacpac should exist in ${folderName}`,
+                ).to.be.true;
+            }
+        }
+    });
+
+    test("Should have all required DLLs in build directory", async function (): Promise<void> {
+        // Treat all files as present and fail the test if a network download is attempted.
+        sandbox.stub(utils, "exists").resolves(true);
+        sandbox
+            .stub(VscodeHttpClient.prototype, "downloadToPath")
+            .throws(new Error("download should not be called"));
+
+        const testContext: TestContext = createContext();
+        const buildHelper = new BuildHelper();
+        const success = await buildHelper.createBuildDirFolder(testContext.outputChannel);
+
+        expect(success, "Build directory creation should succeed when all files are present").to.be
+            .true;
+
+        const buildDirPath = buildHelper.extensionBuildDirPath;
+
+        // List of required DLLs — all sourced from the Microsoft.Build.Sql package (tools/net8.0/)
+        const allRequiredFiles: string[] = [
+            "Microsoft.Build.Sql.dll",
+            "Microsoft.Data.SqlClient.dll",
+            "Microsoft.Data.Tools.Schema.Sql.dll",
+            "Microsoft.Data.Tools.Schema.Tasks.Sql.dll",
+            "Microsoft.Data.Tools.Utilities.dll",
+            "Microsoft.SqlServer.Dac.dll",
+            "Microsoft.SqlServer.Dac.Extensions.dll",
+            "Microsoft.SqlServer.Types.dll",
+            "System.ComponentModel.Composition.dll",
+            "System.IO.Packaging.dll",
+            "Microsoft.Data.Tools.Schema.SqlTasks.targets",
+            "Microsoft.SqlServer.Server.dll",
+            "Microsoft.SqlServer.TransactSql.ScriptDom.dll",
+            "Microsoft.Data.Tools.Sql.DesignServices.dll",
+        ];
+
+        // Verify each required file exists in the build directory
+        for (const fileName of allRequiredFiles) {
+            const filePath = path.join(buildDirPath, fileName);
+            const exists = await utils.exists(filePath);
+            expect(
+                exists,
+                `Required file '${fileName}' should exist in build directory at ${filePath}`,
+            ).to.be.true;
+        }
+    });
+
+    test("Shows nugetDownloadFailedHelp message when nuget download throws", async function (): Promise<void> {
+        // Treat all files as missing so the download path is triggered.
+        sandbox.stub(utils, "exists").resolves(false);
+
+        // Make the actual HTTP download fail (simulates offline / proxy failure).
+        sandbox
+            .stub(VscodeHttpClient.prototype, "downloadToPath")
+            .rejects(new Error("ECONNREFUSED"));
+
+        // Capture the error message shown to the user.
+        let shownMessage: string | undefined;
+        sandbox
+            .stub(vscode.window, "showErrorMessage")
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .callsFake((msg: string): any => {
+                shownMessage = msg;
+                return Promise.resolve(undefined);
+            });
+
+        const outputChannel = {
+            appendLine: () => {},
+        } as unknown as vscode.OutputChannel;
+
+        const buildHelper = new BuildHelper();
+        const buildDir = buildHelper.extensionBuildDirPath;
+
+        const result = await buildHelper.ensureNugetAndFilesPresence(
+            "Microsoft.Build.Sql",
+            "0.1.0",
+            ["Microsoft.Build.Sql.dll"],
+            "tools/net8.0",
+            outputChannel,
+        );
+
+        expect(result, "ensureNugetAndFilesPresence should return false on download failure").to.be
+            .false;
+        expect(shownMessage, "showErrorMessage should have been called").to.be.a("string");
+        expect(shownMessage).to.include(
+            buildDir,
+            "Error message should contain the build directory path so the user knows where to place DLLs",
+        );
+        expect(shownMessage).to.equal(
+            SqlProjects.nugetDownloadFailedHelp(buildDir),
+            "Error message should match nugetDownloadFailedHelp constant exactly",
+        );
+    });
+
+    test("Shows extraction error (not proxy/nuget help) when extraction fails", async function (): Promise<void> {
+        // Treat all files as missing so the download path is triggered.
+        sandbox.stub(utils, "exists").resolves(false);
+
+        // Simulate an extraction failure (e.g. corrupt zip, disk error) by stubbing
+        // downloadAndExtractNuget to throw a NugetExtractionError directly. This
+        // tests the catch-block behaviour in ensureNugetAndFilesPresence without
+        // relying on the internals of extract-zip.
+        const extractionErrorMsg = "Error extracting files from /tmp/pkg.nupkg. Error: bad zip";
+        sandbox
+            .stub(BuildHelper.prototype, "downloadAndExtractNuget")
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .rejects(new NugetExtractionError(extractionErrorMsg) as any);
+
+        let shownMessage: string | undefined;
+        sandbox
+            .stub(vscode.window, "showErrorMessage")
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .callsFake((msg: string): any => {
+                shownMessage = msg;
+                return Promise.resolve(undefined);
+            });
+
+        const outputChannel = {
+            appendLine: () => {},
+        } as unknown as vscode.OutputChannel;
+
+        const buildHelper = new BuildHelper();
+        const buildDir = buildHelper.extensionBuildDirPath;
+
+        const result = await buildHelper.ensureNugetAndFilesPresence(
+            "Microsoft.Build.Sql",
+            "0.1.0",
+            ["Microsoft.Build.Sql.dll"],
+            "tools/net8.0",
+            outputChannel,
+        );
+
+        expect(result, "ensureNugetAndFilesPresence should return false on extraction failure").to
+            .be.false;
+        expect(shownMessage, "showErrorMessage should have been called").to.be.a("string");
+        expect(shownMessage).to.equal(
+            extractionErrorMsg,
+            "Extraction error should be shown directly so the user sees the real cause",
+        );
+        expect(shownMessage).to.not.equal(
+            SqlProjects.nugetDownloadFailedHelp(buildDir),
+            "nugetDownloadFailedHelp (proxy/offline advice) must NOT be shown for extraction failures",
+        );
+    });
+
+    test("Returns true without downloading when all expected files already exist", async function (): Promise<void> {
+        // All files already present → download should never be called.
+        sandbox.stub(utils, "exists").resolves(true);
+        const downloadSpy = sandbox.stub(VscodeHttpClient.prototype, "downloadToPath");
+
+        const outputChannel = {
+            appendLine: () => {},
+        } as unknown as vscode.OutputChannel;
+
+        const buildHelper = new BuildHelper();
+        const result = await buildHelper.ensureNugetAndFilesPresence(
+            "Microsoft.Build.Sql",
+            "0.1.0",
+            ["Microsoft.Build.Sql.dll"],
+            "tools/net8.0",
+            outputChannel,
+        );
+
+        expect(result).to.be.true;
+        expect(downloadSpy.called, "download should NOT be called when files already exist").to.be
+            .false;
+    });
+});

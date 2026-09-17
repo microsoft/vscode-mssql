@@ -31,7 +31,7 @@ export function registerSqlToolsMcpServer(
             success: "false",
             reason: "mcpApiUnavailable",
         });
-        logger.info("VS Code MCP server definition API is not available.");
+        logger.debug("VS Code MCP server definition API is not available.");
         return;
     }
 

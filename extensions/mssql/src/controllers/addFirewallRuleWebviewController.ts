@@ -99,14 +99,11 @@ export class AddFirewallRuleWebviewController extends WebviewPanelController<
         );
 
         if (!handleFirewallErrorResult.result) {
-            sendErrorEvent(
-                TelemetryViews.ConnectionDialog,
-                TelemetryActions.AddFirewallRule,
-                new Error(errorMessage),
-                true, // includeErrorMessage; parse failed because it couldn't detect an IP address, so that'd be the only PII
-                undefined, // errorCode
-                undefined, // errorType
-            );
+            sendErrorEvent(TelemetryViews.ConnectionDialog, TelemetryActions.AddFirewallRule, {
+                error: new Error(errorMessage),
+                // Parse failed because it couldn't detect an IP address, so that'd be the only PII.
+                includeErrorMessage: true,
+            });
 
             // Proceed with 0.0.0.0 as the client IP, and let user fill it out manually.
             handleFirewallErrorResult.ipAddress = "0.0.0.0";
@@ -158,17 +155,13 @@ export class AddFirewallRuleWebviewController extends WebviewPanelController<
                 state.message = getErrorMessage(err);
                 state.addFirewallRuleStatus = ApiStatus.Error;
 
-                sendErrorEvent(
-                    TelemetryViews.AddFirewallRule,
-                    TelemetryActions.AddFirewallRule,
-                    err,
-                    false, // includeErrorMessage
-                    undefined, // errorCode
-                    undefined, // errorType
-                    {
+                sendErrorEvent(TelemetryViews.AddFirewallRule, TelemetryActions.AddFirewallRule, {
+                    error: err,
+                    includeErrorMessage: false,
+                    additionalProps: {
                         failure: err.Name,
                     },
-                );
+                });
             }
 
             return state;

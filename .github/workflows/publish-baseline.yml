@@ -1,6 +1,5 @@
 name: Publish Baseline Artifacts
 
-# Creates baseline artifacts for PR comparisons. See workflows/README.md for details.
 on:
   push:
     branches:

@@ -46,10 +46,12 @@ export interface ResultGridProps {
     canToggleMaximize?: boolean;
     isMaximized?: boolean;
     onToggleMaximize?: () => void;
+    onSelectionChange?: (hasSelection: boolean) => void;
 }
 
 export interface ResultGridHandle {
     focusGrid: () => void;
+    clearSelection?: () => void;
 }
 
 const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultGridProps, ref) => {

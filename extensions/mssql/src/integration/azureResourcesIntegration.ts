@@ -85,7 +85,7 @@ export class AzureResourcesExtensionIntegration {
             `${vscode.env.uriScheme}://ms-mssql.mssql/connect?${params.toString()}`,
         );
 
-        this._logger.info(
+        this._logger.debug(
             `Invoking mssql extension to open connection to ${serverName} (profile name: ${profileName}); URI: ${uri.toString()}`,
         );
 
