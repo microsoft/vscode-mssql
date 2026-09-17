@@ -168,7 +168,7 @@ export const DevContainerSetupDialog = ({ template, onDismiss }: DevContainerSet
     const hasDevContainerConfig = useOverviewSelector((state) => state.hasDevContainerConfig);
     const [page, setPage] = useState<"prerequisites" | "setUp">("prerequisites");
     const [isApplying, setIsApplying] = useState(false);
-    const [applyError, setApplyError] = useState<string | undefined>(undefined);
+    const [applyFailed, setApplyFailed] = useState(false);
     const [usedPicker, setUsedPicker] = useState(false);
     // The request reports what it wrote, so the step does not hang on "not found" if the
     // folder-watching state lags behind.
@@ -249,13 +249,20 @@ export const DevContainerSetupDialog = ({ template, onDismiss }: DevContainerSet
 
     const applyTemplate = useCallback(async () => {
         setIsApplying(true);
-        setApplyError(undefined);
+        setApplyFailed(false);
         setUsedPicker(false);
         try {
             const result = await addDevContainerConfiguration(template.id);
-            setApplyError(result.error);
+            // The request carries the CLI's own message, which is unlocalized and embeds the
+            // workspace path. The controller has already logged it, so only the outcome is kept
+            // here and the dialog shows a localized string.
+            setApplyFailed(result.error !== undefined);
             setUsedPicker(result.usedPicker);
             setApplied(result.applied);
+        } catch {
+            // A rejected request (the fallback command or the RPC itself failing) would otherwise
+            // leave the step with no error and no Retry button, stranding the flow.
+            setApplyFailed(true);
         } finally {
             setIsApplying(false);
         }
@@ -358,7 +365,9 @@ export const DevContainerSetupDialog = ({ template, onDismiss }: DevContainerSet
                                             {loc.stepAddConfiguration}
                                         </Text>
                                         <Text className={classes.rowDescription}>
-                                            {applyError ?? loc.stepAddConfigurationDescription}
+                                            {applyFailed
+                                                ? loc.stepAddConfigurationFailed
+                                                : loc.stepAddConfigurationDescription}
                                         </Text>
                                         {usedPicker && (
                                             <Text className={classes.rowDescription}>
@@ -366,7 +375,7 @@ export const DevContainerSetupDialog = ({ template, onDismiss }: DevContainerSet
                                             </Text>
                                         )}
                                     </div>
-                                    {applyError ? (
+                                    {applyFailed ? (
                                         <Button size="small" onClick={() => void applyTemplate()}>
                                             {locConstants.common.retry}
                                         </Button>

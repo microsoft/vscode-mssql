@@ -13,6 +13,7 @@ import {
     makeStyles,
     mergeClasses,
     tokens,
+    useId,
 } from "@fluentui/react-components";
 import { Dismiss20Regular, TextBulletListSquare20Regular } from "@fluentui/react-icons";
 import { Fragment, type KeyboardEvent, useState } from "react";
@@ -178,6 +179,7 @@ export const WalkthroughDialog = ({ walkthrough, onDismiss }: WalkthroughDialogP
     const loc = locConstants.overview;
     const { runAction, openLink } = useOverviewActions();
     const [selectedIndex, setSelectedIndex] = useState(0);
+    const titleId = useId("walkthrough-title-");
 
     const step = walkthrough.steps[selectedIndex];
 
@@ -226,7 +228,15 @@ export const WalkthroughDialog = ({ walkthrough, onDismiss }: WalkthroughDialogP
 
     return (
         <Dialog open onOpenChange={(_event, data) => !data.open && onDismiss()}>
-            <DialogSurface className={classes.surface} onKeyDown={handleKeyDown}>
+            {/*
+             * The layout is custom rather than a DialogTitle/DialogBody, so the surface is pointed
+             * at the visible walkthrough title; without it screen readers announce an unnamed
+             * dialog.
+             */}
+            <DialogSurface
+                className={classes.surface}
+                onKeyDown={handleKeyDown}
+                aria-labelledby={titleId}>
                 <div className={classes.layout}>
                     <Button
                         className={classes.close}
@@ -238,7 +248,9 @@ export const WalkthroughDialog = ({ walkthrough, onDismiss }: WalkthroughDialogP
 
                     <div className={classes.side}>
                         <div className={classes.sideHeading}>
-                            <Text className={classes.sideTitle}>{walkthrough.title}</Text>
+                            <Text className={classes.sideTitle} id={titleId}>
+                                {walkthrough.title}
+                            </Text>
                             <Text className={classes.sideSubtitle}>{walkthrough.subtitle}</Text>
                         </div>
                         <TabList

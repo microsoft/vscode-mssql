@@ -4027,6 +4027,20 @@ export class LocConstants {
                 "Provision a free Azure SQL Database and deploy the app to it.",
             ),
 
+            // Prompt bodies handed to an agent verbatim and copied to the clipboard.
+            promptCreateLocalBody: l10n.t(
+                "Add a local Azure SQL database to this app. Spin up the container, create an appdb database I can query, verify the first query, and point the app's configuration at it.",
+            ),
+            promptBuildAppBody: l10n.t(
+                "Build me an app on Azure SQL Database. Give me the order of operations from an empty project to the first successful request that reads a row, scaffold the data access layer, and do it without putting a database password in the repo.",
+            ),
+            promptDesignSchemaBody: l10n.t(
+                "Model these entities as tables on Azure SQL Database, then review the schema before it goes to production: call out the keys, indexes, collation and identity choices that will cause trouble later, and seed realistic sample data.",
+            ),
+            promptDeployBody: l10n.t(
+                "Move this app from the local Azure SQL container to Azure SQL Database. Get it into Azure without putting a database password anywhere, keep the application code unchanged where possible, and tell me exactly what has to change in configuration.",
+            ),
+
             // Walkthrough media placeholder, pending the recorded walkthrough.
             walkthroughMediaAlt: l10n.t("Animated walkthrough of MSSQL features in VS Code"),
 
@@ -4114,9 +4128,11 @@ export class LocConstants {
             ),
             wtConnectStep3Action: l10n.t("New query"),
             wtConnectStep4Title: l10n.t("Run and read results"),
-            wtConnectStep4Description: l10n.t(
-                "Execute with Run (or Ctrl+Shift+E) and sort, filter, and export the results grid.",
-            ),
+            wtConnectStep4Description: (runShortcut: string) =>
+                l10n.t(
+                    "Execute with Run (or {0}) and sort, filter, and export the results grid.",
+                    runShortcut,
+                ),
             wtConnectStep4Action: l10n.t("Open the query editor"),
 
             // "Build & connect an app"

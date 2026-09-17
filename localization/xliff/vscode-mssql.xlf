@@ -316,6 +316,9 @@
     <trans-unit id="++CODE++09857ad18f3cf066330f9fc08318e41f71ecb7b7d71f12bd1dd3b9d050db4ca0">
       <source xml:lang="en">Add a Microsoft Entra account...</source>
     </trans-unit>
+    <trans-unit id="++CODE++303ad67d2fdf5c8a2fc1dd0c27571921848d70cfd69de0e3fc4c7110075b90c9">
+      <source xml:lang="en">Add a local Azure SQL database to this app. Spin up the container, create an appdb database I can query, verify the first query, and point the app&apos;s configuration at it.</source>
+    </trans-unit>
     <trans-unit id="++CODE++ee7ee5830f091690030fed013c05a7073f6cb971891c3fc6f16e928bd6d69e61">
       <source xml:lang="en">Add account</source>
     </trans-unit>
@@ -1062,6 +1065,9 @@
     </trans-unit>
     <trans-unit id="++CODE++826d02f44b0b73307289256833824e9adbe8e6be6379095d214e84d814b95183">
       <source xml:lang="en">Build failed. Check output pane for more details. {0}</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3039ba9f803e4330676c70ae9aace994ea218df8d4fe10000c51b122eb0cd7fc">
+      <source xml:lang="en">Build me an app on Azure SQL Database. Give me the order of operations from an empty project to the first successful request that reads a row, scaffold the data access layer, and do it without putting a database password in the repo.</source>
     </trans-unit>
     <trans-unit id="++CODE++83786570b57c8ba630ba1a34a6392b74bd535658df4105674f535468e8bf66a3">
       <source xml:lang="en">Build with AI using GitHub Copilot</source>
@@ -3678,8 +3684,8 @@
     <trans-unit id="++CODE++3c2445c4b77dfeb6f38759a13a0a6558331ca648164e54fd7d86e53ebf6c1e11">
       <source xml:lang="en">Execute query</source>
     </trans-unit>
-    <trans-unit id="++CODE++c3561cd8b2dc4af79aa03ae59fa6cdd6f2b2fa5fef55e48e729f25d6e9535e85">
-      <source xml:lang="en">Execute with Run (or Ctrl+Shift+E) and sort, filter, and export the results grid.</source>
+    <trans-unit id="++CODE++40d9cbf18ef0f64392913d9d6e4d075ee8b46d9541fa3d4461e4229b8b234139">
+      <source xml:lang="en">Execute with Run (or {0}) and sort, filter, and export the results grid.</source>
     </trans-unit>
     <trans-unit id="++CODE++188537742dec0f62a434057d038035f4302e490f537982fd25528369fe5cc72b">
       <source xml:lang="en">Executing &apos;{0}&apos; operation on Data API builder</source>
@@ -5831,6 +5837,9 @@
     <trans-unit id="++CODE++275defa851ac09403faf8a674e5bdba13cf70e44dcd812b90e2c515db391a7ed">
       <source xml:lang="en">Missing table target for delete_table operation. Provide tableId or tableName+schemaName.</source>
     </trans-unit>
+    <trans-unit id="++CODE++658aef842bde254b02c2128b993043630534c4e1480853a23ecf4df0dd43e483">
+      <source xml:lang="en">Model these entities as tables on Azure SQL Database, then review the schema before it goes to production: call out the keys, indexes, collation and identity choices that will cause trouble later, and seed realistic sample data.</source>
+    </trans-unit>
     <trans-unit id="++CODE++e8ce5dcaf408935ff76747226d2e8bee4319a2f593c1d7a838115e56183d1f37">
       <source xml:lang="en">Modified</source>
     </trans-unit>
@@ -5915,6 +5924,9 @@
     </trans-unit>
     <trans-unit id="++CODE++b76bc80b8a0e64a7d4bdcb44be4f61adea3c7657d8ab9c599ab349d1d772d7b1">
       <source xml:lang="en">Move selection to the last cell in the row</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f3c2cbaf3217a3ce89d1701c2afb170b5f5bc485f4aed69b163744a41836568d">
+      <source xml:lang="en">Move this app from the local Azure SQL container to Azure SQL Database. Get it into Azure without putting a database password anywhere, keep the application code unchanged where possible, and tell me exactly what has to change in configuration.</source>
     </trans-unit>
     <trans-unit id="++CODE++b2159ceb286b9be31291fc016d5925e9816cd03a6a9b10338657b86f8e07a87e">
       <source xml:lang="en">Move to Azure SQL</source>

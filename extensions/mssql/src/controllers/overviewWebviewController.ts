@@ -247,6 +247,12 @@ export class OverviewWebviewController extends WebviewPanelController<
 
         void this.refreshRecentFiles();
 
+        // The store keeps recording opens after this panel was built, so follow it rather than
+        // showing the snapshot taken when the page opened.
+        this.registerDisposable(
+            this._recentSqlFilesStore.onDidChange(() => void this.refreshRecentFiles()),
+        );
+
         // Registered on the controller so the listener dies with the panel rather than
         // accumulating one per panel on the extension context.
         this.registerDisposable(
@@ -321,14 +327,19 @@ export class OverviewWebviewController extends WebviewPanelController<
             isInDevContainer: vscode.env.remoteName === DEV_CONTAINER_REMOTE_NAME,
             // Resolved asynchronously right after construction; see refreshAgentSkillsState.
             hasAgentSkillsPlugin: false,
-            openWhatsNewOnLoad: options.openWhatsNew === true,
+            openWhatsNewRequest: options.openWhatsNew === true ? 1 : 0,
             showChangelogOnUpdate: OverviewWebviewController.shouldShowChangelogOnUpdate(),
         };
     }
 
     /** Opens the What's new drawer on a page that is already showing. */
     public openWhatsNew(): void {
-        this.updateState({ ...this.state, openWhatsNewOnLoad: true });
+        // Increment rather than set: the drawer may have been opened and dismissed already, and a
+        // repeated identical value would not re-render the webview.
+        this.updateState({
+            ...this.state,
+            openWhatsNewRequest: this.state.openWhatsNewRequest + 1,
+        });
     }
 
     private initialize(): void {

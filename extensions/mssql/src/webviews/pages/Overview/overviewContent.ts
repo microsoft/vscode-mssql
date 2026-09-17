@@ -10,15 +10,16 @@ import { locConstants } from "../../common/locConstants";
 export const overviewLinks = {
     youTubeChannel: "https://aka.ms/vscode-mssql-demos",
     landingPageVideo1: "https://aka.ms/vscode-mssql-landing-page-video1",
-    landingPageVideo2: "https://aka.ms/vscode-mssq-landing-page-video2",
+    landingPageVideo2: "https://aka.ms/vscode-mssql-landing-page-video2",
     landingPageVideo3: "https://aka.ms/vscode-mssql-landing-page-video3",
     repository: "https://github.com/microsoft/vscode-mssql",
+    roadmap: "https://aka.ms/vscode-mssql-roadmap",
     documentation:
         "https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-extension-visual-studio-code",
     reportBug: "https://aka.ms/vscode-mssql-bug",
     requestFeature: "https://aka.ms/vscode-mssql-feature-request",
     discussions: "https://aka.ms/vscode-mssql-discussions",
-    devHub: "http://aka.ms/azuresql-hub",
+    devHub: "https://aka.ms/azuresql-hub",
     devContainersQuickstart:
         "https://learn.microsoft.com/azure/azure-sql/database/local-dev-experience-dev-containers-quickstart",
     skillsRepository: "https://github.com/microsoft/azure-sql-database-container",
@@ -49,28 +50,28 @@ export function getPromptCards(): PromptCard[] {
             tag: loc.promptTagLocalDev,
             title: loc.promptCreateLocalTitle,
             description: loc.promptCreateLocalDescription,
-            prompt: "Add a local Azure SQL database to this app. Spin up the container, create an appdb database I can query, verify the first query, and point the app's configuration at it.",
+            prompt: loc.promptCreateLocalBody,
         },
         {
             id: "buildApp",
             tag: loc.promptTagBuild,
             title: loc.promptBuildAppTitle,
             description: loc.promptBuildAppDescription,
-            prompt: "Build me an app on Azure SQL Database. Give me the order of operations from an empty project to the first successful request that reads a row, scaffold the data access layer, and do it without putting a database password in the repo.",
+            prompt: loc.promptBuildAppBody,
         },
         {
             id: "designSchema",
             tag: loc.promptTagSchema,
             title: loc.promptDesignSchemaTitle,
             description: loc.promptDesignSchemaDescription,
-            prompt: "Model these entities as tables on Azure SQL Database, then review the schema before it goes to production: call out the keys, indexes, collation and identity choices that will cause trouble later, and seed realistic sample data.",
+            prompt: loc.promptDesignSchemaBody,
         },
         {
             id: "deploy",
             tag: loc.promptTagDeploy,
             title: loc.promptDeployTitle,
             description: loc.promptDeployDescription,
-            prompt: "Move this app from the local Azure SQL container to Azure SQL Database. Get it into Azure without putting a database password anywhere, keep the application code unchanged where possible, and tell me exactly what has to change in configuration.",
+            prompt: loc.promptDeployBody,
         },
     ];
 }

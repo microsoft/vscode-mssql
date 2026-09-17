@@ -89,10 +89,12 @@ export interface OverviewWebviewState {
     /** Command keybindings contributed by the extension, for the shortcuts dialog. */
     commandShortcuts: CommandShortcut[];
     /**
-     * Whether the What's new drawer starts open. Set only when the page is opened by the
-     * post-update trigger; a page the user opens themselves always starts with it closed.
+     * Request generation for the What's new drawer. 0 means no request; each post-update trigger
+     * increments it, so asking again reopens the drawer even after the user dismissed it (a plain
+     * boolean would already be `true` and the webview would see no change). A page the user opens
+     * themselves starts at 0.
      */
-    openWhatsNewOnLoad: boolean;
+    openWhatsNewRequest: number;
     /** Current value of the `mssql.showChangelogOnUpdate` setting, shown as a header checkbox. */
     showChangelogOnUpdate: boolean;
     /**

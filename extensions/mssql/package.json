@@ -577,6 +577,18 @@
                     "group": "navigation"
                 },
                 {
+                    "command": "mssql.deployNewDatabase",
+                    "when": "view == objectExplorer",
+                    "title": "%mssql.newDeployment%",
+                    "group": "navigation"
+                },
+                {
+                    "command": "mssql.shortcutsConfiguration.open",
+                    "when": "view == objectExplorer",
+                    "title": "%mssql.shortcutsConfiguration.open%",
+                    "group": "navigation"
+                },
+                {
                     "command": "mssql.showOverviewInObjectExplorer",
                     "when": "view == objectExplorer && !mssql.overviewVisible",
                     "group": "1_overview"

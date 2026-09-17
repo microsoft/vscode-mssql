@@ -43,6 +43,15 @@ export interface ResolvedRecentSqlFile {
 export class RecentSqlFilesStore implements vscode.Disposable {
     private _disposables: vscode.Disposable[] = [];
     private _logger: ILogger = logger.withPrefix("RecentSqlFilesStore");
+    /** Serializes the read/modify/write in `recordOpen`. See the comment there. */
+    private _writeQueue: Promise<void> = Promise.resolve();
+    private _onDidChange = new vscode.EventEmitter<void>();
+
+    /**
+     * Fires after a newly opened SQL file has been recorded, so a page already showing the list
+     * can refresh instead of holding the snapshot it read when it opened.
+     */
+    public readonly onDidChange = this._onDidChange.event;
 
     constructor(private _context: vscode.ExtensionContext) {}
 
@@ -64,7 +73,17 @@ export class RecentSqlFilesStore implements vscode.Disposable {
             return;
         }
 
-        const fsPath = document.uri.fsPath;
+        // Opening several SQL files at once (a restored editor layout, say) fires this
+        // concurrently. Each call reads the whole list, prepends one entry and writes it back, so
+        // overlapping calls would read the same list and the last write would drop the others'
+        // entries. Chain them instead, so each read sees the previous write.
+        const write = this._writeQueue.then(() => this.prependEntry(document.uri.fsPath));
+        // Keep the chain alive on failure, so one bad write does not stop all later ones.
+        this._writeQueue = write.catch(() => undefined);
+        return write;
+    }
+
+    private async prependEntry(fsPath: string): Promise<void> {
         const entries = this.readEntries().filter((entry) => entry.fsPath !== fsPath);
         entries.unshift({ fsPath, openedAtMs: Date.now() });
 
@@ -72,6 +91,7 @@ export class RecentSqlFilesStore implements vscode.Disposable {
             GLOBAL_STATE_RECENT_SQL_FILES_KEY,
             entries.slice(0, MAX_TRACKED_FILES),
         );
+        this._onDidChange.fire();
     }
 
     /**
@@ -163,5 +183,6 @@ export class RecentSqlFilesStore implements vscode.Disposable {
     public dispose(): void {
         this._disposables.forEach((disposable) => disposable.dispose());
         this._disposables = [];
+        this._onDidChange.dispose();
     }
 }

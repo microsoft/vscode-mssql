@@ -59,7 +59,7 @@ export const ResourcesSection = () => {
             label: loc.watchDemos,
             url: overviewLinks.youTubeChannel,
         },
-        { icon: <Map20Regular />, label: loc.viewRoadmap, url: overviewLinks.repository },
+        { icon: <Map20Regular />, label: loc.viewRoadmap, url: overviewLinks.roadmap },
         {
             icon: <Document20Regular />,
             label: loc.readDocs,

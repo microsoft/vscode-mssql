@@ -5,6 +5,7 @@
 
 import { OverviewActionId } from "../../../sharedInterfaces/overview";
 import { locConstants } from "../../common/locConstants";
+import { isMac } from "../../common/utils";
 import { overviewLinks } from "./overviewContent";
 
 const connectToDatabaseImage = require("../../../../images/walkthroughs/connectAndRun/connection.gif");
@@ -235,7 +236,10 @@ export function getWalkthrough(id: WalkthroughId): Walkthrough {
                     {
                         id: "runAndReadResults",
                         title: loc.wtConnectStep4Title,
-                        description: loc.wtConnectStep4Description,
+                        // mssql.runQuery is ctrl+shift+e, but cmd+shift+e on macOS.
+                        description: loc.wtConnectStep4Description(
+                            isMac() ? "Cmd+Shift+E" : "Ctrl+Shift+E",
+                        ),
                         action: {
                             label: loc.wtConnectStep4Action,
                             actionId: OverviewActionId.NewQuery,

@@ -50,16 +50,17 @@ export const DiscoverSection = () => {
     const [isExploreOpen, setIsExploreOpen] = useState(false);
     const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
     // Opened for the user after an extension update; a page they opened themselves starts closed.
-    const openWhatsNewOnLoad = useOverviewSelector((state) => state.openWhatsNewOnLoad);
-    const [isWhatsNewOpen, setIsWhatsNewOpen] = useState(openWhatsNewOnLoad);
+    const openWhatsNewRequest = useOverviewSelector((state) => state.openWhatsNewRequest);
+    const [isWhatsNewOpen, setIsWhatsNewOpen] = useState(openWhatsNewRequest > 0);
 
     // Seeding the initial state only covers a page the trigger opened from scratch. When the page
-    // was already showing, the trigger flips this instead, so the drawer follows it.
+    // was already showing, the trigger bumps the generation instead, so the drawer follows it —
+    // and reopens on a later request even if the user dismissed it in between.
     useEffect(() => {
-        if (openWhatsNewOnLoad) {
+        if (openWhatsNewRequest > 0) {
             setIsWhatsNewOpen(true);
         }
-    }, [openWhatsNewOnLoad]);
+    }, [openWhatsNewRequest]);
 
     return (
         <section className={classes.root}>

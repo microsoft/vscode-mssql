@@ -18,6 +18,11 @@ suite("Recent SQL Files Store", () => {
     let globalStateValues: Record<string, unknown>;
     /** Paths the stubbed filesystem reports as existing, with their modified time. */
     let existingFiles: Map<string, number>;
+    /**
+     * When set, persistence settles on a later turn of the event loop instead of immediately,
+     * which is what lets an unserialized read/modify/write lose an entry.
+     */
+    let deferUpdates: boolean;
 
     function createDocument(fsPath: string, languageId = "sql", scheme = "file") {
         return {
@@ -30,6 +35,7 @@ suite("Recent SQL Files Store", () => {
         sandbox = sinon.createSandbox();
         globalStateValues = {};
         existingFiles = new Map();
+        deferUpdates = false;
 
         sandbox.stub(vscode.workspace, "fs").value({
             stat: sandbox.stub().callsFake((uri: vscode.Uri) => {
@@ -45,8 +51,16 @@ suite("Recent SQL Files Store", () => {
                 get: (key: string, fallback?: unknown) =>
                     key in globalStateValues ? globalStateValues[key] : fallback,
                 update: (key: string, value: unknown) => {
-                    globalStateValues[key] = value;
-                    return Promise.resolve();
+                    if (!deferUpdates) {
+                        globalStateValues[key] = value;
+                        return Promise.resolve();
+                    }
+                    return new Promise<void>((resolve) =>
+                        setTimeout(() => {
+                            globalStateValues[key] = value;
+                            resolve();
+                        }, 0),
+                    );
                 },
             },
         } as unknown as vscode.ExtensionContext);
@@ -143,5 +157,42 @@ suite("Recent SQL Files Store", () => {
 
         expect(files).to.have.lengthOf(3);
         expect(findFilesStub).to.not.have.been.called;
+    });
+
+    test("keeps every entry when several files are opened at once", async () => {
+        // Restoring an editor layout opens several SQL files in the same tick. Each record reads
+        // the whole list and writes it back, so without serialization the last write would drop
+        // the others' entries.
+        deferUpdates = true;
+
+        await Promise.all([
+            store.recordOpen(createDocument("/work/a.sql")),
+            store.recordOpen(createDocument("/work/b.sql")),
+            store.recordOpen(createDocument("/work/c.sql")),
+        ]);
+
+        const entries = globalStateValues["overview/recentSqlFiles"] as { fsPath: string }[];
+        expect(entries.map((entry) => entry.fsPath)).to.have.members([
+            "/work/a.sql",
+            "/work/b.sql",
+            "/work/c.sql",
+        ]);
+    });
+
+    test("announces a change once a newly opened file is recorded", async () => {
+        const listener = sinon.stub();
+        const subscription = store.onDidChange(listener);
+
+        try {
+            await store.recordOpen(createDocument("/work/opened.sql"));
+            // Fired after persistence, so a listener that re-reads sees the new entry.
+            expect(listener).to.have.been.calledOnce;
+
+            await store.recordOpen(createDocument("/work/untitled.sql", "sql", "untitled"));
+            // Skipped documents are not recorded, so there is nothing to announce.
+            expect(listener).to.have.been.calledOnce;
+        } finally {
+            subscription.dispose();
+        }
     });
 });
