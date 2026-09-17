@@ -7,6 +7,11 @@ import { useCallback, useMemo } from "react";
 import {
     AddDevContainerConfigurationRequest,
     DevContainerTemplateId,
+    CheckDevContainerPrerequisitesRequest,
+    DevContainerPrerequisites,
+    InstallDevContainersExtensionRequest,
+    OpenFolderRequest,
+    ReopenInContainerRequest,
     OpenRecentSqlFileRequest,
     RunChangelogActionFromOverviewRequest,
     OverviewActionId,
@@ -44,6 +49,10 @@ export function useOverviewActions() {
         [extensionRpc],
     );
 
+    const openFolder = useCallback(() => {
+        void extensionRpc.sendRequest(OpenFolderRequest.type, undefined);
+    }, [extensionRpc]);
+
     const runChangelogAction = useCallback(
         (action: ChangelogActionId) => {
             void extensionRpc.sendRequest(RunChangelogActionFromOverviewRequest.type, action);
@@ -52,38 +61,58 @@ export function useOverviewActions() {
     );
 
     const addDevContainerConfiguration = useCallback(
-        (templateId: DevContainerTemplateId) => {
-            void extensionRpc.sendRequest(AddDevContainerConfigurationRequest.type, { templateId });
-        },
+        (templateId: DevContainerTemplateId) =>
+            extensionRpc.sendRequest(AddDevContainerConfigurationRequest.type, { templateId }),
         [extensionRpc],
     );
 
-    const checkPrerequisites = useCallback(() => {
-        extensionRpc.action("checkPrerequisites", {});
+    const reopenInContainer = useCallback(() => {
+        void extensionRpc.sendRequest(ReopenInContainerRequest.type, undefined);
     }, [extensionRpc]);
 
-    const installDevContainersExtension = useCallback(() => {
-        extensionRpc.action("installDevContainersExtension", {});
-    }, [extensionRpc]);
+    const checkPrerequisites = useCallback(
+        (): Promise<DevContainerPrerequisites> =>
+            extensionRpc.sendRequest(CheckDevContainerPrerequisitesRequest.type, undefined),
+        [extensionRpc],
+    );
+
+    const installDevContainersExtension = useCallback(
+        (): Promise<DevContainerPrerequisites> =>
+            extensionRpc.sendRequest(InstallDevContainersExtensionRequest.type, undefined),
+        [extensionRpc],
+    );
+
+    const setShowChangelogOnUpdate = useCallback(
+        (value: boolean) => {
+            extensionRpc.action("setShowChangelogOnUpdate", { value });
+        },
+        [extensionRpc],
+    );
 
     return useMemo(
         () => ({
             runAction,
             openLink,
             openRecentSqlFile,
+            openFolder,
             runChangelogAction,
             addDevContainerConfiguration,
+            reopenInContainer,
             checkPrerequisites,
             installDevContainersExtension,
+            setShowChangelogOnUpdate,
         }),
         [
             runAction,
             openLink,
             openRecentSqlFile,
+            openFolder,
             runChangelogAction,
             addDevContainerConfiguration,
+            reopenInContainer,
             checkPrerequisites,
             installDevContainersExtension,
+            setShowChangelogOnUpdate,
         ],
     );
 }

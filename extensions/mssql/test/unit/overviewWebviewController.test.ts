@@ -11,7 +11,7 @@ import * as utils from "../../src/utils/utils";
 import * as dockerUtils from "../../src/docker/dockerUtils";
 import { OverviewWebviewController } from "../../src/controllers/overviewWebviewController";
 import { RecentSqlFilesStore, ResolvedRecentSqlFile } from "../../src/models/recentSqlFilesStore";
-import { OverviewWebviewState, PrerequisiteStatus } from "../../src/sharedInterfaces/overview";
+import { PrerequisiteStatus } from "../../src/sharedInterfaces/overview";
 import { observeWebviewReady, stubTelemetry, stubWebviewPanel } from "./utils";
 
 const { expect } = chai;
@@ -103,14 +103,12 @@ suite("Overview Webview Controller", () => {
         expect(controller.state.recentFiles).to.deep.equal([]);
     });
 
-    test("checkPrerequisites reports missing dependencies when nothing is installed", async () => {
+    test("prerequisite check reports missing dependencies when nothing is installed", async () => {
         controller = createController();
 
-        const reducer = controller["_reducerHandlers"].get("checkPrerequisites")!;
-        const nextState = (await reducer(controller.state, {})) as OverviewWebviewState;
+        const prerequisites = await controller["getDevContainerPrerequisites"]();
 
         // vscode.extensions.getExtension is stubbed to return undefined for every id.
-        expect(nextState.prerequisites.git).to.equal(PrerequisiteStatus.Missing);
-        expect(nextState.prerequisites.devContainersExtension).to.equal(PrerequisiteStatus.Missing);
+        expect(prerequisites.devContainersExtension).to.equal(PrerequisiteStatus.Missing);
     });
 });

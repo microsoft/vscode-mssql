@@ -8,6 +8,7 @@ import { makeStyles, mergeClasses, tokens } from "@fluentui/react-components";
 import { ActionRow } from "./components/actionRow";
 import { BuildSection } from "./components/buildSection";
 import { DiscoverSection } from "./components/discoverSection";
+import { EventBanner } from "./components/eventBanner";
 import { OverviewHeader } from "./components/overviewHeader";
 import { RecentFilesSection } from "./components/recentFilesSection";
 import { ResourcesSection } from "./components/resourcesSection";
@@ -60,6 +61,7 @@ export const OverviewPage = () => {
     return (
         <div className={classes.root}>
             <div className={classes.shell}>
+                <EventBanner />
                 <OverviewHeader />
                 <div className={classes.columns}>
                     <div className={mergeClasses(classes.column, classes.buildColumn)}>

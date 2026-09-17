@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { makeStyles, tokens } from "@fluentui/react-components";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
     CompassNorthwest20Regular,
     Keyboard20Regular,
@@ -43,7 +43,17 @@ export const DiscoverSection = () => {
     const extensionVersion = useOverviewSelector((state) => state.extensionVersion);
     const [isExploreOpen, setIsExploreOpen] = useState(false);
     const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
-    const [isWhatsNewOpen, setIsWhatsNewOpen] = useState(false);
+    // Opened for the user after an extension update; a page they opened themselves starts closed.
+    const openWhatsNewOnLoad = useOverviewSelector((state) => state.openWhatsNewOnLoad);
+    const [isWhatsNewOpen, setIsWhatsNewOpen] = useState(openWhatsNewOnLoad);
+
+    // Seeding the initial state only covers a page the trigger opened from scratch. When the page
+    // was already showing, the trigger flips this instead, so the drawer follows it.
+    useEffect(() => {
+        if (openWhatsNewOnLoad) {
+            setIsWhatsNewOpen(true);
+        }
+    }, [openWhatsNewOnLoad]);
 
     return (
         <section className={classes.root}>

@@ -12,6 +12,8 @@ import {
     DialogSurface,
     DialogTitle,
     Link,
+    MessageBar,
+    MessageBarBody,
     Text,
     makeStyles,
     tokens,
@@ -114,8 +116,6 @@ const useStyles = makeStyles({
     },
     keymapNote: {
         marginTop: tokens.spacingVerticalM,
-        color: tokens.colorNeutralForeground3,
-        fontSize: tokens.fontSizeBase200,
     },
     actions: {
         paddingTop: tokens.spacingVerticalM,
@@ -272,18 +272,20 @@ export const ShortcutsDialog = ({ onDismiss }: ShortcutsDialogProps) => {
                                 </tbody>
                             </table>
                         </div>
-                        <div className={classes.keymapNote}>
-                            {loc.shortcutsKeymapPrefix}{" "}
-                            <Link
-                                href={overviewLinks.keymapExtension}
-                                title={overviewLinks.keymapExtension}
-                                onClick={(event) => {
-                                    event.preventDefault();
-                                    openLink(overviewLinks.keymapExtension);
-                                }}>
-                                {loc.shortcutsKeymapLink}
-                            </Link>
-                        </div>
+                        <MessageBar className={classes.keymapNote} intent="info">
+                            <MessageBarBody>
+                                {loc.shortcutsKeymapPrefix}{" "}
+                                <Link
+                                    href={overviewLinks.keymapExtension}
+                                    title={overviewLinks.keymapExtension}
+                                    onClick={(event) => {
+                                        event.preventDefault();
+                                        openLink(overviewLinks.keymapExtension);
+                                    }}>
+                                    {loc.shortcutsKeymapLink}
+                                </Link>
+                            </MessageBarBody>
+                        </MessageBar>
                     </DialogContent>
                     <DialogActions className={classes.actions}>
                         <Button appearance="secondary" onClick={onDismiss}>

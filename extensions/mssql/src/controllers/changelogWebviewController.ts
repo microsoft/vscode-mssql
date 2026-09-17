@@ -5,22 +5,17 @@
 
 import { Changelog } from "../constants/locConstants";
 import {
-    ChangelogDontShowAgainRequest,
     ChangelogLinkRequest,
     ChangelogLinkRequestParams,
     ChangelogWebviewState,
-    CloseChangelogRequest,
     RunChangelogActionRequest,
 } from "../sharedInterfaces/changelog";
 import { WebviewPanelController } from "./webviewPanelController";
 import * as vscode from "vscode";
 import { changelogConfig } from "../configurations/changelog";
 import { resolveChangelogAction } from "../configurations/changelogActions";
-import * as constants from "../constants/constants";
 import { sendActionEvent } from "extension-toolkit/vscode";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-
-const GLOBAL_STATE_LAST_CHANGELOG_VERSION_KEY = "changelog/lastChangeLogVersion";
 
 export class ChangelogWebviewController extends WebviewPanelController<
     ChangelogWebviewState,
@@ -63,53 +58,5 @@ export class ChangelogWebviewController extends WebviewPanelController<
                 },
             });
         });
-
-        this.onRequest(CloseChangelogRequest.type, async () => {
-            this.panel.dispose();
-            sendActionEvent(TelemetryViews.ChangelogPage, TelemetryActions.CloseChangelog);
-        });
-
-        this.onRequest(ChangelogDontShowAgainRequest.type, async () => {
-            // Update configuration to not show changelog on update
-            await vscode.workspace
-                .getConfiguration()
-                .update(
-                    constants.configShowChangelogOnUpdate,
-                    false,
-                    vscode.ConfigurationTarget.Global,
-                );
-            this.panel.dispose();
-            sendActionEvent(TelemetryViews.ChangelogPage, TelemetryActions.ChangelogDontShowAgain);
-        });
-    }
-
-    public static async showChangelogOnExtensionUpdate(context: vscode.ExtensionContext) {
-        const globalState = context?.globalState;
-        if (!globalState) {
-            return;
-        }
-
-        const lastChangeLogVersion = globalState.get(GLOBAL_STATE_LAST_CHANGELOG_VERSION_KEY);
-
-        const currentVersion = vscode.extensions.getExtension(constants.extensionId)?.packageJSON
-            .version;
-
-        const isShownOnCurrentVersion = lastChangeLogVersion === currentVersion;
-
-        if (!isShownOnCurrentVersion && this.shouldShowChangelogOnUpdate()) {
-            await vscode.commands.executeCommand(constants.cmdOpenChangelog);
-            await globalState.update(GLOBAL_STATE_LAST_CHANGELOG_VERSION_KEY, currentVersion);
-        }
-    }
-
-    /**
-     * Determines whether to show the changelog on update based on user settings.
-     * @returns A promise that resolves to true if the changelog should be shown, false otherwise.
-     */
-    public static shouldShowChangelogOnUpdate() {
-        const vscodeConfig = vscode.workspace.getConfiguration();
-        const configValues = vscodeConfig.inspect<boolean>(constants.configShowChangelogOnUpdate);
-
-        return configValues?.globalValue ?? configValues?.defaultValue ?? true;
     }
 }

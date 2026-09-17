@@ -3501,7 +3501,17 @@ export class AzureDataStudioMigration {
 export class Overview {
     public static OverviewDocumentTitle = l10n.t("SQL Server (mssql)");
     public static OverviewTreeNodeLabel = l10n.t("Welcome");
-    public static OverviewTreeNodeDescription = l10n.t("Start · QuickStarts · learn & build");
+    public static OverviewTreeNodeDescription = l10n.t("Connect, build, and learn");
+    public static AddDevContainerConfigurationFailed = (error: string) =>
+        l10n.t({
+            message: "Could not add the dev container configuration: {0}",
+            args: [error],
+            comment: ["{0} is the underlying error message."],
+        });
+    public static DevContainersExtensionRequired = l10n.t(
+        "The Dev Containers extension is required to reopen this folder in a container.",
+    );
+    public static InstallDevContainersExtension = l10n.t("Install");
     public static ShortcutExecuteQuery = l10n.t("Execute query");
     public static ShortcutConnect = l10n.t("Connect");
     public static ShortcutDisconnect = l10n.t("Disconnect");

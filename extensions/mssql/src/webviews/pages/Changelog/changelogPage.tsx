@@ -8,7 +8,6 @@ import {
     AccordionHeader,
     AccordionItem,
     AccordionPanel,
-    Button,
     Link,
     Text,
     makeStyles,
@@ -16,15 +15,12 @@ import {
     shorthands,
     tokens,
 } from "@fluentui/react-components";
-import { ArrowRight12Regular, Dismiss12Filled } from "@fluentui/react-icons";
+import { ArrowRight12Regular } from "@fluentui/react-icons";
 import React, { useCallback, useState } from "react";
 
 import {
     ChangelogAction,
-    ChangelogDontShowAgainRequest,
-    ChangelogEvent,
     ChangelogLinkRequest,
-    CloseChangelogRequest,
     ContentEntry,
     RunChangelogActionRequest,
 } from "../../../sharedInterfaces/changelog";
@@ -103,19 +99,16 @@ const useStyles = makeStyles({
         letterSpacing: "-0.01em",
         color: "var(--vscode-foreground)",
     },
+    // Matches the version chip on the Welcome page header and in its What's new drawer.
     versionBadge: {
         display: "inline-flex",
         alignItems: "center",
-        minHeight: "22px",
-        padding: "0 8px",
-        borderRadius: "999px",
+        fontFamily: tokens.fontFamilyMonospace,
         fontSize: "11px",
-        fontWeight: 700,
-        letterSpacing: "0.04em",
-        color: tokens.colorBrandForegroundLink,
-        border: `1px solid color-mix(in srgb, ${tokens.colorBrandForegroundLink} 24%, transparent)`,
-        fontFamily: "var(--vscode-editor-font-family), monospace",
-        textTransform: "uppercase",
+        color: tokens.colorNeutralForeground3,
+        backgroundColor: tokens.colorNeutralBackground3,
+        padding: "3px 8px",
+        borderRadius: tokens.borderRadiusMedium,
     },
     layout: {
         display: "grid",
@@ -218,62 +211,6 @@ const useStyles = makeStyles({
         fontSize: "12px",
         lineHeight: "18px",
         color: "var(--vscode-descriptionForeground)",
-    },
-    bannerContainer: {
-        position: "relative",
-        borderRadius: "8px",
-        maxHeight: "200px",
-        overflowY: "auto",
-        overflowX: "hidden",
-        backgroundColor: "transparent",
-        flexShrink: 0,
-        marginBottom: "16px",
-    },
-    banner: {
-        position: "relative",
-        padding: "15px",
-        display: "grid",
-        gridTemplateColumns: "200px 1fr",
-        gap: "24px",
-        width: "100%",
-        boxSizing: "border-box",
-        backgroundColor: "transparent",
-        "@media (max-width: 900px)": {
-            gridTemplateColumns: "1fr",
-        },
-        "::before": {
-            content: '""',
-            position: "absolute",
-            inset: 0,
-            backgroundColor: "var(--vscode-button-background)",
-            opacity: 0.1,
-            zIndex: 0,
-            pointerEvents: "none",
-        },
-    },
-    bannerTitle: {
-        fontSize: "14px",
-        fontWeight: 600,
-        color: "var(--vscode-editor-foreground)",
-        display: "flex",
-        flexDirection: "column",
-        position: "relative",
-        zIndex: 1,
-    },
-    bannerDismiss: {
-        position: "absolute",
-        top: "8px",
-        right: "8px",
-        minWidth: 0,
-        zIndex: 1,
-    },
-    bannerDescription: {
-        display: "flex",
-        flexDirection: "column",
-        gap: "6px",
-        justifyContent: "center",
-        position: "relative",
-        zIndex: 1,
     },
     codeSnippet: {
         display: "inline-flex",
@@ -430,44 +367,6 @@ const useStyles = makeStyles({
                 "1px solid color-mix(in srgb, var(--vscode-editorWidget-border) 70%, transparent)",
         },
     },
-    footerViewport: {
-        flex: "0 0 auto",
-        borderTop: "1px solid var(--vscode-editorWidget-border)",
-        backgroundColor: "var(--vscode-editor-background)",
-        boxShadow: "0 -8px 18px rgba(0, 0, 0, 0.08)",
-    },
-    footerBar: {
-        width: "100%",
-        maxWidth: "1076px",
-        margin: "0 auto",
-        boxSizing: "border-box",
-        paddingTop: "14px",
-        paddingRight: "18px",
-        paddingBottom: "8px",
-        paddingLeft: "18px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        gap: "12px",
-        flexWrap: "wrap",
-    },
-    footerText: {
-        fontSize: "12px",
-        lineHeight: "18px",
-        color: "var(--vscode-descriptionForeground)",
-    },
-    footerActions: {
-        display: "flex",
-        alignItems: "center",
-        gap: "10px",
-        flexWrap: "wrap",
-    },
-    closeButton: {
-        minWidth: "72px",
-    },
-    footerDismiss: {
-        color: "var(--vscode-textLink-foreground)",
-    },
 });
 
 export const ChangelogPage = () => {
@@ -477,7 +376,6 @@ export const ChangelogPage = () => {
     const secondaryContent = useChangelogSelector((s) => s?.secondaryContent);
     const sidebarContent = useChangelogSelector((s) => s?.sidebarContent) ?? [];
     const version = useChangelogSelector((s) => s?.version) ?? "unknown";
-    const event = useChangelogSelector((s) => s?.event);
 
     const mainEntries = mainContent?.entries ?? [];
     const secondaryEntries = secondaryContent?.entries ?? [];
@@ -486,7 +384,6 @@ export const ChangelogPage = () => {
     const secondaryDescription = secondaryContent?.description;
     const secondaryAccordionValue = "in-case-you-missed-it";
 
-    const [showBanner, setShowBanner] = useState(true);
     const [secondaryOpenItems, setSecondaryOpenItems] = useState<string[]>([]);
     const [secondarySectionElement, setSecondarySectionElement] = useState<HTMLDivElement>();
     const secondarySectionRef = useCallback((element: HTMLDivElement | null) => {
@@ -685,155 +582,10 @@ export const ChangelogPage = () => {
         );
     };
 
-    function isEventOver(eventData: ChangelogEvent): boolean {
-        if (!eventData) {
-            return false;
-        }
-
-        // expires at 11:59PM on the last day of the event
-        const expiresAt = new Date(
-            `${eventData.endDate ?? eventData.date}T23:59:00${eventData.location?.timezone ?? "+00:00"}`,
-        );
-
-        if (isNaN(expiresAt.getTime())) {
-            return false;
-        }
-        return new Date() >= expiresAt;
-    }
-
-    const monthFmt = new Intl.DateTimeFormat(undefined, { month: "long", timeZone: "UTC" });
-    const monthDayFmt = new Intl.DateTimeFormat(undefined, {
-        month: "long",
-        day: "numeric",
-        timeZone: "UTC",
-    });
-    const fullFmt = new Intl.DateTimeFormat(undefined, {
-        month: "long",
-        day: "numeric",
-        year: "numeric",
-        timeZone: "UTC",
-    });
-
-    function eventDate(date: string | undefined): Date | undefined {
-        if (!date) {
-            return undefined;
-        }
-
-        return new Date(`${date}T12:00:00Z`);
-    }
-
-    function formatEventDateRange(eventData: ChangelogEvent): string {
-        // Parse dates as UTC noon to get the correct calendar date regardless of local timezone.
-        const start = eventDate(eventData.date)!;
-        const end = eventDate(eventData.endDate);
-
-        if (!end || start.getTime() === end.getTime()) {
-            return fullFmt.format(start);
-        }
-
-        if (start.getUTCFullYear() === end.getUTCFullYear()) {
-            if (start.getUTCMonth() === end.getUTCMonth()) {
-                // Ex: "Sept 27 - 29, 2026"
-                return `${monthFmt.format(start)} ${start.getUTCDate()} - ${end.getUTCDate()}, ${end.getUTCFullYear()}`;
-            } else {
-                // Ex: "Sept 27 - Oct 3, 2026"
-                return `${monthDayFmt.format(start)} - ${fullFmt.format(end)}`;
-            }
-        } else {
-            // Ex: "Sept 27, 2026 - Jan 10, 2027"
-            return `${fullFmt.format(start)} - ${fullFmt.format(end)}`;
-        }
-    }
-
-    function renderDescriptionWithSnippets(text: string, snippets: string[]): React.ReactNode[] {
-        // Split on {x} tokens, keeping delimiters as their own parts so we can
-        // replace them with styled <span> elements while leaving plain text intact.
-        const parts = text.split(/(\{\d+\})/g);
-
-        return parts.map((part, idx) => {
-            const match = /^\{(\d+)\}$/.exec(part); // check if the part is a code snippet placeholder
-
-            if (match) {
-                const snippet = snippets[Number(match[1])];
-                // If the index is out of range, fall through and render as plain text.
-                if (snippet !== undefined) {
-                    return (
-                        <span key={idx} className={classes.codeSnippet}>
-                            {snippet}
-                        </span>
-                    );
-                }
-            }
-
-            return <React.Fragment key={idx}>{part}</React.Fragment>;
-        });
-    }
-
-    function renderEventBanner(eventData: ChangelogEvent): React.ReactElement {
-        return (
-            <div className={classes.bannerContainer}>
-                <div className={classes.banner}>
-                    <div className={classes.bannerTitle}>
-                        <Text
-                            size={600}
-                            weight="bold"
-                            style={{
-                                backgroundImage:
-                                    "linear-gradient(to right in oklab, var(--vscode-button-hoverBackground, var(--vscode-contrastBorder)) 0%, var(--vscode-button-background, var(--vscode-editor-background)) 100%)",
-                                backgroundClip: "text",
-                                WebkitBackgroundClip: "text",
-                                color: "transparent",
-                            }}>
-                            {eventData.mainTitle}
-                        </Text>
-                        <Text
-                            size={300}
-                            weight="semibold"
-                            style={{
-                                marginTop: "5px",
-                                whiteSpace: "pre-line",
-                            }}>
-                            {eventData.secondaryTitle}
-                        </Text>
-                        <Text size={200} weight="regular" style={{ marginTop: "5px" }}>
-                            {`${formatEventDateRange(eventData)} | ${eventData.location.name}`}
-                        </Text>
-                        <Button
-                            style={{
-                                marginTop: "10px",
-                                width: "100px",
-                            }}
-                            onClick={() => openLink(eventData.actionButton.url)}
-                            appearance="primary">
-                            {eventData.actionButton.text}
-                        </Button>
-                    </div>
-                    <div className={classes.bannerDescription}>
-                        {eventData.description.map((line, idx) => (
-                            <Text key={idx} style={{ whiteSpace: "pre-line" }}>
-                                {renderDescriptionWithSnippets(line, eventData.codeSnippets)}
-                            </Text>
-                        ))}
-                    </div>
-                    <Button
-                        appearance="transparent"
-                        icon={<Dismiss12Filled />}
-                        className={classes.bannerDismiss}
-                        aria-label={locConstants.common.dismiss}
-                        onClick={() => {
-                            setShowBanner(false);
-                        }}></Button>
-                </div>
-            </div>
-        );
-    }
-
     return (
         <div className={classes.root}>
             <div className={classes.page}>
                 <div className={classes.shell}>
-                    {showBanner && event && !isEventOver(event) && renderEventBanner(event)}
-
                     <div className={classes.headerBar}>
                         <div className={classes.headerMain}>
                             <div className={classes.headerTitleWrap}>
@@ -922,34 +674,6 @@ export const ChangelogPage = () => {
                                 </div>
                             ))}
                         </div>
-                    </div>
-                </div>
-            </div>
-
-            <div className={classes.footerViewport}>
-                <div className={classes.footerBar}>
-                    <Text className={classes.footerText}>
-                        {locConstants.changelog.footerText(version)}
-                    </Text>
-                    <div className={classes.footerActions}>
-                        <Button
-                            appearance="outline"
-                            size="small"
-                            className={classes.closeButton}
-                            onClick={async () => {
-                                await extensionRpc.sendRequest(CloseChangelogRequest.type);
-                            }}>
-                            {locConstants.changelog.close}
-                        </Button>
-                        <Button
-                            appearance="transparent"
-                            size="small"
-                            className={classes.footerDismiss}
-                            onClick={async () => {
-                                await extensionRpc.sendRequest(ChangelogDontShowAgainRequest.type);
-                            }}>
-                            {locConstants.changelog.dontShowAgain}
-                        </Button>
                     </div>
                 </div>
             </div>

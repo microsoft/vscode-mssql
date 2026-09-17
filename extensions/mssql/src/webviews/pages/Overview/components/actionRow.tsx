@@ -18,9 +18,9 @@ import {
 } from "@fluentui/react-components";
 import {
     BookOpen20Regular,
+    CloudArrowUp20Regular,
     DocumentAdd20Regular,
     FolderOpen20Regular,
-    Play20Regular,
 } from "@fluentui/react-icons";
 
 import { AddConnectionIcon } from "../../../common/icons/addConnection";
@@ -61,18 +61,18 @@ export const ActionRow = () => {
                 {loc.addConnection}
             </Button>
 
-            {/* New: the button opens the deployment page; the menu jumps straight to one type. */}
+            {/* Deploy: the button opens the deployment page; the menu jumps straight to one type. */}
             <Menu positioning="below-end">
                 <MenuTrigger disableButtonEnhancement>
                     {(triggerProps: MenuButtonProps) => (
                         <SplitButton
                             appearance="primary"
-                            menuButton={{ ...triggerProps, "aria-label": loc.moreNewOptions }}
+                            menuButton={{ ...triggerProps, "aria-label": loc.moreDeployOptions }}
                             primaryActionButton={{
                                 onClick: () => runAction(OverviewActionId.NewDeployment),
                             }}
-                            icon={<DocumentAdd20Regular />}>
-                            {loc.new}
+                            icon={<CloudArrowUp20Regular />}>
+                            {loc.deploy}
                         </SplitButton>
                     )}
                 </MenuTrigger>
@@ -116,18 +116,18 @@ export const ActionRow = () => {
                 </MenuPopover>
             </Menu>
 
-            {/* Run query: the button opens a blank SQL document; the menu offers a notebook. */}
+            {/* New query: the button opens a blank SQL document; the menu offers a notebook. */}
             <Menu positioning="below-end">
                 <MenuTrigger disableButtonEnhancement>
                     {(triggerProps: MenuButtonProps) => (
                         <SplitButton
                             appearance="primary"
-                            menuButton={{ ...triggerProps, "aria-label": loc.moreQueryOptions }}
+                            menuButton={{ ...triggerProps, "aria-label": loc.moreNewOptions }}
                             primaryActionButton={{
-                                onClick: () => runAction(OverviewActionId.RunQuery),
+                                onClick: () => runAction(OverviewActionId.NewQuery),
                             }}
-                            icon={<Play20Regular />}>
-                            {loc.runQuery}
+                            icon={<DocumentAdd20Regular />}>
+                            {loc.newQuery}
                         </SplitButton>
                     )}
                 </MenuTrigger>

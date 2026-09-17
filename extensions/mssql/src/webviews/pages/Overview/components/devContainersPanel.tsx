@@ -3,7 +3,17 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Link, Text, makeStyles, tokens } from "@fluentui/react-components";
+import {
+    Button,
+    Link,
+    MessageBar,
+    MessageBarActions,
+    MessageBarBody,
+    Text,
+    makeStyles,
+    mergeClasses,
+    tokens,
+} from "@fluentui/react-components";
 import { Box20Regular, Open16Regular } from "@fluentui/react-icons";
 import { useState } from "react";
 
@@ -16,6 +26,7 @@ import {
 import { DevContainerSetupDialog } from "./devContainerSetupDialog";
 import { locConstants } from "../../../common/locConstants";
 import { useOverviewActions } from "../useOverviewActions";
+import { useOverviewSelector } from "../overviewSelector";
 
 const useStyles = makeStyles({
     root: {
@@ -72,12 +83,19 @@ const useStyles = makeStyles({
         alignItems: "center",
         gap: tokens.spacingHorizontalXXS,
     },
+    // A template can only be scaffolded into an open folder, so the cards read as unavailable
+    // rather than disappearing — the message bar above says how to enable them.
+    disabledCard: {
+        opacity: 0.5,
+    },
 });
 
 export const DevContainersPanel = () => {
     const classes = useStyles();
     const loc = locConstants.overview;
-    const { openLink } = useOverviewActions();
+    const { openLink, openFolder, reopenInContainer } = useOverviewActions();
+    const hasWorkspaceFolder = useOverviewSelector((state) => state.hasWorkspaceFolder);
+    const hasDevContainerConfig = useOverviewSelector((state) => state.hasDevContainerConfig);
     const [activeTemplate, setActiveTemplate] = useState<DevContainerTemplate | undefined>(
         undefined,
     );
@@ -85,31 +103,63 @@ export const DevContainersPanel = () => {
     return (
         <div className={classes.root}>
             <Text className={classes.description}>{loc.devContainersDescription}</Text>
-            <div className={classes.grid}>
-                {getDevContainerTemplates().map((template) => (
-                    <div key={template.id} className={classes.card}>
-                        <button
-                            type="button"
-                            className={classes.cardButton}
-                            onClick={() => setActiveTemplate(template)}>
-                            <span className={classes.cardIcon}>
-                                <Box20Regular />
-                            </span>
-                            <Text className={classes.cardName}>{template.name}</Text>
-                        </button>
-                        <Link
-                            href={getTemplateSourceUrl(template)}
-                            title={getTemplateSourceUrl(template)}
-                            aria-label={loc.viewOnGitHub}
-                            onClick={(event) => {
-                                event.preventDefault();
-                                openLink(getTemplateSourceUrl(template));
-                            }}>
-                            <Open16Regular />
-                        </Link>
-                    </div>
-                ))}
-            </div>
+
+            {!hasWorkspaceFolder && (
+                <MessageBar intent="info">
+                    <MessageBarBody>{loc.openFolderToCreateConfiguration}</MessageBarBody>
+                    <MessageBarActions>
+                        <Button size="small" onClick={openFolder}>
+                            {loc.openFolder}
+                        </Button>
+                    </MessageBarActions>
+                </MessageBar>
+            )}
+
+            {/* Already configured: reopening in the container is the only useful step left. */}
+            {hasWorkspaceFolder && hasDevContainerConfig && (
+                <MessageBar intent="success">
+                    <MessageBarBody>{loc.devContainerConfigFound}</MessageBarBody>
+                    <MessageBarActions>
+                        <Button size="small" onClick={reopenInContainer}>
+                            {loc.openVsCodeInContainer}
+                        </Button>
+                    </MessageBarActions>
+                </MessageBar>
+            )}
+
+            {!hasDevContainerConfig && (
+                <div className={classes.grid}>
+                    {getDevContainerTemplates().map((template) => (
+                        <div
+                            key={template.id}
+                            className={mergeClasses(
+                                classes.card,
+                                !hasWorkspaceFolder && classes.disabledCard,
+                            )}>
+                            <button
+                                type="button"
+                                className={classes.cardButton}
+                                disabled={!hasWorkspaceFolder}
+                                onClick={() => setActiveTemplate(template)}>
+                                <span className={classes.cardIcon}>
+                                    <Box20Regular />
+                                </span>
+                                <Text className={classes.cardName}>{template.name}</Text>
+                            </button>
+                            <Link
+                                href={getTemplateSourceUrl(template)}
+                                title={getTemplateSourceUrl(template)}
+                                aria-label={loc.viewOnGitHub}
+                                onClick={(event) => {
+                                    event.preventDefault();
+                                    openLink(getTemplateSourceUrl(template));
+                                }}>
+                                <Open16Regular />
+                            </Link>
+                        </div>
+                    ))}
+                </div>
+            )}
             <Link
                 href={overviewLinks.devContainersQuickstart}
                 title={overviewLinks.devContainersQuickstart}

@@ -3505,15 +3505,6 @@ export class LocConstants {
                 "New to MSSQL extension? Check out our quick-start guide.",
             ),
             previewBadge: l10n.t("Preview"),
-            footerText: (version: string) =>
-                l10n.t({
-                    message:
-                        "You are seeing this message because you updated the MSSQL extension to version {0}.",
-                    args: [version],
-                    comment: ["{0} is the version number of the MSSQL extension"],
-                }),
-            dontShowAgain: l10n.t("Don't show this again"),
-            close: l10n.t("Close"),
         };
     }
 
@@ -3843,16 +3834,17 @@ export class LocConstants {
                     args: [version],
                     comment: ["{0} is the extension version, e.g. 1.46.0"],
                 }),
+            showReleaseNotesAfterUpdates: l10n.t("Show release notes after updates"),
             addConnection: l10n.t("Add connection"),
-            new: l10n.t("New"),
-            moreNewOptions: l10n.t("More new options"),
-            moreQueryOptions: l10n.t("More query options"),
+            deploy: l10n.t("Deploy"),
+            moreDeployOptions: l10n.t("More deploy options"),
             newLocalContainer: l10n.t("Local SQL Server container"),
             newFabricDatabase: l10n.t("SQL database in Fabric"),
             newAzureSqlDatabase: l10n.t("Azure SQL Database"),
             freeTag: l10n.t("Free"),
+            moreNewOptions: l10n.t("More new options"),
+            newQuery: l10n.t("New query"),
             newNotebook: l10n.t("New SQL Notebook"),
-            runQuery: l10n.t("Run query"),
             openSqlFile: l10n.t("Open SQL file..."),
 
             build: l10n.t("Build"),
@@ -4065,18 +4057,40 @@ export class LocConstants {
             viewOnGitHub: l10n.t("View on GitHub"),
 
             prerequisites: l10n.t("Prerequisites"),
-            prerequisiteGit: l10n.t("Git"),
-            prerequisiteGitDescription: l10n.t("For version control."),
             prerequisiteDocker: l10n.t("Docker Desktop"),
             prerequisiteDockerDescription: l10n.t("Required for running containers."),
             prerequisiteDevContainers: l10n.t("Dev Containers extension"),
             prerequisiteDevContainersDescription: l10n.t("Enables working with dev containers."),
+            installDocker: l10n.t("Install Docker"),
+            // Matches the Dev Containers extension's own wording for this situation.
+            openFolderToCreateConfiguration: l10n.t(
+                "Open a folder to create the configuration files in first.",
+            ),
+            openFolder: l10n.t("Open Folder"),
+            devContainerConfigFound: l10n.t(
+                "This folder already has a dev container configuration.",
+            ),
+            openVsCodeInContainer: l10n.t("Open VS Code in container"),
+            openInContainerHint: l10n.t(
+                "Opening builds the container and reloads this window inside it.",
+            ),
+            devContainerSetUpSteps: l10n.t("Set up"),
+            stepAddConfigurationFailed: l10n.t("Could not write the configuration."),
+            stepAddConfigurationPicker: l10n.t(
+                "Opened the Dev Containers extension's template picker instead.",
+            ),
+            stepAddConfiguration: l10n.t("Dev container configuration"),
+            stepAddConfigurationDescription: l10n.t(
+                "Writes this template's .devcontainer files into the open folder.",
+            ),
+            stepAddConfigurationAction: l10n.t("Add"),
+
+            recheck: l10n.t("Recheck"),
             prerequisiteReady: l10n.t("Ready"),
             prerequisiteMissing: l10n.t("Not found"),
             prerequisiteChecking: l10n.t("Checking..."),
             install: l10n.t("Install"),
             learnMoreAboutTemplate: l10n.t("Learn more about this template"),
-            addDevContainerConfiguration: l10n.t("Add dev container configuration"),
 
             videos: l10n.t("Videos"),
             videoDataExposedTitle: l10n.t("Use GitHub Copilot with SQL"),

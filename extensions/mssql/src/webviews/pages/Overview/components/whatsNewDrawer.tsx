@@ -152,6 +152,15 @@ const useStyles = makeStyles({
     secondaryAccordion: {
         flexShrink: 0,
     },
+    // Without this the panel is a plain block, so its cards touch each other while the primary
+    // cards above them are spaced by the body's gap. Same rhythm on both lists.
+    secondaryPanel: {
+        display: "flex",
+        flexDirection: "column",
+        gap: tokens.spacingVerticalM,
+        paddingTop: tokens.spacingVerticalM,
+        paddingBottom: tokens.spacingVerticalXS,
+    },
     secondaryDescription: {
         fontSize: "12px",
         color: tokens.colorNeutralForeground3,
@@ -262,7 +271,7 @@ export const WhatsNewDrawer = ({ onDismiss }: WhatsNewDrawerProps) => {
                         <Accordion collapsible className={classes.secondaryAccordion}>
                             <AccordionItem value="secondary">
                                 <AccordionHeader>{secondary.title}</AccordionHeader>
-                                <AccordionPanel>
+                                <AccordionPanel className={classes.secondaryPanel}>
                                     {secondary.description && (
                                         <Text className={classes.secondaryDescription}>
                                             {secondary.description}

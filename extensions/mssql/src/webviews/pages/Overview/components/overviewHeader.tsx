@@ -3,9 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Text, makeStyles, tokens } from "@fluentui/react-components";
+import { Checkbox, Text, makeStyles, tokens } from "@fluentui/react-components";
 
 import { locConstants } from "../../../common/locConstants";
+import { useOverviewActions } from "../useOverviewActions";
 import { useOverviewSelector } from "../overviewSelector";
 
 const extensionIcon = require("../../../../../images/extensionIcon.png");
@@ -16,6 +17,7 @@ const useStyles = makeStyles({
         // The icon aligns to the top of the title block rather than the block's centre.
         alignItems: "flex-start",
         gap: "14px",
+        flexWrap: "wrap",
         paddingBottom: "18px",
         borderBottomWidth: "1px",
         borderBottomStyle: "solid",
@@ -56,12 +58,21 @@ const useStyles = makeStyles({
     subtitle: {
         color: tokens.colorNeutralForeground3,
     },
+    preference: {
+        // Pushed opposite the title block, and aligned to the title rather than the subtitle.
+        marginLeft: "auto",
+        alignSelf: "center",
+        fontSize: tokens.fontSizeBase200,
+        color: tokens.colorNeutralForeground3,
+    },
 });
 
 export const OverviewHeader = () => {
     const classes = useStyles();
     const loc = locConstants.overview;
     const extensionVersion = useOverviewSelector((state) => state.extensionVersion);
+    const showChangelogOnUpdate = useOverviewSelector((state) => state.showChangelogOnUpdate);
+    const { setShowChangelogOnUpdate } = useOverviewActions();
 
     return (
         <header className={classes.root}>
@@ -77,6 +88,12 @@ export const OverviewHeader = () => {
                 </div>
                 <Text className={classes.subtitle}>{loc.subtitle}</Text>
             </div>
+            <Checkbox
+                className={classes.preference}
+                checked={showChangelogOnUpdate}
+                label={loc.showReleaseNotesAfterUpdates}
+                onChange={(_event, data) => setShowChangelogOnUpdate(data.checked === true)}
+            />
         </header>
     );
 };

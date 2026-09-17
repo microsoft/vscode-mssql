@@ -52,7 +52,6 @@ export enum PrerequisiteStatus {
  * Prerequisites the guided dev container setup verifies before it can add a configuration.
  */
 export interface DevContainerPrerequisites {
-    git: PrerequisiteStatus;
     docker: PrerequisiteStatus;
     devContainersExtension: PrerequisiteStatus;
 }
@@ -89,16 +88,31 @@ export interface OverviewWebviewState {
     changelog: ChangelogWebviewState;
     /** Command keybindings contributed by the extension, for the shortcuts dialog. */
     commandShortcuts: CommandShortcut[];
-    /** Dev container prerequisite status, refreshed when the setup dialog opens. */
-    prerequisites: DevContainerPrerequisites;
+    /**
+     * Whether the What's new drawer starts open. Set only when the page is opened by the
+     * post-update trigger; a page the user opens themselves always starts with it closed.
+     */
+    openWhatsNewOnLoad: boolean;
+    /** Current value of the `mssql.showChangelogOnUpdate` setting, shown as a header checkbox. */
+    showChangelogOnUpdate: boolean;
+    /**
+     * Whether a folder is open. A dev container configuration can only be written into an open
+     * folder, so the templates are unavailable until there is one.
+     */
+    hasWorkspaceFolder: boolean;
+    /**
+     * Whether the open folder already has a dev container configuration, in which case the useful
+     * action is reopening in it rather than scaffolding another one.
+     */
+    hasDevContainerConfig: boolean;
+    /** Whether this window is already running inside a dev container. */
+    isInDevContainer: boolean;
 }
 
 /** Reducers (actions that change state) the Overview controller supports. */
 export interface OverviewReducers {
-    /** Re-run all dev container prerequisite checks. */
-    checkPrerequisites: {};
-    /** Install the Dev Containers extension, then re-check prerequisites. */
-    installDevContainersExtension: {};
+    /** Persists the `mssql.showChangelogOnUpdate` setting from the header checkbox. */
+    setShowChangelogOnUpdate: { value: boolean };
 }
 
 export interface OverviewLinkRequestParams {
@@ -138,9 +152,51 @@ export interface AddDevContainerConfigurationRequestParams {
     templateId: DevContainerTemplateId;
 }
 
-/** Hands off to the Dev Containers extension to add a configuration for the chosen template. */
-export namespace AddDevContainerConfigurationRequest {
-    export const type = new RequestType<AddDevContainerConfigurationRequestParams, void, void>(
-        "overview/addDevContainerConfiguration",
+/** Re-runs the dev container prerequisite checks and reports where each one stands. */
+export namespace CheckDevContainerPrerequisitesRequest {
+    export const type = new RequestType<void, DevContainerPrerequisites, void>(
+        "overview/checkDevContainerPrerequisites",
     );
+}
+
+/**
+ * Installs the Dev Containers extension and waits for it to register, answering with the
+ * prerequisite status once it has settled.
+ */
+export namespace InstallDevContainersExtensionRequest {
+    export const type = new RequestType<void, DevContainerPrerequisites, void>(
+        "overview/installDevContainersExtension",
+    );
+}
+
+/** Opens VS Code's folder picker, so a dev container configuration has somewhere to go. */
+export namespace OpenFolderRequest {
+    export const type = new RequestType<void, void, void>("overview/openFolder");
+}
+
+/** Outcome of scaffolding a dev container configuration. */
+export interface AddDevContainerConfigurationResult {
+    /** Whether a configuration was written into the folder. */
+    applied: boolean;
+    /**
+     * True when the chosen template could not be applied directly and the Dev Containers
+     * extension's own template picker was opened instead.
+     */
+    usedPicker: boolean;
+    /** Failure reason, when the configuration could not be written. */
+    error?: string;
+}
+
+/** Writes the chosen template's configuration into the open folder. */
+export namespace AddDevContainerConfigurationRequest {
+    export const type = new RequestType<
+        AddDevContainerConfigurationRequestParams,
+        AddDevContainerConfigurationResult,
+        void
+    >("overview/addDevContainerConfiguration");
+}
+
+/** Rebuilds and reattaches the window inside the folder's dev container. */
+export namespace ReopenInContainerRequest {
+    export const type = new RequestType<void, void, void>("overview/reopenInContainer");
 }

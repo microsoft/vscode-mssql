@@ -11,6 +11,7 @@ import { DevContainersPanel } from "./devContainersPanel";
 import { SectionHeading } from "./sectionHeading";
 import { WalkthroughsPanel } from "./walkthroughsPanel";
 import { locConstants } from "../../../common/locConstants";
+import { useOverviewSelector } from "../overviewSelector";
 
 type BuildTab = "agentSkills" | "walkthroughs" | "devContainers";
 
@@ -33,6 +34,8 @@ export const BuildSection = () => {
     const classes = useStyles();
     const loc = locConstants.overview;
     const [selectedTab, setSelectedTab] = useState<BuildTab>("agentSkills");
+    // Already attached to a dev container: there is nothing left to set up.
+    const isInDevContainer = useOverviewSelector((state) => state.isInDevContainer);
 
     return (
         <section className={classes.root}>
@@ -42,12 +45,12 @@ export const BuildSection = () => {
                 onTabSelect={(_event, data) => setSelectedTab(data.value as BuildTab)}>
                 <Tab value="agentSkills">{loc.agentSkillsTab}</Tab>
                 <Tab value="walkthroughs">{loc.walkthroughsTab}</Tab>
-                <Tab value="devContainers">{loc.devContainersTab}</Tab>
+                {!isInDevContainer && <Tab value="devContainers">{loc.devContainersTab}</Tab>}
             </TabList>
             <div className={classes.panel}>
                 {selectedTab === "agentSkills" && <AgentSkillsPanel />}
                 {selectedTab === "walkthroughs" && <WalkthroughsPanel />}
-                {selectedTab === "devContainers" && <DevContainersPanel />}
+                {selectedTab === "devContainers" && !isInDevContainer && <DevContainersPanel />}
             </div>
         </section>
     );

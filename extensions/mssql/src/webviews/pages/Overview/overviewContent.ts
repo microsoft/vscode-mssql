@@ -23,6 +23,7 @@ export const overviewLinks = {
         "https://learn.microsoft.com/azure/azure-sql/database/local-dev-experience-dev-containers-quickstart",
     skillsRepository: "https://github.com/microsoft/azure-sql-skills",
     devContainersRepository: "https://github.com/microsoft/azuresql-devcontainers",
+    dockerDesktop: "https://www.docker.com/products/docker-desktop/",
     copilotDocumentation:
         "https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/github-copilot/overview",
     // Placeholder until step-specific Microsoft Learn destinations are available.
@@ -112,7 +113,7 @@ export function getDevContainerTemplates(): DevContainerTemplate[] {
         {
             id: DevContainerTemplateId.Node,
             name: loc.devContainerNode,
-            repositoryFolder: "node",
+            repositoryFolder: "javascript-node",
         },
         {
             id: DevContainerTemplateId.Python,

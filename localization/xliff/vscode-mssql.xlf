@@ -331,9 +331,6 @@
     <trans-unit id="++CODE++3e8a6f2e0196277382490540b9c793184e26a9bf59da62f2b07df7da9d89f0d4">
       <source xml:lang="en">Add database reference</source>
     </trans-unit>
-    <trans-unit id="++CODE++dd7ccb0bfe96546ce7948e1c4b641799589adb581c4bf720626c059afeb393e9">
-      <source xml:lang="en">Add dev container configuration</source>
-    </trans-unit>
     <trans-unit id="++CODE++e520df698000f85f2862a9e7403a405b562c793f67bebe0ad0235ef93a55a84e">
       <source xml:lang="en">Add filter</source>
     </trans-unit>
@@ -1816,6 +1813,9 @@
     <trans-unit id="++CODE++bf2b06cf5edeeb66a098a3a052ced6d9f0c647f587aa00f072c6de26abcacfa0">
       <source xml:lang="en">Connect with the current settings and save the connection profile</source>
     </trans-unit>
+    <trans-unit id="++CODE++a7152ceef8285c172aa29a31b4edc6efc49df861b47b0b0530cd27cbe562c1a3">
+      <source xml:lang="en">Connect, build, and learn</source>
+    </trans-unit>
     <trans-unit id="++CODE++28d29898bc769fd6df013da142af60f451953946e641fc2a2bee0e49b235a623">
       <source xml:lang="en">Connected successfully</source>
     </trans-unit>
@@ -2236,6 +2236,10 @@
     <trans-unit id="++CODE++204a5eb2cd28bcfdf3be9f8c765948e9e831609e3c57048cdbd6b8a94cf49126">
       <source xml:lang="en">Cost</source>
     </trans-unit>
+    <trans-unit id="++CODE++f87978420d372a8698d03cf461b25e3e8955b1214fefafbc2db7b0875f1617b6">
+      <source xml:lang="en">Could not add the dev container configuration: {0}</source>
+      <note>{0} is the underlying error message.</note>
+    </trans-unit>
     <trans-unit id="++CODE++ca12a489ee27330e29481a6063c5aca387cf6eca3843f7731f588826b61b0d85">
       <source xml:lang="en">Could not build project. Error retrieving files needed to build.</source>
     </trans-unit>
@@ -2253,6 +2257,9 @@
     </trans-unit>
     <trans-unit id="++CODE++779a7b17e40482d5ea307dc9a3c53901566b6fbaf138bb9660b557780102ce0a">
       <source xml:lang="en">Could not load restore plan</source>
+    </trans-unit>
+    <trans-unit id="++CODE++71e0b348ec348e9236d9c0984d670475cb786378fa5e97176bc94bc4a42826d5">
+      <source xml:lang="en">Could not write the configuration.</source>
     </trans-unit>
     <trans-unit id="++CODE++37bac4952becf21ac5838d3c9ba82811bc421c857571e89634dcbe346681d54c">
       <source xml:lang="en">Count</source>
@@ -2839,6 +2846,9 @@
     <trans-unit id="++CODE++071f21588670838182cef27feaf5f3b7c5b5f7cba62b6829713d036637016453">
       <source xml:lang="en">Dev Containers extension</source>
     </trans-unit>
+    <trans-unit id="++CODE++49c2949ef5957c77cae6803dfc7a4fee2e6274a06e3dd64c318402e0a4a26c5f">
+      <source xml:lang="en">Dev container configuration</source>
+    </trans-unit>
     <trans-unit id="++CODE++2fd5b387840979faab456e1cb694ae3a3b04d25c6324c5122da1b8cb68fad871">
       <source xml:lang="en">Dev containers</source>
     </trans-unit>
@@ -2982,9 +2992,6 @@
     </trans-unit>
     <trans-unit id="++CODE++1d60d0cdcb5408b8e39ed364f675c9cad8a2f6174a413324d1e34437bd41269b">
       <source xml:lang="en">Don&apos;t Show Again</source>
-    </trans-unit>
-    <trans-unit id="++CODE++831c69f02fd7c9c62450695c18f11c56b34ae3ababb1670737507a5cc01404b4">
-      <source xml:lang="en">Don&apos;t show this again</source>
     </trans-unit>
     <trans-unit id="++CODE++35f2b8772b10a3e2e31870ce1b84a03f3a46dd70d84a4cc43e64f350e55165c6">
       <source xml:lang="en">Don&apos;t use profile</source>
@@ -4492,9 +4499,6 @@
     <trans-unit id="++CODE++20b04b0eb9264d54736120dae88c712700ee14a95803823187961e630998a7fc">
       <source xml:lang="en">For numeric data, the maximum number of decimal digits that can be stored in this database object.</source>
     </trans-unit>
-    <trans-unit id="++CODE++09c4e9583c9b30f38ad5d83611471802ca4266d8469ccef38a7b011200a560ed">
-      <source xml:lang="en">For version control.</source>
-    </trans-unit>
     <trans-unit id="++CODE++647da5cac1ce93e913f21be22e9dcb571b96b96a9d7aa7eaa2bac2f2d0ccd5b8">
       <source xml:lang="en">Force fit columns</source>
     </trans-unit>
@@ -4669,9 +4673,6 @@
     </trans-unit>
     <trans-unit id="++CODE++bccb449867268397632519e5695a6bb611a30529b735cac4f7d5ecbaee80e785">
       <source xml:lang="en">Getting definition ...</source>
-    </trans-unit>
-    <trans-unit id="++CODE++b949c922b6ef9ffbf41eb853b99578624ca6f6475c4f13abe2995484b0348e5c">
-      <source xml:lang="en">Git</source>
     </trans-unit>
     <trans-unit id="++CODE++8b4079e3f24ee61b62917b7334fe2278bdcfbc3f354e431a30e6940c7e702683">
       <source xml:lang="en">Git repository URL</source>
@@ -5740,11 +5741,11 @@
       <source xml:lang="en">More actions for {0}</source>
       <note>{0} is the name or summary of a reusable filter</note>
     </trans-unit>
+    <trans-unit id="++CODE++a96f15cc041bdfe5cbfba9f4d9a9b71cff27877e63bfd9cc20880c0cca63ba60">
+      <source xml:lang="en">More deploy options</source>
+    </trans-unit>
     <trans-unit id="++CODE++f47427ecd8b23cb11fe1987fbde7a7baca1d256cc8e2b165a5ec5a3105f32ec4">
       <source xml:lang="en">More new options</source>
-    </trans-unit>
-    <trans-unit id="++CODE++bed9db0f810e353e1fcedd62482e9780e51ac94b54f0b3b6f0e3feba0161e5bd">
-      <source xml:lang="en">More query options</source>
     </trans-unit>
     <trans-unit id="++CODE++6ecc3df6bffdd06c58cd4f6e276929e119c8f653c53f5a6a5a5e66dfa1c3fc93">
       <source xml:lang="en">Move</source>
@@ -6449,6 +6450,9 @@
     <trans-unit id="++CODE++1e8d18f62f2d2a2fcb2027969e109cad13bcf2a861737f80eabd6774406c8a10">
       <source xml:lang="en">Open File</source>
     </trans-unit>
+    <trans-unit id="++CODE++68b3f4bff6de90aed6e47e72d8b680901da64dff39ed843e9eeed0464020e971">
+      <source xml:lang="en">Open Folder</source>
+    </trans-unit>
     <trans-unit id="++CODE++8551c1d2eb56e879661b2939595c92f04d477465ccfa7e1d4dbf08e7ec82b466">
       <source xml:lang="en">Open GitHub Copilot Chat to help fix these errors</source>
     </trans-unit>
@@ -6479,8 +6483,14 @@
     <trans-unit id="++CODE++24f7194fb58194433ec3c6a459e00b63c9b566649ebb1be887b3c08350bc32c0">
       <source xml:lang="en">Open Shortcuts Configuration</source>
     </trans-unit>
+    <trans-unit id="++CODE++b6277562c22e0615e737034db1ed9880c8dae548c9efb0977c360d1fbdc4b330">
+      <source xml:lang="en">Open VS Code in container</source>
+    </trans-unit>
     <trans-unit id="++CODE++458f7bdeed472d6583d8b0e14f2535e896f301136ee1ea3c63fdbf0845407225">
       <source xml:lang="en">Open XML</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f58b856f576241374df708104fe5fc2d55cd2afcffec2002f0e2eaa8ed2286cb">
+      <source xml:lang="en">Open a folder to create the configuration files in first.</source>
     </trans-unit>
     <trans-unit id="++CODE++7af6fe25b1792e301b2d3d472a89341e618f0f5a5773462eabd1803541c911a5">
       <source xml:lang="en">Open a new SQL editor and start writing queries with IntelliSense</source>
@@ -6544,8 +6554,14 @@
       <source xml:lang="en">Open {0}</source>
       <note>{0} is the label of the link destination</note>
     </trans-unit>
+    <trans-unit id="++CODE++0184aa15fddaf2cf9c1019f5b52366b5f0f9c3e32bcb7bbbf5abe19a72962252">
+      <source xml:lang="en">Opened the Dev Containers extension&apos;s template picker instead.</source>
+    </trans-unit>
     <trans-unit id="++CODE++3a8e07b84d53ba502ae8ee669003537bdbbe321d6c8c6fb6cbd63019cb3d400e">
       <source xml:lang="en">Opening Publish Script. This may take a while...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++42f0a9b8f0b08d41b25a7c2828128a8207accf7b1abee62f0e5acaae63e7cd52">
+      <source xml:lang="en">Opening builds the container and reloads this window inside it.</source>
     </trans-unit>
     <trans-unit id="++CODE++fe0d6bd1aef549a43c5fca4a838882918bd3a85e9641cb5150f31df976e18e38">
       <source xml:lang="en">Opening schema designer...</source>
@@ -7180,6 +7196,9 @@
     <trans-unit id="++CODE++703f1ae8b7cdb3525cdab9ea694ab27b1b9e4337f0b2ca32f152f7f9a6e2f9d5">
       <source xml:lang="en">Recent connections list cleared</source>
     </trans-unit>
+    <trans-unit id="++CODE++1f47d8366934f024275d2126cc2693f6ea8e1a6815af400835993032a05dd518">
+      <source xml:lang="en">Recheck</source>
+    </trans-unit>
     <trans-unit id="++CODE++d70604e8430461372849bbd123d85771e11423870a507e8fa4650a7e9a5a50ef">
       <source xml:lang="en">Recommended</source>
     </trans-unit>
@@ -7559,9 +7578,6 @@
     </trans-unit>
     <trans-unit id="++CODE++2105043482ed04f1596a51a162ec6ed713674f6408e62a5f802c421ac7485b75">
       <source xml:lang="en">Run and read results</source>
-    </trans-unit>
-    <trans-unit id="++CODE++1837e00c45e8663d1a17b976dc084fc4d339e03f26a7990466fafbb8d43b3ae4">
-      <source xml:lang="en">Run query</source>
     </trans-unit>
     <trans-unit id="++CODE++2c757183a36d594602187e88cad67e8e38ab92dd5c9c01ca69eb4c67f465b8e3">
       <source xml:lang="en">Run query on connection &apos;{0}&apos; (ID: {1})?&#10;&#10;Query: {2}</source>
@@ -8405,6 +8421,9 @@
     <trans-unit id="++CODE++4b2be143e0119f38be0df3cde1479ccef0505331124cd5f5584fa1bc6a34e581">
       <source xml:lang="en">Set backup retain days</source>
     </trans-unit>
+    <trans-unit id="++CODE++4da10f1fbb17cac25e9e78536d4104cb4b2fbbc436dbc37dee5450f22c2accda">
+      <source xml:lang="en">Set up</source>
+    </trans-unit>
     <trans-unit id="++CODE++818cd8d91aea3a1689455f009f49e87fe7fa647fa2c4b9f09072dd1c33d52ca5">
       <source xml:lang="en">Setting</source>
     </trans-unit>
@@ -8500,6 +8519,9 @@
     </trans-unit>
     <trans-unit id="++CODE++6aeaa6a53d09dcad071fdda6280b1e7c42aa164cd0514304ff162e7da440ffaa">
       <source xml:lang="en">Show password</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d4b0e244982736172e751446416c00931f56f19bddeebff84a19214b9b7cacbd">
+      <source xml:lang="en">Show release notes after updates</source>
     </trans-unit>
     <trans-unit id="++CODE++3a9a8d46a1ea0067cbcb2a7f0f2d4e8c8d9c974f5e8cc08b3089f8d8a696fec3">
       <source xml:lang="en">Show schema for connection &apos;{0}&apos; (ID: {1})?</source>
@@ -8662,9 +8684,6 @@
     </trans-unit>
     <trans-unit id="++CODE++f98d8beeeedee01c720a55b91742e6560515ae435c07a7fbfb8151f445e428ec">
       <source xml:lang="en">Start with the core pieces to develop and publish schemas for Azure SQL Edge Database</source>
-    </trans-unit>
-    <trans-unit id="++CODE++63b19c900f1afa4c847cb98544ad96ff6db8921f454798050774721e9ed7f6e7">
-      <source xml:lang="en">Start · QuickStarts · learn &amp; build</source>
     </trans-unit>
     <trans-unit id="++CODE++bdc02a6178825493234ef2190acba2fe15e3fb76a37fb9a740ea4e5b7b843961">
       <source xml:lang="en">Start, stop, and remove containers directly from the extension.</source>
@@ -9044,6 +9063,9 @@
     <trans-unit id="++CODE++c2deec07495a278190de83a0820519064e332fc00b050c4fd053bae70c44da8e">
       <source xml:lang="en">The Application (Client) ID of your Microsoft Entra app registration.</source>
     </trans-unit>
+    <trans-unit id="++CODE++c06982c71f4f2dfffed0ad092518601746d30dc2386af195c3e836f87e5eb300">
+      <source xml:lang="en">The Dev Containers extension is required to reopen this folder in a container.</source>
+    </trans-unit>
     <trans-unit id="++CODE++b0ccb68c36737cb5ef6c7a74871ab7845533f64d89c74dd7db735bb555c401e1">
       <source xml:lang="en">The Query Profiler now supports SQL database in Microsoft Fabric connections, with new Azure SQL Database templates including {code-snippet-0} for lightweight T-SQL profiling.</source>
     </trans-unit>
@@ -9271,6 +9293,9 @@
     </trans-unit>
     <trans-unit id="++CODE++cb4eade41a7e9bf4aecf7539c5167bf881e1dac0fd35c216a8fbf4b1b4d3fa84">
       <source xml:lang="en">This file name is reserved for use by Windows. Choose another name and try again</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4cf91aabb9506ef4b3369b703200eead0c0c4520d2fd895053a3013547197a7f">
+      <source xml:lang="en">This folder already has a dev container configuration.</source>
     </trans-unit>
     <trans-unit id="++CODE++28e2aa59c50b2de24bda79539297a180c3ea379c3aa11b5af049a2cf66375999">
       <source xml:lang="en">This message couldn&apos;t be processed. If this issue persists, please check the logs and open an issue on GitHub.</source>
@@ -9934,6 +9959,9 @@
     <trans-unit id="++CODE++e288577fddfc0fca255b96b887c869892311ba4f7ba0ecab34268b08e08d1ad3">
       <source xml:lang="en">Write, optimize, and troubleshoot SQL queries with AI-recommended improvements</source>
     </trans-unit>
+    <trans-unit id="++CODE++8d2a3b1b9eb074aadd393f8f675e98e8a7a80d2f5f4815634a56d3d7d9624a6c">
+      <source xml:lang="en">Writes this template&apos;s .devcontainer files into the open folder.</source>
+    </trans-unit>
     <trans-unit id="++CODE++54a82587ded9d34e040e4db9f860f3e0b0e6285ca43651e9cfca8dbc65bd3ab0">
       <source xml:lang="en">YYYY-MM-DD HH:mm:ss</source>
     </trans-unit>
@@ -9948,10 +9976,6 @@
     </trans-unit>
     <trans-unit id="++CODE++867d2664362bce58e979ee3de5b436d12ab50da730929367290fd6b9043b2a90">
       <source xml:lang="en">You are not connected to any database.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++f3181e292580fea40c15bf9a85615f13c8133a2f1ac88fc2067181c933b07177">
-      <source xml:lang="en">You are seeing this message because you updated the MSSQL extension to version {0}.</source>
-      <note>{0} is the version number of the MSSQL extension</note>
     </trans-unit>
     <trans-unit id="++CODE++ee6604b8608c95bcd41d746470a4afd5a0254262421599e83cf70c4ebe40255c">
       <source xml:lang="en">You have captured Profiler events that have not been exported. If you close now, you will lose all captured events. Do you want to export them to a CSV file?</source>
@@ -11022,8 +11046,11 @@
     <trans-unit id="mssql.showGettingStarted">
       <source xml:lang="en">Getting Started Guide</source>
     </trans-unit>
+    <trans-unit id="mssql.hideOverviewInObjectExplorer.contextMenu">
+      <source xml:lang="en">Hide</source>
+    </trans-unit>
     <trans-unit id="mssql.hideOverviewInObjectExplorer">
-      <source xml:lang="en">Hide Overview</source>
+      <source xml:lang="en">Hide Welcome</source>
     </trans-unit>
     <trans-unit id="mssql.resultsGrid.showGridLines.none">
       <source xml:lang="en">Hide all grid lines</source>
@@ -11175,6 +11202,9 @@
     <trans-unit id="mssql.walkthroughs.nextSteps.objectExplorerFilters.description">
       <source xml:lang="en">Only see the database objects that matter most to you by applying filters to the Object Explorer tree.&#10;Start by clicking the filter button next to most folders in the Connections view.</source>
     </trans-unit>
+    <trans-unit id="mssql.openOverview.contextMenu">
+      <source xml:lang="en">Open</source>
+    </trans-unit>
     <trans-unit id="mssql.openChangelog">
       <source xml:lang="en">Open Changelog</source>
     </trans-unit>
@@ -11183,9 +11213,6 @@
     </trans-unit>
     <trans-unit id="mssql.copilot.newQueryWithConnection">
       <source xml:lang="en">Open New Query and Connect</source>
-    </trans-unit>
-    <trans-unit id="mssql.openOverview">
-      <source xml:lang="en">Open Overview</source>
     </trans-unit>
     <trans-unit id="mssql.openQueryHistory">
       <source xml:lang="en">Open Query</source>
@@ -11202,6 +11229,9 @@
     <trans-unit id="mssql.openBackgroundTask">
       <source xml:lang="en">Open Task Result</source>
     </trans-unit>
+    <trans-unit id="mssql.openOverview">
+      <source xml:lang="en">Open Welcome</source>
+    </trans-unit>
     <trans-unit id="mssql.objectExplorerChatWithDatabaseInAgentMode">
       <source xml:lang="en">Open in GitHub Copilot Agent</source>
     </trans-unit>
@@ -11210,6 +11240,9 @@
     </trans-unit>
     <trans-unit id="mssql.openInMssqlExtensionFromAzureResources">
       <source xml:lang="en">Open in MSSQL extension</source>
+    </trans-unit>
+    <trans-unit id="mssql.showChangelogOnUpdate">
+      <source xml:lang="en">Open the Welcome page with release notes after extension updates</source>
     </trans-unit>
     <trans-unit id="mssql.pauseQueryHistoryCapture">
       <source xml:lang="en">Pause Query History Capture</source>
@@ -11451,20 +11484,17 @@
     <trans-unit id="mssql.persistQueryResultTabs">
       <source xml:lang="en">Should query result selections and scroll positions be saved when switching tabs (may impact performance)</source>
     </trans-unit>
-    <trans-unit id="mssql.showOverviewInObjectExplorer">
-      <source xml:lang="en">Show Overview</source>
-    </trans-unit>
     <trans-unit id="mssql.sqlDataPlane.showStatus">
       <source xml:lang="en">Show SQL Data Plane Status</source>
+    </trans-unit>
+    <trans-unit id="mssql.showOverviewInObjectExplorer">
+      <source xml:lang="en">Show Welcome</source>
     </trans-unit>
     <trans-unit id="mssql.format.showParseErrorNotification">
       <source xml:lang="en">Show a notification when the SQL formatter cannot fully parse the T-SQL being formatted.</source>
     </trans-unit>
     <trans-unit id="mssql.resultsGrid.showGridLines.both">
       <source xml:lang="en">Show both horizontal and vertical grid lines</source>
-    </trans-unit>
-    <trans-unit id="mssql.showChangelogOnUpdate">
-      <source xml:lang="en">Show changelog after extension updates</source>
     </trans-unit>
     <trans-unit id="mssql.resultsGrid.showGridLines.horizontal">
       <source xml:lang="en">Show only horizontal grid lines</source>

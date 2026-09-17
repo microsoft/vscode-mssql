@@ -584,9 +584,16 @@
             ],
             "view/item/context": [
                 {
+                    "command": "mssql.openOverview",
+                    "when": "view == objectExplorer && viewItem == overview",
+                    "title": "%mssql.openOverview.contextMenu%",
+                    "group": "navigation@1"
+                },
+                {
                     "command": "mssql.hideOverviewInObjectExplorer",
                     "when": "view == objectExplorer && viewItem == overview",
-                    "group": "navigation"
+                    "title": "%mssql.hideOverviewInObjectExplorer.contextMenu%",
+                    "group": "navigation@2"
                 },
                 {
                     "command": "mssql.openInMssqlExtensionFromAzureResources",

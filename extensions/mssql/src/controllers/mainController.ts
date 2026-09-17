@@ -134,7 +134,7 @@ import { SqlSymbolRenameProvider } from "../languageservice/sqlSymbolRenameProvi
 import { SqlMoveToSchemaProvider } from "../languageservice/sqlMoveToSchemaProvider";
 import { SearchDatabaseWebViewController } from "../searchDatabase/searchDatabaseWebViewController";
 import { ChangelogWebviewController } from "./changelogWebviewController";
-import { OverviewWebviewController } from "./overviewWebviewController";
+import { OverviewOpenOptions, OverviewWebviewController } from "./overviewWebviewController";
 import { RecentSqlFilesStore } from "../models/recentSqlFilesStore";
 import { DeploymentType } from "../sharedInterfaces/deployment";
 import { AzureDataStudioMigrationWebviewController } from "./azureDataStudioMigrationWebviewController";
@@ -445,15 +445,26 @@ export default class MainController implements vscode.Disposable {
                 const changelogController = new ChangelogWebviewController(this._context);
                 await changelogController.revealToForeground();
             });
-            this.registerCommand(Constants.cmdOpenOverview);
-            this._event.on(Constants.cmdOpenOverview, async () => {
+            this.registerCommandWithArgs(Constants.cmdOpenOverview);
+            this._event.on(Constants.cmdOpenOverview, async (args: unknown) => {
+                // Invoked from the Welcome node's context menu this receives the tree item, so the
+                // options are shape-checked rather than trusted.
+                const openWhatsNew =
+                    typeof args === "object" &&
+                    args !== null &&
+                    (args as OverviewOpenOptions).openWhatsNew === true;
+
                 // The Overview page is a singleton: reopening it reveals the existing panel
                 // rather than stacking duplicates of a welcome page.
                 if (!this._overviewController || this._overviewController.isDisposed) {
                     this._overviewController = new OverviewWebviewController(
                         this._context,
                         this._recentSqlFilesStore,
+                        { openWhatsNew },
                     );
+                } else if (openWhatsNew) {
+                    // An already-open page keeps its state, so the drawer is opened explicitly.
+                    this._overviewController.openWhatsNew();
                 }
                 this._overviewController.revealToForeground();
             });
