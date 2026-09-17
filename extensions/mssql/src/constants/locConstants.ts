@@ -1114,6 +1114,9 @@ export class ConnectionDialog {
     public static entraServicePrincipalAuthTooltip = l10n.t(
         "Authenticate using a Microsoft Entra service principal. Enter the Application (client) ID as the user name and the client secret as the password. Click the info icon to learn more.",
     );
+    public static kerberosAuthTooltip = l10n.t(
+        "Kerberos must be configured to use Windows Authentication on macOS and Linux. Click the info icon to learn more.",
+    );
     public static applicationClientId = l10n.t("Application (Client) ID");
     public static applicationClientIdTooltip = l10n.t(
         "The Application (Client) ID of your Microsoft Entra app registration.",

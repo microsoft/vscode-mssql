@@ -12,8 +12,10 @@ import { expect } from "chai";
 import {
     CLEAR_TOKEN_CACHE,
     ConnectionDialogWebviewController,
+    OPEN_KERBEROS_HELP,
 } from "../../src/connectionconfig/connectionDialogWebviewController";
 import {
+    Common as CommonLoc,
     ConnectionDialog as Loc,
     Connection as ConnectionLoc,
 } from "../../src/constants/locConstants";
@@ -68,7 +70,7 @@ import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
 import { multiple_matching_tokens_error } from "../../src/azure/constants";
 import { MsalAzureController } from "../../src/azure/msal/msalAzureController";
-import { errorPasswordExpired } from "../../src/constants/constants";
+import { errorPasswordExpired, Links } from "../../src/constants/constants";
 import { FirewallRuleSpec } from "../../src/sharedInterfaces/firewallRule";
 import { FirewallService } from "../../src/firewall/firewallService";
 import { AddFirewallRuleState } from "../../src/sharedInterfaces/addFirewallRule";
@@ -1433,6 +1435,55 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 expect(controller.state.formMessage.message).to.equal(errorMessage);
             });
 
+            test("displays Kerberos guidance for an unhandled Kerberos connection error", async () => {
+                const errorMessage = "Cannot authenticate using Kerberos";
+                connectionManager.connect.resolves(false);
+                connectionManager.getConnectionInfo.returns({
+                    errorNumber: 0,
+                    errorMessage,
+                    messages: errorMessage,
+                    credentials: {
+                        server: mockServerName,
+                        user: mockUserName,
+                    },
+                } as ConnectionInfo);
+                sandbox
+                    .stub(ConnectionManagerModule, "getSqlConnectionErrorType")
+                    .resolves(SqlConnectionErrorType.KerberosNonWindows);
+                controller.state.formState = testFormState;
+
+                await controller["_reducerHandlers"].get("connect")(controller.state, {});
+
+                expect(controller.state.dialog).to.be.undefined;
+                expect(controller.state.formMessage).to.deep.equal({
+                    message: errorMessage,
+                    buttons: [{ id: OPEN_KERBEROS_HELP, label: CommonLoc.learnMore }],
+                });
+            });
+
+            test("keeps the specialized error flow when a handled error mentions Kerberos", async () => {
+                const errorMessage = "Kerberos connection requires trusting the certificate";
+                connectionManager.connect.resolves(false);
+                connectionManager.getConnectionInfo.returns({
+                    errorNumber: 0,
+                    errorMessage,
+                    messages: errorMessage,
+                    credentials: {
+                        server: mockServerName,
+                        user: mockUserName,
+                    },
+                } as ConnectionInfo);
+                sandbox
+                    .stub(ConnectionManagerModule, "getSqlConnectionErrorType")
+                    .resolves(SqlConnectionErrorType.TrustServerCertificateNotEnabled);
+                controller.state.formState = testFormState;
+
+                await controller["_reducerHandlers"].get("connect")(controller.state, {});
+
+                expect(controller.state.dialog?.type).to.equal("trustServerCert");
+                expect(controller.state.formMessage).to.be.undefined;
+            });
+
             test("displays password changed dialog upon password expired error", async () => {
                 mockObjectExplorerProvider.createSession.resolves({
                     sessionId: "testSessionId",
@@ -1483,6 +1534,18 @@ suite("ConnectionDialogWebviewController Tests", () => {
 
                 expect(controller.state.formMessage).to.be.undefined;
                 expect(azureControllerStub.clearTokenCache).to.have.been.calledOnce;
+            });
+
+            test("openKerberosHelp", async () => {
+                const openExternalStub = sandbox.stub(vscode.env, "openExternal").resolves(true);
+
+                await controller["_reducerHandlers"].get("messageButtonClicked")(controller.state, {
+                    buttonId: OPEN_KERBEROS_HELP,
+                });
+
+                expect(openExternalStub).to.have.been.calledOnceWith(
+                    vscode.Uri.parse(Links.authKerberosHelp),
+                );
             });
 
             test("unknown button", async () => {
