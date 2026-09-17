@@ -12,7 +12,9 @@ import { ConnectionDetails, IToken, IConnectionInfo } from "vscode-mssql";
 import { ConnectionStore } from "../../src/models/connectionStore";
 import { ILogger } from "../../src/sharedInterfaces/logger";
 import ConnectionManager, {
+    getSqlConnectionErrorType,
     serverlessWakeMaxRetryAttempts,
+    SqlConnectionErrorType,
 } from "../../src/controllers/connectionManager";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import StatusView from "../../src/views/statusView";
@@ -45,6 +47,7 @@ import * as vscodeEntraMfaUtils from "../../src/azure/vscodeEntraMfaUtils";
 import * as azureHelpers from "../../src/connectionconfig/azureHelpers";
 import * as telemetry from "extension-toolkit/vscode/telemetry";
 import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
+import { PlatformInformation } from "../../src/models/platform";
 
 chai.use(sinonChai);
 
@@ -88,6 +91,34 @@ suite("ConnectionManager Tests", () => {
 
     teardown(() => {
         sandbox.restore();
+    });
+
+    suite("getSqlConnectionErrorType", () => {
+        test("classifies Kerberos errors case-insensitively on Linux", async () => {
+            sandbox
+                .stub(PlatformInformation, "getCurrent")
+                .resolves(new PlatformInformation("linux", "x64"));
+
+            const result = await getSqlConnectionErrorType(
+                { errorMessage: "Cannot authenticate using kerberos" },
+                {} as IConnectionInfo,
+            );
+
+            expect(result).to.equal(SqlConnectionErrorType.KerberosNonWindows);
+        });
+
+        test("does not classify Kerberos errors on Windows", async () => {
+            sandbox
+                .stub(PlatformInformation, "getCurrent")
+                .resolves(new PlatformInformation("win32", "x64"));
+
+            const result = await getSqlConnectionErrorType(
+                { errorMessage: "Cannot authenticate using Kerberos" },
+                {} as IConnectionInfo,
+            );
+
+            expect(result).to.equal(SqlConnectionErrorType.Generic);
+        });
     });
 
     /**

@@ -10,11 +10,13 @@ import {
     Checkbox,
     makeStyles,
     Spinner,
-    DataGridHeader,
     DataGridHeaderCell,
     Text,
     TableColumnSizingOptions,
     mergeClasses,
+    tokens,
+    useFluent,
+    useScrollbarWidth,
     Input,
     Button,
     CounterBadge,
@@ -31,6 +33,7 @@ import {
 import {
     DataGridBody,
     DataGrid,
+    DataGridHeader,
     DataGridRow,
     DataGridCell,
     RowRenderer,
@@ -226,6 +229,9 @@ const useStyles = makeStyles({
             width: "14px",
             height: "14px",
         },
+    },
+    includeSpinner: {
+        margin: `${tokens.spacingVerticalS} ${tokens.spacingHorizontalS}`,
     },
     dataGridHeader: {
         backgroundColor: "var(--vscode-keybindingTable-headerBackground)",
@@ -483,6 +489,8 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
     ) => {
         const classes = useStyles();
         const context = React.useContext(schemaCompareContext);
+        const { targetDocument } = useFluent();
+        const scrollbarWidth = useScrollbarWidth({ targetDocument }) ?? 0;
         const differences = context.differences;
         const [diffInclusionLevel, setDiffInclusionLevel] = React.useState<
             "allIncluded" | "allExcluded" | "mixed"
@@ -637,6 +645,7 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
             if (context.isIncludeExcludeAllInProgress) {
                 return (
                     <Spinner
+                        className={classes.includeSpinner}
                         size="extra-tiny"
                         aria-label={loc.schemaCompare.includeExcludeAllOperationInProgress}
                     />
@@ -669,6 +678,7 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
                 <DataGridCell className={classes.includeCell}>
                     {isPending ? (
                         <Spinner
+                            className={classes.includeSpinner}
                             size="extra-tiny"
                             aria-label={loc.schemaCompare.updatingDifferenceSelection}
                         />
@@ -1242,6 +1252,17 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
             );
         };
 
+        // react-window renders the row renderer as a component type, so a new function identity
+        // remounts every visible row and drops keyboard focus to the document body. Keep the
+        // identity stable and read the latest closure through a ref instead.
+        const renderRowRef = React.useRef(renderRow);
+        renderRowRef.current = renderRow;
+        const stableRenderRow = React.useCallback<RowRenderer<Row>>(
+            (row, style, index, isScrolling) =>
+                renderRowRef.current(row, style, index, isScrolling),
+            [],
+        );
+
         const classicColumnSizingOptions: TableColumnSizingOptions = {
             type: {
                 minWidth: 80,
@@ -1323,6 +1344,9 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
                 };
             }, [differences]);
         const activeFilterCount = selectedSchemas.size + selectedObjectTypes.size;
+        const gridBodyHeight = Math.max(height - 64, 0);
+        const headerScrollbarGutter =
+            items.length * ROW_HEIGHT > gridBodyHeight ? scrollbarWidth : 0;
 
         return (
             <div className={classes.resizableContainer} ref={resizableRef}>
@@ -1574,7 +1598,9 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
                                 : `diff:${row.position ?? ""}`;
                         }}
                         size="extra-small">
-                        <DataGridHeader className={classes.dataGridHeader}>
+                        <DataGridHeader
+                            className={classes.dataGridHeader}
+                            style={{ width: `calc(100% - ${headerScrollbarGutter}px)` }}>
                             <DataGridRow>
                                 {({ columnId, renderHeaderCell }) => (
                                     <DataGridHeaderCell
@@ -1589,10 +1615,10 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
                         </DataGridHeader>
                         <DataGridBody<Row>
                             itemSize={ROW_HEIGHT}
-                            height={Math.max(height - 64, 0)}
+                            height={gridBodyHeight}
                             width={"100%"}
                             listProps={{ ref: virtualizedListRef } as never}>
-                            {renderRow}
+                            {stableRenderRow}
                         </DataGridBody>
                     </DataGrid>
                 )}
