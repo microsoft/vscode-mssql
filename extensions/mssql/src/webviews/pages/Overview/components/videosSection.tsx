@@ -12,9 +12,9 @@ import { locConstants } from "../../../common/locConstants";
 import { useOverviewActions } from "../useOverviewActions";
 
 const videoThumbnails: Record<VideoCard["thumbnail"], string> = {
-    copilotSql: require("../../../../../images/overview/videos/copilot-sql.png"),
-    whatsNew: require("../../../../../images/overview/videos/whats-new.png"),
-    aiReadyApp: require("../../../../../images/overview/videos/ai-ready-app.png"),
+    copilotSql: require("../../../../../images/overview/videos/copilot-sql.webp"),
+    whatsNew: require("../../../../../images/overview/videos/whats-new.webp"),
+    aiReadyApp: require("../../../../../images/overview/videos/ai-ready-app.webp"),
 };
 
 const useStyles = makeStyles({

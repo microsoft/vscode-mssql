@@ -50,6 +50,7 @@ void run(
                 ".js": "js",
                 ".png": "file",
                 ".gif": "file",
+                ".webp": "file",
                 ".ttf": "file",
             },
             metafile: !isProd,
