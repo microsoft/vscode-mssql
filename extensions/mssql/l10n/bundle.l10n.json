@@ -1555,6 +1555,8 @@
         "comment": ["{0} is the operation name"]
     },
     "No active schema designer found. Please open Data API builder first using mssql_dab with operation 'show' or from the UI.": "No active schema designer found. Please open Data API builder first using mssql_dab with operation 'show' or from the UI.",
+    "Read the active Data API builder configuration with mssql_dab operation 'get_state' before applying changes.": "Read the active Data API builder configuration with mssql_dab operation 'get_state' before applying changes.",
+    "The active Data API builder configuration changed after it was read. Run mssql_dab operation 'get_state' again before retrying; do not open another designer.": "The active Data API builder configuration changed after it was read. Run mssql_dab operation 'get_state' again before retrying; do not open another designer.",
     "Missing connection reference. Please provide exactly one of connectionId or connectionName.": "Missing connection reference. Please provide exactly one of connectionId or connectionName.",
     "Ambiguous connection reference. Please provide only one of connectionId or connectionName.": "Ambiguous connection reference. Please provide only one of connectionId or connectionName.",
     "No SQL Tools MCP connection found for connectionName: {0}/{0} is the SQL Tools MCP registered connection name": {

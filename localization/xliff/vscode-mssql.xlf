@@ -6935,6 +6935,9 @@
     <trans-unit id="++CODE++83b794145c0cc3f560cb6dfb6b5bcf7afac4dba15e5c6dbc54d103dae029fec6">
       <source xml:lang="en">Read more</source>
     </trans-unit>
+    <trans-unit id="++CODE++95afd13ac532a72eaf92176d5ea81e5376d8bd0e10586bdf2221118633550f86">
+      <source xml:lang="en">Read the active Data API builder configuration with mssql_dab operation &apos;get_state&apos; before applying changes.</source>
+    </trans-unit>
     <trans-unit id="++CODE++fd523668f3222a1544fd470a1900656f4fe1a89dbb518262cd6f9bb2460019d4">
       <source xml:lang="en">Read-Only</source>
     </trans-unit>
@@ -8842,6 +8845,9 @@
     </trans-unit>
     <trans-unit id="++CODE++c364da33c97d06acc010a7ee647d4764b8768c9fcd9ab63b247ef14826a2361a">
       <source xml:lang="en">The XEL file was not found.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ea8d8a637c6aaa3d1fd33f3fa440906f5304c43a5eb605965a64271c4532f2aa">
+      <source xml:lang="en">The active Data API builder configuration changed after it was read. Run mssql_dab operation &apos;get_state&apos; again before retrying; do not open another designer.</source>
     </trans-unit>
     <trans-unit id="++CODE++3eacf5cf678e2285cae1276d29f034aa0e7ceb3f8940239c1d67a2d486649719">
       <source xml:lang="en">The behavior when a user tries to delete a row with data that is involved in a foreign key relationship.</source>

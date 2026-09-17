@@ -2808,6 +2808,12 @@ export class MssqlChatAgent {
     public static dabToolNoActiveDesigner = l10n.t(
         "No active schema designer found. Please open Data API builder first using mssql_dab with operation 'show' or from the UI.",
     );
+    public static dabToolStateRequired = l10n.t(
+        "Read the active Data API builder configuration with mssql_dab operation 'get_state' before applying changes.",
+    );
+    public static dabToolStateChanged = l10n.t(
+        "The active Data API builder configuration changed after it was read. Run mssql_dab operation 'get_state' again before retrying; do not open another designer.",
+    );
     public static toolMissingConnectionReference = l10n.t(
         "Missing connection reference. Please provide exactly one of connectionId or connectionName.",
     );
