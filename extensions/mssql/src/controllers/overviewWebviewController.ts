@@ -18,6 +18,7 @@ import {
     AddDevContainerConfigurationResult,
     CheckDevContainerPrerequisitesRequest,
     DevContainerPrerequisites,
+    InstallAgentSkillsPluginRequest,
     InstallDevContainersExtensionRequest,
     OpenFolderRequest,
     ReopenInContainerRequest,
@@ -39,6 +40,7 @@ import { resolveChangelogAction } from "../configurations/changelogActions";
 import { DeploymentType } from "../sharedInterfaces/deployment";
 import { RecentSqlFilesStore, ResolvedRecentSqlFile } from "../models/recentSqlFilesStore";
 import { sendActionEvent } from "extension-toolkit/vscode";
+import * as os from "os";
 import * as path from "path";
 import { spawn } from "child_process";
 import * as fs from "fs";
@@ -55,6 +57,42 @@ const DEV_CONTAINERS_CREATE_CONFIG_COMMAND = "remote-containers.createDevContain
 
 /** The extension's command to rebuild and reattach the window inside the container. */
 const DEV_CONTAINERS_REOPEN_COMMAND = "remote-containers.reopenInContainer";
+
+/** GitHub source for the Azure SQL agent skills plugin, as `owner/repo`. */
+const AGENT_SKILLS_PLUGIN_SOURCE = "microsoft/azure-sql-database-container";
+
+/**
+ * Setting VS Code appends to when a plugin marketplace is installed. It is only ever appended
+ * to -- uninstalling leaves the entry behind -- so it is a signal to re-check on, never the
+ * answer to whether the plugin is installed right now.
+ */
+const CHAT_PLUGIN_MARKETPLACES_SETTING = "chat.plugins.marketplaces";
+
+/**
+ * Manifest VS Code keeps of installed agent plugins, under the CLI home directory rather than
+ * the user data profile. Its `installed` entries are the authoritative list: the cloned source
+ * survives an uninstall, so the directory's presence proves nothing on its own.
+ *
+ * This is VS Code's internal layout rather than a public API, so every failure to read it is
+ * treated as "not installed" instead of surfacing an error.
+ */
+const AGENT_PLUGINS_DIR = "agent-plugins";
+const AGENT_PLUGINS_MANIFEST = "installed.json";
+
+/**
+ * How long to keep watching for a plugin install to land, and how often to look. The install
+ * runs in VS Code behind a trust prompt, so nothing tells us when it finishes -- the manifest
+ * simply changes at some point, or the user cancels and it never does.
+ */
+const AGENT_SKILLS_POLL_INTERVAL_MS = 1500;
+const AGENT_SKILLS_POLL_TIMEOUT_MS = 120_000;
+
+/** CLI home directories to look in, covering stable and Insiders. */
+const VS_CODE_HOME_DIRS = [".vscode", ".vscode-insiders"];
+
+interface AgentPluginsManifest {
+    installed?: { marketplace?: string; pluginUri?: string }[];
+}
 
 /** `vscode.env.remoteName` when the window is attached to a dev container. */
 const DEV_CONTAINER_REMOTE_NAME = "dev-container";
@@ -152,6 +190,9 @@ export class OverviewWebviewController extends WebviewPanelController<
     OverviewWebviewState,
     OverviewReducers
 > {
+    /** Guards against stacking manifest watches when install is pressed more than once. */
+    private _agentSkillsWatchActive = false;
+
     constructor(
         context: vscode.ExtensionContext,
         private _recentSqlFilesStore: RecentSqlFilesStore,
@@ -187,6 +228,27 @@ export class OverviewWebviewController extends WebviewPanelController<
         this.registerDisposable(configWatcher.onDidCreate(() => void this.refreshWorkspaceState()));
         this.registerDisposable(configWatcher.onDidDelete(() => void this.refreshWorkspaceState()));
 
+        // Installing writes that setting, so it is a prompt cue to re-check the moment one lands.
+        this.registerDisposable(
+            vscode.workspace.onDidChangeConfiguration((event) => {
+                if (event.affectsConfiguration(CHAT_PLUGIN_MARKETPLACES_SETTING)) {
+                    void this.refreshAgentSkillsState();
+                }
+            }),
+        );
+
+        // Uninstalling happens elsewhere in VS Code and writes nothing we can listen for, so the
+        // check is re-run whenever the user comes back to this page.
+        this.registerDisposable(
+            this.panel.onDidChangeViewState(() => {
+                if (this.panel.visible) {
+                    void this.refreshAgentSkillsState();
+                }
+            }),
+        );
+
+        void this.refreshAgentSkillsState();
+
         void this.refreshWorkspaceState();
 
         this.initialize();
@@ -203,6 +265,8 @@ export class OverviewWebviewController extends WebviewPanelController<
             // Resolved asynchronously right after construction; see refreshWorkspaceState.
             hasDevContainerConfig: false,
             isInDevContainer: vscode.env.remoteName === DEV_CONTAINER_REMOTE_NAME,
+            // Resolved asynchronously right after construction; see refreshAgentSkillsState.
+            hasAgentSkillsPlugin: false,
             openWhatsNewOnLoad: options.openWhatsNew === true,
             showChangelogOnUpdate: OverviewWebviewController.shouldShowChangelogOnUpdate(),
         };
@@ -254,6 +318,24 @@ export class OverviewWebviewController extends WebviewPanelController<
                 docker: await this.checkDocker(),
                 devContainersExtension: await this.waitForDevContainersExtension(),
             };
+        });
+
+        this.onRequest(InstallAgentSkillsPluginRequest.type, async () => {
+            // VS Code's own handler: it shows the trust prompt, clones, and installs. Using the
+            // command instead would make the user type the source themselves.
+            const uri = vscode.Uri.parse(
+                `${vscode.env.uriScheme}://chat-plugin/install?source=${encodeURIComponent(
+                    AGENT_SKILLS_PLUGIN_SOURCE,
+                )}`,
+            );
+            await vscode.env.openExternal(uri);
+            sendActionEvent(TelemetryViews.OverviewPage, TelemetryActions.InstallAgentSkills, {
+                additionalProps: { source: AGENT_SKILLS_PLUGIN_SOURCE },
+            });
+
+            // Handing off to VS Code tells us nothing about the outcome, so watch for the
+            // manifest to change and let the page settle itself.
+            void this.watchForAgentSkillsInstall();
         });
 
         this.onRequest(OpenFolderRequest.type, async () => {
@@ -511,6 +593,91 @@ export class OverviewWebviewController extends WebviewPanelController<
                 }
             });
         });
+    }
+
+    /**
+     * Watches for an install started by {@link InstallAgentSkillsPluginRequest} to land. Gives up
+     * after a timeout, since the user may well have dismissed the trust prompt.
+     */
+    private async watchForAgentSkillsInstall(): Promise<void> {
+        if (this._agentSkillsWatchActive) {
+            return;
+        }
+        this._agentSkillsWatchActive = true;
+        try {
+            const deadline = Date.now() + AGENT_SKILLS_POLL_TIMEOUT_MS;
+            while (Date.now() < deadline && !this.isDisposed) {
+                await new Promise((resolve) => setTimeout(resolve, AGENT_SKILLS_POLL_INTERVAL_MS));
+                if (this.isDisposed) {
+                    return;
+                }
+                if (await this.hasAgentSkillsPlugin()) {
+                    await this.refreshAgentSkillsState();
+                    return;
+                }
+            }
+        } finally {
+            this._agentSkillsWatchActive = false;
+        }
+    }
+
+    /** Re-runs the agent skills check and pushes the result to the page. */
+    private async refreshAgentSkillsState(): Promise<void> {
+        if (this.isDisposed) {
+            return;
+        }
+        const hasAgentSkillsPlugin = await this.hasAgentSkillsPlugin();
+        if (this.isDisposed) {
+            return;
+        }
+        this.updateState({ ...this.state, hasAgentSkillsPlugin });
+    }
+
+    /**
+     * Whether the Azure SQL skills plugin is installed, read from VS Code's own manifest of
+     * installed agent plugins. The marketplaces setting is never cleaned up on uninstall and the
+     * cloned source is left on disk, so neither of those answers the question -- this manifest is
+     * what VS Code rewrites as plugins come and go.
+     */
+    private async hasAgentSkillsPlugin(): Promise<boolean> {
+        for (const manifestUri of this.getAgentPluginManifestCandidates()) {
+            let manifest: AgentPluginsManifest;
+            try {
+                const bytes = await vscode.workspace.fs.readFile(manifestUri);
+                manifest = JSON.parse(Buffer.from(bytes).toString("utf8")) as AgentPluginsManifest;
+            } catch {
+                continue; // Absent for this install flavour, or not readable.
+            }
+
+            const source = AGENT_SKILLS_PLUGIN_SOURCE.toLowerCase();
+            const installed = manifest.installed?.some(
+                (entry) =>
+                    entry.marketplace?.toLowerCase() === source ||
+                    entry.pluginUri?.toLowerCase().includes(`/${source}`),
+            );
+            if (installed) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Manifest locations to try, most specific first. Our own extension normally lives in
+     * `<home>/extensions`, which pins the right flavour; a development host does not, so the
+     * known homes are tried as well.
+     */
+    private getAgentPluginManifestCandidates(): vscode.Uri[] {
+        const candidates: vscode.Uri[] = [];
+        const add = (base: vscode.Uri) =>
+            candidates.push(vscode.Uri.joinPath(base, AGENT_PLUGINS_DIR, AGENT_PLUGINS_MANIFEST));
+
+        // extensionUri is <home>/extensions/<extension id> for an installed extension.
+        add(vscode.Uri.joinPath(this._context.extensionUri, "..", ".."));
+        for (const home of VS_CODE_HOME_DIRS) {
+            add(vscode.Uri.joinPath(vscode.Uri.file(os.homedir()), home));
+        }
+        return candidates;
     }
 
     private async getDevContainerPrerequisites(): Promise<DevContainerPrerequisites> {

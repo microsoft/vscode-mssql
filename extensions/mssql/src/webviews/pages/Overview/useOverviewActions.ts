@@ -9,6 +9,7 @@ import {
     DevContainerTemplateId,
     CheckDevContainerPrerequisitesRequest,
     DevContainerPrerequisites,
+    InstallAgentSkillsPluginRequest,
     InstallDevContainersExtensionRequest,
     OpenFolderRequest,
     ReopenInContainerRequest,
@@ -48,6 +49,10 @@ export function useOverviewActions() {
         },
         [extensionRpc],
     );
+
+    const installAgentSkillsPlugin = useCallback(() => {
+        void extensionRpc.sendRequest(InstallAgentSkillsPluginRequest.type, undefined);
+    }, [extensionRpc]);
 
     const openFolder = useCallback(() => {
         void extensionRpc.sendRequest(OpenFolderRequest.type, undefined);
@@ -95,6 +100,7 @@ export function useOverviewActions() {
             openLink,
             openRecentSqlFile,
             openFolder,
+            installAgentSkillsPlugin,
             runChangelogAction,
             addDevContainerConfiguration,
             reopenInContainer,
@@ -107,6 +113,7 @@ export function useOverviewActions() {
             openLink,
             openRecentSqlFile,
             openFolder,
+            installAgentSkillsPlugin,
             runChangelogAction,
             addDevContainerConfiguration,
             reopenInContainer,

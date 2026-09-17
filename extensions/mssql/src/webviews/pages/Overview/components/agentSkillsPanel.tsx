@@ -9,17 +9,28 @@ import {
     AccordionItem,
     AccordionPanel,
     Button,
+    Dialog,
+    DialogActions,
+    DialogBody,
+    DialogContent,
+    DialogSurface,
+    DialogTitle,
+    MessageBar,
+    Spinner,
+    MessageBarActions,
+    MessageBarBody,
     Text,
     makeStyles,
     tokens,
 } from "@fluentui/react-components";
-import { Copy16Regular, Open16Regular } from "@fluentui/react-icons";
-import { useState } from "react";
+import { Copy16Regular } from "@fluentui/react-icons";
+import { useEffect, useState } from "react";
 
 import { AgentSkillsIcon } from "../../../common/icons/agentSkills";
-import { agentSkillsCliCommand, getPromptCards, overviewLinks } from "../overviewContent";
+import { PromptCard, getPromptCards } from "../overviewContent";
 import { locConstants } from "../../../common/locConstants";
 import { useOverviewActions } from "../useOverviewActions";
+import { useOverviewSelector } from "../overviewSelector";
 
 const useStyles = makeStyles({
     root: {
@@ -87,35 +98,6 @@ const useStyles = makeStyles({
         lineHeight: "1.5",
         color: tokens.colorNeutralForeground2,
     },
-    cliAccordion: {
-        marginTop: "9px",
-    },
-    cliHeader: {
-        "& button": {
-            fontSize: "11px",
-            color: tokens.colorNeutralForeground3,
-        },
-    },
-    cliRow: {
-        display: "flex",
-        alignItems: "center",
-        gap: "8px",
-        padding: "5px 8px",
-        border: `1px dashed ${tokens.colorNeutralStroke2}`,
-        borderRadius: "6px",
-        backgroundColor: tokens.colorNeutralBackground3,
-    },
-    cliCommand: {
-        flexGrow: 1,
-        minWidth: 0,
-        margin: 0,
-        fontFamily: tokens.fontFamilyMonospace,
-        fontSize: "11px",
-        color: tokens.colorNeutralForeground3,
-        // The command is long by design; it scrolls rather than wrapping to six lines.
-        whiteSpace: "nowrap",
-        overflowX: "auto",
-    },
     tintedButton: {
         flexShrink: 0,
         fontSize: "11px",
@@ -134,6 +116,29 @@ const useStyles = makeStyles({
             textTransform: "uppercase",
             color: tokens.colorNeutralForeground3,
         },
+    },
+    promptDialog: {
+        maxWidth: "620px",
+    },
+    promptDialogDescription: {
+        display: "block",
+        marginBottom: tokens.spacingVerticalM,
+        color: tokens.colorNeutralForeground3,
+    },
+    // The prompt is meant to be read and copied verbatim, so it keeps its own wrapping.
+    promptDialogText: {
+        margin: 0,
+        padding: tokens.spacingVerticalM,
+        borderRadius: tokens.borderRadiusMedium,
+        backgroundColor: tokens.colorNeutralBackground3,
+        fontFamily: tokens.fontFamilyMonospace,
+        fontSize: tokens.fontSizeBase200,
+        lineHeight: tokens.lineHeightBase300,
+        whiteSpace: "pre-wrap",
+        overflowWrap: "anywhere",
+    },
+    promptNotice: {
+        marginBottom: tokens.spacingVerticalM,
     },
     promptGrid: {
         display: "grid",
@@ -195,7 +200,35 @@ const useStyles = makeStyles({
 export const AgentSkillsPanel = () => {
     const classes = useStyles();
     const loc = locConstants.overview;
-    const { openLink } = useOverviewActions();
+    const { installAgentSkillsPlugin } = useOverviewActions();
+    const hasAgentSkillsPlugin = useOverviewSelector((state) => state.hasAgentSkillsPlugin);
+    // The install runs in VS Code behind a trust prompt, so the button has to say something
+    // between the click and the manifest changing, or it reads as having done nothing.
+    const [isInstalling, setIsInstalling] = useState(false);
+    // The prompt is the whole point of the card, so viewing it stays in the page rather than
+    // sending the reader to a repository to find it.
+    const [viewedPrompt, setViewedPrompt] = useState<PromptCard | undefined>(undefined);
+
+    useEffect(() => {
+        if (hasAgentSkillsPlugin) {
+            setIsInstalling(false);
+        }
+    }, [hasAgentSkillsPlugin]);
+
+    // The prompt may simply be dismissed, in which case nothing ever arrives; give up in step
+    // with the extension host so the button does not sit spinning forever.
+    useEffect(() => {
+        if (!isInstalling) {
+            return;
+        }
+        const timer = setTimeout(() => setIsInstalling(false), 120_000);
+        return () => clearTimeout(timer);
+    }, [isInstalling]);
+
+    const startInstall = () => {
+        setIsInstalling(true);
+        installAgentSkillsPlugin();
+    };
     const [copiedId, setCopiedId] = useState<string | undefined>(undefined);
 
     const copy = async (id: string, text: string) => {
@@ -221,30 +254,17 @@ export const AgentSkillsPanel = () => {
                     </div>
                     <Button
                         appearance="primary"
-                        onClick={() => openLink(overviewLinks.skillsRepository)}>
-                        {loc.addToGitHubCopilot}
+                        disabled={hasAgentSkillsPlugin || isInstalling}
+                        icon={isInstalling ? <Spinner size="tiny" /> : undefined}
+                        onClick={startInstall}>
+                        {hasAgentSkillsPlugin
+                            ? loc.agentSkillsInstalled
+                            : isInstalling
+                              ? loc.agentSkillsInstalling
+                              : loc.addToGitHubCopilot}
                     </Button>
                 </div>
                 <Text className={classes.description}>{loc.agentSkillsDescription}</Text>
-                <Accordion collapsible className={classes.cliAccordion}>
-                    <AccordionItem value="cli">
-                        <AccordionHeader className={classes.cliHeader}>
-                            {loc.installWithCli}
-                        </AccordionHeader>
-                        <AccordionPanel>
-                            <div className={classes.cliRow}>
-                                <pre className={classes.cliCommand}>{agentSkillsCliCommand}</pre>
-                                <Button
-                                    className={classes.tintedButton}
-                                    onClick={() => void copy("cli", agentSkillsCliCommand)}>
-                                    {copiedId === "cli"
-                                        ? locConstants.common.copied
-                                        : locConstants.common.copy}
-                                </Button>
-                            </div>
-                        </AccordionPanel>
-                    </AccordionItem>
-                </Accordion>
             </div>
 
             {/* Collapsed by default: the prompts are a secondary aid, not the primary content. */}
@@ -254,6 +274,21 @@ export const AgentSkillsPanel = () => {
                         {loc.tryThesePrompts}
                     </AccordionHeader>
                     <AccordionPanel>
+                        {!hasAgentSkillsPlugin && (
+                            <MessageBar intent="info" className={classes.promptNotice}>
+                                <MessageBarBody>{loc.agentSkillsNotInstalled}</MessageBarBody>
+                                <MessageBarActions>
+                                    <Button
+                                        size="small"
+                                        disabled={isInstalling}
+                                        onClick={startInstall}>
+                                        {isInstalling
+                                            ? loc.agentSkillsInstalling
+                                            : loc.addToGitHubCopilot}
+                                    </Button>
+                                </MessageBarActions>
+                            </MessageBar>
+                        )}
                         <div className={classes.promptGrid}>
                             {getPromptCards().map((card) => (
                                 <div key={card.id} className={classes.promptCard}>
@@ -273,9 +308,7 @@ export const AgentSkillsPanel = () => {
                                         </Button>
                                         <Button
                                             className={classes.ghostButton}
-                                            icon={<Open16Regular />}
-                                            iconPosition="after"
-                                            onClick={() => openLink(card.url)}>
+                                            onClick={() => setViewedPrompt(card)}>
                                             {loc.view}
                                         </Button>
                                     </div>
@@ -285,6 +318,41 @@ export const AgentSkillsPanel = () => {
                     </AccordionPanel>
                 </AccordionItem>
             </Accordion>
+
+            {viewedPrompt && (
+                <Dialog
+                    open
+                    onOpenChange={(_event, data) => !data.open && setViewedPrompt(undefined)}>
+                    <DialogSurface className={classes.promptDialog}>
+                        <DialogBody>
+                            <DialogTitle>{viewedPrompt.title}</DialogTitle>
+                            <DialogContent>
+                                <Text className={classes.promptDialogDescription}>
+                                    {viewedPrompt.description}
+                                </Text>
+                                <pre className={classes.promptDialogText}>
+                                    {viewedPrompt.prompt}
+                                </pre>
+                            </DialogContent>
+                            <DialogActions>
+                                <Button
+                                    appearance="secondary"
+                                    onClick={() => setViewedPrompt(undefined)}>
+                                    {locConstants.common.close}
+                                </Button>
+                                <Button
+                                    appearance="primary"
+                                    icon={<Copy16Regular />}
+                                    onClick={() => void copy(viewedPrompt.id, viewedPrompt.prompt)}>
+                                    {copiedId === viewedPrompt.id
+                                        ? loc.promptCopied
+                                        : loc.copyPrompt}
+                                </Button>
+                            </DialogActions>
+                        </DialogBody>
+                    </DialogSurface>
+                </Dialog>
+            )}
         </div>
     );
 };

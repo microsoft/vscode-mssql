@@ -21,7 +21,7 @@ export const overviewLinks = {
     devHub: "https://aka.ms/azure-sql-dev-hub",
     devContainersQuickstart:
         "https://learn.microsoft.com/azure/azure-sql/database/local-dev-experience-dev-containers-quickstart",
-    skillsRepository: "https://github.com/microsoft/azure-sql-skills",
+    skillsRepository: "https://github.com/microsoft/azure-sql-database-container",
     devContainersRepository: "https://github.com/microsoft/azuresql-devcontainers",
     dockerDesktop: "https://www.docker.com/products/docker-desktop/",
     copilotDocumentation:
@@ -32,14 +32,6 @@ export const overviewLinks = {
         "https://marketplace.visualstudio.com/items?itemName=ms-mssql.mssql-database-management-keymap",
 } as const;
 
-/** CLI equivalent of the "Add to GitHub Copilot" button, offered for scripted setups. */
-export const agentSkillsCliCommand =
-    "npx skills add microsoft/azure-sql-skills -a github-copilot --skill spin-up-container " +
-    "--skill provision-azure-sql-db-free-tier --skill choose-driver-by-language " +
-    "--skill bootstrap-typescript-app --skill bootstrap-python-app --skill bootstrap-dotnet-app " +
-    "--skill design-mssql-schema --skill ef-core-best-practices --skill prisma-mssql " +
-    "--skill t-sql-json-and-openjson --skill build-rag-on-azure-sql --skill github-actions-deploy-sql";
-
 export interface PromptCard {
     id: string;
     tag: string;
@@ -47,45 +39,38 @@ export interface PromptCard {
     description: string;
     /** Text copied to the clipboard, handed to an agent verbatim. */
     prompt: string;
-    /** Source of the prompt, for users who want to read it in full first. */
-    url: string;
 }
 
 export function getPromptCards(): PromptCard[] {
     const loc = locConstants.overview;
-    const promptsBase = `${overviewLinks.skillsRepository}/blob/main/prompts`;
     return [
         {
             id: "createLocal",
             tag: loc.promptTagLocalDev,
             title: loc.promptCreateLocalTitle,
             description: loc.promptCreateLocalDescription,
-            prompt: "Create a local Azure SQL Database container in VS Code, start it, and connect to it — then show me the connection details.",
-            url: `${promptsBase}/create-local-container.md`,
+            prompt: "Add a local Azure SQL database to this app. Spin up the container, create an appdb database I can query, verify the first query, and point the app's configuration at it.",
         },
         {
             id: "buildApp",
             tag: loc.promptTagBuild,
             title: loc.promptBuildAppTitle,
             description: loc.promptBuildAppDescription,
-            prompt: "Scaffold a .NET or Python app wired to a local Azure SQL Database container, with a working data-access layer and a sample query.",
-            url: `${promptsBase}/build-app-on-azure-sql.md`,
+            prompt: "Build me an app on Azure SQL Database. Give me the order of operations from an empty project to the first successful request that reads a row, scaffold the data access layer, and do it without putting a database password in the repo.",
         },
         {
             id: "designSchema",
             tag: loc.promptTagSchema,
             title: loc.promptDesignSchemaTitle,
             description: loc.promptDesignSchemaDescription,
-            prompt: "Design a normalized schema for my app on Azure SQL, create the tables, and seed realistic sample data.",
-            url: `${promptsBase}/design-schema.md`,
+            prompt: "Model these entities as tables on Azure SQL Database, then review the schema before it goes to production: call out the keys, indexes, collation and identity choices that will cause trouble later, and seed realistic sample data.",
         },
         {
             id: "deploy",
             tag: loc.promptTagDeploy,
             title: loc.promptDeployTitle,
             description: loc.promptDeployDescription,
-            prompt: "Provision a free-tier Azure SQL Database and deploy my app to it, migrating the local schema and sample data.",
-            url: `${promptsBase}/deploy-to-azure-sql.md`,
+            prompt: "Move this app from the local Azure SQL container to Azure SQL Database. Get it into Azure without putting a database password anywhere, keep the application code unchanged where possible, and tell me exactly what has to change in configuration.",
         },
     ];
 }

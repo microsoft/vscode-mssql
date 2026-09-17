@@ -4493,6 +4493,9 @@
     <trans-unit id="++CODE++4dee0b3f5cf474cbedf84d1aca0c4c6232058c78aca9ace0a598ef7fa658a93b">
       <source xml:lang="en">Folder structure</source>
     </trans-unit>
+    <trans-unit id="++CODE++a74c32c7844c9897572814912cdd5b7b452da93bfc3284c3bf4f6eb5e6508f0b">
+      <source xml:lang="en">For best results, install the Azure SQL agent skills before using these prompts.</source>
+    </trans-unit>
     <trans-unit id="++CODE++52742c9dc235ecbc2154d3bef091d1e39dd0b8b542ebac8031331a146b83242d">
       <source xml:lang="en">For numeric data, the maximum number of decimal digits that can be stored in this database object to the right of decimal point.</source>
     </trans-unit>
@@ -4960,8 +4963,11 @@
     <trans-unit id="++CODE++bacb967a562a0c1059bd81be06c024c01789e81d12dd3fe6e3d74ae2641c9566">
       <source xml:lang="en">Install the MSSQL Database Management Keymap extension</source>
     </trans-unit>
-    <trans-unit id="++CODE++5269d4942feca8705f881917a8425f1d70baf1590dca5fe5ea582e8e4ed06a4d">
-      <source xml:lang="en">Install with CLI</source>
+    <trans-unit id="++CODE++f8b32f4e92bd84ce1fcd177bec17d43093de3ee8303bb40c1b9ea521ed6a70f6">
+      <source xml:lang="en">Installed</source>
+    </trans-unit>
+    <trans-unit id="++CODE++07ae7fd684564e68cac0181cc95916cb616319dfe87d79129cfcef36ea83a328">
+      <source xml:lang="en">Installing...</source>
     </trans-unit>
     <trans-unit id="++CODE++23175b00048139605147500e1f2eb6c43b4e938ee3dbcfebb00ae6b472284cdb">
       <source xml:lang="en">Instant Container Setup</source>

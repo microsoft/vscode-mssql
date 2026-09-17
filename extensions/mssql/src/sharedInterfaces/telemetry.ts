@@ -223,6 +223,7 @@ export enum TelemetryActions {
     CloseChangelog = "CloseChangelog",
     OpenRecentSqlFile = "OpenRecentSqlFile",
     InstallDevContainersExtension = "InstallDevContainersExtension",
+    InstallAgentSkills = "InstallAgentSkills",
     AddDevContainerConfiguration = "AddDevContainerConfiguration",
     OnRequest = "OnRequest",
     CancelQuery = "CancelQuery",

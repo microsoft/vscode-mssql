@@ -107,6 +107,11 @@ export interface OverviewWebviewState {
     hasDevContainerConfig: boolean;
     /** Whether this window is already running inside a dev container. */
     isInDevContainer: boolean;
+    /**
+     * Whether the Azure SQL agent skills plugin is installed. Read from the chat plugin
+     * marketplaces setting, which VS Code writes when a marketplace plugin is installed.
+     */
+    hasAgentSkillsPlugin: boolean;
 }
 
 /** Reducers (actions that change state) the Overview controller supports. */
@@ -194,6 +199,14 @@ export namespace AddDevContainerConfigurationRequest {
         AddDevContainerConfigurationResult,
         void
     >("overview/addDevContainerConfiguration");
+}
+
+/**
+ * Hands VS Code its own plugin install flow with the Azure SQL skills source pre-filled. The
+ * install itself, including the trust prompt, is VS Code's.
+ */
+export namespace InstallAgentSkillsPluginRequest {
+    export const type = new RequestType<void, void, void>("overview/installAgentSkillsPlugin");
 }
 
 /** Rebuilds and reattaches the window inside the folder's dev container. */

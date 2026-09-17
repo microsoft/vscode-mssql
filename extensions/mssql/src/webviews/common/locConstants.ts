@@ -3856,11 +3856,15 @@ export class LocConstants {
             agentSkillsPublisher: l10n.t("Microsoft"),
             recommended: l10n.t("Recommended"),
             addToGitHubCopilot: l10n.t("Add to GitHub Copilot"),
+            agentSkillsInstalled: l10n.t("Installed"),
+            agentSkillsInstalling: l10n.t("Installing..."),
             agentSkillsDescription: l10n.t(
                 "Add curated SQL guidance for building apps, designing schemas, writing T-SQL, and tuning queries.",
             ),
-            installWithCli: l10n.t("Install with CLI"),
             tryThesePrompts: l10n.t("Try these prompts with agent skills"),
+            agentSkillsNotInstalled: l10n.t(
+                "For best results, install the Azure SQL agent skills before using these prompts.",
+            ),
             copyPrompt: l10n.t("Copy prompt"),
             promptCopied: l10n.t("Prompt copied"),
             view: l10n.t("View"),
