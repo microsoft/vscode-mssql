@@ -29464,681 +29464,675 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";package.mssql.format.alignColumnDefinitionsInColumns" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is disabled.** Should column definitions be aligned?]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando la vista previa del formateador está deshabilitada.** ¿Deben alinearse las definiciones de columna?]]></Val>
-          </Tgt>
-          <Prev Cat="Text">
-            <Val><![CDATA[Legacy formatter only: Align column definitions. Set `mssql.format.enablePreviewFormatter` to `false` to use this setting.]]></Val>
-          </Prev>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";package.mssql.format.datatypeCasing" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is disabled.** Should data types be formatted as UPPERCASE, lowercase, or none (not formatted)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando la vista previa del formateador está deshabilitada.** ¿Los tipos de datos deben formatearse como MAYÚSCULAS, minúsculas o sin formato?]]></Val>
-          </Tgt>
-          <Prev Cat="Text">
-            <Val><![CDATA[Legacy formatter only: Control data type casing. Set `mssql.format.enablePreviewFormatter` to `false` to use this setting.]]></Val>
-          </Prev>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";package.mssql.format.enablePreviewFormatter" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Use the preview SQL formatter. Disable this setting to temporarily use the existing formatter.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Use el formateador SQL en vista previa. Deshabilite esta configuración para usar temporalmente el formateador existente.]]></Val>
-          </Tgt>
-          <Prev Cat="Text">
-            <Val><![CDATA[Use the new SQL formatter. Disable this setting to temporarily use the legacy formatter.]]></Val>
-          </Prev>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";package.mssql.format.keywordCasing" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is disabled.** Should keywords be formatted as UPPERCASE, lowercase, or none (not formatted)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando la vista previa del formateador está deshabilitada.** ¿Las palabras clave deben formatearse como MAYÚSCULAS, minúsculas o sin formato?]]></Val>
-          </Tgt>
-          <Prev Cat="Text">
-            <Val><![CDATA[Legacy formatter only: Control keyword and IntelliSense casing. Set `mssql.format.enablePreviewFormatter` to `false` to use this setting.]]></Val>
-          </Prev>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";package.mssql.format.options.alignClauseBodies" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Align the bodies of FROM, WHERE, GROUP BY, and similar clauses.]]></Val>
+          <Val><![CDATA[Align the bodies of FROM, WHERE, GROUP BY, and similar clauses.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando la vista previa del formateador está habilitada.** Alinear los cuerpos de las cláusulas FROM, WHERE, GROUP BY y similares.]]></Val>
+            <Val><![CDATA[Alinea los cuerpos de FROM, WHERE, GROUP BY y cláusulas similares.]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Align the bodies of FROM, WHERE, GROUP BY, and similar clauses.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Align the bodies of FROM, WHERE, GROUP BY, and similar clauses.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.alignColumnDefinitionFields" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Align column-definition fields, such as names, data types, and constraints.]]></Val>
+          <Val><![CDATA[Align column-definition fields, such as names, data types, and constraints.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando la vista previa del formateador está habilitada.** Alinear los campos de definición de columna, como nombres, tipos de datos y restricciones.]]></Val>
+            <Val><![CDATA[Alinee campos de definición de columna, como nombres, tipos de datos y restricciones.]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Align column-definition fields, such as names, data types, and constraints.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Align column-definition fields, such as names, data types, and constraints.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.alignSetClauseItem" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Align SET clause items in UPDATE statements.]]></Val>
+          <Val><![CDATA[Align SET clause items in UPDATE statements.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando la vista previa del formateador está habilitada.** Alinear los elementos de las cláusulas SET en las instrucciones UPDATE.]]></Val>
+            <Val><![CDATA[Alinee los elementos de la cláusula SET en las instrucciones UPDATE.]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Align SET clause items in UPDATE statements.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Align SET clause items in UPDATE statements.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.allowExternalLanguagePaths" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Allow external language content to use file paths.]]></Val>
+          <Val><![CDATA[Allow external language content to use file paths.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando la vista previa del formateador está habilitada.** Permitir que el contenido de idiomas externos use rutas de acceso a archivos.]]></Val>
+            <Val><![CDATA[Permitir que el contenido del lenguaje externo use rutas de acceso de archivo.]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Allow external language content to use file paths.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Allow external language content to use file paths.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.allowExternalLibraryPaths" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Allow external library content to use file paths.]]></Val>
+          <Val><![CDATA[Allow external library content to use file paths.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando la vista previa del formateador está habilitada.** Permitir que el contenido de bibliotecas externas use rutas de acceso a archivos.]]></Val>
+            <Val><![CDATA[Permitir que el contenido de la biblioteca externa use rutas de acceso de archivo.]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Allow external library content to use file paths.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Allow external library content to use file paths.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.asKeywordOnOwnLine" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place AS on its own line.]]></Val>
+          <Val><![CDATA[Place AS on its own line.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando la vista previa del formateador está habilitada.** Colocar AS en su propia línea.]]></Val>
+            <Val><![CDATA[Coloque AS en su propia línea.]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Place AS on its own line.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Place AS on its own line.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.builtInFunctionCasing" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Casing style for supported built-in function names, such as `GETDATE` and `COALESCE`.]]></Val>
+          <Val><![CDATA[Casing style for supported built-in function names, such as `GETDATE` and `COALESCE`.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando el formateador de vista previa está habilitado.** Estilo de uso de mayúsculas y minúsculas para los nombres de función integrados admitidos, como "GETDATE" y "COALESCE".]]></Val>
+            <Val><![CDATA[Estilo de mayúsculas y minúsculas para los nombres de función integrados admitidos, como "GETDATE" y "COALESCE".]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Casing style for supported built-in function names, such as `GETDATE` and `COALESCE`.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.clauseBodyAlignment" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Keep clause bodies aligned with their keywords or place them on the next line with indentation.]]></Val>
+          <Val><![CDATA[Keep clause bodies aligned with their keywords or place them on the next line with indentation.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando el formateador de vista previa está habilitado.** Mantenga los cuerpos de la cláusula alineados con sus palabras clave o colóquelos en la línea siguiente con sangría.]]></Val>
+            <Val><![CDATA[Mantenga los cuerpos de las cláusulas alineados con sus palabras clave o colóquelos en la línea siguiente con sangría.]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Keep clause bodies aligned with their keywords or place them on the next line with indentation.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.columnAliasStyle" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format column aliases using `AS`, an equals sign, or their original syntax.]]></Val>
+          <Val><![CDATA[Format column aliases using `AS`, an equals sign, or their original syntax.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando la vista previa del formateador está habilitada.** Dé formato a los alias de columna con "AS", un signo igual o su sintaxis original.]]></Val>
+            <Val><![CDATA[Formatee a los alias de columna mediante "AS", un signo igual o su sintaxis original.]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Format column aliases using `AS`, an equals sign, or their original syntax.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.commaPlacement" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place commas at the end of list items or at the beginning of the next item.]]></Val>
+          <Val><![CDATA[Place commas at the end of list items or at the beginning of the next item.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando la vista previa del formateador está habilitada.** Coloque comas al final de los elementos de la lista o al principio del elemento siguiente.]]></Val>
+            <Val><![CDATA[Coloque comas al final de los elementos de la lista o al principio del elemento siguiente.]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Place commas at the end of list items or at the beginning of the next item.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.identifierBracketing" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Preserve, add, or remove optional square brackets around identifiers. Required brackets are retained.]]></Val>
+          <Val><![CDATA[Preserve, add, or remove optional square brackets around identifiers. Required brackets are retained.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando el formateador de vista previa está habilitado.** Conserve, agregue o quite corchetes opcionales alrededor de los identificadores. Se conservan los corchetes necesarios.]]></Val>
+            <Val><![CDATA[Conservar, agregar o quitar corchetes opcionales alrededor de los identificadores. Se conservan los corchetes necesarios.]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Preserve, add, or remove optional square brackets around identifiers. Required brackets are retained.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.identifierCasing" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Casing style for object identifiers.]]></Val>
+          <Val><![CDATA[Casing style for object identifiers.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando el formateador de vista previa está habilitado.** Estilo de uso de mayúsculas y minúsculas para los identificadores de objeto.]]></Val>
+            <Val><![CDATA[Estilo de mayúsculas y minúsculas para los identificadores de objeto.]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Casing style for object identifiers.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.indentSetClause" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Indent SET clauses in UPDATE statements.]]></Val>
+          <Val><![CDATA[Indent SET clauses in UPDATE statements.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando la vista previa del formateador está habilitada.** Aplicar sangría a las cláusulas SET en las instrucciones UPDATE.]]></Val>
+            <Val><![CDATA[Aplicar sangría a las cláusulas SET en instrucciones UPDATE.]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Indent SET clauses in UPDATE statements.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Indent SET clauses in UPDATE statements.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.indentViewBody" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Indent VIEW bodies.]]></Val>
+          <Val><![CDATA[Indent VIEW bodies.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando la vista previa del formateador está habilitada.** Aplicar sangría a los cuerpos de VIEW.]]></Val>
+            <Val><![CDATA[Aplique sangría al cuerpo de VIEW.]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Indent VIEW bodies.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Indent VIEW bodies.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.keywordCasing" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Keyword casing style.]]></Val>
+          <Val><![CDATA[Keyword casing style.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando la vista previa del formateador está habilitada.** Estilo de uso de mayúsculas y minúsculas para palabras clave.]]></Val>
+            <Val><![CDATA[Estilo de mayúsculas y minúsculas de palabra clave.]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Keyword casing style.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Keyword casing style.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.leadingCommaSpaceCount" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Number of spaces after a leading comma. Valid values are 0 and 1.]]></Val>
+          <Val><![CDATA[Number of spaces after a leading comma. Valid values are 0 and 1.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando la vista previa del formateador está habilitada.** Número de espacios después de una coma inicial. Los valores válidos son 0 y 1.]]></Val>
+            <Val><![CDATA[Número de espacios después de una coma inicial. Los valores válidos son 0 y 1.]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Number of spaces after a leading comma. Valid values are 0 and 1.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.multilineGroupByElementsList" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format GROUP BY elements as a multiline list.]]></Val>
+          <Val><![CDATA[Format GROUP BY elements as a multiline list.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando la vista previa del formateador está habilitada.** Dar formato a los elementos GROUP BY como una lista de varias líneas.]]></Val>
+            <Val><![CDATA[Dar formato a los elementos GROUP BY como una lista de varias líneas.]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Format GROUP BY elements as a multiline list.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.multilineHavingPredicatesList" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format HAVING predicates separated by AND or OR on multiple lines.]]></Val>
+          <Val><![CDATA[Format HAVING predicates separated by AND or OR on multiple lines.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando el formateador de vista previa está habilitado.** Aplicar formato a predicados HAVING separados por AND u OR en varias líneas.]]></Val>
+            <Val><![CDATA[Aplicar formato a predicados HAVING separados por AND u OR en varias líneas.]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Format HAVING predicates separated by AND or OR on multiple lines.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.multilineInValuesList" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format values in an IN predicate as a multiline list.]]></Val>
+          <Val><![CDATA[Format values in an IN predicate as a multiline list.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando el Formateador de vista previa está habilitado.** Formatee los valores de un predicado IN como una lista de varias líneas.]]></Val>
+            <Val><![CDATA[Formatee a los valores de un predicado IN como una lista de varias líneas.]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Format values in an IN predicate as a multiline list.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.multilineInsertSourcesList" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format INSERT sources as multiline lists.]]></Val>
+          <Val><![CDATA[Format INSERT sources as multiline lists.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando la vista previa del formateador está habilitada.** Dar formato a los elementos de las orígenes INSERT como listas de varias líneas.]]></Val>
+            <Val><![CDATA[Dar formato a los orígenes INSERT como listas de varias líneas.]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Format INSERT sources as multiline lists.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Format INSERT sources as multiline lists.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.multilineInsertTargetsList" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format INSERT columns as multiline lists.]]></Val>
+          <Val><![CDATA[Format INSERT columns as multiline lists.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando la vista previa del formateador está habilitada.** Dar formato a los elementos de las columnas INSERT como listas de varias líneas.]]></Val>
+            <Val><![CDATA[Dar formato a las columnas INSERT como listas de varias líneas.]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Format INSERT columns as multiline lists.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Format INSERT columns as multiline lists.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.multilineNestedFunctionCalls" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format nested function calls on separate indented lines while keeping isolated function calls on one line.]]></Val>
+          <Val><![CDATA[Format nested function calls on separate indented lines while keeping isolated function calls on one line.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando la vista previa del formateador está habilitada.** Aplique formato a las llamadas de función anidadas en líneas con sangría separadas mientras mantiene las llamadas de función aisladas en una línea.]]></Val>
+            <Val><![CDATA[Formatee a las llamadas de función anidadas en líneas separadas con sangría mientras mantiene las llamadas de función aisladas en una línea.]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Format nested function calls on separate indented lines while keeping isolated function calls on one line.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.multilineOrderByElementsList" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format ORDER BY elements as a multiline list.]]></Val>
+          <Val><![CDATA[Format ORDER BY elements as a multiline list.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando la vista previa del formateador está habilitada.** Dar formato a los elementos ORDER BY como una lista de varias líneas.]]></Val>
+            <Val><![CDATA[Dar formato a los elementos ORDER BY como una lista de varias líneas.]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Format ORDER BY elements as a multiline list.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.multilinePartitionByElementsList" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format PARTITION BY elements in window specifications as a multiline list.]]></Val>
+          <Val><![CDATA[Format PARTITION BY elements in window specifications as a multiline list.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando la vista previa del formateador está habilitada.** Dar formato a los elementos PARTITION BY en las especificaciones de la ventana como una lista de varias líneas.]]></Val>
+            <Val><![CDATA[Dar formato a los elementos PARTITION BY de las especificaciones de ventana como una lista de varias líneas.]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Format PARTITION BY elements in window specifications as a multiline list.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.multilineProcedureParametersList" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format procedure and function parameters on separate lines.]]></Val>
+          <Val><![CDATA[Format procedure and function parameters on separate lines.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando el formateador de vista previa está habilitado.** Aplique formato a los parámetros de procedimiento y función en líneas independientes.]]></Val>
+            <Val><![CDATA[Dar formato a los parámetros de procedimiento y función en líneas independientes.]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Format procedure and function parameters on separate lines.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.multilineSelectElementsList" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format SELECT columns as multiline lists.]]></Val>
+          <Val><![CDATA[Format SELECT columns as multiline lists.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando la vista previa del formateador está habilitada.** Dar formato a los elementos de las columnas SELECT como listas de varias líneas.]]></Val>
+            <Val><![CDATA[Dar formato a las columnas SELECT como listas de varias líneas.]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Format SELECT columns as multiline lists.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Format SELECT columns as multiline lists.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.multilineSetClauseItems" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format SET clause items as multiline lists.]]></Val>
+          <Val><![CDATA[Format SET clause items as multiline lists.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando la vista previa del formateador está habilitada.** Dar formato a los elementos de la cláusula SET como listas de varias líneas.]]></Val>
+            <Val><![CDATA[Dar formato a los elementos de la cláusula SET como listas de varias líneas.]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Format SET clause items as multiline lists.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Format SET clause items as multiline lists.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.multilineViewColumnsList" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format VIEW columns as multiline lists.]]></Val>
+          <Val><![CDATA[Format VIEW columns as multiline lists.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando la vista previa del formateador está habilitada.** Dar formato a los elementos de las columnas VIEW como listas de varias líneas.]]></Val>
+            <Val><![CDATA[Dar formato a las columnas VIEW como listas de varias líneas.]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Format VIEW columns as multiline lists.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Format VIEW columns as multiline lists.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.multilineWherePredicatesList" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format WHERE predicates as multiline lists.]]></Val>
+          <Val><![CDATA[Format WHERE predicates as multiline lists.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando la vista previa del formateador está habilitada.** Dar formato a los predicados WHERE como listas de varias líneas.]]></Val>
+            <Val><![CDATA[Dar formato a predicados WHERE como listas de varias líneas.]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Format WHERE predicates as multiline lists.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Format WHERE predicates as multiline lists.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.multilineWithOptionsList" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format supported WITH and OPTION clause values on separate lines.]]></Val>
+          <Val><![CDATA[Format supported WITH and OPTION clause values on separate lines.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando el formateador de vista previa está habilitado.** Formato compatible con los valores de las cláusulas WITH y OPTION en líneas independientes.]]></Val>
+            <Val><![CDATA[Aplicar formato a los valores de las cláusulas WITH y OPTION admitidos en líneas independientes.]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Format supported WITH and OPTION clause values on separate lines.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.newLineAfterJoinKeyword" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place the joined table source on a new line after the JOIN keyword.]]></Val>
+          <Val><![CDATA[Place the joined table source on a new line after the JOIN keyword.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando la vista previa del formateador está habilitada.** Coloque el origen de la tabla combinada en una nueva línea después de la palabra clave JOIN.]]></Val>
+            <Val><![CDATA[Coloque el origen de la tabla combinada en una nueva línea después de la palabra clave JOIN.]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Place the joined table source on a new line after the JOIN keyword.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.newLineBeforeCloseParenthesisInMultilineList" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the closing parenthesis of a multiline list.]]></Val>
+          <Val><![CDATA[Place a newline before the closing parenthesis of a multiline list.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando la vista previa del formateador está habilitada.** Colocar un salto de línea antes del paréntesis de cierre de una lista de varias líneas.]]></Val>
+            <Val><![CDATA[Coloque una nueva línea antes del paréntesis de cierre de una lista de varias líneas.]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Place a newline before the closing parenthesis of a multiline list.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the closing parenthesis of a multiline list.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.newLineBeforeFromClause" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the FROM clause.]]></Val>
+          <Val><![CDATA[Place a newline before the FROM clause.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando la vista previa del formateador está habilitada.** Colocar un salto de línea antes de la cláusula FROM.]]></Val>
+            <Val><![CDATA[Coloque una nueva línea antes de la cláusula FROM.]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Place a newline before the FROM clause.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the FROM clause.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.newLineBeforeGroupByClause" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the GROUP BY clause.]]></Val>
+          <Val><![CDATA[Place a newline before the GROUP BY clause.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando la vista previa del formateador está habilitada.** Colocar un salto de línea antes de la cláusula GROUP.]]></Val>
+            <Val><![CDATA[Coloque una nueva línea antes de la cláusula GROUP BY.]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Place a newline before the GROUP BY clause.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the GROUP BY clause.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.newLineBeforeHavingClause" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the HAVING clause.]]></Val>
+          <Val><![CDATA[Place a newline before the HAVING clause.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando la vista previa del formateador está habilitada.** Colocar un salto de línea antes de la cláusula HAVING.]]></Val>
+            <Val><![CDATA[Coloque una nueva línea antes de la cláusula HAVING.]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Place a newline before the HAVING clause.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the HAVING clause.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.newLineBeforeJoinClause" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before JOIN clauses.]]></Val>
+          <Val><![CDATA[Place a newline before JOIN clauses.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando la vista previa del formateador está habilitada.** Colocar un salto de línea antes de las cláusulas JOIN.]]></Val>
+            <Val><![CDATA[Coloque una nueva línea antes de las cláusulas JOIN.]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Place a newline before JOIN clauses.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before JOIN clauses.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.newLineBeforeOffsetClause" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the OFFSET clause.]]></Val>
+          <Val><![CDATA[Place a newline before the OFFSET clause.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando la vista previa del formateador está habilitada.** Colocar un salto de línea antes de la cláusula OFFSET.]]></Val>
+            <Val><![CDATA[Coloque una nueva línea antes de la cláusula OFFSET.]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Place a newline before the OFFSET clause.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the OFFSET clause.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.newLineBeforeOnClause" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place the ON clause of a JOIN on a new line.]]></Val>
+          <Val><![CDATA[Place the ON clause of a JOIN on a new line.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando el formateador de vista previa está habilitado.** Coloque la cláusula ON de una operación JOIN en una nueva línea.]]></Val>
+            <Val><![CDATA[Coloque la cláusula ON de una JOIN en una nueva línea.]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Place the ON clause of a JOIN on a new line.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.newLineBeforeOpenParenthesisInMultilineList" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the opening parenthesis of a multiline list.]]></Val>
+          <Val><![CDATA[Place a newline before the opening parenthesis of a multiline list.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando la vista previa del formateador está habilitada.** Colocar un salto de línea antes del paréntesis de apertura de una lista de varias líneas.]]></Val>
+            <Val><![CDATA[Coloque una nueva línea antes del paréntesis de apertura de una lista de varias líneas.]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Place a newline before the opening parenthesis of a multiline list.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the opening parenthesis of a multiline list.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.newLineBeforeOrderByClause" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the ORDER BY clause.]]></Val>
+          <Val><![CDATA[Place a newline before the ORDER BY clause.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando la vista previa del formateador está habilitada.** Colocar un salto de línea antes de la cláusula ORDER BY.]]></Val>
+            <Val><![CDATA[Coloque una nueva línea antes de la cláusula ORDER BY.]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Place a newline before the ORDER BY clause.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the ORDER BY clause.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.newLineBeforeOutputClause" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the OUTPUT clause.]]></Val>
+          <Val><![CDATA[Place a newline before the OUTPUT clause.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando la vista previa del formateador está habilitada.** Colocar un salto de línea antes de la cláusula OUTPUT.]]></Val>
+            <Val><![CDATA[Coloque una nueva línea antes de la cláusula OUTPUT.]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Place a newline before the OUTPUT clause.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the OUTPUT clause.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.newLineBeforeWhereClause" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the WHERE clause.]]></Val>
+          <Val><![CDATA[Place a newline before the WHERE clause.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando la vista previa del formateador está habilitada.** Colocar un salto de línea antes de la cláusula WHERE.]]></Val>
+            <Val><![CDATA[Coloque una nueva línea antes de la cláusula WHERE.]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Place a newline before the WHERE clause.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the WHERE clause.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.newLineBeforeWindowClause" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the WINDOW clause.]]></Val>
+          <Val><![CDATA[Place a newline before the WINDOW clause.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando la vista previa del formateador está habilitada.** Colocar un salto de línea antes de la cláusula WINDOW.]]></Val>
+            <Val><![CDATA[Coloque una nueva línea antes de la cláusula WINDOW.]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Place a newline before the WINDOW clause.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the WINDOW clause.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.newLineFormattedIndexDefinition" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place UNIQUE, INCLUDE, and WHERE portions of inline index definitions on separate lines.]]></Val>
+          <Val><![CDATA[Place UNIQUE, INCLUDE, and WHERE portions of inline index definitions on separate lines.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando el formateador de vista previa está habilitado.** Colocar las partes UNIQUE, INCLUDE y WHERE de las definiciones de índice en línea en líneas independientes.]]></Val>
+            <Val><![CDATA[Coloque las partes UNIQUE, INCLUDE y WHERE de las definiciones de índice insertadas en líneas independientes.]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Place UNIQUE, INCLUDE, and WHERE portions of inline index definitions on separate lines.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Place UNIQUE, INCLUDE, and WHERE portions of inline index definitions on separate lines.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.newlineFormattedCheckConstraint" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place the CHECK clause of a constraint on its own line.]]></Val>
+          <Val><![CDATA[Place the CHECK clause of a constraint on its own line.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando la vista previa del formateador está habilitada.** Colocar la cláusula CHECK de una restricción en su propia línea.]]></Val>
+            <Val><![CDATA[Coloque la cláusula CHECK de una restricción en su propia línea.]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Place the CHECK clause of a constraint on its own line.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Place the CHECK clause of a constraint on its own line.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.numNewlinesAfterBatchStatement" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Number of line breaks after each top-level statement in a batch, from 0 through 5.]]></Val>
+          <Val><![CDATA[Number of line breaks after each top-level statement in a batch, from 0 through 5.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando el formateador de vista previa está habilitado.** Número de saltos de línea después de cada instrucción de nivel superior de un lote, de 0 a 5.]]></Val>
+            <Val><![CDATA[Número de saltos de línea después de cada instrucción de nivel superior de un lote, de 0 a 5.]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Number of line breaks after each top-level statement in a batch, from 0 through 5.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.numNewlinesAfterBatches" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Number of line breaks after each GO batch separator, from 0 through 5.]]></Val>
+          <Val><![CDATA[Number of line breaks after each GO batch separator, from 0 through 5.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando la vista previa del formateador está habilitada.** Número de saltos de línea después de cada separador de lote de GO, de 0 a 5.]]></Val>
+            <Val><![CDATA[Número de saltos de línea después de cada separador de lotes GO, de 0 a 5.]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Number of line breaks after each GO batch separator, from 0 through 5.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.numNewlinesAfterStatement" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Number of line breaks after each statement, from 0 through 5.]]></Val>
+          <Val><![CDATA[Number of line breaks after each statement, from 0 through 5.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando la vista previa del formateador está habilitada.** Número de saltos de línea después de cada instrucción, de 0 a 5.]]></Val>
+            <Val><![CDATA[Número de saltos de línea después de cada instrucción, de 0 a 5.]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Number of line breaks after each statement, from 0 through 5.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Number of line breaks after each statement, from 0 through 5.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.persistTrailingGo" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Preserve trailing GO batch separators from the original script.]]></Val>
+          <Val><![CDATA[Preserve trailing GO batch separators from the original script.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando el Formateador de vista previa está habilitado.** Conserve los separadores de lote GO finales del script original.]]></Val>
+            <Val><![CDATA[Conserve los separadores de lotes de GO finales del script original.]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Preserve trailing GO batch separators from the original script.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.preserveComments" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Preserve comments during formatting.]]></Val>
+          <Val><![CDATA[Preserve comments during formatting.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando la vista previa del formateador está habilitada.** Conservar los comentarios durante el formato.]]></Val>
+            <Val><![CDATA[Conservar los comentarios durante el formato.]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Preserve comments during formatting.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Preserve comments during formatting.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.spaceBetweenDataTypeAndParameters" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Insert a space between a data type and its parentheses, for example `VARCHAR (255)`.]]></Val>
+          <Val><![CDATA[Insert a space between a data type and its parentheses, for example `VARCHAR (255)`.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando la vista previa del formateador está habilitada.** Insertar un espacio entre un tipo de datos y sus paréntesis, por ejemplo, "VARCHAR (255)".]]></Val>
+            <Val><![CDATA[Inserte un espacio entre un tipo de datos y sus paréntesis, por ejemplo "VARCHAR (255)".]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Insert a space between a data type and its parentheses, for example VARCHAR (255).]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Insert a space between a data type and its parentheses, for example `VARCHAR (255)`.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.spaceBetweenParametersInDataType" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Insert spaces between parameters in a data type, for example `DECIMAL (10, 2)`.]]></Val>
+          <Val><![CDATA[Insert spaces between parameters in a data type, for example `DECIMAL (10, 2)`.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando la vista previa del formateador está habilitada.** Insertar espacios entre los parámetros de un tipo de datos, por ejemplo, "DECIMAL (10, 2)".]]></Val>
+            <Val><![CDATA[Inserte espacios entre parámetros en un tipo de datos, por ejemplo "DECIMAL (10, 2)".]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Insert spaces between parameters in a data type, for example DECIMAL (10, 2).]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Insert spaces between parameters in a data type, for example `DECIMAL (10, 2)`.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.sqlEngineType" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** SQL engine type used to parse and generate formatted scripts.]]></Val>
+          <Val><![CDATA[SQL engine type used to parse and generate formatted scripts.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando la vista previa del formateador está habilitada.** Tipo de motor SQL que se usa para analizar y generar scripts con formato.]]></Val>
+            <Val><![CDATA[Tipo de motor de SQL que se usa para analizar y generar scripts con formato.]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[SQL engine type used to parse and generate formatted scripts.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** SQL engine type used to parse and generate formatted scripts.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.sqlVersion" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** T-SQL version used to parse and generate formatted scripts.]]></Val>
+          <Val><![CDATA[T-SQL version used to parse and generate formatted scripts.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando la vista previa del formateador está habilitada.** Versión de T-SQL que se usa para analizar y generar scripts con formato.]]></Val>
+            <Val><![CDATA[Versión de T-SQL usada para analizar y generar scripts con formato.]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[T-SQL version used to parse and generate formatted scripts.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** T-SQL version used to parse and generate formatted scripts.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.terminateBlockStatements" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Add semicolon terminators after BEGIN...END and TRY...CATCH blocks.]]></Val>
+          <Val><![CDATA[Add semicolon terminators after BEGIN...END and TRY...CATCH blocks.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando el formateador de vista previa está habilitado.** Agregar terminadores de punto y coma después de INICIO... FINALIZAR e INTENTAR... Bloques CATCH.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";package.mssql.format.placeCommasBeforeNextStatement" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is disabled.** Should commas be placed at the beginning of each statement in a list, for example `, mycolumn2`, instead of at the end, for example `mycolumn1,`?]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando la vista previa del formateador está deshabilitada.** ¿Deben colocarse comas al principio de cada elemento de una lista, por ejemplo ", mycolumn2", en lugar de al final, por ejemplo "mycolumn1,"?]]></Val>
+            <Val><![CDATA[Agregar terminadores de punto y coma después de los bloques BEGIN...END y TRY...CATCH.]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Legacy formatter only: Place commas at the beginning instead of the end of list items. Set `mssql.format.enablePreviewFormatter` to `false` to use this setting.]]></Val>
-          </Prev>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";package.mssql.format.placeSelectStatementReferencesOnNewLine" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is disabled.** Should references in a SELECT statement be split into separate lines? For `SELECT C1, C2 FROM T1`, both C1 and C2 will be on separate lines.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**Se usa cuando la vista previa del formateador está deshabilitada.** ¿Deben dividirse las referencias de una instrucción SELECT en líneas independientes? Por ejemplo, en "SELECT C1, C2 FROM T1", C1 y C2 estarán en líneas separadas.]]></Val>
-          </Tgt>
-          <Prev Cat="Text">
-            <Val><![CDATA[Legacy formatter only: Place SELECT statement object references on separate lines. Set `mssql.format.enablePreviewFormatter` to `false` to use this setting.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Add semicolon terminators after BEGIN...END and TRY...CATCH blocks.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.showParseErrorNotification" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Show a notification when Preview Formatter cannot fully parse the T-SQL being formatted.]]></Val>
+          <Val><![CDATA[Show a notification when the SQL formatter cannot fully parse the T-SQL being formatted.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Mostrar una notificación cuando el formateador de vista previa no pueda analizar completamente el T-SQL que se está formateando.]]></Val>
+            <Val><![CDATA[Mostrar una notificación cuando el formateador SQL no pueda analizar completamente el T-SQL que se está formateando.]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Show a notification when Preview Formatter cannot fully parse the T-SQL being formatted.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
