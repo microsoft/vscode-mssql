@@ -24,6 +24,13 @@ tslint*.json
 **/*.ts
 webviews-metafile.json
 images/ux
+# Overview walkthrough media is bundled into dist/views by esbuild's file loader;
+# excluding the sources keeps them from shipping twice.
+images/walkthroughs/buildApp
+images/walkthroughs/connectAndRun
+images/walkthroughs/copilot
+images/walkthroughs/features
+images/overview
 FEATURES.md
 .nyc_output
 .eslintcache
