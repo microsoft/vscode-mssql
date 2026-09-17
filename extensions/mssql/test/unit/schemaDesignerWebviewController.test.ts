@@ -21,7 +21,10 @@ import { ReducerRequest } from "../../src/sharedInterfaces/webview";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import MainController from "../../src/controllers/mainController";
 import * as copilotUtils from "../../src/copilot/copilotUtils";
-import { DefaultSqlPortNumber } from "../../src/constants/constants";
+import {
+    configSchemaDesignerEnableDeploymentsView,
+    DefaultSqlPortNumber,
+} from "../../src/constants/constants";
 import {
     observeWebviewReady,
     stubExtensionContext,
@@ -1517,13 +1520,41 @@ suite("SchemaDesignerWebviewController tests", () => {
         });
     });
 
-    suite("isDabDeploymentSupported", () => {
-        test("should set isDabDeploymentSupported to true when authenticationType is SqlLogin via treeNode", () => {
-            const ctrl = createController();
-            expect(ctrl.state.isDabDeploymentSupported).to.be.true;
+    suite("enableDeploymentsView", () => {
+        /** Answers one setting deliberately and every other one as enabled. */
+        function stubSetting(key: string, value: boolean) {
+            (vscode.workspace.getConfiguration as sinon.SinonStub).returns({
+                get: (requested: string) => (requested === key ? value : true),
+            } as any);
+        }
+
+        test("should carry the setting into the initial state when enabled", () => {
+            stubSetting(configSchemaDesignerEnableDeploymentsView, true);
+
+            expect(createController().state.enableDeploymentsView).to.be.true;
         });
 
-        test("should set isDabDeploymentSupported to false when authenticationType is AzureMFA via treeNode", () => {
+        test("should carry the setting into the initial state when disabled", () => {
+            stubSetting(configSchemaDesignerEnableDeploymentsView, false);
+
+            expect(createController().state.enableDeploymentsView).to.be.false;
+        });
+    });
+
+    suite("isDabDeploymentSupported", () => {
+        test("should support every target when authenticationType is SqlLogin via treeNode", () => {
+            const ctrl = createController();
+
+            // A SQL login travels in the connection string, so it reaches the
+            // engine wherever the engine runs.
+            expect(ctrl.state.isDabDeploymentSupported).to.be.true;
+            expect(ctrl.state.dabTargetSupport?.[Dab.DabDeploymentTarget.DabCli]?.isSupported).to.be
+                .true;
+            expect(ctrl.state.dabTargetSupport?.[Dab.DabDeploymentTarget.Docker]?.isSupported).to.be
+                .true;
+        });
+
+        test("should support only the CLI target when authenticationType is AzureMFA via treeNode", () => {
             sandbox.stub(treeNode, "connectionProfile").get(
                 () =>
                     ({
@@ -1534,10 +1565,17 @@ suite("SchemaDesignerWebviewController tests", () => {
             );
 
             const ctrl = createController();
-            expect(ctrl.state.isDabDeploymentSupported).to.be.false;
+
+            // The CLI runs as the signed-in user and can pick up an Entra
+            // sign-in already on the machine; a container sees none of it.
+            expect(ctrl.state.isDabDeploymentSupported).to.be.true;
+            expect(ctrl.state.dabTargetSupport?.[Dab.DabDeploymentTarget.DabCli]?.isSupported).to.be
+                .true;
+            expect(ctrl.state.dabTargetSupport?.[Dab.DabDeploymentTarget.Docker]?.isSupported).to.be
+                .false;
         });
 
-        test("should set isDabDeploymentSupported to false when authenticationType is Integrated via treeNode", () => {
+        test("should support only the CLI target when authenticationType is Integrated via treeNode", () => {
             sandbox.stub(treeNode, "connectionProfile").get(
                 () =>
                     ({
@@ -1548,7 +1586,14 @@ suite("SchemaDesignerWebviewController tests", () => {
             );
 
             const ctrl = createController();
-            expect(ctrl.state.isDabDeploymentSupported).to.be.false;
+
+            // Windows Authentication reaches SQL Server as the signed-in user
+            // through the CLI; a container runs outside that session.
+            expect(ctrl.state.isDabDeploymentSupported).to.be.true;
+            expect(ctrl.state.dabTargetSupport?.[Dab.DabDeploymentTarget.DabCli]?.isSupported).to.be
+                .true;
+            expect(ctrl.state.dabTargetSupport?.[Dab.DabDeploymentTarget.Docker]?.isSupported).to.be
+                .false;
         });
 
         test("should resolve isDabDeploymentSupported from connectionUri when no treeNode", () => {
@@ -1577,7 +1622,7 @@ suite("SchemaDesignerWebviewController tests", () => {
             expect(ctrl.state.isDabDeploymentSupported).to.be.true;
         });
 
-        test("should set isDabDeploymentSupported to false when connectionUri has non-SqlLogin auth", () => {
+        test("should support only the CLI target when connectionUri has non-SqlLogin auth", () => {
             (mockMainController.connectionManager as any).getConnectionInfo = sandbox
                 .stub()
                 .returns({
@@ -1600,7 +1645,11 @@ suite("SchemaDesignerWebviewController tests", () => {
                 connectionUri,
             );
 
-            expect(ctrl.state.isDabDeploymentSupported).to.be.false;
+            expect(ctrl.state.isDabDeploymentSupported).to.be.true;
+            expect(ctrl.state.dabTargetSupport?.[Dab.DabDeploymentTarget.DabCli]?.isSupported).to.be
+                .true;
+            expect(ctrl.state.dabTargetSupport?.[Dab.DabDeploymentTarget.Docker]?.isSupported).to.be
+                .false;
         });
 
         test("should set isDabDeploymentSupported to false when no treeNode and no connectionUri", () => {

@@ -31,6 +31,14 @@ const useStyles = makeStyles({
         color: tokens.colorNeutralForeground3,
         marginTop: "2px",
     },
+    loading: {
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        // Roughly what the two fields occupy, so the dialog does not resize
+        // under the reader when the form takes their place.
+        minHeight: "160px",
+    },
 });
 
 interface DabDeploymentInputFormProps {
@@ -178,34 +186,46 @@ export const DabDeploymentInputForm = ({
         <>
             <DialogTitle>{locConstants.schemaDesigner.containerSettings}</DialogTitle>
             <DialogContent className={classes.content}>
-                <Field
-                    label={locConstants.schemaDesigner.containerName}
-                    validationState={containerNameError ? "error" : undefined}
-                    validationMessage={containerNameError}>
-                    <Input
-                        value={containerName}
-                        onChange={(_, data) => setContainerName(data.value)}
-                        disabled={isInitializing}
-                    />
-                    <Text className={classes.fieldHint}>
-                        {locConstants.schemaDesigner.containerNameHint}
-                    </Text>
-                </Field>
+                {isInitializing ? (
+                    // A name and a free port are generated before the form can
+                    // be filled in, and that involves listing containers. Say so
+                    // rather than presenting two empty, disabled fields.
+                    <div className={classes.loading}>
+                        <Spinner
+                            size="small"
+                            label={locConstants.schemaDesigner.preparingContainerSettings}
+                        />
+                    </div>
+                ) : (
+                    <>
+                        <Field
+                            label={locConstants.schemaDesigner.containerName}
+                            validationState={containerNameError ? "error" : undefined}
+                            validationMessage={containerNameError}>
+                            <Input
+                                value={containerName}
+                                onChange={(_, data) => setContainerName(data.value)}
+                            />
+                            <Text className={classes.fieldHint}>
+                                {locConstants.schemaDesigner.containerNameHint}
+                            </Text>
+                        </Field>
 
-                <Field
-                    label={locConstants.schemaDesigner.port}
-                    validationState={portError ? "error" : undefined}
-                    validationMessage={portError}>
-                    <Input
-                        type="number"
-                        value={port}
-                        onChange={(_, data) => setPort(data.value)}
-                        disabled={isInitializing}
-                    />
-                    <Text className={classes.fieldHint}>
-                        {locConstants.schemaDesigner.portHint}
-                    </Text>
-                </Field>
+                        <Field
+                            label={locConstants.schemaDesigner.port}
+                            validationState={portError ? "error" : undefined}
+                            validationMessage={portError}>
+                            <Input
+                                type="number"
+                                value={port}
+                                onChange={(_, data) => setPort(data.value)}
+                            />
+                            <Text className={classes.fieldHint}>
+                                {locConstants.schemaDesigner.portHint}
+                            </Text>
+                        </Field>
+                    </>
+                )}
             </DialogContent>
             <DialogActions>
                 <Button appearance="secondary" onClick={onCancel} disabled={isSubmitting}>
