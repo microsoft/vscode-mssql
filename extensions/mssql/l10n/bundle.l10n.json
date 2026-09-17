@@ -1382,6 +1382,7 @@
         "message": "Failed to acquire token for account '{0}' and tenant '{1}'",
         "comment": ["{0} is the account ID", "{1} is the tenant ID"]
     },
+    "Connection string redacted due to containing authentication secrets": "Connection string redacted due to containing authentication secrets",
     "No model found.": "No model found.",
     "No tools to process.": "No tools to process.",
     "You are not connected to any database.": "You are not connected to any database.",

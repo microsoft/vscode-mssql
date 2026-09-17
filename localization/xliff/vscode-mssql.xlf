@@ -1880,6 +1880,9 @@
     <trans-unit id="++CODE++e0626fd341a12763ec4285d858397c3d4ba2507c9ef567f1284c658bde195cd2">
       <source xml:lang="en">Connection string is required</source>
     </trans-unit>
+    <trans-unit id="++CODE++941ba2c30164e4b1bddefd1a3eaea788f03328be07f2fec3b63d8b416c9156dd">
+      <source xml:lang="en">Connection string redacted due to containing authentication secrets</source>
+    </trans-unit>
     <trans-unit id="++CODE++fb8d3f9bd43cabe4c37397705e459f16b67ee8c01ea4c4f23371fac86d720bf7">
       <source xml:lang="en">Connection test succeeded</source>
     </trans-unit>

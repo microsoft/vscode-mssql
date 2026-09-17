@@ -2487,6 +2487,9 @@ export class Connection {
             comment: ["{0} is the account ID", "{1} is the tenant ID"],
         });
     };
+    public static ConnectionStringContainsSecrets = l10n.t(
+        "Connection string redacted due to containing authentication secrets",
+    );
 }
 
 export class MssqlChatAgent {

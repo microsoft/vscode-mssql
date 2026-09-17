@@ -683,25 +683,44 @@ export class ConnectionConfig implements IConnectionConfig {
             madeChanges = true;
             const connectionDisplayName = getConnectionDisplayName(profile);
             const connectionString = String(rawProfile["connectionString"] ?? "");
-            let message: string;
+            const loggerConnectionString = ["password", "pwd", "access token"].some(
+                (sensitiveKey) => connectionString.includes(sensitiveKey),
+            )
+                ? LocalizedConstants.Connection.ConnectionStringContainsSecrets
+                : connectionString;
+
+            let displayMessage: string;
+            let logMessage: string;
 
             if (profile.server) {
                 delete rawProfile["connectionString"];
                 cleanedProfiles.push(profile);
-                message = LocalizedConstants.Connection.connectionStringPropertyRemoved(
+
+                displayMessage = LocalizedConstants.Connection.connectionStringPropertyRemoved(
                     connectionDisplayName,
                     connectionString,
                 );
+
+                logMessage = LocalizedConstants.Connection.connectionStringPropertyRemoved(
+                    connectionDisplayName,
+                    loggerConnectionString,
+                );
             } else {
-                message =
+                displayMessage =
                     LocalizedConstants.Connection.connectionDeletedAfterConnectionStringRemoval(
                         connectionDisplayName,
                         connectionString,
                     );
+
+                logMessage =
+                    LocalizedConstants.Connection.connectionDeletedAfterConnectionStringRemoval(
+                        connectionDisplayName,
+                        loggerConnectionString,
+                    );
             }
 
-            this._logger.warn(message);
-            void vscode.window.showInformationMessage(message);
+            this._logger.warn(logMessage);
+            void vscode.window.showInformationMessage(displayMessage);
         }
 
         if (madeChanges) {
