@@ -6606,6 +6606,12 @@
       <note>{0} is source column
 {1} is target column</note>
     </trans-unit>
+    <trans-unit id="++CODE++3d7fd045c1fc29ea67f5662af12d1583f91b038b1ad04078a4b52d3ff49a3291">
+      <source xml:lang="en">Preparing container settings</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5e03ca0d91206dd95d88a9ecb660ec409ec2794c296c6e68c1fa420c0d2dc41a">
+      <source xml:lang="en">Preparing deployment settings</source>
+    </trans-unit>
     <trans-unit id="++CODE++3b91294fe7a573ba168c7b5c23b3fc93126ad6a222949deda1e517bc3a335519">
       <source xml:lang="en">Preserve the replication settings</source>
     </trans-unit>
@@ -10834,9 +10840,6 @@
     <trans-unit id="mssql.manageProfiles">
       <source xml:lang="en">Manage Connection Profiles</source>
     </trans-unit>
-    <trans-unit id="mssql.schemaDesigner.enableDeploymentsView">
-      <source xml:lang="en">Manage Data API builder deployments in Schema Designer. Deploy your configuration with either the Data API builder CLI or Docker, and keep those deployments between sessions.</source>
-    </trans-unit>
     <trans-unit id="mssql.query.maxXmlCharsToStore">
       <source xml:lang="en">Maximum number of characters to store for each value in XML columns after running a query. Default value: 2,097,152. Valid value range: 1 to 2,147,483,647.</source>
     </trans-unit>
@@ -10917,9 +10920,6 @@
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.nextSteps.title">
       <source xml:lang="en">Next Steps with MSSQL for Visual Studio Code</source>
-    </trans-unit>
-    <trans-unit id="mssql.dab.cliPackageFeedUrl">
-      <source xml:lang="en">NuGet flat container URL the Data API builder CLI package is downloaded from. Leave empty to use the package sources from your NuGet configuration, falling back to nuget.org.</source>
     </trans-unit>
     <trans-unit id="mssql.format.options.numNewlinesAfterBatches">
       <source xml:lang="en">Number of line breaks after each GO batch separator, from 0 through 5.</source>

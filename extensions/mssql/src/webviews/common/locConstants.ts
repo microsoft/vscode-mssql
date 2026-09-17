@@ -2396,6 +2396,8 @@ export class LocConstants {
             launchingDabEngine: l10n.t("Launching the engine process"),
             checkingEngineReadiness: l10n.t("Checking engine readiness"),
             deploymentSettings: l10n.t("Deployment settings"),
+            preparingDeploymentSettings: l10n.t("Preparing deployment settings"),
+            preparingContainerSettings: l10n.t("Preparing container settings"),
             deploymentName: l10n.t("Name"),
             deploymentNameHint: l10n.t("A name for this deployment"),
 

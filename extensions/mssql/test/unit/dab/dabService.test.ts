@@ -898,7 +898,10 @@ suite("DabService Tests", () => {
             });
 
             expect(result.success).to.be.true;
-            expect(stopStub.calledOnceWithExactly(4242)).to.be.true;
+            expect(
+                stopStub.calledOnceWithExactly(4242, 5001),
+                "The port goes with the pid so the engine can be identified before it is signalled",
+            ).to.be.true;
         });
 
         test("CLI steps report a clear failure without a storage context", async () => {

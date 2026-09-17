@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Dialog, DialogBody, DialogSurface, makeStyles } from "@fluentui/react-components";
-import { useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Dab } from "../../../../../sharedInterfaces/dab";
 import { ApiStatus } from "../../../../../sharedInterfaces/webview";
 import { DabWizardConfirmation } from "./dabWizardConfirmation";
@@ -63,6 +63,9 @@ export const DabDeploymentsDialog = () => {
         retryDabDeploymentSteps,
         loadDabDeployments,
     } = context;
+
+    /** Deployment whose endpoints open on the next visit to the list. */
+    const [deploymentToExpand, setDeploymentToExpand] = useState<string | undefined>();
 
     const { dialogView, dialogStep, currentDeploymentStep, stepStatuses, mode, target } =
         dabDeploymentState;
@@ -126,12 +129,16 @@ export const DabDeploymentsDialog = () => {
     /**
      * A finished deployment belongs in the list, where it can be redeployed or
      * removed later. Refreshing first means the new container is already there
-     * when the list renders.
+     * when the list renders, and naming it opens its endpoints straight away —
+     * the URLs it just published are what the reader came for.
      */
     const handleShowDeployments = async () => {
+        setDeploymentToExpand(dabDeploymentState.params.containerName);
         await loadDabDeployments();
         setDabDeploymentDialogView(Dab.DabDeploymentDialogView.List);
     };
+
+    const handleExpandedDeploymentShown = useCallback(() => setDeploymentToExpand(undefined), []);
 
     /**
      * Prerequisites are already satisfied for a redeployment's container name
@@ -219,6 +226,8 @@ export const DabDeploymentsDialog = () => {
                             setDabDeploymentDialogView(Dab.DabDeploymentDialogView.TargetSelection)
                         }
                         onClose={handleClose}
+                        expandDeploymentName={deploymentToExpand}
+                        onExpandedDeploymentShown={handleExpandedDeploymentShown}
                     />
                 );
             case Dab.DabDeploymentDialogView.TargetSelection:

@@ -756,10 +756,21 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
         this.onRequest(Dab.StopDeploymentContainerRequest.type, async (payload) => {
             return this.withTrackedDabDeployment(
                 payload.deploymentId,
-                async (_store, _key, record) =>
-                    record.target === Dab.DabDeploymentTarget.DabCli
-                        ? this._dabService.stopCliDeployment(record)
-                        : this._dabService.stopContainer(record.name),
+                async (store, key, record) => {
+                    if (record.target !== Dab.DabDeploymentTarget.DabCli) {
+                        return this._dabService.stopContainer(record.name);
+                    }
+
+                    const result = await this._dabService.stopCliDeployment(record);
+                    if (result.success) {
+                        // The process is gone, so the recorded id now names
+                        // nothing -- or, in time, something unrelated. Drop it
+                        // rather than leave it for a later stop to signal.
+                        await store.updateDeployment(key, record.id, { processId: undefined });
+                    }
+
+                    return result;
+                },
             );
         });
 
@@ -1435,11 +1446,20 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
         store: DabConfigStore,
         key: DabStoreKey,
         record: Dab.DabDeploymentRecord,
+        status?: Dab.DabDeploymentContainerStatus,
     ): Promise<Dab.DeploymentActionResponse> {
         if (record.target === Dab.DabDeploymentTarget.DabCli) {
-            const stopResult = await this._dabService.stopCliDeployment(record);
-            if (!stopResult.success) {
-                return stopResult;
+            // Only a running deployment has an engine to stop. Signalling the
+            // recorded pid of one that already exited risks hitting whatever
+            // inherited that number since.
+            const isRunning =
+                (status ?? (await this.getDabDeploymentStatus(record))) ===
+                Dab.DabDeploymentContainerStatus.Running;
+            if (isRunning) {
+                const stopResult = await this._dabService.stopCliDeployment(record);
+                if (!stopResult.success) {
+                    return stopResult;
+                }
             }
 
             await store.deleteCliDeployment(key, record.name);
@@ -1558,7 +1578,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             return portUnavailableError;
         }
 
-        const tearDownResult = await this.tearDownDabDeployment(store, key, record);
+        const tearDownResult = await this.tearDownDabDeployment(store, key, record, status);
         if (!tearDownResult.success) {
             return { success: false, error: tearDownResult.error };
         }

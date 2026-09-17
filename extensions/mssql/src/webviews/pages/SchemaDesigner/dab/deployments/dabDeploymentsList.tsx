@@ -223,9 +223,22 @@ function formatTimeAgo(isoTimestamp: string): string {
 interface DabDeploymentsListProps {
     onCreateNew: () => void;
     onClose: () => void;
+    /**
+     * Name of a deployment whose endpoints should already be open when the list
+     * appears. Set after a deployment finishes, so the URLs it just published
+     * are the first thing on screen rather than a row to go hunting for.
+     */
+    expandDeploymentName?: string;
+    /** Called once that deployment has been expanded, so it happens only once. */
+    onExpandedDeploymentShown?: () => void;
 }
 
-export const DabDeploymentsList = ({ onCreateNew, onClose }: DabDeploymentsListProps) => {
+export const DabDeploymentsList = ({
+    onCreateNew,
+    onClose,
+    expandDeploymentName,
+    onExpandedDeploymentShown,
+}: DabDeploymentsListProps) => {
     const classes = useStyles();
     const {
         dabDeployments,
@@ -265,6 +278,25 @@ export const DabDeploymentsList = ({ onCreateNew, onClose }: DabDeploymentsListP
         },
         [],
     );
+
+    // A deployment names itself the moment it finishes, but its row only exists
+    // once the list has reloaded, so the two are matched up here rather than at
+    // the call site.
+    useEffect(() => {
+        if (!expandDeploymentName) {
+            return;
+        }
+
+        const deployment = dabDeployments.find(
+            (candidate) => candidate.name === expandDeploymentName,
+        );
+        if (!deployment) {
+            return;
+        }
+
+        setExpandedIds((prev) => (prev.includes(deployment.id) ? prev : [...prev, deployment.id]));
+        onExpandedDeploymentShown?.();
+    }, [dabDeployments, expandDeploymentName, onExpandedDeploymentShown]);
 
     const toggleExpanded = useCallback((deploymentId: string) => {
         setExpandedIds((prev) =>

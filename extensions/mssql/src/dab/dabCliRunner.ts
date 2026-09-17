@@ -71,6 +71,8 @@ export class DabCliRunner {
     private _installation: DabCliInstallation | undefined;
     private _dotnetPath: string | undefined;
     private _getEngineLogs: (() => string) | undefined;
+    /** Pid of the engine this runner launched, used to confirm what answers on the port. */
+    private _launchedProcessId: number | undefined;
 
     constructor(
         private readonly storagePath: string,
@@ -269,6 +271,7 @@ export class DabCliRunner {
         }
 
         this._getEngineLogs = result.getLogs;
+        this._launchedProcessId = result.processId;
         return {
             success: true,
             processId: result.processId,
@@ -280,9 +283,17 @@ export class DabCliRunner {
      * Waits for the engine launched by {@link startEngine} to answer.
      *
      * @param port Port the engine publishes on
+     * @param processId Engine process id, when the caller tracked one itself
      */
-    public async checkEngine(port: number): Promise<Dab.RunDeploymentStepResponse> {
-        const result = await checkDabCliEngineReady(port, this._getEngineLogs);
+    public async checkEngine(
+        port: number,
+        processId?: number,
+    ): Promise<Dab.RunDeploymentStepResponse> {
+        const result = await checkDabCliEngineReady(
+            port,
+            this._getEngineLogs,
+            processId ?? this._launchedProcessId,
+        );
         if (result.success) {
             return { success: true, apiUrl: `http://localhost:${port}` };
         }

@@ -378,17 +378,19 @@ export class DabService implements Dab.IDabService {
     /**
      * Resolves the state of a CLI deployment.
      *
-     * The port is the source of truth: a stored process id can be reused by an
-     * unrelated process, but an answer on the port means the engine is serving.
-     * A deployment that is not answering is startable as long as its config
-     * file survives, and missing once that file is gone.
+     * A DAB engine answering on the port is what makes a deployment running.
+     * The recorded process id is passed as corroboration rather than as the
+     * test: it can have been reused by an unrelated process, so it is only ever
+     * used to confirm an answer, never to produce one. A deployment that is not
+     * answering is startable as long as its config file survives, and missing
+     * once that file is gone.
      *
      * @param record The tracked deployment to inspect
      */
     public async getCliDeploymentStatus(
         record: Dab.DabDeploymentRecord,
     ): Promise<Dab.DabDeploymentContainerStatus> {
-        if (await isDabCliEngineResponding(record.port)) {
+        if (await isDabCliEngineResponding(record.port, record.processId)) {
             return Dab.DabDeploymentContainerStatus.Running;
         }
 
@@ -448,7 +450,7 @@ export class DabService implements Dab.IDabService {
             return { success: false, error: startResult.error };
         }
 
-        const readyResult = await runner.checkEngine(record.port);
+        const readyResult = await runner.checkEngine(record.port, startResult.processId);
         return readyResult.success
             ? { success: true, processId: startResult.processId }
             : { success: false, error: readyResult.error };
@@ -456,6 +458,10 @@ export class DabService implements Dab.IDabService {
 
     /**
      * Stops a running CLI deployment's engine.
+     *
+     * The port goes with the process id so the engine can be identified before
+     * it is signalled; a recorded pid whose process has since exited may name
+     * something else entirely by now.
      *
      * @param record The tracked deployment to stop
      */
@@ -468,7 +474,7 @@ export class DabService implements Dab.IDabService {
             return { success: true };
         }
 
-        const result = await stopDabCliEngine(record.processId);
+        const result = await stopDabCliEngine(record.processId, record.port);
         return { success: result.success, error: result.error };
     }
 

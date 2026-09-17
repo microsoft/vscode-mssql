@@ -4093,6 +4093,8 @@
     "Launching the engine process": "Launching the engine process",
     "Checking engine readiness": "Checking engine readiness",
     "Deployment settings": "Deployment settings",
+    "Preparing deployment settings": "Preparing deployment settings",
+    "Preparing container settings": "Preparing container settings",
     "A name for this deployment": "A name for this deployment",
     "Reset the configuration to the defaults for this schema": "Reset the configuration to the defaults for this schema",
     "Reset DAB configuration?": "Reset DAB configuration?",

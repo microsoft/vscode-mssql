@@ -790,14 +790,6 @@ export namespace Dab {
      */
     export const DAB_DEFAULT_CONTAINER_NAME = "dab-container";
 
-    /** How a generated deployment name is shaped. */
-    export enum DabDeploymentNamingStyle {
-        /** dab-container, dab-container_2 — what the Deploy flow has always used. */
-        Container = "container",
-        /** DAB_<database>_<n>, used by the deployments experience. */
-        Deployment = "deployment",
-    }
-
     /** Prefix every generated deployment name carries. */
     export const DAB_DEPLOYMENT_NAME_PREFIX = "DAB";
 
@@ -983,9 +975,33 @@ export namespace Dab {
         AuthenticationType.ActiveDirectoryServicePrincipal,
     ];
 
+    /**
+     * Entra types whose sign-in the engine has to perform for itself, because
+     * nothing in the connection string names a credential it could reuse.
+     *
+     * A service principal is the exception: its client id and secret travel in
+     * the connection string, so the engine authenticates as the same principal
+     * the designer connected with rather than falling back to whichever
+     * identity happens to be signed in on the machine.
+     */
+    const AMBIENT_ENTRA_AUTHENTICATION_TYPES: string[] = ENTRA_AUTHENTICATION_TYPES.filter(
+        (authenticationType) =>
+            authenticationType !== AuthenticationType.ActiveDirectoryServicePrincipal,
+    );
+
     /** True when a connection signs in through Microsoft Entra. */
     export function isEntraAuthentication(authenticationType: string | undefined): boolean {
         return !!authenticationType && ENTRA_AUTHENTICATION_TYPES.includes(authenticationType);
+    }
+
+    /**
+     * True when the engine has to acquire its own token for this connection,
+     * because the connection string carries no credential of its own.
+     */
+    export function usesAmbientEntraCredentials(authenticationType: string | undefined): boolean {
+        return (
+            !!authenticationType && AMBIENT_ENTRA_AUTHENTICATION_TYPES.includes(authenticationType)
+        );
     }
 
     /**
@@ -1037,9 +1053,13 @@ export namespace Dab {
     /**
      * Prepares the connection string the CLI engine runs with.
      *
-     * For Entra the credential properties are removed so the engine falls back
-     * to acquiring a token from the machine's existing sign-in. Every other
-     * authentication type is passed through untouched.
+     * For the Entra types that sign in from the machine's existing session, the
+     * credential properties are removed so the engine acquires its own token.
+     * A service principal keeps its client id and secret — stripping those
+     * would leave the engine authenticating as some other identity, or as none
+     * — and every other authentication type is passed through untouched. The
+     * string reaches the engine through its environment rather than its command
+     * line, so a secret in it is not exposed in the process list.
      *
      * @param connectionString Connection string of the designer's connection
      * @param authenticationType Authentication type of that connection
@@ -1048,7 +1068,7 @@ export namespace Dab {
         connectionString: string,
         authenticationType: string | undefined,
     ): string {
-        if (!isEntraAuthentication(authenticationType)) {
+        if (!usesAmbientEntraCredentials(authenticationType)) {
             return connectionString;
         }
 
@@ -1332,12 +1352,6 @@ export namespace Dab {
          * Container name to validate
          */
         containerName: string;
-        /**
-         * Name style to generate when containerName is empty. The original
-         * Deploy flow keeps the container-name style it has always produced;
-         * the deployments experience asks for its own.
-         */
-        namingStyle?: DabDeploymentNamingStyle;
         /**
          * Port to validate
          */

@@ -26,6 +26,14 @@ const useStyles = makeStyles({
         // dialog, so it keeps its own width rather than filling the frame.
         maxWidth: "420px",
     },
+    loading: {
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        // Roughly what the two fields occupy, so the dialog does not resize
+        // under the reader when the form takes their place.
+        minHeight: "160px",
+    },
     fieldHint: {
         fontSize: tokens.fontSizeBase200,
         lineHeight: tokens.lineHeightBase200,
@@ -40,7 +48,6 @@ interface DabDeploymentInputFormProps {
     validateParams: (
         containerName: string,
         port: number,
-        namingStyle?: Dab.DabDeploymentNamingStyle,
     ) => Promise<Dab.ValidateDeploymentParamsResponse>;
     onSubmit: (params: Dab.DabDeploymentParams) => void;
     onBack: () => void;
@@ -96,11 +103,7 @@ export const DabWizardSettingsForm = ({
             setIsInitializing(true);
             try {
                 // Pass empty string to trigger auto-generation of unique container name
-                const result = await validateParams(
-                    "",
-                    initialParams.port,
-                    Dab.DabDeploymentNamingStyle.Deployment,
-                );
+                const result = await validateParams("", initialParams.port);
                 // Use validated/suggested values
                 setContainerName(result.validatedContainerName);
                 setPort(result.suggestedPort.toString());
@@ -193,40 +196,56 @@ export const DabWizardSettingsForm = ({
                     : locConstants.schemaDesigner.containerSettings}
             </DabDialogTitle>
             <DabDialogContent className={classes.content}>
-                <Field
-                    label={
-                        isCli
-                            ? locConstants.schemaDesigner.deploymentName
-                            : locConstants.schemaDesigner.containerName
-                    }
-                    validationState={containerNameError ? "error" : undefined}
-                    validationMessage={containerNameError}>
-                    <Input
-                        value={containerName}
-                        onChange={(_, data) => setContainerName(data.value)}
-                        disabled={isInitializing}
-                    />
-                    <Text className={classes.fieldHint}>
-                        {isCli
-                            ? locConstants.schemaDesigner.deploymentNameHint
-                            : locConstants.schemaDesigner.containerNameHint}
-                    </Text>
-                </Field>
+                {isInitializing ? (
+                    // A name and a free port are generated before the form can
+                    // be filled in, and that involves listing containers. Say so
+                    // rather than presenting two empty, disabled fields.
+                    <div className={classes.loading}>
+                        <Spinner
+                            size="small"
+                            label={
+                                isCli
+                                    ? locConstants.schemaDesigner.preparingDeploymentSettings
+                                    : locConstants.schemaDesigner.preparingContainerSettings
+                            }
+                        />
+                    </div>
+                ) : (
+                    <>
+                        <Field
+                            label={
+                                isCli
+                                    ? locConstants.schemaDesigner.deploymentName
+                                    : locConstants.schemaDesigner.containerName
+                            }
+                            validationState={containerNameError ? "error" : undefined}
+                            validationMessage={containerNameError}>
+                            <Input
+                                value={containerName}
+                                onChange={(_, data) => setContainerName(data.value)}
+                            />
+                            <Text className={classes.fieldHint}>
+                                {isCli
+                                    ? locConstants.schemaDesigner.deploymentNameHint
+                                    : locConstants.schemaDesigner.containerNameHint}
+                            </Text>
+                        </Field>
 
-                <Field
-                    label={locConstants.schemaDesigner.port}
-                    validationState={portError ? "error" : undefined}
-                    validationMessage={portError}>
-                    <Input
-                        type="number"
-                        value={port}
-                        onChange={(_, data) => setPort(data.value)}
-                        disabled={isInitializing}
-                    />
-                    <Text className={classes.fieldHint}>
-                        {locConstants.schemaDesigner.portHint}
-                    </Text>
-                </Field>
+                        <Field
+                            label={locConstants.schemaDesigner.port}
+                            validationState={portError ? "error" : undefined}
+                            validationMessage={portError}>
+                            <Input
+                                type="number"
+                                value={port}
+                                onChange={(_, data) => setPort(data.value)}
+                            />
+                            <Text className={classes.fieldHint}>
+                                {locConstants.schemaDesigner.portHint}
+                            </Text>
+                        </Field>
+                    </>
+                )}
             </DabDialogContent>
             <DialogActions>
                 <Button appearance="secondary" onClick={onBack} disabled={isSubmitting}>

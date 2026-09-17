@@ -584,10 +584,47 @@ suite("DAB CLI connection string", () => {
         expect(result).to.equal("Server=x;Database=Db");
     });
 
+    test("keeps service principal credentials so the engine signs in as that principal", () => {
+        // The client id and secret travel as User ID and Password. Stripping
+        // them would leave the engine authenticating as whichever identity is
+        // signed in on the machine, or as none at all.
+        const connectionString =
+            "Server=x.database.windows.net;Database=Db;User ID=client-id;Password=client-secret;Authentication=ActiveDirectoryServicePrincipal;Encrypt=True;";
+
+        expect(
+            Dab.buildDabCliConnectionString(
+                connectionString,
+                AuthenticationType.ActiveDirectoryServicePrincipal,
+            ),
+        ).to.equal(connectionString);
+    });
+
     test("reports which authentication types are Entra", () => {
         expect(Dab.isEntraAuthentication(AuthenticationType.AzureMFA)).to.be.true;
+        expect(Dab.isEntraAuthentication(AuthenticationType.ActiveDirectoryServicePrincipal)).to.be
+            .true;
         expect(Dab.isEntraAuthentication(AuthenticationType.SqlLogin)).to.be.false;
         expect(Dab.isEntraAuthentication(AuthenticationType.Integrated)).to.be.false;
         expect(Dab.isEntraAuthentication(undefined)).to.be.false;
+    });
+
+    test("only the ambient Entra types make the engine acquire its own token", () => {
+        for (const authType of [
+            AuthenticationType.AzureMFA,
+            AuthenticationType.ActiveDirectoryDefault,
+            AuthenticationType.AzureMFAAndUser,
+        ]) {
+            expect(
+                Dab.usesAmbientEntraCredentials(authType),
+                `${authType} has no credential of its own to pass on`,
+            ).to.be.true;
+        }
+
+        expect(
+            Dab.usesAmbientEntraCredentials(AuthenticationType.ActiveDirectoryServicePrincipal),
+            "a service principal carries its own credential",
+        ).to.be.false;
+        expect(Dab.usesAmbientEntraCredentials(AuthenticationType.SqlLogin)).to.be.false;
+        expect(Dab.usesAmbientEntraCredentials(undefined)).to.be.false;
     });
 });
