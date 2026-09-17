@@ -94,12 +94,14 @@ suite("DAB LM tool manifest schema", () => {
         );
     });
 
-    test("validates apply_changes payload.expectedVersion and changes constraints", () => {
+    test("keeps concurrency versions internal and validates apply_changes constraints", () => {
         const tool = getTool();
         const payload = tool.inputSchema?.properties?.payload;
-        expect(payload?.required).to.include.members(["expectedVersion", "changes"]);
-        expect(payload?.properties?.expectedVersion?.minLength).to.equal(1);
+        expect(payload?.required).to.deep.equal(["changes"]);
+        expect(payload?.properties).to.not.have.property("expectedVersion");
         expect(payload?.properties?.changes?.minItems).to.equal(1);
+        expect(tool.modelDescription).to.contain("managed internally by the extension");
+        expect(tool.modelDescription).to.contain("do not call show");
     });
 
     test("validates targetHint requires both server and database when provided", () => {

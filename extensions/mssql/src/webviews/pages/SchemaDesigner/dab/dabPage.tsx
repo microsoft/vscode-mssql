@@ -11,9 +11,12 @@ import { DabEntityTable } from "./dabEntityTable";
 import { DabInfoBanner } from "./dabInfoBanner";
 import { DabDefinitionsPanel, DabDefinitionsPanelRef } from "./dabDefinitionsPanel";
 import { DabDeploymentDialog } from "./deployment/dabDeploymentDialog";
+import { DabDeploymentsDialog } from "./deployments/dabDeploymentsDialog";
+import { Dab } from "../../../../sharedInterfaces/dab";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { useDabContext } from "./dabContext";
+import { useSchemaDesignerSelector } from "../schemaDesignerSelector";
 import { LoadingLog } from "../../../common/loadingLog";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { defaultDabEntityFilters } from "./dabEntityFilters";
@@ -77,7 +80,10 @@ export const DabPage = ({ activeView, onNavigateToSchema }: DabPageProps) => {
         syncDabConfigWithSchema,
         isInitialized,
         isDabDeploymentSupported,
+        isDockerTargetSupported,
+        dabDeploymentState,
     } = useDabContext();
+    const showDeployments = useSchemaDesignerSelector((s) => s?.enableDeploymentsView) ?? false;
     const isDabTabActive = activeView === SchemaDesigner.SchemaDesignerActiveView.Dab;
     const hasUnsupportedDataTypes =
         dabConfig?.entities.some(
@@ -85,6 +91,13 @@ export const DabPage = ({ activeView, onNavigateToSchema }: DabPageProps) => {
                 !e.isSupported &&
                 e.unsupportedReasons?.some((r) => r.type === "unsupportedDataTypes"),
         ) ?? false;
+    // Whether this connection can be deployed at all depends on what the
+    // toolbar offers. Deploy runs in a container and nothing else, so an
+    // authentication the container cannot carry is a dead end. The deployments
+    // experience also reaches the CLI, which carries Windows Authentication
+    // and an Entra sign-in already on the machine, so there only a connection
+    // no target can carry is worth a banner.
+    const hasNoWayToDeploy = showDeployments ? !isDabDeploymentSupported : !isDockerTargetSupported;
     const canShowDiscovery = isDabTabActive && isInitialized && Boolean(dabConfig);
     const definitionsPanelRef = useRef<DabDefinitionsPanelRef>(
         undefined as unknown as DabDefinitionsPanelRef,
@@ -113,8 +126,16 @@ export const DabPage = ({ activeView, onNavigateToSchema }: DabPageProps) => {
 
     return (
         <div className={classes.root}>
-            <DabDeploymentDialog />
-            {!isDabDeploymentSupported && (
+            {/* The toolbar's Deploy button drives the original self-contained
+                dialog; the deployments experience drives its own. Only one is
+                rendered, so the deployments experience can be removed without
+                touching the flow behind Deploy. */}
+            {dabDeploymentState.entryPoint === Dab.DabDeploymentEntryPoint.Standalone ? (
+                <DabDeploymentDialog />
+            ) : (
+                <DabDeploymentsDialog />
+            )}
+            {hasNoWayToDeploy && (
                 <DabInfoBanner
                     title={locConstants.schemaDesigner.authenticationNotSupported}
                     message={locConstants.schemaDesigner.dabDeploymentNotSupportedBanner}
