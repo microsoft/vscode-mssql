@@ -912,7 +912,7 @@ export function DabToolbar({
                             <Button
                                 appearance="primary"
                                 onClick={() => {
-                                    resetDabConfig();
+                                    void resetDabConfig();
                                     setIsResetDialogOpen(false);
                                 }}>
                                 {locConstants.schemaDesigner.resetConfig}

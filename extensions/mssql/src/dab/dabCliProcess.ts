@@ -37,6 +37,9 @@ const MAX_PROBE_BODY_CHARS = 8192;
 /** Paths a DAB engine serves a health response on, in the order they are tried. */
 const DAB_HEALTH_PATHS = ["/", "/health"];
 
+/** taskkill's exit code for a pid that no longer names a process. */
+const TASKKILL_PROCESS_NOT_FOUND = 128;
+
 /** Result of launching or checking the engine. */
 export interface DabCliCommandResult {
     success: boolean;
@@ -537,9 +540,31 @@ export async function stopDabCliEngine(
                 const taskkill = spawn("taskkill", ["/PID", `${processId}`, "/T", "/F"], {
                     windowsHide: true,
                 });
+
+                let output = "";
+                taskkill.stdout?.on("data", (chunk: Buffer | string) => {
+                    output += chunk.toString();
+                });
+                taskkill.stderr?.on("data", (chunk: Buffer | string) => {
+                    output += chunk.toString();
+                });
+
                 taskkill.on("error", reject);
-                // A process that is already gone is a success for the caller.
-                taskkill.on("close", () => resolve());
+                taskkill.on("close", (code) => {
+                    // Anything but success or "no such process" left the engine
+                    // running, and reporting otherwise would have the caller
+                    // drop the record while the engine still serves.
+                    if (code === 0 || code === TASKKILL_PROCESS_NOT_FOUND) {
+                        resolve();
+                        return;
+                    }
+
+                    reject(
+                        new Error(
+                            `taskkill exited with code ${code}${output.trim() ? `: ${output.trim()}` : ""}`,
+                        ),
+                    );
+                });
             });
         } else {
             process.kill(-processId, "SIGTERM");

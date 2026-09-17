@@ -661,10 +661,13 @@ export namespace Dab {
 
     /**
      * Discards the stored configuration for this database. The webview rebuilds
-     * defaults from the current schema and saves them through the usual path.
+     * defaults from the current schema and saves them through the usual path,
+     * and waits for this to finish first: the rebuilt config is saved on the
+     * same channel, so starting it before the delete has landed would race the
+     * two writes against each other.
      */
-    export namespace ResetConfigNotification {
-        export const type = new NotificationType<void>("dab/resetConfig");
+    export namespace ResetConfigRequest {
+        export const type = new RequestType<void, void, void>("dab/resetConfig");
     }
 
     // ============================================

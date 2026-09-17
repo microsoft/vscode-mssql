@@ -536,7 +536,7 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             this.scheduleDabConfigSave(payload.config);
         });
 
-        this.onNotification(Dab.ResetConfigNotification.type, async () => {
+        this.onRequest(Dab.ResetConfigRequest.type, async () => {
             sendActionEvent(TelemetryViews.SchemaDesigner, TelemetryActions.ResetDabConfig);
             await this.deleteStoredDabConfig();
         });

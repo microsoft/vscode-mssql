@@ -23,7 +23,7 @@ interface DabContextProps {
     dabConfig: Dab.DabConfig | null;
     initializeDabConfig: () => void;
     syncDabConfigWithSchema: () => void;
-    resetDabConfig: () => void;
+    resetDabConfig: () => Promise<void>;
     updateDabApiTypes: (apiTypes: Dab.ApiType[]) => void;
     toggleDabEntity: (entityId: string, isEnabled: boolean) => void;
     toggleDabEntityAction: (entityId: string, action: Dab.EntityAction, isEnabled: boolean) => void;
@@ -176,9 +176,13 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
      * Rebuilds the configuration from the current schema, discarding every
      * saved edit. The new config flows through the usual save path, so the
      * stored file is replaced with these defaults.
+     *
+     * The discard is awaited first. Publishing the rebuilt config is what
+     * schedules its save, and letting that start while the delete is still in
+     * flight leaves which of the two lands last to chance.
      */
-    const resetDabConfig = useCallback(() => {
-        void extensionRpc.sendNotification(Dab.ResetConfigNotification.type, undefined);
+    const resetDabConfig = useCallback(async () => {
+        await extensionRpc.sendRequest(Dab.ResetConfigRequest.type, undefined);
 
         const schema = extractSchema();
         const sourceObjects = [
