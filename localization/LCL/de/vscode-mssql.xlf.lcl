@@ -2143,6 +2143,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++11b581f8a3000e049c063b239ba309ad25c53dadcf317b81e608a44404703d57" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[This execution plan could not be rendered.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Dieser Ausführungsplan konnte nicht gerendert werden.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++11c21b54b49bcb3c27b1f9371f18ba2da2f6c80cf2cb66a608ff8396ade41518" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Ensuring Docker Desktop is running]]></Val>
@@ -2229,6 +2238,15 @@
           <Val><![CDATA[Error downloading {0}. Error: {1}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Fehler beim Herunterladen von {0}. Fehler: {1}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++12dddf96612d48df0ad871a9612802de0957a3781556820e44215c68f824363a" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[included in script]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[im Skript enthalten]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2373,6 +2391,15 @@
           <Val><![CDATA[Encryption Type]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Verschlüsselungstyp]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++14887cba6de543fd263763a0c2952d8800157cd1ff9bc9378bc8c4f0d8200bf9" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to provision SQL Server container '{0}': {1}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Fehler beim Bereitstellen SQL Server Container'{0}': {1}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3313,6 +3340,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++1c7cb4f75443e75ebc87e93e015e29bdf680a2f851b09a1bb5c761639ed092fa" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Fabric SQL database '{0}' was provisioned successfully.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Die Fabric SQL-Datenbank „{0}“ wurde erfolgreich bereitgestellt.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++1cca62dfe797128d872da26655c932ca5c53e11a3fcd3cb84cd494f46953242b" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Select project location]]></Val>
@@ -3885,6 +3921,15 @@
           <Val><![CDATA[Select the target schema]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Zielschema auswählen]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++221a6647042e962a326162fd3dcdd7a1e01f628fb4eedc3ecc4b2c33038109fe" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The service is no longer running a query for this editor. The editor's execution state has been reset.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Der Dienst führt für diesen Editor keine Abfrage mehr aus. Der Ausführungsstatus des Editors wurde zurückgesetzt.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5410,6 +5455,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++2fbc383d3c49b83614aa419376b80ee04d986dfed814dfde2ce26e437635aa69" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[excluded from script]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[aus Skript ausgeschlossen]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++2fd557cb0d0dc9fb91362ad40c6d256d2f0651acde628b9e27152c331f6af0a8" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{0}d {1}h]]></Val>
@@ -6688,6 +6742,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++3cb79d895358f3badaea5b6eb05416fa6739c8520a7e8c2ddc97d662d69c0a67" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Controls whether deployment blocks because of platform compatibility checks. It does not allow Schema Compare between different Azure Synapse or Microsoft Fabric platform types.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Steuert, ob die Bereitstellung wegen Prüfungen der Plattformkompatibilität blockiert wird. Der Schemavergleich zwischen verschiedenen Azure Synapse- oder Microsoft Fabric-Plattformtypen ist nicht zulässig.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++3cbc87c7681f34db4617feaa2c8801931bc5e42d8d0f560e756dd4cd92885f18" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[True]]></Val>
@@ -7723,6 +7786,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++45a768226b6eb7eca5f849cc961fce9ec9c5c278deae1db8acfddce9cd5f43c5" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Remove from saved filters]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Aus gespeicherten Filtern entfernen]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++45b7d94efdc30a678c6379149c3538825e4657958d11e0c4e92f317bbbd9d928" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Error updating existing tasks.json: {0}]]></Val>
@@ -7800,6 +7872,15 @@
           <Val><![CDATA[File or directory '{0}' doesn't exist]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Datei oder Verzeichnis "{0}" nicht vorhanden]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++465eabab9bde19760846b72eb06f2498233548cac46595d805aa574d504110c3" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Constraints added]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Einschränkungen hinzugefügt]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -8839,6 +8920,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++4ec34472d661ee6006e436cc302b6d561780eb0b22d21c9e9110b4ff31856a71" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Include or exclude all differences]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Alle Unterschiede einschließen oder ausschließen]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++4ed30ce390b4a87aa521240a8313735faff4c4cb4df0c01292ffdaf5b9a44c58" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The description of the primary key.]]></Val>
@@ -9267,15 +9357,6 @@
           <Val><![CDATA[Failed to resolve the refactor log for this file: {0}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Fehler beim Auflösen des Umgestaltungsprotokolls für diese Datei: {0}]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++5398977f3c4aae70864004d20248ee2d42a55e18b27aacd47584245aff84c300" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[The React Flow execution plan preview could not render this plan.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Die Vorschau des React-Flow-Ausführungsplans konnte diesen Plan nicht rendern.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -9843,6 +9924,15 @@
           <Val><![CDATA[Run your migrations]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Ausführen Ihrer Migrationen]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++588333f4d266b89935941194e4f8e0f1d8aab434615c493680d7d0859b6b7081" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Azure SQL database '{0}' was provisioned successfully.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Die Azure SQL-Datenbank „{0}“ wurde erfolgreich bereitgestellt.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10711,6 +10801,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++60aa3ddef33b076337901e45e7a08cee2075647c667509cb22451a7069ff608c" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Schema differences]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Schemaunterschiede]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++60c0c05c936ef432e55dd4ea862b5dd1d454413310190ddaef63ef2dbbf75c03" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate.]]></Val>
@@ -10761,6 +10860,15 @@
           <Val><![CDATA[Disconnect from connection '{0}' (ID: {1})?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Verbindung mit „{0}“ (ID: {1}) trennen?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++60f820e33dc2ebb9ace1ef9c084e6b0ce9c75e159edf59e955aa68a7b304783b" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{0} / {1}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0}/{1}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10905,6 +11013,15 @@
           <Val><![CDATA[Folder Elements]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Ordnerelemente]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++62a6da8735c18e2d66fe5de3dc5440252a1da49e3cbaa7c1d2d5068ad73ffba0" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Object]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Objekt]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -11229,6 +11346,15 @@
           <Val><![CDATA[Save this filter for reuse]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Diesen Filter zur Wiederverwendung speichern]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++65f24f2f0e7e273592ce9abfdfe98800fe149834a4413bcf8565044f33eddbd9" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{0}, {1}, {2}, {3}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0}, {1}, {2}, {3}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -11629,6 +11755,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++69caf154f7a7ff6fa44128fd6973d20a1e51024cf0aebe70c32188609cb85201" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Select a source schema, then press Compare.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Wählen Sie ein Quellschema aus, und klicken Sie dann „Vergleichen“.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++69f2cb7dd2107d62b752a7de5d918a0b657147558a767c02175920d2b510a997" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Container Settings]]></Val>
@@ -11850,6 +11985,15 @@
           <Val><![CDATA[1]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[1]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++6b93458b8efd284fb830885ed38c172565b677f208e972fbace1b47f79415423" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Save and Apply]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Speichern und anwenden]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -12844,15 +12988,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++7402b850c8ea04211c0bde6a01e934211ac94feed7e01d1d719473b9a453b644" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Pin to Saved]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[An „Gespeichert“ anheften]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++740a203633aed889e5b930b95ba1b4091d8813de60755ef81e481cc427703821" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Count: {0}]]></Val>
@@ -13672,6 +13807,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++7ba26df4d0fbbd2bee13f3a586513471356439c4aa47b18bd9640be75254373e" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to provision Azure SQL database '{0}': {1}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Fehler beim Bereitstellen Azure SQL Datenbank '{0}': {1}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++7bba5bcc44de61b37dcadb5824fac7130483b749da0c5e9eea5e02765e06e37d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Displays the unified data type (including length, scale and precision) for the column]]></Val>
@@ -13695,6 +13839,15 @@
           <Val><![CDATA[Not signed into tenant {0}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Nicht beim Mandanten {0} angemeldet]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++7bee7db8de36619306e87e8f4dc35cad5737ee07d864839c4bc4bff0da4c3a2a" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Constraints dropped]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Einschränkungen entfernt]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -14446,6 +14599,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++82a5a935a9143edc89ac046512a9ba03026e4774cde53feb82c959225904e638" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[SQL Server container '{0}' was provisioned successfully.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[SQL Server-Container „{0}“ wurde erfolgreich bereitgestellt.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++82b7be031f380379c3136f863b234cc6ddbddb19fbbae4654585d10506a2e1e6" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Open Publish Script]]></Val>
@@ -14824,15 +14986,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++8710c37bff459c290072633f29a51f66f7ffc220d8594a461ea44aff3640e749" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Move to Recent]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[In „Zuletzt verwendet“ verschieben]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++871ca3cb96885bd9a333a1d2914f5f4782b9d0477bcfddd603db5e4f98bde56a" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Microsoft Account is required]]></Val>
@@ -14865,6 +15018,15 @@
           <Val><![CDATA[Currently signed in as:]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Derzeit angemeldet als:]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++87b6ba145c833b9c75e4408f5f6f171061680b8e5c0e472c8ca67d2e925fe485" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Press Compare to see the differences between the source and target schemas.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Klicken Sie auf „Vergleichen“, um die Unterschiede zwischen Quell- und Zielschema anzuzeigen.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -15121,6 +15283,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++8a2a30d7fa1829a6ecfc36aa01d3b7cef61dccb6291e254b5a66b77a6b5f8a60" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Excluded from script]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Aus Skript ausgeschlossen]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++8a2ada67a303fe2602331dc153b30259b92e7cc2d741f8d5955d8af906ef016a" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Displays the data type name for the column]]></Val>
@@ -15252,6 +15423,15 @@
           <Val><![CDATA[Container failed to start within the timeout period. Please wait a few minutes and try again.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Der Container konnte nicht innerhalb des Timeoutzeitraums gestartet werden. Warten Sie einige Minuten, und versuchen Sie es erneut.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++8ae992fb19afbb34eedcd3f9183663145da97e5b1b40e449360bea6af64e8646" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Included in script]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Im Skript enthalten]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -17443,6 +17623,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++9fe5192ce42624a022d06949c749cfa30da826dd75f0390fef7baf5436c1a4db" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Save filter]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Filter speichern]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++9fe6b769c35efbcf43d8dcbfced2ae4a84372d540d787211cc31759ad50838f2" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Enter Database Name]]></Val>
@@ -18019,6 +18208,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++a511909161e1b84fb81b52028fc2ce79525a96b40ccda823caa4a66ee64772b5" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Layout]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Layout]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++a51af987819c1dfc511ea44930a23e6f28a921dd2741fb05c110960ab898b178" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Code analysis rules saved successfully]]></Val>
@@ -18541,6 +18739,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++aa86409ea7e147ea5324e4a83d49efc512f2527f7dbada91558cde583e1a8ec2" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Simplified]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Vereinfacht]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++aa9bb805dc517bc0164702b53526a013fbfece6dabeb9871e0b9910d23978c5e" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Please choose a unique name for the profile]]></Val>
@@ -19027,6 +19234,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++ae25d6481fc1741ffee4a95cd05de7b6375f7e1b0c63c006640b366094f2c4a9" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Classic]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Klassisch]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++ae34d5a6424e68736fc3b2450c3ca097bc7197da8fd3229e383fff8a5a4af425" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Collapse Connect to Database]]></Val>
@@ -19194,6 +19410,15 @@
           <Val><![CDATA[Enter default value for SQLCMD variable '{0}']]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Geben Sie den Standardwert für die SQLCMD-Variable „{0}“ ein.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++b0a645b25ebc1bb0400058cfdba8e3d0622412ef0ac073432011c32ddaa5a293" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Generating script.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Skript wird erstellt.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -20197,6 +20422,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++b8fddb7a2a0858e5c78adda3e0f311031aa9e175bf7dd618546382f69c68de5b" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Provisioning {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0} wird bereitgestellt]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++b91185f63fbbc17c093e3d2b7a50b755ba38d0e3a2bf1c82e079236e0624c673" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Join the discussions]]></Val>
@@ -20377,6 +20611,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++ba9bb750744bd9e7ebb8626d0c7104abe572221c6a4f846fe7e635076be038da" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Select a target schema, then press Compare.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Wählen Sie ein Zielschema aus, und klicken Sie dann auf „Vergleichen“.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++baaddf70fb5d432b8bd948ef91d6f910124a6d138edae4d5f000c4610ddc8eae" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Type]]></Val>
@@ -20472,6 +20715,15 @@
           <Val><![CDATA[Freeze columns]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Spalten fixieren]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++bb446d765ac5ce4aed459491227b909ff24de5026f8c7ee8451c1db46a8b6ade" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Cancel query]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Abfrage abbrechen]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -22282,6 +22534,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++cb0ea8066d092cc06095c116bd7b79ac93cc34d4c899ce19e465ac677f75bb27" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{0}, {1} differences]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0}, {1} Unterschiede]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++cb4eade41a7e9bf4aecf7539c5167bf881e1dac0fd35c216a8fbf4b1b4d3fa84" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[This file name is reserved for use by Windows. Choose another name and try again]]></Val>
@@ -23227,6 +23488,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++d5080bf6371aad6675debbdfd41ebeb56f3766b1ab3785a741578f53f03b4235" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Save and Apply ({0})]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Speichern und anwenden ({0})]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++d53a5854df209c578705bfaec402128f2a44624d1e435ae700ef0f56c958c15e" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Workspace is required]]></Val>
@@ -23542,6 +23812,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++d7c54293989298ee3944f49558ec6882f3cdee331b1959779bb00e2e6921be28" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The cancel request did not complete in time. The editor's execution state has been reset.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Die Abbruchanforderung wurde nicht rechtzeitig abgeschlossen. Der Ausführungsstatus des Editors wurde zurückgesetzt.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++d7caaddcb1559a9c6e14134143691acc8adabe992567bed4226ff812667142b2" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Enter project name]]></Val>
@@ -23826,6 +24105,15 @@
           <Val><![CDATA[Update action]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Aktualisierungsaktion]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++da269800efda38160dafb6420431f8bde2988bcf33504e4e13ff5af7fae7eb46" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to provision Fabric SQL database '{0}': {1}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Fehler beim Bereitstellen der Fabric-SQL-Datenbank '{0}': {1}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -26188,6 +26476,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++eebd192e7f23ac2257f5366c5833064a3ea5639b4d7d4d1d29445c28ab012505" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Constraints changed]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Einschränkungen geändert]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++eedafe8ff2506c4b821270652d82a5ed959bb9297fb5e3f3408ca19018545705" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Unable to reach nuget.org. If you are behind a proxy or in an offline environment, you can manually place the required DLL files in the build directory: {0}]]></Val>
@@ -26256,6 +26553,15 @@
           <Val><![CDATA[No permissions]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Keine Berechtigungen]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++ef77fd7e7de3068a3369a87288164dfc52c45a4fe4f9dde764612fd73c757c5e" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Allow incompatible platform during deployment]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Inkompatible Plattform bei der Bereitstellung zulassen]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -26931,6 +27237,15 @@
           <Val><![CDATA[Script copied to clipboard]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Skript in Zwischenablage kopiert]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++f6c28fcc89c496f47616db462f5bd4632eee12be2c297424b5b67daee0a610b7" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{0} is a logical key column and can't be hidden.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0} ist eine logische Schlüsselspalte und kann nicht ausgeblendet werden.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -29269,6 +29584,60 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";package.mssql.format.options.builtInFunctionCasing" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[**Used when Preview Formatter is enabled.** Casing style for supported built-in function names, such as `GETDATE` and `COALESCE`.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[**Wird verwendet, wenn der Vorschauformatierer aktiviert ist.** Groß-/Kleinschreibweise für unterstützte integrierte Funktionsnamen, z. B. „GETDATE“ und „COALESCE“.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.format.options.clauseBodyAlignment" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[**Used when Preview Formatter is enabled.** Keep clause bodies aligned with their keywords or place them on the next line with indentation.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[**Wird verwendet, wenn der Vorschauformatierer aktiviert ist.** Richten Sie den Text im Klauselkörper bündig mit den Schlüsselwörtern aus oder platzieren Sie ihn eingerückt in die nächste Zeile.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.format.options.columnAliasStyle" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format column aliases using `AS`, an equals sign, or their original syntax.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[**Wird verwendet, wenn der Vorschauformatierer aktiviert ist.** Formatieren Sie Spaltenaliase mit „AS“, einem Gleichheitszeichen oder ihrer ursprünglichen Syntax.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.format.options.commaPlacement" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place commas at the end of list items or at the beginning of the next item.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[**Wird verwendet, wenn der Vorschauformatierer aktiviert ist.** Setzen Sie Kommas am Ende von Listenelementen oder am Anfang des nächsten Elements.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.format.options.identifierBracketing" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[**Used when Preview Formatter is enabled.** Preserve, add, or remove optional square brackets around identifiers. Required brackets are retained.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[**Wird verwendet, wenn der Vorschauformatierer aktiviert ist.** Optionale eckige Klammern um Bezeichner beibehalten, hinzufügen oder entfernen. Erforderliche Klammern werden beibehalten.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.format.options.identifierCasing" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[**Used when Preview Formatter is enabled.** Casing style for object identifiers.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[**Wird verwendet, wenn der Vorschauformatierer aktiviert ist.** Groß-/Kleinschreibweise für Objektbezeichner.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";package.mssql.format.options.indentSetClause" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[**Used when Preview Formatter is enabled.** Indent SET clauses in UPDATE statements.]]></Val>
@@ -29305,6 +29674,42 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";package.mssql.format.options.leadingCommaSpaceCount" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[**Used when Preview Formatter is enabled.** Number of spaces after a leading comma. Valid values are 0 and 1.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[**Wird verwendet, wenn der Vorschauformatierer aktiviert ist.** Anzahl der Leerzeichen nach einem führenden Komma. Gültige Werte sind 0 und 1.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.format.options.multilineGroupByElementsList" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format GROUP BY elements as a multiline list.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[**Wird verwendet, wenn der Vorschauformatierer aktiviert ist.** Formatieren Sie GROUP BY-Elemente als mehrzeilige Liste.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.format.options.multilineHavingPredicatesList" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format HAVING predicates separated by AND or OR on multiple lines.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[**Wird verwendet, wenn der Vorschau-Formatierer aktiviert ist.** HAVING-Prädikate, die durch AND oder OR getrennt sind, in mehreren Zeilen formatieren.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.format.options.multilineInValuesList" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format values in an IN predicate as a multiline list.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[**Wird verwendet, wenn der Vorschauformatierer aktiviert ist.** Formatieren Sie Werte in einem IN-Prädikat als mehrzeilige Liste.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";package.mssql.format.options.multilineInsertSourcesList" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[**Used when Preview Formatter is enabled.** Format INSERT sources as multiline lists.]]></Val>
@@ -29326,6 +29731,42 @@
           <Prev Cat="Text">
             <Val><![CDATA[Format INSERT columns as multiline lists.]]></Val>
           </Prev>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.format.options.multilineNestedFunctionCalls" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format nested function calls on separate indented lines while keeping isolated function calls on one line.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[**Wird verwendet, wenn der Vorschauformatierer aktiviert ist.** Formatieren Sie geschachtelte Funktionsaufrufe in separaten eingezogenen Zeilen, während Sie isolierte Funktionsaufrufe in einer Zeile belassen.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.format.options.multilineOrderByElementsList" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format ORDER BY elements as a multiline list.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[**Wird verwendet, wenn der Vorschauformatierer aktiviert ist.** Formatieren Sie ORDER BY-Elemente als mehrzeilige Liste.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.format.options.multilinePartitionByElementsList" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format PARTITION BY elements in window specifications as a multiline list.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[**Wird verwendet, wenn der Vorschauformatierer aktiviert ist.** Formatieren Sie PARTITION BY-Elemente in Fensterspezifikationen als mehrzeilige Liste.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.format.options.multilineProcedureParametersList" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format procedure and function parameters on separate lines.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[**Wird verwendet, wenn der Vorschauformatierer aktiviert ist.** Formatieren Sie Prozedur- und Funktionsparameter in separaten Zeilen.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -29374,6 +29815,24 @@
           <Prev Cat="Text">
             <Val><![CDATA[Format WHERE predicates as multiline lists.]]></Val>
           </Prev>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.format.options.multilineWithOptionsList" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format supported WITH and OPTION clause values on separate lines.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[**Wird verwendet, wenn der Vorschauformatierer aktiviert ist.** Formatieren Sie unterstützte WITH- und OPTION-Klauselwerte in separaten Zeilen.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.format.options.newLineAfterJoinKeyword" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place the joined table source on a new line after the JOIN keyword.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[**Wird verwendet, wenn der Vorschauformatierer aktiviert ist.** Platzieren Sie die verknüpfte Tabellenquelle in einer neuen Zeile nach dem JOIN-Schlüsselwort.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -29446,6 +29905,15 @@
           <Prev Cat="Text">
             <Val><![CDATA[Place a newline before the OFFSET clause.]]></Val>
           </Prev>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.format.options.newLineBeforeOnClause" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place the ON clause of a JOIN on a new line.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[**Wird verwendet, wenn der Vorschauformatierer aktiviert ist.** Platzieren Sie die ON-Klausel eines JOIN in einer neuen Zeile.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -29533,6 +30001,24 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";package.mssql.format.options.numNewlinesAfterBatchStatement" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[**Used when Preview Formatter is enabled.** Number of line breaks after each top-level statement in a batch, from 0 through 5.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[**Wird verwendet, wenn die Vorschauformatierung aktiviert ist.** Anzahl der Zeilenumbrüche nach jeder Anweisung der obersten Ebene in einem Batch, von 0 bis 5.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.format.options.numNewlinesAfterBatches" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[**Used when Preview Formatter is enabled.** Number of line breaks after each GO batch separator, from 0 through 5.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[**Wird verwendet, wenn der Vorschauformatierer aktiviert ist.** Anzahl der Zeilenumbrüche nach jedem GO-Batchtrennzeichen von 0 bis 5.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";package.mssql.format.options.numNewlinesAfterStatement" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[**Used when Preview Formatter is enabled.** Number of line breaks after each statement, from 0 through 5.]]></Val>
@@ -29542,6 +30028,15 @@
           <Prev Cat="Text">
             <Val><![CDATA[Number of line breaks after each statement, from 0 through 5.]]></Val>
           </Prev>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.format.options.persistTrailingGo" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[**Used when Preview Formatter is enabled.** Preserve trailing GO batch separators from the original script.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[**Wird verwendet, wenn der Vorschauformatierer aktiviert ist.** Behalten Sie nachfolgende GO-Batchtrennzeichen aus dem ursprünglichen Skript bei.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -29602,6 +30097,15 @@
           <Prev Cat="Text">
             <Val><![CDATA[T-SQL version used to parse and generate formatted scripts.]]></Val>
           </Prev>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.format.options.terminateBlockStatements" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[**Used when Preview Formatter is enabled.** Add semicolon terminators after BEGIN...END and TRY...CATCH blocks.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[**Wird verwendet, wenn der Vorschauformatierer aktiviert ist.** Semikolonabschlusszeichen nach BEGIN... END- und TRY... CATCH-Blöcken hinzufügen.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -30285,24 +30789,6 @@
           <Val><![CDATA[Prevent automatic execution of scripts (e.g., 'Select Top 1000'). When enabled, scripts will not be automatically executed upon generation.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Verhindern der automatischen Ausführung von Skripten (z. B. „Top 1 000 auswählen“). Wenn diese Option aktiviert ist, werden Skripte bei der Generierung nicht automatisch ausgeführt.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";package.mssql.preview.betaExecutionPlan.description" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Enables the preview query execution plan experience with improved layout, keyboard navigation, tooltips, SQL text display, and toolbar interactions. Disable this setting to use the existing execution plan experience.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Aktiviert die Vorschau für die Ausführungspläne von Abfragen mit verbessertem Layout, Tastaturnavigation, Tooltips, SQL-Textanzeige und Interaktionen in der Symbolleiste. Deaktivieren Sie diese Einstellung, um die vorhandene Ausführungsplanerfahrung zu verwenden.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";package.mssql.preview.betaObjectExplorerFilter.description" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Enables the preview Object Explorer filter experience with saved filter presets and recently applied filters. Disable this setting to use the existing Object Explorer filter experience.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Aktiviert die Vorschau für den Filter im Objekt-Explorer mit gespeicherten Filtervorgaben und kürzlich angewendeten Filtern. Deaktivieren Sie diese Einstellung, um den vorhandenen Filter im Objekt-Explorer zu verwenden.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />

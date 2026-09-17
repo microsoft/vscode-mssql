@@ -11,9 +11,7 @@ import { MssqlChatAgent as loc } from "../../constants/locConstants";
 import { getDisplayNameForTool } from "./toolsUtils";
 import { getErrorMessage } from "../../utils/utils";
 import SqlToolsServiceClient from "../../languageservice/serviceclient";
-import { RequestType } from "vscode-languageclient";
-import { SimpleExecuteResult } from "vscode-mssql";
-import { listSchemasQuery } from "../queries";
+import { listSchemas } from "../../services/schemaService";
 
 export interface ListSchemasToolParams {
     connectionId: string;
@@ -50,18 +48,7 @@ export class ListSchemasTool extends ToolBase<ListSchemasToolParams> {
                 });
             }
 
-            const result = await this._client.sendRequest(
-                new RequestType<
-                    { ownerUri: string; queryString: string },
-                    SimpleExecuteResult,
-                    void
-                >("query/simpleexecute"),
-                {
-                    ownerUri: connectionId,
-                    queryString: listSchemasQuery,
-                },
-            );
-            const schemas = getSchemaNamesFromResult(result);
+            const schemas = await listSchemas(this._client, connectionId);
 
             return JSON.stringify({
                 success: true,
@@ -91,30 +78,4 @@ export class ListSchemasTool extends ToolBase<ListSchemasToolParams> {
         const invocationMessage = loc.ListSchemasToolInvocationMessage(displayName, connectionId);
         return { invocationMessage, confirmationMessages };
     }
-}
-
-/**
- * Helper function to extract schema names from the result of the list schemas query
- * @param result The result returned from executing the list schemas query
- * @returns An array of schema names, or an empty array if no schemas are found or if the result is invalid
- */
-export function getSchemaNamesFromResult(result: SimpleExecuteResult): string[] {
-    if (!result || !result.rows || result.rows.length === 0) {
-        return [];
-    }
-
-    const schemaNames: string[] = [];
-
-    // Extract schema names from each row
-    // Assuming the query returns schema names in the first column
-    for (const row of result.rows) {
-        if (row && row.length > 0 && row[0] && !row[0].isNull) {
-            const schemaName = row[0].displayValue.trim();
-            if (schemaName) {
-                schemaNames.push(schemaName);
-            }
-        }
-    }
-
-    return schemaNames;
 }

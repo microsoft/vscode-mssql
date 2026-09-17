@@ -21,10 +21,13 @@ import {
 } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridTransforms";
 import {
     FLUENT_RESULT_GRID_DEFAULT_FROZEN_COLUMN_INDEX,
+    areFluentResultGridColumnLayoutsEqual,
     getFluentResultGridCurrentViewState,
     getFluentResultGridInitialFrozenColumnIndex,
+    getFluentResultGridStateForEmit,
     normalizeFluentResultGridFrozenColumnIndex,
     restoreFluentResultGridColumnWidths,
+    restoreFluentResultGridVerticalScrollPosition,
     stabilizeFluentResultGridColumnInfo,
 } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridState";
 import { isFluentResultGridHostCommand } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridCommandUtils";
@@ -49,23 +52,15 @@ import {
     getFluentResultGridRowEdgeCell,
     getFluentResultGridRowNumberClickSelection,
     getFluentResultGridDataSelectionsFromRanges,
-    getFluentResultGridRangesAfterClick,
-    getFluentResultGridRangesAfterDrag,
     getFluentResultGridSelectionSummaryPayload,
     getFluentResultGridSelectionForSave,
     getFluentResultGridSlickRangesFromDataSelections,
     handleFluentResultGridRowDoubleClick,
     insertFluentResultGridSelectionRange,
     setFluentResultGridSelection,
-    toggleFluentResultGridSelectedCell,
 } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridSelection";
 import { SlickEvent, SlickEventData, SlickRange } from "@slickgrid-universal/common";
 import type { SlickGrid } from "slickgrid-react";
-import {
-    enableFluentResultGridModifierDrag,
-    isFluentResultGridAppendSelectionEvent,
-    isFluentResultGridSecondaryButtonEvent,
-} from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridCellRangeSelector";
 import {
     FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_ID,
     FLUENT_RESULT_GRID_ROW_NUMBER_COLUMN_WIDTH,
@@ -81,6 +76,7 @@ import {
 import { isFluentResultGridResizeHandleEvent } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridHeaderController";
 import { FluentResultGridSelectionModel } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridSelectionModel";
 import { dispatchFluentResultGridSelectionChange } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridSlickLifecycle";
+import { createFluentResultGridDataView } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridDataView";
 
 chai.use(sinonChai);
 const { expect } = chai;
@@ -212,6 +208,97 @@ suite("Fluent Result Grid", () => {
             expect(changedSchema).to.not.equal(first);
             expect(changedSchema.value).to.not.equal(first.value);
         });
+    });
+
+    suite("data view", () => {
+        test("reuses loaded or in-flight windows until a reload is explicitly requested", async () => {
+            const getRows = sandbox
+                .stub()
+                .callsFake(async (offset: number, count: number) =>
+                    Array.from({ length: count }, (_value, index) => [
+                        cell((offset + index).toString()),
+                    ]),
+                );
+            const dataView = createFluentResultGridDataView({
+                dataSource: {
+                    kind: "windowed",
+                    rowCount: 100,
+                    getRows,
+                },
+                columnCount: 1,
+                windowSize: 50,
+            });
+
+            dataView.getItem(0);
+            expect(getRows).to.have.callCount(2);
+
+            dataView.setLength(101, false);
+            dataView.getItem(0);
+            expect(getRows).to.have.callCount(2);
+
+            await Promise.resolve();
+            await Promise.resolve();
+            dataView.setLength(102, false);
+            dataView.getItem(0);
+            expect(getRows).to.have.callCount(2);
+
+            dataView.refresh(0);
+            expect(getRows).to.have.callCount(4);
+            dataView.dispose();
+        });
+
+        const incompleteResponses: Array<{
+            name: string;
+            response: DbCellValue[][] | Error | undefined;
+        }> = [
+            { name: "an empty response", response: [] },
+            { name: "a partial response", response: [[cell("partial")]] },
+            { name: "a malformed response", response: undefined },
+            { name: "a rejected request", response: new Error("load failed") },
+        ];
+
+        for (const { name, response } of incompleteResponses) {
+            test(`retries an unchanged window through getItem after ${name}`, async () => {
+                let firstWindowRequestCount = 0;
+                const getRows = sandbox.stub().callsFake(async (offset: number, count: number) => {
+                    if (offset === 0 && firstWindowRequestCount++ === 0) {
+                        if (response instanceof Error) {
+                            throw response;
+                        }
+
+                        return response as DbCellValue[][];
+                    }
+
+                    return Array.from({ length: count }, (_value, index) => [
+                        cell((offset + index).toString()),
+                    ]);
+                });
+                const dataView = createFluentResultGridDataView({
+                    dataSource: {
+                        kind: "windowed",
+                        rowCount: 100,
+                        getRows,
+                    },
+                    columnCount: 1,
+                    windowSize: 50,
+                });
+
+                dataView.getItem(0);
+                expect(getRows).to.have.callCount(2);
+
+                await Promise.resolve();
+                await Promise.resolve();
+                dataView.getItem(0);
+                expect(getRows).to.have.callCount(3);
+
+                await Promise.resolve();
+                await Promise.resolve();
+                const loadedRow = dataView.getItem(0);
+                expect(getRows).to.have.callCount(3);
+                expect(loadedRow["0"]).to.include({ displayValue: "0" });
+                dataView.dispose();
+            });
+        }
     });
 
     suite("transforms", () => {
@@ -398,6 +485,29 @@ suite("Fluent Result Grid", () => {
     });
 
     suite("state helpers", () => {
+        test("compares the column layout fields that require a SlickGrid reset", () => {
+            const columns = [
+                { id: "rowNumbers", field: "rowNumbers", width: 36 },
+                { id: "0", field: "0", width: 120, hidden: false },
+            ];
+
+            expect(
+                areFluentResultGridColumnLayoutsEqual(columns, [
+                    { ...columns[0] },
+                    { ...columns[1], hidden: undefined },
+                ]),
+            ).to.equal(true);
+            expect(
+                areFluentResultGridColumnLayoutsEqual(columns, [
+                    columns[0],
+                    { ...columns[1], width: 160 },
+                ]),
+            ).to.equal(false);
+            expect(
+                areFluentResultGridColumnLayoutsEqual(columns, [columns[1], columns[0]]),
+            ).to.equal(false);
+        });
+
         test("persists and restores the row number column width", () => {
             const currentColumns = [
                 { ...createFluentResultGridRowNumberColumn(), width: 80 },
@@ -424,6 +534,60 @@ suite("Fluent Result Grid", () => {
             expect(viewState.rowNumberColumnWidth).to.equal(80);
             expect(restoredColumns[0].width).to.equal(80);
             expect(restoredColumns[1].width).to.equal(160);
+        });
+
+        test("persists the pixel offset within the top visible row", () => {
+            const columns = [{ id: "0", field: "0", width: 120 }];
+            const grid = {
+                getCellNodeBox: sandbox.stub().withArgs(10, 0).returns({ top: 260 }),
+                getColumns: sandbox.stub().returns(columns),
+                getOptions: sandbox.stub().returns({ frozenColumn: 0, rowHeight: 26 }),
+                getSelectionModel: sandbox.stub().returns(undefined),
+                getViewport: sandbox.stub().returns({ top: 10, leftPx: 40 }),
+                getViewportNode: sandbox.stub().withArgs(0, 10).returns({ scrollTop: 285.5 }),
+            } as unknown as SlickGrid;
+
+            const state = getFluentResultGridStateForEmit({
+                grid,
+                columnCount: 1,
+                frozenColumnIndex: FLUENT_RESULT_GRID_DEFAULT_FROZEN_COLUMN_INDEX,
+                filters: {},
+                sort: undefined,
+            });
+
+            expect(state.scrollPosition).to.deep.equal({
+                scrollLeft: 40,
+                scrollTop: 10,
+                scrollTopOffset: 25.5,
+            });
+        });
+
+        test("restores the top row and its pixel offset when available", () => {
+            const scrollRowToTop = sandbox.stub();
+            const scrollTo = sandbox.stub();
+            const render = sandbox.stub();
+            const grid = {
+                getOptions: sandbox.stub().returns({ rowHeight: 26 }),
+                render,
+                scrollRowToTop,
+                scrollTo,
+            } as unknown as SlickGrid;
+
+            restoreFluentResultGridVerticalScrollPosition(grid, {
+                scrollLeft: 0,
+                scrollTop: 10,
+                scrollTopOffset: 25.5,
+            });
+
+            expect(scrollTo).to.have.been.calledWith(285.5);
+            expect(render).to.have.been.called;
+            expect(scrollRowToTop).not.to.have.been.called;
+
+            restoreFluentResultGridVerticalScrollPosition(grid, {
+                scrollLeft: 0,
+                scrollTop: 4,
+            });
+            expect(scrollRowToTop).to.have.been.calledWith(4);
         });
 
         test("persists selection columns by source identity after a reorder", () => {
@@ -476,61 +640,6 @@ suite("Fluent Result Grid", () => {
     });
 
     suite("selection", () => {
-        test("recognizes Ctrl and Cmd as append-selection modifiers", () => {
-            expect(isFluentResultGridAppendSelectionEvent(undefined)).to.be.false;
-            expect(isFluentResultGridAppendSelectionEvent({})).to.be.false;
-            expect(isFluentResultGridAppendSelectionEvent({ ctrlKey: true })).to.be.true;
-            expect(isFluentResultGridAppendSelectionEvent({ metaKey: true })).to.be.true;
-        });
-
-        test("treats non-primary mouse buttons as secondary drag gestures", () => {
-            // Right-click must not start a range selection: the drag service binds mousedown for
-            // every button, so an unguarded right-drag replaces a Ctrl-built selection.
-            expect(isFluentResultGridSecondaryButtonEvent({ button: 2 })).to.be.true;
-            expect(isFluentResultGridSecondaryButtonEvent({ button: 1 })).to.be.true;
-            expect(isFluentResultGridSecondaryButtonEvent({ nativeEvent: { button: 2 } })).to.be
-                .true;
-
-            expect(isFluentResultGridSecondaryButtonEvent({ button: 0 })).to.be.false;
-            expect(isFluentResultGridSecondaryButtonEvent({ nativeEvent: { button: 0 } })).to.be
-                .false;
-            // Touch and keyboard gestures report no button at all.
-            expect(isFluentResultGridSecondaryButtonEvent({})).to.be.false;
-            expect(isFluentResultGridSecondaryButtonEvent(undefined)).to.be.false;
-            expect(isFluentResultGridSecondaryButtonEvent({ nativeEvent: null })).to.be.false;
-        });
-
-        test("removes SlickGrid's option-merged modifier drag blockers in place", () => {
-            const capturedPreventDragFromKeys = ["ctrlKey", "metaKey"];
-
-            enableFluentResultGridModifierDrag(capturedPreventDragFromKeys);
-
-            expect(capturedPreventDragFromKeys).to.deep.equal([]);
-        });
-
-        test("retains four consecutive Ctrl selections", () => {
-            let selectedRanges: SlickRange[] = [];
-            const cells = [
-                { row: 1, cell: 1 },
-                { row: 3, cell: 2 },
-                { row: 5, cell: 3 },
-                { row: 7, cell: 4 },
-            ];
-
-            for (const clickedCell of cells) {
-                selectedRanges = getFluentResultGridRangesAfterClick(
-                    selectedRanges,
-                    clickedCell,
-                    null,
-                    { ctrlKey: true },
-                );
-            }
-
-            expect(selectedRanges).to.deep.equal(
-                cells.map((cell) => new SlickRange(cell.row, cell.cell)),
-            );
-        });
-
         test("selection model owns Ctrl+click as one active-cell and range transaction", () => {
             let activeCell = { row: 1, cell: 1 };
             const setActiveCell = sandbox.stub().callsFake((row: number, cell: number) => {
@@ -545,7 +654,10 @@ suite("Fluent Result Grid", () => {
                 getOptions: sandbox.stub().returns({ multiSelect: true }),
                 setActiveCell,
             } as unknown as SlickGrid;
-            const model = new TestableFluentResultGridSelectionModel({ selectionType: "cell" });
+            const model = new TestableFluentResultGridSelectionModel({
+                selectionType: "cell",
+                enableMultiSelection: true,
+            });
             model.setGridForTest(grid);
             model.setSelectedRanges([new SlickRange(1, 1)]);
             const nativeEvent = {
@@ -815,17 +927,6 @@ suite("Fluent Result Grid", () => {
                     10,
                 ),
             ).to.deep.equal([new SlickRange(0, 2, 9, 5)]);
-        });
-
-        test("Shift takes precedence over Ctrl on data-cell clicks", () => {
-            expect(
-                getFluentResultGridRangesAfterClick(
-                    [new SlickRange(8, 1)],
-                    { row: 6, cell: 5 },
-                    { row: 2, cell: 2 },
-                    { ctrlKey: true, shiftKey: true },
-                ),
-            ).to.deep.equal([new SlickRange(2, 2, 6, 5)]);
         });
 
         test("a plain column-header click replaces the selection", () => {
@@ -1201,30 +1302,6 @@ suite("Fluent Result Grid", () => {
             expect(activeCellWasReset).to.equal(true);
         });
 
-        test("appends Ctrl/Cmd-dragged blocks without replacing existing selections", () => {
-            const existingRange = new SlickRange(1, 1, 2, 2);
-            const draggedRange = new SlickRange(4, 3, 5, 4);
-
-            expect(
-                getFluentResultGridRangesAfterDrag([existingRange], draggedRange, true),
-            ).to.deep.equal([existingRange, draggedRange]);
-            expect(
-                getFluentResultGridRangesAfterDrag([existingRange], draggedRange, false),
-            ).to.deep.equal([draggedRange]);
-        });
-
-        test("does not duplicate an identical appended block", () => {
-            const existingRange = new SlickRange(1, 1, 2, 2);
-
-            expect(
-                getFluentResultGridRangesAfterDrag(
-                    [existingRange],
-                    new SlickRange(1, 1, 2, 2),
-                    true,
-                ),
-            ).to.deep.equal([existingRange]);
-        });
-
         test("merges adjacent appended blocks like the Production Grid", () => {
             expect(
                 insertFluentResultGridSelectionRange(
@@ -1252,21 +1329,6 @@ suite("Fluent Result Grid", () => {
             expect(insertFluentResultGridSelectionRange([first], gapped)).to.deep.equal([
                 first,
                 gapped,
-            ]);
-        });
-
-        test("adds an unselected cell and removes a selected cell from a block", () => {
-            const existingRange = new SlickRange(1, 1, 3, 3);
-
-            expect(toggleFluentResultGridSelectedCell([existingRange], 5, 5)).to.deep.equal([
-                existingRange,
-                new SlickRange(5, 5),
-            ]);
-            expect(toggleFluentResultGridSelectedCell([existingRange], 2, 2)).to.deep.equal([
-                new SlickRange(1, 1, 1, 3),
-                new SlickRange(3, 1, 3, 3),
-                new SlickRange(2, 1, 2, 1),
-                new SlickRange(2, 3, 2, 3),
             ]);
         });
     });

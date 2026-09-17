@@ -408,44 +408,6 @@ export function toggleFluentResultGridSelectedColumn(
     return nextRanges;
 }
 
-export function getFluentResultGridRangesAfterClick(
-    selectedRanges: readonly SlickRange[],
-    clickedCell: FluentResultGridSelectionCell,
-    activeCell: FluentResultGridSelectionCell | null,
-    modifiers: FluentResultGridSelectionClickModifiers,
-): SlickRange[] {
-    // Production gives Shift precedence when multiple modifiers are held.
-    if (modifiers.shiftKey) {
-        return [
-            activeCell
-                ? new SlickRange(activeCell.row, activeCell.cell, clickedCell.row, clickedCell.cell)
-                : new SlickRange(clickedCell.row, clickedCell.cell),
-        ];
-    }
-
-    if (modifiers.ctrlKey || modifiers.metaKey) {
-        return toggleFluentResultGridSelectedCell(
-            selectedRanges,
-            clickedCell.row,
-            clickedCell.cell,
-        );
-    }
-
-    return [new SlickRange(clickedCell.row, clickedCell.cell)];
-}
-
-export function getFluentResultGridRangesAfterDrag(
-    selectedRanges: readonly SlickRange[],
-    draggedRange: SlickRange,
-    append: boolean,
-): SlickRange[] {
-    if (!append) {
-        return [draggedRange];
-    }
-
-    return insertFluentResultGridSelectionRange(selectedRanges, draggedRange);
-}
-
 function tryMergeFluentResultGridSelectionRanges(
     first: SlickRange,
     second: SlickRange,
@@ -498,40 +460,6 @@ export function insertFluentResultGridSelectionRange(
     }
 
     return [...remainingRanges, mergedRange];
-}
-
-export function toggleFluentResultGridSelectedCell(
-    selectedRanges: readonly SlickRange[],
-    row: number,
-    cell: number,
-): SlickRange[] {
-    const nextRanges: SlickRange[] = [];
-    let removedSelectedCell = false;
-
-    for (const range of selectedRanges) {
-        if (!range.contains(row, cell)) {
-            nextRanges.push(range);
-            continue;
-        }
-
-        removedSelectedCell = true;
-        if (range.fromRow < row) {
-            nextRanges.push(new SlickRange(range.fromRow, range.fromCell, row - 1, range.toCell));
-        }
-        if (row < range.toRow) {
-            nextRanges.push(new SlickRange(row + 1, range.fromCell, range.toRow, range.toCell));
-        }
-        if (range.fromCell < cell) {
-            nextRanges.push(new SlickRange(row, range.fromCell, row, cell - 1));
-        }
-        if (cell < range.toCell) {
-            nextRanges.push(new SlickRange(row, cell + 1, row, range.toCell));
-        }
-    }
-
-    return removedSelectedCell
-        ? nextRanges
-        : insertFluentResultGridSelectionRange(selectedRanges, new SlickRange(row, cell));
 }
 
 export function toFluentResultGridSelectionRange(range: SlickRange): ISlickRange {

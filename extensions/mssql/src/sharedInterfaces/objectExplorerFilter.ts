@@ -9,7 +9,6 @@ import { CoreRPCs } from "./webview";
 export interface ObjectExplorerFilterState {
     filterProperties: vscodeMssql.NodeFilterProperty[];
     existingFilters: vscodeMssql.NodeFilter[];
-    isPreviewEnabled: boolean;
     filterScopeId: string;
     filterPresets: ObjectExplorerFilterPreset[];
     nodePath?: string;
@@ -87,5 +86,4 @@ export interface ObjectExplorerPageFilter {
     }[];
     operatorOptions: NodeFilterOperator[];
     selectedOperator: NodeFilterOperator;
-    description: string;
 }

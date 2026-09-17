@@ -56,6 +56,9 @@ const TYPE_INDENT = 20;
 const ENTITY_INDENT = 40;
 const COLUMN_INDENT = 60;
 
+/** Stands in for the exposed-column count while an entity is not exposed on any API surface. */
+const EXPOSURE_COUNT_PLACEHOLDER = "—";
+
 // ── Flat-row type for virtualized rendering ──
 
 type FlatRow =
@@ -536,7 +539,7 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
         }
         const loweredFilter = dabTextFilter.toLowerCase().trim();
         return dabConfig.entities.filter((entity) => {
-            if (!doesEntityMatchDabFilters(entity, entityFilters)) {
+            if (!doesEntityMatchDabFilters(entity, entityFilters, dabConfig.apiTypes)) {
                 return false;
             }
 
@@ -607,7 +610,9 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
             const schemaKey = getSchemaGroupKey(schemaName);
             const schemaId = `schema-${schemaKey}`;
             const schemaExpanded = expandedRows.has(schemaId);
-            const enabledEntityCount = entities.filter((e) => Dab.isEntityExposed(e)).length;
+            const enabledEntityCount = entities.filter((entity) =>
+                Dab.isEntityEffectivelyExposed(entity, dabConfig?.apiTypes),
+            ).length;
 
             rows.push({
                 type: "schema",
@@ -642,8 +647,9 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
                         schemaName,
                         sourceType: group.sourceType,
                         entities: group.entities,
-                        enabledEntityCount: group.entities.filter((e) => Dab.isEntityExposed(e))
-                            .length,
+                        enabledEntityCount: group.entities.filter((entity) =>
+                            Dab.isEntityEffectivelyExposed(entity, dabConfig?.apiTypes),
+                        ).length,
                         isExpanded: groupExpanded,
                     });
 
@@ -701,7 +707,7 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
         }
 
         return rows;
-    }, [entitiesBySchema, expandedRows]);
+    }, [dabConfig?.apiTypes, entitiesBySchema, expandedRows]);
 
     // ── Toggle expand/collapse ──
 
@@ -933,8 +939,24 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
                         </span>
                         {sourceType !== Dab.EntitySourceType.StoredProcedure && (
                             <DabCountPill>
-                                {row.entity.columns.filter((c) => c.isExposed).length}/
-                                {row.entity.columns.length}
+                                {Dab.isEntityEffectivelyExposed(row.entity, dabConfig?.apiTypes) ? (
+                                    <>
+                                        {
+                                            row.entity.columns.filter(
+                                                (column) =>
+                                                    column.isExposed ||
+                                                    Dab.isLogicalKeyColumn(row.entity, column),
+                                            ).length
+                                        }
+                                        /{row.entity.columns.length}
+                                    </>
+                                ) : (
+                                    <span
+                                        title={locConstants.schemaDesigner.notExposed}
+                                        aria-label={locConstants.schemaDesigner.notExposed}>
+                                        {EXPOSURE_COUNT_PLACEHOLDER}
+                                    </span>
+                                )}
                             </DabCountPill>
                         )}
                         {keyWarningText && (
@@ -1059,6 +1081,7 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
             classes.primaryKeyIcon,
             classes.requiredMarker,
             classes.searchHighlight,
+            dabConfig?.apiTypes,
             dabTextFilter,
             getRowIndent,
             openSettingsDialog,
@@ -1152,11 +1175,14 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
     const renderExposedContent = useCallback(
         (row: FlatRow) => {
             if (row.type === "column") {
-                const isLogicalKey = Dab.isLogicalKeyColumn(row.entity, row.column);
+                if (!Dab.isEntityEffectivelyExposed(row.entity, dabConfig?.apiTypes)) {
+                    return renderBlankContent();
+                }
+
                 return (
                     <div className={classes.pillCell}>
                         <span className={classes.mutedMetadataTag}>
-                            {isLogicalKey || row.column.isExposed
+                            {row.column.isExposed || Dab.isLogicalKeyColumn(row.entity, row.column)
                                 ? locConstants.schemaDesigner.exposed
                                 : locConstants.schemaDesigner.hidden}
                         </span>
@@ -1275,7 +1301,7 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
                 return renderBlankContent();
             }
 
-            if (!Dab.isEntityExposed(row.entity)) {
+            if (!Dab.isEntityEffectivelyExposed(row.entity, dabConfig?.apiTypes)) {
                 return renderBlankContent();
             }
 
@@ -1329,6 +1355,7 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
             classes.pillButton,
             classes.pillCell,
             classes.sourceCell,
+            dabConfig?.apiTypes,
             openSettingsDialog,
             renderBlankContent,
         ],

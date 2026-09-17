@@ -382,6 +382,10 @@ declare module "vscode-mssql" {
             includeRequest: boolean,
             taskExecutionMode: TaskExecutionMode,
         ): Thenable<SchemaCompareIncludeExcludeAllResult>;
+        getDifferenceDetails(
+            operationId: string,
+            differenceIndex: number,
+        ): Thenable<SchemaCompareDifferenceDetailsResult>;
         openScmp(filePath: string): Thenable<SchemaCompareOpenScmpResult>;
         saveScmp(
             sourceEndpointInfo: SchemaCompareEndpointInfo,
@@ -1461,6 +1465,7 @@ declare module "vscode-mssql" {
     }
 
     export interface DiffEntry {
+        hasDetails?: boolean;
         updateAction: SchemaUpdateAction;
         differenceType: SchemaDifferenceType;
         name: string;
@@ -1531,6 +1536,15 @@ declare module "vscode-mssql" {
 
     export interface SchemaCompareIncludeExcludeAllResult extends ResultStatus {
         allIncludedOrExcludedDifferences: DiffEntry[];
+    }
+
+    export interface SchemaCompareDifferenceDetailsParams {
+        operationId: string;
+        differenceIndex: number;
+    }
+
+    export interface SchemaCompareDifferenceDetailsResult extends ResultStatus {
+        difference: DiffEntry;
     }
 
     export interface SchemaCompareNodeParams {

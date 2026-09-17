@@ -31,6 +31,12 @@ export class Common {
     public static privateString = l10n.t("Private");
     public static remove = l10n.t("Remove");
     public static invalidPort = l10n.t("Port must be a number between 1 and 65535");
+    public static provisioningTarget = (target: string) =>
+        l10n.t({
+            message: "Provisioning {0}",
+            args: [target],
+            comment: ["{0} is the server, container, or database target being provisioned"],
+        });
 }
 
 export class SqlToolsMcp {
@@ -120,6 +126,13 @@ export function msgFinishedExecute(documentName: string) {
 }
 export let msgRunQueryInProgress = l10n.t(
     "A query is already running for this editor session. Please cancel this query or wait for its completion.",
+);
+export let msgRunQueryInProgressCancelAction = l10n.t("Cancel query");
+export let msgQueryNoLongerRunning = l10n.t(
+    "The service is no longer running a query for this editor. The editor's execution state has been reset.",
+);
+export let msgCancelQueryTimedOut = l10n.t(
+    "The cancel request did not complete in time. The editor's execution state has been reset.",
 );
 export let runQueryBatchStartMessage = l10n.t("Started executing query at ");
 export function runQueryBatchStartLine(lineNumber: number) {
@@ -1101,6 +1114,9 @@ export class ConnectionDialog {
     public static entraServicePrincipalAuthTooltip = l10n.t(
         "Authenticate using a Microsoft Entra service principal. Enter the Application (client) ID as the user name and the client secret as the password. Click the info icon to learn more.",
     );
+    public static kerberosAuthTooltip = l10n.t(
+        "Kerberos must be configured to use Windows Authentication on macOS and Linux. Click the info icon to learn more.",
+    );
     public static applicationClientId = l10n.t("Application (Client) ID");
     public static applicationClientIdTooltip = l10n.t(
         "The Application (Client) ID of your Microsoft Entra app registration.",
@@ -1583,6 +1599,18 @@ export class AzureSqlDatabase {
     );
     public static maxVcores = l10n.t("Max vCores");
     public static selectMaxVcores = l10n.t("Select Max vCores");
+    public static provisioningTaskSucceeded = (databaseName: string) =>
+        l10n.t({
+            message: "Azure SQL database '{0}' was provisioned successfully.",
+            args: [databaseName],
+            comment: ["{0} is the database name"],
+        });
+    public static provisioningTaskFailed = (databaseName: string, error: string) =>
+        l10n.t({
+            message: "Failed to provision Azure SQL database '{0}': {1}",
+            args: [databaseName, error],
+            comment: ["{0} is the database name", "{1} is the error message"],
+        });
 }
 
 export class FabricProvisioning {
@@ -1597,6 +1625,18 @@ export class FabricProvisioning {
     public static databaseNameError = l10n.t(
         "This database name is already in use. Please choose a different name.",
     );
+    public static provisioningTaskSucceeded = (databaseName: string) =>
+        l10n.t({
+            message: "Fabric SQL database '{0}' was provisioned successfully.",
+            args: [databaseName],
+            comment: ["{0} is the database name"],
+        });
+    public static provisioningTaskFailed = (databaseName: string, error: string) =>
+        l10n.t({
+            message: "Failed to provision Fabric SQL database '{0}': {1}",
+            args: [databaseName, error],
+            comment: ["{0} is the database name", "{1} is the error message"],
+        });
 }
 
 export class QueryResult {
@@ -1830,6 +1870,18 @@ export class LocalContainers {
     public static connectingToContainerBody = l10n.t(
         "Connecting to your SQL Server Docker container",
     );
+    public static provisioningTaskSucceeded = (containerName: string) =>
+        l10n.t({
+            message: "SQL Server container '{0}' was provisioned successfully.",
+            args: [containerName],
+            comment: ["{0} is the container name"],
+        });
+    public static provisioningTaskFailed = (containerName: string, error: string) =>
+        l10n.t({
+            message: "Failed to provision SQL Server container '{0}': {1}",
+            args: [containerName, error],
+            comment: ["{0} is the container name", "{1} is the error message"],
+        });
     public static passwordLengthError = l10n.t("Please make your password 8-128 characters long.");
     public static passwordComplexityError = l10n.t(
         "Your password must contain characters from at least three of the following categories: uppercase letters, lowercase letters, numbers (0-9), and special characters (!, $, #, %, etc.).",

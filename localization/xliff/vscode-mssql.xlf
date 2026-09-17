@@ -430,6 +430,9 @@
     <trans-unit id="++CODE++ab4db1a876378f718e4073baa75897c34c0e7d2608d68cda6461e01de42fa962">
       <source xml:lang="en">Allow Nulls</source>
     </trans-unit>
+    <trans-unit id="++CODE++ef77fd7e7de3068a3369a87288164dfc52c45a4fe4f9dde764612fd73c757c5e">
+      <source xml:lang="en">Allow incompatible platform during deployment</source>
+    </trans-unit>
     <trans-unit id="++CODE++49ac2c72f4aa327cb385b0c76a52b02ae819504641492120e52b1070d9db5663">
       <source xml:lang="en">Allow null</source>
     </trans-unit>
@@ -784,6 +787,10 @@
     <trans-unit id="++CODE++2827add936f31415e16e0670d8686084ec2e21fed7686c0aa91fffdfa09e4e38">
       <source xml:lang="en">Azure SQL Server</source>
     </trans-unit>
+    <trans-unit id="++CODE++588333f4d266b89935941194e4f8e0f1d8aab434615c493680d7d0859b6b7081">
+      <source xml:lang="en">Azure SQL database &apos;{0}&apos; was provisioned successfully.</source>
+      <note>{0} is the database name</note>
+    </trans-unit>
     <trans-unit id="++CODE++d58bf1f323a38f50b921c7d963ad40d4323ebb5085fc456c8afbcc6542b0eb7a">
       <source xml:lang="en">Azure SQL databases provisioning</source>
     </trans-unit>
@@ -1016,6 +1023,9 @@
     <trans-unit id="++CODE++a6dab3e65af40b4f3bca5c056278a22a48972adfa26a46fa3cc16aa4e07e86e0">
       <source xml:lang="en">Cancel failed: {0}</source>
       <note>{0} is the error message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++bb446d765ac5ce4aed459491227b909ff24de5026f8c7ee8451c1db46a8b6ade">
+      <source xml:lang="en">Cancel query</source>
     </trans-unit>
     <trans-unit id="++CODE++d6efd131712ed1115d720d4cfdb68b1819ad1de1587f4c2176c9c055c7c03a67">
       <source xml:lang="en">Cancel schema compare failed: &apos;{0}&apos;</source>
@@ -1309,6 +1319,9 @@
     </trans-unit>
     <trans-unit id="++CODE++c7a8b036403ce2f163af46818ab619f6fdb6da9e16e6eb28bc547ecebcd7ad0b">
       <source xml:lang="en">Circular reference from project {0} to project {1}</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ae25d6481fc1741ffee4a95cd05de7b6375f7e1b0c63c006640b366094f2c4a9">
+      <source xml:lang="en">Classic</source>
     </trans-unit>
     <trans-unit id="++CODE++83b12c2216efb4fdc924e1deb5182e905e4926ed0c1c324d467107f46d5a26a9">
       <source xml:lang="en">Clear</source>
@@ -1895,13 +1908,22 @@
     <trans-unit id="++CODE++917801babf61b34ef1c1d96e3219bc6ba28693c81f2c5af5cc00a31d0793a317">
       <source xml:lang="en">Consider adding a name for this foreign key</source>
     </trans-unit>
+    <trans-unit id="++CODE++465eabab9bde19760846b72eb06f2498233548cac46595d805aa574d504110c3">
+      <source xml:lang="en">Constraints added</source>
+    </trans-unit>
     <trans-unit id="++CODE++1fb78b59d106ba2e4cd956f77e6e0c4bb1090e2d57ac69e73e49aef3fc65d6aa">
       <source xml:lang="en">Constraints added: {0}</source>
       <note>{0} is a comma-separated list of fully-qualified object names (e.g. &apos;[dbo].[PK_Customers], [dbo].[UQ_Customers_Email]&apos;) that will be added under the selected parent object when the diff is applied.</note>
     </trans-unit>
+    <trans-unit id="++CODE++eebd192e7f23ac2257f5366c5833064a3ea5639b4d7d4d1d29445c28ab012505">
+      <source xml:lang="en">Constraints changed</source>
+    </trans-unit>
     <trans-unit id="++CODE++bbbe9ad1983802ef25e78bbea25d0abdc86664e6a53f1459d4cc71cda0a25d8e">
       <source xml:lang="en">Constraints changed: {0}</source>
       <note>{0} is a comma-separated list of fully-qualified object names that will be altered under the selected parent object when the diff is applied.</note>
+    </trans-unit>
+    <trans-unit id="++CODE++7bee7db8de36619306e87e8f4dc35cad5737ee07d864839c4bc4bff0da4c3a2a">
+      <source xml:lang="en">Constraints dropped</source>
     </trans-unit>
     <trans-unit id="++CODE++c9d2fd860eb492e6f42e47058e7242c10daec76480b280a0886b242619243760">
       <source xml:lang="en">Constraints dropped: {0}</source>
@@ -1954,6 +1976,9 @@
     </trans-unit>
     <trans-unit id="++CODE++04ed7bc7a0e65dc11fc23e991a54fdd2c2ea33d9919598c0cccbfd9df831f338">
       <source xml:lang="en">Control the results grid display</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3cb79d895358f3badaea5b6eb05416fa6739c8520a7e8c2ddc97d662d69c0a67">
+      <source xml:lang="en">Controls whether deployment blocks because of platform compatibility checks. It does not allow Schema Compare between different Azure Synapse or Microsoft Fabric platform types.</source>
     </trans-unit>
     <trans-unit id="++CODE++9ad6fe65e4341a2297371f3f36b2b9cf12241c8bd2fb0e6b35f96cf60b50a291">
       <source xml:lang="en">Converting the project {0} to SDK-style was unsuccessful. Changes to the .sqlproj have been rolled back.</source>
@@ -3354,6 +3379,9 @@
     <trans-unit id="++CODE++01ae099f23b8fe85d27a9e26613eb2624bd76e11505385e3493f316afde824c2">
       <source xml:lang="en">Exclude Object Types</source>
     </trans-unit>
+    <trans-unit id="++CODE++8a2a30d7fa1829a6ecfc36aa01d3b7cef61dccb6291e254b5a66b77a6b5f8a60">
+      <source xml:lang="en">Excluded from script</source>
+    </trans-unit>
     <trans-unit id="++CODE++5f6395cfa3be1b2b7783b923ebc2736c923aeda2142cc740137eb871f8ec0e1f">
       <source xml:lang="en">Excluding folders is not yet supported</source>
     </trans-unit>
@@ -3632,6 +3660,10 @@
     <trans-unit id="++CODE++7a77e8a8f80ab358ff1261e8047b81ffa298288509fc45ae56d2760997839dda">
       <source xml:lang="en">Fabric Databases</source>
     </trans-unit>
+    <trans-unit id="++CODE++1c7cb4f75443e75ebc87e93e015e29bdf680a2f851b09a1bb5c761639ed092fa">
+      <source xml:lang="en">Fabric SQL database &apos;{0}&apos; was provisioned successfully.</source>
+      <note>{0} is the database name</note>
+    </trans-unit>
     <trans-unit id="++CODE++3070527056fcbd2ba823f6ed6ec72a556b5d82695b4490bc28c86d210c696bad">
       <source xml:lang="en">Fabric Workspaces</source>
     </trans-unit>
@@ -3880,6 +3912,21 @@
     <trans-unit id="++CODE++57720273abceaae68869abb1dfe214c44dc30b747692c3b7e2ef694e13363dd9">
       <source xml:lang="en">Failed to open text in editor: {0}</source>
       <note>{0} is the error message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++7ba26df4d0fbbd2bee13f3a586513471356439c4aa47b18bd9640be75254373e">
+      <source xml:lang="en">Failed to provision Azure SQL database &apos;{0}&apos;: {1}</source>
+      <note>{0} is the database name
+{1} is the error message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++da269800efda38160dafb6420431f8bde2988bcf33504e4e13ff5af7fae7eb46">
+      <source xml:lang="en">Failed to provision Fabric SQL database &apos;{0}&apos;: {1}</source>
+      <note>{0} is the database name
+{1} is the error message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++14887cba6de543fd263763a0c2952d8800157cd1ff9bc9378bc8c4f0d8200bf9">
+      <source xml:lang="en">Failed to provision SQL Server container &apos;{0}&apos;: {1}</source>
+      <note>{0} is the container name
+{1} is the error message</note>
     </trans-unit>
     <trans-unit id="++CODE++07ada7fc091c333284ba42452a6d0ef44eae8f3105e07704463afe34a9d0c92d">
       <source xml:lang="en">Failed to pull DAB container image. Please check your network connection.</source>
@@ -4362,6 +4409,9 @@
     <trans-unit id="++CODE++019c93d8e0baa64c24b53c1e6f34c8faa0fcac26a0ac69fdaa46b788f6c05912">
       <source xml:lang="en">Generating report, this might take a while...</source>
     </trans-unit>
+    <trans-unit id="++CODE++b0a645b25ebc1bb0400058cfdba8e3d0622412ef0ac073432011c32ddaa5a293">
+      <source xml:lang="en">Generating script.</source>
+    </trans-unit>
     <trans-unit id="++CODE++915fc447c859d56fa8e745484ac300e07e104e9ef318105f82b578bedf32c405">
       <source xml:lang="en">Generating script...</source>
     </trans-unit>
@@ -4633,6 +4683,9 @@
     <trans-unit id="++CODE++ac665fafc5f9732c9d322749a1f726be51f8b31d2ec83ecde83a6e1d2b632eda">
       <source xml:lang="en">Include all object types</source>
     </trans-unit>
+    <trans-unit id="++CODE++4ec34472d661ee6006e436cc302b6d561780eb0b22d21c9e9110b4ff31856a71">
+      <source xml:lang="en">Include or exclude all differences</source>
+    </trans-unit>
     <trans-unit id="++CODE++3f763b9cd0ea6431ca045177a0ef88702e20d566b4634c7efad944d1a4b1ef4d">
       <source xml:lang="en">Include permissions</source>
     </trans-unit>
@@ -4642,6 +4695,9 @@
     <trans-unit id="++CODE++38ccbbcbe0241e051909d6867d0528e4eff3bed6cbd9360cbaa67a0301f67066">
       <source xml:lang="en">Include {0}</source>
       <note>{0} is the entity name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++8ae992fb19afbb34eedcd3f9183663145da97e5b1b40e449360bea6af64e8646">
+      <source xml:lang="en">Included in script</source>
     </trans-unit>
     <trans-unit id="++CODE++a19caa35e133f5a0e94975762741c4c73b09c8a830908934206474fea30817b0">
       <source xml:lang="en">Incomplete or orphaned connections</source>
@@ -4789,6 +4845,9 @@
     <trans-unit id="++CODE++29b39d81b8651e8717f85c00002b2b087bafb969eb289ac991fa41b17522e775">
       <source xml:lang="en">Keep in query pane</source>
     </trans-unit>
+    <trans-unit id="++CODE++17372face64ed2506cefca636024341e0d6f25d3f75847b5d276c0d5cc4569c4">
+      <source xml:lang="en">Kerberos must be configured to use Windows Authentication on macOS and Linux. Click the info icon to learn more.</source>
+    </trans-unit>
     <trans-unit id="++CODE++99a52df3ff3d499488e2fa28150c4106a2cb5e928891a830a9aa3922b2d32160">
       <source xml:lang="en">Key</source>
     </trans-unit>
@@ -4809,6 +4868,9 @@
     </trans-unit>
     <trans-unit id="++CODE++c7d299ed6b2896187b535a86fd6b04f01669a9b72528a8f2021fff2f42d9f6e3">
       <source xml:lang="en">Last Page</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a511909161e1b84fb81b52028fc2ce79525a96b40ccda823caa4a66ee64772b5">
+      <source xml:lang="en">Layout</source>
     </trans-unit>
     <trans-unit id="++CODE++8d8cd546b58d91c300d3149ef40b8d98d3061dc38f15ea937d2ed785a3f25771">
       <source xml:lang="en">Learn More</source>
@@ -5439,9 +5501,6 @@
     <trans-unit id="++CODE++b76bc80b8a0e64a7d4bdcb44be4f61adea3c7657d8ab9c599ab349d1d772d7b1">
       <source xml:lang="en">Move selection to the last cell in the row</source>
     </trans-unit>
-    <trans-unit id="++CODE++8710c37bff459c290072633f29a51f66f7ffc220d8594a461ea44aff3640e749">
-      <source xml:lang="en">Move to Recent</source>
-    </trans-unit>
     <trans-unit id="++CODE++27b4c707cf413882a14ef7b762694ed52bbf69755646afa8cf1972dec4cf3c92">
       <source xml:lang="en">Move to Root</source>
     </trans-unit>
@@ -6029,6 +6088,9 @@
     <trans-unit id="++CODE++17353b3f8f54bed0a811ad1ed6fb9f3505a0e039df3b934afb3e8bc11976a2ca">
       <source xml:lang="en">OLTP, built on Azure SQL</source>
     </trans-unit>
+    <trans-unit id="++CODE++62a6da8735c18e2d66fe5de3dc5440252a1da49e3cbaa7c1d2d5068ad73ffba0">
+      <source xml:lang="en">Object</source>
+    </trans-unit>
     <trans-unit id="++CODE++501ec8c3629bcdcd52b9d7895c90d04b0c0b969f1134ba024efe021f0a25d867">
       <source xml:lang="en">Object Explorer Filter</source>
     </trans-unit>
@@ -6304,9 +6366,6 @@
     <trans-unit id="++CODE++4c09d189302f2506e79be79caf623ccc300816ff936119f9dc5f5bbfd9ee5b0a">
       <source xml:lang="en">Pick from multiple SQL Server versions, including SQL Server 2025 with built-in AI capabilities like vector search and JSON enhancements.</source>
     </trans-unit>
-    <trans-unit id="++CODE++7402b850c8ea04211c0bde6a01e934211ac94feed7e01d1d719473b9a453b644">
-      <source xml:lang="en">Pin to Saved</source>
-    </trans-unit>
     <trans-unit id="++CODE++2d88a61abeffd59a3bd59240d49c72a6b54deaecde6c449c2a4fd88f698d2628">
       <source xml:lang="en">Please Accept the SQL Server EULA</source>
     </trans-unit>
@@ -6406,6 +6465,9 @@
     </trans-unit>
     <trans-unit id="++CODE++3b91294fe7a573ba168c7b5c23b3fc93126ad6a222949deda1e517bc3a335519">
       <source xml:lang="en">Preserve the replication settings</source>
+    </trans-unit>
+    <trans-unit id="++CODE++87b6ba145c833b9c75e4408f5f6f171061680b8e5c0e472c8ca67d2e925fe485">
+      <source xml:lang="en">Press Compare to see the differences between the source and target schemas.</source>
     </trans-unit>
     <trans-unit id="++CODE++8e8d85ec52b9705310156eb6f67d11bb6b6b2220e47b0e2f337dd3bdfbfa002a">
       <source xml:lang="en">Press desired key combination and then press ENTER.</source>
@@ -6563,6 +6625,10 @@
     </trans-unit>
     <trans-unit id="++CODE++c2b1b8e2e03928e24b07be3e3cbc597577096c8303d9aa621a147ca2456bdad7">
       <source xml:lang="en">Provisioning</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b8fddb7a2a0858e5c78adda3e0f311031aa9e175bf7dd618546382f69c68de5b">
+      <source xml:lang="en">Provisioning {0}</source>
+      <note>{0} is the server, container, or database target being provisioned</note>
     </trans-unit>
     <trans-unit id="++CODE++591935b15b1c88e2d5f6be0a054604fcf36f0585a6f51098fa3803826fff278c">
       <source xml:lang="en">Public</source>
@@ -6846,6 +6912,9 @@
     </trans-unit>
     <trans-unit id="++CODE++18720329ca307c792fee6c6c1f707145c981d07c2b5a1b7127732ccd6e7203eb">
       <source xml:lang="en">Remove from favorites</source>
+    </trans-unit>
+    <trans-unit id="++CODE++45a768226b6eb7eca5f849cc961fce9ec9c5c278deae1db8acfddce9cd5f43c5">
+      <source xml:lang="en">Remove from saved filters</source>
     </trans-unit>
     <trans-unit id="++CODE++d5001dd4aab39b12094fd9e9b68e3b8ab67a6437c8eeaf592f0943dcd5851890">
       <source xml:lang="en">Remove sort</source>
@@ -7191,6 +7260,10 @@
     <trans-unit id="++CODE++8fb9e52bba9bdebaf10c130eca428ca15b770d0ba41c5f854c47db14a380f8ae">
       <source xml:lang="en">SQL Server admin password</source>
     </trans-unit>
+    <trans-unit id="++CODE++82a5a935a9143edc89ac046512a9ba03026e4774cde53feb82c959225904e638">
+      <source xml:lang="en">SQL Server container &apos;{0}&apos; was provisioned successfully.</source>
+      <note>{0} is the container name</note>
+    </trans-unit>
     <trans-unit id="++CODE++49946129c776c67af592a7bd5399b229d9e11260362f8dd0ee8a96778dbc3bee">
       <source xml:lang="en">SQL Server does not support Windows containers. Please switch to Linux containers in Docker Desktop settings.</source>
     </trans-unit>
@@ -7273,6 +7346,13 @@
     <trans-unit id="++CODE++072fb040dae019a32d416f0ad48852b98a2544da0e126c054ea338011ae0d63a">
       <source xml:lang="en">Save Secret</source>
     </trans-unit>
+    <trans-unit id="++CODE++6b93458b8efd284fb830885ed38c172565b677f208e972fbace1b47f79415423">
+      <source xml:lang="en">Save and Apply</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d5080bf6371aad6675debbdfd41ebeb56f3766b1ab3785a741578f53f03b4235">
+      <source xml:lang="en">Save and Apply ({0})</source>
+      <note>{0} is the keyboard shortcut for saving and applying the filter</note>
+    </trans-unit>
     <trans-unit id="++CODE++e50761ebedbdddb4dd4afb99a7c0964cf8bfed33ec03cb39f5a08e65812c795a">
       <source xml:lang="en">Save as CSV</source>
     </trans-unit>
@@ -7306,6 +7386,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e7e6421e77a208718956538ea14f589ab43207800d985563be7e407d0a369c96">
       <source xml:lang="en">Save connection profile changes without establishing a connection</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9fe5192ce42624a022d06949c749cfa30da826dd75f0390fef7baf5436c1a4db">
+      <source xml:lang="en">Save filter</source>
     </trans-unit>
     <trans-unit id="++CODE++e86cf7b88cde4602bf09208d61b915b3990896c08dfc027f85aaf61296311506">
       <source xml:lang="en">Save password</source>
@@ -7429,6 +7512,9 @@
     </trans-unit>
     <trans-unit id="++CODE++22c32b443d8259ab1a9f2a388a56124f882e9356d7aeb64f41eb84ba2bdf48fd">
       <source xml:lang="en">Schema designer updated successfully.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++60aa3ddef33b076337901e45e7a08cee2075647c667509cb22451a7069ff608c">
+      <source xml:lang="en">Schema differences</source>
     </trans-unit>
     <trans-unit id="++CODE++c55acbc843338cecc106d5428a6c2c6cd65129c6b5c440b6477f06206d844ded">
       <source xml:lang="en">Schema is required</source>
@@ -7637,6 +7723,9 @@
     <trans-unit id="++CODE++daec3468c00df36219c157514c5317f36caf6636f4d430d7b3209552c59b9a18">
       <source xml:lang="en">Select a session...</source>
     </trans-unit>
+    <trans-unit id="++CODE++69caf154f7a7ff6fa44128fd6973d20a1e51024cf0aebe70c32188609cb85201">
+      <source xml:lang="en">Select a source schema, then press Compare.</source>
+    </trans-unit>
     <trans-unit id="++CODE++f54fc9f7eb78f9523dea69c1d5f1115bb8e8acec088f8bea79aee0156f5e55cf">
       <source xml:lang="en">Select a storage account</source>
     </trans-unit>
@@ -7645,6 +7734,9 @@
     </trans-unit>
     <trans-unit id="++CODE++fac4c702f7790e41763806f2cdc67d0521f91fe1cd0cc1ac492506ea2842b5dc">
       <source xml:lang="en">Select a subscription to view servers in it.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ba9bb750744bd9e7ebb8626d0c7104abe572221c6a4f846fe7e635076be038da">
+      <source xml:lang="en">Select a target schema, then press Compare.</source>
     </trans-unit>
     <trans-unit id="++CODE++ebe0dbee443b4562c7925a01e3bc69a3d5d0a3b0e8b3e11041c69fa067b65ef7">
       <source xml:lang="en">Select a tenant</source>
@@ -8070,6 +8162,9 @@
     </trans-unit>
     <trans-unit id="++CODE++f6dd83003322db3c5d5ef293a8dc73363ae462529918cc8d17cc94f9988c0d45">
       <source xml:lang="en">Simple Container Management</source>
+    </trans-unit>
+    <trans-unit id="++CODE++aa86409ea7e147ea5324e4a83d49efc512f2527f7dbada91558cde583e1a8ec2">
+      <source xml:lang="en">Simplified</source>
     </trans-unit>
     <trans-unit id="++CODE++ab3134048412e796a4a423dc1963ca8ff12b535d546d314470407639777e0ac5">
       <source xml:lang="en">Smart performance</source>
@@ -8529,9 +8624,6 @@
     <trans-unit id="++CODE++b0ccb68c36737cb5ef6c7a74871ab7845533f64d89c74dd7db735bb555c401e1">
       <source xml:lang="en">The Query Profiler now supports SQL database in Microsoft Fabric connections, with new Azure SQL Database templates including {code-snippet-0} for lightweight T-SQL profiling.</source>
     </trans-unit>
-    <trans-unit id="++CODE++5398977f3c4aae70864004d20248ee2d42a55e18b27aacd47584245aff84c300">
-      <source xml:lang="en">The React Flow execution plan preview could not render this plan.</source>
-    </trans-unit>
     <trans-unit id="++CODE++ba973d3ac7388307810e82027b3e31a9c129166646b4dda5ec93c249f05e7431">
       <source xml:lang="en">The SQL Server extension couldn&apos;t start because its required background service failed to launch. Install the offline VSIX for your operating system, or check your network connection and try again. Details: {0}</source>
       <note>{0} is the error message</note>
@@ -8547,6 +8639,9 @@
     </trans-unit>
     <trans-unit id="++CODE++1a4205e9f5cc50eaf70719b64956352b74a99badba266027a6244def0d016b73">
       <source xml:lang="en">The behavior when a user tries to update a row with data that is involved in a foreign key relationship.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d7c54293989298ee3944f49558ec6882f3cdee331b1959779bb00e2e6921be28">
+      <source xml:lang="en">The cancel request did not complete in time. The editor&apos;s execution state has been reset.</source>
     </trans-unit>
     <trans-unit id="++CODE++b3ed9d46f7671d126e86925d532363313c1f6795e877d3d348d134f6e7051bc3">
       <source xml:lang="en">The client secret for your Microsoft Entra app registration.</source>
@@ -8692,6 +8787,9 @@
     <trans-unit id="++CODE++30dc10f2e5d6502d78b8e778df18e5f010e5ec3fa432d4e92c526d86a84375e0">
       <source xml:lang="en">The selected {0} file &apos;{1}&apos; does not exist or is not a file.</source>
     </trans-unit>
+    <trans-unit id="++CODE++221a6647042e962a326162fd3dcdd7a1e01f628fb4eedc3ecc4b2c33038109fe">
+      <source xml:lang="en">The service is no longer running a query for this editor. The editor&apos;s execution state has been reset.</source>
+    </trans-unit>
     <trans-unit id="++CODE++13c88dccbc0c16d34702d4b664c78552a13156f154731119eaaa1dfc41be428d">
       <source xml:lang="en">The system database references need to be updated to build the project &apos;{0}&apos;. If the project was created in SSDT, it will continue to work in both tools. Do you want to update the project?</source>
     </trans-unit>
@@ -8741,6 +8839,9 @@
     </trans-unit>
     <trans-unit id="++CODE++a616eb2bf2f817c4898b6d9709fa799bf564dc58ec7bdb879358e3f47795106e">
       <source xml:lang="en">This database name is already in use. Please choose a different name.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++11b581f8a3000e049c063b239ba309ad25c53dadcf317b81e608a44404703d57">
+      <source xml:lang="en">This execution plan could not be rendered.</source>
     </trans-unit>
     <trans-unit id="++CODE++cb4eade41a7e9bf4aecf7539c5167bf881e1dac0fd35c216a8fbf4b1b4d3fa84">
       <source xml:lang="en">This file name is reserved for use by Windows. Choose another name and try again</source>
@@ -9506,6 +9607,9 @@
     <trans-unit id="++CODE++e93cb41d4a7d2395d9bdfe4d8616f9b52762523bb44e75bf7701cd9d2e0d1cb7">
       <source xml:lang="en">equals</source>
     </trans-unit>
+    <trans-unit id="++CODE++2fbc383d3c49b83614aa419376b80ee04d986dfed814dfde2ce26e437635aa69">
+      <source xml:lang="en">excluded from script</source>
+    </trans-unit>
     <trans-unit id="++CODE++3b9c358f36f0a31b6ad3e14f309c7cf198ac9246e8316f9ce543d5b19ac02b80">
       <source xml:lang="en">file</source>
     </trans-unit>
@@ -9520,6 +9624,9 @@
     </trans-unit>
     <trans-unit id="++CODE++1b52f3a2e15148731314bf167145c54565ed2385a862b5eb7771eaf719e4f82e">
       <source xml:lang="en">hr</source>
+    </trans-unit>
+    <trans-unit id="++CODE++12dddf96612d48df0ad871a9612802de0957a3781556820e44215c68f824363a">
+      <source xml:lang="en">included in script</source>
     </trans-unit>
     <trans-unit id="++CODE++075b0e112ce5f3585bf21875b678fb678865a30c79d482cd01098957e6497c28">
       <source xml:lang="en">intelliSenseUpdated</source>
@@ -9626,6 +9733,11 @@
 {1} is the completion percent
 {2} is the task message</note>
     </trans-unit>
+    <trans-unit id="++CODE++60f820e33dc2ebb9ace1ef9c084e6b0ce9c75e159edf59e955aa68a7b304783b">
+      <source xml:lang="en">{0} / {1}</source>
+      <note>{0} is the one-based position of the selected schema difference
+{1} is the total number of visible schema differences</note>
+    </trans-unit>
     <trans-unit id="++CODE++08fefe04a78a12b9e4ac61ac107a5237d5d6993e0dc8c6706949b4c9fe54ca6f">
       <source xml:lang="en">{0} If the project was created in SSDT, it will continue to work in both tools. Do you want to update the project?</source>
     </trans-unit>
@@ -9729,6 +9841,10 @@
     <trans-unit id="++CODE++dde734013704b68f0d2d57a1385773d7e4bfbae374a67c150f3f06d8abb95f9d">
       <source xml:lang="en">{0} invalid Entra accounts have been removed; you may need to run `MS SQL: Clear Microsoft Entra account token cache` and log in again.</source>
       <note>{0} is the number of invalid accounts that have been removed</note>
+    </trans-unit>
+    <trans-unit id="++CODE++f6c28fcc89c496f47616db462f5bd4632eee12be2c297424b5b67daee0a610b7">
+      <source xml:lang="en">{0} is a logical key column and can&apos;t be hidden.</source>
+      <note>{0} is the backing database column name</note>
     </trans-unit>
     <trans-unit id="++CODE++8ee4e65df77291c702e67b2a14060cddd3d53d15c05a64ed6a95e8ef5c53441b">
       <source xml:lang="en">{0} is a primary key column and can&apos;t be disabled.</source>
@@ -9867,6 +9983,18 @@
       <note>{0} is the first changed property label
 {1} is the count of additional changed properties</note>
     </trans-unit>
+    <trans-unit id="++CODE++cb0ea8066d092cc06095c116bd7b79ac93cc34d4c899ce19e465ac677f75bb27">
+      <source xml:lang="en">{0}, {1} differences</source>
+      <note>{0} is the schema difference group name
+{1} is the number of differences in the group</note>
+    </trans-unit>
+    <trans-unit id="++CODE++65f24f2f0e7e273592ce9abfdfe98800fe149834a4413bcf8565044f33eddbd9">
+      <source xml:lang="en">{0}, {1}, {2}, {3}</source>
+      <note>{0} is the schema object type
+{1} is the schema object name
+{2} is the update action
+{3} indicates whether the difference is included in the generated script</note>
+    </trans-unit>
     <trans-unit id="++CODE++fbf6567d7b396892abbe6cccf81dca280649e099b853b805be1beb6af53d9229">
       <source xml:lang="en">{0}. {1}</source>
       <note>{0} is the status
@@ -9981,123 +10109,6 @@
     </trans-unit>
   </body></file>
   <file original="package" source-language="en" datatype="plaintext"><body>
-    <trans-unit id="mssql.format.alignColumnDefinitionsInColumns">
-      <source xml:lang="en">**Used when Preview Formatter is disabled.** Should column definitions be aligned?</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.placeCommasBeforeNextStatement">
-      <source xml:lang="en">**Used when Preview Formatter is disabled.** Should commas be placed at the beginning of each statement in a list, for example `, mycolumn2`, instead of at the end, for example `mycolumn1,`?</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.datatypeCasing">
-      <source xml:lang="en">**Used when Preview Formatter is disabled.** Should data types be formatted as UPPERCASE, lowercase, or none (not formatted)</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.keywordCasing">
-      <source xml:lang="en">**Used when Preview Formatter is disabled.** Should keywords be formatted as UPPERCASE, lowercase, or none (not formatted)</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.placeSelectStatementReferencesOnNewLine">
-      <source xml:lang="en">**Used when Preview Formatter is disabled.** Should references in a SELECT statement be split into separate lines? For `SELECT C1, C2 FROM T1`, both C1 and C2 will be on separate lines.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.alignSetClauseItem">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Align SET clause items in UPDATE statements.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.alignColumnDefinitionFields">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Align column-definition fields, such as names, data types, and constraints.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.alignClauseBodies">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Align the bodies of FROM, WHERE, GROUP BY, and similar clauses.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.allowExternalLanguagePaths">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Allow external language content to use file paths.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.allowExternalLibraryPaths">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Allow external library content to use file paths.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.multilineInsertTargetsList">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Format INSERT columns as multiline lists.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.multilineInsertSourcesList">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Format INSERT sources as multiline lists.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.multilineSelectElementsList">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Format SELECT columns as multiline lists.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.multilineSetClauseItems">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Format SET clause items as multiline lists.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.multilineViewColumnsList">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Format VIEW columns as multiline lists.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.multilineWherePredicatesList">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Format WHERE predicates as multiline lists.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.indentSetClause">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Indent SET clauses in UPDATE statements.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.indentViewBody">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Indent VIEW bodies.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.spaceBetweenDataTypeAndParameters">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Insert a space between a data type and its parentheses, for example `VARCHAR (255)`.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.spaceBetweenParametersInDataType">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Insert spaces between parameters in a data type, for example `DECIMAL (10, 2)`.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.keywordCasing">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Keyword casing style.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.numNewlinesAfterStatement">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Number of line breaks after each statement, from 0 through 5.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.asKeywordOnOwnLine">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Place AS on its own line.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.newLineFormattedIndexDefinition">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Place UNIQUE, INCLUDE, and WHERE portions of inline index definitions on separate lines.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.newLineBeforeJoinClause">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Place a newline before JOIN clauses.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.newLineBeforeFromClause">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Place a newline before the FROM clause.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.newLineBeforeGroupByClause">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Place a newline before the GROUP BY clause.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.newLineBeforeHavingClause">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Place a newline before the HAVING clause.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.newLineBeforeOffsetClause">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Place a newline before the OFFSET clause.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.newLineBeforeOrderByClause">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Place a newline before the ORDER BY clause.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.newLineBeforeOutputClause">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Place a newline before the OUTPUT clause.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.newLineBeforeWhereClause">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Place a newline before the WHERE clause.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.newLineBeforeWindowClause">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Place a newline before the WINDOW clause.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.newLineBeforeCloseParenthesisInMultilineList">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Place a newline before the closing parenthesis of a multiline list.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.newLineBeforeOpenParenthesisInMultilineList">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Place a newline before the opening parenthesis of a multiline list.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.newlineFormattedCheckConstraint">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Place the CHECK clause of a constraint on its own line.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.preserveComments">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Preserve comments during formatting.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.sqlEngineType">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** SQL engine type used to parse and generate formatted scripts.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.sqlVersion">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** T-SQL version used to parse and generate formatted scripts.</source>
-    </trans-unit>
     <trans-unit id="mssql.addObjectExplorer">
       <source xml:lang="en">Add Connection</source>
     </trans-unit>
@@ -10106,6 +10117,24 @@
     </trans-unit>
     <trans-unit id="mssql.addAadAccount">
       <source xml:lang="en">Add Microsoft Entra Account</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.terminateBlockStatements">
+      <source xml:lang="en">Add semicolon terminators after BEGIN...END and TRY...CATCH blocks.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.alignSetClauseItem">
+      <source xml:lang="en">Align SET clause items in UPDATE statements.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.alignColumnDefinitionFields">
+      <source xml:lang="en">Align column-definition fields, such as names, data types, and constraints.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.alignClauseBodies">
+      <source xml:lang="en">Align the bodies of FROM, WHERE, GROUP BY, and similar clauses.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.allowExternalLanguagePaths">
+      <source xml:lang="en">Allow external language content to use file paths.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.allowExternalLibraryPaths">
+      <source xml:lang="en">Allow external library content to use file paths.</source>
     </trans-unit>
     <trans-unit id="mssql.deviceCode.description">
       <source xml:lang="en">Allows users to sign in to input-constrained devices.</source>
@@ -10157,6 +10186,12 @@
     </trans-unit>
     <trans-unit id="mssql.newEditorConnectionBehavior.transferActive.description">
       <source xml:lang="en">Carry the active editor&apos;s connection to newly opened query editor tabs and SQL files.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.identifierCasing">
+      <source xml:lang="en">Casing style for object identifiers.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.builtInFunctionCasing">
+      <source xml:lang="en">Casing style for supported built-in function names, such as `GETDATE` and `COALESCE`.</source>
     </trans-unit>
     <trans-unit id="mssql.changeConnection">
       <source xml:lang="en">Change Connection (MSSQL)</source>
@@ -10407,12 +10442,6 @@
     <trans-unit id="mssql.enableConnectionPooling">
       <source xml:lang="en">Enables connection pooling to improve overall connectivity performance. This setting is disabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: &apos;MS SQL: Clear Pooled Connections&apos;. Note: May keep serverless databases active and prevent auto-pausing.</source>
     </trans-unit>
-    <trans-unit id="mssql.preview.betaObjectExplorerFilter.description">
-      <source xml:lang="en">Enables the preview Object Explorer filter experience with saved filter presets and recently applied filters. Disable this setting to use the existing Object Explorer filter experience.</source>
-    </trans-unit>
-    <trans-unit id="mssql.preview.betaExecutionPlan.description">
-      <source xml:lang="en">Enables the preview query execution plan experience with improved layout, keyboard navigation, tooltips, SQL text display, and toolbar interactions. Disable this setting to use the existing execution plan experience.</source>
-    </trans-unit>
     <trans-unit id="mssql.preview.betaResultsGrid.description">
       <source xml:lang="en">Enables the preview query results grid experience with improved state management and more column customization options, including showing, hiding, and freezing columns.</source>
     </trans-unit>
@@ -10452,6 +10481,51 @@
     <trans-unit id="mssql.walkthroughs.nextSteps.objectExplorerFilters.title">
       <source xml:lang="en">Filter your Object Explorer Tree</source>
     </trans-unit>
+    <trans-unit id="mssql.format.options.multilineGroupByElementsList">
+      <source xml:lang="en">Format GROUP BY elements as a multiline list.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.multilineHavingPredicatesList">
+      <source xml:lang="en">Format HAVING predicates separated by AND or OR on multiple lines.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.multilineInsertTargetsList">
+      <source xml:lang="en">Format INSERT columns as multiline lists.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.multilineInsertSourcesList">
+      <source xml:lang="en">Format INSERT sources as multiline lists.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.multilineOrderByElementsList">
+      <source xml:lang="en">Format ORDER BY elements as a multiline list.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.multilinePartitionByElementsList">
+      <source xml:lang="en">Format PARTITION BY elements in window specifications as a multiline list.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.multilineSelectElementsList">
+      <source xml:lang="en">Format SELECT columns as multiline lists.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.multilineSetClauseItems">
+      <source xml:lang="en">Format SET clause items as multiline lists.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.multilineViewColumnsList">
+      <source xml:lang="en">Format VIEW columns as multiline lists.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.multilineWherePredicatesList">
+      <source xml:lang="en">Format WHERE predicates as multiline lists.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.columnAliasStyle">
+      <source xml:lang="en">Format column aliases using `AS`, an equals sign, or their original syntax.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.multilineNestedFunctionCalls">
+      <source xml:lang="en">Format nested function calls on separate indented lines while keeping isolated function calls on one line.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.multilineProcedureParametersList">
+      <source xml:lang="en">Format procedure and function parameters on separate lines.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.multilineWithOptionsList">
+      <source xml:lang="en">Format supported WITH and OPTION clause values on separate lines.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.multilineInValuesList">
+      <source xml:lang="en">Format values in an IN predicate as a multiline list.</source>
+    </trans-unit>
     <trans-unit id="mssql.resultsGrid.freezeFirstColumnByDefault">
       <source xml:lang="en">Freeze the first data column by default in new result grids. Existing saved grid state takes precedence.</source>
     </trans-unit>
@@ -10473,8 +10547,26 @@
     <trans-unit id="mssql.flatFileImport">
       <source xml:lang="en">Import Data...</source>
     </trans-unit>
+    <trans-unit id="mssql.format.options.indentSetClause">
+      <source xml:lang="en">Indent SET clauses in UPDATE statements.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.indentViewBody">
+      <source xml:lang="en">Indent VIEW bodies.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.spaceBetweenDataTypeAndParameters">
+      <source xml:lang="en">Insert a space between a data type and its parentheses, for example `VARCHAR (255)`.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.spaceBetweenParametersInDataType">
+      <source xml:lang="en">Insert spaces between parameters in a data type, for example `DECIMAL (10, 2)`.</source>
+    </trans-unit>
     <trans-unit id="mssql.metadata.pollSeconds.description">
       <source xml:lang="en">Internal preview setting: base interval in seconds for metadata drift checks. Set to 0 to disable polling. Per-database backoff, window-focus suspension, and serverless safeguards also apply. Reload the window after changing this setting.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.clauseBodyAlignment">
+      <source xml:lang="en">Keep clause bodies aligned with their keywords or place them on the next line with indentation.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.keywordCasing">
+      <source xml:lang="en">Keyword casing style.</source>
     </trans-unit>
     <trans-unit id="mssql.profiler.launchFromObjectExplorer">
       <source xml:lang="en">Launch Query Profiler...</source>
@@ -10572,11 +10664,23 @@
     <trans-unit id="mssql.walkthroughs.nextSteps.title">
       <source xml:lang="en">Next Steps with MSSQL for Visual Studio Code</source>
     </trans-unit>
+    <trans-unit id="mssql.format.options.numNewlinesAfterBatches">
+      <source xml:lang="en">Number of line breaks after each GO batch separator, from 0 through 5.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.numNewlinesAfterStatement">
+      <source xml:lang="en">Number of line breaks after each statement, from 0 through 5.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.numNewlinesAfterBatchStatement">
+      <source xml:lang="en">Number of line breaks after each top-level statement in a batch, from 0 through 5.</source>
+    </trans-unit>
     <trans-unit id="mssql.logRetentionMinutes">
       <source xml:lang="en">Number of minutes to retain log files for backend services. Default is 1 week.</source>
     </trans-unit>
     <trans-unit id="mssql.queryHistoryLimit">
       <source xml:lang="en">Number of query history entries to show in the Query History view</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.leadingCommaSpaceCount">
+      <source xml:lang="en">Number of spaces after a leading comma. Valid values are 0 and 1.</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.nextSteps.objectExplorerFilters.altText">
       <source xml:lang="en">Object Explorer filters</source>
@@ -10620,8 +10724,68 @@
     <trans-unit id="mssql.pauseQueryHistoryCapture">
       <source xml:lang="en">Pause Query History Capture</source>
     </trans-unit>
+    <trans-unit id="mssql.format.options.asKeywordOnOwnLine">
+      <source xml:lang="en">Place AS on its own line.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.newLineFormattedIndexDefinition">
+      <source xml:lang="en">Place UNIQUE, INCLUDE, and WHERE portions of inline index definitions on separate lines.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.newLineBeforeJoinClause">
+      <source xml:lang="en">Place a newline before JOIN clauses.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.newLineBeforeFromClause">
+      <source xml:lang="en">Place a newline before the FROM clause.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.newLineBeforeGroupByClause">
+      <source xml:lang="en">Place a newline before the GROUP BY clause.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.newLineBeforeHavingClause">
+      <source xml:lang="en">Place a newline before the HAVING clause.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.newLineBeforeOffsetClause">
+      <source xml:lang="en">Place a newline before the OFFSET clause.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.newLineBeforeOrderByClause">
+      <source xml:lang="en">Place a newline before the ORDER BY clause.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.newLineBeforeOutputClause">
+      <source xml:lang="en">Place a newline before the OUTPUT clause.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.newLineBeforeWhereClause">
+      <source xml:lang="en">Place a newline before the WHERE clause.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.newLineBeforeWindowClause">
+      <source xml:lang="en">Place a newline before the WINDOW clause.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.newLineBeforeCloseParenthesisInMultilineList">
+      <source xml:lang="en">Place a newline before the closing parenthesis of a multiline list.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.newLineBeforeOpenParenthesisInMultilineList">
+      <source xml:lang="en">Place a newline before the opening parenthesis of a multiline list.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.commaPlacement">
+      <source xml:lang="en">Place commas at the end of list items or at the beginning of the next item.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.newlineFormattedCheckConstraint">
+      <source xml:lang="en">Place the CHECK clause of a constraint on its own line.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.newLineBeforeOnClause">
+      <source xml:lang="en">Place the ON clause of a JOIN on a new line.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.newLineAfterJoinKeyword">
+      <source xml:lang="en">Place the joined table source on a new line after the JOIN keyword.</source>
+    </trans-unit>
     <trans-unit id="mssql.query.playCompletionSound.description">
       <source xml:lang="en">Play a sound after a query finishes executing.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.preserveComments">
+      <source xml:lang="en">Preserve comments during formatting.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.persistTrailingGo">
+      <source xml:lang="en">Preserve trailing GO batch separators from the original script.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.identifierBracketing">
+      <source xml:lang="en">Preserve, add, or remove optional square brackets around identifiers. Required brackets are retained.</source>
     </trans-unit>
     <trans-unit id="mssql.preventAutoExecuteScript">
       <source xml:lang="en">Prevent automatic execution of scripts (e.g., &apos;Select Top 1000&apos;). When enabled, scripts will not be automatically executed upon generation.</source>
@@ -10722,6 +10886,9 @@
     <trans-unit id="mssql.sqlToolsMcp.serverLabel">
       <source xml:lang="en">SQL Tools (MSSQL)</source>
     </trans-unit>
+    <trans-unit id="mssql.format.options.sqlEngineType">
+      <source xml:lang="en">SQL engine type used to parse and generate formatted scripts.</source>
+    </trans-unit>
     <trans-unit id="mssql.quickQueries.query">
       <source xml:lang="en">SQL text for this Quick Query. Use {arg} to insert selected query-editor text; otherwise, it is appended.</source>
     </trans-unit>
@@ -10798,7 +10965,7 @@
       <source xml:lang="en">Show SQL Data Plane Status</source>
     </trans-unit>
     <trans-unit id="mssql.format.showParseErrorNotification">
-      <source xml:lang="en">Show a notification when Preview Formatter cannot fully parse the T-SQL being formatted.</source>
+      <source xml:lang="en">Show a notification when the SQL formatter cannot fully parse the T-SQL being formatted.</source>
     </trans-unit>
     <trans-unit id="mssql.resultsGrid.showGridLines.both">
       <source xml:lang="en">Show both horizontal and vertical grid lines</source>
@@ -10859,6 +11026,9 @@
     </trans-unit>
     <trans-unit id="mssql.stopContainer">
       <source xml:lang="en">Stop SQL Container</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.sqlVersion">
+      <source xml:lang="en">T-SQL version used to parse and generate formatted scripts.</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.altText">
       <source xml:lang="en">Table Designer</source>
@@ -10937,9 +11107,6 @@
     </trans-unit>
     <trans-unit id="mssql.resultsGrid.useDataOnlyEnumDescription">
       <source xml:lang="en">Use only row data to size columns automatically</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.enablePreviewFormatter">
-      <source xml:lang="en">Use the preview SQL formatter. Disable this setting to temporarily use the existing formatter.</source>
     </trans-unit>
     <trans-unit id="mssql.useMsalEntraMfaAuth.description">
       <source xml:lang="en">Uses MSAL for Microsoft Entra MFA authentication instead of VS Code signed-in accounts. Restart Visual Studio Code after changing this setting.</source>

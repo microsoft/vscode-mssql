@@ -20,6 +20,10 @@
     "Private": "Private",
     "Remove": "Remove",
     "Port must be a number between 1 and 65535": "Port must be a number between 1 and 65535",
+    "Provisioning {0}/{0} is the server, container, or database target being provisioned": {
+        "message": "Provisioning {0}",
+        "comment": ["{0} is the server, container, or database target being provisioned"]
+    },
     "SQL Tools (MSSQL)": "SQL Tools (MSSQL)",
     "Create Database": "Create Database",
     "Drop Database": "Drop Database",
@@ -65,6 +69,9 @@
         "comment": ["{0} is the document name"]
     },
     "A query is already running for this editor session. Please cancel this query or wait for its completion.": "A query is already running for this editor session. Please cancel this query or wait for its completion.",
+    "Cancel query": "Cancel query",
+    "The service is no longer running a query for this editor. The editor's execution state has been reset.": "The service is no longer running a query for this editor. The editor's execution state has been reset.",
+    "The cancel request did not complete in time. The editor's execution state has been reset.": "The cancel request did not complete in time. The editor's execution state has been reset.",
     "Started executing query at ": "Started executing query at ",
     "Line {0}/{0} is the line number": {
         "message": "Line {0}",
@@ -662,6 +669,7 @@
     "Automatically selects an available Microsoft Entra ID identity from providers installed on your system. Click the info icon to learn more.": "Automatically selects an available Microsoft Entra ID identity from providers installed on your system. Click the info icon to learn more.",
     "Sign in with your Microsoft Entra ID account, including accounts with multi-factor authentication. Click the info icon to learn more.": "Sign in with your Microsoft Entra ID account, including accounts with multi-factor authentication. Click the info icon to learn more.",
     "Authenticate using a Microsoft Entra service principal. Enter the Application (client) ID as the user name and the client secret as the password. Click the info icon to learn more.": "Authenticate using a Microsoft Entra service principal. Enter the Application (client) ID as the user name and the client secret as the password. Click the info icon to learn more.",
+    "Kerberos must be configured to use Windows Authentication on macOS and Linux. Click the info icon to learn more.": "Kerberos must be configured to use Windows Authentication on macOS and Linux. Click the info icon to learn more.",
     "Application (Client) ID": "Application (Client) ID",
     "The Application (Client) ID of your Microsoft Entra app registration.": "The Application (Client) ID of your Microsoft Entra app registration.",
     "Client Secret": "Client Secret",
@@ -911,11 +919,27 @@
     "Unable to determine the server authentication type.": "Unable to determine the server authentication type.",
     "Max vCores": "Max vCores",
     "Select Max vCores": "Select Max vCores",
+    "Azure SQL database '{0}' was provisioned successfully./{0} is the database name": {
+        "message": "Azure SQL database '{0}' was provisioned successfully.",
+        "comment": ["{0} is the database name"]
+    },
+    "Failed to provision Azure SQL database '{0}': {1}/{0} is the database name{1} is the error message": {
+        "message": "Failed to provision Azure SQL database '{0}': {1}",
+        "comment": ["{0} is the database name", "{1} is the error message"]
+    },
     "Enter Database Name": "Enter Database Name",
     "Database Description": "Database Description",
     "Enter Database Description": "Enter Database Description",
     "Please select a workspace where you have sufficient permissions (Contributor or higher)": "Please select a workspace where you have sufficient permissions (Contributor or higher)",
     "This database name is already in use. Please choose a different name.": "This database name is already in use. Please choose a different name.",
+    "Fabric SQL database '{0}' was provisioned successfully./{0} is the database name": {
+        "message": "Fabric SQL database '{0}' was provisioned successfully.",
+        "comment": ["{0} is the database name"]
+    },
+    "Failed to provision Fabric SQL database '{0}': {1}/{0} is the database name{1} is the error message": {
+        "message": "Failed to provision Fabric SQL database '{0}': {1}",
+        "comment": ["{0} is the database name", "{1} is the error message"]
+    },
     "Count: {0}  Distinct Count: {1}  Null Count: {2}/{0} is the count, {1} is the distinct count, and {2} is the null count": {
         "message": "Count: {0}  Distinct Count: {1}  Null Count: {2}",
         "comment": ["{0} is the count, {1} is the distinct count, and {2} is the null count"]
@@ -1041,6 +1065,14 @@
     "Readying container for connections.": "Readying container for connections.",
     "Connecting to Container": "Connecting to Container",
     "Connecting to your SQL Server Docker container": "Connecting to your SQL Server Docker container",
+    "SQL Server container '{0}' was provisioned successfully./{0} is the container name": {
+        "message": "SQL Server container '{0}' was provisioned successfully.",
+        "comment": ["{0} is the container name"]
+    },
+    "Failed to provision SQL Server container '{0}': {1}/{0} is the container name{1} is the error message": {
+        "message": "Failed to provision SQL Server container '{0}': {1}",
+        "comment": ["{0} is the container name", "{1} is the error message"]
+    },
     "Please make your password 8-128 characters long.": "Please make your password 8-128 characters long.",
     "Your password must contain characters from at least three of the following categories: uppercase letters, lowercase letters, numbers (0-9), and special characters (!, $, #, %, etc.).": "Your password must contain characters from at least three of the following categories: uppercase letters, lowercase letters, numbers (0-9), and special characters (!, $, #, %, etc.).",
     "Failed to pull SQL Server image. Please check your network connection and try again.": "Failed to pull SQL Server image. Please check your network connection and try again.",
@@ -2660,11 +2692,16 @@
     "Move Down": "Move Down",
     "Filter Settings": "Filter Settings",
     "Clear All": "Clear All",
+    "Save and Apply": "Save and Apply",
     "Enter": "Enter",
     "Escape": "Escape",
     "Apply ({0})/{0} is the keyboard shortcut for applying the filter": {
         "message": "Apply ({0})",
         "comment": ["{0} is the keyboard shortcut for applying the filter"]
+    },
+    "Save and Apply ({0})/{0} is the keyboard shortcut for saving and applying the filter": {
+        "message": "Save and Apply ({0})",
+        "comment": ["{0} is the keyboard shortcut for saving and applying the filter"]
     },
     "Close ({0})/{0} is the keyboard shortcut for closing the filter dialog": {
         "message": "Close ({0})",
@@ -2680,8 +2717,8 @@
     "e.g. My tables": "e.g. My tables",
     "Enter a name to save this filter.": "Enter a name to save this filter.",
     "Add at least one filter value before saving this filter.": "Add at least one filter value before saving this filter.",
-    "Pin to Saved": "Pin to Saved",
-    "Move to Recent": "Move to Recent",
+    "Save filter": "Save filter",
+    "Remove from saved filters": "Remove from saved filters",
     "Delete filter": "Delete filter",
     "Rename filter": "Rename filter",
     "Delete reusable filter?": "Delete reusable filter?",
@@ -3212,7 +3249,7 @@
     "Filter for any field...": "Filter for any field...",
     "Estimated Subtree Cost": "Estimated Subtree Cost",
     "Estimated Operator Cost": "Estimated Operator Cost",
-    "The React Flow execution plan preview could not render this plan.": "The React Flow execution plan preview could not render this plan.",
+    "This execution plan could not be rendered.": "This execution plan could not be rendered.",
     "Execution plan {0}, use arrow keys to navigate between nodes/{0} is the one-based execution plan number": {
         "message": "Execution plan {0}, use arrow keys to navigate between nodes",
         "comment": ["{0} is the one-based execution plan number"]
@@ -3911,6 +3948,10 @@
         "message": "{0} is a primary key column and can't be disabled.",
         "comment": ["{0} is the backing database column name"]
     },
+    "{0} is a logical key column and can't be hidden./{0} is the backing database column name": {
+        "message": "{0} is a logical key column and can't be hidden.",
+        "comment": ["{0} is the backing database column name"]
+    },
     "{0} action for {1}/{0} is the action name (Create, Read, etc.){1} is the entity name": {
         "message": "{0} action for {1}",
         "comment": ["{0} is the action name (Create, Read, etc.)", "{1} is the entity name"]
@@ -3975,6 +4016,9 @@
     "Verifying the API is ready to accept requests": "Verifying the API is ready to accept requests",
     "Container logs": "Container logs",
     "To compare two schemas, first select a source schema and target schema, then press compare.": "To compare two schemas, first select a source schema and target schema, then press compare.",
+    "Select a source schema, then press Compare.": "Select a source schema, then press Compare.",
+    "Select a target schema, then press Compare.": "Select a target schema, then press Compare.",
+    "Press Compare to see the differences between the source and target schemas.": "Press Compare to see the differences between the source and target schemas.",
     "Select Source Schema": "Select Source Schema",
     "Select Target Schema": "Select Target Schema",
     "No schema differences were found.": "No schema differences were found.",
@@ -3990,6 +4034,8 @@
     "Include Object Types": "Include Object Types",
     "Select all options": "Select all options",
     "Include all object types": "Include all object types",
+    "Allow incompatible platform during deployment": "Allow incompatible platform during deployment",
+    "Controls whether deployment blocks because of platform compatibility checks. It does not allow Schema Compare between different Azure Synapse or Microsoft Fabric platform types.": "Controls whether deployment blocks because of platform compatibility checks. It does not allow Schema Compare between different Azure Synapse or Microsoft Fabric platform types.",
     "Stop": "Stop",
     "Generate script to deploy changes to target": "Generate script to deploy changes to target",
     "Apply changes to target": "Apply changes to target",
@@ -4026,6 +4072,11 @@
     "Save .scmp file": "Save .scmp file",
     "Save source and target, options, and excluded elements": "Save source and target, options, and excluded elements",
     "Group differences by": "Group differences by",
+    "Layout": "Layout",
+    "Classic": "Classic",
+    "Simplified": "Simplified",
+    "Schema differences": "Schema differences",
+    "Object": "Object",
     "Source Name": "Source Name",
     "Target Name": "Target Name",
     "Change": "Change",
@@ -4049,6 +4100,27 @@
     "All schemas": "All schemas",
     "All object types": "All object types",
     "Clear filters": "Clear filters",
+    "Include or exclude all differences": "Include or exclude all differences",
+    "Included in script": "Included in script",
+    "Excluded from script": "Excluded from script",
+    "included in script": "included in script",
+    "excluded from script": "excluded from script",
+    "{0}, {1}, {2}, {3}/{0} is the schema object type{1} is the schema object name{2} is the update action{3} indicates whether the difference is included in the generated script": {
+        "message": "{0}, {1}, {2}, {3}",
+        "comment": [
+            "{0} is the schema object type",
+            "{1} is the schema object name",
+            "{2} is the update action",
+            "{3} indicates whether the difference is included in the generated script"
+        ]
+    },
+    "{0}, {1} differences/{0} is the schema difference group name{1} is the number of differences in the group": {
+        "message": "{0}, {1} differences",
+        "comment": [
+            "{0} is the schema difference group name",
+            "{1} is the number of differences in the group"
+        ]
+    },
     "{0} of {1} selected/{0} is the number of included schema differences{1} is the total number of schema differences": {
         "message": "{0} of {1} selected",
         "comment": [
@@ -4062,7 +4134,17 @@
     "Database Project": "Database Project",
     "Target": "Target",
     "Comparison Details": "Comparison Details",
+    "{0} / {1}/{0} is the one-based position of the selected schema difference{1} is the total number of visible schema differences": {
+        "message": "{0} / {1}",
+        "comment": [
+            "{0} is the one-based position of the selected schema difference",
+            "{1} is the total number of visible schema differences"
+        ]
+    },
     "Affected child objects": "Affected child objects",
+    "Constraints added": "Constraints added",
+    "Constraints changed": "Constraints changed",
+    "Constraints dropped": "Constraints dropped",
     "Constraints added: {0}/{0} is a comma-separated list of fully-qualified object names (e.g. '[dbo].[PK_Customers], [dbo].[UQ_Customers_Email]') that will be added under the selected parent object when the diff is applied.": {
         "message": "Constraints added: {0}",
         "comment": [
@@ -4098,6 +4180,7 @@
     },
     "Processing include or exclude all differences operation.": "Processing include or exclude all differences operation.",
     "Updating difference selection.": "Updating difference selection.",
+    "Generating script.": "Generating script.",
     "Publish Project - {0}/{0} is the name of the project being published": {
         "message": "Publish Project - {0}",
         "comment": ["{0} is the name of the project being published"]

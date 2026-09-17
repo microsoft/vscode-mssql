@@ -1902,7 +1902,7 @@ export default class ConnectionManager {
         errorHandled?: SqlConnectionErrorType;
     }> {
         // Helper for "learn more" prompts
-        const showWithHelp = async (message: string, helpLabel: string, helpUrl: string) => {
+        const showWithLearnMore = async (message: string, helpLabel: string, helpUrl: string) => {
             const action = await vscode.window.showErrorMessage(message, helpLabel);
             if (action === helpLabel) {
                 await vscode.env.openExternal(vscode.Uri.parse(helpUrl));
@@ -1969,10 +1969,10 @@ export default class ConnectionManager {
                 };
             }
         } else if (errorType === SqlConnectionErrorType.KerberosNonWindows) {
-            await showWithHelp(
+            await showWithLearnMore(
                 LocalizedConstants.msgConnectionError2(errorMessage),
-                LocalizedConstants.help,
-                Constants.integratedAuthHelpLink,
+                LocalizedConstants.Common.learnMore,
+                Constants.Links.authKerberosHelp,
             );
             return {
                 isHandled: false,
@@ -2594,7 +2594,7 @@ export async function getSqlConnectionErrorType(
         return SqlConnectionErrorType.FirewallRuleError;
     } else if (
         !platformInfo.isWindows &&
-        errorMessage?.includes(Constants.errorKerberosSubString)
+        errorMessage?.toLowerCase().includes(Constants.errorKerberosSubString.toLowerCase())
     ) {
         return SqlConnectionErrorType.KerberosNonWindows;
     } else if (
