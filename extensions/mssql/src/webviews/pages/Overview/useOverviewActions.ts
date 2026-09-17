@@ -12,7 +12,9 @@ import {
     InstallAgentSkillsPluginRequest,
     InstallDevContainersExtensionRequest,
     OpenFolderRequest,
+    OverviewTelemetryEvent,
     ReopenInContainerRequest,
+    SendOverviewTelemetryRequest,
     OpenRecentSqlFileRequest,
     RunChangelogActionFromOverviewRequest,
     OverviewActionId,
@@ -53,6 +55,14 @@ export function useOverviewActions() {
     const installAgentSkillsPlugin = useCallback(() => {
         void extensionRpc.sendRequest(InstallAgentSkillsPluginRequest.type, undefined);
     }, [extensionRpc]);
+
+    /** Reports an in-page event. Fire and forget: telemetry never blocks an interaction. */
+    const sendTelemetry = useCallback(
+        (event: OverviewTelemetryEvent, target?: string) => {
+            void extensionRpc.sendRequest(SendOverviewTelemetryRequest.type, { event, target });
+        },
+        [extensionRpc],
+    );
 
     const openFolder = useCallback(() => {
         void extensionRpc.sendRequest(OpenFolderRequest.type, undefined);
@@ -101,6 +111,7 @@ export function useOverviewActions() {
             openRecentSqlFile,
             openFolder,
             installAgentSkillsPlugin,
+            sendTelemetry,
             runChangelogAction,
             addDevContainerConfiguration,
             reopenInContainer,
@@ -114,6 +125,7 @@ export function useOverviewActions() {
             openRecentSqlFile,
             openFolder,
             installAgentSkillsPlugin,
+            sendTelemetry,
             runChangelogAction,
             addDevContainerConfiguration,
             reopenInContainer,

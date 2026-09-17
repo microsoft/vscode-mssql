@@ -21,7 +21,11 @@ import {
     InstallAgentSkillsPluginRequest,
     InstallDevContainersExtensionRequest,
     OpenFolderRequest,
+    OverviewOpenSource,
+    OverviewTelemetryEvent,
     ReopenInContainerRequest,
+    SendOverviewTelemetryRequest,
+    SendOverviewTelemetryRequestParams,
     OverviewLinkRequest,
     OverviewLinkRequestParams,
     OverviewReducers,
@@ -32,14 +36,19 @@ import {
     RunOverviewActionRequest,
     CommandShortcut,
 } from "../sharedInterfaces/overview";
-import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import {
+    ActivityObject,
+    ActivityStatus,
+    TelemetryActions,
+    TelemetryViews,
+} from "../sharedInterfaces/telemetry";
 import { WebviewPanelController } from "./webviewPanelController";
 import { ChangelogActionId } from "../sharedInterfaces/changelog";
 import { changelogConfig } from "../configurations/changelog";
 import { resolveChangelogAction } from "../configurations/changelogActions";
 import { DeploymentType } from "../sharedInterfaces/deployment";
 import { RecentSqlFilesStore, ResolvedRecentSqlFile } from "../models/recentSqlFilesStore";
-import { sendActionEvent } from "extension-toolkit/vscode";
+import { sendActionEvent, startActivity } from "extension-toolkit/vscode";
 import * as os from "os";
 import * as path from "path";
 import { spawn } from "child_process";
@@ -57,6 +66,17 @@ const DEV_CONTAINERS_CREATE_CONFIG_COMMAND = "remote-containers.createDevContain
 
 /** The extension's command to rebuild and reattach the window inside the container. */
 const DEV_CONTAINERS_REOPEN_COMMAND = "remote-containers.reopenInContainer";
+
+/**
+ * Telemetry action each in-page event is reported as. Partial because the events that open a
+ * flow are handled as activities instead of single actions.
+ */
+const overviewTelemetryActions: Partial<Record<OverviewTelemetryEvent, TelemetryActions>> = {
+    [OverviewTelemetryEvent.PromptCopied]: TelemetryActions.PromptCopied,
+    [OverviewTelemetryEvent.PromptViewed]: TelemetryActions.PromptViewed,
+    [OverviewTelemetryEvent.WalkthroughOpened]: TelemetryActions.WalkthroughOpened,
+    [OverviewTelemetryEvent.DiscoverCardOpened]: TelemetryActions.DiscoverCardOpened,
+};
 
 /** GitHub source for the Azure SQL agent skills plugin, as `owner/repo`. */
 const AGENT_SKILLS_PLUGIN_SOURCE = "microsoft/azure-sql-database-container";
@@ -120,6 +140,8 @@ const GLOBAL_STATE_LAST_CHANGELOG_VERSION_KEY = "changelog/lastChangeLogVersion"
 export interface OverviewOpenOptions {
     /** Opens the What's new drawer straight away; set only by the post-update trigger. */
     openWhatsNew?: boolean;
+    /** How the page was reached, recorded once when it opens. */
+    source?: OverviewOpenSource;
 }
 
 /** Maps an Overview action to the command it runs, plus any fixed arguments. */
@@ -193,6 +215,16 @@ export class OverviewWebviewController extends WebviewPanelController<
     /** Guards against stacking manifest watches when install is pressed more than once. */
     private _agentSkillsWatchActive = false;
 
+    /**
+     * Setting up a dev container runs across several requests -- pick a template, check the
+     * prerequisites, write the configuration, reopen -- so one activity spans them and each step
+     * reports against it. That gives the steps a correlation id and the whole flow a duration.
+     */
+    private _devContainerActivity: ActivityObject | undefined;
+
+    /** The in-flight agent skills install, ended by the manifest watch. */
+    private _agentSkillsActivity: ActivityObject | undefined;
+
     constructor(
         context: vscode.ExtensionContext,
         private _recentSqlFilesStore: RecentSqlFilesStore,
@@ -251,6 +283,28 @@ export class OverviewWebviewController extends WebviewPanelController<
 
         void this.refreshWorkspaceState();
 
+        // Closing the page mid-flow is the abandonment we most want to see, so an activity that
+        // is still open when the panel goes away is closed out rather than left dangling.
+        this.registerDisposable(
+            this.panel.onDidDispose(() => {
+                this._devContainerActivity?.end(ActivityStatus.Canceled, {
+                    additionalProps: { reason: "pageClosed" },
+                });
+                this._devContainerActivity = undefined;
+                this._agentSkillsActivity?.end(ActivityStatus.Canceled, {
+                    additionalProps: { reason: "pageClosed" },
+                });
+                this._agentSkillsActivity = undefined;
+            }),
+        );
+
+        sendActionEvent(TelemetryViews.OverviewPage, TelemetryActions.OverviewPageOpened, {
+            additionalProps: {
+                source: options.source ?? OverviewOpenSource.CommandPalette,
+                openedWithWhatsNew: String(options.openWhatsNew === true),
+            },
+        });
+
         this.initialize();
     }
 
@@ -294,9 +348,17 @@ export class OverviewWebviewController extends WebviewPanelController<
             return { ...state, showChangelogOnUpdate: payload.value };
         });
 
-        this.onRequest(CheckDevContainerPrerequisitesRequest.type, async () =>
-            this.getDevContainerPrerequisites(),
-        );
+        this.onRequest(CheckDevContainerPrerequisitesRequest.type, async () => {
+            const prerequisites = await this.getDevContainerPrerequisites();
+            this._devContainerActivity?.update({
+                additionalProps: {
+                    step: "prerequisitesChecked",
+                    docker: prerequisites.docker,
+                    devContainersExtension: prerequisites.devContainersExtension,
+                },
+            });
+            return prerequisites;
+        });
 
         this.onRequest(InstallDevContainersExtensionRequest.type, async () => {
             try {
@@ -329,14 +391,43 @@ export class OverviewWebviewController extends WebviewPanelController<
                 )}`,
             );
             await vscode.env.openExternal(uri);
-            sendActionEvent(TelemetryViews.OverviewPage, TelemetryActions.InstallAgentSkills, {
-                additionalProps: { source: AGENT_SKILLS_PLUGIN_SOURCE },
-            });
+            this._agentSkillsActivity?.end(ActivityStatus.Canceled);
+            this._agentSkillsActivity = startActivity(
+                TelemetryViews.OverviewPage,
+                TelemetryActions.InstallAgentSkills,
+                { additionalProps: { source: AGENT_SKILLS_PLUGIN_SOURCE } },
+            );
 
             // Handing off to VS Code tells us nothing about the outcome, so watch for the
             // manifest to change and let the page settle itself.
             void this.watchForAgentSkillsInstall();
         });
+
+        this.onRequest(
+            SendOverviewTelemetryRequest.type,
+            async (params: SendOverviewTelemetryRequestParams) => {
+                if (params.event === OverviewTelemetryEvent.DevContainerTemplateSelected) {
+                    // Starts the setup flow the later steps report against.
+                    this._devContainerActivity?.end(ActivityStatus.Canceled);
+                    this._devContainerActivity = startActivity(
+                        TelemetryViews.OverviewPage,
+                        TelemetryActions.DevContainerSetup,
+                        { additionalProps: { template: params.target ?? "" } },
+                    );
+                    return;
+                }
+
+                const action = overviewTelemetryActions[params.event];
+                if (!action) {
+                    return;
+                }
+                sendActionEvent(
+                    TelemetryViews.OverviewPage,
+                    action,
+                    params.target ? { additionalProps: { target: params.target } } : undefined,
+                );
+            },
+        );
 
         this.onRequest(OpenFolderRequest.type, async () => {
             // macOS has a single picker for files and folders; every other platform separates them.
@@ -345,9 +436,7 @@ export class OverviewWebviewController extends WebviewPanelController<
                     ? "workbench.action.files.openFileFolder"
                     : "workbench.action.files.openFolder";
             await vscode.commands.executeCommand(command);
-            sendActionEvent(TelemetryViews.OverviewPage, TelemetryActions.ExecuteCommand, {
-                additionalProps: { command },
-            });
+            sendActionEvent(TelemetryViews.OverviewPage, TelemetryActions.OpenFolder);
         });
 
         this.onRequest(OverviewLinkRequest.type, async (params: OverviewLinkRequestParams) => {
@@ -363,8 +452,8 @@ export class OverviewWebviewController extends WebviewPanelController<
                 throw new Error(`Unknown overview action: ${action}`);
             }
             await vscode.commands.executeCommand(target.command, ...(target.args ?? []));
-            sendActionEvent(TelemetryViews.OverviewPage, TelemetryActions.ExecuteCommand, {
-                additionalProps: { command: target.command },
+            sendActionEvent(TelemetryViews.OverviewPage, TelemetryActions.RunOverviewAction, {
+                additionalProps: { action },
             });
         });
 
@@ -384,8 +473,8 @@ export class OverviewWebviewController extends WebviewPanelController<
             async (action: ChangelogActionId) => {
                 const { command, args } = resolveChangelogAction(action);
                 await vscode.commands.executeCommand(command, ...args);
-                sendActionEvent(TelemetryViews.OverviewPage, TelemetryActions.ExecuteCommand, {
-                    additionalProps: { command },
+                sendActionEvent(TelemetryViews.OverviewPage, TelemetryActions.RunChangelogAction, {
+                    additionalProps: { action },
                 });
             },
         );
@@ -396,18 +485,29 @@ export class OverviewWebviewController extends WebviewPanelController<
                 params: AddDevContainerConfigurationRequestParams,
             ): Promise<AddDevContainerConfigurationResult> => {
                 const result = await this.applyDevContainerTemplate(params.templateId);
-                sendActionEvent(
-                    TelemetryViews.OverviewPage,
-                    TelemetryActions.AddDevContainerConfiguration,
-                    {
-                        additionalProps: {
-                            template: params.templateId,
-                            repositoryFolder: templateRepositoryFolders[params.templateId],
-                            applied: String(result.applied),
-                            usedPicker: String(result.usedPicker),
-                        },
-                    },
-                );
+                const props = {
+                    step: "configurationWritten",
+                    template: params.templateId,
+                    repositoryFolder: templateRepositoryFolders[params.templateId],
+                    applied: String(result.applied),
+                    usedPicker: String(result.usedPicker),
+                };
+
+                if (result.applied) {
+                    this._devContainerActivity?.update({ additionalProps: props });
+                } else {
+                    // Nothing was written, so the flow stops here rather than reaching a container.
+                    // The CLI's message is deliberately not passed: it embeds the workspace path,
+                    // and passing it would leave the send one boolean away from reporting it.
+                    this._devContainerActivity?.endFailed(
+                        undefined,
+                        false,
+                        undefined,
+                        result.usedPicker ? "pickerFallback" : "applyFailed",
+                        props,
+                    );
+                    this._devContainerActivity = undefined;
+                }
                 return result;
             },
         );
@@ -431,9 +531,11 @@ export class OverviewWebviewController extends WebviewPanelController<
             }
 
             await vscode.commands.executeCommand(DEV_CONTAINERS_REOPEN_COMMAND);
-            sendActionEvent(TelemetryViews.OverviewPage, TelemetryActions.ExecuteCommand, {
-                additionalProps: { command: DEV_CONTAINERS_REOPEN_COMMAND },
+            this._devContainerActivity?.end(ActivityStatus.Succeeded, {
+                additionalProps: { step: "reopenedInContainer" },
             });
+            this._devContainerActivity = undefined;
+            sendActionEvent(TelemetryViews.OverviewPage, TelemetryActions.ReopenInContainer);
         });
     }
 
@@ -613,9 +715,16 @@ export class OverviewWebviewController extends WebviewPanelController<
                 }
                 if (await this.hasAgentSkillsPlugin()) {
                     await this.refreshAgentSkillsState();
+                    this._agentSkillsActivity?.end(ActivityStatus.Succeeded);
+                    this._agentSkillsActivity = undefined;
                     return;
                 }
             }
+            // Fell out of the loop: the trust prompt was most likely dismissed.
+            this._agentSkillsActivity?.end(ActivityStatus.Canceled, {
+                additionalProps: { reason: "timedOut" },
+            });
+            this._agentSkillsActivity = undefined;
         } finally {
             this._agentSkillsWatchActive = false;
         }
@@ -759,6 +868,7 @@ export class OverviewWebviewController extends WebviewPanelController<
         if (!isShownOnCurrentVersion && this.shouldShowChangelogOnUpdate()) {
             await vscode.commands.executeCommand(constants.cmdOpenOverview, {
                 openWhatsNew: true,
+                source: OverviewOpenSource.PostUpdate,
             });
             await globalState.update(GLOBAL_STATE_LAST_CHANGELOG_VERSION_KEY, currentVersion);
         }

@@ -16,6 +16,7 @@ import { ActionCard } from "./actionCard";
 import { SectionHeading } from "./sectionHeading";
 import { locConstants } from "../../../common/locConstants";
 import { overviewLinks } from "../overviewContent";
+import { OverviewTelemetryEvent } from "../../../../sharedInterfaces/overview";
 import { useOverviewActions } from "../useOverviewActions";
 import { useOverviewSelector } from "../overviewSelector";
 import { ShortcutsDialog } from "./shortcutsDialog";
@@ -39,7 +40,12 @@ const useStyles = makeStyles({
 export const DiscoverSection = () => {
     const classes = useStyles();
     const loc = locConstants.overview;
-    const { openLink } = useOverviewActions();
+    const { openLink, sendTelemetry } = useOverviewActions();
+
+    const openCard = (card: string, open: () => void) => {
+        sendTelemetry(OverviewTelemetryEvent.DiscoverCardOpened, card);
+        open();
+    };
     const extensionVersion = useOverviewSelector((state) => state.extensionVersion);
     const [isExploreOpen, setIsExploreOpen] = useState(false);
     const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
@@ -63,25 +69,25 @@ export const DiscoverSection = () => {
                     icon={<CompassNorthwest20Regular />}
                     title={loc.exploreFeaturesTitle}
                     description={loc.exploreFeaturesDescription}
-                    onClick={() => setIsExploreOpen(true)}
+                    onClick={() => openCard("exploreFeatures", () => setIsExploreOpen(true))}
                 />
                 <ActionCard
                     icon={<Keyboard20Regular />}
                     title={loc.keyboardShortcutsTitle}
                     description={loc.keyboardShortcutsDescription}
-                    onClick={() => setIsShortcutsOpen(true)}
+                    onClick={() => openCard("keyboardShortcuts", () => setIsShortcutsOpen(true))}
                 />
                 <ActionCard
                     icon={<Star20Regular />}
                     title={loc.whatsNewTitle}
                     description={loc.whatsNewDescription(extensionVersion)}
-                    onClick={() => setIsWhatsNewOpen(true)}
+                    onClick={() => openCard("whatsNew", () => setIsWhatsNewOpen(true))}
                 />
                 <ActionCard
                     icon={<Sparkle20Regular />}
                     title={loc.devHubTitle}
                     description={loc.devHubDescription}
-                    onClick={() => openLink(overviewLinks.devHub)}
+                    onClick={() => openCard("devHub", () => openLink(overviewLinks.devHub))}
                 />
             </div>
 

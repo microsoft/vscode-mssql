@@ -449,10 +449,9 @@ export default class MainController implements vscode.Disposable {
             this._event.on(Constants.cmdOpenOverview, async (args: unknown) => {
                 // Invoked from the Welcome node's context menu this receives the tree item, so the
                 // options are shape-checked rather than trusted.
-                const openWhatsNew =
-                    typeof args === "object" &&
-                    args !== null &&
-                    (args as OverviewOpenOptions).openWhatsNew === true;
+                const options =
+                    typeof args === "object" && args !== null ? (args as OverviewOpenOptions) : {};
+                const openWhatsNew = options.openWhatsNew === true;
 
                 // The Overview page is a singleton: reopening it reveals the existing panel
                 // rather than stacking duplicates of a welcome page.
@@ -460,7 +459,7 @@ export default class MainController implements vscode.Disposable {
                     this._overviewController = new OverviewWebviewController(
                         this._context,
                         this._recentSqlFilesStore,
-                        { openWhatsNew },
+                        { openWhatsNew, source: options.source },
                     );
                 } else if (openWhatsNew) {
                     // An already-open page keeps its state, so the drawer is opened explicitly.

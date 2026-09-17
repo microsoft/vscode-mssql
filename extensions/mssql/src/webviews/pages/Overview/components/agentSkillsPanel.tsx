@@ -28,6 +28,7 @@ import { useEffect, useState } from "react";
 
 import { AgentSkillsIcon } from "../../../common/icons/agentSkills";
 import { PromptCard, getPromptCards } from "../overviewContent";
+import { OverviewTelemetryEvent } from "../../../../sharedInterfaces/overview";
 import { locConstants } from "../../../common/locConstants";
 import { useOverviewActions } from "../useOverviewActions";
 import { useOverviewSelector } from "../overviewSelector";
@@ -200,7 +201,7 @@ const useStyles = makeStyles({
 export const AgentSkillsPanel = () => {
     const classes = useStyles();
     const loc = locConstants.overview;
-    const { installAgentSkillsPlugin } = useOverviewActions();
+    const { installAgentSkillsPlugin, sendTelemetry } = useOverviewActions();
     const hasAgentSkillsPlugin = useOverviewSelector((state) => state.hasAgentSkillsPlugin);
     // The install runs in VS Code behind a trust prompt, so the button has to say something
     // between the click and the manifest changing, or it reads as having done nothing.
@@ -301,14 +302,26 @@ export const AgentSkillsPanel = () => {
                                         <Button
                                             className={classes.tintedButton}
                                             icon={<Copy16Regular />}
-                                            onClick={() => void copy(card.id, card.prompt)}>
+                                            onClick={() => {
+                                                sendTelemetry(
+                                                    OverviewTelemetryEvent.PromptCopied,
+                                                    card.id,
+                                                );
+                                                void copy(card.id, card.prompt);
+                                            }}>
                                             {copiedId === card.id
                                                 ? loc.promptCopied
                                                 : loc.copyPrompt}
                                         </Button>
                                         <Button
                                             className={classes.ghostButton}
-                                            onClick={() => setViewedPrompt(card)}>
+                                            onClick={() => {
+                                                sendTelemetry(
+                                                    OverviewTelemetryEvent.PromptViewed,
+                                                    card.id,
+                                                );
+                                                setViewedPrompt(card);
+                                            }}>
                                             {loc.view}
                                         </Button>
                                     </div>

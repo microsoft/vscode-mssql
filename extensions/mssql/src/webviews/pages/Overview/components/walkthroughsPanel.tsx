@@ -10,7 +10,9 @@ import { ReactNode, useState } from "react";
 import { ActionCard } from "./actionCard";
 import { WalkthroughDialog } from "./walkthroughDialog";
 import { WalkthroughId, getWalkthrough } from "../walkthroughContent";
+import { OverviewTelemetryEvent } from "../../../../sharedInterfaces/overview";
 import { locConstants } from "../../../common/locConstants";
+import { useOverviewActions } from "../useOverviewActions";
 import { GithubCopilot16Regular } from "../../../common/icons/fluentIcons";
 
 const walkthroughIcons: Partial<Record<WalkthroughId, ReactNode>> = {
@@ -29,6 +31,7 @@ const useStyles = makeStyles({
 
 export const WalkthroughsPanel = () => {
     const classes = useStyles();
+    const { sendTelemetry } = useOverviewActions();
     const loc = locConstants.overview;
     const [activeWalkthrough, setActiveWalkthrough] = useState<WalkthroughId | undefined>(
         undefined,
@@ -60,7 +63,10 @@ export const WalkthroughsPanel = () => {
                     icon={walkthroughIcons[card.id]}
                     title={card.title}
                     description={card.description}
-                    onClick={() => setActiveWalkthrough(card.id)}
+                    onClick={() => {
+                        sendTelemetry(OverviewTelemetryEvent.WalkthroughOpened, card.id);
+                        setActiveWalkthrough(card.id);
+                    }}
                 />
             ))}
 

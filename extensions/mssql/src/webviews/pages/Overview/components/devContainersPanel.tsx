@@ -26,6 +26,7 @@ import {
 import { DevContainerSetupDialog } from "./devContainerSetupDialog";
 import { locConstants } from "../../../common/locConstants";
 import { useOverviewActions } from "../useOverviewActions";
+import { OverviewTelemetryEvent } from "../../../../sharedInterfaces/overview";
 import { useOverviewSelector } from "../overviewSelector";
 
 const useStyles = makeStyles({
@@ -93,7 +94,7 @@ const useStyles = makeStyles({
 export const DevContainersPanel = () => {
     const classes = useStyles();
     const loc = locConstants.overview;
-    const { openLink, openFolder, reopenInContainer } = useOverviewActions();
+    const { openLink, openFolder, reopenInContainer, sendTelemetry } = useOverviewActions();
     const hasWorkspaceFolder = useOverviewSelector((state) => state.hasWorkspaceFolder);
     const hasDevContainerConfig = useOverviewSelector((state) => state.hasDevContainerConfig);
     const [activeTemplate, setActiveTemplate] = useState<DevContainerTemplate | undefined>(
@@ -140,7 +141,13 @@ export const DevContainersPanel = () => {
                                 type="button"
                                 className={classes.cardButton}
                                 disabled={!hasWorkspaceFolder}
-                                onClick={() => setActiveTemplate(template)}>
+                                onClick={() => {
+                                    sendTelemetry(
+                                        OverviewTelemetryEvent.DevContainerTemplateSelected,
+                                        template.id,
+                                    );
+                                    setActiveTemplate(template);
+                                }}>
                                 <span className={classes.cardIcon}>
                                     <Box20Regular />
                                 </span>

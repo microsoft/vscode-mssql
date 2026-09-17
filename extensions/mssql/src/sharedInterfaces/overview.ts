@@ -174,6 +174,43 @@ export namespace InstallDevContainersExtensionRequest {
     );
 }
 
+/** How the user reached the Welcome page. */
+export enum OverviewOpenSource {
+    TreeNode = "treeNode",
+    CommandPalette = "commandPalette",
+    PostUpdate = "postUpdate",
+}
+
+/**
+ * Things worth counting that happen inside the page. A closed set, so telemetry never carries a
+ * free-form string out of the webview.
+ */
+export enum OverviewTelemetryEvent {
+    /** A prompt card's prompt was copied. */
+    PromptCopied = "promptCopied",
+    /** A prompt card's prompt was opened in the dialog. */
+    PromptViewed = "promptViewed",
+    /** A walkthrough was opened. */
+    WalkthroughOpened = "walkthroughOpened",
+    /** A Discover card was opened: explore, shortcuts, what's new, or the dev hub. */
+    DiscoverCardOpened = "discoverCardOpened",
+    /** A dev container template was chosen, before its prerequisites are checked. */
+    DevContainerTemplateSelected = "devContainerTemplateSelected",
+}
+
+export interface SendOverviewTelemetryRequestParams {
+    event: OverviewTelemetryEvent;
+    /** Stable id of what the event was about, taken from the page's own content. */
+    target?: string;
+}
+
+/** Reports an in-page event. The extension owns the mapping to a telemetry action. */
+export namespace SendOverviewTelemetryRequest {
+    export const type = new RequestType<SendOverviewTelemetryRequestParams, void, void>(
+        "overview/sendTelemetry",
+    );
+}
+
 /** Opens VS Code's folder picker, so a dev container configuration has somewhere to go. */
 export namespace OpenFolderRequest {
     export const type = new RequestType<void, void, void>("overview/openFolder");
