@@ -156,9 +156,14 @@ export class DabService implements Dab.IDabService {
     public async validateDeploymentParams(
         containerName: string,
         port: number,
+        trackedNames: string[] = [],
     ): Promise<Dab.ValidateDeploymentParamsResponse> {
         const containerNameValidation = await validateDabContainerName(containerName);
-        const isContainerNameValid = containerNameValidation === containerName;
+        // Docker only knows about its own containers, so a name a CLI
+        // deployment already holds would otherwise read as free and take over
+        // that deployment's record.
+        const isNameTracked = trackedNames.includes(containerName);
+        const isContainerNameValid = containerNameValidation === containerName && !isNameTracked;
 
         const availablePort = await findAvailableDabPort(port);
         // A negative result means the scan found nothing free. Suggesting it

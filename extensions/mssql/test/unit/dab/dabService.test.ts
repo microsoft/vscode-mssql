@@ -624,6 +624,31 @@ suite("DabService Tests", () => {
             expect(result.portError).to.be.undefined;
         });
 
+        test("rejects a name a tracked deployment already holds on another target", async () => {
+            // Docker can only vouch for its own containers, so a name a CLI
+            // deployment holds looks free to it.
+            sandbox.stub(dabContainer, "validateDabContainerName").resolves("DAB_Db_1");
+            sandbox.stub(dabContainer, "findAvailableDabPort").resolves(5000);
+
+            const result = await dabService.validateDeploymentParams("DAB_Db_1", 5000, [
+                "DAB_Db_1",
+            ]);
+
+            expect(result.isContainerNameValid).to.be.false;
+            expect(result.containerNameError).to.include("invalid or already in use");
+        });
+
+        test("accepts a name no tracked deployment holds", async () => {
+            sandbox.stub(dabContainer, "validateDabContainerName").resolves("DAB_Db_2");
+            sandbox.stub(dabContainer, "findAvailableDabPort").resolves(5000);
+
+            const result = await dabService.validateDeploymentParams("DAB_Db_2", 5000, [
+                "DAB_Db_1",
+            ]);
+
+            expect(result.isContainerNameValid).to.be.true;
+        });
+
         test("should return invalid result when container name is already taken", async () => {
             sandbox.stub(dabContainer, "validateDabContainerName").resolves("my-dab-container_2");
             sandbox.stub(dabContainer, "findAvailableDabPort").resolves(5000);

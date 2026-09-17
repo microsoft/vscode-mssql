@@ -719,8 +719,19 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
         this.onRequest(Dab.ValidateDeploymentParamsRequest.type, async (payload) => {
             // An empty name means the form is asking for a default; generate one
             // from the database so both targets read as DAB_<database>_<n>.
-            const containerName = payload.containerName || (await this.generateDabDeploymentName());
-            return this._dabService.validateDeploymentParams(containerName, payload.port);
+            const trackedNames = await this.getTrackedDabNames();
+            if (!payload.containerName) {
+                return this._dabService.validateDeploymentParams(
+                    await this.generateDabDeploymentName(),
+                    payload.port,
+                );
+            }
+
+            return this._dabService.validateDeploymentParams(
+                payload.containerName,
+                payload.port,
+                trackedNames,
+            );
         });
 
         this.onRequest(Dab.StopDeploymentRequest.type, async (payload) => {
@@ -1393,22 +1404,25 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
      * container nor a deployment already tracked for this database.
      */
     private async generateDabDeploymentName(): Promise<string> {
-        let trackedNames: string[] = [];
+        return generateDabDeploymentName(this.databaseName, await this.getTrackedDabNames());
+    }
+
+    /** Names already spoken for by a tracked deployment, on either target. */
+    private async getTrackedDabNames(): Promise<string[]> {
         const store = this._dabConfigStore;
         const key = this.dabStoreKey;
-        if (store && key) {
-            try {
-                trackedNames = (await store.getDeployments(key)).map(
-                    (deployment) => deployment.name,
-                );
-            } catch (error) {
-                this.logger.warn(
-                    `Could not read tracked deployments while naming: ${getErrorMessage(error)}`,
-                );
-            }
+        if (!store || !key) {
+            return [];
         }
 
-        return generateDabDeploymentName(this.databaseName, trackedNames);
+        try {
+            return (await store.getDeployments(key)).map((deployment) => deployment.name);
+        } catch (error) {
+            this.logger.warn(
+                `Could not read tracked deployments while naming: ${getErrorMessage(error)}`,
+            );
+            return [];
+        }
     }
 
     /** Config file path for a CLI deployment of this name. */

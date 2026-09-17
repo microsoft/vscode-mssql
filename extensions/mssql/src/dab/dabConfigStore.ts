@@ -205,8 +205,11 @@ export class DabConfigStore {
 
     /**
      * Records a newly deployed container or engine. A record with the same name
-     * is replaced rather than duplicated, which is what happens when a user
-     * removes a container outside VS Code and deploys the same name again.
+     * on the same target is replaced rather than duplicated, which is what
+     * happens when a user removes a container outside VS Code and deploys the
+     * same name again. The target is part of that identity: a container and an
+     * engine are different things, and dropping one because the other took its
+     * name would leave it running with nothing tracking it.
      */
     public async addDeployment(
         key: DabStoreKey,
@@ -221,7 +224,7 @@ export class DabConfigStore {
         };
 
         const deployments = (await this.getDeployments(key)).filter(
-            (existing) => existing.name !== record.name,
+            (existing) => existing.name !== record.name || existing.target !== record.target,
         );
         await this.writeDeployments(key, [...deployments, record]);
         return record;

@@ -279,6 +279,33 @@ suite("DabConfigStore Tests", () => {
             expect(deployments[0].configHash).to.equal("hash-2");
         });
 
+        test("addDeployment keeps a record whose name a different target reuses", async () => {
+            // A container and an engine are different things. Replacing one
+            // because the other took its name would leave it running with
+            // nothing in the list to stop it by.
+            const container = await store.addDeployment(testKey, {
+                target: Dab.DabDeploymentTarget.Docker,
+                name: "DAB_Db_1",
+                port: 5000,
+                apiTypes: [Dab.ApiType.Rest],
+                configHash: "hash-1",
+            });
+            const engine = await store.addDeployment(testKey, {
+                target: Dab.DabDeploymentTarget.DabCli,
+                name: "DAB_Db_1",
+                port: 5001,
+                apiTypes: [Dab.ApiType.Rest],
+                configHash: "hash-2",
+            });
+
+            const deployments = await store.getDeployments(testKey);
+            expect(deployments).to.have.lengthOf(2);
+            expect(deployments.map((deployment) => deployment.id)).to.have.members([
+                container.id,
+                engine.id,
+            ]);
+        });
+
         test("addDeployment keeps records for other containers", async () => {
             await store.addDeployment(testKey, {
                 target: Dab.DabDeploymentTarget.Docker,
