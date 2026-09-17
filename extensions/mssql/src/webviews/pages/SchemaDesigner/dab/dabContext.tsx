@@ -24,6 +24,7 @@ interface DabContextProps {
     initializeDabConfig: () => void;
     syncDabConfigWithSchema: () => void;
     resetDabConfig: () => Promise<void>;
+    discardPendingDabCliEngine: () => Promise<void>;
     updateDabApiTypes: (apiTypes: Dab.ApiType[]) => void;
     toggleDabEntity: (entityId: string, isEnabled: boolean) => void;
     toggleDabEntityAction: (entityId: string, action: Dab.EntityAction, isEnabled: boolean) => void;
@@ -632,17 +633,39 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
         }));
     }, []);
 
+    /**
+     * Stops a CLI engine that started but never became a tracked deployment.
+     * Does nothing for any other target, or once the deployment has finished.
+     */
+    const discardPendingDabCliEngine = useCallback(async () => {
+        if (dabDeploymentState.target !== Dab.DabDeploymentTarget.DabCli) {
+            return;
+        }
+
+        try {
+            await extensionRpc.sendRequest(Dab.DiscardPendingCliEngineRequest.type, {
+                port: dabDeploymentState.params.port,
+            });
+        } catch (error) {
+            extensionRpc.log.error("Failed to stop a pending DAB CLI engine", error);
+        }
+    }, [dabDeploymentState.params.port, dabDeploymentState.target, extensionRpc]);
+
     const retryDabDeploymentSteps = useCallback(async () => {
-        // Only the Docker target leaves a container behind to clean up; a CLI
-        // engine that failed to start has nothing to remove.
-        if (dabDeploymentState.target === Dab.DabDeploymentTarget.Docker) {
-            try {
+        // Each target can leave something behind that would make the retry fail
+        // against its own previous attempt: Docker a container, the CLI an
+        // engine that started but never passed its readiness check and is still
+        // holding the port.
+        try {
+            if (dabDeploymentState.target === Dab.DabDeploymentTarget.Docker) {
                 await extensionRpc.sendRequest(Dab.StopDeploymentRequest.type, {
                     containerName: dabDeploymentState.params.containerName,
                 });
-            } catch (error) {
-                extensionRpc.log.error("Failed to clean up DAB container before retry", error);
+            } else {
+                await discardPendingDabCliEngine();
             }
+        } catch (error) {
+            extensionRpc.log.error("Failed to clean up the DAB deployment before retry", error);
         }
 
         setDabDeploymentState((prev) => {
@@ -670,7 +693,12 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                 apiUrl: undefined,
             };
         });
-    }, [dabDeploymentState.params.containerName, dabDeploymentState.target, extensionRpc]);
+    }, [
+        dabDeploymentState.params.containerName,
+        dabDeploymentState.target,
+        discardPendingDabCliEngine,
+        extensionRpc,
+    ]);
 
     const loadDabDeployments = useCallback(async () => {
         setDabDeploymentsStatus(ApiStatus.Loading);
@@ -797,6 +825,7 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
                 initializeDabConfig,
                 syncDabConfigWithSchema,
                 resetDabConfig,
+                discardPendingDabCliEngine,
                 updateDabApiTypes,
                 toggleDabEntity,
                 toggleDabEntityAction,

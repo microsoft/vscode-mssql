@@ -536,6 +536,10 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             this.scheduleDabConfigSave(payload.config);
         });
 
+        this.onRequest(Dab.DiscardPendingCliEngineRequest.type, async (payload) => {
+            await this.discardPendingDabCliEngine(payload.port);
+        });
+
         this.onRequest(Dab.ResetConfigRequest.type, async () => {
             sendActionEvent(TelemetryViews.SchemaDesigner, TelemetryActions.ResetDabConfig);
             await this.deleteStoredDabConfig();
@@ -1297,6 +1301,31 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
             await store.saveConfig(key, config);
         } catch (error) {
             this.logger.error(`Failed to save DAB config: ${getErrorMessage(error)}`);
+        }
+    }
+
+    /**
+     * Stops an engine that started but never finished deploying.
+     *
+     * It is launched a step before the deployment is tracked, so a failure in
+     * between leaves a detached process that nothing is recorded against and
+     * that still holds the port. Retrying on that port would fail against the
+     * engine its own previous attempt left behind.
+     *
+     * @param port Port the engine was told to publish on
+     */
+    private async discardPendingDabCliEngine(port: number): Promise<void> {
+        const processId = this._pendingDabCliProcessId;
+        if (processId === undefined) {
+            return;
+        }
+
+        this._pendingDabCliProcessId = undefined;
+        const result = await this._dabService.stopCliEngineProcess(processId, port);
+        if (!result.success) {
+            this.logger.warn(
+                `Failed to stop the DAB engine left by a failed deployment: ${result.error}`,
+            );
         }
     }
 

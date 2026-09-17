@@ -474,7 +474,21 @@ export class DabService implements Dab.IDabService {
             return { success: true };
         }
 
-        const result = await stopDabCliEngine(record.processId, record.port);
+        return this.stopCliEngineProcess(record.processId, record.port);
+    }
+
+    /**
+     * Stops an engine by the process id its launch reported, for one that never
+     * became a tracked deployment.
+     *
+     * @param processId Process id the launch reported
+     * @param port Port the engine was told to publish on
+     */
+    public async stopCliEngineProcess(
+        processId: number,
+        port: number,
+    ): Promise<Dab.DeploymentActionResponse> {
+        const result = await stopDabCliEngine(processId, port);
         return { success: result.success, error: result.error };
     }
 

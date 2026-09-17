@@ -528,10 +528,18 @@ export async function stopDabCliEngine(
         return { success: true };
     }
 
-    if (ownership === PortOwnership.Unknown && !isProcessAlive(processId)) {
-        // Ownership could not be checked on this machine, so a dead pid is the
-        // only thing that can still be ruled out.
-        return { success: true };
+    if (ownership === PortOwnership.Unknown) {
+        // Nothing on this machine can name the port's owner, so the evidence
+        // has to come from the port itself: signal the pid only while a DAB
+        // engine is actually serving there and the pid still names a process.
+        // Failing that, there is nothing of ours to stop, and a pid the system
+        // has since handed to someone else is left alone.
+        if (!isProcessAlive(processId) || !(await isDabCliEngineResponding(port))) {
+            dockerLogger.info(
+                `DAB engine (pid ${processId}) could not be confirmed on port ${port}; nothing to stop.`,
+            );
+            return { success: true };
+        }
     }
 
     try {

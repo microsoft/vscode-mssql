@@ -666,6 +666,23 @@ export namespace Dab {
      * same channel, so starting it before the delete has landed would race the
      * two writes against each other.
      */
+    export interface DiscardPendingCliEngineParams {
+        /** Port the engine was told to publish on. */
+        port: number;
+    }
+
+    /**
+     * Stops a CLI engine that started but never finished deploying. The engine
+     * is detached and is only tracked once the last step succeeds, so a failure
+     * in between would otherwise leave it running and holding the port that the
+     * retry is about to ask for.
+     */
+    export namespace DiscardPendingCliEngineRequest {
+        export const type = new RequestType<DiscardPendingCliEngineParams, void, void>(
+            "dab/discardPendingCliEngine",
+        );
+    }
+
     export namespace ResetConfigRequest {
         export const type = new RequestType<void, void, void>("dab/resetConfig");
     }

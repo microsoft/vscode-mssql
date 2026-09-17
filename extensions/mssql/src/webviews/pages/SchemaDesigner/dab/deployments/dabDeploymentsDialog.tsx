@@ -61,6 +61,7 @@ export const DabDeploymentsDialog = () => {
         startNewDabDeployment,
         restartDabDeploymentFlow,
         retryDabDeploymentSteps,
+        discardPendingDabCliEngine,
         loadDabDeployments,
     } = context;
 
@@ -122,6 +123,10 @@ export const DabDeploymentsDialog = () => {
     };
 
     const handleClose = () => {
+        // Leaving a half-finished CLI deployment is the other way to strand an
+        // engine that started but was never tracked; it is a no-op once the
+        // deployment has finished and the engine belongs to a record.
+        void discardPendingDabCliEngine();
         closeDabDeploymentDialog();
         resetDabDeploymentState();
     };
