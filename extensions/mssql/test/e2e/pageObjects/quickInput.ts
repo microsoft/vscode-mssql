@@ -55,6 +55,17 @@ export class QuickInput {
         );
     }
 
+    /**
+     * Every quick input widget on screen, including one that is mid-close.
+     *
+     * {@link widget} deliberately excludes the closing and inert states, which is right for
+     * reading a quick pick but wrong for waiting for one to go away: it reports zero the moment
+     * Escape lands, while the widget is still on screen for the close animation.
+     */
+    private get anyVisibleWidget(): Locator {
+        return this.page.locator(".quick-input-widget:visible");
+    }
+
     /** The text box at the top of the widget. */
     get input(): Locator {
         return this.page.locator('input[aria-controls="quickInput_list"]');
@@ -69,16 +80,23 @@ export class QuickInput {
         return (await this.widget.count()) > 0;
     }
 
-    /** Dismisses the widget if it is open, and waits for it to actually go away. */
+    /** Dismisses the widget if it is open, and waits for it to actually leave the screen. */
     async close(timeout = 10 * 1000): Promise<void> {
-        if (!(await this.isOpen())) {
+        // A widget that is already closing needs no Escape, but still has to be waited out: the
+        // shortcut toggles, so opening the palette over one that is still on screen closes it
+        // instead of opening a fresh one. That is hazard 1 in the class comment, and waiting on
+        // the strict `widget` here is what used to let it through -- that selector goes to zero
+        // as soon as Escape lands, 150ms before the widget is actually gone.
+        if ((await this.anyVisibleWidget.count()) === 0) {
             return;
         }
-        await this.page.keyboard.press("Escape");
+        if (await this.isOpen()) {
+            await this.page.keyboard.press("Escape");
+        }
         await expect
-            .poll(() => this.widget.count(), {
+            .poll(() => this.anyVisibleWidget.count(), {
                 timeout,
-                message: "A quick pick stayed open after Escape.",
+                message: "A quick pick stayed on screen after Escape.",
             })
             .toBe(0);
     }

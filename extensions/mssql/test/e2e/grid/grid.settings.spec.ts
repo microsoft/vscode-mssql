@@ -7,10 +7,12 @@ import { FrameLocator, Locator } from "@playwright/test";
 import { test, expect } from "../baseFixtures";
 import { useSharedVsCodeLifecycle } from "../utils/testLifecycle";
 import {
+    acquireClipboardLock,
     clearClipboard,
     executeQueryAndWait,
     openNewQueryEditor,
     readClipboard,
+    releaseClipboardLock,
     setQueryText,
 } from "../utils/testHelpers";
 import { getGridLaunchConfig } from "./gridLaunchConfig";
@@ -20,6 +22,16 @@ import { SELECTION_QUERY, SELECTION_ROW_COUNT } from "./gridFixtures";
 test.describe("MSSQL Extension - Preview Grid Settings", () => {
     let resultsFrame: FrameLocator;
     let grid: Locator;
+
+    // The clipboard is shared by every worker on the machine; see acquireClipboardLock. Held for
+    // the whole test rather than around each copy, since the assertions read it repeatedly.
+    test.beforeEach(async () => {
+        await acquireClipboardLock();
+    });
+
+    test.afterEach(async () => {
+        await releaseClipboardLock();
+    });
 
     const getContext = useSharedVsCodeLifecycle({
         launchOptions: {

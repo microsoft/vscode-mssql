@@ -6,8 +6,14 @@
 import { FrameLocator, Locator } from "@playwright/test";
 import { test, expect } from "../baseFixtures";
 import { useSharedVsCodeLifecycle } from "../utils/testLifecycle";
-import { clearClipboard, getModifierKey, readClipboard } from "../utils/testHelpers";
-import { getGridLaunchConfig } from "./gridLaunchConfig";
+import {
+    acquireClipboardLock,
+    clearClipboard,
+    getModifierKey,
+    readClipboard,
+    releaseClipboardLock,
+} from "../utils/testHelpers";
+import { GRID_KEYS, getGridLaunchConfig } from "./gridLaunchConfig";
 import {
     GRID_COMMAND_LABELS,
     GRID_MENU_LABELS,
@@ -35,6 +41,16 @@ import { MIXED_TYPES_QUERY, MIXED_TYPES_ROW_COUNT } from "./gridFixtures";
 test.describe("MSSQL Extension - Preview Grid Clipboard", () => {
     let resultsFrame: FrameLocator;
     let grid: Locator;
+
+    // The clipboard is shared by every worker on the machine; see acquireClipboardLock. Held for
+    // the whole test rather than around each copy, since the assertions read it repeatedly.
+    test.beforeEach(async () => {
+        await acquireClipboardLock();
+    });
+
+    test.afterEach(async () => {
+        await releaseClipboardLock();
+    });
 
     const getContext = useSharedVsCodeLifecycle({
         launchOptions: {
@@ -260,7 +276,7 @@ test.describe("MSSQL Extension - Preview Grid Clipboard", () => {
         await clearClipboard(electronApp);
         await clickCell(grid, 0, 0);
         await clickCell(grid, 0, 1, { modifiers: ["Shift"] });
-        await page.keyboard.press("Control+Shift+C");
+        await page.keyboard.press(GRID_KEYS.copyWithHeaders);
         await expect.poll(() => readClipboard(electronApp)).toContain("id\tname");
         expect(await readClipboard(electronApp)).toContain("1\tAda");
     });

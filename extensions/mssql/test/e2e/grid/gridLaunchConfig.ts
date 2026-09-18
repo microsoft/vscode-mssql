@@ -9,6 +9,7 @@ import {
     getServerName,
     getUserName,
 } from "../utils/envConfigReader";
+import { getModifierKey } from "../utils/testHelpers";
 
 export const GRID_PROFILE_NAME = "e2e-grid";
 
@@ -85,17 +86,28 @@ const GRID_SHORTCUTS = {
     "event.queryResults.maximizeGrid": "ctrlcmd+alt+m",
 };
 
-/** Bindings the specs press, kept next to the map above so they cannot drift apart. */
+/**
+ * Bindings the specs press, kept next to the map above so they cannot drift apart.
+ *
+ * These are Playwright key strings, not VS Code binding strings. Anything the map above binds
+ * with `ctrlcmd` resolves to Meta on macOS, so it is written with {@link getModifierKey} rather
+ * than a literal Control -- a literal one simply never reaches the command there. The entries
+ * that are literally `ctrl` or carry no modifier stay as they are.
+ */
+const MODIFIER = getModifierKey();
+
 export const GRID_KEYS = {
-    copy: "ctrlcmd+c",
-    copyWithHeaders: "ctrlcmd+shift+c",
-    moveToRowStart: "Control+Alt+ArrowLeft",
-    moveToRowEnd: "Control+Alt+ArrowRight",
+    copy: `${MODIFIER}+C`,
+    copyWithHeaders: `${MODIFIER}+Shift+C`,
+    moveToRowStart: `${MODIFIER}+Alt+ArrowLeft`,
+    moveToRowEnd: `${MODIFIER}+Alt+ArrowRight`,
+    openFilterMenu: `${MODIFIER}+Alt+F`,
+    // "ctrl+space" and "shift+space" above, which are literal on every platform.
     selectColumn: "Control+Space",
     selectRow: "Shift+Space",
     toggleSort: "Alt+Shift+O",
-    switchToTextView: "Control+Alt+T",
-    maximizeGrid: "Control+Alt+M",
+    switchToTextView: `${MODIFIER}+Alt+T`,
+    maximizeGrid: `${MODIFIER}+Alt+M`,
 } as const;
 
 /**

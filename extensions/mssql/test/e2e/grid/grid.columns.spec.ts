@@ -378,7 +378,7 @@ test.describe("MSSQL Extension - Preview Grid Columns", () => {
     test("the filter overlay opens from the keyboard shortcut", async () => {
         const { page } = getContext();
         await clickCell(grid, 0, 1);
-        await page.keyboard.press("Control+Alt+F");
+        await page.keyboard.press(GRID_KEYS.openFilterMenu);
 
         await expect(filterOverlay()).toBeVisible();
         await clearFilter();

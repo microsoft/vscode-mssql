@@ -27,6 +27,12 @@ import {
     MULTI_RESULT_QUERY,
 } from "./gridFixtures";
 
+/**
+ * Budget for the text view's first paint: a dynamic import plus Monaco initialization, rather
+ * than the UI update the default expect timeout is sized for.
+ */
+const TEXT_VIEW_LOAD_TIMEOUT = 30 * 1000;
+
 test.describe("MSSQL Extension - Preview Grid Layout", () => {
     let resultsFrame: FrameLocator;
     let firstGrid: Locator;
@@ -173,7 +179,13 @@ test.describe("MSSQL Extension - Preview Grid Layout", () => {
         await getCell(firstGrid, 0, 0).click();
         await page.keyboard.press(GRID_KEYS.switchToTextView);
         await expect(firstGrid).toHaveCount(0);
-        await expect(resultsFrame.locator(".monaco-editor").first()).toBeVisible();
+        // The text view is behind React.lazy, so the first switch fetches its chunk and boots a
+        // Monaco instance while a Suspense spinner stands in. On a runner sharing four vCPUs with
+        // another worker and the SQL Server container that overruns the default expect timeout,
+        // which is what made this the one case that failed in CI.
+        await expect(resultsFrame.locator(".monaco-editor").first()).toBeVisible({
+            timeout: TEXT_VIEW_LOAD_TIMEOUT,
+        });
         await expect(resultsFrame.getByTestId("summary-footer")).toHaveCount(0);
 
         await page.keyboard.press(GRID_KEYS.switchToTextView);

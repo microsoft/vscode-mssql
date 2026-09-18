@@ -13,6 +13,7 @@ import {
     readClipboard,
     setQueryText,
     waitForResultGrid,
+    withClipboardLock,
 } from "../utils/testHelpers";
 import { GRID_KEYS, getGridLaunchConfig } from "./gridLaunchConfig";
 import {
@@ -77,19 +78,23 @@ test.describe("MSSQL Extension - Preview Grid Selection", () => {
     /** Waits for the asynchronous extension copy to replace any transient clipboard contents. */
     async function expectCopiedRowIds(expectedIds: string[]): Promise<void> {
         const { electronApp } = getContext();
-        await clearClipboard(electronApp);
-        // The context-menu action uses the same selection-to-source mapping as the shortcut,
-        // without competing with VS Code's native Ctrl+C clipboard handler on Linux.
-        await selectedCells().first().click({ button: "right" });
-        await clickMenuItem(resultsFrame, GRID_COMMAND_LABELS.copy);
-        await expect
-            .poll(async () =>
-                (await readClipboard(electronApp))
-                    .trim()
-                    .split(/\r?\n/)
-                    .map((row) => row.split("\t")[0].trim()),
-            )
-            .toEqual(expectedIds);
+        // Only this file's few copy cases need the machine-wide clipboard, so the lock is
+        // taken here rather than around every test in the file; see acquireClipboardLock.
+        await withClipboardLock(async () => {
+            await clearClipboard(electronApp);
+            // The context-menu action uses the same selection-to-source mapping as the shortcut,
+            // without competing with VS Code's native Ctrl+C clipboard handler on Linux.
+            await selectedCells().first().click({ button: "right" });
+            await clickMenuItem(resultsFrame, GRID_COMMAND_LABELS.copy);
+            await expect
+                .poll(async () =>
+                    (await readClipboard(electronApp))
+                        .trim()
+                        .split(/\r?\n/)
+                        .map((row) => row.split("\t")[0].trim()),
+                )
+                .toEqual(expectedIds);
+        });
     }
 
     test("stages the fixture with every row displayed", async () => {
@@ -410,14 +415,16 @@ test.describe("MSSQL Extension - Preview Grid Selection", () => {
             await getRowNumberCell(grid, 2).click();
             await expect(selectedCells()).toHaveCount(SELECTION_COLUMN_COUNT - 1);
             const { electronApp, page } = getContext();
-            await clearClipboard(electronApp);
-            await page.keyboard.press(`${getModifierKey()}+C`);
-            await expect.poll(() => readClipboard(electronApp)).toContain("300");
-            expect((await readClipboard(electronApp)).trim().split("\t")).toEqual([
-                "3",
-                "300",
-                "3000",
-            ]);
+            await withClipboardLock(async () => {
+                await clearClipboard(electronApp);
+                await page.keyboard.press(`${getModifierKey()}+C`);
+                await expect.poll(() => readClipboard(electronApp)).toContain("300");
+                expect((await readClipboard(electronApp)).trim().split("\t")).toEqual([
+                    "3",
+                    "300",
+                    "3000",
+                ]);
+            });
         } finally {
             await getContext().page.keyboard.press("Escape");
             await openGridMenu(grid);

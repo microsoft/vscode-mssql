@@ -4,6 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect, FrameLocator, Locator, Page } from "@playwright/test";
+import { promises as fs } from "fs";
+import * as os from "os";
+import * as path from "path";
 import type { VsCodeAppHandle } from "./launchVscodeWithMsSqlExt";
 import { QuickInput, VsCodeCommand } from "../pageObjects";
 
@@ -179,6 +182,74 @@ export function readClipboard(app: VsCodeAppHandle): Promise<string> {
 /** Empties the clipboard so a stale value from an earlier test cannot satisfy an assertion. */
 export function clearClipboard(app: VsCodeAppHandle): Promise<void> {
     return writeClipboard(app, "");
+}
+
+/**
+ * The clipboard is the machine's, not the VS Code instance's.
+ *
+ * Every worker launches its own VS Code but they all write to the same OS clipboard, and the grid
+ * project runs two workers over files that each copy and read. One worker clearing or copying
+ * between another's copy and read makes the second assert against the first one's data, or
+ * against an empty clipboard. Playwright has no cross-worker mutex, so this is a lock file: an
+ * exclusive create is atomic, which is what makes it work between processes.
+ */
+const CLIPBOARD_LOCK_PATH = path.join(os.tmpdir(), "vscode-mssql-e2e-clipboard.lock");
+
+/** Longer than any single clipboard test, so only a worker that died is treated as stale. */
+const CLIPBOARD_LOCK_STALE_MS = 90 * 1000;
+
+/** Takes the clipboard lock, waiting for whichever worker holds it. */
+export async function acquireClipboardLock(timeout = 30 * 1000): Promise<void> {
+    const deadline = Date.now() + timeout;
+
+    for (;;) {
+        try {
+            // "wx" fails rather than truncating when the file exists, and that failure is the
+            // lock: exactly one worker can win the create.
+            const handle = await fs.open(CLIPBOARD_LOCK_PATH, "wx");
+            try {
+                await handle.writeFile(`${process.pid}`);
+            } finally {
+                await handle.close();
+            }
+            return;
+        } catch (error) {
+            if ((error as NodeJS.ErrnoException).code !== "EEXIST") {
+                throw error;
+            }
+        }
+
+        // A worker killed mid-test leaves the file behind; nothing else would ever clear it.
+        try {
+            const stats = await fs.stat(CLIPBOARD_LOCK_PATH);
+            if (Date.now() - stats.mtimeMs > CLIPBOARD_LOCK_STALE_MS) {
+                await fs.rm(CLIPBOARD_LOCK_PATH, { force: true });
+                continue;
+            }
+        } catch {
+            // Released between the failed create and the stat; just try again.
+        }
+
+        if (Date.now() > deadline) {
+            throw new Error("Timed out waiting for the clipboard lock held by another worker.");
+        }
+        await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+}
+
+/** Releases the clipboard lock. Safe to call when this worker does not hold it. */
+export async function releaseClipboardLock(): Promise<void> {
+    await fs.rm(CLIPBOARD_LOCK_PATH, { force: true });
+}
+
+/** Runs `body` with the clipboard held exclusively across workers. */
+export async function withClipboardLock<T>(body: () => Promise<T>): Promise<T> {
+    await acquireClipboardLock();
+    try {
+        return await body();
+    } finally {
+        await releaseClipboardLock();
+    }
 }
 
 /**
