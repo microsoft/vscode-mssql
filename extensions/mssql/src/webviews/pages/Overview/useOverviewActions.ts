@@ -52,9 +52,11 @@ export function useOverviewActions() {
         [extensionRpc],
     );
 
-    const installAgentSkillsPlugin = useCallback(() => {
-        void extensionRpc.sendRequest(InstallAgentSkillsPluginRequest.type, undefined);
-    }, [extensionRpc]);
+    /** Resolves once the install has finished, whether or not it succeeded. */
+    const installAgentSkillsPlugin = useCallback(
+        () => extensionRpc.sendRequest(InstallAgentSkillsPluginRequest.type, undefined),
+        [extensionRpc],
+    );
 
     /** Reports an in-page event. Fire and forget: telemetry never blocks an interaction. */
     const sendTelemetry = useCallback(

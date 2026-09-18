@@ -3597,6 +3597,12 @@ export class Overview {
             args: [error],
             comment: ["{0} is the underlying error message."],
         });
+    public static InstallAgentSkillsFailed = l10n.t(
+        "Could not download the Azure SQL agent skills. Check your network connection and try again.",
+    );
+    public static InstallAgentSkillsRemoteUnsupported = l10n.t(
+        "The Azure SQL agent skills can only be installed from a local window. Reopen this folder locally, install them there, and they will be available to Copilot everywhere.",
+    );
     public static DevContainersExtensionRequired = l10n.t(
         "The Dev Containers extension is required to reopen this folder in a container.",
     );

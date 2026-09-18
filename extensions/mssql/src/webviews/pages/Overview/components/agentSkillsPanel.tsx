@@ -203,8 +203,8 @@ export const AgentSkillsPanel = () => {
     const loc = locConstants.overview;
     const { installAgentSkillsPlugin, sendTelemetry } = useOverviewActions();
     const hasAgentSkillsPlugin = useOverviewSelector((state) => state.hasAgentSkillsPlugin);
-    // The install runs in VS Code behind a trust prompt, so the button has to say something
-    // between the click and the manifest changing, or it reads as having done nothing.
+    // Downloading takes a moment, so the button has to say something between the click and the
+    // state arriving, or it reads as having done nothing.
     const [isInstalling, setIsInstalling] = useState(false);
     // The prompt is the whole point of the card, so viewing it stays in the page rather than
     // sending the reader to a repository to find it.
@@ -216,19 +216,11 @@ export const AgentSkillsPanel = () => {
         }
     }, [hasAgentSkillsPlugin]);
 
-    // The prompt may simply be dismissed, in which case nothing ever arrives; give up in step
-    // with the extension host so the button does not sit spinning forever.
-    useEffect(() => {
-        if (!isInstalling) {
-            return;
-        }
-        const timer = setTimeout(() => setIsInstalling(false), 120_000);
-        return () => clearTimeout(timer);
-    }, [isInstalling]);
-
     const startInstall = () => {
         setIsInstalling(true);
-        installAgentSkillsPlugin();
+        // The request settles when the install does, including on failure -- where the state
+        // stays uninstalled and the extension host explains why -- so the button always recovers.
+        void installAgentSkillsPlugin().finally(() => setIsInstalling(false));
     };
     const [copiedId, setCopiedId] = useState<string | undefined>(undefined);
 

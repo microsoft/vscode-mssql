@@ -11,6 +11,7 @@ import * as utils from "../../src/utils/utils";
 import * as dockerUtils from "../../src/docker/dockerUtils";
 import { OverviewWebviewController } from "../../src/controllers/overviewWebviewController";
 import { RecentSqlFilesStore, ResolvedRecentSqlFile } from "../../src/models/recentSqlFilesStore";
+import { AgentPluginsInstaller } from "../../src/agentPlugins/agentPluginsInstaller";
 import { OverviewOpenSource, PrerequisiteStatus } from "../../src/sharedInterfaces/overview";
 import * as constants from "../../src/constants/constants";
 import { observeWebviewReady, stubTelemetry, stubWebviewPanel } from "./utils";
@@ -29,6 +30,8 @@ suite("Overview Webview Controller", () => {
     let recentFiles: ResolvedRecentSqlFile[];
     let recentFilesStub: sinon.SinonStub;
     let storeChangeEvent: vscode.EventEmitter<void>;
+    let agentSkillsInstalledStub: sinon.SinonStub;
+    let agentSkillsInstallStub: sinon.SinonStub;
 
     function createController(): OverviewWebviewController {
         const created = new OverviewWebviewController(
@@ -41,6 +44,10 @@ suite("Overview Webview Controller", () => {
                 getRecentFiles: recentFilesStub,
                 onDidChange: storeChangeEvent.event,
             } as unknown as RecentSqlFilesStore,
+            {
+                isInstalled: agentSkillsInstalledStub,
+                install: agentSkillsInstallStub,
+            } as unknown as AgentPluginsInstaller,
         );
         observeWebviewReady(created);
         return created;
@@ -59,6 +66,8 @@ suite("Overview Webview Controller", () => {
         recentFiles = [];
         recentFilesStub = sinon.stub().callsFake(() => Promise.resolve(recentFiles));
         storeChangeEvent = new vscode.EventEmitter<void>();
+        agentSkillsInstalledStub = sinon.stub().resolves(false);
+        agentSkillsInstallStub = sinon.stub().resolves(true);
         sandbox.stub(vscode.commands, "executeCommand").resolves();
     });
 

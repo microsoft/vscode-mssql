@@ -2296,6 +2296,9 @@
     <trans-unit id="++CODE++03c0e95da7ae52bf9392b845b82870dbf28db813a7fd4a72085f8a544de37916">
       <source xml:lang="en">Could not detect your client IP address. Please add a firewall rule manually in the Azure portal.</source>
     </trans-unit>
+    <trans-unit id="++CODE++5ec0f218834cf88959350a255978c7ab837777accb4cd874a54a43ab6488d28f">
+      <source xml:lang="en">Could not download the Azure SQL agent skills. Check your network connection and try again.</source>
+    </trans-unit>
     <trans-unit id="++CODE++f630f91edbf1dc6649a7de55179cb551ef8245ef63461de0094de54e58d5ea62">
       <source xml:lang="en">Could not find scripting metadata for {0} &apos;{1}&apos;.</source>
       <note>{0} is the node type
@@ -9286,6 +9289,9 @@
     </trans-unit>
     <trans-unit id="++CODE++c2deec07495a278190de83a0820519064e332fc00b050c4fd053bae70c44da8e">
       <source xml:lang="en">The Application (Client) ID of your Microsoft Entra app registration.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9ab5f5d2c21aefd9c8a32a0f77c22a6c38b25821a1931e8f8e8043af7c5b4b73">
+      <source xml:lang="en">The Azure SQL agent skills can only be installed from a local window. Reopen this folder locally, install them there, and they will be available to Copilot everywhere.</source>
     </trans-unit>
     <trans-unit id="++CODE++4b322ab456c5f1d7a9a9be01df5778e65771785eab5f5f93637487f24f24793d">
       <source xml:lang="en">The Data API builder CLI exited with code {0}.</source>

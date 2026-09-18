@@ -136,6 +136,7 @@ import { SearchDatabaseWebViewController } from "../searchDatabase/searchDatabas
 import { ChangelogWebviewController } from "./changelogWebviewController";
 import { OverviewOpenOptions, OverviewWebviewController } from "./overviewWebviewController";
 import { RecentSqlFilesStore } from "../models/recentSqlFilesStore";
+import { AgentPluginsInstaller } from "../agentPlugins/agentPluginsInstaller";
 import { DeploymentType } from "../sharedInterfaces/deployment";
 import { AzureDataStudioMigrationWebviewController } from "./azureDataStudioMigrationWebviewController";
 import { ShortcutsConfigurationWebviewController } from "./shortcutsConfigurationWebviewController";
@@ -177,6 +178,7 @@ export default class MainController implements vscode.Disposable {
     private _queryHistoryProvider: QueryHistoryProvider;
     private _overviewController: OverviewWebviewController | undefined;
     private _recentSqlFilesStore: RecentSqlFilesStore;
+    private _agentPluginsInstaller: AgentPluginsInstaller;
     private _backgroundTaskLogContentProvider: BackgroundTaskLogContentProvider;
     private _backgroundTasksProvider: BackgroundTasksProvider;
     private _scriptingService: ScriptingService;
@@ -459,6 +461,7 @@ export default class MainController implements vscode.Disposable {
                     this._overviewController = new OverviewWebviewController(
                         this._context,
                         this._recentSqlFilesStore,
+                        this._agentPluginsInstaller,
                         { openWhatsNew, source: options.source },
                     );
                 } else if (openWhatsNew) {
@@ -722,6 +725,7 @@ export default class MainController implements vscode.Disposable {
             this.initializeQueryHistory();
             this.initializeBackgroundTasks();
             this.initializeRecentSqlFiles();
+            this.initializeAgentPlugins();
 
             this.sqlTasksService = new SqlTasksService(
                 SqlToolsServerClient.instance,
@@ -2688,6 +2692,18 @@ export default class MainController implements vscode.Disposable {
         this._recentSqlFilesStore = new RecentSqlFilesStore(this._context);
         this._recentSqlFilesStore.register();
         this._context.subscriptions.push(this._recentSqlFilesStore);
+    }
+
+    /**
+     * Prepares the agent skills installer and refreshes an installed copy.
+     *
+     * The check is throttled to once a day inside the installer, so running it on every
+     * activation costs nothing on the activations that fall inside that window. It is deliberately
+     * not awaited: a slow or unreachable network must not hold up activation.
+     */
+    private initializeAgentPlugins(): void {
+        this._agentPluginsInstaller = new AgentPluginsInstaller(this._context);
+        void this._agentPluginsInstaller.checkForUpdates();
     }
 
     /**
