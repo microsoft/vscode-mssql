@@ -1231,15 +1231,18 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
                 [Dab.ApiType.Mcp]: "mcp",
             };
 
+            // The pills cover most of the cell, so they carry the tooltip as well as their
+            // container; otherwise hovering a pill would suppress the full list.
+            const apiTypesTitle = apiTypes.map((apiType) => labels[apiType]).join(", ");
+
             return (
-                <div
-                    className={classes.pillCell}
-                    title={apiTypes.map((apiType) => labels[apiType]).join(", ")}>
+                <div className={classes.pillCell} title={apiTypesTitle}>
                     {apiTypes.map((apiType) => (
                         <Button
                             key={apiType}
                             appearance="subtle"
                             size="small"
+                            title={apiTypesTitle}
                             className={mergeClasses(
                                 classes.pillButton,
                                 getDabApiTypePillClassName(apiType),
@@ -1336,22 +1339,23 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
                 [Dab.EntityAction.Execute]: locConstants.schemaDesigner.executeShort,
             };
 
+            const permissionsTitle = permissions
+                .map(
+                    (permission) =>
+                        `${roleLabels[permission.role]}: ${permission.actions
+                            .map((action) => actionLabels[action])
+                            .join("")}`,
+                )
+                .join(", ");
+
             return (
-                <div
-                    className={classes.pillCell}
-                    title={permissions
-                        .map(
-                            (permission) =>
-                                `${roleLabels[permission.role]}: ${permission.actions
-                                    .map((action) => actionLabels[action])
-                                    .join("")}`,
-                        )
-                        .join(", ")}>
+                <div className={classes.pillCell} title={permissionsTitle}>
                     {permissions.map((permission) => (
                         <Button
                             key={permission.role}
                             appearance="subtle"
                             size="small"
+                            title={permissionsTitle}
                             className={mergeClasses(
                                 classes.pillButton,
                                 getDabPermissionPillClassName(permission.role),
