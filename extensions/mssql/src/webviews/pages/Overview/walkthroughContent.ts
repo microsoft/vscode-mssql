@@ -45,8 +45,7 @@ const mssqlOverviewDocs = `${mssqlDocsBase}/mssql-extension-visual-studio-code`;
  * Microsoft Learn destination for each entry in the Explore features gallery.
  *
  * These are registered aka.ms aliases rather than Learn URLs, so a page that moves is retargeted
- * without shipping the extension -- several of these have moved once already. The two that are
- * still written out have no alias yet.
+ * without shipping the extension -- several of these have moved once already.
  */
 const featureDocumentationUrls: Record<string, string> = {
     schemaDesigner: "https://aka.ms/vscode-mssql-schema-designer-docs",
@@ -55,8 +54,7 @@ const featureDocumentationUrls: Record<string, string> = {
     editData: `${mssqlOverviewDocs}#view-and-edit-data`,
     importFlatFile: "https://aka.ms/vscode-mssql-import-flat-file",
     queryEditor: "https://aka.ms/vscode-mssql-query-editor",
-    // No alias yet.
-    queryPlans: `${mssqlOverviewDocs}#query-plan-visualizer`,
+    queryPlans: "https://aka.ms/vscode-mssql-query-plans",
     queryProfiler: "https://aka.ms/vscode-mssql-query-profiler-docs",
     notebooks: "https://aka.ms/vscode-mssql-notebooks",
     dacpac: "https://aka.ms/vscode-mssql-dacpac",
