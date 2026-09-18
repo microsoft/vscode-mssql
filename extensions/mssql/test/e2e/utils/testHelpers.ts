@@ -198,9 +198,20 @@ const CLIPBOARD_LOCK_PATH = path.join(os.tmpdir(), "vscode-mssql-e2e-clipboard.l
 /** Longer than any single clipboard test, so only a worker that died is treated as stale. */
 const CLIPBOARD_LOCK_STALE_MS = 90 * 1000;
 
+/**
+ * The token this worker wrote into the lock file, while it holds the lock.
+ *
+ * Releasing checks it rather than deleting whatever is there. A release can arrive from a worker
+ * that does not hold the lock -- an afterEach still runs when its acquire timed out, and a lock
+ * this worker held can be reclaimed as stale by another one -- and an unconditional delete would
+ * hand the clipboard to two workers at once, which is the race this whole thing exists to stop.
+ */
+let clipboardLockToken: string | undefined;
+
 /** Takes the clipboard lock, waiting for whichever worker holds it. */
 export async function acquireClipboardLock(timeout = 30 * 1000): Promise<void> {
     const deadline = Date.now() + timeout;
+    const token = `${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
     for (;;) {
         try {
@@ -208,10 +219,11 @@ export async function acquireClipboardLock(timeout = 30 * 1000): Promise<void> {
             // lock: exactly one worker can win the create.
             const handle = await fs.open(CLIPBOARD_LOCK_PATH, "wx");
             try {
-                await handle.writeFile(`${process.pid}`);
+                await handle.writeFile(token);
             } finally {
                 await handle.close();
             }
+            clipboardLockToken = token;
             return;
         } catch (error) {
             if ((error as NodeJS.ErrnoException).code !== "EEXIST") {
@@ -237,8 +249,23 @@ export async function acquireClipboardLock(timeout = 30 * 1000): Promise<void> {
     }
 }
 
-/** Releases the clipboard lock. Safe to call when this worker does not hold it. */
+/** Releases the clipboard lock, if this worker is the one holding it. */
 export async function releaseClipboardLock(): Promise<void> {
+    const token = clipboardLockToken;
+    if (token === undefined) {
+        return;
+    }
+    clipboardLockToken = undefined;
+
+    try {
+        // A lock reclaimed as stale while this worker was wedged now belongs to someone else, and
+        // the token is how that is told apart from this worker's own lock.
+        if ((await fs.readFile(CLIPBOARD_LOCK_PATH, "utf8")) !== token) {
+            return;
+        }
+    } catch {
+        return;
+    }
     await fs.rm(CLIPBOARD_LOCK_PATH, { force: true });
 }
 

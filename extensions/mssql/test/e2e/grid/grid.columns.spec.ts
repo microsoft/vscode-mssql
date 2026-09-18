@@ -145,6 +145,8 @@ test.describe("MSSQL Extension - Preview Grid Columns", () => {
 
     test("stages the fixture with every row displayed", async () => {
         await expect(grid).toHaveAttribute("data-row-count", String(FILTERABLE_ROW_COUNT));
+        // The fixture selects three columns. data-column-count reports the grid's own columns,
+        // which prepend the row-number column (fluentResultGridColumns.ts), hence four.
         await expect(grid).toHaveAttribute("data-column-count", "4");
     });
 
