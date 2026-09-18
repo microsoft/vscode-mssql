@@ -193,15 +193,52 @@ export function clearClipboard(app: VsCodeAppHandle): Promise<void> {
  * against an empty clipboard. Playwright has no cross-worker mutex, so this is a lock file: an
  * exclusive create is atomic, which is what makes it work between processes.
  *
- * Only the holder ever removes the file. There is deliberately no stale-lock reclamation: every
- * form of it reduces to checking the file and then deleting it, and in the window between those
- * two steps the holder can release and a third worker acquire, so the reclaiming worker deletes a
- * lock it does not own and two workers enter the critical section -- the exact race the lock is
- * here to prevent. A worker that dies holding the lock therefore fails the remaining clipboard
- * tests on the acquire timeout, which is loud and diagnosable rather than silently wrong. A lock
- * left behind by a previous run is cleared once in globalSetup, before any worker starts.
+ * The path is minted per run by globalSetup and passed to workers through the environment, so it
+ * is shared by the workers of one run and by nothing else. That is what lets the lock be simple:
+ * a file left behind by a killed run cannot block a later one, because a later run never looks at
+ * the same path, and nothing ever has cause to delete a file it does not own. Two runs overlapping
+ * on one machine do not share a lock and so do not serialize against each other -- they already
+ * contend for the one OS clipboard, which is not a thing a lock here can fix.
+ *
+ * Only the holder removes the file. There is deliberately no stale-lock reclamation: every form
+ * of it reduces to checking the file and then deleting it, and in that window the holder can
+ * release and a third worker acquire, so the reclaimer deletes a lock it does not own and two
+ * workers enter the critical section. A worker that dies holding the lock therefore fails the
+ * remaining clipboard tests on the acquire timeout, which is loud and diagnosable.
  */
-const CLIPBOARD_LOCK_PATH = path.join(os.tmpdir(), "vscode-mssql-e2e-clipboard.lock");
+const CLIPBOARD_LOCK_PATH_ENV = "MSSQL_E2E_CLIPBOARD_LOCK_PATH";
+
+/** Mints this run's lock path. Called once from globalSetup; see the note above. */
+export function createClipboardLockPath(): string {
+    const unique = `${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    return path.join(os.tmpdir(), `vscode-mssql-e2e-clipboard-${unique}.lock`);
+}
+
+function clipboardLockPath(): string {
+    const configured = process.env[CLIPBOARD_LOCK_PATH_ENV];
+    if (!configured) {
+        // Failing is the point: falling back to a shared path would silently reintroduce the
+        // cross-run deletion, and falling back to no lock would silently reintroduce the race.
+        throw new Error(
+            `${CLIPBOARD_LOCK_PATH_ENV} is unset, so the clipboard lock has no path. ` +
+                "globalSetup sets it; a run that skips global setup cannot use the clipboard.",
+        );
+    }
+    return configured;
+}
+
+/** Publishes this run's lock path to the workers, which are forked after globalSetup. */
+export function setClipboardLockPath(lockPath: string): void {
+    process.env[CLIPBOARD_LOCK_PATH_ENV] = lockPath;
+}
+
+/** Removes this run's lock file. Called from globalTeardown, once every worker has exited. */
+export async function removeClipboardLockFile(): Promise<void> {
+    const configured = process.env[CLIPBOARD_LOCK_PATH_ENV];
+    if (configured) {
+        await fs.rm(configured, { force: true });
+    }
+}
 
 /**
  * The token this worker wrote into the lock file, while it holds the lock.
@@ -211,27 +248,17 @@ const CLIPBOARD_LOCK_PATH = path.join(os.tmpdir(), "vscode-mssql-e2e-clipboard.l
  */
 let clipboardLockToken: string | undefined;
 
-/**
- * Removes a lock file left behind by a previous run.
- *
- * Called once from globalSetup, before any worker starts. That is the only moment at which
- * deleting this file cannot race a live holder, which is why reclamation lives here and not in
- * {@link acquireClipboardLock}.
- */
-export async function clearClipboardLockFile(): Promise<void> {
-    await fs.rm(CLIPBOARD_LOCK_PATH, { force: true });
-}
-
 /** Takes the clipboard lock, waiting for whichever worker holds it. */
 export async function acquireClipboardLock(timeout = 30 * 1000): Promise<void> {
     const deadline = Date.now() + timeout;
+    const lockPath = clipboardLockPath();
     const token = `${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
     for (;;) {
         try {
             // "wx" fails rather than truncating when the file exists, and that failure is the
             // lock: exactly one worker can win the create.
-            const handle = await fs.open(CLIPBOARD_LOCK_PATH, "wx");
+            const handle = await fs.open(lockPath, "wx");
             try {
                 await handle.writeFile(token);
             } finally {
@@ -260,7 +287,7 @@ export async function releaseClipboardLock(): Promise<void> {
     // Nothing else can delete or replace the file while this worker holds it, so there is no
     // check-then-act window here: reaching this line means the lock is ours.
     clipboardLockToken = undefined;
-    await fs.rm(CLIPBOARD_LOCK_PATH, { force: true });
+    await fs.rm(clipboardLockPath(), { force: true });
 }
 
 /** Runs `body` with the clipboard held exclusively across workers. */

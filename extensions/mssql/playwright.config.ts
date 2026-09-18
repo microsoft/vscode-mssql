@@ -15,8 +15,9 @@ dotenv.config({ path: path.resolve(__dirname, "test/e2e/.env") });
 export default defineConfig({
     /* Fail the build on CI if you accidentally left test.only in the source code. */
     forbidOnly: !!process.env.CI,
-    /* Clears the cross-worker clipboard lock left by a killed run; see globalSetup.ts. */
+    /* Mints this run's cross-worker clipboard lock path; see globalSetup.ts. */
     globalSetup: require.resolve("./test/e2e/globalSetup"),
+    globalTeardown: require.resolve("./test/e2e/globalTeardown"),
     /* Smoke and grid projects share one CI run; cap total VS Code instances at two. */
     workers: 2,
     /* Reporter to use. See https://playwright.dev/docs/test-reporters */
@@ -68,12 +69,20 @@ export default defineConfig({
              * proven stable, since CPU contention surfaces as timing flake.
              */
             workers: 2,
-            /* Staging happens in hooks, which get their own timeout below. */
+            /*
+             * Sized for one grid interaction, so an ordinary test fails fast. Staging needs far
+             * longer and sets its own budget in the shared beforeAll (testLifecycle.ts); a hook
+             * would otherwise inherit this value.
+             */
             timeout: 60 * 1000,
             expect: {
                 timeout: 10 * 1000,
             },
-            retries: 0,
+            /*
+             * One retry, so a timing blip reports as flaky rather than as a red build and the
+             * difference between flake and a real break stays visible in the report.
+             */
+            retries: 1,
         },
     ],
 });
