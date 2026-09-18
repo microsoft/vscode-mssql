@@ -40,7 +40,6 @@ const featureImages: Partial<Record<string, string>> = {
 
 const mssqlDocsBase = "https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql";
 const mssqlOverviewDocs = `${mssqlDocsBase}/mssql-extension-visual-studio-code`;
-const databaseOperationsDocs = `${mssqlDocsBase}/mssql-database-operations`;
 
 /**
  * Microsoft Learn destination for each entry in the Explore features gallery.
@@ -278,7 +277,7 @@ export function getWalkthrough(id: WalkthroughId): Walkthrough {
                         description: loc.wtAppCreateDatabaseDescription,
                         action: {
                             label: loc.walkthroughLearnMoreAction,
-                            url: `${databaseOperationsDocs}#create-a-database`,
+                            url: "https://aka.ms/vscode-mssql-create-database",
                         },
                         image: newDatabaseImage,
                     },
