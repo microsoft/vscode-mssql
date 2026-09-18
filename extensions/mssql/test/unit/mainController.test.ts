@@ -19,7 +19,7 @@ import {
     VscodeHttpClient,
 } from "extension-toolkit/vscode";
 import MainController from "../../src/controllers/mainController";
-import ConnectionManager from "../../src/controllers/connectionManager";
+import ConnectionManager, { ConnectionInfo } from "../../src/controllers/connectionManager";
 import { AccountStore, IAccountStore } from "../../src/azure/accountStore";
 import {
     stubTelemetry,
@@ -41,6 +41,8 @@ import { ConnectionStore } from "../../src/models/connectionStore";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
 import { ConnectionProfile } from "../../src/models/connectionProfile";
 import { ConnectionNode } from "../../src/objectExplorer/nodes/connectionNode";
+import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
+import type { IConnectionInfo } from "vscode-mssql";
 
 chai.use(sinonChai);
 
@@ -1185,6 +1187,58 @@ suite("MainController Tests", function () {
             expect(configStub).to.have.been.calledWithExactly();
         });
         /* eslint-enable @typescript-eslint/no-deprecated */
+    });
+
+    suite("Search Database connection resolution", () => {
+        const controllerAccess = () =>
+            mainController as unknown as {
+                getSearchDatabaseConnection(node?: TreeNodeInfo): IConnectionInfo | undefined;
+            };
+
+        test("uses the database of the Object Explorer node when invoked from the tree", () => {
+            const node = {
+                nodeType: "Table",
+                metadata: { metadataTypeName: "Table", name: "Users" },
+                connectionProfile: { server: "tree-server", database: "master" },
+                parentNode: {
+                    metadata: { metadataTypeName: Constants.databaseString, name: "NodeDB" },
+                },
+            } as unknown as TreeNodeInfo;
+
+            const connection = controllerAccess().getSearchDatabaseConnection(node);
+
+            expect(connection).to.deep.equal({ server: "tree-server", database: "NodeDB" });
+        });
+
+        test("falls back to the node's connection database when the tree has no database context", () => {
+            const node = {
+                nodeType: Constants.serverLabel,
+                connectionProfile: { server: "tree-server", database: "ServerDB" },
+            } as unknown as TreeNodeInfo;
+
+            const connection = controllerAccess().getSearchDatabaseConnection(node);
+
+            expect(connection).to.deep.equal({ server: "tree-server", database: "ServerDB" });
+        });
+
+        test("uses the active editor connection when no node is provided", () => {
+            const activeEditorUri = "file:///test/query.sql";
+            const credentials = { server: "active-server", database: "ActiveDB" };
+            sandbox.stub(Utils, "getActiveTextEditorUri").returns(activeEditorUri);
+            connectionManager.getConnectionInfo
+                .withArgs(activeEditorUri)
+                .returns({ credentials } as ConnectionInfo);
+
+            const connection = controllerAccess().getSearchDatabaseConnection();
+
+            expect(connection).to.equal(credentials);
+        });
+
+        test("returns undefined when there is no node and no active editor connection", () => {
+            sandbox.stub(Utils, "getActiveTextEditorUri").returns(undefined);
+
+            expect(controllerAccess().getSearchDatabaseConnection()).to.be.undefined;
+        });
     });
 
     suite("Dependency injection", () => {
