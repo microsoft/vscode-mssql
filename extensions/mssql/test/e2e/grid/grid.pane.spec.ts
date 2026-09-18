@@ -199,10 +199,14 @@ test.describe("MSSQL Extension - Preview Grid Pane", () => {
             })
             .toBe(true);
 
+        // The tab is labelled by the grid in use: "Results Preview (n)" for the preview grid and
+        // "Results (n)" for the classic one (queryResultPane.tsx). This suite runs on the preview
+        // grid, so the classic label here only ever matched because the case above used to leave
+        // classic results switched on for the rest of the file.
         await expect(
             documentFrame!
                 .getByTestId("results-tab-list")
-                .getByRole("tab", { name: "Results (1)" }),
+                .getByRole("tab", { name: "Results Preview (1)" }),
         ).toBeVisible();
     });
 });
