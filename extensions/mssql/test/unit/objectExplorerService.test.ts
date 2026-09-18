@@ -66,6 +66,7 @@ import {
     stubUseMsalEntraMfaAuthConfig,
 } from "./utils";
 import { ObjectExplorerUtils } from "../../src/objectExplorer/objectExplorerUtils";
+import { OverviewTreeNode } from "../../src/objectExplorer/nodes/overviewTreeNode";
 import * as vscodeEntraMfaUtils from "../../src/azure/vscodeEntraMfaUtils";
 import * as azureHelpers from "../../src/connectionconfig/azureHelpers";
 const { MissingEntraAuthAccountError } = vscodeEntraMfaUtils;
@@ -2378,7 +2379,7 @@ suite("OE Service Tests", () => {
             sandbox.restore();
         });
 
-        test("getRootNodes should return AddConnectionNodes when no saved connections exist", async () => {
+        test("getRootNodes should return Overview before add actions when no connections exist", async () => {
             // Setup connection store to return empty array
             mockConnectionStore.readAllConnections.resolves([]);
             mockConnectionStore.readAllConnectionGroups.resolves([createMockRootConnectionGroup()]);
@@ -2398,7 +2399,9 @@ suite("OE Service Tests", () => {
             const result = await (objectExplorerService as any).getRootNodes();
 
             // Verify the result
-            expect(result, "Result should match mock add connection nodes").to.equal(
+            expect(result).to.have.lengthOf(3);
+            expect(result[0]).to.be.instanceOf(OverviewTreeNode);
+            expect(result.slice(1), "Result should include the add connection nodes").to.deep.equal(
                 mockAddConnectionNodes,
             );
 
@@ -2443,11 +2446,12 @@ suite("OE Service Tests", () => {
             const result = await (objectExplorerService as any).getRootNodes();
 
             // Verify the result
-            expect(result, "Result should match saved nodes").to.have.length(2);
-            expect(result[0].label, "First node label should match").to.equal(
+            expect(result, "Result should include Overview and saved nodes").to.have.length(3);
+            expect(result[0]).to.be.instanceOf(OverviewTreeNode);
+            expect(result[1].label, "First connection label should match").to.equal(
                 mockConnections[0].profileName,
             );
-            expect(result[1].label, "Second node label should match").to.equal(
+            expect(result[2].label, "Second connection label should match").to.equal(
                 mockConnections[1].profileName,
             );
 
@@ -2460,8 +2464,36 @@ suite("OE Service Tests", () => {
             // Verify telemetry ended with correct node count.
             expect(endStub, "Telemetry should include the node count").to.have.been.calledWithMatch(
                 ActivityStatus.Succeeded,
-                { additionalMeasurements: sinon.match({ nodeCount: 2 }) },
+                { additionalMeasurements: sinon.match({ nodeCount: 3 }) },
             );
+        });
+
+        test("getRootNodes should always put Overview first", async () => {
+            const mockConnections = createMockConnectionProfiles(1);
+            mockConnectionStore.readAllConnections.resolves(mockConnections);
+            mockConnectionStore.readAllConnectionGroups.resolves([createMockRootConnectionGroup()]);
+
+            const result = await (objectExplorerService as any).getRootNodes();
+
+            expect(result).to.have.lengthOf(2);
+            expect(result[0]).to.be.instanceOf(OverviewTreeNode);
+            expect(result[0].label).to.equal(LocalizedConstants.Overview.OverviewTreeNodeLabel);
+            expect(result[0].description).to.equal(
+                LocalizedConstants.Overview.OverviewTreeNodeDescription,
+            );
+            expect(result[1]).to.be.instanceOf(ConnectionNode);
+        });
+
+        test("getRootNodes should omit Overview when it is hidden", async () => {
+            const mockConnections = createMockConnectionProfiles(1);
+            mockConnectionStore.readAllConnections.resolves(mockConnections);
+            mockConnectionStore.readAllConnectionGroups.resolves([createMockRootConnectionGroup()]);
+            objectExplorerService.setOverviewVisibility(false);
+
+            const result = await (objectExplorerService as any).getRootNodes();
+
+            expect(result).to.have.lengthOf(1);
+            expect(result[0]).to.be.instanceOf(ConnectionNode);
         });
 
         test("getRootNodes should handle error in connection store", async () => {
@@ -2493,7 +2525,7 @@ suite("OE Service Tests", () => {
             }
         });
 
-        test("getRootNodes should return empty array when no groups or connections exist", async () => {
+        test("getRootNodes should return Overview when no groups or connections exist", async () => {
             // Setup connection store to return empty arrays for both connections and groups
             mockConnectionStore.readAllConnections.resolves([]);
             mockConnectionStore.readAllConnectionGroups.resolves([]);
@@ -2501,8 +2533,8 @@ suite("OE Service Tests", () => {
             // Call the method
             const result = await (objectExplorerService as any).getRootNodes();
 
-            // Verify the result is an empty array
-            expect(result, "Result should be an empty array").to.be.an("array").that.is.empty;
+            expect(result).to.have.lengthOf(1);
+            expect(result[0]).to.be.instanceOf(OverviewTreeNode);
         });
 
         test("getRootNodes should return groups and connections in correct order", async () => {
@@ -2521,13 +2553,14 @@ suite("OE Service Tests", () => {
             const result = await (objectExplorerService as any).getRootNodes();
 
             // Verify we have all expected nodes
-            expect(result.length, "Should have 3 root nodes (2 groups + 1 connection)").to.equal(3);
+            expect(result.length, "Should have Overview, 2 groups, and 1 connection").to.equal(4);
+            expect(result[0]).to.be.instanceOf(OverviewTreeNode);
 
             // Verify groups come before connections
             const firstTwoAreGroups = result
-                .slice(0, 2)
+                .slice(1, 3)
                 .every((node) => node instanceof ConnectionGroupNode);
-            const lastIsConnection = result[2] instanceof ConnectionNode;
+            const lastIsConnection = result[3] instanceof ConnectionNode;
             expect(firstTwoAreGroups, "First two nodes should be groups").to.be.true;
             expect(lastIsConnection, "Last node should be a connection").to.be.true;
 
@@ -2537,7 +2570,7 @@ suite("OE Service Tests", () => {
                 .map((node) => (node as ConnectionGroupNode).connectionGroup.id);
             expect(resultGroupIds).to.have.members([rootGroups[0].id, rootGroups[1].id]);
 
-            const resultConnection = result[2] as ConnectionNode;
+            const resultConnection = result[3] as ConnectionNode;
             expect(resultConnection.connectionProfile.id).to.equal(rootConnections[0].id);
         });
 

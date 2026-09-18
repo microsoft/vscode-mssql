@@ -3643,15 +3643,6 @@ export class LocConstants {
                 "New to MSSQL extension? Check out our quick-start guide.",
             ),
             previewBadge: l10n.t("Preview"),
-            footerText: (version: string) =>
-                l10n.t({
-                    message:
-                        "You are seeing this message because you updated the MSSQL extension to version {0}.",
-                    args: [version],
-                    comment: ["{0} is the version number of the MSSQL extension"],
-                }),
-            dontShowAgain: l10n.t("Don't show this again"),
-            close: l10n.t("Close"),
         };
     }
 
@@ -3968,6 +3959,362 @@ export class LocConstants {
             couldNotLoadRestorePlan: l10n.t("Could not load restore plan"),
             chooseBackupFile: l10n.t("Please choose a backup file to load restore plan"),
             chooseBlob: l10n.t("Please choose a blob to load restore plan"),
+        };
+    }
+
+    public get overview() {
+        return {
+            title: l10n.t("SQL Server (mssql)"),
+            subtitle: l10n.t("Connect a database, start from a template, or learn something new."),
+            version: (version: string) =>
+                l10n.t({
+                    message: "v{0}",
+                    args: [version],
+                    comment: ["{0} is the extension version, e.g. 1.46.0"],
+                }),
+            showReleaseNotesAfterUpdates: l10n.t("Show release notes after updates"),
+            addConnection: l10n.t("Add connection"),
+            deploy: l10n.t("Deploy"),
+            moreDeployOptions: l10n.t("More deploy options"),
+            newLocalContainer: l10n.t("Local SQL Server container"),
+            newFabricDatabase: l10n.t("SQL database in Fabric"),
+            newAzureSqlDatabase: l10n.t("Azure SQL Database"),
+            freeTag: l10n.t("Free"),
+            moreNewOptions: l10n.t("More new options"),
+            newQuery: l10n.t("New query"),
+            newNotebook: l10n.t("New SQL Notebook"),
+            openSqlFile: l10n.t("Open SQL file..."),
+
+            build: l10n.t("Build"),
+            agentSkillsTab: l10n.t("Agent skills"),
+            walkthroughsTab: l10n.t("Walkthroughs"),
+            devContainersTab: l10n.t("Dev containers"),
+
+            agentSkillsName: l10n.t("Microsoft SQL"),
+            agentSkillsPublisher: l10n.t("Microsoft"),
+            recommended: l10n.t("Recommended"),
+            addToGitHubCopilot: l10n.t("Add to GitHub Copilot"),
+            agentSkillsInstalled: l10n.t("Installed"),
+            agentSkillsInstalling: l10n.t("Installing..."),
+            agentSkillsDescription: l10n.t(
+                "Add curated SQL guidance for building apps, designing schemas, writing T-SQL, and tuning queries.",
+            ),
+            tryThesePrompts: l10n.t("Try these prompts with agent skills"),
+            agentSkillsNotInstalled: l10n.t(
+                "For best results, install the Azure SQL agent skills before using these prompts.",
+            ),
+            copyPrompt: l10n.t("Copy prompt"),
+            promptCopied: l10n.t("Prompt copied"),
+            view: l10n.t("View"),
+            promptTagLocalDev: l10n.t("Local dev"),
+            promptTagBuild: l10n.t("Build"),
+            promptTagSchema: l10n.t("Schema"),
+            promptTagDeploy: l10n.t("Deploy"),
+            promptCreateLocalTitle: l10n.t("Create a local SQL database"),
+            promptCreateLocalDescription: l10n.t(
+                "Spin up an Azure SQL Database container in VS Code and connect to it.",
+            ),
+            promptBuildAppTitle: l10n.t("Build an app on Azure SQL"),
+            promptBuildAppDescription: l10n.t(
+                "Scaffold a .NET or Python app wired to a local Azure SQL database.",
+            ),
+            promptDesignSchemaTitle: l10n.t("Design a schema"),
+            promptDesignSchemaDescription: l10n.t(
+                "Create tables and seed realistic sample data for a new app.",
+            ),
+            promptDeployTitle: l10n.t("Move to Azure SQL"),
+            promptDeployDescription: l10n.t(
+                "Provision a free Azure SQL Database and deploy the app to it.",
+            ),
+
+            // Prompt bodies handed to an agent verbatim and copied to the clipboard.
+            promptCreateLocalBody: l10n.t(
+                "Add a local Azure SQL database to this app. Spin up the container, create an appdb database I can query, verify the first query, and point the app's configuration at it.",
+            ),
+            promptBuildAppBody: l10n.t(
+                "Build me an app on Azure SQL Database. Give me the order of operations from an empty project to the first successful request that reads a row, scaffold the data access layer, and do it without putting a database password in the repo.",
+            ),
+            promptDesignSchemaBody: l10n.t(
+                "Model these entities as tables on Azure SQL Database, then review the schema before it goes to production: call out the keys, indexes, collation and identity choices that will cause trouble later, and seed realistic sample data.",
+            ),
+            promptDeployBody: l10n.t(
+                "Move this app from the local Azure SQL container to Azure SQL Database. Get it into Azure without putting a database password anywhere, keep the application code unchanged where possible, and tell me exactly what has to change in configuration.",
+            ),
+
+            // Walkthrough media placeholder, pending the recorded walkthrough.
+            walkthroughMediaAlt: l10n.t("Animated walkthrough of MSSQL features in VS Code"),
+
+            // "Explore features" gallery
+            exploreFeaturesSubtitle: l10n.t(
+                "A tour of what the extension can do, grouped by what you want to accomplish.",
+            ),
+            featureGroupDesignSchema: l10n.t("Design schema"),
+            featureGroupAddEditData: l10n.t("Add & edit data"),
+            featureGroupQueryAnalyze: l10n.t("Query & analyze"),
+            featureGroupMoveProtect: l10n.t("Move & protect data"),
+            featureGroupBuildShip: l10n.t("Build & ship"),
+            featureSchemaDesignerTitle: l10n.t("Schema Designer"),
+            featureSchemaDesignerDescription: l10n.t(
+                "Use the Schema Designer to visualize your app's tables and relationships, and to add, edit, or delete them.",
+            ),
+            featureTableDesignerTitle: l10n.t("Table Designer"),
+            featureTableDesignerDescription: l10n.t(
+                "Create and manage tables with a visual interface",
+            ),
+            featureEditDataTitle: l10n.t("Edit Data"),
+            featureEditDataDescription: l10n.t(
+                "Browse and modify table data inline without writing T-SQL",
+            ),
+            featureImportFlatFileTitle: l10n.t("Import flat file"),
+            featureImportFlatFileDescription: l10n.t(
+                "Import flat files (CSV, TXT) as new database tables using a guided wizard",
+            ),
+            featureQueryEditorTitle: l10n.t("Query Editor"),
+            featureQueryEditorDescription: l10n.t("Write T-SQL with IntelliSense."),
+            featureQueryPlansTitle: l10n.t("Query Plans"),
+            featureQueryPlansDescription: l10n.t(
+                "Analyze execution plans with interactive node navigation",
+            ),
+            featureQueryProfilerTitle: l10n.t("Query Profiler"),
+            featureQueryProfilerDescription: l10n.t(
+                "Real-time database activity monitoring with Extended Events",
+            ),
+            featureNotebooksTitle: l10n.t("SQL Notebooks"),
+            featureNotebooksDescription: l10n.t(
+                "Jupyter-based SQL notebooks with rich results and IntelliSense.",
+            ),
+            featureDacpacTitle: l10n.t("DACPAC / BACPAC"),
+            featureDacpacDescription: l10n.t(
+                "Deploy, extract, import, and export DACPAC and BACPAC files",
+            ),
+            featureBackupRestoreTitle: l10n.t("Backup & restore"),
+            featureBackupRestoreDescription: l10n.t("Back up and restore SQL Server databases"),
+            featureSchemaCompareTitle: l10n.t("Schema Compare"),
+            featureSchemaCompareDescription: l10n.t(
+                "Compare and synchronize schemas between databases or DACPACs",
+            ),
+            featureSqlProjectsTitle: l10n.t("SQL Projects"),
+            featureSqlProjectsDescription: l10n.t(
+                "Build, publish with the visual Publish Dialog, and analyze SQL projects with Code Analysis",
+            ),
+            featureDataApiBuilderTitle: l10n.t("Data API Builder"),
+            featureDataApiBuilderDescription: l10n.t(
+                "Use Database API Builder to generate a backend data API directly from your schema, exposing REST, GraphQL, or MCP endpoints.",
+            ),
+
+            // Walkthrough dialog chrome
+            stepOfTotal: (step: number, total: number) =>
+                l10n.t({
+                    message: "Step {0} of {1}",
+                    args: [step, total],
+                    comment: ["{0} is the current step number", "{1} is the total step count"],
+                }),
+
+            // "Connect & run your first query"
+            walkthroughConnectSubtitle: l10n.t("From zero to a result set in a few steps."),
+            wtConnectStep1Title: l10n.t("Create a connection"),
+            wtConnectStep1Description: l10n.t(
+                "Open the Connection dialog and connect to your SQL database",
+            ),
+            wtConnectStep1Action: l10n.t("Open Connection dialog"),
+            wtConnectStep2Title: l10n.t("Explore in Object Explorer"),
+            wtConnectStep2Description: l10n.t(
+                "Explore your databases, tables, views, and stored procedures in the Object Explorer.",
+            ),
+            wtConnectStep2Action: l10n.t("Open Connections"),
+            wtConnectStep3Title: l10n.t("Open a new query"),
+            wtConnectStep3Description: l10n.t(
+                "Open a new SQL editor and start writing queries with IntelliSense",
+            ),
+            wtConnectStep3Action: l10n.t("New query"),
+            wtConnectStep4Title: l10n.t("Run and read results"),
+            wtConnectStep4Description: (runShortcut: string) =>
+                l10n.t(
+                    "Execute with Run (or {0}) and sort, filter, and export the results grid.",
+                    runShortcut,
+                ),
+            wtConnectStep4Action: l10n.t("Open the query editor"),
+
+            // "Build & connect an app"
+            walkthroughAppTitle: l10n.t("Build & connect an app"),
+            walkthroughAppDescription: l10n.t(
+                "Schema Designer to Data API Builder to connect your app.",
+            ),
+            walkthroughAppSubtitle: l10n.t(
+                "Go from a schema to a running data layer your app can call.",
+            ),
+            wtAppLocalContainerTitle: l10n.t("Create a local container"),
+            wtAppLocalContainerDescription: l10n.t(
+                "Create a local SQL Server container for your app.",
+            ),
+            wtAppLocalContainerAction: l10n.t("Create local container"),
+            wtAppCreateDatabaseTitle: l10n.t("Create a database"),
+            wtAppCreateDatabaseDescription: l10n.t(
+                "Create a database on your local SQL Server instance.",
+            ),
+            wtAppStep1Title: l10n.t("Design your schema"),
+            wtAppStep1Description: l10n.t(
+                "Use the Schema Designer to model tables and relationships for your app.",
+            ),
+            wtAppEditDataTitle: l10n.t("Add and edit data"),
+            wtAppEditDataDescription: l10n.t(
+                "Add and edit rows in your tables using the Edit Data grid.",
+            ),
+            wtAppStep2Title: l10n.t("Generate a data API"),
+            wtAppStep2Description: l10n.t(
+                "Point Data API Builder at your tables to expose REST and GraphQL endpoints.",
+            ),
+            wtAppStep4Title: l10n.t("Run and iterate"),
+            wtAppStep4Description: l10n.t(
+                "Run your app against the API and keep refining the schema as you go.",
+            ),
+
+            // "GitHub Copilot for SQL"
+            walkthroughCopilotSubtitle: l10n.t(
+                "Schema-aware chat and agent mode, scoped to your database.",
+            ),
+            wtCopilotStep1Title: l10n.t("Agent mode"),
+            wtCopilotStep1Description: l10n.t(
+                "Use GitHub Copilot agent mode to connect to your database, explore its schema, and run queries through MSSQL tools with your approval.",
+            ),
+            wtCopilotStep2Title: l10n.t("@mssql Ask mode"),
+            wtCopilotStep2Description: l10n.t(
+                "Ask @mssql questions about your connected database and generate SQL with schema-aware suggestions in GitHub Copilot Ask mode.",
+            ),
+            wtCopilotStep3Title: l10n.t("Fix / Explain"),
+            wtCopilotStep3Description: l10n.t(
+                "Use GitHub Copilot to suggest fixes for SQL errors or explain what your query does in natural language.",
+            ),
+            wtCopilotStep4Title: l10n.t("Schema Designer with GitHub Copilot"),
+            wtCopilotStep4Description: l10n.t(
+                "Describe the tables and relationships you need in Schema Designer chat, then review the proposed changes on the canvas before publishing to your database.",
+            ),
+            wtCopilotStep5Title: l10n.t("Data API Builder with GitHub Copilot"),
+            wtCopilotStep5Description: l10n.t(
+                "Use natural language in Data API Builder chat to choose tables, set CRUD permissions, and configure REST, GraphQL, or MCP endpoints. Review the generated configuration before deploying.",
+            ),
+            walkthroughLearnMoreAction: l10n.t("Learn more"),
+
+            walkthroughConnectTitle: l10n.t("Connect & run your first query"),
+            walkthroughConnectDescription: l10n.t(
+                "Connection dialog, Object Explorer, and the results grid.",
+            ),
+            walkthroughCopilotTitle: l10n.t("GitHub Copilot for SQL"),
+            walkthroughCopilotDescription: l10n.t(
+                "Chat, agent mode, and schema-aware suggestions.",
+            ),
+
+            devContainersDescription: l10n.t(
+                "Preconfigured local dev environment - a containerized Azure SQL database plus your language stack, ready to code in minutes. No local install required.",
+            ),
+            devContainerDotNet: l10n.t(".NET + Azure SQL"),
+            devContainerDotNetAspire: l10n.t(".NET Aspire + Azure SQL"),
+            devContainerNode: l10n.t("Node.js + Azure SQL"),
+            devContainerPython: l10n.t("Python + Azure SQL"),
+            devContainersLearnMore: l10n.t("Learn more about dev containers for Azure SQL"),
+            viewOnGitHub: l10n.t("View on GitHub"),
+
+            prerequisites: l10n.t("Prerequisites"),
+            prerequisiteDocker: l10n.t("Docker Desktop"),
+            prerequisiteDockerDescription: l10n.t("Required for running containers."),
+            prerequisiteDevContainers: l10n.t("Dev Containers extension"),
+            prerequisiteDevContainersDescription: l10n.t("Enables working with dev containers."),
+            installDocker: l10n.t("Install Docker"),
+            // Matches the Dev Containers extension's own wording for this situation.
+            openFolderToCreateConfiguration: l10n.t(
+                "Open a folder to create the configuration files in first.",
+            ),
+            openFolder: l10n.t("Open Folder"),
+            devContainerConfigFound: l10n.t(
+                "This folder already has a dev container configuration.",
+            ),
+            openVsCodeInContainer: l10n.t("Open VS Code in container"),
+            openInContainerHint: l10n.t(
+                "Opening builds the container and reloads this window inside it.",
+            ),
+            devContainerSetUpSteps: l10n.t("Set up"),
+            stepAddConfigurationFailed: l10n.t("Could not write the configuration."),
+            stepAddConfigurationPicker: l10n.t(
+                "Opened the Dev Containers extension's template picker instead.",
+            ),
+            stepAddConfiguration: l10n.t("Dev container configuration"),
+            stepAddConfigurationDescription: l10n.t(
+                "Writes this template's .devcontainer files into the open folder.",
+            ),
+            stepAddConfigurationAction: l10n.t("Add"),
+
+            recheck: l10n.t("Recheck"),
+            prerequisiteReady: l10n.t("Ready"),
+            prerequisiteMissing: l10n.t("Not found"),
+            prerequisiteChecking: l10n.t("Checking..."),
+            install: l10n.t("Install"),
+            learnMoreAboutTemplate: l10n.t("Learn more about this template"),
+
+            videos: l10n.t("Videos"),
+            videoDataExposedTitle: l10n.t("Use GitHub Copilot with SQL"),
+            videoDataExposedSubtitle: l10n.t("Build AI-ready SQL solutions in VS Code"),
+            videoWhatsNewTitle: l10n.t("Explore what's new in the MSSQL extension"),
+            videoWhatsNewSubtitle: l10n.t("Query Profiler, migration tools, and more"),
+            videoVsCodeLiveTitle: l10n.t("Build an AI-ready app"),
+            videoVsCodeLiveSubtitle: l10n.t(
+                "GitHub Copilot, Schema Designer, and Data API Builder",
+            ),
+            seeFullPlaylistPrefix: l10n.t("See the full playlist on"),
+            youtube: l10n.t("YouTube"),
+            openLinkTooltip: (label: string) =>
+                l10n.t({
+                    message: "Open {0}",
+                    args: [label],
+                    comment: ["{0} is the label of the link destination"],
+                }),
+
+            recentFiles: l10n.t("Recent SQL files"),
+            noRecentFiles: l10n.t("SQL files you open will show up here."),
+
+            discover: l10n.t("Discover"),
+            exploreFeaturesTitle: l10n.t("Explore features"),
+            exploreFeaturesDescription: l10n.t(
+                "A tour of what the extension can do, grouped by task.",
+            ),
+            keyboardShortcutsTitle: l10n.t("Keyboard shortcuts"),
+            shortcutsIntro: l10n.t(
+                "These are the default MSSQL extension keyboard shortcuts, for Command Palette commands and the query results pane. Customize any of them in Shortcuts Configuration.",
+            ),
+            shortcutsCommand: l10n.t("Command"),
+            shortcutsWindowsLinux: l10n.t("Windows / Linux"),
+            shortcutsMacOs: l10n.t("macOS"),
+            shortcutsQueryResultsPane: l10n.t("Query Results Pane"),
+            shortcutsNavigateResultGrids: l10n.t("Navigate result grids"),
+            shortcutsKeymapPrefix: l10n.t(
+                "Prefer Azure Data Studio or SSMS-style shortcuts? Install the",
+            ),
+            shortcutsKeymapLink: l10n.t("MSSQL Database Management Keymap extension."),
+            openShortcutsConfiguration: l10n.t("Open Shortcuts Configuration"),
+            whatsNewGotIt: l10n.t("Got it"),
+            whatsNewAllReleaseNotes: l10n.t("See all release notes"),
+            preview: l10n.t("Preview"),
+            keyboardShortcutsDescription: l10n.t(
+                "Default shortcuts for commands and the results grid.",
+            ),
+            whatsNewTitle: l10n.t("What's new"),
+            whatsNewDescription: (version: string) =>
+                l10n.t({
+                    message: "Highlights from recent releases - v{0}.",
+                    args: [version],
+                    comment: ["{0} is the extension version, e.g. 1.46.0"],
+                }),
+            devHubTitle: l10n.t("Azure SQL Dev Hub"),
+            devHubDescription: l10n.t("Learning paths, tutorials, samples, and community."),
+
+            resourcesAndFeedback: l10n.t("Resources & feedback"),
+            resources: l10n.t("Resources"),
+            feedback: l10n.t("Feedback"),
+            watchDemos: l10n.t("Watch demos on YouTube"),
+            viewRoadmap: l10n.t("View the roadmap"),
+            readDocs: l10n.t("Read the docs on Microsoft Learn"),
+            reportBug: l10n.t("Report a bug"),
+            requestFeature: l10n.t("Request a feature"),
+            joinDiscussions: l10n.t("Join the discussions"),
         };
     }
 }

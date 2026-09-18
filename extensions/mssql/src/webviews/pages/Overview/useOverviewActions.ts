@@ -1,0 +1,139 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+import { useCallback, useMemo } from "react";
+import {
+    AddDevContainerConfigurationRequest,
+    DevContainerTemplateId,
+    CheckDevContainerPrerequisitesRequest,
+    DevContainerPrerequisites,
+    InstallAgentSkillsPluginRequest,
+    InstallDevContainersExtensionRequest,
+    OpenFolderRequest,
+    OverviewTelemetryEvent,
+    ReopenInContainerRequest,
+    SendOverviewTelemetryRequest,
+    OpenRecentSqlFileRequest,
+    RunChangelogActionFromOverviewRequest,
+    OverviewActionId,
+    OverviewLinkRequest,
+    RunOverviewActionRequest,
+} from "../../../sharedInterfaces/overview";
+import { ChangelogActionId } from "../../../sharedInterfaces/changelog";
+import { useOverviewContext } from "./overviewStateProvider";
+
+/**
+ * The Overview page's side-effecting operations, wrapped so components call intent-named
+ * functions rather than assembling RPC requests themselves.
+ */
+export function useOverviewActions() {
+    const { extensionRpc } = useOverviewContext();
+
+    const runAction = useCallback(
+        (action: OverviewActionId) => {
+            void extensionRpc.sendRequest(RunOverviewActionRequest.type, action);
+        },
+        [extensionRpc],
+    );
+
+    const openLink = useCallback(
+        (url: string) => {
+            void extensionRpc.sendRequest(OverviewLinkRequest.type, { url });
+        },
+        [extensionRpc],
+    );
+
+    const openRecentSqlFile = useCallback(
+        (fsPath: string) => {
+            void extensionRpc.sendRequest(OpenRecentSqlFileRequest.type, { fsPath });
+        },
+        [extensionRpc],
+    );
+
+    /** Resolves once the install has finished, whether or not it succeeded. */
+    const installAgentSkillsPlugin = useCallback(
+        () => extensionRpc.sendRequest(InstallAgentSkillsPluginRequest.type, undefined),
+        [extensionRpc],
+    );
+
+    /** Reports an in-page event. Fire and forget: telemetry never blocks an interaction. */
+    const sendTelemetry = useCallback(
+        (event: OverviewTelemetryEvent, target?: string) => {
+            void extensionRpc.sendRequest(SendOverviewTelemetryRequest.type, { event, target });
+        },
+        [extensionRpc],
+    );
+
+    const openFolder = useCallback(() => {
+        void extensionRpc.sendRequest(OpenFolderRequest.type, undefined);
+    }, [extensionRpc]);
+
+    const runChangelogAction = useCallback(
+        (action: ChangelogActionId) => {
+            void extensionRpc.sendRequest(RunChangelogActionFromOverviewRequest.type, action);
+        },
+        [extensionRpc],
+    );
+
+    const addDevContainerConfiguration = useCallback(
+        (templateId: DevContainerTemplateId) =>
+            extensionRpc.sendRequest(AddDevContainerConfigurationRequest.type, { templateId }),
+        [extensionRpc],
+    );
+
+    const reopenInContainer = useCallback(() => {
+        void extensionRpc.sendRequest(ReopenInContainerRequest.type, undefined);
+    }, [extensionRpc]);
+
+    const checkPrerequisites = useCallback(
+        (): Promise<DevContainerPrerequisites> =>
+            extensionRpc.sendRequest(CheckDevContainerPrerequisitesRequest.type, undefined),
+        [extensionRpc],
+    );
+
+    const installDevContainersExtension = useCallback(
+        (): Promise<DevContainerPrerequisites> =>
+            extensionRpc.sendRequest(InstallDevContainersExtensionRequest.type, undefined),
+        [extensionRpc],
+    );
+
+    const setShowChangelogOnUpdate = useCallback(
+        (value: boolean) => {
+            extensionRpc.action("setShowChangelogOnUpdate", { value });
+        },
+        [extensionRpc],
+    );
+
+    return useMemo(
+        () => ({
+            runAction,
+            openLink,
+            openRecentSqlFile,
+            openFolder,
+            installAgentSkillsPlugin,
+            sendTelemetry,
+            runChangelogAction,
+            addDevContainerConfiguration,
+            reopenInContainer,
+            checkPrerequisites,
+            installDevContainersExtension,
+            setShowChangelogOnUpdate,
+        }),
+        [
+            runAction,
+            openLink,
+            openRecentSqlFile,
+            openFolder,
+            installAgentSkillsPlugin,
+            sendTelemetry,
+            runChangelogAction,
+            addDevContainerConfiguration,
+            reopenInContainer,
+            checkPrerequisites,
+            installDevContainersExtension,
+            setShowChangelogOnUpdate,
+        ],
+    );
+}

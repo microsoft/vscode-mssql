@@ -587,9 +587,24 @@
                     "when": "view == objectExplorer",
                     "title": "%mssql.shortcutsConfiguration.open%",
                     "group": "navigation"
+                },
+                {
+                    "command": "mssql.showOverviewInObjectExplorer",
+                    "when": "view == objectExplorer && !mssql.overviewVisible",
+                    "group": "1_overview"
                 }
             ],
             "view/item/context": [
+                {
+                    "command": "mssql.objectExplorer.openOverview",
+                    "when": "view == objectExplorer && viewItem == overview",
+                    "group": "navigation@1"
+                },
+                {
+                    "command": "mssql.hideOverviewInObjectExplorer",
+                    "when": "view == objectExplorer && viewItem == overview",
+                    "group": "navigation@2"
+                },
                 {
                     "command": "mssql.openInMssqlExtensionFromAzureResources",
                     "when": "view == azureResourceGroups && viewItem =~ /\\b(SqlServers|SqlDatabases)\\b/",
@@ -1150,6 +1165,21 @@
                 },
                 {
                     "command": "mssql.openInMssqlExtensionFromAzureResources",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.openOverview"
+                },
+                {
+                    "command": "mssql.objectExplorer.openOverview",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.hideOverviewInObjectExplorer",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.showOverviewInObjectExplorer",
                     "when": "false"
                 }
             ],
@@ -1750,6 +1780,26 @@
             {
                 "command": "mssql.openChangelog",
                 "title": "%mssql.openChangelog%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.openOverview",
+                "title": "%mssql.openOverview%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.objectExplorer.openOverview",
+                "title": "%mssql.objectExplorer.openOverview%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.hideOverviewInObjectExplorer",
+                "title": "%mssql.hideOverviewInObjectExplorer%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.showOverviewInObjectExplorer",
+                "title": "%mssql.showOverviewInObjectExplorer%",
                 "category": "MS SQL"
             },
             {

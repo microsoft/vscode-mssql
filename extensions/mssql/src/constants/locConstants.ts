@@ -3587,6 +3587,33 @@ export class AzureDataStudioMigration {
     );
 }
 
+export class Overview {
+    public static OverviewDocumentTitle = l10n.t("SQL Server (mssql)");
+    public static OverviewTreeNodeLabel = l10n.t("Welcome");
+    public static OverviewTreeNodeDescription = l10n.t("Connect, build, and learn");
+    public static AddDevContainerConfigurationFailed = (error: string) =>
+        l10n.t({
+            message: "Could not add the dev container configuration: {0}",
+            args: [error],
+            comment: ["{0} is the underlying error message."],
+        });
+    public static InstallAgentSkillsFailed = l10n.t(
+        "Could not download the Azure SQL agent skills. Check your network connection and try again.",
+    );
+    public static InstallAgentSkillsRemoteUnsupported = l10n.t(
+        "The Azure SQL agent skills can only be installed from a local window. Reopen this folder locally, install them there, and they will be available to Copilot everywhere.",
+    );
+    public static DevContainersExtensionRequired = l10n.t(
+        "The Dev Containers extension is required to reopen this folder in a container.",
+    );
+    public static InstallDevContainersExtension = l10n.t("Install");
+    public static ShortcutExecuteQuery = l10n.t("Execute query");
+    public static ShortcutConnect = l10n.t("Connect");
+    public static ShortcutDisconnect = l10n.t("Disconnect");
+    public static ShortcutFocusObjectExplorer = l10n.t("Focus on Object Explorer");
+    public static ShortcutCopyObjectName = l10n.t("Copy object name");
+}
+
 export class Changelog {
     public static ChangelogDocumentTitle = l10n.t("MSSQL: Welcome & What's New");
     public static tryIt = l10n.t("Try it");

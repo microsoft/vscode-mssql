@@ -155,6 +155,15 @@ export const cmdCancelContainerOperation = "mssql.cancelContainerOperation";
 export const cmdHandleSummaryOperation = "mssql.handleSummaryOperation";
 export const cmdMoveToSchema = "mssql.moveToSchema";
 export const cmdOpenChangelog = "mssql.openChangelog";
+export const cmdOpenOverview = "mssql.openOverview";
+/**
+ * Opens the Welcome page from its Object Explorer node. Menu items take their label from the
+ * command, so this exists only to read as "Open" next to the node rather than "Open Welcome".
+ */
+export const cmdOpenOverviewFromNode = "mssql.objectExplorer.openOverview";
+export const cmdHideOverviewInObjectExplorer = "mssql.hideOverviewInObjectExplorer";
+export const cmdShowOverviewInObjectExplorer = "mssql.showOverviewInObjectExplorer";
+export const overviewVisibleContextKey = "mssql.overviewVisible";
 export const cmdOpenAzureDataStudioMigration = "mssql.openAzureDataStudioMigration";
 export const cmdOpenInMssqlExtensionFromAzureResources =
     "mssql.openInMssqlExtensionFromAzureResources";
