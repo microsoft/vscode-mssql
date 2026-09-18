@@ -420,12 +420,17 @@ const useStyles = makeStyles({
         display: "flex",
         alignItems: "center",
         gap: "4px",
+        minWidth: 0,
         overflow: "hidden",
-        flexWrap: "wrap",
+        // Cells are pinned to ROW_HEIGHT, so wrapped pills would spill over the rows
+        // above and below. Keep them on one line and clip horizontally instead.
+        flexWrap: "nowrap",
     },
     pillButton: {
         minWidth: "unset",
         height: "22px",
+        flexShrink: 0,
+        whiteSpace: "nowrap",
         padding: "0 9px",
         borderRadius: "999px",
         fontSize: tokens.fontSizeBase100,
@@ -1226,13 +1231,18 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
                 [Dab.ApiType.Mcp]: "mcp",
             };
 
+            // The pills cover most of the cell, so they carry the tooltip as well as their
+            // container; otherwise hovering a pill would suppress the full list.
+            const apiTypesTitle = apiTypes.map((apiType) => labels[apiType]).join(", ");
+
             return (
-                <div className={classes.pillCell}>
+                <div className={classes.pillCell} title={apiTypesTitle}>
                     {apiTypes.map((apiType) => (
                         <Button
                             key={apiType}
                             appearance="subtle"
                             size="small"
+                            title={apiTypesTitle}
                             className={mergeClasses(
                                 classes.pillButton,
                                 getDabApiTypePillClassName(apiType),
@@ -1329,13 +1339,23 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
                 [Dab.EntityAction.Execute]: locConstants.schemaDesigner.executeShort,
             };
 
+            const permissionsTitle = permissions
+                .map(
+                    (permission) =>
+                        `${roleLabels[permission.role]}: ${permission.actions
+                            .map((action) => actionLabels[action])
+                            .join("")}`,
+                )
+                .join(", ");
+
             return (
-                <div className={classes.pillCell}>
+                <div className={classes.pillCell} title={permissionsTitle}>
                     {permissions.map((permission) => (
                         <Button
                             key={permission.role}
                             appearance="subtle"
                             size="small"
+                            title={permissionsTitle}
                             className={mergeClasses(
                                 classes.pillButton,
                                 getDabPermissionPillClassName(permission.role),
@@ -1488,8 +1508,8 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
             include: { defaultWidth: 32, minWidth: 32, idealWidth: 32 },
             name: { defaultWidth: 420, minWidth: 220, idealWidth: 420 },
             source: { defaultWidth: 200, minWidth: 140, idealWidth: 200 },
-            exposed: { defaultWidth: 160, minWidth: 120, idealWidth: 160 },
-            permissions: { defaultWidth: 220, minWidth: 160, idealWidth: 220 },
+            exposed: { defaultWidth: 200, minWidth: 180, idealWidth: 200 },
+            permissions: { defaultWidth: 240, minWidth: 200, idealWidth: 240 },
             settings: { defaultWidth: 32, minWidth: 32, idealWidth: 32 },
         }),
         [],
