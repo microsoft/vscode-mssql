@@ -44,20 +44,26 @@ suite("Language model tool manifest", () => {
         }
     });
 
-    test("every tool asks the model to prefer it when referenced by name", () => {
+    test("every tool opens with the directive naming itself", () => {
         for (const tool of tools) {
+            const directive = explicitReferenceDirective(tool.name);
+
+            // Compared against the opening slice rather than searched for anywhere in the string:
+            // a description that answered the mention only after other instructions would satisfy
+            // a substring check while still letting the model route somewhere else first.
             expect(
-                tool.modelDescription,
+                tool.modelDescription.slice(0, directive.length),
                 `${tool.name} does not open with the explicit-reference directive naming itself`,
-            ).to.have.string(explicitReferenceDirective(tool.name));
+            ).to.equal(directive);
         }
     });
 
     test("keeps each tool's own guidance after the directive", () => {
         for (const tool of tools) {
-            const remainder = tool.modelDescription
-                .replace(explicitReferenceDirective(tool.name), "")
-                .trim();
+            const directive = explicitReferenceDirective(tool.name);
+            // Taken by position, so this measures what follows the opening directive rather than
+            // what is left after removing that text from wherever it happens to appear.
+            const remainder = tool.modelDescription.slice(directive.length).trim();
 
             expect(
                 remainder,
