@@ -631,6 +631,9 @@ export class SqlOutputContentProvider {
             // We do not have a query runner for this editor, so create a new one
             // and map it to the results uri
             queryRunner = new QueryRunner(uri, title, statusView);
+            if (statusView.getSqlCmdMode(uri)) {
+                await queryRunner.toggleSqlCmd();
+            }
 
             const startFailedListener = queryRunner.onStartFailed(async (error) => {
                 this.updateWebviewState(queryRunner.uri, {
