@@ -192,21 +192,35 @@ export function clearClipboard(app: VsCodeAppHandle): Promise<void> {
  * between another's copy and read makes the second assert against the first one's data, or
  * against an empty clipboard. Playwright has no cross-worker mutex, so this is a lock file: an
  * exclusive create is atomic, which is what makes it work between processes.
+ *
+ * Only the holder ever removes the file. There is deliberately no stale-lock reclamation: every
+ * form of it reduces to checking the file and then deleting it, and in the window between those
+ * two steps the holder can release and a third worker acquire, so the reclaiming worker deletes a
+ * lock it does not own and two workers enter the critical section -- the exact race the lock is
+ * here to prevent. A worker that dies holding the lock therefore fails the remaining clipboard
+ * tests on the acquire timeout, which is loud and diagnosable rather than silently wrong. A lock
+ * left behind by a previous run is cleared once in globalSetup, before any worker starts.
  */
 const CLIPBOARD_LOCK_PATH = path.join(os.tmpdir(), "vscode-mssql-e2e-clipboard.lock");
-
-/** Longer than any single clipboard test, so only a worker that died is treated as stale. */
-const CLIPBOARD_LOCK_STALE_MS = 90 * 1000;
 
 /**
  * The token this worker wrote into the lock file, while it holds the lock.
  *
- * Releasing checks it rather than deleting whatever is there. A release can arrive from a worker
- * that does not hold the lock -- an afterEach still runs when its acquire timed out, and a lock
- * this worker held can be reclaimed as stale by another one -- and an unconditional delete would
- * hand the clipboard to two workers at once, which is the race this whole thing exists to stop.
+ * Releasing checks it so that a release arriving from a worker that never acquired -- an
+ * afterEach still runs when its acquire hook timed out -- cannot delete the holder's lock.
  */
 let clipboardLockToken: string | undefined;
+
+/**
+ * Removes a lock file left behind by a previous run.
+ *
+ * Called once from globalSetup, before any worker starts. That is the only moment at which
+ * deleting this file cannot race a live holder, which is why reclamation lives here and not in
+ * {@link acquireClipboardLock}.
+ */
+export async function clearClipboardLockFile(): Promise<void> {
+    await fs.rm(CLIPBOARD_LOCK_PATH, { force: true });
+}
 
 /** Takes the clipboard lock, waiting for whichever worker holds it. */
 export async function acquireClipboardLock(timeout = 30 * 1000): Promise<void> {
@@ -231,17 +245,6 @@ export async function acquireClipboardLock(timeout = 30 * 1000): Promise<void> {
             }
         }
 
-        // A worker killed mid-test leaves the file behind; nothing else would ever clear it.
-        try {
-            const stats = await fs.stat(CLIPBOARD_LOCK_PATH);
-            if (Date.now() - stats.mtimeMs > CLIPBOARD_LOCK_STALE_MS) {
-                await fs.rm(CLIPBOARD_LOCK_PATH, { force: true });
-                continue;
-            }
-        } catch {
-            // Released between the failed create and the stat; just try again.
-        }
-
         if (Date.now() > deadline) {
             throw new Error("Timed out waiting for the clipboard lock held by another worker.");
         }
@@ -251,21 +254,12 @@ export async function acquireClipboardLock(timeout = 30 * 1000): Promise<void> {
 
 /** Releases the clipboard lock, if this worker is the one holding it. */
 export async function releaseClipboardLock(): Promise<void> {
-    const token = clipboardLockToken;
-    if (token === undefined) {
+    if (clipboardLockToken === undefined) {
         return;
     }
+    // Nothing else can delete or replace the file while this worker holds it, so there is no
+    // check-then-act window here: reaching this line means the lock is ours.
     clipboardLockToken = undefined;
-
-    try {
-        // A lock reclaimed as stale while this worker was wedged now belongs to someone else, and
-        // the token is how that is told apart from this worker's own lock.
-        if ((await fs.readFile(CLIPBOARD_LOCK_PATH, "utf8")) !== token) {
-            return;
-        }
-    } catch {
-        return;
-    }
     await fs.rm(CLIPBOARD_LOCK_PATH, { force: true });
 }
 

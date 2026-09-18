@@ -15,6 +15,8 @@ dotenv.config({ path: path.resolve(__dirname, "test/e2e/.env") });
 export default defineConfig({
     /* Fail the build on CI if you accidentally left test.only in the source code. */
     forbidOnly: !!process.env.CI,
+    /* Clears the cross-worker clipboard lock left by a killed run; see globalSetup.ts. */
+    globalSetup: require.resolve("./test/e2e/globalSetup"),
     /* Smoke and grid projects share one CI run; cap total VS Code instances at two. */
     workers: 2,
     /* Reporter to use. See https://playwright.dev/docs/test-reporters */
