@@ -290,7 +290,8 @@ export const QueryResultPane = ({ GridView, isBetaResultsGridEnabled }: QueryRes
                     onTabSelect={(_event, data) => {
                         context.setResultTab(data.value as qr.QueryResultPaneTabs);
                     }}
-                    className={classes.queryResultPaneTabs}>
+                    className={classes.queryResultPaneTabs}
+                    data-testid="results-tab-list">
                     {Object.keys(resultSetSummaries).length > 0 && (
                         <Tab
                             value={qr.QueryResultPaneTabs.Results}
@@ -393,6 +394,7 @@ export const QueryResultPane = ({ GridView, isBetaResultsGridEnabled }: QueryRes
                         <MenuPopover>
                             <MenuList>
                                 <MenuItemSwitch
+                                    data-testid="preview-grid-switch"
                                     name="previewGrid"
                                     value="enabled"
                                     disabled={isPreviewGridSwitchPending}
