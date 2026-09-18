@@ -11346,11 +11346,8 @@
     <trans-unit id="mssql.showGettingStarted">
       <source xml:lang="en">Getting Started Guide</source>
     </trans-unit>
-    <trans-unit id="mssql.hideOverviewInObjectExplorer.contextMenu">
-      <source xml:lang="en">Hide</source>
-    </trans-unit>
     <trans-unit id="mssql.hideOverviewInObjectExplorer">
-      <source xml:lang="en">Hide Welcome</source>
+      <source xml:lang="en">Hide</source>
     </trans-unit>
     <trans-unit id="mssql.resultsGrid.showGridLines.none">
       <source xml:lang="en">Hide all grid lines</source>
@@ -11502,7 +11499,7 @@
     <trans-unit id="mssql.walkthroughs.nextSteps.objectExplorerFilters.description">
       <source xml:lang="en">Only see the database objects that matter most to you by applying filters to the Object Explorer tree.&#10;Start by clicking the filter button next to most folders in the Connections view.</source>
     </trans-unit>
-    <trans-unit id="mssql.openOverview.contextMenu">
+    <trans-unit id="mssql.objectExplorer.openOverview">
       <source xml:lang="en">Open</source>
     </trans-unit>
     <trans-unit id="mssql.openChangelog">

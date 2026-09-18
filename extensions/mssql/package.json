@@ -596,15 +596,13 @@
             ],
             "view/item/context": [
                 {
-                    "command": "mssql.openOverview",
+                    "command": "mssql.objectExplorer.openOverview",
                     "when": "view == objectExplorer && viewItem == overview",
-                    "title": "%mssql.openOverview.contextMenu%",
                     "group": "navigation@1"
                 },
                 {
                     "command": "mssql.hideOverviewInObjectExplorer",
                     "when": "view == objectExplorer && viewItem == overview",
-                    "title": "%mssql.hideOverviewInObjectExplorer.contextMenu%",
                     "group": "navigation@2"
                 },
                 {
@@ -1171,6 +1169,10 @@
                 },
                 {
                     "command": "mssql.openOverview"
+                },
+                {
+                    "command": "mssql.objectExplorer.openOverview",
+                    "when": "false"
                 },
                 {
                     "command": "mssql.hideOverviewInObjectExplorer",
@@ -1783,6 +1785,11 @@
             {
                 "command": "mssql.openOverview",
                 "title": "%mssql.openOverview%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.objectExplorer.openOverview",
+                "title": "%mssql.objectExplorer.openOverview%",
                 "category": "MS SQL"
             },
             {

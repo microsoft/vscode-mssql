@@ -1586,6 +1586,11 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.registerCommand(Constants.cmdShowOverviewInObjectExplorer, () =>
                 setOverviewVisibility(true),
             ),
+            // Delegates rather than duplicating the open logic; it exists purely so the node's
+            // context menu can be labelled "Open" instead of "Open Welcome".
+            vscode.commands.registerCommand(Constants.cmdOpenOverviewFromNode, () =>
+                vscode.commands.executeCommand(Constants.cmdOpenOverview),
+            ),
         );
 
         this.objectExplorerTree = vscode.window.createTreeView("objectExplorer", {
