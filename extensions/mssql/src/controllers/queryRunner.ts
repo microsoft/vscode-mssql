@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import { LanguageFlavorChangedNotification } from "../models/contracts/languageService";
 import StatusView from "../views/statusView";
 import SqlToolsServerClient from "../languageservice/serviceclient";
 import { QueryNotificationHandler } from "./queryNotificationHandler";
@@ -1522,6 +1523,12 @@ export default class QueryRunner {
         };
         await this._client.sendRequest(QueryExecuteOptionsRequest.type, queryExecuteOptionsParams);
         this._isSqlCmd = !this._isSqlCmd;
+        this._statusView.sqlCmdModeChanged(this.uri, this.isSqlCmd);
+        await this._client.sendNotification(LanguageFlavorChangedNotification.type, {
+            uri: this.uri,
+            language: this.isSqlCmd ? "sqlcmd" : Constants.languageId,
+            flavor: Constants.mssqlProviderName,
+        });
         return true;
     }
 

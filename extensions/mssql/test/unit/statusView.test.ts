@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as sinon from "sinon";
+import * as chai from "chai";
+import sinonChai from "sinon-chai";
 
 import StatusView from "../../src/views/statusView";
 import * as Constants from "../../src/constants/constants";
@@ -17,6 +19,8 @@ import { ConfigurationTarget } from "vscode";
 import * as Utils from "../../src/models/utils";
 import { PreviewFeature } from "../../src/previews/previewService";
 import { stubPreviewService } from "./utils";
+
+chai.use(sinonChai);
 
 suite("Status View Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -327,6 +331,77 @@ suite("Status View Tests", () => {
             expect(bar.rowCount.show).to.not.have.been.called;
             statusView.dispose();
         });
+    });
+
+    suite("SQLCMD mode", () => {
+        const fileUri = "file:///sqlcmd-test/query.sql";
+        let statusView: StatusView;
+        let getConfigurationStub: sinon.SinonStub;
+        let getConfigValueStub: sinon.SinonStub;
+
+        setup(() => {
+            sandbox
+                .stub(vscode.window, "createStatusBarItem")
+                .callsFake(() => createMockStatusBarItem());
+            sandbox.stub(Utils, "getActiveTextEditorUri").returns(fileUri);
+            getConfigValueStub = sandbox
+                .stub()
+                .callsFake((_section: string, defaultValue: unknown) => defaultValue);
+            getConfigurationStub = sandbox.stub(vscode.workspace, "getConfiguration").returns({
+                get: getConfigValueStub,
+            } as unknown as vscode.WorkspaceConfiguration);
+            statusView = new StatusView();
+        });
+
+        teardown(() => {
+            statusView.dispose();
+        });
+
+        test("defaults to off when SQLCMD mode is not configured", () => {
+            statusView.sqlCmdModeChanged(fileUri);
+
+            expect(statusView.getSqlCmdMode(fileUri)).to.equal(false);
+            expect(statusView["getStatusBar"](fileUri).sqlCmdMode.text).to.equal("SQLCMD: Off");
+            expect(getConfigValueStub).to.have.been.calledWith(Constants.configSqlCmdMode, false);
+        });
+
+        test("uses the SQLCMD default for each editor resource", () => {
+            const getResourceConfigValue = sandbox
+                .stub()
+                .callsFake((_section: string, defaultValue: unknown) => defaultValue);
+            getResourceConfigValue.withArgs(Constants.configSqlCmdMode, false).returns(true);
+            getConfigurationStub.withArgs(undefined, vscode.Uri.parse(fileUri)).returns({
+                get: getResourceConfigValue,
+            } as unknown as vscode.WorkspaceConfiguration);
+
+            statusView.setNotConnected(fileUri);
+
+            expect(statusView.getSqlCmdMode(fileUri)).to.equal(true);
+            expect(statusView["getStatusBar"](fileUri).sqlCmdMode.text).to.equal("SQLCMD: On");
+            expect(statusView.getSqlCmdMode("file:///other-workspace/query.sql")).to.equal(false);
+        });
+
+        for (const isSqlCmd of [false, true]) {
+            test(`preserves manually selected SQLCMD mode ${isSqlCmd} across reconnection`, async () => {
+                getConfigValueStub.withArgs(Constants.configSqlCmdMode, false).returns(!isSqlCmd);
+                statusView.sqlCmdModeChanged(fileUri, isSqlCmd);
+
+                statusView.setNotConnected(fileUri);
+
+                expect(statusView.getSqlCmdMode(fileUri)).to.equal(isSqlCmd);
+
+                await statusView.connectSuccess(
+                    fileUri,
+                    { server: "testServer", database: "testDatabase" } as IConnectionProfile,
+                    {} as IServerInfo,
+                );
+
+                expect(statusView.getSqlCmdMode(fileUri)).to.equal(isSqlCmd);
+                expect(statusView["getStatusBar"](fileUri).sqlCmdMode.text).to.equal(
+                    isSqlCmd ? "SQLCMD: On" : "SQLCMD: Off",
+                );
+            });
+        }
     });
 
     suite("Colorization tests", () => {

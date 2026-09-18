@@ -24,6 +24,7 @@ import StatusView from "../../src/views/statusView";
 import * as Constants from "../../src/constants/constants";
 import * as QueryExecuteContracts from "../../src/models/contracts/queryExecute";
 import * as QueryDisposeContracts from "../../src/models/contracts/queryDispose";
+import { LanguageFlavorChangedNotification } from "../../src/models/contracts/languageService";
 import { ISelectionData } from "../../src/models/interfaces";
 import * as stubs from "./stubs";
 import * as vscode from "vscode";
@@ -768,18 +769,70 @@ suite("Query Runner tests", () => {
         }
     });
 
-    test("Toggle SQLCMD Mode sends request", async () => {
-        let queryUri = "test_uri";
-        let queryRunner = createQueryRunner(queryUri, queryUri);
-        expect(queryRunner.isSqlCmd, "Query Runner should have SQLCMD false be default").is.equal(
-            false,
-        );
+    for (const initialMode of [false, true]) {
+        test(`Toggle SQLCMD mode from ${initialMode} updates execution, language, and status`, async () => {
+            const queryRunner = createQueryRunner();
+            queryRunner.isSqlCmd = initialMode;
+            testSqlToolsServerClient.sendRequest
+                .withArgs(QueryExecuteContracts.QueryExecuteOptionsRequest.type, sinon.match.object)
+                .resolves(true);
+
+            await queryRunner.toggleSqlCmd();
+
+            expect(queryRunner.isSqlCmd).to.equal(!initialMode);
+            expect(testSqlToolsServerClient.sendRequest).to.have.been.calledWith(
+                QueryExecuteContracts.QueryExecuteOptionsRequest.type,
+                { ownerUri: standardUri, options: { options: { isSqlCmdMode: !initialMode } } },
+            );
+            expect(testSqlToolsServerClient.sendNotification).to.have.been.calledWith(
+                LanguageFlavorChangedNotification.type,
+                {
+                    uri: standardUri,
+                    language: initialMode ? "sql" : "sqlcmd",
+                    flavor: Constants.mssqlProviderName,
+                },
+            );
+            expect(testStatusView.sqlCmdModeChanged).to.have.been.calledWith(
+                standardUri,
+                !initialMode,
+            );
+        });
+    }
+
+    test("failed SQLCMD request leaves the editor mode unchanged", async () => {
+        const queryRunner = createQueryRunner();
+        const error = new Error("SQLCMD request failed");
         testSqlToolsServerClient.sendRequest
             .withArgs(QueryExecuteContracts.QueryExecuteOptionsRequest.type, sinon.match.object)
-            .resolves(true);
-        await queryRunner.toggleSqlCmd();
-        expect(testSqlToolsServerClient.sendRequest).to.have.been.calledOnce;
-        expect(queryRunner.isSqlCmd, "SQLCMD Mode should be switched").is.equal(true);
+            .rejects(error);
+
+        try {
+            await queryRunner.toggleSqlCmd();
+            expect.fail("Expected SQLCMD request to fail");
+        } catch (err) {
+            expect(err).to.equal(error);
+        }
+
+        expect(queryRunner.isSqlCmd).to.equal(false);
+        expect(testSqlToolsServerClient.sendNotification).not.to.have.been.called;
+        expect(testStatusView.sqlCmdModeChanged).not.to.have.been.called;
+    });
+
+    test("keeps SQLCMD status consistent with execution when the language notification fails", async () => {
+        const queryRunner = createQueryRunner();
+        testSqlToolsServerClient.sendRequest.resolves(true);
+        const error = new Error("Language notification failed");
+        testSqlToolsServerClient.sendNotification.rejects(error);
+
+        try {
+            await queryRunner.toggleSqlCmd();
+            expect.fail("Expected the language notification to fail");
+        } catch (err) {
+            expect(err).to.equal(error);
+        }
+
+        expect(queryRunner.isSqlCmd).to.equal(true);
+        expect(testStatusView.sqlCmdModeChanged).to.have.been.calledWith(standardUri, true);
     });
 
     test("updateQueryRunnerUri migrates internal URI keyed state while query is executing", () => {

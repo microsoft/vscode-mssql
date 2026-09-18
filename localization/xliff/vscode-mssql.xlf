@@ -10693,6 +10693,9 @@
     <trans-unit id="mssql.query.xactAbortOn">
       <source xml:lang="en">Enable SET XACT_ABORT ON option</source>
     </trans-unit>
+    <trans-unit id="mssql.sqlCmdMode.description">
+      <source xml:lang="en">Enable SQLCMD mode by default for new query editors. Use the Toggle SQLCMD Mode command to change the mode for an individual editor.</source>
+    </trans-unit>
     <trans-unit id="mssql.resultsGrid.alternatingRowColors">
       <source xml:lang="en">Enable alternating row background colors (zebra striping) in the results grid. The color is derived from the current VS Code theme.</source>
     </trans-unit>
