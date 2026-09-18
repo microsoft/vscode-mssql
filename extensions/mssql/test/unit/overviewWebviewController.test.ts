@@ -143,6 +143,29 @@ suite("Overview Webview Controller", () => {
         ]);
     });
 
+    test("ignores a superseded refresh that resolves after a newer one", async () => {
+        controller = createController();
+        await waitForRecentFiles();
+
+        // Hold both refreshes open so the first one can be made to finish last.
+        const resolvers: ((files: ResolvedRecentSqlFile[]) => void)[] = [];
+        recentFilesStub.callsFake(
+            () => new Promise<ResolvedRecentSqlFile[]>((resolve) => resolvers.push(resolve)),
+        );
+
+        storeChangeEvent.fire();
+        storeChangeEvent.fire();
+        expect(resolvers).to.have.lengthOf(2);
+
+        resolvers[1]([{ fsPath: "/work/newest.sql", timestampMs: 2 }]);
+        resolvers[0]([{ fsPath: "/work/stale.sql", timestampMs: 1 }]);
+        await waitForRecentFiles();
+
+        expect(controller.state.recentFiles.map((file) => file.fsPath)).to.deep.equal([
+            "/work/newest.sql",
+        ]);
+    });
+
     test("reopening What's new bumps the request so a dismissed drawer reopens", () => {
         controller = createController();
         expect(controller.state.openWhatsNewRequest).to.equal(0);

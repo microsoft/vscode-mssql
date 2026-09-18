@@ -115,7 +115,7 @@ const useStyles = makeStyles({
         color: tokens.colorNeutralForeground2,
     },
     keymapNote: {
-        marginTop: tokens.spacingVerticalM,
+        marginBottom: tokens.spacingVerticalM,
     },
     actions: {
         paddingTop: tokens.spacingVerticalM,
@@ -214,6 +214,20 @@ export const ShortcutsDialog = ({ onDismiss }: ShortcutsDialogProps) => {
                         </span>
                     </DialogTitle>
                     <DialogContent>
+                        <MessageBar className={classes.keymapNote} intent="info">
+                            <MessageBarBody>
+                                {loc.shortcutsKeymapPrefix}{" "}
+                                <Link
+                                    href={overviewLinks.keymapExtension}
+                                    title={overviewLinks.keymapExtension}
+                                    onClick={(event) => {
+                                        event.preventDefault();
+                                        openLink(overviewLinks.keymapExtension);
+                                    }}>
+                                    {loc.shortcutsKeymapLink}
+                                </Link>
+                            </MessageBarBody>
+                        </MessageBar>
                         <Text className={classes.intro}>{loc.shortcutsIntro}</Text>
                         <div className={classes.tableWrapper}>
                             <table className={classes.table}>
@@ -272,20 +286,6 @@ export const ShortcutsDialog = ({ onDismiss }: ShortcutsDialogProps) => {
                                 </tbody>
                             </table>
                         </div>
-                        <MessageBar className={classes.keymapNote} intent="info">
-                            <MessageBarBody>
-                                {loc.shortcutsKeymapPrefix}{" "}
-                                <Link
-                                    href={overviewLinks.keymapExtension}
-                                    title={overviewLinks.keymapExtension}
-                                    onClick={(event) => {
-                                        event.preventDefault();
-                                        openLink(overviewLinks.keymapExtension);
-                                    }}>
-                                    {loc.shortcutsKeymapLink}
-                                </Link>
-                            </MessageBarBody>
-                        </MessageBar>
                     </DialogContent>
                     <DialogActions className={classes.actions}>
                         <Button appearance="secondary" onClick={onDismiss}>

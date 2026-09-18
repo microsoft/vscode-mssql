@@ -192,6 +192,9 @@ export class OverviewWebviewController extends WebviewPanelController<
     /** The in-flight agent skills install. */
     private _agentSkillsActivity: ActivityObject | undefined;
 
+    /** Sequence number of the newest recent-file refresh; see refreshRecentFiles. */
+    private _recentFilesRequest = 0;
+
     constructor(
         context: vscode.ExtensionContext,
         private _recentSqlFilesStore: RecentSqlFilesStore,
@@ -558,8 +561,12 @@ export class OverviewWebviewController extends WebviewPanelController<
      * filesystem, so it runs after the initial state is sent rather than blocking construction.
      */
     private async refreshRecentFiles(): Promise<void> {
+        // Now that every store change starts one of these, two can be in flight at once, and
+        // resolving stats the filesystem so they can finish out of order. Only the newest request
+        // writes, which keeps a slow earlier scan from replacing the list with an older one.
+        const request = ++this._recentFilesRequest;
         const files = await this._recentSqlFilesStore.getRecentFiles(RECENT_FILE_LIMIT);
-        if (this.isDisposed) {
+        if (this.isDisposed || request !== this._recentFilesRequest) {
             return;
         }
         this.updateState({ ...this.state, recentFiles: files.map(toRecentSqlFile) });

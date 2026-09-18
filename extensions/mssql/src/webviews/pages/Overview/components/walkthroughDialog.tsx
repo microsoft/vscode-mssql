@@ -319,7 +319,7 @@ export const WalkthroughDialog = ({ walkthrough, onDismiss }: WalkthroughDialogP
                                     <img
                                         className={classes.stageImage}
                                         src={step.image}
-                                        alt={loc.walkthroughMediaAlt}
+                                        alt={step.title}
                                     />
                                 ) : (
                                     <div className={classes.stagePlaceholder}>

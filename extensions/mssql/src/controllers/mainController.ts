@@ -137,7 +137,7 @@ import { ChangelogWebviewController } from "./changelogWebviewController";
 import { OverviewOpenOptions, OverviewWebviewController } from "./overviewWebviewController";
 import { RecentSqlFilesStore } from "../models/recentSqlFilesStore";
 import { AgentPluginsInstaller } from "../agentPlugins/agentPluginsInstaller";
-import { DeploymentType } from "../sharedInterfaces/deployment";
+import { DeploymentType, isDeploymentType } from "../sharedInterfaces/deployment";
 import { AzureDataStudioMigrationWebviewController } from "./azureDataStudioMigrationWebviewController";
 import { ShortcutsConfigurationWebviewController } from "./shortcutsConfigurationWebviewController";
 import { ILogger } from "../sharedInterfaces/logger";
@@ -357,8 +357,11 @@ export default class MainController implements vscode.Disposable {
                 let initialDeploymentType: DeploymentType | undefined;
                 if (args instanceof ConnectionGroupNode) {
                     initialConnectionGroup = args.connectionGroup?.id;
-                } else if (typeof args?.deploymentType === "number") {
+                } else if (isDeploymentType(args?.deploymentType)) {
                     // Callers that already know the deployment type skip the chooser page.
+                    // Anything else falls through to the chooser rather than being handed on: the
+                    // deployment controller keys its type-specific state off this value, so an
+                    // unknown one leaves that state undefined.
                     initialDeploymentType = args.deploymentType;
                 }
                 this.onDeployNewDatabase(initialConnectionGroup, initialDeploymentType);

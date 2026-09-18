@@ -144,6 +144,15 @@ export enum DeploymentType {
     DevContainer = 3,
 }
 
+/**
+ * Whether a value is one of the deployment types. The deploy command takes its arguments from
+ * whatever invokes it -- a menu, another extension, the command palette -- so a value arriving
+ * that way is checked against the enum rather than only against `number`.
+ */
+export function isDeploymentType(value: unknown): value is DeploymentType {
+    return typeof value === "number" && DeploymentType[value] !== undefined;
+}
+
 export interface DeploymentFormItemSpec
     extends FormItemSpec<DeploymentFormState, DeploymentWebviewState, DeploymentFormItemSpec> {
     componentWidth: string;
