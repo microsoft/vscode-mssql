@@ -219,11 +219,16 @@ export const WalkthroughDialog = ({ walkthrough, onDismiss }: WalkthroughDialogP
             return;
         }
         if (step.action.url) {
+            // Documentation opens in the browser, beside VS Code rather than over it, so the
+            // walkthrough stays up: the reader comes back to carry on from the same step.
             openLink(step.action.url);
-        } else if (step.action.actionId) {
-            runAction(step.action.actionId);
+            return;
         }
-        onDismiss();
+        if (step.action.actionId) {
+            // An in-product action needs the editor, which this modal is covering.
+            runAction(step.action.actionId);
+            onDismiss();
+        }
     };
 
     return (

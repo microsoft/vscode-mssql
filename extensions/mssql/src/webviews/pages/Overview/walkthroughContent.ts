@@ -41,25 +41,31 @@ const featureImages: Partial<Record<string, string>> = {
 const mssqlDocsBase = "https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql";
 const mssqlOverviewDocs = `${mssqlDocsBase}/mssql-extension-visual-studio-code`;
 const databaseOperationsDocs = `${mssqlDocsBase}/mssql-database-operations`;
-const schemaDesignerDocs = `${mssqlDocsBase}/mssql-schema-designer`;
-const dataApiBuilderDocs = `${mssqlDocsBase}/mssql-data-api-builder`;
 
-/** Microsoft Learn destination for each entry in the Explore features gallery. */
+/**
+ * Microsoft Learn destination for each entry in the Explore features gallery.
+ *
+ * These are registered aka.ms aliases rather than Learn URLs, so a page that moves is retargeted
+ * without shipping the extension -- several of these have moved once already. The two that are
+ * still written out have no alias yet.
+ */
 const featureDocumentationUrls: Record<string, string> = {
-    schemaDesigner: schemaDesignerDocs,
-    tableDesigner: `${mssqlOverviewDocs}#table-designer`,
+    schemaDesigner: "https://aka.ms/vscode-mssql-schema-designer-docs",
+    tableDesigner: "https://aka.ms/vscode-mssql-table-designer",
+    // No alias yet: aka.ms/vscode-mssql-edit-data points at an anchor the page no longer has.
     editData: `${mssqlOverviewDocs}#view-and-edit-data`,
-    importFlatFile: `${databaseOperationsDocs}#import-flat-file`,
-    queryEditor: `${mssqlDocsBase}/connect-database-visual-studio-code`,
+    importFlatFile: "https://aka.ms/vscode-mssql-import-flat-file",
+    queryEditor: "https://aka.ms/vscode-mssql-query-editor",
+    // No alias yet.
     queryPlans: `${mssqlOverviewDocs}#query-plan-visualizer`,
-    queryProfiler: `${mssqlDocsBase}/mssql-query-profiler`,
-    notebooks: `${mssqlDocsBase}/mssql-sql-notebooks`,
-    dacpac: `${mssqlDocsBase}/mssql-data-tier-application`,
-    backupRestore: databaseOperationsDocs,
-    schemaCompare: `${mssqlDocsBase}/mssql-schema-compare`,
-    sqlProjects:
-        "https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/sql-database-projects/sql-database-projects-extension",
-    dataApiBuilder: dataApiBuilderDocs,
+    queryProfiler: "https://aka.ms/vscode-mssql-query-profiler-docs",
+    notebooks: "https://aka.ms/vscode-mssql-notebooks",
+    dacpac: "https://aka.ms/vscode-mssql-dacpac",
+    // Lands on the backup section; restore is the section directly below it.
+    backupRestore: "https://aka.ms/vscode-mssql-backup-docs",
+    schemaCompare: "https://aka.ms/vscode-mssql-schema-compare-docs",
+    sqlProjects: "https://aka.ms/vscode-mssql-sql-projects",
+    dataApiBuilder: "https://aka.ms/vscode-mssql-data-api-builder",
 };
 
 /** Identifies a walkthrough so a card can open the matching dialog. */
@@ -282,7 +288,7 @@ export function getWalkthrough(id: WalkthroughId): Walkthrough {
                         description: loc.wtAppStep1Description,
                         action: {
                             label: loc.walkthroughLearnMoreAction,
-                            url: schemaDesignerDocs,
+                            url: "https://aka.ms/vscode-mssql-schema-designer-docs",
                         },
                         image: schemaDesignerImage,
                     },
@@ -302,7 +308,7 @@ export function getWalkthrough(id: WalkthroughId): Walkthrough {
                         description: loc.wtAppStep2Description,
                         action: {
                             label: loc.walkthroughLearnMoreAction,
-                            url: dataApiBuilderDocs,
+                            url: "https://aka.ms/vscode-mssql-data-api-builder",
                         },
                         image: dataApiBuilderImage,
                     },

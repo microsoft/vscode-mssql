@@ -12,25 +12,23 @@ export const overviewLinks = {
     landingPageVideo1: "https://aka.ms/vscode-mssql-landing-page-video1",
     landingPageVideo2: "https://aka.ms/vscode-mssql-landing-page-video2",
     landingPageVideo3: "https://aka.ms/vscode-mssql-landing-page-video3",
-    repository: "https://github.com/microsoft/vscode-mssql",
+    repository: "https://aka.ms/vscode-mssql-repo",
     roadmap: "https://aka.ms/vscode-mssql-roadmap",
-    documentation:
-        "https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-extension-visual-studio-code",
+    documentation: "https://aka.ms/vscode-mssql-docs",
     reportBug: "https://aka.ms/vscode-mssql-bug",
     requestFeature: "https://aka.ms/vscode-mssql-feature-request",
     discussions: "https://aka.ms/vscode-mssql-discussions",
     devHub: "https://aka.ms/azuresql-hub",
-    devContainersQuickstart:
-        "https://learn.microsoft.com/azure/azure-sql/database/local-dev-experience-dev-containers-quickstart",
+    devContainersQuickstart: "https://aka.ms/vscode-mssql-devcontainers-quickstart",
     skillsRepository: "https://github.com/microsoft/azure-sql-database-container",
+    // Template source links are built by appending a path to this, so it stays a real GitHub
+    // URL rather than the aka.ms/vscode-mssql-devcontainers-repo alias, which cannot be extended.
     devContainersRepository: "https://github.com/microsoft/azuresql-devcontainers",
-    dockerDesktop: "https://www.docker.com/products/docker-desktop/",
-    copilotDocumentation:
-        "https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/github-copilot/overview",
+    dockerDesktop: "https://aka.ms/vscode-mssql-docker-desktop",
+    copilotDocumentation: "https://aka.ms/vscode-mssql-copilot-docs",
     // Placeholder until step-specific Microsoft Learn destinations are available.
     copilotWalkthroughDocumentation: "https://learn.microsoft.com/",
-    keymapExtension:
-        "https://marketplace.visualstudio.com/items?itemName=ms-mssql.mssql-database-management-keymap",
+    keymapExtension: "https://aka.ms/vscode-mssql-keymap",
 } as const;
 
 export interface PromptCard {
