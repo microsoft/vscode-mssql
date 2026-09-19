@@ -198,9 +198,6 @@ export function isSameProfile(
     } else if (currentProfile.profileName) {
         // This has a profile name but expected does not - can break early
         return false;
-    } else if (currentProfile.connectionString || expectedProfile.connectionString) {
-        // If either profile uses connection strings, compare them directly
-        return currentProfile.connectionString === expectedProfile.connectionString;
     } else if (
         currentProfile.authenticationType === Constants.azureMfa &&
         expectedProfile.authenticationType === Constants.azureMfa
@@ -249,7 +246,6 @@ export enum MatchScore {
      * If a property is specified in the partial profile, it must match.  If a property is not specified
      * in the partial profile, it is ignored for matching purposes.
      *
-     * If either connection uses a connection string, the connection strings must match exactly and all other properties are ignored.
      */
     AllAvailableProps = 4,
 
@@ -272,15 +268,6 @@ export class ConnectionMatcher {
         // Check for ID match first (highest match confidence)
         if (current.id && expected.id && current.id === expected.id) {
             return MatchScore.Id;
-        }
-
-        // Check for connection string match; all-or-nothing when connection strings are involved
-        if (current.connectionString || expected.connectionString) {
-            if (current.connectionString === expected.connectionString) {
-                return MatchScore.AllAvailableProps;
-            } else {
-                return MatchScore.NotMatch;
-            }
         }
 
         // Check for connection information match (server, database, authentication info)
@@ -410,7 +397,6 @@ export class ConnectionMatcher {
             "password",
             "accountId",
             "profileName",
-            "connectionString",
             "savePassword",
             "id",
         ]);
@@ -429,7 +415,7 @@ export class ConnectionMatcher {
 
 /**
  * Compares 2 connections to see if they match. Logic for matching:
- * match on all key properties (connectionString or server, db, auth type, user) being identical.
+ * match on all key properties (server, db, auth type, user) being identical.
  * Other properties are ignored for this purpose
  *
  * @param conn the connection to check
@@ -446,35 +432,30 @@ export function isSameConnectionInfo(
     if (connId && expectedConnId) {
         return connId === expectedConnId;
     }
-    // If no id, compare the connection string or other properties
-    return conn.connectionString || expectedConn.connectionString
-        ? conn.connectionString === expectedConn.connectionString
-        : // Azure MFA connections
-          expectedConn.authenticationType === Constants.azureMfa &&
-            conn.authenticationType === Constants.azureMfa
-          ? ConnectionMatcher.serverMatches(
-                conn as IConnectionProfile,
-                expectedConn as IConnectionProfile,
-            ) &&
-            isSameDatabase(expectedConn.database, conn.database) &&
-            isSameAccountKey(expectedConn.accountId, conn.accountId)
-          : // Not Azure MFA connections
-            ConnectionMatcher.serverMatches(
-                conn as IConnectionProfile,
-                expectedConn as IConnectionProfile,
-            ) &&
-            isSameDatabase(expectedConn.database, conn.database) &&
-            isSameAuthenticationType(expectedConn.authenticationType, conn.authenticationType) &&
-            (conn.authenticationType === Constants.sqlAuthentication
-                ? conn.user === expectedConn.user
-                : isEmpty(conn.user) === isEmpty(expectedConn.user)) &&
-            (conn as IConnectionProfile).savePassword ===
-                (expectedConn as IConnectionProfile).savePassword;
+    return expectedConn.authenticationType === Constants.azureMfa &&
+        conn.authenticationType === Constants.azureMfa
+        ? ConnectionMatcher.serverMatches(
+              conn as IConnectionProfile,
+              expectedConn as IConnectionProfile,
+          ) &&
+              isSameDatabase(expectedConn.database, conn.database) &&
+              isSameAccountKey(expectedConn.accountId, conn.accountId)
+        : ConnectionMatcher.serverMatches(
+              conn as IConnectionProfile,
+              expectedConn as IConnectionProfile,
+          ) &&
+              isSameDatabase(expectedConn.database, conn.database) &&
+              isSameAuthenticationType(expectedConn.authenticationType, conn.authenticationType) &&
+              (conn.authenticationType === Constants.sqlAuthentication
+                  ? conn.user === expectedConn.user
+                  : isEmpty(conn.user) === isEmpty(expectedConn.user)) &&
+              (conn as IConnectionProfile).savePassword ===
+                  (expectedConn as IConnectionProfile).savePassword;
 }
 
 /**
  * Compares 2 connections to see if they match. Logic for matching:
- * match on properties like the (connectionString or server, auth type, user) being identical.
+ * match on properties like server, auth type, and user being identical.
  * Other properties are ignored for this purpose
  *
  * @param conn the connection to check
@@ -485,9 +466,7 @@ export function isSameScmpConnection(
     conn: IConnectionInfo,
     expectedConn: IConnectionInfo,
 ): boolean {
-    if (conn.connectionString) {
-        return conn.connectionString === expectedConn.connectionString;
-    } else if (
+    if (
         expectedConn.authenticationType === Constants.azureMfa &&
         conn.authenticationType === Constants.azureMfa
     ) {
