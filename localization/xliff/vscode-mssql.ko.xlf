@@ -3568,7 +3568,7 @@ VS Code에서 컨테이너와 해당 연결이 모두 제거됩니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++d39279795c068e7eae0fac751fc1ff7e722232cb6f15f871494b4d70e46a7f9c">
         <source xml:lang="en">Deployment name, port, and configuration are required to start the engine.</source>
-        <target state="new">Deployment name, port, and configuration are required to start the engine.</target>
+        <target state="translated">엔진을 시작하려면 배포 이름, 포트 및 구성이 필요합니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++777bc7ace9ef9cd24f40d697d603c4ca07ebd13f76c7ce9148fa0df315e2c5ef">
         <source xml:lang="en">Deployment settings</source>
@@ -3580,7 +3580,7 @@ VS Code에서 컨테이너와 해당 연결이 모두 제거됩니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++e2d63f5e06d035a1e421efa44a7f1f92ec06b908d7ef82cb6ca89c2b8ee192ec">
         <source xml:lang="en">Deployments cannot be tracked because the extension's storage location is unavailable.</source>
-        <target state="new">Deployments cannot be tracked because the extension's storage location is unavailable.</target>
+        <target state="translated">확장의 스토리지 위치를 사용할 수 없으므로 배포를 추적할 수 없습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++526e0087cc3f254d9f86f6c7d8e23d954c4dfda2b312efc29194ae8a860106ba">
         <source xml:lang="en">Description</source>
@@ -6349,7 +6349,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++ea37170478c135fe5621105f676ae5cdb160b763078a28d661098d6d6b2959b2">
         <source xml:lang="en">Install the Azure CLI</source>
-        <target state="new">Install the Azure CLI</target>
+        <target state="translated">Azure CLI를 설치하는 방법</target>
       </trans-unit>
       <trans-unit id="++CODE++bacb967a562a0c1059bd81be06c024c01789e81d12dd3fe6e3d74ae2641c9566">
         <source xml:lang="en">Install the MSSQL Database Management Keymap extension</source>
@@ -6523,7 +6523,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++17372face64ed2506cefca636024341e0d6f25d3f75847b5d276c0d5cc4569c4">
         <source xml:lang="en">Kerberos must be configured to use Windows Authentication on macOS and Linux. Click the info icon to learn more.</source>
-        <target state="new">Kerberos must be configured to use Windows Authentication on macOS and Linux. Click the info icon to learn more.</target>
+        <target state="translated">macOS 및 Linux에서 Windows 인증을 사용하도록 Kerberos를 구성해야 합니다. 자세한 내용을 보려면 정보 아이콘을 클릭하세요.</target>
       </trans-unit>
       <trans-unit id="++CODE++99a52df3ff3d499488e2fa28150c4106a2cb5e928891a830a9aa3922b2d32160">
         <source xml:lang="en">Key</source>
@@ -7355,7 +7355,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++f8d46c2570e70736d62beb6e2e8df321d7cb4842a2b894f2025c47b31871d9f1">
         <source xml:lang="en">More actions</source>
-        <target state="new">More actions</target>
+        <target state="translated">추가 작업</target>
       </trans-unit>
       <trans-unit id="++CODE++0c94b5f19becc4862e3862d599e2d386c40079841aba3ab70d05241df1ff6802">
         <source xml:lang="en">More actions for {0}</source>
@@ -9719,7 +9719,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++352c59bc5b59bba13bb085699f2c07a1103715439ec1a8d57b294dc06d2fbd1b">
         <source xml:lang="en">Runs Data API builder as a local process on this machine. No Docker required.</source>
-        <target state="new">Runs Data API builder as a local process on this machine. No Docker required.</target>
+        <target state="translated">이 컴퓨터에서 데이터 API 작성기를 로컬 프로세스로 실행합니다. Docker가 필요하지 않습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++1535db1c91172380e70396d4a07899000757727b521ac651eb91dbcaee2460e4">
         <source xml:lang="en">Runs Data API builder in a container on this machine, published on a local port.</source>
@@ -11645,7 +11645,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++ea8d8a637c6aaa3d1fd33f3fa440906f5304c43a5eb605965a64271c4532f2aa">
         <source xml:lang="en">The active Data API builder configuration changed after it was read. Run mssql_dab operation 'get_state' again before retrying; do not open another designer.</source>
-        <target state="new">The active Data API builder configuration changed after it was read. Run mssql_dab operation 'get_state' again before retrying; do not open another designer.</target>
+        <target state="translated">활성 데이터 API 작성기 구성이 읽은 후 변경되었습니다. 다시 시도mssql_dab 전에 'get_state' 작업을 다시 실행하십시오. 다른 디자이너를 열지 마세요.</target>
       </trans-unit>
       <trans-unit id="++CODE++3eacf5cf678e2285cae1276d29f034aa0e7ceb3f8940239c1d67a2d486649719">
         <source xml:lang="en">The behavior when a user tries to delete a row with data that is involved in a foreign key relationship.</source>
@@ -11931,7 +11931,7 @@ Are you sure you want to continue?</source>
       </trans-unit>
       <trans-unit id="++CODE++eeab635bdc057a1d0e7bd03117e4d3deeb099edbd0cbd0950597e643d2dab93c">
         <source xml:lang="en">This connection's authentication type is not supported for local deployment. Only SQL Authentication and Windows Authentication can be used.</source>
-        <target state="new">This connection's authentication type is not supported for local deployment. Only SQL Authentication and Windows Authentication can be used.</target>
+        <target state="translated">이 연결의 인증 유형은 로컬 배포에 지원되지 않습니다. SQL 인증 및 Windows 인증만 사용할 수 있습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++ba00b52adf9dcec97ed54898b307de1328526c8df30c80a9a17dc41f6c39a926">
         <source xml:lang="en">This connection's group has not been selected, so this connection will be imported to the root.</source>
@@ -11943,11 +11943,11 @@ Are you sure you want to continue?</source>
       </trans-unit>
       <trans-unit id="++CODE++39689cd482388c355f7e0721e799cc73bb6a968b7f8c6f81d99778ca62ce8ab4">
         <source xml:lang="en">This deployment is no longer tracked. Refresh the deployments list and try again.</source>
-        <target state="new">This deployment is no longer tracked. Refresh the deployments list and try again.</target>
+        <target state="translated">이 배포는 더 이상 추적되지 않습니다. 배포 목록을 새로 고치고 다시 시도하세요.</target>
       </trans-unit>
       <trans-unit id="++CODE++4b5ae74ddb4ca3e016189806d6416b4dd28e2d0a53de8d08da351164792732c9">
         <source xml:lang="en">This deployment is not serving requests, and it is running an earlier version of your configuration.</source>
-        <target state="new">This deployment is not serving requests, and it is running an earlier version of your configuration.</target>
+        <target state="translated">이 배포는 요청을 처리하지 않으며 이전 버전의 구성을 실행하고 있습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++ab81702157ab7c569f837c5ed0b5ec4318ae26021c2ab425c920c69bb3e6c56d">
         <source xml:lang="en">This deployment is not serving requests. Start it to bring its endpoints back.</source>
@@ -11955,7 +11955,7 @@ Are you sure you want to continue?</source>
       </trans-unit>
       <trans-unit id="++CODE++20766bf27fdaeb9525112dbbed778777df1e9fcb91315521e19232d83cb0d63e">
         <source xml:lang="en">This deployment is running an earlier version of your configuration. Redeploy it to serve the current one.</source>
-        <target state="new">This deployment is running an earlier version of your configuration. Redeploy it to serve the current one.</target>
+        <target state="translated">이 배포는 이전 버전의 구성을 실행하고 있습니다. 현재 항목을 처리하도록 다시 배포합니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++757ab980fc6aa23039b078034c46f53beac4388f316bc8e98c9770a87e6d5ad9">
         <source xml:lang="en">This deployment no longer exists</source>
@@ -11963,7 +11963,7 @@ Are you sure you want to continue?</source>
       </trans-unit>
       <trans-unit id="++CODE++424524b73f7b54ca2663888521169681b82129343191178726fb2d93a58fc294">
         <source xml:lang="en">This deployment's configuration file is missing, so it cannot be started. Redeploy it instead.</source>
-        <target state="new">This deployment's configuration file is missing, so it cannot be started. Redeploy it instead.</target>
+        <target state="translated">이 배포의 구성 파일이 없으므로 시작할 수 없습니다. 대신 다시 배포하세요.</target>
       </trans-unit>
       <trans-unit id="++CODE++025b2c9cebc8d4e8ce463364bc4906b4c1d91cf3176080d240db88df9057713a">
         <source xml:lang="en">This discards all entity, action, column, and advanced settings for this database, including changes made by Copilot, and rebuilds them from the current schema.</source>
@@ -12876,7 +12876,7 @@ Are you sure you want to continue?</source>
       </trans-unit>
       <trans-unit id="++CODE++0e041c039ffe50cb5992d3b630ec285c42343b01216f9bafc00114fd6c42a303">
         <source xml:lang="en">Your configuration has changed since this container was deployed. Redeploy to apply the changes.</source>
-        <target state="new">Your configuration has changed since this container was deployed. Redeploy to apply the changes.</target>
+        <target state="translated">이 컨테이너가 배포된 이후 구성이 변경되었습니다. 변경 내용을 적용하려면 다시 배포하세요.</target>
       </trans-unit>
       <trans-unit id="++CODE++72d3d1e6e874aa94ab02c4aac4ea2399ce299ddcad4b38a795754c92e158ac4d">
         <source xml:lang="en">Your current IP {0} will be added automatically.</source>
@@ -13048,7 +13048,7 @@ Are you sure you want to continue?</source>
       </trans-unit>
       <trans-unit id="++CODE++7ddb44d8a533a7535d85cedddf35d7f3414632ad4e10a0d7ca697723e1d97993">
         <source xml:lang="en">just now</source>
-        <target state="new">just now</target>
+        <target state="translated">방금</target>
       </trans-unit>
       <trans-unit id="++CODE++44eaba29486899334009b57f2ba4ef6c871017792c74e6e829958164087f3ea0">
         <source xml:lang="en">label: {0} does not exist in the options value name lookup</source>
@@ -13649,27 +13649,27 @@ Projects:
       </trans-unit>
       <trans-unit id="mssql.format.options.terminateBlockStatements">
         <source xml:lang="en">Add semicolon terminators after BEGIN...END and TRY...CATCH blocks.</source>
-        <target state="new">Add semicolon terminators after BEGIN...END and TRY...CATCH blocks.</target>
+        <target state="translated">BEGIN...END 및 TRY...CATCH 블록 뒤에 세미콜론 종결자를 추가합니다.</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.alignSetClauseItem">
         <source xml:lang="en">Align SET clause items in UPDATE statements.</source>
-        <target state="new">Align SET clause items in UPDATE statements.</target>
+        <target state="translated">UPDATE 문의 SET 절 항목을 맞춥니다.</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.alignColumnDefinitionFields">
         <source xml:lang="en">Align column-definition fields, such as names, data types, and constraints.</source>
-        <target state="new">Align column-definition fields, such as names, data types, and constraints.</target>
+        <target state="translated">이름, 데이터 형식 및 제약 조건과 같은 열 정의 필드를 맞춥니다.</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.alignClauseBodies">
         <source xml:lang="en">Align the bodies of FROM, WHERE, GROUP BY, and similar clauses.</source>
-        <target state="new">Align the bodies of FROM, WHERE, GROUP BY, and similar clauses.</target>
+        <target state="translated">FROM, WHERE, GROUP BY 및 이와 비슷한 절의 본문을 맞춥니다.</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.allowExternalLanguagePaths">
         <source xml:lang="en">Allow external language content to use file paths.</source>
-        <target state="new">Allow external language content to use file paths.</target>
+        <target state="translated">외부 언어 콘텐츠에서 파일 경로를 사용할 수 있도록 허용합니다.</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.allowExternalLibraryPaths">
         <source xml:lang="en">Allow external library content to use file paths.</source>
-        <target state="new">Allow external library content to use file paths.</target>
+        <target state="translated">외부 라이브러리 콘텐츠에서 파일 경로를 사용할 수 있도록 허용합니다.</target>
       </trans-unit>
       <trans-unit id="mssql.deviceCode.description">
         <source xml:lang="en">Allows users to sign in to input-constrained devices.</source>
@@ -13741,11 +13741,11 @@ Projects:
       </trans-unit>
       <trans-unit id="mssql.format.options.identifierCasing">
         <source xml:lang="en">Casing style for object identifiers.</source>
-        <target state="new">Casing style for object identifiers.</target>
+        <target state="translated">개체 식별자의 대/소문자 스타일입니다.</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.builtInFunctionCasing">
         <source xml:lang="en">Casing style for supported built-in function names, such as `GETDATE` and `COALESCE`.</source>
-        <target state="new">Casing style for supported built-in function names, such as `GETDATE` and `COALESCE`.</target>
+        <target state="translated">`GETDATE` 및 `COALESCE`와 같은 지원되는 기본 제공 함수 이름의 대소문자 스타일입니다.</target>
       </trans-unit>
       <trans-unit id="mssql.changeConnection">
         <source xml:lang="en">Change Connection (MSSQL)</source>
@@ -14135,63 +14135,63 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       </trans-unit>
       <trans-unit id="mssql.format.options.multilineGroupByElementsList">
         <source xml:lang="en">Format GROUP BY elements as a multiline list.</source>
-        <target state="new">Format GROUP BY elements as a multiline list.</target>
+        <target state="translated">GROUP BY 요소를 여러 줄 목록으로 서식 지정합니다.</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.multilineHavingPredicatesList">
         <source xml:lang="en">Format HAVING predicates separated by AND or OR on multiple lines.</source>
-        <target state="new">Format HAVING predicates separated by AND or OR on multiple lines.</target>
+        <target state="translated">AND 또는 OR로 구분된 HAVING 조건을 여러 줄로 서식 지정합니다.</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.multilineInsertTargetsList">
         <source xml:lang="en">Format INSERT columns as multiline lists.</source>
-        <target state="new">Format INSERT columns as multiline lists.</target>
+        <target state="translated">INSERT 열을 여러 줄 목록으로 서식 지정합니다.</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.multilineInsertSourcesList">
         <source xml:lang="en">Format INSERT sources as multiline lists.</source>
-        <target state="new">Format INSERT sources as multiline lists.</target>
+        <target state="translated">INSERT 원본을 여러 줄 목록으로 서식 지정합니다.</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.multilineOrderByElementsList">
         <source xml:lang="en">Format ORDER BY elements as a multiline list.</source>
-        <target state="new">Format ORDER BY elements as a multiline list.</target>
+        <target state="translated">ORDER BY 요소를 여러 줄 목록으로 서식 지정합니다.</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.multilinePartitionByElementsList">
         <source xml:lang="en">Format PARTITION BY elements in window specifications as a multiline list.</source>
-        <target state="new">Format PARTITION BY elements in window specifications as a multiline list.</target>
+        <target state="translated">창 사양에서 PARTITION BY 요소를 여러 줄 목록으로 서식 지정합니다.</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.multilineSelectElementsList">
         <source xml:lang="en">Format SELECT columns as multiline lists.</source>
-        <target state="new">Format SELECT columns as multiline lists.</target>
+        <target state="translated">SELECT 열을 여러 줄 목록으로 서식 지정합니다.</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.multilineSetClauseItems">
         <source xml:lang="en">Format SET clause items as multiline lists.</source>
-        <target state="new">Format SET clause items as multiline lists.</target>
+        <target state="translated">SET 절 항목을 여러 줄 목록으로 서식 지정합니다.</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.multilineViewColumnsList">
         <source xml:lang="en">Format VIEW columns as multiline lists.</source>
-        <target state="new">Format VIEW columns as multiline lists.</target>
+        <target state="translated">VIEW 열을 여러 줄 목록으로 서식 지정합니다.</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.multilineWherePredicatesList">
         <source xml:lang="en">Format WHERE predicates as multiline lists.</source>
-        <target state="new">Format WHERE predicates as multiline lists.</target>
+        <target state="translated">WHERE 조건을 여러 줄 목록으로 서식 지정합니다.</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.columnAliasStyle">
         <source xml:lang="en">Format column aliases using `AS`, an equals sign, or their original syntax.</source>
-        <target state="new">Format column aliases using `AS`, an equals sign, or their original syntax.</target>
+        <target state="translated">`AS`, 등호 또는 원래 구문을 사용해 열 별칭을 서식 지정합니다.</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.multilineNestedFunctionCalls">
         <source xml:lang="en">Format nested function calls on separate indented lines while keeping isolated function calls on one line.</source>
-        <target state="new">Format nested function calls on separate indented lines while keeping isolated function calls on one line.</target>
+        <target state="translated">중첩된 함수 호출은 별도의 들여쓰기된 줄에 서식 지정하고, 독립된 함수 호출은 한 줄로 유지합니다.</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.multilineProcedureParametersList">
         <source xml:lang="en">Format procedure and function parameters on separate lines.</source>
-        <target state="new">Format procedure and function parameters on separate lines.</target>
+        <target state="translated">프로시저 및 함수 매개 변수를 별도의 줄에 서식 지정합니다.</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.multilineWithOptionsList">
         <source xml:lang="en">Format supported WITH and OPTION clause values on separate lines.</source>
-        <target state="new">Format supported WITH and OPTION clause values on separate lines.</target>
+        <target state="translated">지원되는 WITH 및 OPTION 절 값을 별도의 줄로 서식 지정합니다.</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.multilineInValuesList">
         <source xml:lang="en">Format values in an IN predicate as a multiline list.</source>
-        <target state="new">Format values in an IN predicate as a multiline list.</target>
+        <target state="translated">IN 조건자의 값을 여러 줄 목록으로 서식 지정합니다.</target>
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.freezeFirstColumnByDefault">
         <source xml:lang="en">Freeze the first data column by default in new result grids. Existing saved grid state takes precedence.</source>
@@ -14223,19 +14223,19 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       </trans-unit>
       <trans-unit id="mssql.format.options.indentSetClause">
         <source xml:lang="en">Indent SET clauses in UPDATE statements.</source>
-        <target state="new">Indent SET clauses in UPDATE statements.</target>
+        <target state="translated">UPDATE 문의 SET 절을 들여씁니다.</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.indentViewBody">
         <source xml:lang="en">Indent VIEW bodies.</source>
-        <target state="new">Indent VIEW bodies.</target>
+        <target state="translated">VIEW 본문을 들여씁니다.</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.spaceBetweenDataTypeAndParameters">
         <source xml:lang="en">Insert a space between a data type and its parentheses, for example `VARCHAR (255)`.</source>
-        <target state="new">Insert a space between a data type and its parentheses, for example `VARCHAR (255)`.</target>
+        <target state="translated">데이터 형식과 괄호 사이에 공백을 삽입합니다(예: VARCHAR (255)).</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.spaceBetweenParametersInDataType">
         <source xml:lang="en">Insert spaces between parameters in a data type, for example `DECIMAL (10, 2)`.</source>
-        <target state="new">Insert spaces between parameters in a data type, for example `DECIMAL (10, 2)`.</target>
+        <target state="translated">데이터 형식의 매개 변수 사이에 공백을 삽입합니다(예: `DECIMAL (10, 2)`).</target>
       </trans-unit>
       <trans-unit id="mssql.metadata.pollSeconds.description">
         <source xml:lang="en">Internal preview setting: base interval in seconds for metadata drift checks. Set to 0 to disable polling. Per-database backoff, window-focus suspension, and serverless safeguards also apply. Reload the window after changing this setting.</source>
@@ -14243,11 +14243,11 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       </trans-unit>
       <trans-unit id="mssql.format.options.clauseBodyAlignment">
         <source xml:lang="en">Keep clause bodies aligned with their keywords or place them on the next line with indentation.</source>
-        <target state="new">Keep clause bodies aligned with their keywords or place them on the next line with indentation.</target>
+        <target state="translated">절 본문을 키워드와 맞추거나 들여쓰기를 사용해 다음 줄에 배치합니다.</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.keywordCasing">
         <source xml:lang="en">Keyword casing style.</source>
-        <target state="new">Keyword casing style.</target>
+        <target state="translated">키워드 대/소문자 스타일입니다.</target>
       </trans-unit>
       <trans-unit id="mssql.profiler.launchFromObjectExplorer">
         <source xml:lang="en">Launch Query Profiler...</source>
@@ -14383,15 +14383,15 @@ You can connect to a database by entering your connection information, using a c
       </trans-unit>
       <trans-unit id="mssql.format.options.numNewlinesAfterBatches">
         <source xml:lang="en">Number of line breaks after each GO batch separator, from 0 through 5.</source>
-        <target state="new">Number of line breaks after each GO batch separator, from 0 through 5.</target>
+        <target state="translated">각 GO 배치 구분 기호 뒤에 삽입할 줄 바꿈 수(0~5)입니다.</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.numNewlinesAfterStatement">
         <source xml:lang="en">Number of line breaks after each statement, from 0 through 5.</source>
-        <target state="new">Number of line breaks after each statement, from 0 through 5.</target>
+        <target state="translated">각 문 뒤에 오는 줄 바꿈 수입니다. 0에서 5까지 지정할 수 있습니다.</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.numNewlinesAfterBatchStatement">
         <source xml:lang="en">Number of line breaks after each top-level statement in a batch, from 0 through 5.</source>
-        <target state="new">Number of line breaks after each top-level statement in a batch, from 0 through 5.</target>
+        <target state="translated">배치에서 각 최상위 문 뒤에 삽입할 줄 바꿈 수(0~5)입니다.</target>
       </trans-unit>
       <trans-unit id="mssql.logRetentionMinutes">
         <source xml:lang="en">Number of minutes to retain log files for backend services. Default is 1 week.</source>
@@ -14403,7 +14403,7 @@ You can connect to a database by entering your connection information, using a c
       </trans-unit>
       <trans-unit id="mssql.format.options.leadingCommaSpaceCount">
         <source xml:lang="en">Number of spaces after a leading comma. Valid values are 0 and 1.</source>
-        <target state="new">Number of spaces after a leading comma. Valid values are 0 and 1.</target>
+        <target state="translated">선행 쉼표 뒤의 공백 수를 설정합니다. 올바른 값은 0 또는 1입니다.</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.objectExplorerFilters.altText">
         <source xml:lang="en">Object Explorer filters</source>
@@ -14465,71 +14465,71 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.format.options.asKeywordOnOwnLine">
         <source xml:lang="en">Place AS on its own line.</source>
-        <target state="new">Place AS on its own line.</target>
+        <target state="translated">AS를 별도의 줄에 배치합니다.</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.newLineFormattedIndexDefinition">
         <source xml:lang="en">Place UNIQUE, INCLUDE, and WHERE portions of inline index definitions on separate lines.</source>
-        <target state="new">Place UNIQUE, INCLUDE, and WHERE portions of inline index definitions on separate lines.</target>
+        <target state="translated">인라인 인덱스 정의의 UNIQUE, INCLUDE 및 WHERE 부분을 별도의 줄에 배치합니다.</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.newLineBeforeJoinClause">
         <source xml:lang="en">Place a newline before JOIN clauses.</source>
-        <target state="new">Place a newline before JOIN clauses.</target>
+        <target state="translated">JOIN 절 앞에 줄 바꿈을 합니다.</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.newLineBeforeFromClause">
         <source xml:lang="en">Place a newline before the FROM clause.</source>
-        <target state="new">Place a newline before the FROM clause.</target>
+        <target state="translated">FROM 절 앞에 줄 바꿈을 합니다.</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.newLineBeforeGroupByClause">
         <source xml:lang="en">Place a newline before the GROUP BY clause.</source>
-        <target state="new">Place a newline before the GROUP BY clause.</target>
+        <target state="translated">GROUP BY 절 앞에 줄 바꿈을 합니다.</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.newLineBeforeHavingClause">
         <source xml:lang="en">Place a newline before the HAVING clause.</source>
-        <target state="new">Place a newline before the HAVING clause.</target>
+        <target state="translated">HAVING 절 앞에 줄 바꿈을 합니다.</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.newLineBeforeOffsetClause">
         <source xml:lang="en">Place a newline before the OFFSET clause.</source>
-        <target state="new">Place a newline before the OFFSET clause.</target>
+        <target state="translated">OFFSET 절 앞에 줄 바꿈을 합니다.</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.newLineBeforeOrderByClause">
         <source xml:lang="en">Place a newline before the ORDER BY clause.</source>
-        <target state="new">Place a newline before the ORDER BY clause.</target>
+        <target state="translated">ORDER BY 절 앞에서 줄 바꿈을 합니다.</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.newLineBeforeOutputClause">
         <source xml:lang="en">Place a newline before the OUTPUT clause.</source>
-        <target state="new">Place a newline before the OUTPUT clause.</target>
+        <target state="translated">OUTPUT 절 앞에 줄 바꿈을 합니다.</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.newLineBeforeWhereClause">
         <source xml:lang="en">Place a newline before the WHERE clause.</source>
-        <target state="new">Place a newline before the WHERE clause.</target>
+        <target state="translated">WHERE 절 앞에 줄 바꿈을 합니다.</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.newLineBeforeWindowClause">
         <source xml:lang="en">Place a newline before the WINDOW clause.</source>
-        <target state="new">Place a newline before the WINDOW clause.</target>
+        <target state="translated">WINDOW 절 앞에 줄 바꿈을 합니다.</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.newLineBeforeCloseParenthesisInMultilineList">
         <source xml:lang="en">Place a newline before the closing parenthesis of a multiline list.</source>
-        <target state="new">Place a newline before the closing parenthesis of a multiline list.</target>
+        <target state="translated">여러 줄 목록의 닫는 괄호 앞에 줄 바꿈을 합니다.</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.newLineBeforeOpenParenthesisInMultilineList">
         <source xml:lang="en">Place a newline before the opening parenthesis of a multiline list.</source>
-        <target state="new">Place a newline before the opening parenthesis of a multiline list.</target>
+        <target state="translated">여러 줄 목록의 여는 괄호 앞에 줄 바꿈을 합니다.</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.commaPlacement">
         <source xml:lang="en">Place commas at the end of list items or at the beginning of the next item.</source>
-        <target state="new">Place commas at the end of list items or at the beginning of the next item.</target>
+        <target state="translated">목록 항목 끝이나 다음 항목의 시작에 쉼표를 둡니다.</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.newlineFormattedCheckConstraint">
         <source xml:lang="en">Place the CHECK clause of a constraint on its own line.</source>
-        <target state="new">Place the CHECK clause of a constraint on its own line.</target>
+        <target state="translated">제약 조건의 CHECK 절을 별도의 줄에 배치합니다.</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.newLineBeforeOnClause">
         <source xml:lang="en">Place the ON clause of a JOIN on a new line.</source>
-        <target state="new">Place the ON clause of a JOIN on a new line.</target>
+        <target state="translated">JOIN의 ON 절을 새 줄에 배치합니다.</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.newLineAfterJoinKeyword">
         <source xml:lang="en">Place the joined table source on a new line after the JOIN keyword.</source>
-        <target state="new">Place the joined table source on a new line after the JOIN keyword.</target>
+        <target state="translated">JOIN 키워드 뒤에 조인된 테이블 소스를 새 줄에 배치합니다.</target>
       </trans-unit>
       <trans-unit id="mssql.query.playCompletionSound.description">
         <source xml:lang="en">Play a sound after a query finishes executing.</source>
@@ -14537,15 +14537,15 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.format.options.preserveComments">
         <source xml:lang="en">Preserve comments during formatting.</source>
-        <target state="new">Preserve comments during formatting.</target>
+        <target state="translated">서식을 지정하는 동안 주석을 유지합니다.</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.persistTrailingGo">
         <source xml:lang="en">Preserve trailing GO batch separators from the original script.</source>
-        <target state="new">Preserve trailing GO batch separators from the original script.</target>
+        <target state="translated">원본 스크립트의 뒤에 오는 GO 배치 구분 기호를 유지합니다.</target>
       </trans-unit>
       <trans-unit id="mssql.format.options.identifierBracketing">
         <source xml:lang="en">Preserve, add, or remove optional square brackets around identifiers. Required brackets are retained.</source>
-        <target state="new">Preserve, add, or remove optional square brackets around identifiers. Required brackets are retained.</target>
+        <target state="translated">식별자 주위의 선택적 대괄호를 유지, 추가 또는 제거합니다. 필수 대괄호는 유지됩니다.</target>
       </trans-unit>
       <trans-unit id="mssql.preventAutoExecuteScript">
         <source xml:lang="en">Prevent automatic execution of scripts (e.g., 'Select Top 1000'). When enabled, scripts will not be automatically executed upon generation.</source>
@@ -14681,7 +14681,7 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.format.options.sqlEngineType">
         <source xml:lang="en">SQL engine type used to parse and generate formatted scripts.</source>
-        <target state="new">SQL engine type used to parse and generate formatted scripts.</target>
+        <target state="translated">서식이 지정된 스크립트를 구문 분석하고 생성하는 데 사용하는 SQL 엔진 유형입니다.</target>
       </trans-unit>
       <trans-unit id="mssql.quickQueries.query">
         <source xml:lang="en">SQL text for this Quick Query. Use {arg} to insert selected query-editor text; otherwise, it is appended.</source>
@@ -14785,7 +14785,7 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.format.showParseErrorNotification">
         <source xml:lang="en">Show a notification when the SQL formatter cannot fully parse the T-SQL being formatted.</source>
-        <target state="new">Show a notification when the SQL formatter cannot fully parse the T-SQL being formatted.</target>
+        <target state="translated">SQL 포맷터가 서식 지정 중인 T-SQL을 완전히 구문 분석할 수 없는 경우 알림을 표시합니다.</target>
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.showGridLines.both">
         <source xml:lang="en">Show both horizontal and vertical grid lines</source>
@@ -14869,7 +14869,7 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.format.options.sqlVersion">
         <source xml:lang="en">T-SQL version used to parse and generate formatted scripts.</source>
-        <target state="new">T-SQL version used to parse and generate formatted scripts.</target>
+        <target state="translated">서식이 지정된 스크립트를 구문 분석하고 생성하는 데 사용하는 T-SQL 버전입니다.</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.altText">
         <source xml:lang="en">Table Designer</source>
