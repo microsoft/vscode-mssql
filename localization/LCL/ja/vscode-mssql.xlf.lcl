@@ -271,6 +271,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++025b2c9cebc8d4e8ce463364bc4906b4c1d91cf3176080d240db88df9057713a" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[This discards all entity, action, column, and advanced settings for this database, including changes made by Copilot, and rebuilds them from the current schema.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[これにより、Copilot による変更を含め、このデータベースのすべてのエンティティ、アクション、列、詳細設定が破棄され、現在のスキーマから再構築されます。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++02a16a835f1e9c9cbe76a8cb9042d2f3861fc237036221e1f0c60383600f45f6" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Add Row]]></Val>
@@ -510,6 +519,15 @@
           <Val><![CDATA[The project {0} has been updated to be an SDK-style project. Click 'Learn More' for details on the Microsoft.Build.Sql SDK and ways to simplify the project file.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[プロジェクト {0} が SDK スタイル プロジェクトに更新されました。Microsoft.Build.Sql SDK の詳細とプロジェクト ファイルを簡略化する方法については、[詳細情報]5D; をクリックしてください。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++045d71b1a3454db180c918941024e788e68689e951e9d51ea41f3283ed5b7666" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[A name for this deployment]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[このデプロイの名前]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1657,6 +1675,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++0e041c039ffe50cb5992d3b630ec285c42343b01216f9bafc00114fd6c42a303" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Your configuration has changed since this container was deployed. Redeploy to apply the changes.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[このコンテナーがデプロイされてから、構成が変更されました。再デプロイして変更を適用します。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++0e04cd10f9afd7e546e176b34b56a243d8c741198aa0bfee27d7661a370dc043" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Warnings]]></Val>
@@ -1707,6 +1734,15 @@
           <Val><![CDATA[{0}/{1} events]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[{1} 件中 {0} 件のイベント]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++0e5682bd6846b320b3c20b7e81d3a887e9e0edea8e3e12ff1a42d650d166cf6c" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to download the Data API builder CLI. Please check your network connection.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Data API ビルダー CLI をダウンロードできませんでした。ネットワーク接続をご確認ください。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2062,6 +2098,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++10ec47f707e2ceda7f9f3ba5115bfd4c906b40f01260a2005ef4dc82206a2f07" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The Data API builder configuration is not valid.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Data API ビルダーの構成が無効です。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++10f7faa3b83b31a2dcc21bc5b0517143a936fee3e48b0291f480f0d2287d3d51" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to run table query: {0}]]></Val>
@@ -2404,6 +2449,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++14999af228be42ee1b1416c75be3e2e2679235dd464d1419388e8053829b70ef" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Getting Data API builder ready]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Data API ビルダーの準備]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++149f598e7edb5433f886c75bb1bf9e22c7129d29754a8bdc6223eee95384047c" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Object Type]]></Val>
@@ -2499,6 +2553,15 @@
           <Val><![CDATA[{0} changed from '{1}' to '{2}']]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[{0} が '{1}' から '{2}' に変更されました]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++1535db1c91172380e70396d4a07899000757727b521ac651eb91dbcaee2460e4" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Runs Data API builder in a container on this machine, published on a local port.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[このマシン上のコンテナーで、ローカル ポートで発行された Data API ビルダーを実行します。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2751,6 +2814,15 @@
           <Val><![CDATA[OLTP, built on Azure SQL]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Azure SQL に基づいて構築された OLTP]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++17372face64ed2506cefca636024341e0d6f25d3f75847b5d276c0d5cc4569c4" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Kerberos must be configured to use Windows Authentication on macOS and Linux. Click the info icon to learn more.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[macOS および Linux で Windows 認証を使用するように Kerberos を構成する必要があります。詳細については、情報アイコンをクリックしてください。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3084,6 +3156,15 @@
           <Val><![CDATA[Do not compress backup]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[バックアップを圧縮しない]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++1a187c0bb776eac7a356f6623badf4084f701ae47f405cfc74374c79fbf44ddb" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The container {0} will be stopped and removed, and its endpoints will stop responding.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[コンテナー {0} は停止および削除され、そのエンドポイントは応答を停止します。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3682,6 +3763,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++20766bf27fdaeb9525112dbbed778777df1e9fcb91315521e19232d83cb0d63e" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[This deployment is running an earlier version of your configuration. Redeploy it to serve the current one.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[このデプロイでは、以前のバージョンの構成が実行されています。現在のサービスを提供するように再デプロイします。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++207b04072a822fa8e76629bcd504bc8c19525b86f444ac77a6f3be1c88a502eb" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Insufficient Workspace Permissions]]></Val>
@@ -4168,6 +4258,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++23e40a67c278a8a66cd5a8bbc80182380a6c7b33b291e7c68d50504637dc5d17" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Redeploying {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0} を再デプロイしています]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++241834c43f110abedd551f363f4ea866f360fe552cd16f8cec31ab975738c57c" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to generate SqlPackage command: {0}]]></Val>
@@ -4299,6 +4398,15 @@
           <Val><![CDATA[The “{0}” extension uses a connection-sharing capability that the MSSQL extension is retiring. File a feature request for the capability you use so we can consider adding it natively.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA["{0}" 拡張機能は、MSSQL 拡張機能の廃止が予定されている接続共有機能を使用します。使用している能力の機能リクエストを提出してください。ネイティブでの追加を検討します。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++2503b01003bcd3cc049b9e4f273e2bcffeefa91ce4a71ad31fa4a74f01d6856a" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Update and start]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[更新して開始する]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4695,6 +4803,15 @@
           <Val><![CDATA[Revert values to project defaults]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[値をプロジェクトの既定値に戻す]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++291afc74d5a450bbd0b7f7b0113afdab45aa05c5cad2bea333ca7bc4b177cadb" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Reset the configuration to the defaults for this schema]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[構成をこのスキーマの既定値にリセットする]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5473,6 +5590,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++2fffa807cb6b4bd34f3fc8bf567ebcb2aed34f84dbe187fe16c7a2102150b6b5" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Checking .NET runtime]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[.NET ランタイムを確認しています]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++300a6fea7e27e277c0c31a7efb59b467a32f2dc0e1620bcac852e655727936bb" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Specified GUID is invalid: {0}]]></Val>
@@ -5860,6 +5986,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++3354da6f24cc9e0b4acf2080b9856a0ee5c185787090822b133a1c34effcd3dd" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Local Docker container]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[ローカル Docker コンテナー]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++336a8af254446c5c9006e090f430a9f283960aeefdd0dc52cf0401fa2c19ac03" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Install Docker]]></Val>
@@ -6000,6 +6135,15 @@
           <Val><![CDATA[File not found]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[ファイルが見つかりません]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++352c59bc5b59bba13bb085699f2c07a1103715439ec1a8d57b294dc06d2fbd1b" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Runs Data API builder as a local process on this machine. No Docker required.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[このマシンでローカル プロセスとして Data API ビルダーを実行します。Docker は必要ありません。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6427,6 +6571,24 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++395d24fb8fa72b65bf141f8edf73f77594688b9c3cee265c680809003f46ada9" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Starting Data API builder]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Data API ビルダーを開始しています]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++39689cd482388c355f7e0721e799cc73bb6a968b7f8c6f81d99778ca62ce8ab4" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[This deployment is no longer tracked. Refresh the deployments list and try again.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[このデプロイは追跡されなくなりました。デプロイの一覧を更新して、もう一度お試しください。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++3973e022e93220f9212c18d0d0c543ae7c309e46640da93a4a0314de999f5112" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[-]]></Val>
@@ -6495,6 +6657,15 @@
           <Val><![CDATA[Firewall rule successfully created.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[ファイアウォール規則が正常に作成されました。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++3a5c6f7694e6b79d4a4b5f16765912115902c0d08963fba6a8cc8258318c8a42" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Run with the Data API builder CLI]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Data API ビルダー CLI を使用して実行する]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6697,6 +6868,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++3c26053c4678fe4e3f992866121ffa0360ca6b3ab11b54e65f7bc7c89ce9f36b" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Data API builder could not sign in to the database. It signs in separately from this extension, using the Azure CLI. Run 'az login', then run this step again.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Data API ビルダーはデータベースにサインインできませんでした。Azure CLI を使用して、この拡張機能とは別にサインインします。'az login' を実行してから、この手順をもう一度実行します。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++3c311675a5c2bf9cd3b95e78f5c957399730d791fae923def53395a43f131d1f" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Readying container for connections...]]></Val>
@@ -6814,6 +6994,24 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++3d7fd045c1fc29ea67f5662af12d1583f91b038b1ad04078a4b52d3ff49a3291" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Preparing container settings]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[コンテナーの設定を準備しています]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++3da3d1bf74778c00be7d4094e931f49f5fc1d9532d1dbc01d55a2ca34921984c" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to write the Data API builder configuration file.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Data API ビルダー構成ファイルを書き込めませんでした。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++3da57703d00d6946cc3e7a5c4e76cd4651180efe589725eb472c35305120e67c" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Disabled globally]]></Val>
@@ -6855,6 +7053,15 @@
           <Val><![CDATA[Tenant ID is required]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[テナント ID が必要です]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++3db74f2a8f6102d4675b34a023b195df9cebec8b629b14fa62d57849a49bb7cc" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Reset DAB configuration?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[DAB 構成をリセットしますか?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7381,6 +7588,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++424524b73f7b54ca2663888521169681b82129343191178726fb2d93a58fc294" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[This deployment's configuration file is missing, so it cannot be started. Redeploy it instead.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[このデプロイの構成ファイルが見つからないため、開始できません。代わりに再デプロイしてください。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++426016e0e4d63d9581ac0dd57c0cb2c983f34914d3fb7fc18de3615d8429ec8f" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{0}h {1}m]]></Val>
@@ -7642,6 +7858,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++44b0a413f8d05eb0ef3f3d9fed2fd83c57f36fb8d949d4bbf51ec80a24ccf64a" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[This will run Data API builder as a local process, exposing {0} APIs based on your configuration.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[これにより、Data API ビルダーがローカル プロセスとして実行され、構成に基づいて {0} API が公開されます。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++44d2a0a2acc914c78aa0e8c8159f46438f59c7964dcde4aa05b490fb1d6d99c7" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Start profiling session]]></Val>
@@ -7696,6 +7921,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++45084af75704dd211915415afc4cd6d35c552ebe62bfbfe314688f5cfa972df2" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to stop the DAB container.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[DAB コンテナーを停止できませんでした。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++451c56077f521060be29b5df2ec0d863cdc0fcff4970e3ad7e5e44e7a780ae42" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Changes applied successfully. Run Schema Compare again to see updated differences.]]></Val>
@@ -7710,6 +7944,15 @@
           <Val><![CDATA[Impact {0}%]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[影響 {0}%]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++453a0d1fc294fdc5b40419b3f4e8a2071c86012533d6e5787d71b21c740a3cb5" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[A container cannot use Windows Authentication, because it runs outside your Windows session. Deploy with the Data API builder CLI instead, which runs as you.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[コンテナーは Windows セッションの外部で実行されるため、Windows 認証を使用できません。代わりに、Data API ビルダー CLI を使用してデプロイします。この CLI は、そのまま実行されます。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -8488,6 +8731,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++4b322ab456c5f1d7a9a9be01df5778e65771785eab5f5f93637487f24f24793d" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The Data API builder CLI exited with code {0}.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Data API ビルダー CLI はコード {0} で終了しました。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++4b3b2ad10c0a631a51cd924996fff46c30bbf9c35362f3aaa9f61b6006c660f1" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to start DAB container. Please check the Docker logs for details.]]></Val>
@@ -8502,6 +8754,15 @@
           <Val><![CDATA[No matches found]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[一致するものが見つかりません]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++4b5ae74ddb4ca3e016189806d6416b4dd28e2d0a53de8d08da351164792732c9" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[This deployment is not serving requests, and it is running an earlier version of your configuration.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[このデプロイは要求を処理しておらず、以前のバージョンの構成を実行しています。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -8529,6 +8790,15 @@
           <Val><![CDATA[A reference to project '{0}' cannot be added. Adding this project as a reference would cause a circular dependency]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[プロジェクト '{0}' への参照を追加できません。このプロジェクトを参照として追加すると、循環する依存関係が発生します。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++4baf7a099b1735625d09c0b739ab0661d25b8db0dd3f09330f6521bd686f66fe" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Hide endpoints]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[エンドポイントを非表示にする]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -9127,6 +9397,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++50ccae2402463062c4e42c7c9ec72243a183ba61fc2f56c3e41bc7ef605acbcd" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Choose where to run Data API builder for this database.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[このデータベースの Data API ビルダーを実行する場所を選択します。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++50ee55cd30fcbff4593b799f78f7ee159d3eb0ad52bcf7b43f6fea7ea5cf5050" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Filter {0}]]></Val>
@@ -9312,6 +9591,15 @@
           <Val><![CDATA[For numeric data, the maximum number of decimal digits that can be stored in this database object to the right of decimal point.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[数値データの場合、この小数点の右側にあるデータベース オブジェクトに格納できる小数点以下の最大桁数です。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++529233139a7f825a4fdb76f61d8ce0507228a61b913494424f04710930da9e0f" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Data API builder CLI]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[データ API ビルダー CLI]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -9717,6 +10005,15 @@
           <Val><![CDATA[An error occurred: {0}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[エラーが発生しました: {0}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++56fd12d1814f45e445ae980300dfd1116341d74906f20c1a15a33e850468adbc" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The Data API builder engine did not answer in time.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Data API ビルダー エンジンは時間内に応答しませんでした。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10198,6 +10495,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++5ad473588c959848c56bd2257ed21db4d4125cffd27edd2d3b6582f7afce2253" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Loading deployments]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[デプロイを読み込んでいます]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++5ada503b3fe7404cadebe8c4d4d3935999a8086f7ae361022caa032a873ec429" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Add an Account...]]></Val>
@@ -10329,6 +10635,15 @@
           <Val><![CDATA[Query Editor]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[クエリ エディター]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++5c17965622983d7609326136700351ac959d559bc092c37d288ff42c8fb4a6ab" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to start the Data API builder engine.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Data API ビルダー エンジンを起動できませんでした。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10563,6 +10878,15 @@
           <Val><![CDATA[Are you sure you want to delete the reference to {0}?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[{0} への参照を削除しますか?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++5e03ca0d91206dd95d88a9ecb660ec409ec2794c296c6e68c1fa420c0d2dc41a" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Preparing deployment settings]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[デプロイ設定を準備しています]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10882,6 +11206,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++610d2469ca9f85e91ba3c5aff68859fe46b822e0477dd30a07e4b26c3c7ecaa1" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Resolving a runtime that can run the CLI]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[CLI を実行できるランタイムの解決]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++61294a599c4ab1debbddc1cb4688c8843d5a58e74ae7b9352d0eeb95dd9497c2" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[There was an error updating the project: {0}]]></Val>
@@ -10932,6 +11265,15 @@
           <Val><![CDATA[Choose Query History]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Query History の選択]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++61f87c003e1cd80e47b70c628e2f057439b9839b1e65f7e896ade78f455fd463" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The Data API builder CLI is not available. Run the prerequisite checks again.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Data API ビルダー CLI は使用できません。前提条件チェックをもう一度実行します。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -11467,6 +11809,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++66b868d316fac9d2254207e43df9118377a95ef7e35d136c357498e0637d5871" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Checking engine readiness]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[エンジンの準備状況を確認しています]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++673ae818a6a16c8b230b618e5323dcbaa10fb5421d2426c2282dd325500a187a" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Schema Changes]]></Val>
@@ -11629,6 +11980,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++68d329969e77edfb8153e6ca614c82e901435d0d3def01bb59341fd555d821e0" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Getting Data API builder CLI]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Data API ビルダー CLI の取得]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++690dbe9dc0993c4256683738fc3fd541cfa96f60d299be33343615dd58179d93" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Recent]]></Val>
@@ -11652,6 +12012,15 @@
           <Val><![CDATA[Filter Changes]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[変更のフィルター処理]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++6917f5e712a4993af96c63563bb6f77689af01cea41fdd4bad4708e3f2749d8b" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Deployed {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0} をデプロイしました]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -11881,6 +12250,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++6afdf49d00bde2bc467f3cec19bb85b59741fbf80180c91ea58de6599f494046" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Container no longer exists]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[コンテナーが存在しなくなりました]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++6b0054dcd0116896729545198c9cdfe9b8f97008d91d39084e5c8808a6784c58" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Server Edition]]></Val>
@@ -11962,6 +12340,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++6b6502c5e24875e7e79fd9b5bece6a2d06188effd61f5578718cf5f2fb7a9c22" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No .NET runtime was found to run the Data API builder CLI. Install .NET and try again.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Data API ビルダー CLI を実行するための .NET ランタイムが見つかりませんでした。.NET をインストールして、もう一度お試しください。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++6b701c298e690838c7d2adb77f18b10ba1220b1f89db94922e5f7808d1b40406" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Expand selection left]]></Val>
@@ -12039,6 +12426,15 @@
           <Val><![CDATA[Change Database]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[データベースの変更]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++6be4a48af21f057f95228c735626f18c8bc96d306afa6ab163770f2f5c73265f" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Replace this container with a new one on the same name and port, running your current configuration.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[このコンテナーを、現在の構成で実行されている同じ名前とポート上の新しいものと置き換えます。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -12408,6 +12804,15 @@
           <Val><![CDATA[Connect using profile {0}?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[プロファイル {0} を使用して接続しますか?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++6f1737dd338b7ed6e377799ecdaaeae637e31c51c9641edf808353790312c58e" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Downloading and unpacking the CLI package]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[CLI パッケージのダウンロードとアンパック]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -13177,6 +13582,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++757ab980fc6aa23039b078034c46f53beac4388f316bc8e98c9770a87e6d5ad9" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[This deployment no longer exists]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[このデプロイは存在しなくなりました]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++757ac56c1f67056996dba37c6407eb302cbee2e590429afcb42210d125337f6a" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Apply changes to target]]></Val>
@@ -13380,6 +13794,24 @@
           <Val><![CDATA[Expose {0}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[{0} の公開]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++7771f1f8f1ff048b4107e7d29f178ba80d2db1e9ba0afc744097ea074cb3b01c" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Config changed]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[構成が変更されたか?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++777bc7ace9ef9cd24f40d697d603c4ca07ebd13f76c7ce9148fa0df315e2c5ef" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Deployment settings]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[デプロイ設定]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -13996,6 +14428,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++7d461990f839b0bf2ac4825e909940b31fbe37f7b1da2ee5a4091bfb27cf40cb" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The engine for {0} will be stopped and its generated configuration removed, and its endpoints will stop responding.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0} のエンジンは停止され、生成された構成は削除され、エンドポイントは応答を停止します。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++7d4b99d7fea1f8fb56040b0f388071d3f886f709000859485129c0ce1930fce9" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Microsoft would like your feedback]]></Val>
@@ -14019,6 +14460,15 @@
           <Val><![CDATA[Initializing DAB configuration...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[DAB 構成を初期化しています...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++7d5c5022125c3e8297cfd53b8df2ecd886e783e6179acd8054c68c60b155ca71" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The Data API builder engine did not become ready within the timeout period.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Data API ビルダー エンジンは、タイムアウト期間内に準備ができていませんでした。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -14064,6 +14514,15 @@
           <Val><![CDATA[Set Null]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[NULL を設定]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++7ddb44d8a533a7535d85cedddf35d7f3414632ad4e10a0d7ca697723e1d97993" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[just now]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[たった今]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -14163,6 +14622,15 @@
           <Val><![CDATA[Authentication not supported]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[認証はサポートされていません]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++7eb5af92e49c32f0e22097bda3e39b3b9b3bcdeb80d5c278b5d74504b96c2beb" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Status unavailable]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[状態を確認できません]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -14748,6 +15216,15 @@
           <Val><![CDATA[Send Feedback]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[フィードバックの送信]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++842a4697fd0dddaa2ffb9e593abdfcc1963640b7e3b28eb5e5ae1624a18eaf46" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Deployments]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[デプロイ]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -16435,6 +16912,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++954dec32386b912be138accf36de060517dcc00ae06dd2f4b243aa7233170cad" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to prepare the Data API builder CLI.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Data API ビルダー CLI を準備できませんでした。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++955b62784673f0081b2a54d867245fa50ca1e830cea22348ff69caa6317e7889" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Unable to open Table Explorer: No target node provided.]]></Val>
@@ -16476,6 +16962,24 @@
           <Val><![CDATA[Select all entities]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[すべてのエンティティを選択]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++958bd39b8c9507522a7a8e9591f1b534ef96708d873950c0ad91d4db1a452473" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Back to deployments]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[デプロイに戻る]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++95afd13ac532a72eaf92176d5ea81e5376d8bd0e10586bdf2221118633550f86" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Read the active Data API builder configuration with mssql_dab operation 'get_state' before applying changes.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[変更を適用する前に、mssql_dab 操作 'get_state' を使用してアクティブな Data API ビルダーの構成を読み取ります。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -17254,6 +17758,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++9c6060316cb89a17616309dfa9b9ce524f7fdd29639b433015ba722294337b51" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Delete deployment?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[デプロイを削除しますか?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++9c9335630fa6b9edd2fa273ee1c7bbf05139a475c4491339a5a5b0579d5c4961" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Search rules...]]></Val>
@@ -17853,6 +18366,15 @@
           <Val><![CDATA[Max]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[最大]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++a1a823de4d28a66950b1dbb93d476d8244e0d54ef2936f008ab33d4a82f51d82" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Download .NET]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[.NET をダウンロードしました]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -18541,6 +19063,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++a7e07c22703de9d73d67247e3b0aa4c39c469d01e09bbb67c033dccb76ed9d60" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Deployed at {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0} にデプロイ済み]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++a7e5c26c01b7c6e199165e627138d104755d24adb0ac611e42bc8b6787b7216c" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[SQLCMD variable name '{0}' cannot contain whitespace]]></Val>
@@ -18906,6 +19437,15 @@
           <Val><![CDATA[Less Than]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[指定値より小さい]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++ab81702157ab7c569f837c5ed0b5ec4318ae26021c2ab425c920c69bb3e6c56d" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[This deployment is not serving requests. Start it to bring its endpoints back.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[このデプロイは要求を処理していません。エンドポイントを元に戻すために起動します。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -19545,6 +20085,15 @@
           <Val><![CDATA[Description for the table.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[テーブルの説明です。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++b16fe7caa99853b93586ff9f7c883be10c62c4d1cedd735733ae1a3435b09a99" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Show endpoints]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[エンドポイントの表示]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -20382,6 +20931,15 @@
           <Val><![CDATA[Failed to start '{0}': {1}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA['{0}' を開始できませんでした: {1}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++b84c66ad40ee1cc20942fe07d1bad88916d0a664bb3f5688ab8a84a0ab5e3cf3" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Validating configuration]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[構成を検証しています]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -21250,6 +21808,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++bf0c5eefb35a2a14ae8ea5fa2d7747fff0157874c2640e9a31397ed840b8d5b3" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Configuration no longer exists]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[構成が存在しなくなりました]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++bf0e5179cb962af6329b97f24951139ae47f60ff00cdcd1ccbacd816608b6866" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Find Previous]]></Val>
@@ -21963,6 +22530,15 @@
           <Val><![CDATA[Enable all rules in {0}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[{0} のすべてのルールを有効にする]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++c61a041f6ca5abff2c94cefc531083c11d3f3b2af7131fb9640dda59a551e289" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[A .NET runtime is required. The extension downloads the Data API builder CLI and resolves a runtime for it.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[.NET ランタイムが必要です。拡張機能は、Data API ビルダー CLI をダウンロードし、そのためのランタイムを解決します。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -22786,6 +23362,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++ce29b7f85b9eaf7dac52e625accb4b0cb56a856ebe9a9de9a09b613b6d978dca" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Up to date]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[最新]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++ce38eb0f7362769e116cea50e7d6bd644efdc36bd9c75a5b6a6987bfb126629d" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Quick Query slot must be between 1 and {0}.]]></Val>
@@ -22800,6 +23385,15 @@
           <Val><![CDATA[Invalid database reference in .sqlproj file]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[.sqlproj ファイルでの無効なデータベース参照]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++ce5d55bb752536f83184e27b9bbd84d15f4fe753e2551472518d8f0e68fb80a5" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The .NET runtime has not been resolved yet. Run the prerequisite checks again.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[.NET ランタイムはまだ解決されていません。前提条件の確認をもう一度実行してください。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -22935,6 +23529,15 @@
           <Val><![CDATA[Hide Changes]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[変更の非表示]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++cf8c3297ab7628d786643eac5519083798d99ceb941e12a143010e0a54baaa32" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Its container has been removed. Redeploy to create it again.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[そのコンテナーは削除されました。再デプロイしてもう一度作成してください。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -23254,6 +23857,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++d2b1116f23fecfb0a2b5846b774cd71210432457a65afd58eb782b5f122280f3" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Start the container to use these endpoints.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[コンテナーを起動して、これらのエンドポイントを使用します。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++d2b6ebb67aeb8ede651aa24682be64c81d2e0a970c297908b470e55fd14c0bcc" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Copy code and open webpage]]></Val>
@@ -23376,6 +23988,15 @@
           <Val><![CDATA[Messages ({0})]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[メッセージ ({0})]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++d39279795c068e7eae0fac751fc1ff7e722232cb6f15f871494b4d70e46a7f9c" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Deployment name, port, and configuration are required to start the engine.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[エンジンを起動するには、デプロイ名、ポート、構成が必要です。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -23983,6 +24604,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++d90dacedab33faee6e7e3d4aec2d222b63b231958e052de1a3f5a55ffc80c982" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Data API builder is running!]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Data API ビルダーが実行されています。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++d913a8ab7732ff7d26c8afceb2e2706c5c991762df193b236fd839bd3a616cb6" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Connection Profile could not be updated. Please modify the connection details manually in settings.json and try again.]]></Val>
@@ -24087,6 +24717,24 @@
           <Val><![CDATA[New column mapping]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[新しい列マッピング]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++d9e5e69540871a387c5d20d2ae4ad26a58613e40b8f16e0712ec3c0dcc7ff96a" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Select a deployment target]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[デプロイのターゲットを選択する]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++d9f4fe3d6486cd5830be1c0cb68d7b2505057e7bc665c6e0503b8a005ec0cf5d" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Port {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[ポート {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -25189,6 +25837,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++e2d63f5e06d035a1e421efa44a7f1f92ec06b908d7ef82cb6ca89c2b8ee192ec" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Deployments cannot be tracked because the extension's storage location is unavailable.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[拡張機能のストレージの場所が利用できないため、デプロイを追跡できません。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++e2efd136048806149ca845f8521dbad2967230b47a2030b5b01614f9d5779620" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The selected profile authenticates using Entra ID '{0}' but that account is not signed into the MSSQL extension. Edit the connection or sign into MSSQL with that account to connect.]]></Val>
@@ -25468,6 +26125,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++e50ad98d51d6c665dad03d3a770a4c3346d6e449ff0c88ad895cd9f03c045684" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Launching the engine process]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[エンジン プロセスの起動]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++e50b72dd9f8ec3560afc51c641fb87964533455bfa1568dd626dd3279f97eb26" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Open Nitro]]></Val>
@@ -25491,6 +26157,15 @@
           <Val><![CDATA[To use this command, you must set the language to "SQL". Confirm to change language mode.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[このコマンドを使用するには、"SQL" に言語を設定する必要があります。言語モードの変更を確認してください。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++e559ae2c187c6c6dcbc066101d69ec2aa61464cb16175cdb622287b2e8b5c153" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Port {0} is no longer available, so {1} cannot be redeployed on it. Free the port, or create a new deployment on a different port.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[ポート {0} は使用できなくなったため、そこに {1} を再デプロイすることはできません。ポートを解放するか、別のポートに新しいデプロイを作成してください。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -25572,6 +26247,15 @@
           <Val><![CDATA[Failed to remove row: {0}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[行を削除できませんでした: {0}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++e640a89ce8e350fd9cdd83c32a3ab2ccdeeca996218a760b548091330dc62179" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Data API builder could not reach the database. Check that the server is running and the connection still works, then run this step again.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Data API ビルダーはデータベースにアクセスできませんでした。サーバーが実行中であり、接続が引き続き動作することを確認してから、この手順をもう一度実行してください。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -25783,6 +26467,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++e83dea6df0d276f8e91bea5268c2287724da6e27b8e9419218d698b8cc09a460" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No deployments yet]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[まだデプロイはありません]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++e8463e680c32abe75224a03ee5b03d4781e812c3180fb6e0a9c992730879574f" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Starting Docker Desktop]]></Val>
@@ -25905,6 +26598,15 @@
           <Val><![CDATA[equals]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[次の値と等しい]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++e962c61e868414967e841ebed66902435177a9fbb216e0742a075e682a47eb73" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Configuration has changed]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[構成が変更されました]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -26035,11 +26737,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++ea37170478c135fe5621105f676ae5cdb160b763078a28d661098d6d6b2959b2" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Install the Azure CLI]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Azure CLI のインストール]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++ea61bc15688d1e482ae5335e8dc030d8300b1afc07ecc7c2e6af5c43728b1d25" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Copied!]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[コピーされました。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++ea8d8a637c6aaa3d1fd33f3fa440906f5304c43a5eb605965a64271c4532f2aa" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The active Data API builder configuration changed after it was read. Run mssql_dab operation 'get_state' again before retrying; do not open another designer.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[アクティブな Data API ビルダーの構成は、読み取られた後に変更されました。再試行する前に mssql_dab 操作 'get_state' をもう一度実行してください。別のデザイナーを開かないでください。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -26251,6 +26971,24 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++ec959d6a5a283eaa094720f71457b35ef140f83d240d53d757000a127ff78889" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Container {0} no longer exists.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[コンテナー {0} が存在しなくなりました。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++ec9bd65d522eb7ea1df233fd4d1d793a112679dbf05cd753e77dd65f5adc38ce" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to start the DAB container.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[DAB コンテナーを開始できませんでした。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++ec9c37392a809590dbb62879bd1b261c3675552b33d4d8936d539925d774f6a6" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Database changed successfully]]></Val>
@@ -26368,6 +27106,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++ed7fa7e173cd1f99f4403bd77fd717d26cdffa2216341e208fa2c5f7ac0d5d53" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Checking the generated configuration]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[生成された構成の確認]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++eda567f3ec45bd45068c5e275d9a4acdcf64217bc5c76c47427cda124aa7bed3" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Microsoft Entra ID]]></Val>
@@ -26449,6 +27196,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++ee4c77e2b3b6bfaa712c2e2e3b1416127bc738993ca7f8b09b42e6a179bde808" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Redeploy]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[再デプロイ]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++ee4f8cf15984e2a10f54dd947303b40318e5503eb1116a815d634bd45dcc55da" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Connect the active SQL document to a database]]></Val>
@@ -26472,6 +27228,15 @@
           <Val><![CDATA[Add account]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[アカウントの追加]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++eeab635bdc057a1d0e7bd03117e4d3deeb099edbd0cbd0950597e643d2dab93c" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[This connection's authentication type is not supported for local deployment. Only SQL Authentication and Windows Authentication can be used.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[この接続の認証の種類は、ローカル展開ではサポートされていません。SQL 認証と Windows 認証のみを使用できます。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -26643,6 +27408,15 @@
           <Val><![CDATA[Creating server...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[サーバーを作成しています...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++f061aeddb83c8408d0337ec848124627bcfd74121e26578ef57e345af463cdd0" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Its generated configuration has been removed. Redeploy to create it again.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[生成された構成は削除されました。再デプロイして、もう一度作成してください。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -26850,6 +27624,15 @@
           <Val><![CDATA[Select Database Project Type]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[データベース プロジェクトの種類の選択]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++f26f1d9a3c097de8f5554d8ac33c7a0103d627cd3af000dde8bc6ef696ecea8e" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The Data API builder engine did not start.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Data API ビルダー エンジンが起動しませんでした。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -27430,15 +28213,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++f86597d07cc9ee182bac4dce2a2850eb6cc8509b3199ec6ab9d6e3e89fff8aae" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Your API is available at:]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[API は次の段階で利用できます。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++f889729267bd3b6e2a0a503ad9228cced8a1d16ad04a3384dc6df5dc89d6ba4c" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Entity Endpoints]]></Val>
@@ -27462,6 +28236,15 @@
           <Val><![CDATA[Failed to open Schema Designer: {0}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[スキーマ デザイナーを開けませんでした: {0}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++f8d46c2570e70736d62beb6e2e8df321d7cb4842a2b894f2025c47b31871d9f1" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[More actions]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[その他のアクション]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -27858,6 +28641,15 @@
           <Val><![CDATA[Select folder structure]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[フォルダー構造の選択]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++fc99f6bfe5e11ec996bb6edec67dd66123056685de26c34d516169c667267486" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Data API builder does not publish a build for {0}, so it cannot run directly on this machine. Try deploying to a container instead.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Data API ビルダーは、{0} 用のビルドを発行しないため、このマシンで直接実行することはできません。代わりにコンテナーにデプロイしてみてください。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -29464,681 +30256,675 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";package.mssql.format.alignColumnDefinitionsInColumns" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is disabled.** Should column definitions be aligned?]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが無効な場合に使用します。** 列の定義を揃える必要がありますか?]]></Val>
-          </Tgt>
-          <Prev Cat="Text">
-            <Val><![CDATA[Legacy formatter only: Align column definitions. Set `mssql.format.enablePreviewFormatter` to `false` to use this setting.]]></Val>
-          </Prev>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";package.mssql.format.datatypeCasing" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is disabled.** Should data types be formatted as UPPERCASE, lowercase, or none (not formatted)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが無効な場合に使用されます。** データ型を大文字、小文字、または設定なし (書式設定されていない) として書式設定する必要がありますか]]></Val>
-          </Tgt>
-          <Prev Cat="Text">
-            <Val><![CDATA[Legacy formatter only: Control data type casing. Set `mssql.format.enablePreviewFormatter` to `false` to use this setting.]]></Val>
-          </Prev>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";package.mssql.format.enablePreviewFormatter" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Use the preview SQL formatter. Disable this setting to temporarily use the existing formatter.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[プレビュー SQL フォーマッタを使用してください。既存のフォーマッタを一時的に使用するには、この設定を無効にします。]]></Val>
-          </Tgt>
-          <Prev Cat="Text">
-            <Val><![CDATA[Use the new SQL formatter. Disable this setting to temporarily use the legacy formatter.]]></Val>
-          </Prev>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";package.mssql.format.keywordCasing" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is disabled.** Should keywords be formatted as UPPERCASE, lowercase, or none (not formatted)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが無効な場合に使用されます。** キーワードを大文字、小文字、または設定なし (書式設定されていない) として書式設定する必要がありますか]]></Val>
-          </Tgt>
-          <Prev Cat="Text">
-            <Val><![CDATA[Legacy formatter only: Control keyword and IntelliSense casing. Set `mssql.format.enablePreviewFormatter` to `false` to use this setting.]]></Val>
-          </Prev>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";package.mssql.format.options.alignClauseBodies" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Align the bodies of FROM, WHERE, GROUP BY, and similar clauses.]]></Val>
+          <Val><![CDATA[Align the bodies of FROM, WHERE, GROUP BY, and similar clauses.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** FROM、WHERE、GROUP BY のような句の本文を揃えます。]]></Val>
+            <Val><![CDATA[FROM、WHERE、GROUP BY、同様の句の本体を揃えます。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Align the bodies of FROM, WHERE, GROUP BY, and similar clauses.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Align the bodies of FROM, WHERE, GROUP BY, and similar clauses.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.alignColumnDefinitionFields" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Align column-definition fields, such as names, data types, and constraints.]]></Val>
+          <Val><![CDATA[Align column-definition fields, such as names, data types, and constraints.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** 名前、データ型、制約などの列定義フィールドを配置します。]]></Val>
+            <Val><![CDATA[名前、データ型、制約などの列定義フィールドを配置します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Align column-definition fields, such as names, data types, and constraints.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Align column-definition fields, such as names, data types, and constraints.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.alignSetClauseItem" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Align SET clause items in UPDATE statements.]]></Val>
+          <Val><![CDATA[Align SET clause items in UPDATE statements.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** UPDATE ステートメントで SET 句項目を配置します。]]></Val>
+            <Val><![CDATA[UPDATE ステートメントで SET 句の項目を配置します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Align SET clause items in UPDATE statements.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Align SET clause items in UPDATE statements.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.allowExternalLanguagePaths" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Allow external language content to use file paths.]]></Val>
+          <Val><![CDATA[Allow external language content to use file paths.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** 外部言語のコンテンツでファイル パスを使用できるようにします。]]></Val>
+            <Val><![CDATA[外部言語コンテンツにファイル パスの使用を許可します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Allow external language content to use file paths.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Allow external language content to use file paths.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.allowExternalLibraryPaths" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Allow external library content to use file paths.]]></Val>
+          <Val><![CDATA[Allow external library content to use file paths.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** 外部ライブラリのコンテンツでファイル パスを使用できるようにします。]]></Val>
+            <Val><![CDATA[外部ライブラリのコンテンツにファイル パスの使用を許可します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Allow external library content to use file paths.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Allow external library content to use file paths.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.asKeywordOnOwnLine" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place AS on its own line.]]></Val>
+          <Val><![CDATA[Place AS on its own line.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**フォーマッタのプレビューが有効な場合に使用します。** AS を個別の行に配置します。]]></Val>
+            <Val><![CDATA[AS を独自の行に配置します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Place AS on its own line.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Place AS on its own line.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.builtInFunctionCasing" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Casing style for supported built-in function names, such as `GETDATE` and `COALESCE`.]]></Val>
+          <Val><![CDATA[Casing style for supported built-in function names, such as `GETDATE` and `COALESCE`.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用されます。** GETDATE や COALESCE など、サポートされている組み込み関数名の大文字/小文字のスタイル。]]></Val>
+            <Val><![CDATA[`GETDATE` や `COALESCE` など、サポートされている組み込み関数名の大文字/小文字のスタイル。]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Casing style for supported built-in function names, such as `GETDATE` and `COALESCE`.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.clauseBodyAlignment" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Keep clause bodies aligned with their keywords or place them on the next line with indentation.]]></Val>
+          <Val><![CDATA[Keep clause bodies aligned with their keywords or place them on the next line with indentation.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用されます。** 句の本体をキーワードに揃えるか、インデントを付けて次の行に配置します。]]></Val>
+            <Val><![CDATA[句の本体をキーワードに揃えるか、インデントを付けて次の行に配置します。]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Keep clause bodies aligned with their keywords or place them on the next line with indentation.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.columnAliasStyle" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format column aliases using `AS`, an equals sign, or their original syntax.]]></Val>
+          <Val><![CDATA[Format column aliases using `AS`, an equals sign, or their original syntax.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用されます。** 列のエイリアスを AS、等号、または元の構文を使用して書式設定します。]]></Val>
+            <Val><![CDATA[列のエイリアスを `AS`、等号、または元の構文を使用して書式設定します。]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Format column aliases using `AS`, an equals sign, or their original syntax.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.commaPlacement" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place commas at the end of list items or at the beginning of the next item.]]></Val>
+          <Val><![CDATA[Place commas at the end of list items or at the beginning of the next item.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用されます。** リスト項目の末尾、または次の項目の先頭にコンマを配置します。]]></Val>
+            <Val><![CDATA[リスト項目の末尾、または次の項目の先頭にコンマを配置します。]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Place commas at the end of list items or at the beginning of the next item.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.identifierBracketing" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Preserve, add, or remove optional square brackets around identifiers. Required brackets are retained.]]></Val>
+          <Val><![CDATA[Preserve, add, or remove optional square brackets around identifiers. Required brackets are retained.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用されます。** 識別子の前後にある省略可能な角かっこを保持、追加、または削除します。必須の角かっこは保持されます。]]></Val>
+            <Val><![CDATA[識別子を囲む省略可能な角かっこを保持、追加、または削除します。必須の角かっこは保持されます。]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Preserve, add, or remove optional square brackets around identifiers. Required brackets are retained.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.identifierCasing" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Casing style for object identifiers.]]></Val>
+          <Val><![CDATA[Casing style for object identifiers.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用されます。** オブジェクト識別子の大文字/小文字のスタイル。]]></Val>
+            <Val><![CDATA[オブジェクト識別子の大文字/小文字のスタイル。]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Casing style for object identifiers.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.indentSetClause" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Indent SET clauses in UPDATE statements.]]></Val>
+          <Val><![CDATA[Indent SET clauses in UPDATE statements.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** UPDATE ステートメントで SET 句をインデントします。]]></Val>
+            <Val><![CDATA[UPDATE ステートメントで SET 句をインデントします。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Indent SET clauses in UPDATE statements.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Indent SET clauses in UPDATE statements.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.indentViewBody" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Indent VIEW bodies.]]></Val>
+          <Val><![CDATA[Indent VIEW bodies.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**フォーマッタのプレビューが有効な場合に使用します。** VIEW 本文をインデントします。]]></Val>
+            <Val><![CDATA[VIEW 本体をインデントします。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Indent VIEW bodies.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Indent VIEW bodies.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.keywordCasing" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Keyword casing style.]]></Val>
+          <Val><![CDATA[Keyword casing style.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**フォーマッタのプレビューが有効な場合に使用します。** キーワードの大文字と小文字のスタイル。]]></Val>
+            <Val><![CDATA[キーワードの大文字と小文字のスタイル。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Keyword casing style.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Keyword casing style.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.leadingCommaSpaceCount" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Number of spaces after a leading comma. Valid values are 0 and 1.]]></Val>
+          <Val><![CDATA[Number of spaces after a leading comma. Valid values are 0 and 1.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用されます。** 先頭のコンマの後のスペースの数。有効な値は 0 と 1 です。]]></Val>
+            <Val><![CDATA[先頭のコンマの後のスペースの数。有効な値は 0 と 1 です。]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Number of spaces after a leading comma. Valid values are 0 and 1.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.multilineGroupByElementsList" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format GROUP BY elements as a multiline list.]]></Val>
+          <Val><![CDATA[Format GROUP BY elements as a multiline list.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用されます。** GROUP BY 要素を複数行のリストとして書式設定します。]]></Val>
+            <Val><![CDATA[GROUP BY 要素を複数行のリストとして書式設定します。]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Format GROUP BY elements as a multiline list.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.multilineHavingPredicatesList" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format HAVING predicates separated by AND or OR on multiple lines.]]></Val>
+          <Val><![CDATA[Format HAVING predicates separated by AND or OR on multiple lines.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用されます。** AND または OR で区切られた HAVING 述語を複数行にフ書式設定します。]]></Val>
+            <Val><![CDATA[AND または OR で区切られた HAVING 述語を複数行に書式設定します。]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Format HAVING predicates separated by AND or OR on multiple lines.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.multilineInValuesList" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format values in an IN predicate as a multiline list.]]></Val>
+          <Val><![CDATA[Format values in an IN predicate as a multiline list.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用されます。** IN 述語の値を複数行のリストとして書式設定します。]]></Val>
+            <Val><![CDATA[IN 述語の値を複数行のリストとして書式設定します。]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Format values in an IN predicate as a multiline list.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.multilineInsertSourcesList" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format INSERT sources as multiline lists.]]></Val>
+          <Val><![CDATA[Format INSERT sources as multiline lists.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** INSERT ソースを複数行リストとして書式設定します。]]></Val>
+            <Val><![CDATA[INSERT ソースを複数行リストとして書式設定します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Format INSERT sources as multiline lists.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Format INSERT sources as multiline lists.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.multilineInsertTargetsList" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format INSERT columns as multiline lists.]]></Val>
+          <Val><![CDATA[Format INSERT columns as multiline lists.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** INSERT 列を複数行リストとして書式設定します。]]></Val>
+            <Val><![CDATA[INSERT 列を複数行リストとして書式設定します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Format INSERT columns as multiline lists.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Format INSERT columns as multiline lists.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.multilineNestedFunctionCalls" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format nested function calls on separate indented lines while keeping isolated function calls on one line.]]></Val>
+          <Val><![CDATA[Format nested function calls on separate indented lines while keeping isolated function calls on one line.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用されます。** 入れ子になった関数呼び出しはインデントした別々の行に書式設定し、単独の関数呼び出しは 1 行に保持します。]]></Val>
+            <Val><![CDATA[入れ子になった関数呼び出しはインデントされた別々の行に書式設定し、単独の関数呼び出しは 1 行に保持します。]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Format nested function calls on separate indented lines while keeping isolated function calls on one line.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.multilineOrderByElementsList" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format ORDER BY elements as a multiline list.]]></Val>
+          <Val><![CDATA[Format ORDER BY elements as a multiline list.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用されます。** GROUP BY 要素を複数行のリストとして書式設定します。]]></Val>
+            <Val><![CDATA[ORDER BY 要素を複数行のリストとして書式設定します。]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Format ORDER BY elements as a multiline list.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.multilinePartitionByElementsList" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format PARTITION BY elements in window specifications as a multiline list.]]></Val>
+          <Val><![CDATA[Format PARTITION BY elements in window specifications as a multiline list.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用されます。** ウィンドウ仕様の PARTITION BY 要素を複数行のリストとして書式設定します。]]></Val>
+            <Val><![CDATA[ウィンドウ仕様の PARTITION BY 要素を複数行のリストとして書式設定します。]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Format PARTITION BY elements in window specifications as a multiline list.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.multilineProcedureParametersList" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format procedure and function parameters on separate lines.]]></Val>
+          <Val><![CDATA[Format procedure and function parameters on separate lines.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用されます。** プロシージャおよび関数のパラメーターを別々の行に書式設定します。]]></Val>
+            <Val><![CDATA[プロシージャおよび関数のパラメーターを別々の行に書式設定します。]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Format procedure and function parameters on separate lines.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.multilineSelectElementsList" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format SELECT columns as multiline lists.]]></Val>
+          <Val><![CDATA[Format SELECT columns as multiline lists.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** SELECT 列を複数行リストとして書式設定します。]]></Val>
+            <Val><![CDATA[SELECT 列を複数行リストとして書式設定します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Format SELECT columns as multiline lists.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Format SELECT columns as multiline lists.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.multilineSetClauseItems" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format SET clause items as multiline lists.]]></Val>
+          <Val><![CDATA[Format SET clause items as multiline lists.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** SET 句項目を複数行リストとして書式設定します。]]></Val>
+            <Val><![CDATA[SET 句項目を複数行に書式設定します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Format SET clause items as multiline lists.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Format SET clause items as multiline lists.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.multilineViewColumnsList" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format VIEW columns as multiline lists.]]></Val>
+          <Val><![CDATA[Format VIEW columns as multiline lists.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** VIEW 列を複数行リストとして書式設定します。]]></Val>
+            <Val><![CDATA[VIEW 列を複数行リストとして書式設定します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Format VIEW columns as multiline lists.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Format VIEW columns as multiline lists.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.multilineWherePredicatesList" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format WHERE predicates as multiline lists.]]></Val>
+          <Val><![CDATA[Format WHERE predicates as multiline lists.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** WHERE 述語を複数行リストとして書式設定します。]]></Val>
+            <Val><![CDATA[WHERE 述語を複数行リストとして書式設定します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Format WHERE predicates as multiline lists.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Format WHERE predicates as multiline lists.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.multilineWithOptionsList" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Format supported WITH and OPTION clause values on separate lines.]]></Val>
+          <Val><![CDATA[Format supported WITH and OPTION clause values on separate lines.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用されます。** サポートされている WITH および OPTION 句の値を別々の行に書式設定します。]]></Val>
+            <Val><![CDATA[サポートされている WITH および OPTION 句の値を別々の行に書式設定します。]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Format supported WITH and OPTION clause values on separate lines.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.newLineAfterJoinKeyword" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place the joined table source on a new line after the JOIN keyword.]]></Val>
+          <Val><![CDATA[Place the joined table source on a new line after the JOIN keyword.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用されます。** JOIN キーワードの後の新しい行に結合するテーブル ソースを配置します。]]></Val>
+            <Val><![CDATA[JOIN キーワードの後の新しい行に結合するテーブル ソースを配置します。]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Place the joined table source on a new line after the JOIN keyword.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.newLineBeforeCloseParenthesisInMultilineList" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the closing parenthesis of a multiline list.]]></Val>
+          <Val><![CDATA[Place a newline before the closing parenthesis of a multiline list.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** 複数行リストの右かっこの前に改行を配置します。]]></Val>
+            <Val><![CDATA[複数行リストの終わりかっこの前に改行を配置します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Place a newline before the closing parenthesis of a multiline list.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the closing parenthesis of a multiline list.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.newLineBeforeFromClause" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the FROM clause.]]></Val>
+          <Val><![CDATA[Place a newline before the FROM clause.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** FROM 句の前に改行を配置します。]]></Val>
+            <Val><![CDATA[FROM 句の前に改行を配置します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Place a newline before the FROM clause.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the FROM clause.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.newLineBeforeGroupByClause" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the GROUP BY clause.]]></Val>
+          <Val><![CDATA[Place a newline before the GROUP BY clause.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** GROUP BY 句の前に改行を配置します。]]></Val>
+            <Val><![CDATA[GROUP BY 句の前に改行を配置します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Place a newline before the GROUP BY clause.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the GROUP BY clause.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.newLineBeforeHavingClause" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the HAVING clause.]]></Val>
+          <Val><![CDATA[Place a newline before the HAVING clause.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** HAVING 句の前に改行を配置します。]]></Val>
+            <Val><![CDATA[HAVING 句の前に改行を配置します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Place a newline before the HAVING clause.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the HAVING clause.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.newLineBeforeJoinClause" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before JOIN clauses.]]></Val>
+          <Val><![CDATA[Place a newline before JOIN clauses.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** JOIN 句の前に改行を配置します。]]></Val>
+            <Val><![CDATA[JOIN 句の前に改行を配置します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Place a newline before JOIN clauses.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before JOIN clauses.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.newLineBeforeOffsetClause" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the OFFSET clause.]]></Val>
+          <Val><![CDATA[Place a newline before the OFFSET clause.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** OFFSET 句の前に改行を配置します。]]></Val>
+            <Val><![CDATA[OFFSET 句の前に改行を配置します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Place a newline before the OFFSET clause.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the OFFSET clause.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.newLineBeforeOnClause" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place the ON clause of a JOIN on a new line.]]></Val>
+          <Val><![CDATA[Place the ON clause of a JOIN on a new line.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用されます。** JOIN の ON 句を新しい行に配置します。]]></Val>
+            <Val><![CDATA[JOIN の ON 句を新しい行に配置します。]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Place the ON clause of a JOIN on a new line.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.newLineBeforeOpenParenthesisInMultilineList" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the opening parenthesis of a multiline list.]]></Val>
+          <Val><![CDATA[Place a newline before the opening parenthesis of a multiline list.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** 複数行リストの左かっこの前に改行を配置します。]]></Val>
+            <Val><![CDATA[複数行リストの左かっこの前に改行を配置します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Place a newline before the opening parenthesis of a multiline list.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the opening parenthesis of a multiline list.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.newLineBeforeOrderByClause" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the ORDER BY clause.]]></Val>
+          <Val><![CDATA[Place a newline before the ORDER BY clause.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** ORDER BY 句の前に改行を配置します。]]></Val>
+            <Val><![CDATA[ORDER BY 句の前に改行を配置します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Place a newline before the ORDER BY clause.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the ORDER BY clause.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.newLineBeforeOutputClause" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the OUTPUT clause.]]></Val>
+          <Val><![CDATA[Place a newline before the OUTPUT clause.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** OUTPUT 句の前に改行を配置します。]]></Val>
+            <Val><![CDATA[OUTPUT 句の前に改行を配置します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Place a newline before the OUTPUT clause.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the OUTPUT clause.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.newLineBeforeWhereClause" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the WHERE clause.]]></Val>
+          <Val><![CDATA[Place a newline before the WHERE clause.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** WHERE 句の前に改行を配置します。]]></Val>
+            <Val><![CDATA[WHERE 句の前に改行を配置します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Place a newline before the WHERE clause.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the WHERE clause.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.newLineBeforeWindowClause" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the WINDOW clause.]]></Val>
+          <Val><![CDATA[Place a newline before the WINDOW clause.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** WINDOW 句の前に改行を配置します。]]></Val>
+            <Val><![CDATA[WINDOW 句の前に改行を配置します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Place a newline before the WINDOW clause.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Place a newline before the WINDOW clause.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.newLineFormattedIndexDefinition" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place UNIQUE, INCLUDE, and WHERE portions of inline index definitions on separate lines.]]></Val>
+          <Val><![CDATA[Place UNIQUE, INCLUDE, and WHERE portions of inline index definitions on separate lines.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** インライン インデックス定義の UNIQUE、INCLUDE、WHERE の各部分を別々の行に配置します。]]></Val>
+            <Val><![CDATA[インライン インデックス定義の UNIQUE、INCLUDE、WHERE の各部分を別々の行に配置します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Place UNIQUE, INCLUDE, and WHERE portions of inline index definitions on separate lines.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Place UNIQUE, INCLUDE, and WHERE portions of inline index definitions on separate lines.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.newlineFormattedCheckConstraint" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Place the CHECK clause of a constraint on its own line.]]></Val>
+          <Val><![CDATA[Place the CHECK clause of a constraint on its own line.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** 制約の CHECK 句を個別の行に配置します。]]></Val>
+            <Val><![CDATA[制約の CHECK 句を独自の行に配置します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Place the CHECK clause of a constraint on its own line.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Place the CHECK clause of a constraint on its own line.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.numNewlinesAfterBatchStatement" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Number of line breaks after each top-level statement in a batch, from 0 through 5.]]></Val>
+          <Val><![CDATA[Number of line breaks after each top-level statement in a batch, from 0 through 5.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用されます。** バッチ内の各トップレベル ステートメントの後の改行の数 (0 から 5)。]]></Val>
+            <Val><![CDATA[バッチ内の各トップレベル ステートメントの後の改行の数 (0 から 5)。]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Number of line breaks after each top-level statement in a batch, from 0 through 5.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.numNewlinesAfterBatches" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Number of line breaks after each GO batch separator, from 0 through 5.]]></Val>
+          <Val><![CDATA[Number of line breaks after each GO batch separator, from 0 through 5.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** 各 GO バッチ区切り記号の後の改行の数 (0 から 5)。]]></Val>
+            <Val><![CDATA[各 GO バッチ区切り記号の後の改行の数 (0 から 5)。]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Number of line breaks after each GO batch separator, from 0 through 5.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.numNewlinesAfterStatement" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Number of line breaks after each statement, from 0 through 5.]]></Val>
+          <Val><![CDATA[Number of line breaks after each statement, from 0 through 5.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** 各ステートメントの後の改行の数 (0 ~ 5)。]]></Val>
+            <Val><![CDATA[各ステートメントの後の改行の数 (0 ~ 5)。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Number of line breaks after each statement, from 0 through 5.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Number of line breaks after each statement, from 0 through 5.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.persistTrailingGo" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Preserve trailing GO batch separators from the original script.]]></Val>
+          <Val><![CDATA[Preserve trailing GO batch separators from the original script.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用されます。** 元のスクリプトの末尾にある GO のバッチ区切り記号を保持します。]]></Val>
+            <Val><![CDATA[元のスクリプトの末尾にある GO のバッチ区切り記号を保持します。]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Preserve trailing GO batch separators from the original script.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.preserveComments" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Preserve comments during formatting.]]></Val>
+          <Val><![CDATA[Preserve comments during formatting.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**フォーマッタのプレビューが有効な場合に使用します。** 書式設定中にコメントを保持します。]]></Val>
+            <Val><![CDATA[書式設定中にコメントを保持します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Preserve comments during formatting.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Preserve comments during formatting.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.spaceBetweenDataTypeAndParameters" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Insert a space between a data type and its parentheses, for example `VARCHAR (255)`.]]></Val>
+          <Val><![CDATA[Insert a space between a data type and its parentheses, for example `VARCHAR (255)`.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** データ型とそのかっこの間にスペースを挿入します (例: `VARCHAR (255)`)。]]></Val>
+            <Val><![CDATA[`VARCHAR (255)` など、データ型とそのかっこの間にスペースを挿入します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Insert a space between a data type and its parentheses, for example VARCHAR (255).]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Insert a space between a data type and its parentheses, for example `VARCHAR (255)`.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.spaceBetweenParametersInDataType" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Insert spaces between parameters in a data type, for example `DECIMAL (10, 2)`.]]></Val>
+          <Val><![CDATA[Insert spaces between parameters in a data type, for example `DECIMAL (10, 2)`.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** データ型のパラメーターの間にスペースを挿入します (例: `DECIMAL (10, 2)`)。]]></Val>
+            <Val><![CDATA[`DECIMAL (10, 2)` など、データ型のパラメーター間にスペースを挿入します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Insert spaces between parameters in a data type, for example DECIMAL (10, 2).]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Insert spaces between parameters in a data type, for example `DECIMAL (10, 2)`.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.sqlEngineType" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** SQL engine type used to parse and generate formatted scripts.]]></Val>
+          <Val><![CDATA[SQL engine type used to parse and generate formatted scripts.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** 書式設定されたスクリプトの解析と生成に使用される SQL エンジンの種類。]]></Val>
+            <Val><![CDATA[書式設定されたスクリプトの解析と生成に使用される SQL エンジンの種類。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[SQL engine type used to parse and generate formatted scripts.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** SQL engine type used to parse and generate formatted scripts.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.sqlVersion" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** T-SQL version used to parse and generate formatted scripts.]]></Val>
+          <Val><![CDATA[T-SQL version used to parse and generate formatted scripts.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用します。** 書式設定されたスクリプトの解析と生成に使用される T-SQL バージョン。]]></Val>
+            <Val><![CDATA[書式設定されたスクリプトの解析と生成に使用される T-SQL バージョン。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[T-SQL version used to parse and generate formatted scripts.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** T-SQL version used to parse and generate formatted scripts.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.options.terminateBlockStatements" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is enabled.** Add semicolon terminators after BEGIN...END and TRY...CATCH blocks.]]></Val>
+          <Val><![CDATA[Add semicolon terminators after BEGIN...END and TRY...CATCH blocks.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが有効な場合に使用されます。** BEGIN...END および TRY...CATCH ブロックの末尾にセミコロンを追加します。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";package.mssql.format.placeCommasBeforeNextStatement" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is disabled.** Should commas be placed at the beginning of each statement in a list, for example `, mycolumn2`, instead of at the end, for example `mycolumn1,`?]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが無効な場合に使用します。** リスト内の各ステートメントの末尾 (例: `mycolumn1,`) ではなく、先頭 (例: `, mycolumn2`) にコンマを配置する必要がありますか?]]></Val>
+            <Val><![CDATA[BEGIN...END および TRY...CATCH ブロックの末尾にセミコロンの終端記号を追加します。]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Legacy formatter only: Place commas at the beginning instead of the end of list items. Set `mssql.format.enablePreviewFormatter` to `false` to use this setting.]]></Val>
-          </Prev>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";package.mssql.format.placeSelectStatementReferencesOnNewLine" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[**Used when Preview Formatter is disabled.** Should references in a SELECT statement be split into separate lines? For `SELECT C1, C2 FROM T1`, both C1 and C2 will be on separate lines.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[**プレビュー フォーマッタが無効な場合に使用されます。** SELECT ステートメント内の参照は別々の行に分割する必要がありますか?`SELECT C1, C2 FROM T1` の場合、C1 と C2 の両方が別々の行に配置されます。]]></Val>
-          </Tgt>
-          <Prev Cat="Text">
-            <Val><![CDATA[Legacy formatter only: Place SELECT statement object references on separate lines. Set `mssql.format.enablePreviewFormatter` to `false` to use this setting.]]></Val>
+            <Val><![CDATA[**Used when Preview Formatter is enabled.** Add semicolon terminators after BEGIN...END and TRY...CATCH blocks.]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.showParseErrorNotification" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Show a notification when Preview Formatter cannot fully parse the T-SQL being formatted.]]></Val>
+          <Val><![CDATA[Show a notification when the SQL formatter cannot fully parse the T-SQL being formatted.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[フォーマット中の T-SQL を プレビュー フォーマッタが完全に解析できない場合に通知を表示します。]]></Val>
+            <Val><![CDATA[フォーマット中の T-SQL を SQL フォーマッタが完全に解析できない場合に通知を表示します。]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Show a notification when Preview Formatter cannot fully parse the T-SQL being formatted.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
