@@ -1727,6 +1727,28 @@ export class QueryResult {
     );
 }
 
+export class AzureSqlContainer {
+    public static invalidPort = l10n.t("Enter a port number between 1 and 65535.");
+    public static invalidContainerName = l10n.t(
+        "Container names must start with a letter or number and contain only letters, numbers, underscores, periods, or hyphens.",
+    );
+    public static invalidHostname = l10n.t("Enter a valid hostname.");
+    public static acceptTerms = l10n.t("Accept the terms and conditions to continue.");
+    public static selectConnectionGroup = l10n.t("Select a connection group.");
+    public static pullImageFailed = l10n.t(
+        "Failed to pull the Azure SQL Database container image. Sign in to the private registry with your preview credentials, then retry.",
+    );
+    public static createContainerFailed = l10n.t(
+        "Failed to create and start the Azure SQL Database container.",
+    );
+    public static containerNotReady = l10n.t(
+        "The Azure SQL Database container did not become ready for connections within five minutes.",
+    );
+    public static connectContainerFailed = l10n.t(
+        "The container started, but the extension could not create its database connection.",
+    );
+}
+
 export class LocalContainers {
     public static stoppedContainerSucessfully = (name: string) =>
         l10n.t({

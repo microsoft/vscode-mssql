@@ -78,7 +78,44 @@ export interface ContainerEnginePrerequisiteResult {
     error?: string;
 }
 
+export interface AzureSqlContainerForm {
+    password: string;
+    savePassword: boolean;
+    profileName: string;
+    groupId: string;
+    containerName: string;
+    port: string;
+    hostname: string;
+    acceptEula: boolean;
+}
+
+export type AzureSqlContainerFormErrors = Partial<Record<keyof AzureSqlContainerForm, string>>;
+
+export enum AzureSqlContainerProvisioningStep {
+    PullImage = "pullImage",
+    CreateContainer = "createContainer",
+    WaitForReady = "waitForReady",
+    Connect = "connect",
+}
+
+export interface AzureSqlContainerProvisioningResult {
+    success: boolean;
+    error?: string;
+    fullErrorText?: string;
+    connectionString?: string;
+}
+
 export namespace AzureSqlDatabaseRequests {
+    export const ValidateContainerForm = new RequestType<
+        AzureSqlContainerForm,
+        AzureSqlContainerFormErrors,
+        void
+    >("deployment/validateAzureSqlContainerForm");
+
+    export const GenerateContainerName = new RequestType<void, string, void>(
+        "deployment/generateAzureSqlContainerName",
+    );
+
     export const DetectContainerEngines = new RequestType<
         void,
         Record<ContainerEngine, ContainerEnginePrerequisiteResult>,
@@ -93,6 +130,20 @@ export namespace AzureSqlDatabaseRequests {
         ContainerEnginePrerequisiteResult,
         void
     >("deployment/checkContainerEnginePrerequisite");
+
+    export const RunContainerProvisioningStep = new RequestType<
+        {
+            engine: ContainerEngine;
+            step: AzureSqlContainerProvisioningStep;
+            form: AzureSqlContainerForm;
+        },
+        AzureSqlContainerProvisioningResult,
+        void
+    >("deployment/runAzureSqlContainerProvisioningStep");
+
+    export const CancelContainerProvisioning = new RequestType<void, void, void>(
+        "deployment/cancelAzureSqlContainerProvisioning",
+    );
 }
 
 export class AzureSqlDatabaseState

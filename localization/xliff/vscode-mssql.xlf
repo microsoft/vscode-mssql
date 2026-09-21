@@ -71,6 +71,9 @@
     <trans-unit id="++CODE++d29a0939bcb51176dd565a5e2d33214ce5204806b384bd80a72cb40861cdc7b9">
       <source xml:lang="en">(empty)</source>
     </trans-unit>
+    <trans-unit id="++CODE++0059798b7f7023e4d9e5c4595f7b9ba7ee64f69993ee524824d57e5a48b1228c">
+      <source xml:lang="en">(optional)</source>
+    </trans-unit>
     <trans-unit id="++CODE++2dbc3a842e150a69d5a35dc7e059907884fff202bead2f25e3284cdbecedf340">
       <source xml:lang="en">({0} row(s) affected)</source>
       <note>{0} is the number of rows affected</note>
@@ -213,6 +216,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e21e734aaaff27306eeaba840397aea3b25480cb0426c9c21386cbf141e56e34">
       <source xml:lang="en">Accept the SQL Server EULA to deploy a SQL Server Docker container</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f03426e3bef8cda374f183610176ee817112ca7abb03ea57e2b453a429fea548">
+      <source xml:lang="en">Accept the terms and conditions to continue.</source>
     </trans-unit>
     <trans-unit id="++CODE++fa0563b6f04578f7a2a7cff43aed611c4835bbb2f3a21dfed76a0601a1d63859">
       <source xml:lang="en">Access denied. Please ensure you have the necessary permissions to use this tool or model.</source>
@@ -489,6 +495,15 @@
     <trans-unit id="++CODE++56f99fbd59570e105fca5070d135f8f86c67f48168d43f8020b70523f06b21bb">
       <source xml:lang="en">An error occurred: {0}</source>
       <note>{0} is the error message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++103dc0b3502d1fcebd3c683fbf6018141ecf8fda727fe9fa4079be18fccec5e2">
+      <source xml:lang="en">An optional display name for the connection.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d32e3a84cdfbfda4d0efe903ff0546c59ccd5abdd60a9fba71eb29933b68ff67">
+      <source xml:lang="en">An optional hostname assigned to the container.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d40e138ed4448c750e0a7ff0fe5fd71033b28ad55e182ca27fa2a4aaba8c1795">
+      <source xml:lang="en">An optional name for the database container.</source>
     </trans-unit>
     <trans-unit id="++CODE++6615bf1c8fddf2fbb0970f969c21c5d919d912608bd1cceb93855780bec3123d">
       <source xml:lang="en">An unexpected error occurred</source>
@@ -1762,6 +1777,9 @@
     <trans-unit id="++CODE++bd02214c7799ec6a69018761f76fed82a6516c170ddbc3fdbf6f0c2a7b566d9f">
       <source xml:lang="en">Connecting to Database</source>
     </trans-unit>
+    <trans-unit id="++CODE++24f000f73c4da1bd21abc5c6b2b01f5c377aa5044ee3731c385ca3bc6dcb51d7">
+      <source xml:lang="en">Connecting to container</source>
+    </trans-unit>
     <trans-unit id="++CODE++2e2706212eec134e00b88651a09bcbab6a28eb15560d24a9c6d3690d6c06b57b">
       <source xml:lang="en">Connecting to database</source>
     </trans-unit>
@@ -1781,6 +1799,9 @@
     </trans-unit>
     <trans-unit id="++CODE++b613d48f906e133dadf56bfc9a00ef15bc7209a24e679f5d5e38df28270ef4f9">
       <source xml:lang="en">Connecting to server...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1bedc379ef85da000d94a7e0da8e2ac72fd725b4673a9f1caa39b77bf7a2109b">
+      <source xml:lang="en">Connecting to your Azure SQL Database developer container.</source>
     </trans-unit>
     <trans-unit id="++CODE++03cdf40907b9e95ff338fe3d4fd451910410c1dbddd93e543b590a40755e6744">
       <source xml:lang="en">Connecting to your SQL Server Docker container</source>
@@ -1967,6 +1988,9 @@
     </trans-unit>
     <trans-unit id="++CODE++bbcce2214819b0c2d1ab53dff1f116b6071d1223a513c97750b73e775ac8ca49">
       <source xml:lang="en">Container name, port, and config content are required to start the container.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c9d6bec0d3e4324f01b85de6d6b8cb8df66cdb3f6d89d62e17af655e2739fa36">
+      <source xml:lang="en">Container names must start with a letter or number and contain only letters, numbers, underscores, periods, or hyphens.</source>
     </trans-unit>
     <trans-unit id="++CODE++46254c066820a2981fe74812027103f1acf16af3dc8a63c4de643705a6004b4c">
       <source xml:lang="en">Container runtime, commonly used through nerdctl or Rancher Desktop. · Windows, macOS, Linux</source>
@@ -2288,8 +2312,14 @@
     <trans-unit id="++CODE++9365b2c6708531c8df9ee555c58dcb675690a166106fe78638a3cd5c8472ff57">
       <source xml:lang="en">Creating and starting the container</source>
     </trans-unit>
+    <trans-unit id="++CODE++e057ee374d49e2f19a973d6fdadd7c4cb32d493ab2e53e82ec4de400663273bf">
+      <source xml:lang="en">Creating and starting your Azure SQL Database container.</source>
+    </trans-unit>
     <trans-unit id="++CODE++9c37c64c878515cc2b5cd8ce05b7513d90d2134a1a2c36469aaa548d6fdfa6e9">
       <source xml:lang="en">Creating and starting your SQL Server container</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1b12d9c7046f7ee58dd557095e1f7227dab92c90750af8e380a7c343457d2463">
+      <source xml:lang="en">Creating container</source>
     </trans-unit>
     <trans-unit id="++CODE++725716b6df2a2ce3060b1681ae49712313e3156ab2af1b2ee7585b72b69dc7d5">
       <source xml:lang="en">Creating database</source>
@@ -2877,6 +2907,9 @@
     <trans-unit id="++CODE++adbcc35e97d53bc1acdeb5a1bf4ea403d362f3fb6074a2edc4206716cafb4191">
       <source xml:lang="en">Downloading from {0} to {1}</source>
     </trans-unit>
+    <trans-unit id="++CODE++be6b5343c4e371f17d689b82b4de67da63fdc8e5d937a14fdbc0ec5f96d868d8">
+      <source xml:lang="en">Downloading the Azure SQL Database developer container image from the private registry.</source>
+    </trans-unit>
     <trans-unit id="++CODE++44ef47797353661b06274b2fe94ca033f5bb11ec18c160acc819451520aa50eb">
       <source xml:lang="en">Downloading the Data API builder container image</source>
     </trans-unit>
@@ -3085,6 +3118,12 @@
     </trans-unit>
     <trans-unit id="++CODE++8c50a1a6a69f19f52d48a8ec9ac6d8fa30c1b8ae5f3b9448aabffc2dd94184c9">
       <source xml:lang="en">Enter a number...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++99423f847824fcaa5126b691889e26782436157dbcbb9ae40af381c1175e72eb">
+      <source xml:lang="en">Enter a port number between 1 and 65535.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++885dd0087e9192594843144ef7d051d40c814ddf786b582e0e5a9c2f6ae7fcf1">
+      <source xml:lang="en">Enter a valid hostname.</source>
     </trans-unit>
     <trans-unit id="++CODE++6086fe9511daa7a6fa39f0af8abaf8b553c8292375dfd76bc8d583b28ce3c808">
       <source xml:lang="en">Enter admin password</source>
@@ -3770,6 +3809,9 @@
       <source xml:lang="en">Failed to create a new row: {0}</source>
       <note>{0} is the error message</note>
     </trans-unit>
+    <trans-unit id="++CODE++bc92a6543c3a7d054c67dd97a1abb664ea0f81001a1748eb4002d630c06acdba">
+      <source xml:lang="en">Failed to create and start the Azure SQL Database container.</source>
+    </trans-unit>
     <trans-unit id="++CODE++1d1ece53e805a9b638cb289253e56faa6197e148738b75e24f6670b681717ff0">
       <source xml:lang="en">Failed to create database &apos;{0}&apos;. {1}</source>
       <note>{0} is the database name
@@ -3941,6 +3983,9 @@
     </trans-unit>
     <trans-unit id="++CODE++644046a988c76e759d05ee90c400f545f6fee393f6c75a23495c621fe9e27b5d">
       <source xml:lang="en">Failed to pull SQL Server image. Please check your network connection and try again.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b518d845e44610b4377261fbcb8f2ba44c47f7a0466f943b35fe4c0952e68556">
+      <source xml:lang="en">Failed to pull the Azure SQL Database container image. Sign in to the private registry with your preview credentials, then retry.</source>
     </trans-unit>
     <trans-unit id="++CODE++496b6f97ebcac961581d18dc0885f8d7a6b2a71fc701642e7a36ea762139e99d">
       <source xml:lang="en">Failed to read saved rule overrides from project</source>
@@ -4556,6 +4601,9 @@
     </trans-unit>
     <trans-unit id="++CODE++c646b55d1fd317086a616548a2cc0b1606ecdc5a99bd2d3dcb43368fcb37ad30">
       <source xml:lang="en">Hide column</source>
+    </trans-unit>
+    <trans-unit id="++CODE++cdb8d2c65b3734b73bc3c3204084521cd57a8ba692291c0c405e0611150fce39">
+      <source xml:lang="en">Hide error details</source>
     </trans-unit>
     <trans-unit id="++CODE++89276817789cad555d1e4daf6c6e0b6eac110c7073bd4b23e08ef8a6e7aad4c6">
       <source xml:lang="en">Hide full error message</source>
@@ -6720,6 +6768,9 @@
     <trans-unit id="++CODE++d7a082f416fcd5289f06b3cda1fdf7b7d3999dabb4209c0d324fdf0c57ff2ee2">
       <source xml:lang="en">Pulling SQL Server Image</source>
     </trans-unit>
+    <trans-unit id="++CODE++7f37318759afb151b04b6368c494757c2529b75b153b09d0e429e16e68e2b1c2">
+      <source xml:lang="en">Pulling container image</source>
+    </trans-unit>
     <trans-unit id="++CODE++0e1d9858f1e51bd313981a0d8da504fb12e0405fc869634ad52babe02eff9e3d">
       <source xml:lang="en">Pulling the SQL Server container image. This might take a few minutes depending on your internet connection.</source>
     </trans-unit>
@@ -6842,6 +6893,9 @@
     </trans-unit>
     <trans-unit id="++CODE++3c311675a5c2bf9cd3b95e78f5c957399730d791fae923def53395a43f131d1f">
       <source xml:lang="en">Readying container for connections...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b56deef8f73a49495fd32bbed137f542a06404e57170397c761f3c8eef98234b">
+      <source xml:lang="en">Readying the container for connections.</source>
     </trans-unit>
     <trans-unit id="++CODE++6aafab6eae72092eb7c25ffb6f34dab1a3eb70f1ef79e6e159f0fe540ca6b675">
       <source xml:lang="en">Receive natural language explanations to help developers unfamiliar with T-SQL understand code</source>
@@ -7441,6 +7495,9 @@
     <trans-unit id="++CODE++0a12b3e51f64e705d6de90db7bcada67844d93e118f414b2fc703b2014efabc5">
       <source xml:lang="en">Save source and target, options, and excluded elements</source>
     </trans-unit>
+    <trans-unit id="++CODE++ceb8d17e99b53884900c80e49e8bf1915c487bc612f97f76f01de7e3079c787c">
+      <source xml:lang="en">Save the password securely with the connection profile.</source>
+    </trans-unit>
     <trans-unit id="++CODE++65c2ce4c13ec3a32d62c618c0dd7fcd050eb87d877318da88bd69031d987fc00">
       <source xml:lang="en">Save this filter for reuse</source>
     </trans-unit>
@@ -7710,6 +7767,9 @@
     </trans-unit>
     <trans-unit id="++CODE++c4300a3eee24147d9593a09a659650b44b4733e2979fef9cae3e3db10f116831">
       <source xml:lang="en">Select a connection group</source>
+    </trans-unit>
+    <trans-unit id="++CODE++32b8cc7271fec240c70a7c4d849e445e3c2128ed4e0cc0938e125099ec99d6c8">
+      <source xml:lang="en">Select a connection group.</source>
     </trans-unit>
     <trans-unit id="++CODE++abf078a3e4a6e103d6da7a7075ac601a095b2ba444bfc98447f49248daa477fb">
       <source xml:lang="en">Select a connection to use as the default</source>
@@ -8027,6 +8087,10 @@
     <trans-unit id="++CODE++98a2e618e690165268025ae1d25d8d84ea575af666bdd7a5b719bc777e3d584f">
       <source xml:lang="en">Setting up container</source>
     </trans-unit>
+    <trans-unit id="++CODE++b006935de5a43d932e533abfa4350c61c766be28781a9eb6b6a7838b1c08be04">
+      <source xml:lang="en">Setting up {0}...</source>
+      <note>{0} is the container name</note>
+    </trans-unit>
     <trans-unit id="++CODE++74a883a037bc227f91891ab654a753d3a99f31ab06ae5b5d2b6e594a692b41f8">
       <source xml:lang="en">Settings</source>
     </trans-unit>
@@ -8101,6 +8165,9 @@
     </trans-unit>
     <trans-unit id="++CODE++87e6b9fe0c51b9ad481c1e47b40fbc5a13ea3464c5131908b81cb2b21cd33822">
       <source xml:lang="en">Show all columns</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0f426198083a75e268e343589397e45b362da5e2f096ca8345dcb6f36e0934ce">
+      <source xml:lang="en">Show error details</source>
     </trans-unit>
     <trans-unit id="++CODE++7f642b55cbf51cf21e5b6a0861e2a93abf8fbe5a8b5d04a9ed9d7a97040549d1">
       <source xml:lang="en">Show full error message</source>
@@ -8643,6 +8710,9 @@
     <trans-unit id="++CODE++c2deec07495a278190de83a0820519064e332fc00b050c4fd053bae70c44da8e">
       <source xml:lang="en">The Application (Client) ID of your Microsoft Entra app registration.</source>
     </trans-unit>
+    <trans-unit id="++CODE++19f94053c824ea8918fb1bc75d32db61c103a9bda361494326fb6212602380fb">
+      <source xml:lang="en">The Azure SQL Database container did not become ready for connections within five minutes.</source>
+    </trans-unit>
     <trans-unit id="++CODE++b0ccb68c36737cb5ef6c7a74871ab7845533f64d89c74dd7db735bb555c401e1">
       <source xml:lang="en">The Query Profiler now supports SQL database in Microsoft Fabric connections, with new Azure SQL Database templates including {code-snippet-0} for lightweight T-SQL profiling.</source>
     </trans-unit>
@@ -8665,6 +8735,9 @@
     <trans-unit id="++CODE++1a4205e9f5cc50eaf70719b64956352b74a99badba266027a6244def0d016b73">
       <source xml:lang="en">The behavior when a user tries to update a row with data that is involved in a foreign key relationship.</source>
     </trans-unit>
+    <trans-unit id="++CODE++9cb184bfbce8489983076e7d2b758fba742453f68e82aa907ad3b48c7247c61f">
+      <source xml:lang="en">The built-in administrator login for the developer container.</source>
+    </trans-unit>
     <trans-unit id="++CODE++b3ed9d46f7671d126e86925d532363313c1f6795e877d3d348d134f6e7051bc3">
       <source xml:lang="en">The client secret for your Microsoft Entra app registration.</source>
     </trans-unit>
@@ -8684,6 +8757,9 @@
       <note>{0} is the container name
 {1} is the list of connection display names</note>
     </trans-unit>
+    <trans-unit id="++CODE++f24f0ea65710646b02db37e614de2d14b6869f13fca2fa875a61d673cab12499">
+      <source xml:lang="en">The container started, but the extension could not create its database connection.</source>
+    </trans-unit>
     <trans-unit id="++CODE++90a4ba6d5483f640dbf83e90ca81103b564ff6be1e78dc9caf91eea1c299757e">
       <source xml:lang="en">The custom cloud choice is not configured. Please configure the setting `{0}`.</source>
     </trans-unit>
@@ -8698,6 +8774,9 @@
     </trans-unit>
     <trans-unit id="++CODE++4ed30ce390b4a87aa521240a8313735faff4c4cb4df0c01292ffdaf5b9a44c58">
       <source xml:lang="en">The description of the primary key.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++44d1028a4f9813fa5404247a36ba5c244cf826267718ec8031f44ea1744cd9f5">
+      <source xml:lang="en">The developer container uses SQL Login authentication.</source>
     </trans-unit>
     <trans-unit id="++CODE++ff83ab307bf5543897d2c5781d880385ba86a704904fb08dc5c67c990688d5ec">
       <source xml:lang="en">The expression defining the check constraint.</source>
@@ -8719,6 +8798,9 @@
     <trans-unit id="++CODE++9f0bbf0f3fc1ec45ca02debcaf080ecd6f40e8a11bae6e0189136badee4946a7">
       <source xml:lang="en">The following workspace or workspace folder connections are missing the &apos;id&apos; property and are being ignored.  Please manually add the &apos;id&apos; property to the connection in order to use it. &#10;&#10; {0}</source>
       <note>{0} is the list of display names for the connections that have been ignored</note>
+    </trans-unit>
+    <trans-unit id="++CODE++165859562845402828987200e5aa14c44dffb25584ee962b984d30418a65f9b5">
+      <source xml:lang="en">The host port used to connect to the database. The default is 1433.</source>
     </trans-unit>
     <trans-unit id="++CODE++0f98888ce39572ae27e642dd46baba8dbf179c6b3c42c522cde8ad1f43323b11">
       <source xml:lang="en">The language model did not return any output.</source>
@@ -8755,6 +8837,12 @@
     </trans-unit>
     <trans-unit id="++CODE++644a28f160d2df093fab1a8c94e5176f21c1af3bee1915315edd409d14397021">
       <source xml:lang="en">The name of the index.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++272506f9c62042553eaf9c72b757e5be6cfceeb0cc13c88115850578f6483bb9">
+      <source xml:lang="en">The password must be 8–128 characters long.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4f741739bf72ecedf22b1028fb8e35adfbf2ff99d28aa41ffa0531c6deaba4e5">
+      <source xml:lang="en">The password must contain characters from at least three categories: uppercase letters, lowercase letters, numbers, and symbols.</source>
     </trans-unit>
     <trans-unit id="++CODE++1541ca54eaafab6eaf10bd1051af6f50394e0b8f11aad6012045ce761a8ff683">
       <source xml:lang="en">The project &apos;{0}&apos; will not be fully compatible with SSDT after conversion. A backup copy of the project file will be created in the project folder prior to conversion. More information is available at https://aka.ms/sqlprojsdk. Continue with converting to SDK-style project?</source>
@@ -9091,6 +9179,9 @@
     <trans-unit id="++CODE++5e487cbb896806c4ffd5fd55308a163e5a5ebdb2de5b6e717faff434ddd119dd">
       <source xml:lang="en">Unable to retrieve the list of databases. You may not have permission to list databases on this server. If your connection specifies a database, it will be preselected.</source>
     </trans-unit>
+    <trans-unit id="++CODE++a38bee0d6e2500966d3b6a21896c9f5dedaf92acdfa83ed3ba50a4a1850670d4">
+      <source xml:lang="en">Unable to validate the container configuration.</source>
+    </trans-unit>
     <trans-unit id="++CODE++6be6bf4fae4897b542e648716d3e0fb9d67e3f4457c7b37afd4b217ca93e2914">
       <source xml:lang="en">Unavailable for backups to existing files</source>
     </trans-unit>
@@ -9219,6 +9310,9 @@
     </trans-unit>
     <trans-unit id="++CODE++c83ce937073615b8c93e7c38ed529e567ff2c01f291f92e3b4d08245018f362b">
       <source xml:lang="en">Usage limits exceeded. Try again later, or consider optimizing your requests.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++655e7662b4eed2bd100c5c729d7f16166715ef315856643bbd03b9ec3b1c4249">
+      <source xml:lang="en">Use 8–128 characters with characters from at least three categories: uppercase letters, lowercase letters, numbers, and symbols.</source>
     </trans-unit>
     <trans-unit id="++CODE++57cd4465c3c4fa7a5ac8b67e8c2015285fb983f76c49853d74d7b6e23d7f7c4e">
       <source xml:lang="en">Use Dev Containers with Azure SQL Database</source>
@@ -9518,6 +9612,9 @@
     </trans-unit>
     <trans-unit id="++CODE++4e361152670c9ae8f10322b120885c3ae245a261fb945c4a9fbc9a1850db850c">
       <source xml:lang="en">You have unsaved changes. Do you want to save before closing?</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4dc8fab67d918ef72549261550d7aa876604e84b3c899cd54deb340c5af779bb">
+      <source xml:lang="en">You must accept the container license terms to continue.</source>
     </trans-unit>
     <trans-unit id="++CODE++097471b0cd0d44493ae5b1f66494581a1b7847b2293eb7d71f0dee6cf6c53a54">
       <source xml:lang="en">You must accept the license</source>

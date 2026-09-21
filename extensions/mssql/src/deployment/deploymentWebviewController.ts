@@ -219,6 +219,7 @@ export class DeploymentWebviewController extends FormWebviewController<
                     state.deploymentTypeState as FabricProvisioningState,
                 );
             } else if (state.deploymentType === DeploymentType.AzureSqlDatabase) {
+                await azureSql.cancelAzureSqlContainerProvisioning(this);
                 azureSqlDatabase.sendAzureSqlDatabaseCloseEventTelemetry(
                     state.deploymentTypeState as AzureSqlDatabaseState,
                 );

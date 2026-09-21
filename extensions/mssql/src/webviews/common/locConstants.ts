@@ -2697,6 +2697,65 @@ export class LocConstants {
         };
     }
 
+    public get azureSqlContainer() {
+        return {
+            sqlLogin: l10n.t("SQL Login"),
+            authenticationTooltip: l10n.t("The developer container uses SQL Login authentication."),
+            userNameTooltip: l10n.t(
+                "The built-in administrator login for the developer container.",
+            ),
+            passwordTooltip: l10n.t(
+                "Use 8–128 characters with characters from at least three categories: uppercase letters, lowercase letters, numbers, and symbols.",
+            ),
+            passwordLengthError: l10n.t("The password must be 8–128 characters long."),
+            passwordComplexityError: l10n.t(
+                "The password must contain characters from at least three categories: uppercase letters, lowercase letters, numbers, and symbols.",
+            ),
+            savePasswordTooltip: l10n.t("Save the password securely with the connection profile."),
+            profileName: l10n.t("Profile Name"),
+            profileNamePlaceholder: l10n.t("Enter profile name"),
+            profileNameTooltip: l10n.t("An optional display name for the connection."),
+            connectionGroup: l10n.t("Connection Group"),
+            selectConnectionGroup: l10n.t("Select a connection group"),
+            containerName: l10n.t("Container Name"),
+            containerNameTooltip: l10n.t("An optional name for the database container."),
+            port: l10n.t("Port"),
+            portTooltip: l10n.t(
+                "The host port used to connect to the database. The default is 1433.",
+            ),
+            hostname: l10n.t("Hostname"),
+            hostnameTooltip: l10n.t("An optional hostname assigned to the container."),
+            optional: l10n.t("(optional)"),
+            acceptTerms: l10n.t("Accept"),
+            termsAndConditions: l10n.t("Terms & Conditions"),
+            termsTooltip: l10n.t("You must accept the container license terms to continue."),
+            validationFailed: l10n.t("Unable to validate the container configuration."),
+            settingUpContainer: (containerName: string) =>
+                l10n.t({
+                    message: "Setting up {0}...",
+                    args: [containerName],
+                    comment: ["{0} is the container name"],
+                }),
+            gettingContainerReady: l10n.t("Getting container ready for connections"),
+            pullingContainerImage: l10n.t("Pulling container image"),
+            pullingContainerImageDescription: l10n.t(
+                "Downloading the Azure SQL Database developer container image from the private registry.",
+            ),
+            creatingContainer: l10n.t("Creating container"),
+            creatingContainerDescription: l10n.t(
+                "Creating and starting your Azure SQL Database container.",
+            ),
+            settingUpContainerStep: l10n.t("Setting up container"),
+            settingUpContainerDescription: l10n.t("Readying the container for connections."),
+            connectingToContainer: l10n.t("Connecting to container"),
+            connectingToContainerDescription: l10n.t(
+                "Connecting to your Azure SQL Database developer container.",
+            ),
+            showErrorDetails: l10n.t("Show error details"),
+            hideErrorDetails: l10n.t("Hide error details"),
+        };
+    }
+
     public get azureSqlDatabase() {
         return {
             loadingAzureSqlDatabase: l10n.t("Loading Azure SQL Database..."),

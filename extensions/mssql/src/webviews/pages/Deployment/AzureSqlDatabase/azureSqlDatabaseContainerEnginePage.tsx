@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import {
+    Button,
     Dropdown,
     Field,
     makeStyles,
@@ -77,6 +78,10 @@ const useStyles = makeStyles({
         fontWeight: 600,
         paddingBottom: "16px",
     },
+    retryButton: {
+        alignSelf: "flex-start",
+        marginTop: "16px",
+    },
 });
 
 export function getContainerEngineDisplayName(engine: ContainerEngine): string {
@@ -121,6 +126,7 @@ export const AzureSqlDatabaseContainerEnginePage: React.FC<
         Partial<Record<ContainerEnginePrerequisite, ApiStatus>>
     >({});
     const [errors, setErrors] = useState<Partial<Record<ContainerEnginePrerequisite, string>>>({});
+    const [prerequisiteCheckAttempt, setPrerequisiteCheckAttempt] = useState(0);
     const selectedEngineRef = useRef(engine);
     selectedEngineRef.current = engine;
 
@@ -234,12 +240,20 @@ export const AzureSqlDatabaseContainerEnginePage: React.FC<
         return () => {
             cancelled = true;
         };
-    }, [detectionResults, engine, extensionRpc, onReadyChange, prerequisites]);
+    }, [
+        detectionResults,
+        engine,
+        extensionRpc,
+        onReadyChange,
+        prerequisiteCheckAttempt,
+        prerequisites,
+    ]);
 
     const engineName = engine ? getContainerEngineDisplayName(engine) : "";
     const detectedEngineCount = detectionResults
         ? Object.values(detectionResults).filter((result) => result.success).length
         : 0;
+    const hasFailedPrerequisite = Object.values(statuses).includes(ApiStatus.Error);
     const getStepTitle = (prerequisite: ContainerEnginePrerequisite) => {
         switch (prerequisite) {
             case ContainerEnginePrerequisite.Installation:
@@ -276,7 +290,7 @@ export const AzureSqlDatabaseContainerEnginePage: React.FC<
         );
     }
 
-    if (detectedEngineCount === 0 || detectedEngineCount !== 0) {
+    if (detectedEngineCount === 0) {
         return <ContainerEngineInstallOptions />;
     }
 
@@ -335,6 +349,14 @@ export const AzureSqlDatabaseContainerEnginePage: React.FC<
                             {errors[prerequisite]}
                         </DeploymentStepCard>
                     ))}
+                    {hasFailedPrerequisite && (
+                        <Button
+                            className={classes.retryButton}
+                            appearance="secondary"
+                            onClick={() => setPrerequisiteCheckAttempt((attempt) => attempt + 1)}>
+                            {locConstants.common.retry}
+                        </Button>
+                    )}
                 </section>
             )}
         </div>
