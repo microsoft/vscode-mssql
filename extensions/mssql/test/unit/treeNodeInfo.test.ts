@@ -71,34 +71,6 @@ suite("TreeNodeInfo", () => {
         expect(node.loadingLabel).to.equal(newLabel);
     });
 
-    suite("connection target context value", () => {
-        test("tags server nodes with the platform and product of their connection", () => {
-            const node = createTreeNode({ server: "sql-server.database.windows.net" });
-
-            expect(node.context.serverPlatform).to.equal("Azure");
-            expect(node.context.serverProduct).to.equal("SQL");
-            expect(node.contextValue).to.contain("serverPlatform=Azure");
-            expect(node.contextValue).to.contain("serverProduct=SQL");
-        });
-
-        test("reads the connection target from a connection string", () => {
-            const node = createTreeNode({
-                server: undefined,
-                connectionString:
-                    "Data Source=db.msit-database.fabric.microsoft.com,1433;Encrypt=True",
-            });
-
-            expect(node.context.serverPlatform).to.equal("Fabric");
-            expect(node.context.serverProduct).to.equal("SQL");
-        });
-
-        test("does not tag nodes that do not represent a server or database", () => {
-            const node = createTreeNode({ server: "sql-server.database.windows.net" }, "Table");
-
-            expect(node.contextValue).to.not.contain("serverPlatform");
-        });
-    });
-
     suite("updateEntraTokenInfo", () => {
         test("updates only Entra token fields when refreshed token is provided", () => {
             const oldToken = {
@@ -162,10 +134,7 @@ suite("TreeNodeInfo", () => {
         });
     });
 });
-function createTreeNode(
-    overrides: Partial<IConnectionInfo> = {},
-    nodeType: string = "Server",
-): TreeNodeInfo {
+function createTreeNode(overrides: Partial<IConnectionInfo> = {}): TreeNodeInfo {
     const baseProfile: IConnectionProfile = {
         id: "id",
         profileName: "profile",
@@ -183,11 +152,11 @@ function createTreeNode(
 
     return new TreeNodeInfo(
         "label",
-        { type: nodeType, filterable: false, hasFilters: false, subType: undefined },
+        { type: "Server", filterable: false, hasFilters: false, subType: undefined },
         vscode.TreeItemCollapsibleState.None,
         "nodePath",
         "ready",
-        nodeType,
+        "Server",
         "session",
         baseProfile,
         undefined as unknown as TreeNodeInfo,

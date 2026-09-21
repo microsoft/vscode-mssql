@@ -603,12 +603,7 @@
                 {
                     "command": "mssql.openInFabricDatabaseHub",
                     "when": "view == vscode-fabric.view.workspace && viewItem =~ /ItemSQLDatabase/",
-                    "group": "5@5"
-                },
-                {
-                    "command": "mssql.openInFabricDatabaseHub",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/ && viewItem =~ /\\bserverPlatform=(Azure|Fabric)\\b/ && viewItem =~ /\\bserverProduct=SQL\\b/",
-                    "group": "1_MSSQL_primary@2"
+                    "group": "5@11.5"
                 },
                 {
                     "command": "mssql.addObjectExplorer",

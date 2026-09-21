@@ -9,20 +9,20 @@ import * as sinon from "sinon";
 import * as chai from "chai";
 import sinonChai from "sinon-chai";
 
-import * as Constants from "../../src/constants/constants";
-import { ConnectionProfile } from "../../src/models/connectionProfile";
 import { FabricDatabaseHubIntegration } from "../../src/integration/fabricDatabaseHubIntegration";
 import { mockAzureResources } from "./azureHelperStubs";
 import { SqlArtifactTypes } from "../../src/sharedInterfaces/fabric";
-import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
-import { VsCodeAzureHelper } from "../../src/connectionconfig/azureHelpers";
-import { createStubLogger, initializeIconUtils } from "./utils";
+import { createStubLogger, stubTelemetry } from "./utils";
+import { isAzureResourceNode } from "../../src/integration/azureResourcesIntegration";
+import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
 
 chai.use(sinonChai);
 
 suite("FabricDatabaseHubIntegration Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let openExternal: sinon.SinonStub;
+    let sendActionEvent: sinon.SinonStub;
+    let sendErrorEvent: sinon.SinonStub;
     let integration: FabricDatabaseHubIntegration;
 
     const openedUrl = (): URL => new URL(openExternal.firstCall.args[0].toString(true));
@@ -32,28 +32,10 @@ suite("FabricDatabaseHubIntegration Tests", () => {
 
     const buildResourceNode = (resource: { id?: string }): unknown => ({ resource });
 
-    const buildObjectExplorerNode = (
-        nodeType: string,
-        profile: Partial<ConnectionProfile>,
-    ): TreeNodeInfo =>
-        new TreeNodeInfo(
-            "label",
-            { type: nodeType, subType: undefined, filterable: false, hasFilters: false },
-            vscode.TreeItemCollapsibleState.Collapsed,
-            "node-path",
-            "",
-            nodeType,
-            "",
-            Object.assign(new ConnectionProfile(), { id: "connection-id" }, profile),
-            undefined!,
-            undefined!,
-            undefined!,
-        );
-
     setup(() => {
         sandbox = sinon.createSandbox();
-        initializeIconUtils();
         openExternal = sandbox.stub(vscode.env, "openExternal").resolves(true);
+        ({ sendActionEvent, sendErrorEvent } = stubTelemetry(sandbox));
 
         integration = new FabricDatabaseHubIntegration();
         // Silence the internal logger to avoid writing to the output channel during tests.
@@ -66,6 +48,12 @@ suite("FabricDatabaseHubIntegration Tests", () => {
     });
 
     suite("Azure Resources tree", () => {
+        test("recognizes only resources with string IDs", () => {
+            expect(isAzureResourceNode(buildResourceNode({ id: "resource-id" }))).to.be.true;
+            expect(isAzureResourceNode(buildResourceNode({}))).to.be.false;
+            expect(isAzureResourceNode({ resource: { id: 1 } })).to.be.false;
+        });
+
         test("deep-links an Azure SQL database to the Hub", async () => {
             const database = mockAzureResources.azureSqlDbDatabase2;
 
@@ -80,6 +68,17 @@ suite("FabricDatabaseHubIntegration Tests", () => {
                 { key: "resourceType", operator: "in", value: ["AzureSql"] },
                 { key: "search", operator: "contains", value: database.name },
             ]);
+            expect(sendActionEvent).to.have.been.calledWith(
+                TelemetryViews.FabricDatabaseHub,
+                TelemetryActions.Open,
+                {
+                    additionalProps: {
+                        source: "azureResources",
+                        databaseType: "azure-sql",
+                        result: "succeeded",
+                    },
+                },
+            );
         });
 
         test("opens the unfiltered estate view for an Azure SQL server", async () => {
@@ -101,6 +100,17 @@ suite("FabricDatabaseHubIntegration Tests", () => {
             );
 
             expect(openExternal).to.not.have.been.called;
+            expect(sendActionEvent).to.have.been.calledWith(
+                TelemetryViews.FabricDatabaseHub,
+                TelemetryActions.Open,
+                {
+                    additionalProps: {
+                        source: "azureResources",
+                        databaseType: "azure-sql",
+                        result: "linkUnavailable",
+                    },
+                },
+            );
         });
     });
 
@@ -122,6 +132,17 @@ suite("FabricDatabaseHubIntegration Tests", () => {
                 { key: "resourceType", operator: "in", value: ["FabricSql"] },
                 { key: "search", operator: "contains", value: "Fabric Orders" },
             ]);
+            expect(sendActionEvent).to.have.been.calledWith(
+                TelemetryViews.FabricDatabaseHub,
+                TelemetryActions.Open,
+                {
+                    additionalProps: {
+                        source: "fabricWorkspace",
+                        databaseType: "fabric-sql",
+                        result: "succeeded",
+                    },
+                },
+            );
         });
 
         test("falls back to the production portal for an unreported environment", async () => {
@@ -141,87 +162,37 @@ suite("FabricDatabaseHubIntegration Tests", () => {
         });
     });
 
-    suite("Object Explorer", () => {
-        test("deep-links an Azure SQL connection whose ARM resource can be resolved", async () => {
-            sandbox.stub(VsCodeAzureHelper, "findSqlResource").resolves({
-                accountId: "account-id",
-                subscriptionId: "subscription-id",
-                resourceGroup: "resource-group",
-            });
-
-            await integration["openInFabricDatabaseHub"](
-                buildObjectExplorerNode(Constants.serverLabel, {
-                    server: "sql-server.database.windows.net",
-                    database: "sample-db",
-                    accountId: "account-id",
-                }),
-            );
-
-            expect(openExternal).to.have.been.calledOnce;
-            expect(openedUrl().searchParams.get("databaseResourceId")).to.equal(
-                "/subscriptions/subscription-id/resourceGroups/resource-group/providers/Microsoft.Sql/servers/sql-server/databases/sample-db",
-            );
-        });
-
-        test("falls back to the estate view when the ARM resource cannot be resolved", async () => {
-            sandbox.stub(VsCodeAzureHelper, "findSqlResource").resolves("UnableToCheck");
-
-            await integration["openInFabricDatabaseHub"](
-                buildObjectExplorerNode(Constants.serverLabel, {
-                    server: "sql-server.database.windows.net",
-                    database: "sample-db",
-                    accountId: "account-id",
-                }),
-            );
-
-            expect(openExternal).to.have.been.calledOnce;
-            const url = openedUrl();
-            expect(url.searchParams.has("databaseResourceId")).to.be.false;
-            expect(url.searchParams.get("databaseType")).to.equal("azure-sql");
-        });
-
-        test("opens the MSIT Hub for a Fabric connection string", async () => {
-            await integration["openInFabricDatabaseHub"](
-                buildObjectExplorerNode(Constants.disconnectedServerNodeType, {
-                    connectionString:
-                        'Data Source=x6eps4xrq2xudenlfv6naeo3i4.msit-database.fabric.microsoft.com,1433;Initial Catalog="Test Database-0d373898-c2da-4729-ac46-80c1ef8ed940";Encrypt=True',
-                }),
-            );
-
-            expect(openExternal).to.have.been.calledOnce;
-            const url = openedUrl();
-            expect(url.origin).to.equal("https://msit.fabric.microsoft.com");
-            expect(estateFilters(url)).to.deep.equal([
-                { key: "resourceType", operator: "in", value: ["FabricSql"] },
-                { key: "search", operator: "contains", value: "Test Database" },
-            ]);
-        });
-
-        test("ignores connections that are not Azure SQL or Fabric SQL", async () => {
-            await integration["openInFabricDatabaseHub"](
-                buildObjectExplorerNode(Constants.serverLabel, { server: "localhost" }),
-            );
-
-            expect(openExternal).to.not.have.been.called;
-        });
-
-        test("ignores node types that do not represent a server or database", async () => {
-            await integration["openInFabricDatabaseHub"](
-                buildObjectExplorerNode("Table", {
-                    server: "sql-server.database.windows.net",
-                    database: "sample-db",
-                }),
-            );
-
-            expect(openExternal).to.not.have.been.called;
-        });
-    });
-
     test("ignores nodes from unrelated trees", async () => {
         await integration["openInFabricDatabaseHub"](undefined);
         await integration["openInFabricDatabaseHub"]({});
         await integration["openInFabricDatabaseHub"]("not a node");
 
         expect(openExternal).to.not.have.been.called;
+    });
+
+    test("records errors opening an external Database Hub link", async () => {
+        const error = new Error("Failed to open external link");
+        openExternal.rejects(error);
+
+        try {
+            await integration["openInFabricDatabaseHub"](
+                buildResourceNode(mockAzureResources.azureSqlDbDatabase2),
+            );
+            expect.fail("Expected opening the Database Hub link to fail");
+        } catch (actualError) {
+            expect(actualError).to.equal(error);
+        }
+
+        expect(sendErrorEvent).to.have.been.calledWith(
+            TelemetryViews.FabricDatabaseHub,
+            TelemetryActions.Open,
+            {
+                error,
+                additionalProps: {
+                    source: "azureResources",
+                    databaseType: "azure-sql",
+                },
+            },
+        );
     });
 });

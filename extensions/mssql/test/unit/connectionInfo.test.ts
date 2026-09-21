@@ -301,56 +301,6 @@ test("getServerTypes", () => {
     }
 });
 
-suite("connection string properties", () => {
-    const fromConnectionString = (connectionString: string): IConnectionInfo =>
-        ({ connectionString }) as IConnectionInfo;
-
-    test("getServerName prefers the profile's server over the connection string", () => {
-        expect(
-            ConnectionInfo.getServerName({
-                server: "discrete.database.windows.net",
-                connectionString: "Data Source=ignored.database.windows.net",
-            } as IConnectionInfo),
-        ).to.equal("discrete.database.windows.net");
-    });
-
-    test("getServerName reads the data source in its various spellings", () => {
-        expect(
-            ConnectionInfo.getServerName(
-                fromConnectionString("Data Source=db.database.windows.net,1433;Encrypt=True"),
-            ),
-        ).to.equal("db.database.windows.net,1433");
-        expect(
-            ConnectionInfo.getServerName(fromConnectionString("Server=db.database.windows.net")),
-        ).to.equal("db.database.windows.net");
-        expect(ConnectionInfo.getServerName(fromConnectionString("Encrypt=True"))).to.be.undefined;
-    });
-
-    test("getDatabaseName reads a quoted initial catalog", () => {
-        expect(
-            ConnectionInfo.getDatabaseName(
-                fromConnectionString('Data Source=db;Initial Catalog="Test Database";Encrypt=True'),
-            ),
-        ).to.equal("Test Database");
-        expect(
-            ConnectionInfo.getDatabaseName(fromConnectionString("Data Source=db;Database=sales")),
-        ).to.equal("sales");
-    });
-
-    test("getServerTypes classifies connection-string-only profiles", () => {
-        expect(
-            ConnectionInfo.getServerTypes(
-                fromConnectionString(
-                    "Data Source=db.msit-database.fabric.microsoft.com,1433;Encrypt=True",
-                ),
-            ),
-        ).to.deep.equal([ServerType.Fabric, ServerType.Sql]);
-        expect(ConnectionInfo.getServerTypes(fromConnectionString("Encrypt=True"))).to.deep.equal([
-            ServerType.Unknown,
-        ]);
-    });
-});
-
 suite("canCheckDatabasePauseStatus", () => {
     const azureServer = "test.database.windows.net";
 

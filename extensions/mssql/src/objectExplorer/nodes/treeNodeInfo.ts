@@ -12,14 +12,6 @@ import * as Constants from "../../constants/constants";
 import { ITreeNodeInfo, ObjectMetadata } from "vscode-mssql";
 import { IConnectionProfile } from "../../models/interfaces";
 import { removeUndefinedProperties, uuid } from "../../utils/utils";
-import { getServerTypes } from "../../models/connectionInfo";
-
-/** Node types that represent a server or a database, and so describe a connection target. */
-const serverAndDatabaseNodeTypes: string[] = [
-    Constants.serverLabel,
-    Constants.disconnectedServerNodeType,
-    Constants.databaseString,
-];
 
 export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
     private _nodePath: string;
@@ -60,14 +52,7 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
     ) {
         super(label, collapsibleState);
         this._originalLabel = label;
-        // Tag server and database nodes with the connection target they describe, so that
-        // platform-specific actions can be contributed against the node's context value.
-        if (context && connectionProfile && serverAndDatabaseNodeTypes.includes(nodeType)) {
-            const [serverPlatform, serverProduct] = getServerTypes(connectionProfile);
-            this.context = { ...context, serverPlatform, serverProduct };
-        } else {
-            this.context = context;
-        }
+        this.context = context;
         this._nodePath = nodePath;
         this._nodeStatus = nodeStatus;
         this._nodeType = nodeType;

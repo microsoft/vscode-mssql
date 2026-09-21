@@ -67,7 +67,12 @@ export function getFabricEnvironment(server: string | undefined): FabricEnvironm
 
     const host = server.split(",")[0].trim().toLowerCase();
     const bareSuffix = dnsSuffix.startsWith(".") ? dnsSuffix.slice(1) : dnsSuffix;
-    const suffixIndex = host.indexOf(bareSuffix.toLowerCase());
+    const normalizedSuffix = bareSuffix.toLowerCase();
+    if (!host.endsWith(normalizedSuffix)) {
+        return undefined;
+    }
+
+    const suffixIndex = host.length - normalizedSuffix.length;
     if (suffixIndex <= 0) {
         return undefined;
     }

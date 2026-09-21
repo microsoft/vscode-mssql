@@ -134,7 +134,7 @@ export interface IProviderSettings {
         fabricApiUriBase: string;
         fabricScopeUriBase: string;
         /** Base URI of the Fabric portal, used to build links into Fabric workloads. */
-        fabricPortalUriBase: string;
+        fabricPortalUriBase: string | undefined;
         sqlDbDnsSuffix: string;
         dataWarehouseDnsSuffix: string;
     };

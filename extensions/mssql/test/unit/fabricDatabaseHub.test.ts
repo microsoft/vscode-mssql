@@ -33,6 +33,7 @@ suite("Fabric Database Hub", () => {
 
         test("returns undefined for hosts that are not Fabric SQL endpoints", () => {
             expect(getFabricEnvironment("server.database.windows.net")).to.be.undefined;
+            expect(getFabricEnvironment("db.database.fabric.microsoft.com.evil")).to.be.undefined;
             expect(getFabricEnvironment("localhost")).to.be.undefined;
             expect(getFabricEnvironment(undefined)).to.be.undefined;
         });

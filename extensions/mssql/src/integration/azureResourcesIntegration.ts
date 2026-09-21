@@ -25,7 +25,17 @@ interface AzureResourceNode {
  * Returns true if the given node is an AzureResourceNode, false otherwise.
  */
 export function isAzureResourceNode(node: unknown): node is AzureResourceNode {
-    return typeof node === "object" && !!node && "resource" in node;
+    if (typeof node !== "object" || !node || !("resource" in node)) {
+        return false;
+    }
+
+    const { resource } = node;
+    return (
+        typeof resource === "object" &&
+        !!resource &&
+        "id" in resource &&
+        typeof resource.id === "string"
+    );
 }
 
 export class AzureResourcesExtensionIntegration {

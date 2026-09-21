@@ -1021,7 +1021,7 @@ declare module "vscode-mssql" {
             fabricApiUriBase: string;
             fabricScopeUriBase: string;
             /** Base URI of the Fabric portal, used to build links into Fabric workloads. */
-            fabricPortalUriBase: string;
+            fabricPortalUriBase: string | undefined;
             sqlDbDnsSuffix: string;
             dataWarehouseDnsSuffix: string;
         };
@@ -1949,16 +1949,6 @@ declare module "vscode-mssql" {
         subType: string;
         filterable: boolean;
         hasFilters: boolean;
-        /**
-         * Platform hosting the node's connection, e.g. `Azure`, `Fabric` or `Local`.
-         * Only set on nodes that represent a server or a database.
-         */
-        serverPlatform?: string;
-        /**
-         * Product the node's connection targets, e.g. `SQL` or `DataWarehouse`.
-         * Only set on nodes that represent a server or a database.
-         */
-        serverProduct?: string;
     }
 
     export interface NodeFilterProperty {

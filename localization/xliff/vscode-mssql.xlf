@@ -11098,6 +11098,9 @@
     <trans-unit id="mssql.revealQueryResult">
       <source xml:lang="en">Reveal Query Result (MSSQL)</source>
     </trans-unit>
+    <trans-unit id="mssql.openInFabricDatabaseHub">
+      <source xml:lang="en">Review health in Database Hub (Preview)</source>
+    </trans-unit>
     <trans-unit id="mssql.copilot.rewriteQuery">
       <source xml:lang="en">Rewrite Query</source>
     </trans-unit>
@@ -11379,9 +11382,6 @@
     </trans-unit>
     <trans-unit id="mssql.viewBackgroundTaskLogs">
       <source xml:lang="en">View Task Logs</source>
-    </trans-unit>
-    <trans-unit id="mssql.openInFabricDatabaseHub">
-      <source xml:lang="en">View in Fabric Database Hub</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
       <source xml:lang="en">Visualize a Query Plan</source>
