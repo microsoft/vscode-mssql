@@ -6,7 +6,7 @@
 import * as vscode from "vscode";
 import { getLogger } from "../models/logger";
 
-import { AzureResource } from "@microsoft/vscode-azureresources-api";
+import { AzureResource, Wrapper } from "@microsoft/vscode-azureresources-api";
 import { cmdOpenInMssqlExtensionFromAzureResources } from "../constants/constants";
 import { AuthenticationType } from "../sharedInterfaces/connectionDialog";
 import { CloudId, getCloudProviderSettings } from "../azure/providerSettings";
@@ -15,27 +15,16 @@ import { ILogger } from "../sharedInterfaces/logger";
 import { MssqlProtocolHandler } from "../mssqlProtocolHandler";
 
 /**
- * Node from the Azure Resources tree
+ * The resource item returned by unwrapping an Azure Resources tree command argument.
+ * This mirrors AzureResourceItem from vscode-azureresourcegroups.
  */
-interface AzureResourceNode {
+export interface AzureResourceItem {
     readonly resource: AzureResource;
 }
 
-/**
- * Returns true if the given node is an AzureResourceNode, false otherwise.
- */
-export function isAzureResourceNode(node: unknown): node is AzureResourceNode {
-    if (typeof node !== "object" || !node || !("resource" in node)) {
-        return false;
-    }
-
-    const { resource } = node;
-    return (
-        typeof resource === "object" &&
-        !!resource &&
-        "id" in resource &&
-        typeof resource.id === "string"
-    );
+/** Unwraps the command argument using the API published by the Azure Resources extension. */
+export function getAzureResource(node: Wrapper): AzureResource {
+    return node.unwrap<AzureResourceItem>().resource;
 }
 
 export class AzureResourcesExtensionIntegration {
@@ -48,18 +37,17 @@ export class AzureResourcesExtensionIntegration {
     public registerOpenInMssqlCommand(): vscode.Disposable {
         const openInMssqlExtensionCommand = vscode.commands.registerCommand(
             cmdOpenInMssqlExtensionFromAzureResources,
-            (node: unknown) => this.invokeForAzureSqlResource(node),
+            (node: Wrapper | undefined) => this.invokeForAzureSqlResource(node),
         );
 
         return openInMssqlExtensionCommand;
     }
 
-    private async invokeForAzureSqlResource(node: unknown): Promise<void> {
-        if (!isAzureResourceNode(node)) {
+    private async invokeForAzureSqlResource(node: Wrapper | undefined): Promise<void> {
+        if (!node) {
             return;
         }
-
-        const { resource } = node;
+        const resource = getAzureResource(node);
         const { subscription } = resource;
 
         const dnsSuffix =

@@ -8,8 +8,12 @@ import { expect } from "chai";
 import * as sinon from "sinon";
 import * as chai from "chai";
 import sinonChai from "sinon-chai";
+import { AzureResource, Wrapper } from "@microsoft/vscode-azureresources-api";
 
-import { AzureResourcesExtensionIntegration } from "../../src/integration/azureResourcesIntegration";
+import {
+    AzureResourceItem,
+    AzureResourcesExtensionIntegration,
+} from "../../src/integration/azureResourcesIntegration";
 import { MssqlProtocolHandler } from "../../src/mssqlProtocolHandler";
 import { AuthenticationType } from "../../src/sharedInterfaces/connectionDialog";
 import {
@@ -32,11 +36,9 @@ suite("AzureResourcesExtensionIntegration Tests", () => {
     const tenantId = mockSubscriptions[0].tenantId;
 
     const buildResourceNode = (
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        resource: any = mockAzureResources.azureSqlDbServer,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        subscriptionOverrides: any = {},
-    ): unknown => {
+        resource: object & { id?: string; name?: string } = mockAzureResources.azureSqlDbServer,
+        subscriptionOverrides: Record<string, unknown> = {},
+    ): Wrapper => {
         const subscription = {
             environment: { sqlServerHostnameSuffix: dnsSuffix },
             account: { id: accountId },
@@ -44,7 +46,10 @@ suite("AzureResourcesExtensionIntegration Tests", () => {
             ...subscriptionOverrides,
         };
 
-        return { resource: { ...resource, subscription } };
+        const resourceItem: AzureResourceItem = {
+            resource: { ...resource, subscription } as unknown as AzureResource,
+        };
+        return { unwrap: <T>() => resourceItem as T };
     };
 
     setup(() => {
@@ -65,8 +70,6 @@ suite("AzureResourcesExtensionIntegration Tests", () => {
 
     test("ignores nodes that are not Azure resource nodes", async () => {
         await integration["invokeForAzureSqlResource"](undefined);
-        await integration["invokeForAzureSqlResource"]({});
-        await integration["invokeForAzureSqlResource"]("not a node");
 
         expect(protocolHandler.handleUri).to.not.have.been.called;
     });

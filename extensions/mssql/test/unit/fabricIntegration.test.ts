@@ -10,30 +10,22 @@ import {
     FabricWorkspaceItemNode,
     getFabricWorkspaceItemEnvironment,
     isFabricSqlDatabaseNode,
-    isFabricWorkspaceItemNode,
 } from "../../src/integration/fabricIntegration";
 import { SqlArtifactTypes } from "../../src/sharedInterfaces/fabric";
 
 suite("Fabric extension integration", () => {
     const buildNode = (
         artifact: Partial<FabricWorkspaceItemNode["artifact"]> = {},
-    ): FabricWorkspaceItemNode =>
-        ({
-            artifact: { type: SqlArtifactTypes.SqlDatabase, ...artifact },
-        }) as FabricWorkspaceItemNode;
-
-    suite("isFabricWorkspaceItemNode", () => {
-        test("recognizes nodes carrying a Fabric artifact", () => {
-            expect(isFabricWorkspaceItemNode(buildNode())).to.be.true;
-        });
-
-        test("rejects values that are not workspace item nodes", () => {
-            expect(isFabricWorkspaceItemNode(undefined)).to.be.false;
-            expect(isFabricWorkspaceItemNode("not a node")).to.be.false;
-            expect(isFabricWorkspaceItemNode({})).to.be.false;
-            expect(isFabricWorkspaceItemNode({ artifact: undefined })).to.be.false;
-            expect(isFabricWorkspaceItemNode({ artifact: { displayName: "Sales" } })).to.be.false;
-        });
+    ): FabricWorkspaceItemNode => ({
+        artifact: {
+            id: "artifact-id",
+            type: SqlArtifactTypes.SqlDatabase,
+            displayName: "Sales",
+            description: undefined,
+            workspaceId: "workspace-id",
+            fabricEnvironment: "PROD",
+            ...artifact,
+        },
     });
 
     suite("isFabricSqlDatabaseNode", () => {
@@ -57,8 +49,7 @@ suite("Fabric extension integration", () => {
             ).to.equal(FabricEnvironment.Prod);
         });
 
-        test("returns undefined when the environment is missing or unknown", () => {
-            expect(getFabricWorkspaceItemEnvironment(buildNode())).to.be.undefined;
+        test("returns undefined when the environment is unknown", () => {
             expect(getFabricWorkspaceItemEnvironment(buildNode({ fabricEnvironment: "nowhere" })))
                 .to.be.undefined;
         });

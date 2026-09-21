@@ -8,13 +8,21 @@ import { expect } from "chai";
 import * as sinon from "sinon";
 import * as chai from "chai";
 import sinonChai from "sinon-chai";
+import { AzureResource, Wrapper } from "@microsoft/vscode-azureresources-api";
 
 import { FabricDatabaseHubIntegration } from "../../src/integration/fabricDatabaseHubIntegration";
 import { mockAzureResources } from "./azureHelperStubs";
 import { SqlArtifactTypes } from "../../src/sharedInterfaces/fabric";
 import { createStubLogger, stubTelemetry } from "./utils";
-import { isAzureResourceNode } from "../../src/integration/azureResourcesIntegration";
+import {
+    AzureResourceItem,
+    getAzureResource,
+} from "../../src/integration/azureResourcesIntegration";
 import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
+import {
+    FabricWorkspaceArtifact,
+    FabricWorkspaceItemNode,
+} from "../../src/integration/fabricIntegration";
 
 chai.use(sinonChai);
 
@@ -30,7 +38,26 @@ suite("FabricDatabaseHubIntegration Tests", () => {
     const estateFilters = (url: URL): unknown =>
         JSON.parse(url.searchParams.get("estateView")!).state.filters;
 
-    const buildResourceNode = (resource: { id?: string }): unknown => ({ resource });
+    const buildResourceNode = (resource: { id?: string }): Wrapper => {
+        const resourceItem: AzureResourceItem = {
+            resource: resource as AzureResource,
+        };
+        return { unwrap: <T>() => resourceItem as T };
+    };
+
+    const buildFabricNode = (
+        artifact: Partial<FabricWorkspaceArtifact> = {},
+    ): FabricWorkspaceItemNode => ({
+        artifact: {
+            id: "artifact-id",
+            type: SqlArtifactTypes.SqlDatabase,
+            displayName: "Fabric Orders",
+            description: undefined,
+            workspaceId: "workspace-id",
+            fabricEnvironment: "PROD",
+            ...artifact,
+        },
+    });
 
     setup(() => {
         sandbox = sinon.createSandbox();
@@ -48,10 +75,10 @@ suite("FabricDatabaseHubIntegration Tests", () => {
     });
 
     suite("Azure Resources tree", () => {
-        test("recognizes only resources with string IDs", () => {
-            expect(isAzureResourceNode(buildResourceNode({ id: "resource-id" }))).to.be.true;
-            expect(isAzureResourceNode(buildResourceNode({}))).to.be.false;
-            expect(isAzureResourceNode({ resource: { id: 1 } })).to.be.false;
+        test("unwraps an Azure Resources command argument", () => {
+            expect(getAzureResource(buildResourceNode({ id: "resource-id" })).id).to.equal(
+                "resource-id",
+            );
         });
 
         test("deep-links an Azure SQL database to the Hub", async () => {
@@ -116,13 +143,9 @@ suite("FabricDatabaseHubIntegration Tests", () => {
 
     suite("Fabric workspace tree", () => {
         test("opens the matching Fabric environment for a SQL database item", async () => {
-            await integration["openInFabricDatabaseHub"]({
-                artifact: {
-                    type: SqlArtifactTypes.SqlDatabase,
-                    displayName: "Fabric Orders",
-                    fabricEnvironment: "MSIT",
-                },
-            });
+            await integration["openInFabricDatabaseHub"](
+                buildFabricNode({ fabricEnvironment: "MSIT" }),
+            );
 
             expect(openExternal).to.have.been.calledOnce;
             const url = openedUrl();
@@ -145,18 +168,18 @@ suite("FabricDatabaseHubIntegration Tests", () => {
             );
         });
 
-        test("falls back to the production portal for an unreported environment", async () => {
-            await integration["openInFabricDatabaseHub"]({
-                artifact: { type: SqlArtifactTypes.SqlDatabase, displayName: "Fabric Orders" },
-            });
+        test("falls back to the production portal for an unknown environment", async () => {
+            await integration["openInFabricDatabaseHub"](
+                buildFabricNode({ fabricEnvironment: "UNKNOWN" }),
+            );
 
             expect(openedUrl().origin).to.equal("https://app.fabric.microsoft.com");
         });
 
         test("ignores items that are not SQL databases", async () => {
-            await integration["openInFabricDatabaseHub"]({
-                artifact: { type: SqlArtifactTypes.Warehouse, displayName: "Sales" },
-            });
+            await integration["openInFabricDatabaseHub"](
+                buildFabricNode({ type: SqlArtifactTypes.Warehouse, displayName: "Sales" }),
+            );
 
             expect(openExternal).to.not.have.been.called;
             expect(sendActionEvent).to.have.been.calledWith(
@@ -175,8 +198,6 @@ suite("FabricDatabaseHubIntegration Tests", () => {
 
     test("ignores nodes from unrelated trees", async () => {
         await integration["openInFabricDatabaseHub"](undefined);
-        await integration["openInFabricDatabaseHub"]({});
-        await integration["openInFabricDatabaseHub"]("not a node");
 
         expect(openExternal).to.not.have.been.called;
         expect(sendActionEvent).to.have.been.calledWith(

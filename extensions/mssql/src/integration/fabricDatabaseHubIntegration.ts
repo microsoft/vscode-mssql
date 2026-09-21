@@ -5,6 +5,7 @@
 
 import * as vscode from "vscode";
 import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
+import { isWrapper, Wrapper } from "@microsoft/vscode-azureresources-api";
 
 import * as Constants from "../constants/constants";
 import { extractFromResourceId } from "../connectionconfig/azureHelpers";
@@ -17,11 +18,10 @@ import {
     FabricWorkspaceItemNode,
     getFabricWorkspaceItemEnvironment,
     isFabricSqlDatabaseNode,
-    isFabricWorkspaceItemNode,
 } from "./fabricIntegration";
 import { getLogger } from "../models/logger";
 import { ILogger } from "../sharedInterfaces/logger";
-import { isAzureResourceNode } from "./azureResourcesIntegration";
+import { getAzureResource } from "./azureResourcesIntegration";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 
 /** ARM provider namespace for Azure SQL servers and databases. */
@@ -40,6 +40,8 @@ enum DatabaseHubTelemetryResult {
 }
 
 const unknownDatabaseType = "unknown";
+
+type DatabaseHubTreeNode = Wrapper | FabricWorkspaceItemNode;
 
 /** Azure Resources nodes can carry percent-encoded resource IDs; the Hub expects decoded ones. */
 function decodeResourceId(resourceId: string): string {
@@ -64,12 +66,12 @@ export class FabricDatabaseHubIntegration {
     public registerOpenInFabricDatabaseHubCommand(): vscode.Disposable {
         return vscode.commands.registerCommand(
             Constants.cmdOpenInFabricDatabaseHub,
-            (node: unknown) => this.openInFabricDatabaseHub(node),
+            (node: DatabaseHubTreeNode | undefined) => this.openInFabricDatabaseHub(node),
         );
     }
 
     /** Opens the Database Hub for the given tree node; nodes with no Hub database are ignored. */
-    private async openInFabricDatabaseHub(node: unknown): Promise<void> {
+    private async openInFabricDatabaseHub(node: DatabaseHubTreeNode | undefined): Promise<void> {
         const telemetryProperties = this.getTelemetryProperties(node);
         try {
             const link = await this.getLinkForNode(node);
@@ -105,14 +107,14 @@ export class FabricDatabaseHubIntegration {
     }
 
     /** Returns only low-cardinality, non-identifying properties for command telemetry. */
-    private getTelemetryProperties(node: unknown): Record<string, string> {
-        if (isAzureResourceNode(node)) {
+    private getTelemetryProperties(node: DatabaseHubTreeNode | undefined): Record<string, string> {
+        if (isWrapper(node)) {
             return {
                 source: DatabaseHubTelemetrySource.AzureResources,
                 databaseType: FabricDatabaseHubDatabaseType.AzureSql,
             };
         }
-        if (isFabricWorkspaceItemNode(node)) {
+        if (node) {
             return {
                 source: DatabaseHubTelemetrySource.FabricWorkspace,
                 databaseType: isFabricSqlDatabaseNode(node)
@@ -126,14 +128,18 @@ export class FabricDatabaseHubIntegration {
         };
     }
 
-    private async getLinkForNode(node: unknown): Promise<string | undefined> {
-        if (isAzureResourceNode(node)) {
-            return this.getAzureResourceLink(node.resource.id);
+    private async getLinkForNode(
+        node: DatabaseHubTreeNode | undefined,
+    ): Promise<string | undefined> {
+        if (!node) {
+            return undefined;
         }
-        if (isFabricWorkspaceItemNode(node)) {
-            return this.getFabricWorkspaceItemLink(node);
+
+        if (isWrapper(node)) {
+            return this.getAzureResourceLink(getAzureResource(node)!.id);
         }
-        return undefined;
+
+        return this.getFabricWorkspaceItemLink(node);
     }
 
     /** Builds a link for a node from the Azure Resources tree. */

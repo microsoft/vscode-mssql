@@ -4,32 +4,30 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { FabricEnvironment, parseFabricEnvironment } from "../fabric/fabricDatabaseHub";
-import { IArtifact, SqlArtifactTypes } from "../sharedInterfaces/fabric";
+import { SqlArtifactTypes } from "../sharedInterfaces/fabric";
+
+/**
+ * Artifact metadata exposed by @microsoft/vscode-fabric-api.
+ *
+ * Declared locally because that package is private to the Fabric extension and is not available as
+ * a runtime dependency of this extension.
+ */
+export interface FabricWorkspaceArtifact {
+    readonly id: string;
+    readonly type: string;
+    readonly displayName: string;
+    readonly description: string | undefined;
+    readonly workspaceId: string;
+    readonly fabricEnvironment: string;
+}
 
 /**
  * Item node from the Fabric extension's workspace tree.
  *
- * The Fabric extension exposes the item's {@link IArtifact} on the node, and additionally tags it
- * with the name of the Fabric portal environment its workspace lives in.
+ * This mirrors ArtifactTreeNode from @microsoft/vscode-fabric-api.
  */
 export interface FabricWorkspaceItemNode {
-    readonly artifact: Pick<IArtifact, "type" | "displayName"> & {
-        readonly fabricEnvironment?: string;
-    };
-}
-
-export function isFabricWorkspaceItemNode(node: unknown): node is FabricWorkspaceItemNode {
-    if (typeof node !== "object" || !node || !("artifact" in node)) {
-        return false;
-    }
-
-    const { artifact } = node;
-    return (
-        typeof artifact === "object" &&
-        !!artifact &&
-        "type" in artifact &&
-        typeof artifact.type === "string"
-    );
+    readonly artifact: FabricWorkspaceArtifact;
 }
 
 /** Whether a Fabric workspace tree node represents a Fabric SQL database. */
