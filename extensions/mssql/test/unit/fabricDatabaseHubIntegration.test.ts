@@ -159,6 +159,17 @@ suite("FabricDatabaseHubIntegration Tests", () => {
             });
 
             expect(openExternal).to.not.have.been.called;
+            expect(sendActionEvent).to.have.been.calledWith(
+                TelemetryViews.FabricDatabaseHub,
+                TelemetryActions.Open,
+                {
+                    additionalProps: {
+                        source: "fabricWorkspace",
+                        databaseType: "unknown",
+                        result: "linkUnavailable",
+                    },
+                },
+            );
         });
     });
 
@@ -168,6 +179,17 @@ suite("FabricDatabaseHubIntegration Tests", () => {
         await integration["openInFabricDatabaseHub"]("not a node");
 
         expect(openExternal).to.not.have.been.called;
+        expect(sendActionEvent).to.have.been.calledWith(
+            TelemetryViews.FabricDatabaseHub,
+            TelemetryActions.Open,
+            {
+                additionalProps: {
+                    source: "unknown",
+                    databaseType: "unknown",
+                    result: "linkUnavailable",
+                },
+            },
+        );
     });
 
     test("records errors opening an external Database Hub link", async () => {

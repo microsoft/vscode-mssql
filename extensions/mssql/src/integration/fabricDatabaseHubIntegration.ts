@@ -39,6 +39,8 @@ enum DatabaseHubTelemetryResult {
     LinkUnavailable = "linkUnavailable",
 }
 
+const unknownDatabaseType = "unknown";
+
 /** Azure Resources nodes can carry percent-encoded resource IDs; the Hub expects decoded ones. */
 function decodeResourceId(resourceId: string): string {
     try {
@@ -115,12 +117,12 @@ export class FabricDatabaseHubIntegration {
                 source: DatabaseHubTelemetrySource.FabricWorkspace,
                 databaseType: isFabricSqlDatabaseNode(node)
                     ? FabricDatabaseHubDatabaseType.FabricSql
-                    : DatabaseHubTelemetrySource.Unknown,
+                    : unknownDatabaseType,
             };
         }
         return {
             source: DatabaseHubTelemetrySource.Unknown,
-            databaseType: DatabaseHubTelemetrySource.Unknown,
+            databaseType: unknownDatabaseType,
         };
     }
 
