@@ -750,3 +750,48 @@ export const azureAuthConn = {
 export const connStringConn = {
     connectionString: "Server=myServer;Database=myDB;Integrated Security=true;",
 } as IConnectionProfile;
+
+suite("Utility Tests - withTimeout", () => {
+    let clock: sinon.SinonFakeTimers;
+
+    setup(() => {
+        clock = sinon.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    });
+
+    teardown(() => {
+        clock.restore();
+    });
+
+    test("resolves with the value when the promise settles in time", async () => {
+        const result = await Utils.withTimeout(Promise.resolve("done"), 1000, "too slow");
+
+        expect(result).to.equal("done");
+        expect(clock.countTimers(), "the timer is cleared once the promise settles").to.equal(0);
+    });
+
+    test("propagates a rejection from the promise", async () => {
+        let caught: Error | undefined;
+        try {
+            await Utils.withTimeout(Promise.reject(new Error("boom")), 1000, "too slow");
+        } catch (error) {
+            caught = error as Error;
+        }
+
+        expect(caught?.message).to.equal("boom");
+        expect(clock.countTimers(), "the timer is cleared once the promise settles").to.equal(0);
+    });
+
+    test("rejects with the timeout message when the promise never settles", async () => {
+        let caught: Error | undefined;
+        const observed = Utils.withTimeout(new Promise<never>(() => {}), 1000, "too slow").catch(
+            (error) => {
+                caught = error as Error;
+            },
+        );
+
+        await clock.tickAsync(1001);
+        await observed;
+
+        expect(caught?.message).to.equal("too slow");
+    });
+});

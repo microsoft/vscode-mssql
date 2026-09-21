@@ -40,6 +40,21 @@ const useStyles = makeStyles({
         padding: "6px 8px",
         borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
     },
+    errorToggle: {
+        background: "none",
+        border: "none",
+        padding: 0,
+        cursor: "pointer",
+        color: tokens.colorBrandForegroundLink,
+        font: "inherit",
+        textDecoration: "underline",
+    },
+    fullError: {
+        marginBottom: "8px",
+        whiteSpace: "pre-wrap",
+        wordBreak: "break-word",
+        color: tokens.colorNeutralForeground2,
+    },
     logPreview: {
         margin: 0,
         padding: "8px",
@@ -62,11 +77,16 @@ export const DabStepCard = ({ stepStatus }: DabStepCardProps) => {
     const classes = useStyles();
     const { copyToClipboard, openLogsInNewTab } = useDabContext();
     const [expanded, setExpanded] = useState(true);
+    const [showFullError, setShowFullError] = useState(false);
 
     const labels = getDabStepLabels()[stepStatus.step];
     const isError = stepStatus.status === ApiStatus.Error;
     const isCompleted = stepStatus.status === ApiStatus.Loaded;
     const hasContainerLogs = !!stepStatus.containerLogs?.trim();
+    // The summary names the kind of failure; the underlying error names the
+    // cause. Only offer it when it adds something the summary does not.
+    const fullErrorText = stepStatus.fullErrorText?.trim();
+    const hasFullErrorText = !!fullErrorText && fullErrorText !== stepStatus.message?.trim();
 
     // Auto-expand on error
     useEffect(() => {
@@ -74,6 +94,11 @@ export const DabStepCard = ({ stepStatus }: DabStepCardProps) => {
             setExpanded(true);
         }
     }, [isError]);
+
+    // A retry that fails differently deserves to be read from the top.
+    useEffect(() => {
+        setShowFullError(false);
+    }, [fullErrorText]);
 
     return (
         <DeploymentStepCard
@@ -100,6 +125,21 @@ export const DabStepCard = ({ stepStatus }: DabStepCardProps) => {
                                 rel="noopener noreferrer">
                                 {stepStatus.errorLinkText}
                             </a>
+                        </div>
+                    )}
+                    {isError && hasFullErrorText && (
+                        <div className={classes.topSpace}>
+                            {showFullError && (
+                                <div className={classes.fullError}>{fullErrorText}</div>
+                            )}
+                            <button
+                                type="button"
+                                className={classes.errorToggle}
+                                onClick={() => setShowFullError(!showFullError)}>
+                                {showFullError
+                                    ? locConstants.schemaDesigner.hideFullErrorMessage
+                                    : locConstants.schemaDesigner.showFullErrorMessage}
+                            </button>
                         </div>
                     )}
                     {isError && hasContainerLogs && (

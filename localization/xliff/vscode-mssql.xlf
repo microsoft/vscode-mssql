@@ -129,6 +129,9 @@
     <trans-unit id="++CODE++380918b946a526640a40df5dced6516794f3d97bbd9e6bb553d037c4439f31c3">
       <source xml:lang="en">=</source>
     </trans-unit>
+    <trans-unit id="++CODE++c61a041f6ca5abff2c94cefc531083c11d3f3b2af7131fb9640dda59a551e289">
+      <source xml:lang="en">A .NET runtime is required. The extension downloads the Data API builder CLI and resolves a runtime for it.</source>
+    </trans-unit>
     <trans-unit id="++CODE++646d218b74cf8fcc4644195bd9dae9ef4615c9d33d9afc5a4ff24e492ce3fb1f">
       <source xml:lang="en">A SQL Projects build task has been added to the existing tasks.json file.</source>
     </trans-unit>
@@ -140,6 +143,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ac9fb8995fba687acf368ee05b5a54245e4a642be4c7a794cce8a2873e8aa11f">
       <source xml:lang="en">A connection is already being established. Please wait for it to complete before running a query.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++453a0d1fc294fdc5b40419b3f4e8a2071c86012533d6e5787d71b21c740a3cb5">
+      <source xml:lang="en">A container cannot use Windows Authentication, because it runs outside your Windows session. Deploy with the Data API builder CLI instead, which runs as you.</source>
     </trans-unit>
     <trans-unit id="++CODE++6d09a02fc809c2684eee47d1e31b72c4db6fb8ef813212d1fc053febb54f42f7">
       <source xml:lang="en">A database name is required. The database variable is optional.</source>
@@ -168,6 +174,9 @@
     </trans-unit>
     <trans-unit id="++CODE++6b262b5e3f3a492b857cb857bded5d039fa91cbc72a121ef398ef5676b2be947">
       <source xml:lang="en">A highly integrated, developer-ready transactional database that auto-scales, auto-tunes, and mirrors data to OneLake for analytics across Fabric services</source>
+    </trans-unit>
+    <trans-unit id="++CODE++045d71b1a3454db180c918941024e788e68689e951e9d51ea41f3283ed5b7666">
+      <source xml:lang="en">A name for this deployment</source>
     </trans-unit>
     <trans-unit id="++CODE++880a0618dd92395efe1446e54fe5d50854c148586fdc14f5da8aecda61c827ae">
       <source xml:lang="en">A predefined global default value for the column or binding.</source>
@@ -429,6 +438,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ab4db1a876378f718e4073baa75897c34c0e7d2608d68cda6461e01de42fa962">
       <source xml:lang="en">Allow Nulls</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ef77fd7e7de3068a3369a87288164dfc52c45a4fe4f9dde764612fd73c757c5e">
+      <source xml:lang="en">Allow incompatible platform during deployment</source>
     </trans-unit>
     <trans-unit id="++CODE++49ac2c72f4aa327cb385b0c76a52b02ae819504641492120e52b1070d9db5663">
       <source xml:lang="en">Allow null</source>
@@ -784,6 +796,10 @@
     <trans-unit id="++CODE++2827add936f31415e16e0670d8686084ec2e21fed7686c0aa91fffdfa09e4e38">
       <source xml:lang="en">Azure SQL Server</source>
     </trans-unit>
+    <trans-unit id="++CODE++588333f4d266b89935941194e4f8e0f1d8aab434615c493680d7d0859b6b7081">
+      <source xml:lang="en">Azure SQL database &apos;{0}&apos; was provisioned successfully.</source>
+      <note>{0} is the database name</note>
+    </trans-unit>
     <trans-unit id="++CODE++d58bf1f323a38f50b921c7d963ad40d4323ebb5085fc456c8afbcc6542b0eb7a">
       <source xml:lang="en">Azure SQL databases provisioning</source>
     </trans-unit>
@@ -831,6 +847,9 @@
     </trans-unit>
     <trans-unit id="++CODE++760bb46db5b9f7594d6a52062c3f044fac1a2dc55ec95bfd659eb345bd1425fa">
       <source xml:lang="en">Back to Schema</source>
+    </trans-unit>
+    <trans-unit id="++CODE++958bd39b8c9507522a7a8e9591f1b534ef96708d873950c0ad91d4db1a452473">
+      <source xml:lang="en">Back to deployments</source>
     </trans-unit>
     <trans-unit id="++CODE++e6885d7f1ab90cd7529fb7e3690957e6324d73e7a2dc017014bb9667d7524a76">
       <source xml:lang="en">Back to preview</source>
@@ -1016,6 +1035,9 @@
     <trans-unit id="++CODE++a6dab3e65af40b4f3bca5c056278a22a48972adfa26a46fa3cc16aa4e07e86e0">
       <source xml:lang="en">Cancel failed: {0}</source>
       <note>{0} is the error message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++bb446d765ac5ce4aed459491227b909ff24de5026f8c7ee8451c1db46a8b6ade">
+      <source xml:lang="en">Cancel query</source>
     </trans-unit>
     <trans-unit id="++CODE++d6efd131712ed1115d720d4cfdb68b1819ad1de1587f4c2176c9c055c7c03a67">
       <source xml:lang="en">Cancel schema compare failed: &apos;{0}&apos;</source>
@@ -1215,6 +1237,9 @@
     <trans-unit id="++CODE++c4152381e591eb56f29211e9e1041f2db298ba2a28040a4bff7894f1602bb4ca">
       <source xml:lang="en">Check output pane for more details</source>
     </trans-unit>
+    <trans-unit id="++CODE++2fffa807cb6b4bd34f3fc8bf567ebcb2aed34f84dbe187fe16c7a2102150b6b5">
+      <source xml:lang="en">Checking .NET runtime</source>
+    </trans-unit>
     <trans-unit id="++CODE++43034967e711bc54bfe87c71c74ca2a19a39ca0d6e18c5d495cd90634d25eea0">
       <source xml:lang="en">Checking Docker Engine Configuration</source>
     </trans-unit>
@@ -1229,6 +1254,9 @@
     </trans-unit>
     <trans-unit id="++CODE++a03fe5c6bd995e5dd1d1f1972329ecc85747bd329900c6fbd46344bd110d9a7d">
       <source xml:lang="en">Checking container readiness</source>
+    </trans-unit>
+    <trans-unit id="++CODE++66b868d316fac9d2254207e43df9118377a95ef7e35d136c357498e0637d5871">
+      <source xml:lang="en">Checking engine readiness</source>
     </trans-unit>
     <trans-unit id="++CODE++469663d6e6c1f487f123cf95220bce4d9ac1c98f2cd06e373ccb0baa14c343d4">
       <source xml:lang="en">Checking if Docker is installed</source>
@@ -1247,6 +1275,9 @@
     </trans-unit>
     <trans-unit id="++CODE++38ccc9db5b300e54116d6f6e8b8ee1420fea7792e8483c7368fdd964b6ecef0a">
       <source xml:lang="en">Checking pre-requisites</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ed7fa7e173cd1f99f4403bd77fd717d26cdffa2216341e208fa2c5f7ac0d5d53">
+      <source xml:lang="en">Checking the generated configuration</source>
     </trans-unit>
     <trans-unit id="++CODE++de88f00e461bb1cd413f9c556b06e1b903006bb3c0123f2e75fdff92532034af">
       <source xml:lang="en">Choose An Action</source>
@@ -1298,6 +1329,9 @@
     </trans-unit>
     <trans-unit id="++CODE++4ccc2e9603461fb60e8f8e5a5b8dbddd023bb4a1423c348bc99e0714f6c3812e">
       <source xml:lang="en">Choose the behavior for new editors</source>
+    </trans-unit>
+    <trans-unit id="++CODE++50ccae2402463062c4e42c7c9ec72243a183ba61fc2f56c3e41bc7ef605acbcd">
+      <source xml:lang="en">Choose where to run Data API builder for this database.</source>
     </trans-unit>
     <trans-unit id="++CODE++988c00d268f2867e2e35f7c7de12ddee2e7c5516193dc246ff16186208f335d2">
       <source xml:lang="en">Choose whether this stored procedure appears as a GraphQL mutation or query. DAB defaults to mutation.</source>
@@ -1606,8 +1640,17 @@
     <trans-unit id="++CODE++cbd2167917b36ef54fa6044f33009b01e0793c6fda74f2488762f9cdb26793fc">
       <source xml:lang="en">Compute + Storage</source>
     </trans-unit>
+    <trans-unit id="++CODE++7771f1f8f1ff048b4107e7d29f178ba80d2db1e9ba0afc744097ea074cb3b01c">
+      <source xml:lang="en">Config changed</source>
+    </trans-unit>
     <trans-unit id="++CODE++7ddbffc16744c2642445a4ec489967d4201fe93f5ec6af10738ba783cbd78680">
       <source xml:lang="en">Config copied to clipboard</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e962c61e868414967e841ebed66902435177a9fbb216e0742a075e682a47eb73">
+      <source xml:lang="en">Configuration has changed</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bf0c5eefb35a2a14ae8ea5fa2d7747fff0157874c2640e9a31397ed840b8d5b3">
+      <source xml:lang="en">Configuration no longer exists</source>
     </trans-unit>
     <trans-unit id="++CODE++6b5b3c69e02dd47e73c93615e2a00d870b2ced5f28f2b7698d30d77d82cc349b">
       <source xml:lang="en">Configuration saved.</source>
@@ -1941,6 +1984,13 @@
     <trans-unit id="++CODE++bbcce2214819b0c2d1ab53dff1f116b6071d1223a513c97750b73e775ac8ca49">
       <source xml:lang="en">Container name, port, and config content are required to start the container.</source>
     </trans-unit>
+    <trans-unit id="++CODE++6afdf49d00bde2bc467f3cec19bb85b59741fbf80180c91ea58de6599f494046">
+      <source xml:lang="en">Container no longer exists</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ec959d6a5a283eaa094720f71457b35ef140f83d240d53d757000a127ff78889">
+      <source xml:lang="en">Container {0} no longer exists.</source>
+      <note>{0} is the Docker container name</note>
+    </trans-unit>
     <trans-unit id="++CODE++e846628c8d11bbf73a6ca39eb691f5f7802ba88cf1fb0c482997d928b1504fcb">
       <source xml:lang="en">Containment Type</source>
     </trans-unit>
@@ -1961,6 +2011,9 @@
     </trans-unit>
     <trans-unit id="++CODE++04ed7bc7a0e65dc11fc23e991a54fdd2c2ea33d9919598c0cccbfd9df831f338">
       <source xml:lang="en">Control the results grid display</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3cb79d895358f3badaea5b6eb05416fa6739c8520a7e8c2ddc97d662d69c0a67">
+      <source xml:lang="en">Controls whether deployment blocks because of platform compatibility checks. It does not allow Schema Compare between different Azure Synapse or Microsoft Fabric platform types.</source>
     </trans-unit>
     <trans-unit id="++CODE++9ad6fe65e4341a2297371f3f36b2b9cf12241c8bd2fb0e6b35f96cf60b50a291">
       <source xml:lang="en">Converting the project {0} to SDK-style was unsuccessful. Changes to the .sqlproj have been rolled back.</source>
@@ -2373,8 +2426,24 @@
     <trans-unit id="++CODE++dcae6c28f812fc336c88e1a1bfe5cbd8f60eab3a61864135ef5bd04af45ce283">
       <source xml:lang="en">Data API builder</source>
     </trans-unit>
+    <trans-unit id="++CODE++529233139a7f825a4fdb76f61d8ce0507228a61b913494424f04710930da9e0f">
+      <source xml:lang="en">Data API builder CLI</source>
+    </trans-unit>
     <trans-unit id="++CODE++2154b11388f741094808a9e344ab0be7e4be3d2a989551deec3b43f35fc729e3">
       <source xml:lang="en">Data API builder Configuration</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e640a89ce8e350fd9cdd83c32a3ab2ccdeeca996218a760b548091330dc62179">
+      <source xml:lang="en">Data API builder could not reach the database. Check that the server is running and the connection still works, then run this step again.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3c26053c4678fe4e3f992866121ffa0360ca6b3ab11b54e65f7bc7c89ce9f36b">
+      <source xml:lang="en">Data API builder could not sign in to the database. It signs in separately from this extension, using the Azure CLI. Run &apos;az login&apos;, then run this step again.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fc99f6bfe5e11ec996bb6edec67dd66123056685de26c34d516169c667267486">
+      <source xml:lang="en">Data API builder does not publish a build for {0}, so it cannot run directly on this machine. Try deploying to a container instead.</source>
+      <note>{0} is a .NET runtime identifier, such as osx-arm64</note>
+    </trans-unit>
+    <trans-unit id="++CODE++d90dacedab33faee6e7e3d4aec2d222b63b231958e052de1a3f5a55ffc80c982">
+      <source xml:lang="en">Data API builder is running!</source>
     </trans-unit>
     <trans-unit id="++CODE++18c1620276c4ac7ddaec590de6087601cbfad39f0ef20e19c41db887fb760c00">
       <source xml:lang="en">Data API builder opened. Continue with {0} operations ({1}/{2}).</source>
@@ -2555,6 +2624,9 @@
     <trans-unit id="++CODE++3e12474b79fc61d3695fc46a2588df801c380eccc6edc9cb20dd223f4e9ed76e">
       <source xml:lang="en">Delete backup and restore history</source>
     </trans-unit>
+    <trans-unit id="++CODE++9c6060316cb89a17616309dfa9b9ce524f7fdd29639b433015ba722294337b51">
+      <source xml:lang="en">Delete deployment?</source>
+    </trans-unit>
     <trans-unit id="++CODE++5fc8c270921fb866e4aa1b9356162c9f6d09f36b054ef907670ae5a323a5c194">
       <source xml:lang="en">Delete filter</source>
     </trans-unit>
@@ -2606,6 +2678,14 @@
     <trans-unit id="++CODE++75605e8fd5394c88086006f3ed265d8f5f725fdfb8827963a1be8f8348d31bee">
       <source xml:lang="en">Deploy, extract, import, or export data-tier applications on the selected database</source>
     </trans-unit>
+    <trans-unit id="++CODE++a7e07c22703de9d73d67247e3b0aa4c39c469d01e09bbb67c033dccb76ed9d60">
+      <source xml:lang="en">Deployed at {0}</source>
+      <note>{0} is a localized absolute date and time</note>
+    </trans-unit>
+    <trans-unit id="++CODE++6917f5e712a4993af96c63563bb6f77689af01cea41fdd4bad4708e3f2749d8b">
+      <source xml:lang="en">Deployed {0}</source>
+      <note>{0} is a relative time such as &apos;5 minutes ago&apos;</note>
+    </trans-unit>
     <trans-unit id="++CODE++77073cfc37f467e01ede7dd225bc91824e5fcb320f5723a633d43bd93b8a070b">
       <source xml:lang="en">Deploying DACPAC...</source>
     </trans-unit>
@@ -2626,6 +2706,18 @@
     </trans-unit>
     <trans-unit id="++CODE++cc51187ae9dbe9ccc606865c0177000cdeca2af5bca1c36c7f3065882c6ee18b">
       <source xml:lang="en">Deployment in progress</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d39279795c068e7eae0fac751fc1ff7e722232cb6f15f871494b4d70e46a7f9c">
+      <source xml:lang="en">Deployment name, port, and configuration are required to start the engine.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++777bc7ace9ef9cd24f40d697d603c4ca07ebd13f76c7ce9148fa0df315e2c5ef">
+      <source xml:lang="en">Deployment settings</source>
+    </trans-unit>
+    <trans-unit id="++CODE++842a4697fd0dddaa2ffb9e593abdfcc1963640b7e3b28eb5e5ae1624a18eaf46">
+      <source xml:lang="en">Deployments</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e2d63f5e06d035a1e421efa44a7f1f92ec06b908d7ef82cb6ca89c2b8ee192ec">
+      <source xml:lang="en">Deployments cannot be tracked because the extension&apos;s storage location is unavailable.</source>
     </trans-unit>
     <trans-unit id="++CODE++526e0087cc3f254d9f86f6c7d8e23d954c4dfda2b312efc29194ae8a860106ba">
       <source xml:lang="en">Description</source>
@@ -2811,6 +2903,9 @@
     <trans-unit id="++CODE++d6eafe82359100423c93c5ce53c352c1b51ca1e699215fcec3f5c5dd9bf12d24">
       <source xml:lang="en">Download</source>
     </trans-unit>
+    <trans-unit id="++CODE++a1a823de4d28a66950b1dbb93d476d8244e0d54ef2936f008ab33d4a82f51d82">
+      <source xml:lang="en">Download .NET</source>
+    </trans-unit>
     <trans-unit id="++CODE++400da40cfed58da293f9d4814548dd8f6d03a1acb727c417e2022f8202a988a5">
       <source xml:lang="en">Download deployment scripts</source>
     </trans-unit>
@@ -2828,6 +2923,9 @@
     </trans-unit>
     <trans-unit id="++CODE++37b345555d7ea6c1724d28076ce47b956d202574c211fefa36afba778f335373">
       <source xml:lang="en">Downloading</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6f1737dd338b7ed6e377799ecdaaeae637e31c51c9641edf808353790312c58e">
+      <source xml:lang="en">Downloading and unpacking the CLI package</source>
     </trans-unit>
     <trans-unit id="++CODE++adbcc35e97d53bc1acdeb5a1bf4ea403d362f3fb6074a2edc4206716cafb4191">
       <source xml:lang="en">Downloading from {0} to {1}</source>
@@ -3642,6 +3740,10 @@
     <trans-unit id="++CODE++7a77e8a8f80ab358ff1261e8047b81ffa298288509fc45ae56d2760997839dda">
       <source xml:lang="en">Fabric Databases</source>
     </trans-unit>
+    <trans-unit id="++CODE++1c7cb4f75443e75ebc87e93e015e29bdf680a2f851b09a1bb5c761639ed092fa">
+      <source xml:lang="en">Fabric SQL database &apos;{0}&apos; was provisioned successfully.</source>
+      <note>{0} is the database name</note>
+    </trans-unit>
     <trans-unit id="++CODE++3070527056fcbd2ba823f6ed6ec72a556b5d82695b4490bc28c86d210c696bad">
       <source xml:lang="en">Fabric Workspaces</source>
     </trans-unit>
@@ -3752,6 +3854,9 @@
     <trans-unit id="++CODE++21be0d0cbfd3dc3a4c9bbb0fc261d09ba6b93641dcbaba9f6202b815e5ccb3f2">
       <source xml:lang="en">Failed to delete {0}.</source>
       <note>Failed to delete {0}.</note>
+    </trans-unit>
+    <trans-unit id="++CODE++0e5682bd6846b320b3c20b7e81d3a887e9e0edea8e3e12ff1a42d650d166cf6c">
+      <source xml:lang="en">Failed to download the Data API builder CLI. Please check your network connection.</source>
     </trans-unit>
     <trans-unit id="++CODE++f7a651621eb764f916f46ebe62caf229dac567051acd6540f0e2b87d50e3f59c">
       <source xml:lang="en">Failed to drop database &apos;{0}&apos;. {1}</source>
@@ -3891,6 +3996,24 @@
       <source xml:lang="en">Failed to open text in editor: {0}</source>
       <note>{0} is the error message</note>
     </trans-unit>
+    <trans-unit id="++CODE++954dec32386b912be138accf36de060517dcc00ae06dd2f4b243aa7233170cad">
+      <source xml:lang="en">Failed to prepare the Data API builder CLI.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7ba26df4d0fbbd2bee13f3a586513471356439c4aa47b18bd9640be75254373e">
+      <source xml:lang="en">Failed to provision Azure SQL database &apos;{0}&apos;: {1}</source>
+      <note>{0} is the database name
+{1} is the error message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++da269800efda38160dafb6420431f8bde2988bcf33504e4e13ff5af7fae7eb46">
+      <source xml:lang="en">Failed to provision Fabric SQL database &apos;{0}&apos;: {1}</source>
+      <note>{0} is the database name
+{1} is the error message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++14887cba6de543fd263763a0c2952d8800157cd1ff9bc9378bc8c4f0d8200bf9">
+      <source xml:lang="en">Failed to provision SQL Server container &apos;{0}&apos;: {1}</source>
+      <note>{0} is the container name
+{1} is the error message</note>
+    </trans-unit>
     <trans-unit id="++CODE++07ada7fc091c333284ba42452a6d0ef44eae8f3105e07704463afe34a9d0c92d">
       <source xml:lang="en">Failed to pull DAB container image. Please check your network connection.</source>
     </trans-unit>
@@ -3980,12 +4103,21 @@
     <trans-unit id="++CODE++08e3cce193c1731c751f4e68352687632cb9edb3e01e8bc9200742d0bd5f7b2c">
       <source xml:lang="en">Failed to start query.</source>
     </trans-unit>
+    <trans-unit id="++CODE++ec9bd65d522eb7ea1df233fd4d1d793a112679dbf05cd753e77dd65f5adc38ce">
+      <source xml:lang="en">Failed to start the DAB container.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5c17965622983d7609326136700351ac959d559bc092c37d288ff42c8fb4a6ab">
+      <source xml:lang="en">Failed to start the Data API builder engine.</source>
+    </trans-unit>
     <trans-unit id="++CODE++8d966abf7ce439608c05903323ea676d64af27e6119ddcc6edebd6db2cd5c479">
       <source xml:lang="en">Failed to start {0}.</source>
       <note>Failed to start {0}.</note>
     </trans-unit>
     <trans-unit id="++CODE++ddbc5bf2f979708863241a3af69d9f9122e3b1180b3942e5ef94b4500188000b">
       <source xml:lang="en">Failed to stop and remove DAB container.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++45084af75704dd211915415afc4cd6d35c552ebe62bfbfe314688f5cfa972df2">
+      <source xml:lang="en">Failed to stop the DAB container.</source>
     </trans-unit>
     <trans-unit id="++CODE++de0b1da84a5d216abd9f65d2a4f32a258f97126fc0bb19e0fb9fecd1e89ea514">
       <source xml:lang="en">Failed to stop {0}.</source>
@@ -4006,6 +4138,9 @@
     </trans-unit>
     <trans-unit id="++CODE++f1b9a1054c1b8d303c21a78abec22481d5d6c9e56dc0d06d19ff3f2a70815de4">
       <source xml:lang="en">Failed to update the .sqlproj after moving the file: {0}</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3da3d1bf74778c00be7d4094e931f49f5fc1d9532d1dbc01d55a2ca34921984c">
+      <source xml:lang="en">Failed to write the Data API builder configuration file.</source>
     </trans-unit>
     <trans-unit id="++CODE++60a33e6cf5151f2d52eddae9685cfa270426aa89d8dbc7dfb854606f1d1a40fe">
       <source xml:lang="en">False</source>
@@ -4372,6 +4507,9 @@
     <trans-unit id="++CODE++019c93d8e0baa64c24b53c1e6f34c8faa0fcac26a0ac69fdaa46b788f6c05912">
       <source xml:lang="en">Generating report, this might take a while...</source>
     </trans-unit>
+    <trans-unit id="++CODE++b0a645b25ebc1bb0400058cfdba8e3d0622412ef0ac073432011c32ddaa5a293">
+      <source xml:lang="en">Generating script.</source>
+    </trans-unit>
     <trans-unit id="++CODE++915fc447c859d56fa8e745484ac300e07e104e9ef318105f82b578bedf32c405">
       <source xml:lang="en">Generating script...</source>
     </trans-unit>
@@ -4391,6 +4529,12 @@
     </trans-unit>
     <trans-unit id="++CODE++a43e5c073e9835ad6459998e88e6ad71d7b49f1a2fb3d0cd076b5bc0e1724fa7">
       <source xml:lang="en">Get security-related recommendations, such as avoiding SQL injection or excessive permissions</source>
+    </trans-unit>
+    <trans-unit id="++CODE++68d329969e77edfb8153e6ca614c82e901435d0d3def01bb59341fd555d821e0">
+      <source xml:lang="en">Getting Data API builder CLI</source>
+    </trans-unit>
+    <trans-unit id="++CODE++14999af228be42ee1b1416c75be3e2e2679235dd464d1419388e8053829b70ef">
+      <source xml:lang="en">Getting Data API builder ready</source>
     </trans-unit>
     <trans-unit id="++CODE++455754ccf3a6df55b0fe352903062c9adb22d5ce025f6c0b0b8b2a59c6e3a7fc">
       <source xml:lang="en">Getting Docker Ready...</source>
@@ -4492,6 +4636,9 @@
     </trans-unit>
     <trans-unit id="++CODE++c646b55d1fd317086a616548a2cc0b1606ecdc5a99bd2d3dcb43368fcb37ad30">
       <source xml:lang="en">Hide column</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4baf7a099b1735625d09c0b739ab0661d25b8db0dd3f09330f6521bd686f66fe">
+      <source xml:lang="en">Hide endpoints</source>
     </trans-unit>
     <trans-unit id="++CODE++89276817789cad555d1e4daf6c6e0b6eac110c7073bd4b23e08ef8a6e7aad4c6">
       <source xml:lang="en">Hide full error message</source>
@@ -4683,6 +4830,9 @@
     <trans-unit id="++CODE++336a8af254446c5c9006e090f430a9f283960aeefdd0dc52cf0401fa2c19ac03">
       <source xml:lang="en">Install Docker</source>
     </trans-unit>
+    <trans-unit id="++CODE++ea37170478c135fe5621105f676ae5cdb160b763078a28d661098d6d6b2959b2">
+      <source xml:lang="en">Install the Azure CLI</source>
+    </trans-unit>
     <trans-unit id="++CODE++bacb967a562a0c1059bd81be06c024c01789e81d12dd3fe6e3d74ae2641c9566">
       <source xml:lang="en">Install the MSSQL Database Management Keymap extension</source>
     </trans-unit>
@@ -4793,6 +4943,12 @@
     <trans-unit id="++CODE++4066c897b4290a769a8446512662e9fbb8b9e8c60cf66c56c96b355b74ae5d8d">
       <source xml:lang="en">Items with absolute path outside project folder are not supported. Please make sure the paths in the project file are relative to project folder.</source>
     </trans-unit>
+    <trans-unit id="++CODE++cf8c3297ab7628d786643eac5519083798d99ceb941e12a143010e0a54baaa32">
+      <source xml:lang="en">Its container has been removed. Redeploy to create it again.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f061aeddb83c8408d0337ec848124627bcfd74121e26578ef57e345af463cdd0">
+      <source xml:lang="en">Its generated configuration has been removed. Redeploy to create it again.</source>
+    </trans-unit>
     <trans-unit id="++CODE++f4dc1c96a30fbdeb2a15cb6d4229469fff36c0266dc0c346599093c24d4c0a01">
       <source xml:lang="en">JPEG</source>
     </trans-unit>
@@ -4804,6 +4960,9 @@
     </trans-unit>
     <trans-unit id="++CODE++29b39d81b8651e8717f85c00002b2b087bafb969eb289ac991fa41b17522e775">
       <source xml:lang="en">Keep in query pane</source>
+    </trans-unit>
+    <trans-unit id="++CODE++17372face64ed2506cefca636024341e0d6f25d3f75847b5d276c0d5cc4569c4">
+      <source xml:lang="en">Kerberos must be configured to use Windows Authentication on macOS and Linux. Click the info icon to learn more.</source>
     </trans-unit>
     <trans-unit id="++CODE++99a52df3ff3d499488e2fa28150c4106a2cb5e928891a830a9aa3922b2d32160">
       <source xml:lang="en">Key</source>
@@ -4825,6 +4984,9 @@
     </trans-unit>
     <trans-unit id="++CODE++c7d299ed6b2896187b535a86fd6b04f01669a9b72528a8f2021fff2f42d9f6e3">
       <source xml:lang="en">Last Page</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e50ad98d51d6c665dad03d3a770a4c3346d6e449ff0c88ad895cd9f03c045684">
+      <source xml:lang="en">Launching the engine process</source>
     </trans-unit>
     <trans-unit id="++CODE++a511909161e1b84fb81b52028fc2ce79525a96b40ccda823caa4a66ee64772b5">
       <source xml:lang="en">Layout</source>
@@ -5045,6 +5207,9 @@
     <trans-unit id="++CODE++d1fdc252fab1c642cc1b487dbb6658fd77d5831e03b3d391b4c73b01226d75ff">
       <source xml:lang="en">Loading deployment</source>
     </trans-unit>
+    <trans-unit id="++CODE++5ad473588c959848c56bd2257ed21db4d4125cffd27edd2d3b6582f7afce2253">
+      <source xml:lang="en">Loading deployments</source>
+    </trans-unit>
     <trans-unit id="++CODE++c4b5594f53462fcb5025d55e2ad5ba368c8fbb12de5a8701276b5477f7dd07fb">
       <source xml:lang="en">Loading execution plan...</source>
     </trans-unit>
@@ -5124,6 +5289,9 @@
     </trans-unit>
     <trans-unit id="++CODE++67b84cd4159ae33eb03a5cc9398bc77383d9ab5e73a5faf7189b775384dc09a1">
       <source xml:lang="en">Local Container Deployment</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3354da6f24cc9e0b4acf2080b9856a0ee5c185787090822b133a1c34effcd3dd">
+      <source xml:lang="en">Local Docker container</source>
     </trans-unit>
     <trans-unit id="++CODE++2c91c2c68950d956381637d4e22e626dbf560a93aa4fc8126d755251a70230ea">
       <source xml:lang="en">Local SQL Server database container</source>
@@ -5430,6 +5598,9 @@
     <trans-unit id="++CODE++0149b409a73e8498a5256e13dbf70225738e9e1fed0d976e20ad8ef338cc2d22">
       <source xml:lang="en">More Query Actions</source>
     </trans-unit>
+    <trans-unit id="++CODE++f8d46c2570e70736d62beb6e2e8df321d7cb4842a2b894f2025c47b31871d9f1">
+      <source xml:lang="en">More actions</source>
+    </trans-unit>
     <trans-unit id="++CODE++0c94b5f19becc4862e3862d599e2d386c40079841aba3ab70d05241df1ff6802">
       <source xml:lang="en">More actions for {0}</source>
       <note>{0} is the name or summary of a reusable filter</note>
@@ -5624,6 +5795,9 @@
     <trans-unit id="++CODE++ec6464b2feeed0b33e9708ee331e698c5fd334fc406c62fd856681d6bd292b2a">
       <source xml:lang="en">No (default)</source>
     </trans-unit>
+    <trans-unit id="++CODE++6b6502c5e24875e7e79fd9b5bece6a2d06188effd61f5578718cf5f2fb7a9c22">
+      <source xml:lang="en">No .NET runtime was found to run the Data API builder CLI. Install .NET and try again.</source>
+    </trans-unit>
     <trans-unit id="++CODE++af62d5c5fc57bafe879cd3a63346b4135adb2042b15590584cd6fdd26f4cd0ab">
       <source xml:lang="en">No .sqlproj file selected; please select one.</source>
     </trans-unit>
@@ -5776,6 +5950,9 @@
     </trans-unit>
     <trans-unit id="++CODE++c5dc54683e13edaa795870a0a2523c2c23ee2a6595b5ceb984a7d2639237a77e">
       <source xml:lang="en">No databases with backups found</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e83dea6df0d276f8e91bea5268c2287724da6e27b8e9419218d698b8cc09a460">
+      <source xml:lang="en">No deployments yet</source>
     </trans-unit>
     <trans-unit id="++CODE++9a5ffa9a03deee764163c794a73832d859a2df314715bb7c281f4eaac7919f3f">
       <source xml:lang="en">No elements found</source>
@@ -6395,6 +6572,10 @@
     <trans-unit id="++CODE++de9d0069c353909a19960efae7bb5fd1e1462dfa95644ed05a3b1f9609c63f38">
       <source xml:lang="en">Port to expose the API on (default: 5000)</source>
     </trans-unit>
+    <trans-unit id="++CODE++d9f4fe3d6486cd5830be1c0cb68d7b2505057e7bc665c6e0503b8a005ec0cf5d">
+      <source xml:lang="en">Port {0}</source>
+      <note>{0} is the host port number</note>
+    </trans-unit>
     <trans-unit id="++CODE++3a58feb1e22248ce4bb3611c187647b0c0f63250987596ac368c0191403c6367">
       <source xml:lang="en">Port {0} is already in use</source>
       <note>{0} is the port number</note>
@@ -6402,6 +6583,11 @@
     <trans-unit id="++CODE++a1c60409bfd9bcd53f31a132bd46b1f125ebf2b16012ceb2bf16baacc460e61c">
       <source xml:lang="en">Port {0} is already in use. Please choose a different port.</source>
       <note>{0} is the port number</note>
+    </trans-unit>
+    <trans-unit id="++CODE++e559ae2c187c6c6dcbc066101d69ec2aa61464cb16175cdb622287b2e8b5c153">
+      <source xml:lang="en">Port {0} is no longer available, so {1} cannot be redeployed on it. Free the port, or create a new deployment on a different port.</source>
+      <note>{0} is the port number
+{1} is the Docker container name</note>
     </trans-unit>
     <trans-unit id="++CODE++c56a86c298eb5a88289af29ba70d8dfdfbf42f6a0c6cf7fe8317a824db4eb767">
       <source xml:lang="en">Possible Data Loss detected. Please review the changes.</source>
@@ -6420,8 +6606,17 @@
       <note>{0} is source column
 {1} is target column</note>
     </trans-unit>
+    <trans-unit id="++CODE++3d7fd045c1fc29ea67f5662af12d1583f91b038b1ad04078a4b52d3ff49a3291">
+      <source xml:lang="en">Preparing container settings</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5e03ca0d91206dd95d88a9ecb660ec409ec2794c296c6e68c1fa420c0d2dc41a">
+      <source xml:lang="en">Preparing deployment settings</source>
+    </trans-unit>
     <trans-unit id="++CODE++3b91294fe7a573ba168c7b5c23b3fc93126ad6a222949deda1e517bc3a335519">
       <source xml:lang="en">Preserve the replication settings</source>
+    </trans-unit>
+    <trans-unit id="++CODE++87b6ba145c833b9c75e4408f5f6f171061680b8e5c0e472c8ca67d2e925fe485">
+      <source xml:lang="en">Press Compare to see the differences between the source and target schemas.</source>
     </trans-unit>
     <trans-unit id="++CODE++8e8d85ec52b9705310156eb6f67d11bb6b6b2220e47b0e2f337dd3bdfbfa002a">
       <source xml:lang="en">Press desired key combination and then press ENTER.</source>
@@ -6580,6 +6775,10 @@
     <trans-unit id="++CODE++c2b1b8e2e03928e24b07be3e3cbc597577096c8303d9aa621a147ca2456bdad7">
       <source xml:lang="en">Provisioning</source>
     </trans-unit>
+    <trans-unit id="++CODE++b8fddb7a2a0858e5c78adda3e0f311031aa9e175bf7dd618546382f69c68de5b">
+      <source xml:lang="en">Provisioning {0}</source>
+      <note>{0} is the server, container, or database target being provisioned</note>
+    </trans-unit>
     <trans-unit id="++CODE++591935b15b1c88e2d5f6be0a054604fcf36f0585a6f51098fa3803826fff278c">
       <source xml:lang="en">Public</source>
     </trans-unit>
@@ -6736,6 +6935,9 @@
     <trans-unit id="++CODE++83b794145c0cc3f560cb6dfb6b5bcf7afac4dba15e5c6dbc54d103dae029fec6">
       <source xml:lang="en">Read more</source>
     </trans-unit>
+    <trans-unit id="++CODE++95afd13ac532a72eaf92176d5ea81e5376d8bd0e10586bdf2221118633550f86">
+      <source xml:lang="en">Read the active Data API builder configuration with mssql_dab operation &apos;get_state&apos; before applying changes.</source>
+    </trans-unit>
     <trans-unit id="++CODE++fd523668f3222a1544fd470a1900656f4fe1a89dbb518262cd6f9bb2460019d4">
       <source xml:lang="en">Read-Only</source>
     </trans-unit>
@@ -6778,6 +6980,13 @@
     </trans-unit>
     <trans-unit id="++CODE++2098dff03cd74580320592a1308c8be37e30454e389e06fc2ddf1315b4e48551">
       <source xml:lang="en">Recovery state</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ee4c77e2b3b6bfaa712c2e2e3b1416127bc738993ca7f8b09b42e6a179bde808">
+      <source xml:lang="en">Redeploy</source>
+    </trans-unit>
+    <trans-unit id="++CODE++23e40a67c278a8a66cd5a8bbc80182380a6c7b33b291e7c68d50504637dc5d17">
+      <source xml:lang="en">Redeploying {0}</source>
+      <note>{0} is the Docker container name</note>
     </trans-unit>
     <trans-unit id="++CODE++74273989b0966e2369b6d01aadb23af4ad6a9e724643fa88f2bde99202a36708">
       <source xml:lang="en">Redo</source>
@@ -6910,6 +7119,9 @@
       <note>{0} is the current database name
 {1} is the new database name</note>
     </trans-unit>
+    <trans-unit id="++CODE++6be4a48af21f057f95228c735626f18c8bc96d306afa6ab163770f2f5c73265f">
+      <source xml:lang="en">Replace this container with a new one on the same name and port, running your current configuration.</source>
+    </trans-unit>
     <trans-unit id="++CODE++0b73ca14b5d89fd5c289af312a66842146e766baf6c5018848b36f086944cb0b">
       <source xml:lang="en">Replication</source>
     </trans-unit>
@@ -6934,8 +7146,14 @@
     <trans-unit id="++CODE++daee7606b339f3c339076fe2c9f372a3ff40c8ee896005d829c7481b64ca5303">
       <source xml:lang="en">Reset</source>
     </trans-unit>
+    <trans-unit id="++CODE++3db74f2a8f6102d4675b34a023b195df9cebec8b629b14fa62d57849a49bb7cc">
+      <source xml:lang="en">Reset DAB configuration?</source>
+    </trans-unit>
     <trans-unit id="++CODE++b0b75e297ad9735605b50a4457fc9ebf3ac736f3fe1a96c37e516bde80c0b529">
       <source xml:lang="en">Reset all variables</source>
+    </trans-unit>
+    <trans-unit id="++CODE++291afc74d5a450bbd0b7f7b0113afdab45aa05c5cad2bea333ca7bc4b177cadb">
+      <source xml:lang="en">Reset the configuration to the defaults for this schema</source>
     </trans-unit>
     <trans-unit id="++CODE++37ba78770ece89995a12bcd4cc2a30a8fe4e5338f09c5a6534ccbc4f272825de">
       <source xml:lang="en">Reset to Defaults?</source>
@@ -6949,6 +7167,9 @@
     </trans-unit>
     <trans-unit id="++CODE++f8266045b5596ddc5cd3d4af27e2af2af3242d50c27ef97945b665ad805b41f2">
       <source xml:lang="en">Resize the active result grid column</source>
+    </trans-unit>
+    <trans-unit id="++CODE++610d2469ca9f85e91ba3c5aff68859fe46b822e0477dd30a07e4b26c3c7ecaa1">
+      <source xml:lang="en">Resolving a runtime that can run the CLI</source>
     </trans-unit>
     <trans-unit id="++CODE++ae6d9c313ef115d3be932d158acd74f5ab4db5c068cdc2c10ade081168b185d5">
       <source xml:lang="en">Resource Group</source>
@@ -7135,6 +7356,9 @@
     <trans-unit id="++CODE++0bc00be2d21a631fedf64e0302de168c6a49105158a47fc837faf0df12f53fe4">
       <source xml:lang="en">Run saved SQL instantly with custom keyboard shortcuts. Use {arg} to insert selected query-editor text; otherwise, it is appended to the query.</source>
     </trans-unit>
+    <trans-unit id="++CODE++3a5c6f7694e6b79d4a4b5f16765912115902c0d08963fba6a8cc8258318c8a42">
+      <source xml:lang="en">Run with the Data API builder CLI</source>
+    </trans-unit>
     <trans-unit id="++CODE++18af8fd62b2930a61322517ce9e800c2f93abd52a7276963fac72b18f76cb44f">
       <source xml:lang="en">Run your first query</source>
     </trans-unit>
@@ -7161,6 +7385,12 @@
     <trans-unit id="++CODE++c650e15b69c35c39b6ff6743c908ed1db08e9d4840abb2ebfce8303e88b9507a">
       <source xml:lang="en">Running: {0}</source>
       <note>{0} is how long the query has been running</note>
+    </trans-unit>
+    <trans-unit id="++CODE++352c59bc5b59bba13bb085699f2c07a1103715439ec1a8d57b294dc06d2fbd1b">
+      <source xml:lang="en">Runs Data API builder as a local process on this machine. No Docker required.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1535db1c91172380e70396d4a07899000757727b521ac651eb91dbcaee2460e4">
+      <source xml:lang="en">Runs Data API builder in a container on this machine, published on a local port.</source>
     </trans-unit>
     <trans-unit id="++CODE++4870950395d377ccb78a99509d402224e9dde215522464fe53d7423a5e6ac8b2">
       <source xml:lang="en">SDK-style project</source>
@@ -7209,6 +7439,10 @@
     </trans-unit>
     <trans-unit id="++CODE++8fb9e52bba9bdebaf10c130eca428ca15b770d0ba41c5f854c47db14a380f8ae">
       <source xml:lang="en">SQL Server admin password</source>
+    </trans-unit>
+    <trans-unit id="++CODE++82a5a935a9143edc89ac046512a9ba03026e4774cde53feb82c959225904e638">
+      <source xml:lang="en">SQL Server container &apos;{0}&apos; was provisioned successfully.</source>
+      <note>{0} is the container name</note>
     </trans-unit>
     <trans-unit id="++CODE++49946129c776c67af592a7bd5399b229d9e11260362f8dd0ee8a96778dbc3bee">
       <source xml:lang="en">SQL Server does not support Windows containers. Please switch to Linux containers in Docker Desktop settings.</source>
@@ -7642,6 +7876,9 @@
     <trans-unit id="++CODE++b7e789f7e9607ec14fce47c70aa688cd870e8a299d73eecf40e06d4d4af58162">
       <source xml:lang="en">Select a database for profiling (Azure SQL requires a specific database)</source>
     </trans-unit>
+    <trans-unit id="++CODE++d9e5e69540871a387c5d20d2ae4ad26a58613e40b8f16e0712ec3c0dcc7ff96a">
+      <source xml:lang="en">Select a deployment target</source>
+    </trans-unit>
     <trans-unit id="++CODE++7b75dbfbfa94648cb2dc0bdd07902822febebcb1410a01746d0cf1ee01d33e71">
       <source xml:lang="en">Select a file</source>
     </trans-unit>
@@ -7669,6 +7906,9 @@
     <trans-unit id="++CODE++daec3468c00df36219c157514c5317f36caf6636f4d430d7b3209552c59b9a18">
       <source xml:lang="en">Select a session...</source>
     </trans-unit>
+    <trans-unit id="++CODE++69caf154f7a7ff6fa44128fd6973d20a1e51024cf0aebe70c32188609cb85201">
+      <source xml:lang="en">Select a source schema, then press Compare.</source>
+    </trans-unit>
     <trans-unit id="++CODE++f54fc9f7eb78f9523dea69c1d5f1115bb8e8acec088f8bea79aee0156f5e55cf">
       <source xml:lang="en">Select a storage account</source>
     </trans-unit>
@@ -7677,6 +7917,9 @@
     </trans-unit>
     <trans-unit id="++CODE++fac4c702f7790e41763806f2cdc67d0521f91fe1cd0cc1ac492506ea2842b5dc">
       <source xml:lang="en">Select a subscription to view servers in it.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ba9bb750744bd9e7ebb8626d0c7104abe572221c6a4f846fe7e635076be038da">
+      <source xml:lang="en">Select a target schema, then press Compare.</source>
     </trans-unit>
     <trans-unit id="++CODE++ebe0dbee443b4562c7925a01e3bc69a3d5d0a3b0e8b3e11041c69fa067b65ef7">
       <source xml:lang="en">Select a tenant</source>
@@ -8015,6 +8258,9 @@
     <trans-unit id="++CODE++87e6b9fe0c51b9ad481c1e47b40fbc5a13ea3464c5131908b81cb2b21cd33822">
       <source xml:lang="en">Show all columns</source>
     </trans-unit>
+    <trans-unit id="++CODE++b16fe7caa99853b93586ff9f7c883be10c62c4d1cedd735733ae1a3435b09a99">
+      <source xml:lang="en">Show endpoints</source>
+    </trans-unit>
     <trans-unit id="++CODE++7f642b55cbf51cf21e5b6a0861e2a93abf8fbe5a8b5d04a9ed9d7a97040549d1">
       <source xml:lang="en">Show full error message</source>
     </trans-unit>
@@ -8183,6 +8429,9 @@
     <trans-unit id="++CODE++44d2a0a2acc914c78aa0e8c8159f46438f59c7964dcde4aa05b490fb1d6d99c7">
       <source xml:lang="en">Start profiling session</source>
     </trans-unit>
+    <trans-unit id="++CODE++d2b1116f23fecfb0a2b5846b774cd71210432457a65afd58eb782b5f122280f3">
+      <source xml:lang="en">Start the container to use these endpoints.</source>
+    </trans-unit>
     <trans-unit id="++CODE++f98d8beeeedee01c720a55b91742e6560515ae435c07a7fbfb8151f445e428ec">
       <source xml:lang="en">Start with the core pieces to develop and publish schemas for Azure SQL Edge Database</source>
     </trans-unit>
@@ -8210,6 +8459,9 @@
     <trans-unit id="++CODE++d1b24d5bbf5df0c21eb556a585b4c43387f0582dc39fffcdac7fe563361e7366">
       <source xml:lang="en">Starting DAB container</source>
     </trans-unit>
+    <trans-unit id="++CODE++395d24fb8fa72b65bf141f8edf73f77594688b9c3cee265c680809003f46ada9">
+      <source xml:lang="en">Starting Data API builder</source>
+    </trans-unit>
     <trans-unit id="++CODE++e8463e680c32abe75224a03ee5b03d4781e812c3180fb6e0a9c992730879574f">
       <source xml:lang="en">Starting Docker Desktop</source>
     </trans-unit>
@@ -8228,6 +8480,9 @@
     </trans-unit>
     <trans-unit id="++CODE++920e413c7d411b61ef3e8c63b1cb6ad058d5f95f8b481dbafe60248387d8c355">
       <source xml:lang="en">Status</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7eb5af92e49c32f0e22097bda3e39b3b9b3bcdeb80d5c278b5d74504b96c2beb">
+      <source xml:lang="en">Status unavailable</source>
     </trans-unit>
     <trans-unit id="++CODE++5d22a056f5f5f92e185435b509187fc8e61f15a5b85e6b08cda8d8811880cfc3">
       <source xml:lang="en">Status: {0}</source>
@@ -8553,8 +8808,30 @@
     <trans-unit id="++CODE++ad21b866cd78c8e2444ffe9593f592e88ed2fa82e200191a85e10725a0e321a7">
       <source xml:lang="en">The .NET SDK cannot be located. Project build will not work. Please install .NET 8 SDK or higher or update the .NET SDK location in settings if already installed.</source>
     </trans-unit>
+    <trans-unit id="++CODE++ce5d55bb752536f83184e27b9bbd84d15f4fe753e2551472518d8f0e68fb80a5">
+      <source xml:lang="en">The .NET runtime has not been resolved yet. Run the prerequisite checks again.</source>
+    </trans-unit>
     <trans-unit id="++CODE++c2deec07495a278190de83a0820519064e332fc00b050c4fd053bae70c44da8e">
       <source xml:lang="en">The Application (Client) ID of your Microsoft Entra app registration.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4b322ab456c5f1d7a9a9be01df5778e65771785eab5f5f93637487f24f24793d">
+      <source xml:lang="en">The Data API builder CLI exited with code {0}.</source>
+      <note>{0} is the process exit code</note>
+    </trans-unit>
+    <trans-unit id="++CODE++61f87c003e1cd80e47b70c628e2f057439b9839b1e65f7e896ade78f455fd463">
+      <source xml:lang="en">The Data API builder CLI is not available. Run the prerequisite checks again.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++10ec47f707e2ceda7f9f3ba5115bfd4c906b40f01260a2005ef4dc82206a2f07">
+      <source xml:lang="en">The Data API builder configuration is not valid.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++56fd12d1814f45e445ae980300dfd1116341d74906f20c1a15a33e850468adbc">
+      <source xml:lang="en">The Data API builder engine did not answer in time.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7d5c5022125c3e8297cfd53b8df2ecd886e783e6179acd8054c68c60b155ca71">
+      <source xml:lang="en">The Data API builder engine did not become ready within the timeout period.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f26f1d9a3c097de8f5554d8ac33c7a0103d627cd3af000dde8bc6ef696ecea8e">
+      <source xml:lang="en">The Data API builder engine did not start.</source>
     </trans-unit>
     <trans-unit id="++CODE++b0ccb68c36737cb5ef6c7a74871ab7845533f64d89c74dd7db735bb555c401e1">
       <source xml:lang="en">The Query Profiler now supports SQL database in Microsoft Fabric connections, with new Azure SQL Database templates including {code-snippet-0} for lightweight T-SQL profiling.</source>
@@ -8569,11 +8846,17 @@
     <trans-unit id="++CODE++c364da33c97d06acc010a7ee647d4764b8768c9fcd9ab63b247ef14826a2361a">
       <source xml:lang="en">The XEL file was not found.</source>
     </trans-unit>
+    <trans-unit id="++CODE++ea8d8a637c6aaa3d1fd33f3fa440906f5304c43a5eb605965a64271c4532f2aa">
+      <source xml:lang="en">The active Data API builder configuration changed after it was read. Run mssql_dab operation &apos;get_state&apos; again before retrying; do not open another designer.</source>
+    </trans-unit>
     <trans-unit id="++CODE++3eacf5cf678e2285cae1276d29f034aa0e7ceb3f8940239c1d67a2d486649719">
       <source xml:lang="en">The behavior when a user tries to delete a row with data that is involved in a foreign key relationship.</source>
     </trans-unit>
     <trans-unit id="++CODE++1a4205e9f5cc50eaf70719b64956352b74a99badba266027a6244def0d016b73">
       <source xml:lang="en">The behavior when a user tries to update a row with data that is involved in a foreign key relationship.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d7c54293989298ee3944f49558ec6882f3cdee331b1959779bb00e2e6921be28">
+      <source xml:lang="en">The cancel request did not complete in time. The editor&apos;s execution state has been reset.</source>
     </trans-unit>
     <trans-unit id="++CODE++b3ed9d46f7671d126e86925d532363313c1f6795e877d3d348d134f6e7051bc3">
       <source xml:lang="en">The client secret for your Microsoft Entra app registration.</source>
@@ -8594,6 +8877,10 @@
       <note>{0} is the container name
 {1} is the list of connection display names</note>
     </trans-unit>
+    <trans-unit id="++CODE++1a187c0bb776eac7a356f6623badf4084f701ae47f405cfc74374c79fbf44ddb">
+      <source xml:lang="en">The container {0} will be stopped and removed, and its endpoints will stop responding.</source>
+      <note>{0} is the Docker container name</note>
+    </trans-unit>
     <trans-unit id="++CODE++90a4ba6d5483f640dbf83e90ca81103b564ff6be1e78dc9caf91eea1c299757e">
       <source xml:lang="en">The custom cloud choice is not configured. Please configure the setting `{0}`.</source>
     </trans-unit>
@@ -8608,6 +8895,10 @@
     </trans-unit>
     <trans-unit id="++CODE++4ed30ce390b4a87aa521240a8313735faff4c4cb4df0c01292ffdaf5b9a44c58">
       <source xml:lang="en">The description of the primary key.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7d461990f839b0bf2ac4825e909940b31fbe37f7b1da2ee5a4091bfb27cf40cb">
+      <source xml:lang="en">The engine for {0} will be stopped and its generated configuration removed, and its endpoints will stop responding.</source>
+      <note>{0} is the deployment name</note>
     </trans-unit>
     <trans-unit id="++CODE++ff83ab307bf5543897d2c5781d880385ba86a704904fb08dc5c67c990688d5ec">
       <source xml:lang="en">The expression defining the check constraint.</source>
@@ -8719,6 +9010,9 @@
     <trans-unit id="++CODE++30dc10f2e5d6502d78b8e778df18e5f010e5ec3fa432d4e92c526d86a84375e0">
       <source xml:lang="en">The selected {0} file &apos;{1}&apos; does not exist or is not a file.</source>
     </trans-unit>
+    <trans-unit id="++CODE++221a6647042e962a326162fd3dcdd7a1e01f628fb4eedc3ecc4b2c33038109fe">
+      <source xml:lang="en">The service is no longer running a query for this editor. The editor&apos;s execution state has been reset.</source>
+    </trans-unit>
     <trans-unit id="++CODE++13c88dccbc0c16d34702d4b664c78552a13156f154731119eaaa1dfc41be428d">
       <source xml:lang="en">The system database references need to be updated to build the project &apos;{0}&apos;. If the project was created in SSDT, it will continue to work in both tools. Do you want to update the project?</source>
     </trans-unit>
@@ -8763,11 +9057,35 @@
 {1} is the display name of the current SQL data plane provider
 {2} is the display name of the alternative SQL data plane provider</note>
     </trans-unit>
+    <trans-unit id="++CODE++eeab635bdc057a1d0e7bd03117e4d3deeb099edbd0cbd0950597e643d2dab93c">
+      <source xml:lang="en">This connection&apos;s authentication type is not supported for local deployment. Only SQL Authentication and Windows Authentication can be used.</source>
+    </trans-unit>
     <trans-unit id="++CODE++ba00b52adf9dcec97ed54898b307de1328526c8df30c80a9a17dc41f6c39a926">
       <source xml:lang="en">This connection&apos;s group has not been selected, so this connection will be imported to the root.</source>
     </trans-unit>
     <trans-unit id="++CODE++a616eb2bf2f817c4898b6d9709fa799bf564dc58ec7bdb879358e3f47795106e">
       <source xml:lang="en">This database name is already in use. Please choose a different name.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++39689cd482388c355f7e0721e799cc73bb6a968b7f8c6f81d99778ca62ce8ab4">
+      <source xml:lang="en">This deployment is no longer tracked. Refresh the deployments list and try again.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4b5ae74ddb4ca3e016189806d6416b4dd28e2d0a53de8d08da351164792732c9">
+      <source xml:lang="en">This deployment is not serving requests, and it is running an earlier version of your configuration.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ab81702157ab7c569f837c5ed0b5ec4318ae26021c2ab425c920c69bb3e6c56d">
+      <source xml:lang="en">This deployment is not serving requests. Start it to bring its endpoints back.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++20766bf27fdaeb9525112dbbed778777df1e9fcb91315521e19232d83cb0d63e">
+      <source xml:lang="en">This deployment is running an earlier version of your configuration. Redeploy it to serve the current one.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++757ab980fc6aa23039b078034c46f53beac4388f316bc8e98c9770a87e6d5ad9">
+      <source xml:lang="en">This deployment no longer exists</source>
+    </trans-unit>
+    <trans-unit id="++CODE++424524b73f7b54ca2663888521169681b82129343191178726fb2d93a58fc294">
+      <source xml:lang="en">This deployment&apos;s configuration file is missing, so it cannot be started. Redeploy it instead.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++025b2c9cebc8d4e8ce463364bc4906b4c1d91cf3176080d240db88df9057713a">
+      <source xml:lang="en">This discards all entity, action, column, and advanced settings for this database, including changes made by Copilot, and rebuilds them from the current schema.</source>
     </trans-unit>
     <trans-unit id="++CODE++11b581f8a3000e049c063b239ba309ad25c53dadcf317b81e608a44404703d57">
       <source xml:lang="en">This execution plan could not be rendered.</source>
@@ -8805,6 +9123,10 @@
     </trans-unit>
     <trans-unit id="++CODE++03126be5685aeff8f0cfd24c8347e944469c6d847936baf9d95cde004b33d295">
       <source xml:lang="en">This will reset all rules to their default severity and disable &apos;Enable Code Analysis on Build&apos;. This cannot be undone. Would you like to continue?</source>
+    </trans-unit>
+    <trans-unit id="++CODE++44b0a413f8d05eb0ef3f3d9fed2fd83c57f36fb8d949d4bbf51ec80a24ccf64a">
+      <source xml:lang="en">This will run Data API builder as a local process, exposing {0} APIs based on your configuration.</source>
+      <note>{0} is a list of API types, e.g. &apos;REST and GraphQL&apos;</note>
     </trans-unit>
     <trans-unit id="++CODE++33b93476cf597a3330653b66a658983d892ac264b5d6029a2dc642b9b1f30870">
       <source xml:lang="en">Time</source>
@@ -9094,6 +9416,9 @@
     <trans-unit id="++CODE++31ab92c035a309794019f563cf5059e4ecc3e8ce19afc665de2b384d99e0fb61">
       <source xml:lang="en">Up to 10 databases with 100K vCore seconds, 32 GB storage, and backups renewed monthly.</source>
     </trans-unit>
+    <trans-unit id="++CODE++ce29b7f85b9eaf7dac52e625accb4b0cb56a856ebe9a9de9a09b613b6d978dca">
+      <source xml:lang="en">Up to date</source>
+    </trans-unit>
     <trans-unit id="++CODE++c1c1009d3f37ec058070a62e22caf9ac9dae2169d452487c5c271a8bcf57a291">
       <source xml:lang="en">Update</source>
     </trans-unit>
@@ -9108,6 +9433,9 @@
     </trans-unit>
     <trans-unit id="++CODE++da0eda30c429c4292ccde4655c4d2fb2e64d66753cd153cf81585d27a634a19d">
       <source xml:lang="en">Update action</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2503b01003bcd3cc049b9e4f273e2bcffeefa91ce4a71ad31fa4a74f01d6856a">
+      <source xml:lang="en">Update and start</source>
     </trans-unit>
     <trans-unit id="++CODE++81b0538c480bf2f63a2346db5fa0618f5aa96be47c6039c1fc7d877c1c2dd120">
       <source xml:lang="en">Update project from database</source>
@@ -9206,6 +9534,9 @@
     <trans-unit id="++CODE++d31cf428966542cd931bd382d445f06e61e26c9a6c5aaf4227dffd0bfd18e97c">
       <source xml:lang="en">Using {0} to process your request...</source>
       <note>{0} is the model name that will be processing the request</note>
+    </trans-unit>
+    <trans-unit id="++CODE++b84c66ad40ee1cc20942fe07d1bad88916d0a664bb3f5688ab8a84a0ab5e3cf3">
+      <source xml:lang="en">Validating configuration</source>
     </trans-unit>
     <trans-unit id="++CODE++23a86f5a2daebf62665f27e6c911523cf8c7fa74b48dd330ca058d0285defb0c">
       <source xml:lang="en">Validation failed</source>
@@ -9426,9 +9757,6 @@
     <trans-unit id="++CODE++72f5c8fcf386f50a0af8057b25cbd6d2cbfe99d41c859934b12e7592b60b2690">
       <source xml:lang="en">You must review and accept the terms to proceed</source>
     </trans-unit>
-    <trans-unit id="++CODE++f86597d07cc9ee182bac4dce2a2850eb6cc8509b3199ec6ab9d6e3e89fff8aae">
-      <source xml:lang="en">Your API is available at:</source>
-    </trans-unit>
     <trans-unit id="++CODE++218a10d5a69c30b5a238c1ef9158c0427b0a183bc40cb11117e8eb7563807c9a">
       <source xml:lang="en">Your APIs are available at the following endpoints:</source>
     </trans-unit>
@@ -9446,6 +9774,9 @@
     </trans-unit>
     <trans-unit id="++CODE++a687a5a3cf1800c09d10d73ae6c128de7b617482ef262db645470c6f4ae9d54d">
       <source xml:lang="en">Your client IP address does not have access to the server. Add a Microsoft Entra account and create a new firewall rule to enable access.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0e041c039ffe50cb5992d3b630ec285c42343b01216f9bafc00114fd6c42a303">
+      <source xml:lang="en">Your configuration has changed since this container was deployed. Redeploy to apply the changes.</source>
     </trans-unit>
     <trans-unit id="++CODE++72d3d1e6e874aa94ab02c4aac4ea2399ce299ddcad4b38a795754c92e158ac4d">
       <source xml:lang="en">Your current IP {0} will be added automatically.</source>
@@ -9574,6 +9905,9 @@
     </trans-unit>
     <trans-unit id="++CODE++053647276061b7d42afcaab6e846a76c03cf9c3c023ec3d982e296bb30dd6094">
       <source xml:lang="en">items selected</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7ddb44d8a533a7535d85cedddf35d7f3414632ad4e10a0d7ca697723e1d97993">
+      <source xml:lang="en">just now</source>
     </trans-unit>
     <trans-unit id="++CODE++44eaba29486899334009b57f2ba4ef6c871017792c74e6e829958164087f3ea0">
       <source xml:lang="en">label: {0} does not exist in the options value name lookup</source>
@@ -10038,123 +10372,6 @@
     </trans-unit>
   </body></file>
   <file original="package" source-language="en" datatype="plaintext"><body>
-    <trans-unit id="mssql.format.alignColumnDefinitionsInColumns">
-      <source xml:lang="en">**Used when Preview Formatter is disabled.** Should column definitions be aligned?</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.placeCommasBeforeNextStatement">
-      <source xml:lang="en">**Used when Preview Formatter is disabled.** Should commas be placed at the beginning of each statement in a list, for example `, mycolumn2`, instead of at the end, for example `mycolumn1,`?</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.datatypeCasing">
-      <source xml:lang="en">**Used when Preview Formatter is disabled.** Should data types be formatted as UPPERCASE, lowercase, or none (not formatted)</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.keywordCasing">
-      <source xml:lang="en">**Used when Preview Formatter is disabled.** Should keywords be formatted as UPPERCASE, lowercase, or none (not formatted)</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.placeSelectStatementReferencesOnNewLine">
-      <source xml:lang="en">**Used when Preview Formatter is disabled.** Should references in a SELECT statement be split into separate lines? For `SELECT C1, C2 FROM T1`, both C1 and C2 will be on separate lines.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.alignSetClauseItem">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Align SET clause items in UPDATE statements.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.alignColumnDefinitionFields">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Align column-definition fields, such as names, data types, and constraints.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.alignClauseBodies">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Align the bodies of FROM, WHERE, GROUP BY, and similar clauses.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.allowExternalLanguagePaths">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Allow external language content to use file paths.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.allowExternalLibraryPaths">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Allow external library content to use file paths.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.multilineInsertTargetsList">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Format INSERT columns as multiline lists.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.multilineInsertSourcesList">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Format INSERT sources as multiline lists.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.multilineSelectElementsList">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Format SELECT columns as multiline lists.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.multilineSetClauseItems">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Format SET clause items as multiline lists.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.multilineViewColumnsList">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Format VIEW columns as multiline lists.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.multilineWherePredicatesList">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Format WHERE predicates as multiline lists.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.indentSetClause">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Indent SET clauses in UPDATE statements.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.indentViewBody">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Indent VIEW bodies.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.spaceBetweenDataTypeAndParameters">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Insert a space between a data type and its parentheses, for example `VARCHAR (255)`.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.spaceBetweenParametersInDataType">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Insert spaces between parameters in a data type, for example `DECIMAL (10, 2)`.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.keywordCasing">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Keyword casing style.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.numNewlinesAfterStatement">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Number of line breaks after each statement, from 0 through 5.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.asKeywordOnOwnLine">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Place AS on its own line.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.newLineFormattedIndexDefinition">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Place UNIQUE, INCLUDE, and WHERE portions of inline index definitions on separate lines.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.newLineBeforeJoinClause">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Place a newline before JOIN clauses.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.newLineBeforeFromClause">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Place a newline before the FROM clause.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.newLineBeforeGroupByClause">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Place a newline before the GROUP BY clause.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.newLineBeforeHavingClause">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Place a newline before the HAVING clause.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.newLineBeforeOffsetClause">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Place a newline before the OFFSET clause.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.newLineBeforeOrderByClause">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Place a newline before the ORDER BY clause.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.newLineBeforeOutputClause">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Place a newline before the OUTPUT clause.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.newLineBeforeWhereClause">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Place a newline before the WHERE clause.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.newLineBeforeWindowClause">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Place a newline before the WINDOW clause.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.newLineBeforeCloseParenthesisInMultilineList">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Place a newline before the closing parenthesis of a multiline list.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.newLineBeforeOpenParenthesisInMultilineList">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Place a newline before the opening parenthesis of a multiline list.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.newlineFormattedCheckConstraint">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Place the CHECK clause of a constraint on its own line.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.preserveComments">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** Preserve comments during formatting.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.sqlEngineType">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** SQL engine type used to parse and generate formatted scripts.</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.options.sqlVersion">
-      <source xml:lang="en">**Used when Preview Formatter is enabled.** T-SQL version used to parse and generate formatted scripts.</source>
-    </trans-unit>
     <trans-unit id="mssql.addObjectExplorer">
       <source xml:lang="en">Add Connection</source>
     </trans-unit>
@@ -10163,6 +10380,24 @@
     </trans-unit>
     <trans-unit id="mssql.addAadAccount">
       <source xml:lang="en">Add Microsoft Entra Account</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.terminateBlockStatements">
+      <source xml:lang="en">Add semicolon terminators after BEGIN...END and TRY...CATCH blocks.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.alignSetClauseItem">
+      <source xml:lang="en">Align SET clause items in UPDATE statements.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.alignColumnDefinitionFields">
+      <source xml:lang="en">Align column-definition fields, such as names, data types, and constraints.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.alignClauseBodies">
+      <source xml:lang="en">Align the bodies of FROM, WHERE, GROUP BY, and similar clauses.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.allowExternalLanguagePaths">
+      <source xml:lang="en">Allow external language content to use file paths.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.allowExternalLibraryPaths">
+      <source xml:lang="en">Allow external library content to use file paths.</source>
     </trans-unit>
     <trans-unit id="mssql.deviceCode.description">
       <source xml:lang="en">Allows users to sign in to input-constrained devices.</source>
@@ -10214,6 +10449,12 @@
     </trans-unit>
     <trans-unit id="mssql.newEditorConnectionBehavior.transferActive.description">
       <source xml:lang="en">Carry the active editor&apos;s connection to newly opened query editor tabs and SQL files.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.identifierCasing">
+      <source xml:lang="en">Casing style for object identifiers.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.builtInFunctionCasing">
+      <source xml:lang="en">Casing style for supported built-in function names, such as `GETDATE` and `COALESCE`.</source>
     </trans-unit>
     <trans-unit id="mssql.changeConnection">
       <source xml:lang="en">Change Connection (MSSQL)</source>
@@ -10503,6 +10744,51 @@
     <trans-unit id="mssql.walkthroughs.nextSteps.objectExplorerFilters.title">
       <source xml:lang="en">Filter your Object Explorer Tree</source>
     </trans-unit>
+    <trans-unit id="mssql.format.options.multilineGroupByElementsList">
+      <source xml:lang="en">Format GROUP BY elements as a multiline list.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.multilineHavingPredicatesList">
+      <source xml:lang="en">Format HAVING predicates separated by AND or OR on multiple lines.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.multilineInsertTargetsList">
+      <source xml:lang="en">Format INSERT columns as multiline lists.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.multilineInsertSourcesList">
+      <source xml:lang="en">Format INSERT sources as multiline lists.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.multilineOrderByElementsList">
+      <source xml:lang="en">Format ORDER BY elements as a multiline list.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.multilinePartitionByElementsList">
+      <source xml:lang="en">Format PARTITION BY elements in window specifications as a multiline list.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.multilineSelectElementsList">
+      <source xml:lang="en">Format SELECT columns as multiline lists.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.multilineSetClauseItems">
+      <source xml:lang="en">Format SET clause items as multiline lists.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.multilineViewColumnsList">
+      <source xml:lang="en">Format VIEW columns as multiline lists.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.multilineWherePredicatesList">
+      <source xml:lang="en">Format WHERE predicates as multiline lists.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.columnAliasStyle">
+      <source xml:lang="en">Format column aliases using `AS`, an equals sign, or their original syntax.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.multilineNestedFunctionCalls">
+      <source xml:lang="en">Format nested function calls on separate indented lines while keeping isolated function calls on one line.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.multilineProcedureParametersList">
+      <source xml:lang="en">Format procedure and function parameters on separate lines.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.multilineWithOptionsList">
+      <source xml:lang="en">Format supported WITH and OPTION clause values on separate lines.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.multilineInValuesList">
+      <source xml:lang="en">Format values in an IN predicate as a multiline list.</source>
+    </trans-unit>
     <trans-unit id="mssql.resultsGrid.freezeFirstColumnByDefault">
       <source xml:lang="en">Freeze the first data column by default in new result grids. Existing saved grid state takes precedence.</source>
     </trans-unit>
@@ -10524,8 +10810,26 @@
     <trans-unit id="mssql.flatFileImport">
       <source xml:lang="en">Import Data...</source>
     </trans-unit>
+    <trans-unit id="mssql.format.options.indentSetClause">
+      <source xml:lang="en">Indent SET clauses in UPDATE statements.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.indentViewBody">
+      <source xml:lang="en">Indent VIEW bodies.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.spaceBetweenDataTypeAndParameters">
+      <source xml:lang="en">Insert a space between a data type and its parentheses, for example `VARCHAR (255)`.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.spaceBetweenParametersInDataType">
+      <source xml:lang="en">Insert spaces between parameters in a data type, for example `DECIMAL (10, 2)`.</source>
+    </trans-unit>
     <trans-unit id="mssql.metadata.pollSeconds.description">
       <source xml:lang="en">Internal preview setting: base interval in seconds for metadata drift checks. Set to 0 to disable polling. Per-database backoff, window-focus suspension, and serverless safeguards also apply. Reload the window after changing this setting.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.clauseBodyAlignment">
+      <source xml:lang="en">Keep clause bodies aligned with their keywords or place them on the next line with indentation.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.keywordCasing">
+      <source xml:lang="en">Keyword casing style.</source>
     </trans-unit>
     <trans-unit id="mssql.profiler.launchFromObjectExplorer">
       <source xml:lang="en">Launch Query Profiler...</source>
@@ -10623,11 +10927,23 @@
     <trans-unit id="mssql.walkthroughs.nextSteps.title">
       <source xml:lang="en">Next Steps with MSSQL for Visual Studio Code</source>
     </trans-unit>
+    <trans-unit id="mssql.format.options.numNewlinesAfterBatches">
+      <source xml:lang="en">Number of line breaks after each GO batch separator, from 0 through 5.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.numNewlinesAfterStatement">
+      <source xml:lang="en">Number of line breaks after each statement, from 0 through 5.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.numNewlinesAfterBatchStatement">
+      <source xml:lang="en">Number of line breaks after each top-level statement in a batch, from 0 through 5.</source>
+    </trans-unit>
     <trans-unit id="mssql.logRetentionMinutes">
       <source xml:lang="en">Number of minutes to retain log files for backend services. Default is 1 week.</source>
     </trans-unit>
     <trans-unit id="mssql.queryHistoryLimit">
       <source xml:lang="en">Number of query history entries to show in the Query History view</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.leadingCommaSpaceCount">
+      <source xml:lang="en">Number of spaces after a leading comma. Valid values are 0 and 1.</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.nextSteps.objectExplorerFilters.altText">
       <source xml:lang="en">Object Explorer filters</source>
@@ -10671,8 +10987,68 @@
     <trans-unit id="mssql.pauseQueryHistoryCapture">
       <source xml:lang="en">Pause Query History Capture</source>
     </trans-unit>
+    <trans-unit id="mssql.format.options.asKeywordOnOwnLine">
+      <source xml:lang="en">Place AS on its own line.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.newLineFormattedIndexDefinition">
+      <source xml:lang="en">Place UNIQUE, INCLUDE, and WHERE portions of inline index definitions on separate lines.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.newLineBeforeJoinClause">
+      <source xml:lang="en">Place a newline before JOIN clauses.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.newLineBeforeFromClause">
+      <source xml:lang="en">Place a newline before the FROM clause.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.newLineBeforeGroupByClause">
+      <source xml:lang="en">Place a newline before the GROUP BY clause.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.newLineBeforeHavingClause">
+      <source xml:lang="en">Place a newline before the HAVING clause.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.newLineBeforeOffsetClause">
+      <source xml:lang="en">Place a newline before the OFFSET clause.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.newLineBeforeOrderByClause">
+      <source xml:lang="en">Place a newline before the ORDER BY clause.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.newLineBeforeOutputClause">
+      <source xml:lang="en">Place a newline before the OUTPUT clause.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.newLineBeforeWhereClause">
+      <source xml:lang="en">Place a newline before the WHERE clause.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.newLineBeforeWindowClause">
+      <source xml:lang="en">Place a newline before the WINDOW clause.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.newLineBeforeCloseParenthesisInMultilineList">
+      <source xml:lang="en">Place a newline before the closing parenthesis of a multiline list.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.newLineBeforeOpenParenthesisInMultilineList">
+      <source xml:lang="en">Place a newline before the opening parenthesis of a multiline list.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.commaPlacement">
+      <source xml:lang="en">Place commas at the end of list items or at the beginning of the next item.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.newlineFormattedCheckConstraint">
+      <source xml:lang="en">Place the CHECK clause of a constraint on its own line.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.newLineBeforeOnClause">
+      <source xml:lang="en">Place the ON clause of a JOIN on a new line.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.newLineAfterJoinKeyword">
+      <source xml:lang="en">Place the joined table source on a new line after the JOIN keyword.</source>
+    </trans-unit>
     <trans-unit id="mssql.query.playCompletionSound.description">
       <source xml:lang="en">Play a sound after a query finishes executing.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.preserveComments">
+      <source xml:lang="en">Preserve comments during formatting.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.persistTrailingGo">
+      <source xml:lang="en">Preserve trailing GO batch separators from the original script.</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.identifierBracketing">
+      <source xml:lang="en">Preserve, add, or remove optional square brackets around identifiers. Required brackets are retained.</source>
     </trans-unit>
     <trans-unit id="mssql.preventAutoExecuteScript">
       <source xml:lang="en">Prevent automatic execution of scripts (e.g., &apos;Select Top 1000&apos;). When enabled, scripts will not be automatically executed upon generation.</source>
@@ -10773,6 +11149,9 @@
     <trans-unit id="mssql.sqlToolsMcp.serverLabel">
       <source xml:lang="en">SQL Tools (MSSQL)</source>
     </trans-unit>
+    <trans-unit id="mssql.format.options.sqlEngineType">
+      <source xml:lang="en">SQL engine type used to parse and generate formatted scripts.</source>
+    </trans-unit>
     <trans-unit id="mssql.quickQueries.query">
       <source xml:lang="en">SQL text for this Quick Query. Use {arg} to insert selected query-editor text; otherwise, it is appended.</source>
     </trans-unit>
@@ -10849,7 +11228,7 @@
       <source xml:lang="en">Show SQL Data Plane Status</source>
     </trans-unit>
     <trans-unit id="mssql.format.showParseErrorNotification">
-      <source xml:lang="en">Show a notification when Preview Formatter cannot fully parse the T-SQL being formatted.</source>
+      <source xml:lang="en">Show a notification when the SQL formatter cannot fully parse the T-SQL being formatted.</source>
     </trans-unit>
     <trans-unit id="mssql.resultsGrid.showGridLines.both">
       <source xml:lang="en">Show both horizontal and vertical grid lines</source>
@@ -10910,6 +11289,9 @@
     </trans-unit>
     <trans-unit id="mssql.stopContainer">
       <source xml:lang="en">Stop SQL Container</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.options.sqlVersion">
+      <source xml:lang="en">T-SQL version used to parse and generate formatted scripts.</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.altText">
       <source xml:lang="en">Table Designer</source>
@@ -10988,9 +11370,6 @@
     </trans-unit>
     <trans-unit id="mssql.resultsGrid.useDataOnlyEnumDescription">
       <source xml:lang="en">Use only row data to size columns automatically</source>
-    </trans-unit>
-    <trans-unit id="mssql.format.enablePreviewFormatter">
-      <source xml:lang="en">Use the preview SQL formatter. Disable this setting to temporarily use the existing formatter.</source>
     </trans-unit>
     <trans-unit id="mssql.useMsalEntraMfaAuth.description">
       <source xml:lang="en">Uses MSAL for Microsoft Entra MFA authentication instead of VS Code signed-in accounts. Restart Visual Studio Code after changing this setting.</source>

@@ -177,6 +177,11 @@ export const defaultConnectionTimeout = 15;
 export const azureSqlDbConnectionTimeout = 30;
 export const defaultCommandTimeout = 30;
 export const stsImmediateActivityTimeout = 5000; // 5 seconds
+// Upper bound for a query cancel round-trip to SQL Tools Service before the editor is reset.
+export const queryCancelRequestTimeoutMs = 15000; // 15 seconds
+// Grace period for a completion notification to arrive after the service reported that it has
+// no running query for an editor we still consider executing.
+export const queryCancelOrphanGraceMs = 2000; // 2 seconds
 export const azureDatabase = "Azure";
 export const azureMfa = "AzureMFA";
 export const azureServicePrincipal = "ActiveDirectoryServicePrincipal";
@@ -229,13 +234,21 @@ export const containerConnectionRetryDelayMs = 3000;
 export const msgContentProviderSqlOutputHtml = "dist/html/sqlOutput.ejs";
 export const contentProviderMinFile = "dist/js/app.min.js";
 export const timeToWaitForLanguageModeChange = 10000.0;
+
+export class Links {
+    public static readonly authKerberosHelp = "https://aka.ms/vscode-mssql-kerberos";
+    public static readonly authEntraDefault = "https://aka.ms/vscode-mssql-auth-entra-default";
+    public static readonly authEntraMfa = "https://aka.ms/vscode-mssql-auth-entra-mfa";
+    public static readonly authActiveDirectoryServicePrincipal =
+        "https://learn.microsoft.com/en-us/sql/connect/ado-net/sql/azure-active-directory-authentication?view=sql-server-ver17#using-service-principal-authentication";
+}
+
 export const gettingStartedGuideLink = "https://aka.ms/mssql-getting-started";
 export const changelogLink = "https://aka.ms/vscode-mssql-changes";
 export const feedbackUrl = "https://aka.ms/vscode-mssql-bug";
 export const connectionSharingFeatureRequestUrl =
     "https://github.com/microsoft/vscode-mssql/issues/new?template=2-mssql-feature-request.yml";
 export const encryptionBlogLink = "https://aka.ms/vscodemssql-connection";
-export const integratedAuthHelpLink = "https://aka.ms/vscode-mssql-integratedauth";
 export const createDatabaseHelpLink =
     "https://learn.microsoft.com/sql/t-sql/statements/create-database-transact-sql";
 export const dropDatabaseHelpLink =
@@ -343,8 +356,11 @@ export const configShowActiveConnectionAsCodeLensSuggestion =
 export const configStatusBarConnectionInfoMaxLength = "statusBar.connectionInfoMaxLength";
 export const configStatusBarEnableConnectionColor = "mssql.statusBar.enableConnectionColor";
 export const configStatusBarShowQueryExecutionStatus = "statusBar.showQueryExecutionStatus";
+export const configDabCliPackageFeedUrl = "mssql.dab.cliPackageFeedUrl";
 export const configSchemaDesignerEnableExpandCollapseButtons =
     "mssql.schemaDesigner.enableExpandCollapseButtons";
+export const configSchemaDesignerEnableDeploymentsView =
+    "mssql.schemaDesigner.enableDeploymentsView";
 export const configSavePasswordsUntilRestart =
     "mssql.connectionManagement.rememberPasswordsUntilRestart";
 export const configAutoRevealResultsPanel = "mssql.autoRevealResultsPanel";
