@@ -1,5 +1,23 @@
 # Change Log
 
+## Version 1.46.0
+
+- Release date: September 29, 2026
+- Release status: GA
+
+### What's new in 1.46.0
+
+- Added optional sound notifications when query execution completes, so long-running queries can notify you when they finish
+- Improved Query Results with clickable error line numbers, preserved `PRINT` output when batch messages are hidden, visible leading and repeated spaces, resizable row numbers, and smoother grid rendering and scrolling
+- Added object filters to Schema Compare and improved its reliability and responsiveness when selecting changes, comparing projects, and reviewing confirmation details
+- Added saved filters to Object Explorer and fixed nodes that could remain stuck on "Loading..." after a filter was applied
+- Moved local, Azure, and Fabric database provisioning into background tasks so deployments can continue after the deployment dialog is closed
+- Improved Data API Builder with persistent deployment configurations, tracked deployments, a CLI deployment target, and support for exposing `vector` and `json` columns through the UI and GitHub Copilot tools
+- Improved Flat File Import by retaining column settings after failures, loading schemas from the selected database, and making data type selection more reliable
+- Fixed copied connections so their database dropdown loads while preserving the copied database selection
+- Fixed Edit Data row and cell revert actions, including clearing the dirty state when a value is restored to its original value
+- Added the Copy As submenu to SQL Notebook result grids for copying selections as CSV, JSON, `INSERT INTO`, or `IN` clause values
+
 ## Version 1.45.1
 
 - Release date: August 26, 2026
