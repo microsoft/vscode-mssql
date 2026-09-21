@@ -7,7 +7,7 @@ import * as vscode from "vscode";
 import * as constants from "../constants/constants";
 import * as dockerUtils from "../docker/dockerUtils";
 
-import { Overview } from "../constants/locConstants";
+import { Common, Overview } from "../constants/locConstants";
 import {
     AddDevContainerConfigurationRequest,
     AddDevContainerConfigurationRequestParams,
@@ -56,6 +56,8 @@ import { sendActionEvent, startActivity } from "extension-toolkit/vscode";
 import * as path from "path";
 import { spawn } from "child_process";
 import * as fs from "fs";
+import * as os from "os";
+import { randomUUID } from "crypto";
 
 /** Identifier of the Dev Containers extension that owns dev container configuration. */
 const DEV_CONTAINERS_EXTENSION_ID = "ms-vscode-remote.remote-containers";
@@ -479,6 +481,7 @@ export class OverviewWebviewController extends WebviewPanelController<
                     repositoryFolder: templateRepositoryFolders[params.templateId],
                     applied: String(result.applied),
                     usedPicker: String(result.usedPicker),
+                    conflict: String(result.conflict === true),
                 };
 
                 if (result.applied) {
@@ -491,7 +494,11 @@ export class OverviewWebviewController extends WebviewPanelController<
                         undefined,
                         false,
                         undefined,
-                        result.usedPicker ? "pickerFallback" : "applyFailed",
+                        result.usedPicker
+                            ? "pickerFallback"
+                            : result.conflict
+                              ? "fileConflict"
+                              : "applyFailed",
                         props,
                     );
                     this._devContainerActivity = undefined;
@@ -631,15 +638,41 @@ export class OverviewWebviewController extends WebviewPanelController<
             return { applied: false, usedPicker: true };
         }
 
+        const stagingDirectory = await fs.promises.mkdtemp(
+            path.join(os.tmpdir(), "vscode-mssql-devcontainer-"),
+        );
+
         try {
-            await this.runDevContainersCli(cliPath, [
+            const output = await this.runDevContainersCli(cliPath, [
                 "templates",
                 "apply",
                 "--template-id",
                 templateRegistryId(templateId),
                 "--workspace-folder",
-                workspaceFolder.uri.fsPath,
+                stagingDirectory,
             ]);
+
+            const files = this.parseAppliedTemplateFiles(output, stagingDirectory);
+            const conflictChoices = await this.getTemplateFileConflictChoices(
+                workspaceFolder.uri,
+                files,
+            );
+            if (!conflictChoices) {
+                this.logger.info("Dev container setup canceled while resolving file conflicts.");
+                return {
+                    applied: false,
+                    usedPicker: false,
+                    conflict: true,
+                    error: "Dev container setup was canceled.",
+                };
+            }
+
+            await this.copyTemplateFiles(
+                stagingDirectory,
+                workspaceFolder.uri,
+                files,
+                conflictChoices,
+            );
             await this.refreshWorkspaceState();
             return { applied: true, usedPicker: false };
         } catch (error) {
@@ -650,6 +683,134 @@ export class OverviewWebviewController extends WebviewPanelController<
                 usedPicker: false,
                 error: error instanceof Error ? error.message : String(error),
             };
+        } finally {
+            await fs.promises.rm(stagingDirectory, { recursive: true, force: true });
+        }
+    }
+
+    /**
+     * Reads the CLI's result and validates every returned path before it is used as a source or a
+     * workspace destination. Templates are untrusted external input, so absolute paths, traversal,
+     * symlinks, and non-files are rejected.
+     */
+    private parseAppliedTemplateFiles(output: string, stagingDirectory: string): string[] {
+        const resultLine = output
+            .split(/\r?\n/)
+            .map((line) => line.trim())
+            .filter(Boolean)
+            .at(-1);
+        const result = resultLine ? (JSON.parse(resultLine) as { files?: unknown }) : undefined;
+        if (!Array.isArray(result?.files) || result.files.length === 0) {
+            throw new Error("The Dev Containers CLI did not report any template files.");
+        }
+
+        const stagingRoot = path.resolve(stagingDirectory);
+        return result.files.map((file) => {
+            if (typeof file !== "string" || file.length === 0 || file.includes("\0")) {
+                throw new Error("The Dev Containers CLI returned an invalid template file path.");
+            }
+
+            const normalized = file.replaceAll("\\", "/");
+            const sourcePath = path.resolve(stagingRoot, normalized);
+            if (
+                path.posix.isAbsolute(normalized) ||
+                path.win32.isAbsolute(file) ||
+                sourcePath === stagingRoot ||
+                !sourcePath.startsWith(`${stagingRoot}${path.sep}`)
+            ) {
+                throw new Error(`Template file path escapes the staging directory: ${file}`);
+            }
+
+            const source = fs.lstatSync(sourcePath);
+            if (!source.isFile() || source.isSymbolicLink()) {
+                throw new Error(`Template path is not a regular file: ${file}`);
+            }
+            return normalized;
+        });
+    }
+
+    /**
+     * Collects a decision for every destination that already exists before any workspace files are
+     * changed. Any stat error other than a definite not-found result is treated as a conflict,
+     * because proceeding silently would risk overwriting a file the provider could not inspect.
+     */
+    private async getTemplateFileConflictChoices(
+        workspaceFolder: vscode.Uri,
+        files: string[],
+    ): Promise<Map<string, "skip" | "overwrite"> | undefined> {
+        const choices = new Map<string, "skip" | "overwrite">();
+        for (const file of files) {
+            const destination = vscode.Uri.joinPath(workspaceFolder, ...file.split("/"));
+            let conflicts = false;
+            try {
+                await vscode.workspace.fs.stat(destination);
+                conflicts = true;
+            } catch (error) {
+                if (!(error instanceof vscode.FileSystemError) || error.code !== "FileNotFound") {
+                    conflicts = true;
+                }
+            }
+
+            if (!conflicts) {
+                continue;
+            }
+
+            const choice = await vscode.window.showWarningMessage(
+                Overview.DevContainerTemplateFileConflict(file),
+                { modal: true },
+                Overview.SkipTemplateFile,
+                Overview.OverwriteTemplateFile,
+                Common.cancel,
+            );
+            if (!choice || choice === Common.cancel) {
+                return undefined;
+            }
+            choices.set(file, choice === Overview.OverwriteTemplateFile ? "overwrite" : "skip");
+        }
+        return choices;
+    }
+
+    /**
+     * Copies staged template files without permitting replacement. The final rename asks the
+     * workspace filesystem provider for an exclusive destination unless the user explicitly chose
+     * Overwrite for that file. This also closes the race between conflict prompting and the write.
+     */
+    private async copyTemplateFiles(
+        stagingDirectory: string,
+        workspaceFolder: vscode.Uri,
+        files: string[],
+        conflictChoices: ReadonlyMap<string, "skip" | "overwrite">,
+    ): Promise<void> {
+        for (const file of files) {
+            const conflictChoice = conflictChoices.get(file);
+            if (conflictChoice === "skip") {
+                continue;
+            }
+            const segments = file.split("/");
+            const destination = vscode.Uri.joinPath(workspaceFolder, ...segments);
+            const destinationDirectory = vscode.Uri.joinPath(
+                workspaceFolder,
+                ...segments.slice(0, -1),
+            );
+            const temporaryDestination = vscode.Uri.joinPath(
+                destinationDirectory,
+                `.${segments.at(-1)}.vscode-mssql-${randomUUID()}.tmp`,
+            );
+            const contents = await fs.promises.readFile(path.join(stagingDirectory, ...segments));
+
+            await vscode.workspace.fs.createDirectory(destinationDirectory);
+            try {
+                await vscode.workspace.fs.writeFile(temporaryDestination, contents);
+                await vscode.workspace.fs.rename(temporaryDestination, destination, {
+                    overwrite: conflictChoice === "overwrite",
+                });
+            } finally {
+                try {
+                    await vscode.workspace.fs.delete(temporaryDestination);
+                } catch {
+                    // The successful rename already removed it, or a failed write never created it.
+                }
+            }
         }
     }
 
@@ -668,20 +829,24 @@ export class OverviewWebviewController extends WebviewPanelController<
      * Dev Containers extension does locally. That keeps this working for users with no `node`
      * on their PATH.
      */
-    private runDevContainersCli(cliPath: string, args: string[]): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
+    private runDevContainersCli(cliPath: string, args: string[]): Promise<string> {
+        return new Promise<string>((resolve, reject) => {
             const child = spawn(process.argv[0], [cliPath, ...args], {
                 env: { ...process.env, ELECTRON_RUN_AS_NODE: "1" },
             });
 
             let stderr = "";
+            let stdout = "";
+            child.stdout?.on("data", (chunk) => {
+                stdout += String(chunk);
+            });
             child.stderr?.on("data", (chunk) => {
                 stderr += String(chunk);
             });
             child.on("error", reject);
             child.on("close", (code) => {
                 if (code === 0) {
-                    resolve();
+                    resolve(stdout);
                 } else {
                     reject(new Error(stderr.trim() || `Exited with code ${code}`));
                 }

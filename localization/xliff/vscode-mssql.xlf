@@ -8658,6 +8658,9 @@
       <source xml:lang="en">Settings for {0}</source>
       <note>{0} is the entity name</note>
     </trans-unit>
+    <trans-unit id="++CODE++e44a7e201d0e36e4ebec63f1b5cbf6680ddb6ae18f0dda1f069a4e1d6c561ed7">
+      <source xml:lang="en">Setup was canceled. No files were overwritten.</source>
+    </trans-unit>
     <trans-unit id="++CODE++5e9f98120dbe568255ee059f39671686982b113d4e917b6d6faf149918c81709">
       <source xml:lang="en">Severity</source>
     </trans-unit>
@@ -8816,6 +8819,9 @@
     </trans-unit>
     <trans-unit id="++CODE++aa86409ea7e147ea5324e4a83d49efc512f2527f7dbada91558cde583e1a8ec2">
       <source xml:lang="en">Simplified</source>
+    </trans-unit>
+    <trans-unit id="++CODE++28d03596d24eeb4eab2d6fe21ca1cb95be7cb1fa6f92933db05e2cc4f4cdfa06">
+      <source xml:lang="en">Skip</source>
     </trans-unit>
     <trans-unit id="++CODE++ab3134048412e796a4a423dc1963ca8ff12b535d546d314470407639777e0ac5">
       <source xml:lang="en">Smart performance</source>
@@ -9503,6 +9509,10 @@
     </trans-unit>
     <trans-unit id="++CODE++e8ebb0393782bd6e0f47dec44e67c3d00c0302fef8ffa257b9fc1c81b165f1c3">
       <source xml:lang="en">The targets, references, and system database references need to be updated to build the project &apos;{0}&apos;.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b93366ea7085216c3227f2871161aebca88f8e3cf855270947254cb6b66e9b09">
+      <source xml:lang="en">The template file &apos;{0}&apos; already exists. What would you like to do?</source>
+      <note>{0} is a file path relative to the workspace folder.</note>
     </trans-unit>
     <trans-unit id="++CODE++b9742c3b5b5914f9ac72f6be945f6f52a6ce05ffcd743f8cf4373e9fa4400a25">
       <source xml:lang="en">The {0} service has crashed. Details: {1}</source>

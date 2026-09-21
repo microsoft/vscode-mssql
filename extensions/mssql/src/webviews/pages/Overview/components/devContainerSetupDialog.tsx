@@ -169,6 +169,7 @@ export const DevContainerSetupDialog = ({ template, onDismiss }: DevContainerSet
     const [page, setPage] = useState<"prerequisites" | "setUp">("prerequisites");
     const [isApplying, setIsApplying] = useState(false);
     const [applyFailed, setApplyFailed] = useState(false);
+    const [hasFileConflict, setHasFileConflict] = useState(false);
     const [usedPicker, setUsedPicker] = useState(false);
     // The request reports what it wrote, so the step does not hang on "not found" if the
     // folder-watching state lags behind.
@@ -250,6 +251,7 @@ export const DevContainerSetupDialog = ({ template, onDismiss }: DevContainerSet
     const applyTemplate = useCallback(async () => {
         setIsApplying(true);
         setApplyFailed(false);
+        setHasFileConflict(false);
         setUsedPicker(false);
         try {
             const result = await addDevContainerConfiguration(template.id);
@@ -257,6 +259,7 @@ export const DevContainerSetupDialog = ({ template, onDismiss }: DevContainerSet
             // workspace path. The controller has already logged it, so only the outcome is kept
             // here and the dialog shows a localized string.
             setApplyFailed(result.error !== undefined);
+            setHasFileConflict(result.conflict === true);
             setUsedPicker(result.usedPicker);
             setApplied(result.applied);
         } catch {
@@ -366,7 +369,9 @@ export const DevContainerSetupDialog = ({ template, onDismiss }: DevContainerSet
                                         </Text>
                                         <Text className={classes.rowDescription}>
                                             {applyFailed
-                                                ? loc.stepAddConfigurationFailed
+                                                ? hasFileConflict
+                                                    ? loc.stepAddConfigurationConflict
+                                                    : loc.stepAddConfigurationFailed
                                                 : loc.stepAddConfigurationDescription}
                                         </Text>
                                         {usedPicker && (

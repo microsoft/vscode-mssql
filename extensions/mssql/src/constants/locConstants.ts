@@ -3597,6 +3597,14 @@ export class Overview {
             args: [error],
             comment: ["{0} is the underlying error message."],
         });
+    public static DevContainerTemplateFileConflict = (relativePath: string) =>
+        l10n.t({
+            message: "The template file '{0}' already exists. What would you like to do?",
+            args: [relativePath],
+            comment: ["{0} is a file path relative to the workspace folder."],
+        });
+    public static SkipTemplateFile = l10n.t("Skip");
+    public static OverwriteTemplateFile = l10n.t("Overwrite");
     public static InstallAgentSkillsFailed = l10n.t(
         "Could not download the Azure SQL agent skills. Check your network connection and try again.",
     );

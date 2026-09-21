@@ -1944,6 +1944,11 @@
         "message": "Could not add the dev container configuration: {0}",
         "comment": ["{0} is the underlying error message."]
     },
+    "The template file '{0}' already exists. What would you like to do?/{0} is a file path relative to the workspace folder.": {
+        "message": "The template file '{0}' already exists. What would you like to do?",
+        "comment": ["{0} is a file path relative to the workspace folder."]
+    },
+    "Skip": "Skip",
     "Could not download the Azure SQL agent skills. Check your network connection and try again.": "Could not download the Azure SQL agent skills. Check your network connection and try again.",
     "The Azure SQL agent skills can only be installed from a local window. Reopen this folder locally, install them there, and they will be available to Copilot everywhere.": "The Azure SQL agent skills can only be installed from a local window. Reopen this folder locally, install them there, and they will be available to Copilot everywhere.",
     "The Dev Containers extension is required to reopen this folder in a container.": "The Dev Containers extension is required to reopen this folder in a container.",
@@ -5090,6 +5095,7 @@
     "Opening builds the container and reloads this window inside it.": "Opening builds the container and reloads this window inside it.",
     "Set up": "Set up",
     "Could not write the configuration.": "Could not write the configuration.",
+    "Setup was canceled. No files were overwritten.": "Setup was canceled. No files were overwritten.",
     "Opened the Dev Containers extension's template picker instead.": "Opened the Dev Containers extension's template picker instead.",
     "Dev container configuration": "Dev container configuration",
     "Writes this template's .devcontainer files into the open folder.": "Writes this template's .devcontainer files into the open folder.",

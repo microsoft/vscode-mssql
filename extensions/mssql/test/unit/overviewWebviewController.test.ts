@@ -7,12 +7,19 @@ import * as chai from "chai";
 import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
 import * as vscode from "vscode";
+import * as fs from "fs";
+import * as os from "os";
+import * as path from "path";
 import * as utils from "../../src/utils/utils";
 import * as dockerUtils from "../../src/docker/dockerUtils";
 import { OverviewWebviewController } from "../../src/controllers/overviewWebviewController";
 import { RecentSqlFilesStore, ResolvedRecentSqlFile } from "../../src/models/recentSqlFilesStore";
 import { AgentPluginsInstaller } from "../../src/agentPlugins/agentPluginsInstaller";
-import { OverviewOpenSource, PrerequisiteStatus } from "../../src/sharedInterfaces/overview";
+import {
+    DevContainerTemplateId,
+    OverviewOpenSource,
+    PrerequisiteStatus,
+} from "../../src/sharedInterfaces/overview";
 import * as constants from "../../src/constants/constants";
 import { observeWebviewReady, stubTelemetry, stubWebviewPanel } from "./utils";
 
@@ -32,6 +39,7 @@ suite("Overview Webview Controller", () => {
     let storeChangeEvent: vscode.EventEmitter<void>;
     let agentSkillsInstalledStub: sinon.SinonStub;
     let agentSkillsInstallStub: sinon.SinonStub;
+    let temporaryDirectories: string[];
 
     function createController(): OverviewWebviewController {
         const created = new OverviewWebviewController(
@@ -68,15 +76,45 @@ suite("Overview Webview Controller", () => {
         storeChangeEvent = new vscode.EventEmitter<void>();
         agentSkillsInstalledStub = sinon.stub().resolves(false);
         agentSkillsInstallStub = sinon.stub().resolves(true);
+        temporaryDirectories = [];
         sandbox.stub(vscode.commands, "executeCommand").resolves();
     });
 
-    teardown(() => {
+    teardown(async () => {
         controller?.dispose();
         controller = undefined;
         storeChangeEvent.dispose();
         sandbox.restore();
+        await Promise.all(
+            temporaryDirectories.map((directory) =>
+                fs.promises.rm(directory, { recursive: true, force: true }),
+            ),
+        );
     });
+
+    async function createTemporaryDirectory(prefix: string): Promise<string> {
+        const directory = await fs.promises.mkdtemp(path.join(os.tmpdir(), prefix));
+        temporaryDirectories.push(directory);
+        return directory;
+    }
+
+    function stubTemplateApplication(files: Record<string, string>): sinon.SinonStub {
+        sandbox
+            .stub(controller as unknown as Record<string, unknown>, "findDevContainersCli")
+            .returns("/fake/devContainersSpecCLI.js");
+        return sandbox
+            .stub(controller as unknown as Record<string, unknown>, "runDevContainersCli")
+            .callsFake(async (_cliPath: string, args: string[]) => {
+                const workspaceArgument = args.indexOf("--workspace-folder");
+                const stagingDirectory = args[workspaceArgument + 1];
+                for (const [relativePath, contents] of Object.entries(files)) {
+                    const destination = path.join(stagingDirectory, ...relativePath.split("/"));
+                    await fs.promises.mkdir(path.dirname(destination), { recursive: true });
+                    await fs.promises.writeFile(destination, contents);
+                }
+                return `${JSON.stringify({ files: Object.keys(files) })}\n`;
+            });
+    }
 
     test("projects recent SQL files into state with file and folder labels", async () => {
         recentFiles = [
@@ -126,6 +164,139 @@ suite("Overview Webview Controller", () => {
 
         // vscode.extensions.getExtension is stubbed to return undefined for every id.
         expect(prerequisites.devContainersExtension).to.equal(PrerequisiteStatus.Missing);
+    });
+
+    test("does not copy any template files when conflict resolution is canceled", async () => {
+        const workspaceRoot = await createTemporaryDirectory("mssql-overview-conflict-");
+        const tasksPath = path.join(workspaceRoot, ".vscode", "tasks.json");
+        const attributesPath = path.join(workspaceRoot, ".gitattributes");
+        await fs.promises.mkdir(path.dirname(tasksPath), { recursive: true });
+        await fs.promises.writeFile(tasksPath, "user tasks");
+        await fs.promises.writeFile(attributesPath, "user attributes");
+        sandbox
+            .stub(vscode.workspace, "workspaceFolders")
+            .value([{ index: 0, name: "workspace", uri: vscode.Uri.file(workspaceRoot) }]);
+        controller = createController();
+        sandbox
+            .stub(vscode.window, "showWarningMessage")
+            .onFirstCall()
+            .resolves("Overwrite" as never)
+            .onSecondCall()
+            .resolves(undefined);
+        stubTemplateApplication({
+            ".devcontainer/devcontainer.json": '{ "name": "Azure SQL" }',
+            ".vscode/tasks.json": "template tasks",
+            ".gitattributes": "template attributes",
+        });
+
+        const result = await controller["applyDevContainerTemplate"](DevContainerTemplateId.DotNet);
+
+        expect(result).to.include({ applied: false, usedPicker: false, conflict: true });
+        expect(await fs.promises.readFile(tasksPath, "utf8")).to.equal("user tasks");
+        expect(await fs.promises.readFile(attributesPath, "utf8")).to.equal("user attributes");
+        expect(fs.existsSync(path.join(workspaceRoot, ".devcontainer", "devcontainer.json"))).to.be
+            .false;
+    });
+
+    test("skips an existing template file when the user chooses Skip", async () => {
+        const workspaceRoot = await createTemporaryDirectory("mssql-overview-skip-");
+        const tasksPath = path.join(workspaceRoot, ".vscode", "tasks.json");
+        await fs.promises.mkdir(path.dirname(tasksPath), { recursive: true });
+        await fs.promises.writeFile(tasksPath, "user tasks");
+        sandbox
+            .stub(vscode.workspace, "workspaceFolders")
+            .value([{ index: 0, name: "workspace", uri: vscode.Uri.file(workspaceRoot) }]);
+        controller = createController();
+        sandbox.stub(vscode.window, "showWarningMessage").resolves("Skip" as never);
+        stubTemplateApplication({
+            ".devcontainer/devcontainer.json": '{ "name": "Azure SQL" }',
+            ".vscode/tasks.json": "template tasks",
+        });
+
+        const result = await controller["applyDevContainerTemplate"](DevContainerTemplateId.DotNet);
+
+        expect(result).to.deep.equal({ applied: true, usedPicker: false });
+        expect(await fs.promises.readFile(tasksPath, "utf8")).to.equal("user tasks");
+        expect(
+            await fs.promises.readFile(
+                path.join(workspaceRoot, ".devcontainer", "devcontainer.json"),
+                "utf8",
+            ),
+        ).to.equal('{ "name": "Azure SQL" }');
+    });
+
+    test("overwrites only the template file explicitly approved by the user", async () => {
+        const workspaceRoot = await createTemporaryDirectory("mssql-overview-overwrite-");
+        const tasksPath = path.join(workspaceRoot, ".vscode", "tasks.json");
+        await fs.promises.mkdir(path.dirname(tasksPath), { recursive: true });
+        await fs.promises.writeFile(tasksPath, "user tasks");
+        sandbox
+            .stub(vscode.workspace, "workspaceFolders")
+            .value([{ index: 0, name: "workspace", uri: vscode.Uri.file(workspaceRoot) }]);
+        controller = createController();
+        sandbox.stub(vscode.window, "showWarningMessage").resolves("Overwrite" as never);
+        stubTemplateApplication({
+            ".devcontainer/devcontainer.json": '{ "name": "Azure SQL" }',
+            ".vscode/tasks.json": "template tasks",
+        });
+
+        const result = await controller["applyDevContainerTemplate"](DevContainerTemplateId.DotNet);
+
+        expect(result).to.deep.equal({ applied: true, usedPicker: false });
+        expect(await fs.promises.readFile(tasksPath, "utf8")).to.equal("template tasks");
+    });
+
+    test("copies all template files when every destination is new", async () => {
+        const workspaceRoot = await createTemporaryDirectory("mssql-overview-apply-");
+        sandbox
+            .stub(vscode.workspace, "workspaceFolders")
+            .value([{ index: 0, name: "workspace", uri: vscode.Uri.file(workspaceRoot) }]);
+        controller = createController();
+        stubTemplateApplication({
+            ".devcontainer/devcontainer.json": '{ "name": "Azure SQL" }',
+            ".vscode/tasks.json": "template tasks",
+        });
+
+        const result = await controller["applyDevContainerTemplate"](DevContainerTemplateId.DotNet);
+
+        expect(result).to.deep.equal({ applied: true, usedPicker: false });
+        expect(
+            await fs.promises.readFile(
+                path.join(workspaceRoot, ".devcontainer", "devcontainer.json"),
+                "utf8",
+            ),
+        ).to.equal('{ "name": "Azure SQL" }');
+        expect(
+            await fs.promises.readFile(path.join(workspaceRoot, ".vscode", "tasks.json"), "utf8"),
+        ).to.equal("template tasks");
+    });
+
+    test("exclusive copy refuses a destination created after the preflight check", async () => {
+        const workspaceRoot = await createTemporaryDirectory("mssql-overview-race-workspace-");
+        const stagingRoot = await createTemporaryDirectory("mssql-overview-race-staging-");
+        const relativePath = ".vscode/tasks.json";
+        const destination = path.join(workspaceRoot, relativePath);
+        const source = path.join(stagingRoot, relativePath);
+        await fs.promises.mkdir(path.dirname(destination), { recursive: true });
+        await fs.promises.mkdir(path.dirname(source), { recursive: true });
+        await fs.promises.writeFile(destination, "user tasks");
+        await fs.promises.writeFile(source, "template tasks");
+        controller = createController();
+
+        let copyError: unknown;
+        try {
+            await controller["copyTemplateFiles"](
+                stagingRoot,
+                vscode.Uri.file(workspaceRoot),
+                [relativePath],
+                new Map(),
+            );
+        } catch (error) {
+            copyError = error;
+        }
+
+        expect(copyError).to.be.instanceOf(Error);
+        expect(await fs.promises.readFile(destination, "utf8")).to.equal("user tasks");
     });
 
     test("refreshes the recent file list when the store records a new open", async () => {

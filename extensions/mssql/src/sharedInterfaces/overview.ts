@@ -227,6 +227,8 @@ export interface AddDevContainerConfigurationResult {
      * extension's own template picker was opened instead.
      */
     usedPicker: boolean;
+    /** True when setup was canceled while resolving an existing template file. */
+    conflict?: boolean;
     /** Failure reason, when the configuration could not be written. */
     error?: string;
 }

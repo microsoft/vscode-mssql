@@ -4234,6 +4234,7 @@ export class LocConstants {
             ),
             devContainerSetUpSteps: l10n.t("Set up"),
             stepAddConfigurationFailed: l10n.t("Could not write the configuration."),
+            stepAddConfigurationConflict: l10n.t("Setup was canceled. No files were overwritten."),
             stepAddConfigurationPicker: l10n.t(
                 "Opened the Dev Containers extension's template picker instead.",
             ),
