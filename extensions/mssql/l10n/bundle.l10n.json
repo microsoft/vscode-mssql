@@ -20,6 +20,10 @@
     "Private": "Private",
     "Remove": "Remove",
     "Port must be a number between 1 and 65535": "Port must be a number between 1 and 65535",
+    "Provisioning {0}/{0} is the server, container, or database target being provisioned": {
+        "message": "Provisioning {0}",
+        "comment": ["{0} is the server, container, or database target being provisioned"]
+    },
     "SQL Tools (MSSQL)": "SQL Tools (MSSQL)",
     "Create Database": "Create Database",
     "Drop Database": "Drop Database",
@@ -65,6 +69,9 @@
         "comment": ["{0} is the document name"]
     },
     "A query is already running for this editor session. Please cancel this query or wait for its completion.": "A query is already running for this editor session. Please cancel this query or wait for its completion.",
+    "Cancel query": "Cancel query",
+    "The service is no longer running a query for this editor. The editor's execution state has been reset.": "The service is no longer running a query for this editor. The editor's execution state has been reset.",
+    "The cancel request did not complete in time. The editor's execution state has been reset.": "The cancel request did not complete in time. The editor's execution state has been reset.",
     "Started executing query at ": "Started executing query at ",
     "Line {0}/{0} is the line number": {
         "message": "Line {0}",
@@ -662,6 +669,7 @@
     "Automatically selects an available Microsoft Entra ID identity from providers installed on your system. Click the info icon to learn more.": "Automatically selects an available Microsoft Entra ID identity from providers installed on your system. Click the info icon to learn more.",
     "Sign in with your Microsoft Entra ID account, including accounts with multi-factor authentication. Click the info icon to learn more.": "Sign in with your Microsoft Entra ID account, including accounts with multi-factor authentication. Click the info icon to learn more.",
     "Authenticate using a Microsoft Entra service principal. Enter the Application (client) ID as the user name and the client secret as the password. Click the info icon to learn more.": "Authenticate using a Microsoft Entra service principal. Enter the Application (client) ID as the user name and the client secret as the password. Click the info icon to learn more.",
+    "Kerberos must be configured to use Windows Authentication on macOS and Linux. Click the info icon to learn more.": "Kerberos must be configured to use Windows Authentication on macOS and Linux. Click the info icon to learn more.",
     "Application (Client) ID": "Application (Client) ID",
     "The Application (Client) ID of your Microsoft Entra app registration.": "The Application (Client) ID of your Microsoft Entra app registration.",
     "Client Secret": "Client Secret",
@@ -911,11 +919,27 @@
     "Unable to determine the server authentication type.": "Unable to determine the server authentication type.",
     "Max vCores": "Max vCores",
     "Select Max vCores": "Select Max vCores",
+    "Azure SQL database '{0}' was provisioned successfully./{0} is the database name": {
+        "message": "Azure SQL database '{0}' was provisioned successfully.",
+        "comment": ["{0} is the database name"]
+    },
+    "Failed to provision Azure SQL database '{0}': {1}/{0} is the database name{1} is the error message": {
+        "message": "Failed to provision Azure SQL database '{0}': {1}",
+        "comment": ["{0} is the database name", "{1} is the error message"]
+    },
     "Enter Database Name": "Enter Database Name",
     "Database Description": "Database Description",
     "Enter Database Description": "Enter Database Description",
     "Please select a workspace where you have sufficient permissions (Contributor or higher)": "Please select a workspace where you have sufficient permissions (Contributor or higher)",
     "This database name is already in use. Please choose a different name.": "This database name is already in use. Please choose a different name.",
+    "Fabric SQL database '{0}' was provisioned successfully./{0} is the database name": {
+        "message": "Fabric SQL database '{0}' was provisioned successfully.",
+        "comment": ["{0} is the database name"]
+    },
+    "Failed to provision Fabric SQL database '{0}': {1}/{0} is the database name{1} is the error message": {
+        "message": "Failed to provision Fabric SQL database '{0}': {1}",
+        "comment": ["{0} is the database name", "{1} is the error message"]
+    },
     "Count: {0}  Distinct Count: {1}  Null Count: {2}/{0} is the count, {1} is the distinct count, and {2} is the null count": {
         "message": "Count: {0}  Distinct Count: {1}  Null Count: {2}",
         "comment": ["{0} is the count, {1} is the distinct count, and {2} is the null count"]
@@ -1050,6 +1074,14 @@
     "Readying container for connections.": "Readying container for connections.",
     "Connecting to Container": "Connecting to Container",
     "Connecting to your SQL Server Docker container": "Connecting to your SQL Server Docker container",
+    "SQL Server container '{0}' was provisioned successfully./{0} is the container name": {
+        "message": "SQL Server container '{0}' was provisioned successfully.",
+        "comment": ["{0} is the container name"]
+    },
+    "Failed to provision SQL Server container '{0}': {1}/{0} is the container name{1} is the error message": {
+        "message": "Failed to provision SQL Server container '{0}': {1}",
+        "comment": ["{0} is the container name", "{1} is the error message"]
+    },
     "Please make your password 8-128 characters long.": "Please make your password 8-128 characters long.",
     "Your password must contain characters from at least three of the following categories: uppercase letters, lowercase letters, numbers (0-9), and special characters (!, $, #, %, etc.).": "Your password must contain characters from at least three of the following categories: uppercase letters, lowercase letters, numbers (0-9), and special characters (!, $, #, %, etc.).",
     "Failed to pull SQL Server image. Please check your network connection and try again.": "Failed to pull SQL Server image. Please check your network connection and try again.",
@@ -1108,6 +1140,45 @@
     "Failed to start DAB container. Please check the Docker logs for details.": "Failed to start DAB container. Please check the Docker logs for details.",
     "DAB container failed to become ready within the timeout period.": "DAB container failed to become ready within the timeout period.",
     "Failed to stop and remove DAB container.": "Failed to stop and remove DAB container.",
+    "Container {0} no longer exists./{0} is the Docker container name": {
+        "message": "Container {0} no longer exists.",
+        "comment": ["{0} is the Docker container name"]
+    },
+    "Failed to start the DAB container.": "Failed to start the DAB container.",
+    "Failed to stop the DAB container.": "Failed to stop the DAB container.",
+    "This deployment is no longer tracked. Refresh the deployments list and try again.": "This deployment is no longer tracked. Refresh the deployments list and try again.",
+    "Port {0} is no longer available, so {1} cannot be redeployed on it. Free the port, or create a new deployment on a different port./{0} is the port number{1} is the Docker container name": {
+        "message": "Port {0} is no longer available, so {1} cannot be redeployed on it. Free the port, or create a new deployment on a different port.",
+        "comment": ["{0} is the port number", "{1} is the Docker container name"]
+    },
+    "Deployments cannot be tracked because the extension's storage location is unavailable.": "Deployments cannot be tracked because the extension's storage location is unavailable.",
+    "Failed to download the Data API builder CLI. Please check your network connection.": "Failed to download the Data API builder CLI. Please check your network connection.",
+    "Failed to prepare the Data API builder CLI.": "Failed to prepare the Data API builder CLI.",
+    "Data API builder does not publish a build for {0}, so it cannot run directly on this machine. Try deploying to a container instead./{0} is a .NET runtime identifier, such as osx-arm64": {
+        "message": "Data API builder does not publish a build for {0}, so it cannot run directly on this machine. Try deploying to a container instead.",
+        "comment": ["{0} is a .NET runtime identifier, such as osx-arm64"]
+    },
+    "The Data API builder CLI is not available. Run the prerequisite checks again.": "The Data API builder CLI is not available. Run the prerequisite checks again.",
+    "No .NET runtime was found to run the Data API builder CLI. Install .NET and try again.": "No .NET runtime was found to run the Data API builder CLI. Install .NET and try again.",
+    "Download .NET": "Download .NET",
+    "The .NET runtime has not been resolved yet. Run the prerequisite checks again.": "The .NET runtime has not been resolved yet. Run the prerequisite checks again.",
+    "Failed to write the Data API builder configuration file.": "Failed to write the Data API builder configuration file.",
+    "The Data API builder configuration is not valid.": "The Data API builder configuration is not valid.",
+    "Data API builder could not reach the database. Check that the server is running and the connection still works, then run this step again.": "Data API builder could not reach the database. Check that the server is running and the connection still works, then run this step again.",
+    "Data API builder could not sign in to the database. It signs in separately from this extension, using the Azure CLI. Run 'az login', then run this step again.": "Data API builder could not sign in to the database. It signs in separately from this extension, using the Azure CLI. Run 'az login', then run this step again.",
+    "Install the Azure CLI": "Install the Azure CLI",
+    "Failed to start the Data API builder engine.": "Failed to start the Data API builder engine.",
+    "The Data API builder engine did not become ready within the timeout period.": "The Data API builder engine did not become ready within the timeout period.",
+    "Deployment name, port, and configuration are required to start the engine.": "Deployment name, port, and configuration are required to start the engine.",
+    "The Data API builder engine did not start.": "The Data API builder engine did not start.",
+    "The Data API builder engine did not answer in time.": "The Data API builder engine did not answer in time.",
+    "The Data API builder CLI exited with code {0}./{0} is the process exit code": {
+        "message": "The Data API builder CLI exited with code {0}.",
+        "comment": ["{0} is the process exit code"]
+    },
+    "A container cannot use Windows Authentication, because it runs outside your Windows session. Deploy with the Data API builder CLI instead, which runs as you.": "A container cannot use Windows Authentication, because it runs outside your Windows session. Deploy with the Data API builder CLI instead, which runs as you.",
+    "This connection's authentication type is not supported for local deployment. Only SQL Authentication and Windows Authentication can be used.": "This connection's authentication type is not supported for local deployment. Only SQL Authentication and Windows Authentication can be used.",
+    "This deployment's configuration file is missing, so it cannot be started. Redeploy it instead.": "This deployment's configuration file is missing, so it cannot be started. Redeploy it instead.",
     "Overall, how satisfied are you with the MSSQL extension?": "Overall, how satisfied are you with the MSSQL extension?",
     "How likely it is that you would recommend the MSSQL extension to a friend or colleague?": "How likely it is that you would recommend the MSSQL extension to a friend or colleague?",
     "What can we do to improve?": "What can we do to improve?",
@@ -1493,6 +1564,8 @@
         "comment": ["{0} is the operation name"]
     },
     "No active schema designer found. Please open Data API builder first using mssql_dab with operation 'show' or from the UI.": "No active schema designer found. Please open Data API builder first using mssql_dab with operation 'show' or from the UI.",
+    "Read the active Data API builder configuration with mssql_dab operation 'get_state' before applying changes.": "Read the active Data API builder configuration with mssql_dab operation 'get_state' before applying changes.",
+    "The active Data API builder configuration changed after it was read. Run mssql_dab operation 'get_state' again before retrying; do not open another designer.": "The active Data API builder configuration changed after it was read. Run mssql_dab operation 'get_state' again before retrying; do not open another designer.",
     "Missing connection reference. Please provide exactly one of connectionId or connectionName.": "Missing connection reference. Please provide exactly one of connectionId or connectionName.",
     "Ambiguous connection reference. Please provide only one of connectionId or connectionName.": "Ambiguous connection reference. Please provide only one of connectionId or connectionName.",
     "No SQL Tools MCP connection found for connectionName: {0}/{0} is the SQL Tools MCP registered connection name": {
@@ -2655,11 +2728,16 @@
     "Move Down": "Move Down",
     "Filter Settings": "Filter Settings",
     "Clear All": "Clear All",
+    "Save and Apply": "Save and Apply",
     "Enter": "Enter",
     "Escape": "Escape",
     "Apply ({0})/{0} is the keyboard shortcut for applying the filter": {
         "message": "Apply ({0})",
         "comment": ["{0} is the keyboard shortcut for applying the filter"]
+    },
+    "Save and Apply ({0})/{0} is the keyboard shortcut for saving and applying the filter": {
+        "message": "Save and Apply ({0})",
+        "comment": ["{0} is the keyboard shortcut for saving and applying the filter"]
     },
     "Close ({0})/{0} is the keyboard shortcut for closing the filter dialog": {
         "message": "Close ({0})",
@@ -2675,8 +2753,8 @@
     "e.g. My tables": "e.g. My tables",
     "Enter a name to save this filter.": "Enter a name to save this filter.",
     "Add at least one filter value before saving this filter.": "Add at least one filter value before saving this filter.",
-    "Pin to Saved": "Pin to Saved",
-    "Move to Recent": "Move to Recent",
+    "Save filter": "Save filter",
+    "Remove from saved filters": "Remove from saved filters",
     "Delete filter": "Delete filter",
     "Rename filter": "Rename filter",
     "Delete reusable filter?": "Delete reusable filter?",
@@ -3207,7 +3285,7 @@
     "Filter for any field...": "Filter for any field...",
     "Estimated Subtree Cost": "Estimated Subtree Cost",
     "Estimated Operator Cost": "Estimated Operator Cost",
-    "The React Flow execution plan preview could not render this plan.": "The React Flow execution plan preview could not render this plan.",
+    "This execution plan could not be rendered.": "This execution plan could not be rendered.",
     "Execution plan {0}, use arrow keys to navigate between nodes/{0} is the one-based execution plan number": {
         "message": "Execution plan {0}, use arrow keys to navigate between nodes",
         "comment": ["{0} is the one-based execution plan number"]
@@ -3906,6 +3984,10 @@
         "message": "{0} is a primary key column and can't be disabled.",
         "comment": ["{0} is the backing database column name"]
     },
+    "{0} is a logical key column and can't be hidden./{0} is the backing database column name": {
+        "message": "{0} is a logical key column and can't be hidden.",
+        "comment": ["{0} is the backing database column name"]
+    },
     "{0} action for {1}/{0} is the action name (Create, Read, etc.){1} is the entity name": {
         "message": "{0} action for {1}",
         "comment": ["{0} is the action name (Create, Read, etc.)", "{1} is the entity name"]
@@ -3935,7 +4017,7 @@
     "Deployment Complete": "Deployment Complete",
     "Deployment Failed": "Deployment Failed",
     "DAB container is running!": "DAB container is running!",
-    "Your API is available at:": "Your API is available at:",
+    "Data API builder is running!": "Data API builder is running!",
     "Your APIs are available at the following endpoints:": "Your APIs are available at the following endpoints:",
     "Copy {0} URL/{0} is the API type name, e.g. REST API or GraphQL": {
         "message": "Copy {0} URL",
@@ -3945,6 +4027,89 @@
     "Add MCP server to workspace configuration": "Add MCP server to workspace configuration",
     "View Swagger": "View Swagger",
     "Open Nitro": "Open Nitro",
+    "Deployments": "Deployments",
+    "Create new": "Create new",
+    "No deployments yet": "No deployments yet",
+    "Loading deployments": "Loading deployments",
+    "Container no longer exists": "Container no longer exists",
+    "Configuration no longer exists": "Configuration no longer exists",
+    "Status unavailable": "Status unavailable",
+    "Up to date": "Up to date",
+    "Config changed": "Config changed",
+    "Your configuration has changed since this container was deployed. Redeploy to apply the changes.": "Your configuration has changed since this container was deployed. Redeploy to apply the changes.",
+    "Deployed {0}/{0} is a relative time such as '5 minutes ago'": {
+        "message": "Deployed {0}",
+        "comment": ["{0} is a relative time such as '5 minutes ago'"]
+    },
+    "Deployed at {0}/{0} is a localized absolute date and time": {
+        "message": "Deployed at {0}",
+        "comment": ["{0} is a localized absolute date and time"]
+    },
+    "just now": "just now",
+    "Port {0}/{0} is the host port number": {
+        "message": "Port {0}",
+        "comment": ["{0} is the host port number"]
+    },
+    "Redeploy": "Redeploy",
+    "Replace this container with a new one on the same name and port, running your current configuration.": "Replace this container with a new one on the same name and port, running your current configuration.",
+    "Start": "Start",
+    "Stop": "Stop",
+    "Delete deployment?": "Delete deployment?",
+    "The container {0} will be stopped and removed, and its endpoints will stop responding./{0} is the Docker container name": {
+        "message": "The container {0} will be stopped and removed, and its endpoints will stop responding.",
+        "comment": ["{0} is the Docker container name"]
+    },
+    "More actions": "More actions",
+    "Configuration has changed": "Configuration has changed",
+    "Not running": "Not running",
+    "This deployment is not serving requests. Start it to bring its endpoints back.": "This deployment is not serving requests. Start it to bring its endpoints back.",
+    "This deployment is not serving requests, and it is running an earlier version of your configuration.": "This deployment is not serving requests, and it is running an earlier version of your configuration.",
+    "Update and start": "Update and start",
+    "This deployment no longer exists": "This deployment no longer exists",
+    "Its container has been removed. Redeploy to create it again.": "Its container has been removed. Redeploy to create it again.",
+    "Its generated configuration has been removed. Redeploy to create it again.": "Its generated configuration has been removed. Redeploy to create it again.",
+    "This deployment is running an earlier version of your configuration. Redeploy it to serve the current one.": "This deployment is running an earlier version of your configuration. Redeploy it to serve the current one.",
+    "The engine for {0} will be stopped and its generated configuration removed, and its endpoints will stop responding./{0} is the deployment name": {
+        "message": "The engine for {0} will be stopped and its generated configuration removed, and its endpoints will stop responding.",
+        "comment": ["{0} is the deployment name"]
+    },
+    "Show endpoints": "Show endpoints",
+    "Hide endpoints": "Hide endpoints",
+    "Start the container to use these endpoints.": "Start the container to use these endpoints.",
+    "Select a deployment target": "Select a deployment target",
+    "Choose where to run Data API builder for this database.": "Choose where to run Data API builder for this database.",
+    "Local Docker container": "Local Docker container",
+    "Runs Data API builder in a container on this machine, published on a local port.": "Runs Data API builder in a container on this machine, published on a local port.",
+    "Back to deployments": "Back to deployments",
+    "Redeploying {0}/{0} is the Docker container name": {
+        "message": "Redeploying {0}",
+        "comment": ["{0} is the Docker container name"]
+    },
+    "Data API builder CLI": "Data API builder CLI",
+    "Runs Data API builder as a local process on this machine. No Docker required.": "Runs Data API builder as a local process on this machine. No Docker required.",
+    "Run with the Data API builder CLI": "Run with the Data API builder CLI",
+    "This will run Data API builder as a local process, exposing {0} APIs based on your configuration./{0} is a list of API types, e.g. 'REST and GraphQL'": {
+        "message": "This will run Data API builder as a local process, exposing {0} APIs based on your configuration.",
+        "comment": ["{0} is a list of API types, e.g. 'REST and GraphQL'"]
+    },
+    "A .NET runtime is required. The extension downloads the Data API builder CLI and resolves a runtime for it.": "A .NET runtime is required. The extension downloads the Data API builder CLI and resolves a runtime for it.",
+    "Getting Data API builder ready": "Getting Data API builder ready",
+    "Getting Data API builder CLI": "Getting Data API builder CLI",
+    "Downloading and unpacking the CLI package": "Downloading and unpacking the CLI package",
+    "Checking .NET runtime": "Checking .NET runtime",
+    "Resolving a runtime that can run the CLI": "Resolving a runtime that can run the CLI",
+    "Validating configuration": "Validating configuration",
+    "Checking the generated configuration": "Checking the generated configuration",
+    "Starting Data API builder": "Starting Data API builder",
+    "Launching the engine process": "Launching the engine process",
+    "Checking engine readiness": "Checking engine readiness",
+    "Deployment settings": "Deployment settings",
+    "Preparing deployment settings": "Preparing deployment settings",
+    "Preparing container settings": "Preparing container settings",
+    "A name for this deployment": "A name for this deployment",
+    "Reset the configuration to the defaults for this schema": "Reset the configuration to the defaults for this schema",
+    "Reset DAB configuration?": "Reset DAB configuration?",
+    "This discards all entity, action, column, and advanced settings for this database, including changes made by Copilot, and rebuilds them from the current schema.": "This discards all entity, action, column, and advanced settings for this database, including changes made by Copilot, and rebuilds them from the current schema.",
     "{0} must define one or more key fields to be used with Data API builder/{0} is the DAB source type, e.g. Table or View": {
         "message": "{0} must define one or more key fields to be used with Data API builder",
         "comment": ["{0} is the DAB source type, e.g. Table or View"]
@@ -3969,7 +4134,12 @@
     "Checking container readiness": "Checking container readiness",
     "Verifying the API is ready to accept requests": "Verifying the API is ready to accept requests",
     "Container logs": "Container logs",
+    "Show full error message": "Show full error message",
+    "Hide full error message": "Hide full error message",
     "To compare two schemas, first select a source schema and target schema, then press compare.": "To compare two schemas, first select a source schema and target schema, then press compare.",
+    "Select a source schema, then press Compare.": "Select a source schema, then press Compare.",
+    "Select a target schema, then press Compare.": "Select a target schema, then press Compare.",
+    "Press Compare to see the differences between the source and target schemas.": "Press Compare to see the differences between the source and target schemas.",
     "Select Source Schema": "Select Source Schema",
     "Select Target Schema": "Select Target Schema",
     "No schema differences were found.": "No schema differences were found.",
@@ -3985,7 +4155,8 @@
     "Include Object Types": "Include Object Types",
     "Select all options": "Select all options",
     "Include all object types": "Include all object types",
-    "Stop": "Stop",
+    "Allow incompatible platform during deployment": "Allow incompatible platform during deployment",
+    "Controls whether deployment blocks because of platform compatibility checks. It does not allow Schema Compare between different Azure Synapse or Microsoft Fabric platform types.": "Controls whether deployment blocks because of platform compatibility checks. It does not allow Schema Compare between different Azure Synapse or Microsoft Fabric platform types.",
     "Generate script to deploy changes to target": "Generate script to deploy changes to target",
     "Apply changes to target": "Apply changes to target",
     "Apply changes to {0}/{0} is the target connection name, optionally followed by a colon and the selected database name": {
@@ -4021,6 +4192,11 @@
     "Save .scmp file": "Save .scmp file",
     "Save source and target, options, and excluded elements": "Save source and target, options, and excluded elements",
     "Group differences by": "Group differences by",
+    "Layout": "Layout",
+    "Classic": "Classic",
+    "Simplified": "Simplified",
+    "Schema differences": "Schema differences",
+    "Object": "Object",
     "Source Name": "Source Name",
     "Target Name": "Target Name",
     "Change": "Change",
@@ -4044,6 +4220,27 @@
     "All schemas": "All schemas",
     "All object types": "All object types",
     "Clear filters": "Clear filters",
+    "Include or exclude all differences": "Include or exclude all differences",
+    "Included in script": "Included in script",
+    "Excluded from script": "Excluded from script",
+    "included in script": "included in script",
+    "excluded from script": "excluded from script",
+    "{0}, {1}, {2}, {3}/{0} is the schema object type{1} is the schema object name{2} is the update action{3} indicates whether the difference is included in the generated script": {
+        "message": "{0}, {1}, {2}, {3}",
+        "comment": [
+            "{0} is the schema object type",
+            "{1} is the schema object name",
+            "{2} is the update action",
+            "{3} indicates whether the difference is included in the generated script"
+        ]
+    },
+    "{0}, {1} differences/{0} is the schema difference group name{1} is the number of differences in the group": {
+        "message": "{0}, {1} differences",
+        "comment": [
+            "{0} is the schema difference group name",
+            "{1} is the number of differences in the group"
+        ]
+    },
     "{0} of {1} selected/{0} is the number of included schema differences{1} is the total number of schema differences": {
         "message": "{0} of {1} selected",
         "comment": [
@@ -4057,7 +4254,17 @@
     "Database Project": "Database Project",
     "Target": "Target",
     "Comparison Details": "Comparison Details",
+    "{0} / {1}/{0} is the one-based position of the selected schema difference{1} is the total number of visible schema differences": {
+        "message": "{0} / {1}",
+        "comment": [
+            "{0} is the one-based position of the selected schema difference",
+            "{1} is the total number of visible schema differences"
+        ]
+    },
     "Affected child objects": "Affected child objects",
+    "Constraints added": "Constraints added",
+    "Constraints changed": "Constraints changed",
+    "Constraints dropped": "Constraints dropped",
     "Constraints added: {0}/{0} is a comma-separated list of fully-qualified object names (e.g. '[dbo].[PK_Customers], [dbo].[UQ_Customers_Email]') that will be added under the selected parent object when the diff is applied.": {
         "message": "Constraints added: {0}",
         "comment": [
@@ -4093,6 +4300,7 @@
     },
     "Processing include or exclude all differences operation.": "Processing include or exclude all differences operation.",
     "Updating difference selection.": "Updating difference selection.",
+    "Generating script.": "Generating script.",
     "Publish Project - {0}/{0} is the name of the project being published": {
         "message": "Publish Project - {0}",
         "comment": ["{0} is the name of the project being published"]
@@ -4140,8 +4348,6 @@
     "Create Container": "Create Container",
     "Setting up": "Setting up",
     "Getting container ready for connections": "Getting container ready for connections",
-    "Hide full error message": "Hide full error message",
-    "Show full error message": "Show full error message",
     "Previous step failed. Please check the error message and try again.": "Previous step failed. Please check the error message and try again.",
     "+ Add Fabric Account": "+ Add Fabric Account",
     "Export Infrastructure as Code": "Export Infrastructure as Code",
@@ -4288,7 +4494,6 @@
     "Create New Server": "Create New Server",
     "Server Name": "Server Name",
     "Enter server name": "Enter server name",
-    "Create new": "Create new",
     "User Name": "User Name",
     "Enter user name": "Enter user name",
     "Behavior when free offer limit is reached": "Behavior when free offer limit is reached",
@@ -4699,7 +4904,6 @@
     "Folder path is required": "Folder path is required",
     "File name is required": "File name is required",
     "New Session": "New Session",
-    "Start": "Start",
     "Pause": "Pause",
     "Resume": "Resume",
     "Clear Data": "Clear Data",
@@ -4720,7 +4924,6 @@
     "Session not running": "Session not running",
     "Pause event collection": "Pause event collection",
     "Paused - click to resume": "Paused - click to resume",
-    "Not running": "Not running",
     "Clear all events (keeps session running)": "Clear all events (keeps session running)",
     "Auto-scroll enabled": "Auto-scroll enabled",
     "Auto-scroll disabled": "Auto-scroll disabled",

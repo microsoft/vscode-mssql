@@ -119,11 +119,11 @@
         "@vscode/vsce": "^3.9.1",
         "@xyflow/react": "^12.4.4",
         "assert": "^1.4.1",
-        "azdataGraph": "github:Microsoft/azdataGraph#0.0.140",
         "chai": "^5.3.3",
         "cli-color": "^2.0.4",
         "esbuild": "^0.28.1",
         "html-to-image": "1.11.11",
+        "istanbul-lib-coverage": "^3.2.2",
         "mocha-junit-reporter": "^2.2.1",
         "mocha-multi-reporters": "^1.5.1",
         "monaco-editor": "0.53.0",
@@ -137,7 +137,7 @@
         "sinon": "^21.0.3",
         "sinon-chai": "^4.0.1",
         "slickgrid": "github:Microsoft/SlickGrid.ADS#v2.3.51",
-        "slickgrid-react": "10.8.2",
+        "slickgrid-react": "^10.10.0",
         "source-map-support": "^0.5.21",
         "ts-node": "^10.9.2",
         "typescript": "^5.8.3",
@@ -158,7 +158,7 @@
         "@azure/storage-blob": "^12.31.0",
         "@microsoft/vscode-azext-azureauth": "^5.1.1",
         "@microsoft/vscode-azureresources-api": "^3.1.1",
-        "@xmldom/xmldom": "^0.9.10",
+        "@xmldom/xmldom": "^0.9.12",
         "dockerode": "^4.0.9",
         "dotenv": "^16.4.5",
         "error-ex": "^1.3.0",
@@ -184,8 +184,8 @@
         "tmp": "^0.2.7",
         "vscode-jsonrpc": "^9.0.0",
         "vscode-languageclient": "10.0.0",
-        "xml-formatter": "^3.6.7",
         "which": "^6.0.1",
+        "xml-formatter": "^3.6.7",
         "yallist": "^5.0.0",
         "yauzl": "^3.3.1"
     },
@@ -1991,12 +1991,6 @@
                     "description": "%mssql.preview.betaResultsGrid.description%",
                     "scope": "application"
                 },
-                "mssql.preview.betaExecutionPlan": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "%mssql.preview.betaExecutionPlan.description%",
-                    "scope": "application"
-                },
                 "mssql.useMsalEntraMfaAuth": {
                     "type": "boolean",
                     "default": false,
@@ -2619,18 +2613,6 @@
                     "default": true,
                     "scope": "window"
                 },
-                "mssql.format.alignColumnDefinitionsInColumns": {
-                    "type": "boolean",
-                    "markdownDescription": "%mssql.format.alignColumnDefinitionsInColumns%",
-                    "default": false,
-                    "scope": "window"
-                },
-                "mssql.format.enablePreviewFormatter": {
-                    "type": "boolean",
-                    "description": "%mssql.format.enablePreviewFormatter%",
-                    "default": true,
-                    "scope": "window"
-                },
                 "mssql.format.showParseErrorNotification": {
                     "type": "boolean",
                     "description": "%mssql.format.showParseErrorNotification%",
@@ -2651,7 +2633,9 @@
                         "sql140",
                         "sql150",
                         "sql160",
-                        "sql170"
+                        "sql170",
+                        "sql180",
+                        "sqlFabricDW"
                     ],
                     "scope": "window"
                 },
@@ -2702,6 +2686,80 @@
                     "default": true,
                     "scope": "window"
                 },
+                "mssql.format.options.builtInFunctionCasing": {
+                    "type": "string",
+                    "markdownDescription": "%mssql.format.options.builtInFunctionCasing%",
+                    "default": "preserve",
+                    "enum": [
+                        "preserve",
+                        "uppercase",
+                        "lowercase",
+                        "pascalCase"
+                    ],
+                    "scope": "window"
+                },
+                "mssql.format.options.clauseBodyAlignment": {
+                    "type": "string",
+                    "markdownDescription": "%mssql.format.options.clauseBodyAlignment%",
+                    "default": "aligned",
+                    "enum": [
+                        "aligned",
+                        "indented"
+                    ],
+                    "scope": "window"
+                },
+                "mssql.format.options.columnAliasStyle": {
+                    "type": "string",
+                    "markdownDescription": "%mssql.format.options.columnAliasStyle%",
+                    "default": "asKeyword",
+                    "enum": [
+                        "asKeyword",
+                        "equalsSign",
+                        "preserve"
+                    ],
+                    "scope": "window"
+                },
+                "mssql.format.options.commaPlacement": {
+                    "type": "string",
+                    "markdownDescription": "%mssql.format.options.commaPlacement%",
+                    "default": "trailing",
+                    "enum": [
+                        "trailing",
+                        "leading"
+                    ],
+                    "scope": "window"
+                },
+                "mssql.format.options.leadingCommaSpaceCount": {
+                    "type": "integer",
+                    "markdownDescription": "%mssql.format.options.leadingCommaSpaceCount%",
+                    "default": 1,
+                    "minimum": 0,
+                    "maximum": 1,
+                    "scope": "window"
+                },
+                "mssql.format.options.identifierBracketing": {
+                    "type": "string",
+                    "markdownDescription": "%mssql.format.options.identifierBracketing%",
+                    "default": "preserve",
+                    "enum": [
+                        "preserve",
+                        "includeBrackets",
+                        "excludeBrackets"
+                    ],
+                    "scope": "window"
+                },
+                "mssql.format.options.identifierCasing": {
+                    "type": "string",
+                    "markdownDescription": "%mssql.format.options.identifierCasing%",
+                    "default": "preserve",
+                    "enum": [
+                        "preserve",
+                        "uppercase",
+                        "lowercase",
+                        "pascalCase"
+                    ],
+                    "scope": "window"
+                },
                 "mssql.format.options.keywordCasing": {
                     "type": "string",
                     "markdownDescription": "%mssql.format.options.keywordCasing%",
@@ -2731,6 +2789,18 @@
                     "default": false,
                     "scope": "window"
                 },
+                "mssql.format.options.multilineGroupByElementsList": {
+                    "type": "boolean",
+                    "markdownDescription": "%mssql.format.options.multilineGroupByElementsList%",
+                    "default": false,
+                    "scope": "window"
+                },
+                "mssql.format.options.multilineHavingPredicatesList": {
+                    "type": "boolean",
+                    "markdownDescription": "%mssql.format.options.multilineHavingPredicatesList%",
+                    "default": true,
+                    "scope": "window"
+                },
                 "mssql.format.options.multilineInsertSourcesList": {
                     "type": "boolean",
                     "markdownDescription": "%mssql.format.options.multilineInsertSourcesList%",
@@ -2741,6 +2811,36 @@
                     "type": "boolean",
                     "markdownDescription": "%mssql.format.options.multilineInsertTargetsList%",
                     "default": true,
+                    "scope": "window"
+                },
+                "mssql.format.options.multilineInValuesList": {
+                    "type": "boolean",
+                    "markdownDescription": "%mssql.format.options.multilineInValuesList%",
+                    "default": false,
+                    "scope": "window"
+                },
+                "mssql.format.options.multilineNestedFunctionCalls": {
+                    "type": "boolean",
+                    "markdownDescription": "%mssql.format.options.multilineNestedFunctionCalls%",
+                    "default": false,
+                    "scope": "window"
+                },
+                "mssql.format.options.multilineOrderByElementsList": {
+                    "type": "boolean",
+                    "markdownDescription": "%mssql.format.options.multilineOrderByElementsList%",
+                    "default": false,
+                    "scope": "window"
+                },
+                "mssql.format.options.multilinePartitionByElementsList": {
+                    "type": "boolean",
+                    "markdownDescription": "%mssql.format.options.multilinePartitionByElementsList%",
+                    "default": false,
+                    "scope": "window"
+                },
+                "mssql.format.options.multilineProcedureParametersList": {
+                    "type": "boolean",
+                    "markdownDescription": "%mssql.format.options.multilineProcedureParametersList%",
+                    "default": false,
                     "scope": "window"
                 },
                 "mssql.format.options.multilineSelectElementsList": {
@@ -2764,6 +2864,18 @@
                 "mssql.format.options.multilineWherePredicatesList": {
                     "type": "boolean",
                     "markdownDescription": "%mssql.format.options.multilineWherePredicatesList%",
+                    "default": true,
+                    "scope": "window"
+                },
+                "mssql.format.options.multilineWithOptionsList": {
+                    "type": "boolean",
+                    "markdownDescription": "%mssql.format.options.multilineWithOptionsList%",
+                    "default": false,
+                    "scope": "window"
+                },
+                "mssql.format.options.newLineAfterJoinKeyword": {
+                    "type": "boolean",
+                    "markdownDescription": "%mssql.format.options.newLineAfterJoinKeyword%",
                     "default": true,
                     "scope": "window"
                 },
@@ -2800,6 +2912,12 @@
                 "mssql.format.options.newLineBeforeOffsetClause": {
                     "type": "boolean",
                     "markdownDescription": "%mssql.format.options.newLineBeforeOffsetClause%",
+                    "default": true,
+                    "scope": "window"
+                },
+                "mssql.format.options.newLineBeforeOnClause": {
+                    "type": "boolean",
+                    "markdownDescription": "%mssql.format.options.newLineBeforeOnClause%",
                     "default": true,
                     "scope": "window"
                 },
@@ -2845,12 +2963,34 @@
                     "default": false,
                     "scope": "window"
                 },
+                "mssql.format.options.numNewlinesAfterBatches": {
+                    "type": "integer",
+                    "markdownDescription": "%mssql.format.options.numNewlinesAfterBatches%",
+                    "default": 1,
+                    "minimum": 0,
+                    "maximum": 5,
+                    "scope": "window"
+                },
+                "mssql.format.options.numNewlinesAfterBatchStatement": {
+                    "type": "integer",
+                    "markdownDescription": "%mssql.format.options.numNewlinesAfterBatchStatement%",
+                    "default": 2,
+                    "minimum": 0,
+                    "maximum": 5,
+                    "scope": "window"
+                },
                 "mssql.format.options.numNewlinesAfterStatement": {
                     "type": "integer",
                     "markdownDescription": "%mssql.format.options.numNewlinesAfterStatement%",
                     "default": 1,
                     "minimum": 0,
                     "maximum": 5,
+                    "scope": "window"
+                },
+                "mssql.format.options.persistTrailingGo": {
+                    "type": "boolean",
+                    "markdownDescription": "%mssql.format.options.persistTrailingGo%",
+                    "default": false,
                     "scope": "window"
                 },
                 "mssql.format.options.spaceBetweenDataTypeAndParameters": {
@@ -2865,37 +3005,9 @@
                     "default": true,
                     "scope": "window"
                 },
-                "mssql.format.datatypeCasing": {
-                    "type": "string",
-                    "markdownDescription": "%mssql.format.datatypeCasing%",
-                    "default": "none",
-                    "enum": [
-                        "none",
-                        "uppercase",
-                        "lowercase"
-                    ],
-                    "scope": "window"
-                },
-                "mssql.format.keywordCasing": {
-                    "type": "string",
-                    "markdownDescription": "%mssql.format.keywordCasing%",
-                    "default": "none",
-                    "enum": [
-                        "none",
-                        "uppercase",
-                        "lowercase"
-                    ],
-                    "scope": "window"
-                },
-                "mssql.format.placeCommasBeforeNextStatement": {
+                "mssql.format.options.terminateBlockStatements": {
                     "type": "boolean",
-                    "markdownDescription": "%mssql.format.placeCommasBeforeNextStatement%",
-                    "default": false,
-                    "scope": "window"
-                },
-                "mssql.format.placeSelectStatementReferencesOnNewLine": {
-                    "type": "boolean",
-                    "markdownDescription": "%mssql.format.placeSelectStatementReferencesOnNewLine%",
+                    "markdownDescription": "%mssql.format.options.terminateBlockStatements%",
                     "default": false,
                     "scope": "window"
                 },
@@ -3405,7 +3517,7 @@
         "languageModelTools": [
             {
                 "name": "mssql_schema_designer",
-                "modelDescription": "Work with the currently active Schema Designer. Use 'show' to open a designer with exactly one of connectionId or connectionName when needed. Operations: 'get_overview' returns a bounded list of tables (and optionally column names/types; omitted automatically for large schemas); 'get_table' returns bounded details for a single table; 'apply_edits' applies a sequential list of edits and returns only a small receipt plus the post-mutation version. Mutations require 'expectedVersion'; on mismatch, returns 'stale_state' with currentVersion and a bounded currentOverview.",
+                "modelDescription": "When the user explicitly references #mssql_schema_designer, call this tool first. Do not invoke or load an agent skill, run terminal commands, or edit files as a substitute unless the user explicitly asks to switch workflows. Work with the currently active Schema Designer. Use 'show' to open a designer with exactly one of connectionId or connectionName when needed. Operations: 'get_overview' returns a bounded list of tables (and optionally column names/types; omitted automatically for large schemas); 'get_table' returns bounded details for a single table; 'apply_edits' applies a sequential list of edits and returns only a small receipt plus the post-mutation version. Mutations require 'expectedVersion'; on mismatch, returns 'stale_state' with currentVersion and a bounded currentOverview.",
                 "tags": [
                     "databases",
                     "mssql",
@@ -4456,7 +4568,7 @@
             },
             {
                 "name": "mssql_dab",
-                "modelDescription": "Work with the Data API builder configuration in the currently active schema designer. Use 'get_state' to inspect it and 'apply_changes' to modify it; use 'show' only to open the Data API builder view with exactly one of connectionId or connectionName when needed. Operations: 'get_state' returns the current version, summary, and bounded configuration state (full config may be omitted for large configurations); 'apply_changes' uses payload { expectedVersion, targetHint?, changes } and returns the post-mutation version plus summary, with optional returnState control. Mutations require 'expectedVersion'; on mismatch, returns 'stale_state' with the current version and latest summary/config according to returnState. Entity refs are either { id }, { schemaName, tableName } for table compatibility, or { schemaName, sourceName, sourceType } where sourceType is table, view, or stored-procedure. Column refs are either { id } or { name }. Change types: { type: 'set_api_types', apiTypes }, { type: 'add_entity', entity }, { type: 'remove_entity', entity }, { type: 'set_entity_enabled', entity, isEnabled } for legacy all-surface compatibility, { type: 'set_entity_surface', entity, apiType, isEnabled }, { type: 'set_entity_actions', entity, enabledActions } for legacy selected-role compatibility, { type: 'set_entity_permissions', entity, permissions }, { type: 'set_column_exposed', entity, column, isExposed }, { type: 'set_field_metadata', entity, field, alias?, description?, isPrimaryKey? }, { type: 'set_parameter_metadata', entity, parameter, isRequired?, defaultValue?, clearDefault?, description? }, { type: 'set_entity_mcp', entity, enabled?, dmlToolsEnabled?, customToolEnabled? }, { type: 'patch_entity_settings', entity, set }, { type: 'set_only_enabled_entities', entities }, { type: 'set_all_entities_enabled', isEnabled }. patch_entity_settings.set supports entityName, description, authorizationRole, customRestPath, restEnabled, customGraphQLType, customGraphQLSingularType, customGraphQLPluralType, graphQLEnabled, mcpEnabled, mcpDmlToolsEnabled, and stored-procedure-only storedProcedureRestMethods, storedProcedureGraphQLOperation, exposeAsMcpCustomTool, mcpCustomToolEnabled.",
+                "modelDescription": "When the user explicitly references #mssql_dab, call this tool first. Do not invoke or load an agent skill, run terminal commands, or edit files as a substitute unless the user explicitly asks to switch workflows. Work with the Data API builder configuration in the currently active schema designer. Use 'get_state' to inspect it and establish an edit session, then use 'apply_changes' to modify it; use 'show' only to open the Data API builder view with exactly one of connectionId or connectionName when no designer is active. Operations: 'get_state' returns the summary and bounded configuration state (full config may be omitted for large configurations); 'apply_changes' uses payload { targetHint?, changes } and returns the post-mutation summary, with optional returnState control. Concurrency versions are managed internally by the extension and must not be supplied by the caller. If apply_changes returns 'state_required' or 'stale_state', call get_state again on the same active designer and retry; do not call show. Entity refs are either { id }, { schemaName, tableName } for table compatibility, or { schemaName, sourceName, sourceType } where sourceType is table, view, or stored-procedure. Column refs are either { id } or { name }. Change types: { type: 'set_api_types', apiTypes }, { type: 'add_entity', entity }, { type: 'remove_entity', entity }, { type: 'set_entity_enabled', entity, isEnabled } for legacy all-surface compatibility, { type: 'set_entity_surface', entity, apiType, isEnabled }, { type: 'set_entity_actions', entity, enabledActions } for legacy selected-role compatibility, { type: 'set_entity_permissions', entity, permissions }, { type: 'set_column_exposed', entity, column, isExposed }, { type: 'set_field_metadata', entity, field, alias?, description?, isPrimaryKey? }, { type: 'set_parameter_metadata', entity, parameter, isRequired?, defaultValue?, clearDefault?, description? }, { type: 'set_entity_mcp', entity, enabled?, dmlToolsEnabled?, customToolEnabled? }, { type: 'patch_entity_settings', entity, set }, { type: 'set_only_enabled_entities', entities }, { type: 'set_all_entities_enabled', isEnabled }. patch_entity_settings.set supports entityName, description, authorizationRole, customRestPath, restEnabled, customGraphQLType, customGraphQLSingularType, customGraphQLPluralType, graphQLEnabled, mcpEnabled, mcpDmlToolsEnabled, and stored-procedure-only storedProcedureRestMethods, storedProcedureGraphQLOperation, exposeAsMcpCustomTool, mcpCustomToolEnabled.",
                 "tags": [
                     "databases",
                     "mssql",
@@ -4761,15 +4873,10 @@
                             "minLength": 1
                         },
                         "payload": {
-                            "description": "Operation-specific payload. apply_changes: { expectedVersion, targetHint?, changes }. Change types: set_api_types { apiTypes }, add_entity { entity }, remove_entity { entity }, set_entity_enabled { entity, isEnabled }, set_entity_surface { entity, apiType, isEnabled }, set_entity_actions { entity, enabledActions }, set_entity_permissions { entity, permissions }, set_column_exposed { entity, column, isExposed }, set_field_metadata { entity, field, alias?, description?, isPrimaryKey? }, set_parameter_metadata { entity, parameter, isRequired?, defaultValue?, clearDefault?, description? }, set_entity_mcp { entity, enabled?, dmlToolsEnabled?, customToolEnabled? }, patch_entity_settings { entity, set }, set_only_enabled_entities { entities }, set_all_entities_enabled { isEnabled }.",
+                            "description": "Operation-specific payload. apply_changes: { targetHint?, changes }. The extension uses the edit session established by get_state; callers do not provide a version. Change types: set_api_types { apiTypes }, add_entity { entity }, remove_entity { entity }, set_entity_enabled { entity, isEnabled }, set_entity_surface { entity, apiType, isEnabled }, set_entity_actions { entity, enabledActions }, set_entity_permissions { entity, permissions }, set_column_exposed { entity, column, isExposed }, set_field_metadata { entity, field, alias?, description?, isPrimaryKey? }, set_parameter_metadata { entity, parameter, isRequired?, defaultValue?, clearDefault?, description? }, set_entity_mcp { entity, enabled?, dmlToolsEnabled?, customToolEnabled? }, patch_entity_settings { entity, set }, set_only_enabled_entities { entities }, set_all_entities_enabled { isEnabled }.",
                             "title": "Payload",
                             "type": "object",
                             "properties": {
-                                "expectedVersion": {
-                                    "description": "Required for apply_changes. Must match the version returned by the most recent get_state.",
-                                    "type": "string",
-                                    "minLength": 1
-                                },
                                 "targetHint": {
                                     "description": "Optional server+database hint for apply_changes. If provided and it does not match the active designer, the tool fails with reason 'target_mismatch' and applies no changes.",
                                     "type": "object",
@@ -5209,7 +5316,6 @@
                                 }
                             },
                             "required": [
-                                "expectedVersion",
                                 "changes"
                             ],
                             "additionalProperties": false
@@ -5245,7 +5351,7 @@
             {
                 "name": "mssql_connect",
                 "when": "!config.mssql.copilot.enableSqlToolsMcp",
-                "modelDescription": "Connect to an MSSQL database server using a server name, an optional database name, and an optional profileId. The server name must be retrieved from mssql_list_servers. The profileId should be used ONLY when the user explicitly mentions a profile name, profile ID, or wants to connect 'using profile X'. Returns a connection ID that is used to interact with the database with other mssql tools. If a specific database is given and the connection fails, use mssql_list_databases against a connection to the default database to find the correct database name. The connection ID is a UUID.",
+                "modelDescription": "When the user explicitly references #mssql_connect, call this tool first. Do not invoke or load an agent skill, run terminal commands, or edit files as a substitute unless the user explicitly asks to switch workflows. Connect to an MSSQL database server using a server name, an optional database name, and an optional profileId. The server name must be retrieved from mssql_list_servers. The profileId should be used ONLY when the user explicitly mentions a profile name, profile ID, or wants to connect 'using profile X'. Returns a connection ID that is used to interact with the database with other mssql tools. If a specific database is given and the connection fails, use mssql_list_databases against a connection to the default database to find the correct database name. The connection ID is a UUID.",
                 "tags": [
                     "databases",
                     "mssql",
@@ -5298,7 +5404,7 @@
             {
                 "name": "mssql_disconnect",
                 "when": "!config.mssql.copilot.enableSqlToolsMcp",
-                "modelDescription": "Disconnect from a server or specific database. Returns a success message.",
+                "modelDescription": "When the user explicitly references #mssql_disconnect, call this tool first. Do not invoke or load an agent skill, run terminal commands, or edit files as a substitute unless the user explicitly asks to switch workflows. Disconnect from a server or specific database. Returns a success message.",
                 "tags": [
                     "databases",
                     "mssql",
@@ -5326,7 +5432,7 @@
             {
                 "name": "mssql_list_servers",
                 "when": "!config.mssql.copilot.enableSqlToolsMcp",
-                "modelDescription": "List all available MSSQL servers. Returns a list of server names.",
+                "modelDescription": "When the user explicitly references #mssql_list_servers, call this tool first. Do not invoke or load an agent skill, run terminal commands, or edit files as a substitute unless the user explicitly asks to switch workflows. List all available MSSQL servers. Returns a list of server names.",
                 "tags": [
                     "databases",
                     "mssql",
@@ -5342,7 +5448,7 @@
             {
                 "name": "mssql_list_databases",
                 "when": "!config.mssql.copilot.enableSqlToolsMcp",
-                "modelDescription": "List all available databases for a connected MSSQL server. Returns a list of database names.",
+                "modelDescription": "When the user explicitly references #mssql_list_databases, call this tool first. Do not invoke or load an agent skill, run terminal commands, or edit files as a substitute unless the user explicitly asks to switch workflows. List all available databases for a connected MSSQL server. Returns a list of database names.",
                 "tags": [
                     "databases",
                     "mssql",
@@ -5370,7 +5476,7 @@
             {
                 "name": "mssql_get_connection_details",
                 "when": "!config.mssql.copilot.enableSqlToolsMcp",
-                "modelDescription": "Get connection details for a specific connection ID. Returns connection information including server, database, authentication type, and user details.",
+                "modelDescription": "When the user explicitly references #mssql_get_connection_details, call this tool first. Do not invoke or load an agent skill, run terminal commands, or edit files as a substitute unless the user explicitly asks to switch workflows. Get connection details for a specific connection ID. Returns connection information including server, database, authentication type, and user details.",
                 "tags": [
                     "databases",
                     "mssql",
@@ -5399,7 +5505,7 @@
             {
                 "name": "mssql_change_database",
                 "when": "!config.mssql.copilot.enableSqlToolsMcp",
-                "modelDescription": "Change the database for an existing MSSQL connection. Before changing, consider using mssql_list_databases to show available database options to the user. Disconnects from current database and reconnects to the specified database using the same connection credentials.",
+                "modelDescription": "When the user explicitly references #mssql_change_database, call this tool first. Do not invoke or load an agent skill, run terminal commands, or edit files as a substitute unless the user explicitly asks to switch workflows. Change the database for an existing MSSQL connection. Before changing, consider using mssql_list_databases to show available database options to the user. Disconnects from current database and reconnects to the specified database using the same connection credentials.",
                 "tags": [
                     "databases",
                     "mssql",
@@ -5434,7 +5540,7 @@
             {
                 "name": "mssql_list_tables",
                 "when": "!config.mssql.copilot.enableSqlToolsMcp",
-                "modelDescription": "List all tables in a specific database for a connected MSSQL server. Returns a list of table names with schema information.",
+                "modelDescription": "When the user explicitly references #mssql_list_tables, call this tool first. Do not invoke or load an agent skill, run terminal commands, or edit files as a substitute unless the user explicitly asks to switch workflows. List all tables in a specific database for a connected MSSQL server. Returns a list of table names with schema information.",
                 "tags": [
                     "databases",
                     "mssql",
@@ -5462,7 +5568,7 @@
             {
                 "name": "mssql_list_schemas",
                 "when": "!config.mssql.copilot.enableSqlToolsMcp",
-                "modelDescription": "List all schemas in a specific database for a connected MSSQL server. Returns a list of schema names.",
+                "modelDescription": "When the user explicitly references #mssql_list_schemas, call this tool first. Do not invoke or load an agent skill, run terminal commands, or edit files as a substitute unless the user explicitly asks to switch workflows. List all schemas in a specific database for a connected MSSQL server. Returns a list of schema names.",
                 "tags": [
                     "databases",
                     "mssql",
@@ -5491,7 +5597,7 @@
             {
                 "name": "mssql_list_views",
                 "when": "!config.mssql.copilot.enableSqlToolsMcp",
-                "modelDescription": "List all views in a specific database for a connected MSSQL server. Returns a list of view names with schema information.",
+                "modelDescription": "When the user explicitly references #mssql_list_views, call this tool first. Do not invoke or load an agent skill, run terminal commands, or edit files as a substitute unless the user explicitly asks to switch workflows. List all views in a specific database for a connected MSSQL server. Returns a list of view names with schema information.",
                 "tags": [
                     "databases",
                     "mssql",
@@ -5520,7 +5626,7 @@
             {
                 "name": "mssql_list_functions",
                 "when": "!config.mssql.copilot.enableSqlToolsMcp",
-                "modelDescription": "List all functions in a specific database for a connected MSSQL server. Returns a list of function names with schema information.",
+                "modelDescription": "When the user explicitly references #mssql_list_functions, call this tool first. Do not invoke or load an agent skill, run terminal commands, or edit files as a substitute unless the user explicitly asks to switch workflows. List all functions in a specific database for a connected MSSQL server. Returns a list of function names with schema information.",
                 "tags": [
                     "databases",
                     "mssql",
@@ -5549,7 +5655,7 @@
             {
                 "name": "mssql_run_query",
                 "when": "!config.mssql.copilot.enableSqlToolsMcp",
-                "modelDescription": "Execute a SQL query against a connected MSSQL database. Returns query results including row count, column information, and data rows. Use this tool to run SELECT, INSERT, UPDATE, DELETE, or other SQL statements. IMPORTANT: This tool will execute ANY SQL statement provided - be extremely careful with write operations (INSERT, UPDATE, DELETE, CREATE, ALTER, DROP) as they will modify or destroy data. Always verify the query is safe before execution, especially for operations without WHERE clauses or that affect system objects.",
+                "modelDescription": "When the user explicitly references #mssql_run_query, call this tool first. Do not invoke or load an agent skill, run terminal commands, or edit files as a substitute unless the user explicitly asks to switch workflows. Execute a SQL query against a connected MSSQL database. Returns query results including row count, column information, and data rows. Use this tool to run SELECT, INSERT, UPDATE, DELETE, or other SQL statements. IMPORTANT: This tool will execute ANY SQL statement provided - be extremely careful with write operations (INSERT, UPDATE, DELETE, CREATE, ALTER, DROP) as they will modify or destroy data. Always verify the query is safe before execution, especially for operations without WHERE clauses or that affect system objects.",
                 "tags": [
                     "databases",
                     "mssql",

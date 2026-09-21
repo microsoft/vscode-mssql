@@ -8,7 +8,6 @@ import { expect } from "chai";
 import * as vscode from "vscode";
 import {
     CONFIG_PREVIEW_PREFIX,
-    isBetaExecutionPlanEnabled,
     PrivatePreviewFeature,
     PreviewFeature,
     PreviewFeaturesService,
@@ -139,22 +138,6 @@ suite("PreviewFeaturesService", () => {
                     PrivatePreviewFeature.MetadataCache,
                 ),
             ).to.be.true;
-        });
-    });
-
-    suite("Beta execution plan", () => {
-        test("defaults to false independently of the global experimental flag", () => {
-            stubMssqlConfig(true);
-
-            expect(isBetaExecutionPlanEnabled()).to.be.false;
-        });
-
-        test("reads only the dedicated preview setting", () => {
-            stubMssqlConfig(false, {
-                [PreviewFeature.BetaExecutionPlan]: true,
-            });
-
-            expect(isBetaExecutionPlanEnabled()).to.be.true;
         });
     });
 

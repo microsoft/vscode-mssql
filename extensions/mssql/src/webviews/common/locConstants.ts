@@ -98,6 +98,7 @@ export class LocConstants {
             clearAll: l10n.t("Clear All"),
             ok: l10n.t("OK"),
             apply: l10n.t("Apply"),
+            saveAndApply: l10n.t("Save and Apply"),
             enter: l10n.t("Enter"),
             escape: l10n.t("Escape"),
             applyTooltip: (shortcut: string) =>
@@ -105,6 +106,12 @@ export class LocConstants {
                     message: "Apply ({0})",
                     args: [shortcut],
                     comment: ["{0} is the keyboard shortcut for applying the filter"],
+                }),
+            saveAndApplyTooltip: (shortcut: string) =>
+                l10n.t({
+                    message: "Save and Apply ({0})",
+                    args: [shortcut],
+                    comment: ["{0} is the keyboard shortcut for saving and applying the filter"],
                 }),
             closeTooltip: (shortcut: string) =>
                 l10n.t({
@@ -124,8 +131,8 @@ export class LocConstants {
             filterValueRequiredToSave: l10n.t(
                 "Add at least one filter value before saving this filter.",
             ),
-            pinFilter: l10n.t("Pin to Saved"),
-            unpinFilter: l10n.t("Move to Recent"),
+            saveFilter: l10n.t("Save filter"),
+            removeFromSavedFilters: l10n.t("Remove from saved filters"),
             deleteFilter: l10n.t("Delete filter"),
             renameFilter: l10n.t("Rename filter"),
             confirmDeleteFilterTitle: l10n.t("Delete reusable filter?"),
@@ -996,9 +1003,7 @@ export class LocConstants {
             collapse: l10n.t("Collapse"),
             subtreeCostLabel: l10n.t("Estimated Subtree Cost"),
             operatorCostLabel: l10n.t("Estimated Operator Cost"),
-            reactFlowRendererError: l10n.t(
-                "The React Flow execution plan preview could not render this plan.",
-            ),
+            executionPlanRendererError: l10n.t("This execution plan could not be rendered."),
             executionPlanGraph: (planNumber: number) =>
                 l10n.t({
                     message: "Execution plan {0}, use arrow keys to navigate between nodes",
@@ -2199,6 +2204,12 @@ export class LocConstants {
                     args: [columnName],
                     comment: ["{0} is the backing database column name"],
                 }),
+            logicalKeyColumnExposureLocked: (columnName: string) =>
+                l10n.t({
+                    message: "{0} is a logical key column and can't be hidden.",
+                    args: [columnName],
+                    comment: ["{0} is the backing database column name"],
+                }),
             actionForEntity: (action: string, entityName: string) =>
                 l10n.t({
                     message: "{0} action for {1}",
@@ -2248,7 +2259,7 @@ export class LocConstants {
             deploymentComplete: l10n.t("Deployment Complete"),
             deploymentFailed: l10n.t("Deployment Failed"),
             dabContainerRunning: l10n.t("DAB container is running!"),
-            apiAvailableAt: l10n.t("Your API is available at:"),
+            dabEngineRunning: l10n.t("Data API builder is running!"),
             apisAvailableAt: l10n.t("Your APIs are available at the following endpoints:"),
             copyUrl: (apiType: string) =>
                 l10n.t({
@@ -2261,6 +2272,142 @@ export class LocConstants {
             mcpServerAdded: l10n.t("Added"),
             viewSwagger: l10n.t("View Swagger"),
             openNitro: l10n.t("Open Nitro"),
+
+            // DAB Deployments dialog
+            deployments: l10n.t("Deployments"),
+            createNewDeployment: l10n.t("Create new"),
+            noDeployments: l10n.t("No deployments yet"),
+            loadingDeployments: l10n.t("Loading deployments"),
+            refreshDeployments: l10n.t("Refresh"),
+            deploymentStatusRunning: l10n.t("Running"),
+            deploymentStatusStopped: l10n.t("Stopped"),
+            deploymentStatusMissing: l10n.t("Container no longer exists"),
+            deploymentStatusMissingCli: l10n.t("Configuration no longer exists"),
+            deploymentStatusUnknown: l10n.t("Status unavailable"),
+            deploymentConfigUpToDate: l10n.t("Up to date"),
+            deploymentConfigOutdated: l10n.t("Config changed"),
+            deploymentConfigOutdatedTooltip: l10n.t(
+                "Your configuration has changed since this container was deployed. Redeploy to apply the changes.",
+            ),
+            deployedOn: (relativeTime: string) =>
+                l10n.t({
+                    message: "Deployed {0}",
+                    args: [relativeTime],
+                    comment: ["{0} is a relative time such as '5 minutes ago'"],
+                }),
+            deployedAt: (timestamp: string) =>
+                l10n.t({
+                    message: "Deployed at {0}",
+                    args: [timestamp],
+                    comment: ["{0} is a localized absolute date and time"],
+                }),
+            justNow: l10n.t("just now"),
+            deploymentPort: (port: number) =>
+                l10n.t({
+                    message: "Port {0}",
+                    args: [port],
+                    comment: ["{0} is the host port number"],
+                }),
+            redeploy: l10n.t("Redeploy"),
+            redeployTooltip: l10n.t(
+                "Replace this container with a new one on the same name and port, running your current configuration.",
+            ),
+            startContainer: l10n.t("Start"),
+            stopContainer: l10n.t("Stop"),
+            deleteDeployment: l10n.t("Delete"),
+            deleteDeploymentConfirmTitle: l10n.t("Delete deployment?"),
+            deleteDeploymentConfirmMessage: (containerName: string) =>
+                l10n.t({
+                    message:
+                        "The container {0} will be stopped and removed, and its endpoints will stop responding.",
+                    args: [containerName],
+                    comment: ["{0} is the Docker container name"],
+                }),
+            deploymentActions: l10n.t("More actions"),
+            deploymentConfigOutdatedTitle: l10n.t("Configuration has changed"),
+            deploymentNotRunningTitle: l10n.t("Not running"),
+            deploymentNotRunningBody: l10n.t(
+                "This deployment is not serving requests. Start it to bring its endpoints back.",
+            ),
+            deploymentNotRunningOutdatedBody: l10n.t(
+                "This deployment is not serving requests, and it is running an earlier version of your configuration.",
+            ),
+            updateAndStart: l10n.t("Update and start"),
+            deploymentMissingTitle: l10n.t("This deployment no longer exists"),
+            deploymentMissingBodyDocker: l10n.t(
+                "Its container has been removed. Redeploy to create it again.",
+            ),
+            deploymentMissingBodyCli: l10n.t(
+                "Its generated configuration has been removed. Redeploy to create it again.",
+            ),
+            deploymentConfigOutdatedBody: l10n.t(
+                "This deployment is running an earlier version of your configuration. Redeploy it to serve the current one.",
+            ),
+            deleteCliDeploymentConfirmMessage: (name: string) =>
+                l10n.t({
+                    message:
+                        "The engine for {0} will be stopped and its generated configuration removed, and its endpoints will stop responding.",
+                    args: [name],
+                    comment: ["{0} is the deployment name"],
+                }),
+            showEndpoints: l10n.t("Show endpoints"),
+            hideEndpoints: l10n.t("Hide endpoints"),
+            endpointsUnavailableWhenStopped: l10n.t("Start the container to use these endpoints."),
+            selectDeploymentTarget: l10n.t("Select a deployment target"),
+            selectDeploymentTargetDescription: l10n.t(
+                "Choose where to run Data API builder for this database.",
+            ),
+            deploymentTargetDocker: l10n.t("Local Docker container"),
+            deploymentTargetDockerDescription: l10n.t(
+                "Runs Data API builder in a container on this machine, published on a local port.",
+            ),
+            backToDeployments: l10n.t("Back to deployments"),
+            redeployingContainer: (containerName: string) =>
+                l10n.t({
+                    message: "Redeploying {0}",
+                    args: [containerName],
+                    comment: ["{0} is the Docker container name"],
+                }),
+
+            // DAB CLI deployment
+            deploymentTargetDabCli: l10n.t("Data API builder CLI"),
+            deploymentTargetDabCliDescription: l10n.t(
+                "Runs Data API builder as a local process on this machine. No Docker required.",
+            ),
+            deployDabCli: l10n.t("Run with the Data API builder CLI"),
+            deployDabCliDescription: (apiTypes: string) =>
+                l10n.t({
+                    message:
+                        "This will run Data API builder as a local process, exposing {0} APIs based on your configuration.",
+                    args: [apiTypes],
+                    comment: ["{0} is a list of API types, e.g. 'REST and GraphQL'"],
+                }),
+            dotnetRequirement: l10n.t(
+                "A .NET runtime is required. The extension downloads the Data API builder CLI and resolves a runtime for it.",
+            ),
+            gettingDabCliReady: l10n.t("Getting Data API builder ready"),
+            gettingDabCli: l10n.t("Getting Data API builder CLI"),
+            downloadingDabCli: l10n.t("Downloading and unpacking the CLI package"),
+            checkingDotnetRuntime: l10n.t("Checking .NET runtime"),
+            resolvingDotnetRuntime: l10n.t("Resolving a runtime that can run the CLI"),
+            validatingDabConfig: l10n.t("Validating configuration"),
+            checkingGeneratedConfig: l10n.t("Checking the generated configuration"),
+            startingDabEngine: l10n.t("Starting Data API builder"),
+            launchingDabEngine: l10n.t("Launching the engine process"),
+            checkingEngineReadiness: l10n.t("Checking engine readiness"),
+            deploymentSettings: l10n.t("Deployment settings"),
+            preparingDeploymentSettings: l10n.t("Preparing deployment settings"),
+            preparingContainerSettings: l10n.t("Preparing container settings"),
+            deploymentName: l10n.t("Name"),
+            deploymentNameHint: l10n.t("A name for this deployment"),
+
+            // DAB reset configuration
+            resetConfig: l10n.t("Reset"),
+            resetConfigTooltip: l10n.t("Reset the configuration to the defaults for this schema"),
+            resetConfigConfirmTitle: l10n.t("Reset DAB configuration?"),
+            resetConfigConfirmMessage: l10n.t(
+                "This discards all entity, action, column, and advanced settings for this database, including changes made by Copilot, and rebuilds them from the current schema.",
+            ),
 
             // DAB Unsupported Reasons
             unsupportedNoPrimaryKey: (sourceType: string = "Table") =>
@@ -2294,6 +2441,8 @@ export class LocConstants {
             checkingContainerReadiness: l10n.t("Checking container readiness"),
             verifyingApiReady: l10n.t("Verifying the API is ready to accept requests"),
             containerLogs: l10n.t("Container logs"),
+            showFullErrorMessage: l10n.t("Show full error message"),
+            hideFullErrorMessage: l10n.t("Hide full error message"),
         };
     }
 
@@ -2301,6 +2450,11 @@ export class LocConstants {
         return {
             intro: l10n.t(
                 "To compare two schemas, first select a source schema and target schema, then press compare.",
+            ),
+            selectSourceToCompare: l10n.t("Select a source schema, then press Compare."),
+            selectTargetToCompare: l10n.t("Select a target schema, then press Compare."),
+            readyToCompare: l10n.t(
+                "Press Compare to see the differences between the source and target schemas.",
             ),
             selectSourceSchema: l10n.t("Select Source Schema"),
             selectTargetSchema: l10n.t("Select Target Schema"),
@@ -2332,6 +2486,12 @@ export class LocConstants {
             selectAllOptions: l10n.t("Select all options"),
             includeAllObjectTypes: l10n.t("Include all object types"),
             optionDescription: l10n.t("Option Description"),
+            allowIncompatiblePlatformDisplayName: l10n.t(
+                "Allow incompatible platform during deployment",
+            ),
+            allowIncompatiblePlatformDescription: l10n.t(
+                "Controls whether deployment blocks because of platform compatibility checks. It does not allow Schema Compare between different Azure Synapse or Microsoft Fabric platform types.",
+            ),
             reset: l10n.t("Reset"),
             stop: l10n.t("Stop"),
             generateScript: l10n.t("Generate Script"),
@@ -2387,7 +2547,12 @@ export class LocConstants {
                 "Save source and target, options, and excluded elements",
             ),
             groupDifferencesBy: l10n.t("Group differences by"),
+            layout: l10n.t("Layout"),
+            classicLayout: l10n.t("Classic"),
+            simplifiedLayout: l10n.t("Simplified"),
+            schemaDifferences: l10n.t("Schema differences"),
             type: l10n.t("Type"),
+            object: l10n.t("Object"),
             sourceName: l10n.t("Source Name"),
             include: l10n.t("Include"),
             action: l10n.t("Action"),
@@ -2424,6 +2589,34 @@ export class LocConstants {
             allSchemas: l10n.t("All schemas"),
             allObjectTypes: l10n.t("All object types"),
             clearFilters: l10n.t("Clear filters"),
+            includeAllDifferences: l10n.t("Include or exclude all differences"),
+            includedInScript: l10n.t("Included in script"),
+            excludedFromScript: l10n.t("Excluded from script"),
+            differenceRowLabel: (type: string, name: string, action: string, included: boolean) =>
+                l10n.t({
+                    message: "{0}, {1}, {2}, {3}",
+                    args: [
+                        type,
+                        name,
+                        action,
+                        included ? l10n.t("included in script") : l10n.t("excluded from script"),
+                    ],
+                    comment: [
+                        "{0} is the schema object type",
+                        "{1} is the schema object name",
+                        "{2} is the update action",
+                        "{3} indicates whether the difference is included in the generated script",
+                    ],
+                }),
+            differenceGroupLabel: (name: string, count: number) =>
+                l10n.t({
+                    message: "{0}, {1} differences",
+                    args: [name, count],
+                    comment: [
+                        "{0} is the schema difference group name",
+                        "{1} is the number of differences in the group",
+                    ],
+                }),
             selectedDifferencesSummary: (selectedCount: number, totalCount: number) =>
                 l10n.t({
                     message: "{0} of {1} selected",
@@ -2443,7 +2636,19 @@ export class LocConstants {
             source: l10n.t("Source"),
             target: l10n.t("Target"),
             compareDetails: l10n.t("Comparison Details"),
+            differencePosition: (current: number, total: number) =>
+                l10n.t({
+                    message: "{0} / {1}",
+                    args: [current, total],
+                    comment: [
+                        "{0} is the one-based position of the selected schema difference",
+                        "{1} is the total number of visible schema differences",
+                    ],
+                }),
             affectedChildrenRegionLabel: l10n.t("Affected child objects"),
+            constraintsAddedLabel: l10n.t("Constraints added"),
+            constraintsChangedLabel: l10n.t("Constraints changed"),
+            constraintsDroppedLabel: l10n.t("Constraints dropped"),
             affectedChildrenAdded: (names: string) =>
                 l10n.t({
                     message: "Constraints added: {0}",
@@ -2529,6 +2734,7 @@ export class LocConstants {
                 "Processing include or exclude all differences operation.",
             ),
             updatingDifferenceSelection: l10n.t("Updating difference selection."),
+            generatingScript: l10n.t("Generating script."),
         };
     }
 

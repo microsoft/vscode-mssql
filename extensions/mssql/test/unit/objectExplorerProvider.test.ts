@@ -231,6 +231,7 @@ suite("Object Explorer Provider Tests", function () {
         expect(expandStub).to.have.been.calledOnceWithExactly(
             parentTreeNode,
             parentTreeNode.sessionId,
+            false, // a first expand of a never-expanded node is not a refresh
         );
 
         await new Promise((resolve) => setTimeout(resolve, 50));

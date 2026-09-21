@@ -56,6 +56,9 @@ const TYPE_INDENT = 20;
 const ENTITY_INDENT = 40;
 const COLUMN_INDENT = 60;
 
+/** Stands in for the exposed-column count while an entity is not exposed on any API surface. */
+const EXPOSURE_COUNT_PLACEHOLDER = "—";
+
 // ── Flat-row type for virtualized rendering ──
 
 type FlatRow =
@@ -417,12 +420,17 @@ const useStyles = makeStyles({
         display: "flex",
         alignItems: "center",
         gap: "4px",
+        minWidth: 0,
         overflow: "hidden",
-        flexWrap: "wrap",
+        // Cells are pinned to ROW_HEIGHT, so wrapped pills would spill over the rows
+        // above and below. Keep them on one line and clip horizontally instead.
+        flexWrap: "nowrap",
     },
     pillButton: {
         minWidth: "unset",
         height: "22px",
+        flexShrink: 0,
+        whiteSpace: "nowrap",
         padding: "0 9px",
         borderRadius: "999px",
         fontSize: tokens.fontSizeBase100,
@@ -536,7 +544,7 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
         }
         const loweredFilter = dabTextFilter.toLowerCase().trim();
         return dabConfig.entities.filter((entity) => {
-            if (!doesEntityMatchDabFilters(entity, entityFilters)) {
+            if (!doesEntityMatchDabFilters(entity, entityFilters, dabConfig.apiTypes)) {
                 return false;
             }
 
@@ -607,7 +615,9 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
             const schemaKey = getSchemaGroupKey(schemaName);
             const schemaId = `schema-${schemaKey}`;
             const schemaExpanded = expandedRows.has(schemaId);
-            const enabledEntityCount = entities.filter((e) => Dab.isEntityExposed(e)).length;
+            const enabledEntityCount = entities.filter((entity) =>
+                Dab.isEntityEffectivelyExposed(entity, dabConfig?.apiTypes),
+            ).length;
 
             rows.push({
                 type: "schema",
@@ -642,8 +652,9 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
                         schemaName,
                         sourceType: group.sourceType,
                         entities: group.entities,
-                        enabledEntityCount: group.entities.filter((e) => Dab.isEntityExposed(e))
-                            .length,
+                        enabledEntityCount: group.entities.filter((entity) =>
+                            Dab.isEntityEffectivelyExposed(entity, dabConfig?.apiTypes),
+                        ).length,
                         isExpanded: groupExpanded,
                     });
 
@@ -701,7 +712,7 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
         }
 
         return rows;
-    }, [entitiesBySchema, expandedRows]);
+    }, [dabConfig?.apiTypes, entitiesBySchema, expandedRows]);
 
     // ── Toggle expand/collapse ──
 
@@ -933,8 +944,24 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
                         </span>
                         {sourceType !== Dab.EntitySourceType.StoredProcedure && (
                             <DabCountPill>
-                                {row.entity.columns.filter((c) => c.isExposed).length}/
-                                {row.entity.columns.length}
+                                {Dab.isEntityEffectivelyExposed(row.entity, dabConfig?.apiTypes) ? (
+                                    <>
+                                        {
+                                            row.entity.columns.filter(
+                                                (column) =>
+                                                    column.isExposed ||
+                                                    Dab.isLogicalKeyColumn(row.entity, column),
+                                            ).length
+                                        }
+                                        /{row.entity.columns.length}
+                                    </>
+                                ) : (
+                                    <span
+                                        title={locConstants.schemaDesigner.notExposed}
+                                        aria-label={locConstants.schemaDesigner.notExposed}>
+                                        {EXPOSURE_COUNT_PLACEHOLDER}
+                                    </span>
+                                )}
                             </DabCountPill>
                         )}
                         {keyWarningText && (
@@ -1059,6 +1086,7 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
             classes.primaryKeyIcon,
             classes.requiredMarker,
             classes.searchHighlight,
+            dabConfig?.apiTypes,
             dabTextFilter,
             getRowIndent,
             openSettingsDialog,
@@ -1152,11 +1180,14 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
     const renderExposedContent = useCallback(
         (row: FlatRow) => {
             if (row.type === "column") {
-                const isLogicalKey = Dab.isLogicalKeyColumn(row.entity, row.column);
+                if (!Dab.isEntityEffectivelyExposed(row.entity, dabConfig?.apiTypes)) {
+                    return renderBlankContent();
+                }
+
                 return (
                     <div className={classes.pillCell}>
                         <span className={classes.mutedMetadataTag}>
-                            {isLogicalKey || row.column.isExposed
+                            {row.column.isExposed || Dab.isLogicalKeyColumn(row.entity, row.column)
                                 ? locConstants.schemaDesigner.exposed
                                 : locConstants.schemaDesigner.hidden}
                         </span>
@@ -1200,13 +1231,18 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
                 [Dab.ApiType.Mcp]: "mcp",
             };
 
+            // The pills cover most of the cell, so they carry the tooltip as well as their
+            // container; otherwise hovering a pill would suppress the full list.
+            const apiTypesTitle = apiTypes.map((apiType) => labels[apiType]).join(", ");
+
             return (
-                <div className={classes.pillCell}>
+                <div className={classes.pillCell} title={apiTypesTitle}>
                     {apiTypes.map((apiType) => (
                         <Button
                             key={apiType}
                             appearance="subtle"
                             size="small"
+                            title={apiTypesTitle}
                             className={mergeClasses(
                                 classes.pillButton,
                                 getDabApiTypePillClassName(apiType),
@@ -1275,7 +1311,7 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
                 return renderBlankContent();
             }
 
-            if (!Dab.isEntityExposed(row.entity)) {
+            if (!Dab.isEntityEffectivelyExposed(row.entity, dabConfig?.apiTypes)) {
                 return renderBlankContent();
             }
 
@@ -1303,13 +1339,23 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
                 [Dab.EntityAction.Execute]: locConstants.schemaDesigner.executeShort,
             };
 
+            const permissionsTitle = permissions
+                .map(
+                    (permission) =>
+                        `${roleLabels[permission.role]}: ${permission.actions
+                            .map((action) => actionLabels[action])
+                            .join("")}`,
+                )
+                .join(", ");
+
             return (
-                <div className={classes.pillCell}>
+                <div className={classes.pillCell} title={permissionsTitle}>
                     {permissions.map((permission) => (
                         <Button
                             key={permission.role}
                             appearance="subtle"
                             size="small"
+                            title={permissionsTitle}
                             className={mergeClasses(
                                 classes.pillButton,
                                 getDabPermissionPillClassName(permission.role),
@@ -1329,6 +1375,7 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
             classes.pillButton,
             classes.pillCell,
             classes.sourceCell,
+            dabConfig?.apiTypes,
             openSettingsDialog,
             renderBlankContent,
         ],
@@ -1461,8 +1508,8 @@ export const DabEntityTable = ({ entityFilters }: DabEntityTableProps) => {
             include: { defaultWidth: 32, minWidth: 32, idealWidth: 32 },
             name: { defaultWidth: 420, minWidth: 220, idealWidth: 420 },
             source: { defaultWidth: 200, minWidth: 140, idealWidth: 200 },
-            exposed: { defaultWidth: 160, minWidth: 120, idealWidth: 160 },
-            permissions: { defaultWidth: 220, minWidth: 160, idealWidth: 220 },
+            exposed: { defaultWidth: 200, minWidth: 180, idealWidth: 200 },
+            permissions: { defaultWidth: 240, minWidth: 200, idealWidth: 240 },
             settings: { defaultWidth: 32, minWidth: 32, idealWidth: 32 },
         }),
         [],

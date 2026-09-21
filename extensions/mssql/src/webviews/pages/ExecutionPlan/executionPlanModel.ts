@@ -401,8 +401,8 @@ function defaultMeasureText(text: string): number {
 }
 
 /**
- * Ports azdataGraph's execution-plan-specific layout so switching renderers does not rearrange
- * the plan.
+ * Ports azdataGraph's execution-plan-specific layout, which the classic renderer used, so plans
+ * keep the arrangement users are familiar with.
  */
 export function layoutExecutionPlan(
     model: ExecutionPlanModel,
