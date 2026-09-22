@@ -9,7 +9,12 @@ import {
     DevContainerTemplateId,
     CheckDevContainerPrerequisitesRequest,
     DevContainerPrerequisites,
+    DevContainerTarget,
+    DevContainerTemplateOption,
+    BrowseForDevContainerTargetRequest,
     GetAgentSkillsCatalogRequest,
+    GetDevContainerTargetRequest,
+    GetDevContainerTemplateOptionsRequest,
     InstallAgentSkillsPluginRequest,
     ManageAgentSkillsPluginRequest,
     OpenPromptInChatRequest,
@@ -18,6 +23,7 @@ import {
     OverviewTelemetryEvent,
     ReopenInContainerRequest,
     SendOverviewTelemetryRequest,
+    ShowOverviewLogRequest,
     OpenRecentSqlFileRequest,
     RunChangelogActionFromOverviewRequest,
     OverviewActionId,
@@ -96,14 +102,47 @@ export function useOverviewActions() {
     );
 
     const addDevContainerConfiguration = useCallback(
-        (templateId: DevContainerTemplateId) =>
-            extensionRpc.sendRequest(AddDevContainerConfigurationRequest.type, { templateId }),
+        (
+            templateId: DevContainerTemplateId,
+            options?: Record<string, string>,
+            targetPath?: string,
+        ) =>
+            extensionRpc.sendRequest(AddDevContainerConfigurationRequest.type, {
+                templateId,
+                options,
+                targetPath,
+            }),
         [extensionRpc],
     );
 
-    const reopenInContainer = useCallback(() => {
-        void extensionRpc.sendRequest(ReopenInContainerRequest.type, undefined);
+    const getDevContainerTarget = useCallback(
+        (templateId: DevContainerTemplateId): Promise<DevContainerTarget> =>
+            extensionRpc.sendRequest(GetDevContainerTargetRequest.type, { templateId }),
+        [extensionRpc],
+    );
+
+    const browseForDevContainerTarget = useCallback(
+        (currentPath?: string): Promise<string | undefined> =>
+            extensionRpc.sendRequest(BrowseForDevContainerTargetRequest.type, { currentPath }),
+        [extensionRpc],
+    );
+
+    const getDevContainerTemplateOptions = useCallback(
+        (templateId: DevContainerTemplateId): Promise<DevContainerTemplateOption[]> =>
+            extensionRpc.sendRequest(GetDevContainerTemplateOptionsRequest.type, { templateId }),
+        [extensionRpc],
+    );
+
+    const showLog = useCallback(() => {
+        void extensionRpc.sendRequest(ShowOverviewLogRequest.type, undefined);
     }, [extensionRpc]);
+
+    const reopenInContainer = useCallback(
+        (folderPath?: string) => {
+            void extensionRpc.sendRequest(ReopenInContainerRequest.type, { folderPath });
+        },
+        [extensionRpc],
+    );
 
     const checkPrerequisites = useCallback(
         (): Promise<DevContainerPrerequisites> =>
@@ -137,6 +176,10 @@ export function useOverviewActions() {
             sendTelemetry,
             runChangelogAction,
             addDevContainerConfiguration,
+            getDevContainerTemplateOptions,
+            getDevContainerTarget,
+            browseForDevContainerTarget,
+            showLog,
             reopenInContainer,
             checkPrerequisites,
             installDevContainersExtension,
@@ -154,6 +197,10 @@ export function useOverviewActions() {
             sendTelemetry,
             runChangelogAction,
             addDevContainerConfiguration,
+            getDevContainerTemplateOptions,
+            getDevContainerTarget,
+            browseForDevContainerTarget,
+            showLog,
             reopenInContainer,
             checkPrerequisites,
             installDevContainersExtension,

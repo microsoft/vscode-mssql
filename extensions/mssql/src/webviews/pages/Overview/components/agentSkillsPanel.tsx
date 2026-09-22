@@ -10,11 +10,6 @@ import {
     AccordionPanel,
     Button,
     Dialog,
-    DialogActions,
-    DialogBody,
-    DialogContent,
-    DialogSurface,
-    DialogTitle,
     Input,
     Link,
     MessageBar,
@@ -51,6 +46,7 @@ import {
     OverviewTelemetryEvent,
 } from "../../../../sharedInterfaces/overview";
 import { AgentSkillsIcon } from "../../../common/icons/agentSkills";
+import { DialogShell } from "./dialogShell";
 import { GithubCopilot16Regular, GithubMark16Regular } from "../../../common/icons/fluentIcons";
 import { SqlMigrationIcon } from "../../../common/icons/sqlMigration";
 import { locConstants } from "../../../common/locConstants";
@@ -348,6 +344,11 @@ interface SkillPackCardProps {
     skillCount: number | undefined;
     isInstalled: boolean;
     isInstalling: boolean;
+    /**
+     * Whether this is the pack whose Install button was pressed. The packs share one install,
+     * so without it every card would open its prompts on someone else's click.
+     */
+    isInstallTarget: boolean;
     copiedPromptId: string | undefined;
     onInstall: () => void;
     onManage: () => void;
@@ -359,6 +360,7 @@ interface SkillPackCardProps {
 const SkillPackCard = ({
     pack,
     skillCount,
+    isInstallTarget,
     isInstalled,
     isInstalling,
     copiedPromptId,
@@ -372,6 +374,15 @@ const SkillPackCard = ({
     const loc = locConstants.overview;
     const { openLink } = useOverviewActions();
     const [arePromptsOpen, setArePromptsOpen] = useState(false);
+    // Opened on the transition into installed, not whenever the pack happens to be installed:
+    // a card that arrives already installed stays closed, and so does one the user collapsed.
+    const wasInstalled = useRef(isInstalled);
+    useEffect(() => {
+        if (isInstalled && !wasInstalled.current && isInstallTarget) {
+            setArePromptsOpen(true);
+        }
+        wasInstalled.current = isInstalled;
+    }, [isInstalled, isInstallTarget]);
     const promptsId = `${pack.id}-prompts`;
     const PackIcon = packIcons[pack.icon];
 
@@ -602,6 +613,9 @@ export const AgentSkillsPanel = () => {
     // Downloading takes a moment, so the button has to say something between the click and the
     // state arriving, or it reads as having done nothing.
     const [isInstalling, setIsInstalling] = useState(false);
+    // Which card's Install button started the install in flight, so only that card reacts when
+    // it finishes. One install covers every pack, so nothing else distinguishes them.
+    const [installingPackId, setInstallingPackId] = useState<string | undefined>(undefined);
     const [copiedId, setCopiedId] = useState<string | undefined>(undefined);
     const [skillsDialogPack, setSkillsDialogPack] = useState<AgentSkillPack | undefined>(undefined);
     const [skillGroups, setSkillGroups] = useState<AgentSkillGroup[] | undefined>(undefined);
@@ -619,10 +633,14 @@ export const AgentSkillsPanel = () => {
 
     useEffect(() => () => clearTimeout(copyResetRef.current), []);
 
-    const startInstall = useCallback(() => {
-        setIsInstalling(true);
-        void installAgentSkillsPlugin().finally(() => setIsInstalling(false));
-    }, [installAgentSkillsPlugin]);
+    const startInstall = useCallback(
+        (packId: string) => {
+            setInstallingPackId(packId);
+            setIsInstalling(true);
+            void installAgentSkillsPlugin().finally(() => setIsInstalling(false));
+        },
+        [installAgentSkillsPlugin],
+    );
 
     const copyPrompt = useCallback(
         (card: PromptCard) => {
@@ -690,8 +708,9 @@ export const AgentSkillsPanel = () => {
                     skillCount={liveSkillCount ?? (skillsLoadFailed ? pack.skillCount : undefined)}
                     isInstalled={hasAgentSkillsPlugin}
                     isInstalling={isInstalling}
+                    isInstallTarget={installingPackId === pack.id}
                     copiedPromptId={copiedId}
-                    onInstall={startInstall}
+                    onInstall={() => startInstall(pack.id)}
                     onManage={() => void manageAgentSkillsPlugin()}
                     onOpenSkills={openSkills}
                     onCopyPrompt={copyPrompt}
@@ -702,25 +721,13 @@ export const AgentSkillsPanel = () => {
             <Dialog
                 open={skillsDialogPack !== undefined}
                 onOpenChange={(_event, data) => !data.open && setSkillsDialogPack(undefined)}>
-                <DialogSurface className={classes.skillsDialog}>
-                    <DialogBody>
-                        <DialogTitle>{skillsDialogPack?.name}</DialogTitle>
-                        <DialogContent className={classes.skillsDialogContent}>
-                            {isLoadingSkills ? (
-                                <div className={classes.skillsStatus}>
-                                    <Spinner label={loc.agentSkillsLoading} />
-                                </div>
-                            ) : skillsLoadFailed ? (
-                                <div className={classes.skillsStatus}>
-                                    <MessageBar intent="error">
-                                        <MessageBarBody>{loc.agentSkillsLoadFailed}</MessageBarBody>
-                                    </MessageBar>
-                                </div>
-                            ) : skillGroups ? (
-                                <SkillsCatalog groups={skillGroups} />
-                            ) : undefined}
-                        </DialogContent>
-                        <DialogActions>
+                <DialogShell
+                    title={skillsDialogPack?.name}
+                    className={classes.skillsDialog}
+                    contentClassName={classes.skillsDialogContent}
+                    onDismiss={() => setSkillsDialogPack(undefined)}
+                    actions={
+                        <>
                             {skillsLoadFailed && (
                                 <Button
                                     appearance="secondary"
@@ -735,9 +742,22 @@ export const AgentSkillsPanel = () => {
                                 onClick={() => setSkillsDialogPack(undefined)}>
                                 {locConstants.common.close}
                             </Button>
-                        </DialogActions>
-                    </DialogBody>
-                </DialogSurface>
+                        </>
+                    }>
+                    {isLoadingSkills ? (
+                        <div className={classes.skillsStatus}>
+                            <Spinner label={loc.agentSkillsLoading} />
+                        </div>
+                    ) : skillsLoadFailed ? (
+                        <div className={classes.skillsStatus}>
+                            <MessageBar intent="error">
+                                <MessageBarBody>{loc.agentSkillsLoadFailed}</MessageBarBody>
+                            </MessageBar>
+                        </div>
+                    ) : skillGroups ? (
+                        <SkillsCatalog groups={skillGroups} />
+                    ) : undefined}
+                </DialogShell>
             </Dialog>
         </div>
     );

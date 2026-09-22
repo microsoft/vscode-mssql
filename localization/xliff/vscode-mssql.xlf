@@ -334,6 +334,9 @@
     <trans-unit id="++CODE++f929081d85d7455c7414f04435ed1583c3ae9bcbbb8b0ab7cb160848f4945d5d">
       <source xml:lang="en">Add at least one filter value before saving this filter.</source>
     </trans-unit>
+    <trans-unit id="++CODE++322b5b402a32f16b07bc5f0e670a8c07bea52d1f71f8595c6dbf1cf3e8c33cca">
+      <source xml:lang="en">Add configuration to the folder you have open</source>
+    </trans-unit>
     <trans-unit id="++CODE++685f88ae3db24ee15edd7e342447d933e018a46d99e8878c21ce3065d93c21a9">
       <source xml:lang="en">Add connection</source>
     </trans-unit>
@@ -2419,6 +2422,9 @@
     <trans-unit id="++CODE++80faaf9291799236b19a2c456248f32cf3aa3c5d9760093871da70c540cd9240">
       <source xml:lang="en">Create a new profiling session</source>
     </trans-unit>
+    <trans-unit id="++CODE++0f9e3cdfb582fb8f92e27e72b9e58eada229f913b381e21393d27f1661202b0e">
+      <source xml:lang="en">Create a new project folder</source>
+    </trans-unit>
     <trans-unit id="++CODE++2dda2d5e705c870b4711000d9e6e1a1552a6426ff2835af34a45eb0ea5f3182b">
       <source xml:lang="en">Create an Azure SQL Database</source>
     </trans-unit>
@@ -2942,6 +2948,18 @@
     </trans-unit>
     <trans-unit id="++CODE++071f21588670838182cef27feaf5f3b7c5b5f7cba62b6829713d036637016453">
       <source xml:lang="en">Dev Containers extension</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2ea12f3fcf63e9e8e4e48a974676e5ead25997ac94da7e3a58371153814b4029">
+      <source xml:lang="en">Dev container  C#  .NET</source>
+    </trans-unit>
+    <trans-unit id="++CODE++963b0ef24f049db258a339f7eff936970bf50406fb819068d35c0ba99efa5ec0">
+      <source xml:lang="en">Dev container  C#  Aspire</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1f325ab851b0dd1dcffe95ce42fa315285287c3de311aa51312dfd24852974ad">
+      <source xml:lang="en">Dev container  JavaScript  Node.js</source>
+    </trans-unit>
+    <trans-unit id="++CODE++243f5fea7bd3269fe61d539f3f5cba15ec046aef111b809acc7acdd265b3c1d2">
+      <source xml:lang="en">Dev container  Python</source>
     </trans-unit>
     <trans-unit id="++CODE++49c2949ef5957c77cae6803dfc7a4fee2e6274a06e3dd64c318402e0a4a26c5f">
       <source xml:lang="en">Dev container configuration</source>
@@ -8322,6 +8340,9 @@
     <trans-unit id="++CODE++79f376f90b59c3bc990ce225ac8c8fdd6093ae81003f60c53bc6aa3939e47988">
       <source xml:lang="en">Select File</source>
     </trans-unit>
+    <trans-unit id="++CODE++e597da9c984517f802536a83c825cd4f017898c5f28030fe1f62fb94f5228828">
+      <source xml:lang="en">Select Folder</source>
+    </trans-unit>
     <trans-unit id="++CODE++79e5e71c56f13bb3c722fd134f6fb39e747de15dc979295882ecac8d67d45559">
       <source xml:lang="en">Select Max vCores</source>
     </trans-unit>
@@ -8683,6 +8704,9 @@
     <trans-unit id="++CODE++4da10f1fbb17cac25e9e78536d4104cb4b2fbbc436dbc37dee5450f22c2accda">
       <source xml:lang="en">Set up</source>
     </trans-unit>
+    <trans-unit id="++CODE++3b56d48f1471bb8471ecd14ede6519545fc579a2925e575b09e14a80ebb5c61e">
+      <source xml:lang="en">Sets the project up somewhere else and opens it</source>
+    </trans-unit>
     <trans-unit id="++CODE++818cd8d91aea3a1689455f009f49e87fe7fa647fa2c4b9f09072dd1c33d52ca5">
       <source xml:lang="en">Setting</source>
     </trans-unit>
@@ -8714,6 +8738,9 @@
     <trans-unit id="++CODE++96a25dbc9f2e88758412917d948b79e1d95b419209b5bbd641b4b790474fa1b7">
       <source xml:lang="en">Severity for {0}</source>
       <note>{0} is the rule identifier, e.g. SR0001</note>
+    </trans-unit>
+    <trans-unit id="++CODE++80f262ac7205e6e637dfb7909be1886e4ec4e7b1ee58084eb378507a215a4fd3">
+      <source xml:lang="en">Shares the configuration with others through source control</source>
     </trans-unit>
     <trans-unit id="++CODE++7df9233c34942f40098ba8bdf90337318b392cd4aac5517b6f3d09dd84fc4814">
       <source xml:lang="en">Short guided tours that set up a working example, one step at a time.</source>
@@ -8778,6 +8805,9 @@
     </trans-unit>
     <trans-unit id="++CODE++7f642b55cbf51cf21e5b6a0861e2a93abf8fbe5a8b5d04a9ed9d7a97040549d1">
       <source xml:lang="en">Show full error message</source>
+    </trans-unit>
+    <trans-unit id="++CODE++34b66838fe486341b25e97f41fad0907e36f19f2293a7cb445080b43e3076be5">
+      <source xml:lang="en">Show log</source>
     </trans-unit>
     <trans-unit id="++CODE++8a4cdc1c1353b76118cc7e7eb513c9d9cb49db4012aec7b94b52971b4518edf4">
       <source xml:lang="en">Show masked command (hides sensitive information)</source>
@@ -9457,6 +9487,9 @@
       <source xml:lang="en">The first value must be set for the {0} operator in the {1} filter</source>
       <note>{0} is the operator for the filter
 {1} is the name of the filter</note>
+    </trans-unit>
+    <trans-unit id="++CODE++1c7b23826d561699e1b7b56c493bcc09737bb927f818809157740be6519c63f3">
+      <source xml:lang="en">The folder you have open.</source>
     </trans-unit>
     <trans-unit id="++CODE++9f0bbf0f3fc1ec45ca02debcaf080ecd6f40e8a11bae6e0189136badee4946a7">
       <source xml:lang="en">The following workspace or workspace folder connections are missing the &apos;id&apos; property and are being ignored.  Please manually add the &apos;id&apos; property to the connection in order to use it. &#10;&#10; {0}</source>
@@ -10298,6 +10331,9 @@
     <trans-unit id="++CODE++9d42472185c6fe080e6ab7a93b676c943ab7e5b29b29b760346898bf579c031d">
       <source xml:lang="en">What&apos;s next?</source>
     </trans-unit>
+    <trans-unit id="++CODE++e665368a7ddcbfc0773b209b289d596aa211d1746b8da0a3802464ede446cc70">
+      <source xml:lang="en">Where the project will be created.</source>
+    </trans-unit>
     <trans-unit id="++CODE++dd47e1e70737dcfe862f6eb8b72464086e5b891109ec1d77cbdfb71358406ae2">
       <source xml:lang="en">Which Azure target should this SQL Server move to?</source>
     </trans-unit>
@@ -10607,6 +10643,10 @@
     <trans-unit id="++CODE++068d20844c66d21c588a335a78293216df5e76501471a4f175eb5758c3372fe4">
       <source xml:lang="en">{0} (Current Account)</source>
       <note>{0} is the account display name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++bbb0ee378d2f459be2548d44bc5991a67e5afb367e6ddd25baf5c4656466c2af">
+      <source xml:lang="en">{0} (default)</source>
+      <note>{0} is a template option value, such as a version number</note>
     </trans-unit>
     <trans-unit id="++CODE++d4781f8681d947d6d8eb589d9a93c7bd093110ab1b826da373b7e1e6b6cf080f">
       <source xml:lang="en">{0} (filtered)</source>

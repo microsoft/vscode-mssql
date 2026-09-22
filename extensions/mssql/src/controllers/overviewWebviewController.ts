@@ -16,8 +16,16 @@ import {
     OpenRecentSqlFileRequestParams,
     OverviewActionId,
     AddDevContainerConfigurationResult,
+    BrowseForDevContainerTargetRequest,
+    BrowseForDevContainerTargetRequestParams,
     CheckDevContainerPrerequisitesRequest,
     DevContainerPrerequisites,
+    DevContainerTarget,
+    DevContainerTemplateOption,
+    GetDevContainerTargetRequest,
+    GetDevContainerTargetRequestParams,
+    GetDevContainerTemplateOptionsRequest,
+    GetDevContainerTemplateOptionsRequestParams,
     GetAgentSkillsCatalogRequest,
     InstallAgentSkillsPluginRequest,
     ManageAgentSkillsPluginRequest,
@@ -29,6 +37,7 @@ import {
     OverviewTelemetryEvent,
     ReopenInContainerRequest,
     SendOverviewTelemetryRequest,
+    ShowOverviewLogRequest,
     SendOverviewTelemetryRequestParams,
     OverviewLinkRequest,
     OverviewLinkRequestParams,
@@ -75,6 +84,11 @@ const DEV_CONTAINERS_CREATE_CONFIG_COMMAND = "remote-containers.createDevContain
 
 /** The extension's command to rebuild and reattach the window inside the container. */
 const DEV_CONTAINERS_REOPEN_COMMAND = "remote-containers.reopenInContainer";
+/**
+ * Opens a given folder in its dev container. Passing the folder is what distinguishes this from
+ * the command's own picker: with no argument it asks the user to choose one.
+ */
+const DEV_CONTAINERS_OPEN_FOLDER_COMMAND = "remote-containers.openFolder";
 
 /**
  * Telemetry action each in-page event is reported as. Partial because the events that open a
@@ -125,6 +139,12 @@ const DEV_CONTAINERS_CLI_RELATIVE_PATH = path.join("dist", "spec-node", "devCont
 
 /** Config file names that mark a folder as already having a dev container. */
 const DEV_CONTAINER_CONFIG_GLOB = "{.devcontainer/devcontainer.json,.devcontainer.json}";
+
+/**
+ * Marker the Dev Containers extension drops beside a configuration it is holding on a folder's
+ * behalf, naming the folder that configuration belongs to.
+ */
+const DEV_CONTAINER_MARKER_FILE = ".devcontainer-internal.json";
 
 /** The same two locations as concrete relative paths, for a direct existence check. */
 const DEV_CONTAINER_CONFIG_PATHS = [[".devcontainer", "devcontainer.json"], [".devcontainer.json"]];
@@ -193,6 +213,101 @@ function templateRegistryId(templateId: DevContainerTemplateId): string {
     return `${TEMPLATE_REGISTRY}/${templateRepositoryFolders[templateId]}`;
 }
 
+/**
+ * Reads the folder a stored configuration belongs to out of its marker file.
+ *
+ * The extension writes a JSON object behind a line comment that swallows the object's own
+ * opening brace, so the file only parses under a comment-tolerant reader. Rather than depend on
+ * one, the single field that matters is matched directly; the captured literal is handed to
+ * `JSON.parse` so its escapes -- a Windows path's backslashes, above all -- are undone exactly
+ * once and by the same rules that wrote them.
+ */
+function readMarkerRootFolder(contents: string): string | undefined {
+    const match = /"rootFolder"\s*:\s*("(?:[^"\\]|\\.)*")/.exec(contents);
+    if (!match) {
+        return undefined;
+    }
+    try {
+        const parsed: unknown = JSON.parse(match[1]);
+        return typeof parsed === "string" ? parsed : undefined;
+    } catch {
+        return undefined;
+    }
+}
+
+/**
+ * First free `<parent>/<name>`, adding `-2`, `-3` and so on rather than proposing a folder that
+ * already has something in it. Gives up after a bounded number of tries so a parent full of
+ * matching names cannot spin.
+ */
+async function uniqueFolderPath(parent: string, name: string): Promise<string> {
+    for (let suffix = 1; suffix <= 100; suffix++) {
+        const candidate = path.join(parent, suffix > 1 ? `${name}-${suffix}` : name);
+        try {
+            await fs.promises.stat(candidate);
+        } catch {
+            return candidate;
+        }
+    }
+    // Every name is taken, so the plain one is proposed and the existing-file prompts apply.
+    return path.join(parent, name);
+}
+
+/**
+ * Pulls the renderable options out of a template's metadata document.
+ *
+ * The document comes from the registry, so every field is checked rather than assumed. The spec
+ * gives string options either an `enum` (a closed list) or `proposals` (suggestions, with custom
+ * values allowed); only the listed values are offered here, which is also what lets the applied
+ * values be validated on the way back in.
+ */
+function parseTemplateOptions(metadata: unknown): DevContainerTemplateOption[] {
+    const declared = (metadata as { options?: unknown } | undefined)?.options;
+    // Falsy covers the absent and null cases the rule against a `null` literal rules out.
+    if (!declared || typeof declared !== "object") {
+        return [];
+    }
+
+    const options: DevContainerTemplateOption[] = [];
+    for (const [id, value] of Object.entries(declared as Record<string, unknown>)) {
+        const option = value as {
+            type?: unknown;
+            description?: unknown;
+            enum?: unknown;
+            proposals?: unknown;
+            default?: unknown;
+        };
+        if (option?.type !== "string") {
+            continue;
+        }
+
+        const listed = Array.isArray(option.enum) ? option.enum : option.proposals;
+        const values = (Array.isArray(listed) ? listed : []).filter(
+            (entry): entry is string => typeof entry === "string",
+        );
+        // One value is not a choice, so it gets no control and keeps its default.
+        if (values.length < 2) {
+            continue;
+        }
+
+        // A default outside the list would select nothing in the dropdown, so the first listed
+        // value stands in; the template orders them, and puts its preferred value first.
+        const declaredDefault = option.default;
+        const defaultValue =
+            typeof declaredDefault === "string" && values.includes(declaredDefault)
+                ? declaredDefault
+                : values[0];
+
+        options.push({
+            id,
+            label: typeof option.description === "string" ? option.description : id,
+            defaultValue,
+            values,
+        });
+    }
+    return options;
+}
+
 /** Projects a resolved file into the shape the Overview page renders. */
 function toRecentSqlFile(file: ResolvedRecentSqlFile): RecentSqlFile {
     return {
@@ -225,6 +340,18 @@ export class OverviewWebviewController extends WebviewPanelController<
 
     /** Sequence number of the newest agent skills refresh; see refreshAgentSkillsState. */
     private _agentSkillsRequest = 0;
+
+    /**
+     * Template metadata by registry id. Reading it is a registry fetch, and the dialog asks every
+     * time it opens, so the answer is kept for the life of the page.
+     */
+    private _templateOptions = new Map<string, DevContainerTemplateOption[]>();
+
+    /**
+     * Parent folder the user last scaffolded into, so the second template does not start from
+     * the home folder again. Global rather than per-workspace: the flow runs with no workspace.
+     */
+    private static readonly _lastTargetParentKey = "mssql.overview.devContainerTargetParent";
 
     constructor(
         context: vscode.ExtensionContext,
@@ -543,16 +670,65 @@ export class OverviewWebviewController extends WebviewPanelController<
             },
         );
 
+        this.onRequest(ShowOverviewLogRequest.type, async () => {
+            this.logger.show();
+        });
+
+        this.onRequest(
+            GetDevContainerTargetRequest.type,
+            async (params: GetDevContainerTargetRequestParams): Promise<DevContainerTarget> =>
+                this.getDevContainerTarget(params.templateId),
+        );
+
+        this.onRequest(
+            BrowseForDevContainerTargetRequest.type,
+            async (
+                params: BrowseForDevContainerTargetRequestParams,
+            ): Promise<string | undefined> => {
+                const chosen = await vscode.window.showOpenDialog({
+                    canSelectFiles: false,
+                    canSelectFolders: true,
+                    canSelectMany: false,
+                    openLabel: Overview.SelectDevContainerFolder,
+                    defaultUri: params.currentPath
+                        ? vscode.Uri.file(params.currentPath)
+                        : undefined,
+                });
+                return chosen?.[0]?.fsPath;
+            },
+        );
+
+        this.onRequest(
+            GetDevContainerTemplateOptionsRequest.type,
+            async (
+                params: GetDevContainerTemplateOptionsRequestParams,
+            ): Promise<DevContainerTemplateOption[]> =>
+                this.getDevContainerTemplateOptions(params.templateId),
+        );
+
         this.onRequest(
             AddDevContainerConfigurationRequest.type,
             async (
                 params: AddDevContainerConfigurationRequestParams,
             ): Promise<AddDevContainerConfigurationResult> => {
-                const result = await this.applyDevContainerTemplate(params.templateId);
+                const options = await this.resolveTemplateOptions(
+                    params.templateId,
+                    params.options,
+                );
+                const result = await this.applyDevContainerTemplate(
+                    params.templateId,
+                    options,
+                    params.targetPath,
+                );
                 const props = {
                     step: "configurationWritten",
                     template: params.templateId,
                     repositoryFolder: templateRepositoryFolders[params.templateId],
+                    // The option keys and values are the template's own, not free-form input:
+                    // anything the template does not declare was dropped above.
+                    options: JSON.stringify(options),
+                    // Whether they scaffolded somewhere new, never which path they chose.
+                    opensNewFolder: String(result.opensNewFolder === true),
                     applied: String(result.applied),
                     usedPicker: String(result.usedPicker),
                     conflict: String(result.conflict === true),
@@ -581,7 +757,7 @@ export class OverviewWebviewController extends WebviewPanelController<
             },
         );
 
-        this.onRequest(ReopenInContainerRequest.type, async () => {
+        this.onRequest(ReopenInContainerRequest.type, async (params) => {
             // This path skips the prerequisite dialog, so the extension it depends on is checked
             // here rather than letting the command fail with "command not found".
             if (this.checkDevContainersExtension() !== PrerequisiteStatus.Ready) {
@@ -599,9 +775,32 @@ export class OverviewWebviewController extends WebviewPanelController<
                 return;
             }
 
-            await vscode.commands.executeCommand(DEV_CONTAINERS_REOPEN_COMMAND);
+            // Reattaching is unambiguous only for a single-folder window. For any other target,
+            // Dev Containers opens the selected folder directly when handed its URI.
+            // Narrowed by type rather than compared against undefined: a caller with no folder
+            // sends one that arrives as null, and `Uri.file(null)` throws.
+            const folderPath =
+                typeof params?.folderPath === "string" && params.folderPath.length > 0
+                    ? params.folderPath
+                    : undefined;
+            // Dev Containers' reopen command chooses a root again in a multi-root window, or
+            // reopens the .code-workspace file. Hand it the selected folder directly instead.
+            const opensNewFolder =
+                folderPath !== undefined &&
+                !this.canReopenCurrentFolder(vscode.Uri.file(folderPath));
+            if (folderPath !== undefined && opensNewFolder) {
+                await vscode.commands.executeCommand(
+                    DEV_CONTAINERS_OPEN_FOLDER_COMMAND,
+                    vscode.Uri.file(folderPath),
+                );
+            } else {
+                await vscode.commands.executeCommand(DEV_CONTAINERS_REOPEN_COMMAND);
+            }
             this._devContainerActivity?.end(ActivityStatus.Succeeded, {
-                additionalProps: { step: "reopenedInContainer" },
+                additionalProps: {
+                    step: "reopenedInContainer",
+                    opensNewFolder: String(opensNewFolder),
+                },
             });
             this._devContainerActivity = undefined;
             sendActionEvent(TelemetryViews.OverviewPage, TelemetryActions.ReopenInContainer);
@@ -685,6 +884,71 @@ export class OverviewWebviewController extends WebviewPanelController<
                     // Not present at this location; try the next.
                 }
             }
+            // A configuration can also sit outside the folder, which is the option the Dev
+            // Containers extension offers to keep it out of source control. Missing it told
+            // users with a working dev container that they had none.
+            if (await this.findUserDataDevContainerConfig(folder.uri.fsPath)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Where the Dev Containers extension keeps configurations held on a folder's behalf.
+     *
+     * An extension's storage is private to it and VS Code exposes no path for another one, so
+     * this is derived from ours: every extension's folder is a sibling under `globalStorage`.
+     */
+    private devContainersConfigStore(): string {
+        return path.join(
+            path.dirname(this._context.globalStorageUri.fsPath),
+            DEV_CONTAINERS_EXTENSION_ID,
+            "configs",
+        );
+    }
+
+    /**
+     * Looks for a configuration the Dev Containers extension is holding for this folder.
+     *
+     * It names each one after the folder's last path segment, with `-2`, `-3` and so on when
+     * two folders share a name, and tells them apart by a marker file recording which folder
+     * the configuration belongs to. That layout is the extension's own rather than an API, so
+     * nothing here throws: a store that is absent, unreadable, or no longer shaped this way
+     * reports no configuration, which is the answer the page already knows how to show.
+     */
+    private async findUserDataDevContainerConfig(folderPath: string): Promise<boolean> {
+        const store = this.devContainersConfigStore();
+        const folderName = path.basename(folderPath);
+
+        let entries: string[];
+        try {
+            entries = await fs.promises.readdir(store);
+        } catch {
+            // No configuration has ever been stored this way on this machine.
+            return false;
+        }
+
+        for (const entry of entries) {
+            // `<name>` or `<name>-2`; anything else belongs to a different folder.
+            const suffix = entry.startsWith(`${folderName}-`)
+                ? entry.slice(folderName.length + 1)
+                : undefined;
+            if (entry !== folderName && !(suffix && /^\d+$/.test(suffix))) {
+                continue;
+            }
+
+            try {
+                const marker = await fs.promises.readFile(
+                    path.join(store, entry, DEV_CONTAINER_MARKER_FILE),
+                    "utf8",
+                );
+                if (readMarkerRootFolder(marker) === folderPath) {
+                    return true;
+                }
+            } catch {
+                // No marker, or unreadable: not a configuration we can attribute to this folder.
+            }
         }
         return false;
     }
@@ -699,19 +963,32 @@ export class OverviewWebviewController extends WebviewPanelController<
      */
     private async applyDevContainerTemplate(
         templateId: DevContainerTemplateId,
+        options: Record<string, string> = {},
+        targetPath?: string,
     ): Promise<AddDevContainerConfigurationResult> {
-        const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-        if (!workspaceFolder) {
-            // The webview disables the templates without a folder; this covers a race.
-            await vscode.commands.executeCommand(DEV_CONTAINERS_CREATE_CONFIG_COMMAND);
-            return { applied: false, usedPicker: true };
+        let target: vscode.Uri;
+        let createdTarget: boolean;
+        try {
+            ({ uri: target, created: createdTarget } = await this.prepareDevContainerTarget(
+                templateId,
+                targetPath,
+            ));
+        } catch (error) {
+            this.logger.error("Could not prepare the dev container folder", error);
+            return {
+                applied: false,
+                usedPicker: false,
+                error: error instanceof Error ? error.message : String(error),
+            };
         }
+        const opensNewFolder = !this.canReopenCurrentFolder(target);
 
         const cliPath = this.findDevContainersCli();
         if (!cliPath) {
             this.logger.warn(
                 "Dev Containers CLI not found in the extension; falling back to its template picker.",
             );
+            await this.discardCreatedTarget(target, createdTarget);
             await vscode.commands.executeCommand(DEV_CONTAINERS_CREATE_CONFIG_COMMAND);
             return { applied: false, usedPicker: true };
         }
@@ -728,13 +1005,21 @@ export class OverviewWebviewController extends WebviewPanelController<
                 templateRegistryId(templateId),
                 "--workspace-folder",
                 stagingDirectory,
+                // The same flag the Dev Containers extension passes when it applies a template.
+                // An empty object is the CLI's own default, so every option keeps its default.
+                "--template-args",
+                JSON.stringify(options),
             ]);
 
             const files = this.parseAppliedTemplateFiles(output, stagingDirectory);
-            const destinations = await this.resolveTemplateDestinations(workspaceFolder.uri, files);
+            // Anchored to the folder being written to, not to the workspace: with a target
+            // outside any open folder, checking containment against the workspace would either
+            // reject every path or, with no workspace at all, check nothing.
+            const destinations = await this.resolveTemplateDestinations(target, files);
             const conflictChoices = await this.getTemplateFileConflictChoices(destinations);
             if (!conflictChoices) {
                 this.logger.info("Dev container setup canceled while resolving file conflicts.");
+                await this.discardCreatedTarget(target, createdTarget);
                 return {
                     applied: false,
                     usedPicker: false,
@@ -745,9 +1030,16 @@ export class OverviewWebviewController extends WebviewPanelController<
 
             await this.copyTemplateFiles(stagingDirectory, destinations, conflictChoices);
             await this.refreshWorkspaceState();
-            return { applied: true, usedPicker: false };
+            await this.rememberTargetParent(target);
+            return {
+                applied: true,
+                usedPicker: false,
+                targetPath: target.fsPath,
+                opensNewFolder,
+            };
         } catch (error) {
             this.logger.error("Failed to apply the dev container template", error);
+            await this.discardCreatedTarget(target, createdTarget);
             // Reported inline in the dialog rather than as a toast, so it sits with the step.
             return {
                 applied: false,
@@ -783,7 +1075,11 @@ export class OverviewWebviewController extends WebviewPanelController<
                 throw new Error("The Dev Containers CLI returned an invalid template file path.");
             }
 
-            const normalized = file.replaceAll("\\", "/");
+            // Collapsed before anything is built from it: the CLI reports its files as
+            // `./.gitattributes`, and carrying that `.` through left a path segment that is
+            // the directory it starts from, which the containment check below reads as an
+            // escape. Normalizing also folds away any `..` before the checks see the path.
+            const normalized = path.posix.normalize(file.replaceAll("\\", "/"));
             const sourcePath = path.resolve(stagingRoot, normalized);
             if (
                 path.posix.isAbsolute(normalized) ||
@@ -837,6 +1133,12 @@ export class OverviewWebviewController extends WebviewPanelController<
             const segments = relativePath.split("/");
             let directory = workspaceRoot;
             for (const segment of segments.slice(0, -1)) {
+                // Paths arrive normalized, so these are already gone; skipped rather than
+                // trusted, because a "." would resolve to the directory it starts from and
+                // read as an escape from it.
+                if (segment === "" || segment === ".") {
+                    continue;
+                }
                 const child = path.join(directory, segment);
                 // A component that does not exist yet cannot be a link to anywhere.
                 directory = await fs.promises.realpath(child).catch(() => child);
@@ -969,6 +1271,199 @@ export class OverviewWebviewController extends WebviewPanelController<
                 }
             }
         }
+    }
+
+    /**
+     * Proposes where a template should go.
+     *
+     * Every open folder is offered, so a multi-root window does not silently take the first.
+     * With nothing open this is a new folder named after the template, under the last used parent.
+     */
+    private async getDevContainerTarget(
+        templateId: DevContainerTemplateId,
+    ): Promise<DevContainerTarget> {
+        const parent =
+            this._context.globalState.get<string>(OverviewWebviewController._lastTargetParentKey) ??
+            os.homedir();
+        // Falls back rather than joining `undefined` into the path, which would throw and leave
+        // the page with no answer at all for a template id it does not recognise.
+        const folderName = templateRepositoryFolders[templateId] ?? "azure-sql";
+        return {
+            workspaceFolders: (vscode.workspace.workspaceFolders ?? []).map((folder) => ({
+                name: folder.name,
+                path: folder.uri.fsPath,
+            })),
+            newFolderPath: await uniqueFolderPath(parent, folderName),
+        };
+    }
+
+    /**
+     * Turns the requested path into a folder that exists, which is what the containment checks
+     * downstream resolve against.
+     *
+     * The path comes from the page, so it is required to be absolute and to be a directory: a
+     * relative path would resolve against whatever the extension host's working directory
+     * happens to be, and a file would make every destination under it nonsense.
+     */
+    private async prepareDevContainerTarget(
+        templateId: DevContainerTemplateId,
+        targetPath: string | undefined,
+    ): Promise<{ uri: vscode.Uri; created: boolean }> {
+        const requested = targetPath?.trim();
+        let resolved = requested;
+        if (!resolved) {
+            // The page always sends one; this is the default it would have been shown.
+            const target = await this.getDevContainerTarget(templateId);
+            resolved = target.workspaceFolders[0]?.path ?? target.newFolderPath;
+        }
+
+        if (!path.isAbsolute(resolved) || resolved.includes("\0")) {
+            throw new Error(`Dev container folder is not an absolute path: ${resolved}`);
+        }
+
+        // Recorded so a failed apply can take back the folder it made. Without it, every
+        // attempt that got this far left an empty directory behind -- and the next proposal
+        // stepped past it, so retrying walked up `dotnet`, `dotnet-2`, `dotnet-3`.
+        const existed = await fs.promises
+            .stat(resolved)
+            .then(() => true)
+            .catch(() => false);
+
+        await fs.promises.mkdir(resolved, { recursive: true });
+        const stats = await fs.promises.stat(resolved);
+        if (!stats.isDirectory()) {
+            throw new Error(`Dev container folder is not a directory: ${resolved}`);
+        }
+        return { uri: vscode.Uri.file(resolved), created: !existed };
+    }
+
+    /**
+     * Takes back a folder this run created, when nothing ended up in it.
+     *
+     * `rmdir` rather than a recursive delete, and only for a folder we made: it fails on a
+     * directory with anything in it, so a partial write or a folder the user already had is
+     * left alone rather than being cleaned up on their behalf.
+     */
+    private async discardCreatedTarget(target: vscode.Uri, created: boolean): Promise<void> {
+        if (!created) {
+            return;
+        }
+        try {
+            await fs.promises.rmdir(target.fsPath);
+        } catch {
+            // Not empty, or already gone: either way there is nothing safe to remove.
+        }
+    }
+
+    /** True when the target is one of the folders open in this window. */
+    private isOpenWorkspaceFolder(target: vscode.Uri): boolean {
+        return (vscode.workspace.workspaceFolders ?? []).some(
+            (folder) => folder.uri.fsPath === target.fsPath,
+        );
+    }
+
+    /** True only when Dev Containers' reopen command will use this exact folder. */
+    private canReopenCurrentFolder(target: vscode.Uri): boolean {
+        return (
+            vscode.workspace.workspaceFile === undefined &&
+            vscode.workspace.workspaceFolders?.length === 1 &&
+            this.isOpenWorkspaceFolder(target)
+        );
+    }
+
+    /**
+     * Remembers where the user scaffolded, so the next template starts from the same place.
+     *
+     * Only for a folder they chose: remembering the parent of a workspace they already had open
+     * would propose its siblings, which has nothing to do with where they keep new projects.
+     */
+    private async rememberTargetParent(target: vscode.Uri): Promise<void> {
+        if (this.isOpenWorkspaceFolder(target)) {
+            return;
+        }
+        await this._context.globalState.update(
+            OverviewWebviewController._lastTargetParentKey,
+            path.dirname(target.fsPath),
+        );
+    }
+
+    /**
+     * Reads the options a template declares, keeping only what the dialog can render: string
+     * options with more than one suggested value. A single-valued option is not a choice, and
+     * booleans and free-form strings have no control here yet.
+     *
+     * Failure is reported as "no options" rather than as an error. This is a registry fetch, so
+     * it is unavailable offline, and the template still applies with its defaults -- losing the
+     * dropdown is a smaller cost than losing the flow.
+     */
+    private async getDevContainerTemplateOptions(
+        templateId: DevContainerTemplateId,
+    ): Promise<DevContainerTemplateOption[]> {
+        const registryId = templateRegistryId(templateId);
+        const cached = this._templateOptions.get(registryId);
+        if (cached) {
+            return cached;
+        }
+
+        const cliPath = this.findDevContainersCli();
+        if (!cliPath) {
+            return [];
+        }
+
+        let metadata: unknown;
+        try {
+            const output = await this.runDevContainersCli(cliPath, [
+                "templates",
+                "metadata",
+                registryId,
+            ]);
+            // The CLI writes its banner to stderr and the document to stdout, but it is read the
+            // same way the apply output is: the last non-empty line, so a stray line cannot
+            // break the parse.
+            const line = output
+                .split(/\r?\n/)
+                .map((entry) => entry.trim())
+                .filter(Boolean)
+                .at(-1);
+            metadata = line ? JSON.parse(line) : undefined;
+        } catch (error) {
+            this.logger.warn(
+                `Could not read options for dev container template '${registryId}': ${
+                    error instanceof Error ? error.message : String(error)
+                }`,
+            );
+            return [];
+        }
+
+        const options = parseTemplateOptions(metadata);
+        this._templateOptions.set(registryId, options);
+        return options;
+    }
+
+    /**
+     * Narrows what the page asked for to what the template actually declares.
+     *
+     * The values are substituted into the template's files, so they are checked against the
+     * template's own list rather than trusted: an unknown key or an unlisted value is dropped and
+     * that option keeps its default.
+     */
+    private async resolveTemplateOptions(
+        templateId: DevContainerTemplateId,
+        requested: Record<string, string> | undefined,
+    ): Promise<Record<string, string>> {
+        if (!requested || Object.keys(requested).length === 0) {
+            return {};
+        }
+
+        const declared = await this.getDevContainerTemplateOptions(templateId);
+        const resolved: Record<string, string> = {};
+        for (const option of declared) {
+            const value = requested[option.id];
+            if (value !== undefined && option.values.includes(value)) {
+                resolved[option.id] = value;
+            }
+        }
+        return resolved;
     }
 
     /** Resolves the bundled spec CLI, or undefined when the extension no longer ships it there. */

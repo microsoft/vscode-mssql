@@ -4295,10 +4295,38 @@ export class LocConstants {
             devContainerDotNetAspire: l10n.t(".NET Aspire + Azure SQL"),
             devContainerNode: l10n.t("Node.js + Azure SQL"),
             devContainerPython: l10n.t("Python + Azure SQL"),
+            // The stack each template sets up, shown under its name in the setup dialog.
+            devContainerDotNetSubtitle: l10n.t("Dev container \u00b7 C# \u00b7 .NET"),
+            devContainerDotNetAspireSubtitle: l10n.t("Dev container \u00b7 C# \u00b7 Aspire"),
+            devContainerNodeSubtitle: l10n.t("Dev container \u00b7 JavaScript \u00b7 Node.js"),
+            devContainerPythonSubtitle: l10n.t("Dev container \u00b7 Python"),
             devContainersLearnMore: l10n.t("Learn more about dev containers for Azure SQL"),
             viewOnGitHub: l10n.t("View on GitHub"),
 
             prerequisites: l10n.t("Prerequisites"),
+            showLog: l10n.t("Show log"),
+            templateLocation: l10n.t("Location"),
+            locationWorkspace: l10n.t("Add configuration to the folder you have open"),
+            locationWorkspaceDescription: l10n.t(
+                "Shares the configuration with others through source control",
+            ),
+            locationNewFolder: l10n.t("Create a new project folder"),
+            locationNewFolderDescription: l10n.t("Sets the project up somewhere else and opens it"),
+            // Says what the folder is for without promising it exists yet: with nothing open,
+            // this is a folder that gets created when the template is applied.
+            templateLocationDescription: l10n.t("Where the project will be created."),
+            templateLocationCurrentWorkspace: l10n.t("The folder you have open."),
+            browse: l10n.t("Browse..."),
+            templateOptions: l10n.t("Options"),
+            // The template supplies its own label for each option, such as ".NET version:". This
+            // is the fallback for one that does not, and for the control's accessible name.
+            templateOption: l10n.t("Version"),
+            templateOptionDefault: (value: string) =>
+                l10n.t({
+                    message: "{0} (default)",
+                    args: [value],
+                    comment: ["{0} is a template option value, such as a version number"],
+                }),
             prerequisiteDocker: l10n.t("Docker Desktop"),
             prerequisiteDockerDescription: l10n.t("Required for running containers."),
             prerequisiteDevContainers: l10n.t("Dev Containers extension"),

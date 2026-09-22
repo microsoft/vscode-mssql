@@ -3622,6 +3622,8 @@ export class Overview {
         "The Dev Containers extension is required to reopen this folder in a container.",
     );
     public static InstallDevContainersExtension = l10n.t("Install");
+    /** Confirm button in the folder picker the dev container Location field opens. */
+    public static SelectDevContainerFolder = l10n.t("Select Folder");
     public static ShortcutExecuteQuery = l10n.t("Execute query");
     public static ShortcutConnect = l10n.t("Connect");
     public static ShortcutDisconnect = l10n.t("Disconnect");

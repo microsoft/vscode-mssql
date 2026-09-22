@@ -150,6 +150,8 @@ export function getAgentSkillPacks(): AgentSkillPack[] {
 export interface DevContainerTemplate {
     id: DevContainerTemplateId;
     name: string;
+    /** The stack behind the name, shown under the title in the setup dialog. */
+    subtitle: string;
     /** Folder under the azuresql-devcontainers repository that holds the template. */
     repositoryFolder: string;
 }
@@ -160,21 +162,25 @@ export function getDevContainerTemplates(): DevContainerTemplate[] {
         {
             id: DevContainerTemplateId.DotNet,
             name: loc.devContainerDotNet,
+            subtitle: loc.devContainerDotNetSubtitle,
             repositoryFolder: "dotnet",
         },
         {
             id: DevContainerTemplateId.DotNetAspire,
             name: loc.devContainerDotNetAspire,
+            subtitle: loc.devContainerDotNetAspireSubtitle,
             repositoryFolder: "dotnet-aspire",
         },
         {
             id: DevContainerTemplateId.Node,
             name: loc.devContainerNode,
+            subtitle: loc.devContainerNodeSubtitle,
             repositoryFolder: "javascript-node",
         },
         {
             id: DevContainerTemplateId.Python,
             name: loc.devContainerPython,
+            subtitle: loc.devContainerPythonSubtitle,
             repositoryFolder: "python",
         },
     ];

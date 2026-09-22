@@ -40,14 +40,24 @@ suite("Overview Webview Controller", () => {
     let agentSkillsInstalledStub: sinon.SinonStub;
     let agentSkillsInstallStub: sinon.SinonStub;
     let temporaryDirectories: string[];
+    let globalStateValues: Map<string, unknown>;
+    let globalStorageRoot: string;
 
     function createController(): OverviewWebviewController {
         const created = new OverviewWebviewController(
             {
                 extensionUri: vscode.Uri.parse("file:///extension"),
                 extensionPath: "extension",
-                globalStorageUri: vscode.Uri.file("globalStorage"),
-            } as vscode.ExtensionContext,
+                globalStorageUri: vscode.Uri.file(globalStorageRoot),
+                // Backs the remembered parent folder for dev container scaffolding.
+                globalState: {
+                    get: (key: string) => globalStateValues.get(key),
+                    update: (key: string, value: unknown) => {
+                        globalStateValues.set(key, value);
+                        return Promise.resolve();
+                    },
+                },
+            } as unknown as vscode.ExtensionContext,
             {
                 getRecentFiles: recentFilesStub,
                 onDidChange: storeChangeEvent.event,
@@ -77,6 +87,8 @@ suite("Overview Webview Controller", () => {
         agentSkillsInstalledStub = sinon.stub().resolves(false);
         agentSkillsInstallStub = sinon.stub().resolves(true);
         temporaryDirectories = [];
+        globalStateValues = new Map<string, unknown>();
+        globalStorageRoot = "globalStorage";
         sandbox.stub(vscode.commands, "executeCommand").resolves();
     });
 
@@ -112,7 +124,9 @@ suite("Overview Webview Controller", () => {
                     await fs.promises.mkdir(path.dirname(destination), { recursive: true });
                     await fs.promises.writeFile(destination, contents);
                 }
-                return `${JSON.stringify({ files: Object.keys(files) })}\n`;
+                // Prefixed the way the real CLI reports them -- "./.gitattributes", not
+                // ".gitattributes" -- so the stub cannot pass paths the real one never sends.
+                return `${JSON.stringify({ files: Object.keys(files).map((file) => `./${file}`) })}\n`;
             });
     }
 
@@ -215,7 +229,13 @@ suite("Overview Webview Controller", () => {
 
         const result = await controller["applyDevContainerTemplate"](DevContainerTemplateId.DotNet);
 
-        expect(result).to.deep.equal({ applied: true, usedPicker: false });
+        expect(result).to.deep.equal({
+            applied: true,
+            usedPicker: false,
+            targetPath: workspaceRoot,
+            // Written into the folder already open, so nothing has to be opened afterwards.
+            opensNewFolder: false,
+        });
         expect(await fs.promises.readFile(tasksPath, "utf8")).to.equal("user tasks");
         expect(
             await fs.promises.readFile(
@@ -242,7 +262,13 @@ suite("Overview Webview Controller", () => {
 
         const result = await controller["applyDevContainerTemplate"](DevContainerTemplateId.DotNet);
 
-        expect(result).to.deep.equal({ applied: true, usedPicker: false });
+        expect(result).to.deep.equal({
+            applied: true,
+            usedPicker: false,
+            targetPath: workspaceRoot,
+            // Written into the folder already open, so nothing has to be opened afterwards.
+            opensNewFolder: false,
+        });
         expect(await fs.promises.readFile(tasksPath, "utf8")).to.equal("template tasks");
     });
 
@@ -395,7 +421,13 @@ suite("Overview Webview Controller", () => {
 
         const result = await controller["applyDevContainerTemplate"](DevContainerTemplateId.DotNet);
 
-        expect(result).to.deep.equal({ applied: true, usedPicker: false });
+        expect(result).to.deep.equal({
+            applied: true,
+            usedPicker: false,
+            targetPath: workspaceRoot,
+            // Written into the folder already open, so nothing has to be opened afterwards.
+            opensNewFolder: false,
+        });
         expect(prompt).to.have.been.calledOnce;
         expect(await fs.promises.readFile(devcontainerPath, "utf8")).to.equal(
             "template devcontainer",
@@ -439,7 +471,13 @@ suite("Overview Webview Controller", () => {
 
         const result = await controller["applyDevContainerTemplate"](DevContainerTemplateId.DotNet);
 
-        expect(result).to.deep.equal({ applied: true, usedPicker: false });
+        expect(result).to.deep.equal({
+            applied: true,
+            usedPicker: false,
+            targetPath: workspaceRoot,
+            // Written into the folder already open, so nothing has to be opened afterwards.
+            opensNewFolder: false,
+        });
         expect(
             await fs.promises.readFile(
                 path.join(workspaceRoot, ".devcontainer", "devcontainer.json"),
@@ -449,6 +487,540 @@ suite("Overview Webview Controller", () => {
         expect(
             await fs.promises.readFile(path.join(workspaceRoot, ".vscode", "tasks.json"), "utf8"),
         ).to.equal("template tasks");
+    });
+
+    suite("configuration stored outside the folder", () => {
+        /**
+         * Writes a configuration into the Dev Containers extension's store the way it does:
+         * a folder named after the workspace, holding a marker naming the folder it belongs to.
+         */
+        async function storeUserDataConfig(
+            storageParent: string,
+            entryName: string,
+            rootFolder: string,
+        ): Promise<void> {
+            const directory = path.join(
+                storageParent,
+                "ms-vscode-remote.remote-containers",
+                "configs",
+                entryName,
+            );
+            await fs.promises.mkdir(directory, { recursive: true });
+            await fs.promises.writeFile(
+                path.join(directory, ".devcontainer-internal.json"),
+                // Byte for byte what the extension writes, including the line comment that
+                // swallows the opening brace.
+                `// Maintained by the Dev Container extension ${JSON.stringify(
+                    { rootFolder },
+                    undefined,
+                    "\t",
+                )}`,
+            );
+        }
+
+        /** The storage folder holding both extensions' directories as siblings. */
+        async function createStorageParent(): Promise<string> {
+            const parent = await createTemporaryDirectory("mssql-overview-storage-");
+            globalStorageRoot = path.join(parent, "ms-mssql.mssql");
+            return parent;
+        }
+
+        test("finds a configuration the Dev Containers extension holds for the folder", async () => {
+            const workspaceRoot = await createTemporaryDirectory("mssql-overview-userdata-");
+            const storageParent = await createStorageParent();
+            await storeUserDataConfig(storageParent, path.basename(workspaceRoot), workspaceRoot);
+            controller = createController();
+
+            const found = await controller["findUserDataDevContainerConfig"](workspaceRoot);
+
+            expect(found).to.be.true;
+        });
+
+        test("matches a configuration stored under a collision suffix", async () => {
+            const workspaceRoot = await createTemporaryDirectory("mssql-overview-suffix-");
+            const storageParent = await createStorageParent();
+            // Another folder of the same name claimed the unsuffixed entry first.
+            await storeUserDataConfig(
+                storageParent,
+                path.basename(workspaceRoot),
+                "/somewhere/else",
+            );
+            await storeUserDataConfig(
+                storageParent,
+                `${path.basename(workspaceRoot)}-2`,
+                workspaceRoot,
+            );
+            controller = createController();
+
+            expect(await controller["findUserDataDevContainerConfig"](workspaceRoot)).to.be.true;
+        });
+
+        test("ignores a configuration belonging to a different folder", async () => {
+            const workspaceRoot = await createTemporaryDirectory("mssql-overview-other-");
+            const storageParent = await createStorageParent();
+            // Same last path segment, different folder: the marker is what tells them apart.
+            await storeUserDataConfig(
+                storageParent,
+                path.basename(workspaceRoot),
+                path.join("/elsewhere", path.basename(workspaceRoot)),
+            );
+            controller = createController();
+
+            expect(await controller["findUserDataDevContainerConfig"](workspaceRoot)).to.be.false;
+        });
+
+        test("reports nothing when no configuration has ever been stored", async () => {
+            const workspaceRoot = await createTemporaryDirectory("mssql-overview-nostore-");
+            await createStorageParent();
+            controller = createController();
+
+            expect(await controller["findUserDataDevContainerConfig"](workspaceRoot)).to.be.false;
+        });
+
+        test("reports a folder as configured when only the stored copy exists", async () => {
+            const workspaceRoot = await createTemporaryDirectory("mssql-overview-state-");
+            const storageParent = await createStorageParent();
+            await storeUserDataConfig(storageParent, path.basename(workspaceRoot), workspaceRoot);
+            sandbox
+                .stub(vscode.workspace, "workspaceFolders")
+                .value([{ index: 0, name: "workspace", uri: vscode.Uri.file(workspaceRoot) }]);
+            controller = createController();
+
+            // Nothing in the folder itself, so the old check said there was no dev container.
+            const found = await controller["findDevContainerConfig"]([
+                { index: 0, name: "workspace", uri: vscode.Uri.file(workspaceRoot) },
+            ] as vscode.WorkspaceFolder[]);
+
+            expect(found).to.be.true;
+        });
+    });
+
+    suite("scaffolding location", () => {
+        test("proposes the open folder when there is one", async () => {
+            const workspaceRoot = await createTemporaryDirectory("mssql-overview-target-open-");
+            sandbox
+                .stub(vscode.workspace, "workspaceFolders")
+                .value([{ index: 0, name: "workspace", uri: vscode.Uri.file(workspaceRoot) }]);
+            controller = createController();
+
+            const target = await controller["getDevContainerTarget"](DevContainerTemplateId.DotNet);
+
+            expect(target.workspaceFolders).to.deep.equal([
+                { name: "workspace", path: workspaceRoot },
+            ]);
+            // The other option is proposed too, so choosing it needs no second round trip.
+            expect(target.newFolderPath).to.be.a("string").and.not.equal(workspaceRoot);
+        });
+
+        test("proposes a new folder under the remembered parent when nothing is open", async () => {
+            const parent = await createTemporaryDirectory("mssql-overview-target-parent-");
+            sandbox.stub(vscode.workspace, "workspaceFolders").value(undefined);
+            controller = createController();
+            globalStateValues.set("mssql.overview.devContainerTargetParent", parent);
+
+            const target = await controller["getDevContainerTarget"](DevContainerTemplateId.DotNet);
+
+            // Named after the template's own folder, so the four templates do not collide.
+            expect(target.newFolderPath).to.equal(path.join(parent, "dotnet"));
+            expect(target.workspaceFolders).to.deep.equal([]);
+        });
+
+        test("offers every open workspace folder in a multi-root window", async () => {
+            const first = await createTemporaryDirectory("mssql-overview-target-first-");
+            const second = await createTemporaryDirectory("mssql-overview-target-second-");
+            sandbox.stub(vscode.workspace, "workspaceFolders").value([
+                { index: 0, name: "first", uri: vscode.Uri.file(first) },
+                { index: 1, name: "second", uri: vscode.Uri.file(second) },
+            ]);
+            controller = createController();
+            stubTemplateApplication({ ".devcontainer/devcontainer.json": "{}" });
+
+            const target = await controller["getDevContainerTarget"](DevContainerTemplateId.DotNet);
+            expect(target.workspaceFolders).to.deep.equal([
+                { name: "first", path: first },
+                { name: "second", path: second },
+            ]);
+
+            const result = await controller["applyDevContainerTemplate"](
+                DevContainerTemplateId.DotNet,
+                {},
+                second,
+            );
+            expect(result.applied).to.be.true;
+            expect(result.opensNewFolder).to.be.true;
+            expect(
+                await fs.promises.readFile(
+                    path.join(second, ".devcontainer", "devcontainer.json"),
+                    "utf8",
+                ),
+            ).to.equal("{}");
+            expect(
+                await fs.promises.stat(path.join(first, ".devcontainer")).then(
+                    () => true,
+                    () => false,
+                ),
+            ).to.be.false;
+        });
+
+        test("steps past a proposed folder that already exists", async () => {
+            const parent = await createTemporaryDirectory("mssql-overview-target-taken-");
+            await fs.promises.mkdir(path.join(parent, "dotnet"));
+            sandbox.stub(vscode.workspace, "workspaceFolders").value(undefined);
+            controller = createController();
+            globalStateValues.set("mssql.overview.devContainerTargetParent", parent);
+
+            const target = await controller["getDevContainerTarget"](DevContainerTemplateId.DotNet);
+
+            expect(target.newFolderPath).to.equal(path.join(parent, "dotnet-2"));
+        });
+
+        test("creates the chosen folder and writes the template into it", async () => {
+            const parent = await createTemporaryDirectory("mssql-overview-target-create-");
+            const destination = path.join(parent, "new-project");
+            sandbox.stub(vscode.workspace, "workspaceFolders").value(undefined);
+            controller = createController();
+            stubTemplateApplication({
+                ".devcontainer/devcontainer.json": '{ "name": "Azure SQL" }',
+            });
+
+            const result = await controller["applyDevContainerTemplate"](
+                DevContainerTemplateId.DotNet,
+                {},
+                destination,
+            );
+
+            expect(result.applied).to.be.true;
+            expect(result.targetPath).to.equal(destination);
+            // Nothing is open, so this is a folder the user will have to be taken to.
+            expect(result.opensNewFolder).to.be.true;
+            expect(
+                await fs.promises.readFile(
+                    path.join(destination, ".devcontainer", "devcontainer.json"),
+                    "utf8",
+                ),
+            ).to.equal('{ "name": "Azure SQL" }');
+        });
+
+        test("takes back a folder it created when the template cannot be applied", async () => {
+            const parent = await createTemporaryDirectory("mssql-overview-discard-");
+            const destination = path.join(parent, "project");
+            sandbox.stub(vscode.workspace, "workspaceFolders").value(undefined);
+            controller = createController();
+            sandbox
+                .stub(controller as unknown as Record<string, unknown>, "findDevContainersCli")
+                .returns("/fake/devContainersSpecCLI.js");
+            sandbox
+                .stub(controller as unknown as Record<string, unknown>, "runDevContainersCli")
+                .rejects(new Error("apply failed"));
+
+            const result = await controller["applyDevContainerTemplate"](
+                DevContainerTemplateId.DotNet,
+                {},
+                destination,
+            );
+
+            expect(result.applied).to.be.false;
+            // Otherwise every failed attempt leaves an empty folder, and the next proposal
+            // steps past it: dotnet, dotnet-2, dotnet-3.
+            expect(
+                await fs.promises
+                    .stat(destination)
+                    .then(() => true)
+                    .catch(() => false),
+            ).to.be.false;
+        });
+
+        test("leaves a folder the user already had, even when the apply fails", async () => {
+            const parent = await createTemporaryDirectory("mssql-overview-keep-");
+            const destination = path.join(parent, "existing");
+            await fs.promises.mkdir(destination);
+            sandbox.stub(vscode.workspace, "workspaceFolders").value(undefined);
+            controller = createController();
+            sandbox
+                .stub(controller as unknown as Record<string, unknown>, "findDevContainersCli")
+                .returns("/fake/devContainersSpecCLI.js");
+            sandbox
+                .stub(controller as unknown as Record<string, unknown>, "runDevContainersCli")
+                .rejects(new Error("apply failed"));
+
+            await controller["applyDevContainerTemplate"](
+                DevContainerTemplateId.DotNet,
+                {},
+                destination,
+            );
+
+            expect(
+                await fs.promises
+                    .stat(destination)
+                    .then(() => true)
+                    .catch(() => false),
+            ).to.be.true;
+        });
+
+        test("refuses a location that is not an absolute path", async () => {
+            sandbox.stub(vscode.workspace, "workspaceFolders").value(undefined);
+            controller = createController();
+            stubTemplateApplication({ ".devcontainer/devcontainer.json": "{}" });
+
+            const result = await controller["applyDevContainerTemplate"](
+                DevContainerTemplateId.DotNet,
+                {},
+                "relative/path",
+            );
+
+            // A relative path would resolve against the extension host's working directory.
+            expect(result.applied).to.be.false;
+            expect(result.error).to.contain("absolute");
+        });
+
+        test("confines the write to the chosen folder, not to the workspace", async () => {
+            const parent = await createTemporaryDirectory("mssql-overview-target-symlink-");
+            const destination = path.join(parent, "project");
+            const outside = path.join(parent, "outside");
+            await fs.promises.mkdir(destination);
+            await fs.promises.mkdir(outside);
+            // A template directory that is a link out of the chosen folder: the containment
+            // check has to anchor to that folder, since there is no workspace here at all.
+            await fs.promises.symlink(outside, path.join(destination, ".devcontainer"));
+            sandbox.stub(vscode.workspace, "workspaceFolders").value(undefined);
+            controller = createController();
+            stubTemplateApplication({ ".devcontainer/devcontainer.json": "{}" });
+
+            const result = await controller["applyDevContainerTemplate"](
+                DevContainerTemplateId.DotNet,
+                {},
+                destination,
+            );
+
+            expect(result.applied).to.be.false;
+            expect(
+                await fs.promises
+                    .stat(path.join(outside, "devcontainer.json"))
+                    .then(() => true)
+                    .catch(() => false),
+            ).to.be.false;
+        });
+
+        test("remembers the parent of a folder the user chose", async () => {
+            const parent = await createTemporaryDirectory("mssql-overview-target-remember-");
+            const destination = path.join(parent, "project");
+            sandbox.stub(vscode.workspace, "workspaceFolders").value(undefined);
+            controller = createController();
+            stubTemplateApplication({ ".devcontainer/devcontainer.json": "{}" });
+
+            await controller["applyDevContainerTemplate"](
+                DevContainerTemplateId.DotNet,
+                {},
+                destination,
+            );
+
+            expect(globalStateValues.get("mssql.overview.devContainerTargetParent")).to.equal(
+                parent,
+            );
+        });
+
+        test("does not remember anything when scaffolding into the open folder", async () => {
+            const workspaceRoot = await createTemporaryDirectory("mssql-overview-target-ws-");
+            sandbox
+                .stub(vscode.workspace, "workspaceFolders")
+                .value([{ index: 0, name: "workspace", uri: vscode.Uri.file(workspaceRoot) }]);
+            controller = createController();
+            stubTemplateApplication({ ".devcontainer/devcontainer.json": "{}" });
+
+            const result = await controller["applyDevContainerTemplate"](
+                DevContainerTemplateId.DotNet,
+            );
+
+            // The siblings of a folder they already had open say nothing about where they keep
+            // new projects.
+            expect(globalStateValues.has("mssql.overview.devContainerTargetParent")).to.be.false;
+            expect(result.opensNewFolder).to.be.false;
+        });
+    });
+
+    suite("template options", () => {
+        /** Stubs the metadata call with a document shaped like the registry's own. */
+        function stubTemplateMetadata(metadata: unknown): sinon.SinonStub {
+            sandbox
+                .stub(controller as unknown as Record<string, unknown>, "findDevContainersCli")
+                .returns("/fake/devContainersSpecCLI.js");
+            return sandbox
+                .stub(controller as unknown as Record<string, unknown>, "runDevContainersCli")
+                .resolves(`${JSON.stringify(metadata)}\n`);
+        }
+
+        test("offers only the string options that carry a choice", async () => {
+            controller = createController();
+            stubTemplateMetadata({
+                options: {
+                    imageVariant: {
+                        type: "string",
+                        description: ".NET version:",
+                        proposals: ["10.0-noble", "8.0-noble"],
+                        default: "10.0-noble",
+                    },
+                    // One value is not a choice.
+                    onlyOne: { type: "string", proposals: ["sole"], default: "sole" },
+                    // Booleans have no control in the dialog yet.
+                    installAzd: { type: "boolean", default: true },
+                    // A closed list is offered the same way a suggested one is.
+                    edition: { type: "string", enum: ["developer", "express"] },
+                },
+            });
+
+            const options = await controller["getDevContainerTemplateOptions"](
+                DevContainerTemplateId.DotNet,
+            );
+
+            expect(options).to.deep.equal([
+                {
+                    id: "imageVariant",
+                    label: ".NET version:",
+                    defaultValue: "10.0-noble",
+                    values: ["10.0-noble", "8.0-noble"],
+                },
+                {
+                    // No description, so the key stands in as the label.
+                    id: "edition",
+                    label: "edition",
+                    defaultValue: "developer",
+                    values: ["developer", "express"],
+                },
+            ]);
+        });
+
+        test("falls back to the first value when the declared default is not one of them", async () => {
+            controller = createController();
+            stubTemplateMetadata({
+                options: {
+                    imageVariant: {
+                        type: "string",
+                        proposals: ["10.0-noble", "8.0-noble"],
+                        default: "9.0-retired",
+                    },
+                },
+            });
+
+            const options = await controller["getDevContainerTemplateOptions"](
+                DevContainerTemplateId.DotNet,
+            );
+
+            expect(options[0].defaultValue).to.equal("10.0-noble");
+        });
+
+        test("reports no options when the metadata cannot be read", async () => {
+            controller = createController();
+            sandbox
+                .stub(controller as unknown as Record<string, unknown>, "findDevContainersCli")
+                .returns("/fake/devContainersSpecCLI.js");
+            sandbox
+                .stub(controller as unknown as Record<string, unknown>, "runDevContainersCli")
+                .rejects(new Error("offline"));
+
+            const options = await controller["getDevContainerTemplateOptions"](
+                DevContainerTemplateId.DotNet,
+            );
+
+            // Applying with defaults still works, so an unreadable registry costs the dropdown
+            // rather than the flow.
+            expect(options).to.deep.equal([]);
+        });
+
+        test("reads a template's metadata once", async () => {
+            controller = createController();
+            const run = stubTemplateMetadata({
+                options: {
+                    imageVariant: { type: "string", proposals: ["a", "b"], default: "a" },
+                },
+            });
+
+            await controller["getDevContainerTemplateOptions"](DevContainerTemplateId.DotNet);
+            await controller["getDevContainerTemplateOptions"](DevContainerTemplateId.DotNet);
+
+            expect(run).to.have.been.calledOnce;
+        });
+
+        test("keeps only the values the template declares", async () => {
+            controller = createController();
+            stubTemplateMetadata({
+                options: {
+                    imageVariant: {
+                        type: "string",
+                        proposals: ["10.0-noble", "8.0-noble"],
+                        default: "10.0-noble",
+                    },
+                },
+            });
+
+            const resolved = await controller["resolveTemplateOptions"](
+                DevContainerTemplateId.DotNet,
+                {
+                    imageVariant: "8.0-noble",
+                    // Not declared by the template.
+                    somethingElse: "value",
+                },
+            );
+
+            expect(resolved).to.deep.equal({ imageVariant: "8.0-noble" });
+        });
+
+        test("drops a value the template does not list", async () => {
+            controller = createController();
+            stubTemplateMetadata({
+                options: {
+                    imageVariant: {
+                        type: "string",
+                        proposals: ["10.0-noble", "8.0-noble"],
+                        default: "10.0-noble",
+                    },
+                },
+            });
+
+            // The values are substituted into the template's files, so an unlisted one is
+            // refused rather than passed through; the option keeps its default.
+            const resolved = await controller["resolveTemplateOptions"](
+                DevContainerTemplateId.DotNet,
+                { imageVariant: "$(whoami)" },
+            );
+
+            expect(resolved).to.deep.equal({});
+        });
+
+        test("passes the chosen options to the CLI as template arguments", async () => {
+            const workspaceRoot = await createTemporaryDirectory("mssql-overview-args-");
+            sandbox
+                .stub(vscode.workspace, "workspaceFolders")
+                .value([{ index: 0, name: "workspace", uri: vscode.Uri.file(workspaceRoot) }]);
+            controller = createController();
+            const run = stubTemplateApplication({
+                ".devcontainer/devcontainer.json": '{ "name": "Azure SQL" }',
+            });
+
+            await controller["applyDevContainerTemplate"](DevContainerTemplateId.DotNet, {
+                imageVariant: "8.0-noble",
+            });
+
+            const args = run.firstCall.args[1] as string[];
+            expect(args[args.indexOf("--template-args") + 1]).to.equal(
+                JSON.stringify({ imageVariant: "8.0-noble" }),
+            );
+        });
+
+        test("passes an empty argument object when nothing was chosen", async () => {
+            const workspaceRoot = await createTemporaryDirectory("mssql-overview-noargs-");
+            sandbox
+                .stub(vscode.workspace, "workspaceFolders")
+                .value([{ index: 0, name: "workspace", uri: vscode.Uri.file(workspaceRoot) }]);
+            controller = createController();
+            const run = stubTemplateApplication({
+                ".devcontainer/devcontainer.json": '{ "name": "Azure SQL" }',
+            });
+
+            await controller["applyDevContainerTemplate"](DevContainerTemplateId.DotNet);
+
+            const args = run.firstCall.args[1] as string[];
+            expect(args[args.indexOf("--template-args") + 1]).to.equal("{}");
+        });
     });
 
     test("exclusive copy refuses a destination created after the preflight check", async () => {

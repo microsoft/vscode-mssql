@@ -170,6 +170,52 @@ export namespace RunChangelogActionFromOverviewRequest {
 
 export interface AddDevContainerConfigurationRequestParams {
     templateId: DevContainerTemplateId;
+    /**
+     * Folder the template is written into. Created when it does not exist yet, which is what
+     * lets the flow run with no folder open. Defaults to the open folder when omitted.
+     */
+    targetPath?: string;
+    /**
+     * Chosen value for each of the template's options, keyed by {@link
+     * DevContainerTemplateOption.id}. Omitted options take the template's own default. The
+     * controller re-validates these against the template's metadata before they reach the CLI.
+     */
+    options?: Record<string, string>;
+}
+
+/**
+ * One value a dev container template lets the caller choose, narrowed to what the dialog renders.
+ *
+ * Templates may declare boolean and free-form string options too; only string options with more
+ * than one suggested value are worth a control, so the controller filters the rest out.
+ */
+export interface DevContainerTemplateOption {
+    /** The option's key in the template, passed back as a `--template-args` field. */
+    id: string;
+    /** The template's own label for it, such as ".NET version:". */
+    label: string;
+    /** Value applied when the user chooses nothing. Always one of {@link values}. */
+    defaultValue: string;
+    /** Values the template suggests, in the order it lists them. */
+    values: string[];
+}
+
+export interface GetDevContainerTemplateOptionsRequestParams {
+    templateId: DevContainerTemplateId;
+}
+
+/**
+ * Reads the options a template declares, so the dialog can offer them before scaffolding.
+ *
+ * Answers with an empty list when the metadata cannot be read -- it is a registry fetch, and an
+ * offline user should still be able to apply the template with its defaults.
+ */
+export namespace GetDevContainerTemplateOptionsRequest {
+    export const type = new RequestType<
+        GetDevContainerTemplateOptionsRequestParams,
+        DevContainerTemplateOption[],
+        void
+    >("overview/getDevContainerTemplateOptions");
 }
 
 /** Re-runs the dev container prerequisite checks and reports where each one stands. */
@@ -226,6 +272,16 @@ export namespace SendOverviewTelemetryRequest {
     );
 }
 
+/**
+ * Reveals the extension's output channel.
+ *
+ * The dialog reports that scaffolding failed without the underlying message, which names paths
+ * and is not localized. This is how the user reaches the reason behind that.
+ */
+export namespace ShowOverviewLogRequest {
+    export const type = new RequestType<void, void, void>("overview/showLog");
+}
+
 /** Opens VS Code's folder picker, so a dev container configuration has somewhere to go. */
 export namespace OpenFolderRequest {
     export const type = new RequestType<void, void, void>("overview/openFolder");
@@ -244,6 +300,10 @@ export interface AddDevContainerConfigurationResult {
     conflict?: boolean;
     /** Failure reason, when the configuration could not be written. */
     error?: string;
+    /** Folder the configuration was written into, when one was. */
+    targetPath?: string;
+    /** True when {@link targetPath} is not a folder currently open in the window. */
+    opensNewFolder?: boolean;
 }
 
 /** Writes the chosen template's configuration into the open folder. */
@@ -287,7 +347,58 @@ export namespace GetAgentSkillsCatalogRequest {
     );
 }
 
+export interface ReopenInContainerRequestParams {
+    /**
+     * Folder to open in a container. A single open folder can reattach the current window;
+     * another folder, or a selected root from a multi-root workspace, opens directly.
+     */
+    folderPath?: string;
+}
+
 /** Rebuilds and reattaches the window inside the folder's dev container. */
 export namespace ReopenInContainerRequest {
-    export const type = new RequestType<void, void, void>("overview/reopenInContainer");
+    export const type = new RequestType<ReopenInContainerRequestParams, void, void>(
+        "overview/reopenInContainer",
+    );
+}
+
+/** The places a template could be written, for the dialog to offer as a choice. */
+export interface DevContainerTarget {
+    /** Open folders in display order. The user chooses one when the window has multiple roots. */
+    workspaceFolders: { name: string; path: string }[];
+    /**
+     * A folder that does not exist yet, named after the template under the parent last used.
+     * Always proposed, so switching to "create a new folder" needs no second round trip.
+     */
+    newFolderPath: string;
+}
+
+export interface GetDevContainerTargetRequestParams {
+    templateId: DevContainerTemplateId;
+}
+
+/**
+ * Proposes where a template should go: any open folder, or a new folder named after the template
+ * under the last place the user chose.
+ */
+export namespace GetDevContainerTargetRequest {
+    export const type = new RequestType<
+        GetDevContainerTargetRequestParams,
+        DevContainerTarget,
+        void
+    >("overview/getDevContainerTarget");
+}
+
+export interface BrowseForDevContainerTargetRequestParams {
+    /** Folder the picker opens on, usually whatever the field currently shows. */
+    currentPath?: string;
+}
+
+/** Opens VS Code's folder picker, answering with the chosen path or undefined if dismissed. */
+export namespace BrowseForDevContainerTargetRequest {
+    export const type = new RequestType<
+        BrowseForDevContainerTargetRequestParams,
+        string | undefined,
+        void
+    >("overview/browseForDevContainerTarget");
 }

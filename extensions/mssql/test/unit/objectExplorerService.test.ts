@@ -2345,6 +2345,7 @@ suite("OE Service Tests", () => {
         let objectExplorerService: ObjectExplorerService;
 
         setup(async () => {
+            initializeIconUtils();
             sandbox = sinon.createSandbox();
             mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
             mockClient = sandbox.createStubInstance(SqlToolsServiceClient);

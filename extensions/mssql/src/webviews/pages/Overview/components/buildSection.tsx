@@ -28,6 +28,13 @@ const useStyles = makeStyles({
         borderBottomStyle: "solid",
         borderBottomColor: tokens.colorNeutralStroke2,
     },
+    // Stated rather than left to the attribute's default, so no later rule setting `display`
+    // on these wrappers can bring a hidden panel back.
+    tabPanel: {
+        "&[hidden]": {
+            display: "none",
+        },
+    },
 });
 
 export const BuildSection = () => {
@@ -47,10 +54,21 @@ export const BuildSection = () => {
                 <Tab value="walkthroughs">{loc.walkthroughsTab}</Tab>
                 {!isInDevContainer && <Tab value="devContainers">{loc.devContainersTab}</Tab>}
             </TabList>
+            {/* Hidden rather than unmounted: switching tabs used to throw away everything a
+                panel was holding -- which prompt groups were expanded, the skills filter, the
+                catalog it had already fetched -- and rebuild it on the way back. */}
             <div className={classes.panel}>
-                {selectedTab === "agentSkills" && <AgentSkillsPanel />}
-                {selectedTab === "walkthroughs" && <WalkthroughsPanel />}
-                {selectedTab === "devContainers" && !isInDevContainer && <DevContainersPanel />}
+                <div className={classes.tabPanel} hidden={selectedTab !== "agentSkills"}>
+                    <AgentSkillsPanel />
+                </div>
+                <div className={classes.tabPanel} hidden={selectedTab !== "walkthroughs"}>
+                    <WalkthroughsPanel />
+                </div>
+                {!isInDevContainer && (
+                    <div className={classes.tabPanel} hidden={selectedTab !== "devContainers"}>
+                        <DevContainersPanel />
+                    </div>
+                )}
             </div>
         </section>
     );
