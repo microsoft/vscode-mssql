@@ -32,6 +32,7 @@ import {
 import {
     ComponentType,
     ReactElement,
+    ReactNode,
     SVGProps,
     useCallback,
     useEffect,
@@ -311,7 +312,37 @@ const useStyles = makeStyles({
         lineHeight: tokens.lineHeightBase300,
         color: tokens.colorNeutralForeground2,
     },
+    skillSearchMatch: {
+        backgroundColor: "var(--vscode-editor-findMatchBackground)",
+        color: "var(--vscode-editor-findMatchForeground, inherit)",
+        borderRadius: tokens.borderRadiusSmall,
+    },
 });
+
+/** Highlights every literal, case-insensitive occurrence of the current filter. */
+const highlightSkillSearch = (value: string, filter: string, className: string): ReactNode => {
+    const search = filter.trim().toLowerCase();
+    if (!search) {
+        return value;
+    }
+
+    const lowerValue = value.toLowerCase();
+    const parts: ReactNode[] = [];
+    let position = 0;
+    let matchIndex = lowerValue.indexOf(search, position);
+    while (matchIndex !== -1) {
+        parts.push(value.slice(position, matchIndex));
+        parts.push(
+            <mark key={matchIndex} className={className}>
+                {value.slice(matchIndex, matchIndex + search.length)}
+            </mark>,
+        );
+        position = matchIndex + search.length;
+        matchIndex = lowerValue.indexOf(search, position);
+    }
+    parts.push(value.slice(position));
+    return parts;
+};
 
 /**
  * Explains why a prompt action does nothing until the pack is installed.
@@ -495,7 +526,7 @@ const SkillPackCard = ({
     );
 };
 
-const SkillList = ({ skills }: { skills: AgentSkillSummary[] }) => {
+const SkillList = ({ skills, filter }: { skills: AgentSkillSummary[]; filter: string }) => {
     const classes = useStyles();
     const loc = locConstants.overview;
     const { openLink } = useOverviewActions();
@@ -509,9 +540,11 @@ const SkillList = ({ skills }: { skills: AgentSkillSummary[] }) => {
                         className={classes.skillName}
                         title={loc.viewSkillSource}
                         onClick={() => openLink(skill.repositoryUrl)}>
-                        {skill.id}
+                        {highlightSkillSearch(skill.id, filter, classes.skillSearchMatch)}
                     </Link>
-                    <Text className={classes.skillDescription}>{skill.description}</Text>
+                    <Text className={classes.skillDescription}>
+                        {highlightSkillSearch(skill.description, filter, classes.skillSearchMatch)}
+                    </Text>
                 </li>
             ))}
         </ul>
@@ -573,7 +606,7 @@ const SkillsCatalog = ({ groups }: { groups: AgentSkillGroup[] }) => {
                 ) : filtered.length === 1 ? (
                     // One collection is the common case, and an accordion wrapped around the only
                     // group is a click that never reveals anything new.
-                    <SkillList skills={filtered[0].skills} />
+                    <SkillList skills={filtered[0].skills} filter={filter} />
                 ) : (
                     <Accordion
                         multiple
@@ -585,7 +618,7 @@ const SkillsCatalog = ({ groups }: { groups: AgentSkillGroup[] }) => {
                                     {`${group.title} (${group.skills.length})`}
                                 </AccordionHeader>
                                 <AccordionPanel>
-                                    <SkillList skills={group.skills} />
+                                    <SkillList skills={group.skills} filter={filter} />
                                 </AccordionPanel>
                             </AccordionItem>
                         ))}
