@@ -4338,7 +4338,7 @@ export class LocConstants {
             ),
             openFolder: l10n.t("Open Folder"),
             devContainerConfigFound: l10n.t(
-                "This folder already has a dev container configuration.",
+                "The workspace already has a dev container configuration.",
             ),
             openVsCodeInContainer: l10n.t("Open VS Code in container"),
             openInContainerHint: l10n.t(
@@ -4352,7 +4352,7 @@ export class LocConstants {
             ),
             stepAddConfiguration: l10n.t("Dev container configuration"),
             stepAddConfigurationDescription: l10n.t(
-                "Writes this template's .devcontainer files into the open folder.",
+                "Writes this template's .devcontainer files into the current workspace.",
             ),
             stepAddConfigurationAction: l10n.t("Add"),
 
