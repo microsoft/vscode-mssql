@@ -120,6 +120,9 @@
     <trans-unit id="++CODE++41cf433995f12e73203aa3213ef1239975fae6486ddfbac3758709f815d0f57b">
       <source xml:lang="en">1 row returned</source>
     </trans-unit>
+    <trans-unit id="++CODE++623e78b5bca41393286d3b34ba12d740b3dfc69c0d7c8af4db2229b7c3bc67de">
+      <source xml:lang="en">1 skill</source>
+    </trans-unit>
     <trans-unit id="++CODE++88af2fae162f54cc7b5d4efe02c132217c5bccb05fd1b82cbbfee5b450dc9a44">
       <source xml:lang="en">100K vCore seconds</source>
     </trans-unit>
@@ -216,6 +219,9 @@
     </trans-unit>
     <trans-unit id="++CODE++7078c833200717b99c1414ef7696aaf5d7af1c16d201435b2ce243dba8891e4b">
       <source xml:lang="en">A {0} script already exists. The new script will not be included in build.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++11fb682be0a0233d5fb899721ecfc1827d20f0d2ff2e093310efa61efca8af1c">
+      <source xml:lang="en">AI</source>
     </trans-unit>
     <trans-unit id="++CODE++72e7cc4c4f1c083b8607c0e8d0e5093cb5756df15336523ee5d00f194829168b">
       <source xml:lang="en">API Type</source>
@@ -316,9 +322,6 @@
     <trans-unit id="++CODE++09857ad18f3cf066330f9fc08318e41f71ecb7b7d71f12bd1dd3b9d050db4ca0">
       <source xml:lang="en">Add a Microsoft Entra account...</source>
     </trans-unit>
-    <trans-unit id="++CODE++303ad67d2fdf5c8a2fc1dd0c27571921848d70cfd69de0e3fc4c7110075b90c9">
-      <source xml:lang="en">Add a local Azure SQL database to this app. Spin up the container, create an appdb database I can query, verify the first query, and point the app&apos;s configuration at it.</source>
-    </trans-unit>
     <trans-unit id="++CODE++ee7ee5830f091690030fed013c05a7073f6cb971891c3fc6f16e928bd6d69e61">
       <source xml:lang="en">Add account</source>
     </trans-unit>
@@ -337,8 +340,8 @@
     <trans-unit id="++CODE++685f88ae3db24ee15edd7e342447d933e018a46d99e8878c21ce3065d93c21a9">
       <source xml:lang="en">Add connection</source>
     </trans-unit>
-    <trans-unit id="++CODE++d8c0c7517da169e6da2d01c974621dc53b82a01dc11f40a9822dfb3ae2289447">
-      <source xml:lang="en">Add curated SQL guidance for building apps, designing schemas, writing T-SQL, and tuning queries.</source>
+    <trans-unit id="++CODE++fd9ab5a4411d442d4338a01d325159c02f3db115ab8395aec00114b3ecef3460">
+      <source xml:lang="en">Add curated Azure SQL guidance for connecting applications, designing schemas, using vector search, and diagnosing database problems.</source>
     </trans-unit>
     <trans-unit id="++CODE++3e8a6f2e0196277382490540b9c793184e26a9bf59da62f2b07df7da9d89f0d4">
       <source xml:lang="en">Add database reference</source>
@@ -348,6 +351,12 @@
     </trans-unit>
     <trans-unit id="++CODE++72d975d00b2a6ec753bd80833252852de2c69720c3bbcd404493650cb4cdca41">
       <source xml:lang="en">Add filters to modify the SQL query</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a6d67ea4a6ea73245177ebf82809bdc6039e29ba3e622939ff4d259e300f118b">
+      <source xml:lang="en">Add guidance for moving SQL Server to Azure: recommend a target and method, build the prerequisite plan, size the Azure SQL SKU, run the migration, and validate the data afterwards.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++eb5fa8eda3652255e1ed76fdcbbdff29061c399cdf557b0d393085e3c354d278">
+      <source xml:lang="en">Add indexed vector search using Azure SQL&apos;s native vector capabilities.</source>
     </trans-unit>
     <trans-unit id="++CODE++7c0d6c25e58caa429d8df44b1266a82eff13a7fe9f477b164863aea8a9acc658">
       <source xml:lang="en">Add my client IP ({0})</source>
@@ -382,6 +391,12 @@
     </trans-unit>
     <trans-unit id="++CODE++dcc475b31b6d6d1bc68eede1badaf4b6af93c3683fe3a25ae08c8544b572e7fa">
       <source xml:lang="en">Add to workspace</source>
+    </trans-unit>
+    <trans-unit id="++CODE++638fa6131268fff5cb2508bef634c4421e1e6111e2651483a1453f542b4265e8">
+      <source xml:lang="en">Add vector search to this table and make it use the index</source>
+    </trans-unit>
+    <trans-unit id="++CODE++591974aaca8469a696debf9257e9c56ce57b38e29b3142c5cda53f493c99d6b3">
+      <source xml:lang="en">Add vector search to this table using Azure SQL&apos;s native VECTOR type and VECTOR_DISTANCE. Store the embeddings, write the similarity query, then show me how to confirm it is using a vector index rather than scanning the whole table.</source>
     </trans-unit>
     <trans-unit id="++CODE++6b02e0d363a4af1c95eef50364bb0202c8b250aa05a48a69e68fd7787b4b0632">
       <source xml:lang="en">Added</source>
@@ -441,6 +456,10 @@
     </trans-unit>
     <trans-unit id="++CODE++d3bea48abd243765e73062febb24ad5221ba090ac07af99f914fdd554b03fa95">
       <source xml:lang="en">Agent skills</source>
+    </trans-unit>
+    <trans-unit id="++CODE++39c9a994d9801111680f9de871a10427598ac9bba895d2b39415122ca62e58d8">
+      <source xml:lang="en">Agent skills · {0}</source>
+      <note>{0} is the publisher of the agent skill collection</note>
     </trans-unit>
     <trans-unit id="++CODE++b19e02e9502bbe5ac59dff4b2d4160768a4a7b8feff5693e5769613562290a45">
       <source xml:lang="en">Alias</source>
@@ -705,6 +724,9 @@
     <trans-unit id="++CODE++75e12513d00f783f9aaecccd95c59520bca219b3991587d51c43adc8487975b3">
       <source xml:lang="en">Ask questions or propose schema changes in chat, and GitHub Copilot updates the schema instantly in the diagram.</source>
     </trans-unit>
+    <trans-unit id="++CODE++b7629cecee74de732c203019eb744cbca8f67a67c4e39575063e2e5c282094cf">
+      <source xml:lang="en">Assess</source>
+    </trans-unit>
     <trans-unit id="++CODE++6b17def22e3775d608a7cdc7f600aa9fd107e2209e657a6d358a5687f9f7c7bd">
       <source xml:lang="en">At least one API type must be selected.</source>
     </trans-unit>
@@ -849,6 +871,9 @@
     </trans-unit>
     <trans-unit id="++CODE++2827add936f31415e16e0670d8686084ec2e21fed7686c0aa91fffdfa09e4e38">
       <source xml:lang="en">Azure SQL Server</source>
+    </trans-unit>
+    <trans-unit id="++CODE++cd0039ee90b07e2d85f09be23bb8a8d9eeeb763cf5b70d383739421930d9aeb9">
+      <source xml:lang="en">Azure SQL Skills</source>
     </trans-unit>
     <trans-unit id="++CODE++588333f4d266b89935941194e4f8e0f1d8aab434615c493680d7d0859b6b7081">
       <source xml:lang="en">Azure SQL database &apos;{0}&apos; was provisioned successfully.</source>
@@ -1057,17 +1082,11 @@
     <trans-unit id="++CODE++75b3413e271841585d3319f0608aef1923c61d737b219530dd8de5459def7aa7">
       <source xml:lang="en">Build an AI-ready app</source>
     </trans-unit>
-    <trans-unit id="++CODE++92e13231b9c28ac04a4c7e9c46468d07a806fcad37bbd328400c253b3209db69">
-      <source xml:lang="en">Build an app on Azure SQL</source>
-    </trans-unit>
     <trans-unit id="++CODE++00ea757097babdd3471ed3dbcef6f4a33b46658dfb023aa009b53fa1dd0ae30c">
       <source xml:lang="en">Build failed with exit code {0}</source>
     </trans-unit>
     <trans-unit id="++CODE++826d02f44b0b73307289256833824e9adbe8e6be6379095d214e84d814b95183">
       <source xml:lang="en">Build failed. Check output pane for more details. {0}</source>
-    </trans-unit>
-    <trans-unit id="++CODE++3039ba9f803e4330676c70ae9aace994ea218df8d4fe10000c51b122eb0cd7fc">
-      <source xml:lang="en">Build me an app on Azure SQL Database. Give me the order of operations from an empty project to the first successful request that reads a row, scaffold the data access layer, and do it without putting a database password in the repo.</source>
     </trans-unit>
     <trans-unit id="++CODE++83786570b57c8ba630ba1a34a6392b74bd535658df4105674f535468e8bf66a3">
       <source xml:lang="en">Build with AI using GitHub Copilot</source>
@@ -1631,6 +1650,9 @@
     <trans-unit id="++CODE++2a741bf60e87cb92c5850d89286135aaed0b73927b901114af28ad88fe82951f">
       <source xml:lang="en">Collation</source>
     </trans-unit>
+    <trans-unit id="++CODE++c5a429303f6ab70e9ff4f24e521c406798b3be2985e882fbd796c460d927685c">
+      <source xml:lang="en">Collect performance data from an on-premises server and recommend a SKU.</source>
+    </trans-unit>
     <trans-unit id="++CODE++6b73191a0a4b67420e61d51c9f207c35277eaf18fbbf5beb52a320a23fe09653">
       <source xml:lang="en">Color</source>
     </trans-unit>
@@ -1766,6 +1788,9 @@
     <trans-unit id="++CODE++73b680fbf34c02acc61629ac870cb10a5f382c5379516f9dd96777d75a3086fe">
       <source xml:lang="en">Configure Rosetta in Docker Desktop</source>
     </trans-unit>
+    <trans-unit id="++CODE++aa49da8fc6c28ccd6528e40cce959eb1cf6e3a093cde3302f3f009345bf76078">
+      <source xml:lang="en">Configure a Node.js application to use secure Microsoft Entra authentication.</source>
+    </trans-unit>
     <trans-unit id="++CODE++c6cc40d1bb74f7c0333c4264cbd7d9ac832fcd4a39f54a4f044b54471beffd71">
       <source xml:lang="en">Configure and customize Azure SQL Databases</source>
     </trans-unit>
@@ -1811,8 +1836,14 @@
     <trans-unit id="++CODE++0e65cf5077295cb9c747c8444e19e9f9c8c5b82d37158c24cf1ece7c84dd746b">
       <source xml:lang="en">Connect and manage database connections</source>
     </trans-unit>
+    <trans-unit id="++CODE++0fb7fb11dc215a93d89a9b060c696149f590b9accdd0747896fee613fb7755eb">
+      <source xml:lang="en">Connect my Node app to Azure SQL Database without a password</source>
+    </trans-unit>
     <trans-unit id="++CODE++ee4f8cf15984e2a10f54dd947303b40318e5503eb1116a815d634bd45dcc55da">
       <source xml:lang="en">Connect the active SQL document to a database</source>
+    </trans-unit>
+    <trans-unit id="++CODE++869b13cbc90dee1872ef01380429d9064aee528e808257ce990b87602d1da8da">
+      <source xml:lang="en">Connect this Node.js app to Azure SQL Database using Microsoft Entra authentication instead of a SQL login. Wire up the connection so it works both on my machine and from the deployed app, and make sure no database password ends up in the repository or in configuration.</source>
     </trans-unit>
     <trans-unit id="++CODE++150851f09acf7f6f4d53e35fb619389c38558ea5b98d3a13efaf84b3eda50422">
       <source xml:lang="en">Connect to Database</source>
@@ -2227,9 +2258,6 @@
     <trans-unit id="++CODE++16e19d3c5a1370e11a68e221ae7a5d97adb238b6e4a62271516557f2904ca193">
       <source xml:lang="en">Copy object name</source>
     </trans-unit>
-    <trans-unit id="++CODE++ffc64b8bb8c4532dd3df46f541a61e131d0a0ce5c9993db071afec0bfc272e5e">
-      <source xml:lang="en">Copy prompt</source>
-    </trans-unit>
     <trans-unit id="++CODE++c8b5428b9ac790b3952e08ceea5a8a170ad8b0af1e0f51c98a159f1147631e8a">
       <source xml:lang="en">Copy script</source>
     </trans-unit>
@@ -2382,9 +2410,6 @@
     <trans-unit id="++CODE++4e18c3ff33b564efde61c0544543d5e2f16e08aa89314ff3f32da35532e0e859">
       <source xml:lang="en">Create a local SQL Server container for your app.</source>
     </trans-unit>
-    <trans-unit id="++CODE++0fe673d44f29a7f6483215275efdf31e4ea662051081b0827c59748ff07696ed">
-      <source xml:lang="en">Create a local SQL database</source>
-    </trans-unit>
     <trans-unit id="++CODE++cd5d40e7e1a14d9851ddb7fdc70f5a23d601e2cfdedc094f5d873ba2f1287590">
       <source xml:lang="en">Create a local container</source>
     </trans-unit>
@@ -2432,9 +2457,6 @@
     </trans-unit>
     <trans-unit id="++CODE++df71f4b96b979f9c3e85500de3a22246aeeebfa03664d2f7ea8db2b79e01f222">
       <source xml:lang="en">Create project from database</source>
-    </trans-unit>
-    <trans-unit id="++CODE++a46290f8a3a6de3620b6b45aa506dbaa52147f0507d680808a45daec4601912c">
-      <source xml:lang="en">Create tables and seed realistic sample data for a new app.</source>
     </trans-unit>
     <trans-unit id="++CODE++28b1fabfaa559d20e2654f3f6e126257916ec09e5923c77149138a2baa3b823a">
       <source xml:lang="en">Created table {0}</source>
@@ -2907,9 +2929,6 @@
     <trans-unit id="++CODE++064ff20a39b16a49639c1d176496eb3078f7a0629c7bf854eb5021fc5a20aef8">
       <source xml:lang="en">Design Schemas with GitHub Copilot</source>
     </trans-unit>
-    <trans-unit id="++CODE++a2916ade4398b7b83188eba62b1453e0e7cb6fa06978274b1c116d9c9cfd925a">
-      <source xml:lang="en">Design a schema</source>
-    </trans-unit>
     <trans-unit id="++CODE++1a3064fb07655f3c4212e8eae433999fc57d640284d60e893b75a0753df6de7f">
       <source xml:lang="en">Design schema</source>
     </trans-unit>
@@ -2954,6 +2973,12 @@
     </trans-unit>
     <trans-unit id="++CODE++4140839b57403cf1b132332262ad00592590d6f7970b0f83fc60fb9b8c53d707">
       <source xml:lang="en">Developer-friendly transactional database using the Azure SQL Database Engine.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++64dd65edfeaabd10a5a0f29816332bf82ca9c7b7056182a29f9e1d987cbaf016">
+      <source xml:lang="en">Diagnose</source>
+    </trans-unit>
+    <trans-unit id="++CODE++18e5d8a52d65ad0cc95f446e6db7b7a52e00baf59e7f6b7c4e05e396027b6a5b">
+      <source xml:lang="en">Diagnose serverless resume behavior and make the application resilient to it.</source>
     </trans-unit>
     <trans-unit id="++CODE++babe24f1687d8f696f010c9dab1cdc17cea284045f0cef8dab2ed2c4cd5eac9e">
       <source xml:lang="en">Different database, different server</source>
@@ -3013,9 +3038,6 @@
     </trans-unit>
     <trans-unit id="++CODE++d4a33d5b78bccebe3f16843dc30e6c0f73b4eb6efb4e7114ddfebde7fa2c9954">
       <source xml:lang="en">Discover</source>
-    </trans-unit>
-    <trans-unit id="++CODE++57d34ecd6fc9b04ba8ad6450eeb1159b21aa3e6f127082ea6554f826985cdddb">
-      <source xml:lang="en">Discover how SQL Database in Fabric, Azure SQL, and SQL Server are redefining modern app development. Join engineers and peers pushing the limits of performance, AI integration, and developer productivity.</source>
     </trans-unit>
     <trans-unit id="++CODE++48845bff334a50a59aaecf499f28a7a24c3b4b891b8b18a9f1169ad8e8a6b261">
       <source xml:lang="en">Dismiss</source>
@@ -4507,6 +4529,9 @@
     <trans-unit id="++CODE++9066acbf6eaa314ffdd2abdd497e7d66cda883d6f819f5ad43b121bbbb27a55b">
       <source xml:lang="en">Filter shortcuts</source>
     </trans-unit>
+    <trans-unit id="++CODE++f47dd0b589e03c52f8da7e440c430c2c8158712c7776067a1c09c0aba4351d7a">
+      <source xml:lang="en">Filter skills</source>
+    </trans-unit>
     <trans-unit id="++CODE++d9542a271957e5da6241a181f50baa24e710645a5007dfa3e45c27bbad587791">
       <source xml:lang="en">Filter value</source>
     </trans-unit>
@@ -4605,8 +4630,9 @@
     <trans-unit id="++CODE++4dee0b3f5cf474cbedf84d1aca0c4c6232058c78aca9ace0a598ef7fa658a93b">
       <source xml:lang="en">Folder structure</source>
     </trans-unit>
-    <trans-unit id="++CODE++a74c32c7844c9897572814912cdd5b7b452da93bfc3284c3bf4f6eb5e6508f0b">
-      <source xml:lang="en">For best results, install the Azure SQL agent skills before using these prompts.</source>
+    <trans-unit id="++CODE++2d283398f8ccaecff26e17f6d2f7953234f445f03c5c781a6cf2cd05b8369b16">
+      <source xml:lang="en">For best results, add {0} to GitHub Copilot before using these prompts.</source>
+      <note>{0} is the name of the agent skill collection</note>
     </trans-unit>
     <trans-unit id="++CODE++52742c9dc235ecbc2154d3bef091d1e39dd0b8b542ebac8031331a146b83242d">
       <source xml:lang="en">For numeric data, the maximum number of decimal digits that can be stored in this database object to the right of decimal point.</source>
@@ -4919,11 +4945,17 @@
     <trans-unit id="++CODE++4d7056f0e9bef4870b289d7b77634cead0e646a63708a1eb500c6eab11c1328e">
       <source xml:lang="en">Hue</source>
     </trans-unit>
+    <trans-unit id="++CODE++65618a6c16b7366932ea2e2c9ab3de115e5175e3ebf36630033d81e5eb734a8e">
+      <source xml:lang="en">I have chosen a migration path for this SQL Server. Build the prerequisite plan for it: what has to be in place on the source, on the target and on the network before I execute, plus a readiness summary I can hand to a partner. Ask me only the questions this path actually needs.</source>
+    </trans-unit>
     <trans-unit id="++CODE++9638b09db2ce74e3d600f9a512a6116df9ba9b3a147569930a5d5b4682ac5a20">
       <source xml:lang="en">I have read the summary and understand the potential risks.</source>
     </trans-unit>
     <trans-unit id="++CODE++cec4c1fded759957b61fa5bace2234953f9645b8a10f1ac56cdd67e89cb7c118">
       <source xml:lang="en">I understand this action is permanent and irreversible</source>
+    </trans-unit>
+    <trans-unit id="++CODE++86396a42bf61dce19d8337b2fca0145c2f6b7fdb6db9d2684812adcb7d336d44">
+      <source xml:lang="en">I want to move a SQL Server estate to Azure and have no assessment data yet. Ask me the discovery questions you need, then recommend the candidate Azure targets and migration methods that fit, the blockers that would rule each one out, and the evidence I still have to collect. Treat the recommendation as provisional until assessment tooling confirms it.</source>
     </trans-unit>
     <trans-unit id="++CODE++d8d462ddc91939459ae107d47fee7a34b3601b20fcd01615f98e1941674f14ea">
       <source xml:lang="en">I&apos;m sorry, I can only assist with SQL-related questions.</source>
@@ -5057,6 +5089,10 @@
     <trans-unit id="++CODE++8ae992fb19afbb34eedcd3f9183663145da97e5b1b40e449360bea6af64e8646">
       <source xml:lang="en">Included in script</source>
     </trans-unit>
+    <trans-unit id="++CODE++91f466cbacd10ccbb5e4434e751659ea96c8c651adc59c4d9a939459db271299">
+      <source xml:lang="en">Including this one, {0} of the template&apos;s files already exist here.</source>
+      <note>{0} is the number of conflicting files left to decide on.</note>
+    </trans-unit>
     <trans-unit id="++CODE++a19caa35e133f5a0e94975762741c4c73b09c8a830908934206474fea30817b0">
       <source xml:lang="en">Incomplete or orphaned connections</source>
     </trans-unit>
@@ -5074,6 +5110,9 @@
     </trans-unit>
     <trans-unit id="++CODE++7231a7d45a700048f4057a8040de5fb2afc1ebd67638a7a2fa96da6b8f24e3ba">
       <source xml:lang="en">Insert selected query-editor text using {arg}. If you don&apos;t use the placeholder, selected text is automatically appended to the end of the query.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5c255cf5434e54023b2deea5fbcb9c1be9311c9cbaacb84ab4f46506aa7e2da9">
+      <source xml:lang="en">Inspect the current project and build its Azure SQL persistence layer.</source>
     </trans-unit>
     <trans-unit id="++CODE++569ca49f4aaf7846e952c1d4aeca72febd0b79fa1c4f9db08fd3127551218572">
       <source xml:lang="en">Install</source>
@@ -5522,6 +5561,9 @@
     <trans-unit id="++CODE++d6fd520e2618b0231a03b251ea5831f125d0087382f96b0a6b8c57f1fa97a69c">
       <source xml:lang="en">Loading servers in selected subscription...</source>
     </trans-unit>
+    <trans-unit id="++CODE++7cf5fa27969286cfd187577d1e2cb8eb2c4ccfe1e6a16af92f15ca5e840a0910">
+      <source xml:lang="en">Loading skills...</source>
+    </trans-unit>
     <trans-unit id="++CODE++44a08fe61f9d3024b58081bde56db3941ca139f52396dce09e0fbfc2c9a67897">
       <source xml:lang="en">Loading subscriptions</source>
     </trans-unit>
@@ -5577,9 +5619,6 @@
     <trans-unit id="++CODE++b64b39db74a66e751069b0400f71efd0fb9a78f49fe418b7f73f9c96b173c105">
       <source xml:lang="en">Local container deployment is currently only supported with SQL Authentication connections.</source>
     </trans-unit>
-    <trans-unit id="++CODE++5c58ea79fda9f7b7f96fbf5def880873a4c0e072c8e025329b24835079b376bc">
-      <source xml:lang="en">Local dev</source>
-    </trans-unit>
     <trans-unit id="++CODE++244f980d2c1c7cc5eb149270dda53e475cdf951f712ccb9a4039f295653912d1">
       <source xml:lang="en">Locally-redundant backup storage</source>
     </trans-unit>
@@ -5612,6 +5651,9 @@
     </trans-unit>
     <trans-unit id="++CODE++7c43051e3f634f58555893076bb62e8a1318044729feb100df57fa181835884f">
       <source xml:lang="en">Logs copied to clipboard</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2ac0b7c1c6ae7cf3f2794887e38d7bd0f31a83f7b2d1be7f59ddfcaf02dd7920">
+      <source xml:lang="en">Look at this project and build its Azure SQL persistence layer: design tables for the entities it already has, add ordered migration scripts that are safe to re-run, and generate the data access code the app calls. Run the migrations against the application database, never against master.</source>
     </trans-unit>
     <trans-unit id="++CODE++d837c7bb1f3941a813c25b07944c661318596b93902745a07c356400c2450fd7">
       <source xml:lang="en">Looking for Azure Data Studio key bindings, like F5 to execute queries?</source>
@@ -5794,9 +5836,6 @@
     <trans-unit id="++CODE++e61384c6682ddc6334bc27e7ff7910666e979c089f0b764e40debf9bddf56fc4">
       <source xml:lang="en">Microsoft Fabric integration</source>
     </trans-unit>
-    <trans-unit id="++CODE++37a030ea6da8310fdf7a80444a8422c23a11db46259cb36e5efcde0c3731f719">
-      <source xml:lang="en">Microsoft SQL</source>
-    </trans-unit>
     <trans-unit id="++CODE++ede0760e8703fdfcddf4d15e0406c0deeadd91e7907d2a3e7479c6a3d3e309e4">
       <source xml:lang="en">Microsoft SQL Server License Agreement</source>
     </trans-unit>
@@ -5839,9 +5878,6 @@
     </trans-unit>
     <trans-unit id="++CODE++275defa851ac09403faf8a674e5bdba13cf70e44dcd812b90e2c515db391a7ed">
       <source xml:lang="en">Missing table target for delete_table operation. Provide tableId or tableName+schemaName.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++658aef842bde254b02c2128b993043630534c4e1480853a23ecf4df0dd43e483">
-      <source xml:lang="en">Model these entities as tables on Azure SQL Database, then review the schema before it goes to production: call out the keys, indexes, collation and identity choices that will cause trouble later, and seed realistic sample data.</source>
     </trans-unit>
     <trans-unit id="++CODE++e8ce5dcaf408935ff76747226d2e8bee4319a2f593c1d7a838115e56183d1f37">
       <source xml:lang="en">Modified</source>
@@ -5928,12 +5964,6 @@
     <trans-unit id="++CODE++b76bc80b8a0e64a7d4bdcb44be4f61adea3c7657d8ab9c599ab349d1d772d7b1">
       <source xml:lang="en">Move selection to the last cell in the row</source>
     </trans-unit>
-    <trans-unit id="++CODE++f3c2cbaf3217a3ce89d1701c2afb170b5f5bc485f4aed69b163744a41836568d">
-      <source xml:lang="en">Move this app from the local Azure SQL container to Azure SQL Database. Get it into Azure without putting a database password anywhere, keep the application code unchanged where possible, and tell me exactly what has to change in configuration.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++b2159ceb286b9be31291fc016d5925e9816cd03a6a9b10338657b86f8e07a87e">
-      <source xml:lang="en">Move to Azure SQL</source>
-    </trans-unit>
     <trans-unit id="++CODE++27b4c707cf413882a14ef7b762694ed52bbf69755646afa8cf1972dec4cf3c92">
       <source xml:lang="en">Move to Root</source>
     </trans-unit>
@@ -5973,6 +6003,9 @@
     </trans-unit>
     <trans-unit id="++CODE++c26ee0e4b915257d995cffde4cc7b77a97c1e0cfa544836fdcb28329d1dc749a">
       <source xml:lang="en">Mutation</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3f0cef497990f152bfa80f26e6ff1ac87eacfc2e40bcb0bdf6685287a9e15503">
+      <source xml:lang="en">My first query after an idle period fails with error 40613 against Azure SQL Database. Explain what the serverless tier is doing when that happens, then change this app&apos;s connection and retry handling so the resume is absorbed instead of surfacing as a failed request.</source>
     </trans-unit>
     <trans-unit id="++CODE++4f597d21c43ad4296c13690ad65aaff476273a489afc5e5d6f91073de96baf9b">
       <source xml:lang="en">MyProfilerSession</source>
@@ -6402,6 +6435,9 @@
     <trans-unit id="++CODE++f22dbb17b16be5bfbac36adfb176f81d7ac2e9da72c6bb8df6ffcaa9e7aaee76">
       <source xml:lang="en">No shortcut</source>
     </trans-unit>
+    <trans-unit id="++CODE++56cf2efd256d100754ff6775441043d7d7095b0a1284d1cda0e453bdf4ffb7c4">
+      <source xml:lang="en">No skills match that filter.</source>
+    </trans-unit>
     <trans-unit id="++CODE++ca74b0c5b8a73c286ae5bc0d7802f72e6e591364956dd16f3a5210582b6f4212">
       <source xml:lang="en">No storage accounts found</source>
     </trans-unit>
@@ -6673,6 +6709,9 @@
     <trans-unit id="++CODE++cef89448c86ea390bfb9f0953513fd8871c5595cd7e65fc9ef5fc306fe7bfd11">
       <source xml:lang="en">Open filter menu</source>
     </trans-unit>
+    <trans-unit id="++CODE++7c2a6e6d128104ab72f768886cf074498197834446e974c04a7c589f5dc5813c">
+      <source xml:lang="en">Open in Copilot</source>
+    </trans-unit>
     <trans-unit id="++CODE++f395ae5e32b4cc24f8030096918e6a2318d4be5fb9274dbeedc0002ce9840bb7">
       <source xml:lang="en">Open in Editor</source>
     </trans-unit>
@@ -6708,6 +6747,9 @@
     </trans-unit>
     <trans-unit id="++CODE++bcec92c3fcbd6a1012ed2ae1a5d10e462184bbb5ca83b2df5552cb49620c78cf">
       <source xml:lang="en">Open the recommended index script in a new query editor</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7018c260f7d968f3bca63b6724982783533b0531193b150e2a3f35ef239ddd38">
+      <source xml:lang="en">Open this skill on GitHub</source>
     </trans-unit>
     <trans-unit id="++CODE++4c969acf8c9571fca86e1043a4d93465d243866dcbe158d57747e9e5b6a0f0a1">
       <source xml:lang="en">Open with {0}</source>
@@ -6783,6 +6825,9 @@
     </trans-unit>
     <trans-unit id="++CODE++b24963ea2cbc74b97321a347754137aa207b126695a95c860406098528966b55">
       <source xml:lang="en">Overwrite</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e6202747ef205ea351ac16ba114876a667f3c38676cd8bb04efe4548d38c9742">
+      <source xml:lang="en">Overwrite All</source>
     </trans-unit>
     <trans-unit id="++CODE++6e92fffc548b4ca49a6b4963939ef5c52a72dbcd88ec22bfad258e4c3e06fd58">
       <source xml:lang="en">Overwrite all existing backup sets</source>
@@ -6862,6 +6907,9 @@
     </trans-unit>
     <trans-unit id="++CODE++4c09d189302f2506e79be79caf623ccc300816ff936119f9dc5f5bbfd9ee5b0a">
       <source xml:lang="en">Pick from multiple SQL Server versions, including SQL Server 2025 with built-in AI capabilities like vector search and JSON enhancements.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fa8ed0bdabdd6bcb1c0746f1d3e15212f7f3439d74339fbaaf16c60c0a80fb8e">
+      <source xml:lang="en">Plan</source>
     </trans-unit>
     <trans-unit id="++CODE++2d88a61abeffd59a3bd59240d49c72a6b54deaecde6c449c2a4fd88f698d2628">
       <source xml:lang="en">Please Accept the SQL Server EULA</source>
@@ -6960,6 +7008,9 @@
     </trans-unit>
     <trans-unit id="++CODE++a37a2142ebde04c1b6e14939040584bba21a84f5a0028999e960e6d6fb9c21d3">
       <source xml:lang="en">PostDeploy Elements</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1423c50a402df5872e33dd35876d9844919a4902b7e364bd8f7c1a6efab64036">
+      <source xml:lang="en">Pre-select candidate targets and migration methods before any assessment data exists.</source>
     </trans-unit>
     <trans-unit id="++CODE++03456e4003fc53cc3045f2a6373a863f1981602e69f5da1d7fd7062f85981d1e">
       <source xml:lang="en">PreDeploy Elements</source>
@@ -7137,9 +7188,6 @@
     <trans-unit id="++CODE++49b20f5a4dbb9f8d013340404a75fde2c85b132dbff19ba95fc3b4857862bef0">
       <source xml:lang="en">Project was successfully updated.</source>
     </trans-unit>
-    <trans-unit id="++CODE++c55394776b1492cf0c21f3401fb0c3eef792175825808e8c5a657233eef876c7">
-      <source xml:lang="en">Prompt copied</source>
-    </trans-unit>
     <trans-unit id="++CODE++ae43692b2a310b8ed2443d2b7d2a3e4cf0b6d73115badd72831b3d22381f235f">
       <source xml:lang="en">Properties</source>
     </trans-unit>
@@ -7149,9 +7197,6 @@
     <trans-unit id="++CODE++7c68cc7494a11be986cf0d4ac8e2acb67d5aa67b35151c2435cb1c51ccd060d8">
       <source xml:lang="en">Provider &apos;{0}&apos; does not have a Microsoft resource endpoint defined.</source>
       <note>{0} is the provider</note>
-    </trans-unit>
-    <trans-unit id="++CODE++8588e98a676e7918cffee7624f02cdb34446ce8a789b06bd975caab5548922e5">
-      <source xml:lang="en">Provision a free Azure SQL Database and deploy the app to it.</source>
     </trans-unit>
     <trans-unit id="++CODE++c2b1b8e2e03928e24b07be3e3cbc597577096c8303d9aa621a147ca2456bdad7">
       <source xml:lang="en">Provisioning</source>
@@ -7380,8 +7425,8 @@
     <trans-unit id="++CODE++1f47d8366934f024275d2126cc2693f6ea8e1a6815af400835993032a05dd518">
       <source xml:lang="en">Recheck</source>
     </trans-unit>
-    <trans-unit id="++CODE++d70604e8430461372849bbd123d85771e11423870a507e8fa4650a7e9a5a50ef">
-      <source xml:lang="en">Recommended</source>
+    <trans-unit id="++CODE++778bf4396f584f47542a5cb868992aa957ecc7273d074e90e79bfa40d374189d">
+      <source xml:lang="en">Reconcile the source and target tables without changing either side.</source>
     </trans-unit>
     <trans-unit id="++CODE++8cb3da9c49a18274300475b2f9dbf9edd0a194821a1ce05c7d8351ffee8abdaa">
       <source xml:lang="en">Record shortcut</source>
@@ -7442,9 +7487,6 @@
     </trans-unit>
     <trans-unit id="++CODE++d3a008ef1335692d9d045175ba9ea1dcd39ae48da9e2043a9baabad6c3818c28">
       <source xml:lang="en">Region</source>
-    </trans-unit>
-    <trans-unit id="++CODE++bb7234ec12451361e6f35bcbe76de58e4350657fe60d1b96ace0947f59194083">
-      <source xml:lang="en">Register</source>
     </trans-unit>
     <trans-unit id="++CODE++ab604a360777735fe2993aec7d4ffae415f1515b0a4c989269603fd3d5c07b61">
       <source xml:lang="en">Reject</source>
@@ -7541,6 +7583,9 @@
     </trans-unit>
     <trans-unit id="++CODE++f75e0bd8ff2369251bc8767de55dd8c0bcb3efd1dbc34041bfca4058f9edf0ef">
       <source xml:lang="en">Report a bug</source>
+    </trans-unit>
+    <trans-unit id="++CODE++13d6ff07b8a5d792ec87d5ec83bff2730ee77fa8f4fcd89ca5f1d688f64b4c73">
+      <source xml:lang="en">Repository</source>
     </trans-unit>
     <trans-unit id="++CODE++5f5c5baf8fbc063def44db6f24aaf55282ed62e181e63c6d17a7d8852859f9a0">
       <source xml:lang="en">Request a feature</source>
@@ -7894,6 +7939,9 @@
     <trans-unit id="++CODE++035f6f2b97a039d49cb4ed684e5e8118c2acf2ff2fcc0e25fc94e2eacbc63b80">
       <source xml:lang="en">SQL Server port number</source>
     </trans-unit>
+    <trans-unit id="++CODE++eac421380a726b9a13024d52eb42fd35ac4a80f1e536943c3db34bba404e5da4">
+      <source xml:lang="en">SQL Server to Azure Migration Skills</source>
+    </trans-unit>
     <trans-unit id="++CODE++64aaab208c8e1d1152e423b463ee58006e8479fe03f9b92d91be13935401d6d8">
       <source xml:lang="en">SQL Server {0} - latest</source>
       <note>{0} is the SQL Server version</note>
@@ -8064,11 +8112,11 @@
     <trans-unit id="++CODE++dc85af8f2b1d0d6756547cd5f79557466e25e682b882f68d277bd7f125851321">
       <source xml:lang="en">Saving...</source>
     </trans-unit>
-    <trans-unit id="++CODE++e5c5d4d5ffc0e56d116fedcefe2b197cebbed18adc8631c3839b1737b53b6110">
-      <source xml:lang="en">Scaffold a .NET or Python app wired to a local Azure SQL database.</source>
-    </trans-unit>
     <trans-unit id="++CODE++28b9471fbcdd3a3ce3799551c1cee3825afe4ea4ce67688c764bd4a364028bd9">
       <source xml:lang="en">Scaffold backend components (e.g., data-access layers) based on your current database context</source>
+    </trans-unit>
+    <trans-unit id="++CODE++20d73f1f892bedded97e1b6d7667a09a3d7b36eb9322dd18e3da58276f6e420b">
+      <source xml:lang="en">Scaffold the schema, migrations, and data layer for this app</source>
     </trans-unit>
     <trans-unit id="++CODE++f102986b39effb31080ae442f61febe7ed58df1515c0711ccfadfe0311ccec81">
       <source xml:lang="en">Scale</source>
@@ -8820,6 +8868,12 @@
     <trans-unit id="++CODE++aa86409ea7e147ea5324e4a83d49efc512f2527f7dbada91558cde583e1a8ec2">
       <source xml:lang="en">Simplified</source>
     </trans-unit>
+    <trans-unit id="++CODE++1af851907331c0ed99e7c63b4e55df808bc5fc4c990a1cf80ca8c0f76daf1f3b">
+      <source xml:lang="en">Size</source>
+    </trans-unit>
+    <trans-unit id="++CODE++cb4d012f5297bd4b933268a27737339cec3153c9adba78da636d89480e98ed73">
+      <source xml:lang="en">Size an Azure SQL SKU from this server&apos;s performance</source>
+    </trans-unit>
     <trans-unit id="++CODE++28d03596d24eeb4eab2d6fe21ca1cb95be7cb1fa6f92933db05e2cc4f4cdfa06">
       <source xml:lang="en">Skip</source>
     </trans-unit>
@@ -8881,9 +8935,6 @@
     </trans-unit>
     <trans-unit id="++CODE++58985ddaf5b41a741597a25373888d0bd61c8764c95b3eef48076bb0238fdca5">
       <source xml:lang="en">Specify Input File</source>
-    </trans-unit>
-    <trans-unit id="++CODE++b71b80eb65b3b4dd04923f8187b9d3235cafd7ea75a29f6a0ad95aa5537ba12a">
-      <source xml:lang="en">Spin up an Azure SQL Database container in VS Code and connect to it.</source>
     </trans-unit>
     <trans-unit id="++CODE++750a67f87ba0f31ee32659e1f32e6c6dfba4ca3ceb0a303c7242aff561a7d7e4">
       <source xml:lang="en">SqlPackage Command</source>
@@ -9424,6 +9475,9 @@
     <trans-unit id="++CODE++748f1779a56584b54a1ebea2ed54d4ed5a28d6480654284f36b3c9ccc02e1ddc">
       <source xml:lang="en">The metadata cache is not enabled. Enable mssql.metadataCache.enabled and reload the window.</source>
     </trans-unit>
+    <trans-unit id="++CODE++31127dcf07dd279e22b762ae8f6e138c1382bc31ae4b83b7c0bf1fb75f6db863">
+      <source xml:lang="en">The migration target is online. Validate it against the source without changing data, schema or configuration on either side: compare the user table inventory and the exact row counts for every mapped table, and report the tables that do not reconcile.</source>
+    </trans-unit>
     <trans-unit id="++CODE++497f95858a915b211f7f758c96976c859fb0e3695e61ec32971051e8b431c186">
       <source xml:lang="en">The move was rejected or could not be completed.</source>
     </trans-unit>
@@ -9500,6 +9554,9 @@
     </trans-unit>
     <trans-unit id="++CODE++221a6647042e962a326162fd3dcdd7a1e01f628fb4eedc3ecc4b2c33038109fe">
       <source xml:lang="en">The service is no longer running a query for this editor. The editor&apos;s execution state has been reset.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ccf13c4e33fc0204cb223ea33f27de0018976f1459b4835ba0b8f74a13ce8f71">
+      <source xml:lang="en">The skills list couldn&apos;t be loaded from GitHub. Check your connection and try again.</source>
     </trans-unit>
     <trans-unit id="++CODE++13c88dccbc0c16d34702d4b664c78552a13156f154731119eaaa1dfc41be428d">
       <source xml:lang="en">The system database references need to be updated to build the project &apos;{0}&apos;. If the project was created in SSDT, it will continue to work in both tools. Do you want to update the project?</source>
@@ -9590,6 +9647,9 @@
     </trans-unit>
     <trans-unit id="++CODE++4cf91aabb9506ef4b3369b703200eead0c0c4520d2fd895053a3013547197a7f">
       <source xml:lang="en">This folder already has a dev container configuration.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5a22c0eba305caad4c998e466bf6e41168617de7a7c0bbbf06d9f1ef1ef79c6e">
+      <source xml:lang="en">This is an on-premises SQL Server instance. Collect performance data from it and recommend an Azure SQL SKU sized from that data, not from a guess. Tell me what the collection needs before it starts and how long it should run to be representative.</source>
     </trans-unit>
     <trans-unit id="++CODE++28e2aa59c50b2de24bda79539297a180c3ea379c3aa11b5af049a2cf66375999">
       <source xml:lang="en">This message couldn&apos;t be processed. If this issue persists, please check the logs and open an issue on GitHub.</source>
@@ -9747,8 +9807,11 @@
     <trans-unit id="++CODE++a3a3528ddf91f12579305467446f74ee44ef4c6016c889a73ee002be224a1b08">
       <source xml:lang="en">Try searching by command name, description, or keybinding.</source>
     </trans-unit>
-    <trans-unit id="++CODE++21cb905855660e20e061694815131c39c0d83e1ec8f5c692be7e8a87cdb9286a">
-      <source xml:lang="en">Try these prompts with agent skills</source>
+    <trans-unit id="++CODE++afca09a8409008c96ae284a9907ab46092f88096cfbb89b9635809fd2a005fa4">
+      <source xml:lang="en">Try these prompts</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0d456af1edfdae675fabba13aa9673a730a223fb287fc17543cea096ac55ef9f">
+      <source xml:lang="en">Turn a chosen migration path into a sourced prerequisite checklist.</source>
     </trans-unit>
     <trans-unit id="++CODE++baaddf70fb5d432b8bd948ef91d6f910124a6d138edae4d5f000c4610ddc8eae">
       <source xml:lang="en">Type</source>
@@ -9977,9 +10040,6 @@
     <trans-unit id="++CODE++eeefe579e45c25e1a551b536d8eecc680562bce4d0aa58ffee1ad7df8cc84e63">
       <source xml:lang="en">Use T-SQL intellisense and syntax error checking on current document</source>
     </trans-unit>
-    <trans-unit id="++CODE++6ef37ea9955ac30c701324290f719cf696d1f34b027640872eb4bba2fcd59c25">
-      <source xml:lang="en">Use discount code {0} to save €200 on registration.</source>
-    </trans-unit>
     <trans-unit id="++CODE++413d7418205c532ce289074072d8841df2c720313cb19bd9180ad2c4de3383c7">
       <source xml:lang="en">Use encryption for this backup</source>
     </trans-unit>
@@ -10056,6 +10116,12 @@
     <trans-unit id="++CODE++d31cf428966542cd931bd382d445f06e61e26c9a6c5aaf4227dffd0bfd18e97c">
       <source xml:lang="en">Using {0} to process your request...</source>
       <note>{0} is the model name that will be processing the request</note>
+    </trans-unit>
+    <trans-unit id="++CODE++40611abbdda22526b47ddcb41553bf3f556195a6855f2aca8404d62791a7ec67">
+      <source xml:lang="en">Validate</source>
+    </trans-unit>
+    <trans-unit id="++CODE++111c0671df4455cd0fb8cf3e774f348ae32eafe489de6c3b0316954f05d091fa">
+      <source xml:lang="en">Validate the data now that the migration is done</source>
     </trans-unit>
     <trans-unit id="++CODE++b84c66ad40ee1cc20942fe07d1bad88916d0a664bb3f5688ab8a84a0ab5e3cf3">
       <source xml:lang="en">Validating configuration</source>
@@ -10140,6 +10206,9 @@
     </trans-unit>
     <trans-unit id="++CODE++2302d21f4bef22f282ae264d4a47815d7b5d9e289032bcea7fbe74ebd7a9171e">
       <source xml:lang="en">View settings</source>
+    </trans-unit>
+    <trans-unit id="++CODE++587e0b2f7b5fc57faaed11e6b30665c1c86a11307af0e7bf28050d7ac1563442">
+      <source xml:lang="en">View skills</source>
     </trans-unit>
     <trans-unit id="++CODE++50fbd0f6e798bf3bba3ed6f549631ebeb8ea0bf591df84bc7ca4baef49e418c4">
       <source xml:lang="en">View the estimated query execution plan</source>
@@ -10227,11 +10296,20 @@
     <trans-unit id="++CODE++bf3cd82434efadb9ea501ff44c7d52b0dd98b3d11c0097ba88a10b7fd14d9b54">
       <source xml:lang="en">What can we do to improve?</source>
     </trans-unit>
+    <trans-unit id="++CODE++cd57807cdaf3b48e2ac3483ea1c17637f35fc7ece994cb96c8078872565c4b01">
+      <source xml:lang="en">What has to be ready before I run this migration?</source>
+    </trans-unit>
     <trans-unit id="++CODE++80951190f29dfee120dd907c3873d8a149d585a5f711c4f5bed59e14493cc4c6">
       <source xml:lang="en">What&apos;s new</source>
     </trans-unit>
     <trans-unit id="++CODE++9d42472185c6fe080e6ab7a93b676c943ab7e5b29b29b760346898bf579c031d">
       <source xml:lang="en">What&apos;s next?</source>
+    </trans-unit>
+    <trans-unit id="++CODE++dd47e1e70737dcfe862f6eb8b72464086e5b891109ec1d77cbdfb71358406ae2">
+      <source xml:lang="en">Which Azure target should this SQL Server move to?</source>
+    </trans-unit>
+    <trans-unit id="++CODE++da3243e9a2ab47b9642a1eaab484b40a2e47d33ca3804503d5b0756589bcbe58">
+      <source xml:lang="en">Why does my first query after idle fail with 40613</source>
     </trans-unit>
     <trans-unit id="++CODE++4aa3356437232c6d45b29802f09eee6e201660a67cf78e145f39ad1fada6feab">
       <source xml:lang="en">Width cannot be 0 or negative</source>
@@ -10717,6 +10795,11 @@
       <note>{0} is the number of included schema differences
 {1} is the total number of schema differences</note>
     </trans-unit>
+    <trans-unit id="++CODE++7e1b4f417f2fd8a3f9c5160585b81958c20365663a8a5f2824e7dc1cd9da3a9b">
+      <source xml:lang="en">{0} of {1} skills</source>
+      <note>{0} is the number of skills matching the filter
+{1} is the total number of skills in the collection</note>
+    </trans-unit>
     <trans-unit id="++CODE++fd20691998de3c939ec5fca7c6823619440671dfbe0927a4cf15a4eb6b792dc7">
       <source xml:lang="en">{0} of {1} tenants</source>
       <note>{0} is the number of tenants with active sessions
@@ -10767,6 +10850,10 @@
     <trans-unit id="++CODE++1584d81edbc3268202b85c3d1099fa195053084671c03e5070a2bdfdc0ede242">
       <source xml:lang="en">{0} settings imported</source>
       <note>{0} is the number of settings imported (plural)</note>
+    </trans-unit>
+    <trans-unit id="++CODE++b11979d2691df4daa4f64e7b52375ac3b8ebb124aacda9cf2a635dcca13af5ff">
+      <source xml:lang="en">{0} skills</source>
+      <note>{0} is the number of agent skills available in the repository</note>
     </trans-unit>
     <trans-unit id="++CODE++e92744f747f8adbd4eb748f272e3c3f3542a48f35b35134f2f2adf89758e2310">
       <source xml:lang="en">{0} started successfully.</source>

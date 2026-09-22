@@ -246,6 +246,62 @@ suite("Overview Webview Controller", () => {
         expect(await fs.promises.readFile(tasksPath, "utf8")).to.equal("template tasks");
     });
 
+    test("overwrites every remaining conflict after Overwrite All, with one prompt", async () => {
+        const workspaceRoot = await createTemporaryDirectory("mssql-overview-overwrite-all-");
+        const tasksPath = path.join(workspaceRoot, ".vscode", "tasks.json");
+        const attributesPath = path.join(workspaceRoot, ".gitattributes");
+        const devcontainerPath = path.join(workspaceRoot, ".devcontainer", "devcontainer.json");
+        await fs.promises.mkdir(path.dirname(tasksPath), { recursive: true });
+        await fs.promises.mkdir(path.dirname(devcontainerPath), { recursive: true });
+        await fs.promises.writeFile(devcontainerPath, "user devcontainer");
+        await fs.promises.writeFile(tasksPath, "user tasks");
+        await fs.promises.writeFile(attributesPath, "user attributes");
+        sandbox
+            .stub(vscode.workspace, "workspaceFolders")
+            .value([{ index: 0, name: "workspace", uri: vscode.Uri.file(workspaceRoot) }]);
+        controller = createController();
+        const prompt = sandbox
+            .stub(vscode.window, "showWarningMessage")
+            .resolves("Overwrite All" as never);
+        stubTemplateApplication({
+            ".devcontainer/devcontainer.json": "template devcontainer",
+            ".vscode/tasks.json": "template tasks",
+            ".gitattributes": "template attributes",
+        });
+
+        const result = await controller["applyDevContainerTemplate"](DevContainerTemplateId.DotNet);
+
+        expect(result).to.deep.equal({ applied: true, usedPicker: false });
+        expect(prompt).to.have.been.calledOnce;
+        expect(await fs.promises.readFile(devcontainerPath, "utf8")).to.equal(
+            "template devcontainer",
+        );
+        expect(await fs.promises.readFile(tasksPath, "utf8")).to.equal("template tasks");
+        expect(await fs.promises.readFile(attributesPath, "utf8")).to.equal("template attributes");
+    });
+
+    test("does not offer Overwrite All for the only conflicting file", async () => {
+        const workspaceRoot = await createTemporaryDirectory("mssql-overview-single-conflict-");
+        const tasksPath = path.join(workspaceRoot, ".vscode", "tasks.json");
+        await fs.promises.mkdir(path.dirname(tasksPath), { recursive: true });
+        await fs.promises.writeFile(tasksPath, "user tasks");
+        sandbox
+            .stub(vscode.workspace, "workspaceFolders")
+            .value([{ index: 0, name: "workspace", uri: vscode.Uri.file(workspaceRoot) }]);
+        controller = createController();
+        const prompt = sandbox
+            .stub(vscode.window, "showWarningMessage")
+            .resolves("Overwrite" as never);
+        stubTemplateApplication({
+            ".devcontainer/devcontainer.json": '{ "name": "Azure SQL" }',
+            ".vscode/tasks.json": "template tasks",
+        });
+
+        await controller["applyDevContainerTemplate"](DevContainerTemplateId.DotNet);
+
+        expect(prompt.firstCall.args).to.not.include("Overwrite All");
+    });
+
     test("copies all template files when every destination is new", async () => {
         const workspaceRoot = await createTemporaryDirectory("mssql-overview-apply-");
         sandbox

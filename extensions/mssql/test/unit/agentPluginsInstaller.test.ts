@@ -10,8 +10,11 @@ import * as path from "path";
 import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
 import * as vscode from "vscode";
+import { createHttpHeaders } from "extension-toolkit/base";
+import { VscodeHttpClient } from "extension-toolkit/vscode";
 import {
     AgentPluginsInstaller,
+    parseSkillsCatalog,
     RemoteWindowUnsupportedError,
 } from "../../src/agentPlugins/agentPluginsInstaller";
 
@@ -199,5 +202,119 @@ suite("Agent Plugins Installer", () => {
         // VS Code resolves a bare relative key against the workspace folders instead.
         expect(path.isAbsolute(registered)).to.equal(true);
         expect(registered).to.equal(installer.pluginRoot.fsPath);
+    });
+
+    test("loads, parses, and caches the shipped skills catalog", async () => {
+        const getStub = sandbox.stub(VscodeHttpClient.prototype, "get");
+        getStub.resolves({
+            ok: true,
+            status: 200,
+            statusText: "OK",
+            headers: createHttpHeaders(),
+            data: [
+                "## What's in this collection",
+                "",
+                "| Skill | What it does |",
+                "| --- | --- |",
+                "| **connect-node** | Connect a **Node.js** application using `mssql`. |",
+                "",
+                "---",
+                "",
+                "| Skill | Install command |",
+                "| --- | --- |",
+                "| **connect-node** | `duplicate outside the catalog` |",
+            ].join("\n"),
+        });
+
+        const first = await installer.getSkillsCatalog();
+        const second = await installer.getSkillsCatalog();
+
+        expect(first).to.deep.equal([
+            {
+                id: "azure-sql-database-container",
+                title: "Azure SQL Database container",
+                skills: [
+                    {
+                        id: "connect-node",
+                        description: "Connect a Node.js application using mssql.",
+                        repositoryUrl:
+                            "https://github.com/microsoft/azure-sql-database-container/blob/main/skills/connect-node/SKILL.md",
+                    },
+                ],
+            },
+        ]);
+        expect(second).to.equal(first);
+        expect(getStub).to.have.been.calledOnce;
+    });
+
+    test("reads only the first skills table, whatever separates the sections", () => {
+        // The collection README follows its catalog with an install table whose rows repeat every
+        // skill name, and an authoring table whose first column is prose. Neither is a skill, and
+        // neither section is reliably preceded by a horizontal rule.
+        const skills = parseSkillsCatalog(
+            [
+                "# Skills",
+                "",
+                "## What's in this collection",
+                "",
+                "| Skill | What it does |",
+                "| --- | --- |",
+                "| **connect-node** | Connect a **Node.js** application using `mssql`. |",
+                "| **read-plan** | Read an execution plan. |",
+                "",
+                "## INSTALL",
+                "",
+                "| Skill | Install command |",
+                "| --- | --- |",
+                "| **connect-node** | `npx skills add owner/repo --skill connect-node` |",
+                "",
+                "## Authoring standard",
+                "",
+                "| Layer | When | What |",
+                "| --- | --- | --- |",
+                "| **1. Instructions** | when the skill triggers | The happy path. |",
+            ].join("\n"),
+        );
+
+        expect(skills.map((skill) => skill.id)).to.deep.equal(["connect-node", "read-plan"]);
+        expect(skills[0].description).to.equal("Connect a Node.js application using mssql.");
+    });
+
+    test("reads the code-quoted skill names the generated plugin README uses", () => {
+        const skills = parseSkillsCatalog(
+            [
+                "## Skills (2)",
+                "",
+                "| Skill | Description |",
+                "| --- | --- |",
+                "| `recommend-migration-path` | Recommend a target and method. |",
+                "| `validate-post-migration-data` | Reconcile source and target. |",
+                "",
+                "## Install",
+            ].join("\n"),
+        );
+
+        expect(skills.map((skill) => skill.id)).to.deep.equal([
+            "recommend-migration-path",
+            "validate-post-migration-data",
+        ]);
+    });
+
+    test("does not cache a failed skills catalog request", async () => {
+        const getStub = sandbox
+            .stub(VscodeHttpClient.prototype, "get")
+            .rejects(new Error("offline"));
+
+        for (let attempt = 0; attempt < 2; attempt++) {
+            let thrown: unknown;
+            try {
+                await installer.getSkillsCatalog();
+            } catch (error) {
+                thrown = error;
+            }
+            expect(thrown).to.be.instanceOf(Error);
+        }
+
+        expect(getStub).to.have.callCount(2);
     });
 });

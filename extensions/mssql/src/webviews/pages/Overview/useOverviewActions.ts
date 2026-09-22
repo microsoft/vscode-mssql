@@ -9,7 +9,9 @@ import {
     DevContainerTemplateId,
     CheckDevContainerPrerequisitesRequest,
     DevContainerPrerequisites,
+    GetAgentSkillsCatalogRequest,
     InstallAgentSkillsPluginRequest,
+    OpenPromptInChatRequest,
     InstallDevContainersExtensionRequest,
     OpenFolderRequest,
     OverviewTelemetryEvent,
@@ -55,6 +57,16 @@ export function useOverviewActions() {
     /** Resolves once the install has finished, whether or not it succeeded. */
     const installAgentSkillsPlugin = useCallback(
         () => extensionRpc.sendRequest(InstallAgentSkillsPluginRequest.type, undefined),
+        [extensionRpc],
+    );
+
+    const getAgentSkillsCatalog = useCallback(
+        () => extensionRpc.sendRequest(GetAgentSkillsCatalogRequest.type, undefined),
+        [extensionRpc],
+    );
+
+    const openPromptInChat = useCallback(
+        (prompt: string) => extensionRpc.sendRequest(OpenPromptInChatRequest.type, { prompt }),
         [extensionRpc],
     );
 
@@ -113,6 +125,8 @@ export function useOverviewActions() {
             openRecentSqlFile,
             openFolder,
             installAgentSkillsPlugin,
+            getAgentSkillsCatalog,
+            openPromptInChat,
             sendTelemetry,
             runChangelogAction,
             addDevContainerConfiguration,
@@ -127,6 +141,8 @@ export function useOverviewActions() {
             openRecentSqlFile,
             openFolder,
             installAgentSkillsPlugin,
+            getAgentSkillsCatalog,
+            openPromptInChat,
             sendTelemetry,
             runChangelogAction,
             addDevContainerConfiguration,

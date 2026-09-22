@@ -10,12 +10,20 @@ import * as vscode from "vscode";
 import { VscodeHttpClient } from "extension-toolkit/vscode";
 import { ILogger } from "../sharedInterfaces/logger";
 import { logger as baseLogger } from "../models/logger";
+import { AgentSkillGroup, AgentSkillSummary } from "../sharedInterfaces/overview";
 
 /** GitHub repository that ships the Azure SQL agent skills, as `owner/repo`. */
 const SKILLS_REPO_OWNER = "microsoft";
 const SKILLS_REPO_NAME = "azure-sql-database-container";
 /** Branch the skills are published from. */
 const SKILLS_REF = "main";
+
+const SKILLS_REPOSITORY_URL =
+    `https://github.com/${SKILLS_REPO_OWNER}/${SKILLS_REPO_NAME}` as const;
+const SKILLS_README_URL =
+    `https://raw.githubusercontent.com/${SKILLS_REPO_OWNER}/${SKILLS_REPO_NAME}/${SKILLS_REF}/skills/README.md` as const;
+/** Heading the collection is listed under in the README. */
+const SKILLS_COLLECTION_TITLE = "Azure SQL Database container";
 
 /**
  * Setting VS Code discovers agent plugins from. Each key is a plugin root directory and the
@@ -34,6 +42,7 @@ const STATE_LAST_CHECK_MS = "overview/agentSkills.lastCheckMs";
 /** Network budget. The archive is ~1 MB, so these are generous. */
 const SHA_REQUEST_TIMEOUT_MS = 15_000;
 const DOWNLOAD_TIMEOUT_MS = 120_000;
+const CATALOG_REQUEST_TIMEOUT_MS = 15_000;
 
 /**
  * Files that mark a directory as an agent plugin root. VS Code accepts both its own
@@ -45,6 +54,7 @@ const PLUGIN_MANIFEST_CANDIDATES = [
     path.join(".plugin", "marketplace.json"),
     path.join(".claude-plugin", "plugin.json"),
     path.join(".claude-plugin", "marketplace.json"),
+    "plugin.json",
     "marketplace.json",
 ];
 
@@ -73,12 +83,25 @@ export class RemoteWindowUnsupportedError extends Error {
 export class AgentPluginsInstaller {
     private readonly _logger: ILogger = baseLogger.withPrefix("AgentPluginsInstaller");
     private _operation: Promise<boolean> | undefined;
+    private _catalog: Promise<AgentSkillGroup[]> | undefined;
 
     constructor(private readonly _context: vscode.ExtensionContext) {}
 
     /** Directory the skills are extracted to, and the value registered as a plugin root. */
     public get pluginRoot(): vscode.Uri {
         return vscode.Uri.joinPath(this._context.globalStorageUri, "agentSkills", SKILLS_REPO_NAME);
+    }
+
+    /** Current shipped skills listed by the repository. */
+    public getSkillsCatalog(): Promise<AgentSkillGroup[]> {
+        if (!this._catalog) {
+            this._catalog = this.fetchSkillsCatalog().catch((error) => {
+                // A failed request is not cached, so Retry in the webview performs real work.
+                this._catalog = undefined;
+                throw error;
+            });
+        }
+        return this._catalog;
     }
 
     /**
@@ -280,6 +303,31 @@ export class AgentPluginsInstaller {
         }
     }
 
+    private async fetchSkillsCatalog(): Promise<AgentSkillGroup[]> {
+        const client = new VscodeHttpClient({ logger: this._logger });
+        const response = await client.get<string>(SKILLS_README_URL, {
+            timeoutMs: CATALOG_REQUEST_TIMEOUT_MS,
+        });
+
+        if (!response.ok) {
+            throw new Error(
+                `Loading the Azure SQL skills catalog failed with status ${response.status}`,
+            );
+        }
+
+        const skills = parseSkillsCatalog(response.data);
+        if (skills.length === 0) {
+            throw new Error("The Azure SQL skills catalog contained no shipped skills.");
+        }
+        return [
+            {
+                id: SKILLS_REPO_NAME,
+                title: SKILLS_COLLECTION_TITLE,
+                skills,
+            },
+        ];
+    }
+
     /** Whether an extracted copy exists at the plugin root. */
     private async isPluginPresent(): Promise<boolean> {
         return this.hasPluginManifest(this.pluginRoot.fsPath);
@@ -352,4 +400,72 @@ export class AgentPluginsInstaller {
             .inspect<Record<string, boolean>>(PLUGIN_LOCATIONS_SETTING);
         return { ...(inspected?.globalValue ?? {}) };
     }
+}
+
+/** Heading the shipped skills are tabulated under. */
+const SKILLS_TABLE_HEADING = /^#{2,3}\s+(?:What.s in this collection|Skills\b)/i;
+
+/**
+ * A skill's name as the first cell of a table row.
+ *
+ * The collection README emphasises it (`**name**`) and the generated plugin READMEs code-quote
+ * it (`` `name` ``), so both are accepted. Anything else -- a `---` separator row, or a prose
+ * label such as `1. Instructions` -- is not a skill and is skipped.
+ */
+const SKILL_NAME_CELL = /^(?:\*\*|`)([a-z0-9][a-z0-9._-]*)(?:\*\*|`)$/i;
+
+/**
+ * Reads the shipped skills out of a collection README.
+ *
+ * Only the first table under the skills heading is read. The same README goes on to tabulate
+ * per-skill install commands and the authoring standard, and those rows look enough like skill
+ * rows that matching the whole document lists every skill twice and adds three headings that
+ * are not skills at all.
+ */
+export function parseSkillsCatalog(markdown: string): AgentSkillSummary[] {
+    const lines = markdown.replace(/\r\n/g, "\n").split("\n");
+    const headingIndex = lines.findIndex((line) => SKILLS_TABLE_HEADING.test(line));
+    if (headingIndex < 0) {
+        return [];
+    }
+
+    const skills: AgentSkillSummary[] = [];
+    const seen = new Set<string>();
+    let inTable = false;
+
+    for (const line of lines.slice(headingIndex + 1)) {
+        // The next section starts, so the table -- if there was one -- is over.
+        if (line.startsWith("#")) {
+            break;
+        }
+        if (!line.trimStart().startsWith("|")) {
+            if (inTable) {
+                break;
+            }
+            // Prose between the heading and the table.
+            continue;
+        }
+        inTable = true;
+
+        // A row is `| name | description |`, so the split has an empty cell at each end.
+        const cells = line
+            .split("|")
+            .slice(1, -1)
+            .map((cell) => cell.trim());
+        const name = SKILL_NAME_CELL.exec(cells[0] ?? "")?.[1];
+        if (!name || cells.length < 2 || seen.has(name)) {
+            continue;
+        }
+        seen.add(name);
+        skills.push({
+            id: name,
+            description: cells[1]
+                .replace(/\*\*/g, "")
+                .replace(/`([^`]+)`/g, "$1")
+                .replace(/\[([^\]]+)]\([^)]+\)/g, "$1")
+                .trim(),
+            repositoryUrl: `${SKILLS_REPOSITORY_URL}/blob/${SKILLS_REF}/skills/${name}/SKILL.md`,
+        });
+    }
+    return skills;
 }

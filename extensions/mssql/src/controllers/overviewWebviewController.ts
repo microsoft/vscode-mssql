@@ -18,7 +18,10 @@ import {
     AddDevContainerConfigurationResult,
     CheckDevContainerPrerequisitesRequest,
     DevContainerPrerequisites,
+    GetAgentSkillsCatalogRequest,
     InstallAgentSkillsPluginRequest,
+    OpenPromptInChatRequest,
+    OpenPromptInChatRequestParams,
     InstallDevContainersExtensionRequest,
     OpenFolderRequest,
     OverviewOpenSource,
@@ -79,6 +82,7 @@ const DEV_CONTAINERS_REOPEN_COMMAND = "remote-containers.reopenInContainer";
 const overviewTelemetryActions: Partial<Record<OverviewTelemetryEvent, TelemetryActions>> = {
     [OverviewTelemetryEvent.PromptCopied]: TelemetryActions.PromptCopied,
     [OverviewTelemetryEvent.PromptViewed]: TelemetryActions.PromptViewed,
+    [OverviewTelemetryEvent.PromptOpenedInChat]: TelemetryActions.PromptOpenedInChat,
     [OverviewTelemetryEvent.WalkthroughOpened]: TelemetryActions.WalkthroughOpened,
     [OverviewTelemetryEvent.DiscoverCardOpened]: TelemetryActions.DiscoverCardOpened,
 };
@@ -392,6 +396,19 @@ export class OverviewWebviewController extends WebviewPanelController<
                 await this.refreshAgentSkillsState();
             }
         });
+
+        this.onRequest(GetAgentSkillsCatalogRequest.type, async () => {
+            return this._agentSkillsInstaller.getSkillsCatalog();
+        });
+
+        this.onRequest(
+            OpenPromptInChatRequest.type,
+            async (params: OpenPromptInChatRequestParams) => {
+                // Opens the chat view with the prompt entered but not sent, so the user can add
+                // the specifics their project needs before Copilot acts on it.
+                await vscode.commands.executeCommand(constants.cmdOpenGithubChat, params.prompt);
+            },
+        );
 
         this.onRequest(
             SendOverviewTelemetryRequest.type,
@@ -731,43 +748,79 @@ export class OverviewWebviewController extends WebviewPanelController<
 
     /**
      * Collects a decision for every destination that already exists before any workspace files are
-     * changed. Any stat error other than a definite not-found result is treated as a conflict,
-     * because proceeding silently would risk overwriting a file the provider could not inspect.
+     * changed.
+     *
+     * Every conflict is found first so the prompt can say how many are left and offer Overwrite
+     * All, which a template that collides on most of its files otherwise turns into one modal per
+     * file.
      */
     private async getTemplateFileConflictChoices(
         workspaceFolder: vscode.Uri,
         files: string[],
     ): Promise<Map<string, "skip" | "overwrite"> | undefined> {
-        const choices = new Map<string, "skip" | "overwrite">();
+        const conflicts: string[] = [];
         for (const file of files) {
-            const destination = vscode.Uri.joinPath(workspaceFolder, ...file.split("/"));
-            let conflicts = false;
-            try {
-                await vscode.workspace.fs.stat(destination);
-                conflicts = true;
-            } catch (error) {
-                if (!(error instanceof vscode.FileSystemError) || error.code !== "FileNotFound") {
-                    conflicts = true;
-                }
+            if (await this.conflictsWithExistingFile(workspaceFolder, file)) {
+                conflicts.push(file);
             }
+        }
 
-            if (!conflicts) {
-                continue;
-            }
+        const choices = new Map<string, "skip" | "overwrite">();
+        for (const [index, file] of conflicts.entries()) {
+            const remaining = conflicts.length - index;
+            // With one file left, Overwrite All would just be Overwrite under a louder name.
+            const actions =
+                remaining > 1
+                    ? [
+                          Overview.SkipTemplateFile,
+                          Overview.OverwriteTemplateFile,
+                          Overview.OverwriteAllTemplateFiles,
+                      ]
+                    : [Overview.SkipTemplateFile, Overview.OverwriteTemplateFile];
 
             const choice = await vscode.window.showWarningMessage(
                 Overview.DevContainerTemplateFileConflict(file),
-                { modal: true },
-                Overview.SkipTemplateFile,
-                Overview.OverwriteTemplateFile,
+                {
+                    modal: true,
+                    detail:
+                        remaining > 1
+                            ? Overview.DevContainerTemplateFileConflictDetail(remaining)
+                            : undefined,
+                },
+                ...actions,
                 Common.cancel,
             );
             if (!choice || choice === Common.cancel) {
                 return undefined;
             }
+            if (choice === Overview.OverwriteAllTemplateFiles) {
+                for (const pending of conflicts.slice(index)) {
+                    choices.set(pending, "overwrite");
+                }
+                return choices;
+            }
             choices.set(file, choice === Overview.OverwriteTemplateFile ? "overwrite" : "skip");
         }
         return choices;
+    }
+
+    /**
+     * Whether the template would land on something already in the workspace.
+     *
+     * Any stat error other than a definite not-found result counts as a conflict, because
+     * proceeding silently would risk overwriting a file the provider could not inspect.
+     */
+    private async conflictsWithExistingFile(
+        workspaceFolder: vscode.Uri,
+        file: string,
+    ): Promise<boolean> {
+        const destination = vscode.Uri.joinPath(workspaceFolder, ...file.split("/"));
+        try {
+            await vscode.workspace.fs.stat(destination);
+            return true;
+        } catch (error) {
+            return !(error instanceof vscode.FileSystemError) || error.code !== "FileNotFound";
+        }
     }
 
     /**

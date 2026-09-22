@@ -20,7 +20,11 @@ export const overviewLinks = {
     discussions: "https://aka.ms/vscode-mssql-discussions",
     devHub: "https://aka.ms/azuresql-hub",
     devContainersQuickstart: "https://aka.ms/vscode-mssql-devcontainers-quickstart",
+    // Placeholder repositories. Both skill packs are published from the Database Systems
+    // AgentSkills repository, which is not public yet, so the card links, the install and
+    // the skills list all point at this sample collection until that repository ships.
     skillsRepository: "https://github.com/microsoft/azure-sql-database-container",
+    migrationSkillsRepository: "https://github.com/microsoft/azure-sql-database-container",
     // Template source links are built by appending a path to this, so it stays a real GitHub
     // URL rather than the aka.ms/vscode-mssql-devcontainers-repo alias, which cannot be extended.
     devContainersRepository: "https://github.com/microsoft/azuresql-devcontainers",
@@ -40,36 +44,98 @@ export interface PromptCard {
     prompt: string;
 }
 
-export function getPromptCards(): PromptCard[] {
+/** A published collection of agent skills, shown as one card on the Build tab. */
+export interface AgentSkillPack {
+    id: string;
+    name: string;
+    publisher: string;
+    /** Glyph shown in the card's tile; the panel maps it to a component. */
+    icon: "agentSkills" | "sqlMigration";
+    description: string;
+    /** Source repository, opened from the card. */
+    repositoryUrl: string;
+    /** Starter prompts the pack's skills answer well. */
+    prompts: PromptCard[];
+}
+
+export function getAgentSkillPacks(): AgentSkillPack[] {
     const loc = locConstants.overview;
     return [
         {
-            id: "createLocal",
-            tag: loc.promptTagLocalDev,
-            title: loc.promptCreateLocalTitle,
-            description: loc.promptCreateLocalDescription,
-            prompt: loc.promptCreateLocalBody,
+            id: "azure-sql",
+            name: loc.agentSkillsName,
+            publisher: loc.agentSkillsPublisher,
+            icon: "agentSkills",
+            description: loc.agentSkillsDescription,
+            repositoryUrl: overviewLinks.skillsRepository,
+            prompts: [
+                {
+                    id: "connectNodePasswordless",
+                    tag: loc.promptTagConnect,
+                    title: loc.promptConnectNodeTitle,
+                    description: loc.promptConnectNodeDescription,
+                    prompt: loc.promptConnectNodeBody,
+                },
+                {
+                    id: "scaffoldAppDataLayer",
+                    tag: loc.promptTagBuild,
+                    title: loc.promptScaffoldAppTitle,
+                    description: loc.promptScaffoldAppDescription,
+                    prompt: loc.promptScaffoldAppBody,
+                },
+                {
+                    id: "addVectorSearch",
+                    tag: loc.promptTagAi,
+                    title: loc.promptVectorSearchTitle,
+                    description: loc.promptVectorSearchDescription,
+                    prompt: loc.promptVectorSearchBody,
+                },
+                {
+                    id: "diagnose40613",
+                    tag: loc.promptTagDiagnose,
+                    title: loc.promptError40613Title,
+                    description: loc.promptError40613Description,
+                    prompt: loc.promptError40613Body,
+                },
+            ],
         },
         {
-            id: "buildApp",
-            tag: loc.promptTagBuild,
-            title: loc.promptBuildAppTitle,
-            description: loc.promptBuildAppDescription,
-            prompt: loc.promptBuildAppBody,
-        },
-        {
-            id: "designSchema",
-            tag: loc.promptTagSchema,
-            title: loc.promptDesignSchemaTitle,
-            description: loc.promptDesignSchemaDescription,
-            prompt: loc.promptDesignSchemaBody,
-        },
-        {
-            id: "deploy",
-            tag: loc.promptTagDeploy,
-            title: loc.promptDeployTitle,
-            description: loc.promptDeployDescription,
-            prompt: loc.promptDeployBody,
+            id: "sql-migration",
+            name: loc.migrationSkillsName,
+            publisher: loc.agentSkillsPublisher,
+            icon: "sqlMigration",
+            description: loc.migrationSkillsDescription,
+            repositoryUrl: overviewLinks.migrationSkillsRepository,
+            prompts: [
+                {
+                    id: "recommendMigrationPath",
+                    tag: loc.promptTagAssess,
+                    title: loc.promptMigrationPathTitle,
+                    description: loc.promptMigrationPathDescription,
+                    prompt: loc.promptMigrationPathBody,
+                },
+                {
+                    id: "migrationPrerequisites",
+                    tag: loc.promptTagPlan,
+                    title: loc.promptMigrationPrerequisitesTitle,
+                    description: loc.promptMigrationPrerequisitesDescription,
+                    prompt: loc.promptMigrationPrerequisitesBody,
+                },
+                {
+                    id: "sizeAzureSqlSku",
+                    tag: loc.promptTagSize,
+                    title: loc.promptSkuSizingTitle,
+                    description: loc.promptSkuSizingDescription,
+                    prompt: loc.promptSkuSizingBody,
+                },
+                {
+                    id: "validatePostMigration",
+                    tag: loc.promptTagValidate,
+                    title: loc.promptValidateMigrationTitle,
+                    description: loc.promptValidateMigrationDescription,
+                    prompt: loc.promptValidateMigrationBody,
+                },
+            ],
         },
     ];
 }

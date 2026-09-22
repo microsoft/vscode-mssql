@@ -3990,55 +3990,144 @@ export class LocConstants {
             walkthroughsTab: l10n.t("Walkthroughs"),
             devContainersTab: l10n.t("Dev containers"),
 
-            agentSkillsName: l10n.t("Microsoft SQL"),
+            agentSkillsName: l10n.t("Azure SQL Skills"),
             agentSkillsPublisher: l10n.t("Microsoft"),
-            recommended: l10n.t("Recommended"),
+            agentSkillsMeta: (publisher: string) =>
+                l10n.t({
+                    message: "Agent skills · {0}",
+                    args: [publisher],
+                    comment: ["{0} is the publisher of the agent skill collection"],
+                }),
             addToGitHubCopilot: l10n.t("Add to GitHub Copilot"),
             agentSkillsInstalled: l10n.t("Installed"),
             agentSkillsInstalling: l10n.t("Installing..."),
             agentSkillsDescription: l10n.t(
-                "Add curated SQL guidance for building apps, designing schemas, writing T-SQL, and tuning queries.",
+                "Add curated Azure SQL guidance for connecting applications, designing schemas, using vector search, and diagnosing database problems.",
             ),
-            tryThesePrompts: l10n.t("Try these prompts with agent skills"),
-            agentSkillsNotInstalled: l10n.t(
-                "For best results, install the Azure SQL agent skills before using these prompts.",
+            migrationSkillsName: l10n.t("SQL Server to Azure Migration Skills"),
+            migrationSkillsDescription: l10n.t(
+                "Add guidance for moving SQL Server to Azure: recommend a target and method, build the prerequisite plan, size the Azure SQL SKU, run the migration, and validate the data afterwards.",
             ),
-            copyPrompt: l10n.t("Copy prompt"),
-            promptCopied: l10n.t("Prompt copied"),
+            agentSkillsRepository: l10n.t("Repository"),
+            viewAgentSkills: l10n.t("View skills"),
+            agentSkillsLoading: l10n.t("Loading skills..."),
+            agentSkillsLoadFailed: l10n.t(
+                "The skills list couldn't be loaded from GitHub. Check your connection and try again.",
+            ),
+            retry: l10n.t("Retry"),
+            agentSkillsFilterPlaceholder: l10n.t("Filter skills"),
+            agentSkillsFilterMatches: (shown: number, total: number) =>
+                l10n.t({
+                    message: "{0} of {1} skills",
+                    args: [shown, total],
+                    comment: [
+                        "{0} is the number of skills matching the filter",
+                        "{1} is the total number of skills in the collection",
+                    ],
+                }),
+            agentSkillsNoMatches: l10n.t("No skills match that filter."),
+            viewSkillSource: l10n.t("Open this skill on GitHub"),
+            agentSkillsCount: (count: number) =>
+                count === 1
+                    ? l10n.t("1 skill")
+                    : l10n.t({
+                          message: "{0} skills",
+                          args: [count],
+                          comment: [
+                              "{0} is the number of agent skills available in the repository",
+                          ],
+                      }),
+            tryThesePrompts: l10n.t("Try these prompts"),
+            agentSkillsNotInstalled: (name: string) =>
+                l10n.t({
+                    message:
+                        "For best results, add {0} to GitHub Copilot before using these prompts.",
+                    args: [name],
+                    comment: ["{0} is the name of the agent skill collection"],
+                }),
+            copyPrompt: l10n.t("Copy"),
+            promptCopied: l10n.t("Copied"),
+            openPromptInCopilot: l10n.t("Open in Copilot"),
             view: l10n.t("View"),
-            promptTagLocalDev: l10n.t("Local dev"),
+
+            // Azure SQL prompt cards.
+            promptTagConnect: l10n.t("Connect"),
             promptTagBuild: l10n.t("Build"),
-            promptTagSchema: l10n.t("Schema"),
-            promptTagDeploy: l10n.t("Deploy"),
-            promptCreateLocalTitle: l10n.t("Create a local SQL database"),
-            promptCreateLocalDescription: l10n.t(
-                "Spin up an Azure SQL Database container in VS Code and connect to it.",
+            promptTagAi: l10n.t("AI"),
+            promptTagDiagnose: l10n.t("Diagnose"),
+            promptConnectNodeTitle: l10n.t(
+                "Connect my Node app to Azure SQL Database without a password",
             ),
-            promptBuildAppTitle: l10n.t("Build an app on Azure SQL"),
-            promptBuildAppDescription: l10n.t(
-                "Scaffold a .NET or Python app wired to a local Azure SQL database.",
+            promptConnectNodeDescription: l10n.t(
+                "Configure a Node.js application to use secure Microsoft Entra authentication.",
             ),
-            promptDesignSchemaTitle: l10n.t("Design a schema"),
-            promptDesignSchemaDescription: l10n.t(
-                "Create tables and seed realistic sample data for a new app.",
+            promptScaffoldAppTitle: l10n.t(
+                "Scaffold the schema, migrations, and data layer for this app",
             ),
-            promptDeployTitle: l10n.t("Move to Azure SQL"),
-            promptDeployDescription: l10n.t(
-                "Provision a free Azure SQL Database and deploy the app to it.",
+            promptScaffoldAppDescription: l10n.t(
+                "Inspect the current project and build its Azure SQL persistence layer.",
+            ),
+            promptVectorSearchTitle: l10n.t(
+                "Add vector search to this table and make it use the index",
+            ),
+            promptVectorSearchDescription: l10n.t(
+                "Add indexed vector search using Azure SQL's native vector capabilities.",
+            ),
+            promptError40613Title: l10n.t("Why does my first query after idle fail with 40613"),
+            promptError40613Description: l10n.t(
+                "Diagnose serverless resume behavior and make the application resilient to it.",
+            ),
+
+            // Migration prompt cards.
+            promptTagAssess: l10n.t("Assess"),
+            promptTagPlan: l10n.t("Plan"),
+            promptTagSize: l10n.t("Size"),
+            promptTagValidate: l10n.t("Validate"),
+            promptMigrationPathTitle: l10n.t("Which Azure target should this SQL Server move to?"),
+            promptMigrationPathDescription: l10n.t(
+                "Pre-select candidate targets and migration methods before any assessment data exists.",
+            ),
+            promptMigrationPrerequisitesTitle: l10n.t(
+                "What has to be ready before I run this migration?",
+            ),
+            promptMigrationPrerequisitesDescription: l10n.t(
+                "Turn a chosen migration path into a sourced prerequisite checklist.",
+            ),
+            promptSkuSizingTitle: l10n.t("Size an Azure SQL SKU from this server's performance"),
+            promptSkuSizingDescription: l10n.t(
+                "Collect performance data from an on-premises server and recommend a SKU.",
+            ),
+            promptValidateMigrationTitle: l10n.t(
+                "Validate the data now that the migration is done",
+            ),
+            promptValidateMigrationDescription: l10n.t(
+                "Reconcile the source and target tables without changing either side.",
             ),
 
             // Prompt bodies handed to an agent verbatim and copied to the clipboard.
-            promptCreateLocalBody: l10n.t(
-                "Add a local Azure SQL database to this app. Spin up the container, create an appdb database I can query, verify the first query, and point the app's configuration at it.",
+            promptConnectNodeBody: l10n.t(
+                "Connect this Node.js app to Azure SQL Database using Microsoft Entra authentication instead of a SQL login. Wire up the connection so it works both on my machine and from the deployed app, and make sure no database password ends up in the repository or in configuration.",
             ),
-            promptBuildAppBody: l10n.t(
-                "Build me an app on Azure SQL Database. Give me the order of operations from an empty project to the first successful request that reads a row, scaffold the data access layer, and do it without putting a database password in the repo.",
+            promptScaffoldAppBody: l10n.t(
+                "Look at this project and build its Azure SQL persistence layer: design tables for the entities it already has, add ordered migration scripts that are safe to re-run, and generate the data access code the app calls. Run the migrations against the application database, never against master.",
             ),
-            promptDesignSchemaBody: l10n.t(
-                "Model these entities as tables on Azure SQL Database, then review the schema before it goes to production: call out the keys, indexes, collation and identity choices that will cause trouble later, and seed realistic sample data.",
+            promptVectorSearchBody: l10n.t(
+                "Add vector search to this table using Azure SQL's native VECTOR type and VECTOR_DISTANCE. Store the embeddings, write the similarity query, then show me how to confirm it is using a vector index rather than scanning the whole table.",
             ),
-            promptDeployBody: l10n.t(
-                "Move this app from the local Azure SQL container to Azure SQL Database. Get it into Azure without putting a database password anywhere, keep the application code unchanged where possible, and tell me exactly what has to change in configuration.",
+            promptError40613Body: l10n.t(
+                "My first query after an idle period fails with error 40613 against Azure SQL Database. Explain what the serverless tier is doing when that happens, then change this app's connection and retry handling so the resume is absorbed instead of surfacing as a failed request.",
+            ),
+            promptMigrationPathBody: l10n.t(
+                "I want to move a SQL Server estate to Azure and have no assessment data yet. Ask me the discovery questions you need, then recommend the candidate Azure targets and migration methods that fit, the blockers that would rule each one out, and the evidence I still have to collect. Treat the recommendation as provisional until assessment tooling confirms it.",
+            ),
+            promptMigrationPrerequisitesBody: l10n.t(
+                "I have chosen a migration path for this SQL Server. Build the prerequisite plan for it: what has to be in place on the source, on the target and on the network before I execute, plus a readiness summary I can hand to a partner. Ask me only the questions this path actually needs.",
+            ),
+            promptSkuSizingBody: l10n.t(
+                "This is an on-premises SQL Server instance. Collect performance data from it and recommend an Azure SQL SKU sized from that data, not from a guess. Tell me what the collection needs before it starts and how long it should run to be representative.",
+            ),
+            promptValidateMigrationBody: l10n.t(
+                "The migration target is online. Validate it against the source without changing data, schema or configuration on either side: compare the user table inventory and the exact row counts for every mapped table, and report the tables that do not reconcile.",
             ),
 
             // Walkthrough media placeholder, pending the recorded walkthrough.

@@ -234,6 +234,7 @@ export enum TelemetryActions {
     DevContainerSetup = "DevContainerSetup",
     PromptCopied = "PromptCopied",
     PromptViewed = "PromptViewed",
+    PromptOpenedInChat = "PromptOpenedInChat",
     WalkthroughOpened = "WalkthroughOpened",
     DiscoverCardOpened = "DiscoverCardOpened",
     InstallDevContainersExtension = "InstallDevContainersExtension",

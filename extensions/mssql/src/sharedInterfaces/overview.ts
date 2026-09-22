@@ -126,6 +126,20 @@ export interface OverviewLinkRequestParams {
     url: string;
 }
 
+/** A shipped skill displayed in the Azure SQL Skills catalog. */
+export interface AgentSkillSummary {
+    id: string;
+    description: string;
+    repositoryUrl: string;
+}
+
+/** A repository-defined group of shipped Azure SQL skills. */
+export interface AgentSkillGroup {
+    id: string;
+    title: string;
+    skills: AgentSkillSummary[];
+}
+
 /** Opens an external URL in the user's browser. */
 export namespace OverviewLinkRequest {
     export const type = new RequestType<OverviewLinkRequestParams, void, void>("overview/openLink");
@@ -192,6 +206,8 @@ export enum OverviewTelemetryEvent {
     PromptCopied = "promptCopied",
     /** A prompt card's prompt was opened in the dialog. */
     PromptViewed = "promptViewed",
+    /** A prompt card's prompt was handed to Copilot Chat. */
+    PromptOpenedInChat = "promptOpenedInChat",
     /** A walkthrough was opened. */
     WalkthroughOpened = "walkthroughOpened",
     /** A Discover card was opened: explore, shortcuts, what's new, or the dev hub. */
@@ -248,6 +264,25 @@ export namespace AddDevContainerConfigurationRequest {
  */
 export namespace InstallAgentSkillsPluginRequest {
     export const type = new RequestType<void, void, void>("overview/installAgentSkillsPlugin");
+}
+
+export interface OpenPromptInChatRequestParams {
+    /** Text handed to Copilot Chat verbatim, the same text Copy puts on the clipboard. */
+    prompt: string;
+}
+
+/** Opens Copilot Chat with a prompt card's prompt already entered. */
+export namespace OpenPromptInChatRequest {
+    export const type = new RequestType<OpenPromptInChatRequestParams, void, void>(
+        "overview/openPromptInChat",
+    );
+}
+
+/** Loads the current shipped-skill catalog from the Azure SQL Skills repository. */
+export namespace GetAgentSkillsCatalogRequest {
+    export const type = new RequestType<void, AgentSkillGroup[], void>(
+        "overview/getAgentSkillsCatalog",
+    );
 }
 
 /** Rebuilds and reattaches the window inside the folder's dev container. */
