@@ -726,6 +726,10 @@
         "message": "Add Firewall Rule to {0}",
         "comment": ["{0} is the server name"]
     },
+    "'{0}' is a system database, so it isn't tracked in the Fabric Database Hub./{0} is the name of the system database, such as 'master'": {
+        "message": "'{0}' is a system database, so it isn't tracked in the Fabric Database Hub.",
+        "comment": ["{0} is the name of the system database, such as 'master'"]
+    },
     "Unable to acquire a Microsoft Entra token from VS Code for the selected account: {0}/{0} is the account label or ID": {
         "message": "Unable to acquire a Microsoft Entra token from VS Code for the selected account: {0}",
         "comment": ["{0} is the account label or ID"]

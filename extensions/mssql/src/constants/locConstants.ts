@@ -1229,6 +1229,14 @@ export class FirewallRule {
 }
 
 export class Azure {
+    public static systemDatabaseNotInFabricDatabaseHub(databaseName: string): string {
+        return l10n.t({
+            message: "'{0}' is a system database, so it isn't tracked in the Fabric Database Hub.",
+            args: [databaseName],
+            comment: ["{0} is the name of the system database, such as 'master'"],
+        });
+    }
+
     public static unableToAcquireEntraTokenFromVsCode(accountDisplayName: string): string {
         return l10n.t({
             message:

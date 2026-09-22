@@ -21,6 +21,7 @@ export enum TelemetryViews {
     Deployment = "Deployment",
     LocalContainers = "LocalContainers",
     FabricProvisioning = "FabricProvisioning",
+    FabricDatabaseHub = "FabricDatabaseHub",
     AzureSqlDatabase = "AzureSqlDatabase",
     TableDesigner = "TableDesigner",
     SchemaCompare = "SchemaCompare",
