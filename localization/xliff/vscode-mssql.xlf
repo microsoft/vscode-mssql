@@ -868,9 +868,6 @@
     <trans-unit id="++CODE++2827add936f31415e16e0670d8686084ec2e21fed7686c0aa91fffdfa09e4e38">
       <source xml:lang="en">Azure SQL Server</source>
     </trans-unit>
-    <trans-unit id="++CODE++cd0039ee90b07e2d85f09be23bb8a8d9eeeb763cf5b70d383739421930d9aeb9">
-      <source xml:lang="en">Azure SQL Skills</source>
-    </trans-unit>
     <trans-unit id="++CODE++588333f4d266b89935941194e4f8e0f1d8aab434615c493680d7d0859b6b7081">
       <source xml:lang="en">Azure SQL database &apos;{0}&apos; was provisioned successfully.</source>
       <note>{0} is the database name</note>
@@ -7959,8 +7956,8 @@
     <trans-unit id="++CODE++035f6f2b97a039d49cb4ed684e5e8118c2acf2ff2fcc0e25fc94e2eacbc63b80">
       <source xml:lang="en">SQL Server port number</source>
     </trans-unit>
-    <trans-unit id="++CODE++eac421380a726b9a13024d52eb42fd35ac4a80f1e536943c3db34bba404e5da4">
-      <source xml:lang="en">SQL Server to Azure Migration Skills</source>
+    <trans-unit id="++CODE++5f84c9e8eddf33cdc618850ac599bad8f45bd6c7fd5a1aef765fdf24f7c2f550">
+      <source xml:lang="en">SQL Server to Azure migration</source>
     </trans-unit>
     <trans-unit id="++CODE++64aaab208c8e1d1152e423b463ee58006e8479fe03f9b92d91be13935401d6d8">
       <source xml:lang="en">SQL Server {0} - latest</source>

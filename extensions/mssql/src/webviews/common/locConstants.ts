@@ -3997,7 +3997,7 @@ export class LocConstants {
             devContainersTab: l10n.t("Dev containers"),
 
             extensionPublisher: l10n.t("Microsoft"),
-            agentSkillsName: l10n.t("Azure SQL Skills"),
+            agentSkillsName: l10n.t("Azure SQL Database"),
             agentSkillsPlugin: l10n.t("Plugin"),
             agentSkillsMeta: (count: number) =>
                 count === 1
@@ -4013,7 +4013,7 @@ export class LocConstants {
             agentSkillsDescription: l10n.t(
                 "Give GitHub Copilot Azure SQL expertise to help you connect your app, design schemas, write queries, add vector search, and troubleshoot database issues.",
             ),
-            migrationSkillsName: l10n.t("SQL Server to Azure Migration Skills"),
+            migrationSkillsName: l10n.t("SQL Server to Azure migration"),
             migrationSkillsDescription: l10n.t(
                 "Let GitHub Copilot guide your migration from assessment through validation — recommend a target and method, build the prerequisite plan, size the Azure SQL SKU, run the migration, and validate the data afterwards.",
             ),
