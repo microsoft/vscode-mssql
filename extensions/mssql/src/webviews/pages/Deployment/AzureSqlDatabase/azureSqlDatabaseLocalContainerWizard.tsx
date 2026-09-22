@@ -27,7 +27,7 @@ import {
 import { useVscodeWebview } from "../../../common/vscodeWebviewProvider";
 import { useDeploymentSelector } from "../deploymentSelector";
 import { AzureSqlDatabaseContainerFormPage } from "./azureSqlDatabaseContainerFormPage";
-import { getSqlPasswordValidationError } from "../../../../sharedInterfaces/sqlPassword";
+import { getSqlPasswordValidationError } from "../../../../utils/sqlStringUtils";
 import { AzureSqlDatabaseContainerProvisioningPage } from "./azureSqlDatabaseContainerProvisioningPage";
 
 const useStyles = makeStyles({

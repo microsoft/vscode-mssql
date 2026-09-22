@@ -20,10 +20,7 @@ import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
 import { ObjectExplorerService } from "../objectExplorer/objectExplorerService";
 import type Dockerode from "dockerode";
 import { getDockerodeClient } from "../docker/dockerodeClient";
-import {
-    getSqlPasswordValidationError,
-    SqlPasswordValidationError,
-} from "../sharedInterfaces/sqlPassword";
+import { getSqlPasswordValidationError, SqlPasswordValidationError } from "../utils/sqlStringUtils";
 import {
     DockerCommand,
     checkDockerInstallation,

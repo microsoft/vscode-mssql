@@ -29,7 +29,7 @@ import { SearchableDropdown } from "../../../common/searchableDropdown.component
 import {
     getSqlPasswordValidationError,
     SqlPasswordValidationError,
-} from "../../../../sharedInterfaces/sqlPassword";
+} from "../../../../utils/sqlStringUtils";
 
 const useStyles = makeStyles({
     form: {
