@@ -341,7 +341,6 @@ export class OverviewWebviewController extends WebviewPanelController<
 
     /** Sequence number of the newest agent skills refresh; see refreshAgentSkillsState. */
     private _agentSkillsRequest = 0;
-    private readonly _migrationSkillsInstaller: AgentPluginsInstaller;
 
     /**
      * Template metadata by registry id. Reading it is a registry fetch, and the dialog asks every
@@ -359,6 +358,7 @@ export class OverviewWebviewController extends WebviewPanelController<
         context: vscode.ExtensionContext,
         private _recentSqlFilesStore: RecentSqlFilesStore,
         private _agentSkillsInstaller: AgentPluginsInstaller,
+        private _migrationSkillsInstaller: AgentPluginsInstaller,
         options: OverviewOpenOptions = {},
     ) {
         super(
@@ -375,8 +375,6 @@ export class OverviewWebviewController extends WebviewPanelController<
                 },
             },
         );
-
-        this._migrationSkillsInstaller = new AgentPluginsInstaller(context, "sql-migration");
 
         void this.refreshRecentFiles();
 

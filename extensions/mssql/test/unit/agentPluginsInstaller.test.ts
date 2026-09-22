@@ -103,6 +103,38 @@ suite("Agent Plugins Installer", () => {
         expect(userLocations).to.deep.equal({ [migration.pluginRoot.fsPath]: true });
     });
 
+    test("serializes registrations from both plugins so neither setting is lost", async () => {
+        const migration = new AgentPluginsInstaller(context, "sql-migration");
+        let releaseFirstWrite!: () => void;
+        let firstWriteStarted!: () => void;
+        const firstWrite = new Promise<void>((resolve) => (releaseFirstWrite = resolve));
+        const firstWriteStartedPromise = new Promise<void>(
+            (resolve) => (firstWriteStarted = resolve),
+        );
+        updateStub.callsFake(async (_section: string, value: unknown) => {
+            if (updateStub.callCount === 1) {
+                firstWriteStarted();
+                await firstWrite;
+            }
+            userLocations = value as Record<string, boolean>;
+        });
+
+        const azureRegistration = installer["register"]();
+        await firstWriteStartedPromise;
+        const migrationRegistration = migration["register"]();
+        try {
+            await Promise.resolve();
+            expect(updateStub).to.have.been.calledOnce;
+        } finally {
+            releaseFirstWrite();
+        }
+        await Promise.all([azureRegistration, migrationRegistration]);
+        expect(userLocations).to.deep.equal({
+            [installer.pluginRoot.fsPath]: true,
+            [migration.pluginRoot.fsPath]: true,
+        });
+    });
+
     test("extracts the selected plugin from a marketplace archive", async () => {
         const migration = new AgentPluginsInstaller(context, "sql-migration");
         const archiveSource = await fs.mkdtemp(path.join(os.tmpdir(), "mssql-marketplace-"));

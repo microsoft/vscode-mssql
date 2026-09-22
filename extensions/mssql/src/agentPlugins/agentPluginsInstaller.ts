@@ -83,6 +83,8 @@ export class RemoteWindowUnsupportedError extends Error {
  * be cleared independently, so {@link isInstalled} checks both and repairs the mismatch.
  */
 export class AgentPluginsInstaller {
+    /** Both plugin instances write the same user setting, so their edits share one queue. */
+    private static _settingsOperation: Promise<void> = Promise.resolve();
     private readonly _logger: ILogger = baseLogger.withPrefix("AgentPluginsInstaller");
     private _operation: Promise<boolean> | undefined;
     private _catalog: Promise<AgentSkillGroup[]> | undefined;
@@ -424,35 +426,45 @@ export class AgentPluginsInstaller {
     }
 
     private async register(): Promise<void> {
-        const key = this.pluginRoot.fsPath;
-        const locations = this.readUserPluginLocations();
-        if (locations[key] === true) {
-            return;
-        }
-        await vscode.workspace
-            .getConfiguration()
-            .update(
-                PLUGIN_LOCATIONS_SETTING,
-                { ...locations, [key]: true },
-                vscode.ConfigurationTarget.Global,
-            );
+        await AgentPluginsInstaller.mutateSettings(async () => {
+            const key = this.pluginRoot.fsPath;
+            const locations = this.readUserPluginLocations();
+            if (locations[key] === true) {
+                return;
+            }
+            await vscode.workspace
+                .getConfiguration()
+                .update(
+                    PLUGIN_LOCATIONS_SETTING,
+                    { ...locations, [key]: true },
+                    vscode.ConfigurationTarget.Global,
+                );
+        });
     }
 
     private async unregister(): Promise<void> {
-        const key = this.pluginRoot.fsPath;
-        const locations = this.readUserPluginLocations();
-        if (!(key in locations)) {
-            return;
-        }
-        const remaining = { ...locations };
-        delete remaining[key];
-        await vscode.workspace
-            .getConfiguration()
-            .update(
-                PLUGIN_LOCATIONS_SETTING,
-                Object.keys(remaining).length > 0 ? remaining : undefined,
-                vscode.ConfigurationTarget.Global,
-            );
+        await AgentPluginsInstaller.mutateSettings(async () => {
+            const key = this.pluginRoot.fsPath;
+            const locations = this.readUserPluginLocations();
+            if (!(key in locations)) {
+                return;
+            }
+            const remaining = { ...locations };
+            delete remaining[key];
+            await vscode.workspace
+                .getConfiguration()
+                .update(
+                    PLUGIN_LOCATIONS_SETTING,
+                    Object.keys(remaining).length > 0 ? remaining : undefined,
+                    vscode.ConfigurationTarget.Global,
+                );
+        });
+    }
+
+    private static async mutateSettings(work: () => Promise<void>): Promise<void> {
+        const pending = this._settingsOperation.then(work, work);
+        this._settingsOperation = pending.catch(() => undefined);
+        await pending;
     }
 
     /**

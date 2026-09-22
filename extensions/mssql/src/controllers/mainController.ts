@@ -181,6 +181,7 @@ export default class MainController implements vscode.Disposable {
     private _overviewController: OverviewWebviewController | undefined;
     private _recentSqlFilesStore: RecentSqlFilesStore;
     private _agentPluginsInstaller: AgentPluginsInstaller;
+    private _migrationSkillsInstaller: AgentPluginsInstaller;
     private _backgroundTaskLogContentProvider: BackgroundTaskLogContentProvider;
     private _backgroundTasksProvider: BackgroundTasksProvider;
     private _scriptingService: ScriptingService;
@@ -468,6 +469,7 @@ export default class MainController implements vscode.Disposable {
                         this._context,
                         this._recentSqlFilesStore,
                         this._agentPluginsInstaller,
+                        this._migrationSkillsInstaller,
                         { openWhatsNew, source: options.source },
                     );
                 } else if (openWhatsNew) {
@@ -2719,16 +2721,15 @@ export default class MainController implements vscode.Disposable {
      */
     private initializeAgentPlugins(): void {
         this._agentPluginsInstaller = new AgentPluginsInstaller(this._context);
+        this._migrationSkillsInstaller = new AgentPluginsInstaller(this._context, "sql-migration");
         // Best effort. An unreachable network, a bad archive or a filesystem failure leaves the
         // installed copy alone, so it is logged rather than allowed to reject out of activation.
         void this._agentPluginsInstaller.checkForUpdates().catch((error) => {
             this._logger.error("Checking for agent skill updates failed", error);
         });
-        void new AgentPluginsInstaller(this._context, "sql-migration")
-            .checkForUpdates()
-            .catch((error) => {
-                this._logger.error("Checking for migration skill updates failed", error);
-            });
+        void this._migrationSkillsInstaller.checkForUpdates().catch((error) => {
+            this._logger.error("Checking for migration skill updates failed", error);
+        });
     }
 
     /**

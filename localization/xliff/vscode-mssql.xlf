@@ -458,6 +458,9 @@
     <trans-unit id="++CODE++d3bea48abd243765e73062febb24ad5221ba090ac07af99f914fdd554b03fa95">
       <source xml:lang="en">Agent skills</source>
     </trans-unit>
+    <trans-unit id="++CODE++3103e52eb1cd4493724fc1943e3393990216fd4e6a6acb67f2934322b70fa5a6">
+      <source xml:lang="en">Agent skills can only be installed from a local window. Reopen this workspace locally, install them there, and they will be available to Copilot everywhere.</source>
+    </trans-unit>
     <trans-unit id="++CODE++b19e02e9502bbe5ac59dff4b2d4160768a4a7b8feff5693e5769613562290a45">
       <source xml:lang="en">Alias</source>
     </trans-unit>
@@ -2318,13 +2321,13 @@
     <trans-unit id="++CODE++03c0e95da7ae52bf9392b845b82870dbf28db813a7fd4a72085f8a544de37916">
       <source xml:lang="en">Could not detect your client IP address. Please add a firewall rule manually in the Azure portal.</source>
     </trans-unit>
-    <trans-unit id="++CODE++5ec0f218834cf88959350a255978c7ab837777accb4cd874a54a43ab6488d28f">
-      <source xml:lang="en">Could not download the Azure SQL agent skills. Check your network connection and try again.</source>
-    </trans-unit>
     <trans-unit id="++CODE++f630f91edbf1dc6649a7de55179cb551ef8245ef63461de0094de54e58d5ea62">
       <source xml:lang="en">Could not find scripting metadata for {0} &apos;{1}&apos;.</source>
       <note>{0} is the node type
 {1} is the node label</note>
+    </trans-unit>
+    <trans-unit id="++CODE++3ebc0b88016fae0c96c6de96cde1f1690b1faa6bbda833db1f85279f94021a24">
+      <source xml:lang="en">Could not install the selected agent skills. Check your network connection and try again.</source>
     </trans-unit>
     <trans-unit id="++CODE++779a7b17e40482d5ea307dc9a3c53901566b6fbaf138bb9660b557780102ce0a">
       <source xml:lang="en">Could not load restore plan</source>
@@ -3047,6 +3050,9 @@
     </trans-unit>
     <trans-unit id="++CODE++d4a33d5b78bccebe3f16843dc30e6c0f73b4eb6efb4e7114ddfebde7fa2c9954">
       <source xml:lang="en">Discover</source>
+    </trans-unit>
+    <trans-unit id="++CODE++57d34ecd6fc9b04ba8ad6450eeb1159b21aa3e6f127082ea6554f826985cdddb">
+      <source xml:lang="en">Discover how SQL Database in Fabric, Azure SQL, and SQL Server are redefining modern app development. Join engineers and peers pushing the limits of performance, AI integration, and developer productivity.</source>
     </trans-unit>
     <trans-unit id="++CODE++48845bff334a50a59aaecf499f28a7a24c3b4b891b8b18a9f1169ad8e8a6b261">
       <source xml:lang="en">Dismiss</source>
@@ -7509,6 +7515,9 @@
     <trans-unit id="++CODE++d3a008ef1335692d9d045175ba9ea1dcd39ae48da9e2043a9baabad6c3818c28">
       <source xml:lang="en">Region</source>
     </trans-unit>
+    <trans-unit id="++CODE++bb7234ec12451361e6f35bcbe76de58e4350657fe60d1b96ace0947f59194083">
+      <source xml:lang="en">Register</source>
+    </trans-unit>
     <trans-unit id="++CODE++ab604a360777735fe2993aec7d4ffae415f1515b0a4c989269603fd3d5c07b61">
       <source xml:lang="en">Reject</source>
     </trans-unit>
@@ -9380,9 +9389,6 @@
     <trans-unit id="++CODE++c2deec07495a278190de83a0820519064e332fc00b050c4fd053bae70c44da8e">
       <source xml:lang="en">The Application (Client) ID of your Microsoft Entra app registration.</source>
     </trans-unit>
-    <trans-unit id="++CODE++9ab5f5d2c21aefd9c8a32a0f77c22a6c38b25821a1931e8f8e8043af7c5b4b73">
-      <source xml:lang="en">The Azure SQL agent skills can only be installed from a local window. Reopen this folder locally, install them there, and they will be available to Copilot everywhere.</source>
-    </trans-unit>
     <trans-unit id="++CODE++4b322ab456c5f1d7a9a9be01df5778e65771785eab5f5f93637487f24f24793d">
       <source xml:lang="en">The Data API builder CLI exited with code {0}.</source>
       <note>{0} is the process exit code</note>
@@ -10069,6 +10075,9 @@
     </trans-unit>
     <trans-unit id="++CODE++eeefe579e45c25e1a551b536d8eecc680562bce4d0aa58ffee1ad7df8cc84e63">
       <source xml:lang="en">Use T-SQL intellisense and syntax error checking on current document</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6ef37ea9955ac30c701324290f719cf696d1f34b027640872eb4bba2fcd59c25">
+      <source xml:lang="en">Use discount code {0} to save €200 on registration.</source>
     </trans-unit>
     <trans-unit id="++CODE++413d7418205c532ce289074072d8841df2c720313cb19bd9180ad2c4de3383c7">
       <source xml:lang="en">Use encryption for this backup</source>

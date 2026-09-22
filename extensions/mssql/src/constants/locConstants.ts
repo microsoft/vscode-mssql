@@ -3621,10 +3621,10 @@ export class Overview {
     public static OverwriteTemplateFile = l10n.t("Overwrite");
     public static OverwriteAllTemplateFiles = l10n.t("Overwrite All");
     public static InstallAgentSkillsFailed = l10n.t(
-        "Could not download the Azure SQL agent skills. Check your network connection and try again.",
+        "Could not install the selected agent skills. Check your network connection and try again.",
     );
     public static InstallAgentSkillsRemoteUnsupported = l10n.t(
-        "The Azure SQL agent skills can only be installed from a local window. Reopen this folder locally, install them there, and they will be available to Copilot everywhere.",
+        "Agent skills can only be installed from a local window. Reopen this workspace locally, install them there, and they will be available to Copilot everywhere.",
     );
     public static DevContainersExtensionRequired = l10n.t(
         "The Dev Containers extension is required to reopen this folder in a container.",
@@ -3731,6 +3731,15 @@ export class Changelog {
     );
     public static mssqlWalkthrough = l10n.t("MSSQL - VS Code walkthrough");
     public static copilotWalkthrough = l10n.t("GitHub Copilot - VS Code walkthrough");
+
+    // Event banner
+    public static sqlconEuDescription1 = l10n.t(
+        "Discover how SQL Database in Fabric, Azure SQL, and SQL Server are redefining modern app development. Join engineers and peers pushing the limits of performance, AI integration, and developer productivity.",
+    );
+    public static sqlconEuDescription2 = l10n.t(
+        "Use discount code {0} to save €200 on registration.",
+    );
+    public static sqlconEuRegister = l10n.t("Register");
 }
 
 export class Profiler {

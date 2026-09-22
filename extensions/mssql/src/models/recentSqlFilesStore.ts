@@ -59,7 +59,7 @@ export class RecentSqlFilesStore implements vscode.Disposable {
     public register(): void {
         this._disposables.push(
             vscode.workspace.onDidOpenTextDocument((document) => {
-                void this.recordOpen(document);
+                this.recordOpenInBackground(document);
             }),
         );
 
@@ -68,8 +68,14 @@ export class RecentSqlFilesStore implements vscode.Disposable {
         // from the list -- and with a full history nothing goes looking for it.
         const active = vscode.window.activeTextEditor?.document;
         if (active) {
-            void this.recordOpen(active);
+            this.recordOpenInBackground(active);
         }
+    }
+
+    private recordOpenInBackground(document: vscode.TextDocument): void {
+        void this.recordOpen(document).catch((error) => {
+            this._logger.error("Failed to persist a recent SQL file", error);
+        });
     }
 
     /**

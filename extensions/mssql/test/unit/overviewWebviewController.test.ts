@@ -66,6 +66,10 @@ suite("Overview Webview Controller", () => {
                 isInstalled: agentSkillsInstalledStub,
                 install: agentSkillsInstallStub,
             } as unknown as AgentPluginsInstaller,
+            {
+                isInstalled: sinon.stub().resolves(false),
+                install: sinon.stub().resolves(true),
+            } as unknown as AgentPluginsInstaller,
         );
         observeWebviewReady(created);
         return created;

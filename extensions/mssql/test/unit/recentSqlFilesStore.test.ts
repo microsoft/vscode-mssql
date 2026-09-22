@@ -202,6 +202,28 @@ suite("Recent SQL Files Store", () => {
         }
     });
 
+    test("logs a background persistence failure instead of rejecting from registration", async () => {
+        const failure = new Error("storage unavailable");
+        sandbox
+            .stub(vscode.window, "activeTextEditor")
+            .value({ document: createDocument("/work/already-open.sql") });
+        const openEvent = new vscode.EventEmitter<vscode.TextDocument>();
+        sandbox.stub(vscode.workspace, "onDidOpenTextDocument").value(openEvent.event);
+        sandbox.stub(store, "recordOpen").rejects(failure);
+        const logError = sandbox.stub(store["_logger"], "error");
+
+        try {
+            store.register();
+            await new Promise((resolve) => setTimeout(resolve, 0));
+            expect(logError).to.have.been.calledWith(
+                "Failed to persist a recent SQL file",
+                failure,
+            );
+        } finally {
+            openEvent.dispose();
+        }
+    });
+
     test("does not record a non-SQL active editor at registration", async () => {
         sandbox
             .stub(vscode.window, "activeTextEditor")
