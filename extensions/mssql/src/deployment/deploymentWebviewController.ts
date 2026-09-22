@@ -118,6 +118,17 @@ export class DeploymentWebviewController extends FormWebviewController<
                     this.logger,
                     selectedGroupId,
                 );
+            } else {
+                // A deployment type with no wizard behind it yet. Everything below reads the
+                // state this block was meant to produce, so carrying on would dereference
+                // `undefined` and take the webview down. The start page only advances once the
+                // state for its chosen type is ready, so returning here leaves the user on the
+                // chooser instead.
+                this.logger.error(
+                    `No deployment wizard is implemented for deployment type ${payload.deploymentType}.`,
+                );
+                state.deploymentTypeState.loadState = ApiStatus.Error;
+                return state;
             }
 
             // Capture the initial deployment specific state in the overall controller's state

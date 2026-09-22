@@ -246,6 +246,81 @@ suite("Overview Webview Controller", () => {
         expect(await fs.promises.readFile(tasksPath, "utf8")).to.equal("template tasks");
     });
 
+    suite("post-update trigger", () => {
+        const LAST_VERSION_KEY = "changelog/lastChangeLogVersion";
+
+        /**
+         * A context whose global state is a plain map, plus the extension version and the
+         * setting the trigger gates on.
+         */
+        function stubUpdateEnvironment(options: {
+            lastShownVersion?: string;
+            currentVersion?: string;
+            settingValue?: boolean;
+        }) {
+            const state = new Map<string, unknown>();
+            if (options.lastShownVersion !== undefined) {
+                state.set(LAST_VERSION_KEY, options.lastShownVersion);
+            }
+            const update = sinon.stub().callsFake((key: string, value: unknown) => {
+                state.set(key, value);
+                return Promise.resolve();
+            });
+
+            (vscode.extensions.getExtension as sinon.SinonStub)
+                .withArgs(constants.extensionId)
+                .returns({
+                    packageJSON: { version: options.currentVersion ?? "1.46.0" },
+                } as unknown as vscode.Extension<unknown>);
+            sandbox.stub(vscode.workspace, "getConfiguration").returns({
+                inspect: () => ({ globalValue: options.settingValue }),
+            } as unknown as vscode.WorkspaceConfiguration);
+
+            return {
+                update,
+                context: {
+                    globalState: { get: (key: string) => state.get(key), update },
+                } as unknown as vscode.ExtensionContext,
+            };
+        }
+
+        test("opens the page with the post-update payload and records the version", async () => {
+            const { context, update } = stubUpdateEnvironment({ settingValue: true });
+
+            await OverviewWebviewController.showWelcomeOnExtensionUpdate(context);
+
+            expect(vscode.commands.executeCommand).to.have.been.calledWithExactly(
+                constants.cmdOpenOverview,
+                { openWhatsNew: true, source: OverviewOpenSource.PostUpdate },
+            );
+            expect(update).to.have.been.calledWithExactly(LAST_VERSION_KEY, "1.46.0");
+        });
+
+        test("does not open the page again for a version already shown", async () => {
+            const { context, update } = stubUpdateEnvironment({
+                lastShownVersion: "1.46.0",
+                currentVersion: "1.46.0",
+                settingValue: true,
+            });
+
+            await OverviewWebviewController.showWelcomeOnExtensionUpdate(context);
+
+            expect(vscode.commands.executeCommand).to.not.have.been.called;
+            expect(update).to.not.have.been.called;
+        });
+
+        test("does not open the page when the user turned the setting off", async () => {
+            const { context, update } = stubUpdateEnvironment({ settingValue: false });
+
+            await OverviewWebviewController.showWelcomeOnExtensionUpdate(context);
+
+            expect(vscode.commands.executeCommand).to.not.have.been.called;
+            // The version stays unrecorded, so turning the setting back on still shows the
+            // notes for this version rather than silently skipping it.
+            expect(update).to.not.have.been.called;
+        });
+    });
+
     test("overwrites every remaining conflict after Overwrite All, with one prompt", async () => {
         const workspaceRoot = await createTemporaryDirectory("mssql-overview-overwrite-all-");
         const tasksPath = path.join(workspaceRoot, ".vscode", "tasks.json");

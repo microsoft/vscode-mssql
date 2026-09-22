@@ -5,6 +5,7 @@
 
 import * as fs from "fs/promises";
 import * as path from "path";
+import { randomUUID } from "crypto";
 import * as tar from "tar";
 import * as vscode from "vscode";
 import { VscodeHttpClient } from "extension-toolkit/vscode";
@@ -263,12 +264,53 @@ export class AgentPluginsInstaller {
     /**
      * Moves `source` onto `destination`.
      *
-     * A rename is preferred, but it fails across filesystems and can be refused on Windows while
-     * a file in the old copy is still open, so a recursive copy backs it up.
+     * The copy already there is moved aside rather than deleted, and put back if the staged copy
+     * cannot be installed. Deleting first would mean a failure on both the rename and the copy
+     * leaves the user with no skills at all and a registration that the next {@link isInstalled}
+     * call clears, turning a failed update into a lost installation.
      */
     private async replaceDirectory(source: string, destination: string): Promise<void> {
         await fs.mkdir(path.dirname(destination), { recursive: true });
-        await fs.rm(destination, { recursive: true, force: true });
+        const backup = `${destination}.old-${randomUUID()}`;
+        const hasBackup = await this.moveAside(destination, backup);
+
+        try {
+            await this.moveInto(source, destination);
+        } catch (error) {
+            if (hasBackup) {
+                // A copy that failed part way leaves debris the restore cannot rename over.
+                await fs.rm(destination, { recursive: true, force: true }).catch(() => undefined);
+                await fs.rename(backup, destination).catch(() => undefined);
+            }
+            throw error;
+        }
+
+        if (hasBackup) {
+            await fs.rm(backup, { recursive: true, force: true }).catch(() => undefined);
+        }
+    }
+
+    /** Renames an existing directory out of the way. False when there was nothing to move. */
+    private async moveAside(directory: string, backup: string): Promise<boolean> {
+        try {
+            await fs.rename(directory, backup);
+            return true;
+        } catch (error) {
+            if ((error as NodeJS.ErrnoException)?.code === "ENOENT") {
+                return false;
+            }
+            // Anything else -- a lock, a permission change -- means the copy on disk cannot be
+            // moved safely, so it is left exactly as it is.
+            throw error;
+        }
+    }
+
+    /**
+     * Puts the staged copy in place. A rename is preferred, but it fails across filesystems and
+     * can be refused on Windows while a file in the old copy is still open, so a recursive copy
+     * backs it up.
+     */
+    private async moveInto(source: string, destination: string): Promise<void> {
         try {
             await fs.rename(source, destination);
         } catch (error) {

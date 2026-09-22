@@ -247,6 +247,37 @@ suite("Agent Plugins Installer", () => {
         expect(getStub).to.have.been.calledOnce;
     });
 
+    test("restores the installed copy when the staged copy cannot be moved into place", async () => {
+        await createPluginOnDisk();
+        const marker = path.join(installer.pluginRoot.fsPath, "marker.txt");
+        await fs.writeFile(marker, "working install");
+
+        const staging = await fs.mkdtemp(path.join(os.tmpdir(), "mssql-agent-staging-"));
+        await fs.writeFile(path.join(staging, "marker.txt"), "staged install");
+
+        // The first rename moves the working copy aside, the second tries to put the staged copy
+        // in place. Failing the second and the copy fallback is the case that used to lose the
+        // installation outright, because the working copy had already been deleted by then.
+        const realRename = fs.rename;
+        const rename = sandbox.stub(fs, "rename");
+        rename.callsFake(realRename);
+        rename.onSecondCall().rejects(new Error("locked"));
+        sandbox.stub(fs, "cp").rejects(new Error("locked"));
+
+        let thrown: unknown;
+        try {
+            await installer["replaceDirectory"](staging, installer.pluginRoot.fsPath);
+        } catch (error) {
+            thrown = error;
+        }
+
+        expect(thrown).to.be.instanceOf(Error);
+        expect(await fs.readFile(marker, "utf8")).to.equal("working install");
+        // Nothing is left behind for the next update to trip over.
+        const siblings = await fs.readdir(path.dirname(installer.pluginRoot.fsPath));
+        expect(siblings.filter((entry) => entry.includes(".old-"))).to.be.empty;
+    });
+
     test("reads only the first skills table, whatever separates the sections", () => {
         // The collection README follows its catalog with an install table whose rows repeat every
         // skill name, and an authoring table whose first column is prose. Neither is a skill, and

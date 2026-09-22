@@ -2711,7 +2711,11 @@ export default class MainController implements vscode.Disposable {
      */
     private initializeAgentPlugins(): void {
         this._agentPluginsInstaller = new AgentPluginsInstaller(this._context);
-        void this._agentPluginsInstaller.checkForUpdates();
+        // Best effort. An unreachable network, a bad archive or a filesystem failure leaves the
+        // installed copy alone, so it is logged rather than allowed to reject out of activation.
+        void this._agentPluginsInstaller.checkForUpdates().catch((error) => {
+            this._logger.error("Checking for agent skill updates failed", error);
+        });
     }
 
     /**
