@@ -334,8 +334,8 @@
     <trans-unit id="++CODE++f929081d85d7455c7414f04435ed1583c3ae9bcbbb8b0ab7cb160848f4945d5d">
       <source xml:lang="en">Add at least one filter value before saving this filter.</source>
     </trans-unit>
-    <trans-unit id="++CODE++322b5b402a32f16b07bc5f0e670a8c07bea52d1f71f8595c6dbf1cf3e8c33cca">
-      <source xml:lang="en">Add configuration to the folder you have open</source>
+    <trans-unit id="++CODE++b7fcd3ba4ed0707d6bd561508d2841d345833737409969f18f1bb60568c9544f">
+      <source xml:lang="en">Add configuration to the current workspace</source>
     </trans-unit>
     <trans-unit id="++CODE++685f88ae3db24ee15edd7e342447d933e018a46d99e8878c21ce3065d93c21a9">
       <source xml:lang="en">Add connection</source>

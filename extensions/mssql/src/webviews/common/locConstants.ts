@@ -4306,7 +4306,7 @@ export class LocConstants {
             prerequisites: l10n.t("Prerequisites"),
             showLog: l10n.t("Show log"),
             templateLocation: l10n.t("Location"),
-            locationWorkspace: l10n.t("Add configuration to the folder you have open"),
+            locationWorkspace: l10n.t("Add configuration to the current workspace"),
             locationWorkspaceDescription: l10n.t(
                 "Shares the configuration with others through source control",
             ),

@@ -5129,7 +5129,7 @@
     "View on GitHub": "View on GitHub",
     "Prerequisites": "Prerequisites",
     "Show log": "Show log",
-    "Add configuration to the folder you have open": "Add configuration to the folder you have open",
+    "Add configuration to the current workspace": "Add configuration to the current workspace",
     "Shares the configuration with others through source control": "Shares the configuration with others through source control",
     "Create a new project folder": "Create a new project folder",
     "Sets the project up somewhere else and opens it": "Sets the project up somewhere else and opens it",
