@@ -106,15 +106,33 @@ export interface AzureSqlContainerProvisioningResult {
 }
 
 export namespace AzureSqlDatabaseRequests {
+    export const PrepareContainerForm = new RequestType<
+        AzureSqlContainerForm,
+        { form: AzureSqlContainerForm; errors: AzureSqlContainerFormErrors },
+        void
+    >("deployment/prepareAzureSqlContainerForm");
+
     export const ValidateContainerForm = new RequestType<
         AzureSqlContainerForm,
         AzureSqlContainerFormErrors,
         void
     >("deployment/validateAzureSqlContainerForm");
 
+    export const ValidateContainerPort = new RequestType<
+        { engine: ContainerEngine; port: string },
+        string | undefined,
+        void
+    >("deployment/validateAzureSqlContainerPort");
+
     export const GenerateContainerName = new RequestType<void, string, void>(
         "deployment/generateAzureSqlContainerName",
     );
+
+    export const GenerateContainerPort = new RequestType<
+        { engine: ContainerEngine; startPort: number },
+        number,
+        void
+    >("deployment/generateAzureSqlContainerPort");
 
     export const DetectContainerEngines = new RequestType<
         void,
@@ -136,6 +154,7 @@ export namespace AzureSqlDatabaseRequests {
             engine: ContainerEngine;
             step: AzureSqlContainerProvisioningStep;
             form: AzureSqlContainerForm;
+            retry?: boolean;
         },
         AzureSqlContainerProvisioningResult,
         void

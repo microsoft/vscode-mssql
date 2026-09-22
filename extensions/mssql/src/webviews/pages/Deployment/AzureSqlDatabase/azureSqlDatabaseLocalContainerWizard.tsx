@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { makeStyles, MessageBar, MessageBarBody, Text } from "@fluentui/react-components";
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { Wizard, WizardPageDefinition } from "../../../common/wizard";
 import { DockerIcon } from "../../../common/icons/docker";
 import { locConstants } from "../../../common/locConstants";
@@ -57,7 +57,7 @@ export const AzureSqlDatabaseLocalContainerWizard: React.FC<
         profileName: "",
         groupId: initialGroupId ?? groups[0]?.value ?? "",
         containerName: "",
-        port: "1433",
+        port: "",
         hostname: "",
         acceptEula: false,
     }));
@@ -68,6 +68,9 @@ export const AzureSqlDatabaseLocalContainerWizard: React.FC<
     const [detectedEngineCount, setDetectedEngineCount] = useState<number>();
     const [arePrerequisitesReady, setArePrerequisitesReady] = useState(false);
     const [isProvisioningComplete, setIsProvisioningComplete] = useState(false);
+    const [isPortValidating, setIsPortValidating] = useState(false);
+    const [isLoadingDefaults, setIsLoadingDefaults] = useState(false);
+    const portEditedRef = useRef(false);
     const handlePrerequisitesReadyChange = useCallback((isReady: boolean) => {
         setArePrerequisitesReady(isReady);
     }, []);
@@ -82,32 +85,91 @@ export const AzureSqlDatabaseLocalContainerWizard: React.FC<
     }, [context, extensionRpc]);
 
     useEffect(() => {
-        if (!arePrerequisitesReady) {
+        if (!arePrerequisitesReady || !containerEngine) {
             return;
         }
 
         let cancelled = false;
+        setIsLoadingDefaults(true);
 
-        const generateContainerName = async () => {
+        const generateContainerDefaults = async () => {
             try {
-                const containerName = await extensionRpc.sendRequest(
-                    AzureSqlDatabaseRequests.GenerateContainerName,
-                );
-                if (!cancelled && containerName) {
-                    setForm((current) =>
-                        current.containerName ? current : { ...current, containerName },
-                    );
-                }
+                await Promise.all([
+                    extensionRpc
+                        .sendRequest(AzureSqlDatabaseRequests.GenerateContainerName)
+                        .then((containerName) => {
+                            if (!cancelled) {
+                                setForm((current) => ({
+                                    ...current,
+                                    containerName: current.containerName || containerName,
+                                }));
+                            }
+                        }),
+                    extensionRpc
+                        .sendRequest(AzureSqlDatabaseRequests.GenerateContainerPort, {
+                            engine: containerEngine,
+                            startPort: 1433,
+                        })
+                        .then((port) => {
+                            if (!cancelled && !portEditedRef.current) {
+                                setForm((current) => ({ ...current, port: String(port) }));
+                            }
+                        }),
+                ]);
             } catch (error) {
-                extensionRpc.log.error("Failed to generate an Azure SQL container name", error);
+                extensionRpc.log.error("Failed to generate Azure SQL container defaults", error);
+                if (!cancelled) {
+                    setValidationError(error instanceof Error ? error.message : String(error));
+                }
+            } finally {
+                if (!cancelled) {
+                    setIsLoadingDefaults(false);
+                }
             }
         };
 
-        void generateContainerName();
+        void generateContainerDefaults();
         return () => {
             cancelled = true;
         };
-    }, [arePrerequisitesReady, extensionRpc]);
+    }, [arePrerequisitesReady, containerEngine, extensionRpc]);
+
+    useEffect(() => {
+        if (!arePrerequisitesReady || !containerEngine) {
+            return;
+        }
+
+        let cancelled = false;
+        setIsPortValidating(true);
+        const timeout = setTimeout(() => {
+            void extensionRpc
+                .sendRequest(AzureSqlDatabaseRequests.ValidateContainerPort, {
+                    engine: containerEngine,
+                    port: form.port,
+                })
+                .then((portError) => {
+                    if (!cancelled) {
+                        setFormErrors((current) => ({
+                            ...current,
+                            port: portError,
+                        }));
+                    }
+                })
+                .catch((error) => {
+                    extensionRpc.log.error("Failed to validate Azure SQL container port", error);
+                })
+                .finally(() => {
+                    if (!cancelled) {
+                        setIsPortValidating(false);
+                    }
+                });
+        }, 300);
+
+        return () => {
+            cancelled = true;
+            clearTimeout(timeout);
+        };
+    }, [arePrerequisitesReady, containerEngine, extensionRpc, form.port]);
 
     if (!context) {
         return undefined;
@@ -167,8 +229,11 @@ export const AzureSqlDatabaseLocalContainerWizard: React.FC<
                         errors={formErrors}
                         disabled={isValidating}
                         onChange={(nextForm) => {
+                            if (nextForm.port !== form.port) {
+                                portEditedRef.current = true;
+                            }
                             setForm(nextForm);
-                            setFormErrors({});
+                            setFormErrors((current) => ({ port: current.port }));
                             setValidationError(undefined);
                         }}
                     />
@@ -176,15 +241,21 @@ export const AzureSqlDatabaseLocalContainerWizard: React.FC<
             ),
             canGoBack: !isValidating,
             canGoNext:
-                !isValidating && !getSqlPasswordValidationError(form.password) && form.acceptEula,
+                !isValidating &&
+                !isLoadingDefaults &&
+                !isPortValidating &&
+                !formErrors.port &&
+                !getSqlPasswordValidationError(form.password) &&
+                form.acceptEula,
             onNext: async () => {
                 setIsValidating(true);
                 setValidationError(undefined);
                 try {
-                    const errors = await extensionRpc.sendRequest(
-                        AzureSqlDatabaseRequests.ValidateContainerForm,
+                    const { form: preparedForm, errors } = await extensionRpc.sendRequest(
+                        AzureSqlDatabaseRequests.PrepareContainerForm,
                         form,
                     );
+                    setForm(preparedForm);
                     setFormErrors(errors);
                     return Object.keys(errors).length === 0;
                 } catch (error) {

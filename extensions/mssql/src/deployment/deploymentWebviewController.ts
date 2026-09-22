@@ -210,23 +210,26 @@ export class DeploymentWebviewController extends FormWebviewController<
         });
 
         this.registerReducer("dispose", async (state, _payload) => {
-            if (state.deploymentType === DeploymentType.LocalContainers) {
-                localContainers.sendLocalContainersCloseEventTelemetry(
-                    state.deploymentTypeState as LocalContainersState,
-                );
-            } else if (state.deploymentType === DeploymentType.FabricProvisioning) {
-                fabricProvisioning.sendFabricProvisioningCloseEventTelemetry(
-                    state.deploymentTypeState as FabricProvisioningState,
-                );
-            } else if (state.deploymentType === DeploymentType.AzureSqlDatabase) {
-                await azureSql.cancelAzureSqlContainerProvisioning(this);
-                azureSqlDatabase.sendAzureSqlDatabaseCloseEventTelemetry(
-                    state.deploymentTypeState as AzureSqlDatabaseState,
-                );
+            try {
+                if (state.deploymentType === DeploymentType.LocalContainers) {
+                    const localState = state.deploymentTypeState as LocalContainersState;
+                    // The Azure container wizard does not initialize the legacy Docker state.
+                    if (localState.dockerSteps) {
+                        localContainers.sendLocalContainersCloseEventTelemetry(localState);
+                    }
+                } else if (state.deploymentType === DeploymentType.FabricProvisioning) {
+                    fabricProvisioning.sendFabricProvisioningCloseEventTelemetry(
+                        state.deploymentTypeState as FabricProvisioningState,
+                    );
+                } else if (state.deploymentType === DeploymentType.AzureSqlDatabase) {
+                    azureSqlDatabase.sendAzureSqlDatabaseCloseEventTelemetry(
+                        state.deploymentTypeState as AzureSqlDatabaseState,
+                    );
+                }
+            } finally {
+                this.panel.dispose();
+                this.dispose();
             }
-
-            this.panel.dispose();
-            this.dispose();
             return state;
         });
 

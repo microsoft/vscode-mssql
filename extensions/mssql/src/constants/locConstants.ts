@@ -1768,7 +1768,12 @@ export class QueryResult {
 }
 
 export class AzureSqlContainer {
+    public static provisioningTask = l10n.t("Provisioning Azure SQL Database container");
     public static invalidPort = l10n.t("Enter a port number between 1 and 65535.");
+    public static portInUse = l10n.t("This port is already in use. Choose a different port.");
+    public static portDetectionFailed = l10n.t(
+        "Unable to find an available container port. Check that Docker is running and try again.",
+    );
     public static invalidContainerName = l10n.t(
         "Container names must start with a letter or number and contain only letters, numbers, underscores, periods, or hyphens.",
     );
@@ -1787,6 +1792,28 @@ export class AzureSqlContainer {
     public static connectContainerFailed = l10n.t(
         "The container started, but the extension could not create its database connection.",
     );
+    public static provisioningTaskSucceeded = (containerName: string) =>
+        l10n.t({
+            message: "Azure SQL Database container '{0}' was provisioned successfully.",
+            args: [containerName],
+            comment: ["{0} is the container name"],
+        });
+    public static provisioningTaskFailed = (containerName: string, error: string) =>
+        l10n.t({
+            message: "Failed to provision Azure SQL Database container '{0}': {1}",
+            args: [containerName, error],
+            comment: ["{0} is the container name", "{1} is the error message"],
+        });
+    public static provisioningTaskCanceled = (containerName: string) =>
+        l10n.t({
+            message: "Provisioning Azure SQL Database container '{0}' was canceled.",
+            args: [containerName],
+            comment: ["{0} is the container name"],
+        });
+    public static pullingContainerImage = l10n.t("Pulling container image");
+    public static creatingContainer = l10n.t("Creating container");
+    public static settingUpContainer = l10n.t("Setting up container");
+    public static connectingToContainer = l10n.t("Connecting to container");
 }
 
 export class LocalContainers {

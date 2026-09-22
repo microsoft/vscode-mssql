@@ -802,6 +802,10 @@
     <trans-unit id="++CODE++bbe331f8e32243066afbce22f5a989fac4ccc48b7f8902da20c35b50117276af">
       <source xml:lang="en">Azure SQL Database</source>
     </trans-unit>
+    <trans-unit id="++CODE++afa642e7f0f23aaef2ad17d85c91927bb555193a2ad8ebd3d712cfc2e7cce2fc">
+      <source xml:lang="en">Azure SQL Database container &apos;{0}&apos; was provisioned successfully.</source>
+      <note>{0} is the container name</note>
+    </trans-unit>
     <trans-unit id="++CODE++e449024435d9bf391c84ac2d47dc8e861cf2e81db21000998c4dd9de37c2b7e2">
       <source xml:lang="en">Azure SQL Database developer container</source>
     </trans-unit>
@@ -4101,6 +4105,11 @@
     <trans-unit id="++CODE++954dec32386b912be138accf36de060517dcc00ae06dd2f4b243aa7233170cad">
       <source xml:lang="en">Failed to prepare the Data API builder CLI.</source>
     </trans-unit>
+    <trans-unit id="++CODE++607e176ae1b91e5c6d3cc5407432ae9dd464895fe286ef6d2bfa18229a9cfa1f">
+      <source xml:lang="en">Failed to provision Azure SQL Database container &apos;{0}&apos;: {1}</source>
+      <note>{0} is the container name
+{1} is the error message</note>
+    </trans-unit>
     <trans-unit id="++CODE++7ba26df4d0fbbd2bee13f3a586513471356439c4aa47b18bd9640be75254373e">
       <source xml:lang="en">Failed to provision Azure SQL database &apos;{0}&apos;: {1}</source>
       <note>{0} is the database name
@@ -6932,6 +6941,13 @@
     <trans-unit id="++CODE++c2b1b8e2e03928e24b07be3e3cbc597577096c8303d9aa621a147ca2456bdad7">
       <source xml:lang="en">Provisioning</source>
     </trans-unit>
+    <trans-unit id="++CODE++ee1746ec779568d60b4f4c459f6f677bd01e349636a4f73bb6a99231e49819b8">
+      <source xml:lang="en">Provisioning Azure SQL Database container</source>
+    </trans-unit>
+    <trans-unit id="++CODE++193ddf8cebed883aa9f4c1499dba6d2f07e4b31ee3c0d6fc58945d266919fcd2">
+      <source xml:lang="en">Provisioning Azure SQL Database container &apos;{0}&apos; was canceled.</source>
+      <note>{0} is the container name</note>
+    </trans-unit>
     <trans-unit id="++CODE++b8fddb7a2a0858e5c78adda3e0f311031aa9e175bf7dd618546382f69c68de5b">
       <source xml:lang="en">Provisioning {0}</source>
       <note>{0} is the server, container, or database target being provisioned</note>
@@ -9317,6 +9333,9 @@
     <trans-unit id="++CODE++461401ab1ef5eb94c409a7d6de3ad223b3733f4a8823944fc070fcfdf5ebed6b">
       <source xml:lang="en">This operation analyzed the input file structure to generate the preview below for up to the first 50 rows.</source>
     </trans-unit>
+    <trans-unit id="++CODE++174959f5d73693f0a200518e8628bc5f2a3a1eaa6e9a834296e47264ea7f9548">
+      <source xml:lang="en">This port is already in use. Choose a different port.</source>
+    </trans-unit>
     <trans-unit id="++CODE++d2cd4222b87fe208131546fa04e7a1627d7270f2581fc96c91e88a4e870c9fc0">
       <source xml:lang="en">This project type does not support drag and drop.</source>
     </trans-unit>
@@ -9508,6 +9527,9 @@
     </trans-unit>
     <trans-unit id="++CODE++b474fc22f1618dc88dad0f863f6c96d4ffee6b9bdf2cdb2df795f88454205991">
       <source xml:lang="en">Unable to find SQLCMD variable &apos;{0}&apos;</source>
+    </trans-unit>
+    <trans-unit id="++CODE++99eb98bf3b6f9d7069cdebb841ed9301b58656ae9c331c707b4452df372c94cd">
+      <source xml:lang="en">Unable to find an available container port. Check that Docker is running and try again.</source>
     </trans-unit>
     <trans-unit id="++CODE++1bc75a205c0a3c7535306f442efb269b3357c0f0a48f77179e0bed082d1aac9e">
       <source xml:lang="en">Unable to find database reference {0}</source>

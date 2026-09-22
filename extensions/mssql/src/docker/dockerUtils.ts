@@ -147,7 +147,7 @@ export function getEngineErrorLinkText() {
  * Sanitizes sensitive info from error text.
  */
 export function sanitizeErrorText(errorText: string): string {
-    return errorText.replace(/(SA_PASSWORD=)([^ \n]+)/gi, '$1******"');
+    return errorText.replace(/(SA_PASSWORD=)([^ \n]+)/gi, "$1******");
 }
 
 /**

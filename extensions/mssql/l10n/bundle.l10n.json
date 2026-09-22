@@ -1002,7 +1002,10 @@
         "comment": ["{0} is the error message"]
     },
     "The query results panel failed to load. Please try running the query again.": "The query results panel failed to load. Please try running the query again.",
+    "Provisioning Azure SQL Database container": "Provisioning Azure SQL Database container",
     "Enter a port number between 1 and 65535.": "Enter a port number between 1 and 65535.",
+    "This port is already in use. Choose a different port.": "This port is already in use. Choose a different port.",
+    "Unable to find an available container port. Check that Docker is running and try again.": "Unable to find an available container port. Check that Docker is running and try again.",
     "Container names must start with a letter or number and contain only letters, numbers, underscores, periods, or hyphens.": "Container names must start with a letter or number and contain only letters, numbers, underscores, periods, or hyphens.",
     "Enter a valid hostname.": "Enter a valid hostname.",
     "Accept the terms and conditions to continue.": "Accept the terms and conditions to continue.",
@@ -1011,6 +1014,22 @@
     "Failed to create and start the Azure SQL Database container.": "Failed to create and start the Azure SQL Database container.",
     "The Azure SQL Database container did not become ready for connections within five minutes.": "The Azure SQL Database container did not become ready for connections within five minutes.",
     "The container started, but the extension could not create its database connection.": "The container started, but the extension could not create its database connection.",
+    "Azure SQL Database container '{0}' was provisioned successfully./{0} is the container name": {
+        "message": "Azure SQL Database container '{0}' was provisioned successfully.",
+        "comment": ["{0} is the container name"]
+    },
+    "Failed to provision Azure SQL Database container '{0}': {1}/{0} is the container name{1} is the error message": {
+        "message": "Failed to provision Azure SQL Database container '{0}': {1}",
+        "comment": ["{0} is the container name", "{1} is the error message"]
+    },
+    "Provisioning Azure SQL Database container '{0}' was canceled./{0} is the container name": {
+        "message": "Provisioning Azure SQL Database container '{0}' was canceled.",
+        "comment": ["{0} is the container name"]
+    },
+    "Pulling container image": "Pulling container image",
+    "Creating container": "Creating container",
+    "Setting up container": "Setting up container",
+    "Connecting to container": "Connecting to container",
     "{0} stopped successfully./{0} stopped successfully.": {
         "message": "{0} stopped successfully.",
         "comment": ["{0} stopped successfully."]
@@ -1070,7 +1089,6 @@
     "Pulling the SQL Server container image. This might take a few minutes depending on your internet connection.": "Pulling the SQL Server container image. This might take a few minutes depending on your internet connection.",
     "Creating Container": "Creating Container",
     "Creating and starting your SQL Server container": "Creating and starting your SQL Server container",
-    "Setting up container": "Setting up container",
     "Readying container for connections.": "Readying container for connections.",
     "Connecting to Container": "Connecting to Container",
     "Connecting to your SQL Server Docker container": "Connecting to your SQL Server Docker container",
@@ -4393,12 +4411,9 @@
         "message": "Setting up {0}...",
         "comment": ["{0} is the container name"]
     },
-    "Pulling container image": "Pulling container image",
     "Downloading the Azure SQL Database developer container image from the private registry.": "Downloading the Azure SQL Database developer container image from the private registry.",
-    "Creating container": "Creating container",
     "Creating and starting your Azure SQL Database container.": "Creating and starting your Azure SQL Database container.",
     "Readying the container for connections.": "Readying the container for connections.",
-    "Connecting to container": "Connecting to container",
     "Connecting to your Azure SQL Database developer container.": "Connecting to your Azure SQL Database developer container.",
     "Show error details": "Show error details",
     "Hide error details": "Hide error details",

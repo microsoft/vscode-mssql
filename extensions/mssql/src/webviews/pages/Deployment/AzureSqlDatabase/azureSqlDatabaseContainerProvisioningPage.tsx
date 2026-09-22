@@ -94,6 +94,8 @@ export const AzureSqlDatabaseContainerProvisioningPage: React.FC<ProvisioningPag
     const [showErrorDetails, setShowErrorDetails] = useState(false);
     const [connectionString, setConnectionString] = useState<string>();
     const runs = useRef(new Map<string, Promise<AzureSqlContainerProvisioningResult>>());
+    const statusesRef = useRef(statuses);
+    statusesRef.current = statuses;
 
     useEffect(() => {
         if (currentStepIndex >= provisioningSteps.length) {
@@ -109,6 +111,7 @@ export const AzureSqlDatabaseContainerProvisioningPage: React.FC<ProvisioningPag
                 engine,
                 step,
                 form,
+                retry: statusesRef.current[step] === ApiStatus.Error,
             });
             runs.current.set(runKey, run);
         }

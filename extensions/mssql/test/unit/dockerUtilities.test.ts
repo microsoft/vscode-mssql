@@ -177,6 +177,7 @@ suite("Docker Utilities", () => {
             !sanitized.includes("testtesttest"),
             "Original password should not appear in sanitized output",
         ).to.be.true;
+        expect(sanitized).not.to.include('******"');
     });
 
     test("checkDockerInstallation: should check Docker installation and return correct status", async () => {

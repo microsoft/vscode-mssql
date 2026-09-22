@@ -20,9 +20,28 @@ import { DeploymentWebviewController } from "./deploymentWebviewController";
 import { validateSqlServerPassword } from "./sqlServerContainer";
 import { AzureSqlContainer } from "../constants/locConstants";
 import * as dockerUtils from "../docker/dockerUtils";
-import { localhost, sa, sqlAuthentication } from "../constants/constants";
+import {
+    defaultPortNumber,
+    localhost,
+    MAX_PORT_NUMBER,
+    sa,
+    sqlAuthentication,
+} from "../constants/constants";
 import { IConnectionProfile } from "../models/interfaces";
 import MainController from "../controllers/mainController";
+import { Deferred } from "../protocol";
+import {
+    completeProvisioningTask,
+    startProvisioningTask,
+    updateProvisioningTask,
+} from "./deploymentBackgroundTasks";
+import { DeploymentType } from "../sharedInterfaces/deployment";
+import { BackgroundTaskState } from "../backgroundTasks/backgroundTasksService";
+import {
+    validatePort,
+    waitForContainerConnection,
+    waitForContainerDelay,
+} from "./localContainersHelpers";
 
 const execFileAsync = promisify(execFile);
 export const defaultAzureSqlContainerName = "azure_sql_db_container";
@@ -31,9 +50,26 @@ export const azureSqlContainerImage =
 const containerReadyMessage = "ready for client connections";
 const containerReadyTimeoutMs = 300_000;
 const containerReadyPollIntervalMs = 2_000;
-const activeProvisioningTasks = new WeakMap<
+const containerProvisioningSteps = [
+    AzureSqlContainerProvisioningStep.PullImage,
+    AzureSqlContainerProvisioningStep.CreateContainer,
+    AzureSqlContainerProvisioningStep.WaitForReady,
+    AzureSqlContainerProvisioningStep.Connect,
+] as const;
+
+interface AzureSqlContainerDeployment {
+    abortController: AbortController;
+    promise: Promise<void>;
+    stepResults: Map<AzureSqlContainerProvisioningStep, AzureSqlContainerProvisioningResult>;
+    stepCompletions: Map<
+        AzureSqlContainerProvisioningStep,
+        Deferred<AzureSqlContainerProvisioningResult>
+    >;
+}
+
+const azureSqlContainerDeployments = new WeakMap<
     DeploymentWebviewController,
-    { abortController: AbortController; promise: Promise<AzureSqlContainerProvisioningResult> }
+    AzureSqlContainerDeployment
 >();
 
 interface PrerequisiteCommand {
@@ -104,7 +140,7 @@ const prerequisiteCommands: Record<
 export function registerAzureSqlRpcHandlers(
     deploymentController: DeploymentWebviewController,
 ): void {
-    deploymentController.onRequest(AzureSqlDatabaseRequests.ValidateContainerForm, async (form) => {
+    const validateForm = (form: AzureSqlContainerForm) => {
         const errors = validateAzureSqlContainerForm(form);
         if (
             !deploymentController.state.connectionGroupOptions.some(
@@ -114,7 +150,31 @@ export function registerAzureSqlRpcHandlers(
             errors.groupId = AzureSqlContainer.selectConnectionGroup;
         }
         return errors;
+    };
+    deploymentController.onRequest(AzureSqlDatabaseRequests.ValidateContainerForm, validateForm);
+    deploymentController.onRequest(AzureSqlDatabaseRequests.PrepareContainerForm, async (form) => {
+        const result = await prepareAzureSqlContainerForm(form);
+        return {
+            form: result.form,
+            errors: { ...validateForm(result.form), ...result.errors },
+        };
     });
+
+    deploymentController.onRequest(
+        AzureSqlDatabaseRequests.ValidateContainerPort,
+        async ({ engine, port }) => validateAzureSqlContainerPort(engine, port),
+    );
+
+    deploymentController.onRequest(
+        AzureSqlDatabaseRequests.GenerateContainerPort,
+        async ({ engine, startPort }) => {
+            const port = await findAvailableAzureSqlContainerPort(engine, startPort);
+            if (port <= 0) {
+                throw new Error(AzureSqlContainer.portDetectionFailed);
+            }
+            return port;
+        },
+    );
 
     deploymentController.onRequest(AzureSqlDatabaseRequests.GenerateContainerName, async () =>
         generateAzureSqlContainerName(),
@@ -132,25 +192,25 @@ export function registerAzureSqlRpcHandlers(
     deploymentController.onRequest(
         AzureSqlDatabaseRequests.RunContainerProvisioningStep,
         async (payload) => {
-            const abortController = new AbortController();
-            const promise = runAzureSqlContainerProvisioningStep(
-                payload.engine,
-                payload.step,
-                payload.form,
-                deploymentController.mainController,
-                abortController.signal,
-            );
-            activeProvisioningTasks.set(deploymentController, {
-                abortController,
-                promise,
-            });
-            try {
-                return await promise;
-            } finally {
-                if (activeProvisioningTasks.get(deploymentController)?.promise === promise) {
-                    activeProvisioningTasks.delete(deploymentController);
-                }
+            let deployment = azureSqlContainerDeployments.get(deploymentController);
+            if (payload.retry && deployment) {
+                await deployment.promise;
+                deployment = startAzureSqlContainerDeployment(
+                    deploymentController,
+                    payload.engine,
+                    payload.form,
+                    payload.step,
+                    deployment.stepResults,
+                );
+            } else if (!deployment) {
+                deployment = startAzureSqlContainerDeployment(
+                    deploymentController,
+                    payload.engine,
+                    payload.form,
+                    payload.step,
+                );
             }
+            return deployment.stepCompletions.get(payload.step)!.promise;
         },
     );
 
@@ -159,16 +219,194 @@ export function registerAzureSqlRpcHandlers(
     );
 }
 
+export async function findAvailableAzureSqlContainerPort(
+    _engine: ContainerEngine,
+    startPort = defaultPortNumber,
+): Promise<number> {
+    return dockerUtils.findAvailablePort(startPort);
+}
+
+export async function validateAzureSqlContainerPort(
+    _engine: ContainerEngine,
+    port: string,
+): Promise<string | undefined> {
+    if (!port) {
+        return undefined;
+    }
+    if (!/^\d+$/.test(port) || Number(port) < 1 || Number(port) > MAX_PORT_NUMBER) {
+        return AzureSqlContainer.invalidPort;
+    }
+
+    return (await validatePort(port)) ? undefined : AzureSqlContainer.portInUse;
+}
+
+export async function prepareAzureSqlContainerForm(
+    form: AzureSqlContainerForm,
+): Promise<{ form: AzureSqlContainerForm; errors: AzureSqlContainerFormErrors }> {
+    const preparedForm = { ...form };
+    let portError: string | undefined;
+    if (!preparedForm.port) {
+        const port = await dockerUtils.findAvailablePort(defaultPortNumber);
+        if (port > 0) {
+            preparedForm.port = String(port);
+        } else {
+            portError = AzureSqlContainer.portDetectionFailed;
+        }
+    } else {
+        portError = await validateAzureSqlContainerPort(ContainerEngine.Docker, preparedForm.port);
+    }
+    const errors = validateAzureSqlContainerForm(preparedForm);
+    if (portError) {
+        errors.port = portError;
+    }
+    return { form: preparedForm, errors };
+}
+
 export async function cancelAzureSqlContainerProvisioning(
     deploymentController: DeploymentWebviewController,
 ): Promise<void> {
-    const activeTask = activeProvisioningTasks.get(deploymentController);
-    if (!activeTask) {
+    const deployment = azureSqlContainerDeployments.get(deploymentController);
+    if (!deployment) {
         return;
     }
 
-    activeTask.abortController.abort();
-    await activeTask.promise;
+    deployment.abortController.abort();
+    await deployment.promise;
+}
+
+function getProvisioningStepMessage(step: AzureSqlContainerProvisioningStep): string {
+    switch (step) {
+        case AzureSqlContainerProvisioningStep.PullImage:
+            return AzureSqlContainer.pullingContainerImage;
+        case AzureSqlContainerProvisioningStep.CreateContainer:
+            return AzureSqlContainer.creatingContainer;
+        case AzureSqlContainerProvisioningStep.WaitForReady:
+            return AzureSqlContainer.settingUpContainer;
+        case AzureSqlContainerProvisioningStep.Connect:
+            return AzureSqlContainer.connectingToContainer;
+    }
+}
+
+function startAzureSqlContainerDeployment(
+    deploymentController: DeploymentWebviewController,
+    engine: ContainerEngine,
+    form: AzureSqlContainerForm,
+    startStep: AzureSqlContainerProvisioningStep,
+    previousResults?: Map<AzureSqlContainerProvisioningStep, AzureSqlContainerProvisioningResult>,
+): AzureSqlContainerDeployment {
+    const abortController = new AbortController();
+    const stepResults = new Map(previousResults);
+    const stepCompletions = new Map<
+        AzureSqlContainerProvisioningStep,
+        Deferred<AzureSqlContainerProvisioningResult>
+    >();
+    const startIndex = containerProvisioningSteps.indexOf(startStep);
+
+    for (const [index, step] of containerProvisioningSteps.entries()) {
+        const completion = new Deferred<AzureSqlContainerProvisioningResult>();
+        stepCompletions.set(step, completion);
+        if (index < startIndex) {
+            completion.resolve(stepResults.get(step) ?? { success: true });
+        }
+    }
+
+    const deployment = {
+        abortController,
+        stepResults,
+        stepCompletions,
+        promise: Promise.resolve(),
+    };
+    azureSqlContainerDeployments.set(deploymentController, deployment);
+    deployment.promise = runAzureSqlContainerDeployment(
+        deploymentController,
+        engine,
+        form,
+        startStep,
+        abortController.signal,
+        (step, result) => {
+            stepResults.set(step, result);
+            stepCompletions.get(step)?.resolve(result);
+        },
+    );
+    return deployment;
+}
+
+export async function runAzureSqlContainerDeployment(
+    deploymentController: DeploymentWebviewController,
+    engine: ContainerEngine,
+    form: AzureSqlContainerForm,
+    startStep: AzureSqlContainerProvisioningStep,
+    signal: AbortSignal,
+    onStepComplete: (
+        step: AzureSqlContainerProvisioningStep,
+        result: AzureSqlContainerProvisioningResult,
+    ) => void,
+    executeStep = runAzureSqlContainerProvisioningStep,
+): Promise<void> {
+    const startIndex = containerProvisioningSteps.indexOf(startStep);
+    let currentStep = startStep;
+    try {
+        startProvisioningTask(
+            deploymentController,
+            DeploymentType.AzureSqlDatabase,
+            AzureSqlContainer.provisioningTask,
+            form.containerName,
+        );
+
+        for (const step of containerProvisioningSteps.slice(startIndex)) {
+            currentStep = step;
+            updateProvisioningTask(
+                deploymentController,
+                DeploymentType.AzureSqlDatabase,
+                getProvisioningStepMessage(step),
+            );
+            const result = await executeStep(
+                engine,
+                step,
+                form,
+                deploymentController.mainController,
+                signal,
+            );
+            onStepComplete(step, result);
+
+            if (!result.success) {
+                const canceled = signal.aborted;
+                completeProvisioningTask(
+                    deploymentController,
+                    DeploymentType.AzureSqlDatabase,
+                    canceled ? BackgroundTaskState.Canceled : BackgroundTaskState.Failed,
+                    canceled
+                        ? AzureSqlContainer.provisioningTaskCanceled(form.containerName)
+                        : AzureSqlContainer.provisioningTaskFailed(
+                              form.containerName,
+                              result.error ?? AzureSqlContainer.createContainerFailed,
+                          ),
+                );
+                return;
+            }
+        }
+    } catch (error) {
+        const errorMessage = sanitizeProvisioningError(error, form.password);
+        onStepComplete(currentStep, {
+            success: false,
+            error: errorMessage,
+            fullErrorText: errorMessage,
+        });
+        completeProvisioningTask(
+            deploymentController,
+            DeploymentType.AzureSqlDatabase,
+            BackgroundTaskState.Failed,
+            AzureSqlContainer.provisioningTaskFailed(form.containerName, errorMessage),
+        );
+        return;
+    }
+
+    completeProvisioningTask(
+        deploymentController,
+        DeploymentType.AzureSqlDatabase,
+        BackgroundTaskState.Succeeded,
+        AzureSqlContainer.provisioningTaskSucceeded(form.containerName),
+    );
 }
 
 export async function generateAzureSqlContainerName(): Promise<string> {
@@ -337,28 +575,6 @@ async function executeContainerEngineCommand(
     });
 }
 
-async function waitForDelay(milliseconds: number, signal?: AbortSignal): Promise<void> {
-    if (!signal) {
-        await new Promise((resolve) => setTimeout(resolve, milliseconds));
-        return;
-    }
-    if (signal.aborted) {
-        return;
-    }
-
-    await new Promise<void>((resolve) => {
-        const timeout = setTimeout(() => {
-            signal.removeEventListener("abort", onAbort);
-            resolve();
-        }, milliseconds);
-        const onAbort = () => {
-            clearTimeout(timeout);
-            resolve();
-        };
-        signal.addEventListener("abort", onAbort, { once: true });
-    });
-}
-
 async function waitForAzureSqlContainer(
     engine: ContainerEngine,
     containerName: string,
@@ -385,7 +601,7 @@ async function waitForAzureSqlContainer(
         } catch (error) {
             lastLogs = getErrorMessage(error);
         }
-        await waitForDelay(containerReadyPollIntervalMs, signal);
+        await waitForContainerDelay(containerReadyPollIntervalMs, signal);
     }
 
     return {
@@ -421,6 +637,16 @@ async function addAzureSqlContainerConnection(
     try {
         if (signal?.aborted) {
             return { success: false };
+        }
+        if (
+            !(await waitForContainerConnection(
+                connection as IConnectionProfile,
+                form.containerName,
+                mainController,
+                signal,
+            ))
+        ) {
+            return { success: false, error: AzureSqlContainer.connectContainerFailed };
         }
         const profile = await mainController.connectionManager.connectionUI.saveProfile(
             connection as IConnectionProfile,
