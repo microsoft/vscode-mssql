@@ -22,9 +22,34 @@ export interface AzureResourceItem {
     readonly resource: AzureResource;
 }
 
+/**
+ * Grouping node in the Azure Resources tree, one per resource type within a subscription (the
+ * "SQL databases" folder, for example).  This mirrors ResourceTypeGroupingItem from
+ * vscode-azureresourcegroups.
+ *
+ * Declared locally because that class is internal to the Azure Resources extension.  Unlike a
+ * resource item it is not a {@link Wrapper}, so commands receive it unwrapped and must recognize it
+ * structurally.
+ */
+export interface AzureResourceTypeGroupNode {
+    readonly subscription?: { readonly subscriptionId?: string };
+}
+
 /** Unwraps the command argument using the API published by the Azure Resources extension. */
 export function getAzureResource(node: Wrapper): AzureResource {
     return node.unwrap<AzureResourceItem>().resource;
+}
+
+/**
+ * Whether a command argument is an Azure Resources grouping node carrying a subscription.
+ *
+ * Grouping nodes have no `unwrap`, so `isWrapper` rejects them; without this check they fall
+ * through to whichever branch handles nodes from other trees.
+ */
+export function isAzureResourceTypeGroupNode(node: unknown): node is AzureResourceTypeGroupNode {
+    const subscriptionId = (node as AzureResourceTypeGroupNode | undefined)?.subscription
+        ?.subscriptionId;
+    return typeof subscriptionId === "string" && subscriptionId.length > 0;
 }
 
 export class AzureResourcesExtensionIntegration {

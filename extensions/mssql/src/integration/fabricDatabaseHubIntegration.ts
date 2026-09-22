@@ -8,20 +8,26 @@ import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { isWrapper, Wrapper } from "@microsoft/vscode-azureresources-api";
 
 import * as Constants from "../constants/constants";
-import { extractFromResourceId } from "../connectionconfig/azureHelpers";
+import * as LocalizedConstants from "../constants/locConstants";
 import {
     FabricDatabaseHubDatabaseType,
     getFabricDatabaseHubLink,
     getFabricSqlDatabaseDisplayName,
+    isSystemDatabaseName,
 } from "../fabric/fabricDatabaseHub";
 import {
     FabricWorkspaceItemNode,
     getFabricWorkspaceItemEnvironment,
     isFabricSqlDatabaseNode,
+    isFabricWorkspaceItemNode,
 } from "./fabricIntegration";
 import { getLogger } from "../models/logger";
 import { ILogger } from "../sharedInterfaces/logger";
-import { getAzureResource } from "./azureResourcesIntegration";
+import {
+    AzureResourceTypeGroupNode,
+    getAzureResource,
+    isAzureResourceTypeGroupNode,
+} from "./azureResourcesIntegration";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 
 /** ARM provider namespace for Azure SQL servers and databases. */
@@ -37,11 +43,20 @@ enum DatabaseHubTelemetryResult {
     Succeeded = "succeeded",
     Failed = "failed",
     LinkUnavailable = "linkUnavailable",
+    SystemDatabase = "systemDatabase",
 }
 
 const unknownDatabaseType = "unknown";
 
-type DatabaseHubTreeNode = Wrapper | FabricWorkspaceItemNode;
+type DatabaseHubTreeNode = Wrapper | AzureResourceTypeGroupNode | FabricWorkspaceItemNode;
+
+/** The parts of an Azure SQL resource ID the estate view can be filtered by. */
+interface AzureSqlResourceIdParts {
+    subscriptionId: string;
+    resourceGroupName: string;
+    /** Undefined for a logical server, which the Hub's estate inventory has no row for. */
+    databaseName: string | undefined;
+}
 
 /** Azure Resources nodes can carry percent-encoded resource IDs; the Hub expects decoded ones. */
 function decodeResourceId(resourceId: string): string {
@@ -50,6 +65,34 @@ function decodeResourceId(resourceId: string): string {
     } catch {
         return resourceId;
     }
+}
+
+/**
+ * Parses an Azure SQL resource ID into the pieces the estate view filters on.
+ *
+ * Segment names are matched case-insensitively, the way ARM treats them, so a resource ID that
+ * spells `resourcegroups` still yields a resource group rather than silently dropping that filter.
+ *
+ * @returns undefined when the ID does not name an Azure SQL server or one of its databases.
+ */
+function parseAzureSqlResourceId(resourceId: string): AzureSqlResourceIdParts | undefined {
+    const segments = decodeResourceId(resourceId).split("/").filter(Boolean);
+    const [subscriptions, subscriptionId, resourceGroups, resourceGroupName, providers, provider] =
+        segments;
+
+    if (
+        subscriptions?.toLowerCase() !== "subscriptions" ||
+        resourceGroups?.toLowerCase() !== "resourcegroups" ||
+        providers?.toLowerCase() !== "providers" ||
+        provider?.toLowerCase() !== azureSqlProviderNamespace ||
+        segments[6]?.toLowerCase() !== "servers" ||
+        !segments[7]
+    ) {
+        return undefined;
+    }
+
+    const databaseName = segments[8]?.toLowerCase() === "databases" ? segments[9] : undefined;
+    return { subscriptionId, resourceGroupName, databaseName };
 }
 
 /**
@@ -74,7 +117,17 @@ export class FabricDatabaseHubIntegration {
     private async openInFabricDatabaseHub(node: DatabaseHubTreeNode | undefined): Promise<void> {
         const telemetryProperties = this.getTelemetryProperties(node);
         try {
-            const link = await this.getLinkForNode(node);
+            if (this.warnIfSystemDatabase(node)) {
+                sendActionEvent(TelemetryViews.FabricDatabaseHub, TelemetryActions.Open, {
+                    additionalProps: {
+                        ...telemetryProperties,
+                        result: DatabaseHubTelemetryResult.SystemDatabase,
+                    },
+                });
+                return;
+            }
+
+            const link = this.getLinkForNode(node);
             if (!link) {
                 this._logger.debug(
                     "No Fabric Database Hub link could be built for the selected node.",
@@ -106,15 +159,37 @@ export class FabricDatabaseHubIntegration {
         }
     }
 
+    /**
+     * Tells the user that a system database has no place in the Database Hub, rather than sending
+     * them to an estate view that can never list it.
+     *
+     * @returns whether the node named a system database, in which case no link is opened.
+     */
+    private warnIfSystemDatabase(node: DatabaseHubTreeNode | undefined): boolean {
+        if (!isWrapper(node)) {
+            return false;
+        }
+
+        const databaseName = parseAzureSqlResourceId(getAzureResource(node).id)?.databaseName;
+        if (!databaseName || !isSystemDatabaseName(databaseName)) {
+            return false;
+        }
+
+        void vscode.window.showInformationMessage(
+            LocalizedConstants.Azure.systemDatabaseNotInFabricDatabaseHub(databaseName),
+        );
+        return true;
+    }
+
     /** Returns only low-cardinality, non-identifying properties for command telemetry. */
     private getTelemetryProperties(node: DatabaseHubTreeNode | undefined): Record<string, string> {
-        if (isWrapper(node)) {
+        if (isWrapper(node) || isAzureResourceTypeGroupNode(node)) {
             return {
                 source: DatabaseHubTelemetrySource.AzureResources,
                 databaseType: FabricDatabaseHubDatabaseType.AzureSql,
             };
         }
-        if (node) {
+        if (isFabricWorkspaceItemNode(node)) {
             return {
                 source: DatabaseHubTelemetrySource.FabricWorkspace,
                 databaseType: isFabricSqlDatabaseNode(node)
@@ -128,33 +203,53 @@ export class FabricDatabaseHubIntegration {
         };
     }
 
-    private async getLinkForNode(
-        node: DatabaseHubTreeNode | undefined,
-    ): Promise<string | undefined> {
-        if (!node) {
-            return undefined;
-        }
-
+    private getLinkForNode(node: DatabaseHubTreeNode | undefined): string | undefined {
         if (isWrapper(node)) {
-            return this.getAzureResourceLink(getAzureResource(node)!.id);
+            return this.getAzureDatabaseLink(getAzureResource(node).id);
         }
 
-        return this.getFabricWorkspaceItemLink(node);
+        if (isAzureResourceTypeGroupNode(node)) {
+            return this.getAzureSubscriptionLink(node);
+        }
+
+        if (isFabricWorkspaceItemNode(node)) {
+            return this.getFabricWorkspaceItemLink(node);
+        }
+
+        return undefined;
     }
 
-    /** Builds a link for a node from the Azure Resources tree. */
-    private getAzureResourceLink(azureResourceId: string): string | undefined {
-        const resourceId = decodeResourceId(azureResourceId);
-        const provider = extractFromResourceId(resourceId, "providers");
-        const serverName = extractFromResourceId(resourceId, "servers");
-        if (provider?.toLowerCase() !== azureSqlProviderNamespace || !serverName) {
+    /**
+     * Builds a link for an Azure SQL database node, narrowing the estate grid to that database.
+     *
+     * The estate view has no server filter, so a database is pinned down by subscription, resource
+     * group and name.  Same-named databases on sibling servers in one resource group still share
+     * the view; the Hub has no exact-name filter to separate them.
+     *
+     * @returns undefined for a logical server, which the estate inventory has no row for.
+     */
+    private getAzureDatabaseLink(azureResourceId: string): string | undefined {
+        const resourceIdParts = parseAzureSqlResourceId(azureResourceId);
+        if (!resourceIdParts?.databaseName) {
             return undefined;
         }
 
-        const databaseName = extractFromResourceId(resourceId, "databases");
-        return databaseName
-            ? this.getAzureSqlDatabaseLink(resourceId, databaseName)
-            : getFabricDatabaseHubLink(FabricDatabaseHubDatabaseType.AzureSql);
+        return getFabricDatabaseHubLink(FabricDatabaseHubDatabaseType.AzureSql, {
+            databaseName: resourceIdParts.databaseName,
+            subscriptionId: resourceIdParts.subscriptionId,
+            resourceGroupName: resourceIdParts.resourceGroupName,
+        });
+    }
+
+    /**
+     * Builds a link for the "SQL databases" folder, which groups a single subscription's databases.
+     *
+     * Only the subscription is filtered on, since the folder spans every resource group under it.
+     */
+    private getAzureSubscriptionLink(node: AzureResourceTypeGroupNode): string | undefined {
+        return getFabricDatabaseHubLink(FabricDatabaseHubDatabaseType.AzureSql, {
+            subscriptionId: node.subscription?.subscriptionId,
+        });
     }
 
     /** Builds a link for a SQL database node from the Fabric extension's workspace tree. */
@@ -166,16 +261,6 @@ export class FabricDatabaseHubIntegration {
         return getFabricDatabaseHubLink(FabricDatabaseHubDatabaseType.FabricSql, {
             environment: getFabricWorkspaceItemEnvironment(node),
             databaseName: getFabricSqlDatabaseDisplayName(node.artifact.displayName),
-        });
-    }
-
-    private getAzureSqlDatabaseLink(
-        resourceId: string,
-        databaseName: string | undefined,
-    ): string | undefined {
-        return getFabricDatabaseHubLink(FabricDatabaseHubDatabaseType.AzureSql, {
-            databaseName,
-            databaseResourceId: resourceId,
         });
     }
 }

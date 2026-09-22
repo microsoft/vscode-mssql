@@ -30,6 +30,16 @@ export interface FabricWorkspaceItemNode {
     readonly artifact: FabricWorkspaceArtifact;
 }
 
+/**
+ * Whether a command argument is an item node from the Fabric extension's workspace tree.
+ *
+ * Commands contributed to several trees receive whatever node the user right-clicked, so the shape
+ * has to be checked before it is read.
+ */
+export function isFabricWorkspaceItemNode(node: unknown): node is FabricWorkspaceItemNode {
+    return typeof (node as FabricWorkspaceItemNode | undefined)?.artifact?.type === "string";
+}
+
 /** Whether a Fabric workspace tree node represents a Fabric SQL database. */
 export function isFabricSqlDatabaseNode(node: FabricWorkspaceItemNode): boolean {
     return node.artifact.type === SqlArtifactTypes.SqlDatabase;

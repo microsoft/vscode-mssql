@@ -592,12 +592,12 @@
             "view/item/context": [
                 {
                     "command": "mssql.openInMssqlExtensionFromAzureResources",
-                    "when": "view == azureResourceGroups && viewItem =~ /\\b(SqlServers|SqlDatabases)\\b/",
+                    "when": "view == azureResourceGroups && viewItem =~ /\\bazureResource\\b/ && viewItem =~ /\\b(SqlServers|SqlDatabases)\\b/",
                     "group": "1_MSSQL_primary@0"
                 },
                 {
                     "command": "mssql.openInFabricDatabaseHub",
-                    "when": "view =~ /azureResourceGroups|azureFocusView/ && viewItem =~ /\\b(SqlServers|SqlDatabases)\\b/",
+                    "when": "view =~ /azureResourceGroups|azureFocusView/ && viewItem =~ /\\bSqlDatabases\\b/",
                     "group": "1_MSSQL_primary@1"
                 },
                 {

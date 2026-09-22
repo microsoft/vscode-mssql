@@ -11,11 +11,12 @@ import sinonChai from "sinon-chai";
 import { AzureResource, Wrapper } from "@microsoft/vscode-azureresources-api";
 
 import { FabricDatabaseHubIntegration } from "../../src/integration/fabricDatabaseHubIntegration";
-import { mockAzureResources } from "./azureHelperStubs";
+import { mockAzureResources, mockSubscriptions } from "./azureHelperStubs";
 import { SqlArtifactTypes } from "../../src/sharedInterfaces/fabric";
 import { createStubLogger, stubTelemetry } from "./utils";
 import {
     AzureResourceItem,
+    AzureResourceTypeGroupNode,
     getAzureResource,
 } from "../../src/integration/azureResourcesIntegration";
 import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
@@ -29,6 +30,7 @@ chai.use(sinonChai);
 suite("FabricDatabaseHubIntegration Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let openExternal: sinon.SinonStub;
+    let showInformationMessage: sinon.SinonStub;
     let sendActionEvent: sinon.SinonStub;
     let sendErrorEvent: sinon.SinonStub;
     let integration: FabricDatabaseHubIntegration;
@@ -44,6 +46,14 @@ suite("FabricDatabaseHubIntegration Tests", () => {
         };
         return { unwrap: <T>() => resourceItem as T };
     };
+
+    const subscriptionId = mockSubscriptions[0].subscriptionId;
+    const subscriptionFilterValue = subscriptionId.toLowerCase();
+
+    const buildGroupNode = (groupSubscriptionId?: string): AzureResourceTypeGroupNode => ({
+        subscription:
+            groupSubscriptionId === undefined ? undefined : { subscriptionId: groupSubscriptionId },
+    });
 
     const buildFabricNode = (
         artifact: Partial<FabricWorkspaceArtifact> = {},
@@ -62,6 +72,7 @@ suite("FabricDatabaseHubIntegration Tests", () => {
     setup(() => {
         sandbox = sinon.createSandbox();
         openExternal = sandbox.stub(vscode.env, "openExternal").resolves(true);
+        showInformationMessage = sandbox.stub(vscode.window, "showInformationMessage").resolves();
         ({ sendActionEvent, sendErrorEvent } = stubTelemetry(sandbox));
 
         integration = new FabricDatabaseHubIntegration();
@@ -81,7 +92,7 @@ suite("FabricDatabaseHubIntegration Tests", () => {
             );
         });
 
-        test("deep-links an Azure SQL database to the Hub", async () => {
+        test("narrows the estate grid to a single Azure SQL database", async () => {
             const database = mockAzureResources.azureSqlDbDatabase2;
 
             await integration["openInFabricDatabaseHub"](buildResourceNode(database));
@@ -90,9 +101,16 @@ suite("FabricDatabaseHubIntegration Tests", () => {
             const url = openedUrl();
             expect(url.pathname).to.equal("/workloads/fdh/databaseHub/estate");
             expect(url.searchParams.get("databaseType")).to.equal("azure-sql");
-            expect(url.searchParams.get("databaseResourceId")).to.equal(database.id);
+            // The Hub opens a database's details dialog only when this parameter is present.
+            expect(url.searchParams.has("databaseResourceId")).to.be.false;
             expect(estateFilters(url)).to.deep.equal([
                 { key: "resourceType", operator: "in", value: ["AzureSql"] },
+                { key: "subscription", operator: "in", value: [subscriptionFilterValue] },
+                {
+                    key: "resourceGroup",
+                    operator: "in",
+                    value: [subscriptionFilterValue + "/defaultresourcegroup"],
+                },
                 { key: "search", operator: "contains", value: database.name },
             ]);
             expect(sendActionEvent).to.have.been.calledWith(
@@ -108,17 +126,87 @@ suite("FabricDatabaseHubIntegration Tests", () => {
             );
         });
 
-        test("opens the unfiltered estate view for an Azure SQL server", async () => {
+        test("narrows the estate grid to a subscription for the SQL databases folder", async () => {
+            await integration["openInFabricDatabaseHub"](buildGroupNode(subscriptionId));
+
+            expect(openExternal).to.have.been.calledOnce;
+            // The folder spans every resource group in the subscription, so only the subscription
+            // is filtered on.
+            expect(estateFilters(openedUrl())).to.deep.equal([
+                { key: "resourceType", operator: "in", value: ["AzureSql"] },
+                { key: "subscription", operator: "in", value: [subscriptionFilterValue] },
+            ]);
+            expect(sendActionEvent).to.have.been.calledWith(
+                TelemetryViews.FabricDatabaseHub,
+                TelemetryActions.Open,
+                {
+                    additionalProps: {
+                        source: "azureResources",
+                        databaseType: "azure-sql",
+                        result: "succeeded",
+                    },
+                },
+            );
+        });
+
+        test("ignores a grouping node that carries no subscription", async () => {
+            await integration["openInFabricDatabaseHub"](buildGroupNode());
+
+            // Grouping nodes are not Wrappers, so an unrecognized one must not be read as a node
+            // from another tree.
+            expect(openExternal).to.not.have.been.called;
+            expect(sendErrorEvent).to.not.have.been.called;
+            expect(sendActionEvent).to.have.been.calledWith(
+                TelemetryViews.FabricDatabaseHub,
+                TelemetryActions.Open,
+                {
+                    additionalProps: {
+                        source: "unknown",
+                        databaseType: "unknown",
+                        result: "linkUnavailable",
+                    },
+                },
+            );
+        });
+
+        test("ignores an Azure SQL server, which the estate grid has no row for", async () => {
             await integration["openInFabricDatabaseHub"](
                 buildResourceNode(mockAzureResources.azureSqlDbServer),
             );
 
-            expect(openExternal).to.have.been.calledOnce;
-            const url = openedUrl();
-            expect(url.searchParams.has("databaseResourceId")).to.be.false;
-            expect(estateFilters(url)).to.deep.equal([
-                { key: "resourceType", operator: "in", value: ["AzureSql"] },
-            ]);
+            expect(openExternal).to.not.have.been.called;
+            expect(sendActionEvent).to.have.been.calledWith(
+                TelemetryViews.FabricDatabaseHub,
+                TelemetryActions.Open,
+                {
+                    additionalProps: {
+                        source: "azureResources",
+                        databaseType: "azure-sql",
+                        result: "linkUnavailable",
+                    },
+                },
+            );
+        });
+
+        test("warns instead of opening the Hub for a system database", async () => {
+            await integration["openInFabricDatabaseHub"](
+                buildResourceNode(mockAzureResources.azureSqlDbDatabase1),
+            );
+
+            expect(openExternal).to.not.have.been.called;
+            expect(showInformationMessage).to.have.been.calledOnce;
+            expect(showInformationMessage.firstCall.args[0]).to.contain("master");
+            expect(sendActionEvent).to.have.been.calledWith(
+                TelemetryViews.FabricDatabaseHub,
+                TelemetryActions.Open,
+                {
+                    additionalProps: {
+                        source: "azureResources",
+                        databaseType: "azure-sql",
+                        result: "systemDatabase",
+                    },
+                },
+            );
         });
 
         test("ignores resources from other providers", async () => {

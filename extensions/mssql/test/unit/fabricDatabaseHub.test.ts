@@ -11,6 +11,7 @@ import {
     getFabricDatabaseHubLink,
     getFabricEnvironment,
     getFabricSqlDatabaseDisplayName,
+    isSystemDatabaseName,
     parseFabricEnvironment,
 } from "../../src/fabric/fabricDatabaseHub";
 
@@ -71,6 +72,21 @@ suite("Fabric Database Hub", () => {
         });
     });
 
+    suite("isSystemDatabaseName", () => {
+        test("recognizes the databases the Hub excludes from its inventory", () => {
+            expect(isSystemDatabaseName("master")).to.be.true;
+            expect(isSystemDatabaseName(" TempDB ")).to.be.true;
+            expect(isSystemDatabaseName("azure_maintenance")).to.be.true;
+        });
+
+        test("leaves user databases alone", () => {
+            expect(isSystemDatabaseName("testDatabase")).to.be.false;
+            expect(isSystemDatabaseName("mastermind")).to.be.false;
+            expect(isSystemDatabaseName("")).to.be.false;
+            expect(isSystemDatabaseName(undefined)).to.be.false;
+        });
+    });
+
     suite("getFabricDatabaseHubLink", () => {
         test("builds an Azure SQL estate link against the production portal", () => {
             const url = new URL(getFabricDatabaseHubLink(FabricDatabaseHubDatabaseType.AzureSql)!);
@@ -90,20 +106,55 @@ suite("Fabric Database Hub", () => {
             });
         });
 
-        test("adds a search filter and deep link when a database is given", () => {
+        test("narrows the grid to a single database without opening its details dialog", () => {
             const url = new URL(
                 getFabricDatabaseHubLink(FabricDatabaseHubDatabaseType.AzureSql, {
                     databaseName: "testDatabase",
-                    databaseResourceId: "/subscriptions/sub/databases/testDatabase",
+                    subscriptionId: "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE",
+                    resourceGroupName: "DefaultResourceGroup",
                 })!,
             );
 
-            expect(url.searchParams.get("databaseResourceId")).to.equal(
-                "/subscriptions/sub/databases/testDatabase",
-            );
+            // `databaseResourceId` is what makes the Hub open the database card on arrival.
+            expect(url.searchParams.has("databaseResourceId")).to.be.false;
             expect(JSON.parse(url.searchParams.get("estateView")!).state.filters).to.deep.equal([
                 { key: "resourceType", operator: "in", value: ["AzureSql"] },
+                {
+                    key: "subscription",
+                    operator: "in",
+                    value: ["aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"],
+                },
+                {
+                    key: "resourceGroup",
+                    operator: "in",
+                    value: ["aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee/defaultresourcegroup"],
+                },
                 { key: "search", operator: "contains", value: "testDatabase" },
+            ]);
+        });
+
+        test("filters by subscription alone when no resource group is given", () => {
+            const url = new URL(
+                getFabricDatabaseHubLink(FabricDatabaseHubDatabaseType.AzureSql, {
+                    subscriptionId: "sub-id",
+                })!,
+            );
+
+            expect(JSON.parse(url.searchParams.get("estateView")!).state.filters).to.deep.equal([
+                { key: "resourceType", operator: "in", value: ["AzureSql"] },
+                { key: "subscription", operator: "in", value: ["sub-id"] },
+            ]);
+        });
+
+        test("drops a resource group that has no subscription to scope it", () => {
+            const url = new URL(
+                getFabricDatabaseHubLink(FabricDatabaseHubDatabaseType.AzureSql, {
+                    resourceGroupName: "DefaultResourceGroup",
+                })!,
+            );
+
+            expect(JSON.parse(url.searchParams.get("estateView")!).state.filters).to.deep.equal([
+                { key: "resourceType", operator: "in", value: ["AzureSql"] },
             ]);
         });
 
