@@ -1020,6 +1020,8 @@ declare module "vscode-mssql" {
         fabric: {
             fabricApiUriBase: string;
             fabricScopeUriBase: string;
+            /** Base URI of the Fabric portal, used to build links into Fabric workloads. */
+            fabricPortalUriBase: string | undefined;
             sqlDbDnsSuffix: string;
             dataWarehouseDnsSuffix: string;
         };
@@ -1327,7 +1329,7 @@ declare module "vscode-mssql" {
         deploymentOptions: DeploymentOptions;
     }
 
-    export interface ValidateStreamingJobResult extends ResultStatus { }
+    export interface ValidateStreamingJobResult extends ResultStatus {}
 
     export interface ParseTSqlScriptResult {
         containsCreateTableStatement: boolean;

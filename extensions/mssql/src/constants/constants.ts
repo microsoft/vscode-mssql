@@ -158,6 +158,7 @@ export const cmdOpenChangelog = "mssql.openChangelog";
 export const cmdOpenAzureDataStudioMigration = "mssql.openAzureDataStudioMigration";
 export const cmdOpenInMssqlExtensionFromAzureResources =
     "mssql.openInMssqlExtensionFromAzureResources";
+export const cmdOpenInFabricDatabaseHub = "mssql.openInFabricDatabaseHub";
 export const cmdOpenGithubChat = "workbench.action.chat.open";
 export const cmdBackupDatabase = "mssql.backupDatabase";
 export const cmdRestoreDatabase = "mssql.restoreDatabase";
