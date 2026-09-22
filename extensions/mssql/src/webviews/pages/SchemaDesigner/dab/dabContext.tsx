@@ -7,6 +7,7 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState } f
 import { Dab } from "../../../../sharedInterfaces/dab";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
+import { TelemetryActions, TelemetryViews } from "../../../../sharedInterfaces/telemetry";
 import { registerSchemaDesignerDabToolHandlers } from "../schemaDesignerRpcHandlers";
 import { useSchemaDesignerSelector } from "../schemaDesignerSelector";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
@@ -422,6 +423,11 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
      * can be switched off without this flow losing a beginning or an end.
      */
     const openDabDeploymentDialog = useCallback(() => {
+        extensionRpc.sendActionEvent({
+            telemetryView: TelemetryViews.SchemaDesigner,
+            telemetryAction: TelemetryActions.OpenDabDeploymentDialog,
+            additionalProps: { entryPoint: Dab.DabDeploymentEntryPoint.Standalone },
+        });
         setDabDeploymentState({
             ...Dab.createDefaultDeploymentState(Dab.DabDeploymentTarget.Docker),
             isDialogOpen: true,
@@ -429,15 +435,20 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
             dialogStep: Dab.DabDeploymentDialogStep.Confirmation,
             entryPoint: Dab.DabDeploymentEntryPoint.Standalone,
         });
-    }, []);
+    }, [extensionRpc]);
 
     const openDabDeploymentsDialog = useCallback(() => {
+        extensionRpc.sendActionEvent({
+            telemetryView: TelemetryViews.SchemaDesigner,
+            telemetryAction: TelemetryActions.OpenDabDeploymentDialog,
+            additionalProps: { entryPoint: Dab.DabDeploymentEntryPoint.Deployments },
+        });
         setDabDeploymentState({
             ...Dab.createDefaultDeploymentState(),
             isDialogOpen: true,
             dialogView: Dab.DabDeploymentDialogView.List,
         });
-    }, []);
+    }, [extensionRpc]);
 
     const closeDabDeploymentDialog = useCallback(() => {
         setDabDeploymentState((prev) => ({
@@ -530,6 +541,7 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
             const response = await extensionRpc.sendRequest(Dab.RunDeploymentStepRequest.type, {
                 step,
                 target: dabDeploymentState.target,
+                entryPoint: dabDeploymentState.entryPoint,
                 params: dabDeploymentState.params,
                 config: dabConfig ?? undefined,
                 deploymentId:
@@ -605,15 +617,29 @@ export const DabProvider: React.FC<DabProviderProps> = ({ children }) => {
      * the dialog stays open: the default state is closed, so resetting and then
      * setting the view separately would dismiss the dialog in between.
      */
-    const startNewDabDeployment = useCallback((target: Dab.DabDeploymentTarget) => {
-        setDabDeploymentState({
-            ...Dab.createDefaultDeploymentState(target),
-            isDialogOpen: true,
-            dialogView: Dab.DabDeploymentDialogView.Wizard,
-            dialogStep: Dab.DabDeploymentDialogStep.Confirmation,
-            entryPoint: Dab.DabDeploymentEntryPoint.Deployments,
-        });
-    }, []);
+    const startNewDabDeployment = useCallback(
+        (target: Dab.DabDeploymentTarget) => {
+            extensionRpc.sendActionEvent({
+                telemetryView: TelemetryViews.SchemaDesigner,
+                telemetryAction: TelemetryActions.SelectDabDeploymentTarget,
+                additionalProps: {
+                    target:
+                        target === Dab.DabDeploymentTarget.Docker ||
+                        target === Dab.DabDeploymentTarget.DabCli
+                            ? target
+                            : "unknown",
+                },
+            });
+            setDabDeploymentState({
+                ...Dab.createDefaultDeploymentState(target),
+                isDialogOpen: true,
+                dialogView: Dab.DabDeploymentDialogView.Wizard,
+                dialogStep: Dab.DabDeploymentDialogStep.Confirmation,
+                entryPoint: Dab.DabDeploymentEntryPoint.Deployments,
+            });
+        },
+        [extensionRpc],
+    );
 
     /**
      * Runs the current deployment again from the first prerequisite check,

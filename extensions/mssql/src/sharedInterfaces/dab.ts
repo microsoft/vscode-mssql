@@ -1310,6 +1310,8 @@ export namespace Dab {
          * predate the CLI target.
          */
         target?: DabDeploymentTarget;
+        /** The dialog that started this deployment, for bounded telemetry. */
+        entryPoint?: DabDeploymentEntryPoint;
         /**
          * Deployment parameters (needed for some steps)
          */
